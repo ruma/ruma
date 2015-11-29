@@ -19,9 +19,9 @@ pub trait RoomEvent<'a, T>: Event<'a, T> {
 }
 
 /// An event that represents some aspect of a room's state.
-pub trait StateEvent<'a, T>: RoomEvent<'a, T> {
+pub trait StateEvent<'a, 'b, T>: RoomEvent<'a, T> {
     /// Previous content for this aspect of room state.
-    fn prev_content(&self) -> Option<&'a T>;
+    fn prev_content(&'a self) -> Option<&'b T>;
     /// A unique key which defines the overwriting semantics for this aspect of room state.
-    fn state_key() -> &'a str;
+    fn state_key(&self) -> &'a str;
 }
