@@ -52,7 +52,7 @@ pub struct SessionDescription<'a> {
     sdp: &'a str,
 }
 
-/// The types of VoIP session descriptions.
+/// The type of VoIP session description.
 pub enum SessionDescriptionType {
     /// An answer.
     Answer,
