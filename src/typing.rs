@@ -3,15 +3,15 @@
 use core::Event;
 
 /// Informs the client of the list of users currently typing.
-pub struct Typing<'a> {
+pub struct TypingEvent<'a> {
     /// The payload.
-    content: TypingContent<'a>,
+    content: TypingEventContent<'a>,
     /// The ID of the room associated with this event.
     room_id: &'a str,
 }
 
-impl<'a> Event<'a, TypingContent<'a>> for Typing<'a> {
-    fn content(&'a self) -> &'a TypingContent<'a> {
+impl<'a> Event<'a, TypingEventContent<'a>> for TypingEvent<'a> {
+    fn content(&'a self) -> &'a TypingEventContent<'a> {
         &self.content
     }
 
@@ -20,8 +20,8 @@ impl<'a> Event<'a, TypingContent<'a>> for Typing<'a> {
     }
 }
 
-/// The payload of a `Typing` event.
-pub struct TypingContent<'a> {
+/// The payload of a `TypingEvent`.
+pub struct TypingEventContent<'a> {
     /// The list of user IDs typing in this room, if any.
     user_ids: &'a[&'a str],
 }

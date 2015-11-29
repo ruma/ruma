@@ -3,13 +3,13 @@
 use core::Event;
 
 /// Informs the client of a user's presence state change.
-pub struct Presence<'a> {
-    content: PresenceContent<'a>,
+pub struct PresenceEvent<'a> {
+    content: PresenceEventContent<'a>,
     event_id: &'a str,
 }
 
-impl<'a> Event<'a, PresenceContent<'a>> for Presence<'a> {
-    fn content(&'a self) -> &'a PresenceContent {
+impl<'a> Event<'a, PresenceEventContent<'a>> for PresenceEvent<'a> {
+    fn content(&'a self) -> &'a PresenceEventContent {
         &self.content
     }
 
@@ -18,8 +18,8 @@ impl<'a> Event<'a, PresenceContent<'a>> for Presence<'a> {
     }
 }
 
-/// The payload of a `Presence` event.
-pub struct PresenceContent<'a> {
+/// The payload of a `PresenceEvent`.
+pub struct PresenceEventContent<'a> {
     /// The current avatar URL for this user.
     avatar_url: Option<&'a str>,
     /// The current display name for this user.

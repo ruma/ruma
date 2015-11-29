@@ -3,15 +3,15 @@
 use core::{Event, RoomEvent};
 
 /// This event is sent by the callee when they wish to answer the call.
-pub struct Answer<'a> {
-    content: AnswerContent<'a>,
+pub struct AnswerEvent<'a> {
+    content: AnswerEventContent<'a>,
     event_id: String,
     room_id: String,
     user_id: String,
 }
 
-impl<'a> Event<'a, AnswerContent<'a>> for Answer<'a> {
-    fn content(&'a self) -> &'a AnswerContent {
+impl<'a> Event<'a, AnswerEventContent<'a>> for AnswerEvent<'a> {
+    fn content(&'a self) -> &'a AnswerEventContent {
         &self.content
     }
 
@@ -20,7 +20,7 @@ impl<'a> Event<'a, AnswerContent<'a>> for Answer<'a> {
     }
 }
 
-impl<'a> RoomEvent<'a, AnswerContent<'a>> for Answer<'a> {
+impl<'a> RoomEvent<'a, AnswerEventContent<'a>> for AnswerEvent<'a> {
     fn event_id(&'a self) -> &'a str {
         &self.event_id
     }
@@ -34,8 +34,8 @@ impl<'a> RoomEvent<'a, AnswerContent<'a>> for Answer<'a> {
     }
 }
 
-/// The payload of an `Answer` event.
-pub struct AnswerContent<'a> {
+/// The payload of an `AnswerEvent`.
+pub struct AnswerEventContent<'a> {
     /// The VoIP session description.
     answer: SessionDescription<'a>,
     /// The ID of the call this event relates to.
@@ -62,15 +62,15 @@ pub enum SessionDescriptionType {
 
 /// This event is sent by callers after sending an invite and by the callee after answering.
 /// Its purpose is to give the other party additional ICE candidates to try using to communicate.
-pub struct Candidates<'a> {
-    content: CandidatesContent<'a>,
+pub struct CandidatesEvent<'a> {
+    content: CandidatesEventContent<'a>,
     event_id: &'a str,
     room_id: &'a str,
     user_id: &'a str,
 }
 
-impl<'a> Event<'a, CandidatesContent<'a>> for Candidates<'a> {
-    fn content(&'a self) -> &'a CandidatesContent {
+impl<'a> Event<'a, CandidatesEventContent<'a>> for CandidatesEvent<'a> {
+    fn content(&'a self) -> &'a CandidatesEventContent {
         &self.content
     }
 
@@ -79,7 +79,7 @@ impl<'a> Event<'a, CandidatesContent<'a>> for Candidates<'a> {
     }
 }
 
-impl<'a> RoomEvent<'a, CandidatesContent<'a>> for Candidates<'a> {
+impl<'a> RoomEvent<'a, CandidatesEventContent<'a>> for CandidatesEvent<'a> {
     fn event_id(&'a self) -> &'a str {
         &self.event_id
     }
@@ -93,8 +93,8 @@ impl<'a> RoomEvent<'a, CandidatesContent<'a>> for Candidates<'a> {
     }
 }
 
-/// The payload of a `Candidates` event.
-pub struct CandidatesContent<'a> {
+/// The payload of a `CandidatesEvent`.
+pub struct CandidatesEventContent<'a> {
     /// The ID of the call this event relates to.
     call_id: &'a str,
     /// A list of candidates.
@@ -115,15 +115,15 @@ pub struct Candidate<'a> {
 
 /// Sent by either party to signal their termination of the call. This can be sent either once the
 /// call has has been established or before to abort the call.
-pub struct Hangup<'a> {
-    content: HangupContent<'a>,
+pub struct HangupEvent<'a> {
+    content: HangupEventContent<'a>,
     event_id: &'a str,
     room_id: &'a str,
     user_id: &'a str,
 }
 
-impl<'a> Event<'a, HangupContent<'a>> for Hangup<'a> {
-    fn content(&'a self) -> &'a HangupContent {
+impl<'a> Event<'a, HangupEventContent<'a>> for HangupEvent<'a> {
+    fn content(&'a self) -> &'a HangupEventContent {
         &self.content
     }
 
@@ -132,7 +132,7 @@ impl<'a> Event<'a, HangupContent<'a>> for Hangup<'a> {
     }
 }
 
-impl<'a> RoomEvent<'a, HangupContent<'a>> for Hangup<'a> {
+impl<'a> RoomEvent<'a, HangupEventContent<'a>> for HangupEvent<'a> {
     fn event_id(&'a self) -> &'a str {
         &self.event_id
     }
@@ -146,8 +146,8 @@ impl<'a> RoomEvent<'a, HangupContent<'a>> for Hangup<'a> {
     }
 }
 
-/// The payload of a `Hangup` event.
-pub struct HangupContent<'a> {
+/// The payload of a `HangupEvent`.
+pub struct HangupEventContent<'a> {
     /// The ID of the call this event relates to.
     call_id: &'a str,
     /// The version of the VoIP specification this messages adheres to.
@@ -155,15 +155,15 @@ pub struct HangupContent<'a> {
 }
 
 /// This event is sent by the caller when they wish to establish a call.
-pub struct Invite<'a> {
-    content: InviteContent<'a>,
+pub struct InviteEvent<'a> {
+    content: InviteEventContent<'a>,
     event_id: &'a str,
     room_id: &'a str,
     user_id: &'a str,
 }
 
-impl<'a> Event<'a, InviteContent<'a>> for Invite<'a> {
-    fn content(&'a self) -> &'a InviteContent {
+impl<'a> Event<'a, InviteEventContent<'a>> for InviteEvent<'a> {
+    fn content(&'a self) -> &'a InviteEventContent {
         &self.content
     }
 
@@ -172,7 +172,7 @@ impl<'a> Event<'a, InviteContent<'a>> for Invite<'a> {
     }
 }
 
-impl<'a> RoomEvent<'a, InviteContent<'a>> for Invite<'a> {
+impl<'a> RoomEvent<'a, InviteEventContent<'a>> for InviteEvent<'a> {
     fn event_id(&'a self) -> &'a str {
         &self.event_id
     }
@@ -186,8 +186,8 @@ impl<'a> RoomEvent<'a, InviteContent<'a>> for Invite<'a> {
     }
 }
 
-/// The payload of an `Invite` event.
-pub struct InviteContent<'a> {
+/// The payload of an `InviteEvent`.
+pub struct InviteEventContent<'a> {
     /// A unique identifer for the call.
     call_id: &'a str,
     /// The time in milliseconds that the invite is valid for. Once the invite age exceeds this
