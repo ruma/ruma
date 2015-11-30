@@ -1,6 +1,6 @@
 //! Types for the *m.call.candidates* event.
 
-use core::{Event, RoomEvent};
+use core::{Event, EventType, RoomEvent};
 
 /// This event is sent by callers after sending an invite and by the callee after answering.
 /// Its purpose is to give the other party additional ICE candidates to try using to communicate.
@@ -16,8 +16,8 @@ impl<'a> Event<'a, CandidatesEventContent<'a>> for CandidatesEvent<'a> {
         &self.content
     }
 
-    fn event_type(&self) -> &'static str {
-        "m.call.candidates"
+    fn event_type(&self) -> EventType {
+        EventType::CallCandidates
     }
 }
 

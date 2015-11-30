@@ -1,6 +1,6 @@
 //! Types for the *m.room.join_rules* event.
 
-use core::{Event, RoomEvent, StateEvent};
+use core::{Event, EventType, RoomEvent, StateEvent};
 
 /// Describes how users are allowed to join the room.
 pub struct JoinRulesEvent<'a, 'b> {
@@ -16,8 +16,8 @@ impl<'a, 'b> Event<'a, JoinRulesEventContent<'a>> for JoinRulesEvent<'a, 'b> {
         &self.content
     }
 
-    fn event_type(&self) -> &'static str {
-        "m.room.join_rules"
+    fn event_type(&self) -> EventType {
+        EventType::RoomJoinRules
     }
 }
 

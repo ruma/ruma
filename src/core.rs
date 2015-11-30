@@ -1,11 +1,37 @@
-//! Traits for the basic kinds of events.
+//! Types for the basic kinds of events.
+
+/// The type of an event.
+pub enum EventType {
+    CallAnswer,
+    CallCandidates,
+    CallHangup,
+    CallInvite,
+    Presence,
+    Receipt,
+    RoomAliases,
+    RoomAvatar,
+    RoomCanonicalAlias,
+    RoomCreate,
+    RoomGuestAccess,
+    RoomHistoryVisibility,
+    RoomJoinRules,
+    RoomMember,
+    RoomMessage,
+    RoomMessageFeedback,
+    RoomName,
+    RoomPowerLevels,
+    RoomRedaction,
+    RoomThirdPartyInvite,
+    RoomTopic,
+    Typing,
+}
 
 /// Functionality common to all events.
 pub trait Event<'a, T> {
     /// The primary event payload.
     fn content(&'a self) -> &'a T;
-    /// The type of event, e.g. *com.example.subdomain.event.type*.
-    fn event_type(&self) -> &'static str;
+    /// The type of event.
+    fn event_type(&self) -> EventType;
 }
 
 /// An event emitted within the context of a room.

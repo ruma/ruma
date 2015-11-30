@@ -1,6 +1,6 @@
 //! Types for the *m.call.invite* event.
 
-use core::{Event, RoomEvent};
+use core::{Event, EventType, RoomEvent};
 use super::{SessionDescription, SessionDescriptionType};
 
 /// This event is sent by the caller when they wish to establish a call.
@@ -16,8 +16,8 @@ impl<'a> Event<'a, InviteEventContent<'a>> for InviteEvent<'a> {
         &self.content
     }
 
-    fn event_type(&self) -> &'static str {
-        "m.call.invite"
+    fn event_type(&self) -> EventType {
+        EventType::CallInvite
     }
 }
 

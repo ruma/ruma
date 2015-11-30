@@ -1,6 +1,6 @@
 //! Types for the *m.room.history_visibility* event.
 
-use core::{Event, RoomEvent, StateEvent};
+use core::{Event, EventType, RoomEvent, StateEvent};
 
 /// This event controls whether a member of a room can see the events that happened in a room from
 /// before they joined.
@@ -17,8 +17,8 @@ impl<'a, 'b> Event<'a, HistoryVisibilityEventContent<'a>> for HistoryVisibilityE
         &self.content
     }
 
-    fn event_type(&self) -> &'static str {
-        "m.room.history_visibility"
+    fn event_type(&self) -> EventType {
+        EventType::RoomHistoryVisibility
     }
 }
 

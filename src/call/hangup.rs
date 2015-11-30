@@ -1,6 +1,6 @@
 //! Types for the *m.call.hangup* event.
 
-use core::{Event, RoomEvent};
+use core::{Event, EventType, RoomEvent};
 
 /// Sent by either party to signal their termination of the call. This can be sent either once the
 /// call has has been established or before to abort the call.
@@ -16,8 +16,8 @@ impl<'a> Event<'a, HangupEventContent<'a>> for HangupEvent<'a> {
         &self.content
     }
 
-    fn event_type(&self) -> &'static str {
-        "m.call.hangup"
+    fn event_type(&self) -> EventType {
+        EventType::CallHangup
     }
 }
 

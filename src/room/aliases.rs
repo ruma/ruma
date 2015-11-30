@@ -1,6 +1,6 @@
 //! Types for the *m.room.aliases* event.
 
-use core::{Event, RoomEvent, StateEvent};
+use core::{Event, EventType, RoomEvent, StateEvent};
 
 /// Informs the room about what room aliases it has been given.
 pub struct AliasesEvent<'a, 'b> {
@@ -18,8 +18,8 @@ impl<'a, 'b> Event<'a, AliasesEventContent<'a>> for AliasesEvent<'a, 'b> {
         &self.content
     }
 
-    fn event_type(&self) -> &'static str {
-        "m.room.aliases"
+    fn event_type(&self) -> EventType {
+        EventType::RoomAliases
     }
 }
 

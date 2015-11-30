@@ -1,6 +1,6 @@
 //! Types for the *m.room.canonical_alias* event.
 
-use core::{Event, RoomEvent, StateEvent};
+use core::{Event, EventType, RoomEvent, StateEvent};
 
 /// Informs the room as to which alias is the canonical one.
 pub struct CanonicalAliasEvent<'a, 'b> {
@@ -16,8 +16,8 @@ impl<'a, 'b> Event<'a, CanonicalAliasEventContent<'a>> for CanonicalAliasEvent<'
         &self.content
     }
 
-    fn event_type(&self) -> &'static str {
-        "m.room.canonical_alias"
+    fn event_type(&self) -> EventType {
+        EventType::RoomCanonicalAlias
     }
 }
 

@@ -1,6 +1,6 @@
 //! Types for the *m.presence* event.
 
-use core::Event;
+use core::{Event, EventType};
 
 /// Informs the client of a user's presence state change.
 pub struct PresenceEvent<'a> {
@@ -13,8 +13,8 @@ impl<'a> Event<'a, PresenceEventContent<'a>> for PresenceEvent<'a> {
         &self.content
     }
 
-    fn event_type(&self) -> &'static str {
-        "m.presence"
+    fn event_type(&self) -> EventType {
+        EventType::Presence
     }
 }
 

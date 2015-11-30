@@ -1,6 +1,6 @@
 //! Types for the *m.call.answer* event.
 
-use core::{Event, RoomEvent};
+use core::{Event, EventType, RoomEvent};
 use super::{SessionDescription, SessionDescriptionType};
 
 /// This event is sent by the callee when they wish to answer the call.
@@ -16,8 +16,8 @@ impl<'a> Event<'a, AnswerEventContent<'a>> for AnswerEvent<'a> {
         &self.content
     }
 
-    fn event_type(&self) -> &'static str {
-        "m.call.answer"
+    fn event_type(&self) -> EventType {
+        EventType::CallAnswer
     }
 }
 

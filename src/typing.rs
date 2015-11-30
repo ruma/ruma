@@ -1,6 +1,6 @@
 //! Types for the *m.typing* event.
 
-use core::Event;
+use core::{Event, EventType};
 
 /// Informs the client of the list of users currently typing.
 pub struct TypingEvent<'a> {
@@ -15,8 +15,8 @@ impl<'a> Event<'a, TypingEventContent<'a>> for TypingEvent<'a> {
         &self.content
     }
 
-    fn event_type(&self) -> &'static str {
-        "m.typing"
+    fn event_type(&self) -> EventType {
+        EventType::Typing
     }
 }
 

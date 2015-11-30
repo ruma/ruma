@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use core::Event;
+use core::{Event, EventType};
 
 /// Informs the client of new receipts.
 pub struct ReceiptEvent<'a> {
@@ -15,8 +15,8 @@ impl<'a> Event<'a, ReceiptEventContent<'a>> for ReceiptEvent<'a> {
         &self.content
     }
 
-    fn event_type(&self) -> &'static str {
-        "m.receipt"
+    fn event_type(&self) -> EventType {
+        EventType::Receipt
     }
 }
 
