@@ -1,6 +1,6 @@
-//! Traits for types of events that share common fields.
+//! Traits for the basic kinds of events.
 
-/// The basic set of fields all events must have.
+/// Functionality common to all events.
 pub trait Event<'a, T> {
     /// The primary event payload.
     fn content(&'a self) -> &'a T;

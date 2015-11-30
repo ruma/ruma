@@ -1,4 +1,4 @@
-//! Events within the *m.presence* namespace.
+//! Types for the *m.presence* event.
 
 use core::Event;
 

@@ -1,4 +1,4 @@
-//! Events within the *m.typing* namespace.
+//! Types for the *m.typing* event.
 
 use core::Event;
 

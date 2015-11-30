@@ -1,4 +1,4 @@
-//! Events within the *m.receipt* namespace.
+//! Types for the *m.receipt* event.
 
 use std::collections::HashMap;
 
@@ -20,9 +20,10 @@ impl<'a> Event<'a, ReceiptEventContent<'a>> for ReceiptEvent<'a> {
     }
 }
 
-/// The payload of a `ReceiptEvent`. The mapping of event ID to a collection of receipts for this
-/// event ID. The event ID is the ID of the event being acknowledged and *not* an ID for the receipt
-/// itself.
+/// The payload of a `ReceiptEvent`.
+///
+/// A mapping of event ID to a collection of receipts for this event ID. The event ID is the ID of
+/// the event being acknowledged and *not* an ID for the receipt itself.
 pub type ReceiptEventContent<'a> = HashMap<&'a str, Receipts<'a>>;
 
 /// A collection of receipts.
@@ -31,7 +32,9 @@ pub struct Receipts<'a> {
     m_read: UserReceipts<'a>,
 }
 
-/// The mapping of user ID to receipt. The user ID is the entity who sent this receipt.
+/// A mapping of user ID to receipt.
+///
+/// The user ID is the entity who sent this receipt.
 pub type UserReceipts<'a> = HashMap<&'a str, Receipt>;
 
 /// An acknowledgement of an event.
