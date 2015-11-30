@@ -23,6 +23,7 @@ pub enum EventType {
     RoomRedaction,
     RoomThirdPartyInvite,
     RoomTopic,
+    Tag,
     Typing,
 }
 
