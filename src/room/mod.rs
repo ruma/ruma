@@ -16,3 +16,11 @@ pub mod power_levels;
 pub mod redaction;
 pub mod third_party_invite;
 pub mod topic;
+
+/// Metadata about an image.
+pub struct ImageInfo<'a> {
+    height: u64,
+    mimetype: &'a str,
+    size: u64,
+    width: u64,
+}
