@@ -57,3 +57,18 @@ pub trait StateEvent<'a, 'b, T>: RoomEvent<'a, T> {
         ""
     }
 }
+
+/// A stripped-down version of a state event that is included along with some other events.
+pub struct StrippedState<'a, T: 'a> {
+    content: &'a T,
+    state_key: &'a str,
+    event_type: StrippedStateType,
+}
+
+/// The type of event in a `StrippedState`.
+pub enum StrippedStateType {
+    RoomAvatar,
+    RoomCanonicalAlias,
+    RoomJoinRules,
+    RoomName,
+}
