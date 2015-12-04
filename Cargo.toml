@@ -1,0 +1,21 @@
+[package]
+authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
+description = "Digital signatures according to the Matrix specification."
+documentation = "http://ruma.github.io/ruma-signatures/ruma-signatures"
+homepage = "https://github.com/ruma/ruma-signatures"
+keywords = ["matrix", "matrix.org", "chat", "messaging", "ruma"]
+license = "MIT"
+name = "ruma-signatures"
+readme = "README.md"
+repository = "https://github.com/ruma/ruma-signatures"
+version = "0.1.0"
+
+[lib]
+# name = "etcd"
+doctest = false
+
+[dependencies]
+lazy_static = "0.1.15"
+rustc-serialize = "0.3.16"
+serde_json = "0.6.0"
+sodiumoxide = "0.0.9"
