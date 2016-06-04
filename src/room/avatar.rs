@@ -7,19 +7,19 @@ use super::ImageInfo;
 ///
 /// This can be displayed alongside the room information.
 pub struct AvatarEvent {
-    content: AvatarEventContent,
-    event_id: String,
-    event_type: EventType,
-    prev_content: Option<AvatarEventContent>,
-    room_id: String,
-    state_key: String,
-    user_id: String,
+    pub content: AvatarEventContent,
+    pub event_id: String,
+    pub event_type: EventType,
+    pub prev_content: Option<AvatarEventContent>,
+    pub room_id: String,
+    pub state_key: String,
+    pub user_id: String,
 }
 
 /// The payload of an `AvatarEvent`.
 pub struct AvatarEventContent {
-    info: ImageInfo,
-    thumbnail_info: ImageInfo,
-    thumbnail_url: String,
-    url: String,
+    pub info: ImageInfo,
+    pub thumbnail_info: ImageInfo,
+    pub thumbnail_url: String,
+    pub url: String,
 }

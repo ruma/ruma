@@ -4,21 +4,21 @@ use core::EventType;
 
 /// Informs the client of a user's presence state change.
 pub struct PresenceEvent {
-    content: PresenceEventContent,
-    event_id: String,
-    event_type: EventType,
+    pub content: PresenceEventContent,
+    pub event_id: String,
+    pub event_type: EventType,
 }
 
 /// The payload of a `PresenceEvent`.
 pub struct PresenceEventContent {
     /// The current avatar URL for this user.
-    avatar_url: Option<String>,
+    pub avatar_url: Option<String>,
     /// The current display name for this user.
-    displayname: Option<String>,
+    pub displayname: Option<String>,
     /// The last time since this used performed some action, in milliseconds.
-    last_active_ago: Option<u64>,
+    pub last_active_ago: Option<u64>,
     /// The presence state for this user.
-    presence: PresenceState,
+    pub presence: PresenceState,
 }
 
 /// A description of a user's connectivity and availability for chat.

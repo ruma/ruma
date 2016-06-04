@@ -19,8 +19,8 @@ pub mod topic;
 
 /// Metadata about an image.
 pub struct ImageInfo {
-    height: u64,
-    mimetype: String,
-    size: u64,
-    width: u64,
+    pub height: u64,
+    pub mimetype: String,
+    pub size: u64,
+    pub width: u64,
 }

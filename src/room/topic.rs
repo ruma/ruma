@@ -4,17 +4,17 @@ use core::EventType;
 
 /// A topic is a short message detailing what is currently being discussed in the room.
 pub struct TopicEvent {
-    content: TopicEventContent,
-    event_id: String,
-    event_type: EventType,
-    prev_content: Option<TopicEventContent>,
-    room_id: String,
-    state_key: String,
-    user_id: String,
+    pub content: TopicEventContent,
+    pub event_id: String,
+    pub event_type: EventType,
+    pub prev_content: Option<TopicEventContent>,
+    pub room_id: String,
+    pub state_key: String,
+    pub user_id: String,
 }
 
 /// The payload of a `TopicEvent`.
 pub struct TopicEventContent {
     /// The topic text.
-    topic: String,
+    pub topic: String,
 }

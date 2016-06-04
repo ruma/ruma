@@ -6,9 +6,9 @@ use core::EventType;
 
 /// Informs the client of new receipts.
 pub struct ReceiptEvent {
-    content: ReceiptEventContent,
-    event_type: EventType,
-    room_id: String,
+    pub content: ReceiptEventContent,
+    pub event_type: EventType,
+    pub room_id: String,
 }
 
 /// The payload of a `ReceiptEvent`.
@@ -20,7 +20,7 @@ pub type ReceiptEventContent = HashMap<String, Receipts>;
 /// A collection of receipts.
 pub struct Receipts {
     /// A collection of users who have sent *m.read* receipts for this event.
-    m_read: UserReceipts,
+    pub m_read: UserReceipts,
 }
 
 /// A mapping of user ID to receipt.
@@ -31,5 +31,5 @@ pub type UserReceipts = HashMap<String, Receipt>;
 /// An acknowledgement of an event.
 pub struct Receipt {
     /// The timestamp the receipt was sent at.
-    ts: u64,
+    pub ts: u64,
 }

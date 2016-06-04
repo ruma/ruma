@@ -7,18 +7,18 @@ use core::EventType;
 /// This event controls whether guest users are allowed to join rooms. If this event is absent,
 /// servers should act as if it is present and has the value `GuestAccess::Forbidden`.
 pub struct GuestAccessEvent {
-    content: GuestAccessEventContent,
-    event_id: String,
-    event_type: EventType,
-    prev_content: Option<GuestAccessEventContent>,
-    room_id: String,
-    state_key: String,
-    user_id: String,
+    pub content: GuestAccessEventContent,
+    pub event_id: String,
+    pub event_type: EventType,
+    pub prev_content: Option<GuestAccessEventContent>,
+    pub room_id: String,
+    pub state_key: String,
+    pub user_id: String,
 }
 
 /// The payload of a `GuestAccessEvent`.
 pub struct GuestAccessEventContent {
-    guest_access: GuestAccess,
+    pub guest_access: GuestAccess,
 }
 
 /// A policy for guest user access to a room.

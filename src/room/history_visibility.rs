@@ -5,19 +5,19 @@ use core::EventType;
 /// This event controls whether a member of a room can see the events that happened in a room from
 /// before they joined.
 pub struct HistoryVisibilityEvent {
-    content: HistoryVisibilityEventContent,
-    event_id: String,
-    event_type: EventType,
-    prev_content: Option<HistoryVisibilityEventContent>,
-    room_id: String,
-    state_key: String,
-    user_id: String,
+    pub content: HistoryVisibilityEventContent,
+    pub event_id: String,
+    pub event_type: EventType,
+    pub prev_content: Option<HistoryVisibilityEventContent>,
+    pub room_id: String,
+    pub state_key: String,
+    pub user_id: String,
 }
 
 /// The payload of a `HistoryVisibilityEvent`.
 pub struct HistoryVisibilityEventContent {
     /// Who can see the room history.
-    history_visibility: HistoryVisibility,
+    pub history_visibility: HistoryVisibility,
 }
 
 /// Who can see a room's history.

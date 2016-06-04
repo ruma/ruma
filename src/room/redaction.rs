@@ -4,17 +4,17 @@ use core::EventType;
 
 /// A redaction of an event.
 pub struct RedactionEvent {
-    content: RedactionEventContent,
-    event_id: String,
-    event_type: EventType,
+    pub content: RedactionEventContent,
+    pub event_id: String,
+    pub event_type: EventType,
     /// The ID of the event that was redacted.
-    redacts: String,
-    room_id: String,
-    user_id: String,
+    pub redacts: String,
+    pub room_id: String,
+    pub user_id: String,
 }
 
 /// The payload of a `RedactionEvent`.
 pub struct RedactionEventContent {
     /// The reason for the redaction, if any.
-    reason: Option<String>,
+    pub reason: Option<String>,
 }

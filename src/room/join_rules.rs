@@ -4,19 +4,19 @@ use core::EventType;
 
 /// Describes how users are allowed to join the room.
 pub struct JoinRulesEvent {
-    content: JoinRulesEventContent,
-    event_id: String,
-    event_type: EventType,
-    prev_content: Option<JoinRulesEventContent>,
-    room_id: String,
-    state_key: String,
-    user_id: String,
+    pub content: JoinRulesEventContent,
+    pub event_id: String,
+    pub event_type: EventType,
+    pub prev_content: Option<JoinRulesEventContent>,
+    pub room_id: String,
+    pub state_key: String,
+    pub user_id: String,
 }
 
 /// The payload of a `JoinRulesEvent`.
 pub struct JoinRulesEventContent {
     /// The type of rules used for users wishing to join this room.
-    join_rule: JoinRule,
+    pub join_rule: JoinRule,
 }
 
 /// The rule used for users wishing to join this room.

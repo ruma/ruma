@@ -10,9 +10,9 @@ pub mod invite;
 /// A VoIP session description.
 pub struct SessionDescription {
     /// The type of session description.
-    session_type: SessionDescriptionType,
+    pub session_type: SessionDescriptionType,
     /// The SDP text of the session description.
-    sdp: String,
+    pub sdp: String,
 }
 
 /// The type of VoIP session description.

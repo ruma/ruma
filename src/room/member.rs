@@ -1,7 +1,5 @@
 //! Types for the *m.room.member* event.
 
-use std::collections::HashMap;
-
 use core::{EventType, StrippedState};
 
 /// The current membership state of a user in the room.
@@ -18,22 +16,23 @@ use core::{EventType, StrippedState};
 /// this contains an array of `StrippedState` events. These events provide information on a few
 /// select state events such as the room name.
 pub struct MemberEvent {
-    content: MemberEventContent,
-    event_id: String,
-    event_type: EventType,
-    invite_room_state: Option<Vec<StrippedState>>,
-    prev_content: Option<MemberEventContent>,
-    room_id: String,
-    state_key: String,
-    user_id: String,
+    pub content: MemberEventContent,
+    pub event_id: String,
+    pub event_type: EventType,
+    pub invite_room_state: Option<Vec<StrippedState>>,
+    pub prev_content: Option<MemberEventContent>,
+    pub room_id: String,
+    pub state_key: String,
+    pub user_id: String,
 }
 
 /// The payload of a `MemberEvent`.
 pub struct MemberEventContent {
-    avatar_url: Option<String>,
-    displayname: Option<String>,
-    membership: MembershipState,
-    third_party_invite: (), // TODO
+    pub avatar_url: Option<String>,
+    pub displayname: Option<String>,
+    pub membership: MembershipState,
+    /// Warning: This field is not implemented yet and its type will change!
+    pub third_party_invite: (), // TODO
 }
 
 /// The membership state of a user.

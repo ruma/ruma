@@ -42,9 +42,9 @@ pub enum StrippedState {
 
 /// The general form of a `StrippedState`.
 pub struct StrippedStateContent<T> {
-    content: T,
-    event_type: EventType,
-    state_key: String,
+    pub content: T,
+    pub event_type: EventType,
+    pub state_key: String,
 }
 
 pub type StrippedRoomAvatar = StrippedStateContent<AvatarEventContent>;

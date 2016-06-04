@@ -7,16 +7,17 @@ use core::EventType;
 /// Informs the client of tags on a room.
 pub struct TagEvent {
     /// The payload.
-    content: TagEventContent,
+    pub content: TagEventContent,
+    pub event_type: EventType,
 }
 
 /// The payload of a `TagEvent`.
 pub struct TagEventContent {
     /// A map of tag names to tag info.
-    tags: HashMap<String, TagInfo>,
+    pub tags: HashMap<String, TagInfo>,
 }
 
 /// Information about a tag.
 pub struct TagInfo {
-    order: Option<u64>,
+    pub order: Option<u64>,
 }

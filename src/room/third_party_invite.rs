@@ -8,18 +8,18 @@ use core::EventType;
 /// event contains a token and a public key whose private key must be used to sign the token. Any
 /// user who can present that signature may use this invitation to join the target room.
 pub struct ThirdPartyInviteEvent {
-    content: ThirdPartyInviteEventContent,
-    event_id: String,
-    event_type: EventType,
-    prev_content: Option<ThirdPartyInviteEventContent>,
-    room_id: String,
-    state_key: String,
-    user_id: String,
+    pub content: ThirdPartyInviteEventContent,
+    pub event_id: String,
+    pub event_type: EventType,
+    pub prev_content: Option<ThirdPartyInviteEventContent>,
+    pub room_id: String,
+    pub state_key: String,
+    pub user_id: String,
 }
 
 /// The payload of a `ThirdPartyInviteEvent`.
 pub struct ThirdPartyInviteEventContent {
-    display_name: String,
-    key_validity_url: String,
-    public_key: String,
+    pub display_name: String,
+    pub key_validity_url: String,
+    pub public_key: String,
 }
