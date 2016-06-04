@@ -2,29 +2,21 @@
 
 use std::collections::HashMap;
 
-use core::{Event, EventType};
+use core::EventType;
 
 /// Informs the client of tags on a room.
-pub struct TagEvent<'a> {
+pub struct TagEvent {
     /// The payload.
-    content: TagEventContent<'a>,
-}
-
-impl<'a> Event<'a, TagEventContent<'a>> for TagEvent<'a> {
-    fn content(&'a self) -> &'a TagEventContent<'a> {
-        &self.content
-    }
-
-    fn event_type(&self) -> EventType {
-        EventType::Tag
-    }
+    content: TagEventContent,
 }
 
 /// The payload of a `TagEvent`.
-pub struct TagEventContent<'a> {
-    /// The list of user IDs typing in this room, if any.
-    tags: &'a Tags<'a>,
+pub struct TagEventContent {
+    /// A map of tag names to tag info.
+    tags: HashMap<String, TagInfo>,
 }
 
-/// A map of tag names to values.
-pub type Tags<'a> = HashMap<&'a str, &'a str>;
+/// Information about a tag.
+pub struct TagInfo {
+    order: Option<u64>,
+}

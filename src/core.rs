@@ -1,5 +1,10 @@
 //! Types for the basic kinds of events.
 
+use room::avatar::AvatarEventContent;
+use room::canonical_alias::CanonicalAliasEventContent;
+use room::join_rules::JoinRulesEventContent;
+use room::name::NameEventContent;
+
 /// The type of an event.
 pub enum EventType {
     CallAnswer,
@@ -27,48 +32,22 @@ pub enum EventType {
     Typing,
 }
 
-/// Functionality common to all events.
-pub trait Event<'a, T> {
-    /// The primary event payload.
-    fn content(&'a self) -> &'a T;
-    /// The type of event.
-    fn event_type(&self) -> EventType;
-}
-
-/// An event emitted within the context of a room.
-pub trait RoomEvent<'a, T>: Event<'a, T> {
-    /// The globally unique event identifier.
-    fn event_id(&'a self) -> &'a str;
-    /// The ID of the room associated with this event.
-    fn room_id(&'a self) -> &'a str;
-    /// The fully-qualified ID of the user who sent the event.
-    fn user_id(&'a self) -> &'a str;
-}
-
-/// An event that represents some aspect of a room's state.
-pub trait StateEvent<'a, 'b, T>: RoomEvent<'a, T> {
-    /// Previous content for this aspect of room state.
-    fn prev_content(&'a self) -> Option<&'b T> {
-        None
-    }
-
-    /// A unique key which defines the overwriting semantics for this aspect of room state.
-    fn state_key(&self) -> &'a str {
-        ""
-    }
-}
-
 /// A stripped-down version of a state event that is included along with some other events.
-pub struct StrippedState<'a, T: 'a> {
-    content: &'a T,
-    state_key: &'a str,
-    event_type: StrippedStateType,
+pub enum StrippedState {
+    RoomAvatar(StrippedRoomAvatar),
+    RoomCanonicalAlias(StrippedRoomCanonicalAlias),
+    RoomJoinRules(StrippedRoomJoinRules),
+    RoomName(StrippedRoomName),
 }
 
-/// The type of event in a `StrippedState`.
-pub enum StrippedStateType {
-    RoomAvatar,
-    RoomCanonicalAlias,
-    RoomJoinRules,
-    RoomName,
+/// The general form of a `StrippedState`.
+pub struct StrippedStateContent<T> {
+    content: T,
+    event_type: EventType,
+    state_key: String,
 }
+
+pub type StrippedRoomAvatar = StrippedStateContent<AvatarEventContent>;
+pub type StrippedRoomCanonicalAlias = StrippedStateContent<CanonicalAliasEventContent>;
+pub type StrippedRoomJoinRules = StrippedStateContent<JoinRulesEventContent>;
+pub type StrippedRoomName = StrippedStateContent<NameEventContent>;

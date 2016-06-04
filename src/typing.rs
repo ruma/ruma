@@ -1,27 +1,18 @@
 //! Types for the *m.typing* event.
 
-use core::{Event, EventType};
+use core::EventType;
 
 /// Informs the client of the list of users currently typing.
-pub struct TypingEvent<'a> {
+pub struct TypingEvent {
     /// The payload.
-    content: TypingEventContent<'a>,
+    content: TypingEventContent,
+    event_type: EventType,
     /// The ID of the room associated with this event.
-    room_id: &'a str,
-}
-
-impl<'a> Event<'a, TypingEventContent<'a>> for TypingEvent<'a> {
-    fn content(&'a self) -> &'a TypingEventContent<'a> {
-        &self.content
-    }
-
-    fn event_type(&self) -> EventType {
-        EventType::Typing
-    }
+    room_id: String,
 }
 
 /// The payload of a `TypingEvent`.
-pub struct TypingEventContent<'a> {
+pub struct TypingEventContent {
     /// The list of user IDs typing in this room, if any.
-    user_ids: &'a[&'a str],
+    user_ids: Vec<String>,
 }

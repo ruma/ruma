@@ -18,9 +18,9 @@ pub mod third_party_invite;
 pub mod topic;
 
 /// Metadata about an image.
-pub struct ImageInfo<'a> {
+pub struct ImageInfo {
     height: u64,
-    mimetype: &'a str,
+    mimetype: String,
     size: u64,
     width: u64,
 }

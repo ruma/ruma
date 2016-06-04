@@ -8,11 +8,11 @@ pub mod hangup;
 pub mod invite;
 
 /// A VoIP session description.
-pub struct SessionDescription<'a> {
+pub struct SessionDescription {
     /// The type of session description.
     session_type: SessionDescriptionType,
     /// The SDP text of the session description.
-    sdp: &'a str,
+    sdp: String,
 }
 
 /// The type of VoIP session description.

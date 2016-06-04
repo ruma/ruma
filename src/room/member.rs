@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use core::{Event, EventType, RoomEvent, StateEvent, StrippedState, StrippedStateType};
+use core::{EventType, StrippedState};
 
 /// The current membership state of a user in the room.
 ///
@@ -17,57 +17,21 @@ use core::{Event, EventType, RoomEvent, StateEvent, StrippedState, StrippedState
 /// This event may also include an *invite_room_state* key outside the *content* key. If present,
 /// this contains an array of `StrippedState` events. These events provide information on a few
 /// select state events such as the room name.
-pub struct MemberEvent<'a, 'b, T: 'a> {
-    content: MemberEventContent<'a>,
-    event_id: &'a str,
-    invite_room_state: Option<&'a[&'a StrippedState<'a, T>]>,
-    prev_content: Option<MemberEventContent<'b>>,
-    room_id: &'a str,
-    state_key: &'a str,
-    user_id: &'a str,
-}
-
-impl<'a, 'b, T> Event<'a, MemberEventContent<'a>> for MemberEvent<'a, 'b, T> {
-    fn content(&'a self) -> &'a MemberEventContent<'a> {
-        &self.content
-    }
-
-    fn event_type(&self) -> EventType {
-        EventType::RoomMember
-    }
-}
-
-impl<'a, 'b, T> RoomEvent<'a, MemberEventContent<'a>> for MemberEvent<'a, 'b, T> {
-    fn event_id(&'a self) -> &'a str {
-        &self.event_id
-    }
-
-    fn room_id(&'a self) -> &'a str {
-        &self.room_id
-    }
-
-    fn user_id(&'a self) -> &'a str {
-        &self.user_id
-    }
-}
-
-impl<'a, 'b, T> StateEvent<'a, 'b, MemberEventContent<'a>> for MemberEvent<'a, 'b, T> {
-    fn prev_content(&'a self) -> Option<&'b MemberEventContent> {
-        match self.prev_content {
-            Some(ref prev_content) => Some(prev_content),
-            None => None,
-        }
-    }
-
-    fn state_key(&self) -> &'a str {
-        &self.state_key
-    }
+pub struct MemberEvent {
+    content: MemberEventContent,
+    event_id: String,
+    event_type: EventType,
+    invite_room_state: Option<Vec<StrippedState>>,
+    prev_content: Option<MemberEventContent>,
+    room_id: String,
+    state_key: String,
+    user_id: String,
 }
 
 /// The payload of a `MemberEvent`.
-pub struct MemberEventContent<'a> {
-    avatar_url: Option<&'a str>,
-    displayname: Option<&'a str>,
+pub struct MemberEventContent {
+    avatar_url: Option<String>,
+    displayname: Option<String>,
     membership: MembershipState,
     third_party_invite: (), // TODO
 }
