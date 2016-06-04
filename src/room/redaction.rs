@@ -3,6 +3,7 @@
 use core::EventType;
 
 /// A redaction of an event.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RedactionEvent {
     pub content: RedactionEventContent,
     pub event_id: String,
@@ -14,6 +15,7 @@ pub struct RedactionEvent {
 }
 
 /// The payload of a `RedactionEvent`.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct RedactionEventContent {
     /// The reason for the redaction, if any.
     pub reason: Option<String>,

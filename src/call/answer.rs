@@ -4,6 +4,7 @@ use core::EventType;
 use super::SessionDescription;
 
 /// This event is sent by the callee when they wish to answer the call.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AnswerEvent {
     pub content: AnswerEventContent,
     pub event_id: String,
@@ -13,6 +14,7 @@ pub struct AnswerEvent {
 }
 
 /// The payload of an `AnswerEvent`.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AnswerEventContent {
     /// The VoIP session description.
     pub answer: SessionDescription,

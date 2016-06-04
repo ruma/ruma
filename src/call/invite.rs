@@ -4,6 +4,7 @@ use core::EventType;
 use super::SessionDescription;
 
 /// This event is sent by the caller when they wish to establish a call.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct InviteEvent {
     pub content: InviteEventContent,
     pub event_id: String,
@@ -13,6 +14,7 @@ pub struct InviteEvent {
 }
 
 /// The payload of an `InviteEvent`.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct InviteEventContent {
     /// A unique identifer for the call.
     pub call_id: String,

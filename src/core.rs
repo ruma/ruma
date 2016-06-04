@@ -6,6 +6,7 @@ use room::join_rules::JoinRulesEventContent;
 use room::name::NameEventContent;
 
 /// The type of an event.
+#[derive(Debug, Deserialize, Serialize)]
 pub enum EventType {
     CallAnswer,
     CallCandidates,
@@ -33,6 +34,7 @@ pub enum EventType {
 }
 
 /// A stripped-down version of a state event that is included along with some other events.
+#[derive(Debug, Deserialize, Serialize)]
 pub enum StrippedState {
     RoomAvatar(StrippedRoomAvatar),
     RoomCanonicalAlias(StrippedRoomCanonicalAlias),
@@ -41,6 +43,7 @@ pub enum StrippedState {
 }
 
 /// The general form of a `StrippedState`.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct StrippedStateContent<T> {
     pub content: T,
     pub event_type: EventType,

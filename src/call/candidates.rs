@@ -4,6 +4,7 @@ use core::EventType;
 
 /// This event is sent by callers after sending an invite and by the callee after answering.
 /// Its purpose is to give the other party additional ICE candidates to try using to communicate.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct CandidatesEvent {
     pub content: CandidatesEventContent,
     pub event_id: String,
@@ -13,6 +14,7 @@ pub struct CandidatesEvent {
 }
 
 /// The payload of a `CandidatesEvent`.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct CandidatesEventContent {
     /// The ID of the call this event relates to.
     pub call_id: String,
@@ -23,6 +25,7 @@ pub struct CandidatesEventContent {
 }
 
 /// An ICE (Interactive Connectivity Establishment) candidate.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Candidate {
     /// The SDP "a" line of the candidate.
     pub candidate: String,

@@ -6,6 +6,7 @@ use super::ImageInfo;
 /// A picture that is associated with the room.
 ///
 /// This can be displayed alongside the room information.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AvatarEvent {
     pub content: AvatarEventContent,
     pub event_id: String,
@@ -17,6 +18,7 @@ pub struct AvatarEvent {
 }
 
 /// The payload of an `AvatarEvent`.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AvatarEventContent {
     pub info: ImageInfo,
     pub thumbnail_info: ImageInfo,

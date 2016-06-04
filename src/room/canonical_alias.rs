@@ -3,6 +3,7 @@
 use core::EventType;
 
 /// Informs the room as to which alias is the canonical one.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct CanonicalAliasEvent {
     pub content: CanonicalAliasEventContent,
     pub event_id: String,
@@ -14,6 +15,7 @@ pub struct CanonicalAliasEvent {
 }
 
 /// The payload of a `CanonicalAliasEvent`.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct CanonicalAliasEventContent {
     /// The canonical alias.
     pub alias: String,

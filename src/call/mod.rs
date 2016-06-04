@@ -8,6 +8,7 @@ pub mod hangup;
 pub mod invite;
 
 /// A VoIP session description.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct SessionDescription {
     /// The type of session description.
     pub session_type: SessionDescriptionType,
@@ -16,6 +17,7 @@ pub struct SessionDescription {
 }
 
 /// The type of VoIP session description.
+#[derive(Debug, Deserialize, Serialize)]
 pub enum SessionDescriptionType {
     /// An answer.
     Answer,

@@ -1,11 +1,15 @@
 [package]
-name = "ruma-events"
-version = "0.1.0"
 authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
 description = "Serializable types for the events in the Matrix specification."
-license = "MIT"
-readme = "README.md"
-keywords = ["matrix", "matrix.org", "chat", "messaging", "ruma"]
-repository = "https://github.com/ruma/ruma-events"
-homepage = "https://github.com/ruma/ruma-events"
 documentation = "http://ruma.github.io/ruma-events/ruma-events"
+homepage = "https://github.com/ruma/ruma-events"
+keywords = ["matrix", "matrix.org", "chat", "messaging", "ruma"]
+license = "MIT"
+name = "ruma-events"
+readme = "README.md"
+repository = "https://github.com/ruma/ruma-events"
+version = "0.1.0"
+
+[dependencies]
+serde = "0.7.7"
+serde_macros = "0.7.7"

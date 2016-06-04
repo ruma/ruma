@@ -3,6 +3,7 @@
 use core::EventType;
 
 /// Informs the client of a user's presence state change.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct PresenceEvent {
     pub content: PresenceEventContent,
     pub event_id: String,
@@ -10,6 +11,7 @@ pub struct PresenceEvent {
 }
 
 /// The payload of a `PresenceEvent`.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct PresenceEventContent {
     /// The current avatar URL for this user.
     pub avatar_url: Option<String>,
@@ -22,6 +24,7 @@ pub struct PresenceEventContent {
 }
 
 /// A description of a user's connectivity and availability for chat.
+#[derive(Debug, Deserialize, Serialize)]
 pub enum PresenceState {
     /// Connected to the service and available for chat.
     FreeForChat,

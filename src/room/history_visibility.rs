@@ -4,6 +4,7 @@ use core::EventType;
 
 /// This event controls whether a member of a room can see the events that happened in a room from
 /// before they joined.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct HistoryVisibilityEvent {
     pub content: HistoryVisibilityEventContent,
     pub event_id: String,
@@ -15,12 +16,14 @@ pub struct HistoryVisibilityEvent {
 }
 
 /// The payload of a `HistoryVisibilityEvent`.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct HistoryVisibilityEventContent {
     /// Who can see the room history.
     pub history_visibility: HistoryVisibility,
 }
 
 /// Who can see a room's history.
+#[derive(Debug, Deserialize, Serialize)]
 pub enum HistoryVisibility {
     /// Previous events are accessible to newly joined members from the point they were invited
     /// onwards. Events stop being accessible when the member's state changes to something other

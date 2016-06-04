@@ -15,6 +15,7 @@ use core::{EventType, StrippedState};
 /// This event may also include an *invite_room_state* key outside the *content* key. If present,
 /// this contains an array of `StrippedState` events. These events provide information on a few
 /// select state events such as the room name.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct MemberEvent {
     pub content: MemberEventContent,
     pub event_id: String,
@@ -27,6 +28,7 @@ pub struct MemberEvent {
 }
 
 /// The payload of a `MemberEvent`.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct MemberEventContent {
     pub avatar_url: Option<String>,
     pub displayname: Option<String>,
@@ -36,6 +38,7 @@ pub struct MemberEventContent {
 }
 
 /// The membership state of a user.
+#[derive(Debug, Deserialize, Serialize)]
 pub enum MembershipState {
     Ban,
     Invite,

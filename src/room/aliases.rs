@@ -3,6 +3,7 @@
 use core::EventType;
 
 /// Informs the room about what room aliases it has been given.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AliasesEvent {
     pub content: AliasesEventContent,
     pub event_id: String,
@@ -15,6 +16,7 @@ pub struct AliasesEvent {
 }
 
 /// The payload of an `AliasesEvent`.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct AliasesEventContent {
     /// A list of room aliases.
     pub aliases: Vec<String>,

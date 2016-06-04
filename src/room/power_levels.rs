@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use core::EventType;
 
 /// Defines the power levels (privileges) of users in the room.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct PowerLevelsEvent {
     pub content: PowerLevelsEventContent,
     pub event_id: String,
@@ -16,6 +17,7 @@ pub struct PowerLevelsEvent {
 }
 
 /// The payload of a `PowerLevelsEvent`.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct PowerLevelsEventContent {
     pub ban: u64,
     pub events: HashMap<String, u64>,

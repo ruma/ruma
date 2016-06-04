@@ -18,6 +18,7 @@ pub mod third_party_invite;
 pub mod topic;
 
 /// Metadata about an image.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ImageInfo {
     pub height: u64,
     pub mimetype: String,

@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use core::EventType;
 
 /// Informs the client of new receipts.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct ReceiptEvent {
     pub content: ReceiptEventContent,
     pub event_type: EventType,
@@ -18,6 +19,7 @@ pub struct ReceiptEvent {
 pub type ReceiptEventContent = HashMap<String, Receipts>;
 
 /// A collection of receipts.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Receipts {
     /// A collection of users who have sent *m.read* receipts for this event.
     pub m_read: UserReceipts,
@@ -29,6 +31,7 @@ pub struct Receipts {
 pub type UserReceipts = HashMap<String, Receipt>;
 
 /// An acknowledgement of an event.
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Receipt {
     /// The timestamp the receipt was sent at.
     pub ts: u64,
