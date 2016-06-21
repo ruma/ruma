@@ -1,18 +1,9 @@
 //! Types for the *m.room.name* event.
 
-use events::EventType;
+use events::StateEvent;
 
 /// A human-friendly room name designed to be displayed to the end-user.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct NameEvent {
-    pub content: NameEventContent,
-    pub event_id: String,
-    pub event_type: EventType,
-    pub prev_content: Option<NameEventContent>,
-    pub room_id: String,
-    pub state_key: String,
-    pub user_id: String,
-}
+pub type NameEvent = StateEvent<NameEventContent>;
 
 /// The payload of a `NameEvent`.
 #[derive(Debug, Deserialize, Serialize)]

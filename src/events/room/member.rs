@@ -1,6 +1,7 @@
 //! Types for the *m.room.member* event.
 
-use events::{EventType, StrippedState};
+use events::EventType;
+use events::stripped::StrippedState;
 
 /// The current membership state of a user in the room.
 ///
@@ -19,11 +20,13 @@ use events::{EventType, StrippedState};
 pub struct MemberEvent {
     pub content: MemberEventContent,
     pub event_id: String,
+    #[serde(rename="type")]
     pub event_type: EventType,
     pub invite_room_state: Option<Vec<StrippedState>>,
     pub prev_content: Option<MemberEventContent>,
     pub room_id: String,
     pub state_key: String,
+    #[serde(rename="sender")]
     pub user_id: String,
 }
 

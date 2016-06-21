@@ -2,17 +2,15 @@
 
 use std::fmt::{Display, Formatter, Error as FmtError};
 
+use serde::{Deserialize, Serialize};
+
 pub mod call;
 pub mod presence;
 pub mod receipt;
 pub mod room;
+pub mod stripped;
 pub mod tag;
 pub mod typing;
-
-use self::room::avatar::AvatarEventContent;
-use self::room::canonical_alias::CanonicalAliasEventContent;
-use self::room::join_rules::JoinRulesEventContent;
-use self::room::name::NameEventContent;
 
 /// The type of an event.
 #[derive(Debug, Deserialize, Serialize)]
@@ -41,27 +39,39 @@ pub enum EventType {
     Typing,
 }
 
-/// A stripped-down version of a state event that is included along with some other events.
+/// A basic event.
 #[derive(Debug, Deserialize, Serialize)]
-pub enum StrippedState {
-    RoomAvatar(StrippedRoomAvatar),
-    RoomCanonicalAlias(StrippedRoomCanonicalAlias),
-    RoomJoinRules(StrippedRoomJoinRules),
-    RoomName(StrippedRoomName),
-}
-
-/// The general form of a `StrippedState`.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct StrippedStateContent<T> {
+pub struct Event<T> where T: Deserialize + Serialize {
     pub content: T,
+    #[serde(rename="type")]
     pub event_type: EventType,
-    pub state_key: String,
 }
 
-pub type StrippedRoomAvatar = StrippedStateContent<AvatarEventContent>;
-pub type StrippedRoomCanonicalAlias = StrippedStateContent<CanonicalAliasEventContent>;
-pub type StrippedRoomJoinRules = StrippedStateContent<JoinRulesEventContent>;
-pub type StrippedRoomName = StrippedStateContent<NameEventContent>;
+/// An event within the context of a room.
+#[derive(Debug, Deserialize, Serialize)]
+pub struct RoomEvent<T> where T: Deserialize + Serialize {
+    pub content: T,
+    pub event_id: String,
+    #[serde(rename="type")]
+    pub event_type: EventType,
+    pub room_id: String,
+    #[serde(rename="sender")]
+    pub user_id: String,
+}
+
+/// An event that describes persistent state about a room.
+#[derive(Debug, Deserialize, Serialize)]
+pub struct StateEvent<T> where T: Deserialize + Serialize {
+    pub content: T,
+    pub event_id: String,
+    #[serde(rename="type")]
+    pub event_type: EventType,
+    pub prev_content: Option<T>,
+    pub room_id: String,
+    pub state_key: String,
+    #[serde(rename="sender")]
+    pub user_id: String,
+}
 
 impl Display for EventType {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {

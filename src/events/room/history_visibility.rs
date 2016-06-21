@@ -1,19 +1,10 @@
 //! Types for the *m.room.history_visibility* event.
 
-use events::EventType;
+use events::StateEvent;
 
 /// This event controls whether a member of a room can see the events that happened in a room from
 /// before they joined.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct HistoryVisibilityEvent {
-    pub content: HistoryVisibilityEventContent,
-    pub event_id: String,
-    pub event_type: EventType,
-    pub prev_content: Option<HistoryVisibilityEventContent>,
-    pub room_id: String,
-    pub state_key: String,
-    pub user_id: String,
-}
+pub type HistoryVisibilityEvent = StateEvent<HistoryVisibilityEventContent>;
 
 /// The payload of a `HistoryVisibilityEvent`.
 #[derive(Debug, Deserialize, Serialize)]

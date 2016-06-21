@@ -8,6 +8,7 @@ use events::EventType;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ReceiptEvent {
     pub content: ReceiptEventContent,
+    #[serde(rename="type")]
     pub event_type: EventType,
     pub room_id: String,
 }

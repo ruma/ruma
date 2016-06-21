@@ -1,17 +1,10 @@
 //! Types for the *m.call.invite* event.
 
-use events::EventType;
+use events::RoomEvent;
 use super::SessionDescription;
 
 /// This event is sent by the caller when they wish to establish a call.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct InviteEvent {
-    pub content: InviteEventContent,
-    pub event_id: String,
-    pub event_type: EventType,
-    pub room_id: String,
-    pub user_id: String,
-}
+pub type InviteEvent = RoomEvent<InviteEventContent>;
 
 /// The payload of an `InviteEvent`.
 #[derive(Debug, Deserialize, Serialize)]

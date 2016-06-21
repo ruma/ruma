@@ -7,6 +7,7 @@ use events::EventType;
 pub struct TypingEvent {
     /// The payload.
     pub content: TypingEventContent,
+    #[serde(rename="type")]
     pub event_type: EventType,
     /// The ID of the room associated with this event.
     pub room_id: String,

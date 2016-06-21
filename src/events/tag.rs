@@ -2,15 +2,10 @@
 
 use std::collections::HashMap;
 
-use events::EventType;
+use events::Event;
 
 /// Informs the client of tags on a room.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct TagEvent {
-    /// The payload.
-    pub content: TagEventContent,
-    pub event_type: EventType,
-}
+pub type TagEvent = Event<TagEventContent>;
 
 /// The payload of a `TagEvent`.
 #[derive(Debug, Deserialize, Serialize)]

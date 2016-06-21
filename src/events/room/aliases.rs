@@ -1,19 +1,9 @@
 //! Types for the *m.room.aliases* event.
 
-use events::EventType;
+use events::StateEvent;
 
 /// Informs the room about what room aliases it has been given.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct AliasesEvent {
-    pub content: AliasesEventContent,
-    pub event_id: String,
-    pub event_type: EventType,
-    pub prev_content: Option<AliasesEventContent>,
-    pub room_id: String,
-    /// The homeserver domain which owns these room aliases.
-    pub state_key: String,
-    pub user_id: String,
-}
+pub type AliasesEvent = StateEvent<AliasesEventContent>;
 
 /// The payload of an `AliasesEvent`.
 #[derive(Debug, Deserialize, Serialize)]

@@ -7,6 +7,7 @@ use events::EventType;
 pub struct PresenceEvent {
     pub content: PresenceEventContent,
     pub event_id: String,
+    #[serde(rename="type")]
     pub event_type: EventType,
 }
 

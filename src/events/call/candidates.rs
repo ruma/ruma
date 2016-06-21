@@ -1,17 +1,10 @@
 //! Types for the *m.call.candidates* event.
 
-use events::EventType;
+use events::RoomEvent;
 
 /// This event is sent by callers after sending an invite and by the callee after answering.
 /// Its purpose is to give the other party additional ICE candidates to try using to communicate.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct CandidatesEvent {
-    pub content: CandidatesEventContent,
-    pub event_id: String,
-    pub event_type: EventType,
-    pub room_id: String,
-    pub user_id: String,
-}
+pub type CandidatesEvent = RoomEvent<CandidatesEventContent>;
 
 /// The payload of a `CandidatesEvent`.
 #[derive(Debug, Deserialize, Serialize)]

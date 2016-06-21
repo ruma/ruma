@@ -2,19 +2,10 @@
 
 use std::collections::HashMap;
 
-use events::EventType;
+use events::StateEvent;
 
 /// Defines the power levels (privileges) of users in the room.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct PowerLevelsEvent {
-    pub content: PowerLevelsEventContent,
-    pub event_id: String,
-    pub event_type: EventType,
-    pub prev_content: Option<PowerLevelsEventContent>,
-    pub room_id: String,
-    pub state_key: String,
-    pub user_id: String,
-}
+pub type PowerLevelsEvent = StateEvent<PowerLevelsEventContent>;
 
 /// The payload of a `PowerLevelsEvent`.
 #[derive(Debug, Deserialize, Serialize)]

@@ -1,17 +1,10 @@
 //! Types for the *m.room.message* event.
 
-use events::EventType;
+use events::RoomEvent;
 use super::ImageInfo;
 
 /// A message sent to a room.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct MessageEvent {
-    pub content: MessageEventContent,
-    pub event_id: String,
-    pub event_type: EventType,
-    pub room_id: String,
-    pub user_id: String,
-}
+pub type MessageEvent = RoomEvent<MessageEventContent>;
 
 /// The message type of message event, e.g. `m.image` or `m.text`.
 #[derive(Debug, Deserialize, Serialize)]

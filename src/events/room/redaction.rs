@@ -7,10 +7,12 @@ use events::EventType;
 pub struct RedactionEvent {
     pub content: RedactionEventContent,
     pub event_id: String,
+    #[serde(rename="type")]
     pub event_type: EventType,
     /// The ID of the event that was redacted.
     pub redacts: String,
     pub room_id: String,
+    #[serde(rename="sender")]
     pub user_id: String,
 }
 
