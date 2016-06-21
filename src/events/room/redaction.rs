@@ -1,4 +1,4 @@
-//! Types for the *m.room.avatar* event.
+//! Types for the *m.room.redaction* event.
 
 use events::EventType;
 
