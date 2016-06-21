@@ -1,6 +1,6 @@
 //! Types for the *m.room.guest_access* event.
 
-use core::EventType;
+use events::EventType;
 
 /// Controls whether guest users are allowed to join rooms.
 ///

@@ -1,6 +1,6 @@
 //! Types for the *m.room.avatar* event.
 
-use core::EventType;
+use events::EventType;
 
 /// A redaction of an event.
 #[derive(Debug, Deserialize, Serialize)]

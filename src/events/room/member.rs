@@ -1,6 +1,6 @@
 //! Types for the *m.room.member* event.
 
-use core::{EventType, StrippedState};
+use events::{EventType, StrippedState};
 
 /// The current membership state of a user in the room.
 ///

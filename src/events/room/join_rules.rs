@@ -1,6 +1,6 @@
 //! Types for the *m.room.join_rules* event.
 
-use core::EventType;
+use events::EventType;
 
 /// Describes how users are allowed to join the room.
 #[derive(Debug, Deserialize, Serialize)]

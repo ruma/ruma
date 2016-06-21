@@ -1,9 +1,16 @@
-//! Types for the basic kinds of events.
+//! Event types.
 
-use room::avatar::AvatarEventContent;
-use room::canonical_alias::CanonicalAliasEventContent;
-use room::join_rules::JoinRulesEventContent;
-use room::name::NameEventContent;
+pub mod call;
+pub mod presence;
+pub mod receipt;
+pub mod room;
+pub mod tag;
+pub mod typing;
+
+use self::room::avatar::AvatarEventContent;
+use self::room::canonical_alias::CanonicalAliasEventContent;
+use self::room::join_rules::JoinRulesEventContent;
+use self::room::name::NameEventContent;
 
 /// The type of an event.
 #[derive(Debug, Deserialize, Serialize)]

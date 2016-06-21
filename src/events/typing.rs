@@ -1,6 +1,6 @@
 //! Types for the *m.typing* event.
 
-use core::EventType;
+use events::EventType;
 
 /// Informs the client of the list of users currently typing.
 #[derive(Debug, Deserialize, Serialize)]

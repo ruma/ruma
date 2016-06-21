@@ -1,6 +1,6 @@
 //! Types for the *m.room.aliases* event.
 
-use core::EventType;
+use events::EventType;
 
 /// Informs the room about what room aliases it has been given.
 #[derive(Debug, Deserialize, Serialize)]

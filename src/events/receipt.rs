@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use core::EventType;
+use events::EventType;
 
 /// Informs the client of new receipts.
 #[derive(Debug, Deserialize, Serialize)]

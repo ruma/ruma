@@ -1,6 +1,6 @@
 //! Types for the *m.room.canonical_alias* event.
 
-use core::EventType;
+use events::EventType;
 
 /// Informs the room as to which alias is the canonical one.
 #[derive(Debug, Deserialize, Serialize)]

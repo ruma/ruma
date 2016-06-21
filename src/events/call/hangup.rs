@@ -1,6 +1,6 @@
 //! Types for the *m.call.hangup* event.
 
-use core::EventType;
+use events::EventType;
 
 /// Sent by either party to signal their termination of the call. This can be sent either once the
 /// call has has been established or before to abort the call.

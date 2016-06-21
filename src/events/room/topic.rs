@@ -1,6 +1,6 @@
 //! Types for the *m.room.topic* event.
 
-use core::EventType;
+use events::EventType;
 
 /// A topic is a short message detailing what is currently being discussed in the room.
 #[derive(Debug, Deserialize, Serialize)]

@@ -1,6 +1,6 @@
 //! Types for the *m.room.name* event.
 
-use core::EventType;
+use events::EventType;
 
 /// A human-friendly room name designed to be displayed to the end-user.
 #[derive(Debug, Deserialize, Serialize)]

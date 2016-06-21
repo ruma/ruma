@@ -1,6 +1,6 @@
 //! Types for the *m.room.message* event.
 
-use core::EventType;
+use events::EventType;
 use super::ImageInfo;
 
 /// A message sent to a room.

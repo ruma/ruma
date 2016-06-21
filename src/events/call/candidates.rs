@@ -1,6 +1,6 @@
 //! Types for the *m.call.candidates* event.
 
-use core::EventType;
+use events::EventType;
 
 /// This event is sent by callers after sending an invite and by the callee after answering.
 /// Its purpose is to give the other party additional ICE candidates to try using to communicate.

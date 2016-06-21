@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use core::EventType;
+use events::EventType;
 
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Debug, Deserialize, Serialize)]

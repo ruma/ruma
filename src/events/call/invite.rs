@@ -1,6 +1,6 @@
 //! Types for the *m.call.invite* event.
 
-use core::EventType;
+use events::EventType;
 use super::SessionDescription;
 
 /// This event is sent by the caller when they wish to establish a call.
