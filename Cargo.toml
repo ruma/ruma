@@ -1,13 +1,13 @@
 [package]
 authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
-description = "Types shared by ruma and ruma-client."
-documentation = "http://ruma.github.io/ruma-common/ruma_common"
+description = "Serializable types for the events in the Matrix specification."
+documentation = "http://ruma.github.io/ruma-common/ruma_events"
 homepage = "https://github.com/ruma/ruma-events"
 keywords = ["matrix", "matrix.org", "chat", "messaging", "ruma"]
 license = "MIT"
-name = "ruma-common"
+name = "ruma-events"
 readme = "README.md"
-repository = "https://github.com/ruma/ruma-common"
+repository = "https://github.com/ruma/ruma-events"
 version = "0.1.0"
 
 [dependencies]

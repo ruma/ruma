@@ -1,6 +1,6 @@
 //! Types for the *m.room.avatar* event.
 
-use events::StateEvent;
+use StateEvent;
 use super::ImageInfo;
 
 /// A picture that is associated with the room.

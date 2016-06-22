@@ -1,6 +1,6 @@
 //! Types for the *m.presence* event.
 
-use events::EventType;
+use EventType;
 
 /// Informs the client of a user's presence state change.
 #[derive(Debug, Deserialize, Serialize)]

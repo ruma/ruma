@@ -1,6 +1,6 @@
 //! Types for the *m.room.create* event.
 
-use events::StateEvent;
+use StateEvent;
 
 /// This is the first event in a room and cannot be changed. It acts as the root of all other
 /// events.

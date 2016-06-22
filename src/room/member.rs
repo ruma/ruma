@@ -1,7 +1,7 @@
 //! Types for the *m.room.member* event.
 
-use events::EventType;
-use events::stripped::StrippedState;
+use EventType;
+use stripped::StrippedState;
 
 /// The current membership state of a user in the room.
 ///

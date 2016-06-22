@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use events::Event;
+use Event;
 
 /// Informs the client of tags on a room.
 pub type TagEvent = Event<TagEventContent>;

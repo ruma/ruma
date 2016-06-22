@@ -1,6 +1,6 @@
 //! Types for the *m.room.redaction* event.
 
-use events::EventType;
+use EventType;
 
 /// A redaction of an event.
 #[derive(Debug, Deserialize, Serialize)]

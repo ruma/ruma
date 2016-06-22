@@ -1,6 +1,6 @@
 //! Types for the *m.room.aliases* event.
 
-use events::StateEvent;
+use StateEvent;
 
 /// Informs the room about what room aliases it has been given.
 pub type AliasesEvent = StateEvent<AliasesEventContent>;

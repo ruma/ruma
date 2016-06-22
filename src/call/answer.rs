@@ -1,6 +1,6 @@
 //! Types for the *m.call.answer* event.
 
-use events::RoomEvent;
+use RoomEvent;
 use super::SessionDescription;
 
 /// This event is sent by the callee when they wish to answer the call.

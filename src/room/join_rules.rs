@@ -1,6 +1,6 @@
 //! Types for the *m.room.join_rules* event.
 
-use events::StateEvent;
+use StateEvent;
 
 /// Describes how users are allowed to join the room.
 pub type JoinRulesEvent = StateEvent<JoinRulesEventContent>;

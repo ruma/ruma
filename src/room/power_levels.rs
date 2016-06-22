@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use events::StateEvent;
+use StateEvent;
 
 /// Defines the power levels (privileges) of users in the room.
 pub type PowerLevelsEvent = StateEvent<PowerLevelsEventContent>;

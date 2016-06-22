@@ -1,6 +1,6 @@
 //! Types for the *m.room.canonical_alias* event.
 
-use events::StateEvent;
+use StateEvent;
 
 /// Informs the room as to which alias is the canonical one.
 pub type CanonicalAliasEvent = StateEvent<CanonicalAliasEventContent>;

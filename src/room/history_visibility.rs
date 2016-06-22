@@ -1,6 +1,6 @@
 //! Types for the *m.room.history_visibility* event.
 
-use events::StateEvent;
+use StateEvent;
 
 /// This event controls whether a member of a room can see the events that happened in a room from
 /// before they joined.

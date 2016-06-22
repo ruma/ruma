@@ -2,11 +2,11 @@
 
 use serde::{Deserialize, Serialize};
 
-use events::EventType;
-use events::room::avatar::AvatarEventContent;
-use events::room::canonical_alias::CanonicalAliasEventContent;
-use events::room::join_rules::JoinRulesEventContent;
-use events::room::name::NameEventContent;
+use EventType;
+use room::avatar::AvatarEventContent;
+use room::canonical_alias::CanonicalAliasEventContent;
+use room::join_rules::JoinRulesEventContent;
+use room::name::NameEventContent;
 
 /// A stripped-down version of a state event that is included along with some other events.
 #[derive(Debug, Deserialize, Serialize)]
