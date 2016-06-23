@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use EventType;
+use {EventKind, EventType};
 
 /// Informs the client of new receipts.
 #[derive(Debug, Deserialize, Serialize)]
@@ -37,3 +37,5 @@ pub struct Receipt {
     /// The timestamp the receipt was sent at.
     pub ts: u64,
 }
+
+impl EventKind for ReceiptEvent {}

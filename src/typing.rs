@@ -1,6 +1,6 @@
 //! Types for the *m.typing* event.
 
-use EventType;
+use {EventKind, EventType};
 
 /// Informs the client of the list of users currently typing.
 #[derive(Debug, Deserialize, Serialize)]
@@ -19,3 +19,5 @@ pub struct TypingEventContent {
     /// The list of user IDs typing in this room, if any.
     pub user_ids: Vec<String>,
 }
+
+impl EventKind for TypingEvent {}

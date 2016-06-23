@@ -20,6 +20,20 @@ pub mod stripped;
 pub mod tag;
 pub mod typing;
 
+/// A basic event.
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Event<T> where T: Deserialize + Serialize {
+    pub content: T,
+    #[serde(rename="type")]
+    pub event_type: EventType,
+}
+
+/// A type that represents a kind of Matrix event.
+///
+/// The event kinds are basic events, room events, and state events.
+/// This trait can be useful to constrain a generic parameter that must be a Matrix event.
+pub trait EventKind: Deserialize + Serialize {}
+
 /// The type of an event.
 #[derive(Debug, Deserialize, Serialize)]
 pub enum EventType {
@@ -45,14 +59,6 @@ pub enum EventType {
     RoomTopic,
     Tag,
     Typing,
-}
-
-/// A basic event.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Event<T> where T: Deserialize + Serialize {
-    pub content: T,
-    #[serde(rename="type")]
-    pub event_type: EventType,
 }
 
 /// An event within the context of a room.
@@ -82,6 +88,10 @@ pub struct StateEvent<T> where T: Deserialize + Serialize {
     #[serde(rename="sender")]
     pub user_id: String,
 }
+
+impl<T> EventKind for Event<T> where T: Deserialize + Serialize {}
+impl<T> EventKind for RoomEvent<T> where T: Deserialize + Serialize {}
+impl<T> EventKind for StateEvent<T> where T: Deserialize + Serialize {}
 
 impl Display for EventType {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {

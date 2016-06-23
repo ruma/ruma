@@ -1,6 +1,6 @@
 //! Types for the *m.presence* event.
 
-use EventType;
+use {EventKind, EventType};
 
 /// Informs the client of a user's presence state change.
 #[derive(Debug, Deserialize, Serialize)]
@@ -38,3 +38,5 @@ pub enum PresenceState {
     /// Connected to the service but not available for chat.
     Unavailable,
 }
+
+impl EventKind for PresenceEvent {}
