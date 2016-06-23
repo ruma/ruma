@@ -5,10 +5,12 @@
 #![plugin(serde_macros)]
 
 extern crate serde;
+extern crate serde_json;
 
 use std::fmt::{Display, Formatter, Error as FmtError};
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 pub mod call;
 pub mod presence;
@@ -61,6 +63,7 @@ pub struct RoomEvent<T> where T: Deserialize + Serialize {
     #[serde(rename="type")]
     pub event_type: EventType,
     pub room_id: String,
+    pub unsigned: Option<Value>,
     #[serde(rename="sender")]
     pub user_id: String,
 }
@@ -75,6 +78,7 @@ pub struct StateEvent<T> where T: Deserialize + Serialize {
     pub prev_content: Option<T>,
     pub room_id: String,
     pub state_key: String,
+    pub unsigned: Option<Value>,
     #[serde(rename="sender")]
     pub user_id: String,
 }
