@@ -26,6 +26,8 @@ pub struct Event<T> where T: Deserialize + Serialize {
     pub content: T,
     #[serde(rename="type")]
     pub event_type: EventType,
+    /// Extra key-value pairs to be mixed into the top-level JSON representation of the event.
+    pub extra_content: Option<Value>,
 }
 
 /// A type that represents a kind of Matrix event.
@@ -37,28 +39,52 @@ pub trait EventKind: Deserialize + Serialize {}
 /// The type of an event.
 #[derive(Debug, Deserialize, Serialize)]
 pub enum EventType {
+    /// m.call.answer
     CallAnswer,
+    /// m.call.candidates
     CallCandidates,
+    /// m.call.hangup
     CallHangup,
+    /// m.call.invite
     CallInvite,
+    /// m.presence
     Presence,
+    /// m.receipt
     Receipt,
+    /// m.room.aliases
     RoomAliases,
+    /// m.room.avatar
     RoomAvatar,
+    /// m.room.canonical_alias
     RoomCanonicalAlias,
+    /// m.room.create
     RoomCreate,
+    /// m.room.guest_access
     RoomGuestAccess,
+    /// m.room.history_visibility
     RoomHistoryVisibility,
+    /// m.room.join_rules
     RoomJoinRules,
+    /// m.room.member
     RoomMember,
+    /// m.room.message
     RoomMessage,
+    /// m.room.name
     RoomName,
+    /// m.room.power_levels
     RoomPowerLevels,
+    /// m.room.redaction
     RoomRedaction,
+    /// m.room.third_party_invite
     RoomThirdPartyInvite,
+    /// m.room.topic
     RoomTopic,
+    /// m.tag
     Tag,
+    /// m.typing
     Typing,
+    /// Any event that is not part of the specification.
+    Custom(String),
 }
 
 /// An event within the context of a room.
@@ -66,6 +92,8 @@ pub enum EventType {
 pub struct RoomEvent<T> where T: Deserialize + Serialize {
     pub content: T,
     pub event_id: String,
+    /// Extra key-value pairs to be mixed into the top-level JSON representation of the event.
+    pub extra_content: Option<Value>,
     #[serde(rename="type")]
     pub event_type: EventType,
     pub room_id: String,
@@ -81,6 +109,8 @@ pub struct StateEvent<T> where T: Deserialize + Serialize {
     pub event_id: String,
     #[serde(rename="type")]
     pub event_type: EventType,
+    /// Extra key-value pairs to be mixed into the top-level JSON representation of the event.
+    pub extra_content: Option<Value>,
     pub prev_content: Option<T>,
     pub room_id: String,
     pub state_key: String,
@@ -118,6 +148,7 @@ impl Display for EventType {
             EventType::RoomTopic => "m.room.topic",
             EventType::Tag => "m.tag",
             EventType::Typing => "m.typing",
+            EventType::Custom(ref event_type) => event_type,
         };
 
         write!(f, "{}", event_type_str)
