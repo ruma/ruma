@@ -30,12 +30,6 @@ pub struct Event<T> where T: Deserialize + Serialize {
     pub extra_content: Option<Value>,
 }
 
-/// A type that represents a kind of Matrix event.
-///
-/// The event kinds are basic events, room events, and state events.
-/// This trait can be useful to constrain a generic parameter that must be a Matrix event.
-pub trait EventKind: Deserialize + Serialize {}
-
 /// The type of an event.
 #[derive(Debug, Deserialize, Serialize)]
 pub enum EventType {
@@ -118,10 +112,6 @@ pub struct StateEvent<T> where T: Deserialize + Serialize {
     #[serde(rename="sender")]
     pub user_id: String,
 }
-
-impl<T> EventKind for Event<T> where T: Deserialize + Serialize {}
-impl<T> EventKind for RoomEvent<T> where T: Deserialize + Serialize {}
-impl<T> EventKind for StateEvent<T> where T: Deserialize + Serialize {}
 
 impl Display for EventType {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
