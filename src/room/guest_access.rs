@@ -6,11 +6,12 @@ use StateEvent;
 ///
 /// This event controls whether guest users are allowed to join rooms. If this event is absent,
 /// servers should act as if it is present and has the value `GuestAccess::Forbidden`.
-pub type GuestAccessEvent = StateEvent<GuestAccessEventContent>;
+pub type GuestAccessEvent = StateEvent<GuestAccessEventContent, ()>;
 
 /// The payload of a `GuestAccessEvent`.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GuestAccessEventContent {
+    /// A policy for guest user access to a room.
     pub guest_access: GuestAccess,
 }
 

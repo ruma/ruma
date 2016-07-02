@@ -4,31 +4,61 @@ use RoomEvent;
 use super::ImageInfo;
 
 /// A message sent to a room.
-pub type MessageEvent = RoomEvent<MessageEventContent>;
+pub type MessageEvent = RoomEvent<MessageEventContent, ()>;
 
 /// The message type of message event, e.g. `m.image` or `m.text`.
 #[derive(Debug, Deserialize, Serialize)]
 pub enum MessageType {
+    /// An audio message.
     Audio,
+
+    /// An emote message.
     Emote,
+
+    /// A file message.
     File,
+
+    /// An image message.
     Image,
+
+    /// A location message.
     Location,
+
+    /// A notice message.
     Notice,
+
+    /// A text message.
     Text,
+
+    /// A video message.
     Video,
 }
 
 /// The payload of a message event.
 #[derive(Debug, Deserialize, Serialize)]
 pub enum MessageEventContent {
+    /// An audio message.
     Audio(AudioMessageEventContent),
+
+    /// An emote message.
     Emote(EmoteMessageEventContent),
+
+    /// An file message.
     File(FileMessageEventContent),
+
+    /// An image message.
     Image(ImageMessageEventContent),
+
+    /// An location message.
     Location(LocationMessageEventContent),
+
+    /// An notice message.
     Notice(NoticeMessageEventContent),
+
+    /// An text message.
     Text(TextMessageEventContent),
+
+    /// An video message.
     Video(VideoMessageEventContent),
 }
 

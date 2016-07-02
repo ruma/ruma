@@ -3,7 +3,7 @@
 use StateEvent;
 
 /// A human-friendly room name designed to be displayed to the end-user.
-pub type NameEvent = StateEvent<NameEventContent>;
+pub type NameEvent = StateEvent<NameEventContent, ()>;
 
 /// The payload of a `NameEvent`.
 #[derive(Debug, Deserialize, Serialize)]

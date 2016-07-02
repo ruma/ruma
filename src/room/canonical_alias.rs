@@ -3,7 +3,7 @@
 use StateEvent;
 
 /// Informs the room as to which alias is the canonical one.
-pub type CanonicalAliasEvent = StateEvent<CanonicalAliasEventContent>;
+pub type CanonicalAliasEvent = StateEvent<CanonicalAliasEventContent, ()>;
 
 /// The payload of a `CanonicalAliasEvent`.
 #[derive(Debug, Deserialize, Serialize)]

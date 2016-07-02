@@ -3,7 +3,7 @@
 use StateEvent;
 
 /// Describes how users are allowed to join the room.
-pub type JoinRulesEvent = StateEvent<JoinRulesEventContent>;
+pub type JoinRulesEvent = StateEvent<JoinRulesEventContent, ()>;
 
 /// The payload of a `JoinRulesEvent`.
 #[derive(Debug, Deserialize, Serialize)]

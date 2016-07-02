@@ -3,7 +3,7 @@
 use StateEvent;
 
 /// A topic is a short message detailing what is currently being discussed in the room.
-pub type TopicEvent = StateEvent<TopicEventContent>;
+pub type TopicEvent = StateEvent<TopicEventContent, ()>;
 
 /// The payload of a `TopicEvent`.
 #[derive(Debug, Deserialize, Serialize)]

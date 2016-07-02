@@ -4,7 +4,7 @@ use RoomEvent;
 
 /// Sent by either party to signal their termination of the call. This can be sent either once the
 /// call has has been established or before to abort the call.
-pub type HangupEvent = RoomEvent<HangupEventContent>;
+pub type HangupEvent = RoomEvent<HangupEventContent, ()>;
 
 /// The payload of a `HangupEvent`.
 #[derive(Debug, Deserialize, Serialize)]

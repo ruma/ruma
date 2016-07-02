@@ -4,7 +4,7 @@ use StateEvent;
 
 /// This is the first event in a room and cannot be changed. It acts as the root of all other
 /// events.
-pub type CreateEvent = StateEvent<CreateEventContent>;
+pub type CreateEvent = StateEvent<CreateEventContent, ()>;
 
 /// The payload of a `CreateEvent`.
 #[derive(Debug, Deserialize, Serialize)]

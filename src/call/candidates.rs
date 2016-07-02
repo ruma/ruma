@@ -4,7 +4,7 @@ use RoomEvent;
 
 /// This event is sent by callers after sending an invite and by the callee after answering.
 /// Its purpose is to give the other party additional ICE candidates to try using to communicate.
-pub type CandidatesEvent = RoomEvent<CandidatesEventContent>;
+pub type CandidatesEvent = RoomEvent<CandidatesEventContent, ()>;
 
 /// The payload of a `CandidatesEvent`.
 #[derive(Debug, Deserialize, Serialize)]

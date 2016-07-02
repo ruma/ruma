@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use Event;
 
 /// Informs the client of tags on a room.
-pub type TagEvent = Event<TagEventContent>;
+pub type TagEvent = Event<TagEventContent, ()>;
 
 /// The payload of a `TagEvent`.
 #[derive(Debug, Deserialize, Serialize)]
@@ -17,5 +17,6 @@ pub struct TagEventContent {
 /// Information about a tag.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TagInfo {
+    /// Value to use for lexicographically ordering rooms with this tag.
     pub order: Option<u64>,
 }

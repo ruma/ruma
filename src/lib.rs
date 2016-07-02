@@ -3,6 +3,7 @@
 
 #![feature(custom_derive, plugin)]
 #![plugin(serde_macros)]
+#![deny(missing_docs)]
 
 extern crate serde;
 extern crate serde_json;
@@ -19,16 +20,6 @@ pub mod room;
 pub mod stripped;
 pub mod tag;
 pub mod typing;
-
-/// A basic event.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Event<T> where T: Deserialize + Serialize {
-    pub content: T,
-    #[serde(rename="type")]
-    pub event_type: EventType,
-    /// Extra key-value pairs to be mixed into the top-level JSON representation of the event.
-    pub extra_content: Option<Value>,
-}
 
 /// The type of an event.
 #[derive(Debug, Deserialize, Serialize)]
@@ -81,34 +72,79 @@ pub enum EventType {
     Custom(String),
 }
 
-/// An event within the context of a room.
+/// A basic event.
 #[derive(Debug, Deserialize, Serialize)]
-pub struct RoomEvent<T> where T: Deserialize + Serialize {
-    pub content: T,
-    pub event_id: String,
-    /// Extra key-value pairs to be mixed into the top-level JSON representation of the event.
-    pub extra_content: Option<Value>,
+pub struct Event<C, E> where C: Deserialize + Serialize, E: Deserialize + Serialize {
+    /// Data specific to the event type.
+    pub content: C,
+
+    /// The type of the event.
     #[serde(rename="type")]
     pub event_type: EventType,
+
+    /// Extra top-level key-value pairs specific to this event type, but that are not under the
+    /// `content` field.
+    pub extra_content: E,
+}
+
+/// An event within the context of a room.
+#[derive(Debug, Deserialize, Serialize)]
+pub struct RoomEvent<C, E> where C: Deserialize + Serialize, E: Deserialize + Serialize {
+    /// Data specific to the event type.
+    pub content: C,
+
+    /// The unique identifier for the event.
+    pub event_id: String,
+
+    /// Extra top-level key-value pairs specific to this event type, but that are not under the
+    /// `content` field.
+    pub extra_content: E,
+
+    /// The type of the event.
+    #[serde(rename="type")]
+    pub event_type: EventType,
+
+    /// The unique identifier for the room associated with this event.
     pub room_id: String,
+
+    /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: Option<Value>,
+
+    /// The unique identifier for the user associated with this event.
     #[serde(rename="sender")]
     pub user_id: String,
 }
 
 /// An event that describes persistent state about a room.
 #[derive(Debug, Deserialize, Serialize)]
-pub struct StateEvent<T> where T: Deserialize + Serialize {
-    pub content: T,
+pub struct StateEvent<C, E> where C: Deserialize + Serialize, E: Deserialize + Serialize {
+    /// Data specific to the event type.
+    pub content: C,
+
+    /// The unique identifier for the event.
     pub event_id: String,
+
+    /// The type of the event.
     #[serde(rename="type")]
     pub event_type: EventType,
-    /// Extra key-value pairs to be mixed into the top-level JSON representation of the event.
-    pub extra_content: Option<Value>,
-    pub prev_content: Option<T>,
+
+    /// Extra top-level key-value pairs specific to this event type, but that are not under the
+    /// `content` field.
+    pub extra_content: E,
+
+    /// The previous content for this state key, if any.
+    pub prev_content: Option<C>,
+
+    /// The unique identifier for the room associated with this event.
     pub room_id: String,
+
+    /// A key that determines which piece of room state the event represents.
     pub state_key: String,
+
+    /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: Option<Value>,
+
+    /// The unique identifier for the user associated with this event.
     #[serde(rename="sender")]
     pub user_id: String,
 }

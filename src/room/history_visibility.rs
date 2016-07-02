@@ -4,7 +4,7 @@ use StateEvent;
 
 /// This event controls whether a member of a room can see the events that happened in a room from
 /// before they joined.
-pub type HistoryVisibilityEvent = StateEvent<HistoryVisibilityEventContent>;
+pub type HistoryVisibilityEvent = StateEvent<HistoryVisibilityEventContent, ()>;
 
 /// The payload of a `HistoryVisibilityEvent`.
 #[derive(Debug, Deserialize, Serialize)]

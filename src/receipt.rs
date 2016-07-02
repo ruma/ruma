@@ -2,16 +2,10 @@
 
 use std::collections::HashMap;
 
-use EventType;
+use Event;
 
 /// Informs the client of new receipts.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct ReceiptEvent {
-    pub content: ReceiptEventContent,
-    #[serde(rename="type")]
-    pub event_type: EventType,
-    pub room_id: String,
-}
+pub type ReceiptEvent = Event<ReceiptEventContent, ReceiptEventExtraContent>;
 
 /// The payload of a `ReceiptEvent`.
 ///
@@ -36,4 +30,11 @@ pub type UserReceipts = HashMap<String, Receipt>;
 pub struct Receipt {
     /// The timestamp the receipt was sent at.
     pub ts: u64,
+}
+
+/// Extra content for a `PresenceEvent`.
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ReceiptEventExtraContent {
+    /// The unique identifier for the room associated with this event.
+    pub room_id: String,
 }
