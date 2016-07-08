@@ -22,7 +22,7 @@ pub mod tag;
 pub mod typing;
 
 /// The type of an event.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum EventType {
     /// m.call.answer
     CallAnswer,
