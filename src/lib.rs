@@ -1,6 +1,7 @@
 //! Crate **ruma_identifiers** contains types for [Matrix](https://matrix.org/) identifiers
 //! for events, rooms, room aliases, and users.
 
+#![feature(question_mark)]
 #![deny(missing_docs)]
 
 #[macro_use]
@@ -144,7 +145,7 @@ fn parse_id<'a>(required_sigil: char, id: &'a str) -> Result<(&'a str, Host, u16
     let localpart = &id[1..delimiter_index];
     let raw_host = &id[delimiter_index + SIGIL_BYTES..];
     let url_string = format!("https://{}", raw_host);
-    let url = try!(Url::parse(&url_string));
+    let url = Url::parse(&url_string)?;
 
     let host = match url.host() {
         Some(host) => host.to_owned(),
@@ -162,7 +163,7 @@ impl EventId {
     /// The string must include the leading $ sigil, the opaque ID, a literal colon, and a valid
     /// server name.
     pub fn new(event_id: &str) -> Result<Self, Error> {
-        let (opaque_id, host, port) = try!(parse_id('$', event_id));
+        let (opaque_id, host, port) = parse_id('$', event_id)?;
 
         Ok(EventId {
             hostname: host,
@@ -196,7 +197,7 @@ impl RoomId {
     /// The string must include the leading ! sigil, the opaque ID, a literal colon, and a valid
     /// server name.
     pub fn new(room_id: &str) -> Result<Self, Error> {
-        let (opaque_id, host, port) = try!(parse_id('!', room_id));
+        let (opaque_id, host, port) = parse_id('!', room_id)?;
 
         Ok(RoomId {
             hostname: host,
@@ -230,7 +231,7 @@ impl RoomAliasId {
     /// The string must include the leading # sigil, the alias, a literal colon, and a valid
     /// server name.
     pub fn new(room_id: &str) -> Result<Self, Error> {
-        let (alias, host, port) = try!(parse_id('#', room_id));
+        let (alias, host, port) = parse_id('#', room_id)?;
 
         Ok(RoomAliasId {
             alias: alias.to_owned(),
@@ -264,7 +265,7 @@ impl UserId {
     /// The string must include the leading @ sigil, the localpart, a literal colon, and a valid
     /// server name.
     pub fn new(user_id: &str) -> Result<UserId, Error> {
-        let (localpart, host, port) = try!(parse_id('@', user_id));
+        let (localpart, host, port) = parse_id('@', user_id)?;
 
         if !USER_LOCALPART_PATTERN.is_match(localpart) {
             return Err(Error::InvalidCharacters);
