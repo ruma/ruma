@@ -1,6 +1,6 @@
 # ruma-identifiers
 
-**ruma-identifiers** contains types for [Matrix](https://matrix.org/) opaque identifiers, such as user IDs, room IDs, and room aliases.
+**ruma-identifiers** contains types for [Matrix](https://matrix.org/) identifiers for events, rooms, room aliases, and users.
 
 ## License
 

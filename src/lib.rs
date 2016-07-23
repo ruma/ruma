@@ -1,5 +1,5 @@
-//! Crate **ruma_identifiers** contains types for [Matrix](https://matrix.org/) opaque identifiers,
-//! such as user IDs, room IDs, and room aliases.
+//! Crate **ruma_identifiers** contains types for [Matrix](https://matrix.org/) identifiers
+//! for events, rooms, room aliases, and users.
 
 #![deny(missing_docs)]
 
@@ -28,12 +28,14 @@ lazy_static! {
         Regex::new(r"\A[a-z0-9._=-]+\z").expect("Failed to create user localpart regex.");
 }
 
-/// An error encountered when trying to parse an invalid user ID string.
+/// An error encountered when trying to parse an invalid ID string.
 #[derive(Debug, PartialEq)]
 pub enum Error {
     /// The ID's localpart contains invalid characters.
+    ///
+    /// Only relevant for user IDs.
     InvalidCharacters,
-    /// The domain part of the user ID string was not a valid IP address or DNS name.
+    /// The domain part of the the ID string is not a valid IP address or DNS name.
     InvalidHost,
     /// The ID exceeds 255 bytes.
     MaximumLengthExceeded,
