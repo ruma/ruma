@@ -45,6 +45,36 @@ pub enum Error {
     MissingSigil,
 }
 
+/// A Matrix event ID.
+///
+/// An `EventId` is created from a string slice, and can be converted back into a string as needed:
+///
+/// ```
+/// # use ruma_identifiers::EventId;
+/// assert_eq!(EventId::new("$h29iv0s8:example.com").unwrap().to_string(), "$h29iv0s8:example.com");
+/// ```
+#[derive(Debug)]
+pub struct EventId {
+    hostname: Host,
+    opaque_id: String,
+    port: u16,
+}
+
+/// A Matrix room ID.
+///
+/// An `RoomId` is created from a string slice, and can be converted back into a string as needed:
+///
+/// ```
+/// # use ruma_identifiers::RoomId;
+/// assert_eq!(RoomId::new("!n8f893n9:example.com").unwrap().to_string(), "!n8f893n9:example.com");
+/// ```
+#[derive(Debug)]
+pub struct RoomId {
+    hostname: Host,
+    opaque_id: String,
+    port: u16,
+}
+
 /// A Matrix user ID.
 ///
 /// A `UserId` is created from a string slice, and can be converted back into a string as needed:
@@ -58,6 +88,15 @@ pub struct UserId {
     hostname: Host,
     localpart: String,
     port: u16,
+}
+
+fn display(f: &mut Formatter, sigil: char, localpart: &str, hostname: &Host, port: u16)
+-> FmtResult {
+    if port == 443 {
+        write!(f, "{}{}:{}", sigil, localpart, hostname)
+    } else {
+        write!(f, "{}{}:{}:{}", sigil, localpart, hostname, port)
+    }
 }
 
 fn parse_id<'a>(required_sigil: char, id: &'a str) -> Result<(&'a str, Host, u16), Error> {
@@ -97,8 +136,76 @@ fn parse_id<'a>(required_sigil: char, id: &'a str) -> Result<(&'a str, Host, u16
     Ok((localpart, host, port))
 }
 
+impl EventId {
+    /// Creates a new Matrix event ID from a string representation.
+    ///
+    /// The string must include the leading $ sigil, the opaque ID, a literal colon, and a valid
+    /// server name.
+    pub fn new(event_id: &str) -> Result<Self, Error> {
+        let (opaque_id, host, port) = try!(parse_id('$', event_id));
+
+        Ok(EventId {
+            hostname: host,
+            opaque_id: opaque_id.to_owned(),
+            port: port,
+        })
+    }
+
+    /// Returns a `url::Host` for the event ID, containing the server name (minus the port) of the
+    /// originating homeserver.
+    ///
+    /// The host can be either a domain name, an IPv4 address, or an IPv6 address.
+    pub fn hostname(&self) -> &Host {
+        &self.hostname
+    }
+
+    /// Returns the event's opaque ID.
+    pub fn opaque_id(&self) -> &str {
+        &self.opaque_id
+    }
+
+    /// Returns the port the originating homeserver can be accessed on.
+    pub fn port(&self) -> u16 {
+        self.port
+    }
+}
+
+impl RoomId {
+    /// Creates a new Matrix room ID from a string representation.
+    ///
+    /// The string must include the leading ! sigil, the opaque ID, a literal colon, and a valid
+    /// server name.
+    pub fn new(room_id: &str) -> Result<Self, Error> {
+        let (opaque_id, host, port) = try!(parse_id('!', room_id));
+
+        Ok(RoomId {
+            hostname: host,
+            opaque_id: opaque_id.to_owned(),
+            port: port,
+        })
+    }
+
+    /// Returns a `url::Host` for the room ID, containing the server name (minus the port) of the
+    /// originating homeserver.
+    ///
+    /// The host can be either a domain name, an IPv4 address, or an IPv6 address.
+    pub fn hostname(&self) -> &Host {
+        &self.hostname
+    }
+
+    /// Returns the event's opaque ID.
+    pub fn opaque_id(&self) -> &str {
+        &self.opaque_id
+    }
+
+    /// Returns the port the originating homeserver can be accessed on.
+    pub fn port(&self) -> u16 {
+        self.port
+    }
+}
+
 impl UserId {
-    /// Create a new Matrix user ID from a string representation.
+    /// Creates a new Matrix user ID from a string representation.
     ///
     /// The string must include the leading @ sigil, the localpart, a literal colon, and a valid
     /// server name.
@@ -117,9 +224,9 @@ impl UserId {
     }
 
     /// Returns a `url::Host` for the user ID, containing the server name (minus the port) of the
-    /// user's homeserver.
+    /// originating homeserver.
     ///
-    /// This host can be either a domain name, an IPv4 address, or an IPv6 address.
+    /// The host can be either a domain name, an IPv4 address, or an IPv6 address.
     pub fn hostname(&self) -> &Host {
         &self.hostname
     }
@@ -129,7 +236,7 @@ impl UserId {
         &self.localpart
     }
 
-    /// Returns the port the user's homeserver can be accessed on.
+    /// Returns the port the originating homeserver can be accessed on.
     pub fn port(&self) -> u16 {
         self.port
     }
@@ -141,19 +248,151 @@ impl From<ParseError> for Error {
     }
 }
 
+impl Display for EventId {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        display(f, '$', &self.opaque_id, &self.hostname, self.port)
+    }
+}
+
+impl Display for RoomId {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        display(f, '!', &self.opaque_id, &self.hostname, self.port)
+    }
+}
+
 impl Display for UserId {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        if self.port == 443 {
-            write!(f, "@{}:{}", self.localpart, self.hostname)
-        } else {
-            write!(f, "@{}:{}:{}", self.localpart, self.hostname, self.port)
-        }
+        display(f, '@', &self.localpart, &self.hostname, self.port)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Error, UserId};
+    use super::{Error, EventId, RoomId, UserId};
+
+    #[test]
+    fn valid_event_id() {
+        assert_eq!(
+            EventId::new("$39hvsi03hlne:example.com")
+                .expect("Failed to create EventId.")
+                .to_string(),
+            "$39hvsi03hlne:example.com"
+        );
+    }
+
+    #[test]
+    fn valid_event_id_with_explicit_standard_port() {
+        assert_eq!(
+            EventId::new("$39hvsi03hlne:example.com:443")
+                .expect("Failed to create EventId.")
+                .to_string(),
+            "$39hvsi03hlne:example.com"
+        );
+    }
+
+    #[test]
+    fn valid_event_id_with_non_standard_port() {
+        assert_eq!(
+            EventId::new("$39hvsi03hlne:example.com:5000")
+                .expect("Failed to create EventId.")
+                .to_string(),
+            "$39hvsi03hlne:example.com:5000"
+        );
+    }
+
+    #[test]
+    fn missing_event_id_sigil() {
+        assert_eq!(
+            EventId::new("39hvsi03hlne:example.com").err().unwrap(),
+            Error::MissingSigil
+        );
+    }
+
+    #[test]
+    fn missing_event_id_delimiter() {
+        assert_eq!(
+            EventId::new("$39hvsi03hlne").err().unwrap(),
+            Error::MissingDelimiter
+        );
+    }
+
+    #[test]
+    fn invalid_event_id_host() {
+        assert_eq!(
+            EventId::new("$39hvsi03hlne:-").err().unwrap(),
+            Error::InvalidHost
+        );
+    }
+
+    #[test]
+    fn invalid_event_id_port() {
+        assert_eq!(
+            EventId::new("$39hvsi03hlne:example.com:notaport").err().unwrap(),
+            Error::InvalidHost
+        );
+    }
+
+    #[test]
+    fn valid_room_id() {
+        assert_eq!(
+            RoomId::new("!29fhd83h92h0:example.com")
+                .expect("Failed to create RoomId.")
+                .to_string(),
+            "!29fhd83h92h0:example.com"
+        );
+    }
+
+    #[test]
+    fn valid_room_id_with_explicit_standard_port() {
+        assert_eq!(
+            RoomId::new("!29fhd83h92h0:example.com:443")
+                .expect("Failed to create RoomId.")
+                .to_string(),
+            "!29fhd83h92h0:example.com"
+        );
+    }
+
+    #[test]
+    fn valid_room_id_with_non_standard_port() {
+        assert_eq!(
+            RoomId::new("!29fhd83h92h0:example.com:5000")
+                .expect("Failed to create RoomId.")
+                .to_string(),
+            "!29fhd83h92h0:example.com:5000"
+        );
+    }
+
+    #[test]
+    fn missing_room_id_sigil() {
+        assert_eq!(
+            RoomId::new("carl:example.com").err().unwrap(),
+            Error::MissingSigil
+        );
+    }
+
+    #[test]
+    fn missing_room_id_delimiter() {
+        assert_eq!(
+            RoomId::new("!29fhd83h92h0").err().unwrap(),
+            Error::MissingDelimiter
+        );
+    }
+
+    #[test]
+    fn invalid_room_id_host() {
+        assert_eq!(
+            RoomId::new("!29fhd83h92h0:-").err().unwrap(),
+            Error::InvalidHost
+        );
+    }
+
+    #[test]
+    fn invalid_room_id_port() {
+        assert_eq!(
+            RoomId::new("!29fhd83h92h0:example.com:notaport").err().unwrap(),
+            Error::InvalidHost
+        );
+    }
 
     #[test]
     fn valid_user_id() {
@@ -186,7 +425,7 @@ mod tests {
     }
 
     #[test]
-    fn invalid_characters_in_localpart() {
+    fn invalid_characters_in_user_id_localpart() {
         assert_eq!(
             UserId::new("@CARL:example.com").err().unwrap(),
             Error::InvalidCharacters
@@ -194,7 +433,7 @@ mod tests {
     }
 
     #[test]
-    fn missing_sigil() {
+    fn missing_user_id_sigil() {
         assert_eq!(
             UserId::new("carl:example.com").err().unwrap(),
             Error::MissingSigil
@@ -202,7 +441,7 @@ mod tests {
     }
 
     #[test]
-    fn missing_delimiter() {
+    fn missing_user_id_delimiter() {
         assert_eq!(
             UserId::new("@carl").err().unwrap(),
             Error::MissingDelimiter
@@ -210,7 +449,7 @@ mod tests {
     }
 
     #[test]
-    fn invalid_host() {
+    fn invalid_user_id_host() {
         assert_eq!(
             UserId::new("@carl:-").err().unwrap(),
             Error::InvalidHost
@@ -218,7 +457,7 @@ mod tests {
     }
 
     #[test]
-    fn invalid_port() {
+    fn invalid_user_id_port() {
         assert_eq!(
             UserId::new("@carl:example.com:notaport").err().unwrap(),
             Error::InvalidHost
