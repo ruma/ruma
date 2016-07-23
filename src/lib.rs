@@ -62,9 +62,25 @@ pub struct EventId {
     port: u16,
 }
 
+/// A Matrix room alias ID.
+///
+/// A `RoomAliasId` is created from a string slice, and can be converted back into a string as
+/// needed:
+///
+/// ```
+/// # use ruma_identifiers::RoomAliasId;
+/// assert_eq!(RoomAliasId::new("#ruma:example.com").unwrap().to_string(), "#ruma:example.com");
+/// ```
+#[derive(Debug)]
+pub struct RoomAliasId {
+    alias: String,
+    hostname: Host,
+    port: u16,
+}
+
 /// A Matrix room ID.
 ///
-/// An `RoomId` is created from a string slice, and can be converted back into a string as needed:
+/// A `RoomId` is created from a string slice, and can be converted back into a string as needed:
 ///
 /// ```
 /// # use ruma_identifiers::RoomId;
@@ -206,6 +222,40 @@ impl RoomId {
     }
 }
 
+impl RoomAliasId {
+    /// Creates a new Matrix room alias ID from a string representation.
+    ///
+    /// The string must include the leading # sigil, the alias, a literal colon, and a valid
+    /// server name.
+    pub fn new(room_id: &str) -> Result<Self, Error> {
+        let (alias, host, port) = try!(parse_id('#', room_id));
+
+        Ok(RoomAliasId {
+            alias: alias.to_owned(),
+            hostname: host,
+            port: port,
+        })
+    }
+
+    /// Returns a `url::Host` for the room alias ID, containing the server name (minus the port) of
+    /// the originating homeserver.
+    ///
+    /// The host can be either a domain name, an IPv4 address, or an IPv6 address.
+    pub fn hostname(&self) -> &Host {
+        &self.hostname
+    }
+
+    /// Returns the room's alias.
+    pub fn alias(&self) -> &str {
+        &self.alias
+    }
+
+    /// Returns the port the originating homeserver can be accessed on.
+    pub fn port(&self) -> u16 {
+        self.port
+    }
+}
+
 impl UserId {
     /// Creates a new Matrix user ID from a string representation.
     ///
@@ -256,6 +306,12 @@ impl Display for EventId {
     }
 }
 
+impl Display for RoomAliasId {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        display(f, '#', &self.alias, &self.hostname, self.port)
+    }
+}
+
 impl Display for RoomId {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         display(f, '!', &self.opaque_id, &self.hostname, self.port)
@@ -270,7 +326,7 @@ impl Display for UserId {
 
 #[cfg(test)]
 mod tests {
-    use super::{Error, EventId, RoomId, UserId};
+    use super::{Error, EventId, RoomAliasId, RoomId, UserId};
 
     #[test]
     fn valid_event_id() {
@@ -334,6 +390,67 @@ mod tests {
         );
     }
 
+    #[test]
+    fn valid_room_alias_id() {
+        assert_eq!(
+            RoomAliasId::new("#ruma:example.com")
+                .expect("Failed to create RoomAliasId.")
+                .to_string(),
+            "#ruma:example.com"
+        );
+    }
+
+    #[test]
+    fn valid_room_alias_id_with_explicit_standard_port() {
+        assert_eq!(
+            RoomAliasId::new("#ruma:example.com:443")
+                .expect("Failed to create RoomAliasId.")
+                .to_string(),
+            "#ruma:example.com"
+        );
+    }
+
+    #[test]
+    fn valid_room_alias_id_with_non_standard_port() {
+        assert_eq!(
+            RoomAliasId::new("#ruma:example.com:5000")
+                .expect("Failed to create RoomAliasId.")
+                .to_string(),
+            "#ruma:example.com:5000"
+        );
+    }
+
+    #[test]
+    fn missing_room_alias_id_sigil() {
+        assert_eq!(
+            RoomAliasId::new("39hvsi03hlne:example.com").err().unwrap(),
+            Error::MissingSigil
+        );
+    }
+
+    #[test]
+    fn missing_room_alias_id_delimiter() {
+        assert_eq!(
+            RoomAliasId::new("#ruma").err().unwrap(),
+            Error::MissingDelimiter
+        );
+    }
+
+    #[test]
+    fn invalid_room_alias_id_host() {
+        assert_eq!(
+            RoomAliasId::new("#ruma:-").err().unwrap(),
+            Error::InvalidHost
+        );
+    }
+
+    #[test]
+    fn invalid_room_alias_id_port() {
+        assert_eq!(
+            RoomAliasId::new("#ruma:example.com:notaport").err().unwrap(),
+            Error::InvalidHost
+        );
+    }
     #[test]
     fn valid_room_id() {
         assert_eq!(
