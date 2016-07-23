@@ -11,7 +11,9 @@ extern crate url;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use regex::Regex;
-use url::{Host, ParseError, Url};
+use url::{ParseError, Url};
+
+pub use url::Host;
 
 /// All events must be 255 bytes or less.
 const MAX_BYTES: usize = 255;
@@ -169,7 +171,7 @@ impl EventId {
         })
     }
 
-    /// Returns a `url::Host` for the event ID, containing the server name (minus the port) of the
+    /// Returns a `Host` for the event ID, containing the server name (minus the port) of the
     /// originating homeserver.
     ///
     /// The host can be either a domain name, an IPv4 address, or an IPv6 address.
@@ -203,7 +205,7 @@ impl RoomId {
         })
     }
 
-    /// Returns a `url::Host` for the room ID, containing the server name (minus the port) of the
+    /// Returns a `Host` for the room ID, containing the server name (minus the port) of the
     /// originating homeserver.
     ///
     /// The host can be either a domain name, an IPv4 address, or an IPv6 address.
@@ -237,7 +239,7 @@ impl RoomAliasId {
         })
     }
 
-    /// Returns a `url::Host` for the room alias ID, containing the server name (minus the port) of
+    /// Returns a `Host` for the room alias ID, containing the server name (minus the port) of
     /// the originating homeserver.
     ///
     /// The host can be either a domain name, an IPv4 address, or an IPv6 address.
@@ -275,7 +277,7 @@ impl UserId {
         })
     }
 
-    /// Returns a `url::Host` for the user ID, containing the server name (minus the port) of the
+    /// Returns a `Host` for the user ID, containing the server name (minus the port) of the
     /// originating homeserver.
     ///
     /// The host can be either a domain name, an IPv4 address, or an IPv6 address.
