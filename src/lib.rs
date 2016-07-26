@@ -16,7 +16,8 @@ extern crate serde_json;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use regex::Regex;
-use serde::{Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
+use serde::de::Visitor;
 use url::{ParseError, Url};
 
 pub use url::Host;
@@ -63,7 +64,7 @@ pub enum Error {
 /// # use ruma_identifiers::EventId;
 /// assert_eq!(EventId::new("$h29iv0s8:example.com").unwrap().to_string(), "$h29iv0s8:example.com");
 /// ```
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct EventId {
     hostname: Host,
     opaque_id: String,
@@ -79,7 +80,7 @@ pub struct EventId {
 /// # use ruma_identifiers::RoomAliasId;
 /// assert_eq!(RoomAliasId::new("#ruma:example.com").unwrap().to_string(), "#ruma:example.com");
 /// ```
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct RoomAliasId {
     alias: String,
     hostname: Host,
@@ -94,7 +95,7 @@ pub struct RoomAliasId {
 /// # use ruma_identifiers::RoomId;
 /// assert_eq!(RoomId::new("!n8f893n9:example.com").unwrap().to_string(), "!n8f893n9:example.com");
 /// ```
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct RoomId {
     hostname: Host,
     opaque_id: String,
@@ -109,12 +110,17 @@ pub struct RoomId {
 /// # use ruma_identifiers::UserId;
 /// assert_eq!(UserId::new("@carl:example.com").unwrap().to_string(), "@carl:example.com");
 /// ```
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct UserId {
     hostname: Host,
     localpart: String,
     port: u16,
 }
+
+struct EventIdVisitor;
+struct RoomAliasIdVisitor;
+struct RoomIdVisitor;
+struct UserIdVisitor;
 
 fn display(f: &mut Formatter, sigil: char, localpart: &str, hostname: &Host, port: u16)
 -> FmtResult {
@@ -356,9 +362,77 @@ impl Serialize for UserId {
     }
 }
 
+impl Deserialize for EventId {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+        deserializer.deserialize(EventIdVisitor)
+    }
+}
+
+impl Deserialize for RoomAliasId {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+        deserializer.deserialize(RoomAliasIdVisitor)
+    }
+}
+
+impl Deserialize for RoomId {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+        deserializer.deserialize(RoomIdVisitor)
+    }
+}
+
+impl Deserialize for UserId {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+        deserializer.deserialize(UserIdVisitor)
+    }
+}
+
+impl Visitor for EventIdVisitor {
+    type Value = EventId;
+
+    fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+        match EventId::new(v) {
+            Ok(event_id) => Ok(event_id),
+            Err(_) => Err(SerdeError::custom("invalid ID")),
+        }
+    }
+}
+
+impl Visitor for RoomAliasIdVisitor {
+    type Value = RoomAliasId;
+
+    fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+        match RoomAliasId::new(v) {
+            Ok(room_alias_id) => Ok(room_alias_id),
+            Err(_) => Err(SerdeError::custom("invalid ID")),
+        }
+    }
+}
+
+impl Visitor for RoomIdVisitor {
+    type Value = RoomId;
+
+    fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+        match RoomId::new(v) {
+            Ok(room_id) => Ok(room_id),
+            Err(_) => Err(SerdeError::custom("invalid ID")),
+        }
+    }
+}
+
+impl Visitor for UserIdVisitor {
+    type Value = UserId;
+
+    fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+        match UserId::new(v) {
+            Ok(user_id) => Ok(user_id),
+            Err(_) => Err(SerdeError::custom("invalid ID")),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use serde_json::to_string;
+    use serde_json::{from_str, to_string};
     use super::{Error, EventId, RoomAliasId, RoomId, UserId};
 
     #[test]
@@ -378,6 +452,16 @@ mod tests {
                 &EventId::new("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
             ).expect("Failed to convert EventId to JSON."),
             r#""$39hvsi03hlne:example.com""#
+        );
+    }
+
+    #[test]
+    fn deserialize_valid_event_id() {
+        assert_eq!(
+            from_str::<EventId>(
+                r#""$39hvsi03hlne:example.com""#
+            ).expect("Failed to convert JSON to EventId"),
+            EventId::new("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
         );
     }
 
@@ -454,6 +538,16 @@ mod tests {
     }
 
     #[test]
+    fn deserialize_valid_room_alias_id() {
+        assert_eq!(
+            from_str::<RoomAliasId>(
+                r##""#ruma:example.com""##
+            ).expect("Failed to convert JSON to RoomAliasId"),
+            RoomAliasId::new("#ruma:example.com").expect("Failed to create RoomAliasId.")
+        );
+    }
+
+    #[test]
     fn valid_room_alias_id_with_explicit_standard_port() {
         assert_eq!(
             RoomAliasId::new("#ruma:example.com:443")
@@ -521,6 +615,16 @@ mod tests {
                 &RoomId::new("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
             ).expect("Failed to convert RoomId to JSON."),
             r#""!29fhd83h92h0:example.com""#
+        );
+    }
+
+    #[test]
+    fn deserialize_valid_room_id() {
+        assert_eq!(
+            from_str::<RoomId>(
+                r#""!29fhd83h92h0:example.com""#
+            ).expect("Failed to convert JSON to RoomId"),
+            RoomId::new("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
         );
     }
 
@@ -593,6 +697,16 @@ mod tests {
                 &UserId::new("@carl:example.com").expect("Failed to create UserId.")
             ).expect("Failed to convert UserId to JSON."),
             r#""@carl:example.com""#
+        );
+    }
+
+    #[test]
+    fn deserialize_valid_user_id() {
+        assert_eq!(
+            from_str::<UserId>(
+                r#""@carl:example.com""#
+            ).expect("Failed to convert JSON to UserId"),
+            UserId::new("@carl:example.com").expect("Failed to create UserId.")
         );
     }
 
