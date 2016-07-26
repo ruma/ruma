@@ -7,11 +7,16 @@
 #[macro_use]
 extern crate lazy_static;
 extern crate regex;
+extern crate serde;
 extern crate url;
+
+#[cfg(test)]
+extern crate serde_json;
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use regex::Regex;
+use serde::{Serialize, Serializer};
 use url::{ParseError, Url};
 
 pub use url::Host;
@@ -327,8 +332,33 @@ impl Display for UserId {
     }
 }
 
+impl Serialize for EventId {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl Serialize for RoomAliasId {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl Serialize for RoomId {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl Serialize for UserId {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use serde_json::to_string;
     use super::{Error, EventId, RoomAliasId, RoomId, UserId};
 
     #[test]
@@ -338,6 +368,16 @@ mod tests {
                 .expect("Failed to create EventId.")
                 .to_string(),
             "$39hvsi03hlne:example.com"
+        );
+    }
+
+    #[test]
+    fn serialize_valid_event_id() {
+        assert_eq!(
+            to_string(
+                &EventId::new("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
+            ).expect("Failed to convert EventId to JSON."),
+            r#""$39hvsi03hlne:example.com""#
         );
     }
 
@@ -404,6 +444,16 @@ mod tests {
     }
 
     #[test]
+    fn serialize_valid_room_alias_id() {
+        assert_eq!(
+            to_string(
+                &RoomAliasId::new("#ruma:example.com").expect("Failed to create RoomAliasId.")
+            ).expect("Failed to convert RoomAliasId to JSON."),
+            r##""#ruma:example.com""##
+        );
+    }
+
+    #[test]
     fn valid_room_alias_id_with_explicit_standard_port() {
         assert_eq!(
             RoomAliasId::new("#ruma:example.com:443")
@@ -461,6 +511,16 @@ mod tests {
                 .expect("Failed to create RoomId.")
                 .to_string(),
             "!29fhd83h92h0:example.com"
+        );
+    }
+
+    #[test]
+    fn serialize_valid_room_id() {
+        assert_eq!(
+            to_string(
+                &RoomId::new("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
+            ).expect("Failed to convert RoomId to JSON."),
+            r#""!29fhd83h92h0:example.com""#
         );
     }
 
@@ -523,6 +583,16 @@ mod tests {
                 .expect("Failed to create UserId.")
                 .to_string(),
             "@carl:example.com"
+        );
+    }
+
+    #[test]
+    fn serialize_valid_user_id() {
+        assert_eq!(
+            to_string(
+                &UserId::new("@carl:example.com").expect("Failed to create UserId.")
+            ).expect("Failed to convert UserId to JSON."),
+            r#""@carl:example.com""#
         );
     }
 
