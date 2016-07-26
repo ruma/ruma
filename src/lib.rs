@@ -1,7 +1,7 @@
 //! Crate **ruma_identifiers** contains types for [Matrix](https://matrix.org/) identifiers
 //! for events, rooms, room aliases, and users.
 
-#![feature(question_mark)]
+#![feature(question_mark, try_from)]
 #![deny(missing_docs)]
 
 #[macro_use]
@@ -13,6 +13,7 @@ extern crate url;
 #[cfg(test)]
 extern crate serde_json;
 
+use std::convert::TryFrom;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use regex::Regex;
@@ -58,11 +59,17 @@ pub enum Error {
 
 /// A Matrix event ID.
 ///
-/// An `EventId` is created from a string slice, and can be converted back into a string as needed:
+/// An `EventId` is generated randomly or converted from a string slice, and can be converted back
+/// into a string as needed.
 ///
 /// ```
+/// # #![feature(try_from)]
+/// # use std::convert::TryFrom;
 /// # use ruma_identifiers::EventId;
-/// assert_eq!(EventId::new("$h29iv0s8:example.com").unwrap().to_string(), "$h29iv0s8:example.com");
+/// assert_eq!(
+///     EventId::try_from("$h29iv0s8:example.com").unwrap().to_string(),
+///     "$h29iv0s8:example.com"
+/// );
 /// ```
 #[derive(Debug, PartialEq)]
 pub struct EventId {
@@ -73,12 +80,17 @@ pub struct EventId {
 
 /// A Matrix room alias ID.
 ///
-/// A `RoomAliasId` is created from a string slice, and can be converted back into a string as
-/// needed:
+/// A `RoomAliasId` is generated randomly or converted from a string slice, and can be converted
+/// back into a string as needed.
 ///
 /// ```
+/// # #![feature(try_from)]
+/// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomAliasId;
-/// assert_eq!(RoomAliasId::new("#ruma:example.com").unwrap().to_string(), "#ruma:example.com");
+/// assert_eq!(
+///     RoomAliasId::try_from("#ruma:example.com").unwrap().to_string(),
+///     "#ruma:example.com"
+/// );
 /// ```
 #[derive(Debug, PartialEq)]
 pub struct RoomAliasId {
@@ -89,11 +101,17 @@ pub struct RoomAliasId {
 
 /// A Matrix room ID.
 ///
-/// A `RoomId` is created from a string slice, and can be converted back into a string as needed:
+/// A `RoomId` is generated randomly or converted from a string slice, and can be converted back
+/// into a string as needed.
 ///
 /// ```
+/// # #![feature(try_from)]
+/// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomId;
-/// assert_eq!(RoomId::new("!n8f893n9:example.com").unwrap().to_string(), "!n8f893n9:example.com");
+/// assert_eq!(
+///     RoomId::try_from("!n8f893n9:example.com").unwrap().to_string(),
+///     "!n8f893n9:example.com"
+/// );
 /// ```
 #[derive(Debug, PartialEq)]
 pub struct RoomId {
@@ -104,11 +122,17 @@ pub struct RoomId {
 
 /// A Matrix user ID.
 ///
-/// A `UserId` is created from a string slice, and can be converted back into a string as needed:
+/// A `UserId` is generated randomly or converted from a string slice, and can be converted back
+/// into a string as needed.
 ///
 /// ```
+/// # #![feature(try_from)]
+/// # use std::convert::TryFrom;
 /// # use ruma_identifiers::UserId;
-/// assert_eq!(UserId::new("@carl:example.com").unwrap().to_string(), "@carl:example.com");
+/// assert_eq!(
+///     UserId::try_from("@carl:example.com").unwrap().to_string(),
+///     "@carl:example.com"
+/// );
 /// ```
 #[derive(Debug, PartialEq)]
 pub struct UserId {
@@ -169,20 +193,6 @@ fn parse_id<'a>(required_sigil: char, id: &'a str) -> Result<(&'a str, Host, u16
 }
 
 impl EventId {
-    /// Creates a new Matrix event ID from a string representation.
-    ///
-    /// The string must include the leading $ sigil, the opaque ID, a literal colon, and a valid
-    /// server name.
-    pub fn new(event_id: &str) -> Result<Self, Error> {
-        let (opaque_id, host, port) = parse_id('$', event_id)?;
-
-        Ok(EventId {
-            hostname: host,
-            opaque_id: opaque_id.to_owned(),
-            port: port,
-        })
-    }
-
     /// Returns a `Host` for the event ID, containing the server name (minus the port) of the
     /// originating homeserver.
     ///
@@ -203,20 +213,6 @@ impl EventId {
 }
 
 impl RoomId {
-    /// Creates a new Matrix room ID from a string representation.
-    ///
-    /// The string must include the leading ! sigil, the opaque ID, a literal colon, and a valid
-    /// server name.
-    pub fn new(room_id: &str) -> Result<Self, Error> {
-        let (opaque_id, host, port) = parse_id('!', room_id)?;
-
-        Ok(RoomId {
-            hostname: host,
-            opaque_id: opaque_id.to_owned(),
-            port: port,
-        })
-    }
-
     /// Returns a `Host` for the room ID, containing the server name (minus the port) of the
     /// originating homeserver.
     ///
@@ -237,20 +233,6 @@ impl RoomId {
 }
 
 impl RoomAliasId {
-    /// Creates a new Matrix room alias ID from a string representation.
-    ///
-    /// The string must include the leading # sigil, the alias, a literal colon, and a valid
-    /// server name.
-    pub fn new(room_id: &str) -> Result<Self, Error> {
-        let (alias, host, port) = parse_id('#', room_id)?;
-
-        Ok(RoomAliasId {
-            alias: alias.to_owned(),
-            hostname: host,
-            port: port,
-        })
-    }
-
     /// Returns a `Host` for the room alias ID, containing the server name (minus the port) of
     /// the originating homeserver.
     ///
@@ -271,24 +253,6 @@ impl RoomAliasId {
 }
 
 impl UserId {
-    /// Creates a new Matrix user ID from a string representation.
-    ///
-    /// The string must include the leading @ sigil, the localpart, a literal colon, and a valid
-    /// server name.
-    pub fn new(user_id: &str) -> Result<UserId, Error> {
-        let (localpart, host, port) = parse_id('@', user_id)?;
-
-        if !USER_LOCALPART_PATTERN.is_match(localpart) {
-            return Err(Error::InvalidCharacters);
-        }
-
-        Ok(UserId {
-            hostname: host,
-            port: port,
-            localpart: localpart.to_owned(),
-        })
-    }
-
     /// Returns a `Host` for the user ID, containing the server name (minus the port) of the
     /// originating homeserver.
     ///
@@ -386,11 +350,87 @@ impl Deserialize for UserId {
     }
 }
 
+impl<'a> TryFrom<&'a str> for EventId {
+    type Err = Error;
+
+    /// Attempts to create a new Matrix event ID from a string representation.
+    ///
+    /// The string must include the leading $ sigil, the opaque ID, a literal colon, and a valid
+    /// server name.
+    fn try_from(event_id: &'a str) -> Result<Self, Self::Err> {
+        let (opaque_id, host, port) = parse_id('$', event_id)?;
+
+        Ok(EventId {
+            hostname: host,
+            opaque_id: opaque_id.to_owned(),
+            port: port,
+        })
+    }
+}
+
+impl<'a> TryFrom<&'a str> for RoomAliasId {
+    type Err = Error;
+
+    /// Attempts to create a new Matrix room alias ID from a string representation.
+    ///
+    /// The string must include the leading # sigil, the alias, a literal colon, and a valid
+    /// server name.
+    fn try_from(room_id: &'a str) -> Result<Self, Error> {
+        let (alias, host, port) = parse_id('#', room_id)?;
+
+        Ok(RoomAliasId {
+            alias: alias.to_owned(),
+            hostname: host,
+            port: port,
+        })
+    }
+}
+
+impl<'a> TryFrom<&'a str> for RoomId {
+    type Err = Error;
+
+    /// Attempts to create a new Matrix room ID from a string representation.
+    ///
+    /// The string must include the leading ! sigil, the opaque ID, a literal colon, and a valid
+    /// server name.
+    fn try_from(room_id: &'a str) -> Result<Self, Error> {
+        let (opaque_id, host, port) = parse_id('!', room_id)?;
+
+        Ok(RoomId {
+            hostname: host,
+            opaque_id: opaque_id.to_owned(),
+            port: port,
+        })
+    }
+}
+
+impl<'a> TryFrom<&'a str> for UserId {
+    type Err = Error;
+
+    /// Attempts to create a new Matrix user ID from a string representation.
+    ///
+    /// The string must include the leading @ sigil, the localpart, a literal colon, and a valid
+    /// server name.
+    fn try_from(user_id: &'a str) -> Result<UserId, Error> {
+        let (localpart, host, port) = parse_id('@', user_id)?;
+
+        if !USER_LOCALPART_PATTERN.is_match(localpart) {
+            return Err(Error::InvalidCharacters);
+        }
+
+        Ok(UserId {
+            hostname: host,
+            port: port,
+            localpart: localpart.to_owned(),
+        })
+    }
+}
+
 impl Visitor for EventIdVisitor {
     type Value = EventId;
 
     fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
-        match EventId::new(v) {
+        match EventId::try_from(v) {
             Ok(event_id) => Ok(event_id),
             Err(_) => Err(SerdeError::custom("invalid ID")),
         }
@@ -401,7 +441,7 @@ impl Visitor for RoomAliasIdVisitor {
     type Value = RoomAliasId;
 
     fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
-        match RoomAliasId::new(v) {
+        match RoomAliasId::try_from(v) {
             Ok(room_alias_id) => Ok(room_alias_id),
             Err(_) => Err(SerdeError::custom("invalid ID")),
         }
@@ -412,7 +452,7 @@ impl Visitor for RoomIdVisitor {
     type Value = RoomId;
 
     fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
-        match RoomId::new(v) {
+        match RoomId::try_from(v) {
             Ok(room_id) => Ok(room_id),
             Err(_) => Err(SerdeError::custom("invalid ID")),
         }
@@ -423,7 +463,7 @@ impl Visitor for UserIdVisitor {
     type Value = UserId;
 
     fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
-        match UserId::new(v) {
+        match UserId::try_from(v) {
             Ok(user_id) => Ok(user_id),
             Err(_) => Err(SerdeError::custom("invalid ID")),
         }
@@ -432,13 +472,16 @@ impl Visitor for UserIdVisitor {
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     use serde_json::{from_str, to_string};
+
     use super::{Error, EventId, RoomAliasId, RoomId, UserId};
 
     #[test]
     fn valid_event_id() {
         assert_eq!(
-            EventId::new("$39hvsi03hlne:example.com")
+            EventId::try_from("$39hvsi03hlne:example.com")
                 .expect("Failed to create EventId.")
                 .to_string(),
             "$39hvsi03hlne:example.com"
@@ -449,7 +492,7 @@ mod tests {
     fn serialize_valid_event_id() {
         assert_eq!(
             to_string(
-                &EventId::new("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
+                &EventId::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
             ).expect("Failed to convert EventId to JSON."),
             r#""$39hvsi03hlne:example.com""#
         );
@@ -461,14 +504,14 @@ mod tests {
             from_str::<EventId>(
                 r#""$39hvsi03hlne:example.com""#
             ).expect("Failed to convert JSON to EventId"),
-            EventId::new("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
+            EventId::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
         );
     }
 
     #[test]
     fn valid_event_id_with_explicit_standard_port() {
         assert_eq!(
-            EventId::new("$39hvsi03hlne:example.com:443")
+            EventId::try_from("$39hvsi03hlne:example.com:443")
                 .expect("Failed to create EventId.")
                 .to_string(),
             "$39hvsi03hlne:example.com"
@@ -478,7 +521,7 @@ mod tests {
     #[test]
     fn valid_event_id_with_non_standard_port() {
         assert_eq!(
-            EventId::new("$39hvsi03hlne:example.com:5000")
+            EventId::try_from("$39hvsi03hlne:example.com:5000")
                 .expect("Failed to create EventId.")
                 .to_string(),
             "$39hvsi03hlne:example.com:5000"
@@ -488,7 +531,7 @@ mod tests {
     #[test]
     fn missing_event_id_sigil() {
         assert_eq!(
-            EventId::new("39hvsi03hlne:example.com").err().unwrap(),
+            EventId::try_from("39hvsi03hlne:example.com").err().unwrap(),
             Error::MissingSigil
         );
     }
@@ -496,7 +539,7 @@ mod tests {
     #[test]
     fn missing_event_id_delimiter() {
         assert_eq!(
-            EventId::new("$39hvsi03hlne").err().unwrap(),
+            EventId::try_from("$39hvsi03hlne").err().unwrap(),
             Error::MissingDelimiter
         );
     }
@@ -504,7 +547,7 @@ mod tests {
     #[test]
     fn invalid_event_id_host() {
         assert_eq!(
-            EventId::new("$39hvsi03hlne:-").err().unwrap(),
+            EventId::try_from("$39hvsi03hlne:-").err().unwrap(),
             Error::InvalidHost
         );
     }
@@ -512,7 +555,7 @@ mod tests {
     #[test]
     fn invalid_event_id_port() {
         assert_eq!(
-            EventId::new("$39hvsi03hlne:example.com:notaport").err().unwrap(),
+            EventId::try_from("$39hvsi03hlne:example.com:notaport").err().unwrap(),
             Error::InvalidHost
         );
     }
@@ -520,7 +563,7 @@ mod tests {
     #[test]
     fn valid_room_alias_id() {
         assert_eq!(
-            RoomAliasId::new("#ruma:example.com")
+            RoomAliasId::try_from("#ruma:example.com")
                 .expect("Failed to create RoomAliasId.")
                 .to_string(),
             "#ruma:example.com"
@@ -531,7 +574,7 @@ mod tests {
     fn serialize_valid_room_alias_id() {
         assert_eq!(
             to_string(
-                &RoomAliasId::new("#ruma:example.com").expect("Failed to create RoomAliasId.")
+                &RoomAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
             ).expect("Failed to convert RoomAliasId to JSON."),
             r##""#ruma:example.com""##
         );
@@ -543,14 +586,14 @@ mod tests {
             from_str::<RoomAliasId>(
                 r##""#ruma:example.com""##
             ).expect("Failed to convert JSON to RoomAliasId"),
-            RoomAliasId::new("#ruma:example.com").expect("Failed to create RoomAliasId.")
+            RoomAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
         );
     }
 
     #[test]
     fn valid_room_alias_id_with_explicit_standard_port() {
         assert_eq!(
-            RoomAliasId::new("#ruma:example.com:443")
+            RoomAliasId::try_from("#ruma:example.com:443")
                 .expect("Failed to create RoomAliasId.")
                 .to_string(),
             "#ruma:example.com"
@@ -560,7 +603,7 @@ mod tests {
     #[test]
     fn valid_room_alias_id_with_non_standard_port() {
         assert_eq!(
-            RoomAliasId::new("#ruma:example.com:5000")
+            RoomAliasId::try_from("#ruma:example.com:5000")
                 .expect("Failed to create RoomAliasId.")
                 .to_string(),
             "#ruma:example.com:5000"
@@ -570,7 +613,7 @@ mod tests {
     #[test]
     fn missing_room_alias_id_sigil() {
         assert_eq!(
-            RoomAliasId::new("39hvsi03hlne:example.com").err().unwrap(),
+            RoomAliasId::try_from("39hvsi03hlne:example.com").err().unwrap(),
             Error::MissingSigil
         );
     }
@@ -578,7 +621,7 @@ mod tests {
     #[test]
     fn missing_room_alias_id_delimiter() {
         assert_eq!(
-            RoomAliasId::new("#ruma").err().unwrap(),
+            RoomAliasId::try_from("#ruma").err().unwrap(),
             Error::MissingDelimiter
         );
     }
@@ -586,7 +629,7 @@ mod tests {
     #[test]
     fn invalid_room_alias_id_host() {
         assert_eq!(
-            RoomAliasId::new("#ruma:-").err().unwrap(),
+            RoomAliasId::try_from("#ruma:-").err().unwrap(),
             Error::InvalidHost
         );
     }
@@ -594,14 +637,14 @@ mod tests {
     #[test]
     fn invalid_room_alias_id_port() {
         assert_eq!(
-            RoomAliasId::new("#ruma:example.com:notaport").err().unwrap(),
+            RoomAliasId::try_from("#ruma:example.com:notaport").err().unwrap(),
             Error::InvalidHost
         );
     }
     #[test]
     fn valid_room_id() {
         assert_eq!(
-            RoomId::new("!29fhd83h92h0:example.com")
+            RoomId::try_from("!29fhd83h92h0:example.com")
                 .expect("Failed to create RoomId.")
                 .to_string(),
             "!29fhd83h92h0:example.com"
@@ -612,7 +655,7 @@ mod tests {
     fn serialize_valid_room_id() {
         assert_eq!(
             to_string(
-                &RoomId::new("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
+                &RoomId::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
             ).expect("Failed to convert RoomId to JSON."),
             r#""!29fhd83h92h0:example.com""#
         );
@@ -624,14 +667,14 @@ mod tests {
             from_str::<RoomId>(
                 r#""!29fhd83h92h0:example.com""#
             ).expect("Failed to convert JSON to RoomId"),
-            RoomId::new("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
+            RoomId::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
         );
     }
 
     #[test]
     fn valid_room_id_with_explicit_standard_port() {
         assert_eq!(
-            RoomId::new("!29fhd83h92h0:example.com:443")
+            RoomId::try_from("!29fhd83h92h0:example.com:443")
                 .expect("Failed to create RoomId.")
                 .to_string(),
             "!29fhd83h92h0:example.com"
@@ -641,7 +684,7 @@ mod tests {
     #[test]
     fn valid_room_id_with_non_standard_port() {
         assert_eq!(
-            RoomId::new("!29fhd83h92h0:example.com:5000")
+            RoomId::try_from("!29fhd83h92h0:example.com:5000")
                 .expect("Failed to create RoomId.")
                 .to_string(),
             "!29fhd83h92h0:example.com:5000"
@@ -651,7 +694,7 @@ mod tests {
     #[test]
     fn missing_room_id_sigil() {
         assert_eq!(
-            RoomId::new("carl:example.com").err().unwrap(),
+            RoomId::try_from("carl:example.com").err().unwrap(),
             Error::MissingSigil
         );
     }
@@ -659,7 +702,7 @@ mod tests {
     #[test]
     fn missing_room_id_delimiter() {
         assert_eq!(
-            RoomId::new("!29fhd83h92h0").err().unwrap(),
+            RoomId::try_from("!29fhd83h92h0").err().unwrap(),
             Error::MissingDelimiter
         );
     }
@@ -667,7 +710,7 @@ mod tests {
     #[test]
     fn invalid_room_id_host() {
         assert_eq!(
-            RoomId::new("!29fhd83h92h0:-").err().unwrap(),
+            RoomId::try_from("!29fhd83h92h0:-").err().unwrap(),
             Error::InvalidHost
         );
     }
@@ -675,7 +718,7 @@ mod tests {
     #[test]
     fn invalid_room_id_port() {
         assert_eq!(
-            RoomId::new("!29fhd83h92h0:example.com:notaport").err().unwrap(),
+            RoomId::try_from("!29fhd83h92h0:example.com:notaport").err().unwrap(),
             Error::InvalidHost
         );
     }
@@ -683,7 +726,7 @@ mod tests {
     #[test]
     fn valid_user_id() {
         assert_eq!(
-            UserId::new("@carl:example.com")
+            UserId::try_from("@carl:example.com")
                 .expect("Failed to create UserId.")
                 .to_string(),
             "@carl:example.com"
@@ -694,7 +737,7 @@ mod tests {
     fn serialize_valid_user_id() {
         assert_eq!(
             to_string(
-                &UserId::new("@carl:example.com").expect("Failed to create UserId.")
+                &UserId::try_from("@carl:example.com").expect("Failed to create UserId.")
             ).expect("Failed to convert UserId to JSON."),
             r#""@carl:example.com""#
         );
@@ -706,14 +749,14 @@ mod tests {
             from_str::<UserId>(
                 r#""@carl:example.com""#
             ).expect("Failed to convert JSON to UserId"),
-            UserId::new("@carl:example.com").expect("Failed to create UserId.")
+            UserId::try_from("@carl:example.com").expect("Failed to create UserId.")
         );
     }
 
     #[test]
     fn valid_user_id_with_explicit_standard_port() {
         assert_eq!(
-            UserId::new("@carl:example.com:443")
+            UserId::try_from("@carl:example.com:443")
                 .expect("Failed to create UserId.")
                 .to_string(),
             "@carl:example.com"
@@ -723,7 +766,7 @@ mod tests {
     #[test]
     fn valid_user_id_with_non_standard_port() {
         assert_eq!(
-            UserId::new("@carl:example.com:5000")
+            UserId::try_from("@carl:example.com:5000")
                 .expect("Failed to create UserId.")
                 .to_string(),
             "@carl:example.com:5000"
@@ -733,7 +776,7 @@ mod tests {
     #[test]
     fn invalid_characters_in_user_id_localpart() {
         assert_eq!(
-            UserId::new("@CARL:example.com").err().unwrap(),
+            UserId::try_from("@CARL:example.com").err().unwrap(),
             Error::InvalidCharacters
         );
     }
@@ -741,7 +784,7 @@ mod tests {
     #[test]
     fn missing_user_id_sigil() {
         assert_eq!(
-            UserId::new("carl:example.com").err().unwrap(),
+            UserId::try_from("carl:example.com").err().unwrap(),
             Error::MissingSigil
         );
     }
@@ -749,7 +792,7 @@ mod tests {
     #[test]
     fn missing_user_id_delimiter() {
         assert_eq!(
-            UserId::new("@carl").err().unwrap(),
+            UserId::try_from("@carl").err().unwrap(),
             Error::MissingDelimiter
         );
     }
@@ -757,7 +800,7 @@ mod tests {
     #[test]
     fn invalid_user_id_host() {
         assert_eq!(
-            UserId::new("@carl:-").err().unwrap(),
+            UserId::try_from("@carl:-").err().unwrap(),
             Error::InvalidHost
         );
     }
@@ -765,7 +808,7 @@ mod tests {
     #[test]
     fn invalid_user_id_port() {
         assert_eq!(
-            UserId::new("@carl:example.com:notaport").err().unwrap(),
+            UserId::try_from("@carl:example.com:notaport").err().unwrap(),
             Error::InvalidHost
         );
     }
