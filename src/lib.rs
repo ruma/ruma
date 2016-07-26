@@ -14,6 +14,7 @@ extern crate url;
 #[cfg(test)]
 extern crate serde_json;
 
+use std::error::Error as StdError;
 use std::convert::TryFrom;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
@@ -196,6 +197,25 @@ fn parse_id<'a>(required_sigil: char, id: &'a str) -> Result<(&'a str, Host, u16
     let port = url.port().unwrap_or(443);
 
     Ok((localpart, host, port))
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.description())
+    }
+}
+
+impl StdError for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::InvalidCharacters => "localpart contains invalid characters",
+            Error::InvalidHost => "server name is not a valid IP address or domain name",
+            Error::MaximumLengthExceeded => "ID exceeds 255 bytes",
+            Error::MinimumLengthNotSatisfied => "ID must be at least 4 characters",
+            Error::MissingDelimiter => "colon is required between localpart and server name",
+            Error::MissingSigil => "leading sigil is missing",
+        }
+    }
 }
 
 impl EventId {
