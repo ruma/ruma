@@ -6,6 +6,7 @@
 
 #[macro_use]
 extern crate lazy_static;
+extern crate rand;
 extern crate regex;
 extern crate serde;
 extern crate url;
@@ -16,6 +17,7 @@ extern crate serde_json;
 use std::convert::TryFrom;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
+use rand::{Rng, thread_rng};
 use regex::Regex;
 use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
 use serde::de::Visitor;
@@ -80,8 +82,8 @@ pub struct EventId {
 
 /// A Matrix room alias ID.
 ///
-/// A `RoomAliasId` is generated randomly or converted from a string slice, and can be converted
-/// back into a string as needed.
+/// A `RoomAliasId` is converted from a string slice, and can be converted back into a string as
+/// needed.
 ///
 /// ```
 /// # #![feature(try_from)]
@@ -155,6 +157,10 @@ fn display(f: &mut Formatter, sigil: char, localpart: &str, hostname: &Host, por
     }
 }
 
+fn generate_localpart(length: usize) -> String {
+    thread_rng().gen_ascii_chars().take(length).collect()
+}
+
 fn parse_id<'a>(required_sigil: char, id: &'a str) -> Result<(&'a str, Host, u16), Error> {
     if id.len() > MAX_BYTES {
         return Err(Error::MaximumLengthExceeded);
@@ -193,6 +199,21 @@ fn parse_id<'a>(required_sigil: char, id: &'a str) -> Result<(&'a str, Host, u16
 }
 
 impl EventId {
+    /// Attempts to generate an `EventId` for the given origin server with a localpart consisting
+    /// of 18 random ASCII characters.
+    ///
+    /// Fails if the given origin server name cannot be parsed as a valid host.
+    pub fn new(server_name: &str) -> Result<Self, Error> {
+        let event_id = format!("${}:{}", generate_localpart(18), server_name);
+        let (opaque_id, host, port) = parse_id('$', &event_id)?;
+
+        Ok(EventId {
+            hostname: host,
+            opaque_id: opaque_id.to_string(),
+            port: port,
+        })
+    }
+
     /// Returns a `Host` for the event ID, containing the server name (minus the port) of the
     /// originating homeserver.
     ///
@@ -213,6 +234,21 @@ impl EventId {
 }
 
 impl RoomId {
+    /// Attempts to generate a `RoomId` for the given origin server with a localpart consisting of
+    /// 18 random ASCII characters.
+    ///
+    /// Fails if the given origin server name cannot be parsed as a valid host.
+    pub fn new(server_name: &str) -> Result<Self, Error> {
+        let room_id = format!("!{}:{}", generate_localpart(18), server_name);
+        let (opaque_id, host, port) = parse_id('!', &room_id)?;
+
+        Ok(RoomId {
+            hostname: host,
+            opaque_id: opaque_id.to_string(),
+            port: port,
+        })
+    }
+
     /// Returns a `Host` for the room ID, containing the server name (minus the port) of the
     /// originating homeserver.
     ///
@@ -253,6 +289,21 @@ impl RoomAliasId {
 }
 
 impl UserId {
+    /// Attempts to generate a `UserId` for the given origin server with a localpart consisting of
+    /// 12 random ASCII characters.
+    ///
+    /// Fails if the given origin server name cannot be parsed as a valid host.
+    pub fn new(server_name: &str) -> Result<Self, Error> {
+        let user_id = format!("@{}:{}", generate_localpart(12), server_name);
+        let (localpart, host, port) = parse_id('@', &user_id)?;
+
+        Ok(UserId {
+            hostname: host,
+            localpart: localpart.to_string(),
+            port: port,
+        })
+    }
+
     /// Returns a `Host` for the user ID, containing the server name (minus the port) of the
     /// originating homeserver.
     ///
@@ -489,6 +540,21 @@ mod tests {
     }
 
     #[test]
+    fn generate_random_valid_event_id() {
+        let event_id = EventId::new("example.com")
+            .expect("Failed to generate EventId.")
+            .to_string();
+
+        assert!(event_id.to_string().starts_with('$'));
+        assert_eq!(event_id.len(), 31);
+    }
+
+    #[test]
+    fn generate_random_invalid_event_id() {
+        assert!(EventId::new("").is_err());
+    }
+
+    #[test]
     fn serialize_valid_event_id() {
         assert_eq!(
             to_string(
@@ -652,6 +718,21 @@ mod tests {
     }
 
     #[test]
+    fn generate_random_valid_room_id() {
+        let room_id = RoomId::new("example.com")
+            .expect("Failed to generate RoomId.")
+            .to_string();
+
+        assert!(room_id.to_string().starts_with('!'));
+        assert_eq!(room_id.len(), 31);
+    }
+
+    #[test]
+    fn generate_random_invalid_room_id() {
+        assert!(RoomId::new("").is_err());
+    }
+
+    #[test]
     fn serialize_valid_room_id() {
         assert_eq!(
             to_string(
@@ -731,6 +812,21 @@ mod tests {
                 .to_string(),
             "@carl:example.com"
         );
+    }
+
+    #[test]
+    fn generate_random_valid_user_id() {
+        let user_id = UserId::new("example.com")
+            .expect("Failed to generate UserId.")
+            .to_string();
+
+        assert!(user_id.to_string().starts_with('@'));
+        assert_eq!(user_id.len(), 25);
+    }
+
+    #[test]
+    fn generate_random_invalid_user_id() {
+        assert!(UserId::new("").is_err());
     }
 
     #[test]
