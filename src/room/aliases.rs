@@ -1,5 +1,7 @@
 //! Types for the *m.room.aliases* event.
 
+use ruma_identifiers::RoomAliasId;
+
 use StateEvent;
 
 /// Informs the room about what room aliases it has been given.
@@ -9,5 +11,5 @@ pub type AliasesEvent = StateEvent<AliasesEventContent, ()>;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AliasesEventContent {
     /// A list of room aliases.
-    pub aliases: Vec<String>,
+    pub aliases: Vec<RoomAliasId>,
 }

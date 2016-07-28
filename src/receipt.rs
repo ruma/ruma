@@ -2,6 +2,8 @@
 
 use std::collections::HashMap;
 
+use ruma_identifiers::RoomId;
+
 use Event;
 
 /// Informs the client of new receipts.
@@ -36,5 +38,5 @@ pub struct Receipt {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ReceiptEventExtraContent {
     /// The unique identifier for the room associated with this event.
-    pub room_id: String,
+    pub room_id: RoomId,
 }

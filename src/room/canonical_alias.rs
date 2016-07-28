@@ -1,5 +1,7 @@
 //! Types for the *m.room.canonical_alias* event.
 
+use ruma_identifiers::RoomAliasId;
+
 use StateEvent;
 
 /// Informs the room as to which alias is the canonical one.
@@ -9,5 +11,5 @@ pub type CanonicalAliasEvent = StateEvent<CanonicalAliasEventContent, ()>;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CanonicalAliasEventContent {
     /// The canonical alias.
-    pub alias: String,
+    pub alias: RoomAliasId,
 }

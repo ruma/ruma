@@ -1,5 +1,7 @@
 //! Types for the *m.room.redaction* event.
 
+use ruma_identifiers::EventId;
+
 use RoomEvent;
 
 /// A redaction of an event.
@@ -16,5 +18,5 @@ pub struct RedactionEventContent {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RedactionEventExtraContent {
     /// The ID of the event that was redacted.
-    pub redacts: String,
+    pub redacts: EventId,
 }

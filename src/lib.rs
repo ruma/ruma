@@ -5,11 +5,13 @@
 #![plugin(serde_macros)]
 #![deny(missing_docs)]
 
+extern crate ruma_identifiers;
 extern crate serde;
 extern crate serde_json;
 
 use std::fmt::{Display, Formatter, Error as FmtError};
 
+use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -22,7 +24,7 @@ pub mod tag;
 pub mod typing;
 
 /// The type of an event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub enum EventType {
     /// m.call.answer
     CallAnswer,
@@ -94,7 +96,7 @@ pub struct RoomEvent<C, E> where C: Deserialize + Serialize, E: Deserialize + Se
     pub content: C,
 
     /// The unique identifier for the event.
-    pub event_id: String,
+    pub event_id: EventId,
 
     /// Extra top-level key-value pairs specific to this event type, but that are not under the
     /// `content` field.
@@ -105,14 +107,14 @@ pub struct RoomEvent<C, E> where C: Deserialize + Serialize, E: Deserialize + Se
     pub event_type: EventType,
 
     /// The unique identifier for the room associated with this event.
-    pub room_id: String,
+    pub room_id: RoomId,
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: Option<Value>,
 
     /// The unique identifier for the user associated with this event.
     #[serde(rename="sender")]
-    pub user_id: String,
+    pub user_id: UserId,
 }
 
 /// An event that describes persistent state about a room.
@@ -122,7 +124,7 @@ pub struct StateEvent<C, E> where C: Deserialize + Serialize, E: Deserialize + S
     pub content: C,
 
     /// The unique identifier for the event.
-    pub event_id: String,
+    pub event_id: EventId,
 
     /// The type of the event.
     #[serde(rename="type")]
@@ -136,7 +138,7 @@ pub struct StateEvent<C, E> where C: Deserialize + Serialize, E: Deserialize + S
     pub prev_content: Option<C>,
 
     /// The unique identifier for the room associated with this event.
-    pub room_id: String,
+    pub room_id: RoomId,
 
     /// A key that determines which piece of room state the event represents.
     pub state_key: String,
@@ -146,7 +148,7 @@ pub struct StateEvent<C, E> where C: Deserialize + Serialize, E: Deserialize + S
 
     /// The unique identifier for the user associated with this event.
     #[serde(rename="sender")]
-    pub user_id: String,
+    pub user_id: UserId,
 }
 
 impl Display for EventType {

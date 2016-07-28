@@ -1,5 +1,7 @@
 //! Types for the *m.presence* event.
 
+use ruma_identifiers::{EventId, UserId};
+
 use Event;
 
 /// Informs the client of a user's presence state change.
@@ -24,7 +26,7 @@ pub struct PresenceEventContent {
     pub presence: PresenceState,
 
     /// The unique identifier for the user associated with this event.
-    pub user_id: String,
+    pub user_id: UserId,
 }
 
 /// A description of a user's connectivity and availability for chat.
@@ -50,5 +52,5 @@ pub enum PresenceState {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct PresenceEventExtraContent {
     /// The unique identifier for the event.
-    pub event_id: String,
+    pub event_id: EventId,
 }
