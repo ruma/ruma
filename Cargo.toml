@@ -1,9 +1,9 @@
 [package]
 authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
 description = "Resource identifiers for Matrix."
-documentation = "http://ruma.github.io/ruma-identifiers/ruma_identifiers"
+documentation = "http://ruma.github.io/ruma-identifiers/ruma_identifiers/"
 homepage = "https://github.com/ruma/ruma-identifiers"
-keywords = ["matrix", "matrix.org", "chat", "messaging", "ruma"]
+keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
 name = "ruma-identifiers"
 readme = "README.md"
