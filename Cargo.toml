@@ -14,8 +14,8 @@ version = "0.1.0"
 lazy_static = "0.2.1"
 rand = "0.3.14"
 regex = "0.1.73"
-serde = "0.8.0-rc3"
+serde = "0.8.0"
 url = "1.1.1"
 
 [dev-dependencies]
-serde_json = "0.8.0-rc1"
+serde_json = "0.8.0"
