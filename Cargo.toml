@@ -1,9 +1,9 @@
 [package]
 authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
 description = "Serializable types for the events in the Matrix specification."
-documentation = "http://ruma.github.io/ruma-events/ruma_events"
+documentation = "https://ruma.github.io/ruma-events/ruma_events/"
 homepage = "https://github.com/ruma/ruma-events"
-keywords = ["matrix", "matrix.org", "chat", "messaging", "ruma"]
+keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
 name = "ruma-events"
 readme = "README.md"
