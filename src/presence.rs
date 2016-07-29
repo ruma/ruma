@@ -1,6 +1,11 @@
 //! Types for the *m.presence* event.
 
+use std::fmt::{Display, Formatter, Error as FmtError};
+use std::str::FromStr;
+
 use ruma_identifiers::{EventId, UserId};
+use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
+use serde::de::Visitor;
 
 use Event;
 
@@ -30,14 +35,8 @@ pub struct PresenceEventContent {
 }
 
 /// A description of a user's connectivity and availability for chat.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, PartialEq)]
 pub enum PresenceState {
-    /// Connected to the service and available for chat.
-    FreeForChat,
-
-    /// Connected to the service but not visible to other users.
-    Hidden,
-
     /// Disconnected from the service.
     Offline,
 
@@ -53,4 +52,84 @@ pub enum PresenceState {
 pub struct PresenceEventExtraContent {
     /// The unique identifier for the event.
     pub event_id: EventId,
+}
+
+/// An error when attempting to parse an invalid `PresenceState` from a string.
+pub struct PresenceStateParseError;
+
+impl Display for PresenceState {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        let presence_state_str = match *self {
+            PresenceState::Offline => "offline",
+            PresenceState::Online => "online",
+            PresenceState::Unavailable => "unavailable",
+        };
+
+        write!(f, "{}", presence_state_str)
+    }
+}
+
+impl FromStr for PresenceState {
+    type Err = PresenceStateParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "offline" => Ok(PresenceState::Offline),
+            "online" => Ok(PresenceState::Online),
+            "unavailable" => Ok(PresenceState::Unavailable),
+            _ => Err(PresenceStateParseError),
+        }
+    }
+}
+
+impl Serialize for PresenceState {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl Deserialize for PresenceState {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+        struct PresenceStateVisitor;
+
+        impl Visitor for PresenceStateVisitor {
+            type Value = PresenceState;
+
+            fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+                v.parse().map_err(|_| {
+                    E::invalid_value(v)
+                })
+            }
+        }
+
+        deserializer.deserialize_str(PresenceStateVisitor)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::{from_str, to_string};
+
+    use super::PresenceState;
+
+    #[test]
+    fn presence_states_serialize_to_display_form() {
+        assert_eq!(
+            to_string(&PresenceState::Offline).unwrap(),
+            r#""offline""#
+        );
+    }
+
+    #[test]
+    fn presence_states_deserialize_from_display_form() {
+        assert_eq!(
+            from_str::<PresenceState>(r#""offline""#).unwrap(),
+            PresenceState::Offline
+        );
+    }
+
+    #[test]
+    fn invalid_presence_states_fail_deserialization() {
+        assert!(from_str::<PresenceState>(r#""bad""#).is_err());
+    }
 }
