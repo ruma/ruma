@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use ruma_identifiers::RoomId;
+use ruma_identifiers::{EventId, RoomId, UserId};
 
 use Event;
 
@@ -13,7 +13,7 @@ pub type ReceiptEvent = Event<ReceiptEventContent, ReceiptEventExtraContent>;
 ///
 /// A mapping of event ID to a collection of receipts for this event ID. The event ID is the ID of
 /// the event being acknowledged and *not* an ID for the receipt itself.
-pub type ReceiptEventContent = HashMap<String, Receipts>;
+pub type ReceiptEventContent = HashMap<EventId, Receipts>;
 
 /// A collection of receipts.
 #[derive(Debug, Deserialize, Serialize)]
@@ -25,7 +25,7 @@ pub struct Receipts {
 /// A mapping of user ID to receipt.
 ///
 /// The user ID is the entity who sent this receipt.
-pub type UserReceipts = HashMap<String, Receipt>;
+pub type UserReceipts = HashMap<UserId, Receipt>;
 
 /// An acknowledgement of an event.
 #[derive(Debug, Deserialize, Serialize)]
