@@ -227,8 +227,7 @@ impl Deserialize for EventType {
         impl Visitor for EventTypeVisitor {
             type Value = EventType;
 
-            fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E>
-            where E: SerdeError {
+            fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
                 Ok(EventType::from(v))
             }
         }
