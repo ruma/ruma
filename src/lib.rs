@@ -1,7 +1,7 @@
 //! Crate ruma_events contains serializable types for the events in the [Matrix](https://matrix.org)
 //! specification that can be shared by client and server code.
 
-#![feature(custom_derive, plugin)]
+#![feature(custom_derive, plugin, question_mark)]
 #![plugin(serde_macros)]
 #![deny(missing_docs)]
 
@@ -12,7 +12,8 @@ extern crate serde_json;
 use std::fmt::{Display, Formatter, Error as FmtError};
 
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
+use serde::de::Visitor;
 use serde_json::Value;
 
 pub mod call;
@@ -24,7 +25,7 @@ pub mod tag;
 pub mod typing;
 
 /// The type of an event.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum EventType {
     /// m.call.answer
     CallAnswer,
@@ -183,15 +184,62 @@ impl Display for EventType {
     }
 }
 
+impl<'a> From<&'a str> for EventType {
+    fn from(s: &'a str) -> EventType {
+        match s {
+            "m.call.answer" => EventType::CallAnswer,
+            "m.call.candidates" => EventType::CallCandidates,
+            "m.call.hangup" => EventType::CallHangup,
+            "m.call.invite" => EventType::CallInvite,
+            "m.presence" => EventType::Presence,
+            "m.receipt" => EventType::Receipt,
+            "m.room.aliases" => EventType::RoomAliases,
+            "m.room.avatar" => EventType::RoomAvatar,
+            "m.room.canonical_alias" => EventType::RoomCanonicalAlias,
+            "m.room.create" => EventType::RoomCreate,
+            "m.room.guest_access" => EventType::RoomGuestAccess,
+            "m.room.history_visibility" => EventType::RoomHistoryVisibility,
+            "m.room.join_rules" => EventType::RoomJoinRules,
+            "m.room.member" => EventType::RoomMember,
+            "m.room.message" => EventType::RoomMessage,
+            "m.room.name" => EventType::RoomName,
+            "m.room.power_levels" => EventType::RoomPowerLevels,
+            "m.room.redaction" => EventType::RoomRedaction,
+            "m.room.third_party_invite" => EventType::RoomThirdPartyInvite,
+            "m.room.topic" => EventType::RoomTopic,
+            "m.tag" => EventType::Tag,
+            "m.typing" => EventType::Typing,
+            event_type => EventType::Custom(event_type.to_string()),
+        }
+    }
+}
+
 impl Serialize for EventType {
     fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
         serializer.serialize_str(&self.to_string())
     }
 }
 
+impl Deserialize for EventType {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+        struct EventTypeVisitor;
+
+        impl Visitor for EventTypeVisitor {
+            type Value = EventType;
+
+            fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E>
+            where E: SerdeError {
+                Ok(EventType::from(v))
+            }
+        }
+
+        deserializer.deserialize_str(EventTypeVisitor)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use serde_json::to_string;
+    use serde_json::{from_str, to_string};
 
     use super::EventType;
 
@@ -209,5 +257,21 @@ mod tests {
             to_string(&EventType::Custom("io.ruma.test".to_string())).unwrap(),
             r#""io.ruma.test""#
         );
+    }
+
+    #[test]
+    fn event_types_deserialize_from_display_form() {
+        assert_eq!(
+            from_str::<EventType>(r#""m.room.create""#).unwrap(),
+            EventType::RoomCreate
+        );
+    }
+
+    #[test]
+    fn custom_event_types_deserialize_from_display_form() {
+        assert_eq!(
+            from_str::<EventType>(r#""io.ruma.test""#).unwrap(),
+            EventType::Custom("io.ruma.test".to_string())
+        )
     }
 }
