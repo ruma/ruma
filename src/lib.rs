@@ -12,7 +12,7 @@ extern crate serde_json;
 use std::fmt::{Display, Formatter, Error as FmtError};
 
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
 pub mod call;
@@ -24,7 +24,7 @@ pub mod tag;
 pub mod typing;
 
 /// The type of an event.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
 pub enum EventType {
     /// m.call.answer
     CallAnswer,
@@ -180,5 +180,34 @@ impl Display for EventType {
         };
 
         write!(f, "{}", event_type_str)
+    }
+}
+
+impl Serialize for EventType {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::to_string;
+
+    use super::EventType;
+
+    #[test]
+    fn event_types_serialize_to_display_form() {
+        assert_eq!(
+            to_string(&EventType::RoomCreate).unwrap(),
+            r#""m.room.create""#
+        );
+    }
+
+    #[test]
+    fn custom_event_types_serialize_to_display_form() {
+        assert_eq!(
+            to_string(&EventType::Custom("io.ruma.test".to_string())).unwrap(),
+            r#""io.ruma.test""#
+        );
     }
 }
