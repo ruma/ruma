@@ -1,6 +1,11 @@
 //! Types for the *m.room.member* event.
 
-use StateEvent;
+use std::fmt::{Display, Formatter, Error as FmtError};
+use std::str::FromStr;
+
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+use {StateEvent, ParseError, Visitor};
 use stripped::StrippedState;
 
 /// The current membership state of a user in the room.
@@ -35,7 +40,7 @@ pub struct MemberEventContent {
 }
 
 /// The membership state of a user.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, PartialEq)]
 pub enum MembershipState {
     /// The user is banned.
     Ban,
@@ -58,4 +63,73 @@ pub enum MembershipState {
 pub struct MemberEventExtraContent {
     /// A subset of the state of the room at the time of the invite.
     pub invite_room_state: Option<Vec<StrippedState>>,
+}
+
+impl Display for MembershipState {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        let membership_state_str = match *self {
+            MembershipState::Ban => "ban",
+            MembershipState::Invite => "invite",
+            MembershipState::Join => "join",
+            MembershipState::Knock => "knock",
+            MembershipState::Leave => "leave",
+        };
+
+        write!(f, "{}", membership_state_str)
+    }
+}
+
+impl FromStr for MembershipState {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "ban" => Ok(MembershipState::Ban),
+            "invite" => Ok(MembershipState::Invite),
+            "join" => Ok(MembershipState::Join),
+            "knock" => Ok(MembershipState::Knock),
+            "leave" => Ok(MembershipState::Leave),
+            _ => Err(ParseError),
+        }
+    }
+}
+
+impl Serialize for MembershipState {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl Deserialize for MembershipState {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+        deserializer.deserialize_str(Visitor::new())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::{from_str, to_string};
+
+    use super::MembershipState;
+
+    #[test]
+    fn membership_states_serialize_to_display_form() {
+        assert_eq!(
+            to_string(&MembershipState::Ban).unwrap(),
+            r#""ban""#
+        );
+    }
+
+    #[test]
+    fn membership_states_deserialize_from_display_form() {
+        assert_eq!(
+            from_str::<MembershipState>(r#""ban""#).unwrap(),
+            MembershipState::Ban
+        );
+    }
+
+    #[test]
+    fn invalid_membership_states_fail_deserialization() {
+        assert!(from_str::<MembershipState>(r#""bad""#).is_err());
+    }
 }
