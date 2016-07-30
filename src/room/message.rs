@@ -206,3 +206,16 @@ pub struct VideoInfo {
     /// The width of the video in pixels.
     pub w: Option<u64>,
 }
+
+impl_enum! {
+    MessageType {
+        Audio => "audio",
+        Emote => "emote",
+        File => "file",
+        Image => "image",
+        Location => "location",
+        Notice => "notice",
+        Text => "text",
+        Video => "video",
+    }
+}
