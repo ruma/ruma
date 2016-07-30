@@ -1,11 +1,6 @@
 //! Types for the *m.room.join_rules* event.
 
-use std::fmt::{Display, Formatter, Error as FmtError};
-use std::str::FromStr;
-
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-
-use {StateEvent, ParseError, Visitor};
+use StateEvent;
 
 /// Describes how users are allowed to join the room.
 pub type JoinRulesEvent = StateEvent<JoinRulesEventContent, ()>;
@@ -34,69 +29,11 @@ pub enum JoinRule {
     Public,
 }
 
-impl Display for JoinRule {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
-        let join_rule_str = match *self {
-            JoinRule::Invite => "invite",
-            JoinRule::Knock => "knock",
-            JoinRule::Private => "private",
-            JoinRule::Public => "public",
-        };
-
-        write!(f, "{}", join_rule_str)
-    }
-}
-
-impl FromStr for JoinRule {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "invite" => Ok(JoinRule::Invite),
-            "knock" => Ok(JoinRule::Knock),
-            "private" => Ok(JoinRule::Private),
-            "public" => Ok(JoinRule::Public),
-            _ => Err(ParseError),
-        }
-    }
-}
-
-impl Serialize for JoinRule {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
-        serializer.serialize_str(&self.to_string())
-    }
-}
-
-impl Deserialize for JoinRule {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
-        deserializer.deserialize_str(Visitor::new())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use serde_json::{from_str, to_string};
-
-    use super::JoinRule;
-
-    #[test]
-    fn join_rules_serialize_to_display_form() {
-        assert_eq!(
-            to_string(&JoinRule::Invite).unwrap(),
-            r#""invite""#
-        );
-    }
-
-    #[test]
-    fn join_rules_deserialize_from_display_form() {
-        assert_eq!(
-            from_str::<JoinRule>(r#""invite""#).unwrap(),
-            JoinRule::Invite
-        );
-    }
-
-    #[test]
-    fn invalid_join_rules_fail_deserialization() {
-        assert!(from_str::<JoinRule>(r#""bad""#).is_err());
+impl_enum! {
+    JoinRule {
+        Invite => "invite",
+        Knock => "knock",
+        Private => "private",
+        Public => "public",
     }
 }

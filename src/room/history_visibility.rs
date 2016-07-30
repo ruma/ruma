@@ -1,11 +1,6 @@
 //! Types for the *m.room.history_visibility* event.
 
-use std::fmt::{Display, Formatter, Error as FmtError};
-use std::str::FromStr;
-
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-
-use {StateEvent, ParseError, Visitor};
+use StateEvent;
 
 /// This event controls whether a member of a room can see the events that happened in a room from
 /// before they joined.
@@ -40,69 +35,11 @@ pub enum HistoryVisibility {
     WorldReadable,
 }
 
-impl Display for HistoryVisibility {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
-        let history_visibility_str = match *self {
-            HistoryVisibility::Invited => "invited",
-            HistoryVisibility::Joined => "joined",
-            HistoryVisibility::Shared => "shared",
-            HistoryVisibility::WorldReadable => "world_readable",
-        };
-
-        write!(f, "{}", history_visibility_str)
-    }
-}
-
-impl FromStr for HistoryVisibility {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "invited" => Ok(HistoryVisibility::Invited),
-            "joined" => Ok(HistoryVisibility::Joined),
-            "shared" => Ok(HistoryVisibility::Shared),
-            "world_readable" => Ok(HistoryVisibility::WorldReadable),
-            _ => Err(ParseError),
-        }
-    }
-}
-
-impl Serialize for HistoryVisibility {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
-        serializer.serialize_str(&self.to_string())
-    }
-}
-
-impl Deserialize for HistoryVisibility {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
-        deserializer.deserialize_str(Visitor::new())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use serde_json::{from_str, to_string};
-
-    use super::HistoryVisibility;
-
-    #[test]
-    fn history_visibility_serializes_to_display_form() {
-        assert_eq!(
-            to_string(&HistoryVisibility::Invited).unwrap(),
-            r#""invited""#
-        );
-    }
-
-    #[test]
-    fn history_visibility_deserializes_from_display_form() {
-        assert_eq!(
-            from_str::<HistoryVisibility>(r#""invited""#).unwrap(),
-            HistoryVisibility::Invited
-        );
-    }
-
-    #[test]
-    fn invalid_history_visibility_fails_deserialization() {
-        assert!(from_str::<HistoryVisibility>(r#""bad""#).is_err());
+impl_enum! {
+    HistoryVisibility {
+        Invited => "invited",
+        Joined => "joined",
+        Shared => "shared",
+        WorldReadable => "world_readable",
     }
 }

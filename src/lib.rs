@@ -18,6 +18,9 @@ use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serialize
 use serde::de::Visitor as SerdeVisitor;
 use serde_json::Value;
 
+#[macro_use]
+mod macros;
+
 pub mod call;
 pub mod presence;
 pub mod receipt;
