@@ -4,10 +4,9 @@ use std::fmt::{Display, Formatter, Error as FmtError};
 use std::str::FromStr;
 
 use ruma_identifiers::{EventId, UserId};
-use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
-use serde::de::Visitor;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use Event;
+use {Event, ParseError, Visitor};
 
 /// Informs the client of a user's presence state change.
 pub type PresenceEvent = Event<PresenceEventContent, PresenceEventExtraContent>;
@@ -54,9 +53,6 @@ pub struct PresenceEventExtraContent {
     pub event_id: EventId,
 }
 
-/// An error when attempting to parse an invalid `PresenceState` from a string.
-pub struct PresenceStateParseError;
-
 impl Display for PresenceState {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
         let presence_state_str = match *self {
@@ -70,14 +66,14 @@ impl Display for PresenceState {
 }
 
 impl FromStr for PresenceState {
-    type Err = PresenceStateParseError;
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "offline" => Ok(PresenceState::Offline),
             "online" => Ok(PresenceState::Online),
             "unavailable" => Ok(PresenceState::Unavailable),
-            _ => Err(PresenceStateParseError),
+            _ => Err(ParseError),
         }
     }
 }
@@ -90,19 +86,7 @@ impl Serialize for PresenceState {
 
 impl Deserialize for PresenceState {
     fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
-        struct PresenceStateVisitor;
-
-        impl Visitor for PresenceStateVisitor {
-            type Value = PresenceState;
-
-            fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
-                v.parse().map_err(|_| {
-                    E::invalid_value(v)
-                })
-            }
-        }
-
-        deserializer.deserialize_str(PresenceStateVisitor)
+        deserializer.deserialize_str(Visitor::new())
     }
 }
 

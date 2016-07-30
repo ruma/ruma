@@ -5,8 +5,9 @@
 use std::fmt::{Display, Formatter, Error as FmtError};
 use std::str::FromStr;
 
-use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
-use serde::de::Visitor;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+use {ParseError, Visitor};
 
 pub mod answer;
 pub mod candidates;
@@ -31,9 +32,6 @@ pub enum SessionDescriptionType {
     Offer,
 }
 
-/// An error when attempting to parse an invalid `SessionDescriptionType` from a string.
-pub struct SessionDescriptionTypeParseError;
-
 impl Display for SessionDescriptionType {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
         let session_description_type_str = match *self {
@@ -46,13 +44,13 @@ impl Display for SessionDescriptionType {
 }
 
 impl FromStr for SessionDescriptionType {
-    type Err = SessionDescriptionTypeParseError;
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "answer" => Ok(SessionDescriptionType::Answer),
             "offer" => Ok(SessionDescriptionType::Offer),
-            _ => Err(SessionDescriptionTypeParseError),
+            _ => Err(ParseError),
         }
     }
 }
@@ -65,19 +63,7 @@ impl Serialize for SessionDescriptionType {
 
 impl Deserialize for SessionDescriptionType {
     fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
-        struct SessionDescriptionTypeVisitor;
-
-        impl Visitor for SessionDescriptionTypeVisitor {
-            type Value = SessionDescriptionType;
-
-            fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
-                v.parse().map_err(|_| {
-                    E::invalid_value(v)
-                })
-            }
-        }
-
-        deserializer.deserialize_str(SessionDescriptionTypeVisitor)
+        deserializer.deserialize_str(Visitor::new())
     }
 }
 

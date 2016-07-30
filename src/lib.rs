@@ -10,10 +10,12 @@ extern crate serde;
 extern crate serde_json;
 
 use std::fmt::{Display, Formatter, Error as FmtError};
+use std::marker::PhantomData;
+use std::str::FromStr;
 
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
-use serde::de::Visitor;
+use serde::de::Visitor as SerdeVisitor;
 use serde_json::Value;
 
 pub mod call;
@@ -152,6 +154,14 @@ pub struct StateEvent<C, E> where C: Deserialize + Serialize, E: Deserialize + S
     pub user_id: UserId,
 }
 
+/// An error when attempting to convert a string to an enum that only accepts certain values.
+pub struct ParseError;
+
+/// A Serde `Visitor` for deserializing various ruma-events enums.
+struct Visitor<T> where T: Deserialize + FromStr {
+    _phantom: PhantomData<T>,
+}
+
 impl Display for EventType {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
         let event_type_str = match *self {
@@ -224,7 +234,7 @@ impl Deserialize for EventType {
     fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
         struct EventTypeVisitor;
 
-        impl Visitor for EventTypeVisitor {
+        impl SerdeVisitor for EventTypeVisitor {
             type Value = EventType;
 
             fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
@@ -233,6 +243,24 @@ impl Deserialize for EventType {
         }
 
         deserializer.deserialize_str(EventTypeVisitor)
+    }
+}
+
+impl<T> Visitor<T> where T: Deserialize + FromStr {
+    pub fn new() -> Visitor<T> {
+        Visitor {
+            _phantom: PhantomData,
+        }
+    }
+}
+
+impl<T> SerdeVisitor for Visitor<T> where T: Deserialize + FromStr {
+    type Value = T;
+
+    fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+        v.parse().map_err(|_| {
+            E::invalid_value(v)
+        })
     }
 }
 

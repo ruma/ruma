@@ -3,10 +3,9 @@
 use std::fmt::{Display, Formatter, Error as FmtError};
 use std::str::FromStr;
 
-use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
-use serde::de::Visitor;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use StateEvent;
+use {StateEvent, ParseError, Visitor};
 
 /// Controls whether guest users are allowed to join rooms.
 ///
@@ -31,9 +30,6 @@ pub enum GuestAccess {
     Forbidden,
 }
 
-/// An error when attempting to parse an invalid `PresenceState` from a string.
-pub struct GuestAccessParseError;
-
 impl Display for GuestAccess {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
         let guest_access_str = match *self {
@@ -46,13 +42,13 @@ impl Display for GuestAccess {
 }
 
 impl FromStr for GuestAccess {
-    type Err = GuestAccessParseError;
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "can_join" => Ok(GuestAccess::CanJoin),
             "forbidden" => Ok(GuestAccess::Forbidden),
-            _ => Err(GuestAccessParseError),
+            _ => Err(ParseError),
         }
     }
 }
@@ -65,19 +61,7 @@ impl Serialize for GuestAccess {
 
 impl Deserialize for GuestAccess {
     fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
-        struct GuestAccessVisitor;
-
-        impl Visitor for GuestAccessVisitor {
-            type Value = GuestAccess;
-
-            fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
-                v.parse().map_err(|_| {
-                    E::invalid_value(v)
-                })
-            }
-        }
-
-        deserializer.deserialize_str(GuestAccessVisitor)
+        deserializer.deserialize_str(Visitor::new())
     }
 }
 

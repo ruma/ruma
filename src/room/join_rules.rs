@@ -3,10 +3,9 @@
 use std::fmt::{Display, Formatter, Error as FmtError};
 use std::str::FromStr;
 
-use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
-use serde::de::Visitor;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use StateEvent;
+use {StateEvent, ParseError, Visitor};
 
 /// Describes how users are allowed to join the room.
 pub type JoinRulesEvent = StateEvent<JoinRulesEventContent, ()>;
@@ -35,9 +34,6 @@ pub enum JoinRule {
     Public,
 }
 
-/// An error when attempting to parse an invalid `JoinRule` from a string.
-pub struct JoinRuleParseError;
-
 impl Display for JoinRule {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
         let join_rule_str = match *self {
@@ -52,7 +48,7 @@ impl Display for JoinRule {
 }
 
 impl FromStr for JoinRule {
-    type Err = JoinRuleParseError;
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -60,7 +56,7 @@ impl FromStr for JoinRule {
             "knock" => Ok(JoinRule::Knock),
             "private" => Ok(JoinRule::Private),
             "public" => Ok(JoinRule::Public),
-            _ => Err(JoinRuleParseError),
+            _ => Err(ParseError),
         }
     }
 }
@@ -73,19 +69,7 @@ impl Serialize for JoinRule {
 
 impl Deserialize for JoinRule {
     fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
-        struct JoinRuleVisitor;
-
-        impl Visitor for JoinRuleVisitor {
-            type Value = JoinRule;
-
-            fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
-                v.parse().map_err(|_| {
-                    E::invalid_value(v)
-                })
-            }
-        }
-
-        deserializer.deserialize_str(JoinRuleVisitor)
+        deserializer.deserialize_str(Visitor::new())
     }
 }
 

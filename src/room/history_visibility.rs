@@ -3,10 +3,9 @@
 use std::fmt::{Display, Formatter, Error as FmtError};
 use std::str::FromStr;
 
-use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
-use serde::de::Visitor;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use StateEvent;
+use {StateEvent, ParseError, Visitor};
 
 /// This event controls whether a member of a room can see the events that happened in a room from
 /// before they joined.
@@ -41,9 +40,6 @@ pub enum HistoryVisibility {
     WorldReadable,
 }
 
-/// An error when attempting to parse an invalid `HistoryVisibility` from a string.
-pub struct HistoryVisibilityParseError;
-
 impl Display for HistoryVisibility {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
         let history_visibility_str = match *self {
@@ -58,7 +54,7 @@ impl Display for HistoryVisibility {
 }
 
 impl FromStr for HistoryVisibility {
-    type Err = HistoryVisibilityParseError;
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -66,7 +62,7 @@ impl FromStr for HistoryVisibility {
             "joined" => Ok(HistoryVisibility::Joined),
             "shared" => Ok(HistoryVisibility::Shared),
             "world_readable" => Ok(HistoryVisibility::WorldReadable),
-            _ => Err(HistoryVisibilityParseError),
+            _ => Err(ParseError),
         }
     }
 }
@@ -79,19 +75,7 @@ impl Serialize for HistoryVisibility {
 
 impl Deserialize for HistoryVisibility {
     fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
-        struct HistoryVisibilityVisitor;
-
-        impl Visitor for HistoryVisibilityVisitor {
-            type Value = HistoryVisibility;
-
-            fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
-                v.parse().map_err(|_| {
-                    E::invalid_value(v)
-                })
-            }
-        }
-
-        deserializer.deserialize_str(HistoryVisibilityVisitor)
+        deserializer.deserialize_str(Visitor::new())
     }
 }
 
