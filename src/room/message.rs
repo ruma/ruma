@@ -7,7 +7,7 @@ use super::ImageInfo;
 pub type MessageEvent = RoomEvent<MessageEventContent, ()>;
 
 /// The message type of message event, e.g. `m.image` or `m.text`.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, PartialEq)]
 pub enum MessageType {
     /// An audio message.
     Audio,
