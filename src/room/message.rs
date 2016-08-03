@@ -68,6 +68,7 @@ pub struct AudioMessageEventContent {
     /// The textual representation of this message.
     pub body: String,
     /// Metadata for the audio clip referred to in `url`.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub info: Option<AudioInfo>,
     /// The message type. Always *m.audio*.
     pub msgtype: MessageType,
@@ -79,10 +80,13 @@ pub struct AudioMessageEventContent {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AudioInfo {
     /// The duration of the audio in milliseconds.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub duration: Option<u64>,
     /// The mimetype of the audio, e.g. "audio/aac."
+    #[serde(skip_serializing_if="Option::is_none")]
     pub mimetype: Option<String>,
     /// The size of the audio clip in bytes.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub size: Option<u64>,
 }
 
@@ -102,12 +106,15 @@ pub struct FileMessageEventContent {
     /// original upload.
     pub body: String,
     /// Metadata about the file referred to in `url`.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub info: Option<FileInfo>,
     /// The message type. Always *m.file*.
     pub msgtype: MessageType,
     /// Metadata about the image referred to in `thumbnail_url`.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub thumbnail_info: Option<ImageInfo>,
     /// The URL to the thumbnail of the file.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub thumbnail_url: Option<String>,
     /// The URL to the file.
     pub url: String,
@@ -129,12 +136,15 @@ pub struct ImageMessageEventContent {
     /// of the image, or some kind of content description for accessibility e.g. "image attachment."
     pub body: String,
     /// Metadata about the image referred to in `url`.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub info: Option<ImageInfo>,
     /// The message type. Always *m.image*.
     pub msgtype: MessageType,
     /// Metadata about the image referred to in `thumbnail_url`.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub thumbnail_info: Option<ImageInfo>,
     /// The URL to the thumbnail of the image.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub thumbnail_url: Option<String>,
     /// The URL to the image.
     pub url: String,
@@ -151,8 +161,10 @@ pub struct LocationMessageEventContent {
     /// The message type. Always *m.location*.
     pub msgtype: MessageType,
     /// Metadata about the image referred to in `thumbnail_url`.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub thumbnail_info: Option<ImageInfo>,
     /// The URL to a thumbnail of the location being represented.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub thumbnail_url: Option<String>,
 }
 
@@ -181,6 +193,7 @@ pub struct VideoMessageEventContent {
     /// accessibility, e.g. "video attachment."
     pub body: String,
     /// Metadata about the video clip referred to in `url`.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub info: Option<VideoInfo>,
     /// The message type. Always *m.video*.
     pub msgtype: MessageType,
@@ -192,18 +205,25 @@ pub struct VideoMessageEventContent {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct VideoInfo {
     /// The duration of the video in milliseconds.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub duration: Option<u64>,
     /// The height of the video in pixels.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub h: Option<u64>,
     /// The mimetype of the video, e.g. "video/mp4."
+    #[serde(skip_serializing_if="Option::is_none")]
     pub mimetype: Option<String>,
     /// The size of the video in bytes.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub size: Option<u64>,
     /// Metadata about an image.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub thumbnail_info: Option<ImageInfo>,
     /// The URL to a thumbnail of the video clip.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub thumbnail_url: Option<String>,
     /// The width of the video in pixels.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub w: Option<u64>,
 }
 

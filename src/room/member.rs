@@ -22,9 +22,11 @@ pub type MemberEvent = StateEvent<MemberEventContent, MemberEventExtraContent>;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct MemberEventContent {
     /// The avatar URL for this user.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub avatar_url: Option<String>,
 
     /// The display name for this user.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub displayname: Option<String>,
 
     /// The membership state of this user.
@@ -57,6 +59,7 @@ pub enum MembershipState {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct MemberEventExtraContent {
     /// A subset of the state of the room at the time of the invite.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub invite_room_state: Option<Vec<StrippedState>>,
 }
 

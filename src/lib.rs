@@ -116,6 +116,7 @@ pub struct RoomEvent<C, E> where C: Deserialize + Serialize, E: Deserialize + Se
     pub room_id: RoomId,
 
     /// Additional key-value pairs not signed by the homeserver.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub unsigned: Option<Value>,
 
     /// The unique identifier for the user associated with this event.
@@ -141,6 +142,7 @@ pub struct StateEvent<C, E> where C: Deserialize + Serialize, E: Deserialize + S
     pub extra_content: E,
 
     /// The previous content for this state key, if any.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub prev_content: Option<C>,
 
     /// The unique identifier for the room associated with this event.
@@ -150,6 +152,7 @@ pub struct StateEvent<C, E> where C: Deserialize + Serialize, E: Deserialize + S
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub unsigned: Option<Value>,
 
     /// The unique identifier for the user associated with this event.

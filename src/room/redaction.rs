@@ -11,6 +11,7 @@ pub type RedactionEvent = RoomEvent<RedactionEventContent, RedactionEventExtraCo
 #[derive(Debug, Deserialize, Serialize)]
 pub struct RedactionEventContent {
     /// The reason for the redaction, if any.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub reason: Option<String>,
 }
 

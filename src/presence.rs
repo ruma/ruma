@@ -11,15 +11,18 @@ pub type PresenceEvent = Event<PresenceEventContent, PresenceEventExtraContent>;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct PresenceEventContent {
     /// The current avatar URL for this user.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub avatar_url: Option<String>,
 
     /// Whether or not the user is currently active.
     pub currently_active: bool,
 
     /// The current display name for this user.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub displayname: Option<String>,
 
     /// The last time since this used performed some action, in milliseconds.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub last_active_ago: Option<u64>,
 
     /// The presence state for this user.
