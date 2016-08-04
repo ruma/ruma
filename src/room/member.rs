@@ -37,21 +37,26 @@ pub struct MemberEventContent {
 }
 
 /// The membership state of a user.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
 pub enum MembershipState {
     /// The user is banned.
+    #[serde(rename="ban")]
     Ban,
 
     /// The user has been invited.
+    #[serde(rename="invite")]
     Invite,
 
     /// The user has joined.
+    #[serde(rename="join")]
     Join,
 
     /// The user has requested to join.
+    #[serde(rename="knock")]
     Knock,
 
     /// The user has left.
+    #[serde(rename="leave")]
     Leave,
 }
 
@@ -61,14 +66,4 @@ pub struct MemberEventExtraContent {
     /// A subset of the state of the room at the time of the invite.
     #[serde(skip_serializing_if="Option::is_none")]
     pub invite_room_state: Option<Vec<StrippedState>>,
-}
-
-impl_enum! {
-    MembershipState {
-        Ban => "ban",
-        Invite => "invite",
-        Join => "join",
-        Knock => "knock",
-        Leave => "leave",
-    }
 }

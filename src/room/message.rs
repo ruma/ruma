@@ -10,30 +10,38 @@ use super::ImageInfo;
 pub type MessageEvent = RoomEvent<MessageEventContent, ()>;
 
 /// The message type of message event, e.g. `m.image` or `m.text`.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
 pub enum MessageType {
     /// An audio message.
+    #[serde(rename="m.audio")]
     Audio,
 
     /// An emote message.
+    #[serde(rename="m.emote")]
     Emote,
 
     /// A file message.
+    #[serde(rename="m.file")]
     File,
 
     /// An image message.
+    #[serde(rename="m.image")]
     Image,
 
     /// A location message.
+    #[serde(rename="m.location")]
     Location,
 
     /// A notice message.
+    #[serde(rename="m.notice")]
     Notice,
 
     /// A text message.
+    #[serde(rename="m.text")]
     Text,
 
     /// A video message.
+    #[serde(rename="m.video")]
     Video,
 }
 
@@ -230,19 +238,6 @@ pub struct VideoInfo {
     pub w: Option<u64>,
 }
 
-impl_enum! {
-    MessageType {
-        Audio => "m.audio",
-        Emote => "m.emote",
-        File => "m.file",
-        Image => "m.image",
-        Location => "m.location",
-        Notice => "m.notice",
-        Text => "m.text",
-        Video => "m.video",
-    }
-}
-
 impl Serialize for MessageEventContent {
     fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
         match *self {
@@ -342,7 +337,7 @@ impl Deserialize for MessageEventContent {
 }
 
 #[cfg(test)]
-mod message_event_content_serialization_tests {
+mod tests {
     use serde_json::{from_str, to_string};
 
     use super::{AudioMessageEventContent, MessageType, MessageEventContent};

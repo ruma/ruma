@@ -17,17 +17,12 @@ pub struct SessionDescription {
 }
 
 /// The type of VoIP session description.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
 pub enum SessionDescriptionType {
     /// An answer.
+    #[serde(rename="answer")]
     Answer,
     /// An offer.
+    #[serde(rename="offer")]
     Offer,
-}
-
-impl_enum! {
-    SessionDescriptionType {
-        Answer => "answer",
-        Offer => "offer",
-    }
 }
