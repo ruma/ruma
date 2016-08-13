@@ -42,7 +42,7 @@ lazy_static! {
 }
 
 /// An error encountered when trying to parse an invalid ID string.
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Error {
     /// The ID's localpart contains invalid characters.
     ///
@@ -74,7 +74,7 @@ pub enum Error {
 ///     "$h29iv0s8:example.com"
 /// );
 /// ```
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct EventId {
     hostname: Host,
     opaque_id: String,
@@ -95,7 +95,7 @@ pub struct EventId {
 ///     "#ruma:example.com"
 /// );
 /// ```
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct RoomAliasId {
     alias: String,
     hostname: Host,
@@ -116,7 +116,7 @@ pub struct RoomAliasId {
 ///     "!n8f893n9:example.com"
 /// );
 /// ```
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct RoomId {
     hostname: Host,
     opaque_id: String,
@@ -137,7 +137,7 @@ pub struct RoomId {
 ///     "@carl:example.com"
 /// );
 /// ```
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct UserId {
     hostname: Host,
     localpart: String,
