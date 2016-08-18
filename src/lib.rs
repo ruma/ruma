@@ -155,6 +155,15 @@ pub struct StateEvent<C, E> where C: Deserialize + Serialize, E: Deserialize + S
     pub user_id: UserId,
 }
 
+/// A custom basic event not covered by the Matrix specification.
+pub type CustomEvent = Event<Value, ()>;
+
+/// A custom room event not covered by the Matrix specification.
+pub type CustomRoomEvent = RoomEvent<Value, ()>;
+
+/// A custom state event not covered by the Matrix specification.
+pub type CustomStateEvent = StateEvent<Value, ()>;
+
 impl Display for EventType {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
         let event_type_str = match *self {
