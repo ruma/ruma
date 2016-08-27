@@ -11,6 +11,9 @@ extern crate regex;
 extern crate serde;
 extern crate url;
 
+#[cfg(feature = "diesel")]
+extern crate diesel;
+
 #[cfg(test)]
 extern crate serde_json;
 
@@ -539,6 +542,83 @@ impl Visitor for UserIdVisitor {
             Err(_) => Err(SerdeError::custom("invalid ID")),
         }
     }
+}
+
+#[cfg(feature = "diesel")]
+mod diesel_integration {
+    use std::convert::TryFrom;
+    use std::error::Error;
+    use std::io::Write;
+
+    use diesel::Queryable;
+    use diesel::backend::Backend;
+    use diesel::expression::AsExpression;
+    use diesel::expression::bound::Bound;
+    use diesel::row::Row;
+    use diesel::types::{FromSql, FromSqlRow, HasSqlType, IsNull, Text, ToSql};
+
+    macro_rules! diesel_impl {
+        ($name:ident) => {
+            impl<A, DB> FromSql<A, DB> for $crate::$name
+            where DB: Backend + HasSqlType<A>, String: FromSql<A, DB> {
+                fn from_sql(bytes: Option<&DB::RawValue>)
+                -> Result<Self, Box<Error + Send + Sync>> {
+                    let string = <String as FromSql<A, DB>>::from_sql(bytes)?;
+
+                    $crate::$name::try_from(&string)
+                        .map_err(|error| Box::new(error) as Box<Error + Send + Sync>)
+                }
+            }
+
+            impl<A, DB> FromSqlRow<A, DB> for $crate::$name
+            where DB: Backend + HasSqlType<A>, String: FromSql<A, DB> {
+                fn build_from_row<T: Row<DB>>(row: &mut T)
+                -> Result<Self, Box<Error + Send + Sync>> {
+                    FromSql::<A, DB>::from_sql(row.take())
+                }
+            }
+
+            impl<A, DB> ToSql<A, DB> for $crate::$name
+            where DB: Backend + HasSqlType<A>, String: ToSql<A, DB> {
+                fn to_sql<W: Write>(&self, out: &mut W)
+                -> Result<IsNull, Box<Error + Send + Sync>> {
+                    self.to_string().to_sql(out)
+                }
+            }
+
+            impl<A, DB> Queryable<A, DB> for $crate::$name where
+                $crate::$name: FromSqlRow<A, DB>,
+                DB: Backend + HasSqlType<A>,
+            {
+                type Row = Self;
+
+                fn build(row: Self::Row) -> Self {
+                    row
+                }
+            }
+
+            impl AsExpression<Text> for $crate::$name {
+                type Expression = Bound<Text, Self>;
+
+                fn as_expression(self) -> Self::Expression {
+                    Bound::new(self)
+                }
+            }
+
+            impl<'a> AsExpression<Text> for &'a $crate::$name {
+                type Expression = Bound<Text, Self>;
+
+                fn as_expression(self) -> Self::Expression {
+                    Bound::new(self)
+                }
+            }
+        }
+    }
+
+    diesel_impl!(EventId);
+    diesel_impl!(RoomAliasId);
+    diesel_impl!(RoomId);
+    diesel_impl!(UserId);
 }
 
 #[cfg(test)]

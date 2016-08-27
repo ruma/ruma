@@ -17,5 +17,9 @@ regex = "0.1.73"
 serde = "0.8.1"
 url = "1.2.0"
 
+[dependencies.diesel]
+optional = true
+version = "0.7.1"
+
 [dev-dependencies]
 serde_json = "0.8.1"
