@@ -317,7 +317,7 @@ impl UserId {
     ///
     /// Fails if the given origin server name cannot be parsed as a valid host.
     pub fn new(server_name: &str) -> Result<Self, Error> {
-        let user_id = format!("@{}:{}", generate_localpart(12), server_name);
+        let user_id = format!("@{}:{}", generate_localpart(12).to_lowercase(), server_name);
         let (localpart, host, port) = parse_id('@', &user_id)?;
 
         Ok(UserId {
@@ -487,15 +487,16 @@ impl<'a> TryFrom<&'a str> for UserId {
     /// server name.
     fn try_from(user_id: &'a str) -> Result<UserId, Error> {
         let (localpart, host, port) = parse_id('@', user_id)?;
+        let downcased_localpart = localpart.to_lowercase();
 
-        if !USER_LOCALPART_PATTERN.is_match(localpart) {
+        if !USER_LOCALPART_PATTERN.is_match(&downcased_localpart) {
             return Err(Error::InvalidCharacters);
         }
 
         Ok(UserId {
             hostname: host,
             port: port,
-            localpart: localpart.to_owned(),
+            localpart: downcased_localpart.to_owned(),
         })
     }
 }
@@ -915,6 +916,16 @@ mod tests {
     }
 
     #[test]
+    fn downcase_user_id() {
+        assert_eq!(
+            UserId::try_from("@CARL:example.com")
+                .expect("Failed to create UserId.")
+                .to_string(),
+            "@carl:example.com"
+        );
+    }
+
+    #[test]
     fn generate_random_valid_user_id() {
         let user_id = UserId::new("example.com")
             .expect("Failed to generate UserId.")
@@ -972,7 +983,7 @@ mod tests {
     #[test]
     fn invalid_characters_in_user_id_localpart() {
         assert_eq!(
-            UserId::try_from("@CARL:example.com").err().unwrap(),
+            UserId::try_from("@%%%:example.com").err().unwrap(),
             Error::InvalidCharacters
         );
     }
