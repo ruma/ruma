@@ -9,7 +9,8 @@ use std::borrow::Cow;
 use std::error;
 use std::fmt;
 use std::str;
-use url::form_urlencoded;
+use url::form_urlencoded::Serializer as UrlEncodedSerializer;
+use url::form_urlencoded::Target as UrlEncodedTarget;
 
 /// A serializer for the `application/x-www-form-urlencoded` format.
 ///
@@ -20,8 +21,15 @@ use url::form_urlencoded;
 ///   unit structs and unit variants.
 ///
 /// * Newtype structs defer to their inner values.
-pub struct Serializer<T>(form_urlencoded::Serializer<T>)
-    where T: form_urlencoded::Target;
+pub struct Serializer<'output, T: 'output>(&'output mut UrlEncodedSerializer<T>)
+    where T: UrlEncodedTarget;
+
+impl<'output, T: 'output + UrlEncodedTarget> Serializer<'output, T> {
+    /// Returns a new `Serializer`.
+    pub fn new(urlencoder: &'output mut UrlEncodedSerializer<T>) -> Self {
+        Serializer(urlencoder)
+    }
+}
 
 /// Errors returned during serializing to `application/x-www-form-urlencoded`.
 #[derive(Clone, Debug)]
@@ -90,7 +98,9 @@ pub struct StructState(());
 /// State used when serializing struct variants.
 pub struct StructVariantState(());
 
-impl<Target: form_urlencoded::Target> ser::Serializer for Serializer<Target> {
+impl<'output, Target> ser::Serializer for Serializer<'output, Target>
+    where Target: 'output + UrlEncodedTarget
+{
     type Error = Error;
 
     /// State used when serializing sequences.
@@ -263,7 +273,7 @@ impl<Target: form_urlencoded::Target> ser::Serializer for Serializer<Target> {
             -> Result<(), Error>
         where T: ser::Serialize
     {
-        value.serialize(&mut pair::PairSerializer::new(&mut self.0))
+        value.serialize(&mut pair::PairSerializer::new(self.0))
     }
 
     /// Finishes serializing a sequence.
@@ -371,7 +381,7 @@ impl<Target: form_urlencoded::Target> ser::Serializer for Serializer<Target> {
         where T: ser::Serialize
     {
         let mut value_serializer =
-            try!(value::ValueSerializer::new(&mut state.0, &mut self.0));
+            try!(value::ValueSerializer::new(&mut state.0, self.0));
         value.serialize(&mut value_serializer)
     }
 
@@ -398,7 +408,7 @@ impl<Target: form_urlencoded::Target> ser::Serializer for Serializer<Target> {
     {
         let mut key = Some(key.into());
         let mut value_serializer =
-            value::ValueSerializer::new(&mut key, &mut self.0).unwrap();
+            value::ValueSerializer::new(&mut key, self.0).unwrap();
         value.serialize(&mut value_serializer)
     }
 
