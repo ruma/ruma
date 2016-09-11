@@ -18,7 +18,7 @@ This crate works with Cargo and can be found on
 
 ```toml
 [dependencies]
-serde_urlencoded = "0.1"
+serde_urlencoded = "0.2"
 ```
 
 [crates.io]: https://crates.io/crates/serde_urlencoded
