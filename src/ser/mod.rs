@@ -12,6 +12,29 @@ use std::str;
 use url::form_urlencoded::Serializer as UrlEncodedSerializer;
 use url::form_urlencoded::Target as UrlEncodedTarget;
 
+/// Serializes a value into a `application/x-wwww-url-encoded` `String` buffer.
+///
+/// ```
+/// let meal = &[
+///     ("bread", "baguette"),
+///     ("cheese", "comté"),
+///     ("meat", "ham"),
+///     ("fat", "butter"),
+/// ];
+///
+/// assert_eq!(
+///     serde_urlencoded::to_string(meal),
+///     Ok("bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter".to_owned()));
+/// ```
+pub fn to_string<T: ser::Serialize>(input: &T) -> Result<String, Error> {
+    let mut output = String::new();
+    {
+        let mut urlencoder = UrlEncodedSerializer::new(&mut output);
+        try!(input.serialize(&mut Serializer::new(&mut urlencoder)));
+    }
+    Ok(output)
+}
+
 /// A serializer for the `application/x-www-form-urlencoded` format.
 ///
 /// * Supported top-level inputs are structs, maps and sequences of pairs,
@@ -32,7 +55,7 @@ impl<'output, T: 'output + UrlEncodedTarget> Serializer<'output, T> {
 }
 
 /// Errors returned during serializing to `application/x-www-form-urlencoded`.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Error {
     Custom(Cow<'static, str>),
     InvalidValue(Cow<'static, str>),

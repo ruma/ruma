@@ -7,5 +7,5 @@ extern crate url;
 pub mod de;
 pub mod ser;
 
-pub use de::Deserializer;
-pub use ser::Serializer;
+pub use de::{Deserializer, from_bytes, from_str};
+pub use ser::{Serializer, to_string};

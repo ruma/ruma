@@ -4,8 +4,47 @@ use serde::de;
 use serde::de::value::MapDeserializer;
 use std::borrow::Cow;
 use url::form_urlencoded::Parse as UrlEncodedParse;
+use url::form_urlencoded::parse;
 
 pub use serde::de::value::Error;
+
+/// Deserializes a `application/x-wwww-url-encoded` value from a `&[u8]`.
+///
+/// ```
+/// let meal = vec![
+///     ("bread".to_owned(), "baguette".to_owned()),
+///     ("cheese".to_owned(), "comté".to_owned()),
+///     ("meat".to_owned(), "ham".to_owned()),
+///     ("fat".to_owned(), "butter".to_owned()),
+/// ];
+///
+/// assert_eq!(
+///     serde_urlencoded::from_bytes::<Vec<(String, String)>>(
+///         b"bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter"),
+///     Ok(meal));
+/// ```
+pub fn from_bytes<T: de::Deserialize>(input: &[u8]) -> Result<T, Error> {
+    T::deserialize(&mut Deserializer::new(parse(input)))
+}
+
+/// Deserializes a `application/x-wwww-url-encoded` value from a `&str`.
+///
+/// ```
+/// let meal = vec![
+///     ("bread".to_owned(), "baguette".to_owned()),
+///     ("cheese".to_owned(), "comté".to_owned()),
+///     ("meat".to_owned(), "ham".to_owned()),
+///     ("fat".to_owned(), "butter".to_owned()),
+/// ];
+///
+/// assert_eq!(
+///     serde_urlencoded::from_str::<Vec<(String, String)>>(
+///         "bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter"),
+///     Ok(meal));
+/// ```
+pub fn from_str<T: de::Deserialize>(input: &str) -> Result<T, Error> {
+    from_bytes(input.as_bytes())
+}
 
 /// A deserializer for the `application/x-www-form-urlencoded` format.
 ///
