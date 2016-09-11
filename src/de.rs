@@ -3,8 +3,7 @@
 use serde::de;
 use serde::de::value::MapDeserializer;
 use std::borrow::Cow;
-use std::marker::PhantomData;
-use url::form_urlencoded::Parse;
+use url::form_urlencoded::Parse as UrlEncodedParse;
 
 pub use serde::de::value::Error;
 
@@ -17,12 +16,17 @@ pub use serde::de::value::Error;
 ///
 /// * Everything else but `deserialize_seq` and `deserialize_seq_fixed_size`
 ///   defers to `deserialize`.
-pub struct Deserializer<'a, T> {
-    deserializer: MapDeserializer<Parse<'a>, Cow<'a, str>, Cow<'a, str>, Error>,
-    marker: PhantomData<T>,
+pub struct Deserializer<'a>(
+    MapDeserializer<UrlEncodedParse<'a>, Cow<'a, str>, Cow<'a, str>, Error>);
+
+impl<'a> Deserializer<'a> {
+    /// Returns a new `Deserializer`.
+    pub fn new(parser: UrlEncodedParse<'a>) -> Self {
+        Deserializer(MapDeserializer::unbounded(parser))
+    }
 }
 
-impl<'a, T> de::Deserializer for Deserializer<'a, T>
+impl<'a> de::Deserializer for Deserializer<'a>
 {
     type Error = Error;
 
@@ -39,7 +43,7 @@ impl<'a, T> de::Deserializer for Deserializer<'a, T>
             -> Result<V::Value, Self::Error>
         where V: de::Visitor,
     {
-        visitor.visit_map(&mut self.deserializer)
+        visitor.visit_map(&mut self.0)
     }
 
     fn deserialize_seq<V>(
@@ -47,7 +51,7 @@ impl<'a, T> de::Deserializer for Deserializer<'a, T>
             -> Result<V::Value, Self::Error>
         where V: de::Visitor,
     {
-        visitor.visit_seq(&mut self.deserializer)
+        visitor.visit_seq(&mut self.0)
     }
 
     fn deserialize_seq_fixed_size<V>(
@@ -55,7 +59,7 @@ impl<'a, T> de::Deserializer for Deserializer<'a, T>
             -> Result<V::Value, Self::Error>
         where V: de::Visitor
     {
-        visitor.visit_seq(&mut self.deserializer)
+        visitor.visit_seq(&mut self.0)
     }
 
     forward_to_deserialize! {
