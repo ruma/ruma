@@ -1,0 +1,13 @@
+[package]
+name = "serde_urlencoded"
+version = "0.1.0"
+authors = ["Anthony Ramine <n.oxyde@gmail.com>"]
+license = "MIT/Apache-2.0"
+repository = "https://github.com/nox/serde_urlencoded"
+documentation = "https://docs.rs/crate/serde_urlencoded"
+description = "`x-www-form-urlencoded` meets Serde"
+keywords = ["serde", "serialization", "urlencoded"]
+
+[dependencies]
+serde = "0.8.7"
+url = "1.0.0"
