@@ -158,13 +158,17 @@ impl<'key, 'target, Target> Serializer
     }
 
     fn serialize_none(&mut self) -> Result<(), Error> {
-        Err(Error::unsupported_value())
+        if let Some(_) = self.key.take() {
+            Ok(())
+        } else {
+            Err(Error::no_key())
+        }
     }
 
-    fn serialize_some<T>(&mut self, _value: T) -> Result<(), Error>
+    fn serialize_some<T>(&mut self, value: T) -> Result<(), Error>
         where T: Serialize
     {
-        Err(Error::unsupported_value())
+        value.serialize(self)
     }
 
     fn serialize_seq(&mut self, _len: Option<usize>) -> Result<(), Error> {
