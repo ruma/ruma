@@ -51,8 +51,8 @@ impl<'key, 'target, Target> Serializer
     type StructState = ();
     type StructVariantState = ();
 
-    fn serialize_bool(&mut self, _v: bool) -> Result<(), Error> {
-        Err(Error::unsupported_value())
+    fn serialize_bool(&mut self, v: bool) -> Result<(), Error> {
+        self.append_pair(if v { "true" } else { "false" })
     }
 
     fn serialize_isize(&mut self, v: isize) -> Result<(), Error> {
