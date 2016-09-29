@@ -1,0 +1,14 @@
+[package]
+
+authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
+description = "Serializable request and response types for the Matrix client API."
+documentation = "https://docs.rs/ruma-client-api"
+homepage = "https://github.com/ruma/ruma-client-api"
+keywords = ["matrix", "chat", "messaging", "ruma"]
+license = "MIT"
+name = "ruma-client-api"
+readme = "README.md"
+repository = "https://github.com/ruma/ruma-client-api"
+version = "0.1.0"
+
+[dependencies]
