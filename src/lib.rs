@@ -1,13 +1,13 @@
 //! Crate ruma_events contains serializable types for the events in the [Matrix](https://matrix.org)
 //! specification that can be shared by client and server code.
 
-#![feature(custom_derive, plugin, question_mark)]
-#![plugin(serde_macros)]
+#![feature(rustc_macro)]
 #![deny(missing_docs)]
 
 extern crate ruma_identifiers;
 extern crate serde;
 extern crate serde_json;
+#[macro_use] extern crate serde_derive;
 
 use std::fmt::{Display, Formatter, Error as FmtError};
 

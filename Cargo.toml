@@ -12,6 +12,6 @@ version = "0.1.0"
 
 [dependencies]
 ruma-identifiers = "0.4.0"
-serde = "0.8.1"
-serde_json = "0.8.1"
-serde_macros = "0.8.1"
+serde = "0.8.10"
+serde_derive = "0.8.10"
+serde_json = "0.8.2"
