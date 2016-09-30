@@ -1,0 +1,1 @@
+//! Endpoints for user presence.

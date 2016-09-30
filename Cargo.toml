@@ -1,5 +1,4 @@
 [package]
-
 authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
 description = "Serializable request and response types for the Matrix client API."
 documentation = "https://docs.rs/ruma-client-api"
@@ -12,3 +11,6 @@ repository = "https://github.com/ruma/ruma-client-api"
 version = "0.1.0"
 
 [dependencies]
+ruma-identifiers = "0.4.1"
+serde = "0.8.10"
+serde_derive = "0.8.10"

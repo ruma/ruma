@@ -1,0 +1,1 @@
+//! Endpoints for push notifications.
