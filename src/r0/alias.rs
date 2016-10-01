@@ -1,6 +1,6 @@
 //! Endpoints for room aliases.
 
-use ruma_identifiers::RoomAlias;
+use ruma_identifiers::RoomAliasId;
 
 /// PUT /_matrix/client/r0/directory/room/:room_alias
 pub mod create {
@@ -37,8 +37,6 @@ pub mod create {
 
 /// DELETE /_matrix/client/r0/directory/room/:room_alias
 pub mod delete {
-    use ruma_identifiers::RoomId;
-
     /// Details about this API endpoint.
     pub struct Endpoint;
 
@@ -98,5 +96,5 @@ pub mod get {
 
 /// These API endpoints' path parameters.
 pub struct PathParams {
-    pub room_alias: RoomAlias,
+    pub room_alias: RoomAliasId,
 }

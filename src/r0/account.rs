@@ -45,7 +45,7 @@ pub mod register {
             ::Method::Post
         }
 
-        fn request_path(params: Self::PathParams) -> String {
+        fn request_path(_params: Self::PathParams) -> String {
             Self::router_path()
         }
 
@@ -70,7 +70,7 @@ pub mod request_password_change_token {
             ::Method::Post
         }
 
-        fn request_path(params: Self::PathParams) -> String {
+        fn request_path(_params: Self::PathParams) -> String {
             Self::router_path()
         }
 
@@ -95,7 +95,7 @@ pub mod deactivate {
             ::Method::Post
         }
 
-        fn request_path(params: Self::PathParams) -> String {
+        fn request_path(_params: Self::PathParams) -> String {
             Self::router_path()
         }
 
@@ -126,7 +126,7 @@ pub mod change_password {
             ::Method::Post
         }
 
-        fn request_path(params: Self::PathParams) -> String {
+        fn request_path(_params: Self::PathParams) -> String {
             Self::router_path()
         }
 
@@ -160,7 +160,7 @@ pub mod request_register_token {
             ::Method::Post
         }
 
-        fn request_path(params: Self::PathParams) -> String {
+        fn request_path(_params: Self::PathParams) -> String {
             Self::router_path()
         }
 

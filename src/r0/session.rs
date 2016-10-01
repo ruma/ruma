@@ -24,7 +24,7 @@ pub mod login {
             ::Method::Post
         }
 
-        fn request_path(params: Self::PathParams) -> String {
+        fn request_path(_params: Self::PathParams) -> String {
             Self::router_path()
         }
 
@@ -49,7 +49,7 @@ pub mod logout {
             ::Method::Post
         }
 
-        fn request_path(params: Self::PathParams) -> String {
+        fn request_path(_params: Self::PathParams) -> String {
             Self::router_path()
         }
 
@@ -87,7 +87,7 @@ pub mod refresh_access_token {
             ::Method::Post
         }
 
-        fn request_path(params: Self::PathParams) -> String {
+        fn request_path(_params: Self::PathParams) -> String {
             Self::router_path()
         }
 

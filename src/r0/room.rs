@@ -56,7 +56,7 @@ pub mod create_room {
             ::Method::Post
         }
 
-        fn request_path(params: Self::PathParams) -> String {
+        fn request_path(_params: Self::PathParams) -> String {
             Self::router_path()
         }
 

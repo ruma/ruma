@@ -18,7 +18,7 @@ impl ::Endpoint for Endpoint {
         ::Method::Get
     }
 
-    fn request_path(params: Self::PathParams) -> String {
+    fn request_path(_params: Self::PathParams) -> String {
         Self::router_path()
     }
 

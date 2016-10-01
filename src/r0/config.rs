@@ -42,6 +42,8 @@ pub mod set_room_account_data {
 
 /// PUT /_matrix/client/r0/user/:user_id/account_data/:type
 pub mod set_global_account_data  {
+    use ruma_identifiers::UserId;
+
     /// Details about this API endpoint.
     pub struct Endpoint;
 
