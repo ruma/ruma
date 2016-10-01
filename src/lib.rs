@@ -7,6 +7,9 @@
 extern crate ruma_identifiers;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
+extern crate serde_json;
+
+use serde::{Deserialize, Serialize};
 
 /// Endpoints for the r0.x.x versions of the client API specification.
 pub mod r0 {
@@ -36,4 +39,42 @@ pub mod r0 {
 }
 
 /// GET /_matrix/client/versions
-pub mod version;
+pub mod supported_versions;
+
+/// HTTP request methods used in Matrix APIs.
+#[derive(Clone, Copy, Debug)]
+pub enum Method {
+    /// DELETE
+    Delete,
+    /// GET
+    Get,
+    /// POST
+    Post,
+    /// PUT
+    Put,
+}
+
+/// An API endpoint.
+pub trait Endpoint {
+    /// Request parameters supplied via the body of the HTTP request.
+    type BodyParams: Deserialize + Serialize;
+
+    /// Request parameters supplied via the URL's path.
+    type PathParams;
+
+    /// Parameters supplied via the URL's query string.
+    type QueryParams;
+
+    /// The body of the response.
+    type Response: Deserialize + Serialize;
+
+    /// Returns the HTTP method used by this endpoint.
+    fn method() -> Method;
+
+    /// Generates the path component of the URL for this endpoint using the supplied parameters.
+    fn request_path(params: Self::PathParams) -> String;
+
+    /// Generates a generic path component of the URL for this endpoint, suitable for `Router` from
+    /// the router crate.
+    fn router_path() -> String;
+}

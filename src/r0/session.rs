@@ -2,13 +2,10 @@
 
 /// POST /_matrix/client/r0/login
 pub mod login {
-    /// The HTTP method.
-    pub const METHOD: &'static str = "POST";
+    /// Details about this API endpoint.
+    pub struct Endpoint;
 
-    /// The URL's path component.
-    pub const PATH: &'static str = "/_matrix/client/r0/login";
-
-    /// The response type.
+    /// This API endpoint's response.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Response {
         pub access_token: String,
@@ -16,35 +13,86 @@ pub mod login {
         pub refresh_token: Option<String>,
         pub user_id: String,
     }
+
+    impl ::Endpoint for Endpoint {
+        type BodyParams = ();
+        type PathParams = ();
+        type QueryParams = ();
+        type Response = Response;
+
+        fn method() -> ::Method {
+            ::Method::Post
+        }
+
+        fn request_path(params: Self::PathParams) -> String {
+            Self::router_path()
+        }
+
+        fn router_path() -> String {
+            "/_matrix/client/r0/login".to_string()
+        }
+    }
 }
 
 /// POST /_matrix/client/r0/logout
 pub mod logout {
-    /// The HTTP method.
-    pub const METHOD: &'static str = "POST";
+    /// Details about this API endpoint.
+    pub struct Endpoint;
 
-    /// The URL's path component.
-    pub const PATH: &'static str = "/_matrix/client/r0/logout";
+    impl ::Endpoint for Endpoint {
+        type BodyParams = ();
+        type PathParams = ();
+        type QueryParams = ();
+        type Response = ();
+
+        fn method() -> ::Method {
+            ::Method::Post
+        }
+
+        fn request_path(params: Self::PathParams) -> String {
+            Self::router_path()
+        }
+
+        fn router_path() -> String {
+            "/_matrix/client/r0/logout".to_string()
+        }
+    }
 }
 
 ///  POST /_matrix/client/r0/tokenrefresh
 pub mod refresh_access_token {
-    /// The HTTP method.
-    pub const METHOD: &'static str = "POST";
-
-    /// The URL's path component.
-    pub const PATH: &'static str = "/_matrix/client/r0/tokenrefresh";
-
-    /// The request type.
+    /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct Request {
+    pub struct BodyParams {
         pub refresh_token: String,
     }
 
-    /// The response type.
+    /// Details about this API endpoint.
+    pub struct Endpoint;
+
+    /// This API endpoint's response.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Response {
         pub access_token: String,
         pub refresh_token: Option<String>,
+    }
+
+    impl ::Endpoint for Endpoint {
+        type BodyParams = BodyParams;
+        type PathParams = ();
+        type QueryParams = ();
+        type Response = Response;
+
+        fn method() -> ::Method {
+            ::Method::Post
+        }
+
+        fn request_path(params: Self::PathParams) -> String {
+            Self::router_path()
+        }
+
+        fn router_path() -> String {
+            "/_matrix/client/r0/tokenrefresh".to_string()
+        }
     }
 }

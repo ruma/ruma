@@ -2,11 +2,21 @@
 
 /// POST /_matrix/client/r0/register
 pub mod register {
-    /// The HTTP method.
-    pub const METHOD: &'static str = "POST";
+    /// This API endpoint's body parameters.
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    pub struct BodyParams {
+        pub bind_email: Option<bool>,
+        pub password: String,
+        pub username: Option<String>,
+    }
 
-    /// The URL's path component.
-    pub const PATH: &'static str = "/_matrix/client/r0/register";
+    /// Details about this API endpoint.
+    pub struct Endpoint;
+
+    /// This API endpoint's query string parameters.
+    pub struct QueryParams {
+        pub kind: Option<RegistrationKind>,
+    }
 
     /// The kind of account being registered.
     #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
@@ -17,71 +27,145 @@ pub mod register {
         User,
     }
 
-    /// The request type.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct Request {
-        pub bind_email: Option<bool>,
-        pub kind: Option<RegistrationKind>,
-        pub password: String,
-        pub username: Option<String>,
-    }
-
-    /// The response type.
+    /// This API endpoint's response.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Response {
         pub access_token: String,
         pub home_server: String,
         pub user_id: String,
     }
+
+    impl ::Endpoint for Endpoint {
+        type BodyParams = BodyParams;
+        type PathParams = ();
+        type QueryParams = QueryParams;
+        type Response = Response;
+
+        fn method() -> ::Method {
+            ::Method::Post
+        }
+
+        fn request_path(params: Self::PathParams) -> String {
+            Self::router_path()
+        }
+
+        fn router_path() -> String {
+            "/_matrix/client/r0/register".to_string()
+        }
+    }
 }
 
 /// POST /_matrix/client/r0/account/password/email/requestToken
 pub mod request_password_change_token {
-    /// The HTTP method.
-    pub const METHOD: &'static str = "POST";
+    /// Details about this API endpoint.
+    pub struct Endpoint;
 
-    /// The URL's path component.
-    pub const PATH: &'static str = "/_matrix/client/r0/account/password/email/requestToken";
+    impl ::Endpoint for Endpoint {
+        type BodyParams = ();
+        type PathParams = ();
+        type QueryParams = ();
+        type Response = ();
+
+        fn method() -> ::Method {
+            ::Method::Post
+        }
+
+        fn request_path(params: Self::PathParams) -> String {
+            Self::router_path()
+        }
+
+        fn router_path() -> String {
+            "/_matrix/client/r0/account/password/email/requestToken".to_string()
+        }
+    }
 }
 
 /// POST /_matrix/client/r0/account/deactivate
 pub mod deactivate {
-    /// The HTTP method.
-    pub const METHOD: &'static str = "POST";
+    /// Details about this API endpoint.
+    pub struct Endpoint;
 
-    /// The URL's path component.
-    pub const PATH: &'static str = "/_matrix/client/r0/account/deactivate";
+    impl ::Endpoint for Endpoint {
+        type BodyParams = ();
+        type PathParams = ();
+        type QueryParams = ();
+        type Response = ();
+
+        fn method() -> ::Method {
+            ::Method::Post
+        }
+
+        fn request_path(params: Self::PathParams) -> String {
+            Self::router_path()
+        }
+
+        fn router_path() -> String {
+            "/_matrix/client/r0/account/deactivate".to_string()
+        }
+    }
 }
 
 /// POST /_matrix/client/r0/account/password
 pub mod change_password {
-    /// The HTTP method.
-    pub const METHOD: &'static str = "POST";
-
-    /// The URL's path component.
-    pub const PATH: &'static str = "/_matrix/client/r0/account/password";
-
-    /// The request type.
+    /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct Request {
+    pub struct BodyParams {
         pub new_password: String,
+    }
+
+    /// Details about this API endpoint.
+    pub struct Endpoint;
+
+    impl ::Endpoint for Endpoint {
+        type BodyParams = BodyParams;
+        type PathParams = ();
+        type QueryParams = ();
+        type Response = ();
+
+        fn method() -> ::Method {
+            ::Method::Post
+        }
+
+        fn request_path(params: Self::PathParams) -> String {
+            Self::router_path()
+        }
+
+        fn router_path() -> String {
+            "/_matrix/client/r0/account/password".to_string()
+        }
     }
 }
 
 /// POST /_matrix/client/r0/register/email/requestToken
 pub mod request_register_token {
-    /// The HTTP method.
-    pub const METHOD: &'static str = "POST";
-
-    /// The URL's path component.
-    pub const PATH: &'static str = "/_matrix/client/r0/register/email/requestToken";
-
-    /// The request type.
+    /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct Request {
+    pub struct BodyParams {
         pub client_secret: String,
         pub email: String,
         pub id_server: Option<String>,
         pub send_attempt: u64,
+    }
+
+    /// Details about this API endpoint.
+    pub struct Endpoint;
+
+    impl ::Endpoint for Endpoint {
+        type BodyParams = BodyParams;
+        type PathParams = ();
+        type QueryParams = ();
+        type Response = ();
+
+        fn method() -> ::Method {
+            ::Method::Post
+        }
+
+        fn request_path(params: Self::PathParams) -> String {
+            Self::router_path()
+        }
+
+        fn router_path() -> String {
+            "/_matrix/client/r0/register/email/requestToken".to_string()
+        }
     }
 }
