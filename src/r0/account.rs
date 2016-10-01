@@ -14,6 +14,7 @@ pub mod register {
     pub struct Endpoint;
 
     /// This API endpoint's query string parameters.
+    #[derive(Clone, Debug)]
     pub struct QueryParams {
         pub kind: Option<RegistrationKind>,
     }
@@ -57,11 +58,20 @@ pub mod register {
 
 /// POST /_matrix/client/r0/account/password/email/requestToken
 pub mod request_password_change_token {
+    /// This API endpoint's body parameters.
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    pub struct BodyParams {
+        pub client_secret: String,
+        pub email: String,
+        pub id_server: Option<String>,
+        pub send_attempt: u64,
+    }
+
     /// Details about this API endpoint.
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {
-        type BodyParams = ();
+        type BodyParams = BodyParams;
         type PathParams = ();
         type QueryParams = ();
         type Response = ();
