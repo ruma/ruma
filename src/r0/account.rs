@@ -2,7 +2,10 @@
 
 /// POST /_matrix/client/r0/register
 pub mod register {
-    pub const HTTP_METHOD: &'static str = "POST";
+    /// The HTTP method.
+    pub const METHOD: &'static str = "POST";
+
+    /// The URL's path component.
     pub const PATH: &'static str = "/_matrix/client/r0/register";
 
     /// The kind of account being registered.
@@ -34,15 +37,28 @@ pub mod register {
 
 /// POST /_matrix/client/r0/account/password/email/requestToken
 pub mod request_password_change_token {
+    /// The HTTP method.
+    pub const METHOD: &'static str = "POST";
+
+    /// The URL's path component.
+    pub const PATH: &'static str = "/_matrix/client/r0/account/password/email/requestToken";
 }
 
 /// POST /_matrix/client/r0/account/deactivate
 pub mod deactivate {
+    /// The HTTP method.
+    pub const METHOD: &'static str = "POST";
+
+    /// The URL's path component.
+    pub const PATH: &'static str = "/_matrix/client/r0/account/deactivate";
 }
 
 /// POST /_matrix/client/r0/account/password
 pub mod change_password {
-    pub const HTTP_METHOD: &'static str = "POST";
+    /// The HTTP method.
+    pub const METHOD: &'static str = "POST";
+
+    /// The URL's path component.
     pub const PATH: &'static str = "/_matrix/client/r0/account/password";
 
     /// The request type.
@@ -54,4 +70,18 @@ pub mod change_password {
 
 /// POST /_matrix/client/r0/register/email/requestToken
 pub mod request_register_token {
+    /// The HTTP method.
+    pub const METHOD: &'static str = "POST";
+
+    /// The URL's path component.
+    pub const PATH: &'static str = "/_matrix/client/r0/register/email/requestToken";
+
+    /// The request type.
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    pub struct Request {
+        pub client_secret: String,
+        pub email: String,
+        pub id_server: Option<String>,
+        pub send_attempt: u64,
+    }
 }

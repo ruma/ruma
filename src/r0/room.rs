@@ -4,7 +4,10 @@
 pub mod create_room {
     use ruma_identifiers::RoomId;
 
-    pub const HTTP_METHOD: &'static str = "POST";
+    /// The HTTP method.
+    pub const METHOD: &'static str = "POST";
+
+    /// The URL's path component.
     pub const PATH: &'static str = "/_matrix/client/r0/createRoom";
 
     /// Extra options to be added to the `m.room.create` event.

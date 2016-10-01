@@ -1,4 +1,7 @@
-pub const HTTP_METHOD: &'static str = "GET";
+/// The HTTP method.
+pub const METHOD: &'static str = "GET";
+
+/// The URL's path component.
 pub const PATH: &'static str = "/versions";
 
 /// The response type.
