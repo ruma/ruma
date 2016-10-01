@@ -54,3 +54,11 @@ pub struct PresenceEventExtraContent {
     /// The unique identifier for the event.
     pub event_id: EventId,
 }
+
+impl_enum! {
+    PresenceState {
+        Offline => "offline",
+        Online => "online",
+        Unavailable => "unavailable",
+    }
+}

@@ -238,6 +238,19 @@ pub struct VideoInfo {
     pub w: Option<u64>,
 }
 
+impl_enum! {
+    MessageType {
+        Audio => "m.audio",
+        Emote => "m.emote",
+        File => "m.file",
+        Image => "m.image",
+        Location => "m.location",
+        Notice => "m.notice",
+        Text => "m.text",
+        Video => "m.video",
+    }
+}
+
 impl Serialize for MessageEventContent {
     fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
         match *self {

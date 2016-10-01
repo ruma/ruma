@@ -26,3 +26,10 @@ pub enum GuestAccess {
     #[serde(rename="forbidden")]
     Forbidden,
 }
+
+impl_enum! {
+    GuestAccess {
+        CanJoin => "can_join",
+        Forbidden => "forbidden",
+    }
+}

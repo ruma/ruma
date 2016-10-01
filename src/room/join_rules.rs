@@ -32,3 +32,12 @@ pub enum JoinRule {
     #[serde(rename="public")]
     Public,
 }
+
+impl_enum! {
+    JoinRule {
+        Invite => "invite",
+        Knock => "knock",
+        Private => "private",
+        Public => "public",
+    }
+}

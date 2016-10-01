@@ -26,3 +26,10 @@ pub enum SessionDescriptionType {
     #[serde(rename="offer")]
     Offer,
 }
+
+impl_enum! {
+    SessionDescriptionType {
+        Answer => "answer",
+        Offer => "offer",
+    }
+}

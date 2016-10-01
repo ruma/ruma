@@ -38,3 +38,12 @@ pub enum HistoryVisibility {
     #[serde(rename="world_readable")]
     WorldReadable,
 }
+
+impl_enum! {
+    HistoryVisibility {
+        Invited => "invited",
+        Joined => "joined",
+        Shared => "shared",
+        WorldReadable => "world_readable",
+    }
+}

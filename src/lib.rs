@@ -16,6 +16,8 @@ use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serialize
 use serde::de::Visitor;
 use serde_json::Value;
 
+#[macro_use] mod macros;
+
 pub mod call;
 pub mod presence;
 pub mod receipt;
@@ -23,6 +25,9 @@ pub mod room;
 pub mod stripped;
 pub mod tag;
 pub mod typing;
+
+/// An error when attempting to convert a string to an enum that only accepts certain values.
+pub struct ParseError;
 
 /// The type of an event.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]

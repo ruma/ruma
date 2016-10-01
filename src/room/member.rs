@@ -67,3 +67,13 @@ pub struct MemberEventExtraContent {
     #[serde(skip_serializing_if="Option::is_none")]
     pub invite_room_state: Option<Vec<StrippedState>>,
 }
+
+impl_enum! {
+    MembershipState {
+        Ban => "ban",
+        Invite => "invite",
+        Join => "join",
+        Knock => "knock",
+        Leave => "leave",
+    }
+}
