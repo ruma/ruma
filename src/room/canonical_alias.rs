@@ -2,10 +2,10 @@
 
 use ruma_identifiers::RoomAliasId;
 
-use StateEvent;
-
-/// Informs the room as to which alias is the canonical one.
-pub type CanonicalAliasEvent = StateEvent<CanonicalAliasEventContent, ()>;
+state_event! {
+    /// Informs the room as to which alias is the canonical one.
+    pub struct CanonicalAliasEvent(CanonicalAliasEventContent) {}
+}
 
 /// The payload of a `CanonicalAliasEvent`.
 #[derive(Debug, Deserialize, Serialize)]

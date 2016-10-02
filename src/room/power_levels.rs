@@ -4,10 +4,12 @@ use std::collections::HashMap;
 
 use ruma_identifiers::UserId;
 
-use {EventType, StateEvent};
+use EventType;
 
-/// Defines the power levels (privileges) of users in the room.
-pub type PowerLevelsEvent = StateEvent<PowerLevelsEventContent, ()>;
+state_event! {
+    /// Defines the power levels (privileges) of users in the room.
+    pub struct PowerLevelsEvent(PowerLevelsEventContent) {}
+}
 
 /// The payload of a `PowerLevelsEvent`.
 #[derive(Debug, Deserialize, Serialize)]

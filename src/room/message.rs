@@ -3,11 +3,12 @@
 use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
 use serde_json::{Value, from_value};
 
-use RoomEvent;
 use super::ImageInfo;
 
-/// A message sent to a room.
-pub type MessageEvent = RoomEvent<MessageEventContent, ()>;
+room_event! {
+    /// A message sent to a room.
+    pub struct MessageEvent(MessageEventContent) {}
+}
 
 /// The message type of message event, e.g. `m.image` or `m.text`.
 #[derive(Debug, Deserialize, PartialEq, Serialize)]

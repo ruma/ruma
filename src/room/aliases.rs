@@ -2,10 +2,10 @@
 
 use ruma_identifiers::RoomAliasId;
 
-use StateEvent;
-
-/// Informs the room about what room aliases it has been given.
-pub type AliasesEvent = StateEvent<AliasesEventContent, ()>;
+state_event! {
+    /// Informs the room about what room aliases it has been given.
+    pub struct AliasesEvent(AliasesEventContent) {}
+}
 
 /// The payload of an `AliasesEvent`.
 #[derive(Debug, Deserialize, Serialize)]

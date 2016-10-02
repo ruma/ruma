@@ -1,9 +1,9 @@
 //! Types for the *m.room.join_rules* event.
 
-use StateEvent;
-
-/// Describes how users are allowed to join the room.
-pub type JoinRulesEvent = StateEvent<JoinRulesEventContent, ()>;
+state_event! {
+    /// Describes how users are allowed to join the room.
+    pub struct JoinRulesEvent(JoinRulesEventContent) {}
+}
 
 /// The payload of a `JoinRulesEvent`.
 #[derive(Debug, Deserialize, Serialize)]

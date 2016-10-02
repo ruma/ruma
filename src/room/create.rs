@@ -2,11 +2,11 @@
 
 use ruma_identifiers::UserId;
 
-use StateEvent;
-
-/// This is the first event in a room and cannot be changed. It acts as the root of all other
-/// events.
-pub type CreateEvent = StateEvent<CreateEventContent, ()>;
+state_event! {
+    /// This is the first event in a room and cannot be changed. It acts as the root of all other
+    /// events.
+    pub struct CreateEvent(CreateEventContent) {}
+}
 
 /// The payload of a `CreateEvent`.
 #[derive(Debug, Deserialize, Serialize)]

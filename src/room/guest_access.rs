@@ -1,12 +1,12 @@
 //! Types for the *m.room.guest_access* event.
 
-use StateEvent;
-
-/// Controls whether guest users are allowed to join rooms.
-///
-/// This event controls whether guest users are allowed to join rooms. If this event is absent,
-/// servers should act as if it is present and has the value `GuestAccess::Forbidden`.
-pub type GuestAccessEvent = StateEvent<GuestAccessEventContent, ()>;
+state_event! {
+    /// Controls whether guest users are allowed to join rooms.
+    ///
+    /// This event controls whether guest users are allowed to join rooms. If this event is absent,
+    /// servers should act as if it is present and has the value `GuestAccess::Forbidden`.
+    pub struct GuestAccessEvent(GuestAccessEventContent) {}
+}
 
 /// The payload of a `GuestAccessEvent`.
 #[derive(Debug, Deserialize, Serialize)]

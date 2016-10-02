@@ -2,10 +2,13 @@
 
 use ruma_identifiers::{EventId, UserId};
 
-use Event;
-
-/// Informs the client of a user's presence state change.
-pub type PresenceEvent = Event<PresenceEventContent, PresenceEventExtraContent>;
+event! {
+    /// Informs the client of a user's presence state change.
+    pub struct PresenceEvent(PresenceEventContent) {
+        /// The unique identifier for the event.
+        pub event_id: EventId
+    }
+}
 
 /// The payload of a `PresenceEvent`.
 #[derive(Debug, Deserialize, Serialize)]
@@ -46,19 +49,4 @@ pub enum PresenceState {
     /// Connected to the service but not available for chat.
     #[serde(rename="unavailable")]
     Unavailable,
-}
-
-/// Extra content for a `PresenceEvent`.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct PresenceEventExtraContent {
-    /// The unique identifier for the event.
-    pub event_id: EventId,
-}
-
-impl_enum! {
-    PresenceState {
-        Offline => "offline",
-        Online => "online",
-        Unavailable => "unavailable",
-    }
 }

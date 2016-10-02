@@ -1,10 +1,10 @@
 //! Types for the *m.room.history_visibility* event.
 
-use StateEvent;
-
-/// This event controls whether a member of a room can see the events that happened in a room from
-/// before they joined.
-pub type HistoryVisibilityEvent = StateEvent<HistoryVisibilityEventContent, ()>;
+state_event! {
+    /// This event controls whether a member of a room can see the events that happened in a room
+    /// from before they joined.
+    pub struct HistoryVisibilityEvent(HistoryVisibilityEventContent) {}
+}
 
 /// The payload of a `HistoryVisibilityEvent`.
 #[derive(Debug, Deserialize, Serialize)]

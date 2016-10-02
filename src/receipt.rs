@@ -4,10 +4,13 @@ use std::collections::HashMap;
 
 use ruma_identifiers::{EventId, RoomId, UserId};
 
-use Event;
-
-/// Informs the client of new receipts.
-pub type ReceiptEvent = Event<ReceiptEventContent, ReceiptEventExtraContent>;
+event! {
+    /// Informs the client of new receipts.
+    pub struct ReceiptEvent(ReceiptEventContent) {
+        /// The unique identifier for the room associated with this event.
+        pub room_id: RoomId
+    }
+}
 
 /// The payload of a `ReceiptEvent`.
 ///
@@ -32,11 +35,4 @@ pub type UserReceipts = HashMap<UserId, Receipt>;
 pub struct Receipt {
     /// The timestamp the receipt was sent at.
     pub ts: u64,
-}
-
-/// Extra content for a `PresenceEvent`.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct ReceiptEventExtraContent {
-    /// The unique identifier for the room associated with this event.
-    pub room_id: RoomId,
 }

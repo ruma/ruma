@@ -9,7 +9,7 @@ extern crate serde;
 extern crate serde_json;
 #[macro_use] extern crate serde_derive;
 
-use std::fmt::{Display, Formatter, Error as FmtError};
+use std::fmt::{Debug, Display, Formatter, Error as FmtError};
 
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
@@ -81,93 +81,55 @@ pub enum EventType {
 }
 
 /// A basic event.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Event<C, E> where C: Deserialize + Serialize, E: Deserialize + Serialize {
-    /// Data specific to the event type.
-    pub content: C,
+pub trait Event: Debug + Deserialize + Serialize {
+    /// The event-type-specific payload this event carries.
+    type Content;
+
+    /// The event's content.
+    fn content(&self) -> &Self::Content;
 
     /// The type of the event.
-    #[serde(rename="type")]
-    pub event_type: EventType,
-
-    /// Extra top-level key-value pairs specific to this event type, but that are not under the
-    /// `content` field.
-    pub extra_content: E,
+    fn event_type(&self) -> &EventType;
 }
 
 /// An event within the context of a room.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct RoomEvent<C, E> where C: Deserialize + Serialize, E: Deserialize + Serialize {
-    /// Data specific to the event type.
-    pub content: C,
-
+pub trait RoomEvent: Debug + Deserialize + Event + Serialize {
     /// The unique identifier for the event.
-    pub event_id: EventId,
-
-    /// Extra top-level key-value pairs specific to this event type, but that are not under the
-    /// `content` field.
-    pub extra_content: E,
-
-    /// The type of the event.
-    #[serde(rename="type")]
-    pub event_type: EventType,
+    fn event_id(&self) -> &EventId;
 
     /// The unique identifier for the room associated with this event.
-    pub room_id: RoomId,
+    fn room_id(&self) -> &RoomId;
 
     /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if="Option::is_none")]
-    pub unsigned: Option<Value>,
+    fn unsigned(&self) -> Option<&Value>;
 
     /// The unique identifier for the user associated with this event.
-    #[serde(rename="sender")]
-    pub user_id: UserId,
+    fn user_id(&self) -> &UserId;
 }
 
 /// An event that describes persistent state about a room.
-#[derive(Debug, Deserialize, Serialize)]
-pub struct StateEvent<C, E> where C: Deserialize + Serialize, E: Deserialize + Serialize {
-    /// Data specific to the event type.
-    pub content: C,
-
-    /// The unique identifier for the event.
-    pub event_id: EventId,
-
-    /// The type of the event.
-    #[serde(rename="type")]
-    pub event_type: EventType,
-
-    /// Extra top-level key-value pairs specific to this event type, but that are not under the
-    /// `content` field.
-    pub extra_content: E,
-
+pub trait StateEvent: Debug + Deserialize + RoomEvent + Serialize {
     /// The previous content for this state key, if any.
-    #[serde(skip_serializing_if="Option::is_none")]
-    pub prev_content: Option<C>,
-
-    /// The unique identifier for the room associated with this event.
-    pub room_id: RoomId,
+    fn prev_content(&self) -> Option<&Self::Content>;
 
     /// A key that determines which piece of room state the event represents.
-    pub state_key: String,
-
-    /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if="Option::is_none")]
-    pub unsigned: Option<Value>,
-
-    /// The unique identifier for the user associated with this event.
-    #[serde(rename="sender")]
-    pub user_id: UserId,
+    fn state_key(&self) -> &str;
 }
 
-/// A custom basic event not covered by the Matrix specification.
-pub type CustomEvent = Event<Value, ()>;
+event! {
+    /// A custom basic event not covered by the Matrix specification.
+    pub struct CustomEvent(Value) {}
+}
 
-/// A custom room event not covered by the Matrix specification.
-pub type CustomRoomEvent = RoomEvent<Value, ()>;
+room_event! {
+    /// A custom room event not covered by the Matrix specification.
+    pub struct CustomRoomEvent(Value) {}
+}
 
-/// A custom state event not covered by the Matrix specification.
-pub type CustomStateEvent = StateEvent<Value, ()>;
+state_event! {
+    /// A custom state event not covered by the Matrix specification.
+    pub struct CustomStateEvent(Value) {}
+}
 
 impl Display for EventType {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {

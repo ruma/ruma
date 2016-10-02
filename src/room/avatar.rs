@@ -1,12 +1,13 @@
 //! Types for the *m.room.avatar* event.
 
-use StateEvent;
 use super::ImageInfo;
 
-/// A picture that is associated with the room.
-///
-/// This can be displayed alongside the room information.
-pub type AvatarEvent = StateEvent<AvatarEventContent, ()>;
+state_event! {
+    /// A picture that is associated with the room.
+    ///
+    /// This can be displayed alongside the room information.
+    pub struct AvatarEvent(AvatarEventContent) {}
+}
 
 /// The payload of an `AvatarEvent`.
 #[derive(Debug, Deserialize, Serialize)]

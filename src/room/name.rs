@@ -1,9 +1,9 @@
 //! Types for the *m.room.name* event.
 
-use StateEvent;
-
-/// A human-friendly room name designed to be displayed to the end-user.
-pub type NameEvent = StateEvent<NameEventContent, ()>;
+state_event! {
+    /// A human-friendly room name designed to be displayed to the end-user.
+    pub struct NameEvent(NameEventContent) {}
+}
 
 /// The payload of a `NameEvent`.
 #[derive(Debug, Deserialize, Serialize)]

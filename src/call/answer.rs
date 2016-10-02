@@ -1,10 +1,11 @@
 //! Types for the *m.call.answer* event.
 
-use RoomEvent;
 use super::SessionDescription;
 
-/// This event is sent by the callee when they wish to answer the call.
-pub type AnswerEvent = RoomEvent<AnswerEventContent, ()>;
+room_event! {
+    /// This event is sent by the callee when they wish to answer the call.
+    pub struct AnswerEvent(AnswerEventContent) {}
+}
 
 /// The payload of an `AnswerEvent`.
 #[derive(Debug, Deserialize, Serialize)]
