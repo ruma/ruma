@@ -1,5 +1,7 @@
 //! Types for the *m.room.member* event.
 
+use ruma_identifiers::UserId;
+
 use stripped::StrippedState;
 
 state_event! {
@@ -38,8 +40,10 @@ pub struct MemberEventContent {
     /// The membership state of this user.
     pub membership: MembershipState,
 
-    /// Warning: This field is not implemented yet and its type will change!
-    pub third_party_invite: (), // TODO
+    /// If this member event is the successor to a third party invitation, this field will contain
+    /// information about that invitation.
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub third_party_invite: Option<ThirdPartyInvite>,
 }
 
 /// The membership state of a user.
@@ -74,4 +78,30 @@ impl_enum! {
         Knock => "knock",
         Leave => "leave",
     }
+}
+
+/// Information about a third party invitation.
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ThirdPartyInvite {
+    /// A name which can be displayed to represent the user instead of their third party
+    /// identifier.
+    pub display_name: String,
+    /// A block of content which has been signed, which servers can use to verify the event.
+    /// Clients should ignore this.
+    pub signed: SignedContent,
+}
+
+/// A block of content which has been signed, which servers can use to verify a third party
+/// invitation.
+#[derive(Debug, Deserialize, Serialize)]
+pub struct SignedContent {
+    /// The invited Matrix user ID.
+    ///
+    /// Must be equal to the user_id property of the event.
+    pub mxid: UserId,
+    /// A single signature from the verifying server, in the format specified by the Signing Events
+    /// section of the server-server API.
+    pub signatures: (), // TODO: This type should come from the ruma-signatures crate.
+    /// The token property of the containing third_party_invite object.
+    pub token: String,
 }
