@@ -7,13 +7,14 @@ extern crate rustc_serialize;
 extern crate serde_json;
 extern crate sodiumoxide;
 
-use std::error::Error;
-use std::fmt::Display;
+use std::collections::HashSet;
+use std::error::Error as StdError;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use rustc_serialize::base64::{CharacterSet, Config, Newline, ToBase64};
 use serde_json::{Value, to_string};
 use sodiumoxide::init;
-use sodiumoxide::crypto::sign::{SecretKey, Signature, sign_detached};
+use sodiumoxide::crypto::sign::{SecretKey, Signature as SodiumSignature, sign_detached};
 
 lazy_static! {
     static ref _LIBSODIUM_INIT: bool = init();
@@ -28,37 +29,51 @@ static BASE64_CONFIG: Config = Config {
 
 /// An error produced when signing data fails.
 #[derive(Debug)]
-pub struct SigningError {
+pub struct Error {
     message: String,
 }
 
-impl SigningError {
+impl Error {
     pub fn new<T>(message: T) -> Self where T: Into<String> {
-        SigningError {
+        Error {
             message: message.into(),
         }
     }
 }
 
-impl Error for SigningError {
+impl StdError for Error {
     fn description(&self) -> &str {
-        self.message.as_ref()
+        &self.message
     }
 }
 
-impl Display for SigningError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(f, "{}", self.message)
     }
 }
 
-/// The algorithm used for signing.
+/// A single digital signature.
+///
+/// Generated from `SigningKey`.
 #[derive(Debug)]
+pub struct Signature {
+    algorithm: SigningAlgorithm,
+    signature: SodiumSignature,
+    version: String,
+}
+
+/// A set of signatures created by a single homeserver.
+pub type SignatureSet = HashSet<Signature>;
+
+/// The algorithm used for signing.
+#[derive(Clone, Copy, Debug)]
 pub enum SigningAlgorithm {
+    /// The Ed25519 digital signature algorithm.
     Ed25519,
 }
 
-/// A signing key, consisting of an algoritm, a secret key, and a key version.
+/// A signing key, consisting of an algorithm, a secret key, and a key version.
 #[derive(Debug)]
 pub struct SigningKey {
     algorithm: SigningAlgorithm,
@@ -66,8 +81,46 @@ pub struct SigningKey {
     version: String,
 }
 
+impl Signature {
+    /// The algorithm used to generate the signature.
+    pub fn algorithm(&self) -> SigningAlgorithm {
+        self.algorithm
+    }
+
+    /// The raw bytes of the signature.
+    pub fn as_bytes(&self) -> &[u8] {
+        self.signature.as_ref()
+    }
+
+    /// A Base64 encoding of the signature.
+    pub fn base64(&self) -> String {
+        self.signature.as_ref().to_base64(BASE64_CONFIG)
+    }
+
+    /// A string containing the signature algorithm and the key "version" separated by a colon.
+    pub fn id(&self) -> String {
+        format!("ed25519:{}", self.version())
+    }
+
+    /// The "version" of the key used for this signature.
+    ///
+    /// Versions are used as an identifier to distinguish signatures generated from different keys
+    /// but using the same algorithm on the same homeserver.
+    pub fn version(&self) -> &str {
+        &self.version
+    }
+}
+
 impl SigningKey {
     /// Initialize a new signing key.
+    ///
+    /// # Parameters
+    ///
+    /// * algorithm: The digital signature algorithm to use.
+    /// * key: A 64-byte secret key.
+    /// * version: The "version" of the key used for this signature.
+    ///   Versions are used as an identifier to distinguish signatures generated from different keys
+    ///   but using the same algorithm on the same homeserver.
     pub fn new(algorithm: SigningAlgorithm, key: [u8; 64], version: String) -> Self {
         SigningKey {
             algorithm: algorithm,
@@ -77,9 +130,9 @@ impl SigningKey {
     }
 
     /// Sign a JSON object.
-    pub fn sign(&self, value: &Value) -> Result<Signature, SigningError> {
+    pub fn sign(&self, value: &Value) -> Result<Signature, Error> {
         if !value.is_object() {
-            return Err(SigningError::new("JSON value must be a JSON object"));
+            return Err(Error::new("JSON value must be a JSON object"));
         }
 
         let mut owned_value = value.clone();
@@ -92,17 +145,14 @@ impl SigningKey {
 
         let json = match to_string(&owned_value) {
             Ok(json) => json,
-            Err(error) => return Err(SigningError::new(error.description())),
+            Err(error) => return Err(Error::new(error.description())),
         };
 
-        Ok(sign_detached(json.as_bytes(), &self.key))
-    }
-
-    /// Sign and Base64 encode a JSON object.
-    pub fn sign_and_base64_encode(&self, value: &Value) -> Result<String, SigningError> {
-        let signature = try!(self.sign(value));
-
-        Ok(signature.as_ref().to_base64(BASE64_CONFIG))
+        Ok(Signature {
+            algorithm: self.algorithm,
+            signature: sign_detached(json.as_bytes(), &self.key),
+            version: self.version.clone(),
+        })
     }
 }
 
@@ -122,7 +172,7 @@ mod test {
         let SecretKey(raw_seckey) = seckey;
         let signing_key = SigningKey::new(SigningAlgorithm::Ed25519, raw_seckey, "1".to_owned());
         let value = from_str("{}").unwrap();
-        let actual = signing_key.sign_and_base64_encode(&value).unwrap();
+        let actual = signing_key.sign(&value).unwrap().base64();
         assert_eq!(
             actual,
             "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"
