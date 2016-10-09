@@ -4,6 +4,7 @@
 #[macro_use]
 extern crate lazy_static;
 extern crate rustc_serialize;
+extern crate serde;
 extern crate serde_json;
 extern crate sodiumoxide;
 
@@ -11,7 +12,9 @@ use std::collections::HashSet;
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-use rustc_serialize::base64::{CharacterSet, Config, Newline, ToBase64};
+use rustc_serialize::base64::{CharacterSet, Config, FromBase64, Newline, ToBase64};
+use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
+use serde::de::{MapVisitor, Visitor};
 use serde_json::{Value, to_string};
 use sodiumoxide::init;
 use sodiumoxide::crypto::sign::{SecretKey, Signature as SodiumSignature, sign_detached};
@@ -56,7 +59,7 @@ impl Display for Error {
 /// A single digital signature.
 ///
 /// Generated from `SigningKey`.
-#[derive(Debug)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 pub struct Signature {
     algorithm: SigningAlgorithm,
     signature: SodiumSignature,
@@ -64,10 +67,15 @@ pub struct Signature {
 }
 
 /// A set of signatures created by a single homeserver.
-pub type SignatureSet = HashSet<Signature>;
+pub struct SignatureSet {
+    set: HashSet<Signature>,
+}
+
+/// Serde Visitor for deserializing `SignatureSet`.
+struct SignatureSetVisitor;
 
 /// The algorithm used for signing.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum SigningAlgorithm {
     /// The Ed25519 digital signature algorithm.
     Ed25519,
@@ -108,6 +116,104 @@ impl Signature {
     /// but using the same algorithm on the same homeserver.
     pub fn version(&self) -> &str {
         &self.version
+    }
+}
+
+impl SignatureSet {
+    /// Initialize a new empty SignatureSet.
+    pub fn new() -> Self {
+        SignatureSet {
+            set: HashSet::new(),
+        }
+    }
+
+    /// Initialize a new empty SignatureSet with room for a specific number of signatures.
+    pub fn with_capacity(capacity: usize) -> Self {
+        SignatureSet {
+            set: HashSet::with_capacity(capacity),
+        }
+    }
+
+    /// Adds a signature to the set.
+    ///
+    /// The boolean return value indicates whether or not the value was actually inserted, since
+    /// subsequent inserts of the same signature have no effect.
+    pub fn insert(&mut self, signature: Signature) -> bool {
+        self.set.insert(signature)
+    }
+
+    /// The number of signatures in the set.
+    pub fn len(&self) -> usize {
+        self.set.len()
+    }
+}
+
+impl Deserialize for SignatureSet {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+        deserializer.deserialize_map(SignatureSetVisitor)
+    }
+}
+
+impl Serialize for SignatureSet {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+        let mut state = try!(serializer.serialize_map(Some(self.len())));
+
+        for signature in self.set.iter() {
+            try!(serializer.serialize_map_key(&mut state, signature.id()));
+            try!(serializer.serialize_map_value(&mut state, signature.base64()));
+        }
+
+        serializer.serialize_map_end(state)
+    }
+}
+
+impl Visitor for SignatureSetVisitor {
+    type Value = SignatureSet;
+
+    fn visit_map<M>(&mut self, mut visitor: M) -> Result<Self::Value, M::Error>
+    where M: MapVisitor {
+        const SIGNATURE_ID_LENGTH: usize = 2;
+
+        let mut signature_set = SignatureSet::with_capacity(visitor.size_hint().0);
+
+        while let Some((key, value)) = try!(visitor.visit::<String, String>()) {
+            let signature_id: Vec<&str> = key.split(':').collect();
+
+            let signature_id_length = signature_id.len();
+
+            if signature_id_length != SIGNATURE_ID_LENGTH {
+                return Err(M::Error::invalid_length(signature_id_length));
+            }
+
+            let algorithm_input = signature_id[0];
+
+            let algorithm = match algorithm_input {
+                "ed25519" => SigningAlgorithm::Ed25519,
+                _ => return Err(M::Error::invalid_value(algorithm_input)),
+            };
+
+            let raw_signature: Vec<u8> = match value.from_base64() {
+                Ok(raw) => raw,
+                Err(error) => return Err(M::Error::custom(error.description())),
+            };
+
+            let sodium_signature = match SodiumSignature::from_slice(&raw_signature) {
+                Some(s) => s,
+                None => return Err(M::Error::invalid_value("invalid Ed25519 signature")),
+            };
+
+            let signature = Signature {
+                algorithm: algorithm,
+                signature: sodium_signature,
+                version: signature_id[1].to_string(),
+            };
+
+            signature_set.insert(signature);
+        }
+
+        try!(visitor.end());
+
+        Ok(signature_set)
     }
 }
 

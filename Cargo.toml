@@ -13,6 +13,7 @@ version = "0.1.0"
 [dependencies]
 lazy_static = "0.2.1"
 rustc-serialize = "0.3.19"
+serde = "0.8.12"
 serde_json = "0.8.2"
 sodiumoxide = "0.0.12"
 
