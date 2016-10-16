@@ -27,6 +27,7 @@ pub mod tag;
 pub mod typing;
 
 /// An error when attempting to convert a string to an enum that only accepts certain values.
+#[derive(Clone, Copy, Debug)]
 pub struct ParseError;
 
 /// The type of an event.

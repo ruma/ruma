@@ -10,7 +10,7 @@ state_event! {
 }
 
 /// The payload of an `AvatarEvent`.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AvatarEventContent {
     /// Information about the avatar image.
     pub info: ImageInfo,

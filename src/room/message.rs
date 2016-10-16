@@ -11,7 +11,7 @@ room_event! {
 }
 
 /// The message type of message event, e.g. `m.image` or `m.text`.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub enum MessageType {
     /// An audio message.
     #[serde(rename="m.audio")]
@@ -47,7 +47,7 @@ pub enum MessageType {
 }
 
 /// The payload of a message event.
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum MessageEventContent {
     /// An audio message.
     Audio(AudioMessageEventContent),
@@ -75,7 +75,7 @@ pub enum MessageEventContent {
 }
 
 /// The payload of an audio message.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct AudioMessageEventContent {
     /// The textual representation of this message.
     pub body: String,
@@ -89,7 +89,7 @@ pub struct AudioMessageEventContent {
 }
 
 /// Metadata about an audio clip.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct AudioInfo {
     /// The duration of the audio in milliseconds.
     #[serde(skip_serializing_if="Option::is_none")]
@@ -103,7 +103,7 @@ pub struct AudioInfo {
 }
 
 /// The payload of an emote message.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct EmoteMessageEventContent {
     /// The emote action to perform.
     pub body: String,
@@ -112,7 +112,7 @@ pub struct EmoteMessageEventContent {
 }
 
 /// The payload of a file message.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct FileMessageEventContent {
     /// A human-readable description of the file. This is recommended to be the filename of the
     /// original upload.
@@ -133,7 +133,7 @@ pub struct FileMessageEventContent {
 }
 
 /// Metadata about a file.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct FileInfo {
     /// The mimetype of the file, e.g. "application/msword."
     pub mimetype: String,
@@ -142,7 +142,7 @@ pub struct FileInfo {
 }
 
 /// The payload of an image message.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ImageMessageEventContent {
     /// A textual representation of the image. This could be the alt text of the image, the filename
     /// of the image, or some kind of content description for accessibility e.g. "image attachment."
@@ -163,7 +163,7 @@ pub struct ImageMessageEventContent {
 }
 
 /// The payload of a location message.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct LocationMessageEventContent {
     /// A description of the location e.g. "Big Ben, London, UK,"or some kind of content description
     /// for accessibility, e.g. "location attachment."
@@ -181,7 +181,7 @@ pub struct LocationMessageEventContent {
 }
 
 /// The payload of a notice message.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct NoticeMessageEventContent {
     /// The notice text to send.
     pub body: String,
@@ -190,7 +190,7 @@ pub struct NoticeMessageEventContent {
 }
 
 /// The payload of a text message.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct TextMessageEventContent {
     /// The body of the message.
     pub body: String,
@@ -199,7 +199,7 @@ pub struct TextMessageEventContent {
 }
 
 /// The payload of a video message.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct VideoMessageEventContent {
     /// A description of the video, e.g. "Gangnam Style," or some kind of content description for
     /// accessibility, e.g. "video attachment."
@@ -214,7 +214,7 @@ pub struct VideoMessageEventContent {
 }
 
 /// Metadata about a video.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct VideoInfo {
     /// The duration of the video in milliseconds.
     #[serde(skip_serializing_if="Option::is_none")]

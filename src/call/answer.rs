@@ -8,7 +8,7 @@ room_event! {
 }
 
 /// The payload of an `AnswerEvent`.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AnswerEventContent {
     /// The VoIP session description.
     pub answer: SessionDescription,

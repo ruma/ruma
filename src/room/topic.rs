@@ -6,7 +6,7 @@ state_event! {
 }
 
 /// The payload of a `TopicEvent`.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct TopicEventContent {
     /// The topic text.
     pub topic: String,

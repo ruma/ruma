@@ -9,7 +9,7 @@ use room::join_rules::JoinRulesEventContent;
 use room::name::NameEventContent;
 
 /// A stripped-down version of a state event that is included along with some other events.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum StrippedState {
     /// A stripped-down version of the *m.room.avatar* event.
     RoomAvatar(StrippedRoomAvatar),
@@ -25,7 +25,7 @@ pub enum StrippedState {
 }
 
 /// The general form of a `StrippedState`.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct StrippedStateContent<C> where C: Deserialize + Serialize {
     /// Data specific to the event type.
     pub content: C,

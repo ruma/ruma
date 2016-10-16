@@ -8,7 +8,7 @@ state_event! {
 }
 
 /// The payload of a `CanonicalAliasEvent`.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CanonicalAliasEventContent {
     /// The canonical alias.
     pub alias: RoomAliasId,

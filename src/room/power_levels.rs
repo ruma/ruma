@@ -12,7 +12,7 @@ state_event! {
 }
 
 /// The payload of a `PowerLevelsEvent`.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PowerLevelsEventContent {
     /// The level required to ban a user.
     pub ban: u64,

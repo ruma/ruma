@@ -18,7 +18,7 @@ pub mod third_party_invite;
 pub mod topic;
 
 /// Metadata about an image.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ImageInfo {
     /// The height of the image in pixels.
     pub height: u64,

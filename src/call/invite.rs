@@ -8,7 +8,7 @@ room_event! {
 }
 
 /// The payload of an `InviteEvent`.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct InviteEventContent {
     /// A unique identifer for the call.
     pub call_id: String,

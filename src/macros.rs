@@ -33,7 +33,7 @@ macro_rules! event {
         }
     ) => {
         $(#[$attr])*
-        #[derive(Debug, Deserialize, Serialize)]
+        #[derive(Clone, Debug, Deserialize, Serialize)]
         pub struct $name {
             /// The event's content.
             pub content: $content_type,
@@ -78,7 +78,7 @@ macro_rules! room_event {
         }
     ) => {
         $(#[$attr])*
-        #[derive(Debug, Deserialize, Serialize)]
+        #[derive(Clone, Debug, Deserialize, Serialize)]
         pub struct $name {
             /// The event's content.
             pub content: $content_type,
@@ -146,7 +146,7 @@ macro_rules! state_event {
     ) => {
         $(#[$attr])*
         #[allow(missing_docs)]
-        #[derive(Debug, Deserialize, Serialize)]
+        #[derive(Clone, Debug, Deserialize, Serialize)]
         pub struct $name {
             /// The event's content.
             pub content: $content_type,

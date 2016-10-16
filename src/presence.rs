@@ -11,7 +11,7 @@ event! {
 }
 
 /// The payload of a `PresenceEvent`.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PresenceEventContent {
     /// The current avatar URL for this user.
     #[serde(skip_serializing_if="Option::is_none")]
@@ -36,7 +36,7 @@ pub struct PresenceEventContent {
 }
 
 /// A description of a user's connectivity and availability for chat.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub enum PresenceState {
     /// Disconnected from the service.
     #[serde(rename="offline")]

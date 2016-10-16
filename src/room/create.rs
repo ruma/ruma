@@ -9,7 +9,7 @@ state_event! {
 }
 
 /// The payload of a `CreateEvent`.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CreateEventContent {
     /// The `user_id` of the room creator. This is set by the homeserver.
     pub creator: UserId,

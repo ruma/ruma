@@ -6,7 +6,7 @@ state_event! {
 }
 
 /// The payload of a `NameEvent`.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct NameEventContent {
     /// The name of the room. This MUST NOT exceed 255 bytes.
     pub name: String,

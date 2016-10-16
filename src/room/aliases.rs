@@ -8,7 +8,7 @@ state_event! {
 }
 
 /// The payload of an `AliasesEvent`.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AliasesEventContent {
     /// A list of room aliases.
     pub aliases: Vec<RoomAliasId>,

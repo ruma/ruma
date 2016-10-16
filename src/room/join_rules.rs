@@ -6,14 +6,14 @@ state_event! {
 }
 
 /// The payload of a `JoinRulesEvent`.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct JoinRulesEventContent {
     /// The type of rules used for users wishing to join this room.
     pub join_rule: JoinRule,
 }
 
 /// The rule used for users wishing to join this room.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub enum JoinRule {
     /// A user who wishes to join the room must first receive an invite to the room from someone
     /// already inside of the room.

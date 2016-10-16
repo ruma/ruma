@@ -9,14 +9,14 @@ state_event! {
 }
 
 /// The payload of a `GuestAccessEvent`.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct GuestAccessEventContent {
     /// A policy for guest user access to a room.
     pub guest_access: GuestAccess,
 }
 
 /// A policy for guest user access to a room.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub enum GuestAccess {
     /// Guests are allowed to join the room.
     #[serde(rename="can_join")]
