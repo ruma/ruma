@@ -1,7 +1,7 @@
 //! Crate **ruma_identifiers** contains types for [Matrix](https://matrix.org/) identifiers
 //! for events, rooms, room aliases, and users.
 
-#![feature(question_mark, try_from)]
+#![feature(try_from)]
 #![deny(missing_docs)]
 
 #[macro_use]
