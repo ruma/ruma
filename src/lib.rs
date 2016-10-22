@@ -84,7 +84,7 @@ pub enum EventType {
 /// A basic event.
 pub trait Event: Debug + Deserialize + Serialize {
     /// The event-type-specific payload this event carries.
-    type Content;
+    type Content: Debug + Deserialize + Serialize;
 
     /// The event's content.
     fn content(&self) -> &Self::Content;
@@ -94,7 +94,7 @@ pub trait Event: Debug + Deserialize + Serialize {
 }
 
 /// An event within the context of a room.
-pub trait RoomEvent: Debug + Deserialize + Event + Serialize {
+pub trait RoomEvent: Event {
     /// The unique identifier for the event.
     fn event_id(&self) -> &EventId;
 
@@ -109,7 +109,7 @@ pub trait RoomEvent: Debug + Deserialize + Event + Serialize {
 }
 
 /// An event that describes persistent state about a room.
-pub trait StateEvent: Debug + Deserialize + RoomEvent + Serialize {
+pub trait StateEvent: RoomEvent {
     /// The previous content for this state key, if any.
     fn prev_content(&self) -> Option<&Self::Content>;
 
