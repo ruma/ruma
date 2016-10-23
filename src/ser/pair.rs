@@ -136,13 +136,13 @@ impl<'target, Target> Serializer for PairSerializer<'target, Target>
     }
 
     fn serialize_none(&mut self) -> Result<(), Error> {
-        Err(Error::unsupported_pair())
+        Ok(())
     }
 
-    fn serialize_some<T>(&mut self, _value: T) -> Result<(), Error>
+    fn serialize_some<T>(&mut self, value: T) -> Result<(), Error>
         where T: Serialize
     {
-        Err(Error::unsupported_pair())
+        value.serialize(self)
     }
 
     fn serialize_seq(&mut self, _len: Option<usize>)
