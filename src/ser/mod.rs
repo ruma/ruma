@@ -44,13 +44,14 @@ pub fn to_string<T: ser::Serialize>(input: &T) -> Result<String, Error> {
 ///   unit structs and unit variants.
 ///
 /// * Newtype structs defer to their inner values.
-pub struct Serializer<'output, T: 'output>(&'output mut UrlEncodedSerializer<T>)
-    where T: UrlEncodedTarget;
+pub struct Serializer<'output, T: 'output + UrlEncodedTarget> {
+    urlencoder: &'output mut UrlEncodedSerializer<T>
+}
 
 impl<'output, T: 'output + UrlEncodedTarget> Serializer<'output, T> {
     /// Returns a new `Serializer`.
     pub fn new(urlencoder: &'output mut UrlEncodedSerializer<T>) -> Self {
-        Serializer(urlencoder)
+        Serializer { urlencoder: urlencoder }
     }
 }
 
@@ -101,25 +102,39 @@ impl ser::Error for Error {
 }
 
 /// State used when serializing sequences.
-pub struct SeqState(());
+pub struct SeqState {
+    _state: (),
+}
 
 /// State used when serializing tuples.
-pub struct TupleState(());
+pub struct TupleState {
+    _state: (),
+}
 
 /// State used when serializing tuple structs.
-pub struct TupleStructState(());
+pub struct TupleStructState {
+    _state: (),
+}
 
 /// State used when serializing tuple variants.
-pub struct TupleVariantState(());
+pub struct TupleVariantState {
+    _state: (),
+}
 
 /// State used when serializing maps.
-pub struct MapState(Option<Cow<'static, str>>);
+pub struct MapState {
+    key: Option<Cow<'static, str>>
+}
 
 /// State used when serializing structs.
-pub struct StructState(());
+pub struct StructState {
+    _state: (),
+}
 
 /// State used when serializing struct variants.
-pub struct StructVariantState(());
+pub struct StructVariantState {
+    _state: (),
+}
 
 impl<'output, Target> ser::Serializer for Serializer<'output, Target>
     where Target: 'output + UrlEncodedTarget
@@ -287,7 +302,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
     fn serialize_seq(
             &mut self, _len: Option<usize>)
             -> Result<SeqState, Error> {
-        Ok(SeqState(()))
+        Ok(SeqState { _state: () })
     }
 
     /// Serializes a sequence element.
@@ -296,7 +311,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
             -> Result<(), Error>
         where T: ser::Serialize
     {
-        value.serialize(&mut pair::PairSerializer::new(self.0))
+        value.serialize(&mut pair::PairSerializer::new(self.urlencoder))
     }
 
     /// Finishes serializing a sequence.
@@ -308,7 +323,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
     fn serialize_seq_fixed_size(
             &mut self, _length: usize)
             -> Result<SeqState, Error> {
-        Ok(SeqState(()))
+        Ok(SeqState { _state: () })
     }
 
     /// Returns an error.
@@ -385,7 +400,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
     fn serialize_map(
             &mut self, _len: Option<usize>)
             -> Result<MapState, Error> {
-        Ok(MapState(None))
+        Ok(MapState { key: None })
     }
 
     /// Serializes a map key.
@@ -394,7 +409,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
             -> Result<(), Error>
         where T: ser::Serialize
     {
-        key.serialize(&mut key::MapKeySerializer::new(&mut state.0))
+        key.serialize(&mut key::MapKeySerializer::new(&mut state.key))
     }
 
     /// Serializes a map value.
@@ -404,7 +419,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
         where T: ser::Serialize
     {
         let mut value_serializer =
-            try!(value::ValueSerializer::new(&mut state.0, self.0));
+            try!(value::ValueSerializer::new(&mut state.key, self.urlencoder));
         value.serialize(&mut value_serializer)
     }
 
@@ -417,7 +432,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
     fn serialize_struct(
             &mut self, _name: &'static str, _len: usize)
             -> Result<StructState, Error> {
-        Ok(StructState(()))
+        Ok(StructState { _state: () })
     }
 
     /// Serializes a struct element.
@@ -431,7 +446,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
     {
         let mut key = Some(key.into());
         let mut value_serializer =
-            value::ValueSerializer::new(&mut key, self.0).unwrap();
+            value::ValueSerializer::new(&mut key, self.urlencoder).unwrap();
         value.serialize(&mut value_serializer)
     }
 

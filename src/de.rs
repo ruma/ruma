@@ -55,13 +55,15 @@ pub fn from_str<T: de::Deserialize>(input: &str) -> Result<T, Error> {
 ///
 /// * Everything else but `deserialize_seq` and `deserialize_seq_fixed_size`
 ///   defers to `deserialize`.
-pub struct Deserializer<'a>(
-    MapDeserializer<UrlEncodedParse<'a>, Cow<'a, str>, Cow<'a, str>, Error>);
+pub struct Deserializer<'a> {
+    inner:
+        MapDeserializer<UrlEncodedParse<'a>, Cow<'a, str>, Cow<'a, str>, Error>,
+}
 
 impl<'a> Deserializer<'a> {
     /// Returns a new `Deserializer`.
     pub fn new(parser: UrlEncodedParse<'a>) -> Self {
-        Deserializer(MapDeserializer::unbounded(parser))
+        Deserializer { inner: MapDeserializer::unbounded(parser) }
     }
 }
 
@@ -82,7 +84,7 @@ impl<'a> de::Deserializer for Deserializer<'a>
             -> Result<V::Value, Self::Error>
         where V: de::Visitor,
     {
-        visitor.visit_map(&mut self.0)
+        visitor.visit_map(&mut self.inner)
     }
 
     fn deserialize_seq<V>(
@@ -90,7 +92,7 @@ impl<'a> de::Deserializer for Deserializer<'a>
             -> Result<V::Value, Self::Error>
         where V: de::Visitor,
     {
-        visitor.visit_seq(&mut self.0)
+        visitor.visit_seq(&mut self.inner)
     }
 
     fn deserialize_seq_fixed_size<V>(
@@ -98,7 +100,7 @@ impl<'a> de::Deserializer for Deserializer<'a>
             -> Result<V::Value, Self::Error>
         where V: de::Visitor
     {
-        visitor.visit_seq(&mut self.0)
+        visitor.visit_seq(&mut self.inner)
     }
 
     forward_to_deserialize! {
