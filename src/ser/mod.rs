@@ -288,14 +288,14 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
 
     /// Returns an error.
     fn serialize_none(&mut self) -> Result<(), Error> {
-        Err(Error::top_level())
+        Ok(())
     }
 
     /// Returns an error.
-    fn serialize_some<T>(&mut self, _value: T) -> Result<(), Error>
+    fn serialize_some<T>(&mut self, value: T) -> Result<(), Error>
         where T: ser::Serialize
     {
-        Err(Error::top_level())
+        value.serialize(self)
     }
 
     /// Begins to serialize a sequence, given length (if any) is ignored.
