@@ -91,6 +91,12 @@ pub trait Event: Debug + Deserialize + Serialize {
 
     /// The type of the event.
     fn event_type(&self) -> &EventType;
+
+    /// Extra top-level key-value pairs specific to this event type, but that are not under the
+    /// `content` field.
+    fn extra_content(&self) -> Option<Value> {
+        None
+    }
 }
 
 /// An event within the context of a room.
