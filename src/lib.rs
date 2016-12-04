@@ -19,6 +19,11 @@ use serde_json::Value;
 #[macro_use] mod macros;
 
 pub mod call;
+/// Enums for heterogeneous collections of events.
+pub mod collections {
+    pub mod all;
+    pub mod only;
+}
 pub mod presence;
 pub mod receipt;
 pub mod room;
