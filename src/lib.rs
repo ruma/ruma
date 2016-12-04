@@ -2,7 +2,7 @@
 //! endpoint in the [Matrix](https://matrix.org/) client API specification. These types can be
 //! shared by client and server code.
 
-#![feature(rustc_macro)]
+#![feature(proc_macro)]
 
 extern crate ruma_identifiers;
 extern crate serde;
