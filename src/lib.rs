@@ -92,14 +92,34 @@
 //!
 //! This code produces the object under the "example.com" key in the preceeding JSON. Similarly,
 //! a `SignatureSet` can be produced by deserializing JSON that follows this form.
+//!
+//! The outer object (the map of server names to signature sets) is a `Signatures` value and
+//! created like this:
+//!
+//! ```rust,no_run
+//! # extern crate ruma_signatures;
+//! # extern crate serde;
+//! # extern crate serde_json;
+//! # fn main() {
+//! # let signature = ruma_signatures::Signature::new("ed25519:1", &[0; 32]).unwrap();
+//! let mut signature_set = ruma_signatures::SignatureSet::new();
+//! signature_set.insert(signature);
+//! let mut signatures = ruma_signatures::Signatures::new();
+//! signatures.insert("example.com", &signature_set);
+//! let json = serde_json::to_string(&signatures).unwrap();
+//! # }
+//! ```
+//!
+//! Just like the `SignatureSet` itself, the `Signatures` value can also be deserialized from JSON.
 
 extern crate ring;
 extern crate rustc_serialize;
 extern crate serde;
 extern crate serde_json;
 extern crate untrusted;
+extern crate url;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
@@ -109,6 +129,9 @@ use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serialize
 use serde::de::{MapVisitor, Visitor};
 use serde_json::{Value, to_string};
 use untrusted::Input;
+use url::Url;
+
+pub use url::Host;
 
 static BASE64_CONFIG: Config = Config {
     char_set: CharacterSet::Standard,
@@ -187,7 +210,7 @@ pub struct Ed25519KeyPair {
 }
 
 /// An error produced during signing or verification.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Error {
     message: String,
 }
@@ -219,14 +242,24 @@ pub trait KeyPair: Sized {
 }
 
 /// A single digital signature.
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Signature {
     algorithm: Algorithm,
     signature: Vec<u8>,
     version: String,
 }
 
+/// A map of server names to sets of signatures created by that server.
+#[derive(Clone, Debug)]
+pub struct Signatures {
+    map: HashMap<Host, SignatureSet>
+}
+
+/// Serde Visitor for deserializing `Signatures`.
+struct SignaturesVisitor;
+
 /// A set of signatures created by a single homeserver.
+#[derive(Clone, Debug)]
 pub struct SignatureSet {
     set: HashSet<Signature>,
 }
@@ -343,15 +376,97 @@ impl Signature {
     }
 }
 
+impl Signatures {
+    /// Initializes a new empty Signatures.
+    pub fn new() -> Self {
+        Signatures {
+            map: HashMap::new(),
+        }
+    }
+
+    /// Initializes a new empty Signatures with room for a specific number of servers.
+    pub fn with_capacity(capacity: usize) -> Self {
+        Signatures {
+            map: HashMap::with_capacity(capacity),
+        }
+    }
+
+    /// Adds a signature set for a server.
+    ///
+    /// If no signature set for the given server existed in the collection, `None` is returned.
+    /// Otherwise, the signature set is returned.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the given server name cannot be parsed as a valid host.
+    pub fn insert(&mut self, server_name: &str, signature_set: &SignatureSet)
+    -> Result<Option<SignatureSet>, Error> {
+        let url_string = format!("https://{}", server_name);
+        let url = Url::parse(&url_string).map_err(|_| {
+            Error::new(format!("invalid server name: {}", server_name))
+        })?;
+
+        let host = match url.host() {
+            Some(host) => host.to_owned(),
+            None => return Err(Error::new(format!("invalid server name: {}", server_name))),
+        };
+
+        Ok(self.map.insert(host, signature_set.clone()))
+    }
+
+    /// The number of servers in the collection.
+    pub fn len(&self) -> usize {
+        self.map.len()
+    }
+}
+
+impl Deserialize for Signatures {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+        deserializer.deserialize_map(SignaturesVisitor)
+    }
+}
+
+impl Serialize for Signatures {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+        let mut state = try!(serializer.serialize_map(Some(self.len())));
+
+        for (host, signature_set) in self.map.iter() {
+            try!(serializer.serialize_map_key(&mut state, host.to_string()));
+            try!(serializer.serialize_map_value(&mut state, signature_set));
+        }
+
+        serializer.serialize_map_end(state)
+    }
+}
+
+impl Visitor for SignaturesVisitor {
+    type Value = Signatures;
+
+    fn visit_map<M>(&mut self, mut visitor: M) -> Result<Self::Value, M::Error>
+    where M: MapVisitor {
+        let mut signatures = Signatures::with_capacity(visitor.size_hint().0);
+
+        while let Some((server_name, signature_set)) = try!(visitor.visit::<String, SignatureSet>()) {
+            if let Err(_) = signatures.insert(&server_name, &signature_set) {
+                return Err(M::Error::invalid_value(&server_name));
+            }
+        }
+
+        try!(visitor.end());
+
+        Ok(signatures)
+    }
+}
+
 impl SignatureSet {
-    /// Initialize a new empty SignatureSet.
+    /// Initializes a new empty SignatureSet.
     pub fn new() -> Self {
         SignatureSet {
             set: HashSet::new(),
         }
     }
 
-    /// Initialize a new empty SignatureSet with room for a specific number of signatures.
+    /// Initializes a new empty SignatureSet with room for a specific number of signatures.
     pub fn with_capacity(capacity: usize) -> Self {
         SignatureSet {
             set: HashSet::with_capacity(capacity),
