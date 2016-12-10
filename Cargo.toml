@@ -11,11 +11,8 @@ repository = "https://github.com/ruma/ruma-signatures"
 version = "0.1.0"
 
 [dependencies]
-lazy_static = "0.2.1"
-rustc-serialize = "0.3.19"
-serde = "0.8.12"
-serde_json = "0.8.2"
-sodiumoxide = "0.0.12"
-
-[lib]
-doctest = false
+ring = "0.6.0-alpha1"
+rustc-serialize = "0.3.22"
+serde = "0.8.19"
+serde_json = "0.8.4"
+untrusted = "0.3.2"

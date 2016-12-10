@@ -1,10 +1,3 @@
-before_install:
-  - "curl -LO https://github.com/jedisct1/libsodium/releases/download/1.0.11/libsodium-1.0.11.tar.gz"
-  - "tar -zxvf libsodium-1.0.11.tar.gz"
-  - "cd libsodium-1.0.11"
-  - "./configure"
-  - "make"
-  - "sudo make install"
 language: "rust"
 notifications:
   email: false
@@ -12,5 +5,3 @@ notifications:
     channels:
       - "chat.freenode.net#ruma"
     use_notice: true
-rust:
-  - "nightly"
