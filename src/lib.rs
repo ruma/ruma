@@ -2,9 +2,10 @@
 //! [Matrix](https://matrix.org/) specification.
 //!
 //! Digital signatures are used by Matrix homeservers to verify the authenticity of events in the
-//! Matrix system. Each homeserver has one or more signing key pairs which it uses to sign all
-//! events.  Matrix clients and other Matrix homeservers can ask the homeserver for its public keys
-//! and use those keys to verify the signed events.
+//! Matrix system, as well as requests between homeservers for federation. Each homeserver has one
+//! or more signing key pairs which it uses to sign all events and federation requests. Matrix
+//! clients and other Matrix homeservers can ask the homeserver for its public keys and use those
+//! keys to verify the signed data.
 //!
 //! Each signing key pair has an identifier, which consists of the name of the digital signature
 //! algorithm it uses and a "version" string, separated by a colon. The version is an arbitrary
@@ -28,13 +29,18 @@
 //!     "1".to_string(), // The "version" of the key.
 //! ).unwrap();
 //! let value = serde_json::from_str("{}").unwrap(); // An empty JSON object.
-//! let signature = key_pair.sign(&value).unwrap(); // Creates a `Signature`.
+//! let signature = ruma_signatures::sign_json(&key_pair, &value).unwrap(); // `Signature`
 //! # }
 //! ```
 //!
+//! # Signing Matrix events
+//!
+//! Signing an event uses a more involved process than signing arbitrary JSON.
+//! Event signing is not yet implemented by ruma_signatures.
+//!
 //! # Verifying signatures
 //!
-//! A client application or another homeserver can verify a signature:
+//! A client application or another homeserver can verify a signature on arbitrary JSON:
 //!
 //! ```rust,no_run
 //! # extern crate ruma_signatures;
@@ -43,9 +49,11 @@
 //! # let public_key = [0; 32];
 //! # let signature = ruma_signatures::Signature::new("ed25519:1", &[0; 32]).unwrap();
 //! let value = serde_json::from_str("{}").unwrap(); // The same empty JSON object.
-//! assert!(signature.verify(&public_key, &value).is_ok());
+//! assert!(signature.verify_json(&public_key, &value).is_ok());
 //! # }
 //! ```
+//!
+//! Verifying signatures of Matrix events is not yet implemented by ruma_signatures.
 //!
 //! # Signature sets
 //!
@@ -109,7 +117,28 @@ static BASE64_CONFIG: Config = Config {
     line_length: None,
 };
 
-fn signable_json(value: &Value) -> Result<String, Error> {
+/// Signs an arbitrary JSON object.
+///
+/// # Parameters
+///
+/// * key_pair: A cryptographic key pair used to sign the JSON.
+/// * value: A JSON object to be signed according to the Matrix specification.
+///
+/// # Errors
+///
+/// Returns an error if the JSON value is not a JSON object.
+pub fn sign_json<K>(key_pair: &K, value: &Value) -> Result<Signature, Error> where K: KeyPair {
+    let json = to_canonical_json(value)?;
+
+    Ok(key_pair.sign(json.as_bytes()))
+}
+
+/// Converts a JSON object into the "canonical" form, suitable for signing.
+///
+/// # Errors
+///
+/// Returns an error if the provided JSON value is not a JSON object.
+pub fn to_canonical_json(value: &Value) -> Result<String, Error> {
     if !value.is_object() {
         return Err(Error::new("JSON value must be a JSON object"));
     }
@@ -117,9 +146,9 @@ fn signable_json(value: &Value) -> Result<String, Error> {
     let mut owned_value = value.clone();
 
     {
-        let mut hash = owned_value.as_object_mut().unwrap(); // Safe since we checked above.
-        hash.remove("signatures");
-        hash.remove("unsigned");
+        let mut object = owned_value.as_object_mut().unwrap(); // Safe since we checked above.
+        object.remove("signatures");
+        object.remove("unsigned");
     }
 
     to_string(&owned_value).map_err(|error| Error::new(error.description()))
@@ -185,18 +214,11 @@ pub trait KeyPair: Sized {
     ///
     /// # Parameters
     ///
-    /// * value: A JSON value to be signed according to the Matrix specification.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the JSON value is not a JSON object.
-    fn sign(&self, value: &Value) -> Result<Signature, Error>;
+    /// * message: An arbitrary binary value to sign.
+    fn sign(&self, message: &[u8]) -> Signature;
 }
 
 /// A single digital signature.
-///
-/// Signatures are originally generated from a `KeyPair`.
-/// For verifying a signature, a `Signature` can be constructed from bytes using `new`.
 #[derive(Debug, Eq, Hash, PartialEq)]
 pub struct Signature {
     algorithm: Algorithm,
@@ -230,14 +252,12 @@ impl KeyPair for Ed25519KeyPair {
         })
     }
 
-    fn sign(&self, value: &Value) -> Result<Signature, Error> {
-        let json = signable_json(value)?;
-
-        Ok(Signature {
+    fn sign(&self, message: &[u8]) -> Signature {
+        Signature {
             algorithm: Algorithm::Ed25519,
-            signature: self.ring_key_pair.sign(json.as_bytes()).as_slice().to_vec(),
+            signature: self.ring_key_pair.sign(message).as_slice().to_vec(),
             version: self.version.clone(),
-        })
+        }
     }
 }
 
@@ -301,13 +321,13 @@ impl Signature {
     }
 
     /// Use the public key to verify the signature against the JSON object that was signed.
-    pub fn verify(&self, public_key: &[u8], value: &Value) -> Result<(), Error> {
+    pub fn verify_json(&self, public_key: &[u8], value: &Value) -> Result<(), Error> {
         match self.algorithm {
             Algorithm::Ed25519 => {
                 verify(
                     &ED25519,
                     Input::from(public_key),
-                    Input::from(signable_json(value)?.as_bytes()),
+                    Input::from(to_canonical_json(value)?.as_bytes()),
                     Input::from(self.as_bytes()),
                 ).map_err(|_| Error::new("signature verification failed"))
             }
@@ -421,7 +441,7 @@ mod test {
     use rustc_serialize::base64::FromBase64;
     use serde_json::from_str;
 
-    use super::{Ed25519KeyPair, KeyPair, Signature};
+    use super::{Ed25519KeyPair, KeyPair, Signature, sign_json};
 
     const PUBLIC_KEY: &'static str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
     const PRIVATE_KEY: &'static str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
@@ -437,7 +457,7 @@ mod test {
             "1".to_string(),
         ).unwrap();
         let value = from_str("{}").unwrap();
-        let signature = key_pair.sign(&value).unwrap();
+        let signature = sign_json(&key_pair, &value).unwrap();
         assert_eq!(signature.base64(), EMPTY_JSON_SIGNATURE);
     }
 
@@ -448,6 +468,6 @@ mod test {
             &EMPTY_JSON_SIGNATURE.from_base64().unwrap(),
         ).unwrap();
         let value = from_str("{}").unwrap();
-        assert!(signature.verify(&PUBLIC_KEY.from_base64().unwrap(), &value).is_ok());
+        assert!(signature.verify_json(&PUBLIC_KEY.from_base64().unwrap(), &value).is_ok());
     }
 }
