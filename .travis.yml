@@ -5,3 +5,5 @@ notifications:
     channels:
       - "chat.freenode.net#ruma"
     use_notice: true
+rust:
+  - "nightly"

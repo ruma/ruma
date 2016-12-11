@@ -17,3 +17,6 @@ serde = "0.8.19"
 serde_json = "0.8.4"
 untrusted = "0.3.2"
 url = "1.2.3"
+
+[dev-dependencies]
+serde_derive = "0.8.19"

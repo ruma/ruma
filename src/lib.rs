@@ -105,16 +105,21 @@
 //! let mut signature_set = ruma_signatures::SignatureSet::new();
 //! signature_set.insert(signature);
 //! let mut signatures = ruma_signatures::Signatures::new();
-//! signatures.insert("example.com", &signature_set);
+//! signatures.insert("example.com", signature_set);
 //! let json = serde_json::to_string(&signatures).unwrap();
 //! # }
 //! ```
 //!
 //! Just like the `SignatureSet` itself, the `Signatures` value can also be deserialized from JSON.
 
+#![cfg_attr(test, feature(proc_macro))]
+
 extern crate ring;
 extern crate rustc_serialize;
 extern crate serde;
+#[cfg(test)]
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
 extern crate untrusted;
 extern crate url;
@@ -399,7 +404,7 @@ impl Signatures {
     /// # Errors
     ///
     /// Returns an error if the given server name cannot be parsed as a valid host.
-    pub fn insert(&mut self, server_name: &str, signature_set: &SignatureSet)
+    pub fn insert(&mut self, server_name: &str, signature_set: SignatureSet)
     -> Result<Option<SignatureSet>, Error> {
         let url_string = format!("https://{}", server_name);
         let url = Url::parse(&url_string).map_err(|_| {
@@ -411,7 +416,7 @@ impl Signatures {
             None => return Err(Error::new(format!("invalid server name: {}", server_name))),
         };
 
-        Ok(self.map.insert(host, signature_set.clone()))
+        Ok(self.map.insert(host, signature_set))
     }
 
     /// The number of servers in the collection.
@@ -447,7 +452,7 @@ impl Visitor for SignaturesVisitor {
         let mut signatures = Signatures::with_capacity(visitor.size_hint().0);
 
         while let Some((server_name, signature_set)) = try!(visitor.visit::<String, SignatureSet>()) {
-            if let Err(_) = signatures.insert(&server_name, &signature_set) {
+            if let Err(_) = signatures.insert(&server_name, signature_set) {
                 return Err(M::Error::invalid_value(&server_name));
             }
         }
@@ -554,15 +559,17 @@ impl Display for Algorithm {
 #[cfg(test)]
 mod test {
     use rustc_serialize::base64::FromBase64;
-    use serde_json::from_str;
+    use serde_json::{from_str, to_string, to_value};
 
-    use super::{Ed25519KeyPair, KeyPair, Signature, sign_json};
+    use super::{Ed25519KeyPair, KeyPair, Signature, Signatures, SignatureSet, sign_json};
 
     const PUBLIC_KEY: &'static str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
     const PRIVATE_KEY: &'static str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
 
     const EMPTY_JSON_SIGNATURE: &'static str =
         "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
+    const MINIMAL_JSON_SIGNATURE: &'static str =
+        "KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw";
 
     #[test]
     fn sign_empty_json() {
@@ -571,8 +578,11 @@ mod test {
             &PRIVATE_KEY.from_base64().unwrap(),
             "1".to_string(),
         ).unwrap();
+
         let value = from_str("{}").unwrap();
+
         let signature = sign_json(&key_pair, &value).unwrap();
+
         assert_eq!(signature.base64(), EMPTY_JSON_SIGNATURE);
     }
 
@@ -582,7 +592,145 @@ mod test {
             "ed25519:1",
             &EMPTY_JSON_SIGNATURE.from_base64().unwrap(),
         ).unwrap();
+
         let value = from_str("{}").unwrap();
+
         assert!(signature.verify_json(&PUBLIC_KEY.from_base64().unwrap(), &value).is_ok());
+    }
+
+    #[test]
+    fn signatures_empty_json() {
+        #[derive(Serialize)]
+        struct EmptyWithSignatures {
+            signatures: Signatures,
+        }
+
+        let signature = Signature::new(
+            "ed25519:1",
+            &EMPTY_JSON_SIGNATURE.from_base64().unwrap(),
+        ).unwrap();
+
+        let mut signature_set = SignatureSet::with_capacity(1);
+        signature_set.insert(signature);
+
+        let mut signatures = Signatures::with_capacity(1);
+        signatures.insert("domain", signature_set).ok();
+
+        let empty = EmptyWithSignatures {
+            signatures: signatures,
+        };
+
+        let json = to_string(&empty).unwrap();
+
+        assert_eq!(
+            json,
+            r#"{"signatures":{"domain":{"ed25519:1":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}}"#
+        );
+    }
+
+    #[test]
+    fn sign_minimal_json() {
+        #[derive(Serialize)]
+        struct Alpha {
+            one: u8,
+            two: String,
+        }
+
+        #[derive(Serialize)]
+        struct ReverseAlpha {
+            two: String,
+            one: u8,
+        }
+
+        let key_pair = Ed25519KeyPair::new(
+            &PUBLIC_KEY.from_base64().unwrap(),
+            &PRIVATE_KEY.from_base64().unwrap(),
+            "1".to_string(),
+        ).unwrap();
+
+        let alpha = Alpha {
+            one: 1,
+            two: "Two".to_string(),
+        };
+
+        let reverse_alpha = ReverseAlpha {
+            two: "Two".to_string(),
+            one: 1,
+        };
+
+        let alpha_value = to_value(alpha);
+        let alpha_signature = sign_json(&key_pair, &alpha_value).unwrap();
+
+        assert_eq!(alpha_signature.base64(), MINIMAL_JSON_SIGNATURE);
+
+        let reverse_alpha_value = to_value(reverse_alpha);
+        let reverse_alpha_signature = sign_json(&key_pair, &reverse_alpha_value).unwrap();
+
+        assert_eq!(reverse_alpha_signature.base64(), MINIMAL_JSON_SIGNATURE);
+    }
+
+    #[test]
+    fn verify_minimal_json() {
+        let signature = Signature::new(
+            "ed25519:1",
+            &MINIMAL_JSON_SIGNATURE.from_base64().unwrap(),
+        ).unwrap();
+
+        let value = from_str(
+            r#"{"one":1,"signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
+        ).unwrap();
+
+        assert!(signature.verify_json(&PUBLIC_KEY.from_base64().unwrap(), &value).is_ok());
+
+        let reverse_value = from_str(
+            r#"{"two":"Two","signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"one":1}"#
+        ).unwrap();
+
+        assert!(signature.verify_json(&PUBLIC_KEY.from_base64().unwrap(), &reverse_value).is_ok());
+    }
+
+    #[test]
+    fn signatures_minimal_json() {
+        #[derive(Serialize)]
+        struct MinimalWithSignatures {
+            one: u8,
+            signatures: Signatures,
+            two: String,
+        }
+
+        let signature = Signature::new(
+            "ed25519:1",
+            &MINIMAL_JSON_SIGNATURE.from_base64().unwrap(),
+        ).unwrap();
+
+        let mut signature_set = SignatureSet::with_capacity(1);
+        signature_set.insert(signature);
+
+        let mut signatures = Signatures::with_capacity(1);
+        signatures.insert("domain", signature_set).ok();
+
+        let minimal = MinimalWithSignatures {
+            one: 1,
+            signatures: signatures.clone(),
+            two: "Two".to_string(),
+        };
+
+        let json = to_string(&minimal).unwrap();
+        assert_eq!(
+            json,
+            r#"{"one":1,"signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
+        );
+    }
+
+    #[test]
+    fn fail_verify() {
+        let signature = Signature::new(
+            "ed25519:1",
+            &EMPTY_JSON_SIGNATURE.from_base64().unwrap(),
+        ).unwrap();
+
+        let value = from_str(r#"{"not":"empty"}"#).unwrap();
+
+        assert!(signature.verify_json(&PUBLIC_KEY.from_base64().unwrap(), &value).is_err());
     }
 }
