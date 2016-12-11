@@ -47,9 +47,11 @@
 //! # extern crate serde_json;
 //! # fn main() {
 //! # let public_key = [0; 32];
-//! # let signature = ruma_signatures::Signature::new("ed25519:1", &[0; 32]).unwrap();
+//! # let signature_bytes = [0, 32];
+//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
 //! let value = serde_json::from_str("{}").unwrap(); // The same empty JSON object.
-//! assert!(signature.verify_json(&public_key, &value).is_ok());
+//! let verifier = ruma_signatures::Ed25519Verifier::new();
+//! assert!(ruma_signatures::verify_json(&verifier, &public_key, &signature, &value).is_ok());
 //! # }
 //! ```
 //!
@@ -83,7 +85,8 @@
 //! # extern crate serde;
 //! # extern crate serde_json;
 //! # fn main() {
-//! # let signature = ruma_signatures::Signature::new("ed25519:1", &[0; 32]).unwrap();
+//! # let signature_bytes = [0, 32];
+//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
 //! let mut signature_set = ruma_signatures::SignatureSet::new();
 //! signature_set.insert(signature);
 //! let json = serde_json::to_string(&signature_set).unwrap();
@@ -101,7 +104,8 @@
 //! # extern crate serde;
 //! # extern crate serde_json;
 //! # fn main() {
-//! # let signature = ruma_signatures::Signature::new("ed25519:1", &[0; 32]).unwrap();
+//! # let signature_bytes = [0, 32];
+//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
 //! let mut signature_set = ruma_signatures::SignatureSet::new();
 //! signature_set.insert(signature);
 //! let mut signatures = ruma_signatures::Signatures::new();
@@ -113,6 +117,7 @@
 //! Just like the `SignatureSet` itself, the `Signatures` value can also be deserialized from JSON.
 
 #![cfg_attr(test, feature(proc_macro))]
+#![deny(missing_docs)]
 
 extern crate ring;
 extern crate rustc_serialize;
@@ -161,7 +166,11 @@ pub fn sign_json<K>(key_pair: &K, value: &Value) -> Result<Signature, Error> whe
     Ok(key_pair.sign(json.as_bytes()))
 }
 
-/// Converts a JSON object into the "canonical" form, suitable for signing.
+/// Converts a JSON object into the "canonical" string form, suitable for signing.
+///
+/// # Parameters
+///
+/// * value: The `serde_json::Value` (JSON value) to convert.
 ///
 /// # Errors
 ///
@@ -182,11 +191,31 @@ pub fn to_canonical_json(value: &Value) -> Result<String, Error> {
     to_string(&owned_value).map_err(|error| Error::new(error.description()))
 }
 
+/// Use a public key to verify a signature of a JSON object.
+///
+/// # Parameters
+///
+/// * verifier: A `Verifier` appropriate for the digital signature algorithm that was used.
+/// * public_key: The public key of the key pair used to sign the JSON, as a series of bytes.
+/// * signature: The `Signature` to verify.
+/// * value: The `serde_json::Value` (JSON value) that was signed.
+///
+/// # Errors
+///
+/// Returns an error if verification fails.
+pub fn verify_json<V>(verifier: &V, public_key: &[u8], signature: &Signature, value: &Value)
+-> Result<(), Error> where V: Verifier {
+    verifier.verify_json(public_key, signature, to_canonical_json(value)?.as_bytes())
+}
+
+/// An error when trying to extract the algorithm and version from a key identifier.
+#[derive(Debug)]
 enum SplitError<'a> {
     InvalidLength(usize),
     UnknownAlgorithm(&'a str),
 }
 
+/// Extract the algorithm and version from a key identifier.
 fn split_id(id: &str) -> Result<(Algorithm, String), SplitError> {
     const SIGNATURE_ID_LENGTH: usize = 2;
 
@@ -208,13 +237,24 @@ fn split_id(id: &str) -> Result<(Algorithm, String), SplitError> {
     Ok((algorithm, signature_id[1].to_string()))
 }
 
+/// The algorithm used for signing data.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum Algorithm {
+    /// The Ed25519 digital signature algorithm.
+    Ed25519,
+}
+
 /// An Ed25519 key pair.
 pub struct Ed25519KeyPair {
     ring_key_pair: RingEd25519KeyPair,
     version: String,
 }
 
-/// An error produced during signing or verification.
+/// A verifier for Ed25519 digital signatures.
+#[derive(Clone, Copy, Debug)]
+pub struct Ed25519Verifier;
+
+/// An error produced when ruma_signatures operations fail.
 #[derive(Clone, Debug)]
 pub struct Error {
     message: String,
@@ -242,11 +282,11 @@ pub trait KeyPair: Sized {
     ///
     /// # Parameters
     ///
-    /// * message: An arbitrary binary value to sign.
+    /// * message: An arbitrary series of bytes to sign.
     fn sign(&self, message: &[u8]) -> Signature;
 }
 
-/// A single digital signature.
+/// A digital signature.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Signature {
     algorithm: Algorithm,
@@ -254,7 +294,7 @@ pub struct Signature {
     version: String,
 }
 
-/// A map of server names to sets of signatures created by that server.
+/// A map of server names to sets of digital signatures created by that server.
 #[derive(Clone, Debug)]
 pub struct Signatures {
     map: HashMap<Host, SignatureSet>
@@ -263,7 +303,7 @@ pub struct Signatures {
 /// Serde Visitor for deserializing `Signatures`.
 struct SignaturesVisitor;
 
-/// A set of signatures created by a single homeserver.
+/// A set of digital signatures created by a single homeserver.
 #[derive(Clone, Debug)]
 pub struct SignatureSet {
     set: HashSet<Signature>,
@@ -272,11 +312,21 @@ pub struct SignatureSet {
 /// Serde Visitor for deserializing `SignatureSet`.
 struct SignatureSetVisitor;
 
-/// The algorithm used for signing data.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub enum Algorithm {
-    /// The Ed25519 digital signature algorithm.
-    Ed25519,
+/// A digital signature verifier.
+pub trait Verifier {
+    /// Use a public key to verify a signature against the JSON object that was signed.
+    ///
+    /// # Parameters
+    ///
+    /// * public_key: The public key of the key pair used to sign the message.
+    /// * signature: The `Signature` to verify.
+    /// * message: The message that was signed.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if verification fails.
+    fn verify_json(&self, public_key: &[u8], signature: &Signature, message: &[u8])
+    -> Result<(), Error>;
 }
 
 impl KeyPair for Ed25519KeyPair {
@@ -299,7 +349,31 @@ impl KeyPair for Ed25519KeyPair {
     }
 }
 
+impl Ed25519Verifier {
+    /// Creates a new `Ed25519Verifier`.
+    pub fn new() -> Self {
+        Ed25519Verifier
+    }
+}
+
+impl Verifier for Ed25519Verifier {
+    fn verify_json(&self, public_key: &[u8], signature: &Signature, message: &[u8])
+    -> Result<(), Error> {
+        verify(
+            &ED25519,
+            Input::from(public_key),
+            Input::from(message),
+            Input::from(signature.as_bytes()),
+        ).map_err(|_| Error::new("signature verification failed"))
+    }
+}
+
 impl Error {
+    /// Creates a new error.
+    ///
+    /// # Parameters
+    ///
+    /// * message: The error message.
     pub fn new<T>(message: T) -> Self where T: Into<String> {
         Error {
             message: message.into(),
@@ -321,6 +395,15 @@ impl Display for Error {
 
 impl Signature {
     /// Creates a signature from raw bytes.
+    ///
+    /// # Parameters
+    ///
+    /// * id: A key identifier, e.g. "ed25519:1".
+    /// * bytes: The digital signature, as a series of bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the key identifier is invalid.
     pub fn new(id: &str, bytes: &[u8]) -> Result<Self, Error> {
         let (algorithm, version) = split_id(id).map_err(|split_error| {
             match split_error {
@@ -353,23 +436,10 @@ impl Signature {
         self.signature.as_slice().to_base64(BASE64_CONFIG)
     }
 
-    /// A string containing the signature algorithm and the key "version" separated by a colon.
+    /// The key identifier, a string containing the signature algorithm and the key "version"
+    /// separated by a colon, e.g. "ed25519:1".
     pub fn id(&self) -> String {
         format!("{}:{}", self.algorithm, self.version)
-    }
-
-    /// Use the public key to verify the signature against the JSON object that was signed.
-    pub fn verify_json(&self, public_key: &[u8], value: &Value) -> Result<(), Error> {
-        match self.algorithm {
-            Algorithm::Ed25519 => {
-                verify(
-                    &ED25519,
-                    Input::from(public_key),
-                    Input::from(to_canonical_json(value)?.as_bytes()),
-                    Input::from(self.as_bytes()),
-                ).map_err(|_| Error::new("signature verification failed"))
-            }
-        }
     }
 
     /// The "version" of the key used for this signature.
@@ -390,6 +460,10 @@ impl Signatures {
     }
 
     /// Initializes a new empty Signatures with room for a specific number of servers.
+    ///
+    /// # Parameters
+    ///
+    /// * capacity: The number of items to allocate memory for.
     pub fn with_capacity(capacity: usize) -> Self {
         Signatures {
             map: HashMap::with_capacity(capacity),
@@ -400,6 +474,11 @@ impl Signatures {
     ///
     /// If no signature set for the given server existed in the collection, `None` is returned.
     /// Otherwise, the signature set is returned.
+    ///
+    /// # Parameters
+    ///
+    /// * server_name: The hostname or IP of the homeserver, e.g. `example.com`.
+    /// * signature_set: The `SignatureSet` containing the digital signatures made by the server.
     ///
     /// # Errors
     ///
@@ -472,6 +551,10 @@ impl SignatureSet {
     }
 
     /// Initializes a new empty SignatureSet with room for a specific number of signatures.
+    ///
+    /// # Parameters
+    ///
+    /// * capacity: The number of items to allocate memory for.
     pub fn with_capacity(capacity: usize) -> Self {
         SignatureSet {
             set: HashSet::with_capacity(capacity),
@@ -482,6 +565,10 @@ impl SignatureSet {
     ///
     /// The boolean return value indicates whether or not the value was actually inserted, since
     /// subsequent inserts of the same signature have no effect.
+    ///
+    /// # Parameters
+    ///
+    /// * signature: A `Signature` to insert into the set.
     pub fn insert(&mut self, signature: Signature) -> bool {
         self.set.insert(signature)
     }
@@ -561,7 +648,16 @@ mod test {
     use rustc_serialize::base64::FromBase64;
     use serde_json::{from_str, to_string, to_value};
 
-    use super::{Ed25519KeyPair, KeyPair, Signature, Signatures, SignatureSet, sign_json};
+    use super::{
+        Ed25519KeyPair,
+        Ed25519Verifier,
+        KeyPair,
+        Signature,
+        Signatures,
+        SignatureSet,
+        sign_json,
+        verify_json,
+    };
 
     const PUBLIC_KEY: &'static str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
     const PRIVATE_KEY: &'static str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
@@ -595,7 +691,11 @@ mod test {
 
         let value = from_str("{}").unwrap();
 
-        assert!(signature.verify_json(&PUBLIC_KEY.from_base64().unwrap(), &value).is_ok());
+        let verifier = Ed25519Verifier::new();
+
+        assert!(
+            verify_json(&verifier, &PUBLIC_KEY.from_base64().unwrap(), &signature, &value).is_ok()
+        );
     }
 
     #[test]
@@ -680,13 +780,24 @@ mod test {
             r#"{"one":1,"signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
         ).unwrap();
 
-        assert!(signature.verify_json(&PUBLIC_KEY.from_base64().unwrap(), &value).is_ok());
+        let verifier = Ed25519Verifier::new();
+
+        assert!(
+            verify_json(&verifier, &PUBLIC_KEY.from_base64().unwrap(), &signature, &value).is_ok()
+        );
 
         let reverse_value = from_str(
             r#"{"two":"Two","signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"one":1}"#
         ).unwrap();
 
-        assert!(signature.verify_json(&PUBLIC_KEY.from_base64().unwrap(), &reverse_value).is_ok());
+        assert!(
+            verify_json(
+                &verifier,
+                &PUBLIC_KEY.from_base64().unwrap(),
+                &signature,
+                &reverse_value,
+            ).is_ok()
+        );
     }
 
     #[test]
@@ -731,6 +842,10 @@ mod test {
 
         let value = from_str(r#"{"not":"empty"}"#).unwrap();
 
-        assert!(signature.verify_json(&PUBLIC_KEY.from_base64().unwrap(), &value).is_err());
+        let verifier = Ed25519Verifier::new();
+
+        assert!(
+            verify_json(&verifier, &PUBLIC_KEY.from_base64().unwrap(), &signature, &value).is_err()
+        );
     }
 }
