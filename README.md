@@ -2,9 +2,9 @@
 
 ruma-signatures provides functionality for creating digital signatures according to the [Matrix](https://matrix.org/) specification.
 
-## Status
+## Documentation
 
-This project is currently experimental and is very likely to change drastically.
+ruma-signatures has [comprehensive documentation](https://docs.rs/ruma-signatures) available on docs.rs.
 
 ## License
 
