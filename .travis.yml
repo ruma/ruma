@@ -3,7 +3,7 @@ notifications:
   email: false
   irc:
     channels:
-      - "chat.freenode.net#ruma"
+      - secure: "WtuFMaASfrKlPbXWg7cAzxTLSggrix/jqizB3bdGbZTWg8MR0qoa90U9St6h5ELWMc+7mQjJSky0/KXD9BOVLSlok8E12xb8H5soPMW6GjYAek4+JzUeXPYSKNYkP29ZQc26Z9P9TyN/WvJoXIQbaWfMoPmr/g3Rn4z5PyeQgp1+AC54w5zLPtLLjh+WHPYhRoCT7iAsYlx0UazEw3i+aGyN+UdogimDD9ISUKFHOWyXJGyBzFxSpAYaRESnT4I0rJo6ETBkUbEopXvTRyClOsgEk1HRb82+kVNqkampeSDZyb2aCGLbRESd16xVbcE5J2HYu59p5zc00PINMf2nApDEkN/RHERZ4w9lMaxi/fH1TMQZwoNPEd/5n1EU/SLjKi7o/kLdTKEcZyTMd7IZA+TqXjFhKHQlYouOEv742TcWz3jg5+AEhKqjkcpDZTEuNHyMAS4onHg1M9pK2rVh3xmVQ1V2iYM8yY2+73SefJzigkhtXwgnJEv6fJc8IFSPOHtEUBx2KkZps6sRwUxVz5zMgV+4t1h9l4Mt8wOSojoKSxgtAhsHj8pqPysT7vUJPhY6hzzW2nhVHd8IUt49xRNktUr9s+B7yS1Up6+84GTmPmR3lUa+dbZ1PaI2K8VVyctiA4tbkk/n+EFqXL9FY2Gh8XbaWnb7fpWHrJRuZL4="
     use_notice: true
 rust:
   - "nightly"

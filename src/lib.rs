@@ -4,6 +4,7 @@
 
 #![feature(proc_macro)]
 
+extern crate ruma_events;
 extern crate ruma_identifiers;
 extern crate serde;
 #[macro_use] extern crate serde_derive;

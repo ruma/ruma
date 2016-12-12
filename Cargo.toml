@@ -15,3 +15,6 @@ ruma-identifiers = "0.4.3"
 serde = "0.8.19"
 serde_derive = "0.8.19"
 serde_json = "0.8.3"
+
+[dependencies.ruma-events]
+git = "https://github.com/ruma/ruma-events"
