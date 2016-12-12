@@ -1,6 +1,7 @@
 //! Types for the *m.room.member* event.
 
 use ruma_identifiers::UserId;
+use ruma_signatures::Signatures;
 
 use stripped::StrippedState;
 
@@ -101,7 +102,7 @@ pub struct SignedContent {
     pub mxid: UserId,
     /// A single signature from the verifying server, in the format specified by the Signing Events
     /// section of the server-server API.
-    pub signatures: (), // TODO: This type should come from the ruma-signatures crate.
+    pub signatures: Signatures,
     /// The token property of the containing third_party_invite object.
     pub token: String,
 }
