@@ -29,6 +29,7 @@ use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serialize
 use serde_json::{Value, from_value};
 
 /// A basic event, room event, or state event.
+#[derive(Clone, Debug)]
 pub enum Event {
     /// m.call.answer
     CallAnswer(AnswerEvent),
@@ -83,6 +84,7 @@ pub enum Event {
 }
 
 /// A room event or state event.
+#[derive(Clone, Debug)]
 pub enum RoomEvent {
     /// m.call.answer
     CallAnswer(AnswerEvent),
@@ -127,6 +129,7 @@ pub enum RoomEvent {
 }
 
 /// A state event.
+#[derive(Clone, Debug)]
 pub enum StateEvent {
     /// m.room.aliases
     RoomAliases(AliasesEvent),

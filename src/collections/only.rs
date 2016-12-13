@@ -19,6 +19,7 @@ use serde_json::{Value, from_value};
 pub use super::all::StateEvent;
 
 /// A basic event.
+#[derive(Clone, Debug)]
 pub enum Event {
     /// m.presence
     Presence(PresenceEvent),
@@ -33,6 +34,7 @@ pub enum Event {
 }
 
 /// A room event.
+#[derive(Clone, Debug)]
 pub enum RoomEvent {
     /// m.call.answer
     CallAnswer(AnswerEvent),
