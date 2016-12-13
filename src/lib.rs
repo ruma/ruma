@@ -1,5 +1,99 @@
 //! Crate ruma_events contains serializable types for the events in the [Matrix](https://matrix.org)
 //! specification that can be shared by client and server code.
+//!
+//! All data exchanged over Matrix is expressed as an event.
+//! Different event types represent different actions, such as joining a room or sending a message.
+//! Events are stored and transmitted as simple JSON structures.
+//! While anyone can create a new event type for their own purposes, the Matrix specification
+//! defines a number of event types which are considered core to the protocol, and Matrix clients
+//! and servers must understand their semantics.
+//! ruma_events contains Rust types for each of the event types defined by the specification and
+//! facilities for extending the event system for custom event types.
+//!
+//! # Event types
+//!
+//! ruma_events includes a Rust enum called `EventType`, which provides a simple enumeration of
+//! all the event types defined by the Matrix specification. Matrix event types are serialized to
+//! JSON strings in [reverse domain name
+//! notation](https://en.wikipedia.org/wiki/Reverse_domain_name_notation), although the core event
+//! types all use the special "m" TLD, e.g. *m.room.message*.
+//! `EventType` also includes a variant called `Custom`, which is a catch-all that stores a string
+//! containing the name of any event type that isn't part of the specification.
+//! `EventType` is used throughout ruma_events to identify and differentiate between events of
+//! different types.
+//!
+//! # Event traits
+//!
+//! Matrix defines three "kinds" of events:
+//!
+//! 1.  **Events**, which are arbitrary JSON structures that have two required keys:
+//!     *   `type`, which specifies the event's type
+//!     *   `content`, which is a JSON object containing the "payload" of the event
+//! 2.  **Room events**, which are a superset of events and represent actions that occurred within
+//!     the context of a Matrix room.
+//!     They have at least the following additional keys:
+//!     *   `event_id`, which is a unique identifier for the event
+//!     *   `room_id`, which is a unique identifier for the room in which the event occurred
+//!     *   `sender`, which is the unique identifier of the Matrix user who created the event
+//!     *   Optionally, `unsigned`, which is a JSON object containing arbitrary additional metadata
+//!     that is not digitally signed by Matrix homeservers.
+//! 3.  **State events**, which are a superset of room events and represent persistent state
+//!     specific to a room, such as the room's member list or topic.
+//!     Within a single room, state events of the same type and with the same "state key" will
+//!     effectively "replace" the previous one, updating the room's state.
+//!     They have at least the following additional keys:
+//!     *   `state_key`, a string which serves as a sort of "sub-type."
+//!         The state key allows a room to persist multiple state events of the same type.
+//!         You can think of a room's state events as being a `HashMap` where the keys are the tuple
+//!         `(event_type, state_key)`.
+//!     *   Optionally, `prev_content`, a JSON object containing the `content` object from the
+//!     previous event of the given `(event_type, state_key)` tuple in the given room.
+//!
+//! ruma_events represents these three event kinds as traits, allowing any Rust type to serve as a
+//! Matrix event so long as it upholds the contract expected of its kind.
+//!
+//! # Core event types
+//!
+//! ruma_events includes Rust types for every one of the event types in the Matrix specification.
+//! To better organize the crate, these types live in separate modules with a hierarchy that
+//! matches the reverse domain name notation of the event type.
+//! For example, the *m.room.message* event lives at `ruma_events::room::message::MessageEvent`.
+//! Each type's module also contains a Rust type for that event type's `content` field, and any
+//! other supporting types required by the event's other fields.
+//! All concrete event types in ruma_events are serializable and deserializable using the
+//! [Serde](https://serde.rs/) serialization library.
+//!
+//! # Custom events
+//!
+//! Although any Rust type that implements `Event`, `RoomEvent`, or `StateEvent` can serve as a
+//! Matrix event type, ruma_events also includes a few convenience types for representing events
+//! that are not convered by the spec and not otherwise known by the application.
+//! `CustomEvent`, `CustomRoomEvent`, and `CustomStateEvent` are simple implementations of their
+//! respective event traits whose `content` field is simply a `serde_json::Value` value, which
+//! represents arbitrary JSON.
+//!
+//! # Collections
+//!
+//! With the trait-based approach to events, it's easy to write generic collection types like
+//! `Vec<Box<R: RoomEvent>>`.
+//! However, there are APIs in the Matrix specification that involve heterogeneous collections of
+//! events, i.e. a list of events of different event types.
+//! Because Rust does not have a facility for arrays, vectors, or slices containing multiple
+//! concrete types, ruma_events provides special collection types for this purpose.
+//! The collection types are enums which effectively "wrap" each possible event type of a
+//! particular event "kind."
+//!
+//! Because of the hierarchical nature of event kinds in Matrix, these collection types are divied
+//! into two modules, `ruma_events::collections::all` and `ruma_events::collections::only`.
+//! The "all" versions include every event type that implements the relevant event trait as well as
+//! more specific event traits.
+//! The "only" versions include only the event types that implement "at most" the relevant event
+//! trait.
+//!
+//! For example, the `ruma_events::collections::all::Event` enum includes *m.room.message*, because
+//! that event type is both an event and a room event.
+//! However, the `ruma_events::collections::only::Event` enum does *not* include *m.room.message*,
+//! because *m.room.message* implements a *more specific* event trait than `Event`.
 
 #![feature(proc_macro)]
 #![deny(missing_docs)]
