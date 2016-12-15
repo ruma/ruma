@@ -11,6 +11,7 @@ repository = "https://github.com/ruma/ruma-client-api"
 version = "0.1.0"
 
 [dependencies]
+ruma-api = "0.1.0"
 ruma-events = "0.1.0"
 ruma-identifiers = "0.5.0"
 ruma-signatures = "0.1.0"
