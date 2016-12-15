@@ -3,7 +3,8 @@
 /// GET /_matrix/client/r0/rooms/:room_id/context/:event_id
 pub mod get_context {
     use ruma_identifiers::{EventId, RoomId};
-    use ruma_events::{RoomEvent, StateEvent};
+    use ruma_events::collections::only;
+
 
     /// Details about this API endpoint.
     pub struct Endpoint;
@@ -25,11 +26,11 @@ pub mod get_context {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Response {
         pub end: String,
-        pub event: Box<RoomEvent>,
-        pub events_after: Vec<Box<RoomEvent>>,
-        pub events_before: Vec<Box<RoomEvent>>,
+        pub event: only::RoomEvent,
+        pub events_after: Vec<only::RoomEvent>,
+        pub events_before: Vec<only::RoomEvent>,
         pub start: String,
-        pub state: Vec<Box<StateEvent>>,
+        pub state: Vec<only::StateEvent>,
     }
 
     impl ::Endpoint for Endpoint {
