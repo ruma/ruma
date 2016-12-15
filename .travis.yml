@@ -1,0 +1,9 @@
+language: "rust"
+notifications:
+  email: false
+  irc:
+    channels:
+      - secure: "Zjx9oQaF5PYNCWHIWFAaESlUedHNdXmgT+QO35ETUNtg19w9GrNDAsOWHawuK5wLr8+NicDC0bopJ7fPIbnLz8cL/aluTl8bGlvBf7U+uqvdaxGT2TR0tntnWBzoqhYJVGM2ZspVMOloaJv7jpVdhLtde6w5KhouinaKagQxmX7Mr5ec5r9Xhwv1a72Bk6teLmEqypBmnuuskAD1MOk52piimNzNQIsqs4X+kg+7ZZ+Umx//PHTgh49HMtn/3IdmAZs3xVjrpkgbbQeDi6ynKvxpzS7obizbFB2uQRZedt/+dYVOb2vmVi9WtuNLosIyuwP6rR+A0AYe3pYDoOhUQ3ARb70kVzq9TaXcFXrxH+/Z2LWddmpVOhqDQhBW5S+b2MVXHf5a5yk6QVha68rywd9UPpD4dXsQIfCHZuQ9xLDhOkPbkiVtqSdsiYBjOF+JjFOTKMG7Dx6kACRo74/pwoMWzDDVC0HiSQdesowmoGltB9kKSyT3to651dqGH97iFLBSxsVNYWuAoO/hmLwskbW5EtqC2Crtz+A89KP3es7zsxMKloSOTzrAaYdMSkfDTI1lsHzpdGFMydDEimqRg60XM89CwxkejWPowKErp9kg+8XEh6J8s6W5c814P7oPYdQ9+DgwUr8qi3rrHqdVSa2maK+MLPK+A5riMiqpWqA="
+    use_notice: true
+rust:
+  - "nightly"
