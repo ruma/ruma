@@ -126,6 +126,31 @@ pub struct RoomId {
     port: u16,
 }
 
+/// A Matrix room ID or a Matrix room alias ID.
+///
+/// A `RoomIdOrAliasId` is converted from a string slice, and can be converted back into a
+/// string as needed.
+///
+/// ```
+/// # #![feature(try_from)]
+/// # use std::convert::TryFrom;
+/// # use ruma_identifiers::RoomIdOrAliasId;
+/// assert_eq!(
+///     RoomIdOrAliasId::try_from("#ruma:example.com").unwrap().to_string(),
+///     "#ruma:example.com"
+/// );
+/// assert_eq!(
+///     RoomIdOrAliasId::try_from("!n8f893n9:example.com").unwrap().to_string(),
+///     "!n8f893n9:example.com"
+/// );
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum RoomIdOrAliasId {
+    /// A Matrix room alias ID.
+    RoomAliasId(RoomAliasId),
+    /// A Matrix room ID.
+    RoomId(RoomId),
+}
+
 /// A Matrix user ID.
 ///
 /// A `UserId` is generated randomly or converted from a string slice, and can be converted back
@@ -150,6 +175,7 @@ pub struct UserId {
 struct EventIdVisitor;
 struct RoomAliasIdVisitor;
 struct RoomIdVisitor;
+struct RoomIdOrAliasIdVisitor;
 struct UserIdVisitor;
 
 fn display(f: &mut Formatter, sigil: char, localpart: &str, hostname: &Host, port: u16)
@@ -165,16 +191,22 @@ fn generate_localpart(length: usize) -> String {
     thread_rng().gen_ascii_chars().take(length).collect()
 }
 
-fn parse_id<'a>(required_sigil: char, id: &'a str) -> Result<(&'a str, Host, u16), Error> {
+fn validate_id<'a>(id: &'a str) -> Result<(), Error> {
     if id.len() > MAX_BYTES {
         return Err(Error::MaximumLengthExceeded);
     }
 
-    let mut chars = id.chars();
-
     if id.len() < MIN_CHARS {
         return Err(Error::MinimumLengthNotSatisfied);
     }
+
+    Ok(())
+}
+
+fn parse_id<'a>(required_sigil: char, id: &'a str) -> Result<(&'a str, Host, u16), Error> {
+    validate_id(id)?;
+
+    let mut chars = id.chars();
 
     let sigil = chars.nth(0).expect("ID missing first character.");
 
@@ -370,6 +402,19 @@ impl Display for RoomId {
     }
 }
 
+impl Display for RoomIdOrAliasId {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        match *self {
+            RoomIdOrAliasId::RoomAliasId(ref room_alias_id) => {
+                display(f, '#', &room_alias_id.alias, &room_alias_id.hostname, room_alias_id.port)
+            }
+            RoomIdOrAliasId::RoomId(ref room_id) => {
+                display(f, '!', &room_id.opaque_id, &room_id.hostname, room_id.port)
+            }
+        }
+    }
+}
+
 impl Display for UserId {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         display(f, '@', &self.localpart, &self.hostname, self.port)
@@ -394,6 +439,19 @@ impl Serialize for RoomId {
     }
 }
 
+impl Serialize for RoomIdOrAliasId {
+    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+        match *self {
+            RoomIdOrAliasId::RoomAliasId(ref room_alias_id) => {
+                serializer.serialize_str(&room_alias_id.to_string())
+            }
+            RoomIdOrAliasId::RoomId(ref room_id) => {
+                serializer.serialize_str(&room_id.to_string())
+            }
+        }
+    }
+}
+
 impl Serialize for UserId {
     fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
         serializer.serialize_str(&self.to_string())
@@ -415,6 +473,12 @@ impl Deserialize for RoomAliasId {
 impl Deserialize for RoomId {
     fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
         deserializer.deserialize(RoomIdVisitor)
+    }
+}
+
+impl Deserialize for RoomIdOrAliasId {
+    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+        deserializer.deserialize(RoomIdOrAliasIdVisitor)
     }
 }
 
@@ -478,6 +542,35 @@ impl<'a> TryFrom<&'a str> for RoomId {
     }
 }
 
+impl<'a> TryFrom<&'a str> for RoomIdOrAliasId {
+    type Err = Error;
+
+    /// Attempts to create a new Matrix room ID or a room alias ID from a string representation.
+    ///
+    /// The string must either
+    /// include the leading ! sigil, the opaque ID, a literal colon, and a valid server name or
+    /// include the leading # sigil, the alias, a literal colon, and a valid server name.
+    fn try_from(room_id_or_alias_id: &'a str) -> Result<Self, Error> {
+        validate_id(room_id_or_alias_id)?;
+
+        let mut chars = room_id_or_alias_id.chars();
+
+        let sigil = chars.nth(0).expect("ID missing first character.");
+
+        match sigil {
+            '#' => {
+                let room_alias_id = RoomAliasId::try_from(room_id_or_alias_id)?;
+                Ok(RoomIdOrAliasId::RoomAliasId(room_alias_id))
+            }
+            '!' => {
+                let room_id = RoomId::try_from(room_id_or_alias_id)?;
+                Ok(RoomIdOrAliasId::RoomId(room_id))
+            }
+            _ => Err(Error::MissingSigil)
+        }
+    }
+}
+
 impl<'a> TryFrom<&'a str> for UserId {
     type Err = Error;
 
@@ -529,6 +622,17 @@ impl Visitor for RoomIdVisitor {
     fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
         match RoomId::try_from(v) {
             Ok(room_id) => Ok(room_id),
+            Err(_) => Err(SerdeError::custom("invalid ID")),
+        }
+    }
+}
+
+impl Visitor for RoomIdOrAliasIdVisitor {
+    type Value = RoomIdOrAliasId;
+
+    fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+        match RoomIdOrAliasId::try_from(v) {
+            Ok(room_id_or_alias_id) => Ok(room_id_or_alias_id),
             Err(_) => Err(SerdeError::custom("invalid ID")),
         }
     }
@@ -619,6 +723,7 @@ mod diesel_integration {
     diesel_impl!(EventId);
     diesel_impl!(RoomAliasId);
     diesel_impl!(RoomId);
+    diesel_impl!(RoomIdOrAliasId);
     diesel_impl!(UserId);
 }
 
@@ -628,7 +733,7 @@ mod tests {
 
     use serde_json::{from_str, to_string};
 
-    use super::{Error, EventId, RoomAliasId, RoomId, UserId};
+    use super::{Error, EventId, RoomAliasId, RoomId, RoomIdOrAliasId, UserId};
 
     #[test]
     fn valid_event_id() {
@@ -902,6 +1007,74 @@ mod tests {
         assert_eq!(
             RoomId::try_from("!29fhd83h92h0:example.com:notaport").err().unwrap(),
             Error::InvalidHost
+        );
+    }
+
+    #[test]
+    fn valid_room_id_or_alias_id_with_a_room_alias_id() {
+        assert_eq!(
+            RoomIdOrAliasId::try_from("#ruma:example.com")
+                .expect("Failed to create RoomAliasId.")
+                .to_string(),
+            "#ruma:example.com"
+        );
+    }
+
+    #[test]
+    fn valid_room_id_or_alias_id_with_a_room_id() {
+        assert_eq!(
+            RoomIdOrAliasId::try_from("!29fhd83h92h0:example.com")
+                .expect("Failed to create RoomId.")
+                .to_string(),
+            "!29fhd83h92h0:example.com"
+        );
+    }
+
+    #[test]
+    fn missing_sigil_for_room_id_or_alias_id() {
+        assert_eq!(
+            RoomIdOrAliasId::try_from("ruma:example.com").err().unwrap(),
+            Error::MissingSigil
+        );
+    }
+
+    #[test]
+    fn serialize_valid_room_id_or_alias_id_with_a_room_alias_id() {
+        assert_eq!(
+            to_string(
+                &RoomIdOrAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
+            ).expect("Failed to convert RoomAliasId to JSON."),
+            r##""#ruma:example.com""##
+        );
+    }
+
+    #[test]
+    fn serialize_valid_room_id_or_alias_id_with_a_room_id() {
+        assert_eq!(
+            to_string(
+                &RoomIdOrAliasId::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
+            ).expect("Failed to convert RoomId to JSON."),
+            r#""!29fhd83h92h0:example.com""#
+        );
+    }
+
+    #[test]
+    fn deserialize_valid_room_id_or_alias_id_with_a_room_alias_id() {
+        assert_eq!(
+            from_str::<RoomIdOrAliasId>(
+                r##""#ruma:example.com""##
+            ).expect("Failed to convert JSON to RoomAliasId"),
+            RoomIdOrAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
+        );
+    }
+
+    #[test]
+    fn deserialize_valid_room_id_or_alias_id_with_a_room_id() {
+        assert_eq!(
+            from_str::<RoomIdOrAliasId>(
+                r##""!29fhd83h92h0:example.com""##
+            ).expect("Failed to convert JSON to RoomId"),
+            RoomIdOrAliasId::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomAliasId.")
         );
     }
 
