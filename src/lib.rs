@@ -128,8 +128,9 @@ pub struct RoomId {
 
 /// A Matrix room ID or a Matrix room alias ID.
 ///
-/// A `RoomIdOrAliasId` is converted from a string slice, and can be converted back into a
-/// string as needed.
+/// `RoomIdOrAliasId` is useful for APIs that accept either kind of room identifier. It is converted
+/// from a string slice, and can be converted back into a string as needed. When converted from a
+/// string slice, the variant is determined by the leading sigil character.
 ///
 /// ```
 /// # #![feature(try_from)]
@@ -139,6 +140,7 @@ pub struct RoomId {
 ///     RoomIdOrAliasId::try_from("#ruma:example.com").unwrap().to_string(),
 ///     "#ruma:example.com"
 /// );
+///
 /// assert_eq!(
 ///     RoomIdOrAliasId::try_from("!n8f893n9:example.com").unwrap().to_string(),
 ///     "!n8f893n9:example.com"
