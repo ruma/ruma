@@ -1,4 +1,9 @@
-//! Stripped-down versions of certain state events.
+//! "Stripped-down" versions of the core state events.
+//!
+//! Each "stripped" event includes only the `content`, `type`, and `state_key` fields of its full
+//! version. These stripped types are useful for APIs where the a is providing the content of a
+//! state event to be created, when the other fields can be inferred from a larger context, or where
+//! the other fields are otherwise inapplicable.
 
 use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
 use serde_json::{Value, from_value};
@@ -57,7 +62,7 @@ pub enum StrippedState {
     RoomTopic(StrippedRoomTopic),
 }
 
-/// The general form of a `StrippedState`.
+/// A "stripped-down" version of a core state event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct StrippedStateContent<C> where C: Deserialize + Serialize {
     /// Data specific to the event type.
