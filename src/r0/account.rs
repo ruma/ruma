@@ -1,6 +1,8 @@
 //! Endpoints for account registration and management.
 
 /// POST /_matrix/client/r0/register
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-register)
 pub mod register {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -57,6 +59,8 @@ pub mod register {
 }
 
 /// POST /_matrix/client/r0/account/password/email/requestToken
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-password-email-requesttoken)
 pub mod request_password_change_token {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -91,6 +95,8 @@ pub mod request_password_change_token {
 }
 
 /// POST /_matrix/client/r0/account/deactivate
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-deactivate)
 pub mod deactivate {
     /// Details about this API endpoint.
     pub struct Endpoint;
@@ -116,6 +122,8 @@ pub mod deactivate {
 }
 
 /// POST /_matrix/client/r0/account/password
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-password)
 pub mod change_password {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -147,6 +155,8 @@ pub mod change_password {
 }
 
 /// POST /_matrix/client/r0/register/email/requestToken
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-register-email-requesttoken)
 pub mod request_register_token {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]

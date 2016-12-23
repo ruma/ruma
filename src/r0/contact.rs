@@ -1,6 +1,8 @@
 //! Endpoints for account contact information.
 
 /// POST /_matrix/client/r0/account/3pid
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-3pid)
 pub mod add_contact {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -41,6 +43,8 @@ pub mod add_contact {
 }
 
 /// GET /_matrix/client/r0/account/3pid
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-account-3pid)
 pub mod get_contacts {
     /// Details about this API endpoint.
     pub struct Endpoint;
@@ -86,6 +90,8 @@ pub mod get_contacts {
 }
 
 /// POST /_matrix/client/r0/account/3pid/email/requestToken
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-3pid-email-requesttoken)
 pub mod request_contact_verification_token {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
