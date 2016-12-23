@@ -42,4 +42,6 @@ pub mod r0 {
 }
 
 /// GET /_matrix/client/versions
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-versions)
 pub mod supported_versions;

@@ -16,6 +16,8 @@ pub struct ThirdPartySigned {
 }
 
 /// POST /_matrix/client/r0/rooms/{roomId}/invite
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-invite)
 pub mod invite {
     use ruma_identifiers::RoomId;
 
@@ -58,6 +60,8 @@ pub mod invite {
 }
 
 /// POST /_matrix/client/r0/join/{roomIdOrAlias}
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-join-roomidoralias)
 pub mod join_by_room_id_or_alias {
     use ruma_identifiers::{RoomId, RoomIdOrAliasId};
     use super::ThirdPartySigned;
@@ -117,6 +121,8 @@ pub mod join_by_room_id_or_alias {
 }
 
 /// POST /_matrix/client/r0/rooms/{roomId}/join
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-join)
 pub mod join_by_room_id {
     use ruma_identifiers::RoomId;
     use super::ThirdPartySigned;
@@ -166,6 +172,8 @@ pub mod join_by_room_id {
 }
 
 /// POST /_matrix/client/r0/rooms/{roomId}/forget
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-forget)
 pub mod forget {
     use ruma_identifiers::RoomId;
 
@@ -202,6 +210,8 @@ pub mod forget {
 }
 
 /// POST /_matrix/client/r0/rooms/{roomId}/leave
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-leave)
 pub mod leave {
     use ruma_identifiers::RoomId;
 
@@ -238,6 +248,8 @@ pub mod leave {
 }
 
 /// POST /_matrix/client/r0/rooms/{roomId}/kick
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-kick)
 pub mod kick {
     use ruma_identifiers::RoomId;
 
@@ -281,6 +293,8 @@ pub mod kick {
 }
 
 /// POST /_matrix/client/r0/rooms/{roomId}/unban
+///
+/// [matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-unban)
 pub mod unban {
     use ruma_identifiers::RoomId;
 
@@ -323,6 +337,8 @@ pub mod unban {
 }
 
 /// POST /_matrix/client/r0/rooms/{roomId}/ban
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-ban)
 pub mod ban {
     use ruma_identifiers::RoomId;
 

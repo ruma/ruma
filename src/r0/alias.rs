@@ -3,6 +3,8 @@
 use ruma_identifiers::RoomAliasId;
 
 /// PUT /_matrix/client/r0/directory/room/:room_alias
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-directory-room-roomalias)
 pub mod create {
     use ruma_identifiers::RoomId;
 
@@ -36,6 +38,8 @@ pub mod create {
 }
 
 /// DELETE /_matrix/client/r0/directory/room/:room_alias
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#delete-matrix-client-r0-directory-room-roomalias)
 pub mod delete {
     /// Details about this API endpoint.
     pub struct Endpoint;
@@ -61,6 +65,8 @@ pub mod delete {
 }
 
 /// GET /_matrix/client/r0/directory/room/:room_alias
+///
+/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-directory-room-roomalias)
 pub mod get {
     use ruma_identifiers::RoomId;
 
