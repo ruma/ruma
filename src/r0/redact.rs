@@ -34,7 +34,7 @@ pub mod send_event {
         type BodyParams = BodyParams;
         type PathParams = PathParams;
         type QueryParams = ();
-        type Response = ();
+        type Response = Response;
 
         fn method() -> ::Method {
             ::Method::Put

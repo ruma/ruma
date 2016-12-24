@@ -28,7 +28,7 @@ pub mod send_state {
         type BodyParams = ::serde_json::Value;
         type PathParams = PathParams;
         type QueryParams = ();
-        type Response = ();
+        type Response = Response;
 
         fn method() -> ::Method {
             ::Method::Put
@@ -77,7 +77,7 @@ pub mod send_state_key {
         type BodyParams = ::serde_json::Value;
         type PathParams = PathParams;
         type QueryParams = ();
-        type Response = ();
+        type Response = Response;
 
         fn method() -> ::Method {
             ::Method::Put
@@ -127,7 +127,7 @@ pub mod send_event {
         type BodyParams = ::serde_json::Value;
         type PathParams = PathParams;
         type QueryParams = ();
-        type Response = ();
+        type Response = Response;
 
         fn method() -> ::Method {
             ::Method::Put
