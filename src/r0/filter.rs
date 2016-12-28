@@ -16,44 +16,81 @@ pub enum EventFormat {
 /// Filters to be applied to room events
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RoomEventFilter {
-    pub not_types: Option<Vec<String>>,
-    pub not_rooms: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub not_types: Vec<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub not_rooms: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<u64>,
-    pub rooms: Option<Vec<RoomId>>,
-    pub not_senders: Option<Vec<UserId>>,
-    pub senders: Option<Vec<UserId>>,
-    pub types: Option<Vec<String>>
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub rooms: Vec<RoomId>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub not_senders: Vec<UserId>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub senders: Vec<UserId>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub types: Vec<String>
 }
 
 /// Filters to be applied to room data
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RoomFilter {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub include_leave: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub account_data: Option<RoomEventFilter>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub timeline: Option<RoomEventFilter>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub ephemeral: Option<RoomEventFilter>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub state: Option<RoomEventFilter>,
-    pub not_rooms: Option<Vec<RoomId>>,
-    pub room: Option<Vec<RoomId>>
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub not_rooms: Vec<RoomId>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub room: Vec<RoomId>
 }
 
 /// Filter for not-room data
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Filter {
-    pub not_types: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub not_types: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<u64>,
-    pub senders: Option<Vec<UserId>>,
-    pub types: Option<Vec<String>>,
-    pub not_senders: Option<Vec<UserId>>
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub senders: Vec<UserId>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub types: Vec<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub not_senders: Vec<UserId>
 }
 
 /// A filter definition
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct FilterDefinition {
-    pub event_fields: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    pub event_fields: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub event_format: Option<EventFormat>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub account_data: Option<Filter>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub room: Option<RoomFilter>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub presence: Option<Filter>
 }
 

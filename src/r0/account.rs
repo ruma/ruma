@@ -7,8 +7,10 @@ pub mod register {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub bind_email: Option<bool>,
         pub password: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub username: Option<String>,
     }
 
@@ -16,8 +18,9 @@ pub mod register {
     pub struct Endpoint;
 
     /// This API endpoint's query string parameters.
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct QueryParams {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub kind: Option<RegistrationKind>,
     }
 
@@ -67,6 +70,7 @@ pub mod request_password_change_token {
     pub struct BodyParams {
         pub client_secret: String,
         pub email: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub id_server: Option<String>,
         pub send_attempt: u64,
     }
@@ -163,6 +167,7 @@ pub mod request_register_token {
     pub struct BodyParams {
         pub client_secret: String,
         pub email: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub id_server: Option<String>,
         pub send_attempt: u64,
     }

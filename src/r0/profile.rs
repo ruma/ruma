@@ -15,6 +15,7 @@ pub mod get_display_name {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Response {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub displayname: Option<String>
     }
 
@@ -60,6 +61,7 @@ pub mod set_display_name {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub displayname: Option<String>
     }
 
@@ -104,6 +106,7 @@ pub mod get_avatar_url {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Response {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub avatar_url: Option<String>
     }
 
@@ -148,6 +151,7 @@ pub mod set_avatar_url {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub avatar_url: Option<String>
     }
 
@@ -192,7 +196,9 @@ pub mod get_profile {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Response {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub avatar_url: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub displayname: Option<String>
     }
 

@@ -19,6 +19,7 @@ pub mod set_presence {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
+        #[serde(skip_serializing_if = "Option::is_none")]
         status_msg: Option<String>,
         presence: PresenceState
     }
@@ -65,8 +66,11 @@ pub mod get_presence {
     /// This API endpoint's response.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Response {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub status_msg: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub currently_active: Option<bool>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub last_active_ago: Option<u64>,
         pub presence: PresenceState
     }
@@ -112,8 +116,12 @@ pub mod update_presence_list {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
-        drop: Option<Vec<UserId>>,
-        invite: Option<Vec<UserId>>
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        #[serde(default)]
+        drop: Vec<UserId>,
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        #[serde(default)]
+        invite: Vec<UserId>
     }
 
     impl ::Endpoint for Endpoint {

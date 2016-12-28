@@ -7,6 +7,7 @@ pub mod add_contact {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub bind: Option<bool>,
         pub three_pid_creds: ThreePidCredentials,
     }
@@ -98,6 +99,7 @@ pub mod request_contact_verification_token {
     pub struct BodyParams {
         pub client_secret: String,
         pub email: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub id_server: Option<String>,
         pub send_attempt: u64,
     }

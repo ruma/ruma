@@ -21,10 +21,15 @@ pub mod sync {
     /// This API endpoint's query parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct QueryParams {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub filter: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub since: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub full_state: Option<bool>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub set_presence: Option<SetPresence>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub timeout: Option<u64>
     }
 

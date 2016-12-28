@@ -196,8 +196,10 @@ pub mod get_messages {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct QueryParams {
         pub from: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub to: Option<String>,
         pub dir: Direction,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub limit: Option<u64>
     }
     

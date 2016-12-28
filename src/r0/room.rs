@@ -9,12 +9,20 @@ pub mod create_room {
     /// The request type.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub creation_content: Option<CreationContent>,
-        pub invite: Option<Vec<String>>,
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        #[serde(default)]
+        pub invite: Vec<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub name: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub preset: Option<RoomPreset>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub room_alias_name: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub topic: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub visibility: Option<String>,
     }
 
@@ -22,6 +30,7 @@ pub mod create_room {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct CreationContent {
         #[serde(rename="m.federate")]
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub federate: Option<bool>,
     }
 

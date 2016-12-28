@@ -20,6 +20,7 @@ pub mod send_event {
     /// This API endpoint's path parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub reason: Option<String>
     }
 

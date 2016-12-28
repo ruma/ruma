@@ -12,6 +12,7 @@ pub mod login {
     pub struct Response {
         pub access_token: String,
         pub home_server: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub refresh_token: Option<String>,
         pub user_id: String,
     }
@@ -80,6 +81,7 @@ pub mod refresh_access_token {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Response {
         pub access_token: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub refresh_token: Option<String>,
     }
 

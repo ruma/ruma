@@ -10,12 +10,15 @@ pub mod public_rooms {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct PublicRoomsChunk {
         pub world_readable: bool,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub topic: Option<String>,
         pub num_joined_members: u64,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub avatar_url: Option<String>,
         pub room_id: RoomId,
         pub guest_can_join: bool,
         pub aliases: Vec<RoomAliasId>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub name: Option<String>
     }
 

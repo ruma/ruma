@@ -101,6 +101,7 @@ pub mod get {
 }
 
 /// These API endpoints' path parameters.
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PathParams {
     pub room_alias: RoomAliasId,
 }

@@ -19,7 +19,7 @@ pub mod get_context {
     }
 
     /// This API endpoint's query string parameters.
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct QueryParams {
         pub limit: u8,
     }
