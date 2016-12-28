@@ -102,7 +102,7 @@ pub mod create_filter {
     }
 }
 
-/// POST /_matrix/client/r0/user/{userId}/filter/{filterId}
+/// GET /_matrix/client/r0/user/{userId}/filter/{filterId}
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-user-userid-filter-filterid)
 pub mod get_filter {
