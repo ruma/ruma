@@ -135,7 +135,6 @@ pub mod get_members {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct PathParams {
         pub room_id: RoomId,
-        pub event_type: String
     }
     
     /// This API endpoint's reponse.
