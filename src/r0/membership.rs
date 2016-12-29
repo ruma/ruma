@@ -69,6 +69,7 @@ pub mod join_by_room_id_or_alias {
     /// The request type.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub third_party_signed: Option<ThirdPartySigned>,
     }
 
@@ -130,6 +131,7 @@ pub mod join_by_room_id {
     /// The request type.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub third_party_signed: Option<ThirdPartySigned>,
     }
 
@@ -257,6 +259,7 @@ pub mod kick {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
         pub user_id: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub reason: Option<String>,
     }
 
@@ -345,6 +348,7 @@ pub mod ban {
     /// The request type.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub reason: Option<String>,
         pub user_id: String,
     }

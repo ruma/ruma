@@ -20,6 +20,7 @@ pub mod set_typing {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
         pub typing: bool,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub timeout: Option<u64>
     }
 
