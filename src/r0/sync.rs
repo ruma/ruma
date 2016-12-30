@@ -4,25 +4,37 @@
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-sync)
 pub mod sync {
-    use ruma_identifiers::RoomId;
     use ruma_events::collections::only;
+    use ruma_identifiers::RoomId;
+
     use std::collections::HashMap;
+
+    use r0::filter::FilterDefinition;
 
     /// Details about this API endpoint.
     pub struct Endpoint;
 
-    /// Wether to set presence or not during sync
+    /// Whether to set presence or not during sync.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub enum SetPresence {
         #[serde(rename="offline")]
         Offline
     }
 
+    /// A filter represented either as its full JSON definition or the ID of a saved filter.
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    pub enum Filter {
+        /// A complete filter definition serialized to JSON.
+        FilterDefinition(FilterDefinition),
+        /// The ID of a filter saved on the server.
+        FilterId(String),
+    }
+
     /// This API endpoint's query parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct QueryParams {
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub filter: Option<String>,
+        pub filter: Option<Filter>,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub since: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
