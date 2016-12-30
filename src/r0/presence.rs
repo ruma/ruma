@@ -1,8 +1,6 @@
 //! Endpoints for user presence.
 
-/// PUT /_matrix/client/r0/presence/{userId}/status
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-presence-userid-status)
+/// [PUT /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-presence-userid-status)
 pub mod set_presence {
     use ruma_identifiers::UserId;
     use ruma_events::presence::PresenceState;
@@ -47,9 +45,7 @@ pub mod set_presence {
     }
 }
 
-/// GET /_matrix/client/r0/presence/{userId}/status
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-presence-userid-status)
+/// [GET /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-presence-userid-status)
 pub mod get_presence {
     use ruma_identifiers::UserId;
     use ruma_events::presence::PresenceState;
@@ -98,9 +94,7 @@ pub mod get_presence {
     }
 }
 
-/// POST /_matrix/client/r0/presence/list/{userId}
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-presence-list-userid)
+/// [POST /_matrix/client/r0/presence/list/{userId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-presence-list-userid)
 pub mod update_presence_subscriptions {
     use ruma_identifiers::UserId;
 
@@ -147,9 +141,7 @@ pub mod update_presence_subscriptions {
     }
 }
 
-/// GET /_matrix/client/r0/presence/list/{userId}
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-presence-list-userid)
+/// [GET /_matrix/client/r0/presence/list/{userId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-presence-list-userid)
 pub mod get_subscribed_presences {
     use ruma_identifiers::UserId;
     use ruma_events::presence::PresenceEvent;

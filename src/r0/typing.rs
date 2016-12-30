@@ -1,8 +1,6 @@
 //! Endpoints for typing notifications.
 
-/// PUT /_matrix/client/r0/rooms/{roomId}/typing/{userId}
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-typing-userid)
+/// [PUT /_matrix/client/r0/rooms/{roomId}/typing/{userId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-typing-userid)
 pub mod start_or_stop_typing {
     use ruma_identifiers::{UserId, RoomId};
 

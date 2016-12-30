@@ -1,8 +1,6 @@
 //! Endpoints for getting and synchronizing events.
 
-/// GET /_matrix/client/r0/rooms/{roomId}/state
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-state)
+/// [GET /_matrix/client/r0/rooms/{roomId}/state](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-state)
 pub mod get_state_events {
     use ruma_identifiers::RoomId;
     use ruma_events::collections::only;
@@ -39,9 +37,7 @@ pub mod get_state_events {
     }
 }
 
-/// GET /_matrix/client/r0/rooms/{roomId}/state/{eventType}
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-state-eventtype)
+/// [GET /_matrix/client/r0/rooms/{roomId}/state/{eventType}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-state-eventtype)
 pub mod get_state_event_by_event_type {
     use ruma_identifiers::RoomId;
 
@@ -79,9 +75,7 @@ pub mod get_state_event_by_event_type {
     }
 }
 
-/// GET /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-state-eventtype-state-key)
+/// [GET /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-state-eventtype-state-key)
 pub mod get_state_event_by_state_key {
     use ruma_identifiers::RoomId;
 
@@ -121,9 +115,7 @@ pub mod get_state_event_by_state_key {
     }
 }
 
-/// GET /_matrix/client/r0/rooms/{roomId}/members
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-members)
+/// [GET /_matrix/client/r0/rooms/{roomId}/members](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-members)
 pub mod get_member_events {
     use ruma_identifiers::RoomId;
     use ruma_events::room::member::MemberEvent;
@@ -166,9 +158,7 @@ pub mod get_member_events {
     }
 }
 
-/// GET /_matrix/client/r0/rooms/{roomId}/messages
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-messages)
+/// [GET /_matrix/client/r0/rooms/{roomId}/messages](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-messages)
 pub mod get_message_events {
     use ruma_identifiers::RoomId;
     use ruma_events::collections::only;
@@ -232,9 +222,8 @@ pub mod get_message_events {
         }
     }
 }
-/// GET /_matrix/client/r0/sync
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-sync)
+
+/// [GET /_matrix/client/r0/sync](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-sync)
 pub mod sync_events {
     use ruma_events::collections::only;
     use ruma_identifiers::RoomId;

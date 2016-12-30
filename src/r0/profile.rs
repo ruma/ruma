@@ -1,8 +1,6 @@
 //! Endpoints for user profiles.
 
-/// GET /_matrix/client/r0/profile/{userId}/displayname
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-profile-userid-displayname)
+/// [GET /_matrix/client/r0/profile/{userId}/displayname](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-profile-userid-displayname)
 pub mod get_display_name {
     use ruma_identifiers::UserId;
 
@@ -46,9 +44,7 @@ pub mod get_display_name {
 }
 
 
-/// PUT /_matrix/client/r0/profile/{userId}/displayname
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-profile-userid-displayname)
+/// [PUT /_matrix/client/r0/profile/{userId}/displayname](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-profile-userid-displayname)
 pub mod set_display_name {
     use ruma_identifiers::UserId;
 
@@ -91,9 +87,7 @@ pub mod set_display_name {
     }
 }
 
-/// GET /_matrix/client/r0/profile/{userId}/avatar_url
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-profile-userid-avatar-url)
+/// [GET /_matrix/client/r0/profile/{userId}/avatar_url](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-profile-userid-avatar-url)
 pub mod get_avatar_url {
     use ruma_identifiers::UserId;
 
@@ -136,9 +130,7 @@ pub mod get_avatar_url {
     }
 }
 
-/// PUT /_matrix/client/r0/profile/{userId}/avatar_url
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-profile-userid-avatar-url)
+/// [PUT /_matrix/client/r0/profile/{userId}/avatar_url](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-profile-userid-avatar-url)
 pub mod set_avatar_url {
     use ruma_identifiers::UserId;
 
@@ -181,9 +173,7 @@ pub mod set_avatar_url {
     }
 }
 
-/// GET /_matrix/client/r0/profile/{userId}
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-profile-userid)
+/// [GET /_matrix/client/r0/profile/{userId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-profile-userid)
 pub mod get_profile {
     use ruma_identifiers::UserId;
 

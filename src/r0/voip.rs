@@ -1,8 +1,6 @@
 //! Endpoints for Voice over IP.
 
-/// GET /_matrix/client/r0/voip/turnServer
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-voip-turnserver)
+/// [GET /_matrix/client/r0/voip/turnServer](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-voip-turnserver)
 pub mod get_turn_server_info {
     /// Details about this API endpoint.
     pub struct Endpoint;

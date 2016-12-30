@@ -15,9 +15,7 @@ pub struct ThirdPartySigned {
     pub token: String,
 }
 
-/// POST /_matrix/client/r0/rooms/{roomId}/invite
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-invite)
+/// [POST /_matrix/client/r0/rooms/{roomId}/invite](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-invite)
 pub mod invite_user {
     use ruma_identifiers::RoomId;
 
@@ -59,9 +57,7 @@ pub mod invite_user {
     }
 }
 
-/// POST /_matrix/client/r0/join/{roomIdOrAlias}
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-join-roomidoralias)
+/// [POST /_matrix/client/r0/join/{roomIdOrAlias}](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-join-roomidoralias)
 pub mod join_room_by_id_or_alias {
     use ruma_identifiers::{RoomId, RoomIdOrAliasId};
     use super::ThirdPartySigned;
@@ -121,9 +117,7 @@ pub mod join_room_by_id_or_alias {
     }
 }
 
-/// POST /_matrix/client/r0/rooms/{roomId}/join
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-join)
+/// [POST /_matrix/client/r0/rooms/{roomId}/join](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-join)
 pub mod join_room_by_id {
     use ruma_identifiers::RoomId;
     use super::ThirdPartySigned;
@@ -173,9 +167,7 @@ pub mod join_room_by_id {
     }
 }
 
-/// POST /_matrix/client/r0/rooms/{roomId}/forget
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-forget)
+/// [POST /_matrix/client/r0/rooms/{roomId}/forget](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-forget)
 pub mod forget_room {
     use ruma_identifiers::RoomId;
 
@@ -211,9 +203,7 @@ pub mod forget_room {
     }
 }
 
-/// POST /_matrix/client/r0/rooms/{roomId}/leave
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-leave)
+/// [POST /_matrix/client/r0/rooms/{roomId}/leave](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-leave)
 pub mod leave_room {
     use ruma_identifiers::RoomId;
 
@@ -249,9 +239,7 @@ pub mod leave_room {
     }
 }
 
-/// POST /_matrix/client/r0/rooms/{roomId}/kick
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-kick)
+/// [POST /_matrix/client/r0/rooms/{roomId}/kick](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-kick)
 pub mod kick_user {
     use ruma_identifiers::RoomId;
 
@@ -295,9 +283,7 @@ pub mod kick_user {
     }
 }
 
-/// POST /_matrix/client/r0/rooms/{roomId}/unban
-///
-/// [matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-unban)
+/// [POST /_matrix/client/r0/rooms/{roomId}/unban](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-unban)
 pub mod unban_user {
     use ruma_identifiers::RoomId;
 
@@ -339,9 +325,7 @@ pub mod unban_user {
     }
 }
 
-/// POST /_matrix/client/r0/rooms/{roomId}/ban
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-ban)
+/// [POST /_matrix/client/r0/rooms/{roomId}/ban](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-ban)
 pub mod ban_user {
     use ruma_identifiers::RoomId;
 

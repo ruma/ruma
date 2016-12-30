@@ -42,7 +42,5 @@ pub mod r0 {
     pub mod voip;
 }
 
-/// GET /_matrix/client/versions
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-versions)
+/// [GET /_matrix/client/versions](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-versions)
 pub mod supported_versions;

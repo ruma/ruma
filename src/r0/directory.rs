@@ -1,8 +1,6 @@
 //! Endpoints for the public room directory.
 
-/// GET /_matrix/client/r0/publicRooms
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-publicrooms)
+/// [GET /_matrix/client/r0/publicRooms](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-publicrooms)
 pub mod get_public_rooms {
     use ruma_identifiers::{RoomId, RoomAliasId};
 

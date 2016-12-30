@@ -1,8 +1,6 @@
 //! Endpoints for event redaction.
 
-/// PUT /_matrix/client/r0/rooms/{roomId}/redact/{eventId}/{txnId}
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-redact-eventid-txnid)
+/// [PUT /_matrix/client/r0/rooms/{roomId}/redact/{eventId}/{txnId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-redact-eventid-txnid)
 pub mod redact_event {
     use ruma_identifiers::{RoomId, EventId};
 

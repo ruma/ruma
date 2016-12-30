@@ -1,8 +1,6 @@
 //! Endpoints for event context.
 
-/// GET /_matrix/client/r0/rooms/:room_id/context/:event_id
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-context-eventid)
+/// [GET /_matrix/client/r0/rooms/:room_id/context/:event_id](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-context-eventid)
 pub mod get_context {
     use ruma_identifiers::{EventId, RoomId};
     use ruma_events::collections::only;

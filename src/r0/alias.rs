@@ -2,9 +2,7 @@
 
 use ruma_identifiers::RoomAliasId;
 
-/// PUT /_matrix/client/r0/directory/room/:room_alias
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-directory-room-roomalias)
+/// [PUT /_matrix/client/r0/directory/room/:room_alias](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-directory-room-roomalias)
 pub mod create_alias {
     use ruma_identifiers::RoomId;
 
@@ -37,9 +35,7 @@ pub mod create_alias {
     }
 }
 
-/// DELETE /_matrix/client/r0/directory/room/:room_alias
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#delete-matrix-client-r0-directory-room-roomalias)
+/// [DELETE /_matrix/client/r0/directory/room/:room_alias](https://matrix.org/docs/spec/client_server/r0.2.0.html#delete-matrix-client-r0-directory-room-roomalias)
 pub mod delete_alias {
     /// Details about this API endpoint.
     pub struct Endpoint;
@@ -64,9 +60,7 @@ pub mod delete_alias {
     }
 }
 
-/// GET /_matrix/client/r0/directory/room/:room_alias
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-directory-room-roomalias)
+/// [GET /_matrix/client/r0/directory/room/:room_alias](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-directory-room-roomalias)
 pub mod get_alias {
     use ruma_identifiers::RoomId;
 

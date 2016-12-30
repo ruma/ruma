@@ -1,8 +1,6 @@
 //! Endpoints for tagging rooms.
 
-/// PUT /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags/{tag}
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-user-userid-rooms-roomid-tags-tag)
+/// [PUT /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags/{tag}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-user-userid-rooms-roomid-tags-tag)
 pub mod create_tag {
     use ruma_identifiers::{UserId, RoomId};
     use ruma_events::tag::TagInfo;
@@ -43,9 +41,7 @@ pub mod create_tag {
     }
 }
 
-/// GET /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-user-userid-rooms-roomid-tags)
+/// [GET /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-user-userid-rooms-roomid-tags)
 pub mod get_tags {
     use ruma_identifiers::{UserId, RoomId};
     use ruma_events::tag::TagEventContent;
@@ -90,9 +86,7 @@ pub mod get_tags {
     }
 }
 
-/// DELETE /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags/{tag}
-///
-/// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#delete-matrix-client-r0-user-userid-rooms-roomid-tags-tag)
+/// [DELETE /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags/{tag}](https://matrix.org/docs/spec/client_server/r0.2.0.html#delete-matrix-client-r0-user-userid-rooms-roomid-tags-tag)
 pub mod delete_tag {
     use ruma_identifiers::{UserId, RoomId};
 
