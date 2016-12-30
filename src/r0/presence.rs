@@ -101,7 +101,7 @@ pub mod get_presence {
 /// POST /_matrix/client/r0/presence/list/{userId}
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-presence-list-userid)
-pub mod update_presence_list {
+pub mod update_presence_subscriptions {
     use ruma_identifiers::UserId;
 
     /// Details about this API endpoint.
@@ -150,7 +150,7 @@ pub mod update_presence_list {
 /// GET /_matrix/client/r0/presence/list/{userId}
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-presence-list-userid)
-pub mod get_presence_list_status {
+pub mod get_subscribed_presences {
     use ruma_identifiers::UserId;
     use ruma_events::presence::PresenceEvent;
 

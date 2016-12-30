@@ -23,7 +23,6 @@ pub mod r0 {
     pub mod contact;
     pub mod context;
     pub mod directory;
-    pub mod events;
     pub mod filter;
     pub mod media;
     pub mod membership;

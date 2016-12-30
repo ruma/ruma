@@ -3,7 +3,7 @@
 /// POST /_matrix/client/r0/account/3pid
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-3pid)
-pub mod add_contact {
+pub mod create_contact {
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {

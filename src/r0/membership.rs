@@ -18,7 +18,7 @@ pub struct ThirdPartySigned {
 /// POST /_matrix/client/r0/rooms/{roomId}/invite
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-invite)
-pub mod invite {
+pub mod invite_user {
     use ruma_identifiers::RoomId;
 
     /// The request type.
@@ -62,7 +62,7 @@ pub mod invite {
 /// POST /_matrix/client/r0/join/{roomIdOrAlias}
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-join-roomidoralias)
-pub mod join_by_room_id_or_alias {
+pub mod join_room_by_id_or_alias {
     use ruma_identifiers::{RoomId, RoomIdOrAliasId};
     use super::ThirdPartySigned;
 
@@ -124,7 +124,7 @@ pub mod join_by_room_id_or_alias {
 /// POST /_matrix/client/r0/rooms/{roomId}/join
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-join)
-pub mod join_by_room_id {
+pub mod join_room_by_id {
     use ruma_identifiers::RoomId;
     use super::ThirdPartySigned;
 
@@ -176,7 +176,7 @@ pub mod join_by_room_id {
 /// POST /_matrix/client/r0/rooms/{roomId}/forget
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-forget)
-pub mod forget {
+pub mod forget_room {
     use ruma_identifiers::RoomId;
 
     /// Details about this API endpoint.
@@ -214,7 +214,7 @@ pub mod forget {
 /// POST /_matrix/client/r0/rooms/{roomId}/leave
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-leave)
-pub mod leave {
+pub mod leave_room {
     use ruma_identifiers::RoomId;
 
     /// Details about this API endpoint.
@@ -252,7 +252,7 @@ pub mod leave {
 /// POST /_matrix/client/r0/rooms/{roomId}/kick
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-kick)
-pub mod kick {
+pub mod kick_user {
     use ruma_identifiers::RoomId;
 
     /// The request type.
@@ -298,7 +298,7 @@ pub mod kick {
 /// POST /_matrix/client/r0/rooms/{roomId}/unban
 ///
 /// [matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-unban)
-pub mod unban {
+pub mod unban_user {
     use ruma_identifiers::RoomId;
 
     /// The request type.
@@ -342,7 +342,7 @@ pub mod unban {
 /// POST /_matrix/client/r0/rooms/{roomId}/ban
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-ban)
-pub mod ban {
+pub mod ban_user {
     use ruma_identifiers::RoomId;
 
     /// The request type.

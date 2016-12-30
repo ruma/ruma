@@ -3,7 +3,7 @@
 /// PUT /_matrix/client/r0/rooms/{roomId}/typing/{userId}
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-typing-userid)
-pub mod set_typing {
+pub mod start_or_stop_typing {
     use ruma_identifiers::{UserId, RoomId};
 
     /// Details about this API endpoint.

@@ -3,7 +3,7 @@
 /// PUT /_matrix/client/r0/rooms/{roomId}/state/{eventType}
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-state-eventtype)
-pub mod send_state {
+pub mod send_state_event {
     use ruma_identifiers::{RoomId, EventId};
     use ruma_events::EventType;
 
@@ -51,7 +51,7 @@ pub mod send_state {
 /// PUT /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-state-eventtype-statekey)
-pub mod send_state_key {
+pub mod send_state_event_by_state_key {
     use ruma_identifiers::{RoomId, EventId};
     use ruma_events::EventType;
 
@@ -101,7 +101,7 @@ pub mod send_state_key {
 /// PUT /_matrix/client/r0/rooms/{roomId}/send/{eventType}/{txnId}
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-send-eventtype-txnid)
-pub mod send_event {
+pub mod send_message_event {
     use ruma_identifiers::{RoomId, EventId};
     use ruma_events::EventType;
 

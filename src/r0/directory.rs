@@ -3,7 +3,7 @@
 /// GET /_matrix/client/r0/publicRooms
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-publicrooms)
-pub mod public_rooms {
+pub mod get_public_rooms {
     use ruma_identifiers::{RoomId, RoomAliasId};
 
     /// A chunk of the response, describing one room

@@ -3,7 +3,7 @@
 /// PUT /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags/{tag}
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-user-userid-rooms-roomid-tags-tag)
-pub mod add_tag {
+pub mod create_tag {
     use ruma_identifiers::{UserId, RoomId};
     use ruma_events::tag::TagInfo;
 
@@ -93,7 +93,7 @@ pub mod get_tags {
 /// DELETE /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags/{tag}
 ///
 /// [Matrix spec link](http://matrix.org/docs/spec/client_server/r0.2.0.html#delete-matrix-client-r0-user-userid-rooms-roomid-tags-tag)
-pub mod del_tag {
+pub mod delete_tag {
     use ruma_identifiers::{UserId, RoomId};
 
     /// Details about this API endpoint.
