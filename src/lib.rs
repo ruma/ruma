@@ -3,6 +3,7 @@
 //! shared by client and server code.
 
 #![feature(proc_macro)]
+#![warn(missing_docs)]
 
 extern crate ruma_api;
 extern crate ruma_events;
