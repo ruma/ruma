@@ -13,6 +13,7 @@ pub mod create_alias {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {
@@ -38,6 +39,7 @@ pub mod create_alias {
 /// [DELETE /_matrix/client/r0/directory/room/:room_alias](https://matrix.org/docs/spec/client_server/r0.2.0.html#delete-matrix-client-r0-directory-room-roomalias)
 pub mod delete_alias {
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {
@@ -65,6 +67,7 @@ pub mod get_alias {
     use ruma_identifiers::RoomId;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's response.

@@ -6,6 +6,7 @@ pub mod create_tag {
     use ruma_events::tag::TagInfo;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -47,6 +48,7 @@ pub mod get_tags {
     use ruma_events::tag::TagEventContent;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -91,6 +93,7 @@ pub mod delete_tag {
     use ruma_identifiers::{UserId, RoomId};
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.

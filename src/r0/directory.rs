@@ -29,6 +29,7 @@ pub mod get_public_rooms {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {

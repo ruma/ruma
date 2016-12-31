@@ -26,6 +26,7 @@ pub mod invite_user {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -70,6 +71,7 @@ pub mod join_room_by_id_or_alias {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// The response type.
@@ -130,6 +132,7 @@ pub mod join_room_by_id {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// The response type.
@@ -172,6 +175,7 @@ pub mod forget_room {
     use ruma_identifiers::RoomId;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -208,6 +212,7 @@ pub mod leave_room {
     use ruma_identifiers::RoomId;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -252,6 +257,7 @@ pub mod kick_user {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -294,6 +300,7 @@ pub mod unban_user {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -338,6 +345,7 @@ pub mod ban_user {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.

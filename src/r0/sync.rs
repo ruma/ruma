@@ -6,6 +6,7 @@ pub mod get_state_events {
     use ruma_events::collections::only;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -42,6 +43,7 @@ pub mod get_state_event_by_event_type {
     use ruma_identifiers::RoomId;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -80,6 +82,7 @@ pub mod get_state_event_by_state_key {
     use ruma_identifiers::RoomId;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -121,6 +124,7 @@ pub mod get_member_events {
     use ruma_events::room::member::MemberEvent;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -164,6 +168,7 @@ pub mod get_message_events {
     use ruma_events::collections::only;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -233,6 +238,7 @@ pub mod sync_events {
     use r0::filter::FilterDefinition;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// Whether to set presence or not during sync.

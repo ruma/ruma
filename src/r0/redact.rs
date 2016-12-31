@@ -5,6 +5,7 @@ pub mod redact_event {
     use ruma_identifiers::{RoomId, EventId};
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.

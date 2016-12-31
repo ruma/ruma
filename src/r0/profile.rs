@@ -18,6 +18,7 @@ pub mod get_display_name {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {
@@ -62,6 +63,7 @@ pub mod set_display_name {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {
@@ -105,6 +107,7 @@ pub mod get_avatar_url {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {
@@ -148,6 +151,7 @@ pub mod set_avatar_url {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {
@@ -193,6 +197,7 @@ pub mod get_profile {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {

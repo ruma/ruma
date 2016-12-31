@@ -33,6 +33,7 @@ pub mod create_room {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// The response type.

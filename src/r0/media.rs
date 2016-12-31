@@ -3,6 +3,7 @@
 /// [GET /_matrix/media/r0/download/{serverName}/{mediaId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-media-r0-download-servername-mediaid)
 pub mod get_content {
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -41,6 +42,7 @@ pub mod get_content {
 /// [POST /_matrix/media/r0/upload](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-media-r0-upload)
 pub mod create_content {
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's response.
@@ -75,6 +77,7 @@ pub mod get_content_thumbnail {
     use std::fmt::{Display, Error as FmtError, Formatter};
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// The desired resizing method.
@@ -87,6 +90,7 @@ pub mod get_content_thumbnail {
     }
 
     /// This API endpoint's path parameters.
+    #[derive(Clone, Debug)]
     pub struct PathParams {
         /// The media ID from the mxc:// URI (the path component).
         pub media_id: String,

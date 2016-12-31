@@ -100,6 +100,7 @@ pub mod create_filter {
     use super::FilterDefinition;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -143,6 +144,7 @@ pub mod get_filter {
     use super::FilterDefinition;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.

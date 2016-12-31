@@ -6,6 +6,7 @@ pub mod set_presence {
     use ruma_events::presence::PresenceState;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -51,6 +52,7 @@ pub mod get_presence {
     use ruma_events::presence::PresenceState;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -99,6 +101,7 @@ pub mod update_presence_subscriptions {
     use ruma_identifiers::UserId;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -147,6 +150,7 @@ pub mod get_subscribed_presences {
     use ruma_events::presence::PresenceEvent;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.

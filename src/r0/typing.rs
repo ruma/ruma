@@ -5,6 +5,7 @@ pub mod start_or_stop_typing {
     use ruma_identifiers::{UserId, RoomId};
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.

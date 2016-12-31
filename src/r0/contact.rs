@@ -11,6 +11,7 @@ pub mod create_contact {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// The third party credentials to associate with the account.
@@ -44,6 +45,7 @@ pub mod create_contact {
 /// [GET /_matrix/client/r0/account/3pid](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-account-3pid)
 pub mod get_contacts {
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// The medium of third party identifier.
@@ -99,6 +101,7 @@ pub mod request_contact_verification_token {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {

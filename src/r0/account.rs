@@ -13,6 +13,7 @@ pub mod register {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's query string parameters.
@@ -72,6 +73,7 @@ pub mod request_password_change_token {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {
@@ -97,6 +99,7 @@ pub mod request_password_change_token {
 /// [POST /_matrix/client/r0/account/deactivate](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-deactivate)
 pub mod deactivate {
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {
@@ -128,6 +131,7 @@ pub mod change_password {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {
@@ -163,6 +167,7 @@ pub mod request_register_token {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {

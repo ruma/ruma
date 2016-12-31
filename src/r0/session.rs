@@ -3,6 +3,7 @@
 /// [POST /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-login)
 pub mod login {
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's response.
@@ -38,6 +39,7 @@ pub mod login {
 /// [POST /_matrix/client/r0/logout](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-logout)
 pub mod logout {
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     impl ::Endpoint for Endpoint {
@@ -69,6 +71,7 @@ pub mod refresh_access_token {
     }
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's response.

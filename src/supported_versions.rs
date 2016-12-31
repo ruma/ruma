@@ -1,4 +1,5 @@
 /// Details about this API endpoint.
+#[derive(Clone, Copy, Debug)]
 pub struct Endpoint;
 
 /// This API endpoint's response.

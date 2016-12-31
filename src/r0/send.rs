@@ -6,6 +6,7 @@ pub mod send_state_event {
     use ruma_events::EventType;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -52,6 +53,7 @@ pub mod send_state_event_by_state_key {
     use ruma_events::EventType;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -100,6 +102,7 @@ pub mod send_message_event {
     use ruma_events::EventType;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.

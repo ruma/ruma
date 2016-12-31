@@ -7,6 +7,7 @@ pub mod create_receipt {
     use std::fmt::{Display, Error as FmtError, Formatter};
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This endpoint's path parameters.

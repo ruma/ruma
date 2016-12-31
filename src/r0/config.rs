@@ -5,6 +5,7 @@ pub mod set_room_account_data {
     use ruma_identifiers::{RoomId, UserId};
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
@@ -45,6 +46,7 @@ pub mod set_global_account_data  {
     use ruma_identifiers::UserId;
 
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.

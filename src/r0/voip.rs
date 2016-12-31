@@ -3,6 +3,7 @@
 /// [GET /_matrix/client/r0/voip/turnServer](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-voip-turnserver)
 pub mod get_turn_server_info {
     /// Details about this API endpoint.
+    #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
     /// This API endpoint's path parameters.
