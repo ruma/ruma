@@ -1,0 +1,19 @@
+[package]
+authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
+description = "A Matrix client library."
+documentation = "https://docs.rs/ruma-client"
+homepage = "https://github.com/ruma/ruma-client"
+keywords = ["matrix", "chat", "messaging", "ruma"]
+license = "MIT"
+name = "ruma-client"
+readme = "README.md"
+repository = "https://github.com/ruma/ruma-client"
+version = "0.1.0"
+
+[dependencies]
+hyper = "0.9.14"
+ruma-client-api = { path = "../ruma-client-api" }
+ruma-identifiers = "0.6.0"
+serde = "0.8.21"
+serde_json = "0.8.4"
+url = "1.2.4"
