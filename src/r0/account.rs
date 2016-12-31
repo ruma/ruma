@@ -10,6 +10,7 @@ pub mod register {
         pub password: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub username: Option<String>,
+        // TODO: `auth` field
     }
 
     /// Details about this API endpoint.
@@ -38,6 +39,7 @@ pub mod register {
         pub access_token: String,
         pub home_server: String,
         pub user_id: String,
+        // TODO: `refresh_token` field? (more or less deprecated?)
     }
 
     impl ::Endpoint for Endpoint {
@@ -62,6 +64,7 @@ pub mod register {
 
 /// [POST /_matrix/client/r0/account/password/email/requestToken](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-password-email-requesttoken)
 pub mod request_password_change_token {
+    // TODO: according to the spec, this does not has any params
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
@@ -102,6 +105,8 @@ pub mod deactivate {
     #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
+    // TODO: missing BodyParams
+
     impl ::Endpoint for Endpoint {
         type BodyParams = ();
         type PathParams = ();
@@ -128,6 +133,7 @@ pub mod change_password {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
         pub new_password: String,
+        // TODO: missing `auth` field
     }
 
     /// Details about this API endpoint.

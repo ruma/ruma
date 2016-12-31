@@ -43,8 +43,9 @@ pub mod search_events {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub include_state: Option<bool>,
         /// The keys to search for. Defaults to all keys.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub keys: Option<Vec<SearchKeys>>,
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        #[serde(default)]
+        pub keys: Vec<SearchKeys>,
         /// The order in which to search for results.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub order_by: Option<OrderBy>,
