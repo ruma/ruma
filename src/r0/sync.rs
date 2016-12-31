@@ -181,7 +181,7 @@ pub mod get_message_events {
         Forward
     }
 
-    /// This API endpoint's query parameters.
+    /// This API endpoint's query string parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct QueryParams {
         pub from: String,
@@ -251,7 +251,7 @@ pub mod sync_events {
         FilterId(String),
     }
 
-    /// This API endpoint's query parameters.
+    /// This API endpoint's query string parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct QueryParams {
         #[serde(skip_serializing_if = "Option::is_none")]
