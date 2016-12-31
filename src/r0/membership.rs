@@ -2,6 +2,9 @@
 
 use ruma_signatures::Signatures;
 
+// TODO: spec requires a nesting ThirdPartySigned { signed: Signed { mxid: ..., ... } }
+//       for join_room_by_id_or_alias but not for join_room_by_id, inconsistency?
+
 /// A signature of an `m.third_party_invite` token to prove that this user owns a third party identity which has been invited to the room.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ThirdPartySigned {
@@ -17,12 +20,12 @@ pub struct ThirdPartySigned {
 
 /// [POST /_matrix/client/r0/rooms/{roomId}/invite](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-invite)
 pub mod invite_user {
-    use ruma_identifiers::RoomId;
+    use ruma_identifiers::{UserId, RoomId};
 
     /// The request type.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
-        pub user_id: String,
+        pub user_id: UserId,
     }
 
     /// Details about this API endpoint.

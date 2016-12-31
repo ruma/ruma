@@ -19,8 +19,8 @@ pub mod set_presence {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
         #[serde(skip_serializing_if = "Option::is_none")]
-        status_msg: Option<String>,
-        presence: PresenceState
+        pub status_msg: Option<String>,
+        pub presence: PresenceState
     }
 
     impl ::Endpoint for Endpoint {

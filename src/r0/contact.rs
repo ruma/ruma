@@ -17,9 +17,9 @@ pub mod create_contact {
     /// The third party credentials to associate with the account.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct ThreePidCredentials {
-        client_secret: String,
-        id_server: String,
-        sid: String,
+        pub client_secret: String,
+        pub id_server: String,
+        pub sid: String,
     }
 
     impl ::Endpoint for Endpoint {
@@ -90,6 +90,7 @@ pub mod get_contacts {
 
 /// [POST /_matrix/client/r0/account/3pid/email/requestToken](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-3pid-email-requesttoken)
 pub mod request_contact_verification_token {
+    // TODO: according to the spec this takes no parameters
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {

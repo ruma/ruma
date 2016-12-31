@@ -2,7 +2,7 @@
 
 /// [POST /_matrix/client/r0/createRoom](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-createroom)
 pub mod create_room {
-    use ruma_identifiers::RoomId;
+    use ruma_identifiers::{RoomId, UserId};
 
     /// The request type.
     #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -11,7 +11,7 @@ pub mod create_room {
         pub creation_content: Option<CreationContent>,
         #[serde(skip_serializing_if = "Vec::is_empty")]
         #[serde(default)]
-        pub invite: Vec<String>,
+        pub invite: Vec<UserId>,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub name: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -21,7 +21,8 @@ pub mod create_room {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub topic: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub visibility: Option<String>,
+        pub visibility: Option<String>, // TODO: should be an enum ["public", "private"]
+        // TODO: missing `invite_3pid`, `initial_state`
     }
 
     /// Extra options to be added to the `m.room.create` event.

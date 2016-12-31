@@ -6,6 +6,8 @@ pub mod login {
     #[derive(Clone, Copy, Debug)]
     pub struct Endpoint;
 
+    // TODO: missing BodyParams
+
     /// This API endpoint's response.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Response {

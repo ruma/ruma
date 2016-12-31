@@ -20,6 +20,7 @@ pub mod get_content {
         type PathParams = PathParams;
         type QueryParams = ();
         type Response = (); // TODO: How should a file be represented as a response?
+                            // must include HTTP headers Content-Type and Content-Disposition (filename)
 
         fn method() -> ::Method {
             ::Method::Get
