@@ -15,7 +15,8 @@ use std::convert::TryInto;
 
 use hyper::client::{Client as Hyper, IntoUrl};
 use hyper::method::Method as HyperMethod;
-use ruma_client_api::{Endpoint, Method, supported_versions};
+use ruma_client_api::{Endpoint, Method};
+use ruma_client_api::unversioned::get_supported_versions;
 use url::Url;
 
 pub use error::Error;
@@ -65,7 +66,7 @@ impl Client {
 
     /// Get the versions of the Matrix client-server specification supported by the homeserver.
     pub fn get_supported_versions(&self)
-    -> Result<Response<<supported_versions::Endpoint as Endpoint>::Response>, Error> {
+    -> Result<Response<<get_supported_versions::Endpoint as Endpoint>::Response>, Error> {
         let response = self.hyper.request(
             supported_versions::Endpoint::method().into_hyper(),
             self.homeserver_url.join(&supported_versions::Endpoint::request_path(()))?,
