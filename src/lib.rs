@@ -68,8 +68,8 @@ impl Client {
     pub fn get_supported_versions(&self)
     -> Result<Response<<get_supported_versions::Endpoint as Endpoint>::Response>, Error> {
         let response = self.hyper.request(
-            supported_versions::Endpoint::method().into_hyper(),
-            self.homeserver_url.join(&supported_versions::Endpoint::request_path(()))?,
+            get_supported_versions::Endpoint::method().into_hyper(),
+            self.homeserver_url.join(&get_supported_versions::Endpoint::request_path(()))?,
         ).send()?;
 
         Ok(response.try_into()?)
