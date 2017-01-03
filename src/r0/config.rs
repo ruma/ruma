@@ -1,6 +1,6 @@
 //! Endpoints for client configuration.
 
-/// [PUT /_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:type](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-user-userid-rooms-roomid-account-data-type)
+/// [PUT /_matrix/client/r0/user/{userId}/rooms/{roomId}/account_data/{type}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-user-userid-rooms-roomid-account-data-type)
 pub mod set_room_account_data {
     use ruma_identifiers::{RoomId, UserId};
 
@@ -41,7 +41,7 @@ pub mod set_room_account_data {
     }
 }
 
-/// [PUT /_matrix/client/r0/user/:user_id/account_data/:type](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-user-userid-account-data-type)
+/// [PUT /_matrix/client/r0/user/{userId}/account_data/{type}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-user-userid-account-data-type)
 pub mod set_global_account_data  {
     use ruma_identifiers::UserId;
 
