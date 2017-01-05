@@ -50,3 +50,11 @@ pub enum PresenceState {
     #[serde(rename="unavailable")]
     Unavailable,
 }
+
+impl_enum! {
+    PresenceState {
+        Offline => "offline",
+        Online => "online",
+        Unavailable => "unavailable",
+    }
+}
