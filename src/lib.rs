@@ -32,6 +32,7 @@
 //!     }
 //!
 //!     /// This API endpoint's path parameters.
+//!     #[derive(Clone, Debug)]
 //!     pub struct PathParams {
 //!         pub room_alias: RoomAliasId,
 //!     }
@@ -53,8 +54,24 @@
 //!             format!("/_matrix/client/r0/directory/room/{}", params.room_alias)
 //!         }
 //!
-//!         fn router_path() -> String {
-//!             "/_matrix/client/r0/directory/room/:room_alias".to_string()
+//!         fn router_path() -> &'static str {
+//!             "/_matrix/client/r0/directory/room/:room_alias"
+//!         }
+//!
+//!         fn name() -> &'static str {
+//!             "room_directory"
+//!         }
+//!
+//!         fn description() -> &'static str {
+//!             "Matrix implementation of room directory."
+//!         }
+//!
+//!         fn requires_authentication() -> bool {
+//!             true
+//!         }
+//!
+//!         fn rate_limited() -> bool {
+//!             false
 //!         }
 //!     }
 //! }
@@ -101,5 +118,17 @@ pub trait Endpoint {
 
     /// Generates a generic path component of the URL for this endpoint, suitable for `Router` from
     /// the router crate.
-    fn router_path() -> String;
+    fn router_path() -> &'static str;
+
+    /// A unique identifier for this endpoint, suitable for `Router` from the router crate.
+    fn name() -> &'static str;
+
+    /// A human-readable description of the endpoint.
+    fn description() -> &'static str;
+
+    /// Whether or not this endpoint requires an authenticated user.
+    fn requires_authentication() -> bool;
+
+    /// Whether or not this endpoint is rate limited.
+    fn rate_limited() -> bool;
 }
