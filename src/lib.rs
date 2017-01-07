@@ -9,8 +9,11 @@ extern crate ruma_client_api;
 extern crate ruma_identifiers;
 extern crate serde;
 extern crate serde_json;
+extern crate serde_urlencoded;
 extern crate tokio_core;
 extern crate url;
+
+use std::fmt::Debug;
 
 use hyper::client::{Client as HyperClient, DefaultConnector, Request as HyperRequest};
 use hyper::Method as HyperMethod;
@@ -66,15 +69,31 @@ impl Client {
 
     /// Get the versions of the Matrix client-server specification supported by the homeserver.
     pub fn get_supported_versions(&mut self)
-    -> FutureResponse<<get_supported_versions::Endpoint as Endpoint>::Response> {
-        let request = HyperRequest::new(
-            get_supported_versions::Endpoint::method().into_hyper(),
-            self.homeserver_url.join(
-                &get_supported_versions::Endpoint::request_path(())
-            ).expect("request path should be joinable").try_into().expect("url should be parsable"),
-        );
+    -> Result<FutureResponse<<get_supported_versions::Endpoint as Endpoint>::Response>, Error> {
+        self.request::<get_supported_versions::Endpoint>((), (), ())
+    }
 
-        FutureResponse::from(self.hyper.request(request))
+    fn request<E>(
+        &mut self,
+        body_params: E::BodyParams,
+        path_params: E::PathParams,
+        query_params: E::QueryParams,
+    ) -> Result<FutureResponse<E::Response>, Error>
+    where E: Endpoint, <E as Endpoint>::Response: Debug + Send  {
+        let mut url = self.homeserver_url.join(&E::request_path(path_params))?.try_into()?;
+
+        url.set_query(Some(&serde_urlencoded::to_string(&query_params)?));
+
+        let mut request = HyperRequest::new(E::method().into_hyper(), url);
+
+        match E::method() {
+            Method::Post | Method::Put => {
+                request.set_body(serde_json::to_string(&body_params)?);
+            }
+            _ => {}
+        }
+
+        Ok(FutureResponse::from(self.hyper.request(request)))
     }
 }
 

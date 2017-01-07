@@ -1,5 +1,6 @@
 use hyper::Error as HyperError;
 use serde_json::Error as SerdeJsonError;
+use serde_urlencoded::ser::Error as SerdeUrlEncodedSerializeError;
 use url::ParseError;
 
 /// An error that occurs during client operations.
@@ -9,8 +10,10 @@ pub enum Error {
     Hyper(HyperError),
     /// An error when parsing a string as a URL.
     Url(ParseError),
-    /// An error when serializing or deserializing a value.
-    SerdeJson(SerdeJsonError)
+    /// An error when serializing or deserializing a JSON value.
+    SerdeJson(SerdeJsonError),
+    /// An error when serializing a query string value.
+    SerdeUrlEncodedSerialize(SerdeUrlEncodedSerializeError),
 }
 
 impl From<HyperError> for Error {
@@ -31,3 +34,8 @@ impl From<SerdeJsonError> for Error {
     }
 }
 
+impl From<SerdeUrlEncodedSerializeError> for Error {
+    fn from(error: SerdeUrlEncodedSerializeError) -> Error {
+        Error::SerdeUrlEncodedSerialize(error)
+    }
+}
