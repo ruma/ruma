@@ -88,7 +88,7 @@ pub trait Endpoint {
     type PathParams;
 
     /// Parameters supplied via the URL's query string.
-    type QueryParams;
+    type QueryParams: Deserialize + Serialize;
 
     /// The body of the response.
     type Response: Deserialize + Serialize;
