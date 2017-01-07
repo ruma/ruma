@@ -2,7 +2,6 @@
 //! endpoint in the [Matrix](https://matrix.org/) client API specification. These types can be
 //! shared by client and server code.
 
-#![feature(proc_macro)]
 #![deny(missing_debug_implementations)]
 #![warn(missing_docs)]
 

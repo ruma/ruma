@@ -82,7 +82,7 @@ pub mod get_content_thumbnail {
     pub struct Endpoint;
 
     /// The desired resizing method.
-    #[derive(Clone, Copy, Debug)]
+    #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
     pub enum Method {
         /// Crop the original to produce the requested image dimensions.
         Crop,
@@ -100,7 +100,7 @@ pub mod get_content_thumbnail {
     }
 
     /// This API endpoint's query string parameters.
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct QueryParams {
         /// The *desired* height of the thumbnail. The actual thumbnail may not match the size
         /// specified.

@@ -141,7 +141,7 @@ pub mod search_events {
     }
 
     /// This API endpoint's query string parameters.
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct QueryParams {
         /// The point to return events from.
         ///
