@@ -40,8 +40,24 @@ pub mod set_presence {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/presence/:user_id/status".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/presence/:user_id/status"
+        }
+
+        fn name() -> &'static str {
+            "set_presence"
+        }
+
+        fn description() -> &'static str {
+            "Set presence status for this user."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }
@@ -90,8 +106,24 @@ pub mod get_presence {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/presence/:user_id/status".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/presence/:user_id/status"
+        }
+
+        fn name() -> &'static str {
+            "get_presence"
+        }
+
+        fn description() -> &'static str {
+            "Get presence status for this user."
+        }
+
+        fn requires_authentication() -> bool {
+            false
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -138,8 +170,24 @@ pub mod update_presence_subscriptions {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/presence/list/:user_id".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/presence/list/:user_id"
+        }
+
+        fn name() -> &'static str {
+            "update_presence_subscriptions"
+        }
+
+        fn description() -> &'static str {
+            "Update the presence subscriptions of the user."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }
@@ -176,8 +224,25 @@ pub mod get_subscribed_presences {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/presence/list/:user_id".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/presence/list/:user_id"
+        }
+
+        fn name() -> &'static str {
+            "get_subscribed_presences"
+        }
+
+        fn description() -> &'static str {
+            "Get the precence status from the user's subscriptions."
+        }
+
+        fn requires_authentication() -> bool {
+            // TODO: not sure why this does not require authentication
+            false
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

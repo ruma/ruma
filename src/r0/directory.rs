@@ -43,11 +43,27 @@ pub mod get_public_rooms {
         }
 
         fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path()
+            Self::router_path().to_string()
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/publicRooms".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/publicRooms"
+        }
+
+        fn name() -> &'static str {
+            "get_public_rooms"
+        }
+
+        fn description() -> &'static str {
+            "Get the list of rooms in this homeserver's public directory."
+        }
+
+        fn requires_authentication() -> bool {
+            false
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

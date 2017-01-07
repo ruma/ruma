@@ -35,8 +35,24 @@ pub mod set_room_account_data {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:type".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:type"
+        }
+
+        fn name() -> &'static str {
+            "set_room_account_data"
+        }
+
+        fn description() -> &'static str {
+            "Associate account data with a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -74,8 +90,24 @@ pub mod set_global_account_data  {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/user/:user_id/account_data/:type".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/user/:user_id/account_data/:type"
+        }
+
+        fn name() -> &'static str {
+            "set_global_account_data"
+        }
+
+        fn description() -> &'static str {
+            "Sets global account data."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

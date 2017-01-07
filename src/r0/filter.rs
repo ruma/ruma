@@ -132,8 +132,24 @@ pub mod create_filter {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/user/:user_id/filter".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/user/:user_id/filter"
+        }
+
+        fn name() -> &'static str {
+            "create_filter"
+        }
+
+        fn description() -> &'static str {
+            "Create a new filter for event retrieval."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -172,8 +188,26 @@ pub mod get_filter {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/user/:user_id/filter/:filter_id".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/user/:user_id/filter/:filter_id"
+        }
+
+        fn name() -> &'static str {
+            "get_filter"
+        }
+
+        fn description() -> &'static str {
+            "Retrieve a previously created filter."
+        }
+
+        fn requires_authentication() -> bool {
+            // TODO: not sure why, as I guess you should not be able to retrieve
+            // other users filters?
+            false
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

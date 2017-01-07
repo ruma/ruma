@@ -34,8 +34,24 @@ pub mod get_content {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/media/r0/download/:server_name/:media_id".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/media/r0/download/:server_name/:media_id"
+        }
+
+        fn name() -> &'static str {
+            "get_media_content"
+        }
+
+        fn description() -> &'static str {
+            "Retrieve content from the media store."
+        }
+
+        fn requires_authentication() -> bool {
+            false
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -64,11 +80,28 @@ pub mod create_content {
         }
 
         fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path()
+            Self::router_path().to_string()
         }
 
-        fn router_path() -> String {
-            "/_matrix/media/r0/upload".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/media/r0/upload"
+        }
+
+        fn name() -> &'static str {
+            "create_media_content"
+        }
+
+        fn description() -> &'static str {
+            "Upload content to the media store."
+        }
+
+        fn requires_authentication() -> bool {
+            // TODO: How comes this does not require authentication?
+            false
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -85,8 +118,10 @@ pub mod get_content_thumbnail {
     #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
     pub enum Method {
         /// Crop the original to produce the requested image dimensions.
+        #[serde(rename = "crop")]
         Crop,
         /// Maintain the original aspect ratio of the source image.
+        #[serde(rename = "scale")]
         Scale,
     }
 
@@ -130,8 +165,24 @@ pub mod get_content_thumbnail {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/media/r0/thumbnail/:server_name/:media_id".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/media/r0/thumbnail/:server_name/:media_id"
+        }
+
+        fn name() -> &'static str {
+            "get_content_thumbnail"
+        }
+
+        fn description() -> &'static str {
+            "Get a thumbnail of content from the media store."
+        }
+
+        fn requires_authentication() -> bool {
+            false
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 

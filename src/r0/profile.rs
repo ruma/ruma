@@ -38,8 +38,24 @@ pub mod get_display_name {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/profile/:user_id/displayname".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/profile/:user_id/displayname"
+        }
+
+        fn name() -> &'static str {
+            "get_display_name"
+        }
+
+        fn description() -> &'static str {
+            "Get the display name of a user."
+        }
+
+        fn requires_authentication() -> bool {
+            false
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -83,8 +99,24 @@ pub mod set_display_name {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/profile/:user_id/displayname".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/profile/:user_id/displayname"
+        }
+
+        fn name() -> &'static str {
+            "set_display_name"
+        }
+
+        fn description() -> &'static str {
+            "Set the display name of the user."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }
@@ -127,8 +159,24 @@ pub mod get_avatar_url {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/profile/:user_id/avatar_url".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/profile/:user_id/avatar_url"
+        }
+
+        fn name() -> &'static str {
+            "get_avatar_url"
+        }
+
+        fn description() -> &'static str {
+            "Get the avatar URL of a user."
+        }
+
+        fn requires_authentication() -> bool {
+            false
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -171,8 +219,24 @@ pub mod set_avatar_url {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/profile/:user_id/avatar_url".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/profile/:user_id/avatar_url"
+        }
+
+        fn name() -> &'static str {
+            "set_avatar_url"
+        }
+
+        fn description() -> &'static str {
+            "Set the avatar URL of the user."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }
@@ -217,8 +281,24 @@ pub mod get_profile {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/profile/:user_id".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/profile/:user_id"
+        }
+
+        fn name() -> &'static str {
+            "get_profile"
+        }
+
+        fn description() -> &'static str {
+            "Get all profile information of an user."
+        }
+
+        fn requires_authentication() -> bool {
+            false
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

@@ -49,8 +49,24 @@ pub mod redact_event {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/redact/:event_id/:txn_id".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/redact/:event_id/:txn_id"
+        }
+
+        fn name() -> &'static str {
+            "redact_event"
+        }
+
+        fn description() -> &'static str {
+            "Redact an event, stripping all information not critical to the event graph integrity."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

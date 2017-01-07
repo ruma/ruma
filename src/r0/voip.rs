@@ -26,11 +26,27 @@ pub mod get_turn_server_info {
         }
 
         fn request_path(_params: Self::PathParams) -> String {
-            "/_matrix/client/r0/voip/turnServer".to_string()
+            Self::router_path().to_string()
         }
 
-        fn router_path() -> String {
-            "_matrix/client/r0/voip/turnServer".to_string()
+        fn router_path() -> &'static str {
+            "_matrix/client/r0/voip/turnServer"
+        }
+
+        fn name() -> &'static str {
+            "turn_server_info"
+        }
+
+        fn description() -> &'static str {
+            "Get credentials for the client to use when initiating VoIP calls."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }

@@ -24,11 +24,27 @@ pub mod get_supported_versions {
         }
 
         fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path()
+            Self::router_path().to_string()
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/versions".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/versions"
+        }
+
+        fn name() -> &'static str {
+            "api_version"
+        }
+
+        fn description() -> &'static str {
+            "Get the versions of the client-server API supported by this homeserver."
+        }
+
+        fn requires_authentication() -> bool {
+            false
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
