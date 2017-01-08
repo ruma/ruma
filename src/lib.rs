@@ -84,6 +84,14 @@ impl Client {
 
         url.set_query(Some(&serde_urlencoded::to_string(&query_params)?));
 
+        if E::requires_authentication() {
+            if let Some(ref session) = self.session {
+                url.query_pairs_mut().append_pair("access_token", &session.access_token);
+            } else {
+                return Err(Error::AuthenticationRequired)
+            }
+        }
+
         let mut request = HyperRequest::new(E::method().into_hyper(), url);
 
         match E::method() {

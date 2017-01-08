@@ -14,6 +14,8 @@ pub enum Error {
     SerdeJson(SerdeJsonError),
     /// An error when serializing a query string value.
     SerdeUrlEncodedSerialize(SerdeUrlEncodedSerializeError),
+    /// Queried endpoint requires authentication but was called on an anonymous client
+    AuthenticationRequired
 }
 
 impl From<HyperError> for Error {
