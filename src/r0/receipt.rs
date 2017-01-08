@@ -51,8 +51,24 @@ pub mod create_receipt {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/receipt/:receipt_type/:event_id".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/receipt/:receipt_type/:event_id"
+        }
+
+        fn name() -> &'static str {
+            "create_receipt"
+        }
+
+        fn description() -> &'static str {
+            "Send a receipt event to a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 

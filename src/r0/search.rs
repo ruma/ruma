@@ -222,11 +222,27 @@ pub mod search_events {
         }
 
         fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path()
+            Self::router_path().to_string()
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/search".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/search"
+        }
+
+        fn name() -> &'static str {
+            "search"
+        }
+
+        fn description() -> &'static str {
+            "Search events."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }

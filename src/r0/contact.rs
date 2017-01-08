@@ -33,11 +33,27 @@ pub mod create_contact {
         }
 
         fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path()
+            Self::router_path().to_string()
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/account/3pid".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/account/3pid"
+        }
+
+        fn name() -> &'static str {
+            "create_contact"
+        }
+
+        fn description() -> &'static str {
+            "Adds contact information to the user's account."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -79,18 +95,33 @@ pub mod get_contacts {
         }
 
         fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path()
+            Self::router_path().to_string()
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/account/3pid/email/requestToken".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/account/3pid/email/requestToken"
+        }
+
+        fn name() -> &'static str {
+            "get_contacts"
+        }
+
+        fn description() -> &'static str {
+            "Get a list of 3rd party contacts associated with the user's account."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
 
 /// [POST /_matrix/client/r0/account/3pid/email/requestToken](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-3pid-email-requesttoken)
 pub mod request_contact_verification_token {
-    // TODO: according to the spec this takes no parameters
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
@@ -116,11 +147,28 @@ pub mod request_contact_verification_token {
         }
 
         fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path()
+            Self::router_path().to_string()
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/account/3pid/email/requestToken".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/account/3pid/email/requestToken"
+        }
+
+        fn name() -> &'static str {
+            "request_contact_verification_token"
+        }
+
+        fn description() -> &'static str {
+            "Ask for a verification token for a given 3rd party ID."
+        }
+
+        fn requires_authentication() -> bool {
+            // Not sure why this don't require auth?
+            false
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

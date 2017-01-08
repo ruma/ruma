@@ -48,8 +48,24 @@ pub mod get_context {
             format!("/_matrix/client/r0/rooms/{}/context/{}", params.room_id, params.event_id)
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/context/:event_id".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/context/:event_id"
+        }
+
+        fn name() -> &'static str {
+            "get_context"
+        }
+
+        fn description() -> &'static str {
+            "Get the events immediately preceding and following a given event."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

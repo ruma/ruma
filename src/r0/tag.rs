@@ -36,8 +36,24 @@ pub mod create_tag {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags/:tag".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags/:tag"
+        }
+
+        fn name() -> &'static str {
+            "create_tag"
+        }
+
+        fn description() -> &'static str {
+            "Add a new tag to a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -82,8 +98,24 @@ pub mod get_tags {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags"
+        }
+
+        fn name() -> &'static str {
+            "get_tags"
+        }
+
+        fn description() -> &'static str {
+            "Get the tags associated with a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -123,8 +155,24 @@ pub mod delete_tag {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags/:tag".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags/:tag"
+        }
+
+        fn name() -> &'static str {
+            "delete_tag"
+        }
+
+        fn description() -> &'static str {
+            "Remove a tag from a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

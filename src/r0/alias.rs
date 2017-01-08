@@ -30,8 +30,24 @@ pub mod create_alias {
             format!("/_matrix/client/r0/directory/room/{}", params.room_alias)
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/directory/room/:room_alias".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/directory/room/:room_alias"
+        }
+
+        fn name() -> &'static str {
+            "create_alias"
+        }
+
+        fn description() -> &'static str {
+            "Add an alias to a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -56,8 +72,24 @@ pub mod delete_alias {
             format!("/_matrix/client/r0/directory/room/{}", params.room_alias)
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/directory/room/:room_alias".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/directory/room/:room_alias"
+        }
+
+        fn name() -> &'static str {
+            "delete_alias"
+        }
+
+        fn description() -> &'static str {
+            "Remove an alias from a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -91,8 +123,24 @@ pub mod get_alias {
             format!("/_matrix/client/r0/directory/room/{}", params.room_alias)
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/directory/room/:room_alias".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/directory/room/:room_alias"
+        }
+
+        fn name() -> &'static str {
+            "get_alias"
+        }
+
+        fn description() -> &'static str {
+            "Resolve a room alias to a room ID."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

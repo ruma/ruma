@@ -22,7 +22,7 @@ pub struct ThirdPartySigned {
 pub mod invite_user {
     use ruma_identifiers::{UserId, RoomId};
 
-    /// The request type.
+    /// The request body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
         pub user_id: UserId,
@@ -55,8 +55,24 @@ pub mod invite_user {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/invite".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/invite"
+        }
+
+        fn name() -> &'static str {
+            "invite_user"
+        }
+
+        fn description() -> &'static str {
+            "Invite a user to a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }
@@ -116,8 +132,24 @@ pub mod join_room_by_id_or_alias {
             }
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id_or_alias/join".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/join/:room_id_or_alias"
+        }
+
+        fn name() -> &'static str {
+            "join_room_by_id_or_alias"
+        }
+
+        fn description() -> &'static str {
+            "Join a room using its ID or one of its aliases."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }
@@ -167,8 +199,24 @@ pub mod join_room_by_id {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/join".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/join"
+        }
+
+        fn name() -> &'static str {
+            "join_room_by_id"
+        }
+
+        fn description() -> &'static str {
+            "Join a room using its ID."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }
@@ -204,8 +252,24 @@ pub mod forget_room {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/forget".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/forget"
+        }
+
+        fn name() -> &'static str {
+            "forget_room"
+        }
+
+        fn description() -> &'static str {
+            "Forget a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }
@@ -241,8 +305,24 @@ pub mod leave_room {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/leave".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/leave"
+        }
+
+        fn name() -> &'static str {
+            "leave_room"
+        }
+
+        fn description() -> &'static str {
+            "Leave a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }
@@ -286,8 +366,24 @@ pub mod kick_user {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/kick".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/kick"
+        }
+
+        fn name() -> &'static str {
+            "kick_user"
+        }
+
+        fn description() -> &'static str {
+            "Kick a user from a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -329,8 +425,24 @@ pub mod unban_user {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/unban".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/unban"
+        }
+
+        fn name() -> &'static str {
+            "unban_user"
+        }
+
+        fn description() -> &'static str {
+            "unban a user from a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -374,8 +486,24 @@ pub mod ban_user {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/ban".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/ban"
+        }
+
+        fn name() -> &'static str {
+            "ban_user"
+        }
+
+        fn description() -> &'static str {
+            "Ban a user from a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

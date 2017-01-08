@@ -1,7 +1,7 @@
 //! Endpoints for sending events.
 
 /// [PUT /_matrix/client/r0/rooms/{roomId}/state/{eventType}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-state-eventtype)
-pub mod send_state_event {
+pub mod send_state_event_for_empty_key {
     use ruma_identifiers::{RoomId, EventId};
     use ruma_events::EventType;
 
@@ -41,14 +41,30 @@ pub mod send_state_event {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/state/:event_type".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/state/:event_type"
+        }
+
+        fn name() -> &'static str {
+            "send_state_event_for_empty_key"
+        }
+
+        fn description() -> &'static str {
+            "Send a state event to a room associated with the empty state key."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
 
 /// [PUT /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-state-eventtype-statekey)
-pub mod send_state_event_by_state_key {
+pub mod send_state_event_for_key {
     use ruma_identifiers::{RoomId, EventId};
     use ruma_events::EventType;
 
@@ -90,8 +106,24 @@ pub mod send_state_event_by_state_key {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key"
+        }
+
+        fn name() -> &'static str {
+            "send_state_event_for_key"
+        }
+
+        fn description() -> &'static str {
+            "Send a state event to a room associated with a given state key."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -139,8 +171,24 @@ pub mod send_message_event {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/send/:event_type/:txn_id".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/send/:event_type/:txn_id"
+        }
+
+        fn name() -> &'static str {
+            "send_message_event"
+        }
+
+        fn description() -> &'static str {
+            "Send a message event to a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

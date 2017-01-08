@@ -68,8 +68,24 @@ pub mod get_user_info {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/admin/whois/:user_id".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/admin/whois/:user_id"
+        }
+
+        fn name() -> &'static str {
+            "get_user_info"
+        }
+
+        fn description() -> &'static str {
+            "Get information about a particular user."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

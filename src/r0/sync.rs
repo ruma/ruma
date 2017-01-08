@@ -32,14 +32,30 @@ pub mod get_state_events {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/state".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/state"
+        }
+
+        fn name() -> &'static str {
+            "get_state_events"
+        }
+
+        fn description() -> &'static str {
+            "Get state events for a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
 
 /// [GET /_matrix/client/r0/rooms/{roomId}/state/{eventType}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-state-eventtype)
-pub mod get_state_event_by_event_type {
+pub mod get_state_events_for_empty_key {
     use ruma_identifiers::RoomId;
 
     /// Details about this API endpoint.
@@ -71,14 +87,30 @@ pub mod get_state_event_by_event_type {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/state/:event_type".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/state/:event_type"
+        }
+
+        fn name() -> &'static str {
+            "get_state_events_for_empty_key"
+        }
+
+        fn description() -> &'static str {
+            "Get state events of a given type associated with the empty key."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
 
 /// [GET /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-state-eventtype-state-key)
-pub mod get_state_event_by_state_key {
+pub mod get_state_events_for_key {
     use ruma_identifiers::RoomId;
 
     /// Details about this API endpoint.
@@ -112,8 +144,24 @@ pub mod get_state_event_by_state_key {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key"
+        }
+
+        fn name() -> &'static str {
+            "get_state_events_for_key"
+        }
+
+        fn description() -> &'static str {
+            "Get state events associated with a given key."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -156,8 +204,27 @@ pub mod get_member_events {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/members".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/members"
+        }
+
+        fn name() -> &'static str {
+            "get_member_events"
+        }
+
+        fn description() -> &'static str {
+            "Get membership events for a room."
+        }
+
+        fn requires_authentication() -> bool {
+            // TODO: not marked as requiring auth in the spec, but
+            // will return a 403 error is user is not a member of the
+            // room anyway...
+            false
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -222,8 +289,24 @@ pub mod get_message_events {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/messages".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/messages"
+        }
+
+        fn name() -> &'static str {
+            "get_message_events"
+        }
+
+        fn description() -> &'static str {
+            "Get message events for a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -370,8 +453,24 @@ pub mod sync_events {
             "/_matrix/client/r0/sync".to_string()
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/sync".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/sync"
+        }
+
+        fn name() -> &'static str {
+            "sync"
+        }
+
+        fn description() -> &'static str {
+            "Get all new events from all rooms since the last sync or a given point of time."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

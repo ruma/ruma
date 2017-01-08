@@ -1,7 +1,7 @@
 //! Endpoints for typing notifications.
 
 /// [PUT /_matrix/client/r0/rooms/{roomId}/typing/{userId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-typing-userid)
-pub mod start_or_stop_typing {
+pub mod create_typing_event {
     use ruma_identifiers::{UserId, RoomId};
 
     /// Details about this API endpoint.
@@ -41,8 +41,24 @@ pub mod start_or_stop_typing {
             )
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/rooms/:room_id/invite/:user_id".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/rooms/:room_id/typing/:user_id"
+        }
+
+        fn name() -> &'static str {
+            "create_typing_event"
+        }
+
+        fn description() -> &'static str {
+            "Send a typing event to a room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }

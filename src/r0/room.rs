@@ -68,11 +68,27 @@ pub mod create_room {
         }
 
         fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path()
+            Self::router_path().to_string()
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/createRoom".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/createRoom"
+        }
+
+        fn name() -> &'static str {
+            "create_room"
+        }
+
+        fn description() -> &'static str {
+            "Create a new room."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }

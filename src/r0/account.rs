@@ -108,11 +108,27 @@ pub mod register {
         }
 
         fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path()
+            Self::router_path().to_string()
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/register".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/register"
+        }
+
+        fn name() -> &'static str {
+            "register"
+        }
+
+        fn description() -> &'static str {
+            "Register an account on this homeserver."
+        }
+
+        fn requires_authentication() -> bool {
+            false
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }
@@ -120,6 +136,8 @@ pub mod register {
 /// [POST /_matrix/client/r0/account/password/email/requestToken](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-password-email-requesttoken)
 pub mod request_password_change_token {
     // TODO: according to the spec, this does not has any params
+    // probably the spec's fault, as this would not make any sense.
+    // But the BodyParams here are probably wrong
     /// This API endpoint's body parameters.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct BodyParams {
@@ -145,11 +163,27 @@ pub mod request_password_change_token {
         }
 
         fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path()
+            Self::router_path().to_string()
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/account/password/email/requestToken".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/account/password/email/requestToken"
+        }
+
+        fn name() -> &'static str {
+            "request_password_change_token"
+        }
+
+        fn description() -> &'static str {
+            "Request that a password change token is sent to the given email address."
+        }
+
+        fn requires_authentication() -> bool {
+            false
+        }
+
+        fn rate_limited() -> bool {
+            false
         }
     }
 }
@@ -173,11 +207,27 @@ pub mod deactivate {
         }
 
         fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path()
+            Self::router_path().to_string()
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/account/deactivate".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/account/deactivate"
+        }
+
+        fn name() -> &'static str {
+            "deactivate"
+        }
+
+        fn description() -> &'static str {
+            "Deactivate the current user's account."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }
@@ -206,11 +256,27 @@ pub mod change_password {
         }
 
         fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path()
+            Self::router_path().to_string()
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/account/password".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/account/password"
+        }
+
+        fn name() -> &'static str {
+            "change_password"
+        }
+
+        fn description() -> &'static str {
+            "Change the password of the current user's account."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }
@@ -242,11 +308,27 @@ pub mod request_register_token {
         }
 
         fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path()
+            Self::router_path().to_string()
         }
 
-        fn router_path() -> String {
-            "/_matrix/client/r0/register/email/requestToken".to_string()
+        fn router_path() -> &'static str {
+            "/_matrix/client/r0/register/email/requestToken"
+        }
+
+        fn name() -> &'static str {
+            "request_register_token"
+        }
+
+        fn description() -> &'static str {
+            "Request a register token with a 3rd party email."
+        }
+
+        fn requires_authentication() -> bool {
+            true
+        }
+
+        fn rate_limited() -> bool {
+            true
         }
     }
 }
