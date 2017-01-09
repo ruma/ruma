@@ -192,12 +192,6 @@ pub trait Event where Self: Debug + for<'a> Deserialize<'a> + Serialize {
 
     /// The type of the event.
     fn event_type(&self) -> &EventType;
-
-    /// Extra top-level key-value pairs specific to this event type, but that are not under the
-    /// `content` field.
-    fn extra_content(&self) -> Option<Value> {
-        None
-    }
 }
 
 /// An event within the context of a room.
@@ -205,14 +199,17 @@ pub trait RoomEvent: Event {
     /// The unique identifier for the event.
     fn event_id(&self) -> &EventId;
 
+    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    fn origin_server_ts(&self) -> u64;
+
     /// The unique identifier for the room associated with this event.
     fn room_id(&self) -> &RoomId;
 
+    /// The unique identifier for the user who sent this event.
+    fn sender(&self) -> &UserId;
+
     /// Additional key-value pairs not signed by the homeserver.
     fn unsigned(&self) -> Option<&Value>;
-
-    /// The unique identifier for the user associated with this event.
-    fn user_id(&self) -> &UserId;
 }
 
 /// An event that describes persistent state about a room.

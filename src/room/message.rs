@@ -4,7 +4,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::Error;
 use serde_json::{Value, from_value};
 
-use super::ImageInfo;
+use super::{ImageInfo, ThumbnailInfo};
 
 room_event! {
     /// A message sent to a room.
@@ -118,17 +118,13 @@ pub struct FileMessageEventContent {
     /// A human-readable description of the file. This is recommended to be the filename of the
     /// original upload.
     pub body: String,
+    /// The original filename of the uploaded file.
+    pub filename: String,
     /// Metadata about the file referred to in `url`.
     #[serde(skip_serializing_if="Option::is_none")]
     pub info: Option<FileInfo>,
     /// The message type. Always *m.file*.
     pub msgtype: MessageType,
-    /// Metadata about the image referred to in `thumbnail_url`.
-    #[serde(skip_serializing_if="Option::is_none")]
-    pub thumbnail_info: Option<ImageInfo>,
-    /// The URL to the thumbnail of the file.
-    #[serde(skip_serializing_if="Option::is_none")]
-    pub thumbnail_url: Option<String>,
     /// The URL to the file.
     pub url: String,
 }
@@ -140,6 +136,12 @@ pub struct FileInfo {
     pub mimetype: String,
     /// The size of the file in bytes.
     pub size: u64,
+    /// Metadata about the image referred to in `thumbnail_url`.
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub thumbnail_info: Option<ThumbnailInfo>,
+    /// The URL to the thumbnail of the file.
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub thumbnail_url: Option<String>,
 }
 
 /// The payload of an image message.
@@ -153,12 +155,6 @@ pub struct ImageMessageEventContent {
     pub info: Option<ImageInfo>,
     /// The message type. Always *m.image*.
     pub msgtype: MessageType,
-    /// Metadata about the image referred to in `thumbnail_url`.
-    #[serde(skip_serializing_if="Option::is_none")]
-    pub thumbnail_info: Option<ImageInfo>,
-    /// The URL to the thumbnail of the image.
-    #[serde(skip_serializing_if="Option::is_none")]
-    pub thumbnail_url: Option<String>,
     /// The URL to the image.
     pub url: String,
 }
@@ -173,9 +169,17 @@ pub struct LocationMessageEventContent {
     pub geo_uri: String,
     /// The message type. Always *m.location*.
     pub msgtype: MessageType,
+    /// Info about the location being represented.
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub info: Option<LocationInfo>,
+}
+
+/// Thumbnail info associated with a location.
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct LocationInfo {
     /// Metadata about the image referred to in `thumbnail_url`.
     #[serde(skip_serializing_if="Option::is_none")]
-    pub thumbnail_info: Option<ImageInfo>,
+    pub thumbnail_info: Option<ThumbnailInfo>,
     /// The URL to a thumbnail of the location being represented.
     #[serde(skip_serializing_if="Option::is_none")]
     pub thumbnail_url: Option<String>,
@@ -232,7 +236,7 @@ pub struct VideoInfo {
     pub size: Option<u64>,
     /// Metadata about an image.
     #[serde(skip_serializing_if="Option::is_none")]
-    pub thumbnail_info: Option<ImageInfo>,
+    pub thumbnail_info: Option<ThumbnailInfo>,
     /// The URL to a thumbnail of the video clip.
     #[serde(skip_serializing_if="Option::is_none")]
     pub thumbnail_url: Option<String>,

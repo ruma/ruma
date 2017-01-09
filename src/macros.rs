@@ -90,6 +90,9 @@ macro_rules! room_event {
             #[serde(rename="type")]
             pub event_type: $crate::EventType,
 
+            /// Timestamp in milliseconds on originating homeserver when this event was sent.
+            pub origin_server_ts: u64,
+
             /// The unique identifier for the room associated with this event.
             pub room_id: ::ruma_identifiers::RoomId,
 
@@ -97,9 +100,8 @@ macro_rules! room_event {
             #[serde(skip_serializing_if="Option::is_none")]
             pub unsigned: Option<::serde_json::Value>,
 
-            /// The unique identifier for the user associated with this event.
-            #[serde(rename="sender")]
-            pub user_id: ::ruma_identifiers::UserId,
+            /// The unique identifier for the user who sent this event.
+            pub sender: ::ruma_identifiers::UserId,
 
             $(
                 $(#[$field_attr])*
@@ -120,6 +122,10 @@ macro_rules! impl_room_event {
                 &self.event_id
             }
 
+            fn origin_server_ts(&self) -> u64 {
+                self.origin_server_ts
+            }
+
             fn room_id(&self) -> &::ruma_identifiers::RoomId {
                 &self.room_id
             }
@@ -128,8 +134,8 @@ macro_rules! impl_room_event {
                 self.unsigned.as_ref()
             }
 
-            fn user_id(&self) -> &::ruma_identifiers::UserId {
-                &self.user_id
+            fn sender(&self) -> &::ruma_identifiers::UserId {
+                &self.sender
             }
         }
     }
@@ -158,6 +164,9 @@ macro_rules! state_event {
             #[serde(rename="type")]
             pub event_type: $crate::EventType,
 
+            /// Timestamp in milliseconds on originating homeserver when this event was sent.
+            pub origin_server_ts: u64,
+
             /// The previous content for this state key, if any.
             #[serde(skip_serializing_if="Option::is_none")]
             pub prev_content: Option<$content_type>,
@@ -173,8 +182,7 @@ macro_rules! state_event {
             pub unsigned: Option<::serde_json::Value>,
 
             /// The unique identifier for the user associated with this event.
-            #[serde(rename="sender")]
-            pub user_id: ::ruma_identifiers::UserId,
+            pub sender: ::ruma_identifiers::UserId,
 
             $(
                 $(#[$field_attr])*
