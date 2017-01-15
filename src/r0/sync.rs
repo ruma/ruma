@@ -184,7 +184,7 @@ pub mod get_member_events {
     /// This API endpoint's reponse.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Response {
-        pub chunks: Vec<MemberEvent>
+        pub chunk: Vec<MemberEvent>
     }
 
     impl ::Endpoint for Endpoint {
@@ -268,7 +268,7 @@ pub mod get_message_events {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Response {
         pub start: String,
-        pub chunks: Vec<only::RoomEvent>,
+        pub chunk: Vec<only::RoomEvent>,
         pub end: String
     }
 
