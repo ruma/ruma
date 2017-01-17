@@ -1,4 +1,4 @@
-//! Crate ruma_client is a [Matrix](https://matrix.org/) client library.
+//! Crate `ruma_client` is a [Matrix](https://matrix.org/) client library.
 
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
@@ -15,7 +15,7 @@ extern crate url;
 
 use std::fmt::Debug;
 
-use hyper::client::{Client as HyperClient, DefaultConnector, Request as HyperRequest};
+use hyper::client::{Client as HyperClient, HttpConnector, Request as HyperRequest};
 use hyper::Method as HyperMethod;
 use ruma_client_api::{Endpoint, Method};
 use ruma_client_api::unversioned::get_supported_versions;
@@ -34,7 +34,7 @@ mod session;
 #[derive(Debug)]
 pub struct Client {
     homeserver_url: Url,
-    hyper: HyperClient<DefaultConnector>,
+    hyper: HyperClient<HttpConnector>,
     session: Option<Session>,
 }
 
@@ -88,7 +88,7 @@ impl Client {
             if let Some(ref session) = self.session {
                 url.query_pairs_mut().append_pair("access_token", &session.access_token);
             } else {
-                return Err(Error::AuthenticationRequired)
+                return Err(Error::AuthenticationRequired);
             }
         }
 

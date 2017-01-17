@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 
 use futures::{Async, Future, Poll, Stream};
 use hyper::client::{FutureResponse as HyperFutureResponse, Response as HyperResponse};
-use hyper::{Error as HyperError};
+use hyper::Error as HyperError;
 use hyper::header::Headers;
 use hyper::status::StatusCode;
 use hyper::HttpVersion;
