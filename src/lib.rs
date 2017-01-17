@@ -70,19 +70,26 @@ impl Client {
     /// Get the versions of the Matrix client-server specification supported by the homeserver.
     pub fn get_supported_versions(&mut self)
     -> Result<FutureResponse<<get_supported_versions::Endpoint as Endpoint>::Response>, Error> {
-        self.request::<get_supported_versions::Endpoint>((), (), ())
+        self.request::<get_supported_versions::Endpoint>(None, None, None)
     }
 
     fn request<E>(
         &mut self,
-        body_params: E::BodyParams,
-        path_params: E::PathParams,
-        query_params: E::QueryParams,
+        body_params: Option<E::BodyParams>,
+        path_params: Option<E::PathParams>,
+        query_params: Option<E::QueryParams>,
     ) -> Result<FutureResponse<E::Response>, Error>
     where E: Endpoint, <E as Endpoint>::Response: Debug + Send  {
-        let mut url = self.homeserver_url.join(&E::request_path(path_params))?.try_into()?;
+        let path = match path_params {
+            Some(params) => E::request_path(params),
+            None => E::router_path().to_string(),
+        };
 
-        url.set_query(Some(&serde_urlencoded::to_string(&query_params)?));
+        let mut url = self.homeserver_url.join(&path)?.try_into()?;
+
+        if let Some(params) = query_params {
+            url.set_query(Some(&serde_urlencoded::to_string(&params)?));
+        }
 
         if E::requires_authentication() {
             if let Some(ref session) = self.session {
@@ -96,7 +103,9 @@ impl Client {
 
         match E::method() {
             Method::Post | Method::Put => {
-                request.set_body(serde_json::to_string(&body_params)?);
+                if let Some(params) = body_params {
+                    request.set_body(serde_json::to_string(&params)?);
+                }
             }
             _ => {}
         }
