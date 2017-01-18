@@ -13,6 +13,7 @@ extern crate serde_urlencoded;
 extern crate tokio_core;
 extern crate url;
 
+use std::borrow::Cow;
 use std::fmt::Debug;
 
 use hyper::client::{Client as HyperClient, HttpConnector, Request as HyperRequest};
@@ -81,11 +82,11 @@ impl Client {
     ) -> Result<FutureResponse<E::Response>, Error>
     where E: Endpoint, <E as Endpoint>::Response: Debug + Send  {
         let path = match path_params {
-            Some(params) => E::request_path(params),
-            None => E::router_path().to_string(),
+            Some(params) => Cow::from(E::request_path(params)),
+            None => Cow::from(E::router_path()),
         };
 
-        let mut url = self.homeserver_url.join(&path)?.try_into()?;
+        let mut url = self.homeserver_url.join(path.as_ref())?.try_into()?;
 
         if let Some(params) = query_params {
             url.set_query(Some(&serde_urlencoded::to_string(&params)?));
