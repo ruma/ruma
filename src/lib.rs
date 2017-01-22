@@ -120,6 +120,7 @@ pub mod collections {
     pub mod all;
     pub mod only;
 }
+pub mod direct;
 pub mod presence;
 pub mod receipt;
 pub mod room;
@@ -142,6 +143,8 @@ pub enum EventType {
     CallHangup,
     /// m.call.invite
     CallInvite,
+    /// m.direct
+    Direct,
     /// m.presence
     Presence,
     /// m.receipt
@@ -243,6 +246,7 @@ impl Display for EventType {
             EventType::CallCandidates => "m.call.candidates",
             EventType::CallHangup => "m.call.hangup",
             EventType::CallInvite => "m.call.invite",
+            EventType::Direct => "m.direct",
             EventType::Presence => "m.presence",
             EventType::Receipt => "m.receipt",
             EventType::RoomAliases => "m.room.aliases",
@@ -275,6 +279,7 @@ impl<'a> From<&'a str> for EventType {
             "m.call.candidates" => EventType::CallCandidates,
             "m.call.hangup" => EventType::CallHangup,
             "m.call.invite" => EventType::CallInvite,
+            "m.direct" => EventType::Direct,
             "m.presence" => EventType::Presence,
             "m.receipt" => EventType::Receipt,
             "m.room.aliases" => EventType::RoomAliases,

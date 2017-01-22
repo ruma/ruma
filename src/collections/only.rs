@@ -6,6 +6,7 @@ use call::answer::AnswerEvent;
 use call::candidates::CandidatesEvent;
 use call::hangup::HangupEvent;
 use call::invite::InviteEvent;
+use direct::DirectEvent;
 use presence::PresenceEvent;
 use receipt::ReceiptEvent;
 use room::message::MessageEvent;
@@ -22,6 +23,8 @@ pub use super::all::StateEvent;
 /// A basic event.
 #[derive(Clone, Debug)]
 pub enum Event {
+    /// m.direct
+    Direct(DirectEvent),
     /// m.presence
     Presence(PresenceEvent),
     /// m.receipt
@@ -56,6 +59,7 @@ pub enum RoomEvent {
 impl Serialize for Event {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         match *self {
+            Event::Direct(ref event) => event.serialize(serializer),
             Event::Presence(ref event) => event.serialize(serializer),
             Event::Receipt(ref event) => event.serialize(serializer),
             Event::Tag(ref event) => event.serialize(serializer),
@@ -80,6 +84,14 @@ impl<'de> Deserialize<'de> for Event {
         };
 
         match event_type {
+            EventType::Direct => {
+                let event = match from_value::<DirectEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::Direct(event))
+            }
             EventType::Presence => {
                 let event = match from_value::<PresenceEvent>(value) {
                     Ok(event) => event,
@@ -217,12 +229,23 @@ impl<'de> Deserialize<'de> for RoomEvent {
 
                 Ok(RoomEvent::CustomRoom(event))
             }
-            EventType::Presence | EventType::Receipt | EventType::RoomAliases |
-            EventType::RoomAvatar | EventType::RoomCanonicalAlias | EventType::RoomCreate |
-            EventType::RoomGuestAccess | EventType::RoomHistoryVisibility |
-            EventType::RoomJoinRules | EventType::RoomMember | EventType::RoomName |
-            EventType::RoomPowerLevels |EventType::RoomThirdPartyInvite | EventType::RoomTopic |
-            EventType::Tag | EventType::Typing => {
+            EventType::Direct |
+            EventType::Presence |
+            EventType::Receipt |
+            EventType::RoomAliases |
+            EventType::RoomAvatar |
+            EventType::RoomCanonicalAlias |
+            EventType::RoomCreate |
+            EventType::RoomGuestAccess |
+            EventType::RoomHistoryVisibility |
+            EventType::RoomJoinRules |
+            EventType::RoomMember |
+            EventType::RoomName |
+            EventType::RoomPowerLevels |
+            EventType::RoomThirdPartyInvite |
+            EventType::RoomTopic |
+            EventType::Tag |
+            EventType::Typing => {
                 return Err(D::Error::custom("not exclusively a room event".to_string()));
             }
         }
@@ -238,6 +261,7 @@ macro_rules! impl_from_t_for_event {
     };
 }
 
+impl_from_t_for_event!(DirectEvent, Direct);
 impl_from_t_for_event!(PresenceEvent, Presence);
 impl_from_t_for_event!(ReceiptEvent, Receipt);
 impl_from_t_for_event!(TagEvent, Tag);

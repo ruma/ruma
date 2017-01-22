@@ -6,6 +6,7 @@ use call::answer::AnswerEvent;
 use call::candidates::CandidatesEvent;
 use call::hangup::HangupEvent;
 use call::invite::InviteEvent;
+use direct::DirectEvent;
 use presence::PresenceEvent;
 use receipt::ReceiptEvent;
 use room::aliases::AliasesEvent;
@@ -40,6 +41,8 @@ pub enum Event {
     CallHangup(HangupEvent),
     /// m.call.invite
     CallInvite(InviteEvent),
+    /// m.direct
+    Direct(DirectEvent),
     /// m.presence
     Presence(PresenceEvent),
     /// m.receipt
@@ -167,6 +170,7 @@ impl Serialize for Event {
             Event::CallCandidates(ref event) => event.serialize(serializer),
             Event::CallHangup(ref event) => event.serialize(serializer),
             Event::CallInvite(ref event) => event.serialize(serializer),
+            Event::Direct(ref event) => event.serialize(serializer),
             Event::Presence(ref event) => event.serialize(serializer),
             Event::Receipt(ref event) => event.serialize(serializer),
             Event::RoomAliases(ref event) => event.serialize(serializer),
@@ -238,6 +242,14 @@ impl<'de> Deserialize<'de> for Event {
                 };
 
                 Ok(Event::CallInvite(event))
+            }
+            EventType::Direct => {
+                let event = match from_value::<DirectEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::Direct(event))
             }
             EventType::Presence => {
                 let event = match from_value::<PresenceEvent>(value) {
@@ -615,7 +627,11 @@ impl<'de> Deserialize<'de> for RoomEvent {
                     Ok(RoomEvent::CustomRoom(event))
                 }
             }
-            EventType::Presence | EventType::Receipt | EventType::Tag | EventType::Typing => {
+            EventType::Direct |
+            EventType::Presence |
+            EventType::Receipt |
+            EventType::Tag |
+            EventType::Typing => {
                 return Err(D::Error::custom("not a room event".to_string()));
             }
         }
@@ -761,9 +777,16 @@ impl<'de> Deserialize<'de> for StateEvent {
 
                 Ok(StateEvent::CustomState(event))
             }
-            EventType::CallAnswer | EventType::CallCandidates | EventType::CallHangup |
-            EventType::CallInvite | EventType::Presence | EventType::Receipt |
-            EventType::RoomMessage | EventType::RoomRedaction | EventType::Tag |
+            EventType::CallAnswer |
+            EventType::CallCandidates |
+            EventType::CallHangup |
+            EventType::CallInvite |
+            EventType::Direct |
+            EventType::Presence |
+            EventType::Receipt |
+            EventType::RoomMessage |
+            EventType::RoomRedaction |
+            EventType::Tag |
             EventType::Typing => {
                 return Err(D::Error::custom("not a state event".to_string()));
             }
@@ -785,6 +808,7 @@ impl_from_t_for_event!(AnswerEvent, CallAnswer);
 impl_from_t_for_event!(CandidatesEvent, CallCandidates);
 impl_from_t_for_event!(HangupEvent, CallHangup);
 impl_from_t_for_event!(InviteEvent, CallInvite);
+impl_from_t_for_event!(DirectEvent, Direct);
 impl_from_t_for_event!(PresenceEvent, Presence);
 impl_from_t_for_event!(ReceiptEvent, Receipt);
 impl_from_t_for_event!(AliasesEvent, RoomAliases);
