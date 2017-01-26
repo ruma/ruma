@@ -27,9 +27,9 @@
 //!     &public_key, // &[u8]
 //!     &private_key, // &[u8]
 //!     "1".to_string(), // The "version" of the key.
-//! ).unwrap();
-//! let value = serde_json::from_str("{}").unwrap(); // An empty JSON object.
-//! let signature = ruma_signatures::sign_json(&key_pair, &value).unwrap(); // `Signature`
+//! ).expect("the provided keys should be suitable for Ed25519");
+//! let value = serde_json::from_str("{}").expect("an empty JSON object should deserialize");
+//! ruma_signatures::sign_json(&key_pair, &value).expect("value is a a JSON object"); // `Signature`
 //! # }
 //! ```
 //!
@@ -48,8 +48,10 @@
 //! # fn main() {
 //! # let public_key = [0; 32];
 //! # let signature_bytes = [0, 32];
-//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
-//! let value = serde_json::from_str("{}").unwrap(); // The same empty JSON object.
+//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).expect(
+//!     "key identifier should be valid"
+//! );
+//! let value = serde_json::from_str("{}").expect("an empty JSON object should deserialize");
 //! let verifier = ruma_signatures::Ed25519Verifier::new();
 //! assert!(ruma_signatures::verify_json(&verifier, &public_key, &signature, &value).is_ok());
 //! # }
@@ -86,10 +88,12 @@
 //! # extern crate serde_json;
 //! # fn main() {
 //! # let signature_bytes = [0, 32];
-//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
+//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).expect(
+//!     "key identifier should be valid"
+//! );
 //! let mut signature_set = ruma_signatures::SignatureSet::new();
 //! signature_set.insert(signature);
-//! let json = serde_json::to_string(&signature_set).unwrap();
+//! serde_json::to_string(&signature_set).expect("signature_set should serialize");
 //! # }
 //! ```
 //!
@@ -105,18 +109,19 @@
 //! # extern crate serde_json;
 //! # fn main() {
 //! # let signature_bytes = [0, 32];
-//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
+//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).expect(
+//!     "key identifier should be valid"
+//! );
 //! let mut signature_set = ruma_signatures::SignatureSet::new();
 //! signature_set.insert(signature);
 //! let mut signatures = ruma_signatures::Signatures::new();
-//! signatures.insert("example.com", signature_set);
-//! let json = serde_json::to_string(&signatures).unwrap();
+//! signatures.insert("example.com", signature_set).expect("example.com is a valid server name");
+//! serde_json::to_string(&signatures).expect("signatures should serialize");
 //! # }
 //! ```
 //!
 //! Just like the `SignatureSet` itself, the `Signatures` value can also be deserialized from JSON.
 
-#![cfg_attr(test, feature(proc_macro))]
 #![deny(missing_docs)]
 
 extern crate ring;
@@ -135,8 +140,9 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use ring::signature::{ED25519, Ed25519KeyPair as RingEd25519KeyPair, verify};
 use rustc_serialize::base64::{CharacterSet, Config, FromBase64, Newline, ToBase64};
-use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
-use serde::de::{MapVisitor, Visitor};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::de::{Error as SerdeError, MapVisitor, Unexpected, Visitor};
+use serde::ser::SerializeMap;
 use serde_json::{Value, to_string};
 use untrusted::Input;
 use url::Url;
@@ -183,7 +189,7 @@ pub fn to_canonical_json(value: &Value) -> Result<String, Error> {
     let mut owned_value = value.clone();
 
     {
-        let mut object = owned_value.as_object_mut().unwrap(); // Safe since we checked above.
+        let mut object = owned_value.as_object_mut().expect("safe since we checked above");
         object.remove("signatures");
         object.remove("unsigned");
     }
@@ -505,38 +511,40 @@ impl Signatures {
 }
 
 impl Deserialize for Signatures {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         deserializer.deserialize_map(SignaturesVisitor)
     }
 }
 
 impl Serialize for Signatures {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
-        let mut state = try!(serializer.serialize_map(Some(self.len())));
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+        let mut map_serializer = serializer.serialize_map(Some(self.len()))?;
 
         for (host, signature_set) in self.map.iter() {
-            try!(serializer.serialize_map_key(&mut state, host.to_string()));
-            try!(serializer.serialize_map_value(&mut state, signature_set));
+            map_serializer.serialize_key(&host.to_string())?;
+            map_serializer.serialize_value(signature_set)?;
         }
 
-        serializer.serialize_map_end(state)
+        map_serializer.end()
     }
 }
 
 impl Visitor for SignaturesVisitor {
     type Value = Signatures;
 
-    fn visit_map<M>(&mut self, mut visitor: M) -> Result<Self::Value, M::Error>
+    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+        write!(formatter, "digital signatures")
+    }
+
+    fn visit_map<M>(self, mut visitor: M) -> Result<Self::Value, M::Error>
     where M: MapVisitor {
         let mut signatures = Signatures::with_capacity(visitor.size_hint().0);
 
-        while let Some((server_name, signature_set)) = try!(visitor.visit::<String, SignatureSet>()) {
+        while let Some((server_name, signature_set)) = visitor.visit::<String, SignatureSet>()? {
             if let Err(_) = signatures.insert(&server_name, signature_set) {
-                return Err(M::Error::invalid_value(&server_name));
+                return Err(M::Error::invalid_value(Unexpected::Str(&server_name), &self));
             }
         }
-
-        try!(visitor.end());
 
         Ok(signatures)
     }
@@ -580,36 +588,42 @@ impl SignatureSet {
 }
 
 impl Deserialize for SignatureSet {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         deserializer.deserialize_map(SignatureSetVisitor)
     }
 }
 
 impl Serialize for SignatureSet {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
-        let mut state = try!(serializer.serialize_map(Some(self.len())));
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+        let mut map_serializer = serializer.serialize_map(Some(self.len()))?;
 
         for signature in self.set.iter() {
-            try!(serializer.serialize_map_key(&mut state, signature.id()));
-            try!(serializer.serialize_map_value(&mut state, signature.base64()));
+            map_serializer.serialize_key(&signature.id())?;
+            map_serializer.serialize_value(&signature.base64())?;
         }
 
-        serializer.serialize_map_end(state)
+        map_serializer.end()
     }
 }
 
 impl Visitor for SignatureSetVisitor {
     type Value = SignatureSet;
 
-    fn visit_map<M>(&mut self, mut visitor: M) -> Result<Self::Value, M::Error>
+    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+        write!(formatter, "a set of digital signatures")
+    }
+
+    fn visit_map<M>(self, mut visitor: M) -> Result<Self::Value, M::Error>
     where M: MapVisitor {
         let mut signature_set = SignatureSet::with_capacity(visitor.size_hint().0);
 
-        while let Some((key, value)) = try!(visitor.visit::<String, String>()) {
+        while let Some((key, value)) = visitor.visit::<String, String>()? {
             let (algorithm, version) = split_id(&key).map_err(|split_error| {
                 match split_error {
-                    SplitError::InvalidLength(length) => M::Error::invalid_length(length),
-                    SplitError::UnknownAlgorithm(algorithm) => M::Error::invalid_value(algorithm),
+                    SplitError::InvalidLength(length) => M::Error::invalid_length(length, &self),
+                    SplitError::UnknownAlgorithm(algorithm) => {
+                        M::Error::invalid_value(Unexpected::Str(algorithm), &self)
+                    }
                 }
             })?;
 
@@ -626,8 +640,6 @@ impl Visitor for SignatureSetVisitor {
 
             signature_set.insert(signature);
         }
-
-        try!(visitor.end());
 
         Ok(signature_set)
     }
@@ -758,12 +770,12 @@ mod test {
             one: 1,
         };
 
-        let alpha_value = to_value(alpha);
+        let alpha_value = to_value(alpha).expect("alpha should serialize");
         let alpha_signature = sign_json(&key_pair, &alpha_value).unwrap();
 
         assert_eq!(alpha_signature.base64(), MINIMAL_JSON_SIGNATURE);
 
-        let reverse_alpha_value = to_value(reverse_alpha);
+        let reverse_alpha_value = to_value(reverse_alpha).expect("reverse_alpha should serialize");
         let reverse_alpha_signature = sign_json(&key_pair, &reverse_alpha_value).unwrap();
 
         assert_eq!(reverse_alpha_signature.base64(), MINIMAL_JSON_SIGNATURE);
