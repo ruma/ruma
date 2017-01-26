@@ -23,8 +23,8 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use rand::{Rng, thread_rng};
 use regex::Regex;
-use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
-use serde::de::Visitor;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::de::{Error as SerdeError, Unexpected, Visitor};
 use url::{ParseError, Url};
 
 pub use url::Host;
@@ -424,25 +424,25 @@ impl Display for UserId {
 }
 
 impl Serialize for EventId {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         serializer.serialize_str(&self.to_string())
     }
 }
 
 impl Serialize for RoomAliasId {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         serializer.serialize_str(&self.to_string())
     }
 }
 
 impl Serialize for RoomId {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         serializer.serialize_str(&self.to_string())
     }
 }
 
 impl Serialize for RoomIdOrAliasId {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         match *self {
             RoomIdOrAliasId::RoomAliasId(ref room_alias_id) => {
                 serializer.serialize_str(&room_alias_id.to_string())
@@ -455,37 +455,37 @@ impl Serialize for RoomIdOrAliasId {
 }
 
 impl Serialize for UserId {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         serializer.serialize_str(&self.to_string())
     }
 }
 
 impl Deserialize for EventId {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         deserializer.deserialize(EventIdVisitor)
     }
 }
 
 impl Deserialize for RoomAliasId {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         deserializer.deserialize(RoomAliasIdVisitor)
     }
 }
 
 impl Deserialize for RoomId {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         deserializer.deserialize(RoomIdVisitor)
     }
 }
 
 impl Deserialize for RoomIdOrAliasId {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         deserializer.deserialize(RoomIdOrAliasIdVisitor)
     }
 }
 
 impl Deserialize for UserId {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         deserializer.deserialize(UserIdVisitor)
     }
 }
@@ -599,10 +599,14 @@ impl<'a> TryFrom<&'a str> for UserId {
 impl Visitor for EventIdVisitor {
     type Value = EventId;
 
-    fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+        write!(formatter, "a Matrix event ID as a string")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
         match EventId::try_from(v) {
             Ok(event_id) => Ok(event_id),
-            Err(_) => Err(SerdeError::custom("invalid ID")),
+            Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
         }
     }
 }
@@ -610,10 +614,14 @@ impl Visitor for EventIdVisitor {
 impl Visitor for RoomAliasIdVisitor {
     type Value = RoomAliasId;
 
-    fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+        write!(formatter, "a Matrix room alias ID as a string")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
         match RoomAliasId::try_from(v) {
             Ok(room_alias_id) => Ok(room_alias_id),
-            Err(_) => Err(SerdeError::custom("invalid ID")),
+            Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
         }
     }
 }
@@ -621,10 +629,14 @@ impl Visitor for RoomAliasIdVisitor {
 impl Visitor for RoomIdVisitor {
     type Value = RoomId;
 
-    fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+        write!(formatter, "a Matrix room ID as a string")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
         match RoomId::try_from(v) {
             Ok(room_id) => Ok(room_id),
-            Err(_) => Err(SerdeError::custom("invalid ID")),
+            Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
         }
     }
 }
@@ -632,10 +644,14 @@ impl Visitor for RoomIdVisitor {
 impl Visitor for RoomIdOrAliasIdVisitor {
     type Value = RoomIdOrAliasId;
 
-    fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+        write!(formatter, "a Matrix room ID or room alias ID as a string")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
         match RoomIdOrAliasId::try_from(v) {
             Ok(room_id_or_alias_id) => Ok(room_id_or_alias_id),
-            Err(_) => Err(SerdeError::custom("invalid ID")),
+            Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
         }
     }
 }
@@ -643,10 +659,14 @@ impl Visitor for RoomIdOrAliasIdVisitor {
 impl Visitor for UserIdVisitor {
     type Value = UserId;
 
-    fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+        write!(formatter, "a Matrix user ID as a string")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
         match UserId::try_from(v) {
             Ok(user_id) => Ok(user_id),
-            Err(_) => Err(SerdeError::custom("invalid ID")),
+            Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
         }
     }
 }
