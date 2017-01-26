@@ -11,7 +11,7 @@ repository = "https://github.com/ruma/ruma-signatures"
 version = "0.2.0"
 
 [dependencies]
-ring = "0.6.2"
+ring = "0.6.3"
 rustc-serialize = "0.3.22"
 serde = "0.9.1"
 serde_json = "0.9.1"
