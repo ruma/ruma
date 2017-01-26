@@ -5,7 +5,8 @@
 //! state event to be created, when the other fields can be inferred from a larger context, or where
 //! the other fields are otherwise inapplicable.
 
-use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::de::Error;
 use serde_json::{Value, from_value};
 
 use EventType;
@@ -75,7 +76,7 @@ pub struct StrippedStateContent<C> where C: Deserialize + Serialize {
 }
 
 impl Serialize for StrippedState {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         match *self {
             StrippedState::RoomAliases(ref event) => event.serialize(serializer),
             StrippedState::RoomAvatar(ref event) => event.serialize(serializer),
@@ -94,10 +95,10 @@ impl Serialize for StrippedState {
 }
 
 impl Deserialize for StrippedState {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         let value: Value = try!(Deserialize::deserialize(deserializer));
 
-        let event_type_value = match value.find("type") {
+        let event_type_value = match value.get("type") {
             Some(value) => value.clone(),
             None => return Err(D::Error::missing_field("type")),
         };

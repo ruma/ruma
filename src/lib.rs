@@ -95,7 +95,7 @@
 //! However, the `ruma_events::collections::only::Event` enum does *not* include *m.room.message*,
 //! because *m.room.message* implements a *more specific* event trait than `Event`.
 
-#![feature(proc_macro)]
+#![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
 
 extern crate ruma_identifiers;
@@ -104,11 +104,11 @@ extern crate serde;
 #[macro_use] extern crate serde_derive;
 extern crate serde_json;
 
-use std::fmt::{Debug, Display, Formatter, Error as FmtError};
+use std::fmt::{Debug, Display, Formatter, Error as FmtError, Result as FmtResult};
 
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
-use serde::de::Visitor;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::de::{Error as SerdeError, Visitor};
 use serde_json::Value;
 
 #[macro_use] mod macros;
@@ -301,19 +301,23 @@ impl<'a> From<&'a str> for EventType {
 }
 
 impl Serialize for EventType {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         serializer.serialize_str(&self.to_string())
     }
 }
 
 impl Deserialize for EventType {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         struct EventTypeVisitor;
 
         impl Visitor for EventTypeVisitor {
             type Value = EventType;
 
-            fn visit_str<E>(&mut self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+            fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+                write!(formatter, "a Matrix event type as a string")
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
                 Ok(EventType::from(v))
             }
         }

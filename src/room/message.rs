@@ -1,6 +1,7 @@
 //! Types for the *m.room.message* event.
 
-use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::de::Error;
 use serde_json::{Value, from_value};
 
 use super::ImageInfo;
@@ -253,7 +254,7 @@ impl_enum! {
 }
 
 impl Serialize for MessageEventContent {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         match *self {
             MessageEventContent::Audio(ref content) => content.serialize(serializer),
             MessageEventContent::Emote(ref content) => content.serialize(serializer),
@@ -268,10 +269,10 @@ impl Serialize for MessageEventContent {
 }
 
 impl Deserialize for MessageEventContent {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         let value: Value = try!(Deserialize::deserialize(deserializer));
 
-        let message_type_value = match value.find("msgtype") {
+        let message_type_value = match value.get("msgtype") {
             Some(value) => value.clone(),
             None => return Err(D::Error::missing_field("msgtype")),
         };

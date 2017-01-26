@@ -11,8 +11,8 @@ repository = "https://github.com/ruma/ruma-events"
 version = "0.3.0"
 
 [dependencies]
-ruma-identifiers = "0.6.0"
-ruma-signatures = "0.1.0"
-serde = "0.8.19"
-serde_derive = "0.8.19"
-serde_json = "0.8.4"
+ruma-identifiers = "0.7.0"
+ruma-signatures = "0.2.0"
+serde = "0.9.1"
+serde_derive = "0.9.1"
+serde_json = "0.9.1"

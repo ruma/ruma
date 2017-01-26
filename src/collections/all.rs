@@ -25,7 +25,8 @@ use room::topic::TopicEvent;
 use tag::TagEvent;
 use typing::TypingEvent;
 
-use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::de::Error;
 use serde_json::{Value, from_value};
 
 /// A basic event, room event, or state event.
@@ -160,7 +161,7 @@ pub enum StateEvent {
 }
 
 impl Serialize for Event {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         match *self {
             Event::CallAnswer(ref event) => event.serialize(serializer),
             Event::CallCandidates(ref event) => event.serialize(serializer),
@@ -192,10 +193,10 @@ impl Serialize for Event {
 }
 
 impl Deserialize for Event {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         let value: Value = try!(Deserialize::deserialize(deserializer));
 
-        let event_type_value = match value.find("type") {
+        let event_type_value = match value.get("type") {
             Some(value) => value.clone(),
             None => return Err(D::Error::missing_field("type")),
         };
@@ -383,15 +384,15 @@ impl Deserialize for Event {
                 Ok(Event::Typing(event))
             }
             EventType::Custom(_) => {
-                if value.find("state_key").is_some() {
+                if value.get("state_key").is_some() {
                     let event = match from_value::<CustomStateEvent>(value) {
                         Ok(event) => event,
                         Err(error) => return Err(D::Error::custom(error.to_string())),
                     };
 
                     Ok(Event::CustomState(event))
-                } else if value.find("event_id").is_some() && value.find("room_id").is_some() &&
-                    value.find("sender").is_some() {
+                } else if value.get("event_id").is_some() && value.get("room_id").is_some() &&
+                    value.get("sender").is_some() {
                     let event = match from_value::<CustomRoomEvent>(value) {
                         Ok(event) => event,
                         Err(error) => return Err(D::Error::custom(error.to_string())),
@@ -412,7 +413,7 @@ impl Deserialize for Event {
 }
 
 impl Serialize for RoomEvent {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         match *self {
             RoomEvent::CallAnswer(ref event) => event.serialize(serializer),
             RoomEvent::CallCandidates(ref event) => event.serialize(serializer),
@@ -439,10 +440,10 @@ impl Serialize for RoomEvent {
 }
 
 impl Deserialize for RoomEvent {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         let value: Value = try!(Deserialize::deserialize(deserializer));
 
-        let event_type_value = match value.find("type") {
+        let event_type_value = match value.get("type") {
             Some(value) => value.clone(),
             None => return Err(D::Error::missing_field("type")),
         };
@@ -598,7 +599,7 @@ impl Deserialize for RoomEvent {
                 Ok(RoomEvent::RoomTopic(event))
             }
             EventType::Custom(_) => {
-                if value.find("state_key").is_some() {
+                if value.get("state_key").is_some() {
                     let event = match from_value::<CustomStateEvent>(value) {
                         Ok(event) => event,
                         Err(error) => return Err(D::Error::custom(error.to_string())),
@@ -622,7 +623,7 @@ impl Deserialize for RoomEvent {
 }
 
 impl Serialize for StateEvent {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         match *self {
             StateEvent::RoomAliases(ref event) => event.serialize(serializer),
             StateEvent::RoomAvatar(ref event) => event.serialize(serializer),
@@ -642,10 +643,10 @@ impl Serialize for StateEvent {
 }
 
 impl Deserialize for StateEvent {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         let value: Value = try!(Deserialize::deserialize(deserializer));
 
-        let event_type_value = match value.find("type") {
+        let event_type_value = match value.get("type") {
             Some(value) => value.clone(),
             None => return Err(D::Error::missing_field("type")),
         };

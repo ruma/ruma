@@ -13,7 +13,8 @@ use room::redaction::RedactionEvent;
 use tag::TagEvent;
 use typing::TypingEvent;
 
-use serde::{Deserialize, Deserializer, Error as SerdeError, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::de::Error;
 use serde_json::{Value, from_value};
 
 pub use super::all::StateEvent;
@@ -53,7 +54,7 @@ pub enum RoomEvent {
 }
 
 impl Serialize for Event {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         match *self {
             Event::Presence(ref event) => event.serialize(serializer),
             Event::Receipt(ref event) => event.serialize(serializer),
@@ -65,10 +66,10 @@ impl Serialize for Event {
 }
 
 impl Deserialize for Event {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         let value: Value = try!(Deserialize::deserialize(deserializer));
 
-        let event_type_value = match value.find("type") {
+        let event_type_value = match value.get("type") {
             Some(value) => value.clone(),
             None => return Err(D::Error::missing_field("type")),
         };
@@ -132,7 +133,7 @@ impl Deserialize for Event {
 }
 
 impl Serialize for RoomEvent {
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
         match *self {
             RoomEvent::CallAnswer(ref event) => event.serialize(serializer),
             RoomEvent::CallCandidates(ref event) => event.serialize(serializer),
@@ -146,10 +147,10 @@ impl Serialize for RoomEvent {
 }
 
 impl Deserialize for RoomEvent {
-    fn deserialize<D>(deserializer: &mut D) -> Result<Self, D::Error> where D: Deserializer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
         let value: Value = try!(Deserialize::deserialize(deserializer));
 
-        let event_type_value = match value.find("type") {
+        let event_type_value = match value.get("type") {
             Some(value) => value.clone(),
             None => return Err(D::Error::missing_field("type")),
         };
