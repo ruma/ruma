@@ -5,19 +5,18 @@ use std::str;
 use url::form_urlencoded;
 
 pub struct ValueSerializer<'key, 'target, Target>
-    where Target: 'target + form_urlencoded::Target
+    where Target: 'target + form_urlencoded::Target,
 {
     key: &'key mut Option<Cow<'static, str>>,
-    serializer: &'target mut form_urlencoded::Serializer<Target>
+    serializer: &'target mut form_urlencoded::Serializer<Target>,
 }
 
 impl<'key, 'target, Target> ValueSerializer<'key, 'target, Target>
-    where Target: 'target + form_urlencoded::Target
+    where Target: 'target + form_urlencoded::Target,
 {
-    pub fn new(
-            key: &'key mut Option<Cow<'static, str>>,
-            serializer: &'target mut form_urlencoded::Serializer<Target>)
-            -> Result<Self, Error> {
+    pub fn new(key: &'key mut Option<Cow<'static, str>>,
+               serializer: &'target mut form_urlencoded::Serializer<Target>)
+               -> Result<Self, Error> {
         if key.is_some() {
             Ok(ValueSerializer {
                 key: key,
@@ -40,7 +39,7 @@ impl<'key, 'target, Target> ValueSerializer<'key, 'target, Target>
 
 impl<'key, 'target, Target> Serializer
     for ValueSerializer<'key, 'target, Target>
-    where Target: 'target + form_urlencoded::Target
+    where Target: 'target + form_urlencoded::Target,
 {
     type Error = Error;
     type SeqState = ();
@@ -122,37 +121,36 @@ impl<'key, 'target, Target> Serializer
         Err(Error::unsupported_value())
     }
 
-    fn serialize_unit_struct(
-            &mut self, name: &'static str)
-            -> Result<(), Error> {
+    fn serialize_unit_struct(&mut self,
+                             name: &'static str)
+                             -> Result<(), Error> {
         self.append_pair(name)
     }
 
-    fn serialize_unit_variant(
-            &mut self,
-            _name: &'static str,
-            _variant_index: usize,
-            variant: &'static str)
-            -> Result<(), Error> {
+    fn serialize_unit_variant(&mut self,
+                              _name: &'static str,
+                              _variant_index: usize,
+                              variant: &'static str)
+                              -> Result<(), Error> {
         self.append_pair(variant)
     }
 
-    fn serialize_newtype_struct<T>(
-            &mut self, _name: &'static str, value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_newtype_struct<T>(&mut self,
+                                   _name: &'static str,
+                                   value: T)
+                                   -> Result<(), Error>
+        where T: Serialize,
     {
         value.serialize(self)
     }
 
-    fn serialize_newtype_variant<T>(
-            &mut self,
-            _name: &'static str,
-            _variant_index: usize,
-            _variant: &'static str,
-            _value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_newtype_variant<T>(&mut self,
+                                    _name: &'static str,
+                                    _variant_index: usize,
+                                    _variant: &'static str,
+                                    _value: T)
+                                    -> Result<(), Error>
+        where T: Serialize,
     {
         Err(Error::unsupported_value())
     }
@@ -166,7 +164,7 @@ impl<'key, 'target, Target> Serializer
     }
 
     fn serialize_some<T>(&mut self, value: T) -> Result<(), Error>
-        where T: Serialize
+        where T: Serialize,
     {
         value.serialize(self)
     }
@@ -175,10 +173,11 @@ impl<'key, 'target, Target> Serializer
         Err(Error::unsupported_value())
     }
 
-    fn serialize_seq_elt<T>(
-            &mut self, _state: &mut (), _value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_seq_elt<T>(&mut self,
+                            _state: &mut (),
+                            _value: T)
+                            -> Result<(), Error>
+        where T: Serialize,
     {
         Err(Error::unsupported_value())
     }
@@ -195,10 +194,11 @@ impl<'key, 'target, Target> Serializer
         Err(Error::unsupported_value())
     }
 
-    fn serialize_tuple_elt<T>(
-            &mut self, _state: &mut (), _value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_tuple_elt<T>(&mut self,
+                              _state: &mut (),
+                              _value: T)
+                              -> Result<(), Error>
+        where T: Serialize,
     {
         Err(Error::unsupported_value())
     }
@@ -207,16 +207,18 @@ impl<'key, 'target, Target> Serializer
         Err(Error::unsupported_value())
     }
 
-    fn serialize_tuple_struct(
-            &mut self, _name: &'static str, _len: usize)
-            -> Result<(), Error> {
+    fn serialize_tuple_struct(&mut self,
+                              _name: &'static str,
+                              _len: usize)
+                              -> Result<(), Error> {
         Err(Error::unsupported_value())
     }
 
-    fn serialize_tuple_struct_elt<T>(
-            &mut self, _state: &mut (), _value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_tuple_struct_elt<T>(&mut self,
+                                     _state: &mut (),
+                                     _value: T)
+                                     -> Result<(), Error>
+        where T: Serialize,
     {
         Err(Error::unsupported_value())
     }
@@ -225,20 +227,20 @@ impl<'key, 'target, Target> Serializer
         Err(Error::unsupported_value())
     }
 
-    fn serialize_tuple_variant(
-        &mut self,
-        _name: &'static str,
-        _variant_index: usize,
-        _variant: &'static str,
-        _len: usize)
-        -> Result<(), Error> {
+    fn serialize_tuple_variant(&mut self,
+                               _name: &'static str,
+                               _variant_index: usize,
+                               _variant: &'static str,
+                               _len: usize)
+                               -> Result<(), Error> {
         Err(Error::unsupported_value())
     }
 
-    fn serialize_tuple_variant_elt<T>(
-            &mut self, _state: &mut (), _value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_tuple_variant_elt<T>(&mut self,
+                                      _state: &mut (),
+                                      _value: T)
+                                      -> Result<(), Error>
+        where T: Serialize,
     {
         Err(Error::unsupported_value())
     }
@@ -251,18 +253,20 @@ impl<'key, 'target, Target> Serializer
         Err(Error::unsupported_value())
     }
 
-    fn serialize_map_key<T>(
-            &mut self, _state: &mut (), _key: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_map_key<T>(&mut self,
+                            _state: &mut (),
+                            _key: T)
+                            -> Result<(), Error>
+        where T: Serialize,
     {
         Err(Error::unsupported_value())
     }
 
-    fn serialize_map_value<T>(
-            &mut self, _state: &mut (), _value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_map_value<T>(&mut self,
+                              _state: &mut (),
+                              _value: T)
+                              -> Result<(), Error>
+        where T: Serialize,
     {
         Err(Error::unsupported_value())
     }
@@ -271,19 +275,19 @@ impl<'key, 'target, Target> Serializer
         Err(Error::unsupported_value())
     }
 
-    fn serialize_struct(
-            &mut self, _name: &'static str, _len: usize)
-            -> Result<(), Error> {
+    fn serialize_struct(&mut self,
+                        _name: &'static str,
+                        _len: usize)
+                        -> Result<(), Error> {
         Err(Error::unsupported_value())
     }
 
-    fn serialize_struct_elt<T>(
-            &mut self,
-            _state: &mut (),
-            _key: &'static str,
-            _value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_struct_elt<T>(&mut self,
+                               _state: &mut (),
+                               _key: &'static str,
+                               _value: T)
+                               -> Result<(), Error>
+        where T: Serialize,
     {
         Err(Error::unsupported_value())
     }
@@ -292,32 +296,33 @@ impl<'key, 'target, Target> Serializer
         Err(Error::unsupported_value())
     }
 
-    fn serialize_struct_variant(
-            &mut self,
-            _name: &'static str,
-            _variant_index: usize,
-            _variant: &'static str,
-            _len: usize)
-            -> Result<(), Error> {
+    fn serialize_struct_variant(&mut self,
+                                _name: &'static str,
+                                _variant_index: usize,
+                                _variant: &'static str,
+                                _len: usize)
+                                -> Result<(), Error> {
         Err(Error::unsupported_value())
     }
-    fn serialize_struct_variant_elt<T>(
-            &mut self, _state: &mut (), _key: &'static str, _value: T)
-            -> Result<(), Error> {
+    fn serialize_struct_variant_elt<T>(&mut self,
+                                       _state: &mut (),
+                                       _key: &'static str,
+                                       _value: T)
+                                       -> Result<(), Error> {
         Err(Error::unsupported_value())
     }
 
-    fn serialize_struct_variant_end(
-            &mut self, _state: ())
-            -> Result<(), Error> {
+    fn serialize_struct_variant_end(&mut self,
+                                    _state: ())
+                                    -> Result<(), Error> {
         Err(Error::unsupported_value())
     }
 }
 
 impl Error {
     fn no_key() -> Self {
-        Error::Custom(
-            "tried to serialize a value before serializing key".into())
+        Error::Custom("tried to serialize a value before serializing key"
+            .into())
     }
 
     fn unsupported_value() -> Self {

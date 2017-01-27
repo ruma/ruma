@@ -8,11 +8,10 @@ pub struct PairSerializer<'target, Target>(
     where Target: 'target + form_urlencoded::Target;
 
 impl<'target, Target> PairSerializer<'target, Target>
-    where Target: 'target + form_urlencoded::Target
+    where Target: 'target + form_urlencoded::Target,
 {
-    pub fn new(
-            serializer: &'target mut form_urlencoded::Serializer<Target>)
-            -> Self {
+    pub fn new(serializer: &'target mut form_urlencoded::Serializer<Target>)
+               -> Self {
         PairSerializer(serializer)
     }
 }
@@ -21,7 +20,7 @@ pub struct TupleState(Option<Option<Cow<'static, str>>>);
 pub struct TupleStructState(TupleState);
 
 impl<'target, Target> Serializer for PairSerializer<'target, Target>
-    where Target: 'target + form_urlencoded::Target
+    where Target: 'target + form_urlencoded::Target,
 {
     type Error = Error;
     type SeqState = ();
@@ -100,37 +99,36 @@ impl<'target, Target> Serializer for PairSerializer<'target, Target>
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_unit_struct(
-            &mut self, _name: &'static str)
-            -> Result<(), Error> {
+    fn serialize_unit_struct(&mut self,
+                             _name: &'static str)
+                             -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_unit_variant(
-            &mut self,
-            _name: &'static str,
-            _variant_index: usize,
-            _variant: &'static str)
-            -> Result<(), Error> {
+    fn serialize_unit_variant(&mut self,
+                              _name: &'static str,
+                              _variant_index: usize,
+                              _variant: &'static str)
+                              -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_newtype_struct<T>(
-            &mut self, _name: &'static str, value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_newtype_struct<T>(&mut self,
+                                   _name: &'static str,
+                                   value: T)
+                                   -> Result<(), Error>
+        where T: Serialize,
     {
         value.serialize(self)
     }
 
-    fn serialize_newtype_variant<T>(
-            &mut self,
-            _name: &'static str,
-            _variant_index: usize,
-            _variant: &'static str,
-            _value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_newtype_variant<T>(&mut self,
+                                    _name: &'static str,
+                                    _variant_index: usize,
+                                    _variant: &'static str,
+                                    _value: T)
+                                    -> Result<(), Error>
+        where T: Serialize,
     {
         Err(Error::unsupported_pair())
     }
@@ -140,19 +138,20 @@ impl<'target, Target> Serializer for PairSerializer<'target, Target>
     }
 
     fn serialize_some<T>(&mut self, value: T) -> Result<(), Error>
-        where T: Serialize
+        where T: Serialize,
     {
         value.serialize(self)
     }
 
-    fn serialize_seq(&mut self, _len: Option<usize>)
-                     -> Result<(), Error> {
+    fn serialize_seq(&mut self, _len: Option<usize>) -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_seq_elt<T>(&mut self, _state: &mut (), _value: T)
+    fn serialize_seq_elt<T>(&mut self,
+                            _state: &mut (),
+                            _value: T)
                             -> Result<(), Error>
-        where T: Serialize
+        where T: Serialize,
     {
         Err(Error::unsupported_pair())
     }
@@ -161,8 +160,7 @@ impl<'target, Target> Serializer for PairSerializer<'target, Target>
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_seq_fixed_size(&mut self, _size: usize)
-                                -> Result<(), Error> {
+    fn serialize_seq_fixed_size(&mut self, _size: usize) -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 
@@ -174,10 +172,11 @@ impl<'target, Target> Serializer for PairSerializer<'target, Target>
         }
     }
 
-    fn serialize_tuple_elt<T>(
-            &mut self, state: &mut TupleState, value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_tuple_elt<T>(&mut self,
+                              state: &mut TupleState,
+                              value: T)
+                              -> Result<(), Error>
+        where T: Serialize,
     {
         match state.0.take() {
             None => {
@@ -185,7 +184,7 @@ impl<'target, Target> Serializer for PairSerializer<'target, Target>
                 {
                     let mut key_serializer =
                         key::MapKeySerializer::new(&mut key);
-                    try!(value.serialize(&mut key_serializer));
+                    value.serialize(&mut key_serializer)?;
                 }
                 state.0 = Some(key);
                 Ok(())
@@ -194,11 +193,11 @@ impl<'target, Target> Serializer for PairSerializer<'target, Target>
                 {
                     let mut value_serializer =
                         value::ValueSerializer::new(key, &mut self.0).unwrap();
-                    try!(value.serialize(&mut value_serializer));
+                    value.serialize(&mut value_serializer)?;
                 }
                 state.0 = Some(None);
                 Ok(())
-            }
+            },
         }
     }
 
@@ -206,68 +205,68 @@ impl<'target, Target> Serializer for PairSerializer<'target, Target>
         Ok(())
     }
 
-    fn serialize_tuple_struct(
-            &mut self, _name: &'static str, len: usize)
-            -> Result<TupleStructState, Error> {
+    fn serialize_tuple_struct(&mut self,
+                              _name: &'static str,
+                              len: usize)
+                              -> Result<TupleStructState, Error> {
         self.serialize_tuple(len).map(TupleStructState)
     }
 
-    fn serialize_tuple_struct_elt<T>(
-            &mut self, state: &mut TupleStructState, value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_tuple_struct_elt<T>(&mut self,
+                                     state: &mut TupleStructState,
+                                     value: T)
+                                     -> Result<(), Error>
+        where T: Serialize,
     {
         self.serialize_tuple_elt(&mut state.0, value)
     }
 
-    fn serialize_tuple_struct_end(
-            &mut self, _state: TupleStructState)
-            -> Result<(), Error> {
+    fn serialize_tuple_struct_end(&mut self,
+                                  _state: TupleStructState)
+                                  -> Result<(), Error> {
         Ok(())
     }
 
-    fn serialize_tuple_variant(
-        &mut self,
-        _name: &'static str,
-        _variant_index: usize,
-        _variant: &'static str,
-        _len: usize)
-        -> Result<(), Error> {
+    fn serialize_tuple_variant(&mut self,
+                               _name: &'static str,
+                               _variant_index: usize,
+                               _variant: &'static str,
+                               _len: usize)
+                               -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_tuple_variant_elt<T>(
-            &mut self, _state: &mut (), _value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_tuple_variant_elt<T>(&mut self,
+                                      _state: &mut (),
+                                      _value: T)
+                                      -> Result<(), Error>
+        where T: Serialize,
     {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_tuple_variant_end(
-            &mut self, _state: ())
-            -> Result<(), Error> {
+    fn serialize_tuple_variant_end(&mut self, _state: ()) -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_map(
-            &mut self, _len: Option<usize>)
-            -> Result<(), Error> {
+    fn serialize_map(&mut self, _len: Option<usize>) -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_map_key<T>(
-            &mut self, _state: &mut (), _key: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_map_key<T>(&mut self,
+                            _state: &mut (),
+                            _key: T)
+                            -> Result<(), Error>
+        where T: Serialize,
     {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_map_value<T>(
-            &mut self, _state: &mut (), _value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_map_value<T>(&mut self,
+                              _state: &mut (),
+                              _value: T)
+                              -> Result<(), Error>
+        where T: Serialize,
     {
         Err(Error::unsupported_pair())
     }
@@ -276,54 +275,51 @@ impl<'target, Target> Serializer for PairSerializer<'target, Target>
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_struct(&mut self, _name: &'static str, _len: usize)
+    fn serialize_struct(&mut self,
+                        _name: &'static str,
+                        _len: usize)
                         -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_struct_elt<T>(
-            &mut self,
-            _state: &mut (),
-            _key: &'static str,
-            _value: T)
-            -> Result<(), Error>
-        where T: Serialize
+    fn serialize_struct_elt<T>(&mut self,
+                               _state: &mut (),
+                               _key: &'static str,
+                               _value: T)
+                               -> Result<(), Error>
+        where T: Serialize,
     {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_struct_end(
-            &mut self, _state: ())
-            -> Result<(), Error> {
+    fn serialize_struct_end(&mut self, _state: ()) -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_struct_variant(
-            &mut self,
-            _name: &'static str,
-            _variant_index: usize,
-            _variant: &'static str,
-            _len: usize)
-            -> Result<(), Error> {
+    fn serialize_struct_variant(&mut self,
+                                _name: &'static str,
+                                _variant_index: usize,
+                                _variant: &'static str,
+                                _len: usize)
+                                -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
-    fn serialize_struct_variant_elt<T>(
-            &mut self,
-            _state: &mut (),
-            _key: &'static str,
-            _value: T)
-            -> Result<(), Error> {
+    fn serialize_struct_variant_elt<T>(&mut self,
+                                       _state: &mut (),
+                                       _key: &'static str,
+                                       _value: T)
+                                       -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_struct_variant_end(
-            &mut self, _state: ())
-            -> Result<(), Error> {
+    fn serialize_struct_variant_end(&mut self,
+                                    _state: ())
+                                    -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 }
 
-impl Error {    
+impl Error {
     fn unsupported_pair() -> Self {
         Error::Custom("unsupported pair".into())
     }

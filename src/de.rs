@@ -1,12 +1,12 @@
 //! Deserialization support for the `application/x-www-form-urlencoded` format.
 
 use serde::de;
+
+pub use serde::de::value::Error;
 use serde::de::value::MapDeserializer;
 use std::borrow::Cow;
 use url::form_urlencoded::Parse as UrlEncodedParse;
 use url::form_urlencoded::parse;
-
-pub use serde::de::value::Error;
 
 /// Deserializes a `application/x-wwww-url-encoded` value from a `&[u8]`.
 ///
@@ -56,8 +56,10 @@ pub fn from_str<T: de::Deserialize>(input: &str) -> Result<T, Error> {
 /// * Everything else but `deserialize_seq` and `deserialize_seq_fixed_size`
 ///   defers to `deserialize`.
 pub struct Deserializer<'a> {
-    inner:
-        MapDeserializer<UrlEncodedParse<'a>, Cow<'a, str>, Cow<'a, str>, Error>,
+    inner: MapDeserializer<UrlEncodedParse<'a>,
+                           Cow<'a, str>,
+                           Cow<'a, str>,
+                           Error>,
 }
 
 impl<'a> Deserializer<'a> {
@@ -67,38 +69,36 @@ impl<'a> Deserializer<'a> {
     }
 }
 
-impl<'a> de::Deserializer for Deserializer<'a>
-{
+impl<'a> de::Deserializer for Deserializer<'a> {
     type Error = Error;
 
-    fn deserialize<V>(
-            &mut self, visitor: V)
-            -> Result<V::Value, Self::Error>
+    fn deserialize<V>(&mut self, visitor: V) -> Result<V::Value, Self::Error>
         where V: de::Visitor,
     {
         self.deserialize_map(visitor)
     }
 
-    fn deserialize_map<V>(
-            &mut self, mut visitor: V)
-            -> Result<V::Value, Self::Error>
+    fn deserialize_map<V>(&mut self,
+                          mut visitor: V)
+                          -> Result<V::Value, Self::Error>
         where V: de::Visitor,
     {
         visitor.visit_map(&mut self.inner)
     }
 
-    fn deserialize_seq<V>(
-            &mut self, mut visitor: V)
-            -> Result<V::Value, Self::Error>
+    fn deserialize_seq<V>(&mut self,
+                          mut visitor: V)
+                          -> Result<V::Value, Self::Error>
         where V: de::Visitor,
     {
         visitor.visit_seq(&mut self.inner)
     }
 
-    fn deserialize_seq_fixed_size<V>(
-            &mut self, _len: usize, mut visitor: V)
-            -> Result<V::Value, Self::Error>
-        where V: de::Visitor
+    fn deserialize_seq_fixed_size<V>(&mut self,
+                                     _len: usize,
+                                     mut visitor: V)
+                                     -> Result<V::Value, Self::Error>
+        where V: de::Visitor,
     {
         visitor.visit_seq(&mut self.inner)
     }
