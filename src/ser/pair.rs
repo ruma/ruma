@@ -2,6 +2,7 @@ use ser::Error;
 use ser::key::KeySink;
 use ser::part::PartSerializer;
 use ser::value::ValueSink;
+use ser::void::VoidSerializer;
 use serde::ser;
 use std::borrow::Cow;
 use std::mem;
@@ -29,13 +30,13 @@ impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
 {
     type Ok = ();
     type Error = Error;
-    type SerializeSeq = Self;
+    type SerializeSeq = VoidSerializer<()>;
     type SerializeTuple = Self;
-    type SerializeTupleStruct = Self;
-    type SerializeTupleVariant = Self;
-    type SerializeMap = Self;
-    type SerializeStruct = Self;
-    type SerializeStructVariant = Self;
+    type SerializeTupleStruct = VoidSerializer<()>;
+    type SerializeTupleVariant = VoidSerializer<()>;
+    type SerializeMap = VoidSerializer<()>;
+    type SerializeStruct = VoidSerializer<()>;
+    type SerializeStructVariant = VoidSerializer<()>;
 
     fn serialize_bool(self, _v: bool) -> Result<(), Error> {
         Err(Error::unsupported_pair())
@@ -137,11 +138,15 @@ impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
         value.serialize(self)
     }
 
-    fn serialize_seq(self, _len: Option<usize>) -> Result<Self, Error> {
+    fn serialize_seq(self,
+                     _len: Option<usize>)
+                     -> Result<VoidSerializer<()>, Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_seq_fixed_size(self, _len: usize) -> Result<Self, Error> {
+    fn serialize_seq_fixed_size(self,
+                                _len: usize)
+                                -> Result<VoidSerializer<()>, Error> {
         Err(Error::unsupported_pair())
     }
 
@@ -156,7 +161,7 @@ impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
     fn serialize_tuple_struct(self,
                               _name: &'static str,
                               _len: usize)
-                              -> Result<Self, Error> {
+                              -> Result<VoidSerializer<()>, Error> {
         Err(Error::unsupported_pair())
     }
 
@@ -165,18 +170,20 @@ impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
                                _variant_index: usize,
                                _variant: &'static str,
                                _len: usize)
-                               -> Result<Self, Error> {
+                               -> Result<VoidSerializer<()>, Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_map(self, _len: Option<usize>) -> Result<Self, Error> {
+    fn serialize_map(self,
+                     _len: Option<usize>)
+                     -> Result<VoidSerializer<()>, Error> {
         Err(Error::unsupported_pair())
     }
 
     fn serialize_struct(self,
                         _name: &'static str,
                         _len: usize)
-                        -> Result<Self, Error> {
+                        -> Result<VoidSerializer<()>, Error> {
         Err(Error::unsupported_pair())
     }
 
@@ -185,25 +192,8 @@ impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
                                 _variant_index: usize,
                                 _variant: &'static str,
                                 _len: usize)
-                                -> Result<Self, Error> {
+                                -> Result<VoidSerializer<()>, Error> {
         Err(Error::unsupported_pair())
-    }
-}
-
-impl<'target, Target> ser::SerializeSeq for PairSerializer<'target, Target>
-    where Target: 'target + UrlEncodedTarget,
-{
-    type Ok = ();
-    type Error = Error;
-
-    fn serialize_element<T: ?Sized + ser::Serialize>(&mut self,
-                                                     _value: &T)
-                                                     -> Result<(), Error> {
-        unreachable!()
-    }
-
-    fn end(self) -> Result<(), Error> {
-        unreachable!()
     }
 }
 
@@ -248,102 +238,6 @@ impl<'target, Target> ser::SerializeTuple for PairSerializer<'target, Target>
         } else {
             Err(Error::not_done())
         }
-    }
-}
-
-impl<'target, Target> ser::SerializeTupleStruct
-    for PairSerializer<'target, Target>
-    where Target: 'target + UrlEncodedTarget,
-{
-    type Ok = ();
-    type Error = Error;
-
-    fn serialize_field<T: ?Sized + ser::Serialize>(&mut self,
-                                                   _value: &T)
-                                                   -> Result<(), Error> {
-        unreachable!()
-    }
-
-    fn end(self) -> Result<(), Error> {
-        unreachable!()
-    }
-}
-
-impl<'target, Target> ser::SerializeTupleVariant
-    for PairSerializer<'target, Target>
-    where Target: 'target + UrlEncodedTarget,
-{
-    type Ok = ();
-    type Error = Error;
-
-    fn serialize_field<T: ?Sized + ser::Serialize>(&mut self,
-                                                   _value: &T)
-                                                   -> Result<(), Error> {
-        unreachable!()
-    }
-
-    fn end(self) -> Result<(), Error> {
-        unreachable!()
-    }
-}
-
-impl<'target, Target> ser::SerializeMap for PairSerializer<'target, Target>
-    where Target: 'target + UrlEncodedTarget,
-{
-    type Ok = ();
-    type Error = Error;
-
-    fn serialize_key<T: ?Sized + ser::Serialize>(&mut self,
-                                                 _key: &T)
-                                                 -> Result<(), Error> {
-        unreachable!()
-    }
-
-    fn serialize_value<T: ?Sized + ser::Serialize>(&mut self,
-                                                   _value: &T)
-                                                   -> Result<(), Error> {
-        unreachable!()
-    }
-
-    fn end(self) -> Result<(), Error> {
-        unreachable!()
-    }
-}
-
-impl<'target, Target> ser::SerializeStruct for PairSerializer<'target, Target>
-    where Target: 'target + UrlEncodedTarget,
-{
-    type Ok = ();
-    type Error = Error;
-
-    fn serialize_field<T: ?Sized + ser::Serialize>(&mut self,
-                                                   _key: &'static str,
-                                                   _value: &T)
-                                                   -> Result<(), Error> {
-        unreachable!()
-    }
-
-    fn end(self) -> Result<(), Error> {
-        unreachable!()
-    }
-}
-
-impl<'target, Target> ser::SerializeStructVariant
-    for PairSerializer<'target, Target>
-    where Target: 'target + UrlEncodedTarget,
-{
-    type Ok = ();
-    type Error = Error;
-
-    fn serialize_field<T: ?Sized + ser::Serialize>(&mut self,
-                                                   _key: &'static str,
-                                                   _value: &T)
-                                                   -> Result<(), Error> {
-        unreachable!()
-    }
-
-    fn end(self) -> Result<(), Error> {
-        unreachable!()
     }
 }
 

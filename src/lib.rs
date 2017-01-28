@@ -3,6 +3,7 @@
 #[macro_use]
 extern crate serde;
 extern crate url;
+extern crate void;
 
 pub mod de;
 pub mod ser;

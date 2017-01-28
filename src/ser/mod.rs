@@ -4,12 +4,12 @@ mod key;
 mod pair;
 mod part;
 mod value;
+mod void;
 
 use serde::ser;
 use std::borrow::Cow;
 use std::error;
 use std::fmt;
-use std::marker::PhantomData;
 use std::str;
 use url::form_urlencoded::Serializer as UrlEncodedSerializer;
 use url::form_urlencoded::Target as UrlEncodedTarget;
@@ -102,21 +102,21 @@ pub struct SeqSerializer<'output, Target: 'output + UrlEncodedTarget> {
 ///
 /// Never instantiated, tuples are not supported at top-level.
 pub struct TupleSerializer<'output, T: 'output + UrlEncodedTarget> {
-    _marker: PhantomData<&'output T>,
+    inner: void::VoidSerializer<&'output mut UrlEncodedSerializer<T>>,
 }
 
 /// Tuple struct serializer.
 ///
 /// Never instantiated, tuple structs are not supported.
 pub struct TupleStructSerializer<'output, T: 'output + UrlEncodedTarget> {
-    _marker: PhantomData<&'output T>,
+    inner: void::VoidSerializer<&'output mut UrlEncodedSerializer<T>>,
 }
 
 /// Tuple variant serializer.
 ///
 /// Never instantiated, tuple variants are not supported.
 pub struct TupleVariantSerializer<'output, T: 'output + UrlEncodedTarget> {
-    _marker: PhantomData<&'output T>,
+    inner: void::VoidSerializer<&'output mut UrlEncodedSerializer<T>>,
 }
 
 /// Map serializer.
@@ -134,7 +134,7 @@ pub struct StructSerializer<'output, Target: 'output + UrlEncodedTarget> {
 ///
 /// Never instantiated, struct variants are not supported.
 pub struct StructVariantSerializer<'output, T: 'output + UrlEncodedTarget> {
-    _marker: PhantomData<&'output T>,
+    inner: void::VoidSerializer<&'output mut UrlEncodedSerializer<T>>,
 }
 
 impl<'output, Target> ser::Serializer for Serializer<'output, Target>
@@ -368,13 +368,13 @@ impl<'output, Target> ser::SerializeTuple for TupleSerializer<'output, Target>
     type Error = Error;
 
     fn serialize_element<T: ?Sized + ser::Serialize>(&mut self,
-                                                     _value: &T)
+                                                     value: &T)
                                                      -> Result<(), Error> {
-        unreachable!()
+        self.inner.serialize_element(value)
     }
 
     fn end(self) -> Result<Self::Ok, Error> {
-        unreachable!()
+        self.inner.end()
     }
 }
 
@@ -386,13 +386,13 @@ impl<'output, Target> ser::SerializeTupleStruct
     type Error = Error;
 
     fn serialize_field<T: ?Sized + ser::Serialize>(&mut self,
-                                                   _value: &T)
+                                                   value: &T)
                                                    -> Result<(), Error> {
-        unreachable!()
+        self.inner.serialize_field(value)
     }
 
     fn end(self) -> Result<Self::Ok, Error> {
-        unreachable!()
+        self.inner.end()
     }
 }
 
@@ -404,13 +404,13 @@ impl<'output, Target> ser::SerializeTupleVariant
     type Error = Error;
 
     fn serialize_field<T: ?Sized + ser::Serialize>(&mut self,
-                                                   _value: &T)
+                                                   value: &T)
                                                    -> Result<(), Error> {
-        unreachable!()
+        self.inner.serialize_field(value)
     }
 
     fn end(self) -> Result<Self::Ok, Error> {
-        unreachable!()
+        self.inner.end()
     }
 }
 
@@ -488,14 +488,14 @@ impl<'output, Target> ser::SerializeStructVariant
     type Error = Error;
 
     fn serialize_field<T: ?Sized + ser::Serialize>(&mut self,
-                                                   _key: &'static str,
-                                                   _value: &T)
+                                                   key: &'static str,
+                                                   value: &T)
                                                    -> Result<(), Error> {
-        unreachable!()
+        self.inner.serialize_field(key, value)
     }
 
     fn end(self) -> Result<Self::Ok, Error> {
-        unreachable!()
+        self.inner.end()
     }
 }
 
