@@ -1,5 +1,6 @@
 //! `x-www-form-urlencoded` meets Serde
 
+extern crate itoa;
 #[macro_use]
 extern crate serde;
 extern crate url;

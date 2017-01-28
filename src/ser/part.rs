@@ -1,3 +1,4 @@
+use itoa;
 use ser::Error;
 use ser::void::VoidSerializer;
 use serde::ser;
@@ -50,35 +51,35 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
     }
 
     fn serialize_i8(self, v: i8) -> Result<S::Ok, Error> {
-        self.sink.serialize_string(v.to_string())
+        self.serialize_integer(v)
     }
 
     fn serialize_i16(self, v: i16) -> Result<S::Ok, Error> {
-        self.sink.serialize_string(v.to_string())
+        self.serialize_integer(v)
     }
 
     fn serialize_i32(self, v: i32) -> Result<S::Ok, Error> {
-        self.sink.serialize_string(v.to_string())
+        self.serialize_integer(v)
     }
 
     fn serialize_i64(self, v: i64) -> Result<S::Ok, Error> {
-        self.sink.serialize_string(v.to_string())
+        self.serialize_integer(v)
     }
 
     fn serialize_u8(self, v: u8) -> Result<S::Ok, Error> {
-        self.sink.serialize_string(v.to_string())
+        self.serialize_integer(v)
     }
 
     fn serialize_u16(self, v: u16) -> Result<S::Ok, Error> {
-        self.sink.serialize_string(v.to_string())
+        self.serialize_integer(v)
     }
 
     fn serialize_u32(self, v: u32) -> Result<S::Ok, Error> {
-        self.sink.serialize_string(v.to_string())
+        self.serialize_integer(v)
     }
 
     fn serialize_u64(self, v: u64) -> Result<S::Ok, Error> {
-        self.sink.serialize_string(v.to_string())
+        self.serialize_integer(v)
     }
 
     fn serialize_f32(self, v: f32) -> Result<S::Ok, Error> {
@@ -205,5 +206,16 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
          _len: usize)
          -> Result<Self::SerializeStructVariant, Error> {
         Err(self.sink.unsupported())
+    }
+}
+
+impl<S: Sink> PartSerializer<S> {
+    fn serialize_integer<I>(self, value: I) -> Result<S::Ok, Error>
+        where I: itoa::Integer
+    {
+        let mut buf = [b'\0'; 20];
+        let len = itoa::write(&mut buf[..], value).unwrap();
+        let part = unsafe { str::from_utf8_unchecked(&buf[0..len]) };
+        ser::Serializer::serialize_str(self, part)
     }
 }

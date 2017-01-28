@@ -12,6 +12,7 @@ keywords = ["serde", "serialization", "urlencoded"]
 test = false
 
 [dependencies]
+itoa = "0.3.0"
 serde = "0.9.2"
 url = "1.0.0"
 void = "1.0.2"
