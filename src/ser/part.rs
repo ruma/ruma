@@ -1,0 +1,311 @@
+use ser::Error;
+use serde::ser;
+use std::str;
+
+pub struct PartSerializer<S> {
+    sink: S,
+}
+
+impl<S: Sink> PartSerializer<S> {
+    pub fn new(sink: S) -> Self {
+        PartSerializer { sink: sink }
+    }
+}
+
+pub trait Sink: Sized {
+    type Ok;
+
+    fn serialize_bool(self, value: bool) -> Result<Self::Ok, Error>;
+
+    fn serialize_static_str(self,
+                            value: &'static str)
+                            -> Result<Self::Ok, Error>;
+
+    fn serialize_str(self, value: &str) -> Result<Self::Ok, Error>;
+    fn serialize_string(self, value: String) -> Result<Self::Ok, Error>;
+    fn serialize_none(self) -> Result<Self::Ok, Error>;
+
+    fn serialize_some<T: ?Sized + ser::Serialize>
+        (self,
+         value: &T)
+         -> Result<Self::Ok, Error>;
+
+    fn unsupported(self) -> Error;
+}
+
+impl<S: Sink> ser::Serializer for PartSerializer<S> {
+    type Ok = S::Ok;
+    type Error = Error;
+    type SerializeSeq = Self;
+    type SerializeTuple = Self;
+    type SerializeTupleStruct = Self;
+    type SerializeTupleVariant = Self;
+    type SerializeMap = Self;
+    type SerializeStruct = Self;
+    type SerializeStructVariant = Self;
+
+    fn serialize_bool(self, v: bool) -> Result<S::Ok, Error> {
+        self.sink.serialize_bool(v)
+    }
+
+    fn serialize_i8(self, v: i8) -> Result<S::Ok, Error> {
+        self.sink.serialize_string(v.to_string())
+    }
+
+    fn serialize_i16(self, v: i16) -> Result<S::Ok, Error> {
+        self.sink.serialize_string(v.to_string())
+    }
+
+    fn serialize_i32(self, v: i32) -> Result<S::Ok, Error> {
+        self.sink.serialize_string(v.to_string())
+    }
+
+    fn serialize_i64(self, v: i64) -> Result<S::Ok, Error> {
+        self.sink.serialize_string(v.to_string())
+    }
+
+    fn serialize_u8(self, v: u8) -> Result<S::Ok, Error> {
+        self.sink.serialize_string(v.to_string())
+    }
+
+    fn serialize_u16(self, v: u16) -> Result<S::Ok, Error> {
+        self.sink.serialize_string(v.to_string())
+    }
+
+    fn serialize_u32(self, v: u32) -> Result<S::Ok, Error> {
+        self.sink.serialize_string(v.to_string())
+    }
+
+    fn serialize_u64(self, v: u64) -> Result<S::Ok, Error> {
+        self.sink.serialize_string(v.to_string())
+    }
+
+    fn serialize_f32(self, v: f32) -> Result<S::Ok, Error> {
+        self.sink.serialize_string(v.to_string())
+    }
+
+    fn serialize_f64(self, v: f64) -> Result<S::Ok, Error> {
+        self.sink.serialize_string(v.to_string())
+    }
+
+    fn serialize_char(self, v: char) -> Result<S::Ok, Error> {
+        self.sink.serialize_string(v.to_string())
+    }
+
+    fn serialize_str(self, value: &str) -> Result<S::Ok, Error> {
+        self.sink.serialize_str(value)
+    }
+
+    fn serialize_bytes(self, value: &[u8]) -> Result<S::Ok, Error> {
+        match str::from_utf8(value) {
+            Ok(value) => self.sink.serialize_str(value),
+            Err(err) => Err(Error::Utf8(err)),
+        }
+    }
+
+    fn serialize_unit(self) -> Result<S::Ok, Error> {
+        Err(self.sink.unsupported())
+    }
+
+    fn serialize_unit_struct(self, name: &'static str) -> Result<S::Ok, Error> {
+        self.sink.serialize_static_str(name.into())
+    }
+
+    fn serialize_unit_variant(self,
+                              _name: &'static str,
+                              _variant_index: usize,
+                              variant: &'static str)
+                              -> Result<S::Ok, Error> {
+        self.sink.serialize_static_str(variant.into())
+    }
+
+    fn serialize_newtype_struct<T: ?Sized + ser::Serialize>
+        (self,
+         _name: &'static str,
+         value: &T)
+         -> Result<S::Ok, Error> {
+        value.serialize(self)
+    }
+
+    fn serialize_newtype_variant<T: ?Sized + ser::Serialize>
+        (self,
+         _name: &'static str,
+         _variant_index: usize,
+         _variant: &'static str,
+         _value: &T)
+         -> Result<S::Ok, Error> {
+        Err(self.sink.unsupported())
+    }
+
+    fn serialize_none(self) -> Result<S::Ok, Error> {
+        self.sink.serialize_none()
+    }
+
+    fn serialize_some<T: ?Sized + ser::Serialize>(self,
+                                                  value: &T)
+                                                  -> Result<S::Ok, Error> {
+        self.sink.serialize_some(value)
+    }
+
+    fn serialize_seq(self, _len: Option<usize>) -> Result<Self, Error> {
+        Err(self.sink.unsupported())
+    }
+
+
+    fn serialize_seq_fixed_size(self, _len: usize) -> Result<Self, Error> {
+        Err(self.sink.unsupported())
+    }
+
+    fn serialize_tuple(self, _len: usize) -> Result<Self, Error> {
+        Err(self.sink.unsupported())
+    }
+
+    fn serialize_tuple_struct(self,
+                              _name: &'static str,
+                              _len: usize)
+                              -> Result<Self, Error> {
+        Err(self.sink.unsupported())
+    }
+
+    fn serialize_tuple_variant(self,
+                               _name: &'static str,
+                               _variant_index: usize,
+                               _variant: &'static str,
+                               _len: usize)
+                               -> Result<Self, Error> {
+        Err(self.sink.unsupported())
+    }
+
+    fn serialize_map(self, _len: Option<usize>) -> Result<Self, Error> {
+        Err(self.sink.unsupported())
+    }
+
+    fn serialize_struct(self,
+                        _name: &'static str,
+                        _len: usize)
+                        -> Result<Self, Error> {
+        Err(self.sink.unsupported())
+    }
+
+    fn serialize_struct_variant(self,
+                                _name: &'static str,
+                                _variant_index: usize,
+                                _variant: &'static str,
+                                _len: usize)
+                                -> Result<Self, Error> {
+        Err(self.sink.unsupported())
+    }
+}
+
+impl<S: Sink> ser::SerializeSeq for PartSerializer<S> {
+    type Ok = S::Ok;
+    type Error = Error;
+
+    fn serialize_element<T: ?Sized + ser::Serialize>(&mut self,
+                                                     _value: &T)
+                                                     -> Result<(), Error> {
+        unreachable!()
+    }
+
+    fn end(self) -> Result<S::Ok, Error> {
+        unreachable!()
+    }
+}
+
+impl<S: Sink> ser::SerializeTuple for PartSerializer<S> {
+    type Ok = S::Ok;
+    type Error = Error;
+
+    fn serialize_element<T: ?Sized + ser::Serialize>(&mut self,
+                                                     _value: &T)
+                                                     -> Result<(), Error> {
+        unreachable!()
+    }
+
+    fn end(self) -> Result<S::Ok, Error> {
+        unreachable!()
+    }
+}
+
+impl<S: Sink> ser::SerializeTupleStruct for PartSerializer<S> {
+    type Ok = S::Ok;
+    type Error = Error;
+
+    fn serialize_field<T: ?Sized + ser::Serialize>(&mut self,
+                                                   _value: &T)
+                                                   -> Result<(), Error> {
+        unreachable!()
+    }
+
+    fn end(self) -> Result<S::Ok, Error> {
+        unreachable!()
+    }
+}
+
+impl<S: Sink> ser::SerializeTupleVariant for PartSerializer<S> {
+    type Ok = S::Ok;
+    type Error = Error;
+
+    fn serialize_field<T: ?Sized + ser::Serialize>(&mut self,
+                                                   _value: &T)
+                                                   -> Result<(), Error> {
+        unreachable!()
+    }
+
+    fn end(self) -> Result<S::Ok, Error> {
+        unreachable!()
+    }
+}
+
+impl<S: Sink> ser::SerializeMap for PartSerializer<S> {
+    type Ok = S::Ok;
+    type Error = Error;
+
+    fn serialize_key<T: ?Sized + ser::Serialize>(&mut self,
+                                                 _key: &T)
+                                                 -> Result<(), Error> {
+        unreachable!()
+    }
+
+    fn serialize_value<T: ?Sized + ser::Serialize>(&mut self,
+                                                   _value: &T)
+                                                   -> Result<(), Error> {
+        unreachable!()
+    }
+
+    fn end(self) -> Result<S::Ok, Error> {
+        unreachable!()
+    }
+}
+
+impl<S: Sink> ser::SerializeStruct for PartSerializer<S> {
+    type Ok = S::Ok;
+    type Error = Error;
+
+    fn serialize_field<T: ?Sized + ser::Serialize>(&mut self,
+                                                   _key: &'static str,
+                                                   _value: &T)
+                                                   -> Result<(), Error> {
+        unreachable!()
+    }
+
+    fn end(self) -> Result<S::Ok, Error> {
+        unreachable!()
+    }
+}
+
+impl<S: Sink> ser::SerializeStructVariant for PartSerializer<S> {
+    type Ok = S::Ok;
+    type Error = Error;
+
+    fn serialize_field<T: ?Sized + ser::Serialize>(&mut self,
+                                                   _key: &'static str,
+                                                   _value: &T)
+                                                   -> Result<(), Error> {
+        unreachable!()
+    }
+
+    fn end(self) -> Result<S::Ok, Error> {
+        unreachable!()
+    }
+}
