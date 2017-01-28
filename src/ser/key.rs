@@ -46,10 +46,6 @@ impl<End, Ok> Sink for KeySink<End>
 {
     type Ok = Ok;
 
-    fn serialize_bool(self, _value: bool) -> Result<Ok, Error> {
-        Err(self.unsupported())
-    }
-
     fn serialize_static_str(self,
                             value: &'static str)
                             -> Result<Ok, Error> {

@@ -18,8 +18,6 @@ impl<S: Sink> PartSerializer<S> {
 pub trait Sink: Sized {
     type Ok;
 
-    fn serialize_bool(self, value: bool) -> Result<Self::Ok, Error>;
-
     fn serialize_static_str(self,
                             value: &'static str)
                             -> Result<Self::Ok, Error>;
@@ -48,7 +46,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
     type SerializeStructVariant = VoidSerializer<S::Ok>;
 
     fn serialize_bool(self, v: bool) -> Result<S::Ok, Error> {
-        self.sink.serialize_bool(v)
+        self.sink.serialize_static_str(if v { "true" } else { "false" })
     }
 
     fn serialize_i8(self, v: i8) -> Result<S::Ok, Error> {
