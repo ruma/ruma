@@ -1,6 +1,6 @@
 [package]
 name = "serde_urlencoded"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Anthony Ramine <n.oxyde@gmail.com>"]
 license = "MIT/Apache-2.0"
 repository = "https://github.com/nox/serde_urlencoded"

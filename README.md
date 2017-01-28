@@ -18,7 +18,7 @@ This crate works with Cargo and can be found on
 
 ```toml
 [dependencies]
-serde_urlencoded = "0.2.1"
+serde_urlencoded = "0.4.0"
 ```
 
 [crates.io]: https://crates.io/crates/serde_urlencoded
@@ -34,7 +34,7 @@ issues](https://github.com/nox/serde_urlencoded/issues/new) as well.
 
 ## License
 
-Serde is licensed under either of
+serde_urlencoded is licensed under either of
 
  * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
    http://www.apache.org/licenses/LICENSE-2.0)
@@ -46,5 +46,5 @@ at your option.
 ### Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in Serde by you, as defined in the Apache-2.0 license, shall be
-dual licensed as above, without any additional terms or conditions.
+for inclusion in serde_urlencoded by you, as defined in the Apache-2.0 license,
+shall be dual licensed as above, without any additional terms or conditions.
