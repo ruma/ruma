@@ -31,7 +31,7 @@ impl<'key, 'target, Target> Sink for ValueSink<'key, 'target, Target>
     type Ok = ();
 
     fn serialize_bool(self, value: bool) -> Result<Self::Ok, Error> {
-        self.serialize_string(value.to_string())
+        self.serialize_static_str(if value { "true" } else { "false" })
     }
 
     fn serialize_str(self, value: &str) -> Result<(), Error> {
