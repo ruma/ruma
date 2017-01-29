@@ -1,12 +1,11 @@
 //! Deserialization support for the `application/x-www-form-urlencoded` format.
 
 use serde::de;
-use serde::de::value::MapDeserializer;
-use std::borrow::Cow;
-use url::form_urlencoded::Parse as UrlEncodedParse;
-use url::form_urlencoded::parse;
 
 pub use serde::de::value::Error;
+use serde::de::value::MapDeserializer;
+use url::form_urlencoded::Parse as UrlEncodedParse;
+use url::form_urlencoded::parse;
 
 /// Deserializes a `application/x-wwww-url-encoded` value from a `&[u8]`.
 ///
@@ -24,7 +23,7 @@ pub use serde::de::value::Error;
 ///     Ok(meal));
 /// ```
 pub fn from_bytes<T: de::Deserialize>(input: &[u8]) -> Result<T, Error> {
-    T::deserialize(&mut Deserializer::new(parse(input)))
+    T::deserialize(Deserializer::new(parse(input)))
 }
 
 /// Deserializes a `application/x-wwww-url-encoded` value from a `&str`.
@@ -56,61 +55,52 @@ pub fn from_str<T: de::Deserialize>(input: &str) -> Result<T, Error> {
 /// * Everything else but `deserialize_seq` and `deserialize_seq_fixed_size`
 ///   defers to `deserialize`.
 pub struct Deserializer<'a> {
-    inner:
-        MapDeserializer<UrlEncodedParse<'a>, Cow<'a, str>, Cow<'a, str>, Error>,
+    inner: MapDeserializer<UrlEncodedParse<'a>, Error>,
 }
 
 impl<'a> Deserializer<'a> {
     /// Returns a new `Deserializer`.
     pub fn new(parser: UrlEncodedParse<'a>) -> Self {
-        Deserializer { inner: MapDeserializer::unbounded(parser) }
+        Deserializer { inner: MapDeserializer::new(parser) }
     }
 }
 
-impl<'a> de::Deserializer for Deserializer<'a>
-{
+impl<'a> de::Deserializer for Deserializer<'a> {
     type Error = Error;
 
-    fn deserialize<V>(
-            &mut self, visitor: V)
-            -> Result<V::Value, Self::Error>
+    fn deserialize<V>(self, visitor: V) -> Result<V::Value, Self::Error>
         where V: de::Visitor,
     {
         self.deserialize_map(visitor)
     }
 
-    fn deserialize_map<V>(
-            &mut self, mut visitor: V)
-            -> Result<V::Value, Self::Error>
+    fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
         where V: de::Visitor,
     {
-        visitor.visit_map(&mut self.inner)
+        visitor.visit_map(self.inner)
     }
 
-    fn deserialize_seq<V>(
-            &mut self, mut visitor: V)
-            -> Result<V::Value, Self::Error>
+    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
         where V: de::Visitor,
     {
-        visitor.visit_seq(&mut self.inner)
+        visitor.visit_seq(self.inner)
     }
 
-    fn deserialize_seq_fixed_size<V>(
-            &mut self, _len: usize, mut visitor: V)
-            -> Result<V::Value, Self::Error>
-        where V: de::Visitor
+    fn deserialize_seq_fixed_size<V>(self,
+                                     _len: usize,
+                                     visitor: V)
+                                     -> Result<V::Value, Self::Error>
+        where V: de::Visitor,
     {
-        visitor.visit_seq(&mut self.inner)
+        visitor.visit_seq(self.inner)
     }
 
     forward_to_deserialize! {
         bool
-        usize
         u8
         u16
         u32
         u64
-        isize
         i8
         i16
         i32
@@ -123,6 +113,7 @@ impl<'a> de::Deserializer for Deserializer<'a>
         unit
         option
         bytes
+        byte_buf
         unit_struct
         newtype_struct
         tuple_struct

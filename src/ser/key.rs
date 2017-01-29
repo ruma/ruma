@@ -1,292 +1,76 @@
-use serde::{Serialize, Serializer};
 use ser::Error;
+use ser::part::Sink;
+use serde::Serialize;
 use std::borrow::Cow;
-use std::str;
+use std::ops::Deref;
 
-pub struct MapKeySerializer<'key>(&'key mut Option<Cow<'static, str>>);
-
-impl<'key> MapKeySerializer<'key> {
-    pub fn new(output: &'key mut Option<Cow<'static, str>>) -> Self {
-        MapKeySerializer(output)
-    }
-
-    fn set_key<T>(&mut self, key: T) -> Result<(), Error>
-        where T: Into<Cow<'static, str>>
-    {
-        *self.0 = Some(key.into());
-        Ok(())
-    }
+pub enum Key<'key> {
+    Static(&'static str),
+    Dynamic(Cow<'key, str>),
 }
 
-impl<'key> Serializer for MapKeySerializer<'key> {
-    type Error = Error;
-    type SeqState = ();
-    type TupleState = ();
-    type TupleStructState = ();
-    type TupleVariantState = ();
-    type MapState = ();
-    type StructState = ();
-    type StructVariantState = ();
+impl<'key> Deref for Key<'key> {
+    type Target = str;
 
-    fn serialize_bool(&mut self, _v: bool) -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_isize(&mut self, v: isize) -> Result<(), Error> {
-        self.set_key(v.to_string())
-    }
-
-    fn serialize_i8(&mut self, v: i8) -> Result<(), Error> {
-        self.set_key(v.to_string())
-    }
-
-    fn serialize_i16(&mut self, v: i16) -> Result<(), Error> {
-        self.set_key(v.to_string())
-    }
-
-    fn serialize_i32(&mut self, v: i32) -> Result<(), Error> {
-        self.set_key(v.to_string())
-    }
-
-    fn serialize_i64(&mut self, v: i64) -> Result<(), Error> {
-        self.set_key(v.to_string())
-    }
-
-    fn serialize_usize(&mut self, v: usize) -> Result<(), Error> {
-        self.set_key(v.to_string())
-    }
-
-    fn serialize_u8(&mut self, v: u8) -> Result<(), Error> {
-        self.set_key(v.to_string())
-    }
-
-    fn serialize_u16(&mut self, v: u16) -> Result<(), Error> {
-        self.set_key(v.to_string())
-    }
-
-    fn serialize_u32(&mut self, v: u32) -> Result<(), Error> {
-        self.set_key(v.to_string())
-    }
-
-    fn serialize_u64(&mut self, v: u64) -> Result<(), Error> {
-        self.set_key(v.to_string())
-    }
-
-    fn serialize_f32(&mut self, v: f32) -> Result<(), Error> {
-        self.set_key(v.to_string())
-    }
-
-    fn serialize_f64(&mut self, v: f64) -> Result<(), Error> {
-        self.set_key(v.to_string())
-    }
-
-    fn serialize_char(&mut self, v: char) -> Result<(), Error> {
-        self.set_key(v.to_string())
-    }
-
-    fn serialize_str(&mut self, value: &str) -> Result<(), Error> {
-        self.set_key(String::from(value))
-    }
-
-    fn serialize_bytes(&mut self, value: &[u8]) -> Result<(), Error> {
-        match str::from_utf8(value) {
-            Ok(value) => self.set_key(String::from(value)),
-            Err(err) => Err(Error::Utf8(err)),
+    fn deref(&self) -> &str {
+        match *self {
+            Key::Static(key) => key,
+            Key::Dynamic(ref key) => key,
         }
     }
+}
 
-    fn serialize_unit(&mut self) -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_unit_struct(
-            &mut self, name: &'static str)
-            -> Result<(), Error> {
-        self.set_key(name)
-    }
-
-    fn serialize_unit_variant(
-            &mut self,
-            _name: &'static str,
-            _variant_index: usize,
-            variant: &'static str)
-            -> Result<(), Error> {
-        self.set_key(variant)
-    }
-
-    fn serialize_newtype_struct<T>(
-            &mut self, _name: &'static str, value: T)
-            -> Result<(), Error>
-        where T: Serialize
-    {
-        value.serialize(self)
-    }
-
-    fn serialize_newtype_variant<T>(
-            &mut self,
-            _name: &'static str,
-            _variant_index: usize,
-            _variant: &'static str,
-            _value: T)
-            -> Result<(), Error>
-        where T: Serialize
-    {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_none(&mut self) -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_some<T>(&mut self, _value: T) -> Result<(), Error>
-        where T: Serialize
-    {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_seq(&mut self, _len: Option<usize>) -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_seq_elt<T>(
-            &mut self, _state: &mut (), _value: T)
-            -> Result<(), Error>
-        where T: Serialize
-    {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_seq_end(&mut self, _state: ()) -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_seq_fixed_size(&mut self, _size: usize) -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_tuple(&mut self, _len: usize) -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_tuple_elt<T>(
-            &mut self, _state: &mut (), _value: T)
-            -> Result<(), Error>
-        where T: Serialize
-    {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_tuple_end(&mut self, _state: ()) -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_tuple_struct(
-            &mut self, _name: &'static str, _len: usize)
-            -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_tuple_struct_elt<T>(
-            &mut self, _state: &mut (), _value: T)
-            -> Result<(), Error>
-        where T: Serialize
-    {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_tuple_struct_end(&mut self, _state: ()) -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_tuple_variant(
-            &mut self,
-            _name: &'static str,
-            _variant_index: usize,
-            _variant: &'static str,
-            _len: usize)
-            -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_tuple_variant_elt<T>(
-            &mut self, _state: &mut (), _value: T)
-            -> Result<(), Error>
-        where T: Serialize
-    {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_tuple_variant_end(&mut self, _state: ()) -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_map(&mut self, _len: Option<usize>) -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_map_key<T>(
-            &mut self, _state: &mut (), _key: T)
-            -> Result<(), Error>
-        where T: Serialize
-    {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_map_value<T>(
-            &mut self, _state: &mut (), _value: T)
-            -> Result<(), Error>
-        where T: Serialize
-    {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_map_end(&mut self, _state: ()) -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_struct(
-            &mut self, _name: &'static str, _len: usize)
-            -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_struct_elt<T>(
-            &mut self, _state: &mut (), _key: &'static str, _value: T)
-            -> Result<(), Error>
-        where T: Serialize
-    {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_struct_end(&mut self, _state: ()) -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_struct_variant(
-            &mut self,
-            _name: &'static str,
-            _variant_index: usize,
-            _variant: &'static str,
-            _len: usize)
-            -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_struct_variant_elt<T>(
-            &mut self, _state: &mut (), _key: &'static str, _value: T)
-            -> Result<(), Error> {
-        Err(Error::unsupported_key())
-    }
-
-    fn serialize_struct_variant_end(
-            &mut self, _state: ())
-            -> Result<(), Error> {
-        Err(Error::unsupported_key())
+impl<'key> From<Key<'key>> for Cow<'static, str> {
+    fn from(key: Key<'key>) -> Self {
+        match key {
+            Key::Static(key) => key.into(),
+            Key::Dynamic(key) => key.into_owned().into(),
+        }
     }
 }
 
-impl Error {
-    fn unsupported_key() -> Self {
+pub struct KeySink<End> {
+    end: End,
+}
+
+impl<End, Ok> KeySink<End>
+    where End: for<'key> FnOnce(Key<'key>) -> Result<Ok, Error>
+{
+    pub fn new(end: End) -> Self {
+        KeySink { end: end }
+    }
+}
+
+impl<End, Ok> Sink for KeySink<End>
+    where End: for<'key> FnOnce(Key<'key>) -> Result<Ok, Error>
+{
+    type Ok = Ok;
+
+    fn serialize_static_str(self,
+                            value: &'static str)
+                            -> Result<Ok, Error> {
+        (self.end)(Key::Static(value))
+    }
+
+    fn serialize_str(self, value: &str) -> Result<Ok, Error> {
+        (self.end)(Key::Dynamic(value.into()))
+    }
+
+    fn serialize_string(self, value: String) -> Result<Ok, Error> {
+        (self.end)(Key::Dynamic(value.into()))
+    }
+
+    fn serialize_none(self) -> Result<Ok, Error> {
+        Err(self.unsupported())
+    }
+
+    fn serialize_some<T: ?Sized + Serialize>(self,
+                                             _value: &T)
+                                             -> Result<Ok, Error> {
+        Err(self.unsupported())
+    }
+
+    fn unsupported(self) -> Error {
         Error::Custom("unsupported key".into())
     }
 }
