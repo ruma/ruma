@@ -1,11 +1,12 @@
 //! `x-www-form-urlencoded` meets Serde
 
+#![warn(unused_extern_crates)]
+
 extern crate itoa;
 extern crate dtoa;
 #[macro_use]
 extern crate serde;
 extern crate url;
-extern crate void;
 
 pub mod de;
 pub mod ser;

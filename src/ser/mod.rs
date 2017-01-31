@@ -4,7 +4,6 @@ mod key;
 mod pair;
 mod part;
 mod value;
-mod void;
 
 use serde::ser;
 use std::borrow::Cow;
@@ -102,21 +101,21 @@ pub struct SeqSerializer<'output, Target: 'output + UrlEncodedTarget> {
 ///
 /// Never instantiated, tuples are not supported at top-level.
 pub struct TupleSerializer<'output, T: 'output + UrlEncodedTarget> {
-    inner: void::VoidSerializer<&'output mut UrlEncodedSerializer<T>>,
+    inner: ser::Impossible<&'output mut UrlEncodedSerializer<T>, Error>,
 }
 
 /// Tuple struct serializer.
 ///
 /// Never instantiated, tuple structs are not supported.
 pub struct TupleStructSerializer<'output, T: 'output + UrlEncodedTarget> {
-    inner: void::VoidSerializer<&'output mut UrlEncodedSerializer<T>>,
+    inner: ser::Impossible<&'output mut UrlEncodedSerializer<T>, Error>,
 }
 
 /// Tuple variant serializer.
 ///
 /// Never instantiated, tuple variants are not supported.
 pub struct TupleVariantSerializer<'output, T: 'output + UrlEncodedTarget> {
-    inner: void::VoidSerializer<&'output mut UrlEncodedSerializer<T>>,
+    inner: ser::Impossible<&'output mut UrlEncodedSerializer<T>, Error>,
 }
 
 /// Map serializer.
@@ -134,7 +133,7 @@ pub struct StructSerializer<'output, Target: 'output + UrlEncodedTarget> {
 ///
 /// Never instantiated, struct variants are not supported.
 pub struct StructVariantSerializer<'output, T: 'output + UrlEncodedTarget> {
-    inner: void::VoidSerializer<&'output mut UrlEncodedSerializer<T>>,
+    inner: ser::Impossible<&'output mut UrlEncodedSerializer<T>, Error>,
 }
 
 impl<'output, Target> ser::Serializer for Serializer<'output, Target>
