@@ -2,7 +2,6 @@ use ser::Error;
 use ser::key::KeySink;
 use ser::part::PartSerializer;
 use ser::value::ValueSink;
-use ser::void::VoidSerializer;
 use serde::ser;
 use std::borrow::Cow;
 use std::mem;
@@ -30,13 +29,13 @@ impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
 {
     type Ok = ();
     type Error = Error;
-    type SerializeSeq = VoidSerializer<()>;
+    type SerializeSeq = ser::Impossible<(), Error>;
     type SerializeTuple = Self;
-    type SerializeTupleStruct = VoidSerializer<()>;
-    type SerializeTupleVariant = VoidSerializer<()>;
-    type SerializeMap = VoidSerializer<()>;
-    type SerializeStruct = VoidSerializer<()>;
-    type SerializeStructVariant = VoidSerializer<()>;
+    type SerializeTupleStruct = ser::Impossible<(), Error>;
+    type SerializeTupleVariant = ser::Impossible<(), Error>;
+    type SerializeMap = ser::Impossible<(), Error>;
+    type SerializeStruct = ser::Impossible<(), Error>;
+    type SerializeStructVariant = ser::Impossible<(), Error>;
 
     fn serialize_bool(self, _v: bool) -> Result<(), Error> {
         Err(Error::unsupported_pair())
@@ -140,13 +139,13 @@ impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
 
     fn serialize_seq(self,
                      _len: Option<usize>)
-                     -> Result<VoidSerializer<()>, Error> {
+                     -> Result<Self::SerializeSeq, Error> {
         Err(Error::unsupported_pair())
     }
 
     fn serialize_seq_fixed_size(self,
                                 _len: usize)
-                                -> Result<VoidSerializer<()>, Error> {
+                                -> Result<Self::SerializeSeq, Error> {
         Err(Error::unsupported_pair())
     }
 
@@ -161,38 +160,40 @@ impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
     fn serialize_tuple_struct(self,
                               _name: &'static str,
                               _len: usize)
-                              -> Result<VoidSerializer<()>, Error> {
+                              -> Result<Self::SerializeTupleStruct, Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_tuple_variant(self,
-                               _name: &'static str,
-                               _variant_index: usize,
-                               _variant: &'static str,
-                               _len: usize)
-                               -> Result<VoidSerializer<()>, Error> {
+    fn serialize_tuple_variant
+        (self,
+         _name: &'static str,
+         _variant_index: usize,
+         _variant: &'static str,
+         _len: usize)
+         -> Result<Self::SerializeTupleVariant, Error> {
         Err(Error::unsupported_pair())
     }
 
     fn serialize_map(self,
                      _len: Option<usize>)
-                     -> Result<VoidSerializer<()>, Error> {
+                     -> Result<Self::SerializeMap, Error> {
         Err(Error::unsupported_pair())
     }
 
     fn serialize_struct(self,
                         _name: &'static str,
                         _len: usize)
-                        -> Result<VoidSerializer<()>, Error> {
+                        -> Result<Self::SerializeStruct, Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_struct_variant(self,
-                                _name: &'static str,
-                                _variant_index: usize,
-                                _variant: &'static str,
-                                _len: usize)
-                                -> Result<VoidSerializer<()>, Error> {
+    fn serialize_struct_variant
+        (self,
+         _name: &'static str,
+         _variant_index: usize,
+         _variant: &'static str,
+         _len: usize)
+         -> Result<Self::SerializeStructVariant, Error> {
         Err(Error::unsupported_pair())
     }
 }

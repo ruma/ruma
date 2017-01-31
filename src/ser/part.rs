@@ -1,7 +1,6 @@
 use dtoa;
 use itoa;
 use ser::Error;
-use ser::void::VoidSerializer;
 use serde::ser;
 use std::str;
 
@@ -37,13 +36,13 @@ pub trait Sink: Sized {
 impl<S: Sink> ser::Serializer for PartSerializer<S> {
     type Ok = S::Ok;
     type Error = Error;
-    type SerializeSeq = VoidSerializer<S::Ok>;
-    type SerializeTuple = VoidSerializer<S::Ok>;
-    type SerializeTupleStruct = VoidSerializer<S::Ok>;
-    type SerializeTupleVariant = VoidSerializer<S::Ok>;
-    type SerializeMap = VoidSerializer<S::Ok>;
-    type SerializeStruct = VoidSerializer<S::Ok>;
-    type SerializeStructVariant = VoidSerializer<S::Ok>;
+    type SerializeSeq = ser::Impossible<S::Ok, Error>;
+    type SerializeTuple = ser::Impossible<S::Ok, Error>;
+    type SerializeTupleStruct = ser::Impossible<S::Ok, Error>;
+    type SerializeTupleVariant = ser::Impossible<S::Ok, Error>;
+    type SerializeMap = ser::Impossible<S::Ok, Error>;
+    type SerializeStruct = ser::Impossible<S::Ok, Error>;
+    type SerializeStructVariant = ser::Impossible<S::Ok, Error>;
 
     fn serialize_bool(self, v: bool) -> Result<S::Ok, Error> {
         self.sink.serialize_static_str(if v { "true" } else { "false" })
@@ -210,7 +209,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
 
 impl<S: Sink> PartSerializer<S> {
     fn serialize_integer<I>(self, value: I) -> Result<S::Ok, Error>
-        where I: itoa::Integer
+        where I: itoa::Integer,
     {
         let mut buf = [b'\0'; 20];
         let len = itoa::write(&mut buf[..], value).unwrap();
@@ -219,7 +218,7 @@ impl<S: Sink> PartSerializer<S> {
     }
 
     fn serialize_floating<F>(self, value: F) -> Result<S::Ok, Error>
-        where F: dtoa::Floating
+        where F: dtoa::Floating,
     {
         let mut buf = [b'\0'; 24];
         let len = dtoa::write(&mut buf[..], value).unwrap();
