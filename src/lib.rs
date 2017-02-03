@@ -2,7 +2,9 @@
 //! for events, rooms, room aliases, and users.
 
 #![feature(try_from)]
+#![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
+#![deny(warnings)]
 
 #[macro_use]
 extern crate lazy_static;
