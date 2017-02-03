@@ -97,6 +97,7 @@
 
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
+#![deny(warnings)]
 
 extern crate ruma_identifiers;
 extern crate ruma_signatures;
