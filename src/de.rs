@@ -2,6 +2,7 @@
 
 use serde::de;
 
+#[doc(inline)]
 pub use serde::de::value::Error;
 use serde::de::value::MapDeserializer;
 use std::io::Read;

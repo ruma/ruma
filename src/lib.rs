@@ -11,5 +11,7 @@ extern crate url;
 pub mod de;
 pub mod ser;
 
-pub use de::{Deserializer, from_bytes, from_str, from_reader};
+#[doc(inline)]
+pub use de::{Deserializer, from_bytes, from_reader, from_str};
+#[doc(inline)]
 pub use ser::{Serializer, to_string};
