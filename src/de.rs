@@ -4,6 +4,7 @@ use serde::de;
 
 pub use serde::de::value::Error;
 use serde::de::value::MapDeserializer;
+use std::io::Read;
 use url::form_urlencoded::Parse as UrlEncodedParse;
 use url::form_urlencoded::parse;
 
@@ -43,6 +44,19 @@ pub fn from_bytes<T: de::Deserialize>(input: &[u8]) -> Result<T, Error> {
 /// ```
 pub fn from_str<T: de::Deserialize>(input: &str) -> Result<T, Error> {
     from_bytes(input.as_bytes())
+}
+
+/// Convenience function that reads all bytes from `reader` and deserializes
+/// them with `from_bytes`.
+pub fn from_reader<T, R>(mut reader: R) -> Result<T, Error>
+    where T: de::Deserialize, R: Read
+{
+    let mut buf = vec![];
+    reader.read_to_end(&mut buf)
+        .map_err(|e| {
+            de::Error::custom(format_args!("could not read input: {}", e))
+        })?;
+    from_bytes(&buf)
 }
 
 /// A deserializer for the `application/x-www-form-urlencoded` format.
