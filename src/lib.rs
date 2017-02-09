@@ -684,7 +684,7 @@ mod diesel_integration {
     use diesel::expression::AsExpression;
     use diesel::expression::bound::Bound;
     use diesel::row::Row;
-    use diesel::types::{FromSql, FromSqlRow, HasSqlType, IsNull, Text, ToSql};
+    use diesel::types::{FromSql, FromSqlRow, HasSqlType, IsNull, Nullable, Text, ToSql};
 
     macro_rules! diesel_impl {
         ($name:ident) => {
@@ -736,6 +736,22 @@ mod diesel_integration {
 
             impl<'a> AsExpression<Text> for &'a $crate::$name {
                 type Expression = Bound<Text, Self>;
+
+                fn as_expression(self) -> Self::Expression {
+                    Bound::new(self)
+                }
+            }
+
+            impl AsExpression<Nullable<Text>> for $crate::$name {
+                type Expression = Bound<Nullable<Text>, Self>;
+
+                fn as_expression(self) -> Self::Expression {
+                    Bound::new(self)
+                }
+            }
+
+            impl<'a> AsExpression<Nullable<Text>> for &'a $crate::$name {
+                type Expression = Bound<Nullable<Text>, Self>;
 
                 fn as_expression(self) -> Self::Expression {
                     Bound::new(self)
