@@ -19,7 +19,7 @@ url = "1.4"
 
 [dependencies.diesel]
 optional = true
-version = "0.11"
+version = "0.12"
 
 [dev-dependencies]
 serde_json = "0.9"
