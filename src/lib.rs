@@ -493,13 +493,13 @@ impl Deserialize for UserId {
 }
 
 impl<'a> TryFrom<&'a str> for EventId {
-    type Err = Error;
+    type Error = Error;
 
     /// Attempts to create a new Matrix event ID from a string representation.
     ///
     /// The string must include the leading $ sigil, the opaque ID, a literal colon, and a valid
     /// server name.
-    fn try_from(event_id: &'a str) -> Result<Self, Self::Err> {
+    fn try_from(event_id: &'a str) -> Result<Self, Self::Error> {
         let (opaque_id, host, port) = parse_id('$', event_id)?;
 
         Ok(EventId {
@@ -511,7 +511,7 @@ impl<'a> TryFrom<&'a str> for EventId {
 }
 
 impl<'a> TryFrom<&'a str> for RoomAliasId {
-    type Err = Error;
+    type Error = Error;
 
     /// Attempts to create a new Matrix room alias ID from a string representation.
     ///
@@ -529,7 +529,7 @@ impl<'a> TryFrom<&'a str> for RoomAliasId {
 }
 
 impl<'a> TryFrom<&'a str> for RoomId {
-    type Err = Error;
+    type Error = Error;
 
     /// Attempts to create a new Matrix room ID from a string representation.
     ///
@@ -547,7 +547,7 @@ impl<'a> TryFrom<&'a str> for RoomId {
 }
 
 impl<'a> TryFrom<&'a str> for RoomIdOrAliasId {
-    type Err = Error;
+    type Error = Error;
 
     /// Attempts to create a new Matrix room ID or a room alias ID from a string representation.
     ///
@@ -576,7 +576,7 @@ impl<'a> TryFrom<&'a str> for RoomIdOrAliasId {
 }
 
 impl<'a> TryFrom<&'a str> for UserId {
-    type Err = Error;
+    type Error = Error;
 
     /// Attempts to create a new Matrix user ID from a string representation.
     ///
