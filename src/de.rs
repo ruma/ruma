@@ -1,16 +1,15 @@
 //! Deserialization support for the `application/x-www-form-urlencoded` format.
 
-use serde::de;
-use serde::de::value::{MapDeserializer, ValueDeserializer as SerdeValueDeserializer};
+use serde::de::{self, IntoDeserializer};
+
+use serde::de::value::MapDeserializer;
+use std::borrow::Cow;
+use std::io::Read;
+use url::form_urlencoded::Parse as UrlEncodedParse;
+use url::form_urlencoded::parse;
 
 #[doc(inline)]
 pub use serde::de::value::Error;
-use std::borrow::Cow;
-use std::io::Read;
-use std::iter::Map;
-use std::marker::PhantomData;
-use url::form_urlencoded::Parse as UrlEncodedParse;
-use url::form_urlencoded::parse;
 
 /// Deserializes a `application/x-wwww-url-encoded` value from a `&[u8]`.
 ///
@@ -27,7 +26,9 @@ use url::form_urlencoded::parse;
 ///         b"bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter"),
 ///     Ok(meal));
 /// ```
-pub fn from_bytes<T: de::Deserialize>(input: &[u8]) -> Result<T, Error> {
+pub fn from_bytes<'de, T>(input: &'de [u8]) -> Result<T, Error>
+    where T: de::Deserialize<'de>,
+{
     T::deserialize(Deserializer::new(parse(input)))
 }
 
@@ -46,14 +47,16 @@ pub fn from_bytes<T: de::Deserialize>(input: &[u8]) -> Result<T, Error> {
 ///         "bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter"),
 ///     Ok(meal));
 /// ```
-pub fn from_str<T: de::Deserialize>(input: &str) -> Result<T, Error> {
+pub fn from_str<'de, T>(input: &'de str) -> Result<T, Error>
+    where T: de::Deserialize<'de>,
+{
     from_bytes(input.as_bytes())
 }
 
 /// Convenience function that reads all bytes from `reader` and deserializes
 /// them with `from_bytes`.
 pub fn from_reader<T, R>(mut reader: R) -> Result<T, Error>
-    where T: de::Deserialize,
+    where T: de::DeserializeOwned,
           R: Read,
 {
     let mut buf = vec![];
@@ -73,53 +76,41 @@ pub fn from_reader<T, R>(mut reader: R) -> Result<T, Error>
 ///
 /// * Everything else but `deserialize_seq` and `deserialize_seq_fixed_size`
 ///   defers to `deserialize`.
-pub struct Deserializer<'a> {
-    inner: MapDeserializer<Map<UrlEncodedParse<'a>,
-                               fn((Cow<'a, str>, Cow<'a, str>))
-                                  -> (Cow<'a, str>, Value<'a>)>,
-                           Error>,
+pub struct Deserializer<'de> {
+    inner: MapDeserializer<'de, PartIterator<'de>, Error>,
 }
 
-impl<'a> Deserializer<'a> {
+impl<'de> Deserializer<'de> {
     /// Returns a new `Deserializer`.
-    pub fn new(parser: UrlEncodedParse<'a>) -> Self {
+    pub fn new(parser: UrlEncodedParse<'de>) -> Self {
         Deserializer {
-            inner: MapDeserializer::new(parser.map(Value::wrap_pair)),
+            inner: MapDeserializer::new(PartIterator(parser)),
         }
     }
 }
 
-impl<'a> de::Deserializer for Deserializer<'a> {
+impl<'de> de::Deserializer<'de> for Deserializer<'de> {
     type Error = Error;
 
-    fn deserialize<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-        where V: de::Visitor,
+    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        where V: de::Visitor<'de>,
     {
         self.deserialize_map(visitor)
     }
 
     fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-        where V: de::Visitor,
+        where V: de::Visitor<'de>,
     {
         visitor.visit_map(self.inner)
     }
 
     fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-        where V: de::Visitor,
+        where V: de::Visitor<'de>,
     {
         visitor.visit_seq(self.inner)
     }
 
-    fn deserialize_seq_fixed_size<V>(self,
-                                     _len: usize,
-                                     visitor: V)
-                                     -> Result<V::Value, Self::Error>
-        where V: de::Visitor,
-    {
-        visitor.visit_seq(self.inner)
-    }
-
-    forward_to_deserialize! {
+    forward_to_deserialize_any! {
         bool
         u8
         u16
@@ -142,68 +133,65 @@ impl<'a> de::Deserializer for Deserializer<'a> {
         newtype_struct
         tuple_struct
         struct
-        struct_field
+        identifier
         tuple
         enum
         ignored_any
     }
 }
 
-struct Value<'a>(Cow<'a, str>);
+struct PartIterator<'de>(UrlEncodedParse<'de>);
 
-impl<'a> Value<'a> {
-    fn wrap_pair((k, v): (Cow<'a, str>, Cow<'a, str>)) -> (Cow<'a, str>, Self) {
-        (k, Value(v))
+impl<'de> Iterator for PartIterator<'de> {
+    type Item = (Part<'de>, Part<'de>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next().map(|(k, v)| (Part(k), Part(v)))
     }
 }
 
-impl<'a, E> SerdeValueDeserializer<E> for Value<'a>
-    where E: de::Error,
+struct Part<'de>(Cow<'de, str>);
+
+impl<'de> IntoDeserializer<'de> for Part<'de>
 {
-    type Deserializer = ValueDeserializer<'a, E>;
+    type Deserializer = Self;
 
     fn into_deserializer(self) -> Self::Deserializer {
-        ValueDeserializer {
-            value: self.0,
-            marker: PhantomData,
-        }
+        self
     }
 }
 
-struct ValueDeserializer<'a, E> {
-    value: Cow<'a, str>,
-    marker: PhantomData<E>,
+macro_rules! forward_parsed_value {
+    ($($ty:ident => $method:ident,)*) => {
+        $(
+            fn $method<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+                where V: de::Visitor<'de>
+            {
+                match self.0.parse::<$ty>() {
+                    Ok(val) => val.into_deserializer().$method(visitor),
+                    Err(e) => Err(de::Error::custom(e))
+                }
+            }
+        )*
+    }
 }
 
-impl<'a, E> de::Deserializer for ValueDeserializer<'a, E>
-    where E: de::Error,
-{
-    type Error = E;
+impl<'de> de::Deserializer<'de> for Part<'de> {
+    type Error = Error;
 
-    fn deserialize<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-        where V: de::Visitor,
+    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        where V: de::Visitor<'de>,
     {
-        self.value.into_deserializer().deserialize(visitor)
+        self.0.into_deserializer().deserialize_any(visitor)
     }
 
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-        where V: de::Visitor,
+        where V: de::Visitor<'de>,
     {
-        visitor.visit_some(self.value.into_deserializer())
+        visitor.visit_some(self)
     }
 
-    forward_to_deserialize! {
-        bool
-        u8
-        u16
-        u32
-        u64
-        i8
-        i16
-        i32
-        i64
-        f32
-        f64
+    forward_to_deserialize_any! {
         char
         str
         string
@@ -214,12 +202,25 @@ impl<'a, E> de::Deserializer for ValueDeserializer<'a, E>
         newtype_struct
         tuple_struct
         struct
-        struct_field
+        identifier
         tuple
         enum
         ignored_any
         seq
-        seq_fixed_size
         map
+    }
+
+    forward_parsed_value! {
+        bool => deserialize_bool,
+        u8 => deserialize_u8,
+        u16 => deserialize_u16,
+        u32 => deserialize_u32,
+        u64 => deserialize_u64,
+        i8 => deserialize_i8,
+        i16 => deserialize_i16,
+        i32 => deserialize_i32,
+        i64 => deserialize_i64,
+        f32 => deserialize_f32,
+        f64 => deserialize_f64,
     }
 }
