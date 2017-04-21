@@ -462,33 +462,33 @@ impl Serialize for UserId {
     }
 }
 
-impl Deserialize for EventId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
-        deserializer.deserialize(EventIdVisitor)
+impl<'de> Deserialize<'de> for EventId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_any(EventIdVisitor)
     }
 }
 
-impl Deserialize for RoomAliasId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
-        deserializer.deserialize(RoomAliasIdVisitor)
+impl<'de> Deserialize<'de> for RoomAliasId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_any(RoomAliasIdVisitor)
     }
 }
 
-impl Deserialize for RoomId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
-        deserializer.deserialize(RoomIdVisitor)
+impl<'de> Deserialize<'de> for RoomId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_any(RoomIdVisitor)
     }
 }
 
-impl Deserialize for RoomIdOrAliasId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
-        deserializer.deserialize(RoomIdOrAliasIdVisitor)
+impl<'de> Deserialize<'de> for RoomIdOrAliasId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_any(RoomIdOrAliasIdVisitor)
     }
 }
 
-impl Deserialize for UserId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
-        deserializer.deserialize(UserIdVisitor)
+impl<'de> Deserialize<'de> for UserId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+        deserializer.deserialize_any(UserIdVisitor)
     }
 }
 
@@ -598,7 +598,7 @@ impl<'a> TryFrom<&'a str> for UserId {
     }
 }
 
-impl Visitor for EventIdVisitor {
+impl<'de> Visitor<'de> for EventIdVisitor {
     type Value = EventId;
 
     fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
@@ -613,7 +613,7 @@ impl Visitor for EventIdVisitor {
     }
 }
 
-impl Visitor for RoomAliasIdVisitor {
+impl<'de> Visitor<'de> for RoomAliasIdVisitor {
     type Value = RoomAliasId;
 
     fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
@@ -628,7 +628,7 @@ impl Visitor for RoomAliasIdVisitor {
     }
 }
 
-impl Visitor for RoomIdVisitor {
+impl<'de> Visitor<'de> for RoomIdVisitor {
     type Value = RoomId;
 
     fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
@@ -643,7 +643,7 @@ impl Visitor for RoomIdVisitor {
     }
 }
 
-impl Visitor for RoomIdOrAliasIdVisitor {
+impl<'de> Visitor<'de> for RoomIdOrAliasIdVisitor {
     type Value = RoomIdOrAliasId;
 
     fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
@@ -658,7 +658,7 @@ impl Visitor for RoomIdOrAliasIdVisitor {
     }
 }
 
-impl Visitor for UserIdVisitor {
+impl<'de> Visitor<'de> for UserIdVisitor {
     type Value = UserId;
 
     fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
