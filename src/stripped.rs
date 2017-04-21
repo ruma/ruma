@@ -97,7 +97,7 @@ impl Serialize for StrippedState {
 
 impl<'de> Deserialize<'de> for StrippedState {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
-        let value: Value = try!(Deserialize::deserialize(deserializer));
+        let value: Value = Deserialize::deserialize(deserializer)?;
 
         let event_type_value = match value.get("type") {
             Some(value) => value.clone(),

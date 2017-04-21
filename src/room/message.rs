@@ -270,7 +270,7 @@ impl Serialize for MessageEventContent {
 
 impl<'de> Deserialize<'de> for MessageEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
-        let value: Value = try!(Deserialize::deserialize(deserializer));
+        let value: Value = Deserialize::deserialize(deserializer)?;
 
         let message_type_value = match value.get("msgtype") {
             Some(value) => value.clone(),
