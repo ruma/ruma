@@ -65,8 +65,8 @@ impl Serialize for Event {
     }
 }
 
-impl Deserialize for Event {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
+impl<'de> Deserialize<'de> for Event {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
         let value: Value = try!(Deserialize::deserialize(deserializer));
 
         let event_type_value = match value.get("type") {
@@ -146,8 +146,8 @@ impl Serialize for RoomEvent {
     }
 }
 
-impl Deserialize for RoomEvent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
+impl<'de> Deserialize<'de> for RoomEvent {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
         let value: Value = try!(Deserialize::deserialize(deserializer));
 
         let event_type_value = match value.get("type") {

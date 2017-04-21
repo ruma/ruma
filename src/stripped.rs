@@ -65,8 +65,9 @@ pub enum StrippedState {
 
 /// A "stripped-down" version of a core state event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct StrippedStateContent<C> where C: Deserialize + Serialize {
+pub struct StrippedStateContent<C> where C: for<'a> Deserialize<'a> + Serialize {
     /// Data specific to the event type.
+    #[serde(bound(deserialize = ""))]
     pub content: C,
     /// The type of the event.
     #[serde(rename="type")]
@@ -94,8 +95,8 @@ impl Serialize for StrippedState {
     }
 }
 
-impl Deserialize for StrippedState {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
+impl<'de> Deserialize<'de> for StrippedState {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
         let value: Value = try!(Deserialize::deserialize(deserializer));
 
         let event_type_value = match value.get("type") {

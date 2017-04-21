@@ -268,8 +268,8 @@ impl Serialize for MessageEventContent {
     }
 }
 
-impl Deserialize for MessageEventContent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
+impl<'de> Deserialize<'de> for MessageEventContent {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
         let value: Value = try!(Deserialize::deserialize(deserializer));
 
         let message_type_value = match value.get("msgtype") {

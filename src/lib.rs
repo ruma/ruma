@@ -183,9 +183,9 @@ pub enum EventType {
 }
 
 /// A basic event.
-pub trait Event: Debug + Deserialize + Serialize {
+pub trait Event where Self: Debug + for<'a> Deserialize<'a> + Serialize {
     /// The event-type-specific payload this event carries.
-    type Content: Debug + Deserialize + Serialize;
+    type Content: Debug + for<'a> Deserialize<'a> + Serialize;
 
     /// The event's content.
     fn content(&self) -> &Self::Content;
@@ -307,11 +307,11 @@ impl Serialize for EventType {
     }
 }
 
-impl Deserialize for EventType {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
+impl<'de> Deserialize<'de> for EventType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
         struct EventTypeVisitor;
 
-        impl Visitor for EventTypeVisitor {
+        impl<'de> Visitor<'de> for EventTypeVisitor {
             type Value = EventType;
 
             fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
