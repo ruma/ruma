@@ -141,7 +141,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 use ring::signature::{ED25519, Ed25519KeyPair as RingEd25519KeyPair, verify};
 use rustc_serialize::base64::{CharacterSet, Config, FromBase64, Newline, ToBase64};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde::de::{Error as SerdeError, MapVisitor, Unexpected, Visitor};
+use serde::de::{Error as SerdeError, MapAccess, Unexpected, Visitor};
 use serde::ser::SerializeMap;
 use serde_json::{Value, to_string};
 use untrusted::Input;
@@ -510,8 +510,8 @@ impl Signatures {
     }
 }
 
-impl Deserialize for Signatures {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
+impl<'de> Deserialize<'de> for Signatures {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
         deserializer.deserialize_map(SignaturesVisitor)
     }
 }
@@ -529,18 +529,20 @@ impl Serialize for Signatures {
     }
 }
 
-impl Visitor for SignaturesVisitor {
+impl<'de> Visitor<'de> for SignaturesVisitor {
     type Value = Signatures;
 
     fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
         write!(formatter, "digital signatures")
     }
 
-    fn visit_map<M>(self, mut visitor: M) -> Result<Self::Value, M::Error>
-    where M: MapVisitor {
-        let mut signatures = Signatures::with_capacity(visitor.size_hint().0);
+    fn visit_map<M>(self, mut visitor: M) -> Result<Self::Value, M::Error> where M: MapAccess<'de> {
+        let mut signatures = match visitor.size_hint() {
+            Some(capacity) => Signatures::with_capacity(capacity),
+            None => Signatures::new(),
+        };
 
-        while let Some((server_name, signature_set)) = visitor.visit::<String, SignatureSet>()? {
+        while let Some((server_name, signature_set)) = visitor.next_entry::<String, SignatureSet>()? {
             if let Err(_) = signatures.insert(&server_name, signature_set) {
                 return Err(M::Error::invalid_value(Unexpected::Str(&server_name), &self));
             }
@@ -587,8 +589,8 @@ impl SignatureSet {
     }
 }
 
-impl Deserialize for SignatureSet {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer {
+impl<'de> Deserialize<'de> for SignatureSet {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
         deserializer.deserialize_map(SignatureSetVisitor)
     }
 }
@@ -606,18 +608,20 @@ impl Serialize for SignatureSet {
     }
 }
 
-impl Visitor for SignatureSetVisitor {
+impl<'de> Visitor<'de> for SignatureSetVisitor {
     type Value = SignatureSet;
 
     fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
         write!(formatter, "a set of digital signatures")
     }
 
-    fn visit_map<M>(self, mut visitor: M) -> Result<Self::Value, M::Error>
-    where M: MapVisitor {
-        let mut signature_set = SignatureSet::with_capacity(visitor.size_hint().0);
+    fn visit_map<M>(self, mut visitor: M) -> Result<Self::Value, M::Error> where M: MapAccess<'de> {
+        let mut signature_set = match visitor.size_hint() {
+            Some(capacity) => SignatureSet::with_capacity(capacity),
+            None => SignatureSet::new(),
+        };
 
-        while let Some((key, value)) = visitor.visit::<String, String>()? {
+        while let Some((key, value)) = visitor.next_entry::<String, String>()? {
             let (algorithm, version) = split_id(&key).map_err(|split_error| {
                 match split_error {
                     SplitError::InvalidLength(length) => M::Error::invalid_length(length, &self),
