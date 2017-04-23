@@ -65,9 +65,8 @@ pub enum StrippedState {
 
 /// A "stripped-down" version of a core state event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct StrippedStateContent<C> where C: for<'a> Deserialize<'a> + Serialize {
+pub struct StrippedStateContent<C> {
     /// Data specific to the event type.
-    #[serde(bound(deserialize = ""))]
     pub content: C,
     /// The type of the event.
     #[serde(rename="type")]
