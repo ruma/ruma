@@ -124,8 +124,10 @@
 
 #![deny(missing_docs)]
 
+extern crate base64;
+#[macro_use]
+extern crate lazy_static;
 extern crate ring;
-extern crate rustc_serialize;
 extern crate serde;
 #[cfg(test)]
 #[macro_use]
@@ -138,8 +140,8 @@ use std::collections::{HashMap, HashSet};
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
+use base64::{CharacterSet, Config, LineWrap, decode_config, encode_config};
 use ring::signature::{ED25519, Ed25519KeyPair as RingEd25519KeyPair, verify};
-use rustc_serialize::base64::{CharacterSet, Config, FromBase64, Newline, ToBase64};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error as SerdeError, MapAccess, Unexpected, Visitor};
 use serde::ser::SerializeMap;
@@ -149,12 +151,14 @@ use url::Url;
 
 pub use url::Host;
 
-static BASE64_CONFIG: Config = Config {
-    char_set: CharacterSet::Standard,
-    newline: Newline::CRLF,
-    pad: false,
-    line_length: None,
-};
+lazy_static! {
+    static ref BASE64_CONFIG: Config = Config::new(
+        CharacterSet::Standard,
+        false,
+        false,
+        LineWrap::NoWrap,
+    );
+}
 
 /// Signs an arbitrary JSON object.
 ///
@@ -439,7 +443,7 @@ impl Signature {
 
     /// A Base64 encoding of the signature.
     pub fn base64(&self) -> String {
-        self.signature.as_slice().to_base64(BASE64_CONFIG)
+        encode_config(self.signature.as_slice(), *BASE64_CONFIG)
     }
 
     /// The key identifier, a string containing the signature algorithm and the key "version"
@@ -631,7 +635,7 @@ impl<'de> Visitor<'de> for SignatureSetVisitor {
                 }
             })?;
 
-            let signature_bytes: Vec<u8> = match value.from_base64() {
+            let signature_bytes: Vec<u8> = match decode_config(&value, *BASE64_CONFIG) {
                 Ok(raw) => raw,
                 Err(error) => return Err(M::Error::custom(error.description())),
             };
@@ -661,10 +665,11 @@ impl Display for Algorithm {
 
 #[cfg(test)]
 mod test {
-    use rustc_serialize::base64::FromBase64;
+    use base64::decode_config;
     use serde_json::{from_str, to_string, to_value};
 
     use super::{
+        BASE64_CONFIG,
         Ed25519KeyPair,
         Ed25519Verifier,
         KeyPair,
@@ -686,8 +691,8 @@ mod test {
     #[test]
     fn sign_empty_json() {
         let key_pair = Ed25519KeyPair::new(
-            &PUBLIC_KEY.from_base64().unwrap(),
-            &PRIVATE_KEY.from_base64().unwrap(),
+            decode_config(&PUBLIC_KEY, *BASE64_CONFIG).unwrap().as_slice(),
+            decode_config(&PRIVATE_KEY, *BASE64_CONFIG).unwrap().as_slice(),
             "1".to_string(),
         ).unwrap();
 
@@ -702,7 +707,7 @@ mod test {
     fn verify_empty_json() {
         let signature = Signature::new(
             "ed25519:1",
-            &EMPTY_JSON_SIGNATURE.from_base64().unwrap(),
+            decode_config(&EMPTY_JSON_SIGNATURE, *BASE64_CONFIG).unwrap().as_slice(),
         ).unwrap();
 
         let value = from_str("{}").unwrap();
@@ -710,7 +715,12 @@ mod test {
         let verifier = Ed25519Verifier::new();
 
         assert!(
-            verify_json(&verifier, &PUBLIC_KEY.from_base64().unwrap(), &signature, &value).is_ok()
+            verify_json(
+                &verifier,
+                decode_config(&PUBLIC_KEY, *BASE64_CONFIG).unwrap().as_slice(),
+                &signature,
+                &value,
+            ).is_ok()
         );
     }
 
@@ -723,7 +733,7 @@ mod test {
 
         let signature = Signature::new(
             "ed25519:1",
-            &EMPTY_JSON_SIGNATURE.from_base64().unwrap(),
+            decode_config(&EMPTY_JSON_SIGNATURE, *BASE64_CONFIG).unwrap().as_slice(),
         ).unwrap();
 
         let mut signature_set = SignatureSet::with_capacity(1);
@@ -759,8 +769,8 @@ mod test {
         }
 
         let key_pair = Ed25519KeyPair::new(
-            &PUBLIC_KEY.from_base64().unwrap(),
-            &PRIVATE_KEY.from_base64().unwrap(),
+            decode_config(&PUBLIC_KEY, *BASE64_CONFIG).unwrap().as_slice(),
+            decode_config(&PRIVATE_KEY, *BASE64_CONFIG).unwrap().as_slice(),
             "1".to_string(),
         ).unwrap();
 
@@ -789,7 +799,7 @@ mod test {
     fn verify_minimal_json() {
         let signature = Signature::new(
             "ed25519:1",
-            &MINIMAL_JSON_SIGNATURE.from_base64().unwrap(),
+            decode_config(&MINIMAL_JSON_SIGNATURE, *BASE64_CONFIG).unwrap().as_slice(),
         ).unwrap();
 
         let value = from_str(
@@ -799,7 +809,12 @@ mod test {
         let verifier = Ed25519Verifier::new();
 
         assert!(
-            verify_json(&verifier, &PUBLIC_KEY.from_base64().unwrap(), &signature, &value).is_ok()
+            verify_json(
+                &verifier,
+                decode_config(&PUBLIC_KEY, *BASE64_CONFIG).unwrap().as_slice(),
+                &signature,
+                &value,
+            ).is_ok()
         );
 
         let reverse_value = from_str(
@@ -809,7 +824,7 @@ mod test {
         assert!(
             verify_json(
                 &verifier,
-                &PUBLIC_KEY.from_base64().unwrap(),
+                decode_config(&PUBLIC_KEY, *BASE64_CONFIG).unwrap().as_slice(),
                 &signature,
                 &reverse_value,
             ).is_ok()
@@ -827,7 +842,7 @@ mod test {
 
         let signature = Signature::new(
             "ed25519:1",
-            &MINIMAL_JSON_SIGNATURE.from_base64().unwrap(),
+            decode_config(&MINIMAL_JSON_SIGNATURE, *BASE64_CONFIG).unwrap().as_slice(),
         ).unwrap();
 
         let mut signature_set = SignatureSet::with_capacity(1);
@@ -853,7 +868,7 @@ mod test {
     fn fail_verify() {
         let signature = Signature::new(
             "ed25519:1",
-            &EMPTY_JSON_SIGNATURE.from_base64().unwrap(),
+            decode_config(&EMPTY_JSON_SIGNATURE, *BASE64_CONFIG).unwrap().as_slice(),
         ).unwrap();
 
         let value = from_str(r#"{"not":"empty"}"#).unwrap();
@@ -861,7 +876,12 @@ mod test {
         let verifier = Ed25519Verifier::new();
 
         assert!(
-            verify_json(&verifier, &PUBLIC_KEY.from_base64().unwrap(), &signature, &value).is_err()
+            verify_json(
+                &verifier,
+                decode_config(&PUBLIC_KEY, *BASE64_CONFIG).unwrap().as_slice(),
+                &signature,
+                &value,
+            ).is_err()
         );
     }
 }
