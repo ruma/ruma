@@ -23,3 +23,12 @@ fn deserialize_reader() {
     assert_eq!(serde_urlencoded::from_reader(b"first=23&last=42" as &[_]),
                Ok(result));
 }
+
+#[test]
+fn deserialize_option() {
+    let result = vec![
+        ("first".to_owned(), Some(23)),
+        ("last".to_owned(), Some(42)),
+    ];
+    assert_eq!(serde_urlencoded::from_str("first=23&last=42"), Ok(result));
+}
