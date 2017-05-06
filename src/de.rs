@@ -50,7 +50,8 @@ pub fn from_str<T: de::Deserialize>(input: &str) -> Result<T, Error> {
 /// Convenience function that reads all bytes from `reader` and deserializes
 /// them with `from_bytes`.
 pub fn from_reader<T, R>(mut reader: R) -> Result<T, Error>
-    where T: de::Deserialize, R: Read
+    where T: de::Deserialize,
+          R: Read,
 {
     let mut buf = vec![];
     reader.read_to_end(&mut buf)
