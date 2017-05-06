@@ -1,11 +1,14 @@
 //! Deserialization support for the `application/x-www-form-urlencoded` format.
 
 use serde::de;
+use serde::de::value::{MapDeserializer, ValueDeserializer as SerdeValueDeserializer};
 
 #[doc(inline)]
 pub use serde::de::value::Error;
-use serde::de::value::MapDeserializer;
+use std::borrow::Cow;
 use std::io::Read;
+use std::iter::Map;
+use std::marker::PhantomData;
 use url::form_urlencoded::Parse as UrlEncodedParse;
 use url::form_urlencoded::parse;
 
@@ -50,7 +53,8 @@ pub fn from_str<T: de::Deserialize>(input: &str) -> Result<T, Error> {
 /// Convenience function that reads all bytes from `reader` and deserializes
 /// them with `from_bytes`.
 pub fn from_reader<T, R>(mut reader: R) -> Result<T, Error>
-    where T: de::Deserialize, R: Read
+    where T: de::Deserialize,
+          R: Read,
 {
     let mut buf = vec![];
     reader.read_to_end(&mut buf)
@@ -70,13 +74,18 @@ pub fn from_reader<T, R>(mut reader: R) -> Result<T, Error>
 /// * Everything else but `deserialize_seq` and `deserialize_seq_fixed_size`
 ///   defers to `deserialize`.
 pub struct Deserializer<'a> {
-    inner: MapDeserializer<UrlEncodedParse<'a>, Error>,
+    inner: MapDeserializer<Map<UrlEncodedParse<'a>,
+                               fn((Cow<'a, str>, Cow<'a, str>))
+                                  -> (Cow<'a, str>, Value<'a>)>,
+                           Error>,
 }
 
 impl<'a> Deserializer<'a> {
     /// Returns a new `Deserializer`.
     pub fn new(parser: UrlEncodedParse<'a>) -> Self {
-        Deserializer { inner: MapDeserializer::new(parser) }
+        Deserializer {
+            inner: MapDeserializer::new(parser.map(Value::wrap_pair)),
+        }
     }
 }
 
@@ -137,5 +146,80 @@ impl<'a> de::Deserializer for Deserializer<'a> {
         tuple
         enum
         ignored_any
+    }
+}
+
+struct Value<'a>(Cow<'a, str>);
+
+impl<'a> Value<'a> {
+    fn wrap_pair((k, v): (Cow<'a, str>, Cow<'a, str>)) -> (Cow<'a, str>, Self) {
+        (k, Value(v))
+    }
+}
+
+impl<'a, E> SerdeValueDeserializer<E> for Value<'a>
+    where E: de::Error,
+{
+    type Deserializer = ValueDeserializer<'a, E>;
+
+    fn into_deserializer(self) -> Self::Deserializer {
+        ValueDeserializer {
+            value: self.0,
+            marker: PhantomData,
+        }
+    }
+}
+
+struct ValueDeserializer<'a, E> {
+    value: Cow<'a, str>,
+    marker: PhantomData<E>,
+}
+
+impl<'a, E> de::Deserializer for ValueDeserializer<'a, E>
+    where E: de::Error,
+{
+    type Error = E;
+
+    fn deserialize<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        where V: de::Visitor,
+    {
+        self.value.into_deserializer().deserialize(visitor)
+    }
+
+    fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        where V: de::Visitor,
+    {
+        visitor.visit_some(self.value.into_deserializer())
+    }
+
+    forward_to_deserialize! {
+        bool
+        u8
+        u16
+        u32
+        u64
+        i8
+        i16
+        i32
+        i64
+        f32
+        f64
+        char
+        str
+        string
+        unit
+        bytes
+        byte_buf
+        unit_struct
+        newtype_struct
+        tuple_struct
+        struct
+        struct_field
+        tuple
+        enum
+        ignored_any
+        seq
+        seq_fixed_size
+        map
     }
 }
