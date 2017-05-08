@@ -113,7 +113,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
 
     fn serialize_unit_variant(self,
                               _name: &'static str,
-                              _variant_index: usize,
+                              _variant_index: u32,
                               variant: &'static str)
                               -> Result<S::Ok, Error> {
         self.sink.serialize_static_str(variant.into())
@@ -130,7 +130,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
     fn serialize_newtype_variant<T: ?Sized + ser::Serialize>
         (self,
          _name: &'static str,
-         _variant_index: usize,
+         _variant_index: u32,
          _variant: &'static str,
          _value: &T)
          -> Result<S::Ok, Error> {
@@ -153,13 +153,6 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         Err(self.sink.unsupported())
     }
 
-
-    fn serialize_seq_fixed_size(self,
-                                _len: usize)
-                                -> Result<Self::SerializeSeq, Error> {
-        Err(self.sink.unsupported())
-    }
-
     fn serialize_tuple(self,
                        _len: usize)
                        -> Result<Self::SerializeTuple, Error> {
@@ -176,7 +169,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
     fn serialize_tuple_variant
         (self,
          _name: &'static str,
-         _variant_index: usize,
+         _variant_index: u32,
          _variant: &'static str,
          _len: usize)
          -> Result<Self::SerializeTupleVariant, Error> {
@@ -199,7 +192,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
     fn serialize_struct_variant
         (self,
          _name: &'static str,
-         _variant_index: usize,
+         _variant_index: u32,
          _variant: &'static str,
          _len: usize)
          -> Result<Self::SerializeStructVariant, Error> {

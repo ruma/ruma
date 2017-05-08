@@ -27,7 +27,7 @@ use url::form_urlencoded::Target as UrlEncodedTarget;
 ///     serde_urlencoded::to_string(meal),
 ///     Ok("bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter".to_owned()));
 /// ```
-pub fn to_string<T: ser::Serialize>(input: &T) -> Result<String, Error> {
+pub fn to_string<T: ser::Serialize>(input: T) -> Result<String, Error> {
     let mut urlencoder = UrlEncodedSerializer::new("".to_owned());
     input.serialize(Serializer::new(&mut urlencoder))?;
     Ok(urlencoder.finish())
@@ -99,9 +99,9 @@ pub struct SeqSerializer<'output, Target: 'output + UrlEncodedTarget> {
 
 /// Tuple serializer.
 ///
-/// Never instantiated, tuples are not supported at top-level.
-pub struct TupleSerializer<'output, T: 'output + UrlEncodedTarget> {
-    inner: ser::Impossible<&'output mut UrlEncodedSerializer<T>, Error>,
+/// Mostly used for arrays.
+pub struct TupleSerializer<'output, Target: 'output + UrlEncodedTarget> {
+    urlencoder: &'output mut UrlEncodedSerializer<Target>,
 }
 
 /// Tuple struct serializer.
@@ -234,7 +234,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
     /// Returns an error.
     fn serialize_unit_variant(self,
                               _name: &'static str,
-                              _variant_index: usize,
+                              _variant_index: u32,
                               _variant: &'static str)
                               -> Result<Self::Ok, Error> {
         Err(Error::top_level())
@@ -253,7 +253,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
     fn serialize_newtype_variant<T: ?Sized + ser::Serialize>
         (self,
          _name: &'static str,
-         _variant_index: usize,
+         _variant_index: u32,
          _variant: &'static str,
          _value: &T)
          -> Result<Self::Ok, Error> {
@@ -280,18 +280,11 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
         Ok(SeqSerializer { urlencoder: self.urlencoder })
     }
 
-    /// Serializes a sequence, given length is ignored.
-    fn serialize_seq_fixed_size(self,
-                                _len: usize)
-                                -> Result<Self::SerializeSeq, Error> {
-        Ok(SeqSerializer { urlencoder: self.urlencoder })
-    }
-
     /// Returns an error.
     fn serialize_tuple(self,
                        _len: usize)
                        -> Result<Self::SerializeTuple, Error> {
-        Err(Error::top_level())
+        Ok(TupleSerializer { urlencoder: self.urlencoder })
     }
 
     /// Returns an error.
@@ -306,7 +299,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
     fn serialize_tuple_variant
         (self,
          _name: &'static str,
-         _variant_index: usize,
+         _variant_index: u32,
          _variant: &'static str,
          _len: usize)
          -> Result<Self::SerializeTupleVariant, Error> {
@@ -335,7 +328,7 @@ impl<'output, Target> ser::Serializer for Serializer<'output, Target>
     fn serialize_struct_variant
         (self,
          _name: &'static str,
-         _variant_index: usize,
+         _variant_index: u32,
          _variant: &'static str,
          _len: usize)
          -> Result<Self::SerializeStructVariant, Error> {
@@ -369,16 +362,17 @@ impl<'output, Target> ser::SerializeTuple for TupleSerializer<'output, Target>
     fn serialize_element<T: ?Sized + ser::Serialize>(&mut self,
                                                      value: &T)
                                                      -> Result<(), Error> {
-        self.inner.serialize_element(value)
+        value.serialize(pair::PairSerializer::new(self.urlencoder))
     }
 
     fn end(self) -> Result<Self::Ok, Error> {
-        self.inner.end()
+        Ok(self.urlencoder)
     }
 }
 
 impl<'output, Target> ser::SerializeTupleStruct
-    for TupleStructSerializer<'output, Target>
+    for
+    TupleStructSerializer<'output, Target>
     where Target: 'output + UrlEncodedTarget,
 {
     type Ok = &'output mut UrlEncodedSerializer<Target>;
@@ -396,7 +390,8 @@ impl<'output, Target> ser::SerializeTupleStruct
 }
 
 impl<'output, Target> ser::SerializeTupleVariant
-    for TupleVariantSerializer<'output, Target>
+    for
+    TupleVariantSerializer<'output, Target>
     where Target: 'output + UrlEncodedTarget,
 {
     type Ok = &'output mut UrlEncodedSerializer<Target>;
@@ -480,7 +475,8 @@ impl<'output, Target> ser::SerializeStruct for StructSerializer<'output, Target>
 }
 
 impl<'output, Target> ser::SerializeStructVariant
-    for StructVariantSerializer<'output, Target>
+    for
+    StructVariantSerializer<'output, Target>
     where Target: 'output + UrlEncodedTarget,
 {
     type Ok = &'output mut UrlEncodedSerializer<Target>;

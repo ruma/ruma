@@ -103,7 +103,7 @@ impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
 
     fn serialize_unit_variant(self,
                               _name: &'static str,
-                              _variant_index: usize,
+                              _variant_index: u32,
                               _variant: &'static str)
                               -> Result<(), Error> {
         Err(Error::unsupported_pair())
@@ -120,7 +120,7 @@ impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
     fn serialize_newtype_variant<T: ?Sized + ser::Serialize>
         (self,
          _name: &'static str,
-         _variant_index: usize,
+         _variant_index: u32,
          _variant: &'static str,
          _value: &T)
          -> Result<(), Error> {
@@ -143,12 +143,6 @@ impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_seq_fixed_size(self,
-                                _len: usize)
-                                -> Result<Self::SerializeSeq, Error> {
-        Err(Error::unsupported_pair())
-    }
-
     fn serialize_tuple(self, len: usize) -> Result<Self, Error> {
         if len == 2 {
             Ok(self)
@@ -167,7 +161,7 @@ impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
     fn serialize_tuple_variant
         (self,
          _name: &'static str,
-         _variant_index: usize,
+         _variant_index: u32,
          _variant: &'static str,
          _len: usize)
          -> Result<Self::SerializeTupleVariant, Error> {
@@ -190,7 +184,7 @@ impl<'target, Target> ser::Serializer for PairSerializer<'target, Target>
     fn serialize_struct_variant
         (self,
          _name: &'static str,
-         _variant_index: usize,
+         _variant_index: u32,
          _variant: &'static str,
          _len: usize)
          -> Result<Self::SerializeStructVariant, Error> {
