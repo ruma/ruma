@@ -342,9 +342,9 @@ pub trait Verifier {
 impl KeyPair for Ed25519KeyPair {
     fn new(public_key: &[u8], private_key: &[u8], version: String) -> Result<Self, Error> {
         Ok(Ed25519KeyPair {
-            ring_key_pair: RingEd25519KeyPair::from_bytes(
-                private_key,
-                public_key,
+            ring_key_pair: RingEd25519KeyPair::from_seed_and_public_key(
+                untrusted::Input::from(private_key),
+                untrusted::Input::from(public_key),
             ).map_err(|_| Error::new("invalid key pair"))?,
             version: version,
         })
@@ -353,7 +353,7 @@ impl KeyPair for Ed25519KeyPair {
     fn sign(&self, message: &[u8]) -> Signature {
         Signature {
             algorithm: Algorithm::Ed25519,
-            signature: self.ring_key_pair.sign(message).as_slice().to_vec(),
+            signature: self.ring_key_pair.sign(message).as_ref().to_vec(),
             version: self.version.clone(),
         }
     }
