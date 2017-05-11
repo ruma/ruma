@@ -11,8 +11,13 @@ repository = "https://github.com/ruma/ruma-api"
 version = "0.3.0"
 
 [dependencies]
-serde = "0.8.21"
+
+[dependencies.hyper]
+git = "https://github.com/hyperium/hyper"
+rev = "fed04dfb58e19b408322d4e5ca7474871e848a35"
 
 [dev-dependencies]
-ruma-identifiers = "0.6.0"
-serde_derive = "0.8.21"
+ruma-identifiers = "0.11"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
