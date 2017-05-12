@@ -50,11 +50,11 @@ impl Client {
 
     /// Makes a request to a Matrix API endpoint.
     pub fn request<E>(&self, request: <E as Endpoint>::Request)
-    -> impl Future<Item = <E as Endpoint>::Response, Error = Error>
+    -> impl Future<Item = E::Response, Error = Error>
     where E: Endpoint,
-    <E as Endpoint>::Response: 'static,
-    Error: From<<<E as Endpoint>::Request as TryInto<HyperRequest>>::Error>,
-    Error: From<<<E as Endpoint>::Response as TryFrom<HyperResponse>>::Error> {
+    E::Response: 'static,
+    Error: From<<E::Request as TryInto<HyperRequest>>::Error>,
+    Error: From<<E::Response as TryFrom<HyperResponse>>::Error> {
         let cloned_hyper = self.hyper.clone();
 
         request
