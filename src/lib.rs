@@ -3,43 +3,47 @@
 //! shared by client and server code.
 
 #![deny(missing_debug_implementations)]
+#![feature(associated_consts, try_from)]
 #![warn(missing_docs)]
 
+extern crate hyper;
 extern crate ruma_api;
 extern crate ruma_events;
 extern crate ruma_identifiers;
 extern crate ruma_signatures;
 extern crate serde;
-#[macro_use] extern crate serde_derive;
 extern crate serde_json;
 
-pub use ruma_api::{Endpoint, Method};
-
-/// Endpoints for the r0.x.x versions of the client API specification.
-pub mod r0 {
-    pub mod account;
-    pub mod alias;
-    pub mod config;
-    pub mod contact;
-    pub mod context;
-    pub mod directory;
-    pub mod filter;
-    pub mod media;
-    pub mod membership;
-    pub mod presence;
-    pub mod profile;
-    pub mod push;
-    pub mod receipt;
-    pub mod redact;
-    pub mod room;
-    pub mod search;
-    pub mod send;
-    pub mod server;
-    pub mod session;
-    pub mod sync;
-    pub mod tag;
-    pub mod typing;
-    pub mod voip;
-}
+// /// Endpoints for the r0.x.x versions of the client API specification.
+// pub mod r0 {
+//     pub mod account;
+//     pub mod alias;
+//     pub mod config;
+//     pub mod contact;
+//     pub mod context;
+//     pub mod directory;
+//     pub mod filter;
+//     pub mod media;
+//     pub mod membership;
+//     pub mod presence;
+//     pub mod profile;
+//     pub mod push;
+//     pub mod receipt;
+//     pub mod redact;
+//     pub mod room;
+//     pub mod search;
+//     pub mod send;
+//     pub mod server;
+//     pub mod session;
+//     pub mod sync;
+//     pub mod tag;
+//     pub mod typing;
+//     pub mod voip;
+// }
 
 pub mod unversioned;
+
+/// An error when converting an endpoint's request into a `hyper::Request` or converting a
+/// `hyper::Response` into an endpoint's response.
+#[derive(Debug)]
+pub struct Error;
