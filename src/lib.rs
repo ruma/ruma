@@ -2,9 +2,10 @@
 
 #![deny(missing_debug_implementations)]
 #![feature(proc_macro)]
+#![recursion_limit="128"]
 
 extern crate proc_macro;
-extern crate quote;
+#[macro_use] extern crate quote;
 extern crate ruma_api;
 extern crate syn;
 #[macro_use] extern crate synom;
@@ -35,8 +36,64 @@ struct Api {
 }
 
 impl Api {
-    fn output(&self) -> Tokens {
-        Tokens::new()
+    fn output(self) -> Tokens {
+        let description = self.metadata.description;
+        let method = self.metadata.method;
+        let name = self.metadata.name;
+        let path = self.metadata.path;
+        let rate_limited = self.metadata.rate_limited;
+        let requires_authentication = self.metadata.requires_authentication;
+
+        quote! {
+            use std::convert::TryFrom;
+
+            /// The API endpoint.
+            #[derive(Debug)]
+            pub struct Endpoint;
+
+            /// Data for a request to this API endpoint.
+            #[derive(Debug)]
+            pub struct Request;
+
+            impl TryFrom<Request> for ::hyper::Request {
+                type Error = ();
+
+                fn try_from(request: Request) -> Result<Self, Self::Error> {
+                    Ok(
+                        ::hyper::Request::new(
+                            ::hyper::#method,
+                            "/".parse().expect("failed to parse request URI"),
+                        )
+                    )
+                }
+            }
+
+            /// Data in the response from this API endpoint.
+            #[derive(Debug)]
+            pub struct Response;
+
+            impl TryFrom<::hyper::Response> for Response {
+                type Error = ();
+
+                fn try_from(hyper_response: ::hyper::Response) -> Result<Self, Self::Error> {
+                    Ok(Response)
+                }
+            }
+
+            impl ::ruma_api::Endpoint for Endpoint {
+                type Request = Request;
+                type Response = Response;
+
+                const METADATA: ::ruma_api::Metadata = ::ruma_api::Metadata {
+                    description: #description,
+                    method: ::hyper::#method,
+                    name: #name,
+                    path: #path,
+                    rate_limited: #rate_limited,
+                    requires_authentication: #requires_authentication,
+                };
+            }
+        }
     }
 }
 

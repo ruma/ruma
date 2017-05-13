@@ -1,4 +1,4 @@
-#![feature(proc_macro)]
+#![feature(associated_consts, proc_macro, try_from)]
 
 extern crate hyper;
 extern crate ruma_api;
