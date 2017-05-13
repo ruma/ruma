@@ -1,3 +1,6 @@
+//! Crate `ruma-api-macros` provides a procedural macro for easily generating `ruma-api` endpoints.
+
+#![deny(missing_debug_implementations)]
 #![feature(proc_macro)]
 
 extern crate proc_macro;
@@ -9,12 +12,13 @@ extern crate syn;
 use proc_macro::TokenStream;
 
 use quote::{ToTokens, Tokens};
-use syn::{Expr, Field, Ident, Item};
+use syn::{Expr, Field, Ident};
 
 use parse::{Entry, parse_entries};
 
 mod parse;
 
+/// Generates a `ruma-api` endpoint.
 #[proc_macro]
 pub fn ruma_api(input: TokenStream) -> TokenStream {
     let entries = parse_entries(&input.to_string()).expect("ruma_api! failed to parse input");

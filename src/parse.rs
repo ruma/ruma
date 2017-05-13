@@ -1,16 +1,13 @@
+//! Implementation details of parsing proc macro input.
+
 use syn::{
     Attribute,
     AttrStyle,
     Expr,
     Field,
     Ident,
-    Item,
-    Lit,
     MetaItem,
     NestedMetaItem,
-    StrStyle,
-    Token,
-    TokenTree,
     Visibility,
 };
 use syn::parse::{expr, ident, lit, ty};
@@ -64,16 +61,9 @@ named!(struct_init_field -> (Ident, Expr), do_parse!(
     (ident, expr)
 ));
 
-named!(pub struct_like_body -> Vec<Field>, do_parse!(
-    punct!("{") >>
-    fields: terminated_list!(punct!(","), struct_field) >>
-    punct!("}") >>
-    (fields)
-));
-
 named!(struct_field -> Field, do_parse!(
     attrs: many0!(outer_attr) >>
-    vis: visibility >>
+    visibility >>
     id: ident >>
     punct!(":") >>
     ty: ty >>
