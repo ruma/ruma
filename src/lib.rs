@@ -36,13 +36,16 @@ struct Api {
 }
 
 impl Api {
-    fn output(self) -> Tokens {
-        let description = self.metadata.description;
-        let method = self.metadata.method;
-        let name = self.metadata.name;
-        let path = self.metadata.path;
-        let rate_limited = self.metadata.rate_limited;
-        let requires_authentication = self.metadata.requires_authentication;
+    fn output(&self) -> Tokens {
+        let description = &self.metadata.description;
+        let method = &self.metadata.method;
+        let name = &self.metadata.name;
+        let path = &self.metadata.path;
+        let rate_limited = &self.metadata.rate_limited;
+        let requires_authentication = &self.metadata.requires_authentication;
+
+        let request_types = self.generate_request_types();
+        let response_types = self.generate_response_types();
 
         quote! {
             use std::convert::TryFrom;
@@ -51,9 +54,7 @@ impl Api {
             #[derive(Debug)]
             pub struct Endpoint;
 
-            /// Data for a request to this API endpoint.
-            #[derive(Debug)]
-            pub struct Request;
+            #request_types
 
             impl TryFrom<Request> for ::hyper::Request {
                 type Error = ();
@@ -68,9 +69,7 @@ impl Api {
                 }
             }
 
-            /// Data in the response from this API endpoint.
-            #[derive(Debug)]
-            pub struct Response;
+            #response_types
 
             impl TryFrom<::hyper::Response> for Response {
                 type Error = ();
@@ -94,6 +93,26 @@ impl Api {
                 };
             }
         }
+    }
+
+    fn generate_request_types(&self) -> Tokens {
+        let mut tokens = quote! {
+            /// Data for a request to this API endpoint.
+            #[derive(Debug)]
+            pub struct Request;
+        };
+
+        tokens
+    }
+
+    fn generate_response_types(&self) -> Tokens {
+        let mut tokens = quote! {
+            /// Data in the response from this API endpoint.
+            #[derive(Debug)]
+            pub struct Response;
+        };
+
+        tokens
     }
 }
 
