@@ -112,19 +112,39 @@ impl From<Vec<(Ident, Expr)>> for Metadata {
     }
 }
 
-struct Request;
+struct Request {
+    fields: Vec<Field>,
+    body_fields: Vec<usize>,
+    header_fields: Vec<usize>,
+    path_fields: Vec<usize>,
+    query_string_fields: Vec<usize>,
+}
 
 impl From<Vec<Field>> for Request {
     fn from(fields: Vec<Field>) -> Self {
-        Request
+        Request {
+            fields: fields,
+            body_fields: vec![],
+            header_fields: vec![],
+            path_fields: vec![],
+            query_string_fields: vec![],
+        }
     }
 }
 
-struct Response;
+struct Response {
+    fields: Vec<Field>,
+    body_fields: Vec<usize>,
+    header_fields: Vec<usize>,
+}
 
 impl From<Vec<Field>> for Response {
     fn from(fields: Vec<Field>) -> Self {
-        Response
+        Response {
+            fields: fields,
+            body_fields: vec![],
+            header_fields: vec![],
+        }
     }
 }
 
