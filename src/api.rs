@@ -91,7 +91,7 @@ impl ToTokens for Api {
                 fn try_from(request: Request) -> Result<Self, Self::Error> {
                     let mut hyper_request = ::hyper::Request::new(
                         ::hyper::#method,
-                        "/".parse().expect("failed to parse request URI"),
+                        #path.parse().expect("failed to parse request URI"),
                     );
 
                     #add_body_to_request
