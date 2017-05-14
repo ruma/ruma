@@ -11,6 +11,7 @@ repository = "https://github.com/ruma/ruma-api"
 version = "0.3.0"
 
 [dependencies]
+futures = "0.1.13"
 serde_json = "1.0.2"
 
 [dependencies.hyper]

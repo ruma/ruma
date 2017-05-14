@@ -13,15 +13,17 @@
 #![deny(missing_docs)]
 #![feature(associated_consts, try_from)]
 
+extern crate futures;
 extern crate hyper;
 #[cfg(test)] extern crate ruma_identifiers;
 #[cfg(test)] extern crate serde;
 #[cfg(test)] #[macro_use] extern crate serde_derive;
 extern crate serde_json;
 
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryInto;
 use std::io;
 
+use futures::future::FutureFrom;
 use hyper::{Method, Request, Response, StatusCode};
 use hyper::error::UriError;
 
@@ -30,7 +32,7 @@ pub trait Endpoint {
     /// Data needed to make a request to the endpoint.
     type Request: TryInto<Request, Error = Error>;
     /// Data returned from the endpoint.
-    type Response: TryFrom<Response, Error = Error>;
+    type Response: FutureFrom<Response, Error = Error>;
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;
@@ -100,6 +102,7 @@ mod tests {
     pub mod create {
         use std::convert::TryFrom;
 
+        use futures::future::{FutureFrom, FutureResult, err, ok};
         use hyper::{Method, Request as HyperRequest, Response as HyperResponse, StatusCode};
         use ruma_identifiers::{RoomAliasId, RoomId};
         use serde_json;
@@ -164,14 +167,15 @@ mod tests {
         /// The response to a request to create a new room alias.
         pub struct Response;
 
-        impl TryFrom<HyperResponse> for Response {
+        impl FutureFrom<HyperResponse> for Response {
+            type Future = FutureResult<Self, Self::Error>;
             type Error = Error;
 
-            fn try_from(hyper_response: HyperResponse) -> Result<Response, Self::Error> {
+            fn future_from(hyper_response: HyperResponse) -> FutureResult<Self, Self::Error> {
                 if hyper_response.status() == StatusCode::Ok {
-                    Ok(Response)
+                    ok(Response)
                 } else {
-                    Err(Error::StatusCode(hyper_response.status().clone()))
+                    err(Error::StatusCode(hyper_response.status().clone()))
                 }
             }
         }
