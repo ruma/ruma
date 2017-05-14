@@ -6,6 +6,12 @@ pub struct Request {
     fields: Vec<RequestField>,
 }
 
+impl Request {
+    pub fn has_body_fields(&self) -> bool {
+        self.fields.iter().any(|field| field.is_body())
+    }
+}
+
 impl From<Vec<Field>> for Request {
     fn from(fields: Vec<Field>) -> Self {
         let request_fields = fields.into_iter().map(|field| {
@@ -68,6 +74,25 @@ impl ToTokens for Request {
 
             tokens.append("}");
         }
+
+        if self.has_body_fields() {
+            tokens.append(quote! {
+                /// Data in the request body.
+                #[derive(Debug, Serialize)]
+                struct RequestBody
+            });
+
+            tokens.append("{");
+
+            for request_field in self.fields.iter() {
+                match *request_field {
+                    RequestField::Body(ref field) => field.to_tokens(&mut tokens),
+                    _ => {}
+                }
+            }
+
+            tokens.append("}");
+        }
     }
 }
 
@@ -77,4 +102,13 @@ pub enum RequestField {
     Header(String, Field),
     Path(String, Field),
     Query(Field),
+}
+
+impl RequestField {
+    fn is_body(&self) -> bool {
+        match *self {
+            RequestField::Body(_) => true,
+            _ => false,
+        }
+    }
 }
