@@ -247,19 +247,40 @@ enum RequestField {
 
 #[derive(Debug)]
 struct Response {
-    fields: Vec<Field>,
-    body_fields: Vec<usize>,
-    header_fields: Vec<usize>,
+    fields: Vec<ResponseField>,
 }
 
 impl From<Vec<Field>> for Response {
     fn from(fields: Vec<Field>) -> Self {
+        let response_fields = fields.into_iter().map(|field| {
+            for attr in field.attrs.clone().iter() {
+                match attr.value {
+                    MetaItem::Word(_) | MetaItem::List(_, _) => {}
+                    MetaItem::NameValue(ref ident, ref lit) => {
+                        if ident == "header" {
+                            if let Lit::Str(ref name, _) = *lit {
+                                return ResponseField::Header(name.clone(), field);
+                            } else {
+                                panic!("ruma_api! header attribute expects a string value");
+                            }
+                        }
+                    }
+                }
+            }
+
+            return ResponseField::Body(field);
+        }).collect();
+
         Response {
-            fields: fields,
-            body_fields: vec![],
-            header_fields: vec![],
+            fields: response_fields,
         }
     }
+}
+
+#[derive(Debug)]
+enum ResponseField {
+    Body(Field),
+    Header(String, Field),
 }
 
 /// Helper method for turning a value into tokens.
