@@ -73,10 +73,10 @@ impl ToTokens for Api {
         };
 
         tokens.append(quote! {
-            use std::convert::TryFrom;
-            use std::io::Write;
+            use std::io::Write as _Write;
 
-            use ::futures::{Future, Stream};
+            use ::futures::{Future as _Future, Stream as _Stream};
+            use ::ruma_api::Endpoint as _RumaApiEndpoint;
 
             /// The API endpoint.
             #[derive(Debug)]
@@ -84,14 +84,16 @@ impl ToTokens for Api {
 
             #request_types
 
-            impl TryFrom<Request> for ::hyper::Request {
+            impl ::std::convert::TryFrom<Request> for ::hyper::Request {
                 type Error = ();
 
                 #[allow(unused_mut, unused_variables)]
                 fn try_from(request: Request) -> Result<Self, Self::Error> {
+                    let metadata = Endpoint::METADATA;
+
                     let mut hyper_request = ::hyper::Request::new(
-                        ::hyper::#method,
-                        #path.parse().expect("failed to parse request URI"),
+                        metadata.method,
+                        metadata.path.parse().expect("failed to parse request URI"),
                     );
 
                     #add_body_to_request
@@ -102,7 +104,7 @@ impl ToTokens for Api {
 
             #response_types
 
-            impl TryFrom<::hyper::Response> for Response {
+            impl ::std::convert::TryFrom<::hyper::Response> for Response {
                 type Error = ();
 
                 fn try_from(hyper_response: ::hyper::Response) -> Result<Self, Self::Error> {
