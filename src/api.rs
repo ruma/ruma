@@ -40,31 +40,46 @@ impl ToTokens for Api {
                     #request_body_init_fields
                 };
 
-                hyper_request.set_body(
-                    ::serde_json::to_vec(&request_body)
-                        .expect("failed to serialize request body to JSON")
-                );
+                hyper_request.set_body(::serde_json::to_vec(&request_body)?);
             }
         } else {
             Tokens::new()
         };
 
         let deserialize_response_body = if self.response.has_body_fields() {
-            quote! {
-                let bytes = hyper_response.body().fold::<_, _, Result<_, ::hyper::Error>>(
-                    Vec::new(),
-                    |mut bytes, chunk| {
-                        bytes.write_all(&chunk).expect("failed to append body chunk");
+            let mut tokens = Tokens::new();
+
+            tokens.append(quote! {
+                hyper_response.body()
+                    .fold::<_, _, Result<_, ::std::io::Error>>(Vec::new(), |mut bytes, chunk| {
+                        bytes.write_all(&chunk)?;
 
                         Ok(bytes)
-                    }).wait().expect("failed to read response body chunks into byte vector");
+                    })
+                    .map_err(::ruma_api::Error::from)
+                    .and_then(|bytes| {
+                        ::serde_json::from_slice::<ResponseBody>(bytes.as_slice())
+                            .map_err(::ruma_api::Error::from)
+                    })
+            });
 
-                let response_body: ResponseBody = ::serde_json::from_slice(bytes.as_slice())
-                    .expect("failed to deserialize body");
-            }
+            tokens.append(".and_then(|response_body| {");
+
+            tokens
         } else {
-            Tokens::new()
+            let mut tokens = Tokens::new();
+
+            tokens.append(quote! {
+                ::futures::future::ok(())
+            });
+
+            tokens.append(".and_then(|_| {");
+
+            tokens
         };
+
+        let mut closure_end = Tokens::new();
+        closure_end.append("})");
 
         let response_init_fields = if self.response.has_fields() {
             self.response.init_fields()
@@ -85,7 +100,7 @@ impl ToTokens for Api {
             #request_types
 
             impl ::std::convert::TryFrom<Request> for ::hyper::Request {
-                type Error = ();
+                type Error = ::ruma_api::Error;
 
                 #[allow(unused_mut, unused_variables)]
                 fn try_from(request: Request) -> Result<Self, Self::Error> {
@@ -93,7 +108,7 @@ impl ToTokens for Api {
 
                     let mut hyper_request = ::hyper::Request::new(
                         metadata.method,
-                        metadata.path.parse().expect("failed to parse request URI"),
+                        metadata.path.parse()?,
                     );
 
                     #add_body_to_request
@@ -105,7 +120,7 @@ impl ToTokens for Api {
             #response_types
 
             impl ::std::convert::TryFrom<::hyper::Response> for Response {
-                type Error = ();
+                type Error = ::ruma_api::Error;
 
                 fn try_from(hyper_response: ::hyper::Response) -> Result<Self, Self::Error> {
                     #deserialize_response_body
@@ -115,6 +130,8 @@ impl ToTokens for Api {
                     };
 
                     Ok(response)
+                    #closure_end
+                    .wait()
                 }
             }
 
