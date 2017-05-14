@@ -13,7 +13,7 @@ extern crate syn;
 use proc_macro::TokenStream;
 
 use quote::{ToTokens, Tokens};
-use syn::{Expr, Field, Ident};
+use syn::{Expr, Field, Ident, Lit, MetaItem};
 
 use parse::{Entry, parse_entries};
 
@@ -29,6 +29,7 @@ pub fn ruma_api(input: TokenStream) -> TokenStream {
     api.output().parse().expect("ruma_api! failed to parse output as a TokenStream")
 }
 
+#[derive(Debug)]
 struct Api {
     metadata: Metadata,
     request: Request,
@@ -142,6 +143,7 @@ impl From<Vec<Entry>> for Api {
     }
 }
 
+#[derive(Debug)]
 struct Metadata {
     description: Tokens,
     method: Tokens,
@@ -192,26 +194,58 @@ impl From<Vec<(Ident, Expr)>> for Metadata {
     }
 }
 
+#[derive(Debug)]
 struct Request {
-    fields: Vec<Field>,
-    body_fields: Vec<usize>,
-    header_fields: Vec<usize>,
-    path_fields: Vec<usize>,
-    query_string_fields: Vec<usize>,
+    fields: Vec<RequestField>,
 }
 
 impl From<Vec<Field>> for Request {
     fn from(fields: Vec<Field>) -> Self {
+        let request_fields = fields.into_iter().map(|field| {
+            for attr in field.attrs.clone().iter() {
+                match attr.value {
+                    MetaItem::Word(ref ident) => {
+                        if ident == "query" {
+                            return RequestField::Query(field);
+                        }
+                    }
+                    MetaItem::List(_, _) => {}
+                    MetaItem::NameValue(ref ident, ref lit) => {
+                        if ident == "header" {
+                            if let Lit::Str(ref name, _) = *lit {
+                                return RequestField::Header(name.clone(), field);
+                            } else {
+                                panic!("ruma_api! header attribute expects a string value");
+                            }
+                        } else if ident == "path" {
+                            if let Lit::Str(ref name, _) = *lit {
+                                return RequestField::Path(name.clone(), field);
+                            } else {
+                                panic!("ruma_api! path attribute expects a string value");
+                            }
+                        }
+                    }
+                }
+            }
+
+            return RequestField::Body(field);
+        }).collect();
+
         Request {
-            fields: fields,
-            body_fields: vec![],
-            header_fields: vec![],
-            path_fields: vec![],
-            query_string_fields: vec![],
+            fields: request_fields,
         }
     }
 }
 
+#[derive(Debug)]
+enum RequestField {
+    Body(Field),
+    Header(String, Field),
+    Path(String, Field),
+    Query(Field),
+}
+
+#[derive(Debug)]
 struct Response {
     fields: Vec<Field>,
     body_fields: Vec<usize>,
