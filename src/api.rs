@@ -70,7 +70,7 @@ impl ToTokens for Api {
             let mut tokens = Tokens::new();
 
             tokens.append(quote! {
-                ::futures::future::ok(())
+                let future_response = ::futures::future::ok(())
             });
 
             tokens.append(".and_then(|_| {");

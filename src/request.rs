@@ -93,6 +93,8 @@ impl ToTokens for Request {
                     RequestField::Path(_, ref field) => field.to_tokens(&mut tokens),
                     RequestField::Query(ref field) => field.to_tokens(&mut tokens),
                 }
+
+                tokens.append(",");
             }
 
             tokens.append("}");
@@ -109,7 +111,11 @@ impl ToTokens for Request {
 
             for request_field in self.fields.iter() {
                 match *request_field {
-                    RequestField::Body(ref field) => field.to_tokens(&mut tokens),
+                    RequestField::Body(ref field) => {
+                        field.to_tokens(&mut tokens);
+
+                        tokens.append(",");
+                    }
                     _ => {}
                 }
             }

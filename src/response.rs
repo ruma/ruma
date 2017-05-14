@@ -90,6 +90,8 @@ impl ToTokens for Response {
                     ResponseField::Body(ref field) => field.to_tokens(&mut tokens),
                     ResponseField::Header(_, ref field) => field.to_tokens(&mut tokens),
                 }
+
+                tokens.append(",");
             }
 
             tokens.append("}");
@@ -109,6 +111,8 @@ impl ToTokens for Response {
                     ResponseField::Body(ref field) => field.to_tokens(&mut tokens),
                     _ => {}
                 }
+
+                tokens.append(",");
             }
 
             tokens.append("}");
