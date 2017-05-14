@@ -10,6 +10,29 @@ impl Request {
     pub fn has_body_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_body())
     }
+
+    pub fn request_body_init_fields(&self) -> Tokens {
+        let mut tokens = Tokens::new();
+
+        for request_field in self.body_fields() {
+            let field =  match *request_field {
+                RequestField::Body(ref field) => field,
+                _ => panic!("expected body field"),
+            };
+
+            let field_name = field.ident.as_ref().expect("expected body field to have a name");
+
+            tokens.append(quote! {
+                #field_name: request.#field_name,
+            });
+        }
+
+        tokens
+    }
+
+    fn body_fields(&self) -> RequestBodyFields {
+        RequestBodyFields::new(&self.fields)
+    }
 }
 
 impl From<Vec<Field>> for Request {
@@ -110,5 +133,32 @@ impl RequestField {
             RequestField::Body(_) => true,
             _ => false,
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct RequestBodyFields<'a> {
+    fields: &'a [RequestField],
+    index: usize,
+}
+
+impl<'a> RequestBodyFields<'a> {
+    pub fn new(fields: &'a [RequestField]) -> Self {
+        RequestBodyFields {
+            fields,
+            index: 0,
+        }
+    }
+}
+
+impl<'a> Iterator for RequestBodyFields<'a> {
+    type Item = &'a RequestField;
+
+    fn next(&mut self) -> Option<&'a RequestField> {
+        let value = self.fields.get(self.index);
+
+        self.index += 1;
+
+        value
     }
 }

@@ -32,6 +32,23 @@ impl ToTokens for Api {
             tokens
         };
 
+        let add_body_to_request = if self.request.has_body_fields() {
+            let request_body_init_fields = self.request.request_body_init_fields();
+
+            quote! {
+                let request_body = RequestBody {
+                    #request_body_init_fields
+                };
+
+                hyper_request.set_body(
+                    ::serde_json::to_vec(&request_body)
+                        .expect("failed to serialize request body to JSON")
+                );
+            }
+        } else {
+            Tokens::new()
+        };
+
         tokens.append(quote! {
             use std::convert::TryFrom;
 
@@ -45,12 +62,14 @@ impl ToTokens for Api {
                 type Error = ();
 
                 fn try_from(request: Request) -> Result<Self, Self::Error> {
-                    Ok(
-                        ::hyper::Request::new(
-                            ::hyper::#method,
-                            "/".parse().expect("failed to parse request URI"),
-                        )
-                    )
+                    let mut hyper_request = ::hyper::Request::new(
+                        ::hyper::#method,
+                        "/".parse().expect("failed to parse request URI"),
+                    );
+
+                    #add_body_to_request
+
+                    Ok(hyper_request)
                 }
             }
 
