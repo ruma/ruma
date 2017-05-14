@@ -1,8 +1,9 @@
+use quote::{ToTokens, Tokens};
 use syn::{Field, Lit, MetaItem};
 
 #[derive(Debug)]
 pub struct Response {
-    pub fields: Vec<ResponseField>,
+    fields: Vec<ResponseField>,
 }
 
 impl From<Vec<Field>> for Response {
@@ -28,6 +29,31 @@ impl From<Vec<Field>> for Response {
 
         Response {
             fields: response_fields,
+        }
+    }
+}
+
+impl ToTokens for Response {
+    fn to_tokens(&self, mut tokens: &mut Tokens) {
+        tokens.append(quote! {
+            /// Data in the response from this API endpoint.
+            #[derive(Debug)]
+            pub struct Response
+        });
+
+        if self.fields.len() == 0 {
+            tokens.append(";");
+        } else {
+            tokens.append("{");
+
+            for response in self.fields.iter() {
+                match *response {
+                    ResponseField::Body(ref field) => field.to_tokens(&mut tokens),
+                    ResponseField::Header(_, ref field) => field.to_tokens(&mut tokens),
+                }
+            }
+
+            tokens.append("}");
         }
     }
 }

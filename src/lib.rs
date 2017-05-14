@@ -12,6 +12,8 @@ extern crate syn;
 
 use proc_macro::TokenStream;
 
+use quote::{ToTokens, Tokens};
+
 use api::Api;
 use parse::parse_entries;
 
@@ -28,5 +30,9 @@ pub fn ruma_api(input: TokenStream) -> TokenStream {
 
     let api = Api::from(entries);
 
-    api.output().parse().expect("ruma_api! failed to parse output as a TokenStream")
+    let mut tokens = Tokens::new();
+
+    api.to_tokens(&mut tokens);
+
+    tokens.parse().expect("ruma_api! failed to parse output tokens as a TokenStream")
 }

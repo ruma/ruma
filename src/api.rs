@@ -2,8 +2,8 @@ use quote::{ToTokens, Tokens};
 
 use metadata::Metadata;
 use parse::Entry;
-use request::{Request, RequestField};
-use response::{Response, ResponseField};
+use request::Request;
+use response::Response;
 
 #[derive(Debug)]
 pub struct Api {
@@ -12,8 +12,8 @@ pub struct Api {
     response: Response,
 }
 
-impl Api {
-    pub fn output(&self) -> Tokens {
+impl ToTokens for Api {
+    fn to_tokens(&self, tokens: &mut Tokens) {
         let description = &self.metadata.description;
         let method = &self.metadata.method;
         let name = &self.metadata.name;
@@ -21,10 +21,18 @@ impl Api {
         let rate_limited = &self.metadata.rate_limited;
         let requires_authentication = &self.metadata.requires_authentication;
 
-        let request_types = self.generate_request_types();
-        let response_types = self.generate_response_types();
+        let request_types = {
+            let mut tokens = Tokens::new();
+            self.request.to_tokens(&mut tokens);
+            tokens
+        };
+        let response_types = {
+            let mut tokens = Tokens::new();
+            self.response.to_tokens(&mut tokens);
+            tokens
+        };
 
-        quote! {
+        tokens.append(quote! {
             use std::convert::TryFrom;
 
             /// The API endpoint.
@@ -69,59 +77,7 @@ impl Api {
                     requires_authentication: #requires_authentication,
                 };
             }
-        }
-    }
-
-    fn generate_request_types(&self) -> Tokens {
-        let mut tokens = quote! {
-            /// Data for a request to this API endpoint.
-            #[derive(Debug)]
-            pub struct Request
-        };
-
-        if self.request.fields.len() == 0 {
-            tokens.append(";");
-        } else {
-            tokens.append("{");
-
-            for request_field in self.request.fields.iter() {
-                match *request_field {
-                    RequestField::Body(ref field) => field.to_tokens(&mut tokens),
-                    RequestField::Header(_, ref field) => field.to_tokens(&mut tokens),
-                    RequestField::Path(_, ref field) => field.to_tokens(&mut tokens),
-                    RequestField::Query(ref field) => field.to_tokens(&mut tokens),
-                }
-            }
-
-            tokens.append("}");
-        }
-
-        tokens
-    }
-
-    fn generate_response_types(&self) -> Tokens {
-        let mut tokens = quote! {
-            /// Data in the response from this API endpoint.
-            #[derive(Debug)]
-            pub struct Response
-        };
-
-        if self.response.fields.len() == 0 {
-            tokens.append(";");
-        } else {
-            tokens.append("{");
-
-            for response in self.response.fields.iter() {
-                match *response {
-                    ResponseField::Body(ref field) => field.to_tokens(&mut tokens),
-                    ResponseField::Header(_, ref field) => field.to_tokens(&mut tokens),
-                }
-            }
-
-            tokens.append("}");
-        }
-
-        tokens
+        });
     }
 }
 
@@ -150,5 +106,3 @@ impl From<Vec<Entry>> for Api {
         }
     }
 }
-
-

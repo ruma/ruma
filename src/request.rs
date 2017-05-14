@@ -1,8 +1,9 @@
+use quote::{ToTokens, Tokens};
 use syn::{Field, Lit, MetaItem};
 
 #[derive(Debug)]
 pub struct Request {
-    pub fields: Vec<RequestField>,
+    fields: Vec<RequestField>,
 }
 
 impl From<Vec<Field>> for Request {
@@ -39,6 +40,33 @@ impl From<Vec<Field>> for Request {
 
         Request {
             fields: request_fields,
+        }
+    }
+}
+
+impl ToTokens for Request {
+    fn to_tokens(&self, mut tokens: &mut Tokens) {
+        tokens.append(quote! {
+            /// Data for a request to this API endpoint.
+            #[derive(Debug)]
+            pub struct Request
+        });
+
+        if self.fields.len() == 0 {
+            tokens.append(";");
+        } else {
+            tokens.append("{");
+
+            for request_field in self.fields.iter() {
+                match *request_field {
+                    RequestField::Body(ref field) => field.to_tokens(&mut tokens),
+                    RequestField::Header(_, ref field) => field.to_tokens(&mut tokens),
+                    RequestField::Path(_, ref field) => field.to_tokens(&mut tokens),
+                    RequestField::Query(ref field) => field.to_tokens(&mut tokens),
+                }
+            }
+
+            tokens.append("}");
         }
     }
 }
