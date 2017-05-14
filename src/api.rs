@@ -50,7 +50,7 @@ impl ToTokens for Api {
             let mut tokens = Tokens::new();
 
             tokens.append(quote! {
-                hyper_response.body()
+                let future_response = hyper_response.body()
                     .fold::<_, _, Result<_, ::std::io::Error>>(Vec::new(), |mut bytes, chunk| {
                         bytes.write_all(&chunk)?;
 
@@ -79,7 +79,7 @@ impl ToTokens for Api {
         };
 
         let mut closure_end = Tokens::new();
-        closure_end.append("})");
+        closure_end.append("});");
 
         let response_init_fields = if self.response.has_fields() {
             self.response.init_fields()
@@ -119,10 +119,12 @@ impl ToTokens for Api {
 
             #response_types
 
-            impl ::std::convert::TryFrom<::hyper::Response> for Response {
+            impl ::futures::future::FutureFrom<::hyper::Response> for Response {
+                type Future = Box<_Future<Item = Self, Error = Self::Error>>;
                 type Error = ::ruma_api::Error;
 
-                fn try_from(hyper_response: ::hyper::Response) -> Result<Self, Self::Error> {
+                fn future_from(hyper_response: ::hyper::Response)
+                -> Box<_Future<Item = Self, Error = Self::Error>> {
                     #deserialize_response_body
 
                     let response = Response {
@@ -131,7 +133,8 @@ impl ToTokens for Api {
 
                     Ok(response)
                     #closure_end
-                    .wait()
+
+                    Box::new(future_response)
                 }
             }
 
