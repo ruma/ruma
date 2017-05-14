@@ -161,10 +161,14 @@ impl<'a> Iterator for RequestBodyFields<'a> {
     type Item = &'a RequestField;
 
     fn next(&mut self) -> Option<&'a RequestField> {
-        let value = self.fields.get(self.index);
+        while let Some(value) = self.fields.get(self.index) {
+            self.index += 1;
 
-        self.index += 1;
+            if value.is_body() {
+                return Some(value);
+            }
+        }
 
-        value
+        None
     }
 }
