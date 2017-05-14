@@ -49,8 +49,34 @@ impl ToTokens for Api {
             Tokens::new()
         };
 
+        let deserialize_response_body = if self.response.has_body_fields() {
+            quote! {
+                let bytes = hyper_response.body().fold::<_, _, Result<_, ::hyper::Error>>(
+                    Vec::new(),
+                    |mut bytes, chunk| {
+                        bytes.write_all(&chunk).expect("failed to append body chunk");
+
+                        Ok(bytes)
+                    }).wait().expect("failed to read response body chunks into byte vector");
+
+                let response_body: ResponseBody = ::serde_json::from_slice(bytes.as_slice())
+                    .expect("failed to deserialize body");
+            }
+        } else {
+            Tokens::new()
+        };
+
+        let response_init_fields = if self.response.has_fields() {
+            self.response.init_fields()
+        } else {
+            Tokens::new()
+        };
+
         tokens.append(quote! {
             use std::convert::TryFrom;
+            use std::io::Write;
+
+            use ::futures::{Future, Stream};
 
             /// The API endpoint.
             #[derive(Debug)]
@@ -61,6 +87,7 @@ impl ToTokens for Api {
             impl TryFrom<Request> for ::hyper::Request {
                 type Error = ();
 
+                #[allow(unused_mut, unused_variables)]
                 fn try_from(request: Request) -> Result<Self, Self::Error> {
                     let mut hyper_request = ::hyper::Request::new(
                         ::hyper::#method,
@@ -79,7 +106,13 @@ impl ToTokens for Api {
                 type Error = ();
 
                 fn try_from(hyper_response: ::hyper::Response) -> Result<Self, Self::Error> {
-                    Ok(Response)
+                    #deserialize_response_body
+
+                    let response = Response {
+                        #response_init_fields
+                    };
+
+                    Ok(response)
                 }
             }
 

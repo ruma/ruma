@@ -1,10 +1,12 @@
 #![feature(associated_consts, proc_macro, try_from)]
 
+extern crate futures;
 extern crate hyper;
 extern crate ruma_api;
 extern crate ruma_api_macros;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
+extern crate serde_json;
 
 pub mod get_supported_versions {
     use ruma_api_macros::ruma_api;

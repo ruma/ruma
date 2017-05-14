@@ -10,6 +10,39 @@ impl Response {
     pub fn has_body_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_body())
     }
+
+    pub fn has_fields(&self) -> bool {
+        self.fields.len() != 0
+    }
+
+    pub fn init_fields(&self) -> Tokens {
+        let mut tokens = Tokens::new();
+
+        for response_field in self.fields.iter() {
+            match *response_field {
+                ResponseField::Body(ref field) => {
+                    let field_name = field.ident.as_ref()
+                        .expect("expected body field to have a name");
+
+                    tokens.append(quote! {
+                        #field_name: response_body.#field_name,
+                    });
+                }
+                ResponseField::Header(ref name, ref field) => {
+                    let field_name = field.ident.as_ref()
+                        .expect("expected body field to have a name");
+
+                    tokens.append(quote! {
+                        #field_name: hyper_response.headers()
+                            .get_raw(#name)
+                            .expect("missing expected request header: {}", #name),
+                    });
+                }
+            }
+        }
+
+        tokens
+    }
 }
 
 impl From<Vec<Field>> for Response {
