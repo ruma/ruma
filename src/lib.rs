@@ -3,16 +3,19 @@
 //! shared by client and server code.
 
 #![deny(missing_debug_implementations)]
-#![feature(associated_consts, try_from)]
+#![feature(associated_consts, proc_macro, try_from)]
 #![warn(missing_docs)]
 
+extern crate futures;
 extern crate hyper;
 extern crate ruma_api;
+extern crate ruma_api_macros;
 extern crate ruma_events;
 extern crate ruma_identifiers;
 extern crate ruma_signatures;
 extern crate serde;
 extern crate serde_json;
+#[macro_use] extern crate serde_derive;
 
 // /// Endpoints for the r0.x.x versions of the client API specification.
 // pub mod r0 {
@@ -42,8 +45,3 @@ extern crate serde_json;
 // }
 
 pub mod unversioned;
-
-/// An error when converting an endpoint's request into a `hyper::Request` or converting a
-/// `hyper::Response` into an endpoint's response.
-#[derive(Debug)]
-pub struct Error;

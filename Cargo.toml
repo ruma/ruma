@@ -11,6 +11,7 @@ repository = "https://github.com/ruma/ruma-client-api"
 version = "0.1.0"
 
 [dependencies]
+futures = "0.1.13"
 ruma-events = "0.8.0"
 ruma-identifiers = "0.11.0"
 ruma-signatures = "0.3.0"
@@ -24,3 +25,8 @@ rev = "fed04dfb58e19b408322d4e5ca7474871e848a35"
 
 [dependencies.ruma-api]
 git = "https://github.com/ruma/ruma-api"
+rev = "3635fe51ac31b9ff899c70a0d1218caa8cf6a8dc"
+
+[dependencies.ruma-api-macros]
+git = "https://github.com/ruma/ruma-api-macros"
+rev = "10f4647037c81cc3c35097f6156dd9706d38964a"
