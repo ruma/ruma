@@ -17,21 +17,63 @@ extern crate hyper;
 #[cfg(test)] extern crate ruma_identifiers;
 #[cfg(test)] extern crate serde;
 #[cfg(test)] #[macro_use] extern crate serde_derive;
-#[cfg(test)] extern crate serde_json;
+extern crate serde_json;
 
 use std::convert::{TryFrom, TryInto};
+use std::io;
 
-use hyper::{Method, Request, Response};
+use hyper::{Method, Request, Response, StatusCode};
+use hyper::error::UriError;
 
 /// A Matrix API endpoint.
 pub trait Endpoint {
     /// Data needed to make a request to the endpoint.
-    type Request: TryInto<Request>;
+    type Request: TryInto<Request, Error = Error>;
     /// Data returned from the endpoint.
-    type Response: TryFrom<Response>;
+    type Response: TryFrom<Response, Error = Error>;
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;
+}
+
+/// An error when converting an `Endpoint::Request` to a `hyper::Request` or a `hyper::Response` to
+/// an `Endpoint::Response`.
+#[derive(Debug)]
+pub enum Error {
+    /// A Hyper error.
+    Hyper(hyper::Error),
+    /// A I/O error.
+    Io(io::Error),
+    /// A Serde JSON error.
+    SerdeJson(serde_json::Error),
+    /// An HTTP status code indicating error.
+    StatusCode(StatusCode),
+    /// A Uri error.
+    Uri(UriError),
+}
+
+impl From<hyper::Error> for Error {
+    fn from(error: hyper::Error) -> Self {
+        Error::Hyper(error)
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(error: io::Error) -> Self {
+        Error::Io(error)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(error: serde_json::Error) -> Self {
+        Error::SerdeJson(error)
+    }
+}
+
+impl From<UriError> for Error {
+    fn from(error: UriError) -> Self {
+        Error::Uri(error)
+    }
 }
 
 /// Metadata about an API endpoint.
@@ -62,13 +104,10 @@ mod tests {
         use ruma_identifiers::{RoomAliasId, RoomId};
         use serde_json;
 
-        use super::super::{Endpoint as ApiEndpoint, Metadata};
+        use super::super::{Endpoint as ApiEndpoint, Error, Metadata};
 
         #[derive(Debug)]
         pub struct Endpoint;
-
-        #[derive(Debug)]
-        pub struct Error;
 
         impl ApiEndpoint for Endpoint {
             type Request = Request;
@@ -109,14 +148,14 @@ mod tests {
 
                 let mut hyper_request = HyperRequest::new(
                     metadata.method,
-                    path.parse().map_err(|_| Error)?,
+                    path.parse().map_err(Error::from)?,
                 );
 
                 let request_body = RequestBody {
                     room_id: request.room_id,
                 };
 
-                hyper_request.set_body(serde_json::to_vec(&request_body).map_err(|_| Error)?);
+                hyper_request.set_body(serde_json::to_vec(&request_body).map_err(Error::from)?);
 
                 Ok(hyper_request)
             }
@@ -132,7 +171,7 @@ mod tests {
                 if hyper_response.status() == StatusCode::Ok {
                     Ok(Response)
                 } else {
-                    Err(Error)
+                    Err(Error::StatusCode(hyper_response.status().clone()))
                 }
             }
         }
