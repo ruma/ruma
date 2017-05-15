@@ -1,5 +1,5 @@
 use quote::{ToTokens, Tokens};
-use syn::{Field, Lit, MetaItem};
+use syn::{Field, MetaItem, NestedMetaItem};
 
 #[derive(Debug)]
 pub struct Request {
@@ -37,34 +37,56 @@ impl Request {
 
 impl From<Vec<Field>> for Request {
     fn from(fields: Vec<Field>) -> Self {
-        let request_fields = fields.into_iter().map(|field| {
-            for attr in field.attrs.clone().iter() {
-                match attr.value {
-                    MetaItem::Word(ref ident) => {
-                        if ident == "query" {
-                            return RequestField::Query(field);
-                        }
-                    }
-                    MetaItem::List(_, _) => {}
-                    MetaItem::NameValue(ref ident, ref lit) => {
-                        if ident == "header" {
-                            if let Lit::Str(ref name, _) = *lit {
-                                return RequestField::Header(name.clone(), field);
-                            } else {
-                                panic!("ruma_api! header attribute expects a string value");
+        let request_fields = fields.into_iter().map(|mut field| {
+            let mut request_field_kind = RequestFieldKind::Body;
+
+            field.attrs = field.attrs.into_iter().filter(|attr| {
+                let (attr_ident, nested_meta_items) = match attr.value {
+                    MetaItem::List(ref attr_ident, ref nested_meta_items) => (attr_ident, nested_meta_items),
+                    _ => return true,
+                };
+
+                if attr_ident != "ruma_api" {
+                    return true;
+                }
+
+                for nested_meta_item in nested_meta_items {
+                    match *nested_meta_item {
+                        NestedMetaItem::MetaItem(ref meta_item) => {
+                            match *meta_item {
+                                MetaItem::Word(ref ident) => {
+                                    if ident == "header" {
+                                        request_field_kind = RequestFieldKind::Header;
+                                    } else if ident == "path" {
+                                        request_field_kind = RequestFieldKind::Path;
+                                    } else if ident == "query" {
+                                        request_field_kind = RequestFieldKind::Query;
+                                    } else {
+                                        panic!(
+                                            "ruma_api! attribute meta item on requests must be: header, path, or query"
+                                        );
+                                    }
+                                }
+                                _ => panic!(
+                                    "ruma_api! attribute meta item on requests cannot be a list or name/value pair"
+                                ),
                             }
-                        } else if ident == "path" {
-                            if let Lit::Str(ref name, _) = *lit {
-                                return RequestField::Path(name.clone(), field);
-                            } else {
-                                panic!("ruma_api! path attribute expects a string value");
-                            }
                         }
+                        NestedMetaItem::Literal(_) => panic!(
+                            "ruma_api! attribute meta item on requests must be: header, path, or query"
+                        ),
                     }
                 }
-            }
 
-            return RequestField::Body(field);
+                false
+            }).collect();
+
+            match request_field_kind {
+                RequestFieldKind::Body => RequestField::Body(field),
+                RequestFieldKind::Header => RequestField::Header(field),
+                RequestFieldKind::Path => RequestField::Path(field),
+                RequestFieldKind::Query => RequestField::Query(field),
+            }
         }).collect();
 
         Request {
@@ -89,8 +111,8 @@ impl ToTokens for Request {
             for request_field in self.fields.iter() {
                 match *request_field {
                     RequestField::Body(ref field) => field.to_tokens(&mut tokens),
-                    RequestField::Header(_, ref field) => field.to_tokens(&mut tokens),
-                    RequestField::Path(_, ref field) => field.to_tokens(&mut tokens),
+                    RequestField::Header(ref field) => field.to_tokens(&mut tokens),
+                    RequestField::Path(ref field) => field.to_tokens(&mut tokens),
                     RequestField::Query(ref field) => field.to_tokens(&mut tokens),
                 }
 
@@ -128,8 +150,8 @@ impl ToTokens for Request {
 #[derive(Debug)]
 pub enum RequestField {
     Body(Field),
-    Header(String, Field),
-    Path(String, Field),
+    Header(Field),
+    Path(Field),
     Query(Field),
 }
 
@@ -140,6 +162,13 @@ impl RequestField {
             _ => false,
         }
     }
+}
+
+enum RequestFieldKind {
+    Body,
+    Header,
+    Path,
+    Query,
 }
 
 #[derive(Debug)]

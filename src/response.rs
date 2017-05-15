@@ -1,5 +1,5 @@
 use quote::{ToTokens, Tokens};
-use syn::{Field, Lit, MetaItem};
+use syn::{Field, MetaItem, NestedMetaItem};
 
 #[derive(Debug)]
 pub struct Response {
@@ -28,14 +28,14 @@ impl Response {
                         #field_name: response_body.#field_name,
                     });
                 }
-                ResponseField::Header(ref name, ref field) => {
+                ResponseField::Header(ref field) => {
                     let field_name = field.ident.as_ref()
                         .expect("expected body field to have a name");
 
                     tokens.append(quote! {
                         #field_name: hyper_response.headers()
-                            .get_raw(#name)
-                            .expect("missing expected request header: {}", #name),
+                            .get_raw(#field_name)
+                            .expect("missing expected request header: {}", #field_name),
                     });
                 }
             }
@@ -47,23 +47,52 @@ impl Response {
 
 impl From<Vec<Field>> for Response {
     fn from(fields: Vec<Field>) -> Self {
-        let response_fields = fields.into_iter().map(|field| {
-            for attr in field.attrs.clone().iter() {
-                match attr.value {
-                    MetaItem::Word(_) | MetaItem::List(_, _) => {}
-                    MetaItem::NameValue(ref ident, ref lit) => {
-                        if ident == "header" {
-                            if let Lit::Str(ref name, _) = *lit {
-                                return ResponseField::Header(name.clone(), field);
-                            } else {
-                                panic!("ruma_api! header attribute expects a string value");
+        let response_fields = fields.into_iter().map(|mut field| {
+            let mut response_field_kind = ResponseFieldKind::Body;
+
+            field.attrs = field.attrs.into_iter().filter(|attr| {
+                let (attr_ident, nested_meta_items) = match attr.value {
+                    MetaItem::List(ref attr_ident, ref nested_meta_items) => {
+                        (attr_ident, nested_meta_items)
+                    }
+                    _ => return true,
+                };
+
+                if attr_ident != "ruma_api" {
+                    return true;
+                }
+
+                for nested_meta_item in nested_meta_items {
+                    match *nested_meta_item {
+                        NestedMetaItem::MetaItem(ref meta_item) => {
+                            match *meta_item {
+                                MetaItem::Word(ref ident) => {
+                                    if ident == "header" {
+                                        response_field_kind = ResponseFieldKind::Header;
+                                    } else {
+                                        panic!(
+                                            "ruma_api! attribute meta item on responses must be: header"
+                                        );
+                                    }
+                                }
+                                _ => panic!(
+                                    "ruma_api! attribute meta item on requests cannot be a list or name/value pair"
+                                ),
                             }
                         }
+                        NestedMetaItem::Literal(_) => panic!(
+                            "ruma_api! attribute meta item on responses must be: header"
+                        ),
                     }
                 }
-            }
 
-            return ResponseField::Body(field);
+                false
+            }).collect();
+
+            match response_field_kind {
+                ResponseFieldKind::Body => ResponseField::Body(field),
+                ResponseFieldKind::Header => ResponseField::Header(field),
+            }
         }).collect();
 
         Response {
@@ -88,7 +117,7 @@ impl ToTokens for Response {
             for response in self.fields.iter() {
                 match *response {
                     ResponseField::Body(ref field) => field.to_tokens(&mut tokens),
-                    ResponseField::Header(_, ref field) => field.to_tokens(&mut tokens),
+                    ResponseField::Header(ref field) => field.to_tokens(&mut tokens),
                 }
 
                 tokens.append(",");
@@ -123,7 +152,7 @@ impl ToTokens for Response {
 #[derive(Debug)]
 pub enum ResponseField {
     Body(Field),
-    Header(String, Field),
+    Header(Field),
 }
 
 impl ResponseField {
@@ -133,4 +162,9 @@ impl ResponseField {
             _ => false,
         }
     }
+}
+
+enum ResponseFieldKind {
+    Body,
+    Header,
 }
