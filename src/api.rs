@@ -88,8 +88,10 @@ impl ToTokens for Api {
         };
 
         tokens.append(quote! {
+            #[allow(unused_imports)]
             use std::io::Write as _Write;
 
+            #[allow(unused_imports)]
             use ::futures::{Future as _Future, Stream as _Stream};
             use ::ruma_api::Endpoint as _RumaApiEndpoint;
 
@@ -123,6 +125,7 @@ impl ToTokens for Api {
                 type Future = Box<_Future<Item = Self, Error = Self::Error>>;
                 type Error = ::ruma_api::Error;
 
+                #[allow(unused_variables)]
                 fn future_from(hyper_response: ::hyper::Response)
                 -> Box<_Future<Item = Self, Error = Self::Error>> {
                     #deserialize_response_body
