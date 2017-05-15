@@ -17,9 +17,9 @@ extern crate serde;
 extern crate serde_json;
 #[macro_use] extern crate serde_derive;
 
-// /// Endpoints for the r0.x.x versions of the client API specification.
-// pub mod r0 {
-//     pub mod account;
+/// Endpoints for the r0.x.x versions of the client API specification.
+pub mod r0 {
+    pub mod account;
 //     pub mod alias;
 //     pub mod config;
 //     pub mod contact;
@@ -42,6 +42,6 @@ extern crate serde_json;
 //     pub mod tag;
 //     pub mod typing;
 //     pub mod voip;
-// }
+}
 
 pub mod unversioned;
