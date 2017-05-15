@@ -105,7 +105,7 @@ impl ToTokens for Response {
     fn to_tokens(&self, mut tokens: &mut Tokens) {
         tokens.append(quote! {
             /// Data in the response from this API endpoint.
-            #[derive(Debug)]
+            #[derive(Debug, Deserialize)]
             pub struct Response
         });
 

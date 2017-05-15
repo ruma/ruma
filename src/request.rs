@@ -99,7 +99,7 @@ impl ToTokens for Request {
     fn to_tokens(&self, mut tokens: &mut Tokens) {
         tokens.append(quote! {
             /// Data for a request to this API endpoint.
-            #[derive(Debug)]
+            #[derive(Debug, Serialize)]
             pub struct Request
         });
 
