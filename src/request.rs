@@ -11,6 +11,20 @@ impl Request {
         self.fields.iter().any(|field| field.is_body())
     }
 
+    pub fn newtype_body_field(&self) -> Option<&Field> {
+        for request_field in self.fields.iter() {
+            match *request_field {
+                RequestField::NewtypeBody(ref field) => {
+
+                    return Some(field);
+                }
+                _ => continue,
+            }
+        }
+
+        None
+    }
+
     pub fn request_body_init_fields(&self) -> Tokens {
         let mut tokens = Tokens::new();
 
@@ -32,23 +46,6 @@ impl Request {
 
     fn body_fields(&self) -> RequestBodyFields {
         RequestBodyFields::new(&self.fields)
-    }
-
-    fn newtype_body_field(&self) -> Option<Field> {
-        for request_field in self.fields.iter() {
-            match *request_field {
-                RequestField::NewtypeBody(ref field) => {
-                    let mut newtype_field = field.clone();
-
-                    newtype_field.ident = None;
-
-                    return Some(newtype_field);
-                }
-                _ => continue,
-            }
-        }
-
-        None
     }
 }
 
@@ -153,6 +150,10 @@ impl ToTokens for Request {
         }
 
         if let Some(newtype_body_field) = self.newtype_body_field() {
+            let mut field = newtype_body_field.clone();
+
+            field.ident = None;
+
             tokens.append(quote! {
                 /// Data in the request body.
                 #[derive(Debug, Serialize)]
@@ -161,7 +162,7 @@ impl ToTokens for Request {
 
             tokens.append("(");
 
-            newtype_body_field.to_tokens(&mut tokens);
+            field.to_tokens(&mut tokens);
 
             tokens.append(");");
         } else if self.has_body_fields() {

@@ -32,7 +32,15 @@ impl ToTokens for Api {
             tokens
         };
 
-        let add_body_to_request = if self.request.has_body_fields() {
+        let add_body_to_request = if let Some(field) = self.request.newtype_body_field() {
+            let field_name = field.ident.as_ref().expect("expected body field to have a name");
+
+            quote! {
+                let request_body = RequestBody(request.#field_name);
+
+                hyper_request.set_body(::serde_json::to_vec(&request_body)?);
+            }
+        } else if self.request.has_body_fields() {
             let request_body_init_fields = self.request.request_body_init_fields();
 
             quote! {
