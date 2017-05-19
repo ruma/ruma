@@ -2,112 +2,77 @@
 
 /// [PUT /_matrix/client/r0/user/{userId}/rooms/{roomId}/account_data/{type}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-user-userid-rooms-roomid-account-data-type)
 pub mod set_room_account_data {
+    use ruma_api_macros::ruma_api;
     use ruma_identifiers::{RoomId, UserId};
+    use serde_json::Value;
 
-    /// Details about this API endpoint.
-    #[derive(Clone, Copy, Debug)]
-    pub struct Endpoint;
-
-    /// This API endpoint's path parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct PathParams {
-        pub user_id: UserId,
-        pub room_id: RoomId,
-        pub event_type: String,
-    }
-
-    impl ::Endpoint for Endpoint {
-        type BodyParams = ::serde_json::Value;
-        type PathParams = PathParams;
-        type QueryParams = ();
-        type Response = ();
-
-        fn method() -> ::Method {
-            ::Method::Put
+    ruma_api! {
+        metadata {
+            description: "Associate account data with a room.",
+            method: Method::Put,
+            name: "set_room_account_data",
+            path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:event_type",
+            rate_limited: false,
+            requires_authentication: true,
         }
 
-        fn request_path(params: Self::PathParams) -> String {
-            format!(
-                "/_matrix/client/r0/user/{}/rooms/{}/account_data/{}",
-                params.user_id,
-                params.room_id,
-                params.event_type
-            )
+        request {
+            /// Arbitrary JSON to store as config data.
+            #[ruma_api(body)]
+            pub data: Value,
+            /// The event type of the account_data to set.
+            ///
+            /// Custom types should be namespaced to avoid clashes.
+            #[ruma_api(path)]
+            #[serde(rename = "type")]
+            pub event_type: String,
+            /// The ID of the room to set account_data on.
+            #[ruma_api(path)]
+            pub room_id: RoomId,
+            /// The ID of the user to set account_data for.
+            ///
+            /// The access token must be authorized to make requests for this user ID.
+            #[ruma_api(path)]
+            pub user_id: UserId,
         }
 
-        fn router_path() -> &'static str {
-            "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:type"
-        }
-
-        fn name() -> &'static str {
-            "set_room_account_data"
-        }
-
-        fn description() -> &'static str {
-            "Associate account data with a room."
-        }
-
-        fn requires_authentication() -> bool {
-            true
-        }
-
-        fn rate_limited() -> bool {
-            false
-        }
+        response {}
     }
 }
 
 /// [PUT /_matrix/client/r0/user/{userId}/account_data/{type}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-user-userid-account-data-type)
 pub mod set_global_account_data  {
+    use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
+    use serde_json::Value;
 
-    /// Details about this API endpoint.
-    #[derive(Clone, Copy, Debug)]
-    pub struct Endpoint;
-
-    /// This API endpoint's path parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct PathParams {
-        pub user_id: UserId,
-        pub event_type: String,
-    }
-
-    impl ::Endpoint for Endpoint {
-        type BodyParams = ::serde_json::Value;
-        type PathParams = PathParams;
-        type QueryParams = ();
-        type Response = ();
-
-        fn method() -> ::Method {
-            ::Method::Put
+    ruma_api! {
+        metadata {
+            description: "Sets global account data.",
+            method: Method::Put,
+            name: "set_global_account_data",
+            path: "/_matrix/client/r0/user/:user_id/account_data/:event_type",
+            rate_limited: false,
+            requires_authentication: true,
         }
 
-        fn request_path(params: Self::PathParams) -> String {
-            format!(
-                "/_matrix/client/r0/user/{}/account_data/{}",
-                params.user_id,
-                params.event_type
-            )
+        request {
+            /// Arbitrary JSON to store as config data.
+            #[ruma_api(body)]
+            pub data: Value,
+            /// The event type of the account_data to set.
+            ///
+            /// Custom types should be namespaced to avoid clashes.
+            #[ruma_api(path)]
+            #[serde(rename = "type")]
+            pub event_type: String,
+            /// The ID of the user to set account_data for.
+            ///
+            /// The access token must be authorized to make requests for this user ID.
+            #[ruma_api(path)]
+            pub user_id: UserId,
         }
 
-        fn router_path() -> &'static str {
-            "/_matrix/client/r0/user/:user_id/account_data/:type"
-        }
-
-        fn name() -> &'static str {
-            "set_global_account_data"
-        }
-
-        fn description() -> &'static str {
-            "Sets global account data."
-        }
-
-        fn requires_authentication() -> bool {
-            true
-        }
-
-        fn rate_limited() -> bool {
-            false
-        }
+        response {}
     }
 }

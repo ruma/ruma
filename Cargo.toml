@@ -29,4 +29,4 @@ rev = "3635fe51ac31b9ff899c70a0d1218caa8cf6a8dc"
 
 [dependencies.ruma-api-macros]
 git = "https://github.com/ruma/ruma-api-macros"
-rev = "fc46b9a58b11d468d8b1ef51414d57d5e39f3332"
+rev = "58fab938b00d01aeb5e3e8c31731b4e479d5553d"
