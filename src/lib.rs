@@ -20,7 +20,7 @@ extern crate serde_json;
 /// Endpoints for the r0.x.x versions of the client API specification.
 pub mod r0 {
     pub mod account;
-//     pub mod alias;
+    pub mod alias;
 //     pub mod config;
 //     pub mod contact;
 //     pub mod context;
