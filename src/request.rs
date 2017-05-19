@@ -33,10 +33,29 @@ impl Request {
     fn body_fields(&self) -> RequestBodyFields {
         RequestBodyFields::new(&self.fields)
     }
+
+    fn newtype_body_field(&self) -> Option<Field> {
+        for request_field in self.fields.iter() {
+            match *request_field {
+                RequestField::NewtypeBody(ref field) => {
+                    let mut newtype_field = field.clone();
+
+                    newtype_field.ident = None;
+
+                    return Some(newtype_field);
+                }
+                _ => continue,
+            }
+        }
+
+        None
+    }
 }
 
 impl From<Vec<Field>> for Request {
     fn from(fields: Vec<Field>) -> Self {
+        let mut has_newtype_body = false;
+
         let request_fields = fields.into_iter().map(|mut field| {
             let mut request_field_kind = RequestFieldKind::Body;
 
@@ -55,7 +74,10 @@ impl From<Vec<Field>> for Request {
                         NestedMetaItem::MetaItem(ref meta_item) => {
                             match *meta_item {
                                 MetaItem::Word(ref ident) => {
-                                    if ident == "header" {
+                                    if ident == "body" {
+                                        has_newtype_body = true;
+                                        request_field_kind = RequestFieldKind::NewtypeBody;
+                                    } else if ident == "header" {
                                         request_field_kind = RequestFieldKind::Header;
                                     } else if ident == "path" {
                                         request_field_kind = RequestFieldKind::Path;
@@ -63,7 +85,7 @@ impl From<Vec<Field>> for Request {
                                         request_field_kind = RequestFieldKind::Query;
                                     } else {
                                         panic!(
-                                            "ruma_api! attribute meta item on requests must be: header, path, or query"
+                                            "ruma_api! attribute meta item on requests must be: body, header, path, or query"
                                         );
                                     }
                                 }
@@ -73,7 +95,7 @@ impl From<Vec<Field>> for Request {
                             }
                         }
                         NestedMetaItem::Literal(_) => panic!(
-                            "ruma_api! attribute meta item on requests must be: header, path, or query"
+                            "ruma_api! attribute meta item on requests must be: body, header, path, or query"
                         ),
                     }
                 }
@@ -82,8 +104,15 @@ impl From<Vec<Field>> for Request {
             }).collect();
 
             match request_field_kind {
-                RequestFieldKind::Body => RequestField::Body(field),
+                RequestFieldKind::Body => {
+                    if has_newtype_body {
+                        panic!("ruma_api! requests cannot have both normal body fields and a newtype body field");
+                    } else {
+                        return RequestField::Body(field);
+                    }
+                }
                 RequestFieldKind::Header => RequestField::Header(field),
+                RequestFieldKind::NewtypeBody => RequestField::NewtypeBody(field),
                 RequestFieldKind::Path => RequestField::Path(field),
                 RequestFieldKind::Query => RequestField::Query(field),
             }
@@ -112,6 +141,7 @@ impl ToTokens for Request {
                 match *request_field {
                     RequestField::Body(ref field) => field.to_tokens(&mut tokens),
                     RequestField::Header(ref field) => field.to_tokens(&mut tokens),
+                    RequestField::NewtypeBody(ref field) => field.to_tokens(&mut tokens),
                     RequestField::Path(ref field) => field.to_tokens(&mut tokens),
                     RequestField::Query(ref field) => field.to_tokens(&mut tokens),
                 }
@@ -122,7 +152,19 @@ impl ToTokens for Request {
             tokens.append("}");
         }
 
-        if self.has_body_fields() {
+        if let Some(newtype_body_field) = self.newtype_body_field() {
+            tokens.append(quote! {
+                /// Data in the request body.
+                #[derive(Debug, Serialize)]
+                struct RequestBody
+            });
+
+            tokens.append("(");
+
+            newtype_body_field.to_tokens(&mut tokens);
+
+            tokens.append(");");
+        } else if self.has_body_fields() {
             tokens.append(quote! {
                 /// Data in the request body.
                 #[derive(Debug, Serialize)]
@@ -151,6 +193,7 @@ impl ToTokens for Request {
 pub enum RequestField {
     Body(Field),
     Header(Field),
+    NewtypeBody(Field),
     Path(Field),
     Query(Field),
 }
@@ -167,6 +210,7 @@ impl RequestField {
 enum RequestFieldKind {
     Body,
     Header,
+    NewtypeBody,
     Path,
     Query,
 }
