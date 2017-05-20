@@ -3,67 +3,53 @@
 /// [GET /_matrix/client/r0/publicRooms](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-publicrooms)
 pub mod get_public_rooms {
     use ruma_identifiers::{RoomId, RoomAliasId};
+    use ruma_api_macros::ruma_api;
+
+    ruma_api! {
+        metadata {
+            description: "Get the list of rooms in this homeserver's public directory.",
+            method: Method::Get,
+            name: "get_public_rooms",
+            path: "/_matrix/client/r0/publicRooms",
+            rate_limited: false,
+            requires_authentication: false,
+        }
+
+        request {}
+
+        response {
+            /// A pagination token for the response.
+            pub start: String,
+            /// A paginated chunk of public rooms.
+            pub chunk: Vec<PublicRoomsChunk>,
+            /// A pagination token for the response.
+            pub end: String
+        }
+    }
 
     /// A chunk of the response, describing one room
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct PublicRoomsChunk {
-        pub world_readable: bool,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub topic: Option<String>,
-        pub num_joined_members: u64,
+        /// Aliases of the room.
+        pub aliases: Vec<RoomAliasId>,
+        /// The URL for the room's avatar, if one is set.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub avatar_url: Option<String>,
-        pub room_id: RoomId,
+        /// Whether guest users may join the room and participate in it.
+        ///
+        /// If they can, they will be subject to ordinary power level rules like any other user.
         pub guest_can_join: bool,
-        pub aliases: Vec<RoomAliasId>,
+        /// The name of the room, if any.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub name: Option<String>
-    }
-
-    /// This API response type
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct Response {
-        pub start: String,
-        pub chunk: Vec<PublicRoomsChunk>,
-        pub end: String
-    }
-
-    /// Details about this API endpoint.
-    #[derive(Clone, Copy, Debug)]
-    pub struct Endpoint;
-
-    impl ::Endpoint for Endpoint {
-        type BodyParams = ();
-        type PathParams = ();
-        type QueryParams = ();
-        type Response = Response;
-
-        fn method() -> ::Method {
-            ::Method::Get
-        }
-
-        fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path().to_string()
-        }
-
-        fn router_path() -> &'static str {
-            "/_matrix/client/r0/publicRooms"
-        }
-
-        fn name() -> &'static str {
-            "get_public_rooms"
-        }
-
-        fn description() -> &'static str {
-            "Get the list of rooms in this homeserver's public directory."
-        }
-
-        fn requires_authentication() -> bool {
-            false
-        }
-
-        fn rate_limited() -> bool {
-            false
-        }
+        pub name: Option<String>,
+        /// The number of members joined to the room.
+        pub num_joined_members: u64,
+        /// The ID of the room.
+        pub room_id: RoomId,
+        /// The topic of the room, if any.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub topic: Option<String>,
+        /// Whether the room may be viewed by guest users without joining.
+        pub world_readable: bool,
     }
 }
