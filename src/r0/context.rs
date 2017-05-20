@@ -4,68 +4,47 @@
 pub mod get_context {
     use ruma_identifiers::{EventId, RoomId};
     use ruma_events::collections::only;
+    use ruma_api_macros::ruma_api;
 
-
-    /// Details about this API endpoint.
-    #[derive(Clone, Copy, Debug)]
-    pub struct Endpoint;
-
-    /// This API endpoint's path parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct PathParams {
-        pub event_id: EventId,
-        pub room_id: RoomId,
-    }
-
-    /// This API endpoint's query string parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct QueryParams {
-        pub limit: u8,
-    }
-
-    /// This API endpoint's response.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct Response {
-        pub end: String,
-        pub event: only::RoomEvent,
-        pub events_after: Vec<only::RoomEvent>,
-        pub events_before: Vec<only::RoomEvent>,
-        pub start: String,
-        pub state: Vec<only::StateEvent>,
-    }
-
-    impl ::Endpoint for Endpoint {
-        type BodyParams = ();
-        type PathParams = PathParams;
-        type QueryParams = QueryParams;
-        type Response = Response;
-
-        fn method() -> ::Method {
-            ::Method::Get
+    ruma_api! {
+        metadata {
+            description: "Get the events immediately preceding and following a given event.",
+            method: Method::Get,
+            path: "/_matrix/client/r0/rooms/:room_id/context/:event_id",
+            name: "get_context",
+            rate_limited: false,
+            requires_authentication: true,
         }
 
-        fn request_path(params: Self::PathParams) -> String {
-            format!("/_matrix/client/r0/rooms/{}/context/{}", params.room_id, params.event_id)
+        request {
+            /// The event to get context around.
+            #[ruma_api(path)]
+            pub event_id: EventId,
+            /// The maximum number of events to return.
+            ///
+            /// Defaults to 10 if not supplied.
+            #[ruma_api(query)]
+            pub limit: u8,
+            /// The room to get events from.
+            #[ruma_api(path)]
+            pub room_id: RoomId,
         }
 
-        fn router_path() -> &'static str {
-            "/_matrix/client/r0/rooms/:room_id/context/:event_id"
-        }
-
-        fn name() -> &'static str {
-            "get_context"
-        }
-
-        fn description() -> &'static str {
-            "Get the events immediately preceding and following a given event."
-        }
-
-        fn requires_authentication() -> bool {
-            true
-        }
-
-        fn rate_limited() -> bool {
-            false
+        response {
+            /// A token that can be used to paginate forwards with.
+            pub end: String,
+            /// Details of the requested event.
+            pub event: only::RoomEvent,
+            /// A list of room events that happened just after the requested event, in chronological
+            /// order.
+            pub events_after: Vec<only::RoomEvent>,
+            /// A list of room events that happened just before the requested event, in
+            /// reverse-chronological order.
+            pub events_before: Vec<only::RoomEvent>,
+            /// A token that can be used to paginate backwards with.
+            pub start: String,
+            /// The state of the room at the last event returned.
+            pub state: Vec<only::StateEvent>,
         }
     }
 }
