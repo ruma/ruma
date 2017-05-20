@@ -22,7 +22,7 @@ pub mod r0 {
     pub mod account;
     pub mod alias;
     pub mod config;
-//     pub mod contact;
+    pub mod contact;
 //     pub mod context;
 //     pub mod directory;
 //     pub mod filter;

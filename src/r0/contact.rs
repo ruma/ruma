@@ -2,173 +2,111 @@
 
 /// [POST /_matrix/client/r0/account/3pid](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-3pid)
 pub mod create_contact {
-    /// This API endpoint's body parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct BodyParams {
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub bind: Option<bool>,
-        pub three_pid_creds: ThreePidCredentials,
-    }
+    use ruma_api_macros::ruma_api;
 
-    /// Details about this API endpoint.
-    #[derive(Clone, Copy, Debug)]
-    pub struct Endpoint;
+    ruma_api! {
+        metadata {
+            description: "Adds contact information to the user's account.",
+            method: Method::Post,
+            name: "create_contact",
+            path: "/_matrix/client/r0/account/3pid",
+            rate_limited: false,
+            requires_authentication: true,
+        }
+
+        request {
+            /// Whether the homeserver should also bind this third party identifier to the account's
+            /// Matrix ID with the passed identity server.
+            ///
+            /// Default to `false` if not supplied.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub bind: Option<bool>,
+            /// The third party credentials to associate with the account.
+            pub three_pid_creds: ThreePidCredentials,
+        }
+
+        response {}
+    }
 
     /// The third party credentials to associate with the account.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct ThreePidCredentials {
+        /// The client secret used in the session with the identity server.
         pub client_secret: String,
+        /// The identity server to use.
         pub id_server: String,
+        /// The session identifier given by the identity server.
         pub sid: String,
-    }
-
-    impl ::Endpoint for Endpoint {
-        type BodyParams = BodyParams;
-        type PathParams = ();
-        type QueryParams = ();
-        type Response = ();
-
-        fn method() -> ::Method {
-            ::Method::Post
-        }
-
-        fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path().to_string()
-        }
-
-        fn router_path() -> &'static str {
-            "/_matrix/client/r0/account/3pid"
-        }
-
-        fn name() -> &'static str {
-            "create_contact"
-        }
-
-        fn description() -> &'static str {
-            "Adds contact information to the user's account."
-        }
-
-        fn requires_authentication() -> bool {
-            true
-        }
-
-        fn rate_limited() -> bool {
-            false
-        }
     }
 }
 
 /// [GET /_matrix/client/r0/account/3pid](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-account-3pid)
 pub mod get_contacts {
-    /// Details about this API endpoint.
-    #[derive(Clone, Copy, Debug)]
-    pub struct Endpoint;
+    use ruma_api_macros::ruma_api;
+
+    ruma_api! {
+        metadata {
+            description: "Get a list of 3rd party contacts associated with the user's account.",
+            method: Method::Get,
+            name: "get_contacts",
+            path: "/_matrix/client/r0/account/3pid",
+            rate_limited: false,
+            requires_authentication: true,
+        }
+
+        request {}
+
+        response {
+            /// A list of third party identifiers the homeserver has associated with the user's
+            /// account.
+            pub threepids: Vec<ThirdPartyIdentifier>,
+        }
+    }
 
     /// The medium of third party identifier.
     #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
     pub enum Medium {
+        /// An email address.
         #[serde(rename="email")]
         Email,
-    }
-
-    /// This API endpoint's response.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct Response {
-        pub threepids: Vec<ThirdPartyIdentifier>,
     }
 
     /// An identifier external to Matrix.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct ThirdPartyIdentifier {
+        /// The third party identifier address.
         pub address: String,
+        /// The medium of third party identifier.
         pub medium: Medium,
-    }
-
-    impl ::Endpoint for Endpoint {
-        type BodyParams = ();
-        type PathParams = ();
-        type QueryParams = ();
-        type Response = Response;
-
-        fn method() -> ::Method {
-            ::Method::Get
-        }
-
-        fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path().to_string()
-        }
-
-        fn router_path() -> &'static str {
-            "/_matrix/client/r0/account/3pid/email/requestToken"
-        }
-
-        fn name() -> &'static str {
-            "get_contacts"
-        }
-
-        fn description() -> &'static str {
-            "Get a list of 3rd party contacts associated with the user's account."
-        }
-
-        fn requires_authentication() -> bool {
-            true
-        }
-
-        fn rate_limited() -> bool {
-            false
-        }
     }
 }
 
 /// [POST /_matrix/client/r0/account/3pid/email/requestToken](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-3pid-email-requesttoken)
 pub mod request_contact_verification_token {
-    /// This API endpoint's body parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct BodyParams {
-        pub client_secret: String,
-        pub email: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub id_server: Option<String>,
-        pub send_attempt: u64,
-    }
+    use ruma_api_macros::ruma_api;
 
-    /// Details about this API endpoint.
-    #[derive(Clone, Copy, Debug)]
-    pub struct Endpoint;
-
-    impl ::Endpoint for Endpoint {
-        type BodyParams = BodyParams;
-        type PathParams = ();
-        type QueryParams = ();
-        type Response = ();
-
-        fn method() -> ::Method {
-            ::Method::Post
+    ruma_api! {
+        metadata {
+            description: "Ask for a verification token for a given 3rd party ID.",
+            method: Method::Post,
+            name: "request_contact_verification_token",
+            path: "/_matrix/client/r0/account/3pid/email/requestToken",
+            rate_limited: false,
+            requires_authentication: false,
         }
 
-        fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path().to_string()
+        request {
+            /// Client-generated secret string used to protect this session.
+            pub client_secret: String,
+            /// The email address.
+            pub email: String,
+            /// The ID server to send the onward request to as a hostname with an appended colon and port number if the port is not the default.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub id_server: Option<String>,
+            /// Used to distinguish protocol level retries from requests to re-send the email.
+            pub send_attempt: u64,
         }
 
-        fn router_path() -> &'static str {
-            "/_matrix/client/r0/account/3pid/email/requestToken"
-        }
-
-        fn name() -> &'static str {
-            "request_contact_verification_token"
-        }
-
-        fn description() -> &'static str {
-            "Ask for a verification token for a given 3rd party ID."
-        }
-
-        fn requires_authentication() -> bool {
-            // Not sure why this don't require auth?
-            false
-        }
-
-        fn rate_limited() -> bool {
-            false
-        }
+        response {}
     }
 }
