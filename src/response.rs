@@ -38,15 +38,40 @@ impl Response {
                             .expect("missing expected request header: {}", #field_name),
                     });
                 }
+                ResponseField::NewtypeBody(ref field) => {
+                    let field_name = field.ident.as_ref()
+                        .expect("expected body field to have a name");
+
+                    tokens.append(quote! {
+                        #field_name: response_body,
+                    });
+                }
             }
         }
 
         tokens
     }
+
+    pub fn newtype_body_field(&self) -> Option<&Field> {
+        for response_field in self.fields.iter() {
+            match *response_field {
+                ResponseField::NewtypeBody(ref field) => {
+
+                    return Some(field);
+                }
+                _ => continue,
+            }
+        }
+
+        None
+    }
+
 }
 
 impl From<Vec<Field>> for Response {
     fn from(fields: Vec<Field>) -> Self {
+        let mut has_newtype_body = false;
+
         let response_fields = fields.into_iter().map(|mut field| {
             let mut response_field_kind = ResponseFieldKind::Body;
 
@@ -67,7 +92,10 @@ impl From<Vec<Field>> for Response {
                         NestedMetaItem::MetaItem(ref meta_item) => {
                             match *meta_item {
                                 MetaItem::Word(ref ident) => {
-                                    if ident == "header" {
+                                    if ident == "body" {
+                                        has_newtype_body = true;
+                                        response_field_kind = ResponseFieldKind::NewtypeBody;
+                                    } else if ident == "header" {
                                         response_field_kind = ResponseFieldKind::Header;
                                     } else {
                                         panic!(
@@ -90,8 +118,15 @@ impl From<Vec<Field>> for Response {
             }).collect();
 
             match response_field_kind {
-                ResponseFieldKind::Body => ResponseField::Body(field),
+                ResponseFieldKind::Body => {
+                    if has_newtype_body {
+                        panic!("ruma_api! responses cannot have both normal body fields and a newtype body field");
+                    } else {
+                        return ResponseField::Body(field);
+                    }
+                }
                 ResponseFieldKind::Header => ResponseField::Header(field),
+                ResponseFieldKind::NewtypeBody => ResponseField::NewtypeBody(field),
             }
         }).collect();
 
@@ -118,6 +153,7 @@ impl ToTokens for Response {
                 match *response {
                     ResponseField::Body(ref field) => field.to_tokens(&mut tokens),
                     ResponseField::Header(ref field) => field.to_tokens(&mut tokens),
+                    ResponseField::NewtypeBody(ref field) => field.to_tokens(&mut tokens),
                 }
 
                 tokens.append(",");
@@ -153,6 +189,7 @@ impl ToTokens for Response {
 pub enum ResponseField {
     Body(Field),
     Header(Field),
+    NewtypeBody(Field),
 }
 
 impl ResponseField {
@@ -167,4 +204,5 @@ impl ResponseField {
 enum ResponseFieldKind {
     Body,
     Header,
+    NewtypeBody,
 }

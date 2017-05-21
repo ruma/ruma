@@ -54,7 +54,28 @@ impl ToTokens for Api {
             Tokens::new()
         };
 
-        let deserialize_response_body = if self.response.has_body_fields() {
+        let deserialize_response_body = if let Some(field) = self.response.newtype_body_field() {
+            let field_type = &field.ty;
+            let mut tokens = Tokens::new();
+
+            tokens.append(quote! {
+                let future_response = hyper_response.body()
+                    .fold::<_, _, Result<_, ::std::io::Error>>(Vec::new(), |mut bytes, chunk| {
+                        bytes.write_all(&chunk)?;
+
+                        Ok(bytes)
+                    })
+                    .map_err(::ruma_api::Error::from)
+                    .and_then(|bytes| {
+                        ::serde_json::from_slice::<#field_type>(bytes.as_slice())
+                            .map_err(::ruma_api::Error::from)
+                    })
+            });
+
+            tokens.append(".and_then(|response_body| {");
+
+            tokens
+        } else if self.response.has_body_fields() {
             let mut tokens = Tokens::new();
 
             tokens.append(quote! {
