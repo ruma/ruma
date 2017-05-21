@@ -32,3 +32,11 @@ fn deserialize_option() {
     ];
     assert_eq!(serde_urlencoded::from_str("first=23&last=42"), Ok(result));
 }
+
+#[test]
+fn deserialize_unit() {
+    assert_eq!(serde_urlencoded::from_str(""), Ok(()));
+    assert_eq!(serde_urlencoded::from_str("&"), Ok(()));
+    assert_eq!(serde_urlencoded::from_str("&&"), Ok(()));
+    assert!(serde_urlencoded::from_str::<()>("first=23").is_err());
+}
