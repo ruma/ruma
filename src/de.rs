@@ -110,6 +110,13 @@ impl<'de> de::Deserializer<'de> for Deserializer<'de> {
         visitor.visit_seq(self.inner)
     }
 
+    fn deserialize_unit<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+        where V:  de::Visitor<'de>,
+    {
+        self.inner.end()?;
+        visitor.visit_unit()
+    }
+
     forward_to_deserialize_any! {
         bool
         u8
@@ -125,7 +132,6 @@ impl<'de> de::Deserializer<'de> for Deserializer<'de> {
         char
         str
         string
-        unit
         option
         bytes
         byte_buf
