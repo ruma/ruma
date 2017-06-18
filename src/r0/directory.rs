@@ -31,7 +31,8 @@ pub mod get_public_rooms {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct PublicRoomsChunk {
         /// Aliases of the room.
-        pub aliases: Vec<RoomAliasId>,
+        //#[serde(skip_serializing_if = "Option::is_none")]
+        pub aliases: Option<Vec<RoomAliasId>>,
         /// The URL for the room's avatar, if one is set.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub avatar_url: Option<String>,
