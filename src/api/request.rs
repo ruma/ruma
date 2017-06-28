@@ -11,6 +11,10 @@ impl Request {
         self.fields.iter().any(|field| field.is_body())
     }
 
+    pub fn has_query_fields(&self) -> bool {
+        self.fields.iter().any(|field| field.is_query())
+    }
+
     pub fn newtype_body_field(&self) -> Option<&Field> {
         for request_field in self.fields.iter() {
             match *request_field {
@@ -44,8 +48,31 @@ impl Request {
         tokens
     }
 
+    pub fn request_query_init_fields(&self) -> Tokens {
+        let mut tokens = Tokens::new();
+
+        for query_field in self.query_fields() {
+            let field = match *query_field {
+                RequestField::Query(ref field) => field,
+                _ => panic!("expected query field"),
+            };
+
+            let field_name = field.ident.as_ref().expect("expected query field to have a name");
+
+            tokens.append(quote! {
+                #field_name: request.#field_name,
+            });
+        }
+
+        tokens
+    }
+
     fn body_fields(&self) -> RequestBodyFields {
         RequestBodyFields::new(&self.fields)
+    }
+
+    fn query_fields(&self) -> RequestQueryFields {
+        RequestQueryFields::new(&self.fields)
     }
 }
 
@@ -187,6 +214,29 @@ impl ToTokens for Request {
 
             tokens.append("}");
         }
+
+        if self.has_query_fields() {
+            tokens.append(quote! {
+                /// Data in the request url's query parameters
+                #[derive(Debug, Serialize)]
+                struct RequestQuery
+            });
+
+            tokens.append("{");
+
+            for request_field in self.fields.iter() {
+                match *request_field {
+                    RequestField::Query(ref field) => {
+                        field.to_tokens(&mut tokens);
+
+                        tokens.append(",");
+                    }
+                    _ => {}
+                }
+            }
+
+            tokens.append("}");
+        }
     }
 }
 
@@ -203,6 +253,13 @@ impl RequestField {
     fn is_body(&self) -> bool {
         match *self {
             RequestField::Body(_) => true,
+            _ => false,
+        }
+    }
+
+    fn is_query(&self) -> bool {
+        match *self {
+            RequestField::Query(_) => true,
             _ => false,
         }
     }
@@ -239,6 +296,37 @@ impl<'a> Iterator for RequestBodyFields<'a> {
             self.index += 1;
 
             if value.is_body() {
+                return Some(value);
+            }
+        }
+
+        None
+    }
+}
+
+#[derive(Debug)]
+pub struct RequestQueryFields<'a> {
+    fields: &'a [RequestField],
+    index: usize,
+}
+
+impl<'a> RequestQueryFields<'a> {
+    pub fn new(fields: &'a [RequestField]) -> Self {
+        RequestQueryFields {
+            fields,
+            index: 0,
+        }
+    }
+}
+
+impl<'a> Iterator for RequestQueryFields<'a> {
+    type Item = &'a RequestField;
+
+    fn next(&mut self) -> Option<&'a RequestField> {
+        while let Some(value) = self.fields.get(self.index) {
+            self.index += 1;
+
+            if value.is_query() {
                 return Some(value);
             }
         }

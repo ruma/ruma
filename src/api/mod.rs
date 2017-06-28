@@ -36,6 +36,20 @@ impl ToTokens for Api {
             tokens
         };
 
+        let set_request_query = if self.request.has_query_fields() {
+            let request_query_init_fields = self.request.request_query_init_fields();
+
+            quote! {
+                let request_query = RequestQuery {
+                    #request_query_init_fields
+                };
+
+                url.set_query(Some(&::serde_urlencoded::to_string(request_query)?));
+            }
+        } else {
+            Tokens::new()
+        };
+
         let add_body_to_request = if let Some(field) = self.request.newtype_body_field() {
             let field_name = field.ident.as_ref().expect("expected body field to have a name");
 
@@ -141,9 +155,15 @@ impl ToTokens for Api {
                 fn try_from(request: Request) -> Result<Self, Self::Error> {
                     let metadata = Endpoint::METADATA;
 
+                    // The homeserver url has to be overwritten in the calling code.
+                    let mut url = ::url::Url::parse("http://invalid-host-please-change/").unwrap();
+                    url.set_path(metadata.path);
+                    #set_request_query
+
                     let mut hyper_request = ::hyper::Request::new(
                         metadata.method,
-                        metadata.path.parse()?,
+                        // Every valid URL is a valid URI
+                        url.into_string().parse().unwrap(),
                     );
 
                     #add_body_to_request
