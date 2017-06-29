@@ -11,8 +11,16 @@ impl Request {
         self.fields.iter().any(|field| field.is_body())
     }
 
+    pub fn has_path_fields(&self) -> bool {
+        self.fields.iter().any(|field| field.is_path())
+    }
+
     pub fn has_query_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_query())
+    }
+
+    pub fn path_field_count(&self) -> usize {
+        self.fields.iter().filter(|field| field.is_path()).count()
     }
 
     pub fn newtype_body_field(&self) -> Option<&Field> {
@@ -30,6 +38,10 @@ impl Request {
 
     pub fn request_body_init_fields(&self) -> Tokens {
         self.struct_init_fields(RequestFieldKind::Body)
+    }
+
+    pub fn request_path_init_fields(&self) -> Tokens {
+        self.struct_init_fields(RequestFieldKind::Path)
     }
 
     pub fn request_query_init_fields(&self) -> Tokens {
@@ -178,9 +190,32 @@ impl ToTokens for Request {
             tokens.append("}");
         }
 
+        if self.has_path_fields() {
+            tokens.append(quote! {
+                /// Data in the request path.
+                #[derive(Debug)]
+                struct RequestPath
+            });
+
+            tokens.append("{");
+
+            for request_field in self.fields.iter() {
+                match *request_field {
+                    RequestField::Path(ref field) => {
+                        field.to_tokens(&mut tokens);
+
+                        tokens.append(",");
+                    }
+                    _ => {}
+                }
+            }
+
+            tokens.append("}");
+        }
+
         if self.has_query_fields() {
             tokens.append(quote! {
-                /// Data in the request url's query parameters
+                /// Data in the request url's query parameters.
                 #[derive(Debug, Serialize)]
                 struct RequestQuery
             });
@@ -235,6 +270,10 @@ impl RequestField {
 
     fn is_body(&self) -> bool {
         self.kind() == RequestFieldKind::Body
+    }
+
+    fn is_path(&self) -> bool {
+        self.kind() == RequestFieldKind::Path
     }
 
     fn is_query(&self) -> bool {

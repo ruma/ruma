@@ -36,6 +36,61 @@ impl ToTokens for Api {
             tokens
         };
 
+        let set_request_path = if self.request.has_path_fields() {
+            let path_str_quoted = path.as_str();
+            assert!(
+                path_str_quoted.starts_with('"') && path_str_quoted.ends_with('"'),
+                "path needs to be a string literal"
+            );
+
+            let path_str = &path_str_quoted[1 .. path_str_quoted.len() - 1];
+
+            assert!(path_str.starts_with('/'), "path needs to start with '/'");
+            assert!(
+                path_str.chars().filter(|c| *c == ':').count() == self.request.path_field_count(),
+                "number of declared path parameters needs to match amount of placeholders in path"
+            );
+
+            let request_path_init_fields = self.request.request_path_init_fields();
+
+            let mut tokens = quote! {
+                let request_path = RequestPath {
+                    #request_path_init_fields
+                };
+
+                // This `unwrap()` can only fail when the url is a
+                // cannot-be-base url like `mailto:` or `data:`, which is not
+                // the case for our placeholder url.
+                let mut path_segments = url.path_segments_mut().unwrap();
+            };
+
+            for segment in path_str[1..].split('/') {
+                tokens.append(quote! {
+                    path_segments.push
+                });
+
+                tokens.append("(");
+
+                if segment.starts_with(':') {
+                    tokens.append("&request_path.");
+                    tokens.append(&segment[1..]);
+                    tokens.append(".to_string()");
+                } else {
+                    tokens.append("\"");
+                    tokens.append(segment);
+                    tokens.append("\"");
+                }
+
+                tokens.append(");");
+            }
+
+            tokens
+        } else {
+            quote! {
+                url.set_path(metadata.path);
+            }
+        };
+
         let set_request_query = if self.request.has_query_fields() {
             let request_query_init_fields = self.request.request_query_init_fields();
 
@@ -159,8 +214,9 @@ impl ToTokens for Api {
                     // the calling code. Previously (with hyper::Uri) this was
                     // not required, but Url::parse only accepts absolute urls.
                     let mut url = ::url::Url::parse("http://invalid-host-please-change/").unwrap();
-                    url.set_path(metadata.path);
-                    #set_request_query
+
+                    { #set_request_path }
+                    { #set_request_query }
 
                     let mut hyper_request = ::hyper::Request::new(
                         metadata.method,
@@ -168,7 +224,7 @@ impl ToTokens for Api {
                         url.into_string().parse().unwrap(),
                     );
 
-                    #add_body_to_request
+                    { #add_body_to_request }
 
                     Ok(hyper_request)
                 }
