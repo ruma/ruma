@@ -1,9 +1,13 @@
 use quote::{ToTokens, Tokens};
 
-use metadata::Metadata;
+mod metadata;
+mod request;
+mod response;
+
 use parse::Entry;
-use request::Request;
-use response::Response;
+use self::metadata::Metadata;
+use self::request::Request;
+use self::response::Response;
 
 #[derive(Debug)]
 pub struct Api {

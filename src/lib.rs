@@ -18,10 +18,7 @@ use api::Api;
 use parse::parse_entries;
 
 mod api;
-mod metadata;
 mod parse;
-mod request;
-mod response;
 
 /// Generates a `ruma-api` endpoint.
 #[proc_macro]
