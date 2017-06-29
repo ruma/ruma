@@ -19,7 +19,6 @@ impl Request {
         for request_field in self.fields.iter() {
             match *request_field {
                 RequestField::NewtypeBody(ref field) => {
-
                     return Some(field);
                 }
                 _ => continue,
@@ -30,14 +29,17 @@ impl Request {
     }
 
     pub fn request_body_init_fields(&self) -> Tokens {
+        self.struct_init_fields(RequestFieldKind::Body)
+    }
+
+    pub fn request_query_init_fields(&self) -> Tokens {
+        self.struct_init_fields(RequestFieldKind::Query)
+    }
+
+    fn struct_init_fields(&self, request_field_kind: RequestFieldKind) -> Tokens {
         let mut tokens = Tokens::new();
 
-        for request_field in self.body_fields() {
-            let field =  match *request_field {
-                RequestField::Body(ref field) => field,
-                _ => panic!("expected body field"),
-            };
-
+        for field in self.fields.iter().flat_map(|f| f.field_(request_field_kind)) {
             let field_name = field.ident.as_ref().expect("expected body field to have a name");
 
             tokens.append(quote! {
@@ -46,33 +48,6 @@ impl Request {
         }
 
         tokens
-    }
-
-    pub fn request_query_init_fields(&self) -> Tokens {
-        let mut tokens = Tokens::new();
-
-        for query_field in self.query_fields() {
-            let field = match *query_field {
-                RequestField::Query(ref field) => field,
-                _ => panic!("expected query field"),
-            };
-
-            let field_name = field.ident.as_ref().expect("expected query field to have a name");
-
-            tokens.append(quote! {
-                #field_name: request.#field_name,
-            });
-        }
-
-        tokens
-    }
-
-    fn body_fields(&self) -> RequestBodyFields {
-        RequestBodyFields::new(&self.fields)
-    }
-
-    fn query_fields(&self) -> RequestQueryFields {
-        RequestQueryFields::new(&self.fields)
     }
 }
 
@@ -127,19 +102,14 @@ impl From<Vec<Field>> for Request {
                 false
             }).collect();
 
-            match request_field_kind {
-                RequestFieldKind::Body => {
-                    if has_newtype_body {
-                        panic!("ruma_api! requests cannot have both normal body fields and a newtype body field");
-                    } else {
-                        return RequestField::Body(field);
-                    }
-                }
-                RequestFieldKind::Header => RequestField::Header(field),
-                RequestFieldKind::NewtypeBody => RequestField::NewtypeBody(field),
-                RequestFieldKind::Path => RequestField::Path(field),
-                RequestFieldKind::Query => RequestField::Query(field),
+            if request_field_kind == RequestFieldKind::Body {
+                assert!(
+                    !has_newtype_body,
+                    "ruma_api! requests cannot have both normal body fields and a newtype body field"
+                );
             }
+
+            RequestField::new(request_field_kind, field)
         }).collect();
 
         Request {
@@ -162,14 +132,7 @@ impl ToTokens for Request {
             tokens.append("{");
 
             for request_field in self.fields.iter() {
-                match *request_field {
-                    RequestField::Body(ref field) => field.to_tokens(&mut tokens),
-                    RequestField::Header(ref field) => field.to_tokens(&mut tokens),
-                    RequestField::NewtypeBody(ref field) => field.to_tokens(&mut tokens),
-                    RequestField::Path(ref field) => field.to_tokens(&mut tokens),
-                    RequestField::Query(ref field) => field.to_tokens(&mut tokens),
-                }
-
+                request_field.field().to_tokens(&mut tokens);
                 tokens.append(",");
             }
 
@@ -250,87 +213,58 @@ pub enum RequestField {
 }
 
 impl RequestField {
-    fn is_body(&self) -> bool {
-        match *self {
-            RequestField::Body(_) => true,
-            _ => false,
+    fn new(kind: RequestFieldKind, field: Field) -> RequestField {
+        match kind {
+            RequestFieldKind::Body => RequestField::Body(field),
+            RequestFieldKind::Header => RequestField::Header(field),
+            RequestFieldKind::NewtypeBody => RequestField::NewtypeBody(field),
+            RequestFieldKind::Path => RequestField::Path(field),
+            RequestFieldKind::Query => RequestField::Query(field),
         }
     }
 
-    fn is_query(&self) -> bool {
+    fn kind(&self) -> RequestFieldKind {
         match *self {
-            RequestField::Query(_) => true,
-            _ => false,
+            RequestField::Body(_) => RequestFieldKind::Body,
+            RequestField::Header(_) => RequestFieldKind::Header,
+            RequestField::NewtypeBody(_) => RequestFieldKind::NewtypeBody,
+            RequestField::Path(_) => RequestFieldKind::Path,
+            RequestField::Query(_) => RequestFieldKind::Query,
+        }
+    }
+
+    fn is_body(&self) -> bool {
+        self.kind() == RequestFieldKind::Body
+    }
+
+    fn is_query(&self) -> bool {
+        self.kind() == RequestFieldKind::Query
+    }
+
+    fn field(&self) -> &Field {
+        match *self {
+            RequestField::Body(ref field) => field,
+            RequestField::Header(ref field) => field,
+            RequestField::NewtypeBody(ref field) => field,
+            RequestField::Path(ref field) => field,
+            RequestField::Query(ref field) => field,
+        }
+    }
+
+    fn field_(&self, kind: RequestFieldKind) -> Option<&Field> {
+        if self.kind() == kind {
+            Some(self.field())
+        } else {
+            None
         }
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
 enum RequestFieldKind {
     Body,
     Header,
     NewtypeBody,
     Path,
     Query,
-}
-
-#[derive(Debug)]
-pub struct RequestBodyFields<'a> {
-    fields: &'a [RequestField],
-    index: usize,
-}
-
-impl<'a> RequestBodyFields<'a> {
-    pub fn new(fields: &'a [RequestField]) -> Self {
-        RequestBodyFields {
-            fields,
-            index: 0,
-        }
-    }
-}
-
-impl<'a> Iterator for RequestBodyFields<'a> {
-    type Item = &'a RequestField;
-
-    fn next(&mut self) -> Option<&'a RequestField> {
-        while let Some(value) = self.fields.get(self.index) {
-            self.index += 1;
-
-            if value.is_body() {
-                return Some(value);
-            }
-        }
-
-        None
-    }
-}
-
-#[derive(Debug)]
-pub struct RequestQueryFields<'a> {
-    fields: &'a [RequestField],
-    index: usize,
-}
-
-impl<'a> RequestQueryFields<'a> {
-    pub fn new(fields: &'a [RequestField]) -> Self {
-        RequestQueryFields {
-            fields,
-            index: 0,
-        }
-    }
-}
-
-impl<'a> Iterator for RequestQueryFields<'a> {
-    type Item = &'a RequestField;
-
-    fn next(&mut self) -> Option<&'a RequestField> {
-        while let Some(value) = self.fields.get(self.index) {
-            self.index += 1;
-
-            if value.is_query() {
-                return Some(value);
-            }
-        }
-
-        None
-    }
 }

@@ -155,7 +155,9 @@ impl ToTokens for Api {
                 fn try_from(request: Request) -> Result<Self, Self::Error> {
                     let metadata = Endpoint::METADATA;
 
-                    // The homeserver url has to be overwritten in the calling code.
+                    // Use dummy homeserver url which has to be overwritten in
+                    // the calling code. Previously (with hyper::Uri) this was
+                    // not required, but Url::parse only accepts absolute urls.
                     let mut url = ::url::Url::parse("http://invalid-host-please-change/").unwrap();
                     url.set_path(metadata.path);
                     #set_request_query
