@@ -1,6 +1,8 @@
 use quote::{ToTokens, Tokens};
 use syn::{Field, MetaItem, NestedMetaItem};
 
+use api::strip_serde_attrs;
+
 #[derive(Debug)]
 pub struct Response {
     fields: Vec<ResponseField>,
@@ -153,12 +155,8 @@ impl ToTokens for Response {
         } else {
             tokens.append("{");
 
-            for response in self.fields.iter() {
-                match *response {
-                    ResponseField::Body(ref field) => field.to_tokens(&mut tokens),
-                    ResponseField::Header(ref field) => field.to_tokens(&mut tokens),
-                    ResponseField::NewtypeBody(ref field) => field.to_tokens(&mut tokens),
-                }
+            for response_field in self.fields.iter() {
+                strip_serde_attrs(response_field.field()).to_tokens(&mut tokens);
 
                 tokens.append(",");
             }
@@ -197,6 +195,14 @@ pub enum ResponseField {
 }
 
 impl ResponseField {
+    fn field(&self) -> &Field {
+        match *self {
+            ResponseField::Body(ref field) => field,
+            ResponseField::Header(ref field) => field,
+            ResponseField::NewtypeBody(ref field) => field,
+        }
+    }
+
     fn is_body(&self) -> bool {
         match *self {
             ResponseField::Body(_) => true,

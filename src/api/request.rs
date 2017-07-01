@@ -1,6 +1,8 @@
 use quote::{ToTokens, Tokens};
 use syn::{Field, MetaItem, NestedMetaItem};
 
+use api::strip_serde_attrs;
+
 #[derive(Debug)]
 pub struct Request {
     fields: Vec<RequestField>,
@@ -134,7 +136,7 @@ impl ToTokens for Request {
     fn to_tokens(&self, mut tokens: &mut Tokens) {
         tokens.append(quote! {
             /// Data for a request to this API endpoint.
-            #[derive(Debug, Serialize)]
+            #[derive(Debug)]
             pub struct Request
         });
 
@@ -144,7 +146,8 @@ impl ToTokens for Request {
             tokens.append("{");
 
             for request_field in self.fields.iter() {
-                request_field.field().to_tokens(&mut tokens);
+                strip_serde_attrs(request_field.field()).to_tokens(&mut tokens);
+
                 tokens.append(",");
             }
 

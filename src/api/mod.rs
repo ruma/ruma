@@ -1,4 +1,5 @@
 use quote::{ToTokens, Tokens};
+use syn::{Field, MetaItem};
 
 mod metadata;
 mod request;
@@ -8,6 +9,27 @@ use parse::Entry;
 use self::metadata::Metadata;
 use self::request::Request;
 use self::response::Response;
+
+pub fn strip_serde_attrs(field: &Field) -> Field {
+    let mut field = field.clone();
+
+    field.attrs = field.attrs.into_iter().filter(|attr| {
+        let (attr_ident, _) = match attr.value {
+            MetaItem::List(ref attr_ident, _) => {
+                (attr_ident, ())
+            }
+            _ => return true,
+        };
+
+        if attr_ident != "serde" {
+            return true;
+        }
+
+        false
+    }).collect();
+
+    field
+}
 
 #[derive(Debug)]
 pub struct Api {
