@@ -20,7 +20,7 @@ pub mod get_state_events {
             pub room_id: RoomId,
         }
         response {
-            pub Vec<only::StateEvent>,
+            pub room_state: Vec<only::StateEvent>,
         }
     }
 }
@@ -28,12 +28,13 @@ pub mod get_state_events {
 /// [GET /_matrix/client/r0/rooms/{roomId}/state/{eventType}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-state-eventtype)
 pub mod get_state_events_for_empty_key {
     use ruma_api_macros::ruma_api;
-    use ruma_identifiers::{RoomId, EventType};
+    use ruma_identifiers::RoomId;
+    use ruma_events::EventType;
 
     ruma_api! {
         metadata {
             description: "Get state events of a given type associated with the empty key.",
-            method: ::Method::Get,
+            method: Method::Get,
             name: "get_state_events_for_empty_key",
             path: "/_matrix/client/r0/rooms/:room_id/state/:event_type",
             rate_limited: false,
@@ -61,7 +62,7 @@ pub mod get_state_events_for_key {
     ruma_api! {
         metadata {
             description: "Get state events associated with a given key.",
-            method: ::Method::Get,
+            method: Method::Get,
             name: "get_state_events_for_key",
             path: "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
             rate_limited: false,
@@ -70,7 +71,7 @@ pub mod get_state_events_for_key {
         request {
             /// The room to look up the state in.
             #[ruma_api(path)]
-            pub room_id: RoomID,
+            pub room_id: RoomId,
             /// The type of state to look up.
             #[ruma_api(path)]
             pub event_type: String,
@@ -93,7 +94,7 @@ pub mod get_member_events {
     ruma_api! {
         metadata {
             description: "Get membership events for a room.",
-            method: ::Method::Get,
+            method: Method::Get,
             name: "get_member_events",
             path: "/_matrix/client/r0/rooms/:room_id/members",
             rate_limited: false,
@@ -105,7 +106,7 @@ pub mod get_member_events {
         request {
             /// The room to look up the state in.
             #[ruma_api(path)]
-            pub room_id: RoomID,
+            pub room_id: RoomId,
         }
         response {
             pub chunk: Vec<MemberEvent>
@@ -122,7 +123,7 @@ pub mod get_message_events {
     ruma_api! {
         metadata {
             description: "Get message events for a room.",
-            method: ::Method::Get,
+            method: Method::Get,
             name: "get_message_events",
             path: "/_matrix/client/r0/rooms/:room_id/messages",
             rate_limited: false,
@@ -133,7 +134,7 @@ pub mod get_message_events {
             // has one, room_id. I've followed the spec here. -- rschulman 6/30/2017
             /// The room to look up the state in.
             #[ruma_api(path)]
-            pub room_id: RoomID,
+            pub room_id: RoomId,
             /// Required. The token to start returning events from. This token can be obtained from a 
             /// prev_batch token returned for each room by the sync API, or from a start or end token 
             /// returned by a previous request to this endpoint.
@@ -155,6 +156,14 @@ pub mod get_message_events {
             pub end: String,
         }
     }
+
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    pub enum Direction {
+        #[serde(rename="b")]
+        Backward,
+        #[serde(rename="f")]
+        Forward,
+    }
 }
 
 /// [GET /_matrix/client/r0/sync](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-sync)
@@ -170,7 +179,7 @@ pub mod sync_events {
     ruma_api! {
         metadata {
             description: "Get all new events from all rooms since the last sync or a given point of time.",
-            method: ::Method::Get,
+            method: Method::Get,
             name: "sync",
             path: "/_matrix/client/r0/sync",
             rate_limited: false,
@@ -195,9 +204,6 @@ pub mod sync_events {
         }
 
     }
-    /// Details about this API endpoint.
-    #[derive(Clone, Copy, Debug)]
-    pub struct Endpoint;
 
     /// Whether to set presence or not during sync.
     #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -289,13 +295,5 @@ pub mod sync_events {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Presence {
         pub events: only::Event,
-    }
-
-    /// This API endpoint's reponse.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct Response {
-        pub next_batch: String,
-        pub rooms: Rooms,
-        pub presence: Presence,
     }
 }
