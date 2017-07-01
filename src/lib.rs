@@ -37,8 +37,8 @@ pub mod r0 {
 //     pub mod search;
     pub mod send;
 //     pub mod server;
-//     pub mod session;
-//     pub mod sync;
+    pub mod session;
+    pub mod sync;
 //     pub mod tag;
 //     pub mod typing;
 //     pub mod voip;
