@@ -164,7 +164,23 @@ impl ToTokens for Response {
             tokens.append("}");
         }
 
-        if self.has_body_fields() {
+        if let Some(newtype_body_field) = self.newtype_body_field() {
+            let mut field = newtype_body_field.clone();
+
+            field.ident = None;
+
+            tokens.append(quote! {
+                /// Data in the response body.
+                #[derive(Debug, Deserialize)]
+                struct ResponseBody
+            });
+
+            tokens.append("(");
+
+            field.to_tokens(&mut tokens);
+
+            tokens.append(");");
+        } else if self.has_body_fields() {
             tokens.append(quote! {
                 /// Data in the response body.
                 #[derive(Debug, Deserialize)]
@@ -175,11 +191,13 @@ impl ToTokens for Response {
 
             for response_field in self.fields.iter() {
                 match *response_field {
-                    ResponseField::Body(ref field) => field.to_tokens(&mut tokens),
+                    ResponseField::Body(ref field) => {
+                        field.to_tokens(&mut tokens);
+
+                        tokens.append(",");
+                    }
                     _ => {}
                 }
-
-                tokens.append(",");
             }
 
             tokens.append("}");

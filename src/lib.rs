@@ -1,4 +1,5 @@
-//! Crate `ruma-api-macros` provides a procedural macro for easily generating `ruma-api` endpoints.
+//! Crate `ruma-api-macros` provides a procedural macro for easily generating
+//! [ruma-api](https://github.com/ruma/ruma-api)-compatible endpoints.
 
 #![deny(missing_debug_implementations)]
 #![feature(proc_macro)]
