@@ -16,6 +16,8 @@ extern crate ruma_signatures;
 extern crate serde;
 extern crate serde_json;
 #[macro_use] extern crate serde_derive;
+extern crate serde_urlencoded;
+extern crate url;
 
 /// Endpoints for the r0.x.x versions of the client API specification.
 pub mod r0 {
@@ -26,7 +28,7 @@ pub mod r0 {
     pub mod context;
     pub mod directory;
     pub mod filter;
-//     pub mod media;
+    pub mod media;
 //     pub mod membership;
 //     pub mod presence;
 //     pub mod profile;

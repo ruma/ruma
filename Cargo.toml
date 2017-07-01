@@ -19,11 +19,13 @@ ruma-signatures = "0.4.0"
 serde = "1.0.2"
 serde_derive = "1.0.2"
 serde_json = "1.0.1"
+serde_urlencoded = "0.5.1"
+url = "1.5.1"
 
 [dependencies.ruma-api]
 git = "https://github.com/ruma/ruma-api"
-rev = "211cf5e3531cd1862136129d5f73caaac7b4eb43"
+rev = "4893be93f86543f9a9e3c5d7205afba769b84aa6"
 
 [dependencies.ruma-api-macros]
 git = "https://github.com/ruma/ruma-api-macros"
-rev = "f5a935384e36134daf86a13190318a5c50cf2c17"
+rev = "84562c426044eef6b1c2f0e964e85ff9d100aa27"
