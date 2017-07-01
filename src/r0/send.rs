@@ -5,6 +5,7 @@ pub mod send_state_event_for_empty_key {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{RoomId, EventId};
     use ruma_events::EventType;
+    use serde_json::Value;
 
     ruma_api! {
         metadata {
@@ -23,6 +24,9 @@ pub mod send_state_event_for_empty_key {
             /// The type of event to send.
             #[ruma_api(path)]
             pub event_type: EventType,
+            /// The event's content.
+            #[ruma_api(body)]
+            pub data: Value,
         }
 
         response {
@@ -37,6 +41,7 @@ pub mod send_state_event_for_key {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{RoomId, EventId};
     use ruma_events::EventType;
+    use serde_json::Value;
 
     ruma_api! {
         metadata {
@@ -58,6 +63,9 @@ pub mod send_state_event_for_key {
             /// The state_key for the state to send. Defaults to the empty string.
             #[ruma_api(path)]
             pub state_key: String,
+            /// The event's content.
+            #[ruma_api(body)]
+            pub data: Value,
         }
 
         response {
@@ -72,6 +80,7 @@ pub mod send_message_event {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{RoomId, EventId};
     use ruma_events::EventType;
+    use ruma_events::room::message::MessageEventContent;
 
     ruma_api! {
         metadata {
@@ -97,6 +106,9 @@ pub mod send_message_event {
             /// idempotency of requests.
             #[ruma_api(path)]
             pub txn_id: String,
+            /// The event's content.
+            #[ruma_api(body)]
+            pub data: MessageEventContent,
         }
 
         response {
