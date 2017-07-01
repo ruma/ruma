@@ -2,7 +2,7 @@
 
 #![deny(missing_debug_implementations)]
 #![feature(proc_macro)]
-#![recursion_limit="128"]
+#![recursion_limit="256"]
 
 extern crate proc_macro;
 #[macro_use] extern crate quote;

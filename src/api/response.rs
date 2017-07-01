@@ -15,6 +15,10 @@ impl Response {
         self.fields.len() != 0
     }
 
+    pub fn has_header_fields(&self) -> bool {
+        self.fields.iter().any(|field| field.is_header())
+    }
+
     pub fn init_fields(&self) -> Tokens {
         let mut tokens = Tokens::new();
 
@@ -31,11 +35,11 @@ impl Response {
                 ResponseField::Header(ref field) => {
                     let field_name = field.ident.as_ref()
                         .expect("expected body field to have a name");
+                    let field_type = &field.ty;
 
                     tokens.append(quote! {
-                        #field_name: hyper_response.headers()
-                            .get_raw(#field_name)
-                            .expect("missing expected request header: {}", #field_name),
+                        #field_name: headers.remove::<#field_type>()
+                            .expect("missing expected request header"),
                     });
                 }
                 ResponseField::NewtypeBody(ref field) => {
@@ -140,7 +144,7 @@ impl ToTokens for Response {
     fn to_tokens(&self, mut tokens: &mut Tokens) {
         tokens.append(quote! {
             /// Data in the response from this API endpoint.
-            #[derive(Debug, Deserialize)]
+            #[derive(Debug)]
             pub struct Response
         });
 
@@ -196,6 +200,13 @@ impl ResponseField {
     fn is_body(&self) -> bool {
         match *self {
             ResponseField::Body(_) => true,
+            _ => false,
+        }
+    }
+
+    fn is_header(&self) -> bool {
+        match *self {
+            ResponseField::Header(_) => true,
             _ => false,
         }
     }

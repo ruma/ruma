@@ -145,7 +145,7 @@ impl ToTokens for Api {
                     })
             });
 
-            tokens.append(".and_then(|response_body| {");
+            tokens.append(".and_then(move |response_body| {");
 
             tokens
         } else if self.response.has_body_fields() {
@@ -165,7 +165,7 @@ impl ToTokens for Api {
                     })
             });
 
-            tokens.append(".and_then(|response_body| {");
+            tokens.append(".and_then(move |response_body| {");
 
             tokens
         } else {
@@ -175,13 +175,21 @@ impl ToTokens for Api {
                 let future_response = ::futures::future::ok(())
             });
 
-            tokens.append(".and_then(|_| {");
+            tokens.append(".and_then(move |_| {");
 
             tokens
         };
 
         let mut closure_end = Tokens::new();
         closure_end.append("});");
+
+        let extract_headers = if self.response.has_header_fields() {
+            quote! {
+                let mut headers = hyper_response.headers().clone();
+            }
+        } else {
+            Tokens::new()
+        };
 
         let response_init_fields = if self.response.has_fields() {
             self.response.init_fields()
@@ -239,6 +247,8 @@ impl ToTokens for Api {
                 #[allow(unused_variables)]
                 fn future_from(hyper_response: ::hyper::Response)
                 -> Box<_Future<Item = Self, Error = Self::Error>> {
+                    #extract_headers
+
                     #deserialize_response_body
 
                     let response = Response {
