@@ -19,6 +19,7 @@ extern crate hyper;
 #[cfg(test)] extern crate serde;
 #[cfg(test)] #[macro_use] extern crate serde_derive;
 extern crate serde_json;
+extern crate serde_urlencoded;
 
 use std::convert::TryInto;
 use std::io;
@@ -48,6 +49,8 @@ pub enum Error {
     Io(io::Error),
     /// A Serde JSON error.
     SerdeJson(serde_json::Error),
+    /// A Serde URL encoding error.
+    SerdeUrlEncoded(serde_urlencoded::ser::Error),
     /// An HTTP status code indicating error.
     StatusCode(StatusCode),
     /// A Uri error.
@@ -69,6 +72,12 @@ impl From<io::Error> for Error {
 impl From<serde_json::Error> for Error {
     fn from(error: serde_json::Error) -> Self {
         Error::SerdeJson(error)
+    }
+}
+
+impl From<serde_urlencoded::ser::Error> for Error {
+    fn from(error: serde_urlencoded::ser::Error) -> Self {
+        Error::SerdeUrlEncoded(error)
     }
 }
 
