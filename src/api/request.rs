@@ -193,7 +193,7 @@ impl ToTokens for Request {
         if self.has_path_fields() {
             tokens.append(quote! {
                 /// Data in the request path.
-                #[derive(Debug)]
+                #[derive(Debug, Serialize)]
                 struct RequestPath
             });
 
@@ -215,7 +215,7 @@ impl ToTokens for Request {
 
         if self.has_query_fields() {
             tokens.append(quote! {
-                /// Data in the request url's query parameters.
+                /// Data in the request's query string.
                 #[derive(Debug, Serialize)]
                 struct RequestQuery
             });
