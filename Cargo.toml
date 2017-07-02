@@ -25,5 +25,4 @@ serde_urlencoded = "0.5.1"
 url = "1.5.1"
 
 [lib]
-doctest = false
 proc-macro = true
