@@ -29,7 +29,7 @@ pub mod r0 {
     pub mod directory;
     pub mod filter;
     pub mod media;
-//     pub mod membership;
+    pub mod membership;
 //     pub mod presence;
 //     pub mod profile;
 //     pub mod push;
