@@ -35,12 +35,12 @@ pub mod r0 {
 //     pub mod push;
 //     pub mod receipt;
 //     pub mod redact;
-//     pub mod room;
+    pub mod room;
 //     pub mod search;
-//     pub mod send;
+    pub mod send;
 //     pub mod server;
-//     pub mod session;
-//     pub mod sync;
+    pub mod session;
+    pub mod sync;
 //     pub mod tag;
 //     pub mod typing;
 //     pub mod voip;

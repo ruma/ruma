@@ -24,7 +24,6 @@ pub mod set_room_account_data {
             ///
             /// Custom types should be namespaced to avoid clashes.
             #[ruma_api(path)]
-            #[serde(rename = "type")]
             pub event_type: String,
             /// The ID of the room to set account_data on.
             #[ruma_api(path)]
@@ -64,7 +63,6 @@ pub mod set_global_account_data  {
             ///
             /// Custom types should be namespaced to avoid clashes.
             #[ruma_api(path)]
-            #[serde(rename = "type")]
             pub event_type: String,
             /// The ID of the user to set account_data for.
             ///
