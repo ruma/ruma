@@ -2,247 +2,132 @@
 
 /// [PUT /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-presence-userid-status)
 pub mod set_presence {
+    use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
     use ruma_events::presence::PresenceState;
 
-    /// Details about this API endpoint.
-    #[derive(Clone, Copy, Debug)]
-    pub struct Endpoint;
-
-    /// This API endpoint's path parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct PathParams {
-        pub user_id: UserId
-    }
-
-    /// This API endpoint's body parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct BodyParams {
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub status_msg: Option<String>,
-        pub presence: PresenceState
-    }
-
-    impl ::Endpoint for Endpoint {
-        type BodyParams = BodyParams;
-        type PathParams = PathParams;
-        type QueryParams = ();
-        type Response = ();
-
-        fn method() -> ::Method {
-            ::Method::Put
+    ruma_api! {
+        metadata {
+            description: "Set presence status for this user.",
+            method: Method::Put,
+            name: "set_presence",
+            path: "/_matrix/client/r0/presence/:user_id/status",
+            rate_limited: true,
+            requires_authentication: true,
         }
 
-        fn request_path(params: Self::PathParams) -> String {
-            format!(
-                "/_matrix/client/r0/presence/{}/status",
-                params.user_id
-            )
+        request {
+            /// The new presence state.
+            pub presence: PresenceState,
+            /// The status message to attach to this state.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub status_msg: Option<String>,
+            /// The user whose presence state will be updated.
+            #[ruma_api(path)]
+            pub user_id: UserId,
         }
 
-        fn router_path() -> &'static str {
-            "/_matrix/client/r0/presence/:user_id/status"
-        }
-
-        fn name() -> &'static str {
-            "set_presence"
-        }
-
-        fn description() -> &'static str {
-            "Set presence status for this user."
-        }
-
-        fn requires_authentication() -> bool {
-            true
-        }
-
-        fn rate_limited() -> bool {
-            true
-        }
+        response {}
     }
 }
 
 /// [GET /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-presence-userid-status)
 pub mod get_presence {
-    use ruma_identifiers::UserId;
+    use ruma_api_macros::ruma_api;
     use ruma_events::presence::PresenceState;
+    use ruma_identifiers::UserId;
 
-    /// Details about this API endpoint.
-    #[derive(Clone, Copy, Debug)]
-    pub struct Endpoint;
-
-    /// This API endpoint's path parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct PathParams {
-        pub user_id: UserId
-    }
-
-    /// This API endpoint's response.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct Response {
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub status_msg: Option<String>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub currently_active: Option<bool>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub last_active_ago: Option<u64>,
-        pub presence: PresenceState
-    }
-
-    impl ::Endpoint for Endpoint {
-        type BodyParams = ();
-        type PathParams = PathParams;
-        type QueryParams = ();
-        type Response = Response;
-
-        fn method() -> ::Method {
-            ::Method::Get
+    ruma_api! {
+        metadata {
+            description: "Get presence status for this user.",
+            method: Method::Get,
+            name: "get_presence",
+            path: "/_matrix/client/r0/presence/:user_id/status",
+            rate_limited: false,
+            requires_authentication: false,
         }
 
-        fn request_path(params: Self::PathParams) -> String {
-            format!(
-                "/_matrix/client/r0/presence/{}/status",
-                params.user_id
-            )
+        request {
+            /// The user whose presence state will be retrieved.
+            #[ruma_api(path)]
+            pub user_id: UserId,
         }
 
-        fn router_path() -> &'static str {
-            "/_matrix/client/r0/presence/:user_id/status"
-        }
-
-        fn name() -> &'static str {
-            "get_presence"
-        }
-
-        fn description() -> &'static str {
-            "Get presence status for this user."
-        }
-
-        fn requires_authentication() -> bool {
-            false
-        }
-
-        fn rate_limited() -> bool {
-            false
+        response {
+            /// The state message for this user if one was set.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub status_msg: Option<String>,
+            /// Whether or not the user is currently active.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub currently_active: Option<bool>,
+            /// The length of time in milliseconds since an action was performed by the user.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub last_active_ago: Option<u64>,
+            /// The user's presence state.
+            pub presence: PresenceState,
         }
     }
 }
 
 /// [POST /_matrix/client/r0/presence/list/{userId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-presence-list-userid)
 pub mod update_presence_subscriptions {
+    use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
 
-    /// Details about this API endpoint.
-    #[derive(Clone, Copy, Debug)]
-    pub struct Endpoint;
-
-    /// This API endpoint's path parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct PathParams {
-        pub user_id: UserId
-    }
-
-    /// This API endpoint's body parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct BodyParams {
-        #[serde(skip_serializing_if = "Vec::is_empty")]
-        #[serde(default)]
-        drop: Vec<UserId>,
-        #[serde(skip_serializing_if = "Vec::is_empty")]
-        #[serde(default)]
-        invite: Vec<UserId>
-    }
-
-    impl ::Endpoint for Endpoint {
-        type BodyParams = BodyParams;
-        type PathParams = PathParams;
-        type QueryParams = ();
-        type Response = ();
-
-        fn method() -> ::Method {
-            ::Method::Post
+    ruma_api! {
+        metadata {
+            description: "Update the presence subscriptions of the user.",
+            method: Method::Post,
+            name: "update_presence_subscriptions",
+            path: "/_matrix/client/r0/presence/list/:user_id",
+            rate_limited: true,
+            requires_authentication: true,
         }
 
-        fn request_path(params: Self::PathParams) -> String {
-            format!(
-                "/_matrix/client/r0/presence/list/{}",
-                params.user_id
-            )
+        request {
+            /// A list of user IDs to remove from the list.
+            #[serde(skip_serializing_if = "Vec::is_empty")]
+            #[serde(default)]
+            pub drop: Vec<UserId>,
+            /// A list of user IDs to add to the list.
+            #[serde(skip_serializing_if = "Vec::is_empty")]
+            #[serde(default)]
+            pub invite: Vec<UserId>,
+            /// The user whose presence state will be updated.
+            #[ruma_api(path)]
+            pub user_id: UserId,
         }
 
-        fn router_path() -> &'static str {
-            "/_matrix/client/r0/presence/list/:user_id"
-        }
-
-        fn name() -> &'static str {
-            "update_presence_subscriptions"
-        }
-
-        fn description() -> &'static str {
-            "Update the presence subscriptions of the user."
-        }
-
-        fn requires_authentication() -> bool {
-            true
-        }
-
-        fn rate_limited() -> bool {
-            true
-        }
+        response {}
     }
 }
 
 /// [GET /_matrix/client/r0/presence/list/{userId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-presence-list-userid)
 pub mod get_subscribed_presences {
-    use ruma_identifiers::UserId;
+    use ruma_api_macros::ruma_api;
     use ruma_events::presence::PresenceEvent;
+    use ruma_identifiers::UserId;
 
-    /// Details about this API endpoint.
-    #[derive(Clone, Copy, Debug)]
-    pub struct Endpoint;
-
-    /// This API endpoint's path parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct PathParams {
-        pub user_id: UserId
-    }
-
-    impl ::Endpoint for Endpoint {
-        type BodyParams = ();
-        type PathParams = PathParams;
-        type QueryParams = ();
-        type Response = Vec<PresenceEvent>;
-
-        fn method() -> ::Method {
-            ::Method::Get
+    ruma_api! {
+        metadata {
+            description: "Get the precence status from the user's subscriptions.",
+            method: Method::Get,
+            name: "get_subscribed_presences",
+            path: "/_matrix/client/r0/presence/list/:user_id",
+            rate_limited: false,
+            requires_authentication: true,
         }
 
-        fn request_path(params: Self::PathParams) -> String {
-            format!(
-                "/_matrix/client/r0/presence/list/{}",
-                params.user_id
-            )
+        request {
+            /// The user whose presence state will be retrieved.
+            #[ruma_api(path)]
+            pub user_id: UserId,
         }
 
-        fn router_path() -> &'static str {
-            "/_matrix/client/r0/presence/list/:user_id"
-        }
-
-        fn name() -> &'static str {
-            "get_subscribed_presences"
-        }
-
-        fn description() -> &'static str {
-            "Get the precence status from the user's subscriptions."
-        }
-
-        fn requires_authentication() -> bool {
-            // TODO: not sure why this does not require authentication
-            false
-        }
-
-        fn rate_limited() -> bool {
-            false
+        response {
+            /// A list of presence events for every user on this list.
+            #[ruma_api(body)]
+            presence_events: Vec<PresenceEvent>,
         }
     }
 }
