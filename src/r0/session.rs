@@ -13,40 +13,49 @@ pub mod login {
             rate_limited: true,
             requires_authentication: false,
         }
+
         request {
-            /// Password of the user
+            /// The user's password.
             pub password: String,
-            /// Medium of 3rd party login to use
+            /// When logging in using a third party identifier, the medium of the identifier.
             #[serde(skip_serializing_if = "Option::is_none")]
-            pub medium: Option<LoginMedium>,
-            /// Type of login to do
+            pub medium: Option<Medium>,
+            /// The authentication mechanism.
             #[serde(rename = "type")]
-            pub kind: LoginKind,
-            /// Localpart or full matrix user id of the user
+            pub login_type: LoginType,
+            /// The fully qualified user ID or just local part of the user ID.
             pub user: String,
-            /// 3rd party identifier for the user
+            /// Third party identifier for the user.
             #[serde(skip_serializing_if = "Option::is_none")]
             pub address: Option<String>
         }
+
         response {
+            /// An access token for the account.
             pub access_token: String,
+            /// The hostname of the homeserver on which the account has been registered.
             pub home_server: String,
+            /// A refresh token may be exchanged for a new access token using the /tokenrefresh API
+            /// endpoint.
             #[serde(skip_serializing_if = "Option::is_none")]
             pub refresh_token: Option<String>,
+            /// The fully-qualified Matrix ID that has been registered.
             pub user_id: String,
         }
     }
 
-    /// Possible login mediums for 3rd party ID
+    /// The medium of a third party identifier.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub enum LoginMedium {
+    pub enum Medium {
+        /// An email address.
         #[serde(rename = "email")]
         Email,
     }
 
-    /// Possible kinds of login
+    /// The authentication mechanism.
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub enum LoginKind {
+    pub enum LoginType {
+        /// A password is supplied to authenticate.
         #[serde(rename = "m.login.password")]
         Password,
     }
@@ -65,7 +74,9 @@ pub mod logout {
             rate_limited: false,
             requires_authentication: true,
         }
+
         request {}
+
         response {}
     }
 }

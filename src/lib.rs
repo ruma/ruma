@@ -2,9 +2,8 @@
 //! endpoint in the [Matrix](https://matrix.org/) client API specification. These types can be
 //! shared by client and server code.
 
-#![deny(missing_debug_implementations)]
+#![deny(missing_debug_implementations, missing_docs)]
 #![feature(associated_consts, proc_macro, try_from)]
-#![warn(missing_docs)]
 
 extern crate futures;
 extern crate hyper;
