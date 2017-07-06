@@ -3,6 +3,7 @@
 /// [POST /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-login)
 pub mod login {
     use ruma_api_macros::ruma_api;
+    use ruma_identifiers::UserId;
 
     ruma_api! {
         metadata {
@@ -40,7 +41,7 @@ pub mod login {
             #[serde(skip_serializing_if = "Option::is_none")]
             pub refresh_token: Option<String>,
             /// The fully-qualified Matrix ID that has been registered.
-            pub user_id: String,
+            pub user_id: UserId,
         }
     }
 
