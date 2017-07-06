@@ -31,8 +31,8 @@ pub mod r0 {
     pub mod membership;
     pub mod presence;
     pub mod profile;
-//     pub mod push;
-//     pub mod receipt;
+    pub mod push;
+    pub mod receipt;
 //     pub mod redact;
     pub mod room;
 //     pub mod search;
