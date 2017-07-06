@@ -33,7 +33,7 @@ pub mod r0 {
     pub mod profile;
     pub mod push;
     pub mod receipt;
-//     pub mod redact;
+    pub mod redact;
     pub mod room;
 //     pub mod search;
     pub mod send;
