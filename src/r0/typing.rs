@@ -2,63 +2,33 @@
 
 /// [PUT /_matrix/client/r0/rooms/{roomId}/typing/{userId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-typing-userid)
 pub mod create_typing_event {
+    use ruma_api_macros::ruma_api;
     use ruma_identifiers::{UserId, RoomId};
 
-    /// Details about this API endpoint.
-    #[derive(Clone, Copy, Debug)]
-    pub struct Endpoint;
-
-    /// This API endpoint's path parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct PathParams {
-        pub room_id: RoomId,
-        pub user_id: UserId
-    }
-
-    /// This API endpoint's body parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct BodyParams {
-        pub typing: bool,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub timeout: Option<u64>
-    }
-
-    impl ::Endpoint for Endpoint {
-        type BodyParams = BodyParams;
-        type PathParams = PathParams;
-        type QueryParams = ();
-        type Response = ();
-
-        fn method() -> ::Method {
-            ::Method::Put
+    ruma_api! {
+        metadata {
+            method: Method::Put,
+            path: "/_matrix/client/r0/rooms/:room_id/typing/:user_id",
+            name: "create_typing_event",
+            description: "Send a typing event to a room.",
+            requires_authentication: true,
+            rate_limited: true,
         }
 
-        fn request_path(params: Self::PathParams) -> String {
-            format!(
-                "/_matrix/client/r0/rooms/{}/typing/{}",
-                params.room_id,
-                params.user_id
-            )
+        request {
+            /// The room in which the user is typing.
+            #[ruma_api(path)]
+            pub room_id: RoomId,
+            /// The length of time in milliseconds to mark this user as typing.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub timeout: Option<u64>,
+            /// Whether the user is typing or not. If `false`, the `timeout` key can be omitted.
+            pub typing: bool,
+            /// The user who has started to type.
+            #[ruma_api(path)]
+            pub user_id: UserId,
         }
 
-        fn router_path() -> &'static str {
-            "/_matrix/client/r0/rooms/:room_id/typing/:user_id"
-        }
-
-        fn name() -> &'static str {
-            "create_typing_event"
-        }
-
-        fn description() -> &'static str {
-            "Send a typing event to a room."
-        }
-
-        fn requires_authentication() -> bool {
-            true
-        }
-
-        fn rate_limited() -> bool {
-            true
-        }
+        response {}
     }
 }
