@@ -35,7 +35,7 @@ pub mod r0 {
     pub mod receipt;
     pub mod redact;
     pub mod room;
-//     pub mod search;
+    pub mod search;
     pub mod send;
 //     pub mod server;
     pub mod session;

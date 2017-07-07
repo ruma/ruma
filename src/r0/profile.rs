@@ -131,7 +131,7 @@ pub mod get_profile {
         request {
             /// The user whose profile will be retrieved.
             #[ruma_api(path)]
-            pub user_id: UserId
+            pub user_id: UserId,
         }
 
         response {
@@ -140,7 +140,7 @@ pub mod get_profile {
             pub avatar_url: Option<String>,
             /// The user's display name, if set.
             #[serde(skip_serializing_if = "Option::is_none")]
-            pub displayname: Option<String>
+            pub displayname: Option<String>,
         }
     }
 }

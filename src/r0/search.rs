@@ -2,19 +2,38 @@
 
 /// [POST /_matrix/client/r0/search](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-search)
 pub mod search_events {
+    use std::collections::HashMap;
+
+    use ruma_api_macros::ruma_api;
     use ruma_events::collections::all::Event;
     use ruma_identifiers::{EventId, RoomId, UserId};
 
     use r0::filter::RoomEventFilter;
-    use r0::profile::get_profile::Response as UserProfile;
 
-    use std::collections::HashMap;
+    ruma_api! {
+        metadata {
+            description: "Search events.",
+            method: Method::Post,
+            name: "search",
+            path: "/_matrix/client/r0/search",
+            rate_limited: true,
+            requires_authentication: true,
+        }
 
-    /// This API endpoint's body parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct BodyParams {
-        /// Describes which categories to search in and their criteria.
-        pub search_categories: Categories,
+        request {
+            /// The point to return events from.
+            ///
+            /// If given, this should be a `next_batch` result from a previous call to this endpoint.
+            #[ruma_api(query)]
+            pub next_batch: Option<String>,
+            /// Describes which categories to search in and their criteria.
+            pub search_categories: Categories,
+        }
+
+        response {
+            /// A grouping of search results by category.
+            pub search_categories: ResultCategories,
+        }
     }
 
     /// Categories of events that can be searched for.
@@ -52,11 +71,6 @@ pub mod search_events {
         /// The string to search events for.
         pub search_term: String,
     }
-
-
-    /// Details about this API endpoint.
-    #[derive(Clone, Copy, Debug)]
-    pub struct Endpoint;
 
     /// Configures whether any context for the events returned are included in the response.
     #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -140,22 +154,6 @@ pub mod search_events {
         Recent,
     }
 
-    /// This API endpoint's query string parameters.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct QueryParams {
-        /// The point to return events from.
-        ///
-        /// If given, this should be a `next_batch` result from a previous call to this endpoint.
-        pub next_batch: Option<String>,
-    }
-
-    /// This API endpoint's response.
-    #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct Response {
-        /// A grouping of search results by category.
-        pub search_categories: ResultCategories,
-    }
-
     /// Categories of events that can be searched for.
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct ResultCategories {
@@ -211,38 +209,14 @@ pub mod search_events {
         pub result: Event,
     }
 
-    impl ::Endpoint for Endpoint {
-        type BodyParams = BodyParams;
-        type PathParams = ();
-        type QueryParams = QueryParams;
-        type Response = Response;
-
-        fn method() -> ::Method {
-            ::Method::Post
-        }
-
-        fn request_path(_params: Self::PathParams) -> String {
-            Self::router_path().to_string()
-        }
-
-        fn router_path() -> &'static str {
-            "/_matrix/client/r0/search"
-        }
-
-        fn name() -> &'static str {
-            "search"
-        }
-
-        fn description() -> &'static str {
-            "Search events."
-        }
-
-        fn requires_authentication() -> bool {
-            true
-        }
-
-        fn rate_limited() -> bool {
-            true
-        }
+    /// A user profile.
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    pub struct UserProfile {
+        /// The user's avatar URL, if set.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub avatar_url: Option<String>,
+        /// The user's display name, if set.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub displayname: Option<String>,
     }
 }
