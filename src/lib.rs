@@ -37,7 +37,7 @@ pub mod r0 {
     pub mod room;
     pub mod search;
     pub mod send;
-//     pub mod server;
+    pub mod server;
     pub mod session;
     pub mod sync;
 //     pub mod tag;
