@@ -42,7 +42,7 @@ pub mod r0 {
     pub mod sync;
     pub mod tag;
     pub mod typing;
-//     pub mod voip;
+    pub mod voip;
 }
 
 pub mod unversioned;
