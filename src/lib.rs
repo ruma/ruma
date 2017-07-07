@@ -40,7 +40,7 @@ pub mod r0 {
     pub mod server;
     pub mod session;
     pub mod sync;
-//     pub mod tag;
+    pub mod tag;
 //     pub mod typing;
 //     pub mod voip;
 }
