@@ -1,5 +1,5 @@
 use hyper::Error as HyperError;
-use ruma_client_api::Error as RumaClientApiError;
+use ruma_api::Error as RumaApiError;
 use serde_json::Error as SerdeJsonError;
 use serde_urlencoded::ser::Error as SerdeUrlEncodedSerializeError;
 use url::ParseError;
@@ -7,18 +7,18 @@ use url::ParseError;
 /// An error that occurs during client operations.
 #[derive(Debug)]
 pub enum Error {
+    /// Queried endpoint requires authentication but was called on an anonymous client
+    AuthenticationRequired,
     /// An error at the HTTP layer.
     Hyper(HyperError),
     /// An error when parsing a string as a URL.
     Url(ParseError),
     /// An error converting between ruma_client_api types and Hyper types.
-    RumaClientApi(RumaClientApiError),
+    RumaApi(RumaApiError),
     /// An error when serializing or deserializing a JSON value.
     SerdeJson(SerdeJsonError),
     /// An error when serializing a query string value.
     SerdeUrlEncodedSerialize(SerdeUrlEncodedSerializeError),
-    /// Queried endpoint requires authentication but was called on an anonymous client
-    AuthenticationRequired,
 }
 
 impl From<HyperError> for Error {
@@ -33,9 +33,9 @@ impl From<ParseError> for Error {
     }
 }
 
-impl From<RumaClientApiError> for Error {
-    fn from(error: RumaClientApiError) -> Error {
-        Error::RumaClientApi(error)
+impl From<RumaApiError> for Error {
+    fn from(error: RumaApiError) -> Error {
+        Error::RumaApi(error)
     }
 }
 
