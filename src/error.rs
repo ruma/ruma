@@ -1,4 +1,4 @@
-use hyper::Error as HyperError;
+use hyper::error::{Error as HyperError, UriError};
 use ruma_api::Error as RumaApiError;
 use serde_json::Error as SerdeJsonError;
 use serde_urlencoded::ser::Error as SerdeUrlEncodedSerializeError;
@@ -11,6 +11,8 @@ pub enum Error {
     AuthenticationRequired,
     /// An error at the HTTP layer.
     Hyper(HyperError),
+    /// An error when parsing a string as a URI.
+    Uri(UriError),
     /// An error when parsing a string as a URL.
     Url(ParseError),
     /// An error converting between ruma_client_api types and Hyper types.
@@ -24,6 +26,12 @@ pub enum Error {
 impl From<HyperError> for Error {
     fn from(error: HyperError) -> Error {
         Error::Hyper(error)
+    }
+}
+
+impl From<UriError> for Error {
+    fn from(error: UriError) -> Error {
+        Error::Uri(error)
     }
 }
 

@@ -106,11 +106,28 @@ where
         E: Endpoint,
         <E as Endpoint>::Response: 'a,
     {
+        let mut url = self.homeserver_url.clone();
+
         request
             .try_into()
             .map_err(Error::from)
             .into_future()
             .and_then(move |hyper_request| {
+                {
+                    let uri = hyper_request.uri();
+
+                    url.set_path(uri.path());
+                    url.set_query(uri.query());
+                }
+
+                url.into_string()
+                    .parse()
+                    .map(move |uri| (uri, hyper_request))
+                    .map_err(Error::from)
+            })
+            .and_then(move |(uri, mut hyper_request)| {
+                hyper_request.set_uri(uri);
+
                 self.hyper
                     .clone()
                     .request(hyper_request)
