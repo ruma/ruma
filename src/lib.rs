@@ -21,9 +21,10 @@ extern crate url;
 
 use std::convert::TryInto;
 use std::rc::Rc;
+use std::str::FromStr;
 
 use futures::future::{Future, FutureFrom, IntoFuture};
-use hyper::Client as HyperClient;
+use hyper::{Client as HyperClient, Uri};
 use hyper::client::{Connect, HttpConnector};
 #[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
@@ -120,8 +121,7 @@ where
                     url.set_query(uri.query());
                 }
 
-                url.into_string()
-                    .parse()
+                Uri::from_str(url.as_ref())
                     .map(move |uri| (uri, hyper_request))
                     .map_err(Error::from)
             })
