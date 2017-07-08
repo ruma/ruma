@@ -6,8 +6,10 @@
 
 extern crate futures;
 extern crate hyper;
-#[cfg(feature = "tls")] extern crate hyper_tls;
-#[cfg(feature = "tls")] extern crate native_tls;
+#[cfg(feature = "tls")]
+extern crate hyper_tls;
+#[cfg(feature = "tls")]
+extern crate native_tls;
 extern crate ruma_api;
 extern crate ruma_client_api;
 extern crate ruma_identifiers;
@@ -21,10 +23,12 @@ use std::convert::TryInto;
 use std::rc::Rc;
 
 use futures::future::{Future, FutureFrom, IntoFuture};
-use hyper::{Client as HyperClient};
+use hyper::Client as HyperClient;
 use hyper::client::{Connect, HttpConnector};
-#[cfg(feature = "hyper-tls")] use hyper_tls::HttpsConnector;
-#[cfg(feature = "hyper-tls")] use native_tls::Error as NativeTlsError;
+#[cfg(feature = "hyper-tls")]
+use hyper_tls::HttpsConnector;
+#[cfg(feature = "hyper-tls")]
+use native_tls::Error as NativeTlsError;
 use ruma_api::Endpoint;
 use tokio_core::reactor::Handle;
 use url::Url;
@@ -39,7 +43,10 @@ mod session;
 
 /// A client for the Matrix client-server API.
 #[derive(Debug)]
-pub struct Client<C> where C: Connect {
+pub struct Client<C>
+where
+    C: Connect,
+{
     homeserver_url: Url,
     hyper: Rc<HyperClient<C>>,
     session: Option<Session>,
@@ -64,13 +71,21 @@ impl Client<HttpsConnector<HttpConnector>> {
 
         Ok(Client {
             homeserver_url,
-            hyper: Rc::new(HyperClient::configure().connector(connector).keep_alive(true).build(handle)),
+            hyper: Rc::new(
+                HyperClient::configure()
+                    .connector(connector)
+                    .keep_alive(true)
+                    .build(handle),
+            ),
             session: None,
         })
     }
 }
 
-impl<C> Client<C> where C: Connect {
+impl<C> Client<C>
+where
+    C: Connect,
+{
     /// Creates a new client using the given `hyper::Client`.
     ///
     /// This allows the user to configure the details of HTTP as desired.
@@ -83,16 +98,23 @@ impl<C> Client<C> where C: Connect {
     }
 
     /// Makes a request to a Matrix API endpoint.
-    pub(crate) fn request<'a, E>(&'a self, request: <E as Endpoint>::Request)
-    -> impl Future<Item = E::Response, Error = Error> + 'a
-    where E: Endpoint,
-    <E as Endpoint>::Response: 'a {
+    pub(crate) fn request<'a, E>(
+        &'a self,
+        request: <E as Endpoint>::Request,
+    ) -> impl Future<Item = E::Response, Error = Error> + 'a
+    where
+        E: Endpoint,
+        <E as Endpoint>::Response: 'a,
+    {
         request
             .try_into()
             .map_err(Error::from)
             .into_future()
             .and_then(move |hyper_request| {
-                self.hyper.clone().request(hyper_request).map_err(Error::from)
+                self.hyper
+                    .clone()
+                    .request(hyper_request)
+                    .map_err(Error::from)
             })
             .and_then(|hyper_response| {
                 E::Response::future_from(hyper_response).map_err(Error::from)

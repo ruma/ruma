@@ -10,9 +10,13 @@ pub mod unversioned {
         use {Client, Error};
 
         /// Make a request to this API endpoint.
-        pub fn call<'a, C>(client: &'a Client<C>, request: Request)
-        -> impl Future<Item = Response, Error = Error> + 'a
-        where C: Connect {
+        pub fn call<'a, C>(
+            client: &'a Client<C>,
+            request: Request,
+        ) -> impl Future<Item = Response, Error = Error> + 'a
+        where
+            C: Connect,
+        {
             client.request::<Endpoint>(request)
         }
     }
