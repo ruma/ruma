@@ -32,6 +32,8 @@ use url::Url;
 pub use error::Error;
 pub use session::Session;
 
+/// Matrix client-server API endpoints.
+pub mod api;
 mod error;
 mod session;
 
