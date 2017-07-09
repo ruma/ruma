@@ -142,6 +142,35 @@ where
         })
     }
 
+    /// Register as a new user on this server.
+    ///
+    /// In contrast to api::r0::account::register::call(), this method stores
+    /// the session data returned by the endpoint in this client, instead of
+    /// returning it.
+    ///
+    /// The username is the local part of the returned user_id. If it is
+    /// omitted from this request, the server will generate one.
+    pub fn register_user<'a>(
+        &'a self,
+        username: Option<String>,
+        password: String,
+    ) -> impl Future<Item = (), Error = Error> + 'a {
+        use api::r0::account::register;
+
+        register::call(self, register::Request {
+            auth: None,
+            bind_email: None,
+            device_id: None,
+            initial_device_display_name: None,
+            kind: Some(register::RegistrationKind::User),
+            password: Some(password),
+            username: username,
+        }).map(move |response| {
+            *self.session.borrow_mut() =
+                Some(Session::new(response.access_token, response.user_id));
+        })
+    }
+
     /// Makes a request to a Matrix API endpoint.
     pub(crate) fn request<'a, E>(
         &'a self,
