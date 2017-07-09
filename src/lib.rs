@@ -100,7 +100,11 @@ where
         }
     }
 
-    /// Log in to the homeserver with a username and password.
+    /// Log in with a username and password.
+    ///
+    /// In contrast to api::r0::session::login::call(), this method stores the
+    /// session data returned by the endpoint in this client, instead of
+    /// returning it.
     pub fn log_in<'a>(&'a self, user: String, password: String)
     -> impl Future<Item = (), Error = Error> + 'a {
         let request = login::Request {
