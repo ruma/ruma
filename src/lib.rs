@@ -19,6 +19,7 @@ extern crate serde_urlencoded;
 extern crate tokio_core;
 extern crate url;
 
+use std::cell::RefCell;
 use std::convert::TryInto;
 use std::rc::Rc;
 use std::str::FromStr;
@@ -34,6 +35,7 @@ use ruma_api::Endpoint;
 use tokio_core::reactor::Handle;
 use url::Url;
 
+use api::r0::session::login;
 pub use error::Error;
 pub use session::Session;
 
@@ -50,7 +52,7 @@ where
 {
     homeserver_url: Url,
     hyper: Rc<HyperClient<C>>,
-    session: Option<Session>,
+    session: RefCell<Option<Session>>,
 }
 
 impl Client<HttpConnector> {
@@ -59,7 +61,7 @@ impl Client<HttpConnector> {
         Client {
             homeserver_url,
             hyper: Rc::new(HyperClient::configure().keep_alive(true).build(handle)),
-            session,
+            session: RefCell::new(session),
         }
     }
 }
@@ -78,7 +80,7 @@ impl Client<HttpsConnector<HttpConnector>> {
                     .keep_alive(true)
                     .build(handle),
             ),
-            session,
+            session: RefCell::new(session),
         })
     }
 }
@@ -94,8 +96,26 @@ where
         Client {
             homeserver_url,
             hyper: Rc::new(hyper_client),
-            session,
+            session: RefCell::new(session),
         }
+    }
+
+    /// Log in to the homeserver with a username and password.
+    pub fn log_in<'a>(&'a self, user: String, password: String)
+    -> impl Future<Item = (), Error = Error> + 'a {
+        let request = login::Request {
+            address: None,
+            login_type: login::LoginType::Password,
+            medium: None,
+            password,
+            user,
+        };
+
+        login::call(self, request).and_then(move |response| {
+            *self.session.borrow_mut() = Some(Session::new(response.access_token, response.user_id));
+
+            Ok(())
+        })
     }
 
     /// Makes a request to a Matrix API endpoint.
@@ -121,7 +141,7 @@ where
                     url.set_query(uri.query());
 
                     if E::METADATA.requires_authentication {
-                        if let Some(ref session) = self.session {
+                        if let Some(ref session) = *self.session.borrow() {
                             url.query_pairs_mut().append_pair("access_token", session.access_token());
                         } else {
                             return Err(Error::AuthenticationRequired);
