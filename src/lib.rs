@@ -118,6 +118,26 @@ where
         })
     }
 
+    /// Register as a guest. In contrast to api::r0::account::register::call(),
+    /// this method stores the session data returned by the endpoint in this
+    /// client, instead of returning it.
+    pub fn register_guest<'a>(&'a self) -> impl Future<Item = (), Error = Error> + 'a {
+        use api::r0::account::register;
+
+        register::call(self, register::Request {
+            auth: None,
+            bind_email: None,
+            device_id: None,
+            initial_device_display_name: None,
+            kind: Some(register::RegistrationKind::Guest),
+            password: None,
+            username: None,
+        }).map(move |response| {
+            *self.session.borrow_mut() =
+                Some(Session::new(response.access_token, response.user_id));
+        })
+    }
+
     /// Makes a request to a Matrix API endpoint.
     pub(crate) fn request<'a, E>(
         &'a self,
