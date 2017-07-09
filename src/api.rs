@@ -6,7 +6,7 @@ macro_rules! endpoint {
 
     // No imports from super.
     ($(#[$attr:meta])+ [$($outer_mod:ident),*], $inner_mod:ident, [$($import:ident),*]) => {
-        endpoint!($(#[$attr])+ [$($outer_mod),*], $inner_mod, [], []);
+        endpoint!($(#[$attr])+ [$($outer_mod),*], $inner_mod, [$($import),*], []);
     };
 
     // Explicit case.
