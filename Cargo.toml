@@ -30,6 +30,9 @@ version = "0.1.2"
 optional = true
 version = "0.1.4"
 
+[dev-dependencies]
+ruma-events = "0.9.0"
+
 [features]
 default = ["tls"]
 tls = ["hyper-tls", "native-tls"]
