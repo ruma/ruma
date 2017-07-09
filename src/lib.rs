@@ -43,7 +43,7 @@ mod error;
 mod session;
 
 /// A client for the Matrix client-server API.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Client<C>
 where
     C: Connect,
@@ -55,11 +55,11 @@ where
 
 impl Client<HttpConnector> {
     /// Creates a new client for making HTTP requests to the given homeserver.
-    pub fn new(handle: &Handle, homeserver_url: Url) -> Self {
+    pub fn new(handle: &Handle, homeserver_url: Url, session: Option<Session>) -> Self {
         Client {
             homeserver_url,
             hyper: Rc::new(HyperClient::configure().keep_alive(true).build(handle)),
-            session: None,
+            session,
         }
     }
 }
@@ -67,7 +67,7 @@ impl Client<HttpConnector> {
 #[cfg(feature = "tls")]
 impl Client<HttpsConnector<HttpConnector>> {
     /// Creates a new client for making HTTPS requests to the given homeserver.
-    pub fn https(handle: &Handle, homeserver_url: Url) -> Result<Self, NativeTlsError> {
+    pub fn https(handle: &Handle, homeserver_url: Url, session: Option<Session>) -> Result<Self, NativeTlsError> {
         let connector = HttpsConnector::new(4, handle)?;
 
         Ok(Client {
@@ -78,7 +78,7 @@ impl Client<HttpsConnector<HttpConnector>> {
                     .keep_alive(true)
                     .build(handle),
             ),
-            session: None,
+            session,
         })
     }
 }
@@ -90,11 +90,11 @@ where
     /// Creates a new client using the given `hyper::Client`.
     ///
     /// This allows the user to configure the details of HTTP as desired.
-    pub fn custom(hyper_client: HyperClient<C>, homeserver_url: Url) -> Self {
+    pub fn custom(hyper_client: HyperClient<C>, homeserver_url: Url, session: Option<Session>) -> Self {
         Client {
             homeserver_url,
             hyper: Rc::new(hyper_client),
-            session: None,
+            session,
         }
     }
 
@@ -119,6 +119,14 @@ where
 
                     url.set_path(uri.path());
                     url.set_query(uri.query());
+
+                    if E::METADATA.requires_authentication {
+                        if let Some(ref session) = self.session {
+                            url.query_pairs_mut().append_pair("access_token", session.access_token());
+                        } else {
+                            return Err(Error::AuthenticationRequired);
+                        }
+                    }
                 }
 
                 Uri::from_str(url.as_ref())
