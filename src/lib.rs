@@ -45,23 +45,23 @@ mod error;
 mod session;
 
 /// A client for the Matrix client-server API.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Client<C>
 where
     C: Connect,
 {
-    homeserver_url: Url,
+    homeserver_url: Rc<Url>,
     hyper: Rc<HyperClient<C>>,
-    session: RefCell<Option<Session>>,
+    session: Rc<RefCell<Option<Session>>>,
 }
 
 impl Client<HttpConnector> {
     /// Creates a new client for making HTTP requests to the given homeserver.
     pub fn new(handle: &Handle, homeserver_url: Url, session: Option<Session>) -> Self {
         Client {
-            homeserver_url,
+            homeserver_url: Rc::new(homeserver_url),
             hyper: Rc::new(HyperClient::configure().keep_alive(true).build(handle)),
-            session: RefCell::new(session),
+            session: Rc::new(RefCell::new(session)),
         }
     }
 }
@@ -73,14 +73,14 @@ impl Client<HttpsConnector<HttpConnector>> {
         let connector = HttpsConnector::new(4, handle)?;
 
         Ok(Client {
-            homeserver_url,
+            homeserver_url: Rc::new(homeserver_url),
             hyper: Rc::new(
                 HyperClient::configure()
                     .connector(connector)
                     .keep_alive(true)
                     .build(handle),
             ),
-            session: RefCell::new(session),
+            session: Rc::new(RefCell::new(session)),
         })
     }
 }
@@ -94,9 +94,9 @@ where
     /// This allows the user to configure the details of HTTP as desired.
     pub fn custom(hyper_client: HyperClient<C>, homeserver_url: Url, session: Option<Session>) -> Self {
         Client {
-            homeserver_url,
+            homeserver_url: Rc::new(homeserver_url),
             hyper: Rc::new(hyper_client),
-            session: RefCell::new(session),
+            session: Rc::new(RefCell::new(session)),
         }
     }
 
@@ -105,8 +105,8 @@ where
     /// In contrast to api::r0::session::login::call(), this method stores the
     /// session data returned by the endpoint in this client, instead of
     /// returning it.
-    pub fn log_in<'a>(&'a self, user: String, password: String)
-    -> impl Future<Item = (), Error = Error> + 'a {
+    pub fn log_in(&self, user: String, password: String)
+    -> impl Future<Item = (), Error = Error> {
         let request = login::Request {
             address: None,
             login_type: login::LoginType::Password,
@@ -115,8 +115,10 @@ where
             user,
         };
 
-        login::call(self, request).and_then(move |response| {
-            *self.session.borrow_mut() = Some(Session::new(response.access_token, response.user_id));
+        let session = self.session.clone();
+
+        login::call(self.clone(), request).and_then(move |response| {
+            *session.borrow_mut() = Some(Session::new(response.access_token, response.user_id));
 
             Ok(())
         })
@@ -125,10 +127,12 @@ where
     /// Register as a guest. In contrast to api::r0::account::register::call(),
     /// this method stores the session data returned by the endpoint in this
     /// client, instead of returning it.
-    pub fn register_guest<'a>(&'a self) -> impl Future<Item = (), Error = Error> + 'a {
+    pub fn register_guest(&self) -> impl Future<Item = (), Error = Error> {
         use api::r0::account::register;
 
-        register::call(self, register::Request {
+        let session = self.session.clone();
+
+        register::call(self.clone(), register::Request {
             auth: None,
             bind_email: None,
             device_id: None,
@@ -137,8 +141,7 @@ where
             password: None,
             username: None,
         }).map(move |response| {
-            *self.session.borrow_mut() =
-                Some(Session::new(response.access_token, response.user_id));
+            *session.borrow_mut() = Some(Session::new(response.access_token, response.user_id));
         })
     }
 
@@ -150,14 +153,16 @@ where
     ///
     /// The username is the local part of the returned user_id. If it is
     /// omitted from this request, the server will generate one.
-    pub fn register_user<'a>(
-        &'a self,
+    pub fn register_user(
+        &self,
         username: Option<String>,
         password: String,
-    ) -> impl Future<Item = (), Error = Error> + 'a {
+    ) -> impl Future<Item = (), Error = Error> {
         use api::r0::account::register;
 
-        register::call(self, register::Request {
+        let session = self.session.clone();
+
+        register::call(self.clone(), register::Request {
             auth: None,
             bind_email: None,
             device_id: None,
@@ -166,21 +171,21 @@ where
             password: Some(password),
             username: username,
         }).map(move |response| {
-            *self.session.borrow_mut() =
-                Some(Session::new(response.access_token, response.user_id));
+            *session.borrow_mut() = Some(Session::new(response.access_token, response.user_id));
         })
     }
 
     /// Makes a request to a Matrix API endpoint.
-    pub(crate) fn request<'a, E>(
-        &'a self,
+    pub(crate) fn request<E>(
+        self,
         request: <E as Endpoint>::Request,
-    ) -> impl Future<Item = E::Response, Error = Error> + 'a
+    ) -> impl Future<Item = E::Response, Error = Error>
     where
         E: Endpoint,
-        <E as Endpoint>::Response: 'a,
     {
-        let mut url = self.homeserver_url.clone();
+        let mut url = (*self.homeserver_url).clone();
+        let hyper = self.hyper;
+        let session = self.session;
 
         request
             .try_into()
@@ -194,7 +199,7 @@ where
                     url.set_query(uri.query());
 
                     if E::METADATA.requires_authentication {
-                        if let Some(ref session) = *self.session.borrow() {
+                        if let Some(ref session) = *session.borrow() {
                             url.query_pairs_mut().append_pair("access_token", session.access_token());
                         } else {
                             return Err(Error::AuthenticationRequired);
@@ -202,20 +207,29 @@ where
                     }
                 }
 
-                Uri::from_str(url.as_ref())
+                Uri::from_str(url.as_ref().as_ref())
                     .map(move |uri| (uri, hyper_request))
                     .map_err(Error::from)
             })
             .and_then(move |(uri, mut hyper_request)| {
                 hyper_request.set_uri(uri);
 
-                self.hyper
-                    .clone()
+                hyper
                     .request(hyper_request)
                     .map_err(Error::from)
             })
             .and_then(|hyper_response| {
                 E::Response::future_from(hyper_response).map_err(Error::from)
             })
+    }
+}
+
+impl<C: Connect> Clone for Client<C> {
+    fn clone(&self) -> Client<C> {
+        Client {
+            homeserver_url: self.homeserver_url.clone(),
+            hyper: self.hyper.clone(),
+            session: self.session.clone(),
+        }
     }
 }
