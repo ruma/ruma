@@ -46,7 +46,7 @@ fn hello_world(
     let client = Client::https(&tokio_handle, homeserver_url, None).unwrap();
 
     client.register_guest().and_then(clone!(client => move |_| {
-        r0::alias::get_alias::call(client.clone(), r0::alias::get_alias::Request {
+        r0::alias::get_alias::call(client, r0::alias::get_alias::Request {
             room_alias: RoomAliasId::try_from("#ruma-client-test:matrix.org").unwrap(),
         })
     })).and_then(clone!(client => move |response| {
@@ -55,8 +55,8 @@ fn hello_world(
         r0::membership::join_room_by_id::call(client.clone(), r0::membership::join_room_by_id::Request {
             room_id: room_id.clone(),
             third_party_signed: None,
-        }).and_then(clone!(client => move |_| {
-            r0::send::send_message_event::call(client.clone(), r0::send::send_message_event::Request {
+        }).and_then(move |_| {
+            r0::send::send_message_event::call(client, r0::send::send_message_event::Request {
                 room_id: room_id,
                 event_type: EventType::RoomMessage,
                 txn_id: "1".to_owned(),
@@ -65,7 +65,7 @@ fn hello_world(
                     msgtype: MessageType::Text,
                 }),
             })
-        }))
+        })
     })).map(|_| ())
 }
 
