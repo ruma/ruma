@@ -35,7 +35,6 @@ use ruma_api::Endpoint;
 use tokio_core::reactor::Handle;
 use url::Url;
 
-use api::r0::session::login;
 pub use error::Error;
 pub use session::Session;
 
@@ -46,23 +45,27 @@ mod session;
 
 /// A client for the Matrix client-server API.
 #[derive(Debug)]
-pub struct Client<C>
+pub struct Client<C: Connect>(Rc<ClientData<C>>);
+
+/// Data contained in Client's Rc
+#[derive(Debug)]
+pub struct ClientData<C>
 where
     C: Connect,
 {
-    homeserver_url: Rc<Url>,
-    hyper: Rc<HyperClient<C>>,
-    session: Rc<RefCell<Option<Session>>>,
+    homeserver_url: Url,
+    hyper: HyperClient<C>,
+    session: RefCell<Option<Session>>,
 }
 
 impl Client<HttpConnector> {
     /// Creates a new client for making HTTP requests to the given homeserver.
     pub fn new(handle: &Handle, homeserver_url: Url, session: Option<Session>) -> Self {
-        Client {
-            homeserver_url: Rc::new(homeserver_url),
-            hyper: Rc::new(HyperClient::configure().keep_alive(true).build(handle)),
-            session: Rc::new(RefCell::new(session)),
-        }
+        Client(Rc::new(ClientData {
+            homeserver_url: homeserver_url,
+            hyper: HyperClient::configure().keep_alive(true).build(handle),
+            session: RefCell::new(session),
+        }))
     }
 }
 
@@ -72,16 +75,16 @@ impl Client<HttpsConnector<HttpConnector>> {
     pub fn https(handle: &Handle, homeserver_url: Url, session: Option<Session>) -> Result<Self, NativeTlsError> {
         let connector = HttpsConnector::new(4, handle)?;
 
-        Ok(Client {
-            homeserver_url: Rc::new(homeserver_url),
-            hyper: Rc::new(
+        Ok(Client(Rc::new(ClientData {
+            homeserver_url: homeserver_url,
+            hyper: {
                 HyperClient::configure()
                     .connector(connector)
                     .keep_alive(true)
-                    .build(handle),
-            ),
-            session: Rc::new(RefCell::new(session)),
-        })
+                    .build(handle)
+            },
+            session: RefCell::new(session),
+        })))
     }
 }
 
@@ -93,11 +96,11 @@ where
     ///
     /// This allows the user to configure the details of HTTP as desired.
     pub fn custom(hyper_client: HyperClient<C>, homeserver_url: Url, session: Option<Session>) -> Self {
-        Client {
-            homeserver_url: Rc::new(homeserver_url),
-            hyper: Rc::new(hyper_client),
-            session: Rc::new(RefCell::new(session)),
-        }
+        Client(Rc::new(ClientData {
+            homeserver_url: homeserver_url,
+            hyper: hyper_client,
+            session: RefCell::new(session),
+        }))
     }
 
     /// Log in with a username and password.
@@ -107,20 +110,19 @@ where
     /// returning it.
     pub fn log_in(&self, user: String, password: String)
     -> impl Future<Item = (), Error = Error> {
-        let request = login::Request {
+        use api::r0::session::login;
+
+        let data = self.0.clone();
+
+        login::call(self.clone(), login::Request {
             address: None,
             login_type: login::LoginType::Password,
             medium: None,
             password,
             user,
-        };
-
-        let session = self.session.clone();
-
-        login::call(self.clone(), request).and_then(move |response| {
-            *session.borrow_mut() = Some(Session::new(response.access_token, response.user_id));
-
-            Ok(())
+        }).map(move |response| {
+            *data.session.borrow_mut() =
+                Some(Session::new(response.access_token, response.user_id));
         })
     }
 
@@ -130,7 +132,7 @@ where
     pub fn register_guest(&self) -> impl Future<Item = (), Error = Error> {
         use api::r0::account::register;
 
-        let session = self.session.clone();
+        let data = self.0.clone();
 
         register::call(self.clone(), register::Request {
             auth: None,
@@ -141,7 +143,8 @@ where
             password: None,
             username: None,
         }).map(move |response| {
-            *session.borrow_mut() = Some(Session::new(response.access_token, response.user_id));
+            *data.session.borrow_mut() =
+                Some(Session::new(response.access_token, response.user_id));
         })
     }
 
@@ -160,7 +163,7 @@ where
     ) -> impl Future<Item = (), Error = Error> {
         use api::r0::account::register;
 
-        let session = self.session.clone();
+        let data = self.0.clone();
 
         register::call(self.clone(), register::Request {
             auth: None,
@@ -171,7 +174,8 @@ where
             password: Some(password),
             username: username,
         }).map(move |response| {
-            *session.borrow_mut() = Some(Session::new(response.access_token, response.user_id));
+            *data.session.borrow_mut() =
+                Some(Session::new(response.access_token, response.user_id));
         })
     }
 
@@ -183,9 +187,9 @@ where
     where
         E: Endpoint,
     {
-        let mut url = (*self.homeserver_url).clone();
-        let hyper = self.hyper;
-        let session = self.session;
+        let data1 = self.0.clone();
+        let data2 = self.0.clone();
+        let mut url = self.0.homeserver_url.clone();
 
         request
             .try_into()
@@ -199,7 +203,7 @@ where
                     url.set_query(uri.query());
 
                     if E::METADATA.requires_authentication {
-                        if let Some(ref session) = *session.borrow() {
+                        if let Some(ref session) = *data1.session.borrow() {
                             url.query_pairs_mut().append_pair("access_token", session.access_token());
                         } else {
                             return Err(Error::AuthenticationRequired);
@@ -214,7 +218,7 @@ where
             .and_then(move |(uri, mut hyper_request)| {
                 hyper_request.set_uri(uri);
 
-                hyper
+                data2.hyper
                     .request(hyper_request)
                     .map_err(Error::from)
             })
@@ -226,10 +230,6 @@ where
 
 impl<C: Connect> Clone for Client<C> {
     fn clone(&self) -> Client<C> {
-        Client {
-            homeserver_url: self.homeserver_url.clone(),
-            hyper: self.hyper.clone(),
-            session: self.session.clone(),
-        }
+        Client(self.0.clone())
     }
 }
