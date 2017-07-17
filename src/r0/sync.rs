@@ -319,7 +319,7 @@ pub mod sync_events {
         /// `/rooms/{roomId}/messages` endpoint.
         pub prev_batch: String,
         /// A list of events.
-        pub events: Vec<all::StateEvent>,
+        pub events: Vec<all::RoomEvent>,
     }
 
     /// State events in the room.
