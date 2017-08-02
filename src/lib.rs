@@ -11,10 +11,10 @@
 
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
-#![feature(associated_consts, try_from)]
+#![feature(try_from)]
 
 extern crate futures;
-extern crate hyper;
+extern crate http;
 #[cfg(test)] extern crate ruma_identifiers;
 #[cfg(test)] extern crate serde;
 #[cfg(test)] #[macro_use] extern crate serde_derive;
@@ -25,26 +25,25 @@ use std::convert::TryInto;
 use std::io;
 
 use futures::future::FutureFrom;
-use hyper::{Method, Request, Response, StatusCode};
-use hyper::error::UriError;
+use http::{Method, Request, Response, StatusCode};
 
 /// A Matrix API endpoint.
-pub trait Endpoint {
+pub trait Endpoint<T, U> {
     /// Data needed to make a request to the endpoint.
-    type Request: TryInto<Request, Error = Error>;
+    type Request: TryInto<Request<T>, Error = Error>;
     /// Data returned from the endpoint.
-    type Response: FutureFrom<Response, Error = Error>;
+    type Response: FutureFrom<Response<U>, Error = Error>;
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;
 }
 
-/// An error when converting an `Endpoint::Request` to a `hyper::Request` or a `hyper::Response` to
+/// An error when converting an `Endpoint::Request` to a `http::Request` or a `http::Response` to
 /// an `Endpoint::Response`.
 #[derive(Debug)]
 pub enum Error {
-    /// A Hyper error.
-    Hyper(hyper::Error),
+    /// An HTTP error.
+    Http(http::Error),
     /// A I/O error.
     Io(io::Error),
     /// A Serde JSON error.
@@ -53,13 +52,11 @@ pub enum Error {
     SerdeUrlEncoded(serde_urlencoded::ser::Error),
     /// An HTTP status code indicating error.
     StatusCode(StatusCode),
-    /// A Uri error.
-    Uri(UriError),
 }
 
-impl From<hyper::Error> for Error {
-    fn from(error: hyper::Error) -> Self {
-        Error::Hyper(error)
+impl From<http::Error> for Error {
+    fn from(error: http::Error) -> Self {
+        Error::Http(error)
     }
 }
 
@@ -78,12 +75,6 @@ impl From<serde_json::Error> for Error {
 impl From<serde_urlencoded::ser::Error> for Error {
     fn from(error: serde_urlencoded::ser::Error) -> Self {
         Error::SerdeUrlEncoded(error)
-    }
-}
-
-impl From<UriError> for Error {
-    fn from(error: UriError) -> Self {
-        Error::Uri(error)
     }
 }
 
@@ -112,7 +103,8 @@ mod tests {
         use std::convert::TryFrom;
 
         use futures::future::{FutureFrom, FutureResult, err, ok};
-        use hyper::{Method, Request as HyperRequest, Response as HyperResponse, StatusCode};
+        use http::method::PUT;
+        use http::{Request as HttpRequest, Response as HttpResponse};
         use ruma_identifiers::{RoomAliasId, RoomId};
         use serde_json;
 
@@ -121,13 +113,13 @@ mod tests {
         #[derive(Debug)]
         pub struct Endpoint;
 
-        impl ApiEndpoint for Endpoint {
+        impl ApiEndpoint<Vec<u8>, Vec<u8>> for Endpoint {
             type Request = Request;
             type Response = Response;
 
             const METADATA: Metadata = Metadata {
                 description: "Add an alias to a room.",
-                method: Method::Put,
+                method: PUT,
                 name: "create_alias",
                 path: "/_matrix/client/r0/directory/room/:room_alias",
                 rate_limited: false,
@@ -148,43 +140,41 @@ mod tests {
             room_id: RoomId,
         }
 
-        impl TryFrom<Request> for HyperRequest {
+        impl TryFrom<Request> for HttpRequest<Vec<u8>> {
             type Error = Error;
 
-            fn try_from(request: Request) -> Result<HyperRequest, Self::Error> {
+            fn try_from(request: Request) -> Result<HttpRequest<Vec<u8>>, Self::Error> {
                 let metadata = Endpoint::METADATA;
 
                 let path = metadata.path
                     .to_string()
                     .replace(":room_alias", &request.room_alias.to_string());
 
-                let mut hyper_request = HyperRequest::new(
-                    metadata.method,
-                    path.parse().map_err(Error::from)?,
-                );
-
                 let request_body = RequestBody {
                     room_id: request.room_id,
                 };
 
-                hyper_request.set_body(serde_json::to_vec(&request_body).map_err(Error::from)?);
+                let http_request = HttpRequest::builder()
+                    .method(metadata.method)
+                    .uri(path.as_ref())
+                    .body(serde_json::to_vec(&request_body).map_err(Error::from)?)?;
 
-                Ok(hyper_request)
+                Ok(http_request)
             }
         }
 
         /// The response to a request to create a new room alias.
         pub struct Response;
 
-        impl FutureFrom<HyperResponse> for Response {
+        impl FutureFrom<HttpResponse<Vec<u8>>> for Response {
             type Future = FutureResult<Self, Self::Error>;
             type Error = Error;
 
-            fn future_from(hyper_response: HyperResponse) -> FutureResult<Self, Self::Error> {
-                if hyper_response.status() == StatusCode::Ok {
+            fn future_from(http_response: HttpResponse<Vec<u8>>) -> FutureResult<Self, Self::Error> {
+                if http_response.status().is_success() {
                     ok(Response)
                 } else {
-                    err(Error::StatusCode(hyper_response.status().clone()))
+                    err(Error::StatusCode(http_response.status().clone()))
                 }
             }
         }
