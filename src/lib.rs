@@ -8,16 +8,19 @@
 //! input parameters for requests, and the structure of a successful response.
 //! Such types can then be used by client code to make requests, and by server code to fulfill
 //! those requests.
-
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
 #![feature(try_from)]
 
 extern crate futures;
 extern crate http;
-#[cfg(test)] extern crate ruma_identifiers;
-#[cfg(test)] extern crate serde;
-#[cfg(test)] #[macro_use] extern crate serde_derive;
+#[cfg(test)]
+extern crate ruma_identifiers;
+#[cfg(test)]
+extern crate serde;
+#[cfg(test)]
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
 extern crate serde_urlencoded;
 
@@ -102,7 +105,7 @@ mod tests {
     pub mod create {
         use std::convert::TryFrom;
 
-        use futures::future::{FutureFrom, FutureResult, err, ok};
+        use futures::future::{err, ok, FutureFrom, FutureResult};
         use http::method::PUT;
         use http::{Request as HttpRequest, Response as HttpResponse};
         use ruma_identifiers::{RoomAliasId, RoomId};
@@ -125,13 +128,12 @@ mod tests {
                 rate_limited: false,
                 requires_authentication: true,
             };
-
         }
 
         /// A request to create a new room alias.
         #[derive(Debug)]
         pub struct Request {
-            pub room_id: RoomId, // body
+            pub room_id: RoomId,         // body
             pub room_alias: RoomAliasId, // path
         }
 
@@ -146,7 +148,8 @@ mod tests {
             fn try_from(request: Request) -> Result<HttpRequest<Vec<u8>>, Self::Error> {
                 let metadata = Endpoint::METADATA;
 
-                let path = metadata.path
+                let path = metadata
+                    .path
                     .to_string()
                     .replace(":room_alias", &request.room_alias.to_string());
 
@@ -170,7 +173,9 @@ mod tests {
             type Future = FutureResult<Self, Self::Error>;
             type Error = Error;
 
-            fn future_from(http_response: HttpResponse<Vec<u8>>) -> FutureResult<Self, Self::Error> {
+            fn future_from(
+                http_response: HttpResponse<Vec<u8>>,
+            ) -> FutureResult<Self, Self::Error> {
                 if http_response.status().is_success() {
                     ok(Response)
                 } else {
