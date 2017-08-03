@@ -291,14 +291,14 @@ mod tests {
             "state_key": "",
             "content": {
                 "info": {
-                    "height": 128,
-                    "width": 128,
+                    "h": 128,
+                    "w": 128,
                     "mimetype": "image/jpeg",
                     "size": 1024
                 },
                 "thumbnail_info": {
-                    "height": 16,
-                    "width": 16,
+                    "h": 16,
+                    "w": 16,
                     "mimetype": "image/jpeg",
                     "size": 32
                 },
@@ -331,11 +331,13 @@ mod tests {
 
         match from_str::<StrippedState>(avatar_event).unwrap() {
             StrippedState::RoomAvatar(event) => {
-                assert_eq!(event.content.info.height, 128);
-                assert_eq!(event.content.info.width, 128);
-                assert_eq!(event.content.info.mimetype, "image/jpeg");
-                assert_eq!(event.content.info.size, 1024);
-                assert_eq!(event.content.thumbnail_info.size, 32);
+                let image_info = event.content.info.unwrap();
+
+                assert_eq!(image_info.h, 128);
+                assert_eq!(image_info.w, 128);
+                assert_eq!(image_info.mimetype, "image/jpeg");
+                assert_eq!(image_info.size, 1024);
+                assert_eq!(event.content.thumbnail_info.unwrap().size, 32);
                 assert_eq!(event.content.url, "https://domain.com/image.jpg");
                 assert_eq!(event.event_type, EventType::RoomAvatar);
                 assert_eq!(event.state_key, "");

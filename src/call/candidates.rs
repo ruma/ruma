@@ -24,7 +24,9 @@ pub struct Candidate {
     /// The SDP "a" line of the candidate.
     pub candidate: String,
     /// The SDP media type this candidate is intended for.
+    #[serde(rename = "sdpMid")]
     pub sdp_mid: String,
     /// The index of the SDP "m" line this candidate is intended for.
+    #[serde(rename = "sdpMLineIndex")]
     pub sdp_m_line_index: u64,
 }
