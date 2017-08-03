@@ -56,22 +56,22 @@ pub enum MessageEventContent {
     /// An emote message.
     Emote(EmoteMessageEventContent),
 
-    /// An file message.
+    /// A file message.
     File(FileMessageEventContent),
 
     /// An image message.
     Image(ImageMessageEventContent),
 
-    /// An location message.
+    /// A location message.
     Location(LocationMessageEventContent),
 
-    /// An notice message.
+    /// A notice message.
     Notice(NoticeMessageEventContent),
 
     /// An text message.
     Text(TextMessageEventContent),
 
-    /// An video message.
+    /// A video message.
     Video(VideoMessageEventContent),
 }
 
