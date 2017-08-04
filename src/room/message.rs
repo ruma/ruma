@@ -221,8 +221,9 @@ pub struct VideoInfo {
     #[serde(skip_serializing_if="Option::is_none")]
     pub duration: Option<u64>,
     /// The height of the video in pixels.
+    #[serde(rename = "h")]
     #[serde(skip_serializing_if="Option::is_none")]
-    pub h: Option<u64>,
+    pub height: Option<u64>,
     /// The mimetype of the video, e.g. "video/mp4."
     #[serde(skip_serializing_if="Option::is_none")]
     pub mimetype: Option<String>,
@@ -236,8 +237,9 @@ pub struct VideoInfo {
     #[serde(skip_serializing_if="Option::is_none")]
     pub thumbnail_url: Option<String>,
     /// The width of the video in pixels.
+    #[serde(rename = "w")]
     #[serde(skip_serializing_if="Option::is_none")]
-    pub w: Option<u64>,
+    pub width: Option<u64>,
 }
 
 impl_enum! {

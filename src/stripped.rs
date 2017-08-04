@@ -333,8 +333,8 @@ mod tests {
             StrippedState::RoomAvatar(event) => {
                 let image_info = event.content.info.unwrap();
 
-                assert_eq!(image_info.h, 128);
-                assert_eq!(image_info.w, 128);
+                assert_eq!(image_info.height, 128);
+                assert_eq!(image_info.width, 128);
                 assert_eq!(image_info.mimetype, "image/jpeg");
                 assert_eq!(image_info.size, 1024);
                 assert_eq!(event.content.thumbnail_info.unwrap().size, 32);
