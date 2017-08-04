@@ -2,7 +2,6 @@
 #![feature(try_from)]
 
 extern crate futures;
-extern crate hyper;
 extern crate ruma_client;
 extern crate ruma_events;
 extern crate ruma_identifiers;
