@@ -305,9 +305,11 @@ pub mod sync_events {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct UnreadNotificationsCount {
         /// The number of unread notifications for this room with the highlight flag set.
-        pub highlight_count: u64,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub highlight_count: Option<u64>,
         /// The total number of unread notifications for this room.
-        pub notification_count: u64,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub notification_count: Option<u64>,
     }
 
     /// Events in the room.
@@ -319,7 +321,7 @@ pub mod sync_events {
         /// `/rooms/{roomId}/messages` endpoint.
         pub prev_batch: String,
         /// A list of events.
-        pub events: Vec<all::StateEvent>,
+        pub events: Vec<all::RoomEvent>,
     }
 
     /// State events in the room.
