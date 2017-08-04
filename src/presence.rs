@@ -18,6 +18,7 @@ pub struct PresenceEventContent {
     pub avatar_url: Option<String>,
 
     /// Whether or not the user is currently active.
+    #[serde(skip_serializing_if="Option::is_none")]
     pub currently_active: Option<bool>,
 
     /// The current display name for this user.

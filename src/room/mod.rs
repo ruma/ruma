@@ -21,11 +21,13 @@ pub mod topic;
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ImageInfo {
     /// The height of the image in pixels.
+    #[serde(rename = "h")]
     pub height: u64,
     /// The MIME type of the image, e.g. "image/png."
     pub mimetype: String,
     /// The file size of the image in bytes.
     pub size: u64,
     /// The width of the image in pixels.
+    #[serde(rename = "w")]
     pub width: u64,
 }
