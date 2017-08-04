@@ -40,10 +40,10 @@ macro_rules! clone {
 }
 
 fn hello_world(
-    tokio_handle: TokioHandle,
+    tokio_handle: &TokioHandle,
     homeserver_url: Url,
 ) -> impl Future<Item = (), Error = ruma_client::Error> + 'static {
-    let client = Client::https(&tokio_handle, homeserver_url, None).unwrap();
+    let client = Client::https(tokio_handle, homeserver_url, None).unwrap();
 
     client.register_guest().and_then(clone!(client => move |_| {
         r0::alias::get_alias::call(client, r0::alias::get_alias::Request {
@@ -74,5 +74,5 @@ fn main() {
     let handle = core.handle();
     let server = Url::parse("https://matrix.org/").unwrap();
 
-    core.run(hello_world(handle, server)).unwrap();
+    core.run(hello_world(&handle, server)).unwrap();
 }
