@@ -13,7 +13,6 @@ extern crate native_tls;
 extern crate ruma_api;
 extern crate ruma_client_api;
 extern crate ruma_identifiers;
-extern crate serde;
 extern crate serde_json;
 extern crate serde_urlencoded;
 extern crate tokio_core;
