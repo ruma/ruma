@@ -53,6 +53,10 @@ pub enum Error {
     SerdeUrlEncoded(serde_urlencoded::ser::Error),
     /// An HTTP status code indicating error.
     StatusCode(StatusCode),
+    /// Standard hack to prevent exhaustive matching.
+    /// This will be replaced by the #[non_exhaustive] feature when available.
+    #[doc(hidden)]
+    __Nonexhaustive,
 }
 
 impl From<http::Error> for Error {
