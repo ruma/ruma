@@ -17,8 +17,6 @@ extern crate http;
 #[cfg(test)]
 extern crate ruma_identifiers;
 #[cfg(test)]
-extern crate serde;
-#[cfg(test)]
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
@@ -106,7 +104,7 @@ mod tests {
         use std::convert::TryFrom;
 
         use futures::future::{err, ok, FutureFrom, FutureResult};
-        use http::method::PUT;
+        use http::method::Method;
         use http::{Request as HttpRequest, Response as HttpResponse};
         use ruma_identifiers::{RoomAliasId, RoomId};
         use serde_json;
@@ -122,7 +120,7 @@ mod tests {
 
             const METADATA: Metadata = Metadata {
                 description: "Add an alias to a room.",
-                method: PUT,
+                method: Method::PUT,
                 name: "create_alias",
                 path: "/_matrix/client/r0/directory/room/:room_alias",
                 rate_limited: false,
