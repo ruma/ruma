@@ -260,6 +260,7 @@ pub mod sync_events {
 
     /// A filter represented either as its full JSON definition or the ID of a saved filter.
     #[derive(Clone, Debug, Deserialize, Serialize)]
+    #[serde(untagged)]
     pub enum Filter {
         /// A complete filter definition serialized to JSON.
         FilterDefinition(FilterDefinition),
