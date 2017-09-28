@@ -219,18 +219,23 @@ pub mod sync_events {
         request {
             /// A filter represented either as its full JSON definition or the ID of a saved filter.
             #[serde(skip_serializing_if = "Option::is_none")]
+            #[ruma_api(query)]
             pub filter: Option<Filter>,
             /// A point in time to continue a sync from.
             #[serde(skip_serializing_if = "Option::is_none")]
+            #[ruma_api(query)]
             pub since: Option<String>,
             /// Controls whether to include the full state for all rooms the user is a member of.
             #[serde(skip_serializing_if = "Option::is_none")]
+            #[ruma_api(query)]
             pub full_state: Option<bool>,
             /// Controls whether the client is automatically marked as online by polling this API.
             #[serde(skip_serializing_if = "Option::is_none")]
+            #[ruma_api(query)]
             pub set_presence: Option<SetPresence>,
             /// The maximum time to poll in milliseconds before returning this request.
             #[serde(skip_serializing_if = "Option::is_none")]
+            #[ruma_api(query)]
             pub timeout: Option<u64>,
         }
 
