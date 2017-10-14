@@ -109,7 +109,7 @@ where
     /// session data returned by the endpoint in this client, instead of
     /// returning it.
     pub fn log_in(&self, user: String, password: String)
-    -> impl Future<Item = (), Error = Error> {
+    -> impl Future<Item = Session, Error = Error> {
         use api::r0::session::login;
 
         let data = self.0.clone();
@@ -121,15 +121,17 @@ where
             password,
             user,
         }).map(move |response| {
-            *data.session.borrow_mut() =
-                Some(Session::new(response.access_token, response.user_id));
+            let session = Session::new(response.access_token, response.user_id);
+            *data.session.borrow_mut() = Some(session.clone());
+
+            session
         })
     }
 
     /// Register as a guest. In contrast to api::r0::account::register::call(),
     /// this method stores the session data returned by the endpoint in this
     /// client, instead of returning it.
-    pub fn register_guest(&self) -> impl Future<Item = (), Error = Error> {
+    pub fn register_guest(&self) -> impl Future<Item = Session, Error = Error> {
         use api::r0::account::register;
 
         let data = self.0.clone();
@@ -143,8 +145,10 @@ where
             password: None,
             username: None,
         }).map(move |response| {
-            *data.session.borrow_mut() =
-                Some(Session::new(response.access_token, response.user_id));
+            let session = Session::new(response.access_token, response.user_id);
+            *data.session.borrow_mut() = Some(session.clone());
+
+            session
         })
     }
 
@@ -160,7 +164,7 @@ where
         &self,
         username: Option<String>,
         password: String,
-    ) -> impl Future<Item = (), Error = Error> {
+    ) -> impl Future<Item = Session, Error = Error> {
         use api::r0::account::register;
 
         let data = self.0.clone();
@@ -174,8 +178,10 @@ where
             password: Some(password),
             username: username,
         }).map(move |response| {
-            *data.session.borrow_mut() =
-                Some(Session::new(response.access_token, response.user_id));
+            let session = Session::new(response.access_token, response.user_id);
+            *data.session.borrow_mut() = Some(session.clone());
+
+            session
         })
     }
 
