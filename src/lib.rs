@@ -3,7 +3,7 @@
 //! shared by client and server code.
 
 #![deny(missing_debug_implementations, missing_docs)]
-#![feature(associated_consts, proc_macro, try_from)]
+#![feature(proc_macro, try_from)]
 
 extern crate futures;
 extern crate hyper;
