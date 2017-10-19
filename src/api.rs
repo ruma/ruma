@@ -32,10 +32,10 @@ macro_rules! endpoint {
             use {Client, Error};
 
             /// Make a request to this API endpoint.
-            pub fn call<'a, C>(
-                client: &'a Client<C>,
+            pub fn call<C>(
+                client: Client<C>,
                 request: Request,
-            ) -> impl Future<Item = Response, Error = Error> + 'a
+            ) -> impl Future<Item = Response, Error = Error>
             where
                 C: Connect,
             {
