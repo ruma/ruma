@@ -18,11 +18,11 @@ use ruma_client::api::r0;
 use ruma_events::EventType;
 use ruma_events::room::message::{MessageEventContent, MessageType, TextMessageEventContent};
 use ruma_identifiers::RoomAliasId;
-use tokio_core::reactor::{Core as TokioCore, Handle as TokioHandle};
+use tokio_core::reactor::{Core, Handle};
 use url::Url;
 
 fn hello_world(
-    tokio_handle: &TokioHandle,
+    tokio_handle: &Handle,
     homeserver_url: Url,
 ) -> impl Future<Item = (), Error = ruma_client::Error> + 'static {
     let client = Client::https(tokio_handle, homeserver_url, None).unwrap();
@@ -65,7 +65,7 @@ fn hello_world(
 }
 
 fn main() {
-    let mut core = TokioCore::new().unwrap();
+    let mut core = Core::new().unwrap();
     let handle = core.handle();
     let server = Url::parse("https://matrix.org/").unwrap();
 
