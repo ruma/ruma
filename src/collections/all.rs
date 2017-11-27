@@ -19,6 +19,7 @@ use room::join_rules::JoinRulesEvent;
 use room::member::MemberEvent;
 use room::message::MessageEvent;
 use room::name::NameEvent;
+use room::pinned_events::PinnedEventsEvent;
 use room::power_levels::PowerLevelsEvent;
 use room::redaction::RedactionEvent;
 use room::third_party_invite::ThirdPartyInviteEvent;
@@ -67,6 +68,8 @@ pub enum Event {
     RoomMessage(MessageEvent),
     /// m.room.name
     RoomName(NameEvent),
+    /// m.room.pinned_events
+    RoomPinnedEvents(PinnedEventsEvent),
     /// m.room.power_levels
     RoomPowerLevels(PowerLevelsEvent),
     /// m.room.redaction
@@ -118,6 +121,8 @@ pub enum RoomEvent {
     RoomMessage(MessageEvent),
     /// m.room.name
     RoomName(NameEvent),
+    /// m.room.pinned_events
+    RoomPinnedEvents(PinnedEventsEvent),
     /// m.room.power_levels
     RoomPowerLevels(PowerLevelsEvent),
     /// m.room.redaction
@@ -153,6 +158,8 @@ pub enum StateEvent {
     RoomMember(MemberEvent),
     /// m.room.name
     RoomName(NameEvent),
+    /// m.room.pinned_events
+    RoomPinnedEvents(PinnedEventsEvent),
     /// m.room.power_levels
     RoomPowerLevels(PowerLevelsEvent),
     /// m.room.third_party_invite
@@ -183,6 +190,7 @@ impl Serialize for Event {
             Event::RoomMember(ref event) => event.serialize(serializer),
             Event::RoomMessage(ref event) => event.serialize(serializer),
             Event::RoomName(ref event) => event.serialize(serializer),
+            Event::RoomPinnedEvents(ref event) => event.serialize(serializer),
             Event::RoomPowerLevels(ref event) => event.serialize(serializer),
             Event::RoomRedaction(ref event) => event.serialize(serializer),
             Event::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
@@ -347,6 +355,14 @@ impl<'de> Deserialize<'de> for Event {
 
                 Ok(Event::RoomName(event))
             }
+            EventType::RoomPinnedEvents => {
+                let event = match from_value::<PinnedEventsEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::RoomPinnedEvents(event))
+            }
             EventType::RoomPowerLevels => {
                 let event = match from_value::<PowerLevelsEvent>(value) {
                     Ok(event) => event,
@@ -441,6 +457,7 @@ impl Serialize for RoomEvent {
             RoomEvent::RoomMember(ref event) => event.serialize(serializer),
             RoomEvent::RoomMessage(ref event) => event.serialize(serializer),
             RoomEvent::RoomName(ref event) => event.serialize(serializer),
+            RoomEvent::RoomPinnedEvents(ref event) => event.serialize(serializer),
             RoomEvent::RoomPowerLevels(ref event) => event.serialize(serializer),
             RoomEvent::RoomRedaction(ref event) => event.serialize(serializer),
             RoomEvent::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
@@ -578,6 +595,14 @@ impl<'de> Deserialize<'de> for RoomEvent {
 
                 Ok(RoomEvent::RoomName(event))
             }
+            EventType::RoomPinnedEvents => {
+                let event = match from_value::<PinnedEventsEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(RoomEvent::RoomPinnedEvents(event))
+            }
             EventType::RoomPowerLevels => {
                 let event = match from_value::<PowerLevelsEvent>(value) {
                     Ok(event) => event,
@@ -650,6 +675,7 @@ impl Serialize for StateEvent {
             StateEvent::RoomJoinRules(ref event) => event.serialize(serializer),
             StateEvent::RoomMember(ref event) => event.serialize(serializer),
             StateEvent::RoomName(ref event) => event.serialize(serializer),
+            StateEvent::RoomPinnedEvents(ref event) => event.serialize(serializer),
             StateEvent::RoomPowerLevels(ref event) => event.serialize(serializer),
             StateEvent::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
             StateEvent::RoomTopic(ref event) => event.serialize(serializer),
@@ -745,6 +771,14 @@ impl<'de> Deserialize<'de> for StateEvent {
 
                 Ok(StateEvent::RoomName(event))
             }
+            EventType::RoomPinnedEvents => {
+                let event = match from_value::<PinnedEventsEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(StateEvent::RoomPinnedEvents(event))
+            }
             EventType::RoomPowerLevels => {
                 let event = match from_value::<PowerLevelsEvent>(value) {
                     Ok(event) => event,
@@ -821,6 +855,7 @@ impl_from_t_for_event!(JoinRulesEvent, RoomJoinRules);
 impl_from_t_for_event!(MemberEvent, RoomMember);
 impl_from_t_for_event!(MessageEvent, RoomMessage);
 impl_from_t_for_event!(NameEvent, RoomName);
+impl_from_t_for_event!(PinnedEventsEvent, RoomPinnedEvents);
 impl_from_t_for_event!(PowerLevelsEvent, RoomPowerLevels);
 impl_from_t_for_event!(RedactionEvent, RoomRedaction);
 impl_from_t_for_event!(ThirdPartyInviteEvent, RoomThirdPartyInvite);
@@ -855,6 +890,7 @@ impl_from_t_for_room_event!(JoinRulesEvent, RoomJoinRules);
 impl_from_t_for_room_event!(MemberEvent, RoomMember);
 impl_from_t_for_room_event!(MessageEvent, RoomMessage);
 impl_from_t_for_room_event!(NameEvent, RoomName);
+impl_from_t_for_room_event!(PinnedEventsEvent, RoomPinnedEvents);
 impl_from_t_for_room_event!(PowerLevelsEvent, RoomPowerLevels);
 impl_from_t_for_room_event!(RedactionEvent, RoomRedaction);
 impl_from_t_for_room_event!(ThirdPartyInviteEvent, RoomThirdPartyInvite);
@@ -881,6 +917,7 @@ impl_from_t_for_state_event!(HistoryVisibilityEvent, RoomHistoryVisibility);
 impl_from_t_for_state_event!(JoinRulesEvent, RoomJoinRules);
 impl_from_t_for_state_event!(MemberEvent, RoomMember);
 impl_from_t_for_state_event!(NameEvent, RoomName);
+impl_from_t_for_state_event!(PinnedEventsEvent, RoomPinnedEvents);
 impl_from_t_for_state_event!(PowerLevelsEvent, RoomPowerLevels);
 impl_from_t_for_state_event!(ThirdPartyInviteEvent, RoomThirdPartyInvite);
 impl_from_t_for_state_event!(TopicEvent, RoomTopic);

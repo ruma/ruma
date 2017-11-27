@@ -136,8 +136,9 @@ impl<'de> Deserialize<'de> for Event {
             EventType::CallInvite | EventType::RoomAliases | EventType::RoomAvatar |
             EventType::RoomCanonicalAlias | EventType::RoomCreate | EventType::RoomGuestAccess |
             EventType::RoomHistoryVisibility | EventType::RoomJoinRules | EventType::RoomMember |
-            EventType::RoomMessage | EventType::RoomName | EventType::RoomPowerLevels |
-            EventType::RoomRedaction | EventType::RoomThirdPartyInvite | EventType::RoomTopic => {
+            EventType::RoomMessage | EventType::RoomName | EventType::RoomPinnedEvents |
+            EventType::RoomPowerLevels | EventType::RoomRedaction | EventType::RoomThirdPartyInvite |
+            EventType::RoomTopic => {
                 return Err(D::Error::custom("not exclusively a basic event".to_string()));
             }
         }
@@ -241,6 +242,7 @@ impl<'de> Deserialize<'de> for RoomEvent {
             EventType::RoomJoinRules |
             EventType::RoomMember |
             EventType::RoomName |
+            EventType::RoomPinnedEvents |
             EventType::RoomPowerLevels |
             EventType::RoomThirdPartyInvite |
             EventType::RoomTopic |
