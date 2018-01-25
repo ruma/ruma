@@ -114,7 +114,7 @@ where
             },
         )
         .map(move |response| {
-            let session = Session::new(response.access_token, response.user_id);
+            let session = Session::new(response.access_token, response.user_id, response.device_id);
             *data.session.borrow_mut() = Some(session.clone());
 
             session
@@ -142,7 +142,7 @@ where
             },
         )
         .map(move |response| {
-            let session = Session::new(response.access_token, response.user_id);
+            let session = Session::new(response.access_token, response.user_id, response.device_id);
             *data.session.borrow_mut() = Some(session.clone());
 
             session
@@ -179,7 +179,7 @@ where
             },
         )
         .map(move |response| {
-            let session = Session::new(response.access_token, response.user_id);
+            let session = Session::new(response.access_token, response.user_id, response.device_id);
             *data.session.borrow_mut() = Some(session.clone());
 
             session
