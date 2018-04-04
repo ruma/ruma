@@ -210,16 +210,12 @@ fn validate_id<'a>(id: &'a str) -> Result<(), Error> {
 fn parse_id<'a>(required_sigil: char, id: &'a str) -> Result<(&'a str, Host, u16), Error> {
     validate_id(id)?;
 
-    let mut chars = id.chars();
-
-    let sigil = chars.nth(0).expect("ID missing first character.");
-
-    if sigil != required_sigil {
+    if !id.starts_with(required_sigil) {
         return Err(Error::MissingSigil);
     }
 
-    let delimiter_index = match chars.position(|c| c == ':') {
-        Some(index) => index + 1,
+    let delimiter_index = match id.find(':') {
+        Some(index) => index,
         None => return Err(Error::MissingDelimiter),
     };
 
@@ -923,6 +919,16 @@ mod tests {
     }
 
     #[test]
+    fn valid_room_alias_id_unicode() {
+        assert_eq!(
+            RoomAliasId::try_from("#老虎Â£я:example.com")
+                .expect("Failed to create RoomAliasId.")
+                .to_string(),
+            "#老虎Â£я:example.com"
+        );
+    }
+
+    #[test]
     fn missing_room_alias_id_sigil() {
         assert_eq!(
             RoomAliasId::try_from("39hvsi03hlne:example.com").err().unwrap(),
@@ -953,6 +959,7 @@ mod tests {
             Error::InvalidHost
         );
     }
+
     #[test]
     fn valid_room_id() {
         assert_eq!(
