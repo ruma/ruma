@@ -5,6 +5,7 @@ pub mod forget_room;
 pub mod invite_user;
 pub mod join_room_by_id;
 pub mod join_room_by_id_or_alias;
+pub mod joined_rooms;
 pub mod kick_user;
 pub mod leave_room;
 pub mod unban_user;
