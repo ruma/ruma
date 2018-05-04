@@ -1,4 +1,5 @@
 use quote::{ToTokens, Tokens};
+use syn::synom::Synom;
 use syn::{Expr, Ident};
 
 #[derive(Debug)]
@@ -9,6 +10,55 @@ pub struct Metadata {
     pub path: Tokens,
     pub rate_limited: Tokens,
     pub requires_authentication: Tokens,
+}
+
+impl Synom for Metadata {
+    named!(parse -> Self, do_parse!(
+        ident: syn!(Ident) >>
+        cond_reduce!(ident == "description") >>
+        punct!(:) >>
+        description: syn!(Expr) >>
+        punct!(,) >>
+
+        ident: syn!(Ident) >>
+        cond_reduce!(ident == "method") >>
+        punct!(:) >>
+        method: syn!(Expr) >>
+        punct!(,) >>
+
+        ident: syn!(Ident) >>
+        cond_reduce!(ident == "name") >>
+        punct!(:) >>
+        name: syn!(Expr) >>
+        punct!(,) >>
+
+        ident: syn!(Ident) >>
+        cond_reduce!(ident == "path") >>
+        punct!(:) >>
+        path: syn!(Expr) >>
+        punct!(,) >>
+
+        ident: syn!(Ident) >>
+        cond_reduce!(ident == "rate_limited") >>
+        punct!(:) >>
+        rate_limited: syn!(Expr) >>
+        punct!(,) >>
+
+        ident: syn!(Ident) >>
+        cond_reduce!(ident == "requires_authentication") >>
+        punct!(:) >>
+        requires_authentication: syn!(Expr) >>
+        punct!(,) >>
+
+        (Metadata {
+            description,
+            method,
+            name,
+            path,
+            rate_limited,
+            requires_authentication,
+        })
+    ));
 }
 
 impl From<Vec<(Ident, Expr)>> for Metadata {

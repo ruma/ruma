@@ -4,24 +4,24 @@
 //! See the documentation for the `ruma_api!` macro for usage details.
 
 #![deny(missing_debug_implementations)]
-#![feature(proc_macro)]
+#![feature(proc_macro, try_from)]
 #![recursion_limit="256"]
+#![allow(warnings)]
 
 extern crate proc_macro;
 #[macro_use] extern crate quote;
 extern crate ruma_api;
-extern crate syn;
-#[macro_use] extern crate synom;
+#[macro_use] extern crate syn;
 
 use proc_macro::TokenStream;
+use std::convert::TryFrom;
 
 use quote::{ToTokens, Tokens};
 
-use api::Api;
-use parse::parse_entries;
+use api::{Api, Exprs};
 
 mod api;
-mod parse;
+// mod parse;
 
 /// Generates a `ruma_api::Endpoint` from a concise definition.
 ///
@@ -196,13 +196,15 @@ mod parse;
 /// ```
 #[proc_macro]
 pub fn ruma_api(input: TokenStream) -> TokenStream {
-    let entries = parse_entries(&input.to_string()).expect("ruma_api! failed to parse input");
-
-    let api = Api::from(entries);
+    let exprs: Exprs = syn::parse(input).expect("ruma_api! failed to parse input");
+    let api = match Api::try_from(exprs.inner) {
+        Ok(api) => api,
+        Err(error) => panic!("{}", error),
+    };
 
     let mut tokens = Tokens::new();
 
     api.to_tokens(&mut tokens);
 
-    tokens.parse().expect("ruma_api! failed to parse output tokens as a TokenStream")
+    tokens.into()
 }

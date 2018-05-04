@@ -6,12 +6,12 @@ use syn::{
     Expr,
     Field,
     Ident,
-    MetaItem,
-    NestedMetaItem,
+    Meta,
+    NestedMeta,
     Visibility,
 };
-use syn::parse::{expr, ident, lit, ty};
-use synom::space::{block_comment, whitespace};
+// use syn::parse::{expr, ident, lit, ty};
+// use synom::space::{block_comment, whitespace};
 
 #[derive(Debug)]
 pub enum Entry {
@@ -27,27 +27,24 @@ named!(pub parse_entries -> Vec<Entry>, do_parse!(
 
 named!(entry -> Entry, alt!(
     do_parse!(
-        keyword!("metadata") >>
-        punct!("{") >>
-        fields: many0!(struct_init_field) >>
-        punct!("}") >>
-        (Entry::Metadata(fields))
+        block_type: syn!(Ident) >>
+        cond_reduce!(block_type == "metadata") >>
+        brace_and_fields: braces!(many0!(struct_init_field)) >>
+        (Entry::Metadata(brace_and_fields.1))
     )
     |
     do_parse!(
-        keyword!("request") >>
-        punct!("{") >>
-        fields: terminated_list!(punct!(","), struct_field) >>
-        punct!("}") >>
-        (Entry::Request(fields))
+        block_type: syn!(Ident) >>
+        cond_reduce!(block_type == "request") >>
+        brace_and_fields: braces!(terminated_list!(punct!(","), struct_field)) >>
+        (Entry::Request(brace_and_fields.1))
     )
     |
     do_parse!(
-        keyword!("response") >>
-        punct!("{") >>
-        fields: terminated_list!(punct!(","), struct_field) >>
-        punct!("}") >>
-        (Entry::Response(fields))
+        block_type: syn!(Ident) >>
+        cond_reduce!(block_type == "response") >>
+        brace_and_fields: braces!(terminated_list!(punct!(","), struct_field)) >>
+        (Entry::Response(brace_and_fields.1))
     )
 ));
 
@@ -55,9 +52,9 @@ named!(entry -> Entry, alt!(
 
 named!(struct_init_field -> (Ident, Expr), do_parse!(
     ident: ident >>
-    punct!(":") >>
+    punct!(:) >>
     expr: expr >>
-    punct!(",") >>
+    punct!(,) >>
     (ident, expr)
 ));
 
@@ -65,7 +62,7 @@ named!(struct_field -> Field, do_parse!(
     attrs: many0!(outer_attr) >>
     visibility >>
     id: ident >>
-    punct!(":") >>
+    punct!(:) >>
     ty: ty >>
     (Field {
         ident: Some(id),
@@ -77,24 +74,24 @@ named!(struct_field -> Field, do_parse!(
 
 named!(outer_attr -> Attribute, alt!(
     do_parse!(
-        punct!("#") >>
-        punct!("[") >>
-        meta_item: meta_item >>
-        punct!("]") >>
+        punct!(#) >>
+        brackets_and_meta_item: brackets!(meta_item) >>
         (Attribute {
             style: AttrStyle::Outer,
-            value: meta_item,
+            value: brackets_and_meta_item.1,
             is_sugared_doc: false,
         })
     )
     |
     do_parse!(
-        punct!("///") >>
+        punct!(/) >>
+        punct!(/) >>
+        punct!(/) >>
         not!(tag!("/")) >>
         content: take_until!("\n") >>
         (Attribute {
             style: AttrStyle::Outer,
-            value: MetaItem::NameValue(
+            value: Meta::NameValue(
                 "doc".into(),
                 format!("///{}", content).into(),
             ),
@@ -108,7 +105,7 @@ named!(outer_attr -> Attribute, alt!(
         com: block_comment >>
         (Attribute {
             style: AttrStyle::Outer,
-            value: MetaItem::NameValue(
+            value: Meta::NameValue(
                 "doc".into(),
                 com.into(),
             ),
@@ -117,33 +114,31 @@ named!(outer_attr -> Attribute, alt!(
     )
 ));
 
-named!(meta_item -> MetaItem, alt!(
+named!(meta_item -> Meta, alt!(
     do_parse!(
         id: ident >>
-        punct!("(") >>
-        inner: terminated_list!(punct!(","), nested_meta_item) >>
-        punct!(")") >>
-        (MetaItem::List(id, inner))
+        parens_and_inner: parens!(terminated_list!(punct!(,), nested_meta_item)) >>
+        (Meta::List(id, parens_and_inner.1))
     )
     |
     do_parse!(
         name: ident >>
-        punct!("=") >>
+        punct!(=) >>
         value: lit >>
-        (MetaItem::NameValue(name, value))
+        (Meta::NameValue(name, value))
     )
     |
-    map!(ident, MetaItem::Word)
+    map!(ident, Meta::Word)
 ));
 
-named!(nested_meta_item -> NestedMetaItem, alt!(
-    meta_item => { NestedMetaItem::MetaItem }
+named!(nested_meta_item -> NestedMeta, alt!(
+    meta_item => { NestedMeta::Meta }
     |
-    lit => { NestedMetaItem::Literal }
+    lit => { NestedMeta::Literal }
 ));
 
 named!(visibility -> Visibility, alt!(
-    keyword!("pub") => { |_| Visibility::Public }
+    keyword!(pub) => { |_| Visibility::Public }
     |
     epsilon!() => { |_| Visibility::Inherited }
 ));

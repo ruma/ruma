@@ -1,5 +1,5 @@
 use quote::{ToTokens, Tokens};
-use syn::{Field, MetaItem, NestedMetaItem};
+use syn::{Field, Meta, NestedMeta};
 
 use api::strip_serde_attrs;
 
@@ -83,7 +83,7 @@ impl From<Vec<Field>> for Response {
 
             field.attrs = field.attrs.into_iter().filter(|attr| {
                 let (attr_ident, nested_meta_items) = match attr.value {
-                    MetaItem::List(ref attr_ident, ref nested_meta_items) => {
+                    Meta::List(ref attr_ident, ref nested_meta_items) => {
                         (attr_ident, nested_meta_items)
                     }
                     _ => return true,
@@ -95,9 +95,9 @@ impl From<Vec<Field>> for Response {
 
                 for nested_meta_item in nested_meta_items {
                     match *nested_meta_item {
-                        NestedMetaItem::MetaItem(ref meta_item) => {
+                        NestedMeta::Meta(ref meta_item) => {
                             match *meta_item {
-                                MetaItem::Word(ref ident) => {
+                                Meta::Word(ref ident) => {
                                     if ident == "body" {
                                         has_newtype_body = true;
                                         response_field_kind = ResponseFieldKind::NewtypeBody;
@@ -114,7 +114,7 @@ impl From<Vec<Field>> for Response {
                                 ),
                             }
                         }
-                        NestedMetaItem::Literal(_) => panic!(
+                        NestedMeta::Literal(_) => panic!(
                             "ruma_api! attribute meta item on responses must be: header"
                         ),
                     }

@@ -1,11 +1,21 @@
 use quote::{ToTokens, Tokens};
-use syn::{Field, MetaItem, NestedMetaItem};
+use syn::synom::Synom;
+use syn::{Field, FieldsNamed, Meta, NestedMeta};
 
 use api::strip_serde_attrs;
 
 #[derive(Debug)]
 pub struct Request {
     fields: Vec<RequestField>,
+}
+
+impl Synom for Request {
+    named!(parse -> Self, do_parse!(
+        fields: syn!(FieldsNamed) >>
+        (Request {
+            fields,
+        })
+    ));
 }
 
 impl Request {
@@ -74,7 +84,7 @@ impl From<Vec<Field>> for Request {
 
             field.attrs = field.attrs.into_iter().filter(|attr| {
                 let (attr_ident, nested_meta_items) = match attr.value {
-                    MetaItem::List(ref attr_ident, ref nested_meta_items) => (attr_ident, nested_meta_items),
+                    Meta::List(ref attr_ident, ref nested_meta_items) => (attr_ident, nested_meta_items),
                     _ => return true,
                 };
 
@@ -84,9 +94,9 @@ impl From<Vec<Field>> for Request {
 
                 for nested_meta_item in nested_meta_items {
                     match *nested_meta_item {
-                        NestedMetaItem::MetaItem(ref meta_item) => {
+                        NestedMeta::Meta(ref meta_item) => {
                             match *meta_item {
-                                MetaItem::Word(ref ident) => {
+                                Meta::Word(ref ident) => {
                                     if ident == "body" {
                                         has_newtype_body = true;
                                         request_field_kind = RequestFieldKind::NewtypeBody;
@@ -107,7 +117,7 @@ impl From<Vec<Field>> for Request {
                                 ),
                             }
                         }
-                        NestedMetaItem::Literal(_) => panic!(
+                        NestedMeta::Literal(_) => panic!(
                             "ruma_api! attribute meta item on requests must be: body, header, path, or query"
                         ),
                     }
