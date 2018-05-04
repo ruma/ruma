@@ -1,68 +1,22 @@
+use std::convert::TryFrom;
+
 use quote::{ToTokens, Tokens};
 use syn::synom::Synom;
-use syn::{Expr, Ident};
+use syn::{Expr, ExprStruct, Ident, Member};
 
-#[derive(Debug)]
 pub struct Metadata {
-    pub description: Tokens,
-    pub method: Tokens,
-    pub name: Tokens,
-    pub path: Tokens,
-    pub rate_limited: Tokens,
-    pub requires_authentication: Tokens,
+    pub description: Expr,
+    pub method: Expr,
+    pub name: Expr,
+    pub path: Expr,
+    pub rate_limited: Expr,
+    pub requires_authentication: Expr,
 }
 
-impl Synom for Metadata {
-    named!(parse -> Self, do_parse!(
-        ident: syn!(Ident) >>
-        cond_reduce!(ident == "description") >>
-        punct!(:) >>
-        description: syn!(Expr) >>
-        punct!(,) >>
+impl TryFrom<ExprStruct> for Metadata {
+    type Error = &'static str;
 
-        ident: syn!(Ident) >>
-        cond_reduce!(ident == "method") >>
-        punct!(:) >>
-        method: syn!(Expr) >>
-        punct!(,) >>
-
-        ident: syn!(Ident) >>
-        cond_reduce!(ident == "name") >>
-        punct!(:) >>
-        name: syn!(Expr) >>
-        punct!(,) >>
-
-        ident: syn!(Ident) >>
-        cond_reduce!(ident == "path") >>
-        punct!(:) >>
-        path: syn!(Expr) >>
-        punct!(,) >>
-
-        ident: syn!(Ident) >>
-        cond_reduce!(ident == "rate_limited") >>
-        punct!(:) >>
-        rate_limited: syn!(Expr) >>
-        punct!(,) >>
-
-        ident: syn!(Ident) >>
-        cond_reduce!(ident == "requires_authentication") >>
-        punct!(:) >>
-        requires_authentication: syn!(Expr) >>
-        punct!(,) >>
-
-        (Metadata {
-            description,
-            method,
-            name,
-            path,
-            rate_limited,
-            requires_authentication,
-        })
-    ));
-}
-
-impl From<Vec<(Ident, Expr)>> for Metadata {
-    fn from(fields: Vec<(Ident, Expr)>) -> Self {
+    fn try_from(expr: ExprStruct) -> Result<Self, Self::Error> {
         let mut description = None;
         let mut method = None;
         let mut name = None;
@@ -70,43 +24,51 @@ impl From<Vec<(Ident, Expr)>> for Metadata {
         let mut rate_limited = None;
         let mut requires_authentication = None;
 
-        for field in fields {
-            let (identifier, expression) = field;
+        for field in expr.fields {
+            let Member::Named(identifier) = field.member;
 
-            if identifier == Ident::new("description") {
-                description = Some(tokens_for(expression));
-            } else if identifier == Ident::new("method") {
-                method = Some(tokens_for(expression));
-            } else if identifier == Ident::new("name") {
-                name = Some(tokens_for(expression));
-            } else if identifier == Ident::new("path") {
-                path = Some(tokens_for(expression));
-            } else if identifier == Ident::new("rate_limited") {
-                rate_limited = Some(tokens_for(expression));
-            } else if identifier == Ident::new("requires_authentication") {
-                requires_authentication = Some(tokens_for(expression));
-            } else {
-                panic!("ruma_api! metadata included unexpected field: {}", identifier);
+            match identifier.as_ref() {
+                "description" => description = Some(field.expr),
+                "method" => method = Some(field.expr),
+                "name" => name = Some(field.expr),
+                "path" => path = Some(field.expr),
+                "rate_limited" => rate_limited = Some(field.expr),
+                "requires_authentication" => requires_authentication = Some(field.expr),
+                _ => return Err("ruma_api! metadata included unexpected field"),
             }
         }
 
-        Metadata {
-            description: description.expect("ruma_api! metadata is missing description"),
-            method: method.expect("ruma_api! metadata is missing method"),
-            name: name.expect("ruma_api! metadata is missing name"),
-            path: path.expect("ruma_api! metadata is missing path"),
-            rate_limited: rate_limited.expect("ruma_api! metadata is missing rate_limited"),
-            requires_authentication: requires_authentication
-                .expect("ruma_api! metadata is missing requires_authentication"),
+        if description.is_none() {
+            return Err("ruma_api! metadata is missing description");
         }
+
+        if method.is_none() {
+            return Err("ruma_api! metadata is missing method");
+        }
+
+        if name.is_none() {
+            return Err("ruma_api! metadata is missing name");
+        }
+
+        if path.is_none() {
+            return Err("ruma_api! metadata is missing path");
+        }
+
+        if rate_limited.is_none() {
+            return Err("ruma_api! metadata is missing rate_limited");
+        }
+
+        if requires_authentication.is_none() {
+            return Err("ruma_api! metadata is missing requires_authentication");
+        }
+
+        Ok(Metadata {
+            description: description.unwrap(),
+            method: method.unwrap(),
+            name: name.unwrap(),
+            path: path.unwrap(),
+            rate_limited: rate_limited.unwrap(),
+            requires_authentication: requires_authentication.unwrap(),
+        })
     }
-}
-
-/// Helper method for turning a value into tokens.
-fn tokens_for<T>(value: T) -> Tokens where T: ToTokens {
-    let mut tokens = Tokens::new();
-
-    value.to_tokens(&mut tokens);
-
-    tokens
 }

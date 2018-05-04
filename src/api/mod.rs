@@ -35,7 +35,6 @@ use self::response::Response;
 //     field
 // }
 
-#[derive(Debug)]
 pub struct Api {
     metadata: Metadata,
     request: Request,
