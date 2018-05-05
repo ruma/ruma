@@ -199,9 +199,5 @@ pub fn ruma_api(input: TokenStream) -> TokenStream {
 
     let api = Api::from(exprs.inner);
 
-    let mut tokens = Tokens::new();
-
-    api.to_tokens(&mut tokens);
-
-    tokens.into()
+    api.into_tokens().into()
 }
