@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use quote::{ToTokens, Tokens};
 use syn::synom::Synom;
 use syn::{Expr, ExprStruct, Ident, Member};
@@ -13,10 +11,8 @@ pub struct Metadata {
     pub requires_authentication: Expr,
 }
 
-impl TryFrom<ExprStruct> for Metadata {
-    type Error = &'static str;
-
-    fn try_from(expr: ExprStruct) -> Result<Self, Self::Error> {
+impl From<ExprStruct> for Metadata {
+    fn from(expr: ExprStruct) -> Self {
         let mut description = None;
         let mut method = None;
         let mut name = None;
@@ -34,41 +30,18 @@ impl TryFrom<ExprStruct> for Metadata {
                 "path" => path = Some(field.expr),
                 "rate_limited" => rate_limited = Some(field.expr),
                 "requires_authentication" => requires_authentication = Some(field.expr),
-                _ => return Err("ruma_api! metadata included unexpected field"),
+                _ => panic!("ruma_api! metadata included unexpected field"),
             }
         }
 
-        if description.is_none() {
-            return Err("ruma_api! metadata is missing description");
+        Metadata {
+            description: description.expect("ruma_api! `metadata` is missing `description`"),
+            method: method.expect("ruma_api! `metadata` is missing `method`"),
+            name: name.expect("ruma_api! `metadata` is missing `name`"),
+            path: path.expect("ruma_api! `metadata` is missing `path`"),
+            rate_limited: rate_limited.expect("ruma_api! `metadata` is missing `rate_limited`"),
+            requires_authentication: requires_authentication
+                .expect("ruma_api! `metadata` is missing `requires_authentication`"),
         }
-
-        if method.is_none() {
-            return Err("ruma_api! metadata is missing method");
-        }
-
-        if name.is_none() {
-            return Err("ruma_api! metadata is missing name");
-        }
-
-        if path.is_none() {
-            return Err("ruma_api! metadata is missing path");
-        }
-
-        if rate_limited.is_none() {
-            return Err("ruma_api! metadata is missing rate_limited");
-        }
-
-        if requires_authentication.is_none() {
-            return Err("ruma_api! metadata is missing requires_authentication");
-        }
-
-        Ok(Metadata {
-            description: description.unwrap(),
-            method: method.unwrap(),
-            name: name.unwrap(),
-            path: path.unwrap(),
-            rate_limited: rate_limited.unwrap(),
-            requires_authentication: requires_authentication.unwrap(),
-        })
     }
 }

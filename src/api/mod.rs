@@ -1,5 +1,3 @@
-use std::convert::{TryFrom, TryInto};
-
 use quote::{ToTokens, Tokens};
 use syn::punctuated::Pair;
 use syn::synom::Synom;
@@ -41,12 +39,10 @@ pub struct Api {
     response: Response,
 }
 
-impl TryFrom<Vec<Expr>> for Api {
-    type Error = &'static str;
-
-    fn try_from(exprs: Vec<Expr>) -> Result<Self, Self::Error> {
+impl From<Vec<Expr>> for Api {
+    fn from(exprs: Vec<Expr>) -> Self {
         if exprs.len() != 3 {
-            return Err("ruma_api! expects 3 blocks: metadata, request, and response");
+            panic!("ruma_api! expects 3 blocks: metadata, request, and response");
         }
 
         let mut metadata = None;
@@ -56,42 +52,42 @@ impl TryFrom<Vec<Expr>> for Api {
         for expr in exprs {
             let expr = match expr {
                 Expr::Struct(expr) => expr,
-                _ => return Err("ruma_api! blocks should use struct syntax"),
+                _ => panic!("ruma_api! blocks should use struct syntax"),
             };
 
             let segments = expr.path.segments;
 
             if segments.len() != 1 {
-                return Err("ruma_api! blocks must be one of: metadata, request, or response");
+                panic!("ruma_api! blocks must be one of: metadata, request, or response");
             }
 
             let Pair::End(last_segment) = segments.last().unwrap();
 
             match last_segment.ident.as_ref() {
-                "metadata" => metadata = Some(expr.try_into()?),
-                "request" => request = Some(expr.try_into()?),
-                "response" => response = Some(expr.try_into()?),
-                _ => return Err("ruma_api! blocks must be one of: metadata, request, or response"),
+                "metadata" => metadata = Some(expr.into()),
+                "request" => request = Some(expr.into()),
+                "response" => response = Some(expr.into()),
+                _ => panic!("ruma_api! blocks must be one of: metadata, request, or response"),
             }
         }
 
         if metadata.is_none() {
-            return Err("ruma_api! is missing metadata");
+            panic!("ruma_api! is missing metadata");
         }
 
         if request.is_none() {
-            return Err("ruma_api! is missing request");
+            panic!("ruma_api! is missing request");
         }
 
         if response.is_none() {
-            return Err("ruma_api! is missing response");
+            panic!("ruma_api! is missing response");
         }
 
-        Ok(Api {
+        Api {
             metadata: metadata.unwrap(),
             request: request.unwrap(),
             response: response.unwrap(),
-        })
+        }
 
     }
 }
