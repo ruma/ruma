@@ -7,7 +7,6 @@ mod metadata;
 mod request;
 mod response;
 
-// use parse::Entry;
 use self::metadata::Metadata;
 use self::request::Request;
 use self::response::Response;

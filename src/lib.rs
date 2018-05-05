@@ -21,7 +21,6 @@ use quote::{ToTokens, Tokens};
 use api::{Api, Exprs};
 
 mod api;
-// mod parse;
 
 /// Generates a `ruma_api::Endpoint` from a concise definition.
 ///
@@ -197,10 +196,8 @@ mod api;
 #[proc_macro]
 pub fn ruma_api(input: TokenStream) -> TokenStream {
     let exprs: Exprs = syn::parse(input).expect("ruma_api! failed to parse input");
-    let api = match Api::try_from(exprs.inner) {
-        Ok(api) => api,
-        Err(error) => panic!("{}", error),
-    };
+
+    let api = Api::from(exprs.inner);
 
     let mut tokens = Tokens::new();
 
