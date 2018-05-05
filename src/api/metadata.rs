@@ -1,14 +1,15 @@
 use quote::{ToTokens, Tokens};
+use syn::punctuated::Pair;
 use syn::synom::Synom;
-use syn::{Expr, ExprStruct, Ident, Member};
+use syn::{Expr, ExprStruct, Ident, Lit, Member};
 
 pub struct Metadata {
-    pub description: Expr,
-    pub method: Expr,
-    pub name: Expr,
-    pub path: Expr,
-    pub rate_limited: Expr,
-    pub requires_authentication: Expr,
+    pub description: String,
+    pub method: String,
+    pub name: String,
+    pub path: String,
+    pub rate_limited: bool,
+    pub requires_authentication: bool,
 }
 
 impl From<ExprStruct> for Metadata {
@@ -24,12 +25,42 @@ impl From<ExprStruct> for Metadata {
             let Member::Named(identifier) = field.member;
 
             match identifier.as_ref() {
-                "description" => description = Some(field.expr),
-                "method" => method = Some(field.expr),
-                "name" => name = Some(field.expr),
-                "path" => path = Some(field.expr),
-                "rate_limited" => rate_limited = Some(field.expr),
-                "requires_authentication" => requires_authentication = Some(field.expr),
+                "description" => {
+                    let Expr::Lit(expr_lit) = field.expr;
+                    let Lit::Str(lit_str) = expr_lit.lit;
+                    description = Some(lit_str.value());
+                }
+                "method" => {
+                    let Expr::Path(expr_path) = field.expr;
+                    let path = expr_path.path;
+                    let segments = path.segments;
+                    if segments.len() != 1 {
+                        panic!("ruma_api! expects a one component path for `metadata` `method`");
+                    }
+                    let pair = segments.first().unwrap(); // safe because we just checked
+                    let Pair::End(method_name) = pair;
+                    method = Some(method_name.ident.to_string());
+                }
+                "name" => {
+                    let Expr::Lit(expr_lit) = field.expr;
+                    let Lit::Str(lit_str) = expr_lit.lit;
+                    name = Some(lit_str.value());
+                }
+                "path" => {
+                    let Expr::Lit(expr_lit) = field.expr;
+                    let Lit::Str(lit_str) = expr_lit.lit;
+                    path = Some(lit_str.value());
+                }
+                "rate_limited" => {
+                    let Expr::Lit(expr_lit) = field.expr;
+                    let Lit::Bool(lit_bool) = expr_lit.lit;
+                    rate_limited = Some(lit_bool.value)
+                }
+                "requires_authentication" => {
+                    let Expr::Lit(expr_lit) = field.expr;
+                    let Lit::Bool(lit_bool) = expr_lit.lit;
+                    requires_authentication = Some(lit_bool.value)
+                }
                 _ => panic!("ruma_api! metadata included unexpected field"),
             }
         }
