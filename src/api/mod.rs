@@ -89,19 +89,6 @@ impl From<Vec<Expr>> for Api {
     }
 }
 
-pub struct Exprs {
-    pub inner: Vec<Expr>,
-}
-
-impl Synom for Exprs {
-    named!(parse -> Self, do_parse!(
-        exprs: many0!(syn!(Expr)) >>
-        (Exprs {
-            inner: exprs,
-        })
-    ));
-}
-
 impl ToTokens for Api {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let description = &self.metadata.description;
@@ -363,4 +350,17 @@ impl ToTokens for Api {
             }
         });
     }
+}
+
+pub struct Exprs {
+    pub inner: Vec<Expr>,
+}
+
+impl Synom for Exprs {
+    named!(parse -> Self, do_parse!(
+        exprs: many0!(syn!(Expr)) >>
+        (Exprs {
+            inner: exprs,
+        })
+    ));
 }
