@@ -1,21 +1,11 @@
 use quote::{ToTokens, Tokens};
 use syn::synom::Synom;
-use syn::{Field, FieldsNamed, Meta, NestedMeta};
+use syn::{ExprStruct, Field, FieldValue, FieldsNamed, Meta, NestedMeta};
 
 use api::strip_serde_attrs;
 
-#[derive(Debug)]
 pub struct Request {
     fields: Vec<RequestField>,
-}
-
-impl Synom for Request {
-    named!(parse -> Self, do_parse!(
-        fields: syn!(FieldsNamed) >>
-        (Request {
-            fields,
-        })
-    ));
 }
 
 impl Request {
@@ -35,7 +25,7 @@ impl Request {
         self.fields.iter().filter(|field| field.is_path()).count()
     }
 
-    pub fn newtype_body_field(&self) -> Option<&Field> {
+    pub fn newtype_body_field(&self) -> Option<&FieldValue> {
         for request_field in self.fields.iter() {
             match *request_field {
                 RequestField::NewtypeBody(ref field) => {
@@ -75,41 +65,39 @@ impl Request {
     }
 }
 
-impl From<Vec<Field>> for Request {
-    fn from(fields: Vec<Field>) -> Self {
+impl From<ExprStruct> for Request {
+    fn from(expr: ExprStruct) -> Self {
         let mut has_newtype_body = false;
 
-        let request_fields = fields.into_iter().map(|mut field| {
-            let mut request_field_kind = RequestFieldKind::Body;
+        let fields = expr.fields.into_iter().map(|mut field_value| {
+            let mut field_kind = RequestFieldKind::Body;
 
-            field.attrs = field.attrs.into_iter().filter(|attr| {
-                let (attr_ident, nested_meta_items) = match attr.value {
-                    Meta::List(ref attr_ident, ref nested_meta_items) => (attr_ident, nested_meta_items),
-                    _ => return true,
-                };
+            field_value.attrs = field_value.attrs.into_iter().filter(|attr| {
+                let meta = attr.interpret_meta()
+                    .expect("ruma_api! could not parse request field attributes");
 
-                if attr_ident != "ruma_api" {
+                let Meta::List(meta_list) = meta;
+
+                if meta_list.ident.as_ref() != "ruma_api" {
                     return true;
                 }
 
-                for nested_meta_item in nested_meta_items {
-                    match *nested_meta_item {
-                        NestedMeta::Meta(ref meta_item) => {
-                            match *meta_item {
-                                Meta::Word(ref ident) => {
-                                    if ident == "body" {
+                for nested_meta_item in meta_list.nested {
+                    match nested_meta_item {
+                        NestedMeta::Meta(meta_item) => {
+                            match meta_item {
+                                Meta::Word(ident) => {
+                                    match ident.as_ref() {
+                                    "body" => {
                                         has_newtype_body = true;
-                                        request_field_kind = RequestFieldKind::NewtypeBody;
-                                    } else if ident == "header" {
-                                        request_field_kind = RequestFieldKind::Header;
-                                    } else if ident == "path" {
-                                        request_field_kind = RequestFieldKind::Path;
-                                    } else if ident == "query" {
-                                        request_field_kind = RequestFieldKind::Query;
-                                    } else {
-                                        panic!(
+                                        field_kind = RequestFieldKind::NewtypeBody;
+                                    }
+                                    "header" => field_kind = RequestFieldKind::Header,
+                                    "path" => field_kind = RequestFieldKind::Path,
+                                    "query" => field_kind = RequestFieldKind::Query,
+                                    _ => panic!(
                                             "ruma_api! attribute meta item on requests must be: body, header, path, or query"
-                                        );
+                                        ),
                                     }
                                 }
                                 _ => panic!(
@@ -126,18 +114,18 @@ impl From<Vec<Field>> for Request {
                 false
             }).collect();
 
-            if request_field_kind == RequestFieldKind::Body {
+            if field_kind == RequestFieldKind::Body {
                 assert!(
                     !has_newtype_body,
                     "ruma_api! requests cannot have both normal body fields and a newtype body field"
                 );
             }
 
-            RequestField::new(request_field_kind, field)
+            RequestField::new(field_kind, field_value)
         }).collect();
 
         Request {
-            fields: request_fields,
+            fields,
         }
     }
 }
@@ -251,17 +239,16 @@ impl ToTokens for Request {
     }
 }
 
-#[derive(Debug)]
 pub enum RequestField {
-    Body(Field),
-    Header(Field),
-    NewtypeBody(Field),
-    Path(Field),
-    Query(Field),
+    Body(FieldValue),
+    Header(FieldValue),
+    NewtypeBody(FieldValue),
+    Path(FieldValue),
+    Query(FieldValue),
 }
 
 impl RequestField {
-    fn new(kind: RequestFieldKind, field: Field) -> RequestField {
+    fn new(kind: RequestFieldKind, field: FieldValue) -> RequestField {
         match kind {
             RequestFieldKind::Body => RequestField::Body(field),
             RequestFieldKind::Header => RequestField::Header(field),
@@ -293,7 +280,7 @@ impl RequestField {
         self.kind() == RequestFieldKind::Query
     }
 
-    fn field(&self) -> &Field {
+    fn field(&self) -> &FieldValue {
         match *self {
             RequestField::Body(ref field) => field,
             RequestField::Header(ref field) => field,
@@ -303,7 +290,7 @@ impl RequestField {
         }
     }
 
-    fn field_(&self, kind: RequestFieldKind) -> Option<&Field> {
+    fn field_(&self, kind: RequestFieldKind) -> Option<&FieldValue> {
         if self.kind() == kind {
             Some(self.field())
         } else {
