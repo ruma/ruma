@@ -1,9 +1,8 @@
 use quote::{ToTokens, Tokens};
-use syn::{Field, Meta, NestedMeta};
+use syn::{ExprStruct, Field, FieldValue, FieldsNamed, Meta, NestedMeta};
 
 use api::strip_serde_attrs;
 
-#[derive(Debug)]
 pub struct Response {
     fields: Vec<ResponseField>,
 }
@@ -74,43 +73,41 @@ impl Response {
 
 }
 
-impl From<Vec<Field>> for Response {
-    fn from(fields: Vec<Field>) -> Self {
+impl From<ExprStruct> for Response {
+    fn from(expr: ExprStruct) -> Self {
         let mut has_newtype_body = false;
 
-        let response_fields = fields.into_iter().map(|mut field| {
-            let mut response_field_kind = ResponseFieldKind::Body;
+        let fields = expr.fields.into_iter().map(|mut field_value| {
+            let mut field_kind = ResponseFieldKind::Body;
 
-            field.attrs = field.attrs.into_iter().filter(|attr| {
-                let (attr_ident, nested_meta_items) = match attr.value {
-                    Meta::List(ref attr_ident, ref nested_meta_items) => {
-                        (attr_ident, nested_meta_items)
-                    }
-                    _ => return true,
-                };
+            field_value.attrs = field_value.attrs.into_iter().filter(|attr| {
+                let meta = attr.interpret_meta()
+                    .expect("ruma_api! could not parse response field attributes");
 
-                if attr_ident != "ruma_api" {
+                let Meta::List(meta_list) = meta;
+
+                if meta_list.ident.as_ref() != "ruma_api" {
                     return true;
                 }
 
-                for nested_meta_item in nested_meta_items {
-                    match *nested_meta_item {
-                        NestedMeta::Meta(ref meta_item) => {
-                            match *meta_item {
-                                Meta::Word(ref ident) => {
-                                    if ident == "body" {
+                for nested_meta_item in meta_list.nested {
+                    match nested_meta_item {
+                        NestedMeta::Meta(meta_item) => {
+                            match meta_item {
+                                Meta::Word(ident) => {
+                                    match ident.as_ref() {
+                                        "body" => {
                                         has_newtype_body = true;
-                                        response_field_kind = ResponseFieldKind::NewtypeBody;
-                                    } else if ident == "header" {
-                                        response_field_kind = ResponseFieldKind::Header;
-                                    } else {
-                                        panic!(
+                                        field_kind = ResponseFieldKind::NewtypeBody;
+                                    }
+                                    "header" => field_kind = ResponseFieldKind::Header,
+                                    _ => panic!(
                                             "ruma_api! attribute meta item on responses must be: header"
-                                        );
+                                        ),
                                     }
                                 }
                                 _ => panic!(
-                                    "ruma_api! attribute meta item on requests cannot be a list or name/value pair"
+                                    "ruma_api! attribute meta item on responses cannot be a list or name/value pair"
                                 ),
                             }
                         }
@@ -123,21 +120,21 @@ impl From<Vec<Field>> for Response {
                 false
             }).collect();
 
-            match response_field_kind {
+            match field_kind {
                 ResponseFieldKind::Body => {
                     if has_newtype_body {
                         panic!("ruma_api! responses cannot have both normal body fields and a newtype body field");
                     } else {
-                        return ResponseField::Body(field);
+                        return ResponseField::Body(field_value);
                     }
                 }
-                ResponseFieldKind::Header => ResponseField::Header(field),
-                ResponseFieldKind::NewtypeBody => ResponseField::NewtypeBody(field),
+                ResponseFieldKind::Header => ResponseField::Header(field_value),
+                ResponseFieldKind::NewtypeBody => ResponseField::NewtypeBody(field_value),
             }
         }).collect();
 
         Response {
-            fields: response_fields,
+            fields,
         }
     }
 }
@@ -205,15 +202,14 @@ impl ToTokens for Response {
     }
 }
 
-#[derive(Debug)]
 pub enum ResponseField {
-    Body(Field),
-    Header(Field),
-    NewtypeBody(Field),
+    Body(FieldValue),
+    Header(FieldValue),
+    NewtypeBody(FieldValue),
 }
 
 impl ResponseField {
-    fn field(&self) -> &Field {
+    fn field(&self) -> &FieldValue {
         match *self {
             ResponseField::Body(ref field) => field,
             ResponseField::Header(ref field) => field,
