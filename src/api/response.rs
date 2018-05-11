@@ -1,5 +1,5 @@
 use quote::{ToTokens, Tokens};
-use syn::{ExprStruct, Field, FieldValue, FieldsNamed, Meta, NestedMeta};
+use syn::{Expr, ExprStruct, Field, FieldValue, FieldsNamed, Member, Meta, NestedMeta};
 
 use api::strip_serde_attrs;
 
@@ -26,28 +26,38 @@ impl Response {
         for response_field in self.fields.iter() {
             match *response_field {
                 ResponseField::Body(ref field) => {
-                    let field_name = field.ident.as_ref()
-                        .expect("expected body field to have a name");
+                    let field_name = match field.member {
+                        Member::Named(field_name) => field_name,
+                        _ => panic!("expected Member::Named"),
+                    };
 
-                    tokens.append(quote! {
+                    tokens.append_all(quote! {
                         #field_name: response_body.#field_name,
                     });
                 }
                 ResponseField::Header(ref field) => {
-                    let field_name = field.ident.as_ref()
-                        .expect("expected body field to have a name");
-                    let field_type = &field.ty;
+                    let field_name = match field.member {
+                        Member::Named(field_name) => field_name,
+                        _ => panic!("expected Member::Named"),
+                    };
 
-                    tokens.append(quote! {
+                    let field_type = match field.expr {
+                        Expr::Path(ref field_type) => field_type,
+                        _ => panic!("expected Expr::Path"),
+                    };
+
+                    tokens.append_all(quote! {
                         #field_name: headers.remove::<#field_type>()
                             .expect("missing expected request header"),
                     });
                 }
                 ResponseField::NewtypeBody(ref field) => {
-                    let field_name = field.ident.as_ref()
-                        .expect("expected body field to have a name");
+                    let field_name = match field.member {
+                        Member::Named(field_name) => field_name,
+                        _ => panic!("expected Member::Named"),
+                    };
 
-                    tokens.append(quote! {
+                    tokens.append_all(quote! {
                         #field_name: response_body,
                     });
                 }
@@ -57,7 +67,7 @@ impl Response {
         tokens
     }
 
-    pub fn newtype_body_field(&self) -> Option<&Field> {
+    pub fn newtype_body_field(&self) -> Option<&FieldValue> {
         for response_field in self.fields.iter() {
             match *response_field {
                 ResponseField::NewtypeBody(ref field) => {
@@ -84,7 +94,10 @@ impl From<ExprStruct> for Response {
                 let meta = attr.interpret_meta()
                     .expect("ruma_api! could not parse response field attributes");
 
-                let Meta::List(meta_list) = meta;
+                let meta_list = match meta {
+                    Meta::List(meta_list) => meta_list,
+                    _ => panic!("expected Meta::List"),
+                };
 
                 if meta_list.ident.as_ref() != "ruma_api" {
                     return true;
@@ -141,63 +154,56 @@ impl From<ExprStruct> for Response {
 
 impl ToTokens for Response {
     fn to_tokens(&self, mut tokens: &mut Tokens) {
-        tokens.append(quote! {
+        tokens.append_all(quote! {
             /// Data in the response from this API endpoint.
             #[derive(Debug)]
             pub struct Response
         });
 
         if self.fields.len() == 0 {
-            tokens.append(";");
+            tokens.append_all(";".into_tokens());
         } else {
-            tokens.append("{");
+            tokens.append_all("{".into_tokens());
 
             for response_field in self.fields.iter() {
                 strip_serde_attrs(response_field.field()).to_tokens(&mut tokens);
 
-                tokens.append(",");
+                tokens.append_all(",".into_tokens());
             }
 
-            tokens.append("}");
+            tokens.append_all("}".into_tokens());
         }
 
         if let Some(newtype_body_field) = self.newtype_body_field() {
             let mut field = newtype_body_field.clone();
+            let expr = field.expr;
 
-            field.ident = None;
-
-            tokens.append(quote! {
+            tokens.append_all(quote! {
                 /// Data in the response body.
                 #[derive(Debug, Deserialize)]
-                struct ResponseBody
+                struct ResponseBody(#expr);
             });
-
-            tokens.append("(");
-
-            field.to_tokens(&mut tokens);
-
-            tokens.append(");");
         } else if self.has_body_fields() {
-            tokens.append(quote! {
+            tokens.append_all(quote! {
                 /// Data in the response body.
                 #[derive(Debug, Deserialize)]
                 struct ResponseBody
             });
 
-            tokens.append("{");
+            tokens.append_all("{".into_tokens());
 
             for response_field in self.fields.iter() {
                 match *response_field {
                     ResponseField::Body(ref field) => {
                         field.to_tokens(&mut tokens);
 
-                        tokens.append(",");
+                        tokens.append_all(",".into_tokens());
                     }
                     _ => {}
                 }
             }
 
-            tokens.append("}");
+            tokens.append_all("}".into_tokens());
         }
     }
 }

@@ -1,7 +1,7 @@
 use quote::{ToTokens, Tokens};
 use syn::punctuated::Pair;
 use syn::synom::Synom;
-use syn::{Expr, FieldValue, Ident, Meta};
+use syn::{Expr, FieldValue, Ident, Member, Meta};
 
 mod metadata;
 mod request;
@@ -18,7 +18,10 @@ pub fn strip_serde_attrs(field_value: &FieldValue) -> FieldValue {
         let meta = attr.interpret_meta()
             .expect("ruma_api! could not parse field attributes");
 
-        let Meta::List(meta_list) = meta;
+        let meta_list = match meta {
+            Meta::List(meta_list) => meta_list,
+            _ => panic!("expected Meta::List"),
+        };
 
         if meta_list.ident.as_ref() != "serde" {
             return true;
@@ -52,13 +55,16 @@ impl From<Vec<Expr>> for Api {
                 _ => panic!("ruma_api! blocks should use struct syntax"),
             };
 
-            let segments = expr.path.segments;
+            let segments = expr.path.segments.clone();
 
             if segments.len() != 1 {
                 panic!("ruma_api! blocks must be one of: metadata, request, or response");
             }
 
-            let Pair::End(last_segment) = segments.last().unwrap();
+            let last_segment = match segments.last().unwrap() {
+                Pair::End(last_segment) => last_segment,
+                _ => panic!("expected Pair::End"),
+            };
 
             match last_segment.ident.as_ref() {
                 "metadata" => metadata = Some(expr.into()),
@@ -138,23 +144,21 @@ impl ToTokens for Api {
             };
 
             for segment in path_str[1..].split('/') {
-                tokens.append(quote! {
+                tokens.append_all(quote! {
                     path_segments.push
                 });
 
-                tokens.append("(");
-
                 if segment.starts_with(':') {
-                    tokens.append("&request_path.");
-                    tokens.append(&segment[1..]);
-                    tokens.append(".to_string()");
-                } else {
-                    tokens.append("\"");
-                    tokens.append(segment);
-                    tokens.append("\"");
-                }
+                    let what_is_this = &segment[1..];
 
-                tokens.append(");");
+                    tokens.append_all(quote! {
+                        (&request_path.#what_is_this.to_string());
+                    });
+                } else {
+                    tokens.append_all(quote! {
+                        ("#segment");
+                    });
+                }
             }
 
             tokens
@@ -179,7 +183,10 @@ impl ToTokens for Api {
         };
 
         let add_body_to_request = if let Some(field) = self.request.newtype_body_field() {
-            let field_name = field.ident.as_ref().expect("expected body field to have a name");
+            let field_name = match field.member {
+                Member::Named(field_name) => field_name,
+                _ => panic!("expected Member::Named"),
+            };
 
             quote! {
                 let request_body = RequestBody(request.#field_name);
@@ -201,10 +208,13 @@ impl ToTokens for Api {
         };
 
         let deserialize_response_body = if let Some(field) = self.response.newtype_body_field() {
-            let field_type = &field.ty;
+            let field_type = match field.expr {
+                Expr::Path(ref field_type) => field_type,
+                _ => panic!("expected Expr::Path"),
+            };
             let mut tokens = Tokens::new();
 
-            tokens.append(quote! {
+            tokens.append_all(quote! {
                 let future_response = hyper_response.body()
                     .fold::<_, _, Result<_, ::std::io::Error>>(Vec::new(), |mut bytes, chunk| {
                         bytes.write_all(&chunk)?;
@@ -218,13 +228,13 @@ impl ToTokens for Api {
                     })
             });
 
-            tokens.append(".and_then(move |response_body| {");
+            tokens.append_all(".and_then(move |response_body| {".into_tokens());
 
             tokens
         } else if self.response.has_body_fields() {
             let mut tokens = Tokens::new();
 
-            tokens.append(quote! {
+            tokens.append_all(quote! {
                 let future_response = hyper_response.body()
                     .fold::<_, _, Result<_, ::std::io::Error>>(Vec::new(), |mut bytes, chunk| {
                         bytes.write_all(&chunk)?;
@@ -238,23 +248,23 @@ impl ToTokens for Api {
                     })
             });
 
-            tokens.append(".and_then(move |response_body| {");
+            tokens.append_all(".and_then(move |response_body| {".into_tokens());
 
             tokens
         } else {
             let mut tokens = Tokens::new();
 
-            tokens.append(quote! {
+            tokens.append_all(quote! {
                 let future_response = ::futures::future::ok(())
             });
 
-            tokens.append(".and_then(move |_| {");
+            tokens.append_all(".and_then(move |_| {".into_tokens());
 
             tokens
         };
 
         let mut closure_end = Tokens::new();
-        closure_end.append("});");
+        closure_end.append_all("});".into_tokens());
 
         let extract_headers = if self.response.has_header_fields() {
             quote! {
@@ -270,7 +280,7 @@ impl ToTokens for Api {
             Tokens::new()
         };
 
-        tokens.append(quote! {
+        tokens.append_all(quote! {
             #[allow(unused_imports)]
             use std::io::Write as _Write;
 

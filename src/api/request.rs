@@ -1,6 +1,6 @@
 use quote::{ToTokens, Tokens};
 use syn::synom::Synom;
-use syn::{ExprStruct, Field, FieldValue, FieldsNamed, Meta, NestedMeta};
+use syn::{ExprStruct, Field, FieldValue, FieldsNamed, Member, Meta, NestedMeta};
 
 use api::strip_serde_attrs;
 
@@ -54,9 +54,12 @@ impl Request {
         let mut tokens = Tokens::new();
 
         for field in self.fields.iter().flat_map(|f| f.field_(request_field_kind)) {
-            let field_name = field.ident.as_ref().expect("expected body field to have a name");
+            let field_name = match field.member {
+                Member::Named(field_name) => field_name,
+                _ => panic!("expected Member::Named"),
+            };
 
-            tokens.append(quote! {
+            tokens.append_all(quote! {
                 #field_name: request.#field_name,
             });
         }
@@ -76,7 +79,10 @@ impl From<ExprStruct> for Request {
                 let meta = attr.interpret_meta()
                     .expect("ruma_api! could not parse request field attributes");
 
-                let Meta::List(meta_list) = meta;
+                let meta_list = match meta {
+                    Meta::List(meta_list) => meta_list,
+                    _ => panic!("expected Meta::List"),
+                };
 
                 if meta_list.ident.as_ref() != "ruma_api" {
                     return true;
@@ -132,109 +138,102 @@ impl From<ExprStruct> for Request {
 
 impl ToTokens for Request {
     fn to_tokens(&self, mut tokens: &mut Tokens) {
-        tokens.append(quote! {
+        tokens.append_all(quote! {
             /// Data for a request to this API endpoint.
             #[derive(Debug)]
             pub struct Request
         });
 
         if self.fields.len() == 0 {
-            tokens.append(";");
+            tokens.append_all(";".into_tokens());
         } else {
-            tokens.append("{");
+            tokens.append_all("{".into_tokens());
 
             for request_field in self.fields.iter() {
                 strip_serde_attrs(request_field.field()).to_tokens(&mut tokens);
 
-                tokens.append(",");
+                tokens.append_all(",".into_tokens());
             }
 
-            tokens.append("}");
+            tokens.append_all("}".into_tokens());
         }
 
         if let Some(newtype_body_field) = self.newtype_body_field() {
             let mut field = newtype_body_field.clone();
+            let expr = field.expr;
 
-            field.ident = None;
-
-            tokens.append(quote! {
+            tokens.append_all(quote! {
                 /// Data in the request body.
                 #[derive(Debug, Serialize)]
-                struct RequestBody
+                struct RequestBody(#expr);
             });
-
-            tokens.append("(");
-
-            field.to_tokens(&mut tokens);
-
-            tokens.append(");");
         } else if self.has_body_fields() {
-            tokens.append(quote! {
+            tokens.append_all(quote! {
                 /// Data in the request body.
                 #[derive(Debug, Serialize)]
                 struct RequestBody
             });
 
-            tokens.append("{");
+            tokens.append_all("{".into_tokens());
 
             for request_field in self.fields.iter() {
                 match *request_field {
                     RequestField::Body(ref field) => {
                         field.to_tokens(&mut tokens);
 
-                        tokens.append(",");
+                        tokens.append_all(",".into_tokens());
                     }
                     _ => {}
                 }
             }
 
-            tokens.append("}");
+            tokens.append_all("}".into_tokens());
         }
 
         if self.has_path_fields() {
-            tokens.append(quote! {
+            tokens.append_all(quote! {
                 /// Data in the request path.
                 #[derive(Debug, Serialize)]
                 struct RequestPath
             });
 
-            tokens.append("{");
+            tokens.append_all("{".into_tokens());
 
             for request_field in self.fields.iter() {
                 match *request_field {
                     RequestField::Path(ref field) => {
                         field.to_tokens(&mut tokens);
 
-                        tokens.append(",");
+                        tokens.append_all(",".into_tokens());
                     }
                     _ => {}
                 }
             }
 
-            tokens.append("}");
+            tokens.append_all("}".into_tokens());
         }
 
         if self.has_query_fields() {
-            tokens.append(quote! {
+            tokens.append_all(quote! {
                 /// Data in the request's query string.
                 #[derive(Debug, Serialize)]
                 struct RequestQuery
             });
 
-            tokens.append("{");
+            tokens.append_all("{".into_tokens());
 
             for request_field in self.fields.iter() {
                 match *request_field {
                     RequestField::Query(ref field) => {
                         field.to_tokens(&mut tokens);
 
-                        tokens.append(",");
+                        tokens.append_all(",".into_tokens());
                     }
                     _ => {}
                 }
             }
 
-            tokens.append("}");
+            tokens.append_all("}".into_tokens());
         }
     }
 }

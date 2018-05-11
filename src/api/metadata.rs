@@ -22,43 +22,82 @@ impl From<ExprStruct> for Metadata {
         let mut requires_authentication = None;
 
         for field in expr.fields {
-            let Member::Named(identifier) = field.member;
+            let identifier = match field.member {
+                Member::Named(identifier) => identifier,
+                _ => panic!("expected Member::Named"),
+            };
 
             match identifier.as_ref() {
                 "description" => {
-                    let Expr::Lit(expr_lit) = field.expr;
-                    let Lit::Str(lit_str) = expr_lit.lit;
+                    let expr_lit = match field.expr {
+                        Expr::Lit(expr_lit) => expr_lit,
+                        _ => panic!("expected Expr::Lit"),
+                    };
+                    let lit_str = match expr_lit.lit {
+                        Lit::Str(lit_str) => lit_str,
+                        _ => panic!("expected Lit::Str"),
+                    };
                     description = Some(lit_str.value());
                 }
                 "method" => {
-                    let Expr::Path(expr_path) = field.expr;
+                    let expr_path = match field.expr {
+                        Expr::Path(expr_path) => expr_path,
+                        _ => panic!("expected Expr::Path"),
+                    };
                     let path = expr_path.path;
                     let segments = path.segments;
                     if segments.len() != 1 {
                         panic!("ruma_api! expects a one component path for `metadata` `method`");
                     }
                     let pair = segments.first().unwrap(); // safe because we just checked
-                    let Pair::End(method_name) = pair;
+                    let method_name = match pair {
+                        Pair::End(method_name) => method_name,
+                        _ => panic!("expected Pair::End"),
+                    };
                     method = Some(method_name.ident.to_string());
                 }
                 "name" => {
-                    let Expr::Lit(expr_lit) = field.expr;
-                    let Lit::Str(lit_str) = expr_lit.lit;
+                    let expr_lit = match field.expr {
+                        Expr::Lit(expr_lit) => expr_lit,
+                        _ => panic!("expected Expr::Lit"),
+                    };
+                    let lit_str = match expr_lit.lit {
+                        Lit::Str(lit_str) => lit_str,
+                        _ => panic!("expected Lit::Str"),
+                    };
                     name = Some(lit_str.value());
                 }
                 "path" => {
-                    let Expr::Lit(expr_lit) = field.expr;
-                    let Lit::Str(lit_str) = expr_lit.lit;
+                    let expr_lit = match field.expr {
+                        Expr::Lit(expr_lit) => expr_lit,
+                        _ => panic!("expected Expr::Lit"),
+                    };
+                    let lit_str = match expr_lit.lit {
+                        Lit::Str(lit_str) => lit_str,
+                        _ => panic!("expected Lit::Str"),
+                    };
                     path = Some(lit_str.value());
                 }
                 "rate_limited" => {
-                    let Expr::Lit(expr_lit) = field.expr;
-                    let Lit::Bool(lit_bool) = expr_lit.lit;
+                    let expr_lit = match field.expr {
+                        Expr::Lit(expr_lit) => expr_lit,
+                        _ => panic!("expected Expr::Lit"),
+                    };
+                    let lit_bool = match expr_lit.lit {
+                        Lit::Bool(lit_bool) => lit_bool,
+                        _ => panic!("expected Lit::Bool"),
+                    };
                     rate_limited = Some(lit_bool.value)
                 }
                 "requires_authentication" => {
-                    let Expr::Lit(expr_lit) = field.expr;
-                    let Lit::Bool(lit_bool) = expr_lit.lit;
+                    let expr_lit = match field.expr {
+                        Expr::Lit(expr_lit) => expr_lit,
+                        _ => panic!("expected Expr::Lit"),
+                    };
+                    let lit_bool = match expr_lit.lit {
+                        Lit::Bool(lit_bool) => lit_bool,
+                        _ => panic!("expected Lit::Bool"),
+                    };
                     requires_authentication = Some(lit_bool.value)
                 }
                 _ => panic!("ruma_api! metadata included unexpected field"),
