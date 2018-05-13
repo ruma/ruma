@@ -1,4 +1,5 @@
 use quote::{ToTokens, Tokens};
+use syn::spanned::Spanned;
 use syn::{Field, Meta, NestedMeta};
 
 use api::strip_serde_attrs;
@@ -54,8 +55,9 @@ impl Request {
 
         for field in self.fields.iter().flat_map(|f| f.field_(request_field_kind)) {
             let field_name = field.ident.expect("expected field to have an identifier");
+            let span = field.span();
 
-            tokens.append_all(quote! {
+            tokens.append_all(quote_spanned! {span=>
                 #field_name: request.#field_name,
             });
         }
@@ -146,7 +148,12 @@ impl ToTokens for Request {
             tokens.append_all("{".into_tokens());
 
             for request_field in self.fields.iter() {
-                strip_serde_attrs(request_field.field()).to_tokens(&mut tokens);
+                let field = request_field.field();
+                let span = field.span();
+
+                strip_serde_attrs(field).to_tokens(&mut tokens);
+
+                tokens.append_all(quote_spanned!(span=> #field));
 
                 tokens.append_all(",".into_tokens());
             }
@@ -156,9 +163,10 @@ impl ToTokens for Request {
 
         if let Some(newtype_body_field) = self.newtype_body_field() {
             let mut field = newtype_body_field.clone();
-            let ty = field.ty;
+            let ty = &field.ty;
+            let span = field.span();
 
-            tokens.append_all(quote! {
+            tokens.append_all(quote_spanned! {span=>
                 /// Data in the request body.
                 #[derive(Debug, Serialize)]
                 struct RequestBody(#ty);
@@ -175,7 +183,8 @@ impl ToTokens for Request {
             for request_field in self.fields.iter() {
                 match *request_field {
                     RequestField::Body(ref field) => {
-                        field.to_tokens(&mut tokens);
+                        let span = field.span();
+                        tokens.append_all(quote_spanned!(span=> #field));
 
                         tokens.append_all(",".into_tokens());
                     }
@@ -198,7 +207,9 @@ impl ToTokens for Request {
             for request_field in self.fields.iter() {
                 match *request_field {
                     RequestField::Path(ref field) => {
-                        field.to_tokens(&mut tokens);
+                        let span = field.span();
+
+                        tokens.append_all(quote_spanned!(span=> #field));
 
                         tokens.append_all(",".into_tokens());
                     }
@@ -221,7 +232,9 @@ impl ToTokens for Request {
             for request_field in self.fields.iter() {
                 match *request_field {
                     RequestField::Query(ref field) => {
-                        field.to_tokens(&mut tokens);
+                        let span = field.span();
+
+                        tokens.append_all(quote_spanned!(span=> #field));
 
                         tokens.append_all(",".into_tokens());
                     }

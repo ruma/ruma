@@ -1,4 +1,5 @@
 use quote::{ToTokens, Tokens};
+use syn::spanned::Spanned;
 use syn::{Field, Meta, NestedMeta};
 
 use api::strip_serde_attrs;
@@ -27,24 +28,27 @@ impl Response {
             match *response_field {
                 ResponseField::Body(ref field) => {
                     let field_name = field.ident.expect("expected field to have an identifier");
+                    let span = field.span();
 
-                    tokens.append_all(quote! {
+                    tokens.append_all(quote_spanned! {span=>
                         #field_name: response_body.#field_name,
                     });
                 }
                 ResponseField::Header(ref field) => {
                     let field_name = field.ident.expect("expected field to have an identifier");
                     let field_type = &field.ty;
+                    let span = field.span();
 
-                    tokens.append_all(quote! {
+                    tokens.append_all(quote_spanned! {span=>
                         #field_name: headers.remove::<#field_type>()
                             .expect("missing expected request header"),
                     });
                 }
                 ResponseField::NewtypeBody(ref field) => {
                     let field_name = field.ident.expect("expected field to have an identifier");
+                    let span = field.span();
 
-                    tokens.append_all(quote! {
+                    tokens.append_all(quote_spanned! {span=>
                         #field_name: response_body,
                     });
                 }
@@ -140,7 +144,7 @@ impl From<Vec<Field>> for Response {
 }
 
 impl ToTokens for Response {
-    fn to_tokens(&self, mut tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut Tokens) {
         tokens.append_all(quote! {
             /// Data in the response from this API endpoint.
             #[derive(Debug)]
@@ -153,7 +157,12 @@ impl ToTokens for Response {
             tokens.append_all("{".into_tokens());
 
             for response_field in self.fields.iter() {
-                strip_serde_attrs(response_field.field()).to_tokens(&mut tokens);
+                let field = response_field.field();
+                let span = field.span();
+
+                strip_serde_attrs(field);
+
+                tokens.append_all(quote_spanned!(span=> #field));
 
                 tokens.append_all(",".into_tokens());
             }
@@ -163,9 +172,10 @@ impl ToTokens for Response {
 
         if let Some(newtype_body_field) = self.newtype_body_field() {
             let mut field = newtype_body_field.clone();
-            let ty = field.ty;
+            let ty = &field.ty;
+            let span = field.span();
 
-            tokens.append_all(quote! {
+            tokens.append_all(quote_spanned! {span=>
                 /// Data in the response body.
                 #[derive(Debug, Deserialize)]
                 struct ResponseBody(#ty);
@@ -182,7 +192,9 @@ impl ToTokens for Response {
             for response_field in self.fields.iter() {
                 match *response_field {
                     ResponseField::Body(ref field) => {
-                        field.to_tokens(&mut tokens);
+                        let span = field.span();
+
+                        tokens.append_all(quote_spanned!(span=> #field));
 
                         tokens.append_all(",".into_tokens());
                     }
