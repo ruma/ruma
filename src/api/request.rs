@@ -135,115 +135,132 @@ impl From<Vec<Field>> for Request {
 }
 
 impl ToTokens for Request {
-    fn to_tokens(&self, mut tokens: &mut Tokens) {
-        tokens.append_all(quote! {
+    fn to_tokens(&self, tokens: &mut Tokens) {
+        let request_struct_header = quote! {
             /// Data for a request to this API endpoint.
             #[derive(Debug)]
             pub struct Request
-        });
+        };
 
-        if self.fields.len() == 0 {
-            tokens.append_all(";".into_tokens());
+        let request_struct_body = if self.fields.len() == 0 {
+            quote!(;)
         } else {
-            tokens.append_all("{".into_tokens());
-
-            for request_field in self.fields.iter() {
+            let fields = self.fields.iter().fold(Tokens::new(), |mut field_tokens, request_field| {
                 let field = request_field.field();
                 let span = field.span();
 
-                strip_serde_attrs(field).to_tokens(&mut tokens);
+                strip_serde_attrs(field);
 
-                tokens.append_all(quote_spanned!(span=> #field));
+                field_tokens.append_all(quote_spanned!(span=> #field,));
 
-                tokens.append_all(",".into_tokens());
+                field_tokens
+            });
+
+            quote! {
+                {
+                    #fields
+                }
             }
+        };
 
-            tokens.append_all("}".into_tokens());
-        }
+        let request_body_struct;
 
         if let Some(newtype_body_field) = self.newtype_body_field() {
             let mut field = newtype_body_field.clone();
             let ty = &field.ty;
             let span = field.span();
 
-            tokens.append_all(quote_spanned! {span=>
+            request_body_struct = quote_spanned! {span=>
                 /// Data in the request body.
                 #[derive(Debug, Serialize)]
                 struct RequestBody(#ty);
-            });
+            };
         } else if self.has_body_fields() {
-            tokens.append_all(quote! {
-                /// Data in the request body.
-                #[derive(Debug, Serialize)]
-                struct RequestBody
-            });
-
-            tokens.append_all("{".into_tokens());
-
-            for request_field in self.fields.iter() {
+            let fields = self.fields.iter().fold(Tokens::new(), |mut field_tokens, request_field| {
                 match *request_field {
                     RequestField::Body(ref field) => {
                         let span = field.span();
-                        tokens.append_all(quote_spanned!(span=> #field));
 
-                        tokens.append_all(",".into_tokens());
+                        field_tokens.append_all(quote_spanned!(span=> #field,));
+
+                        field_tokens
                     }
-                    _ => {}
+                    _ => field_tokens,
                 }
-            }
-
-            tokens.append_all("}".into_tokens());
-        }
-
-        if self.has_path_fields() {
-            tokens.append_all(quote! {
-                /// Data in the request path.
-                #[derive(Debug, Serialize)]
-                struct RequestPath
             });
 
-            tokens.append_all("{".into_tokens());
+            request_body_struct = quote! {
+                /// Data in the request body.
+                #[derive(Debug, Serialize)]
+                struct RequestBody {
+                    #fields
+                }
+            };
+        } else {
+            request_body_struct = Tokens::new();
+        }
 
-            for request_field in self.fields.iter() {
+        let request_path_struct;
+
+        if self.has_path_fields() {
+            let fields = self.fields.iter().fold(Tokens::new(), |mut field_tokens, request_field| {
                 match *request_field {
                     RequestField::Path(ref field) => {
                         let span = field.span();
 
-                        tokens.append_all(quote_spanned!(span=> #field));
+                        field_tokens.append_all(quote_spanned!(span=> #field,));
 
-                        tokens.append_all(",".into_tokens());
+                        field_tokens
                     }
-                    _ => {}
+                    _ => field_tokens,
                 }
-            }
-
-            tokens.append_all("}".into_tokens());
-        }
-
-        if self.has_query_fields() {
-            tokens.append_all(quote! {
-                /// Data in the request's query string.
-                #[derive(Debug, Serialize)]
-                struct RequestQuery
             });
 
-            tokens.append_all("{".into_tokens());
+            request_path_struct = quote! {
+                /// Data in the request path.
+                #[derive(Debug, Serialize)]
+                struct RequestPath {
+                    #fields
+                }
+            };
+        } else {
+            request_path_struct = Tokens::new();
+        }
 
-            for request_field in self.fields.iter() {
+        let request_query_struct;
+
+        if self.has_query_fields() {
+            let fields = self.fields.iter().fold(Tokens::new(), |mut field_tokens, request_field| {
                 match *request_field {
                     RequestField::Query(ref field) => {
                         let span = field.span();
 
-                        tokens.append_all(quote_spanned!(span=> #field));
+                        field_tokens.append_all(quote_spanned!(span=> #field));
 
-                        tokens.append_all(",".into_tokens());
+                        field_tokens
                     }
-                    _ => {}
+                    _ => field_tokens,
                 }
-            }
+            });
 
-            tokens.append_all("}".into_tokens());
+            request_query_struct = quote! {
+                /// Data in the request's query string.
+                #[derive(Debug, Serialize)]
+                struct RequestQuery {
+                    #fields
+                }
+            };
+        } else {
+            request_query_struct = Tokens::new();
         }
+
+        tokens.append_all(quote! {
+            #request_struct_header
+            #request_struct_body
+            #request_body_struct
+            #request_path_struct
+            #request_query_struct
+        });
     }
 }
 

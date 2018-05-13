@@ -145,65 +145,75 @@ impl From<Vec<Field>> for Response {
 
 impl ToTokens for Response {
     fn to_tokens(&self, tokens: &mut Tokens) {
-        tokens.append_all(quote! {
+        let response_struct_header = quote! {
             /// Data in the response from this API endpoint.
             #[derive(Debug)]
             pub struct Response
-        });
+        };
 
-        if self.fields.len() == 0 {
-            tokens.append_all(";".into_tokens());
+        let response_struct_body = if self.fields.len() == 0 {
+            quote!(;)
         } else {
-            tokens.append_all("{".into_tokens());
-
-            for response_field in self.fields.iter() {
+            let fields = self.fields.iter().fold(Tokens::new(), |mut fields_tokens, response_field| {
                 let field = response_field.field();
                 let span = field.span();
 
                 strip_serde_attrs(field);
 
-                tokens.append_all(quote_spanned!(span=> #field));
+                fields_tokens.append_all(quote_spanned!(span=> #field,));
 
-                tokens.append_all(",".into_tokens());
+                fields_tokens
+            });
+
+            quote! {
+                {
+                    #fields
+                }
             }
+        };
 
-            tokens.append_all("}".into_tokens());
-        }
+        let response_body_struct;
 
         if let Some(newtype_body_field) = self.newtype_body_field() {
             let mut field = newtype_body_field.clone();
             let ty = &field.ty;
             let span = field.span();
 
-            tokens.append_all(quote_spanned! {span=>
+            response_body_struct = quote_spanned! {span=>
                 /// Data in the response body.
                 #[derive(Debug, Deserialize)]
                 struct ResponseBody(#ty);
-            });
+            };
         } else if self.has_body_fields() {
-            tokens.append_all(quote! {
-                /// Data in the response body.
-                #[derive(Debug, Deserialize)]
-                struct ResponseBody
-            });
-
-            tokens.append_all("{".into_tokens());
-
-            for response_field in self.fields.iter() {
+            let fields = self.fields.iter().fold(Tokens::new(), |mut field_tokens, response_field| {
                 match *response_field {
                     ResponseField::Body(ref field) => {
                         let span = field.span();
 
-                        tokens.append_all(quote_spanned!(span=> #field));
+                        field_tokens.append_all(quote_spanned!(span=> #field,));
 
-                        tokens.append_all(",".into_tokens());
+                        field_tokens
                     }
-                    _ => {}
+                    _ => field_tokens,
                 }
-            }
+            });
 
-            tokens.append_all("}".into_tokens());
+            response_body_struct = quote! {
+                /// Data in the response body.
+                #[derive(Debug, Deserialize)]
+                struct ResponseBody {
+                    #fields
+                }
+            };
+        } else {
+            response_body_struct = Tokens::new();
         }
+
+        tokens.append_all(quote! {
+            #response_struct_header
+            #response_struct_body
+            #response_body_struct
+        });
     }
 }
 
