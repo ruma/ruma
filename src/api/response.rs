@@ -1,5 +1,5 @@
 use quote::{ToTokens, Tokens};
-use syn::{Expr, ExprStruct, Field, FieldValue, FieldsNamed, Member, Meta, NestedMeta};
+use syn::{Field, Meta, NestedMeta};
 
 use api::strip_serde_attrs;
 
@@ -26,25 +26,15 @@ impl Response {
         for response_field in self.fields.iter() {
             match *response_field {
                 ResponseField::Body(ref field) => {
-                    let field_name = match field.member {
-                        Member::Named(field_name) => field_name,
-                        _ => panic!("expected Member::Named"),
-                    };
+                    let field_name = field.ident.expect("expected field to have an identifier");
 
                     tokens.append_all(quote! {
                         #field_name: response_body.#field_name,
                     });
                 }
                 ResponseField::Header(ref field) => {
-                    let field_name = match field.member {
-                        Member::Named(field_name) => field_name,
-                        _ => panic!("expected Member::Named"),
-                    };
-
-                    let field_type = match field.expr {
-                        Expr::Path(ref field_type) => field_type,
-                        _ => panic!("expected Expr::Path"),
-                    };
+                    let field_name = field.ident.expect("expected field to have an identifier");
+                    let field_type = &field.ty;
 
                     tokens.append_all(quote! {
                         #field_name: headers.remove::<#field_type>()
@@ -52,10 +42,7 @@ impl Response {
                     });
                 }
                 ResponseField::NewtypeBody(ref field) => {
-                    let field_name = match field.member {
-                        Member::Named(field_name) => field_name,
-                        _ => panic!("expected Member::Named"),
-                    };
+                    let field_name = field.ident.expect("expected field to have an identifier");
 
                     tokens.append_all(quote! {
                         #field_name: response_body,
@@ -67,7 +54,7 @@ impl Response {
         tokens
     }
 
-    pub fn newtype_body_field(&self) -> Option<&FieldValue> {
+    pub fn newtype_body_field(&self) -> Option<&Field> {
         for response_field in self.fields.iter() {
             match *response_field {
                 ResponseField::NewtypeBody(ref field) => {
@@ -83,14 +70,14 @@ impl Response {
 
 }
 
-impl From<ExprStruct> for Response {
-    fn from(expr: ExprStruct) -> Self {
+impl From<Vec<Field>> for Response {
+    fn from(fields: Vec<Field>) -> Self {
         let mut has_newtype_body = false;
 
-        let fields = expr.fields.into_iter().map(|mut field_value| {
+        let fields = fields.into_iter().map(|mut field| {
             let mut field_kind = ResponseFieldKind::Body;
 
-            field_value.attrs = field_value.attrs.into_iter().filter(|attr| {
+            field.attrs = field.attrs.into_iter().filter(|attr| {
                 let meta = attr.interpret_meta()
                     .expect("ruma_api! could not parse response field attributes");
 
@@ -138,11 +125,11 @@ impl From<ExprStruct> for Response {
                     if has_newtype_body {
                         panic!("ruma_api! responses cannot have both normal body fields and a newtype body field");
                     } else {
-                        return ResponseField::Body(field_value);
+                        return ResponseField::Body(field);
                     }
                 }
-                ResponseFieldKind::Header => ResponseField::Header(field_value),
-                ResponseFieldKind::NewtypeBody => ResponseField::NewtypeBody(field_value),
+                ResponseFieldKind::Header => ResponseField::Header(field),
+                ResponseFieldKind::NewtypeBody => ResponseField::NewtypeBody(field),
             }
         }).collect();
 
@@ -176,12 +163,12 @@ impl ToTokens for Response {
 
         if let Some(newtype_body_field) = self.newtype_body_field() {
             let mut field = newtype_body_field.clone();
-            let expr = field.expr;
+            let ty = field.ty;
 
             tokens.append_all(quote! {
                 /// Data in the response body.
                 #[derive(Debug, Deserialize)]
-                struct ResponseBody(#expr);
+                struct ResponseBody(#ty);
             });
         } else if self.has_body_fields() {
             tokens.append_all(quote! {
@@ -209,13 +196,13 @@ impl ToTokens for Response {
 }
 
 pub enum ResponseField {
-    Body(FieldValue),
-    Header(FieldValue),
-    NewtypeBody(FieldValue),
+    Body(Field),
+    Header(Field),
+    NewtypeBody(Field),
 }
 
 impl ResponseField {
-    fn field(&self) -> &FieldValue {
+    fn field(&self) -> &Field {
         match *self {
             ResponseField::Body(ref field) => field,
             ResponseField::Header(ref field) => field,

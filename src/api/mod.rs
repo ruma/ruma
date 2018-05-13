@@ -1,7 +1,7 @@
 use quote::{ToTokens, Tokens};
-use syn::punctuated::Pair;
+use syn::punctuated::Punctuated;
 use syn::synom::Synom;
-use syn::{Expr, FieldValue, Ident, Member, Meta};
+use syn::{Field, FieldValue, Meta};
 
 mod metadata;
 mod request;
@@ -11,10 +11,10 @@ use self::metadata::Metadata;
 use self::request::Request;
 use self::response::Response;
 
-pub fn strip_serde_attrs(field_value: &FieldValue) -> FieldValue {
-    let mut field_value = field_value.clone();
+pub fn strip_serde_attrs(field: &Field) -> Field {
+    let mut field = field.clone();
 
-    field_value.attrs = field_value.attrs.into_iter().filter(|attr| {
+    field.attrs = field.attrs.into_iter().filter(|attr| {
         let meta = attr.interpret_meta()
             .expect("ruma_api! could not parse field attributes");
 
@@ -30,7 +30,7 @@ pub fn strip_serde_attrs(field_value: &FieldValue) -> FieldValue {
         false
     }).collect();
 
-    field_value
+    field
 }
 
 pub struct Api {
@@ -39,59 +39,13 @@ pub struct Api {
     response: Response,
 }
 
-impl From<Vec<Expr>> for Api {
-    fn from(exprs: Vec<Expr>) -> Self {
-        if exprs.len() != 3 {
-            panic!("ruma_api! expects 3 blocks: metadata, request, and response");
-        }
-
-        let mut metadata = None;
-        let mut request = None;
-        let mut response = None;
-
-        for expr in exprs {
-            let expr = match expr {
-                Expr::Struct(expr) => expr,
-                _ => panic!("ruma_api! blocks should use struct syntax"),
-            };
-
-            let segments = expr.path.segments.clone();
-
-            if segments.len() != 1 {
-                panic!("ruma_api! blocks must be one of: metadata, request, or response");
-            }
-
-            let last_segment = match segments.last().unwrap() {
-                Pair::End(last_segment) => last_segment,
-                _ => panic!("expected Pair::End"),
-            };
-
-            match last_segment.ident.as_ref() {
-                "metadata" => metadata = Some(expr.into()),
-                "request" => request = Some(expr.into()),
-                "response" => response = Some(expr.into()),
-                _ => panic!("ruma_api! blocks must be one of: metadata, request, or response"),
-            }
-        }
-
-        if metadata.is_none() {
-            panic!("ruma_api! is missing metadata");
-        }
-
-        if request.is_none() {
-            panic!("ruma_api! is missing request");
-        }
-
-        if response.is_none() {
-            panic!("ruma_api! is missing response");
-        }
-
+impl From<RawApi> for Api {
+    fn from(raw_api: RawApi) -> Self {
         Api {
-            metadata: metadata.unwrap(),
-            request: request.unwrap(),
-            response: response.unwrap(),
+            metadata: raw_api.metadata.into(),
+            request: raw_api.request.into(),
+            response: raw_api.response.into(),
         }
-
     }
 }
 
@@ -183,10 +137,7 @@ impl ToTokens for Api {
         };
 
         let add_body_to_request = if let Some(field) = self.request.newtype_body_field() {
-            let field_name = match field.member {
-                Member::Named(field_name) => field_name,
-                _ => panic!("expected Member::Named"),
-            };
+            let field_name = field.ident.expect("expected field to have an identifier");
 
             quote! {
                 let request_body = RequestBody(request.#field_name);
@@ -208,10 +159,8 @@ impl ToTokens for Api {
         };
 
         let deserialize_response_body = if let Some(field) = self.response.newtype_body_field() {
-            let field_type = match field.expr {
-                Expr::Path(ref field_type) => field_type,
-                _ => panic!("expected Expr::Path"),
-            };
+            let field_type = &field.ty;
+
             let mut tokens = Tokens::new();
 
             tokens.append_all(quote! {
@@ -362,15 +311,27 @@ impl ToTokens for Api {
     }
 }
 
-pub struct Exprs {
-    pub inner: Vec<Expr>,
+type ParseMetadata = Punctuated<FieldValue, Token![,]>;
+type ParseFields = Punctuated<Field, Token![,]>;
+
+pub struct RawApi {
+    pub metadata: Vec<FieldValue>,
+    pub request: Vec<Field>,
+    pub response: Vec<Field>,
 }
 
-impl Synom for Exprs {
+impl Synom for RawApi {
     named!(parse -> Self, do_parse!(
-        exprs: many0!(syn!(Expr)) >>
-        (Exprs {
-            inner: exprs,
+        custom_keyword!(metadata) >>
+        metadata: braces!(ParseMetadata::parse_terminated) >>
+        custom_keyword!(request) >>
+        request: braces!(call!(ParseFields::parse_terminated_with, Field::parse_named)) >>
+        custom_keyword!(response) >>
+        response: braces!(call!(ParseFields::parse_terminated_with, Field::parse_named)) >>
+        (RawApi {
+            metadata: metadata.1.into_iter().collect(),
+            request: request.1.into_iter().collect(),
+            response: response.1.into_iter().collect(),
         })
     ));
 }

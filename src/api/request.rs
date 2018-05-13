@@ -1,6 +1,5 @@
 use quote::{ToTokens, Tokens};
-use syn::synom::Synom;
-use syn::{ExprStruct, Field, FieldValue, FieldsNamed, Member, Meta, NestedMeta};
+use syn::{Field, Meta, NestedMeta};
 
 use api::strip_serde_attrs;
 
@@ -25,7 +24,7 @@ impl Request {
         self.fields.iter().filter(|field| field.is_path()).count()
     }
 
-    pub fn newtype_body_field(&self) -> Option<&FieldValue> {
+    pub fn newtype_body_field(&self) -> Option<&Field> {
         for request_field in self.fields.iter() {
             match *request_field {
                 RequestField::NewtypeBody(ref field) => {
@@ -54,10 +53,7 @@ impl Request {
         let mut tokens = Tokens::new();
 
         for field in self.fields.iter().flat_map(|f| f.field_(request_field_kind)) {
-            let field_name = match field.member {
-                Member::Named(field_name) => field_name,
-                _ => panic!("expected Member::Named"),
-            };
+            let field_name = field.ident.expect("expected field to have an identifier");
 
             tokens.append_all(quote! {
                 #field_name: request.#field_name,
@@ -68,14 +64,14 @@ impl Request {
     }
 }
 
-impl From<ExprStruct> for Request {
-    fn from(expr: ExprStruct) -> Self {
+impl From<Vec<Field>> for Request {
+    fn from(fields: Vec<Field>) -> Self {
         let mut has_newtype_body = false;
 
-        let fields = expr.fields.into_iter().map(|mut field_value| {
+        let fields = fields.into_iter().map(|mut field| {
             let mut field_kind = RequestFieldKind::Body;
 
-            field_value.attrs = field_value.attrs.into_iter().filter(|attr| {
+            field.attrs = field.attrs.into_iter().filter(|attr| {
                 let meta = attr.interpret_meta()
                     .expect("ruma_api! could not parse request field attributes");
 
@@ -127,7 +123,7 @@ impl From<ExprStruct> for Request {
                 );
             }
 
-            RequestField::new(field_kind, field_value)
+            RequestField::new(field_kind, field)
         }).collect();
 
         Request {
@@ -160,12 +156,12 @@ impl ToTokens for Request {
 
         if let Some(newtype_body_field) = self.newtype_body_field() {
             let mut field = newtype_body_field.clone();
-            let expr = field.expr;
+            let ty = field.ty;
 
             tokens.append_all(quote! {
                 /// Data in the request body.
                 #[derive(Debug, Serialize)]
-                struct RequestBody(#expr);
+                struct RequestBody(#ty);
             });
         } else if self.has_body_fields() {
             tokens.append_all(quote! {
@@ -239,15 +235,15 @@ impl ToTokens for Request {
 }
 
 pub enum RequestField {
-    Body(FieldValue),
-    Header(FieldValue),
-    NewtypeBody(FieldValue),
-    Path(FieldValue),
-    Query(FieldValue),
+    Body(Field),
+    Header(Field),
+    NewtypeBody(Field),
+    Path(Field),
+    Query(Field),
 }
 
 impl RequestField {
-    fn new(kind: RequestFieldKind, field: FieldValue) -> RequestField {
+    fn new(kind: RequestFieldKind, field: Field) -> RequestField {
         match kind {
             RequestFieldKind::Body => RequestField::Body(field),
             RequestFieldKind::Header => RequestField::Header(field),
@@ -279,7 +275,7 @@ impl RequestField {
         self.kind() == RequestFieldKind::Query
     }
 
-    fn field(&self) -> &FieldValue {
+    fn field(&self) -> &Field {
         match *self {
             RequestField::Body(ref field) => field,
             RequestField::Header(ref field) => field,
@@ -289,7 +285,7 @@ impl RequestField {
         }
     }
 
-    fn field_(&self, kind: RequestFieldKind) -> Option<&FieldValue> {
+    fn field_(&self, kind: RequestFieldKind) -> Option<&Field> {
         if self.kind() == kind {
             Some(self.field())
         } else {

@@ -1,7 +1,5 @@
-use quote::{ToTokens, Tokens};
 use syn::punctuated::Pair;
-use syn::synom::Synom;
-use syn::{Expr, ExprStruct, Ident, Lit, Member};
+use syn::{Expr, FieldValue, Lit, Member};
 
 pub struct Metadata {
     pub description: String,
@@ -12,8 +10,8 @@ pub struct Metadata {
     pub requires_authentication: bool,
 }
 
-impl From<ExprStruct> for Metadata {
-    fn from(expr: ExprStruct) -> Self {
+impl From<Vec<FieldValue>> for Metadata {
+    fn from(field_values: Vec<FieldValue>) -> Self {
         let mut description = None;
         let mut method = None;
         let mut name = None;
@@ -21,15 +19,15 @@ impl From<ExprStruct> for Metadata {
         let mut rate_limited = None;
         let mut requires_authentication = None;
 
-        for field in expr.fields {
-            let identifier = match field.member {
+        for field_value in field_values {
+            let identifier = match field_value.member {
                 Member::Named(identifier) => identifier,
                 _ => panic!("expected Member::Named"),
             };
 
             match identifier.as_ref() {
                 "description" => {
-                    let expr_lit = match field.expr {
+                    let expr_lit = match field_value.expr {
                         Expr::Lit(expr_lit) => expr_lit,
                         _ => panic!("expected Expr::Lit"),
                     };
@@ -40,7 +38,7 @@ impl From<ExprStruct> for Metadata {
                     description = Some(lit_str.value());
                 }
                 "method" => {
-                    let expr_path = match field.expr {
+                    let expr_path = match field_value.expr {
                         Expr::Path(expr_path) => expr_path,
                         _ => panic!("expected Expr::Path"),
                     };
@@ -57,7 +55,7 @@ impl From<ExprStruct> for Metadata {
                     method = Some(method_name.ident.to_string());
                 }
                 "name" => {
-                    let expr_lit = match field.expr {
+                    let expr_lit = match field_value.expr {
                         Expr::Lit(expr_lit) => expr_lit,
                         _ => panic!("expected Expr::Lit"),
                     };
@@ -68,7 +66,7 @@ impl From<ExprStruct> for Metadata {
                     name = Some(lit_str.value());
                 }
                 "path" => {
-                    let expr_lit = match field.expr {
+                    let expr_lit = match field_value.expr {
                         Expr::Lit(expr_lit) => expr_lit,
                         _ => panic!("expected Expr::Lit"),
                     };
@@ -79,7 +77,7 @@ impl From<ExprStruct> for Metadata {
                     path = Some(lit_str.value());
                 }
                 "rate_limited" => {
-                    let expr_lit = match field.expr {
+                    let expr_lit = match field_value.expr {
                         Expr::Lit(expr_lit) => expr_lit,
                         _ => panic!("expected Expr::Lit"),
                     };
@@ -90,7 +88,7 @@ impl From<ExprStruct> for Metadata {
                     rate_limited = Some(lit_bool.value)
                 }
                 "requires_authentication" => {
-                    let expr_lit = match field.expr {
+                    let expr_lit = match field_value.expr {
                         Expr::Lit(expr_lit) => expr_lit,
                         _ => panic!("expected Expr::Lit"),
                     };

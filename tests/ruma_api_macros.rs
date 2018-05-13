@@ -1,7 +1,6 @@
 #![feature(associated_consts, proc_macro, try_from)]
 
 extern crate futures;
-extern crate hyper;
 extern crate ruma_api;
 extern crate ruma_api_macros;
 extern crate serde;
@@ -17,7 +16,7 @@ pub mod some_endpoint {
     ruma_api! {
         metadata {
             description: "Does something.",
-            method: Method::Get, // A `hyper::Method` value. No need to import the name.
+            method: GET, // An `http::Method` constant. No imports required.
             name: "some_endpoint",
             path: "/_matrix/some/endpoint/:baz",
             rate_limited: false,

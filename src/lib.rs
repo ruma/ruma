@@ -4,9 +4,8 @@
 //! See the documentation for the `ruma_api!` macro for usage details.
 
 #![deny(missing_debug_implementations)]
-#![feature(proc_macro, try_from)]
+#![feature(proc_macro)]
 #![recursion_limit="256"]
-#![allow(warnings)]
 
 extern crate proc_macro;
 #[macro_use] extern crate quote;
@@ -14,11 +13,10 @@ extern crate ruma_api;
 #[macro_use] extern crate syn;
 
 use proc_macro::TokenStream;
-use std::convert::TryFrom;
 
-use quote::{ToTokens, Tokens};
+use quote::ToTokens;
 
-use api::{Api, Exprs};
+use api::{Api, RawApi};
 
 mod api;
 
@@ -195,9 +193,9 @@ mod api;
 /// ```
 #[proc_macro]
 pub fn ruma_api(input: TokenStream) -> TokenStream {
-    let exprs: Exprs = syn::parse(input).expect("ruma_api! failed to parse input");
+    let raw_api: RawApi = syn::parse(input).expect("ruma_api! failed to parse input");
 
-    let api = Api::from(exprs.inner);
+    let api = Api::from(raw_api);
 
     api.into_tokens().into()
 }
