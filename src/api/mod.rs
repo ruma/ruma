@@ -70,13 +70,7 @@ impl ToTokens for Api {
         };
 
         let set_request_path = if self.request.has_path_fields() {
-            let path_str_quoted = path.as_str();
-            assert!(
-                path_str_quoted.starts_with('"') && path_str_quoted.ends_with('"'),
-                "path needs to be a string literal"
-            );
-
-            let path_str = &path_str_quoted[1 .. path_str_quoted.len() - 1];
+            let path_str = path.as_str();
 
             assert!(path_str.starts_with('/'), "path needs to start with '/'");
             assert!(
@@ -103,10 +97,10 @@ impl ToTokens for Api {
                 });
 
                 if segment.starts_with(':') {
-                    let what_is_this = &segment[1..];
+                    let path_var = &segment[1..];
 
                     tokens.append_all(quote! {
-                        (&request_path.#what_is_this.to_string());
+                        (&request_path.#path_var.to_string());
                     });
                 } else {
                     tokens.append_all(quote! {
