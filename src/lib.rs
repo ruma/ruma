@@ -28,7 +28,7 @@ mod api;
 /// ruma_api! {
 ///     metadata {
 ///         description: &'static str
-///         method: hyper::Method,
+///         method: http::Method,
 ///         name: &'static str,
 ///         path: &'static str,
 ///         rate_limited: bool,
@@ -50,8 +50,8 @@ mod api;
 ///
 /// This will generate a `ruma_api::Metadata` value to be used for the `ruma_api::Endpoint`'s
 /// associated constant, single `Request` and `Response` structs, and the necessary trait
-/// implementations to convert the request into a `hyper::Request` and to create a response from a
-/// `hyper::response`.
+/// implementations to convert the request into a `http::Request` and to create a response from a
+/// `http::Response`.
 ///
 /// The details of each of the three sections of the macros are documented below.
 ///
@@ -59,8 +59,8 @@ mod api;
 ///
 /// *   `description`: A short description of what the endpoint does.
 /// *   `method`: The HTTP method used for requests to the endpoint.
-///     It's not necessary to import `hyper::Method`, you just write the value as if it was
-///     imported, e.g. `Method::Get`.
+///     It's not necessary to import `http::Method`'s associated constants. Just write
+///     the value as if it was imported, e.g. `GET`.
 /// *   `name`: A unique name for the endpoint.
 ///     Generally this will be the same as the containing module.
 /// *   `path`: The path component of the URL for the endpoint, e.g. "/foo/bar".
@@ -76,11 +76,14 @@ mod api;
 /// The request block contains normal struct field definitions.
 /// Doc comments and attributes are allowed as normal.
 /// There are also a few special attributes available to control how the struct is converted into a
-/// `hyper::Request`:
+/// `http::Request`:
 ///
-/// *   `#[ruma_api(header)]`: Fields with this attribute will be treated as HTTP headers on the
-///     request.
-///     The value must implement `hyper::header::Header`.
+/// *   `#[ruma_api(header = "HEADER_NAME")]`: Fields with this attribute will be treated as HTTP
+///     headers on the request.
+///     The value must implement `http::HttpTryFrom for http::header::HeaderValue`.
+///     Generally this is a string.
+///     The attribute value shown above as `HEADER_NAME` must be a header name constant from
+///     `http::header`, e.g. `CONTENT_TYPE`.
 /// *   `#[ruma_api(path)]`: Fields with this attribute will be inserted into the matching path
 ///     component of the request URL.
 /// *   `#[ruma_api(query)]`: Fields with this attribute will be inserting into the URL's query
@@ -94,11 +97,14 @@ mod api;
 /// Like the request block, the response block consists of normal struct field definitions.
 /// Doc comments and attributes are allowed as normal.
 /// There is also a special attribute available to control how the struct is created from a
-/// `hyper::Request`:
+/// `http::Request`:
 ///
-/// *   `#[ruma_api(header)]`: Fields with this attribute will be treated as HTTP headers on the
-///     response.
-///     The value must implement `hyper::header::Header`.
+/// *   `#[ruma_api(header = "HEADER_NAME")]`: Fields with this attribute will be treated as HTTP
+///     headers on the response.
+///     The value must implement `http::HttpTryFrom for http::header::HeaderValue`.
+///     Generally this is a string.
+///     The attribute value shown above as `HEADER_NAME` must be a header name constant from
+///     `http::header`, e.g. `CONTENT_TYPE`.
 ///
 /// Any field that does not include the above attribute will be expected in the response's JSON
 /// body.
@@ -115,10 +121,10 @@ mod api;
 /// # Examples
 ///
 /// ```rust,no_run
-/// #![feature(associated_consts, proc_macro, try_from)]
+/// #![feature(proc_macro, try_from)]
 ///
 /// extern crate futures;
-/// extern crate hyper;
+/// extern crate http;
 /// extern crate ruma_api;
 /// extern crate ruma_api_macros;
 /// extern crate serde;
@@ -129,13 +135,12 @@ mod api;
 ///
 /// # fn main() {
 /// pub mod some_endpoint {
-///     use hyper::header::ContentType;
 ///     use ruma_api_macros::ruma_api;
 ///
 ///     ruma_api! {
 ///         metadata {
 ///             description: "Does something.",
-///             method: Method::Get,
+///             method: GET,
 ///             name: "some_endpoint",
 ///             path: "/_matrix/some/endpoint/:baz",
 ///             rate_limited: false,
@@ -144,17 +149,21 @@ mod api;
 ///
 ///         request {
 ///             pub foo: String,
-///             #[ruma_api(header)]
-///             pub content_type: ContentType,
+///
+///             #[ruma_api(header = "CONTENT_TYPE")]
+///             pub content_type: String,
+///
 ///             #[ruma_api(query)]
 ///             pub bar: String,
+///
 ///             #[ruma_api(path)]
 ///             pub baz: String,
 ///         }
 ///
 ///         response {
-///             #[ruma_api(header)]
-///             pub content_type: ContentType,
+///             #[ruma_api(header = "CONTENT_TYPE")]
+///             pub content_type: String,
+///
 ///             pub value: String,
 ///         }
 ///     }
@@ -171,7 +180,7 @@ mod api;
 ///     ruma_api! {
 ///         metadata {
 ///             description: "Does something.",
-///             method: Method::Get,
+///             method: GET,
 ///             name: "newtype_body_endpoint",
 ///             path: "/_matrix/some/newtype/body/endpoint",
 ///             rate_limited: false,

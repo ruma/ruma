@@ -13,7 +13,7 @@ Here is an example that shows most of the macro's functionality.
 #![feature(associated_consts, proc_macro, try_from)]
 
 extern crate futures;
-extern crate hyper;
+extern crate http;
 extern crate ruma_api;
 extern crate ruma_api_macros;
 extern crate serde;
@@ -28,9 +28,9 @@ pub mod some_endpoint {
     ruma_api! {
         metadata {
             description: "Does something.",
-            method: Method::Get, // A `hyper::Method` value. No need to import the name.
+            method: GET, // An `http::Method` constant. No imports required.
             name: "some_endpoint",
-            path: "/_matrix/some/endpoint/:baz",
+            path: "/_matrix/some/endpoint/:baz", // Variable path components start with a colon.
             rate_limited: false,
             requires_authentication: false,
         }
@@ -40,8 +40,8 @@ pub mod some_endpoint {
             pub foo: String,
 
             // This value will be put into the "Content-Type" HTTP header.
-            #[ruma_api(header)]
-            pub content_type: ContentType,
+            #[ruma_api(header = "CONTENT_TYPE")]
+            pub content_type: String
 
             // This value will be put into the query string of the request's URL.
             #[ruma_api(query)]
@@ -55,8 +55,8 @@ pub mod some_endpoint {
 
         response {
             // This value will be extracted from the "Content-Type" HTTP header.
-            #[ruma_api(header)]
-            pub content_type: ContentType,
+            #[ruma_api(header = "CONTENT_TYPE")]
+            pub content_type: String
 
             // With no attribute on the field, it will be extracted from the body of the response.
             pub value: String,
