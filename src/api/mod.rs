@@ -1,7 +1,7 @@
 use quote::{ToTokens, Tokens};
 use syn::punctuated::Punctuated;
 use syn::synom::Synom;
-use syn::{Field, FieldValue, Meta};
+use syn::{Field, FieldValue, Ident, Meta};
 
 mod metadata;
 mod request;
@@ -52,22 +52,16 @@ impl From<RawApi> for Api {
 impl ToTokens for Api {
     fn to_tokens(&self, tokens: &mut Tokens) {
         let description = &self.metadata.description;
-        let method = &self.metadata.method;
+        let method = Ident::from(self.metadata.method.as_ref());
         let name = &self.metadata.name;
         let path = &self.metadata.path;
         let rate_limited = &self.metadata.rate_limited;
         let requires_authentication = &self.metadata.requires_authentication;
 
-        let request_types = {
-            let mut tokens = Tokens::new();
-            self.request.to_tokens(&mut tokens);
-            tokens
-        };
-        let response_types = {
-            let mut tokens = Tokens::new();
-            self.response.to_tokens(&mut tokens);
-            tokens
-        };
+        let request = &self.request;
+        let request_types = quote! { #request };
+        let response = &self.response;
+        let response_types = quote! { #response };
 
         let set_request_path = if self.request.has_path_fields() {
             let path_str = path.as_str();
@@ -98,9 +92,10 @@ impl ToTokens for Api {
 
                 if segment.starts_with(':') {
                     let path_var = &segment[1..];
+                    let path_var_ident = Ident::from(path_var);
 
                     tokens.append_all(quote! {
-                        (&request_path.#path_var.to_string());
+                        (&request_path.#path_var_ident.to_string());
                     });
                 } else {
                     tokens.append_all(quote! {
@@ -136,7 +131,7 @@ impl ToTokens for Api {
             quote! {
                 let request_body = RequestBody(request.#field_name);
 
-                hyper_request.set_body(::serde_json::to_vec(&request_body)?);
+                http_request.set_body(::serde_json::to_vec(&request_body)?);
             }
         } else if self.request.has_body_fields() {
             let request_body_init_fields = self.request.request_body_init_fields();
@@ -146,7 +141,7 @@ impl ToTokens for Api {
                     #request_body_init_fields
                 };
 
-                hyper_request.set_body(::serde_json::to_vec(&request_body)?);
+                http_request.set_body(::serde_json::to_vec(&request_body)?);
             }
         } else {
             Tokens::new()
@@ -155,10 +150,8 @@ impl ToTokens for Api {
         let deserialize_response_body = if let Some(field) = self.response.newtype_body_field() {
             let field_type = &field.ty;
 
-            let mut tokens = Tokens::new();
-
-            tokens.append_all(quote! {
-                let future_response = hyper_response.body()
+            quote! {
+                let future_response = http_response.body()
                     .fold::<_, _, Result<_, ::std::io::Error>>(Vec::new(), |mut bytes, chunk| {
                         bytes.write_all(&chunk)?;
 
@@ -169,16 +162,10 @@ impl ToTokens for Api {
                         ::serde_json::from_slice::<#field_type>(bytes.as_slice())
                             .map_err(::ruma_api::Error::from)
                     })
-            });
-
-            tokens.append_all(".and_then(move |response_body| {".into_tokens());
-
-            tokens
+            }
         } else if self.response.has_body_fields() {
-            let mut tokens = Tokens::new();
-
-            tokens.append_all(quote! {
-                let future_response = hyper_response.body()
+            quote! {
+                let future_response = http_response.body()
                     .fold::<_, _, Result<_, ::std::io::Error>>(Vec::new(), |mut bytes, chunk| {
                         bytes.write_all(&chunk)?;
 
@@ -189,29 +176,16 @@ impl ToTokens for Api {
                         ::serde_json::from_slice::<ResponseBody>(bytes.as_slice())
                             .map_err(::ruma_api::Error::from)
                     })
-            });
-
-            tokens.append_all(".and_then(move |response_body| {".into_tokens());
-
-            tokens
+            }
         } else {
-            let mut tokens = Tokens::new();
-
-            tokens.append_all(quote! {
+            quote! {
                 let future_response = ::futures::future::ok(())
-            });
-
-            tokens.append_all(".and_then(move |_| {".into_tokens());
-
-            tokens
+            }
         };
-
-        let mut closure_end = Tokens::new();
-        closure_end.append_all("});".into_tokens());
 
         let extract_headers = if self.response.has_header_fields() {
             quote! {
-                let mut headers = hyper_response.headers().clone();
+                let mut headers = http_response.headers().clone();
             }
         } else {
             Tokens::new()
@@ -237,7 +211,7 @@ impl ToTokens for Api {
 
             #request_types
 
-            impl ::std::convert::TryFrom<Request> for ::hyper::Request {
+            impl ::std::convert::TryFrom<Request> for ::http::Request {
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_mut, unused_variables)]
@@ -245,44 +219,44 @@ impl ToTokens for Api {
                     let metadata = Endpoint::METADATA;
 
                     // Use dummy homeserver url which has to be overwritten in
-                    // the calling code. Previously (with hyper::Uri) this was
+                    // the calling code. Previously (with http::Uri) this was
                     // not required, but Url::parse only accepts absolute urls.
                     let mut url = ::url::Url::parse("http://invalid-host-please-change/").unwrap();
 
                     { #set_request_path }
                     { #set_request_query }
 
-                    let mut hyper_request = ::hyper::Request::new(
-                        metadata.method,
+                    let mut http_request = ::http::Request::new(
+                        ::http::Method::#method,
                         // Every valid URL is a valid URI
                         url.into_string().parse().unwrap(),
                     );
 
                     { #add_body_to_request }
 
-                    Ok(hyper_request)
+                    Ok(http_request)
                 }
             }
 
             #response_types
 
-            impl ::futures::future::FutureFrom<::hyper::Response> for Response {
+            impl ::futures::future::FutureFrom<::http::Response> for Response {
                 type Future = Box<_Future<Item = Self, Error = Self::Error>>;
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_variables)]
-                fn future_from(hyper_response: ::hyper::Response)
+                fn future_from(http_response: ::http::Response)
                 -> Box<_Future<Item = Self, Error = Self::Error>> {
                     #extract_headers
 
                     #deserialize_response_body
+                    .and_then(move |response_body| {
+                        let response = Response {
+                            #response_init_fields
+                        };
 
-                    let response = Response {
-                        #response_init_fields
-                    };
-
-                    Ok(response)
-                    #closure_end
+                        Ok(response)
+                    });
 
                     Box::new(future_response)
                 }
@@ -294,7 +268,7 @@ impl ToTokens for Api {
 
                 const METADATA: ::ruma_api::Metadata = ::ruma_api::Metadata {
                     description: #description,
-                    method: ::hyper::#method,
+                    method: ::http::Method::#method,
                     name: #name,
                     path: #path,
                     rate_limited: #rate_limited,

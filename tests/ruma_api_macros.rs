@@ -1,6 +1,7 @@
 #![feature(associated_consts, proc_macro, try_from)]
 
 extern crate futures;
+extern crate http;
 extern crate ruma_api;
 extern crate ruma_api_macros;
 extern crate serde;
@@ -10,7 +11,6 @@ extern crate serde_urlencoded;
 extern crate url;
 
 pub mod some_endpoint {
-    use hyper::header::ContentType;
     use ruma_api_macros::ruma_api;
 
     ruma_api! {
@@ -28,8 +28,8 @@ pub mod some_endpoint {
             pub foo: String,
 
             // This value will be put into the "Content-Type" HTTP header.
-            #[ruma_api(header)]
-            pub content_type: ContentType,
+            #[ruma_api(header = "CONTENT_TYPE")]
+            pub content_type: String,
 
             // This value will be put into the query string of the request's URL.
             #[ruma_api(query)]
@@ -43,8 +43,8 @@ pub mod some_endpoint {
 
         response {
             // This value will be extracted from the "Content-Type" HTTP header.
-            #[ruma_api(header)]
-            pub content_type: ContentType,
+            #[ruma_api(header = "CONTENT_TYPE")]
+            pub content_type: String,
 
             // With no attribute on the field, it will be extracted from the body of the response.
             pub value: String,
