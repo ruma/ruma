@@ -165,31 +165,17 @@ impl ToTokens for Api {
             let field_type = &field.ty;
 
             quote! {
-                let future_response = http_response.body()
-                    .fold::<_, _, Result<_, ::std::io::Error>>(Vec::new(), |mut bytes, chunk| {
-                        bytes.write_all(&chunk)?;
-
-                        Ok(bytes)
-                    })
-                    .map_err(::ruma_api::Error::from)
-                    .and_then(|bytes| {
-                        ::serde_json::from_slice::<#field_type>(bytes.as_slice())
-                            .map_err(::ruma_api::Error::from)
-                    })
+                let future_response =
+                    ::serde_json::from_slice::<#field_type>(http_response.body().as_slice())
+                        .into_future()
+                        .map_err(::ruma_api::Error::from)
             }
         } else if self.response.has_body_fields() {
             quote! {
-                let future_response = http_response.body()
-                    .fold::<_, _, Result<_, ::std::io::Error>>(Vec::new(), |mut bytes, chunk| {
-                        bytes.write_all(&chunk)?;
-
-                        Ok(bytes)
-                    })
-                    .map_err(::ruma_api::Error::from)
-                    .and_then(|bytes| {
-                        ::serde_json::from_slice::<ResponseBody>(bytes.as_slice())
-                            .map_err(::ruma_api::Error::from)
-                    })
+                let future_response =
+                    ::serde_json::from_slice::<ResponseBody>(http_response.body().as_slice())
+                        .into_future()
+                        .map_err(::ruma_api::Error::from)
             }
         } else {
             quote! {
@@ -213,10 +199,7 @@ impl ToTokens for Api {
 
         tokens.append_all(quote! {
             #[allow(unused_imports)]
-            use std::io::Write as _Write;
-
-            #[allow(unused_imports)]
-            use ::futures::{Future as _Future, Stream as _Stream};
+            use ::futures::{Future as _Future, IntoFuture as _IntoFuture};
             use ::ruma_api::Endpoint as _RumaApiEndpoint;
 
             /// The API endpoint.
