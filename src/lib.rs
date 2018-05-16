@@ -80,8 +80,8 @@ mod api;
 ///
 /// *   `#[ruma_api(header = "HEADER_NAME")]`: Fields with this attribute will be treated as HTTP
 ///     headers on the request.
-///     The value must implement `http::HttpTryFrom for http::header::HeaderValue`.
-///     Generally this is a string.
+///     The value must implement `AsRef<str>`.
+///     Generally this is a `String`.
 ///     The attribute value shown above as `HEADER_NAME` must be a header name constant from
 ///     `http::header`, e.g. `CONTENT_TYPE`.
 /// *   `#[ruma_api(path)]`: Fields with this attribute will be inserted into the matching path
@@ -101,8 +101,8 @@ mod api;
 ///
 /// *   `#[ruma_api(header = "HEADER_NAME")]`: Fields with this attribute will be treated as HTTP
 ///     headers on the response.
-///     The value must implement `http::HttpTryFrom for http::header::HeaderValue`.
-///     Generally this is a string.
+///     The value must implement `AsRef<str>`.
+///     Generally this is a `String`.
 ///     The attribute value shown above as `HEADER_NAME` must be a header name constant from
 ///     `http::header`, e.g. `CONTENT_TYPE`.
 ///

@@ -20,7 +20,11 @@ impl Request {
             let header_name = Ident::from(header_name_string.as_ref());
 
             header_tokens.append_all(quote! {
-                headers.append(::http::header::#header_name, request.#field_name);
+                headers.append(
+                    ::http::header::#header_name,
+                    ::http::header::HeaderValue::from_str(request.#field_name.as_ref())
+                        .expect("failed to convert value into HeaderValue"),
+                );
             });
 
             header_tokens

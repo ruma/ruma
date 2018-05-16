@@ -41,7 +41,10 @@ impl Response {
 
                     tokens.append_all(quote_spanned! {span=>
                         #field_name: headers.remove(::http::header::#header_name)
-                            .expect("missing expected request header"),
+                            .expect("response missing expected header")
+                            .to_str()
+                            .expect("failed to convert HeaderValue to str")
+                            .to_owned(),
                     });
                 }
                 ResponseField::NewtypeBody(ref field) => {
