@@ -10,7 +10,7 @@ You define the endpoint's metadata, request fields, and response fields, and the
 Here is an example that shows most of the macro's functionality.
 
 ``` rust
-#![feature(associated_consts, proc_macro, try_from)]
+#![feature(proc_macro, try_from)]
 
 extern crate futures;
 extern crate http;

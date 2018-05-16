@@ -99,7 +99,7 @@ impl ToTokens for Api {
                     });
                 } else {
                     tokens.append_all(quote! {
-                        ("#segment");
+                        (#segment);
                     });
                 }
             }
@@ -121,6 +121,18 @@ impl ToTokens for Api {
 
                 url.set_query(Some(&::serde_urlencoded::to_string(request_query)?));
             }
+        } else {
+            Tokens::new()
+        };
+
+        let add_headers_to_request = if self.request.has_header_fields() {
+            let mut header_tokens = quote! {
+                let headers = http_request.headers_mut();
+            };
+
+            header_tokens.append_all(self.request.add_headers_to_request());
+
+            header_tokens
         } else {
             Tokens::new()
         };
@@ -211,7 +223,7 @@ impl ToTokens for Api {
 
             #request_types
 
-            impl ::std::convert::TryFrom<Request> for ::http::Request {
+            impl<T> ::std::convert::TryFrom<Request> for ::http::Request<T> {
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_mut, unused_variables)]
@@ -232,6 +244,8 @@ impl ToTokens for Api {
                         url.into_string().parse().unwrap(),
                     );
 
+                    { #add_headers_to_request }
+
                     { #add_body_to_request }
 
                     Ok(http_request)
@@ -240,12 +254,12 @@ impl ToTokens for Api {
 
             #response_types
 
-            impl ::futures::future::FutureFrom<::http::Response> for Response {
+            impl<T> ::futures::future::FutureFrom<::http::Response<T>> for Response {
                 type Future = Box<_Future<Item = Self, Error = Self::Error>>;
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_variables)]
-                fn future_from(http_response: ::http::Response)
+                fn future_from(http_response: ::http::Response<T>)
                 -> Box<_Future<Item = Self, Error = Self::Error>> {
                     #extract_headers
 

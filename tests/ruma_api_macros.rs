@@ -1,4 +1,4 @@
-#![feature(associated_consts, proc_macro, try_from)]
+#![feature(proc_macro, try_from)]
 
 extern crate futures;
 extern crate http;

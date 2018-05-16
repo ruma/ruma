@@ -1,6 +1,6 @@
 use quote::{ToTokens, Tokens};
 use syn::spanned::Spanned;
-use syn::{Field, Meta, NestedMeta};
+use syn::{Field, Ident, Lit, Meta, NestedMeta};
 
 use api::strip_serde_attrs;
 
@@ -9,16 +9,41 @@ pub struct Request {
 }
 
 impl Request {
+    pub fn add_headers_to_request(&self) -> Tokens {
+        self.header_fields().fold(Tokens::new(), |mut header_tokens, request_field| {
+            let (field, header_name_string) = match request_field {
+                RequestField::Header(field, header_name_string) => (field, header_name_string),
+                _ => panic!("expected request field to be header variant"),
+            };
+
+            let field_name = &field.ident;
+            let header_name = Ident::from(header_name_string.as_ref());
+
+            header_tokens.append_all(quote! {
+                headers.append(::http::header::#header_name, request.#field_name);
+            });
+
+            header_tokens
+        })
+    }
+
     pub fn has_body_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_body())
     }
 
+    pub fn has_header_fields(&self) -> bool {
+        self.fields.iter().any(|field| field.is_header())
+    }
     pub fn has_path_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_path())
     }
 
     pub fn has_query_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_query())
+    }
+
+    pub fn header_fields(&self) -> impl Iterator<Item = &RequestField> {
+        self.fields.iter().filter(|field| field.is_header())
     }
 
     pub fn path_field_count(&self) -> usize {
@@ -72,6 +97,7 @@ impl From<Vec<Field>> for Request {
 
         let fields = fields.into_iter().map(|mut field| {
             let mut field_kind = RequestFieldKind::Body;
+            let mut header = None;
 
             field.attrs = field.attrs.into_iter().filter(|attr| {
                 let meta = attr.interpret_meta()
@@ -103,7 +129,14 @@ impl From<Vec<Field>> for Request {
                                 }
                                 Meta::NameValue(name_value) => {
                                     match name_value.ident.as_ref() {
-                                        "header" => field_kind = RequestFieldKind::Header,
+                                        "header" => {
+                                            match name_value.lit {
+                                                Lit::Str(lit_str) => header = Some(lit_str.value()),
+                                                _ => panic!("ruma_api! header attribute's value must be a string literal"),
+                                            }
+
+                                            field_kind = RequestFieldKind::Header;
+                                        }
                                         _ => panic!("ruma_api! name/value pair attribute on requests must be: header"),
                                     }
                                 }
@@ -126,7 +159,7 @@ impl From<Vec<Field>> for Request {
                 );
             }
 
-            RequestField::new(field_kind, field)
+            RequestField::new(field_kind, field, header)
         }).collect();
 
         Request {
@@ -267,17 +300,17 @@ impl ToTokens for Request {
 
 pub enum RequestField {
     Body(Field),
-    Header(Field),
+    Header(Field, String),
     NewtypeBody(Field),
     Path(Field),
     Query(Field),
 }
 
 impl RequestField {
-    fn new(kind: RequestFieldKind, field: Field) -> RequestField {
+    fn new(kind: RequestFieldKind, field: Field, header: Option<String>) -> RequestField {
         match kind {
             RequestFieldKind::Body => RequestField::Body(field),
-            RequestFieldKind::Header => RequestField::Header(field),
+            RequestFieldKind::Header => RequestField::Header(field, header.expect("missing header name")),
             RequestFieldKind::NewtypeBody => RequestField::NewtypeBody(field),
             RequestFieldKind::Path => RequestField::Path(field),
             RequestFieldKind::Query => RequestField::Query(field),
@@ -286,16 +319,20 @@ impl RequestField {
 
     fn kind(&self) -> RequestFieldKind {
         match *self {
-            RequestField::Body(_) => RequestFieldKind::Body,
-            RequestField::Header(_) => RequestFieldKind::Header,
-            RequestField::NewtypeBody(_) => RequestFieldKind::NewtypeBody,
-            RequestField::Path(_) => RequestFieldKind::Path,
-            RequestField::Query(_) => RequestFieldKind::Query,
+            RequestField::Body(..) => RequestFieldKind::Body,
+            RequestField::Header(..) => RequestFieldKind::Header,
+            RequestField::NewtypeBody(..) => RequestFieldKind::NewtypeBody,
+            RequestField::Path(..) => RequestFieldKind::Path,
+            RequestField::Query(..) => RequestFieldKind::Query,
         }
     }
 
     fn is_body(&self) -> bool {
         self.kind() == RequestFieldKind::Body
+    }
+
+    fn is_header(&self) -> bool {
+        self.kind() == RequestFieldKind::Header
     }
 
     fn is_path(&self) -> bool {
@@ -309,7 +346,7 @@ impl RequestField {
     fn field(&self) -> &Field {
         match *self {
             RequestField::Body(ref field) => field,
-            RequestField::Header(ref field) => field,
+            RequestField::Header(ref field, _) => field,
             RequestField::NewtypeBody(ref field) => field,
             RequestField::Path(ref field) => field,
             RequestField::Query(ref field) => field,

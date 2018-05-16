@@ -1,6 +1,6 @@
 use quote::{ToTokens, Tokens};
 use syn::spanned::Spanned;
-use syn::{Field, Meta, NestedMeta};
+use syn::{Field, Ident, Lit, Meta, NestedMeta};
 
 use api::strip_serde_attrs;
 
@@ -34,13 +34,13 @@ impl Response {
                         #field_name: response_body.#field_name,
                     });
                 }
-                ResponseField::Header(ref field) => {
+                ResponseField::Header(ref field, ref header) => {
                     let field_name = field.ident.expect("expected field to have an identifier");
-                    let field_type = &field.ty;
+                    let header_name = Ident::from(header.as_ref());
                     let span = field.span();
 
                     tokens.append_all(quote_spanned! {span=>
-                        #field_name: headers.remove::<#field_type>()
+                        #field_name: headers.remove(::http::header::#header_name)
                             .expect("missing expected request header"),
                     });
                 }
@@ -80,6 +80,7 @@ impl From<Vec<Field>> for Response {
 
         let fields = fields.into_iter().map(|mut field| {
             let mut field_kind = ResponseFieldKind::Body;
+            let mut header = None;
 
             field.attrs = field.attrs.into_iter().filter(|attr| {
                 let meta = attr.interpret_meta()
@@ -109,7 +110,14 @@ impl From<Vec<Field>> for Response {
                                 }
                                 Meta::NameValue(name_value) => {
                                     match name_value.ident.as_ref() {
-                                        "header" => field_kind = ResponseFieldKind::Header,
+                                        "header" => {
+                                            match name_value.lit {
+                                                Lit::Str(lit_str) => header = Some(lit_str.value()),
+                                                _ => panic!("ruma_api! header attribute's value must be a string literal"),
+                                            }
+
+                                            field_kind = ResponseFieldKind::Header;
+                                        }
                                         _ => panic!("ruma_api! name/value pair attribute on requests must be: header"),
                                     }
                                 }
@@ -133,7 +141,7 @@ impl From<Vec<Field>> for Response {
                         return ResponseField::Body(field);
                     }
                 }
-                ResponseFieldKind::Header => ResponseField::Header(field),
+                ResponseFieldKind::Header => ResponseField::Header(field, header.expect("missing header name")),
                 ResponseFieldKind::NewtypeBody => ResponseField::NewtypeBody(field),
             }
         }).collect();
@@ -220,7 +228,7 @@ impl ToTokens for Response {
 
 pub enum ResponseField {
     Body(Field),
-    Header(Field),
+    Header(Field, String),
     NewtypeBody(Field),
 }
 
@@ -228,21 +236,21 @@ impl ResponseField {
     fn field(&self) -> &Field {
         match *self {
             ResponseField::Body(ref field) => field,
-            ResponseField::Header(ref field) => field,
+            ResponseField::Header(ref field, _) => field,
             ResponseField::NewtypeBody(ref field) => field,
         }
     }
 
     fn is_body(&self) -> bool {
         match *self {
-            ResponseField::Body(_) => true,
+            ResponseField::Body(..) => true,
             _ => false,
         }
     }
 
     fn is_header(&self) -> bool {
         match *self {
-            ResponseField::Header(_) => true,
+            ResponseField::Header(..) => true,
             _ => false,
         }
     }
