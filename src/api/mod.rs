@@ -137,13 +137,13 @@ impl ToTokens for Api {
             Tokens::new()
         };
 
-        let add_body_to_request = if let Some(field) = self.request.newtype_body_field() {
+        let create_http_request = if let Some(field) = self.request.newtype_body_field() {
             let field_name = field.ident.expect("expected field to have an identifier");
 
             quote! {
                 let request_body = RequestBody(request.#field_name);
 
-                http_request.set_body(::serde_json::to_vec(&request_body)?);
+                let mut http_request = ::http::Request::new(::serde_json::to_vec(&request_body)?);
             }
         } else if self.request.has_body_fields() {
             let request_body_init_fields = self.request.request_body_init_fields();
@@ -153,10 +153,12 @@ impl ToTokens for Api {
                     #request_body_init_fields
                 };
 
-                http_request.set_body(::serde_json::to_vec(&request_body)?);
+                let mut http_request = ::http::Request::new(::serde_json::to_vec(&request_body)?);
             }
         } else {
-            Tokens::new()
+            quote! {
+                let mut http_request = ::http::Request::new(());
+            }
         };
 
         let deserialize_response_body = if let Some(field) = self.response.newtype_body_field() {
@@ -223,7 +225,7 @@ impl ToTokens for Api {
 
             #request_types
 
-            impl<T> ::std::convert::TryFrom<Request> for ::http::Request<T> {
+            impl ::std::convert::TryFrom<Request> for ::http::Request<Vec<u8>> {
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_mut, unused_variables)]
@@ -238,15 +240,12 @@ impl ToTokens for Api {
                     { #set_request_path }
                     { #set_request_query }
 
-                    let mut http_request = ::http::Request::new(
-                        ::http::Method::#method,
-                        // Every valid URL is a valid URI
-                        url.into_string().parse().unwrap(),
-                    );
+                    #create_http_request
+
+                    *http_request.method_mut() = ::http::Method::#method;
+                    *http_request.uri_mut() = url.into_string().parse().unwrap();
 
                     { #add_headers_to_request }
-
-                    { #add_body_to_request }
 
                     Ok(http_request)
                 }
@@ -254,12 +253,12 @@ impl ToTokens for Api {
 
             #response_types
 
-            impl<T> ::futures::future::FutureFrom<::http::Response<T>> for Response {
+            impl ::futures::future::FutureFrom<::http::Response<Vec<u8>>> for Response {
                 type Future = Box<_Future<Item = Self, Error = Self::Error>>;
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_variables)]
-                fn future_from(http_response: ::http::Response<T>)
+                fn future_from(http_response: ::http::Response<Vec<u8>>)
                 -> Box<_Future<Item = Self, Error = Self::Error>> {
                     #extract_headers
 
@@ -276,7 +275,7 @@ impl ToTokens for Api {
                 }
             }
 
-            impl ::ruma_api::Endpoint for Endpoint {
+            impl ::ruma_api::Endpoint<Vec<u8>, Vec<u8>> for Endpoint {
                 type Request = Request;
                 type Response = Response;
 
