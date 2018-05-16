@@ -101,18 +101,19 @@ impl From<Vec<Field>> for Response {
                                 Meta::Word(ident) => {
                                     match ident.as_ref() {
                                         "body" => {
-                                        has_newtype_body = true;
-                                        field_kind = ResponseFieldKind::NewtypeBody;
-                                    }
-                                    "header" => field_kind = ResponseFieldKind::Header,
-                                    _ => panic!(
-                                            "ruma_api! attribute meta item on responses must be: header"
-                                        ),
+                                            has_newtype_body = true;
+                                            field_kind = ResponseFieldKind::NewtypeBody;
+                                        }
+                                        _ => panic!("ruma_api! single-word attribute on responses must be: body"),
                                     }
                                 }
-                                _ => panic!(
-                                    "ruma_api! attribute meta item on responses cannot be a list or name/value pair"
-                                ),
+                                Meta::NameValue(name_value) => {
+                                    match name_value.ident.as_ref() {
+                                        "header" => field_kind = ResponseFieldKind::Header,
+                                        _ => panic!("ruma_api! name/value pair attribute on requests must be: header"),
+                                    }
+                                }
+                                _ => panic!("ruma_api! attributes on responses must be a single word or a name/value pair"),
                             }
                         }
                         NestedMeta::Literal(_) => panic!(

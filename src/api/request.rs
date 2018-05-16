@@ -92,25 +92,26 @@ impl From<Vec<Field>> for Request {
                             match meta_item {
                                 Meta::Word(ident) => {
                                     match ident.as_ref() {
-                                    "body" => {
-                                        has_newtype_body = true;
-                                        field_kind = RequestFieldKind::NewtypeBody;
-                                    }
-                                    "header" => field_kind = RequestFieldKind::Header,
-                                    "path" => field_kind = RequestFieldKind::Path,
-                                    "query" => field_kind = RequestFieldKind::Query,
-                                    _ => panic!(
-                                            "ruma_api! attribute meta item on requests must be: body, header, path, or query"
-                                        ),
+                                        "body" => {
+                                            has_newtype_body = true;
+                                            field_kind = RequestFieldKind::NewtypeBody;
+                                        }
+                                        "path" => field_kind = RequestFieldKind::Path,
+                                        "query" => field_kind = RequestFieldKind::Query,
+                                        _ => panic!("ruma_api! single-word attribute on requests must be: body, path, or query"),
                                     }
                                 }
-                                _ => panic!(
-                                    "ruma_api! attribute meta item on requests cannot be a list or name/value pair"
-                                ),
+                                Meta::NameValue(name_value) => {
+                                    match name_value.ident.as_ref() {
+                                        "header" => field_kind = RequestFieldKind::Header,
+                                        _ => panic!("ruma_api! name/value pair attribute on requests must be: header"),
+                                    }
+                                }
+                                _ => panic!("ruma_api! attributes on requests must be a single word or a name/value pair"),
                             }
                         }
                         NestedMeta::Literal(_) => panic!(
-                            "ruma_api! attribute meta item on requests must be: body, header, path, or query"
+                            "ruma_api! attributes on requests must be: body, header, path, or query"
                         ),
                     }
                 }
