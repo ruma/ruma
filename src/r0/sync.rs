@@ -113,10 +113,7 @@ pub mod get_member_events {
             name: "get_member_events",
             path: "/_matrix/client/r0/rooms/:room_id/members",
             rate_limited: false,
-            requires_authentication: false,
-            // TODO: not marked as requiring auth in the spec, but
-            // will return a 403 error is user is not a member of the
-            // room anyway...
+            requires_authentication: true,
         }
 
         request {
