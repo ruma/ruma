@@ -97,7 +97,7 @@ pub struct RoomFilter {
     /// filters in `ephemeral`, `state`, `timeline` or `account_data`.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     #[serde(default)]
-    pub room: Vec<RoomId>,
+    pub rooms: Vec<RoomId>,
 }
 
 /// Filter for not-room data
