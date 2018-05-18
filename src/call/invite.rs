@@ -16,7 +16,7 @@ pub struct InviteEventContent {
     /// value, clients should discard it. They should also no longer show the call as awaiting an
     /// answer in the UI.
     pub lifetime: u64,
-    /// The session description object.
+    /// The session description object. The session description type must be *offer*.
     pub offer: SessionDescription,
     /// The version of the VoIP specification this messages adheres to.
     pub version: u64,

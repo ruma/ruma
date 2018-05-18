@@ -120,6 +120,7 @@ pub mod collections {
     pub mod all;
     pub mod only;
 }
+pub mod direct;
 pub mod presence;
 pub mod receipt;
 pub mod room;
@@ -142,6 +143,8 @@ pub enum EventType {
     CallHangup,
     /// m.call.invite
     CallInvite,
+    /// m.direct
+    Direct,
     /// m.presence
     Presence,
     /// m.receipt
@@ -166,6 +169,8 @@ pub enum EventType {
     RoomMessage,
     /// m.room.name
     RoomName,
+    /// m.room.pinned_events
+    RoomPinnedEvents,
     /// m.room.power_levels
     RoomPowerLevels,
     /// m.room.redaction
@@ -192,12 +197,6 @@ pub trait Event where Self: Debug + for<'a> Deserialize<'a> + Serialize {
 
     /// The type of the event.
     fn event_type(&self) -> &EventType;
-
-    /// Extra top-level key-value pairs specific to this event type, but that are not under the
-    /// `content` field.
-    fn extra_content(&self) -> Option<Value> {
-        None
-    }
 }
 
 /// An event within the context of a room.
@@ -205,14 +204,17 @@ pub trait RoomEvent: Event {
     /// The unique identifier for the event.
     fn event_id(&self) -> &EventId;
 
+    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    fn origin_server_ts(&self) -> u64;
+
     /// The unique identifier for the room associated with this event.
     fn room_id(&self) -> &RoomId;
 
+    /// The unique identifier for the user who sent this event.
+    fn sender(&self) -> &UserId;
+
     /// Additional key-value pairs not signed by the homeserver.
     fn unsigned(&self) -> Option<&Value>;
-
-    /// The unique identifier for the user associated with this event.
-    fn user_id(&self) -> &UserId;
 }
 
 /// An event that describes persistent state about a room.
@@ -246,6 +248,7 @@ impl Display for EventType {
             EventType::CallCandidates => "m.call.candidates",
             EventType::CallHangup => "m.call.hangup",
             EventType::CallInvite => "m.call.invite",
+            EventType::Direct => "m.direct",
             EventType::Presence => "m.presence",
             EventType::Receipt => "m.receipt",
             EventType::RoomAliases => "m.room.aliases",
@@ -258,6 +261,7 @@ impl Display for EventType {
             EventType::RoomMember => "m.room.member",
             EventType::RoomMessage => "m.room.message",
             EventType::RoomName => "m.room.name",
+            EventType::RoomPinnedEvents=> "m.room.pinned_events",
             EventType::RoomPowerLevels => "m.room.power_levels",
             EventType::RoomRedaction => "m.room.redaction",
             EventType::RoomThirdPartyInvite => "m.room.third_party_invite",
@@ -278,6 +282,7 @@ impl<'a> From<&'a str> for EventType {
             "m.call.candidates" => EventType::CallCandidates,
             "m.call.hangup" => EventType::CallHangup,
             "m.call.invite" => EventType::CallInvite,
+            "m.direct" => EventType::Direct,
             "m.presence" => EventType::Presence,
             "m.receipt" => EventType::Receipt,
             "m.room.aliases" => EventType::RoomAliases,
@@ -290,6 +295,7 @@ impl<'a> From<&'a str> for EventType {
             "m.room.member" => EventType::RoomMember,
             "m.room.message" => EventType::RoomMessage,
             "m.room.name" => EventType::RoomName,
+            "m.room.pinned_events" => EventType::RoomPinnedEvents,
             "m.room.power_levels" => EventType::RoomPowerLevels,
             "m.room.redaction" => EventType::RoomRedaction,
             "m.room.third_party_invite" => EventType::RoomThirdPartyInvite,

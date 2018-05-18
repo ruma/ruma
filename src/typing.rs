@@ -1,6 +1,6 @@
 //! Types for the *m.typing* event.
 
-use ruma_identifiers::{EventId, RoomId};
+use ruma_identifiers::{RoomId, UserId};
 
 event! {
     /// Informs the client of the list of users currently typing.
@@ -14,5 +14,5 @@ event! {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct TypingEventContent {
     /// The list of user IDs typing in this room, if any.
-    pub user_ids: Vec<EventId>,
+    pub user_ids: Vec<UserId>,
 }

@@ -38,6 +38,11 @@ pub struct MemberEventContent {
     #[serde(skip_serializing_if="Option::is_none")]
     pub displayname: Option<String>,
 
+    /// Flag indicating if the room containing this event was created
+    /// with the intention of being a direct chat.
+    #[serde(skip_serializing_if="Option::is_none")]
+    pub is_direct: Option<bool>,
+
     /// The membership state of this user.
     pub membership: MembershipState,
 

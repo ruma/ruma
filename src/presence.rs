@@ -25,7 +25,7 @@ pub struct PresenceEventContent {
     #[serde(skip_serializing_if="Option::is_none")]
     pub displayname: Option<String>,
 
-    /// The last time since this used performed some action, in milliseconds.
+    /// The last time since this user performed some action, in milliseconds.
     #[serde(skip_serializing_if="Option::is_none")]
     pub last_active_ago: Option<u64>,
 

@@ -294,7 +294,14 @@ mod tests {
                     "h": 128,
                     "w": 128,
                     "mimetype": "image/jpeg",
-                    "size": 1024
+                    "size": 1024,
+                    "thumbnail_info": {
+                        "h": 16,
+                        "w": 16,
+                        "mimetype": "image/jpeg",
+                        "size": 32
+                    },
+                    "thumbnail_url": "https://domain.com/image-thumbnail.jpg"
                 },
                 "thumbnail_info": {
                     "h": 16,
