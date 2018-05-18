@@ -28,7 +28,10 @@ pub mod login {
             pub user: String,
             /// Third party identifier for the user.
             #[serde(skip_serializing_if = "Option::is_none")]
-            pub address: Option<String>
+            pub address: Option<String>,
+            /// ID of the client device
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub device_id: Option<String>,
         }
 
         response {
@@ -42,6 +45,11 @@ pub mod login {
             pub refresh_token: Option<String>,
             /// The fully-qualified Matrix ID that has been registered.
             pub user_id: UserId,
+            /// ID of the logged-in device.
+            ///
+            /// Will be the same as the corresponging parameter in the request, if one was
+            /// specified.
+            pub device_id: String,
         }
     }
 
