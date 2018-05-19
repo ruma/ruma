@@ -1,4 +1,3 @@
-#![feature(conservative_impl_trait)]
 #![feature(generators)]
 #![feature(proc_macro)]
 #![feature(try_from)]

@@ -1,4 +1,3 @@
-#![feature(conservative_impl_trait)]
 #![feature(try_from)]
 
 extern crate futures;

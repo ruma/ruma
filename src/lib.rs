@@ -2,7 +2,7 @@
 
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
-#![feature(conservative_impl_trait, try_from)]
+#![feature(try_from)]
 
 extern crate futures;
 extern crate hyper;
