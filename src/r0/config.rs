@@ -9,7 +9,7 @@ pub mod set_room_account_data {
     ruma_api! {
         metadata {
             description: "Associate account data with a room.",
-            method: Method::Put,
+            method: PUT,
             name: "set_room_account_data",
             path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:event_type",
             rate_limited: false,
@@ -48,7 +48,7 @@ pub mod set_global_account_data  {
     ruma_api! {
         metadata {
             description: "Sets global account data.",
-            method: Method::Put,
+            method: PUT,
             name: "set_global_account_data",
             path: "/_matrix/client/r0/user/:user_id/account_data/:event_type",
             rate_limited: false,

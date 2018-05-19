@@ -27,7 +27,7 @@ pub mod invite_user {
     ruma_api! {
         metadata {
             description: "Invite a user to a room.",
-            method: Method::Post,
+            method: POST,
             name: "invite_user",
             path: "/_matrix/client/r0/rooms/:room_id/invite",
             rate_limited: true,
@@ -56,7 +56,7 @@ pub mod join_room_by_id_or_alias {
     ruma_api! {
         metadata {
             description: "Join a room using its ID or one of its aliases.",
-            method: Method::Post,
+            method: POST,
             name: "join_room_by_id_or_alias",
             path: "/_matrix/client/r0/join/:room_id_or_alias",
             rate_limited: true,
@@ -90,7 +90,7 @@ pub mod join_room_by_id {
     ruma_api! {
         metadata {
             description: "Join a room using its ID.",
-            method: Method::Post,
+            method: POST,
             name: "join_room_by_id",
             path: "/_matrix/client/r0/rooms/:room_id/join",
             rate_limited: true,
@@ -122,7 +122,7 @@ pub mod forget_room {
     ruma_api! {
         metadata {
             description: "Forget a room.",
-            method: Method::Post,
+            method: POST,
             name: "forget_room",
             path: "/_matrix/client/r0/rooms/:room_id/forget",
             rate_limited: true,
@@ -147,7 +147,7 @@ pub mod leave_room {
     ruma_api! {
         metadata {
             description: "Leave a room.",
-            method: Method::Post,
+            method: POST,
             name: "leave_room",
             path: "/_matrix/client/r0/rooms/:room_id/leave",
             rate_limited: true,
@@ -172,7 +172,7 @@ pub mod kick_user {
     ruma_api! {
         metadata {
             description: "Kick a user from a room.",
-            method: Method::Post,
+            method: POST,
             name: "kick_user",
             path: "/_matrix/client/r0/rooms/:room_id/kick",
             rate_limited: false,
@@ -202,7 +202,7 @@ pub mod unban_user {
     ruma_api! {
         metadata {
             description: "Unban a user from a room.",
-            method: Method::Post,
+            method: POST,
             name: "unban_user",
             path: "/_matrix/client/r0/rooms/:room_id/unban",
             rate_limited: false,
@@ -229,7 +229,7 @@ pub mod ban_user {
     ruma_api! {
         metadata {
             description: "Ban a user from a room.",
-            method: Method::Post,
+            method: POST,
             name: "ban_user",
             path: "/_matrix/client/r0/rooms/:room_id/ban",
             rate_limited: false,

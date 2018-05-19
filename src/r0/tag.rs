@@ -9,7 +9,7 @@ pub mod create_tag {
     ruma_api! {
         metadata {
             description: "Add a new tag to a room.",
-            method: Method::Put,
+            method: PUT,
             name: "create_tag",
             path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags/:tag",
             rate_limited: false,
@@ -44,7 +44,7 @@ pub mod get_tags {
     ruma_api! {
         metadata {
             description: "Get the tags associated with a room.",
-            method: Method::Get,
+            method: GET,
             name: "get_tags",
             path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags",
             rate_limited: false,
@@ -75,7 +75,7 @@ pub mod delete_tag {
     ruma_api! {
         metadata {
             description: "Remove a tag from a room.",
-            method: Method::Delete,
+            method: DELETE,
             name: "delete_tag",
             path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags/:tag",
             rate_limited: false,

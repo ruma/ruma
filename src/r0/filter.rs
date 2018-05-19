@@ -175,7 +175,7 @@ pub mod create_filter {
     ruma_api! {
         metadata {
             description: "Create a new filter for event retrieval.",
-            method: Method::Post,
+            method: POST,
             name: "create_filter",
             path: "/_matrix/client/r0/user/:user_id/filter",
             rate_limited: false,
@@ -210,7 +210,7 @@ pub mod get_filter {
     ruma_api! {
         metadata {
             description: "Retrieve a previously created filter.",
-            method: Method::Get,
+            method: GET,
             name: "get_filter",
             path: "/_matrix/client/r0/user/:user_id/filter/:filter_id",
             rate_limited: false,

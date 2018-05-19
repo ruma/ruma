@@ -8,7 +8,7 @@ pub mod redact_event {
     ruma_api! {
         metadata {
             description: "Redact an event, stripping all information not critical to the event graph integrity.",
-            method: Method::Put,
+            method: PUT,
             name: "redact_event",
             path: "/_matrix/client/r0/rooms/:room_id/redact/:event_id/:txn_id",
             rate_limited: false,

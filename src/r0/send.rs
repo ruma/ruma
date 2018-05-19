@@ -10,7 +10,7 @@ pub mod send_state_event_for_empty_key {
     ruma_api! {
         metadata {
             description: "Send a state event to a room associated with the empty state key.",
-            method: Method::Put,
+            method: PUT,
             name: "send_state_event_for_empty_key",
             path: "/_matrix/client/r0/rooms/:room_id/state/:event_type",
             rate_limited: false,
@@ -46,7 +46,7 @@ pub mod send_state_event_for_key {
     ruma_api! {
         metadata {
             description: "Send a state event to a room associated with a given state key.",
-            method: Method::Put,
+            method: PUT,
             name: "send_state_event_for_key",
             path: "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
             rate_limited: false,
@@ -85,7 +85,7 @@ pub mod send_message_event {
     ruma_api! {
         metadata {
             description: "Send a message event to a room.",
-            method: Method::Put,
+            method: PUT,
             name: "send_message_event",
             path: "/_matrix/client/r0/rooms/:room_id/send/:event_type/:txn_id",
             rate_limited: false,

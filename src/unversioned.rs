@@ -7,7 +7,7 @@ pub mod get_supported_versions {
     ruma_api! {
         metadata {
             description: "Get the versions of the client-server API supported by this homeserver.",
-            method: Method::Get,
+            method: GET,
             name: "api_versions",
             path: "/_matrix/client/versions",
             rate_limited: false,

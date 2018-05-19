@@ -8,7 +8,7 @@ pub mod register {
     ruma_api! {
         metadata {
             description: "Register an account on this homeserver.",
-            method: Method::Post,
+            method: POST,
             name: "register",
             path: "/_matrix/client/r0/register",
             rate_limited: true,
@@ -105,7 +105,7 @@ pub mod request_password_change_token {
     ruma_api! {
         metadata {
             description: "Request that a password change token is sent to the given email address.",
-            method: Method::Post,
+            method: POST,
             name: "request_password_change_token",
             path: "/_matrix/client/r0/account/password/email/requestToken",
             rate_limited: false,
@@ -137,7 +137,7 @@ pub mod deactivate {
     ruma_api! {
         metadata {
             description: "Deactivate the current user's account.",
-            method: Method::Post,
+            method: POST,
             name: "deactivate",
             path: "/_matrix/client/r0/account/deactivate",
             rate_limited: true,
@@ -157,7 +157,7 @@ pub mod change_password {
     ruma_api! {
         metadata {
             description: "Change the password of the current user's account.",
-            method: Method::Post,
+            method: POST,
             name: "change_password",
             path: "/_matrix/client/r0/account/password",
             rate_limited: true,
@@ -181,7 +181,7 @@ pub mod request_register_token {
     ruma_api! {
         metadata {
             description: "Request a register token with a 3rd party email.",
-            method: Method::Post,
+            method: POST,
             name: "request_register_token",
             path: "/_matrix/client/r0/register/email/requestToken",
             rate_limited: true,

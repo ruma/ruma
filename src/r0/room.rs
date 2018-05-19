@@ -8,7 +8,7 @@ pub mod create_room {
     ruma_api! {
         metadata {
             description: "Create a new room.",
-            method: Method::Post,
+            method: POST,
             name: "create_room",
             path: "/_matrix/client/r0/createRoom",
             rate_limited: false,

@@ -7,7 +7,7 @@ pub mod create_contact {
     ruma_api! {
         metadata {
             description: "Adds contact information to the user's account.",
-            method: Method::Post,
+            method: POST,
             name: "create_contact",
             path: "/_matrix/client/r0/account/3pid",
             rate_limited: false,
@@ -47,7 +47,7 @@ pub mod get_contacts {
     ruma_api! {
         metadata {
             description: "Get a list of 3rd party contacts associated with the user's account.",
-            method: Method::Get,
+            method: GET,
             name: "get_contacts",
             path: "/_matrix/client/r0/account/3pid",
             rate_limited: false,
@@ -88,7 +88,7 @@ pub mod request_contact_verification_token {
     ruma_api! {
         metadata {
             description: "Ask for a verification token for a given 3rd party ID.",
-            method: Method::Post,
+            method: POST,
             name: "request_contact_verification_token",
             path: "/_matrix/client/r0/account/3pid/email/requestToken",
             rate_limited: false,

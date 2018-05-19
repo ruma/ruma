@@ -6,7 +6,7 @@
 #![feature(proc_macro, try_from)]
 
 extern crate futures;
-extern crate hyper;
+extern crate http;
 extern crate ruma_api;
 extern crate ruma_api_macros;
 extern crate ruma_events;

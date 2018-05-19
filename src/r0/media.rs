@@ -2,13 +2,12 @@
 
 /// [GET /_matrix/media/r0/download/{serverName}/{mediaId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-media-r0-download-servername-mediaid)
 pub mod get_content {
-    use hyper::header::{ContentDisposition, ContentType};
     use ruma_api_macros::ruma_api;
 
     ruma_api! {
         metadata {
             description: "Retrieve content from the media store.",
-            method: Method::Get,
+            method: GET,
             name: "get_media_content",
             path: "/_matrix/media/r0/download/:server_name/:media_id",
             rate_limited: false,
@@ -29,24 +28,23 @@ pub mod get_content {
             #[ruma_api(body)]
             pub file: Vec<u8>,
             /// The content type of the file that was previously uploaded.
-            #[ruma_api(header)]
-            pub content_type: ContentType,
+            #[ruma_api(header = "CONTENT_TYPE")]
+            pub content_type: String,
             /// The name of the file that was previously uploaded, if set.
-            #[ruma_api(header)]
-            pub content_disposition: ContentDisposition,
+            #[ruma_api(header = "CONTENT_DISPOSITION")]
+            pub content_disposition: String,
         }
     }
 }
 
 /// [POST /_matrix/media/r0/upload](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-media-r0-upload)
 pub mod create_content {
-    use hyper::header::ContentType;
     use ruma_api_macros::ruma_api;
 
     ruma_api! {
         metadata {
             description: "Upload content to the media store.",
-            method: Method::Post,
+            method: POST,
             name: "create_media_content",
             path: "/_matrix/media/r0/upload",
             rate_limited: false,
@@ -55,8 +53,8 @@ pub mod create_content {
 
         request {
             /// The content type of the file being uploaded.
-            #[ruma_api(header)]
-            pub content_type: ContentType,
+            #[ruma_api(header = "CONTENT_TYPE")]
+            pub content_type: String,
         }
 
         response {
@@ -84,7 +82,7 @@ pub mod get_content_thumbnail {
     ruma_api! {
         metadata {
             description: "Get a thumbnail of content from the media store.",
-            method: Method::Get,
+            method: GET,
             name: "get_content_thumbnail",
             path: "/_matrix/media/r0/thumbnail/:server_name/:media_id",
             rate_limited: false,

@@ -9,7 +9,7 @@ pub mod get_state_events {
     ruma_api! {
         metadata {
             description: "Get state events for a room.",
-            method: Method::Get,
+            method: GET,
             name: "get_state_events",
             path: "/_matrix/client/r0/rooms/:room_id/state",
             rate_limited: false,
@@ -41,7 +41,7 @@ pub mod get_state_events_for_empty_key {
     ruma_api! {
         metadata {
             description: "Get state events of a given type associated with the empty key.",
-            method: Method::Get,
+            method: GET,
             name: "get_state_events_for_empty_key",
             path: "/_matrix/client/r0/rooms/:room_id/state/:event_type",
             rate_limited: false,
@@ -73,7 +73,7 @@ pub mod get_state_events_for_key {
     ruma_api! {
         metadata {
             description: "Get state events associated with a given key.",
-            method: Method::Get,
+            method: GET,
             name: "get_state_events_for_key",
             path: "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
             rate_limited: false,
@@ -109,7 +109,7 @@ pub mod get_member_events {
     ruma_api! {
         metadata {
             description: "Get membership events for a room.",
-            method: Method::Get,
+            method: GET,
             name: "get_member_events",
             path: "/_matrix/client/r0/rooms/:room_id/members",
             rate_limited: false,
@@ -138,7 +138,7 @@ pub mod get_message_events {
     ruma_api! {
         metadata {
             description: "Get message events for a room.",
-            method: Method::Get,
+            method: GET,
             name: "get_message_events",
             path: "/_matrix/client/r0/rooms/:room_id/messages",
             rate_limited: false,
@@ -206,7 +206,7 @@ pub mod sync_events {
     ruma_api! {
         metadata {
             description: "Get all new events from all rooms since the last sync or a given point of time.",
-            method: Method::Get,
+            method: GET,
             name: "sync",
             path: "/_matrix/client/r0/sync",
             rate_limited: false,

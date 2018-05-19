@@ -10,7 +10,7 @@ pub mod create_receipt {
     ruma_api! {
         metadata {
             description: "Send a receipt event to a room.",
-            method: Method::Post,
+            method: POST,
             name: "create_receipt",
             path: "/_matrix/client/r0/rooms/:room_id/receipt/:receipt_type/:event_id",
             rate_limited: true,

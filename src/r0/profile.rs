@@ -8,7 +8,7 @@ pub mod get_display_name {
     ruma_api! {
         metadata {
             description: "Get the display name of a user.",
-            method: Method::Get,
+            method: GET,
             name: "get_display_name",
             path: "/_matrix/client/r0/profile/:user_id/displayname",
             rate_limited: false,
@@ -37,7 +37,7 @@ pub mod set_display_name {
     ruma_api! {
         metadata {
             description: "Set the display name of the user.",
-            method: Method::Put,
+            method: PUT,
             name: "set_display_name",
             path: "/_matrix/client/r0/profile/:user_id/displayname",
             rate_limited: true,
@@ -65,7 +65,7 @@ pub mod get_avatar_url {
     ruma_api! {
         metadata {
             description: "Get the avatar URL of a user.",
-            method: Method::Get,
+            method: GET,
             name: "get_avatar_url",
             path: "/_matrix/client/r0/profile/:user_id/avatar_url",
             rate_limited: false,
@@ -94,7 +94,7 @@ pub mod set_avatar_url {
     ruma_api! {
         metadata {
             description: "Set the avatar URL of the user.",
-            method: Method::Put,
+            method: PUT,
             name: "set_avatar_url",
             path: "/_matrix/client/r0/profile/:user_id/avatar_url",
             rate_limited: true,
@@ -121,7 +121,7 @@ pub mod get_profile {
     ruma_api! {
         metadata {
             description: "Get all profile information of an user.",
-            method: Method::Get,
+            method: GET,
             name: "get_profile",
             path: "/_matrix/client/r0/profile/:user_id",
             rate_limited: false,

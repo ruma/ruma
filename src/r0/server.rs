@@ -10,7 +10,7 @@ pub mod get_user_info {
     ruma_api! {
         metadata {
             description: "Get information about a particular user.",
-            method: Method::Get,
+            method: GET,
             name: "get_user_info",
             path: "/_matrix/client/r0/admin/whois/:user_id",
             rate_limited: false,

@@ -7,7 +7,7 @@ pub mod create_typing_event {
 
     ruma_api! {
         metadata {
-            method: Method::Put,
+            method: PUT,
             path: "/_matrix/client/r0/rooms/:room_id/typing/:user_id",
             name: "create_typing_event",
             description: "Send a typing event to a room.",

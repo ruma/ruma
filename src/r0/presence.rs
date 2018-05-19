@@ -9,7 +9,7 @@ pub mod set_presence {
     ruma_api! {
         metadata {
             description: "Set presence status for this user.",
-            method: Method::Put,
+            method: PUT,
             name: "set_presence",
             path: "/_matrix/client/r0/presence/:user_id/status",
             rate_limited: true,
@@ -40,7 +40,7 @@ pub mod get_presence {
     ruma_api! {
         metadata {
             description: "Get presence status for this user.",
-            method: Method::Get,
+            method: GET,
             name: "get_presence",
             path: "/_matrix/client/r0/presence/:user_id/status",
             rate_limited: false,
@@ -77,7 +77,7 @@ pub mod update_presence_subscriptions {
     ruma_api! {
         metadata {
             description: "Update the presence subscriptions of the user.",
-            method: Method::Post,
+            method: POST,
             name: "update_presence_subscriptions",
             path: "/_matrix/client/r0/presence/list/:user_id",
             rate_limited: true,
@@ -111,7 +111,7 @@ pub mod get_subscribed_presences {
     ruma_api! {
         metadata {
             description: "Get the precence status from the user's subscriptions.",
-            method: Method::Get,
+            method: GET,
             name: "get_subscribed_presences",
             path: "/_matrix/client/r0/presence/list/:user_id",
             rate_limited: false,

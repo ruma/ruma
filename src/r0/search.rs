@@ -13,7 +13,7 @@ pub mod search_events {
     ruma_api! {
         metadata {
             description: "Search events.",
-            method: Method::Post,
+            method: POST,
             name: "search",
             path: "/_matrix/client/r0/search",
             rate_limited: true,

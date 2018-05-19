@@ -9,7 +9,7 @@ pub mod get_context {
     ruma_api! {
         metadata {
             description: "Get the events immediately preceding and following a given event.",
-            method: Method::Get,
+            method: GET,
             path: "/_matrix/client/r0/rooms/:room_id/context/:event_id",
             name: "get_context",
             rate_limited: false,

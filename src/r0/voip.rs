@@ -7,7 +7,7 @@ pub mod get_turn_server_info {
     ruma_api! {
         metadata {
             description: "Get credentials for the client to use when initiating VoIP calls.",
-            method: Method::Get,
+            method: GET,
             name: "turn_server_info",
             path: "_matrix/client/r0/voip/turnServer",
             rate_limited: true,

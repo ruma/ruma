@@ -8,7 +8,7 @@ pub mod get_public_rooms {
     ruma_api! {
         metadata {
             description: "Get the list of rooms in this homeserver's public directory.",
-            method: Method::Get,
+            method: GET,
             name: "get_public_rooms",
             path: "/_matrix/client/r0/publicRooms",
             rate_limited: false,

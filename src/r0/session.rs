@@ -8,7 +8,7 @@ pub mod login {
     ruma_api! {
         metadata {
             description: "Login to the homeserver.",
-            method: Method::Post,
+            method: POST,
             name: "login",
             path: "/_matrix/client/r0/login",
             rate_limited: true,
@@ -77,7 +77,7 @@ pub mod logout {
     ruma_api! {
         metadata {
             description: "Log out of the homeserver.",
-            method: Method::Post,
+            method: POST,
             name: "logout",
             path: "/_matrix/client/r0/logout",
             rate_limited: false,

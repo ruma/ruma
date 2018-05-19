@@ -8,7 +8,7 @@ pub mod create_alias {
     ruma_api! {
         metadata {
             description: "Add an alias to a room.",
-            method: Method::Put,
+            method: PUT,
             name: "create_alias",
             path: "/_matrix/client/r0/directory/room/:room_alias",
             rate_limited: false,
@@ -35,7 +35,7 @@ pub mod delete_alias {
     ruma_api! {
         metadata {
             description: "Remove an alias from a room.",
-            method: Method::Delete,
+            method: DELETE,
             name: "delete_alias",
             path: "/_matrix/client/r0/directory/room/:room_alias",
             rate_limited: false,
@@ -60,7 +60,7 @@ pub mod get_alias {
     ruma_api! {
         metadata {
             description: "Resolve a room alias to a room ID.",
-            method: Method::Get,
+            method: GET,
             name: "get_alias",
             path: "/_matrix/client/r0/directory/room/:room_alias",
             rate_limited: false,
