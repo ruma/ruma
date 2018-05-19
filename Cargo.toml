@@ -19,7 +19,7 @@ version = "0.13.4"
 features = ["full"]
 
 [dependencies.proc-macro2]
-version = "0.3.8"
+version = "0.4.1"
 features = ["nightly"]
 
 [dev-dependencies]
