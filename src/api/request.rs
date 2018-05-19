@@ -273,7 +273,7 @@ impl ToTokens for Request {
                     RequestField::Query(ref field) => {
                         let span = field.span();
 
-                        field_tokens.append_all(quote_spanned!(span=> #field));
+                        field_tokens.append_all(quote_spanned!(span=> #field,));
 
                         field_tokens
                     }
