@@ -157,7 +157,7 @@ impl ToTokens for Api {
             }
         } else {
             quote! {
-                let mut http_request = ::http::Request::new(());
+                let mut http_request = ::http::Request::new(Vec::with_capacity(0));
             }
         };
 
