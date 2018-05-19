@@ -91,7 +91,7 @@ impl From<Vec<Field>> for Response {
 
                 let meta_list = match meta {
                     Meta::List(meta_list) => meta_list,
-                    _ => panic!("expected Meta::List"),
+                    _ => return true,
                 };
 
                 if meta_list.ident.as_ref() != "ruma_api" {
