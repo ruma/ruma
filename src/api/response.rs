@@ -170,9 +170,9 @@ impl ToTokens for Response {
                 let field = response_field.field();
                 let span = field.span();
 
-                strip_serde_attrs(field);
+                let stripped_field = strip_serde_attrs(field);
 
-                fields_tokens.append_all(quote_spanned!(span=> #field,));
+                fields_tokens.append_all(quote_spanned!(span=> #stripped_field,));
 
                 fields_tokens
             });

@@ -187,9 +187,9 @@ impl ToTokens for Request {
                 let field = request_field.field();
                 let span = field.span();
 
-                strip_serde_attrs(field);
+                let stripped_field = strip_serde_attrs(field);
 
-                field_tokens.append_all(quote_spanned!(span=> #field,));
+                field_tokens.append_all(quote_spanned!(span=> #stripped_field,));
 
                 field_tokens
             });

@@ -23,11 +23,11 @@ pub fn strip_serde_attrs(field: &Field) -> Field {
             _ => return true,
         };
 
-        if meta_list.ident.as_ref() != "serde" {
-            return true;
+        if meta_list.ident.as_ref() == "serde" {
+            return false;
         }
 
-        false
+        true
     }).collect();
 
     field
