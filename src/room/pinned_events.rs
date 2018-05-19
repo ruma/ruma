@@ -19,17 +19,15 @@ mod tests {
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{from_str, to_string};
 
+    use room::pinned_events::{PinnedEventsContent, PinnedEventsEvent};
     use Event;
     use EventType;
     use RoomEvent;
     use StateEvent;
-    use room::pinned_events::{PinnedEventsEvent, PinnedEventsContent};
 
     #[test]
     fn serialization_deserialization() {
-        let mut content: PinnedEventsContent = PinnedEventsContent {
-            pinned: Vec::new()
-        };
+        let mut content: PinnedEventsContent = PinnedEventsContent { pinned: Vec::new() };
 
         content.pinned.push(EventId::new("example.com").unwrap());
         content.pinned.push(EventId::new("example.com").unwrap());

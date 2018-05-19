@@ -19,11 +19,11 @@ pub struct GuestAccessEventContent {
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub enum GuestAccess {
     /// Guests are allowed to join the room.
-    #[serde(rename="can_join")]
+    #[serde(rename = "can_join")]
     CanJoin,
 
     /// Guests are not allowed to join the room.
-    #[serde(rename="forbidden")]
+    #[serde(rename = "forbidden")]
     Forbidden,
 }
 

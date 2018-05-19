@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use ruma_identifiers::{UserId, RoomId};
+use ruma_identifiers::{RoomId, UserId};
 
 event! {
     /// Informs the client about the rooms that are considered direct by a user.
@@ -19,12 +19,12 @@ pub type DirectEventContent = HashMap<UserId, Vec<RoomId>>;
 mod tests {
     use std::collections::HashMap;
 
-    use ruma_identifiers::{UserId, RoomId};
+    use ruma_identifiers::{RoomId, UserId};
     use serde_json::{from_str, to_string};
 
+    use super::super::EventType;
     use collections;
     use direct::{DirectEvent, DirectEventContent};
-    use super::super::EventType;
 
     #[test]
     fn serialization() {
@@ -43,7 +43,8 @@ mod tests {
             to_string(&event).unwrap(),
             format!(
                 r#"{{"content":{{"{}":["{}"]}},"type":"m.direct"}}"#,
-                alice.to_string(), room[0].to_string()
+                alice.to_string(),
+                room[0].to_string()
             )
         );
     }
@@ -53,13 +54,18 @@ mod tests {
         let alice = UserId::new("ruma.io").unwrap();
         let rooms = vec![
             RoomId::new("ruma.io").unwrap(),
-            RoomId::new("ruma.io").unwrap()
+            RoomId::new("ruma.io").unwrap(),
         ];
 
-        let json_data = format!(r#"{{
+        let json_data = format!(
+            r#"{{
             "content": {{ "{}": ["{}", "{}"] }},
             "type": "m.direct"
-        }}"#, alice.to_string(), rooms[0].to_string(), rooms[1].to_string());
+        }}"#,
+            alice.to_string(),
+            rooms[0].to_string(),
+            rooms[1].to_string()
+        );
 
         let event = from_str::<DirectEvent>(&json_data).unwrap();
         assert_eq!(event.event_type, EventType::Direct);
@@ -75,8 +81,8 @@ mod tests {
                 let direct_rooms = event.content.get(&alice).unwrap();
                 assert!(direct_rooms.contains(&rooms[0]));
                 assert!(direct_rooms.contains(&rooms[1]));
-            },
-            _ => assert!(false)
+            }
+            _ => assert!(false),
         };
 
         match from_str::<collections::only::Event>(&json_data).unwrap() {
@@ -86,8 +92,8 @@ mod tests {
                 let direct_rooms = event.content.get(&alice).unwrap();
                 assert!(direct_rooms.contains(&rooms[0]));
                 assert!(direct_rooms.contains(&rooms[1]));
-            },
-            _ => assert!(false)
+            }
+            _ => assert!(false),
         };
     }
 }

@@ -102,17 +102,19 @@
 extern crate ruma_identifiers;
 extern crate ruma_signatures;
 extern crate serde;
-#[macro_use] extern crate serde_derive;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
 
-use std::fmt::{Debug, Display, Formatter, Error as FmtError, Result as FmtResult};
+use std::fmt::{Debug, Display, Error as FmtError, Formatter, Result as FmtResult};
 
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error as SerdeError, Visitor};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 
-#[macro_use] mod macros;
+#[macro_use]
+mod macros;
 
 pub mod call;
 /// Enums for heterogeneous collections of events.
@@ -188,7 +190,10 @@ pub enum EventType {
 }
 
 /// A basic event.
-pub trait Event where Self: Debug + for<'a> Deserialize<'a> + Serialize {
+pub trait Event
+where
+    Self: Debug + for<'a> Deserialize<'a> + Serialize,
+{
     /// The event-type-specific payload this event carries.
     type Content: Debug + for<'a> Deserialize<'a> + Serialize;
 
@@ -261,7 +266,7 @@ impl Display for EventType {
             EventType::RoomMember => "m.room.member",
             EventType::RoomMessage => "m.room.message",
             EventType::RoomName => "m.room.name",
-            EventType::RoomPinnedEvents=> "m.room.pinned_events",
+            EventType::RoomPinnedEvents => "m.room.pinned_events",
             EventType::RoomPowerLevels => "m.room.power_levels",
             EventType::RoomRedaction => "m.room.redaction",
             EventType::RoomThirdPartyInvite => "m.room.third_party_invite",
@@ -308,13 +313,19 @@ impl<'a> From<&'a str> for EventType {
 }
 
 impl Serialize for EventType {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         serializer.serialize_str(&self.to_string())
     }
 }
 
 impl<'de> Deserialize<'de> for EventType {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         struct EventTypeVisitor;
 
         impl<'de> Visitor<'de> for EventTypeVisitor {
@@ -324,7 +335,10 @@ impl<'de> Deserialize<'de> for EventType {
                 write!(formatter, "a Matrix event type as a string")
             }
 
-            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: SerdeError,
+            {
                 Ok(EventType::from(v))
             }
         }

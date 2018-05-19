@@ -14,19 +14,19 @@ event! {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PresenceEventContent {
     /// The current avatar URL for this user.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar_url: Option<String>,
 
     /// Whether or not the user is currently active.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub currently_active: Option<bool>,
 
     /// The current display name for this user.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub displayname: Option<String>,
 
     /// The last time since this user performed some action, in milliseconds.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_active_ago: Option<u64>,
 
     /// The presence state for this user.
@@ -40,15 +40,15 @@ pub struct PresenceEventContent {
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub enum PresenceState {
     /// Disconnected from the service.
-    #[serde(rename="offline")]
+    #[serde(rename = "offline")]
     Offline,
 
     /// Connected to the service.
-    #[serde(rename="online")]
+    #[serde(rename = "online")]
     Online,
 
     /// Connected to the service but not available for chat.
-    #[serde(rename="unavailable")]
+    #[serde(rename = "unavailable")]
     Unavailable,
 }
 

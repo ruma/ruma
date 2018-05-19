@@ -11,7 +11,7 @@ pub mod invite;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SessionDescription {
     /// The type of session description.
-    #[serde(rename="type")]
+    #[serde(rename = "type")]
     pub session_type: SessionDescriptionType,
     /// The SDP text of the session description.
     pub sdp: String,
@@ -21,10 +21,10 @@ pub struct SessionDescription {
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub enum SessionDescriptionType {
     /// An answer.
-    #[serde(rename="answer")]
+    #[serde(rename = "answer")]
     Answer,
     /// An offer.
-    #[serde(rename="offer")]
+    #[serde(rename = "offer")]
     Offer,
 }
 

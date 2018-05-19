@@ -31,16 +31,16 @@ state_event! {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MemberEventContent {
     /// The avatar URL for this user.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar_url: Option<String>,
 
     /// The display name for this user.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub displayname: Option<String>,
 
     /// Flag indicating if the room containing this event was created
     /// with the intention of being a direct chat.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_direct: Option<bool>,
 
     /// The membership state of this user.
@@ -48,7 +48,7 @@ pub struct MemberEventContent {
 
     /// If this member event is the successor to a third party invitation, this field will contain
     /// information about that invitation.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub third_party_invite: Option<ThirdPartyInvite>,
 }
 
@@ -56,23 +56,23 @@ pub struct MemberEventContent {
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub enum MembershipState {
     /// The user is banned.
-    #[serde(rename="ban")]
+    #[serde(rename = "ban")]
     Ban,
 
     /// The user has been invited.
-    #[serde(rename="invite")]
+    #[serde(rename = "invite")]
     Invite,
 
     /// The user has joined.
-    #[serde(rename="join")]
+    #[serde(rename = "join")]
     Join,
 
     /// The user has requested to join.
-    #[serde(rename="knock")]
+    #[serde(rename = "knock")]
     Knock,
 
     /// The user has left.
-    #[serde(rename="leave")]
+    #[serde(rename = "leave")]
     Leave,
 }
 

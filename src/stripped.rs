@@ -5,11 +5,10 @@
 //! state event to be created, when the other fields can be inferred from a larger context, or where
 //! the other fields are otherwise inapplicable.
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::Error;
-use serde_json::{Value, from_value};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::{from_value, Value};
 
-use EventType;
 use room::aliases::AliasesEventContent;
 use room::avatar::AvatarEventContent;
 use room::canonical_alias::CanonicalAliasEventContent;
@@ -22,6 +21,7 @@ use room::name::NameEventContent;
 use room::power_levels::PowerLevelsEventContent;
 use room::third_party_invite::ThirdPartyInviteEventContent;
 use room::topic::TopicEventContent;
+use EventType;
 
 /// A stripped-down version of a state event that is included along with some other events.
 #[derive(Clone, Debug)]
@@ -69,14 +69,17 @@ pub struct StrippedStateContent<C> {
     /// Data specific to the event type.
     pub content: C,
     /// The type of the event.
-    #[serde(rename="type")]
+    #[serde(rename = "type")]
     pub event_type: EventType,
     /// A key that determines which piece of room state the event represents.
     pub state_key: String,
 }
 
 impl Serialize for StrippedState {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         match *self {
             StrippedState::RoomAliases(ref event) => event.serialize(serializer),
             StrippedState::RoomAvatar(ref event) => event.serialize(serializer),
@@ -95,7 +98,10 @@ impl Serialize for StrippedState {
 }
 
 impl<'de> Deserialize<'de> for StrippedState {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let value: Value = Deserialize::deserialize(deserializer)?;
 
         let event_type_value = match value.get("type") {
@@ -116,7 +122,7 @@ impl<'de> Deserialize<'de> for StrippedState {
                 };
 
                 Ok(StrippedState::RoomAliases(event))
-            },
+            }
             EventType::RoomAvatar => {
                 let event = match from_value::<StrippedRoomAvatar>(value) {
                     Ok(event) => event,
@@ -124,7 +130,7 @@ impl<'de> Deserialize<'de> for StrippedState {
                 };
 
                 Ok(StrippedState::RoomAvatar(event))
-            },
+            }
             EventType::RoomCanonicalAlias => {
                 let event = match from_value::<StrippedRoomCanonicalAlias>(value) {
                     Ok(event) => event,
@@ -132,7 +138,7 @@ impl<'de> Deserialize<'de> for StrippedState {
                 };
 
                 Ok(StrippedState::RoomCanonicalAlias(event))
-            },
+            }
             EventType::RoomCreate => {
                 let event = match from_value::<StrippedRoomCreate>(value) {
                     Ok(event) => event,
@@ -140,7 +146,7 @@ impl<'de> Deserialize<'de> for StrippedState {
                 };
 
                 Ok(StrippedState::RoomCreate(event))
-            },
+            }
             EventType::RoomGuestAccess => {
                 let event = match from_value::<StrippedRoomGuestAccess>(value) {
                     Ok(event) => event,
@@ -148,7 +154,7 @@ impl<'de> Deserialize<'de> for StrippedState {
                 };
 
                 Ok(StrippedState::RoomGuestAccess(event))
-            },
+            }
             EventType::RoomHistoryVisibility => {
                 let event = match from_value::<StrippedRoomHistoryVisibility>(value) {
                     Ok(event) => event,
@@ -156,7 +162,7 @@ impl<'de> Deserialize<'de> for StrippedState {
                 };
 
                 Ok(StrippedState::RoomHistoryVisibility(event))
-            },
+            }
             EventType::RoomJoinRules => {
                 let event = match from_value::<StrippedRoomJoinRules>(value) {
                     Ok(event) => event,
@@ -164,7 +170,7 @@ impl<'de> Deserialize<'de> for StrippedState {
                 };
 
                 Ok(StrippedState::RoomJoinRules(event))
-            },
+            }
             EventType::RoomMember => {
                 let event = match from_value::<StrippedRoomMember>(value) {
                     Ok(event) => event,
@@ -172,7 +178,7 @@ impl<'de> Deserialize<'de> for StrippedState {
                 };
 
                 Ok(StrippedState::RoomMember(event))
-            },
+            }
             EventType::RoomName => {
                 let event = match from_value::<StrippedRoomName>(value) {
                     Ok(event) => event,
@@ -180,7 +186,7 @@ impl<'de> Deserialize<'de> for StrippedState {
                 };
 
                 Ok(StrippedState::RoomName(event))
-            },
+            }
             EventType::RoomPowerLevels => {
                 let event = match from_value::<StrippedRoomPowerLevels>(value) {
                     Ok(event) => event,
@@ -188,7 +194,7 @@ impl<'de> Deserialize<'de> for StrippedState {
                 };
 
                 Ok(StrippedState::RoomPowerLevels(event))
-            },
+            }
             EventType::RoomThirdPartyInvite => {
                 let event = match from_value::<StrippedRoomThirdPartyInvite>(value) {
                     Ok(event) => event,
@@ -196,7 +202,7 @@ impl<'de> Deserialize<'de> for StrippedState {
                 };
 
                 Ok(StrippedState::RoomThirdPartyInvite(event))
-            },
+            }
             EventType::RoomTopic => {
                 let event = match from_value::<StrippedRoomTopic>(value) {
                     Ok(event) => event,
@@ -204,7 +210,7 @@ impl<'de> Deserialize<'de> for StrippedState {
                 };
 
                 Ok(StrippedState::RoomTopic(event))
-            },
+            }
             _ => {
                 return Err(D::Error::custom("not a state event".to_string()));
             }
@@ -250,18 +256,20 @@ pub type StrippedRoomTopic = StrippedStateContent<TopicEventContent>;
 
 #[cfg(test)]
 mod tests {
-    use EventType;
+    use super::{StrippedRoomTopic, StrippedState};
     use room::join_rules::JoinRule;
     use room::topic::TopicEventContent;
     use serde_json::{from_str, to_string};
-    use super::{StrippedRoomTopic, StrippedState};
+    use EventType;
 
     #[test]
     fn serialize_stripped_state_event() {
         let content = StrippedRoomTopic {
-            content: TopicEventContent { topic: "Testing room".to_string() },
+            content: TopicEventContent {
+                topic: "Testing room".to_string(),
+            },
             state_key: "".to_string(),
-            event_type: EventType::RoomTopic
+            event_type: EventType::RoomTopic,
         };
 
         let event = StrippedState::RoomTopic(content);
@@ -319,7 +327,7 @@ mod tests {
                 assert_eq!(event.content.name, "Ruma");
                 assert_eq!(event.event_type, EventType::RoomName);
                 assert_eq!(event.state_key, "");
-            },
+            }
             _ => {
                 assert!(false);
             }
@@ -330,7 +338,7 @@ mod tests {
                 assert_eq!(event.content.join_rule, JoinRule::Public);
                 assert_eq!(event.event_type, EventType::RoomJoinRules);
                 assert_eq!(event.state_key, "");
-            },
+            }
             _ => {
                 assert!(false);
             }
@@ -348,7 +356,7 @@ mod tests {
                 assert_eq!(event.content.url, "https://domain.com/image.jpg");
                 assert_eq!(event.event_type, EventType::RoomAvatar);
                 assert_eq!(event.state_key, "");
-            },
+            }
             _ => {
                 assert!(false);
             }

@@ -15,7 +15,7 @@ state_event! {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PowerLevelsEventContent {
     /// The level required to ban a user.
-    #[serde(default="default_power_level")]
+    #[serde(default = "default_power_level")]
     pub ban: u64,
 
     /// The level required to send specific event types.
@@ -28,19 +28,19 @@ pub struct PowerLevelsEventContent {
     pub events_default: u64,
 
     /// The level required to invite a user.
-    #[serde(default="default_power_level")]
+    #[serde(default = "default_power_level")]
     pub invite: u64,
 
     /// The level required to kick a user.
-    #[serde(default="default_power_level")]
+    #[serde(default = "default_power_level")]
     pub kick: u64,
 
     /// The level required to redact an event.
-    #[serde(default="default_power_level")]
+    #[serde(default = "default_power_level")]
     pub redact: u64,
 
     /// The default level required to send state events.
-    #[serde(default="default_power_level")]
+    #[serde(default = "default_power_level")]
     pub state_default: u64,
 
     /// The power levels for specific users.

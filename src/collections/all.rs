@@ -1,7 +1,6 @@
 //! Enums for heterogeneous collections of events, inclusive for every event type that implements
 //! the trait of the same name.
 
-use {CustomEvent, CustomRoomEvent, CustomStateEvent, EventType};
 use call::answer::AnswerEvent;
 use call::candidates::CandidatesEvent;
 use call::hangup::HangupEvent;
@@ -26,10 +25,11 @@ use room::third_party_invite::ThirdPartyInviteEvent;
 use room::topic::TopicEvent;
 use tag::TagEvent;
 use typing::TypingEvent;
+use {CustomEvent, CustomRoomEvent, CustomStateEvent, EventType};
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::Error;
-use serde_json::{Value, from_value};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::{from_value, Value};
 
 /// A basic event, room event, or state event.
 #[derive(Clone, Debug)]
@@ -171,7 +171,10 @@ pub enum StateEvent {
 }
 
 impl Serialize for Event {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         match *self {
             Event::CallAnswer(ref event) => event.serialize(serializer),
             Event::CallCandidates(ref event) => event.serialize(serializer),
@@ -205,7 +208,10 @@ impl Serialize for Event {
 }
 
 impl<'de> Deserialize<'de> for Event {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let value: Value = Deserialize::deserialize(deserializer)?;
 
         let event_type_value = match value.get("type") {
@@ -419,8 +425,9 @@ impl<'de> Deserialize<'de> for Event {
                     };
 
                     Ok(Event::CustomState(event))
-                } else if value.get("event_id").is_some() && value.get("room_id").is_some() &&
-                    value.get("sender").is_some() {
+                } else if value.get("event_id").is_some() && value.get("room_id").is_some()
+                    && value.get("sender").is_some()
+                {
                     let event = match from_value::<CustomRoomEvent>(value) {
                         Ok(event) => event,
                         Err(error) => return Err(D::Error::custom(error.to_string())),
@@ -441,7 +448,10 @@ impl<'de> Deserialize<'de> for Event {
 }
 
 impl Serialize for RoomEvent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         match *self {
             RoomEvent::CallAnswer(ref event) => event.serialize(serializer),
             RoomEvent::CallCandidates(ref event) => event.serialize(serializer),
@@ -469,7 +479,10 @@ impl Serialize for RoomEvent {
 }
 
 impl<'de> Deserialize<'de> for RoomEvent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let value: Value = Deserialize::deserialize(deserializer)?;
 
         let event_type_value = match value.get("type") {
@@ -652,11 +665,11 @@ impl<'de> Deserialize<'de> for RoomEvent {
                     Ok(RoomEvent::CustomRoom(event))
                 }
             }
-            EventType::Direct |
-            EventType::Presence |
-            EventType::Receipt |
-            EventType::Tag |
-            EventType::Typing => {
+            EventType::Direct
+            | EventType::Presence
+            | EventType::Receipt
+            | EventType::Tag
+            | EventType::Typing => {
                 return Err(D::Error::custom("not a room event".to_string()));
             }
         }
@@ -664,7 +677,10 @@ impl<'de> Deserialize<'de> for RoomEvent {
 }
 
 impl Serialize for StateEvent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         match *self {
             StateEvent::RoomAliases(ref event) => event.serialize(serializer),
             StateEvent::RoomAvatar(ref event) => event.serialize(serializer),
@@ -685,7 +701,10 @@ impl Serialize for StateEvent {
 }
 
 impl<'de> Deserialize<'de> for StateEvent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let value: Value = Deserialize::deserialize(deserializer)?;
 
         let event_type_value = match value.get("type") {
@@ -811,17 +830,17 @@ impl<'de> Deserialize<'de> for StateEvent {
 
                 Ok(StateEvent::CustomState(event))
             }
-            EventType::CallAnswer |
-            EventType::CallCandidates |
-            EventType::CallHangup |
-            EventType::CallInvite |
-            EventType::Direct |
-            EventType::Presence |
-            EventType::Receipt |
-            EventType::RoomMessage |
-            EventType::RoomRedaction |
-            EventType::Tag |
-            EventType::Typing => {
+            EventType::CallAnswer
+            | EventType::CallCandidates
+            | EventType::CallHangup
+            | EventType::CallInvite
+            | EventType::Direct
+            | EventType::Presence
+            | EventType::Receipt
+            | EventType::RoomMessage
+            | EventType::RoomRedaction
+            | EventType::Tag
+            | EventType::Typing => {
                 return Err(D::Error::custom("not a state event".to_string()));
             }
         }

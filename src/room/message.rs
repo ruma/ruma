@@ -1,8 +1,8 @@
 //! Types for the *m.room.message* event.
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::Error;
-use serde_json::{Value, from_value};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::{from_value, Value};
 
 use super::{ImageInfo, ThumbnailInfo};
 
@@ -15,35 +15,35 @@ room_event! {
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub enum MessageType {
     /// An audio message.
-    #[serde(rename="m.audio")]
+    #[serde(rename = "m.audio")]
     Audio,
 
     /// An emote message.
-    #[serde(rename="m.emote")]
+    #[serde(rename = "m.emote")]
     Emote,
 
     /// A file message.
-    #[serde(rename="m.file")]
+    #[serde(rename = "m.file")]
     File,
 
     /// An image message.
-    #[serde(rename="m.image")]
+    #[serde(rename = "m.image")]
     Image,
 
     /// A location message.
-    #[serde(rename="m.location")]
+    #[serde(rename = "m.location")]
     Location,
 
     /// A notice message.
-    #[serde(rename="m.notice")]
+    #[serde(rename = "m.notice")]
     Notice,
 
     /// A text message.
-    #[serde(rename="m.text")]
+    #[serde(rename = "m.text")]
     Text,
 
     /// A video message.
-    #[serde(rename="m.video")]
+    #[serde(rename = "m.video")]
     Video,
 }
 
@@ -81,7 +81,7 @@ pub struct AudioMessageEventContent {
     /// The textual representation of this message.
     pub body: String,
     /// Metadata for the audio clip referred to in `url`.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<AudioInfo>,
     /// The message type. Always *m.audio*.
     pub msgtype: MessageType,
@@ -93,13 +93,13 @@ pub struct AudioMessageEventContent {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct AudioInfo {
     /// The duration of the audio in milliseconds.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub duration: Option<u64>,
     /// The mimetype of the audio, e.g. "audio/aac."
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub mimetype: Option<String>,
     /// The size of the audio clip in bytes.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<u64>,
 }
 
@@ -121,7 +121,7 @@ pub struct FileMessageEventContent {
     /// The original filename of the uploaded file.
     pub filename: String,
     /// Metadata about the file referred to in `url`.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<FileInfo>,
     /// The message type. Always *m.file*.
     pub msgtype: MessageType,
@@ -137,10 +137,10 @@ pub struct FileInfo {
     /// The size of the file in bytes.
     pub size: u64,
     /// Metadata about the image referred to in `thumbnail_url`.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<ThumbnailInfo>,
     /// The URL to the thumbnail of the file.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_url: Option<String>,
 }
 
@@ -151,7 +151,7 @@ pub struct ImageMessageEventContent {
     /// of the image, or some kind of content description for accessibility e.g. "image attachment."
     pub body: String,
     /// Metadata about the image referred to in `url`.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<ImageInfo>,
     /// The message type. Always *m.image*.
     pub msgtype: MessageType,
@@ -170,7 +170,7 @@ pub struct LocationMessageEventContent {
     /// The message type. Always *m.location*.
     pub msgtype: MessageType,
     /// Info about the location being represented.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<LocationInfo>,
 }
 
@@ -178,10 +178,10 @@ pub struct LocationMessageEventContent {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct LocationInfo {
     /// Metadata about the image referred to in `thumbnail_url`.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<ThumbnailInfo>,
     /// The URL to a thumbnail of the location being represented.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_url: Option<String>,
 }
 
@@ -210,7 +210,7 @@ pub struct VideoMessageEventContent {
     /// accessibility, e.g. "video attachment."
     pub body: String,
     /// Metadata about the video clip referred to in `url`.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<VideoInfo>,
     /// The message type. Always *m.video*.
     pub msgtype: MessageType,
@@ -222,27 +222,27 @@ pub struct VideoMessageEventContent {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct VideoInfo {
     /// The duration of the video in milliseconds.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub duration: Option<u64>,
     /// The height of the video in pixels.
     #[serde(rename = "h")]
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub height: Option<u64>,
     /// The mimetype of the video, e.g. "video/mp4."
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub mimetype: Option<String>,
     /// The size of the video in bytes.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<u64>,
     /// Metadata about an image.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<ThumbnailInfo>,
     /// The URL to a thumbnail of the video clip.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_url: Option<String>,
     /// The width of the video in pixels.
     #[serde(rename = "w")]
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub width: Option<u64>,
 }
 
@@ -260,7 +260,10 @@ impl_enum! {
 }
 
 impl Serialize for MessageEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         match *self {
             MessageEventContent::Audio(ref content) => content.serialize(serializer),
             MessageEventContent::Emote(ref content) => content.serialize(serializer),
@@ -275,7 +278,10 @@ impl Serialize for MessageEventContent {
 }
 
 impl<'de> Deserialize<'de> for MessageEventContent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let value: Value = Deserialize::deserialize(deserializer)?;
 
         let message_type_value = match value.get("msgtype") {
@@ -361,18 +367,16 @@ impl<'de> Deserialize<'de> for MessageEventContent {
 mod tests {
     use serde_json::{from_str, to_string};
 
-    use super::{AudioMessageEventContent, MessageType, MessageEventContent};
+    use super::{AudioMessageEventContent, MessageEventContent, MessageType};
 
     #[test]
     fn serialization() {
-        let message_event_content = MessageEventContent::Audio(
-            AudioMessageEventContent {
-                body: "test".to_string(),
-                info: None,
-                msgtype: MessageType::Audio,
-                url: "http://example.com/audio.mp3".to_string(),
-            }
-        );
+        let message_event_content = MessageEventContent::Audio(AudioMessageEventContent {
+            body: "test".to_string(),
+            info: None,
+            msgtype: MessageType::Audio,
+            url: "http://example.com/audio.mp3".to_string(),
+        });
 
         assert_eq!(
             to_string(&message_event_content).unwrap(),
@@ -382,14 +386,12 @@ mod tests {
 
     #[test]
     fn deserialization() {
-        let message_event_content = MessageEventContent::Audio(
-            AudioMessageEventContent {
-                body: "test".to_string(),
-                info: None,
-                msgtype: MessageType::Audio,
-                url: "http://example.com/audio.mp3".to_string(),
-            }
-        );
+        let message_event_content = MessageEventContent::Audio(AudioMessageEventContent {
+            body: "test".to_string(),
+            info: None,
+            msgtype: MessageType::Audio,
+            url: "http://example.com/audio.mp3".to_string(),
+        });
 
         assert_eq!(
             from_str::<MessageEventContent>(

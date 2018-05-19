@@ -65,7 +65,7 @@ macro_rules! impl_event {
                 &self.event_type
             }
         }
-    }
+    };
 }
 
 macro_rules! room_event {
@@ -138,7 +138,7 @@ macro_rules! impl_room_event {
                 &self.sender
             }
         }
-    }
+    };
 }
 
 macro_rules! state_event {
@@ -207,5 +207,5 @@ macro_rules! impl_state_event {
                 &self.state_key
             }
         }
-    }
+    };
 }

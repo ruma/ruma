@@ -22,20 +22,20 @@ pub mod topic;
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ImageInfo {
     /// The height of the image in pixels.
-    #[serde(rename="h")]
+    #[serde(rename = "h")]
     pub height: u64,
     /// The MIME type of the image, e.g. "image/png."
     pub mimetype: String,
     /// The file size of the image in bytes.
     pub size: u64,
     /// Metadata about the image referred to in `thumbnail_url`.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<ThumbnailInfo>,
     /// The URL to the thumbnail of the image.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_url: Option<String>,
     /// The width of the image in pixels.
-    #[serde(rename="w")]
+    #[serde(rename = "w")]
     pub width: u64,
 }
 
@@ -43,13 +43,13 @@ pub struct ImageInfo {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ThumbnailInfo {
     /// The height of the thumbnail in pixels.
-    #[serde(rename="h")]
+    #[serde(rename = "h")]
     pub height: u64,
     /// The MIME type of the thumbnail, e.g. "image/png."
     pub mimetype: String,
     /// The file size of the thumbnail in bytes.
     pub size: u64,
     /// The width of the thumbnail in pixels.
-    #[serde(rename="w")]
+    #[serde(rename = "w")]
     pub width: u64,
 }

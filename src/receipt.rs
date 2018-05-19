@@ -22,7 +22,7 @@ pub type ReceiptEventContent = HashMap<EventId, Receipts>;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Receipts {
     /// A collection of users who have sent *m.read* receipts for this event.
-    #[serde(rename="m.read")]
+    #[serde(rename = "m.read")]
     #[serde(default)]
     pub m_read: UserReceipts,
 }

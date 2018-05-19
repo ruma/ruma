@@ -22,7 +22,7 @@ pub struct ThirdPartyInviteEventContent {
     pub public_key: String,
 
     /// Keys with which the token may be signed.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub public_keys: Option<Vec<PublicKey>>,
 }
 
@@ -33,7 +33,7 @@ pub struct PublicKey {
     ///
     /// The URL must return a JSON object containing a boolean property named 'valid'.
     /// If this URL is absent, the key must be considered valid indefinitely.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub key_validity_url: Option<String>,
 
     /// A Base64-encoded Ed25519 key with which the token must be signed.

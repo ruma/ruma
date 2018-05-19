@@ -1,7 +1,6 @@
 //! Enums for heterogeneous collections of events, exclusive to event types that implement "at
 //! most" the trait of the same name.
 
-use {CustomEvent, CustomRoomEvent, EventType};
 use call::answer::AnswerEvent;
 use call::candidates::CandidatesEvent;
 use call::hangup::HangupEvent;
@@ -13,10 +12,11 @@ use room::message::MessageEvent;
 use room::redaction::RedactionEvent;
 use tag::TagEvent;
 use typing::TypingEvent;
+use {CustomEvent, CustomRoomEvent, EventType};
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::Error;
-use serde_json::{Value, from_value};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::{from_value, Value};
 
 pub use super::all::StateEvent;
 
@@ -57,7 +57,10 @@ pub enum RoomEvent {
 }
 
 impl Serialize for Event {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         match *self {
             Event::Direct(ref event) => event.serialize(serializer),
             Event::Presence(ref event) => event.serialize(serializer),
@@ -70,7 +73,10 @@ impl Serialize for Event {
 }
 
 impl<'de> Deserialize<'de> for Event {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let value: Value = Deserialize::deserialize(deserializer)?;
 
         let event_type_value = match value.get("type") {
@@ -132,21 +138,38 @@ impl<'de> Deserialize<'de> for Event {
 
                 Ok(Event::Custom(event))
             }
-            EventType::CallAnswer | EventType::CallCandidates | EventType::CallHangup |
-            EventType::CallInvite | EventType::RoomAliases | EventType::RoomAvatar |
-            EventType::RoomCanonicalAlias | EventType::RoomCreate | EventType::RoomGuestAccess |
-            EventType::RoomHistoryVisibility | EventType::RoomJoinRules | EventType::RoomMember |
-            EventType::RoomMessage | EventType::RoomName | EventType::RoomPinnedEvents |
-            EventType::RoomPowerLevels | EventType::RoomRedaction | EventType::RoomThirdPartyInvite |
-            EventType::RoomTopic => {
-                return Err(D::Error::custom("not exclusively a basic event".to_string()));
+            EventType::CallAnswer
+            | EventType::CallCandidates
+            | EventType::CallHangup
+            | EventType::CallInvite
+            | EventType::RoomAliases
+            | EventType::RoomAvatar
+            | EventType::RoomCanonicalAlias
+            | EventType::RoomCreate
+            | EventType::RoomGuestAccess
+            | EventType::RoomHistoryVisibility
+            | EventType::RoomJoinRules
+            | EventType::RoomMember
+            | EventType::RoomMessage
+            | EventType::RoomName
+            | EventType::RoomPinnedEvents
+            | EventType::RoomPowerLevels
+            | EventType::RoomRedaction
+            | EventType::RoomThirdPartyInvite
+            | EventType::RoomTopic => {
+                return Err(D::Error::custom(
+                    "not exclusively a basic event".to_string(),
+                ));
             }
         }
     }
 }
 
 impl Serialize for RoomEvent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         match *self {
             RoomEvent::CallAnswer(ref event) => event.serialize(serializer),
             RoomEvent::CallCandidates(ref event) => event.serialize(serializer),
@@ -160,7 +183,10 @@ impl Serialize for RoomEvent {
 }
 
 impl<'de> Deserialize<'de> for RoomEvent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         let value: Value = Deserialize::deserialize(deserializer)?;
 
         let event_type_value = match value.get("type") {
@@ -230,24 +256,24 @@ impl<'de> Deserialize<'de> for RoomEvent {
 
                 Ok(RoomEvent::CustomRoom(event))
             }
-            EventType::Direct |
-            EventType::Presence |
-            EventType::Receipt |
-            EventType::RoomAliases |
-            EventType::RoomAvatar |
-            EventType::RoomCanonicalAlias |
-            EventType::RoomCreate |
-            EventType::RoomGuestAccess |
-            EventType::RoomHistoryVisibility |
-            EventType::RoomJoinRules |
-            EventType::RoomMember |
-            EventType::RoomName |
-            EventType::RoomPinnedEvents |
-            EventType::RoomPowerLevels |
-            EventType::RoomThirdPartyInvite |
-            EventType::RoomTopic |
-            EventType::Tag |
-            EventType::Typing => {
+            EventType::Direct
+            | EventType::Presence
+            | EventType::Receipt
+            | EventType::RoomAliases
+            | EventType::RoomAvatar
+            | EventType::RoomCanonicalAlias
+            | EventType::RoomCreate
+            | EventType::RoomGuestAccess
+            | EventType::RoomHistoryVisibility
+            | EventType::RoomJoinRules
+            | EventType::RoomMember
+            | EventType::RoomName
+            | EventType::RoomPinnedEvents
+            | EventType::RoomPowerLevels
+            | EventType::RoomThirdPartyInvite
+            | EventType::RoomTopic
+            | EventType::Tag
+            | EventType::Typing => {
                 return Err(D::Error::custom("not exclusively a room event".to_string()));
             }
         }

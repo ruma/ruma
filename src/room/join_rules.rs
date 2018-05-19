@@ -17,19 +17,19 @@ pub struct JoinRulesEventContent {
 pub enum JoinRule {
     /// A user who wishes to join the room must first receive an invite to the room from someone
     /// already inside of the room.
-    #[serde(rename="invite")]
+    #[serde(rename = "invite")]
     Invite,
 
     /// Reserved but not yet implemented by the Matrix specification.
-    #[serde(rename="knock")]
+    #[serde(rename = "knock")]
     Knock,
 
     /// Reserved but not yet implemented by the Matrix specification.
-    #[serde(rename="private")]
+    #[serde(rename = "private")]
     Private,
 
     /// Anyone can join the room without any prior action.
-    #[serde(rename="public")]
+    #[serde(rename = "public")]
     Public,
 }
 

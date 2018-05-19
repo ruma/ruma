@@ -14,6 +14,6 @@ room_event! {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RedactionEventContent {
     /// The reason for the redaction, if any.
-    #[serde(skip_serializing_if="Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 }
