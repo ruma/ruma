@@ -48,7 +48,7 @@ lazy_static! {
 }
 
 /// An error encountered when trying to parse an invalid ID string.
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Error {
     /// The ID's localpart contains invalid characters.
     ///
