@@ -24,6 +24,7 @@ use std::convert::TryFrom;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use rand::{Rng, thread_rng};
+use rand::distributions::Alphanumeric;
 use regex::Regex;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error as SerdeError, Unexpected, Visitor};
@@ -192,7 +193,7 @@ fn display(f: &mut Formatter, sigil: char, localpart: &str, hostname: &Host, por
 }
 
 fn generate_localpart(length: usize) -> String {
-    thread_rng().gen_ascii_chars().take(length).collect()
+    thread_rng().sample_iter(&Alphanumeric).take(length).collect()
 }
 
 fn validate_id<'a>(id: &'a str) -> Result<(), Error> {
