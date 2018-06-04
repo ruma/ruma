@@ -104,7 +104,7 @@ use std::fmt::{Debug, Display, Error as FmtError, Formatter, Result as FmtResult
 
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{
-    de::{Error as SerdeError, Visitor},
+    de::{Error as SerdeError, IntoDeserializer, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use serde_json::Value;
@@ -343,6 +343,31 @@ impl<'de> Deserialize<'de> for EventType {
         }
 
         deserializer.deserialize_str(EventTypeVisitor)
+    }
+}
+
+/// Serde deserialization decorator to map empty Strings to None,
+/// and forward non-empty Strings to the Deserialize implementation for T.
+/// Useful for the typical
+/// "A room with an X event with an absent, null, or empty Y field
+/// should be treated the same as a room with no such event."
+/// formulation in the spec.
+///
+/// To be used like this:
+/// `#[serde(deserialize_with = "empty_string_as_none"]`
+/// Relevant serde issue: https://github.com/serde-rs/serde/issues/1425
+fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: serde::Deserialize<'de>,
+{
+    let opt = Option::<String>::deserialize(de)?;
+    let opt = opt.as_ref().map(String::as_str);
+    match opt {
+        None | Some("") => Ok(None),
+        // If T = String, like in m.room.name, the second deserialize is actually superfluous.
+        // TODO: optimize that somehow?
+        Some(s) => T::deserialize(s.into_deserializer()).map(Some),
     }
 }
 
