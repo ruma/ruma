@@ -14,20 +14,21 @@ extern crate serde;
 extern crate url;
 
 #[cfg(feature = "diesel")]
+#[macro_use]
 extern crate diesel;
 
 #[cfg(test)]
 extern crate serde_json;
 
-use std::error::Error as StdError;
 use std::convert::TryFrom;
+use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-use rand::{Rng, thread_rng};
 use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
 use regex::Regex;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error as SerdeError, Unexpected, Visitor};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use url::{ParseError, Url};
 
 pub use url::Host;
@@ -81,6 +82,7 @@ pub enum Error {
 /// );
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(feature = "diesel", derive(FromSqlRow))]
 pub struct EventId {
     hostname: Host,
     opaque_id: String,
@@ -102,6 +104,7 @@ pub struct EventId {
 /// );
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(feature = "diesel", derive(FromSqlRow))]
 pub struct RoomAliasId {
     alias: String,
     hostname: Host,
@@ -123,6 +126,7 @@ pub struct RoomAliasId {
 /// );
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(feature = "diesel", derive(FromSqlRow))]
 pub struct RoomId {
     hostname: Host,
     opaque_id: String,
@@ -149,6 +153,7 @@ pub struct RoomId {
 ///     "!n8f893n9:example.com"
 /// );
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(feature = "diesel", derive(FromSqlRow))]
 pub enum RoomIdOrAliasId {
     /// A Matrix room alias ID.
     RoomAliasId(RoomAliasId),
@@ -171,6 +176,7 @@ pub enum RoomIdOrAliasId {
 /// );
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[cfg_attr(feature = "diesel", derive(FromSqlRow))]
 pub struct UserId {
     hostname: Host,
     localpart: String,
@@ -183,8 +189,13 @@ struct RoomIdVisitor;
 struct RoomIdOrAliasIdVisitor;
 struct UserIdVisitor;
 
-fn display(f: &mut Formatter, sigil: char, localpart: &str, hostname: &Host, port: u16)
--> FmtResult {
+fn display(
+    f: &mut Formatter,
+    sigil: char,
+    localpart: &str,
+    hostname: &Host,
+    port: u16,
+) -> FmtResult {
     if port == 443 {
         write!(f, "{}{}:{}", sigil, localpart, hostname)
     } else {
@@ -193,7 +204,10 @@ fn display(f: &mut Formatter, sigil: char, localpart: &str, hostname: &Host, por
 }
 
 fn generate_localpart(length: usize) -> String {
-    thread_rng().sample_iter(&Alphanumeric).take(length).collect()
+    thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(length)
+        .collect()
 }
 
 fn validate_id<'a>(id: &'a str) -> Result<(), Error> {
@@ -406,9 +420,13 @@ impl Display for RoomId {
 impl Display for RoomIdOrAliasId {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match *self {
-            RoomIdOrAliasId::RoomAliasId(ref room_alias_id) => {
-                display(f, '#', &room_alias_id.alias, &room_alias_id.hostname, room_alias_id.port)
-            }
+            RoomIdOrAliasId::RoomAliasId(ref room_alias_id) => display(
+                f,
+                '#',
+                &room_alias_id.alias,
+                &room_alias_id.hostname,
+                room_alias_id.port,
+            ),
             RoomIdOrAliasId::RoomId(ref room_id) => {
                 display(f, '!', &room_id.opaque_id, &room_id.hostname, room_id.port)
             }
@@ -423,68 +441,96 @@ impl Display for UserId {
 }
 
 impl Serialize for EventId {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         serializer.serialize_str(&self.to_string())
     }
 }
 
 impl Serialize for RoomAliasId {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         serializer.serialize_str(&self.to_string())
     }
 }
 
 impl Serialize for RoomId {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         serializer.serialize_str(&self.to_string())
     }
 }
 
 impl Serialize for RoomIdOrAliasId {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         match *self {
             RoomIdOrAliasId::RoomAliasId(ref room_alias_id) => {
                 serializer.serialize_str(&room_alias_id.to_string())
             }
-            RoomIdOrAliasId::RoomId(ref room_id) => {
-                serializer.serialize_str(&room_id.to_string())
-            }
+            RoomIdOrAliasId::RoomId(ref room_id) => serializer.serialize_str(&room_id.to_string()),
         }
     }
 }
 
 impl Serialize for UserId {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         serializer.serialize_str(&self.to_string())
     }
 }
 
 impl<'de> Deserialize<'de> for EventId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         deserializer.deserialize_any(EventIdVisitor)
     }
 }
 
 impl<'de> Deserialize<'de> for RoomAliasId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         deserializer.deserialize_any(RoomAliasIdVisitor)
     }
 }
 
 impl<'de> Deserialize<'de> for RoomId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         deserializer.deserialize_any(RoomIdVisitor)
     }
 }
 
 impl<'de> Deserialize<'de> for RoomIdOrAliasId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         deserializer.deserialize_any(RoomIdOrAliasIdVisitor)
     }
 }
 
 impl<'de> Deserialize<'de> for UserId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         deserializer.deserialize_any(UserIdVisitor)
     }
 }
@@ -567,7 +613,7 @@ impl<'a> TryFrom<&'a str> for RoomIdOrAliasId {
                 let room_id = RoomId::try_from(room_id_or_alias_id)?;
                 Ok(RoomIdOrAliasId::RoomId(room_id))
             }
-            _ => Err(Error::MissingSigil)
+            _ => Err(Error::MissingSigil),
         }
     }
 }
@@ -602,7 +648,10 @@ impl<'de> Visitor<'de> for EventIdVisitor {
         write!(formatter, "a Matrix event ID as a string")
     }
 
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: SerdeError,
+    {
         match EventId::try_from(v) {
             Ok(event_id) => Ok(event_id),
             Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
@@ -617,7 +666,10 @@ impl<'de> Visitor<'de> for RoomAliasIdVisitor {
         write!(formatter, "a Matrix room alias ID as a string")
     }
 
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: SerdeError,
+    {
         match RoomAliasId::try_from(v) {
             Ok(room_alias_id) => Ok(room_alias_id),
             Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
@@ -632,7 +684,10 @@ impl<'de> Visitor<'de> for RoomIdVisitor {
         write!(formatter, "a Matrix room ID as a string")
     }
 
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: SerdeError,
+    {
         match RoomId::try_from(v) {
             Ok(room_id) => Ok(room_id),
             Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
@@ -647,7 +702,10 @@ impl<'de> Visitor<'de> for RoomIdOrAliasIdVisitor {
         write!(formatter, "a Matrix room ID or room alias ID as a string")
     }
 
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: SerdeError,
+    {
         match RoomIdOrAliasId::try_from(v) {
             Ok(room_id_or_alias_id) => Ok(room_id_or_alias_id),
             Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
@@ -662,7 +720,10 @@ impl<'de> Visitor<'de> for UserIdVisitor {
         write!(formatter, "a Matrix user ID as a string")
     }
 
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: SerdeError {
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: SerdeError,
+    {
         match UserId::try_from(v) {
             Ok(user_id) => Ok(user_id),
             Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
@@ -673,88 +734,37 @@ impl<'de> Visitor<'de> for UserIdVisitor {
 #[cfg(feature = "diesel")]
 mod diesel_integration {
     use std::convert::TryFrom;
-    use std::error::Error;
+    use std::error::Error as StdError;
     use std::io::Write;
 
-    use diesel::Queryable;
     use diesel::backend::Backend;
-    use diesel::expression::AsExpression;
-    use diesel::expression::bound::Bound;
-    use diesel::row::Row;
-    use diesel::types::{FromSql, FromSqlRow, HasSqlType, IsNull, Nullable, Text, ToSql};
+    use diesel::deserialize::{FromSql, Result as DeserializeResult};
+    use diesel::serialize::{Output, Result as SerializeResult, ToSql};
+    use diesel::sql_types::Text;
 
     macro_rules! diesel_impl {
         ($name:ident) => {
-            impl<A, DB> FromSql<A, DB> for $crate::$name
-            where DB: Backend + HasSqlType<A>, String: FromSql<A, DB> {
-                fn from_sql(bytes: Option<&DB::RawValue>)
-                -> Result<Self, Box<Error + Send + Sync>> {
-                    let string = <String as FromSql<A, DB>>::from_sql(bytes)?;
-
-                    $crate::$name::try_from(&string)
-                        .map_err(|error| Box::new(error) as Box<Error + Send + Sync>)
-                }
-            }
-
-            impl<A, DB> FromSqlRow<A, DB> for $crate::$name
-            where DB: Backend + HasSqlType<A>, String: FromSql<A, DB> {
-                fn build_from_row<T: Row<DB>>(row: &mut T)
-                -> Result<Self, Box<Error + Send + Sync>> {
-                    FromSql::<A, DB>::from_sql(row.take())
-                }
-            }
-
-            impl<A, DB> ToSql<A, DB> for $crate::$name
-            where DB: Backend + HasSqlType<A>, String: ToSql<A, DB> {
-                fn to_sql<W: Write>(&self, out: &mut W)
-                -> Result<IsNull, Box<Error + Send + Sync>> {
-                    self.to_string().to_sql(out)
-                }
-            }
-
-            impl<A, DB> Queryable<A, DB> for $crate::$name where
-                $crate::$name: FromSqlRow<A, DB>,
-                DB: Backend + HasSqlType<A>,
+            impl<DB> ToSql<Text, DB> for $crate::$name
+            where
+                DB: Backend,
             {
-                type Row = Self;
-
-                fn build(row: Self::Row) -> Self {
-                    row
+                fn to_sql<W: Write>(&self, out: &mut Output<W, DB>) -> SerializeResult {
+                    ToSql::<Text, DB>::to_sql(&self.to_string(), out)
                 }
             }
 
-            impl AsExpression<Text> for $crate::$name {
-                type Expression = Bound<Text, Self>;
+            impl<DB> FromSql<Text, DB> for $crate::$name
+            where
+                DB: Backend<RawValue = [u8]>,
+            {
+                fn from_sql(bytes: Option<&[u8]>) -> DeserializeResult<Self> {
+                    let string: String = FromSql::<Text, DB>::from_sql(bytes)?;
 
-                fn as_expression(self) -> Self::Expression {
-                    Bound::new(self)
+                    $crate::$name::try_from(string.as_str())
+                        .map_err(|error| Box::new(error) as Box<StdError + Send + Sync>)
                 }
             }
-
-            impl<'a> AsExpression<Text> for &'a $crate::$name {
-                type Expression = Bound<Text, Self>;
-
-                fn as_expression(self) -> Self::Expression {
-                    Bound::new(self)
-                }
-            }
-
-            impl AsExpression<Nullable<Text>> for $crate::$name {
-                type Expression = Bound<Nullable<Text>, Self>;
-
-                fn as_expression(self) -> Self::Expression {
-                    Bound::new(self)
-                }
-            }
-
-            impl<'a> AsExpression<Nullable<Text>> for &'a $crate::$name {
-                type Expression = Bound<Nullable<Text>, Self>;
-
-                fn as_expression(self) -> Self::Expression {
-                    Bound::new(self)
-                }
-            }
-        }
+        };
     }
 
     diesel_impl!(EventId);
@@ -810,9 +820,8 @@ mod tests {
     #[test]
     fn deserialize_valid_event_id() {
         assert_eq!(
-            from_str::<EventId>(
-                r#""$39hvsi03hlne:example.com""#
-            ).expect("Failed to convert JSON to EventId"),
+            from_str::<EventId>(r#""$39hvsi03hlne:example.com""#)
+                .expect("Failed to convert JSON to EventId"),
             EventId::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
         );
     }
@@ -864,7 +873,9 @@ mod tests {
     #[test]
     fn invalid_event_id_port() {
         assert_eq!(
-            EventId::try_from("$39hvsi03hlne:example.com:notaport").err().unwrap(),
+            EventId::try_from("$39hvsi03hlne:example.com:notaport")
+                .err()
+                .unwrap(),
             Error::InvalidHost
         );
     }
@@ -892,9 +903,8 @@ mod tests {
     #[test]
     fn deserialize_valid_room_alias_id() {
         assert_eq!(
-            from_str::<RoomAliasId>(
-                r##""#ruma:example.com""##
-            ).expect("Failed to convert JSON to RoomAliasId"),
+            from_str::<RoomAliasId>(r##""#ruma:example.com""##)
+                .expect("Failed to convert JSON to RoomAliasId"),
             RoomAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
         );
     }
@@ -932,7 +942,9 @@ mod tests {
     #[test]
     fn missing_room_alias_id_sigil() {
         assert_eq!(
-            RoomAliasId::try_from("39hvsi03hlne:example.com").err().unwrap(),
+            RoomAliasId::try_from("39hvsi03hlne:example.com")
+                .err()
+                .unwrap(),
             Error::MissingSigil
         );
     }
@@ -956,7 +968,9 @@ mod tests {
     #[test]
     fn invalid_room_alias_id_port() {
         assert_eq!(
-            RoomAliasId::try_from("#ruma:example.com:notaport").err().unwrap(),
+            RoomAliasId::try_from("#ruma:example.com:notaport")
+                .err()
+                .unwrap(),
             Error::InvalidHost
         );
     }
@@ -999,9 +1013,8 @@ mod tests {
     #[test]
     fn deserialize_valid_room_id() {
         assert_eq!(
-            from_str::<RoomId>(
-                r#""!29fhd83h92h0:example.com""#
-            ).expect("Failed to convert JSON to RoomId"),
+            from_str::<RoomId>(r#""!29fhd83h92h0:example.com""#)
+                .expect("Failed to convert JSON to RoomId"),
             RoomId::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
         );
     }
@@ -1053,7 +1066,9 @@ mod tests {
     #[test]
     fn invalid_room_id_port() {
         assert_eq!(
-            RoomId::try_from("!29fhd83h92h0:example.com:notaport").err().unwrap(),
+            RoomId::try_from("!29fhd83h92h0:example.com:notaport")
+                .err()
+                .unwrap(),
             Error::InvalidHost
         );
     }
@@ -1090,7 +1105,8 @@ mod tests {
     fn serialize_valid_room_id_or_alias_id_with_a_room_alias_id() {
         assert_eq!(
             to_string(
-                &RoomIdOrAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
+                &RoomIdOrAliasId::try_from("#ruma:example.com")
+                    .expect("Failed to create RoomAliasId.")
             ).expect("Failed to convert RoomAliasId to JSON."),
             r##""#ruma:example.com""##
         );
@@ -1100,7 +1116,8 @@ mod tests {
     fn serialize_valid_room_id_or_alias_id_with_a_room_id() {
         assert_eq!(
             to_string(
-                &RoomIdOrAliasId::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
+                &RoomIdOrAliasId::try_from("!29fhd83h92h0:example.com")
+                    .expect("Failed to create RoomId.")
             ).expect("Failed to convert RoomId to JSON."),
             r#""!29fhd83h92h0:example.com""#
         );
@@ -1109,9 +1126,8 @@ mod tests {
     #[test]
     fn deserialize_valid_room_id_or_alias_id_with_a_room_alias_id() {
         assert_eq!(
-            from_str::<RoomIdOrAliasId>(
-                r##""#ruma:example.com""##
-            ).expect("Failed to convert JSON to RoomAliasId"),
+            from_str::<RoomIdOrAliasId>(r##""#ruma:example.com""##)
+                .expect("Failed to convert JSON to RoomAliasId"),
             RoomIdOrAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
         );
     }
@@ -1119,10 +1135,10 @@ mod tests {
     #[test]
     fn deserialize_valid_room_id_or_alias_id_with_a_room_id() {
         assert_eq!(
-            from_str::<RoomIdOrAliasId>(
-                r##""!29fhd83h92h0:example.com""##
-            ).expect("Failed to convert JSON to RoomId"),
-            RoomIdOrAliasId::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomAliasId.")
+            from_str::<RoomIdOrAliasId>(r##""!29fhd83h92h0:example.com""##)
+                .expect("Failed to convert JSON to RoomId"),
+            RoomIdOrAliasId::try_from("!29fhd83h92h0:example.com")
+                .expect("Failed to create RoomAliasId.")
         );
     }
 
@@ -1164,9 +1180,8 @@ mod tests {
     #[test]
     fn serialize_valid_user_id() {
         assert_eq!(
-            to_string(
-                &UserId::try_from("@carl:example.com").expect("Failed to create UserId.")
-            ).expect("Failed to convert UserId to JSON."),
+            to_string(&UserId::try_from("@carl:example.com").expect("Failed to create UserId."))
+                .expect("Failed to convert UserId to JSON."),
             r#""@carl:example.com""#
         );
     }
@@ -1174,9 +1189,7 @@ mod tests {
     #[test]
     fn deserialize_valid_user_id() {
         assert_eq!(
-            from_str::<UserId>(
-                r#""@carl:example.com""#
-            ).expect("Failed to convert JSON to UserId"),
+            from_str::<UserId>(r#""@carl:example.com""#).expect("Failed to convert JSON to UserId"),
             UserId::try_from("@carl:example.com").expect("Failed to create UserId.")
         );
     }
@@ -1236,7 +1249,9 @@ mod tests {
     #[test]
     fn invalid_user_id_port() {
         assert_eq!(
-            UserId::try_from("@carl:example.com:notaport").err().unwrap(),
+            UserId::try_from("@carl:example.com:notaport")
+                .err()
+                .unwrap(),
             Error::InvalidHost
         );
     }
