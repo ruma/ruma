@@ -125,6 +125,7 @@ mod api;
 ///
 /// extern crate futures;
 /// extern crate http;
+/// extern crate hyper;
 /// extern crate ruma_api;
 /// extern crate ruma_api_macros;
 /// extern crate serde;

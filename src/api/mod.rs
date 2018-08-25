@@ -143,7 +143,7 @@ impl ToTokens for Api {
             quote! {
                 let request_body = RequestBody(request.#field_name);
 
-                let mut http_request = ::http::Request::new(::serde_json::to_vec(&request_body)?);
+                let mut http_request = ::http::Request::new(::serde_json::to_vec(&request_body)?.into());
             }
         } else if self.request.has_body_fields() {
             let request_body_init_fields = self.request.request_body_init_fields();
@@ -153,11 +153,11 @@ impl ToTokens for Api {
                     #request_body_init_fields
                 };
 
-                let mut http_request = ::http::Request::new(::serde_json::to_vec(&request_body)?);
+                let mut http_request = ::http::Request::new(::serde_json::to_vec(&request_body)?.into());
             }
         } else {
             quote! {
-                let mut http_request = ::http::Request::new(Vec::with_capacity(0));
+                let mut http_request = ::http::Request::new(::hyper::Body::empty());
             }
         };
 
@@ -165,17 +165,31 @@ impl ToTokens for Api {
             let field_type = &field.ty;
 
             quote! {
-                let future_response =
-                    ::serde_json::from_slice::<#field_type>(http_response.body().as_slice())
-                        .into_future()
-                        .map_err(::ruma_api::Error::from)
+                let future_response = http_response.into_body()
+                    .fold(Vec::new(), |mut vec, chunk| {
+                        vec.extend(chunk.iter());
+                        ::futures::future::ok::<_, ::hyper::Error>(vec)
+                    })
+                    .map_err(::ruma_api::Error::from)
+                    .and_then(|data|
+                              ::serde_json::from_slice::<#field_type>(data.as_slice())
+                              .map_err(::ruma_api::Error::from)
+                              .into_future()
+                    )
             }
         } else if self.response.has_body_fields() {
             quote! {
-                let future_response =
-                    ::serde_json::from_slice::<ResponseBody>(http_response.body().as_slice())
-                        .into_future()
-                        .map_err(::ruma_api::Error::from)
+                let future_response = http_response.into_body()
+                    .fold(Vec::new(), |mut vec, chunk| {
+                        vec.extend(chunk.iter());
+                        ::futures::future::ok::<_, ::hyper::Error>(vec)
+                    })
+                    .map_err(::ruma_api::Error::from)
+                    .and_then(|data|
+                              ::serde_json::from_slice::<ResponseBody>(data.as_slice())
+                              .map_err(::ruma_api::Error::from)
+                              .into_future()
+                    )
             }
         } else {
             quote! {
@@ -199,7 +213,7 @@ impl ToTokens for Api {
 
         tokens.append_all(quote! {
             #[allow(unused_imports)]
-            use ::futures::{Future as _Future, IntoFuture as _IntoFuture};
+            use ::futures::{Future as _Future, IntoFuture as _IntoFuture, Stream as _Stream};
             use ::ruma_api::Endpoint as _RumaApiEndpoint;
 
             /// The API endpoint.
@@ -208,7 +222,7 @@ impl ToTokens for Api {
 
             #request_types
 
-            impl ::std::convert::TryFrom<Request> for ::http::Request<Vec<u8>> {
+            impl ::std::convert::TryFrom<Request> for ::http::Request<::hyper::Body> {
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_mut, unused_variables)]
@@ -236,12 +250,12 @@ impl ToTokens for Api {
 
             #response_types
 
-            impl ::futures::future::FutureFrom<::http::Response<Vec<u8>>> for Response {
+            impl ::futures::future::FutureFrom<::http::Response<::hyper::Body>> for Response {
                 type Future = Box<_Future<Item = Self, Error = Self::Error>>;
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_variables)]
-                fn future_from(http_response: ::http::Response<Vec<u8>>)
+                fn future_from(http_response: ::http::Response<::hyper::Body>)
                 -> Box<_Future<Item = Self, Error = Self::Error>> {
                     if http_response.status().is_success() {
                         #extract_headers
@@ -262,7 +276,7 @@ impl ToTokens for Api {
                 }
             }
 
-            impl ::ruma_api::Endpoint<Vec<u8>, Vec<u8>> for Endpoint {
+            impl ::ruma_api::Endpoint for Endpoint {
                 type Request = Request;
                 type Response = Response;
 
