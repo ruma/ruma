@@ -14,6 +14,7 @@
 
 extern crate futures;
 extern crate http;
+extern crate hyper;
 #[cfg(test)]
 extern crate ruma_identifiers;
 #[cfg(test)]
@@ -45,6 +46,8 @@ pub trait Endpoint<T, U> {
 pub enum Error {
     /// An HTTP error.
     Http(http::Error),
+    /// An Hyper error.
+    Hyper(hyper::Error),
     /// A I/O error.
     Io(io::Error),
     /// A Serde JSON error.
@@ -62,6 +65,12 @@ pub enum Error {
 impl From<http::Error> for Error {
     fn from(error: http::Error) -> Self {
         Error::Http(error)
+    }
+}
+
+impl From<hyper::Error> for Error {
+    fn from(error: hyper::Error) -> Self {
+        Error::Hyper(error)
     }
 }
 
