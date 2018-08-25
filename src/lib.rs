@@ -5,6 +5,7 @@
 #![feature(try_from)]
 
 extern crate futures;
+extern crate http;
 extern crate hyper;
 #[cfg(feature = "tls")]
 extern crate hyper_tls;
@@ -15,7 +16,6 @@ extern crate ruma_client_api;
 extern crate ruma_identifiers;
 extern crate serde_json;
 extern crate serde_urlencoded;
-extern crate tokio_core;
 extern crate url;
 
 use std::cell::RefCell;
@@ -26,13 +26,13 @@ use std::str::FromStr;
 use futures::future::{Future, FutureFrom, IntoFuture};
 use futures::stream::{self, Stream};
 use hyper::{Client as HyperClient, Uri};
-use hyper::client::{Connect, HttpConnector};
+use hyper::client::HttpConnector;
+use hyper::client::connect::Connect;
 #[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
 #[cfg(feature = "hyper-tls")]
 use native_tls::Error as NativeTlsError;
 use ruma_api::Endpoint;
-use tokio_core::reactor::Handle;
 use url::Url;
 
 pub use error::Error;
@@ -60,10 +60,10 @@ where
 
 impl Client<HttpConnector> {
     /// Creates a new client for making HTTP requests to the given homeserver.
-    pub fn new(handle: &Handle, homeserver_url: Url, session: Option<Session>) -> Self {
+    pub fn new(homeserver_url: Url, session: Option<Session>) -> Self {
         Client(Rc::new(ClientData {
             homeserver_url: homeserver_url,
-            hyper: HyperClient::configure().keep_alive(true).build(handle),
+            hyper: HyperClient::builder().keep_alive(true).build_http(),
             session: RefCell::new(session),
         }))
     }
@@ -72,16 +72,15 @@ impl Client<HttpConnector> {
 #[cfg(feature = "tls")]
 impl Client<HttpsConnector<HttpConnector>> {
     /// Creates a new client for making HTTPS requests to the given homeserver.
-    pub fn https(handle: &Handle, homeserver_url: Url, session: Option<Session>) -> Result<Self, NativeTlsError> {
-        let connector = HttpsConnector::new(4, handle)?;
+    pub fn https(homeserver_url: Url, session: Option<Session>) -> Result<Self, NativeTlsError> {
+        let connector = HttpsConnector::new(4)?;
 
         Ok(Client(Rc::new(ClientData {
             homeserver_url: homeserver_url,
             hyper: {
-                HyperClient::configure()
-                    .connector(connector)
+                HyperClient::builder()
                     .keep_alive(true)
-                    .build(handle)
+                    .build(connector)
             },
             session: RefCell::new(session),
         })))
@@ -90,7 +89,7 @@ impl Client<HttpsConnector<HttpConnector>> {
 
 impl<C> Client<C>
 where
-    C: Connect,
+    C: Connect + 'static,
 {
     /// Creates a new client using the given `hyper::Client`.
     ///
@@ -261,7 +260,7 @@ where
                     .map_err(Error::from)
             })
             .and_then(move |(uri, mut hyper_request)| {
-                hyper_request.set_uri(uri);
+                *hyper_request.uri_mut() = uri;
 
                 data2.hyper
                     .request(hyper_request)

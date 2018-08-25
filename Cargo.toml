@@ -12,22 +12,22 @@ version = "0.1.0"
 
 [dependencies]
 futures = "0.1.14"
-hyper = "0.11.1"
+http = "0.1"
+hyper = "0.12"
 ruma-api = "0.4.0"
 ruma-client-api = "0.1.0"
 ruma-identifiers = "0.11.0"
 serde_json = "1.0.2"
 serde_urlencoded = "0.5.1"
-tokio-core = "0.1.8"
 url = "1.5.1"
 
 [dependencies.hyper-tls]
 optional = true
-version = "0.1.2"
+version = "0.3.0"
 
 [dependencies.native-tls]
 optional = true
-version = "0.1.4"
+version = "0.2.1"
 
 [dev-dependencies]
 futures-await = { git = 'https://github.com/alexcrichton/futures-await' }

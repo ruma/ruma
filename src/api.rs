@@ -20,7 +20,7 @@ macro_rules! endpoint {
         #[$($attr)+]
         pub mod $inner_mod {
             use futures::Future;
-            use hyper::client::Connect;
+            use hyper::client::connect::Connect;
             use ruma_client_api::$($outer_mod::)*$inner_mod::Endpoint;
             $(use super::$super_import;)*
             pub use ruma_client_api::$($outer_mod::)*$inner_mod::{
@@ -37,7 +37,7 @@ macro_rules! endpoint {
                 request: Request,
             ) -> impl Future<Item = Response, Error = Error>
             where
-                C: Connect,
+                C: Connect + 'static,
             {
                 client.request::<Endpoint>(request)
             }
