@@ -13,6 +13,7 @@ version = "0.1.0"
 [dependencies]
 futures = "0.1.21"
 http = "0.1.5"
+hyper = "0.12"
 ruma-api = "0.5.0"
 ruma-api-macros = "0.2.2"
 ruma-events = "0.10.0"
