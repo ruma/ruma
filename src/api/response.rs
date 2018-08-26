@@ -1,4 +1,5 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::{Span, TokenStream};
+use quote::{ToTokens, TokenStreamExt};
 use syn::spanned::Spanned;
 use syn::{Field, Ident, Lit, Meta, NestedMeta};
 
@@ -21,13 +22,13 @@ impl Response {
         self.fields.iter().any(|field| field.is_header())
     }
 
-    pub fn init_fields(&self) -> Tokens {
-        let mut tokens = Tokens::new();
+    pub fn init_fields(&self) -> TokenStream {
+        let mut tokens = TokenStream::new();
 
         for response_field in self.fields.iter() {
             match *response_field {
                 ResponseField::Body(ref field) => {
-                    let field_name = field.ident.expect("expected field to have an identifier");
+                    let field_name = field.ident.as_ref().expect("expected field to have an identifier");
                     let span = field.span();
 
                     tokens.append_all(quote_spanned! {span=>
@@ -35,8 +36,8 @@ impl Response {
                     });
                 }
                 ResponseField::Header(ref field, ref header) => {
-                    let field_name = field.ident.expect("expected field to have an identifier");
-                    let header_name = Ident::from(header.as_ref());
+                    let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+                    let header_name = Ident::new(header.as_ref(), Span::call_site());
                     let span = field.span();
 
                     tokens.append_all(quote_spanned! {span=>
@@ -48,7 +49,7 @@ impl Response {
                     });
                 }
                 ResponseField::NewtypeBody(ref field) => {
-                    let field_name = field.ident.expect("expected field to have an identifier");
+                    let field_name = field.ident.as_ref().expect("expected field to have an identifier");
                     let span = field.span();
 
                     tokens.append_all(quote_spanned! {span=>
@@ -94,7 +95,7 @@ impl From<Vec<Field>> for Response {
                     _ => return true,
                 };
 
-                if meta_list.ident.as_ref() != "ruma_api" {
+                if meta_list.ident != "ruma_api" {
                     return true;
                 }
 
@@ -103,7 +104,7 @@ impl From<Vec<Field>> for Response {
                         NestedMeta::Meta(meta_item) => {
                             match meta_item {
                                 Meta::Word(ident) => {
-                                    match ident.as_ref() {
+                                    match ident.to_string().as_ref() {
                                         "body" => {
                                             has_newtype_body = true;
                                             field_kind = ResponseFieldKind::NewtypeBody;
@@ -112,7 +113,7 @@ impl From<Vec<Field>> for Response {
                                     }
                                 }
                                 Meta::NameValue(name_value) => {
-                                    match name_value.ident.as_ref() {
+                                    match name_value.ident.to_string().as_ref() {
                                         "header" => {
                                             match name_value.lit {
                                                 Lit::Str(lit_str) => header = Some(lit_str.value()),
@@ -156,7 +157,7 @@ impl From<Vec<Field>> for Response {
 }
 
 impl ToTokens for Response {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let response_struct_header = quote! {
             /// Data in the response from this API endpoint.
             #[derive(Debug)]
@@ -166,7 +167,7 @@ impl ToTokens for Response {
         let response_struct_body = if self.fields.len() == 0 {
             quote!(;)
         } else {
-            let fields = self.fields.iter().fold(Tokens::new(), |mut fields_tokens, response_field| {
+            let fields = self.fields.iter().fold(TokenStream::new(), |mut fields_tokens, response_field| {
                 let field = response_field.field();
                 let span = field.span();
 
@@ -197,7 +198,7 @@ impl ToTokens for Response {
                 struct ResponseBody(#ty);
             };
         } else if self.has_body_fields() {
-            let fields = self.fields.iter().fold(Tokens::new(), |mut field_tokens, response_field| {
+            let fields = self.fields.iter().fold(TokenStream::new(), |mut field_tokens, response_field| {
                 match *response_field {
                     ResponseField::Body(ref field) => {
                         let span = field.span();
@@ -218,7 +219,7 @@ impl ToTokens for Response {
                 }
             };
         } else {
-            response_body_struct = Tokens::new();
+            response_body_struct = TokenStream::new();
         }
 
         tokens.append_all(quote! {

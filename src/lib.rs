@@ -8,6 +8,7 @@
 #![recursion_limit="256"]
 
 extern crate proc_macro;
+extern crate proc_macro2;
 #[macro_use] extern crate quote;
 extern crate ruma_api;
 #[macro_use] extern crate syn;
@@ -207,5 +208,5 @@ pub fn ruma_api(input: TokenStream) -> TokenStream {
 
     let api = Api::from(raw_api);
 
-    api.into_tokens().into()
+    api.into_token_stream().into()
 }

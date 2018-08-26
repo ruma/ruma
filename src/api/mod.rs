@@ -1,4 +1,5 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::{Span, TokenStream};
+use quote::{ToTokens, TokenStreamExt};
 use syn::punctuated::Punctuated;
 use syn::synom::Synom;
 use syn::{Field, FieldValue, Ident, Meta};
@@ -23,7 +24,7 @@ pub fn strip_serde_attrs(field: &Field) -> Field {
             _ => return true,
         };
 
-        if meta_list.ident.as_ref() == "serde" {
+        if meta_list.ident == "serde" {
             return false;
         }
 
@@ -50,9 +51,9 @@ impl From<RawApi> for Api {
 }
 
 impl ToTokens for Api {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let description = &self.metadata.description;
-        let method = Ident::from(self.metadata.method.as_ref());
+        let method = Ident::new(self.metadata.method.as_ref(), Span::call_site());
         let name = &self.metadata.name;
         let path = &self.metadata.path;
         let rate_limited = &self.metadata.rate_limited;
@@ -92,7 +93,7 @@ impl ToTokens for Api {
 
                 if segment.starts_with(':') {
                     let path_var = &segment[1..];
-                    let path_var_ident = Ident::from(path_var);
+                    let path_var_ident = Ident::new(path_var, Span::call_site());
 
                     tokens.append_all(quote! {
                         (&request_path.#path_var_ident.to_string());
@@ -122,7 +123,7 @@ impl ToTokens for Api {
                 url.set_query(Some(&::serde_urlencoded::to_string(request_query)?));
             }
         } else {
-            Tokens::new()
+            TokenStream::new()
         };
 
         let add_headers_to_request = if self.request.has_header_fields() {
@@ -134,11 +135,11 @@ impl ToTokens for Api {
 
             header_tokens
         } else {
-            Tokens::new()
+            TokenStream::new()
         };
 
         let create_http_request = if let Some(field) = self.request.newtype_body_field() {
-            let field_name = field.ident.expect("expected field to have an identifier");
+            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
 
             quote! {
                 let request_body = RequestBody(request.#field_name);
@@ -202,13 +203,13 @@ impl ToTokens for Api {
                 let mut headers = http_response.headers().clone();
             }
         } else {
-            Tokens::new()
+            TokenStream::new()
         };
 
         let response_init_fields = if self.response.has_fields() {
             self.response.init_fields()
         } else {
-            Tokens::new()
+            TokenStream::new()
         };
 
         tokens.append_all(quote! {

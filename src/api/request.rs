@@ -1,4 +1,5 @@
-use quote::{ToTokens, Tokens};
+use proc_macro2::{Span, TokenStream};
+use quote::{TokenStreamExt, ToTokens};
 use syn::spanned::Spanned;
 use syn::{Field, Ident, Lit, Meta, NestedMeta};
 
@@ -9,15 +10,15 @@ pub struct Request {
 }
 
 impl Request {
-    pub fn add_headers_to_request(&self) -> Tokens {
-        self.header_fields().fold(Tokens::new(), |mut header_tokens, request_field| {
+    pub fn add_headers_to_request(&self) -> TokenStream {
+        self.header_fields().fold(TokenStream::new(), |mut header_tokens, request_field| {
             let (field, header_name_string) = match request_field {
                 RequestField::Header(field, header_name_string) => (field, header_name_string),
                 _ => panic!("expected request field to be header variant"),
             };
 
             let field_name = &field.ident;
-            let header_name = Ident::from(header_name_string.as_ref());
+            let header_name = Ident::new(header_name_string.as_ref(), Span::call_site());
 
             header_tokens.append_all(quote! {
                 headers.append(
@@ -67,23 +68,23 @@ impl Request {
         None
     }
 
-    pub fn request_body_init_fields(&self) -> Tokens {
+    pub fn request_body_init_fields(&self) -> TokenStream {
         self.struct_init_fields(RequestFieldKind::Body)
     }
 
-    pub fn request_path_init_fields(&self) -> Tokens {
+    pub fn request_path_init_fields(&self) -> TokenStream {
         self.struct_init_fields(RequestFieldKind::Path)
     }
 
-    pub fn request_query_init_fields(&self) -> Tokens {
+    pub fn request_query_init_fields(&self) -> TokenStream {
         self.struct_init_fields(RequestFieldKind::Query)
     }
 
-    fn struct_init_fields(&self, request_field_kind: RequestFieldKind) -> Tokens {
-        let mut tokens = Tokens::new();
+    fn struct_init_fields(&self, request_field_kind: RequestFieldKind) -> TokenStream {
+        let mut tokens = TokenStream::new();
 
         for field in self.fields.iter().flat_map(|f| f.field_(request_field_kind)) {
-            let field_name = field.ident.expect("expected field to have an identifier");
+            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let span = field.span();
 
             tokens.append_all(quote_spanned! {span=>
@@ -112,7 +113,7 @@ impl From<Vec<Field>> for Request {
                     _ => return true,
                 };
 
-                if meta_list.ident.as_ref() != "ruma_api" {
+                if meta_list.ident != "ruma_api" {
                     return true;
                 }
 
@@ -121,7 +122,7 @@ impl From<Vec<Field>> for Request {
                         NestedMeta::Meta(meta_item) => {
                             match meta_item {
                                 Meta::Word(ident) => {
-                                    match ident.as_ref() {
+                                    match ident.to_string().as_ref() {
                                         "body" => {
                                             has_newtype_body = true;
                                             field_kind = RequestFieldKind::NewtypeBody;
@@ -132,7 +133,7 @@ impl From<Vec<Field>> for Request {
                                     }
                                 }
                                 Meta::NameValue(name_value) => {
-                                    match name_value.ident.as_ref() {
+                                    match name_value.ident.to_string().as_ref() {
                                         "header" => {
                                             match name_value.lit {
                                                 Lit::Str(lit_str) => header = Some(lit_str.value()),
@@ -173,7 +174,7 @@ impl From<Vec<Field>> for Request {
 }
 
 impl ToTokens for Request {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let request_struct_header = quote! {
             /// Data for a request to this API endpoint.
             #[derive(Debug)]
@@ -183,7 +184,7 @@ impl ToTokens for Request {
         let request_struct_body = if self.fields.len() == 0 {
             quote!(;)
         } else {
-            let fields = self.fields.iter().fold(Tokens::new(), |mut field_tokens, request_field| {
+            let fields = self.fields.iter().fold(TokenStream::new(), |mut field_tokens, request_field| {
                 let field = request_field.field();
                 let span = field.span();
 
@@ -214,7 +215,7 @@ impl ToTokens for Request {
                 struct RequestBody(#ty);
             };
         } else if self.has_body_fields() {
-            let fields = self.fields.iter().fold(Tokens::new(), |mut field_tokens, request_field| {
+            let fields = self.fields.iter().fold(TokenStream::new(), |mut field_tokens, request_field| {
                 match *request_field {
                     RequestField::Body(ref field) => {
                         let span = field.span();
@@ -235,13 +236,13 @@ impl ToTokens for Request {
                 }
             };
         } else {
-            request_body_struct = Tokens::new();
+            request_body_struct = TokenStream::new();
         }
 
         let request_path_struct;
 
         if self.has_path_fields() {
-            let fields = self.fields.iter().fold(Tokens::new(), |mut field_tokens, request_field| {
+            let fields = self.fields.iter().fold(TokenStream::new(), |mut field_tokens, request_field| {
                 match *request_field {
                     RequestField::Path(ref field) => {
                         let span = field.span();
@@ -262,13 +263,13 @@ impl ToTokens for Request {
                 }
             };
         } else {
-            request_path_struct = Tokens::new();
+            request_path_struct = TokenStream::new();
         }
 
         let request_query_struct;
 
         if self.has_query_fields() {
-            let fields = self.fields.iter().fold(Tokens::new(), |mut field_tokens, request_field| {
+            let fields = self.fields.iter().fold(TokenStream::new(), |mut field_tokens, request_field| {
                 match *request_field {
                     RequestField::Query(ref field) => {
                         let span = field.span();
@@ -289,7 +290,7 @@ impl ToTokens for Request {
                 }
             };
         } else {
-            request_query_struct = Tokens::new();
+            request_query_struct = TokenStream::new();
         }
 
         tokens.append_all(quote! {
