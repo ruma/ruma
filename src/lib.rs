@@ -28,9 +28,10 @@ use std::io;
 
 use futures::future::FutureFrom;
 use http::{Method, Request, Response, StatusCode};
+use hyper::Body;
 
 /// A Matrix API endpoint.
-pub trait Endpoint<T, U> {
+pub trait Endpoint<T = Body, U = Body> {
     /// Data needed to make a request to the endpoint.
     type Request: TryInto<Request<T>, Error = Error>;
     /// Data returned from the endpoint.
