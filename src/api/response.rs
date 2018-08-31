@@ -15,7 +15,7 @@ impl Response {
     }
 
     pub fn has_fields(&self) -> bool {
-        self.fields.len() != 0
+        !self.fields.is_empty()
     }
 
     pub fn has_header_fields(&self) -> bool {
@@ -142,7 +142,7 @@ impl From<Vec<Field>> for Response {
                     if has_newtype_body {
                         panic!("ruma_api! responses cannot have both normal body fields and a newtype body field");
                     } else {
-                        return ResponseField::Body(field);
+                        ResponseField::Body(field)
                     }
                 }
                 ResponseFieldKind::Header => ResponseField::Header(field, header.expect("missing header name")),
@@ -164,7 +164,7 @@ impl ToTokens for Response {
             pub struct Response
         };
 
-        let response_struct_body = if self.fields.len() == 0 {
+        let response_struct_body = if self.fields.is_empty() {
             quote!(;)
         } else {
             let fields = self.fields.iter().fold(TokenStream::new(), |mut fields_tokens, response_field| {

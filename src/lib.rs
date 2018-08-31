@@ -4,7 +4,6 @@
 //! See the documentation for the `ruma_api!` macro for usage details.
 
 #![deny(missing_debug_implementations)]
-#![feature(proc_macro)]
 #![recursion_limit="256"]
 
 extern crate proc_macro;

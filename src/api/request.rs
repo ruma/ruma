@@ -181,7 +181,7 @@ impl ToTokens for Request {
             pub struct Request
         };
 
-        let request_struct_body = if self.fields.len() == 0 {
+        let request_struct_body = if self.fields.is_empty() {
             quote!(;)
         } else {
             let fields = self.fields.iter().fold(TokenStream::new(), |mut field_tokens, request_field| {
