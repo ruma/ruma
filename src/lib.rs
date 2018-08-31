@@ -62,7 +62,7 @@ impl Client<HttpConnector> {
     /// Creates a new client for making HTTP requests to the given homeserver.
     pub fn new(homeserver_url: Url, session: Option<Session>) -> Self {
         Client(Rc::new(ClientData {
-            homeserver_url: homeserver_url,
+            homeserver_url,
             hyper: HyperClient::builder().keep_alive(true).build_http(),
             session: RefCell::new(session),
         }))
@@ -76,7 +76,7 @@ impl Client<HttpsConnector<HttpConnector>> {
         let connector = HttpsConnector::new(4)?;
 
         Ok(Client(Rc::new(ClientData {
-            homeserver_url: homeserver_url,
+            homeserver_url,
             hyper: {
                 HyperClient::builder()
                     .keep_alive(true)
@@ -96,7 +96,7 @@ where
     /// This allows the user to configure the details of HTTP as desired.
     pub fn custom(hyper_client: HyperClient<C>, homeserver_url: Url, session: Option<Session>) -> Self {
         Client(Rc::new(ClientData {
-            homeserver_url: homeserver_url,
+            homeserver_url,
             hyper: hyper_client,
             session: RefCell::new(session),
         }))
@@ -176,7 +176,7 @@ where
             initial_device_display_name: None,
             kind: Some(register::RegistrationKind::User),
             password: Some(password),
-            username: username,
+            username,
         }).map(move |response| {
             let session = Session::new(response.access_token, response.user_id);
             *data.session.borrow_mut() = Some(session.clone());
@@ -256,7 +256,7 @@ where
                     }
                 }
 
-                Uri::from_str(url.as_ref().as_ref())
+                Uri::from_str(url.as_ref())
                     .map(move |uri| (uri, hyper_request))
                     .map_err(Error::from)
             })
