@@ -21,16 +21,9 @@ use tokio_core::reactor::Core;
 use url::Url;
 
 // from https://stackoverflow.com/a/43992218/1592377
-#[macro_export]
 macro_rules! clone {
     (@param _) => ( _ );
     (@param $x:ident) => ( $x );
-    ($($n:ident),+ => move || $body:expr) => (
-        {
-            $( let $n = $n.clone(); )+
-            move || $body
-        }
-    );
     ($($n:ident),+ => move |$($p:tt),+| $body:expr) => (
         {
             $( let $n = $n.clone(); )+
@@ -42,7 +35,7 @@ macro_rules! clone {
 fn hello_world(
     homeserver_url: Url,
     room: String,
-) -> impl Future<Item = (), Error = ruma_client::Error> + 'static {
+) -> impl Future<Item = (), Error = ruma_client::Error> {
     let client = Client::https(homeserver_url, None).unwrap();
 
     client.register_guest().and_then(clone!(client => move |_| {

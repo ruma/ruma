@@ -25,7 +25,7 @@ use url::Url;
 fn hello_world(
     homeserver_url: Url,
     room: String,
-) -> impl Future<Item = (), Error = ruma_client::Error> + 'static {
+) -> impl Future<Item = (), Error = ruma_client::Error> {
     let client = Client::https(homeserver_url, None).unwrap();
 
     async_block! {
