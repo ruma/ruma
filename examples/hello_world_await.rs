@@ -1,5 +1,5 @@
 #![feature(generators)]
-#![feature(proc_macro)]
+#![feature(proc_macro_non_items)]
 #![feature(try_from)]
 
 extern crate futures_await as futures;
@@ -13,21 +13,20 @@ use std::convert::TryFrom;
 use std::env;
 use std::process::exit;
 
-use futures::prelude::*;
+use futures::prelude::{*, await};
 use ruma_client::Client;
 use ruma_client::api::r0;
 use ruma_events::EventType;
 use ruma_events::room::message::{MessageEventContent, MessageType, TextMessageEventContent};
 use ruma_identifiers::RoomAliasId;
-use tokio_core::reactor::{Core, Handle};
+use tokio_core::reactor::Core;
 use url::Url;
 
 fn hello_world(
-    tokio_handle: &Handle,
     homeserver_url: Url,
     room: String,
 ) -> impl Future<Item = (), Error = ruma_client::Error> + 'static {
-    let client = Client::https(tokio_handle, homeserver_url, None).unwrap();
+    let client = Client::https(homeserver_url, None).unwrap();
 
     async_block! {
         await!(client.register_guest())?;
@@ -75,10 +74,7 @@ fn main() {
         }
     };
 
-
-    let mut core = Core::new().unwrap();
-    let handle = core.handle();
-    let server = Url::parse(&homeserver_url).unwrap();
-
-    core.run(hello_world(&handle, server, room)).unwrap();
+    Core::new().unwrap()
+        .run(hello_world(homeserver_url.parse().unwrap(), room))
+        .unwrap();
 }
