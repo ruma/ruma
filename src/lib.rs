@@ -107,7 +107,7 @@ where
     /// In contrast to api::r0::session::login::call(), this method stores the
     /// session data returned by the endpoint in this client, instead of
     /// returning it.
-    pub fn log_in(&self, user: String, password: String)
+    pub fn log_in(&self, user: String, password: String, device_id: Option<String>)
     -> impl Future<Item = Session, Error = Error> {
         use api::r0::session::login;
 
@@ -117,6 +117,7 @@ where
             address: None,
             login_type: login::LoginType::Password,
             medium: None,
+            device_id,
             password,
             user,
         }).map(move |response| {
