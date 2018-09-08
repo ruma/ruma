@@ -64,7 +64,15 @@ impl ToTokens for Api {
         let response = &self.response;
         let response_types = quote! { #response };
 
-        let set_request_path = if self.request.has_path_fields() {
+        let extract_request_path = if self.request.has_path_fields() {
+            quote! {
+                let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
+            }
+        } else {
+            TokenStream::new()
+        };
+
+        let (set_request_path, parse_request_path) = if self.request.has_path_fields() {
             let path_str = path.as_str();
 
             assert!(path_str.starts_with('/'), "path needs to start with '/'");
@@ -75,7 +83,7 @@ impl ToTokens for Api {
 
             let request_path_init_fields = self.request.request_path_init_fields();
 
-            let mut tokens = quote! {
+            let mut set_tokens = quote! {
                 let request_path = RequestPath {
                     #request_path_init_fields
                 };
@@ -86,8 +94,10 @@ impl ToTokens for Api {
                 let mut path_segments = url.path_segments_mut().unwrap();
             };
 
-            for segment in path_str[1..].split('/') {
-                tokens.append_all(quote! {
+            let mut parse_tokens = TokenStream::new();
+
+            for (i, segment) in path_str[1..].split('/').into_iter().enumerate() {
+                set_tokens.append_all(quote! {
                     path_segments.push
                 });
 
@@ -95,21 +105,38 @@ impl ToTokens for Api {
                     let path_var = &segment[1..];
                     let path_var_ident = Ident::new(path_var, Span::call_site());
 
-                    tokens.append_all(quote! {
+                    set_tokens.append_all(quote! {
                         (&request_path.#path_var_ident.to_string());
                     });
+
+                    let path_field = self.request.path_field(path_var)
+                        .expect("expected request to have path field");
+                    let ty = &path_field.ty;
+
+                    parse_tokens.append_all(quote! {
+                        #path_var_ident: {
+                            let segment = path_segments.get(#i).unwrap().as_bytes();
+                            let decoded =
+                                ::url::percent_encoding::percent_decode(segment)
+                                .decode_utf8_lossy();
+                            #ty::deserialize(decoded.into_deserializer())
+                                .map_err(|e: ::serde_json::error::Error| e)?
+                        },
+                    });
                 } else {
-                    tokens.append_all(quote! {
+                    set_tokens.append_all(quote! {
                         (#segment);
                     });
                 }
             }
 
-            tokens
+            (set_tokens, parse_tokens)
         } else {
-            quote! {
+            let set_tokens = quote! {
                 url.set_path(metadata.path);
-            }
+            };
+            let parse_tokens = TokenStream::new();
+            (set_tokens, parse_tokens)
         };
 
         let set_request_query = if self.request.has_query_fields() {
@@ -126,6 +153,21 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
+        let extract_request_query = if self.request.has_query_fields() {
+            quote! {
+                let request_query: RequestQuery =
+                    ::serde_urlencoded::from_str(&request.uri().query().unwrap_or(""))?;
+            }
+        } else {
+            TokenStream::new()
+        };
+
+        let parse_request_query = if self.request.has_query_fields() {
+            self.request.request_init_query_fields()
+        } else {
+            TokenStream::new()
+        };
+
         let add_headers_to_request = if self.request.has_header_fields() {
             let mut header_tokens = quote! {
                 let headers = http_request.headers_mut();
@@ -134,6 +176,20 @@ impl ToTokens for Api {
             header_tokens.append_all(self.request.add_headers_to_request());
 
             header_tokens
+        } else {
+            TokenStream::new()
+        };
+
+        let extract_request_headers = if self.request.has_header_fields() {
+            quote! {
+                let headers = request.headers();
+            }
+        } else {
+            TokenStream::new()
+        };
+
+        let parse_request_headers = if self.request.has_header_fields() {
+            self.request.parse_headers_from_request()
         } else {
             TokenStream::new()
         };
@@ -160,6 +216,33 @@ impl ToTokens for Api {
             quote! {
                 let mut http_request = ::http::Request::new(::hyper::Body::empty());
             }
+        };
+
+        let extract_request_body = if let Some(field) = self.request.newtype_body_field() {
+            let ty = &field.ty;
+            quote! {
+                let request_body: #ty =
+                    ::serde_json::from_slice(request.body().as_slice())?;
+            }
+        } else if self.request.has_body_fields() {
+            quote! {
+                let request_body: RequestBody =
+                    ::serde_json::from_slice(request.body().as_slice())?;
+            }
+        } else {
+            TokenStream::new()
+        };
+
+        let parse_request_body = if let Some(field) = self.request.newtype_body_field() {
+            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+
+            quote! {
+                #field_name: request_body,
+            }
+        } else if self.request.has_body_fields() {
+            self.request.request_init_body_fields()
+        } else {
+            TokenStream::new()
         };
 
         let deserialize_response_body = if let Some(field) = self.response.newtype_body_field() {
@@ -198,7 +281,7 @@ impl ToTokens for Api {
             }
         };
 
-        let extract_headers = if self.response.has_header_fields() {
+        let extract_response_headers = if self.response.has_header_fields() {
             quote! {
                 let mut headers = http_response.headers().clone();
             }
@@ -212,16 +295,72 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
+        let serialize_response_headers = self.response.apply_header_fields();
+
+        let serialize_response_body = if self.response.has_body() {
+            let body = self.response.to_body();
+            quote! {
+                .body(::hyper::Body::from(::serde_json::to_vec(&#body)?))
+            }
+        } else {
+            quote! {
+                .body(::hyper::Body::from("{}".as_bytes().to_vec()))
+            }
+        };
+
         tokens.append_all(quote! {
             #[allow(unused_imports)]
             use ::futures::{Future as _Future, IntoFuture as _IntoFuture, Stream as _Stream};
             use ::ruma_api::Endpoint as _RumaApiEndpoint;
+            use ::serde::Deserialize;
+            use ::serde::de::{Error as _SerdeError, IntoDeserializer};
+
+            use ::std::convert::{TryInto as _TryInto};
 
             /// The API endpoint.
             #[derive(Debug)]
             pub struct Endpoint;
 
             #request_types
+
+            impl ::std::convert::TryFrom<::http::Request<Vec<u8>>> for Request {
+                type Error = ::ruma_api::Error;
+
+                #[allow(unused_variables)]
+                fn try_from(request: ::http::Request<Vec<u8>>) -> Result<Self, Self::Error> {
+                    #extract_request_path
+                    #extract_request_query
+                    #extract_request_headers
+                    #extract_request_body
+
+                    Ok(Request {
+                        #parse_request_path
+                        #parse_request_query
+                        #parse_request_headers
+                        #parse_request_body
+                    })
+                }
+            }
+
+            impl ::futures::future::FutureFrom<::http::Request<::hyper::Body>> for Request {
+                type Future = Box<_Future<Item = Self, Error = Self::Error>>;
+                type Error = ::ruma_api::Error;
+
+                #[allow(unused_variables)]
+                fn future_from(request: ::http::Request<::hyper::Body>) -> Self::Future {
+                    let (parts, body) = request.into_parts();
+                    let future = body.from_err().fold(Vec::new(), |mut vec, chunk| {
+                        vec.extend(chunk.iter());
+                        ::futures::future::ok::<_, Self::Error>(vec)
+                    }).and_then(|body| {
+                        ::http::Request::from_parts(parts, body)
+                            .try_into()
+                            .into_future()
+                            .from_err()
+                    });
+                    Box::new(future)
+                }
+            }
 
             impl ::std::convert::TryFrom<Request> for ::http::Request<::hyper::Body> {
                 type Error = ::ruma_api::Error;
@@ -251,6 +390,20 @@ impl ToTokens for Api {
 
             #response_types
 
+            impl ::std::convert::TryFrom<Response> for ::http::Response<::hyper::Body> {
+                type Error = ::ruma_api::Error;
+
+                #[allow(unused_variables)]
+                fn try_from(response: Response) -> Result<Self, Self::Error> {
+                    let response = ::http::Response::builder()
+                        .header(::http::header::CONTENT_TYPE, "application/json")
+                        #serialize_response_headers
+                        #serialize_response_body
+                        .unwrap();
+                    Ok(response)
+                }
+            }
+
             impl ::futures::future::FutureFrom<::http::Response<::hyper::Body>> for Response {
                 type Future = Box<_Future<Item = Self, Error = Self::Error>>;
                 type Error = ::ruma_api::Error;
@@ -259,7 +412,7 @@ impl ToTokens for Api {
                 fn future_from(http_response: ::http::Response<::hyper::Body>)
                 -> Box<_Future<Item = Self, Error = Self::Error>> {
                     if http_response.status().is_success() {
-                        #extract_headers
+                        #extract_response_headers
 
                         #deserialize_response_body
                         .and_then(move |response_body| {

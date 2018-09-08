@@ -22,6 +22,10 @@ impl Response {
         self.fields.iter().any(|field| field.is_header())
     }
 
+    pub fn has_body(&self) -> bool {
+        self.fields.iter().any(|field| !field.is_header())
+    }
+
     pub fn init_fields(&self) -> TokenStream {
         let mut tokens = TokenStream::new();
 
@@ -60,6 +64,47 @@ impl Response {
         }
 
         tokens
+    }
+
+    pub fn apply_header_fields(&self) -> TokenStream {
+        let mut tokens = TokenStream::new();
+
+        for response_field in self.fields.iter() {
+            if let ResponseField::Header(ref field, ref header) = *response_field {
+                let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+                let header_name = Ident::new(header.as_ref(), Span::call_site());
+                let span = field.span();
+
+                tokens.append_all(quote_spanned! {span=>
+                    .header(::http::header::#header_name, response.#field_name)
+                });
+            }
+        }
+
+        tokens
+    }
+
+    pub fn to_body(&self) -> TokenStream {
+        if let Some(ref field) = self.newtype_body_field() {
+            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+            let span = field.span();
+            quote_spanned!(span=> response.#field_name)
+        } else {
+            let fields = self.fields.iter().filter_map(|response_field| {
+                if let ResponseField::Body(ref field) = *response_field {
+                    let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+                    let span = field.span();
+
+                    Some(quote_spanned! {span=>
+                        #field_name: response.#field_name
+                    })
+                } else {
+                    None
+                }
+            });
+
+            quote!(ResponseBody{#(#fields),*})
+        }
     }
 
     pub fn newtype_body_field(&self) -> Option<&Field> {
@@ -194,7 +239,7 @@ impl ToTokens for Response {
 
             response_body_struct = quote_spanned! {span=>
                 /// Data in the response body.
-                #[derive(Debug, Deserialize)]
+                #[derive(Debug, Deserialize, Serialize)]
                 struct ResponseBody(#ty);
             };
         } else if self.has_body_fields() {
@@ -213,7 +258,7 @@ impl ToTokens for Response {
 
             response_body_struct = quote! {
                 /// Data in the response body.
-                #[derive(Debug, Deserialize)]
+                #[derive(Debug, Deserialize, Serialize)]
                 struct ResponseBody {
                     #fields
                 }

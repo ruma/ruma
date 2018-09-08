@@ -51,7 +51,7 @@ mod api;
 /// This will generate a `ruma_api::Metadata` value to be used for the `ruma_api::Endpoint`'s
 /// associated constant, single `Request` and `Response` structs, and the necessary trait
 /// implementations to convert the request into a `http::Request` and to create a response from a
-/// `http::Response`.
+/// `http::Response` and vice versa.
 ///
 /// The details of each of the three sections of the macros are documented below.
 ///
@@ -173,7 +173,7 @@ mod api;
 /// pub mod newtype_body_endpoint {
 ///     use ruma_api_macros::ruma_api;
 ///
-///     #[derive(Debug, Deserialize)]
+///     #[derive(Debug, Deserialize, Serialize)]
 ///     pub struct MyCustomType {
 ///         pub foo: String,
 ///     }

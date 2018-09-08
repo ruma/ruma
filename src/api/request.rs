@@ -32,6 +32,27 @@ impl Request {
         })
     }
 
+    pub fn parse_headers_from_request(&self) -> TokenStream {
+        self.header_fields().fold(TokenStream::new(), |mut header_tokens, request_field| {
+            let (field, header_name_string) = match request_field {
+                RequestField::Header(field, header_name_string) => (field, header_name_string),
+                _ => panic!("expected request field to be header variant"),
+            };
+
+            let field_name = &field.ident;
+            let header_name = Ident::new(header_name_string.as_ref(), Span::call_site());
+
+            header_tokens.append_all(quote! {
+                #field_name: headers.get(::http::header::#header_name)
+                    .and_then(|v| v.to_str().ok())
+                    .ok_or(::serde_json::Error::missing_field(#header_name_string))?
+                    .to_owned(),
+            });
+
+            header_tokens
+        })
+    }
+
     pub fn has_body_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_body())
     }
@@ -55,6 +76,17 @@ impl Request {
         self.fields.iter().filter(|field| field.is_path()).count()
     }
 
+    pub fn path_field(&self, name: &str) -> Option<&Field> {
+        self.fields.iter()
+            .flat_map(|f| f.field_(RequestFieldKind::Path))
+            .find(|field| {
+                field.ident.as_ref()
+                    .expect("expected field to have an identifier")
+                    .to_string()
+                    == name
+            })
+    }
+
     pub fn newtype_body_field(&self) -> Option<&Field> {
         for request_field in self.fields.iter() {
             match *request_field {
@@ -69,18 +101,26 @@ impl Request {
     }
 
     pub fn request_body_init_fields(&self) -> TokenStream {
-        self.struct_init_fields(RequestFieldKind::Body)
+        self.struct_init_fields(RequestFieldKind::Body, quote!(request))
     }
 
     pub fn request_path_init_fields(&self) -> TokenStream {
-        self.struct_init_fields(RequestFieldKind::Path)
+        self.struct_init_fields(RequestFieldKind::Path, quote!(request))
     }
 
     pub fn request_query_init_fields(&self) -> TokenStream {
-        self.struct_init_fields(RequestFieldKind::Query)
+        self.struct_init_fields(RequestFieldKind::Query, quote!(request))
     }
 
-    fn struct_init_fields(&self, request_field_kind: RequestFieldKind) -> TokenStream {
+    pub fn request_init_body_fields(&self) -> TokenStream {
+        self.struct_init_fields(RequestFieldKind::Body, quote!(request_body))
+    }
+
+    pub fn request_init_query_fields(&self) -> TokenStream {
+        self.struct_init_fields(RequestFieldKind::Query, quote!(request_query))
+    }
+
+    fn struct_init_fields(&self, request_field_kind: RequestFieldKind, src: TokenStream) -> TokenStream {
         let mut tokens = TokenStream::new();
 
         for field in self.fields.iter().flat_map(|f| f.field_(request_field_kind)) {
@@ -88,7 +128,7 @@ impl Request {
             let span = field.span();
 
             tokens.append_all(quote_spanned! {span=>
-                #field_name: request.#field_name,
+                #field_name: #src.#field_name,
             });
         }
 
@@ -211,7 +251,7 @@ impl ToTokens for Request {
 
             request_body_struct = quote_spanned! {span=>
                 /// Data in the request body.
-                #[derive(Debug, Serialize)]
+                #[derive(Debug, Deserialize, Serialize)]
                 struct RequestBody(#ty);
             };
         } else if self.has_body_fields() {
@@ -230,7 +270,7 @@ impl ToTokens for Request {
 
             request_body_struct = quote! {
                 /// Data in the request body.
-                #[derive(Debug, Serialize)]
+                #[derive(Debug, Deserialize, Serialize)]
                 struct RequestBody {
                     #fields
                 }
@@ -257,7 +297,7 @@ impl ToTokens for Request {
 
             request_path_struct = quote! {
                 /// Data in the request path.
-                #[derive(Debug, Serialize)]
+                #[derive(Debug, Deserialize, Serialize)]
                 struct RequestPath {
                     #fields
                 }
@@ -284,7 +324,7 @@ impl ToTokens for Request {
 
             request_query_struct = quote! {
                 /// Data in the request's query string.
-                #[derive(Debug, Serialize)]
+                #[derive(Debug, Deserialize, Serialize)]
                 struct RequestQuery {
                     #fields
                 }
