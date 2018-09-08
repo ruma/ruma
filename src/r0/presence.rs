@@ -127,7 +127,7 @@ pub mod get_subscribed_presences {
         response {
             /// A list of presence events for every user on this list.
             #[ruma_api(body)]
-            presence_events: Vec<PresenceEvent>,
+            pub presence_events: Vec<PresenceEvent>,
         }
     }
 }
