@@ -172,7 +172,7 @@ mod api;
 /// pub mod newtype_body_endpoint {
 ///     use ruma_api_macros::ruma_api;
 ///
-///     #[derive(Debug, Deserialize)]
+///     #[derive(Clone, Debug, Deserialize)]
 ///     pub struct MyCustomType {
 ///         pub foo: String,
 ///     }
