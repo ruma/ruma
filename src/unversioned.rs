@@ -11,7 +11,7 @@ pub mod get_supported_versions {
             name: "api_versions",
             path: "/_matrix/client/versions",
             rate_limited: false,
-            requires_authentication: true,
+            requires_authentication: false,
         }
 
         request {}
