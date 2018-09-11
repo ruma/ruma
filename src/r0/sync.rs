@@ -68,6 +68,7 @@ pub mod get_state_events_for_empty_key {
 /// [GET /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-state-eventtype-state-key)
 pub mod get_state_events_for_key {
     use ruma_api_macros::ruma_api;
+    use ruma_events::EventType;
     use ruma_identifiers::RoomId;
 
     ruma_api! {
@@ -86,7 +87,7 @@ pub mod get_state_events_for_key {
             pub room_id: RoomId,
             /// The type of state to look up.
             #[ruma_api(path)]
-            pub event_type: String,
+            pub event_type: EventType,
             /// The key of the state to look up.
             #[ruma_api(path)]
             pub state_key: String,
