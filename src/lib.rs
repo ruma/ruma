@@ -15,13 +15,16 @@
 extern crate futures;
 extern crate http;
 extern crate hyper;
-#[cfg(test)]
 extern crate ruma_identifiers;
+#[cfg(test)]
+extern crate serde;
 #[cfg(test)]
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
 extern crate serde_urlencoded;
+#[cfg(test)]
+extern crate url;
 
 use std::convert::TryInto;
 use std::io;
@@ -33,9 +36,9 @@ use hyper::Body;
 /// A Matrix API endpoint.
 pub trait Endpoint<T = Body, U = Body> {
     /// Data needed to make a request to the endpoint.
-    type Request: TryInto<Request<T>, Error = Error>;
+    type Request: TryInto<Request<T>, Error = Error> + FutureFrom<Request<T>, Error = Error>;
     /// Data returned from the endpoint.
-    type Response: FutureFrom<Response<U>, Error = Error>;
+    type Response: FutureFrom<Response<U>, Error = Error> + TryInto<Response<U>>;
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;
@@ -53,8 +56,12 @@ pub enum Error {
     Io(io::Error),
     /// A Serde JSON error.
     SerdeJson(serde_json::Error),
+    /// A Serde URL decoding error.
+    SerdeUrlEncodedDe(serde_urlencoded::de::Error),
     /// A Serde URL encoding error.
-    SerdeUrlEncoded(serde_urlencoded::ser::Error),
+    SerdeUrlEncodedSer(serde_urlencoded::ser::Error),
+    /// A Ruma Identitifiers error.
+    RumaIdentifiers(ruma_identifiers::Error),
     /// An HTTP status code indicating error.
     StatusCode(StatusCode),
     /// Standard hack to prevent exhaustive matching.
@@ -87,9 +94,21 @@ impl From<serde_json::Error> for Error {
     }
 }
 
+impl From<serde_urlencoded::de::Error> for Error {
+    fn from(error: serde_urlencoded::de::Error) -> Self {
+        Error::SerdeUrlEncodedDe(error)
+    }
+}
+
 impl From<serde_urlencoded::ser::Error> for Error {
     fn from(error: serde_urlencoded::ser::Error) -> Self {
-        Error::SerdeUrlEncoded(error)
+        Error::SerdeUrlEncodedSer(error)
+    }
+}
+
+impl From<ruma_identifiers::Error> for Error {
+    fn from(error: ruma_identifiers::Error) -> Self {
+        Error::RumaIdentifiers(error)
     }
 }
 
@@ -118,10 +137,13 @@ mod tests {
         use std::convert::TryFrom;
 
         use futures::future::{err, ok, FutureFrom, FutureResult};
+        use http::header::CONTENT_TYPE;
         use http::method::Method;
         use http::{Request as HttpRequest, Response as HttpResponse};
         use ruma_identifiers::{RoomAliasId, RoomId};
+        use serde::de::{Deserialize, IntoDeserializer};
         use serde_json;
+        use url::percent_encoding;
 
         use super::super::{Endpoint as ApiEndpoint, Error, Metadata};
 
@@ -149,7 +171,7 @@ mod tests {
             pub room_alias: RoomAliasId, // path
         }
 
-        #[derive(Debug, Serialize)]
+        #[derive(Debug, Serialize, Deserialize)]
         struct RequestBody {
             room_id: RoomId,
         }
@@ -178,6 +200,36 @@ mod tests {
             }
         }
 
+        impl FutureFrom<HttpRequest<Vec<u8>>> for Request {
+            type Future = FutureResult<Self, Self::Error>;
+            type Error = Error;
+
+            fn future_from(request: HttpRequest<Vec<u8>>) -> Self::Future {
+                FutureResult::from(Self::try_from(request))
+            }
+        }
+
+        impl TryFrom<HttpRequest<Vec<u8>>> for Request {
+            type Error = Error;
+
+            fn try_from(request: HttpRequest<Vec<u8>>) -> Result<Request, Self::Error> {
+                let request_body: RequestBody =
+                    ::serde_json::from_slice(request.body().as_slice())?;
+                let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
+                Ok(Request {
+                    room_id: request_body.room_id,
+                    room_alias: {
+                        let segment = path_segments.get(5).unwrap().as_bytes();
+                        let decoded =
+                            percent_encoding::percent_decode(segment)
+                            .decode_utf8_lossy();
+                        RoomAliasId::deserialize(decoded.into_deserializer())
+                        .map_err(|e: serde_json::error::Error| e)?
+                    },
+                })
+            }
+        }
+
         /// The response to a request to create a new room alias.
         #[derive(Debug)]
         pub struct Response;
@@ -194,6 +246,18 @@ mod tests {
                 } else {
                     err(Error::StatusCode(http_response.status().clone()))
                 }
+            }
+        }
+
+        impl TryFrom<Response> for HttpResponse<Vec<u8>> {
+            type Error = Error;
+
+            fn try_from(_response: Response) -> Result<HttpResponse<Vec<u8>>, Self::Error> {
+                let response = HttpResponse::builder()
+                    .header(CONTENT_TYPE, "application/json")
+                    .body("{}".as_bytes().to_vec())
+                    .unwrap();
+                Ok(response)
             }
         }
     }
