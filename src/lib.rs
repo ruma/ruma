@@ -171,7 +171,7 @@ mod tests {
 
                 let http_request = HttpRequest::builder()
                     .method(metadata.method)
-                    .uri(path.as_ref())
+                    .uri(path)
                     .body(serde_json::to_vec(&request_body).map_err(Error::from)?)?;
 
                 Ok(http_request)
@@ -179,6 +179,7 @@ mod tests {
         }
 
         /// The response to a request to create a new room alias.
+        #[derive(Debug)]
         pub struct Response;
 
         impl FutureFrom<HttpResponse<Vec<u8>>> for Response {
