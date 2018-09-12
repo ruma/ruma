@@ -343,7 +343,7 @@ impl ToTokens for Api {
             }
 
             impl ::futures::future::FutureFrom<::http::Request<::hyper::Body>> for Request {
-                type Future = Box<_Future<Item = Self, Error = Self::Error>>;
+                type Future = Box<_Future<Item = Self, Error = Self::Error> + Send>;
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_variables)]
@@ -405,12 +405,11 @@ impl ToTokens for Api {
             }
 
             impl ::futures::future::FutureFrom<::http::Response<::hyper::Body>> for Response {
-                type Future = Box<_Future<Item = Self, Error = Self::Error>>;
+                type Future = Box<_Future<Item = Self, Error = Self::Error> + Send>;
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_variables)]
-                fn future_from(http_response: ::http::Response<::hyper::Body>)
-                -> Box<_Future<Item = Self, Error = Self::Error>> {
+                fn future_from(http_response: ::http::Response<::hyper::Body>) -> Self::Future {
                     if http_response.status().is_success() {
                         #extract_response_headers
 
