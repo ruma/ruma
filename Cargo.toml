@@ -12,12 +12,12 @@ version = "0.4.0"
 
 [dependencies]
 base64 = "0.10.0"
-lazy_static = "0.2.8"
-ring = "0.9.4"
+lazy_static = "1.2"
+ring = "0.13.3"
 serde = "1.0"
 serde_json = "1.0"
-untrusted = "0.5"
-url = "1.4"
+untrusted = "0.6.2"
+url = "1.7"
 
 [dev-dependencies]
 serde_derive = "1.0"
