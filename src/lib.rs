@@ -140,7 +140,7 @@ use std::collections::{HashMap, HashSet};
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-use base64::{CharacterSet, Config, LineWrap, decode_config, encode_config};
+use base64::{CharacterSet, Config, decode_config, encode_config};
 use ring::signature::{ED25519, Ed25519KeyPair as RingEd25519KeyPair, verify};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error as SerdeError, MapAccess, Unexpected, Visitor};
@@ -155,8 +155,6 @@ lazy_static! {
     static ref BASE64_CONFIG: Config = Config::new(
         CharacterSet::Standard,
         false,
-        false,
-        LineWrap::NoWrap,
     );
 }
 
