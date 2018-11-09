@@ -191,7 +191,7 @@ pub fn to_canonical_json(value: &Value) -> Result<String, Error> {
     let mut owned_value = value.clone();
 
     {
-        let mut object = owned_value.as_object_mut().expect("safe since we checked above");
+        let object = owned_value.as_object_mut().expect("safe since we checked above");
         object.remove("signatures");
         object.remove("unsigned");
     }
