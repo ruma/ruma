@@ -1,7 +1,7 @@
-use quote::{ToTokens, Tokens};
-use syn::punctuated::Punctuated;
-use syn::synom::Synom;
-use syn::{Field, FieldValue, Ident, Meta};
+use proc_macro2::{Span, TokenStream};
+use quote::{ToTokens, TokenStreamExt};
+use syn::{braced, Field, FieldValue, Ident, Meta, Token};
+use syn::parse::{Parse, ParseStream, Result};
 
 mod metadata;
 mod request;
@@ -23,7 +23,7 @@ pub fn strip_serde_attrs(field: &Field) -> Field {
             _ => return true,
         };
 
-        if meta_list.ident.as_ref() == "serde" {
+        if &meta_list.ident.to_string() == "serde" {
             return false;
         }
 
@@ -50,9 +50,9 @@ impl From<RawApi> for Api {
 }
 
 impl ToTokens for Api {
-    fn to_tokens(&self, tokens: &mut Tokens) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let description = &self.metadata.description;
-        let method = Ident::from(self.metadata.method.as_ref());
+        let method = Ident::new(self.metadata.method.as_ref(), Span::call_site());
         let name = &self.metadata.name;
         let path = &self.metadata.path;
         let rate_limited = &self.metadata.rate_limited;
@@ -92,7 +92,7 @@ impl ToTokens for Api {
 
                 if segment.starts_with(':') {
                     let path_var = &segment[1..];
-                    let path_var_ident = Ident::from(path_var);
+                    let path_var_ident = Ident::new(path_var, Span::call_site());
 
                     tokens.append_all(quote! {
                         (&request_path.#path_var_ident.to_string());
@@ -122,7 +122,7 @@ impl ToTokens for Api {
                 url.set_query(Some(&::serde_urlencoded::to_string(request_query)?));
             }
         } else {
-            Tokens::new()
+            TokenStream::new()
         };
 
         let add_headers_to_request = if self.request.has_header_fields() {
@@ -134,11 +134,11 @@ impl ToTokens for Api {
 
             header_tokens
         } else {
-            Tokens::new()
+            TokenStream::new()
         };
 
         let create_http_request = if let Some(field) = self.request.newtype_body_field() {
-            let field_name = field.ident.expect("expected field to have an identifier");
+            let field_name = field.ident.clone().expect("expected field to have an identifier");
 
             quote! {
                 let request_body = RequestBody(request.#field_name);
@@ -188,13 +188,13 @@ impl ToTokens for Api {
                 let mut headers = http_response.headers().clone();
             }
         } else {
-            Tokens::new()
+            TokenStream::new()
         };
 
         let response_init_fields = if self.response.has_fields() {
             self.response.init_fields()
         } else {
-            Tokens::new()
+            TokenStream::new()
         };
 
         tokens.append_all(quote! {
@@ -279,8 +279,13 @@ impl ToTokens for Api {
     }
 }
 
-type ParseMetadata = Punctuated<FieldValue, Token![,]>;
-type ParseFields = Punctuated<Field, Token![,]>;
+mod kw {
+    use syn::custom_keyword;
+
+    custom_keyword!(metadata);
+    custom_keyword!(request);
+    custom_keyword!(response);
+}
 
 pub struct RawApi {
     pub metadata: Vec<FieldValue>,
@@ -288,18 +293,33 @@ pub struct RawApi {
     pub response: Vec<Field>,
 }
 
-impl Synom for RawApi {
-    named!(parse -> Self, do_parse!(
-        custom_keyword!(metadata) >>
-        metadata: braces!(ParseMetadata::parse_terminated) >>
-        custom_keyword!(request) >>
-        request: braces!(call!(ParseFields::parse_terminated_with, Field::parse_named)) >>
-        custom_keyword!(response) >>
-        response: braces!(call!(ParseFields::parse_terminated_with, Field::parse_named)) >>
-        (RawApi {
-            metadata: metadata.1.into_iter().collect(),
-            request: request.1.into_iter().collect(),
-            response: response.1.into_iter().collect(),
+impl Parse for RawApi {
+    fn parse(input: ParseStream) -> Result<Self> {
+        input.parse::<kw::metadata>()?;
+        let metadata;
+        braced!(metadata in input);
+
+        input.parse::<kw::request>()?;
+        let request;
+        braced!(request in input);
+
+        input.parse::<kw::response>()?;
+        let response;
+        braced!(response in input);
+
+        Ok(RawApi {
+            metadata: metadata
+                .parse_terminated::<FieldValue, Token![,]>(FieldValue::parse)?
+                .into_iter()
+                .collect(),
+            request: request
+                .parse_terminated::<Field, Token![,]>(Field::parse_named)?
+                .into_iter()
+                .collect(),
+            response: response
+                .parse_terminated::<Field, Token![,]>(Field::parse_named)?
+                .into_iter()
+                .collect(),
         })
-    ));
+    }
 }

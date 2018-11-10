@@ -25,7 +25,7 @@ impl From<Vec<FieldValue>> for Metadata {
                 _ => panic!("expected Member::Named"),
             };
 
-            match identifier.as_ref() {
+            match &identifier.to_string()[..] {
                 "description" => {
                     let expr_lit = match field_value.expr {
                         Expr::Lit(expr_lit) => expr_lit,

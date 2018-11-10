@@ -1,4 +1,4 @@
-#![feature(proc_macro, try_from)]
+#![feature(try_from)]
 
 extern crate futures;
 extern crate http;
