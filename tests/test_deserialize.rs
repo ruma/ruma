@@ -2,6 +2,17 @@ extern crate serde_urlencoded;
 #[macro_use]
 extern crate serde_derive;
 
+#[derive(Deserialize, Debug, PartialEq)]
+struct NewType<T>(T);
+
+#[test]
+fn deserialize_newtype_i32() {
+    let result = vec![("field".to_owned(), NewType(11))];
+
+    assert_eq!(serde_urlencoded::from_str("field=11"),
+               Ok(result));
+}
+
 #[test]
 fn deserialize_bytes() {
     let result = vec![("first".to_owned(), 23), ("last".to_owned(), 42)];

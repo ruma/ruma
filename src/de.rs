@@ -208,6 +208,16 @@ impl<'de> de::Deserializer<'de> for Part<'de> {
         visitor.visit_enum(ValueEnumAccess(self.0))
     }
 
+    fn deserialize_newtype_struct<V>(
+        self,
+        _name: &'static str,
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
+        where V: de::Visitor<'de>,
+    {
+        visitor.visit_newtype_struct(self)
+    }
+
     forward_to_deserialize_any! {
         char
         str
@@ -216,7 +226,6 @@ impl<'de> de::Deserializer<'de> for Part<'de> {
         bytes
         byte_buf
         unit_struct
-        newtype_struct
         tuple_struct
         struct
         identifier

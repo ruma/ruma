@@ -2,6 +2,18 @@ extern crate serde_urlencoded;
 #[macro_use]
 extern crate serde_derive;
 
+#[derive(Serialize)]
+struct NewType<T>(T);
+
+#[test]
+fn serialize_newtype_i32() {
+    let params = &[("field", Some(NewType(11))),];
+    assert_eq!(
+        serde_urlencoded::to_string(params),
+        Ok("field=11".to_owned())
+    );
+}
+
 #[test]
 fn serialize_option_map_int() {
     let params = &[("first", Some(23)), ("middle", None), ("last", Some(42))];
