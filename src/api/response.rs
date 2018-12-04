@@ -32,7 +32,10 @@ impl Response {
         for response_field in self.fields.iter() {
             match *response_field {
                 ResponseField::Body(ref field) => {
-                    let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+                    let field_name = field
+                        .ident
+                        .clone()
+                        .expect("expected field to have an identifier");
                     let span = field.span();
 
                     tokens.append_all(quote_spanned! {span=>
@@ -40,7 +43,10 @@ impl Response {
                     });
                 }
                 ResponseField::Header(ref field, ref header) => {
-                    let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+                    let field_name = field
+                        .ident
+                        .clone()
+                        .expect("expected field to have an identifier");
                     let header_name = Ident::new(header.as_ref(), Span::call_site());
                     let span = field.span();
 
@@ -53,7 +59,10 @@ impl Response {
                     });
                 }
                 ResponseField::NewtypeBody(ref field) => {
-                    let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+                    let field_name = field
+                        .ident
+                        .clone()
+                        .expect("expected field to have an identifier");
                     let span = field.span();
 
                     tokens.append_all(quote_spanned! {span=>
@@ -140,7 +149,7 @@ impl From<Vec<Field>> for Response {
                     _ => return true,
                 };
 
-                if meta_list.ident != "ruma_api" {
+                if &meta_list.ident.to_string() != "ruma_api" {
                     return true;
                 }
 
@@ -149,7 +158,7 @@ impl From<Vec<Field>> for Response {
                         NestedMeta::Meta(meta_item) => {
                             match meta_item {
                                 Meta::Word(ident) => {
-                                    match ident.to_string().as_ref() {
+                                    match &ident.to_string()[..] {
                                         "body" => {
                                             has_newtype_body = true;
                                             field_kind = ResponseFieldKind::NewtypeBody;
@@ -158,7 +167,7 @@ impl From<Vec<Field>> for Response {
                                     }
                                 }
                                 Meta::NameValue(name_value) => {
-                                    match name_value.ident.to_string().as_ref() {
+                                    match &name_value.ident.to_string()[..] {
                                         "header" => {
                                             match name_value.lit {
                                                 Lit::Str(lit_str) => header = Some(lit_str.value()),

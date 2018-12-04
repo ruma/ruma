@@ -1,5 +1,5 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{TokenStreamExt, ToTokens};
+use quote::{ToTokens, TokenStreamExt};
 use syn::spanned::Spanned;
 use syn::{Field, Ident, Lit, Meta, NestedMeta};
 
@@ -153,7 +153,7 @@ impl From<Vec<Field>> for Request {
                     _ => return true,
                 };
 
-                if meta_list.ident != "ruma_api" {
+                if &meta_list.ident.to_string() != "ruma_api" {
                     return true;
                 }
 
@@ -162,7 +162,7 @@ impl From<Vec<Field>> for Request {
                         NestedMeta::Meta(meta_item) => {
                             match meta_item {
                                 Meta::Word(ident) => {
-                                    match ident.to_string().as_ref() {
+                                    match &ident.to_string()[..] {
                                         "body" => {
                                             has_newtype_body = true;
                                             field_kind = RequestFieldKind::NewtypeBody;
@@ -173,7 +173,7 @@ impl From<Vec<Field>> for Request {
                                     }
                                 }
                                 Meta::NameValue(name_value) => {
-                                    match name_value.ident.to_string().as_ref() {
+                                    match &name_value.ident.to_string()[..] {
                                         "header" => {
                                             match name_value.lit {
                                                 Lit::Str(lit_str) => header = Some(lit_str.value()),

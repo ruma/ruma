@@ -15,7 +15,7 @@ quote = "0.6.10"
 ruma-api = "0.6.0"
 
 [dependencies.syn]
-version = "0.14"
+version = "0.15.22"
 features = ["full"]
 
 [dependencies.proc-macro2]

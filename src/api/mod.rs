@@ -1,8 +1,7 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{ToTokens, TokenStreamExt};
-use syn::punctuated::Punctuated;
-use syn::synom::Synom;
-use syn::{Field, FieldValue, Ident, Meta};
+use syn::{braced, Field, FieldValue, Ident, Meta, Token};
+use syn::parse::{Parse, ParseStream, Result};
 
 mod metadata;
 mod request;
@@ -24,7 +23,7 @@ pub fn strip_serde_attrs(field: &Field) -> Field {
             _ => return true,
         };
 
-        if meta_list.ident == "serde" {
+        if &meta_list.ident.to_string() == "serde" {
             return false;
         }
 
@@ -446,8 +445,13 @@ impl ToTokens for Api {
     }
 }
 
-type ParseMetadata = Punctuated<FieldValue, Token![,]>;
-type ParseFields = Punctuated<Field, Token![,]>;
+mod kw {
+    use syn::custom_keyword;
+
+    custom_keyword!(metadata);
+    custom_keyword!(request);
+    custom_keyword!(response);
+}
 
 pub struct RawApi {
     pub metadata: Vec<FieldValue>,
@@ -455,18 +459,33 @@ pub struct RawApi {
     pub response: Vec<Field>,
 }
 
-impl Synom for RawApi {
-    named!(parse -> Self, do_parse!(
-        custom_keyword!(metadata) >>
-        metadata: braces!(ParseMetadata::parse_terminated) >>
-        custom_keyword!(request) >>
-        request: braces!(call!(ParseFields::parse_terminated_with, Field::parse_named)) >>
-        custom_keyword!(response) >>
-        response: braces!(call!(ParseFields::parse_terminated_with, Field::parse_named)) >>
-        (RawApi {
-            metadata: metadata.1.into_iter().collect(),
-            request: request.1.into_iter().collect(),
-            response: response.1.into_iter().collect(),
+impl Parse for RawApi {
+    fn parse(input: ParseStream) -> Result<Self> {
+        input.parse::<kw::metadata>()?;
+        let metadata;
+        braced!(metadata in input);
+
+        input.parse::<kw::request>()?;
+        let request;
+        braced!(request in input);
+
+        input.parse::<kw::response>()?;
+        let response;
+        braced!(response in input);
+
+        Ok(RawApi {
+            metadata: metadata
+                .parse_terminated::<FieldValue, Token![,]>(FieldValue::parse)?
+                .into_iter()
+                .collect(),
+            request: request
+                .parse_terminated::<Field, Token![,]>(Field::parse_named)?
+                .into_iter()
+                .collect(),
+            response: response
+                .parse_terminated::<Field, Token![,]>(Field::parse_named)?
+                .into_iter()
+                .collect(),
         })
-    ));
+    }
 }

@@ -10,7 +10,7 @@ extern crate proc_macro;
 extern crate proc_macro2;
 #[macro_use] extern crate quote;
 extern crate ruma_api;
-#[macro_use] extern crate syn;
+extern crate syn;
 
 use proc_macro::TokenStream;
 
@@ -203,7 +203,7 @@ mod api;
 /// ```
 #[proc_macro]
 pub fn ruma_api(input: TokenStream) -> TokenStream {
-    let raw_api: RawApi = syn::parse(input).expect("ruma_api! failed to parse input");
+    let raw_api = syn::parse_macro_input!(input as RawApi);
 
     let api = Api::from(raw_api);
 
