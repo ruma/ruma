@@ -12,7 +12,7 @@ version = "0.2.2"
 
 [dependencies]
 quote = "0.6"
-ruma-api = "0.5"
+ruma-api = "0.6"
 
 [dependencies.syn]
 version = "0.14"
