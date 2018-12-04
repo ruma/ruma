@@ -95,6 +95,7 @@
 //! However, the `ruma_events::collections::only::Event` enum does *not* include *m.room.message*,
 //! because *m.room.message* implements a *more specific* event trait than `Event`.
 
+#![feature(try_from)]
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
 #![deny(warnings)]

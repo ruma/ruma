@@ -1,17 +1,17 @@
 //! Types for the *m.presence* event.
 
-use ruma_identifiers::{EventId, UserId};
+use ruma_identifiers::UserId;
 
 event! {
     /// Informs the client of a user's presence state change.
     pub struct PresenceEvent(PresenceEventContent) {
-        /// The unique identifier for the event.
-        pub event_id: EventId
+        /// The unique identifier for the user associated with this event.
+        pub sender: UserId
     }
 }
 
 /// The payload of a `PresenceEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct PresenceEventContent {
     /// The current avatar URL for this user.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -31,9 +31,6 @@ pub struct PresenceEventContent {
 
     /// The presence state for this user.
     pub presence: PresenceState,
-
-    /// The unique identifier for the user associated with this event.
-    pub user_id: UserId,
 }
 
 /// A description of a user's connectivity and availability for chat.
@@ -57,5 +54,48 @@ impl_enum! {
         Offline => "offline",
         Online => "online",
         Unavailable => "unavailable",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::{from_str, to_string};
+    use std::convert::TryFrom;
+
+    use ruma_identifiers::UserId;
+    use super::{PresenceEvent, PresenceEventContent, PresenceState};
+    use super::super::{EventType};
+
+    /// Test serialization and deserialization of example m.presence event from the spec
+    /// https://github.com/turt2live/matrix-doc/blob/master/event-schemas/examples/m.presence
+    #[test]
+    fn test_example_event() {
+        let event = PresenceEvent {
+            content: PresenceEventContent {
+                avatar_url: Some("mxc://localhost:wefuiwegh8742w".to_string()),
+                currently_active: Some(false),
+                displayname: None,
+                last_active_ago: Some(2478593),
+                presence: PresenceState::Online,
+            },
+            event_type: EventType::Presence,
+            sender: UserId::try_from("@example:localhost").unwrap(),
+        };
+        let serialized_event =
+            r#"{"content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online"},"type":"m.presence","sender":"@example:localhost"}"#;
+
+        assert_eq!(
+            to_string(&event).unwrap(),
+            serialized_event
+        );
+        let deserialized_event = from_str::<PresenceEvent>(serialized_event).unwrap();
+        assert_eq!(
+            deserialized_event.content,
+            event.content
+        );
+        assert_eq!(
+            deserialized_event.sender,
+            event.sender
+        );
     }
 }
