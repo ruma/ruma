@@ -205,7 +205,7 @@ impl ToTokens for Response {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let response_struct_header = quote! {
             /// Data in the response from this API endpoint.
-            #[derive(Debug)]
+            #[derive(Debug, Clone)]
             pub struct Response
         };
 

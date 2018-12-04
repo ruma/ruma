@@ -217,7 +217,7 @@ impl ToTokens for Request {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let request_struct_header = quote! {
             /// Data for a request to this API endpoint.
-            #[derive(Debug)]
+            #[derive(Debug, Clone)]
             pub struct Request
         };
 
