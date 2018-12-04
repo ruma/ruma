@@ -8,7 +8,7 @@ license = "MIT"
 name = "ruma-events"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma-events"
-version = "0.10.0"
+version = "0.11.0"
 
 [dependencies]
 ruma-identifiers = "0.11.0"
