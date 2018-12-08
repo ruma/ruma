@@ -128,23 +128,20 @@ use std::collections::{HashMap, HashSet};
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-use base64::{CharacterSet, Config, decode_config, encode_config};
+use base64::{decode_config, encode_config, CharacterSet, Config};
 use lazy_static::lazy_static;
-use ring::signature::{ED25519, Ed25519KeyPair as RingEd25519KeyPair, verify};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use ring::signature::{verify, Ed25519KeyPair as RingEd25519KeyPair, ED25519};
 use serde::de::{Error as SerdeError, MapAccess, Unexpected, Visitor};
 use serde::ser::SerializeMap;
-use serde_json::{Value, to_string};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::{to_string, Value};
 use untrusted::Input;
 use url::Url;
 
 pub use url::Host;
 
 lazy_static! {
-    static ref BASE64_CONFIG: Config = Config::new(
-        CharacterSet::Standard,
-        false,
-    );
+    static ref BASE64_CONFIG: Config = Config::new(CharacterSet::Standard, false);
 }
 
 /// Signs an arbitrary JSON object.
@@ -157,7 +154,10 @@ lazy_static! {
 /// # Errors
 ///
 /// Returns an error if the JSON value is not a JSON object.
-pub fn sign_json<K>(key_pair: &K, value: &Value) -> Result<Signature, Error> where K: KeyPair {
+pub fn sign_json<K>(key_pair: &K, value: &Value) -> Result<Signature, Error>
+where
+    K: KeyPair,
+{
     let json = to_canonical_json(value)?;
 
     Ok(key_pair.sign(json.as_bytes()))
@@ -180,7 +180,9 @@ pub fn to_canonical_json(value: &Value) -> Result<String, Error> {
     let mut owned_value = value.clone();
 
     {
-        let object = owned_value.as_object_mut().expect("safe since we checked above");
+        let object = owned_value
+            .as_object_mut()
+            .expect("safe since we checked above");
         object.remove("signatures");
         object.remove("unsigned");
     }
@@ -200,8 +202,15 @@ pub fn to_canonical_json(value: &Value) -> Result<String, Error> {
 /// # Errors
 ///
 /// Returns an error if verification fails.
-pub fn verify_json<V>(verifier: &V, public_key: &[u8], signature: &Signature, value: &Value)
--> Result<(), Error> where V: Verifier {
+pub fn verify_json<V>(
+    verifier: &V,
+    public_key: &[u8],
+    signature: &Signature,
+    value: &Value,
+) -> Result<(), Error>
+where
+    V: Verifier,
+{
     verifier.verify_json(public_key, signature, to_canonical_json(value)?.as_bytes())
 }
 
@@ -294,7 +303,7 @@ pub struct Signature {
 /// A map of server names to sets of digital signatures created by that server.
 #[derive(Clone, Debug)]
 pub struct Signatures {
-    map: HashMap<Host, SignatureSet>
+    map: HashMap<Host, SignatureSet>,
 }
 
 /// Serde Visitor for deserializing `Signatures`.
@@ -322,8 +331,12 @@ pub trait Verifier {
     /// # Errors
     ///
     /// Returns an error if verification fails.
-    fn verify_json(&self, public_key: &[u8], signature: &Signature, message: &[u8])
-    -> Result<(), Error>;
+    fn verify_json(
+        &self,
+        public_key: &[u8],
+        signature: &Signature,
+        message: &[u8],
+    ) -> Result<(), Error>;
 }
 
 impl KeyPair for Ed25519KeyPair {
@@ -332,7 +345,8 @@ impl KeyPair for Ed25519KeyPair {
             ring_key_pair: RingEd25519KeyPair::from_seed_and_public_key(
                 Input::from(private_key),
                 Input::from(public_key),
-            ).map_err(|_| Error::new("invalid key pair"))?,
+            )
+            .map_err(|_| Error::new("invalid key pair"))?,
             version: version,
         })
     }
@@ -354,14 +368,19 @@ impl Ed25519Verifier {
 }
 
 impl Verifier for Ed25519Verifier {
-    fn verify_json(&self, public_key: &[u8], signature: &Signature, message: &[u8])
-    -> Result<(), Error> {
+    fn verify_json(
+        &self,
+        public_key: &[u8],
+        signature: &Signature,
+        message: &[u8],
+    ) -> Result<(), Error> {
         verify(
             &ED25519,
             Input::from(public_key),
             Input::from(message),
             Input::from(signature.as_bytes()),
-        ).map_err(|_| Error::new("signature verification failed"))
+        )
+        .map_err(|_| Error::new("signature verification failed"))
     }
 }
 
@@ -371,7 +390,10 @@ impl Error {
     /// # Parameters
     ///
     /// * message: The error message.
-    pub fn new<T>(message: T) -> Self where T: Into<String> {
+    pub fn new<T>(message: T) -> Self
+    where
+        T: Into<String>,
+    {
         Error {
             message: message.into(),
         }
@@ -402,12 +424,10 @@ impl Signature {
     ///
     /// Returns an error if the key identifier is invalid.
     pub fn new(id: &str, bytes: &[u8]) -> Result<Self, Error> {
-        let (algorithm, version) = split_id(id).map_err(|split_error| {
-            match split_error {
-                SplitError::InvalidLength(_) => Error::new("malformed signature ID"),
-                SplitError::UnknownAlgorithm(algorithm) => {
-                    Error::new(format!("unknown algorithm: {}", algorithm))
-                }
+        let (algorithm, version) = split_id(id).map_err(|split_error| match split_error {
+            SplitError::InvalidLength(_) => Error::new("malformed signature ID"),
+            SplitError::UnknownAlgorithm(algorithm) => {
+                Error::new(format!("unknown algorithm: {}", algorithm))
             }
         })?;
 
@@ -480,12 +500,14 @@ impl Signatures {
     /// # Errors
     ///
     /// Returns an error if the given server name cannot be parsed as a valid host.
-    pub fn insert(&mut self, server_name: &str, signature_set: SignatureSet)
-    -> Result<Option<SignatureSet>, Error> {
+    pub fn insert(
+        &mut self,
+        server_name: &str,
+        signature_set: SignatureSet,
+    ) -> Result<Option<SignatureSet>, Error> {
         let url_string = format!("https://{}", server_name);
-        let url = Url::parse(&url_string).map_err(|_| {
-            Error::new(format!("invalid server name: {}", server_name))
-        })?;
+        let url = Url::parse(&url_string)
+            .map_err(|_| Error::new(format!("invalid server name: {}", server_name)))?;
 
         let host = match url.host() {
             Some(host) => host.to_owned(),
@@ -502,13 +524,19 @@ impl Signatures {
 }
 
 impl<'de> Deserialize<'de> for Signatures {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         deserializer.deserialize_map(SignaturesVisitor)
     }
 }
 
 impl Serialize for Signatures {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         let mut map_serializer = serializer.serialize_map(Some(self.len()))?;
 
         for (host, signature_set) in self.map.iter() {
@@ -527,15 +555,23 @@ impl<'de> Visitor<'de> for SignaturesVisitor {
         write!(formatter, "digital signatures")
     }
 
-    fn visit_map<M>(self, mut visitor: M) -> Result<Self::Value, M::Error> where M: MapAccess<'de> {
+    fn visit_map<M>(self, mut visitor: M) -> Result<Self::Value, M::Error>
+    where
+        M: MapAccess<'de>,
+    {
         let mut signatures = match visitor.size_hint() {
             Some(capacity) => Signatures::with_capacity(capacity),
             None => Signatures::new(),
         };
 
-        while let Some((server_name, signature_set)) = visitor.next_entry::<String, SignatureSet>()? {
+        while let Some((server_name, signature_set)) =
+            visitor.next_entry::<String, SignatureSet>()?
+        {
             if let Err(_) = signatures.insert(&server_name, signature_set) {
-                return Err(M::Error::invalid_value(Unexpected::Str(&server_name), &self));
+                return Err(M::Error::invalid_value(
+                    Unexpected::Str(&server_name),
+                    &self,
+                ));
             }
         }
 
@@ -581,13 +617,19 @@ impl SignatureSet {
 }
 
 impl<'de> Deserialize<'de> for SignatureSet {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         deserializer.deserialize_map(SignatureSetVisitor)
     }
 }
 
 impl Serialize for SignatureSet {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         let mut map_serializer = serializer.serialize_map(Some(self.len()))?;
 
         for signature in self.set.iter() {
@@ -606,19 +648,20 @@ impl<'de> Visitor<'de> for SignatureSetVisitor {
         write!(formatter, "a set of digital signatures")
     }
 
-    fn visit_map<M>(self, mut visitor: M) -> Result<Self::Value, M::Error> where M: MapAccess<'de> {
+    fn visit_map<M>(self, mut visitor: M) -> Result<Self::Value, M::Error>
+    where
+        M: MapAccess<'de>,
+    {
         let mut signature_set = match visitor.size_hint() {
             Some(capacity) => SignatureSet::with_capacity(capacity),
             None => SignatureSet::new(),
         };
 
         while let Some((key, value)) = visitor.next_entry::<String, String>()? {
-            let (algorithm, version) = split_id(&key).map_err(|split_error| {
-                match split_error {
-                    SplitError::InvalidLength(length) => M::Error::invalid_length(length, &self),
-                    SplitError::UnknownAlgorithm(algorithm) => {
-                        M::Error::invalid_value(Unexpected::Str(algorithm), &self)
-                    }
+            let (algorithm, version) = split_id(&key).map_err(|split_error| match split_error {
+                SplitError::InvalidLength(length) => M::Error::invalid_length(length, &self),
+                SplitError::UnknownAlgorithm(algorithm) => {
+                    M::Error::invalid_value(Unexpected::Str(algorithm), &self)
                 }
             })?;
 
@@ -656,15 +699,15 @@ mod test {
     use serde_json::{from_str, to_string, to_value};
 
     use super::{
-        BASE64_CONFIG,
+        sign_json,
+        verify_json,
         Ed25519KeyPair,
         Ed25519Verifier,
         KeyPair,
         Signature,
-        Signatures,
         SignatureSet,
-        sign_json,
-        verify_json,
+        Signatures,
+        BASE64_CONFIG,
     };
 
     const PUBLIC_KEY: &'static str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
@@ -678,10 +721,15 @@ mod test {
     #[test]
     fn sign_empty_json() {
         let key_pair = Ed25519KeyPair::new(
-            decode_config(&PUBLIC_KEY, *BASE64_CONFIG).unwrap().as_slice(),
-            decode_config(&PRIVATE_KEY, *BASE64_CONFIG).unwrap().as_slice(),
+            decode_config(&PUBLIC_KEY, *BASE64_CONFIG)
+                .unwrap()
+                .as_slice(),
+            decode_config(&PRIVATE_KEY, *BASE64_CONFIG)
+                .unwrap()
+                .as_slice(),
             "1".to_string(),
-        ).unwrap();
+        )
+        .unwrap();
 
         let value = from_str("{}").unwrap();
 
@@ -694,21 +742,25 @@ mod test {
     fn verify_empty_json() {
         let signature = Signature::new(
             "ed25519:1",
-            decode_config(&EMPTY_JSON_SIGNATURE, *BASE64_CONFIG).unwrap().as_slice(),
-        ).unwrap();
+            decode_config(&EMPTY_JSON_SIGNATURE, *BASE64_CONFIG)
+                .unwrap()
+                .as_slice(),
+        )
+        .unwrap();
 
         let value = from_str("{}").unwrap();
 
         let verifier = Ed25519Verifier::new();
 
-        assert!(
-            verify_json(
-                &verifier,
-                decode_config(&PUBLIC_KEY, *BASE64_CONFIG).unwrap().as_slice(),
-                &signature,
-                &value,
-            ).is_ok()
-        );
+        assert!(verify_json(
+            &verifier,
+            decode_config(&PUBLIC_KEY, *BASE64_CONFIG)
+                .unwrap()
+                .as_slice(),
+            &signature,
+            &value,
+        )
+        .is_ok());
     }
 
     #[test]
@@ -720,8 +772,11 @@ mod test {
 
         let signature = Signature::new(
             "ed25519:1",
-            decode_config(&EMPTY_JSON_SIGNATURE, *BASE64_CONFIG).unwrap().as_slice(),
-        ).unwrap();
+            decode_config(&EMPTY_JSON_SIGNATURE, *BASE64_CONFIG)
+                .unwrap()
+                .as_slice(),
+        )
+        .unwrap();
 
         let mut signature_set = SignatureSet::with_capacity(1);
         signature_set.insert(signature);
@@ -756,10 +811,15 @@ mod test {
         }
 
         let key_pair = Ed25519KeyPair::new(
-            decode_config(&PUBLIC_KEY, *BASE64_CONFIG).unwrap().as_slice(),
-            decode_config(&PRIVATE_KEY, *BASE64_CONFIG).unwrap().as_slice(),
+            decode_config(&PUBLIC_KEY, *BASE64_CONFIG)
+                .unwrap()
+                .as_slice(),
+            decode_config(&PRIVATE_KEY, *BASE64_CONFIG)
+                .unwrap()
+                .as_slice(),
             "1".to_string(),
-        ).unwrap();
+        )
+        .unwrap();
 
         let alpha = Alpha {
             one: 1,
@@ -786,8 +846,11 @@ mod test {
     fn verify_minimal_json() {
         let signature = Signature::new(
             "ed25519:1",
-            decode_config(&MINIMAL_JSON_SIGNATURE, *BASE64_CONFIG).unwrap().as_slice(),
-        ).unwrap();
+            decode_config(&MINIMAL_JSON_SIGNATURE, *BASE64_CONFIG)
+                .unwrap()
+                .as_slice(),
+        )
+        .unwrap();
 
         let value = from_str(
             r#"{"one":1,"signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
@@ -795,27 +858,29 @@ mod test {
 
         let verifier = Ed25519Verifier::new();
 
-        assert!(
-            verify_json(
-                &verifier,
-                decode_config(&PUBLIC_KEY, *BASE64_CONFIG).unwrap().as_slice(),
-                &signature,
-                &value,
-            ).is_ok()
-        );
+        assert!(verify_json(
+            &verifier,
+            decode_config(&PUBLIC_KEY, *BASE64_CONFIG)
+                .unwrap()
+                .as_slice(),
+            &signature,
+            &value,
+        )
+        .is_ok());
 
         let reverse_value = from_str(
             r#"{"two":"Two","signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"one":1}"#
         ).unwrap();
 
-        assert!(
-            verify_json(
-                &verifier,
-                decode_config(&PUBLIC_KEY, *BASE64_CONFIG).unwrap().as_slice(),
-                &signature,
-                &reverse_value,
-            ).is_ok()
-        );
+        assert!(verify_json(
+            &verifier,
+            decode_config(&PUBLIC_KEY, *BASE64_CONFIG)
+                .unwrap()
+                .as_slice(),
+            &signature,
+            &reverse_value,
+        )
+        .is_ok());
     }
 
     #[test]
@@ -829,8 +894,11 @@ mod test {
 
         let signature = Signature::new(
             "ed25519:1",
-            decode_config(&MINIMAL_JSON_SIGNATURE, *BASE64_CONFIG).unwrap().as_slice(),
-        ).unwrap();
+            decode_config(&MINIMAL_JSON_SIGNATURE, *BASE64_CONFIG)
+                .unwrap()
+                .as_slice(),
+        )
+        .unwrap();
 
         let mut signature_set = SignatureSet::with_capacity(1);
         signature_set.insert(signature);
@@ -855,20 +923,24 @@ mod test {
     fn fail_verify() {
         let signature = Signature::new(
             "ed25519:1",
-            decode_config(&EMPTY_JSON_SIGNATURE, *BASE64_CONFIG).unwrap().as_slice(),
-        ).unwrap();
+            decode_config(&EMPTY_JSON_SIGNATURE, *BASE64_CONFIG)
+                .unwrap()
+                .as_slice(),
+        )
+        .unwrap();
 
         let value = from_str(r#"{"not":"empty"}"#).unwrap();
 
         let verifier = Ed25519Verifier::new();
 
-        assert!(
-            verify_json(
-                &verifier,
-                decode_config(&PUBLIC_KEY, *BASE64_CONFIG).unwrap().as_slice(),
-                &signature,
-                &value,
-            ).is_err()
-        );
+        assert!(verify_json(
+            &verifier,
+            decode_config(&PUBLIC_KEY, *BASE64_CONFIG)
+                .unwrap()
+                .as_slice(),
+            &signature,
+            &value,
+        )
+        .is_err());
     }
 }
