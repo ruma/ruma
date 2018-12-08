@@ -122,25 +122,14 @@
 //!
 //! Just like the `SignatureSet` itself, the `Signatures` value can also be deserialized from JSON.
 
-#![deny(missing_docs)]
-
-extern crate base64;
-#[macro_use]
-extern crate lazy_static;
-extern crate ring;
-extern crate serde;
-#[cfg(test)]
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-extern crate untrusted;
-extern crate url;
+#![deny(missing_docs, warnings)]
 
 use std::collections::{HashMap, HashSet};
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use base64::{CharacterSet, Config, decode_config, encode_config};
+use lazy_static::lazy_static;
 use ring::signature::{ED25519, Ed25519KeyPair as RingEd25519KeyPair, verify};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::{Error as SerdeError, MapAccess, Unexpected, Visitor};
@@ -224,7 +213,7 @@ enum SplitError<'a> {
 }
 
 /// Extract the algorithm and version from a key identifier.
-fn split_id(id: &str) -> Result<(Algorithm, String), SplitError> {
+fn split_id(id: &str) -> Result<(Algorithm, String), SplitError<'_>> {
     const SIGNATURE_ID_LENGTH: usize = 2;
 
     let signature_id: Vec<&str> = id.split(':').collect();
@@ -341,8 +330,8 @@ impl KeyPair for Ed25519KeyPair {
     fn new(public_key: &[u8], private_key: &[u8], version: String) -> Result<Self, Error> {
         Ok(Ed25519KeyPair {
             ring_key_pair: RingEd25519KeyPair::from_seed_and_public_key(
-                untrusted::Input::from(private_key),
-                untrusted::Input::from(public_key),
+                Input::from(private_key),
+                Input::from(public_key),
             ).map_err(|_| Error::new("invalid key pair"))?,
             version: version,
         })
@@ -396,7 +385,7 @@ impl StdError for Error {
 }
 
 impl Display for Error {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}", self.message)
     }
 }
@@ -534,7 +523,7 @@ impl Serialize for Signatures {
 impl<'de> Visitor<'de> for SignaturesVisitor {
     type Value = Signatures;
 
-    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         write!(formatter, "digital signatures")
     }
 
@@ -613,7 +602,7 @@ impl Serialize for SignatureSet {
 impl<'de> Visitor<'de> for SignatureSetVisitor {
     type Value = SignatureSet;
 
-    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         write!(formatter, "a set of digital signatures")
     }
 
@@ -652,7 +641,7 @@ impl<'de> Visitor<'de> for SignatureSetVisitor {
 }
 
 impl Display for Algorithm {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let name = match *self {
             Algorithm::Ed25519 => "ed25519",
         };
@@ -724,7 +713,7 @@ mod test {
 
     #[test]
     fn signatures_empty_json() {
-        #[derive(Serialize)]
+        #[derive(serde_derive::Serialize)]
         struct EmptyWithSignatures {
             signatures: Signatures,
         }
@@ -754,13 +743,13 @@ mod test {
 
     #[test]
     fn sign_minimal_json() {
-        #[derive(Serialize)]
+        #[derive(serde_derive::Serialize)]
         struct Alpha {
             one: u8,
             two: String,
         }
 
-        #[derive(Serialize)]
+        #[derive(serde_derive::Serialize)]
         struct ReverseAlpha {
             two: String,
             one: u8,
@@ -831,7 +820,7 @@ mod test {
 
     #[test]
     fn signatures_minimal_json() {
-        #[derive(Serialize)]
+        #[derive(serde_derive::Serialize)]
         struct MinimalWithSignatures {
             one: u8,
             signatures: Signatures,
