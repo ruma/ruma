@@ -27,9 +27,7 @@ impl Response {
     }
 
     pub fn init_fields(&self) -> TokenStream {
-        let mut tokens = TokenStream::new();
-
-        for response_field in self.fields.iter() {
+        let fields = self.fields.iter().map(|response_field| {
             match *response_field {
                 ResponseField::Body(ref field) => {
                     let field_name = field
@@ -38,9 +36,9 @@ impl Response {
                         .expect("expected field to have an identifier");
                     let span = field.span();
 
-                    tokens.append_all(quote_spanned! {span=>
-                        #field_name: response_body.#field_name,
-                    });
+                    quote_spanned! {span=>
+                        #field_name: response_body.#field_name
+                    }
                 }
                 ResponseField::Header(ref field, ref header) => {
                     let field_name = field
@@ -50,13 +48,13 @@ impl Response {
                     let header_name = Ident::new(header.as_ref(), Span::call_site());
                     let span = field.span();
 
-                    tokens.append_all(quote_spanned! {span=>
+                    quote_spanned! {span=>
                         #field_name: headers.remove(::http::header::#header_name)
                             .expect("response missing expected header")
                             .to_str()
                             .expect("failed to convert HeaderValue to str")
-                            .to_owned(),
-                    });
+                            .to_owned()
+                    }
                 }
                 ResponseField::NewtypeBody(ref field) => {
                     let field_name = field
@@ -65,32 +63,36 @@ impl Response {
                         .expect("expected field to have an identifier");
                     let span = field.span();
 
-                    tokens.append_all(quote_spanned! {span=>
-                        #field_name: response_body,
-                    });
+                    quote_spanned! {span=>
+                        #field_name: response_body
+                    }
                 }
             }
-        }
+        });
 
-        tokens
+        quote! {
+            #(#fields,)*
+        }
     }
 
     pub fn apply_header_fields(&self) -> TokenStream {
-        let mut tokens = TokenStream::new();
-
-        for response_field in self.fields.iter() {
+        let header_calls = self.fields.iter().filter_map(|response_field| {
             if let ResponseField::Header(ref field, ref header) = *response_field {
                 let field_name = field.ident.as_ref().expect("expected field to have an identifier");
                 let header_name = Ident::new(header.as_ref(), Span::call_site());
                 let span = field.span();
 
-                tokens.append_all(quote_spanned! {span=>
+                Some(quote_spanned! {span=>
                     .header(::http::header::#header_name, response.#field_name)
-                });
+                })
+            } else {
+                None
             }
-        }
+        });
 
-        tokens
+        quote! {
+            #(#header_calls)*
+        }
     }
 
     pub fn to_body(&self) -> TokenStream {
@@ -112,7 +114,11 @@ impl Response {
                 }
             });
 
-            quote!(ResponseBody{#(#fields),*})
+            quote! {
+                ResponseBody {
+                    #(#fields),*
+                }
+            }
         }
     }
 
@@ -221,60 +227,53 @@ impl ToTokens for Response {
         let response_struct_body = if self.fields.is_empty() {
             quote!(;)
         } else {
-            let fields = self.fields.iter().fold(TokenStream::new(), |mut fields_tokens, response_field| {
+            let fields = self.fields.iter().map(|response_field| {
                 let field = response_field.field();
                 let span = field.span();
 
                 let stripped_field = strip_serde_attrs(field);
 
-                fields_tokens.append_all(quote_spanned!(span=> #stripped_field,));
-
-                fields_tokens
+                quote_spanned!(span=> #stripped_field)
             });
 
             quote! {
                 {
-                    #fields
+                    #(#fields),*
                 }
             }
         };
 
-        let response_body_struct;
-
-        if let Some(newtype_body_field) = self.newtype_body_field() {
+        let response_body_struct = if let Some(newtype_body_field) = self.newtype_body_field() {
             let mut field = newtype_body_field.clone();
             let ty = &field.ty;
             let span = field.span();
 
-            response_body_struct = quote_spanned! {span=>
+            quote_spanned! {span=>
                 /// Data in the response body.
                 #[derive(Debug, Deserialize, Serialize)]
                 struct ResponseBody(#ty);
-            };
+            }
         } else if self.has_body_fields() {
-            let fields = self.fields.iter().fold(TokenStream::new(), |mut field_tokens, response_field| {
+            let fields = self.fields.iter().filter_map(|response_field| {
                 match *response_field {
                     ResponseField::Body(ref field) => {
                         let span = field.span();
-
-                        field_tokens.append_all(quote_spanned!(span=> #field,));
-
-                        field_tokens
+                        Some(quote_spanned!(span=> #field))
                     }
-                    _ => field_tokens,
+                    _ => None,
                 }
             });
 
-            response_body_struct = quote! {
+            quote! {
                 /// Data in the response body.
                 #[derive(Debug, Deserialize, Serialize)]
                 struct ResponseBody {
-                    #fields
+                    #(#fields),*
                 }
-            };
+            }
         } else {
-            response_body_struct = TokenStream::new();
-        }
+            TokenStream::new()
+        };
 
         tokens.append_all(quote! {
             #response_struct_header

@@ -82,7 +82,22 @@ impl ToTokens for Api {
 
             let request_path_init_fields = self.request.request_path_init_fields();
 
-            let mut set_tokens = quote! {
+            let path_segments = path_str[1..].split('/').into_iter();
+            let path_segment_push = path_segments.clone().map(|segment| {
+                let arg = if segment.starts_with(':') {
+                    let path_var = &segment[1..];
+                    let path_var_ident = Ident::new(path_var, Span::call_site());
+                    quote!(&request_path.#path_var_ident.to_string())
+                } else {
+                    quote!(#segment)
+                };
+
+                quote! {
+                    path_segments.push(#arg);
+                }
+            });
+
+            let set_tokens = quote! {
                 let request_path = RequestPath {
                     #request_path_init_fields
                 };
@@ -91,28 +106,22 @@ impl ToTokens for Api {
                 // cannot-be-base url like `mailto:` or `data:`, which is not
                 // the case for our placeholder url.
                 let mut path_segments = url.path_segments_mut().unwrap();
+                #(#path_segment_push)*
             };
 
-            let mut parse_tokens = TokenStream::new();
-
-            for (i, segment) in path_str[1..].split('/').into_iter().enumerate() {
-                set_tokens.append_all(quote! {
-                    path_segments.push
-                });
-
-                if segment.starts_with(':') {
+            let path_fields = path_segments
+                .enumerate()
+                .filter(|(_, s)| s.starts_with(':'))
+                .map(|(i, segment)| {
                     let path_var = &segment[1..];
                     let path_var_ident = Ident::new(path_var, Span::call_site());
-
-                    set_tokens.append_all(quote! {
-                        (&request_path.#path_var_ident.to_string());
-                    });
-
-                    let path_field = self.request.path_field(path_var)
+                    let path_field = self
+                        .request
+                        .path_field(path_var)
                         .expect("expected request to have path field");
                     let ty = &path_field.ty;
 
-                    parse_tokens.append_all(quote! {
+                    quote! {
                         #path_var_ident: {
                             let segment = path_segments.get(#i).unwrap().as_bytes();
                             let decoded =
@@ -120,14 +129,13 @@ impl ToTokens for Api {
                                 .decode_utf8_lossy();
                             #ty::deserialize(decoded.into_deserializer())
                                 .map_err(|e: ::serde_json::error::Error| e)?
-                        },
-                    });
-                } else {
-                    set_tokens.append_all(quote! {
-                        (#segment);
-                    });
-                }
-            }
+                        }
+                    }
+                });
+
+            let parse_tokens = quote! {
+                #(#path_fields,)*
+            };
 
             (set_tokens, parse_tokens)
         } else {
@@ -168,13 +176,11 @@ impl ToTokens for Api {
         };
 
         let add_headers_to_request = if self.request.has_header_fields() {
-            let mut header_tokens = quote! {
+            let add_headers = self.request.add_headers_to_request();
+            quote! {
                 let headers = http_request.headers_mut();
-            };
-
-            header_tokens.append_all(self.request.add_headers_to_request());
-
-            header_tokens
+                #add_headers
+            }
         } else {
             TokenStream::new()
         };
