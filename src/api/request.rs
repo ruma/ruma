@@ -11,7 +11,7 @@ pub struct Request {
 
 impl Request {
     pub fn add_headers_to_request(&self) -> TokenStream {
-        self.header_fields().fold(TokenStream::new(), |mut header_tokens, request_field| {
+        let append_stmts = self.header_fields().map(|request_field| {
             let (field, header_name_string) = match request_field {
                 RequestField::Header(field, header_name_string) => (field, header_name_string),
                 _ => panic!("expected request field to be header variant"),
@@ -20,20 +20,22 @@ impl Request {
             let field_name = &field.ident;
             let header_name = Ident::new(header_name_string.as_ref(), Span::call_site());
 
-            header_tokens.append_all(quote! {
+            quote! {
                 headers.append(
                     ::http::header::#header_name,
                     ::http::header::HeaderValue::from_str(request.#field_name.as_ref())
                         .expect("failed to convert value into HeaderValue"),
                 );
-            });
+            }
+        });
 
-            header_tokens
-        })
+        quote! {
+            #(#append_stmts)*
+        }
     }
 
     pub fn parse_headers_from_request(&self) -> TokenStream {
-        self.header_fields().fold(TokenStream::new(), |mut header_tokens, request_field| {
+        let fields = self.header_fields().map(|request_field| {
             let (field, header_name_string) = match request_field {
                 RequestField::Header(field, header_name_string) => (field, header_name_string),
                 _ => panic!("expected request field to be header variant"),
@@ -42,15 +44,17 @@ impl Request {
             let field_name = &field.ident;
             let header_name = Ident::new(header_name_string.as_ref(), Span::call_site());
 
-            header_tokens.append_all(quote! {
+            quote! {
                 #field_name: headers.get(::http::header::#header_name)
                     .and_then(|v| v.to_str().ok())
                     .ok_or(::serde_json::Error::missing_field(#header_name_string))?
-                    .to_owned(),
-            });
+                    .to_owned()
+            }
+        });
 
-            header_tokens
-        })
+        quote! {
+            #(#fields,)*
+        }
     }
 
     pub fn has_body_fields(&self) -> bool {
@@ -120,19 +124,28 @@ impl Request {
         self.struct_init_fields(RequestFieldKind::Query, quote!(request_query))
     }
 
-    fn struct_init_fields(&self, request_field_kind: RequestFieldKind, src: TokenStream) -> TokenStream {
-        let mut tokens = TokenStream::new();
+    fn struct_init_fields(
+        &self,
+        request_field_kind: RequestFieldKind,
+        src: TokenStream,
+    ) -> TokenStream {
+        let fields = self.fields.iter().filter_map(|f| {
+            f.field_(request_field_kind).map(|field| {
+                let field_name = field
+                    .ident
+                    .as_ref()
+                    .expect("expected field to have an identifier");
+                let span = field.span();
 
-        for field in self.fields.iter().flat_map(|f| f.field_(request_field_kind)) {
-            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            let span = field.span();
+                quote_spanned! {span=>
+                    #field_name: #src.#field_name
+                }
+            })
+        });
 
-            tokens.append_all(quote_spanned! {span=>
-                #field_name: #src.#field_name,
-            });
+        quote! {
+            #(#fields,)*
         }
-
-        tokens
     }
 }
 
@@ -224,114 +237,98 @@ impl ToTokens for Request {
         let request_struct_body = if self.fields.is_empty() {
             quote!(;)
         } else {
-            let fields = self.fields.iter().fold(TokenStream::new(), |mut field_tokens, request_field| {
+            let fields = self.fields.iter().map(|request_field| {
                 let field = request_field.field();
                 let span = field.span();
 
                 let stripped_field = strip_serde_attrs(field);
 
-                field_tokens.append_all(quote_spanned!(span=> #stripped_field,));
-
-                field_tokens
+                quote_spanned!(span=> #stripped_field)
             });
 
             quote! {
                 {
-                    #fields
+                    #(#fields),*
                 }
             }
         };
 
-        let request_body_struct;
-
-        if let Some(newtype_body_field) = self.newtype_body_field() {
+        let request_body_struct = if let Some(newtype_body_field) = self.newtype_body_field() {
             let mut field = newtype_body_field.clone();
             let ty = &field.ty;
             let span = field.span();
 
-            request_body_struct = quote_spanned! {span=>
+            quote_spanned! {span=>
                 /// Data in the request body.
                 #[derive(Debug, Deserialize, Serialize)]
                 struct RequestBody(#ty);
-            };
+            }
         } else if self.has_body_fields() {
-            let fields = self.fields.iter().fold(TokenStream::new(), |mut field_tokens, request_field| {
+            let fields = self.fields.iter().filter_map(|request_field| {
                 match *request_field {
                     RequestField::Body(ref field) => {
                         let span = field.span();
-
-                        field_tokens.append_all(quote_spanned!(span=> #field,));
-
-                        field_tokens
+                        Some(quote_spanned!(span=> #field))
                     }
-                    _ => field_tokens,
+                    _ => None,
                 }
             });
 
-            request_body_struct = quote! {
+            quote! {
                 /// Data in the request body.
                 #[derive(Debug, Deserialize, Serialize)]
                 struct RequestBody {
-                    #fields
+                    #(#fields),*
                 }
-            };
+            }
         } else {
-            request_body_struct = TokenStream::new();
-        }
+            TokenStream::new()
+        };
 
-        let request_path_struct;
-
-        if self.has_path_fields() {
-            let fields = self.fields.iter().fold(TokenStream::new(), |mut field_tokens, request_field| {
+        let request_path_struct = if self.has_path_fields() {
+            let fields = self.fields.iter().filter_map(|request_field| {
                 match *request_field {
                     RequestField::Path(ref field) => {
                         let span = field.span();
 
-                        field_tokens.append_all(quote_spanned!(span=> #field,));
-
-                        field_tokens
+                        Some(quote_spanned!(span=> #field))
                     }
-                    _ => field_tokens,
+                    _ => None,
                 }
             });
 
-            request_path_struct = quote! {
+            quote! {
                 /// Data in the request path.
                 #[derive(Debug, Deserialize, Serialize)]
                 struct RequestPath {
-                    #fields
+                    #(#fields),*
                 }
-            };
+            }
         } else {
-            request_path_struct = TokenStream::new();
-        }
+            TokenStream::new()
+        };
 
-        let request_query_struct;
-
-        if self.has_query_fields() {
-            let fields = self.fields.iter().fold(TokenStream::new(), |mut field_tokens, request_field| {
+        let request_query_struct = if self.has_query_fields() {
+            let fields = self.fields.iter().filter_map(|request_field| {
                 match *request_field {
                     RequestField::Query(ref field) => {
                         let span = field.span();
-
-                        field_tokens.append_all(quote_spanned!(span=> #field,));
-
-                        field_tokens
+                        Some(quote_spanned!(span=> #field))
                     }
-                    _ => field_tokens,
+                    _ => None,
                 }
             });
 
-            request_query_struct = quote! {
+            quote! {
                 /// Data in the request's query string.
                 #[derive(Debug, Deserialize, Serialize)]
                 struct RequestQuery {
-                    #fields
+                    #(#fields),*
                 }
-            };
+            }
         } else {
-            request_query_struct = TokenStream::new();
-        }
+            TokenStream::new()
+        };
 
         tokens.append_all(quote! {
             #request_struct_header
