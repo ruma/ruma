@@ -1,0 +1,38 @@
+//! Endpoints for the media repository.
+
+//! [GET /_matrix/media/r0/download/{serverName}/{mediaId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-media-r0-download-servername-mediaid)
+
+use ruma_api_macros::ruma_api;
+use serde_derive::{Deserialize, Serialize};
+
+ruma_api! {
+    metadata {
+        description: "Retrieve content from the media store.",
+        method: GET,
+        name: "get_media_content",
+        path: "/_matrix/media/r0/download/:server_name/:media_id",
+        rate_limited: false,
+        requires_authentication: false,
+    }
+
+    request {
+        /// The media ID from the mxc:// URI (the path component).
+        #[ruma_api(path)]
+        pub media_id: String,
+        /// The server name from the mxc:// URI (the authoritory component).
+        #[ruma_api(path)]
+        pub server_name: String,
+    }
+
+    response {
+        /// The content that was previously uploaded.
+        #[ruma_api(body)]
+        pub file: Vec<u8>,
+        /// The content type of the file that was previously uploaded.
+        #[ruma_api(header = "CONTENT_TYPE")]
+        pub content_type: String,
+        /// The name of the file that was previously uploaded, if set.
+        #[ruma_api(header = "CONTENT_DISPOSITION")]
+        pub content_disposition: String,
+    }
+}

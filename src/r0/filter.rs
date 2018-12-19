@@ -1,5 +1,8 @@
 //! Endpoints for event filters.
 
+pub mod create_filter;
+pub mod get_filter;
+
 use ruma_identifiers::{RoomId, UserId};
 use serde_derive::{Deserialize, Serialize};
 
@@ -164,75 +167,4 @@ pub struct FilterDefinition {
     /// The presence updates to include.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub presence: Option<Filter>,
-}
-
-/// [POST /_matrix/client/r0/user/{userId}/filter](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-user-userid-filter)
-pub mod create_filter {
-    use ruma_api_macros::ruma_api;
-    use ruma_identifiers::UserId;
-    use serde_derive::{Deserialize, Serialize};
-
-    use super::FilterDefinition;
-
-    ruma_api! {
-        metadata {
-            description: "Create a new filter for event retrieval.",
-            method: POST,
-            name: "create_filter",
-            path: "/_matrix/client/r0/user/:user_id/filter",
-            rate_limited: false,
-            requires_authentication: true,
-        }
-
-        request {
-            /// The filter definition.
-            #[ruma_api(body)]
-            pub filter: FilterDefinition,
-            /// The ID of the user uploading the filter.
-            ///
-            /// The access token must be authorized to make requests for this user ID.
-            #[ruma_api(path)]
-            pub user_id: UserId,
-        }
-
-        response {
-            /// The ID of the filter that was created.
-            pub filter_id: String,
-        }
-    }
-}
-
-/// [GET /_matrix/client/r0/user/{userId}/filter/{filterId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-user-userid-filter-filterid)
-pub mod get_filter {
-    use ruma_api_macros::ruma_api;
-    use ruma_identifiers::UserId;
-    use serde_derive::{Deserialize, Serialize};
-
-    use super::FilterDefinition;
-
-    ruma_api! {
-        metadata {
-            description: "Retrieve a previously created filter.",
-            method: GET,
-            name: "get_filter",
-            path: "/_matrix/client/r0/user/:user_id/filter/:filter_id",
-            rate_limited: false,
-            requires_authentication: false,
-        }
-
-        request {
-            /// The ID of the filter to download.
-            #[ruma_api(path)]
-            pub filter_id: String,
-            /// The user ID to download a filter for.
-            #[ruma_api(path)]
-            pub user_id: UserId,
-        }
-
-        response {
-            /// The filter definition.
-            #[ruma_api(body)]
-            pub filter: FilterDefinition,
-        }
-    }
 }
