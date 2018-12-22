@@ -18,16 +18,16 @@ extern crate serde_json;
 extern crate serde_urlencoded;
 extern crate url;
 
-use std::cell::RefCell;
-use std::convert::TryInto;
-use std::rc::Rc;
-use std::str::FromStr;
+use std::{cell::RefCell, convert::TryInto, rc::Rc, str::FromStr};
 
-use futures::future::{Future, FutureFrom, IntoFuture};
-use futures::stream::{self, Stream};
-use hyper::client::connect::Connect;
-use hyper::client::HttpConnector;
-use hyper::{Client as HyperClient, Uri};
+use futures::{
+    future::{Future, FutureFrom, IntoFuture},
+    stream::{self, Stream},
+};
+use hyper::{
+    client::{connect::Connect, HttpConnector},
+    Client as HyperClient, Uri,
+};
 #[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
 #[cfg(feature = "hyper-tls")]
