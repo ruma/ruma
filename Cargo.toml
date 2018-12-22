@@ -2,6 +2,7 @@
 authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
 description = "A Matrix client library."
 documentation = "https://docs.rs/ruma-client"
+edition = "2018"
 homepage = "https://github.com/ruma/ruma-client"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"

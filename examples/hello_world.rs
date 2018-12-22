@@ -1,16 +1,9 @@
 #![feature(try_from)]
 
-extern crate futures;
-extern crate ruma_client;
-extern crate ruma_events;
-extern crate ruma_identifiers;
-extern crate tokio_core;
-extern crate url;
-
 use std::{convert::TryFrom, env, process::exit};
 
 use futures::Future;
-use ruma_client::{api::r0, Client};
+use ruma_client::{self, api::r0, Client};
 use ruma_events::{
     room::message::{MessageEventContent, MessageType, TextMessageEventContent},
     EventType,
