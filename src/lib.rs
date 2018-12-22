@@ -25,9 +25,9 @@ use std::str::FromStr;
 
 use futures::future::{Future, FutureFrom, IntoFuture};
 use futures::stream::{self, Stream};
-use hyper::{Client as HyperClient, Uri};
-use hyper::client::HttpConnector;
 use hyper::client::connect::Connect;
+use hyper::client::HttpConnector;
+use hyper::{Client as HyperClient, Uri};
 #[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
 #[cfg(feature = "hyper-tls")]
@@ -77,11 +77,7 @@ impl Client<HttpsConnector<HttpConnector>> {
 
         Ok(Client(Rc::new(ClientData {
             homeserver_url,
-            hyper: {
-                HyperClient::builder()
-                    .keep_alive(true)
-                    .build(connector)
-            },
+            hyper: { HyperClient::builder().keep_alive(true).build(connector) },
             session: RefCell::new(session),
         })))
     }
@@ -94,7 +90,11 @@ where
     /// Creates a new client using the given `hyper::Client`.
     ///
     /// This allows the user to configure the details of HTTP as desired.
-    pub fn custom(hyper_client: HyperClient<C>, homeserver_url: Url, session: Option<Session>) -> Self {
+    pub fn custom(
+        hyper_client: HyperClient<C>,
+        homeserver_url: Url,
+        session: Option<Session>,
+    ) -> Self {
         Client(Rc::new(ClientData {
             homeserver_url,
             hyper: hyper_client,
@@ -107,20 +107,28 @@ where
     /// In contrast to api::r0::session::login::call(), this method stores the
     /// session data returned by the endpoint in this client, instead of
     /// returning it.
-    pub fn log_in(&self, user: String, password: String, device_id: Option<String>)
-    -> impl Future<Item = Session, Error = Error> {
+    pub fn log_in(
+        &self,
+        user: String,
+        password: String,
+        device_id: Option<String>,
+    ) -> impl Future<Item = Session, Error = Error> {
         use api::r0::session::login;
 
         let data = self.0.clone();
 
-        login::call(self.clone(), login::Request {
-            address: None,
-            login_type: login::LoginType::Password,
-            medium: None,
-            device_id,
-            password,
-            user,
-        }).map(move |response| {
+        login::call(
+            self.clone(),
+            login::Request {
+                address: None,
+                login_type: login::LoginType::Password,
+                medium: None,
+                device_id,
+                password,
+                user,
+            },
+        )
+        .map(move |response| {
             let session = Session::new(response.access_token, response.user_id);
             *data.session.borrow_mut() = Some(session.clone());
 
@@ -136,15 +144,19 @@ where
 
         let data = self.0.clone();
 
-        register::call(self.clone(), register::Request {
-            auth: None,
-            bind_email: None,
-            device_id: None,
-            initial_device_display_name: None,
-            kind: Some(register::RegistrationKind::Guest),
-            password: None,
-            username: None,
-        }).map(move |response| {
+        register::call(
+            self.clone(),
+            register::Request {
+                auth: None,
+                bind_email: None,
+                device_id: None,
+                initial_device_display_name: None,
+                kind: Some(register::RegistrationKind::Guest),
+                password: None,
+                username: None,
+            },
+        )
+        .map(move |response| {
             let session = Session::new(response.access_token, response.user_id);
             *data.session.borrow_mut() = Some(session.clone());
 
@@ -169,15 +181,19 @@ where
 
         let data = self.0.clone();
 
-        register::call(self.clone(), register::Request {
-            auth: None,
-            bind_email: None,
-            device_id: None,
-            initial_device_display_name: None,
-            kind: Some(register::RegistrationKind::User),
-            password: Some(password),
-            username,
-        }).map(move |response| {
+        register::call(
+            self.clone(),
+            register::Request {
+                auth: None,
+                bind_email: None,
+                device_id: None,
+                initial_device_display_name: None,
+                kind: Some(register::RegistrationKind::User),
+                password: Some(password),
+                username,
+            },
+        )
+        .map(move |response| {
             let session = Session::new(response.access_token, response.user_id);
             *data.session.borrow_mut() = Some(session.clone());
 
@@ -216,10 +232,11 @@ where
                         set_presence: set_presence.clone(),
                         timeout: None,
                     },
-                ).map(|res| {
+                )
+                .map(|res| {
                     let next_batch_clone = res.next_batch.clone();
                     (res, Some(next_batch_clone))
-                })
+                }),
             )
         })
     }
@@ -249,7 +266,8 @@ where
 
                     if E::METADATA.requires_authentication {
                         if let Some(ref session) = *data1.session.borrow() {
-                            url.query_pairs_mut().append_pair("access_token", session.access_token());
+                            url.query_pairs_mut()
+                                .append_pair("access_token", session.access_token());
                         } else {
                             return Err(Error::AuthenticationRequired);
                         }
@@ -263,9 +281,7 @@ where
             .and_then(move |(uri, mut hyper_request)| {
                 *hyper_request.uri_mut() = uri;
 
-                data2.hyper
-                    .request(hyper_request)
-                    .map_err(Error::from)
+                data2.hyper.request(hyper_request).map_err(Error::from)
             })
             .and_then(|hyper_response| {
                 E::Response::future_from(hyper_response).map_err(Error::from)

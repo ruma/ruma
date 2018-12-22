@@ -12,10 +12,10 @@ use std::env;
 use std::process::exit;
 
 use futures::Future;
-use ruma_client::Client;
 use ruma_client::api::r0;
-use ruma_events::EventType;
+use ruma_client::Client;
 use ruma_events::room::message::{MessageEventContent, MessageType, TextMessageEventContent};
+use ruma_events::EventType;
 use ruma_identifiers::RoomAliasId;
 use tokio_core::reactor::Core;
 use url::Url;
@@ -66,12 +66,16 @@ fn main() {
     let (homeserver_url, room) = match (env::args().nth(1), env::args().nth(2)) {
         (Some(a), Some(b)) => (a, b),
         _ => {
-            eprintln!("Usage: {} <homeserver_url> <room>", env::args().next().unwrap());
+            eprintln!(
+                "Usage: {} <homeserver_url> <room>",
+                env::args().next().unwrap()
+            );
             exit(1)
         }
     };
 
-    Core::new().unwrap()
+    Core::new()
+        .unwrap()
         .run(hello_world(homeserver_url.parse().unwrap(), room))
         .unwrap();
 }

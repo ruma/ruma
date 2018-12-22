@@ -162,11 +162,7 @@ pub mod r0 {
     /// Event filters.
     pub mod filter {
         pub use ruma_client_api::r0::filter::{
-            EventFormat,
-            Filter,
-            FilterDefinition,
-            RoomEventFilter,
-            RoomFilter,
+            EventFormat, Filter, FilterDefinition, RoomEventFilter, RoomFilter,
         };
 
         endpoint!(
@@ -318,8 +314,7 @@ pub mod r0 {
     }
 
     /// Push notifications.
-    pub mod push {
-    }
+    pub mod push {}
 
     /// Event receipts.
     pub mod receipt {
