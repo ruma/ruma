@@ -38,7 +38,7 @@ mod tests {
             event_type: EventType::RoomPinnedEvents,
             origin_server_ts: 1432804485886,
             prev_content: None,
-            room_id: RoomId::new("example.com").unwrap(),
+            room_id: Some(RoomId::new("example.com").unwrap()),
             sender: UserId::new("example.com").unwrap(),
             state_key: "".to_string(),
             unsigned: None,

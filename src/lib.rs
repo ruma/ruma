@@ -214,7 +214,10 @@ pub trait RoomEvent: Event {
     fn origin_server_ts(&self) -> u64;
 
     /// The unique identifier for the room associated with this event.
-    fn room_id(&self) -> &RoomId;
+    ///
+    /// This can be `None` if the event came from a context where there is
+    /// no ambiguity which room it belongs to, like a `/sync` response for example.
+    fn room_id(&self) -> Option<&RoomId>;
 
     /// The unique identifier for the user who sent this event.
     fn sender(&self) -> &UserId;
