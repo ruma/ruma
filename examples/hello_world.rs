@@ -7,15 +7,14 @@ extern crate ruma_identifiers;
 extern crate tokio_core;
 extern crate url;
 
-use std::convert::TryFrom;
-use std::env;
-use std::process::exit;
+use std::{convert::TryFrom, env, process::exit};
 
 use futures::Future;
-use ruma_client::api::r0;
-use ruma_client::Client;
-use ruma_events::room::message::{MessageEventContent, MessageType, TextMessageEventContent};
-use ruma_events::EventType;
+use ruma_client::{api::r0, Client};
+use ruma_events::{
+    room::message::{MessageEventContent, MessageType, TextMessageEventContent},
+    EventType,
+};
 use ruma_identifiers::RoomAliasId;
 use tokio_core::reactor::Core;
 use url::Url;
