@@ -20,15 +20,18 @@ extern crate diesel;
 #[cfg(test)]
 extern crate serde_json;
 
-use std::convert::TryFrom;
-use std::error::Error as StdError;
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::{
+    convert::TryFrom,
+    error::Error as StdError,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 
-use rand::distributions::Alphanumeric;
-use rand::{thread_rng, Rng};
+use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use regex::Regex;
-use serde::de::{Error as SerdeError, Unexpected, Visitor};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{
+    de::{Error as SerdeError, Unexpected, Visitor},
+    Deserialize, Deserializer, Serialize, Serializer,
+};
 use url::{ParseError, Url};
 
 pub use url::Host;
@@ -733,14 +736,14 @@ impl<'de> Visitor<'de> for UserIdVisitor {
 
 #[cfg(feature = "diesel")]
 mod diesel_integration {
-    use std::convert::TryFrom;
-    use std::error::Error as StdError;
-    use std::io::Write;
+    use std::{convert::TryFrom, error::Error as StdError, io::Write};
 
-    use diesel::backend::Backend;
-    use diesel::deserialize::{FromSql, Result as DeserializeResult};
-    use diesel::serialize::{Output, Result as SerializeResult, ToSql};
-    use diesel::sql_types::Text;
+    use diesel::{
+        backend::Backend,
+        deserialize::{FromSql, Result as DeserializeResult},
+        serialize::{Output, Result as SerializeResult, ToSql},
+        sql_types::Text,
+    };
 
     macro_rules! diesel_impl {
         ($name:ident) => {
@@ -812,7 +815,8 @@ mod tests {
         assert_eq!(
             to_string(
                 &EventId::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
-            ).expect("Failed to convert EventId to JSON."),
+            )
+            .expect("Failed to convert EventId to JSON."),
             r#""$39hvsi03hlne:example.com""#
         );
     }
@@ -895,7 +899,8 @@ mod tests {
         assert_eq!(
             to_string(
                 &RoomAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
-            ).expect("Failed to convert RoomAliasId to JSON."),
+            )
+            .expect("Failed to convert RoomAliasId to JSON."),
             r##""#ruma:example.com""##
         );
     }
@@ -1005,7 +1010,8 @@ mod tests {
         assert_eq!(
             to_string(
                 &RoomId::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
-            ).expect("Failed to convert RoomId to JSON."),
+            )
+            .expect("Failed to convert RoomId to JSON."),
             r#""!29fhd83h92h0:example.com""#
         );
     }
@@ -1107,7 +1113,8 @@ mod tests {
             to_string(
                 &RoomIdOrAliasId::try_from("#ruma:example.com")
                     .expect("Failed to create RoomAliasId.")
-            ).expect("Failed to convert RoomAliasId to JSON."),
+            )
+            .expect("Failed to convert RoomAliasId to JSON."),
             r##""#ruma:example.com""##
         );
     }
@@ -1118,7 +1125,8 @@ mod tests {
             to_string(
                 &RoomIdOrAliasId::try_from("!29fhd83h92h0:example.com")
                     .expect("Failed to create RoomId.")
-            ).expect("Failed to convert RoomId to JSON."),
+            )
+            .expect("Failed to convert RoomId to JSON."),
             r#""!29fhd83h92h0:example.com""#
         );
     }
