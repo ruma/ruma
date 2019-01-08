@@ -5,6 +5,7 @@
 //! state event to be created, when the other fields can be inferred from a larger context, or where
 //! the other fields are otherwise inapplicable.
 
+use ruma_identifiers::UserId;
 use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
@@ -73,6 +74,8 @@ pub struct StrippedStateContent<C> {
     pub event_type: EventType,
     /// A key that determines which piece of room state the event represents.
     pub state_key: String,
+    /// The unique identifier for the user who sent this event.
+    pub sender: UserId,
 }
 
 impl Serialize for StrippedState {
@@ -256,10 +259,14 @@ pub type StrippedRoomTopic = StrippedStateContent<TopicEventContent>;
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
+    use ruma_identifiers::UserId;
+    use serde_json::{from_str, to_string};
+
     use super::{StrippedRoomTopic, StrippedState};
     use room::join_rules::JoinRule;
     use room::topic::TopicEventContent;
-    use serde_json::{from_str, to_string};
     use EventType;
 
     #[test]
@@ -270,13 +277,14 @@ mod tests {
             },
             state_key: "".to_string(),
             event_type: EventType::RoomTopic,
+            sender: UserId::try_from("@example:localhost").unwrap(),
         };
 
         let event = StrippedState::RoomTopic(content);
 
         assert_eq!(
             to_string(&event).unwrap(),
-            r#"{"content":{"topic":"Testing room"},"type":"m.room.topic","state_key":""}"#
+            r#"{"content":{"topic":"Testing room"},"type":"m.room.topic","state_key":"","sender":"@example:localhost"}"#
         );
     }
 
@@ -285,18 +293,21 @@ mod tests {
         let name_event = r#"{
             "type": "m.room.name",
             "state_key": "",
+            "sender": "@example:localhost",
             "content": {"name": "Ruma"}
         }"#;
 
         let join_rules_event = r#"{
             "type": "m.room.join_rules",
             "state_key": "",
+            "sender": "@example:localhost",
             "content": { "join_rule": "public" }
         }"#;
 
         let avatar_event = r#"{
             "type": "m.room.avatar",
             "state_key": "",
+            "sender": "@example:localhost",
             "content": {
                 "info": {
                     "h": 128,
@@ -327,6 +338,7 @@ mod tests {
                 assert_eq!(event.content.name, "Ruma");
                 assert_eq!(event.event_type, EventType::RoomName);
                 assert_eq!(event.state_key, "");
+                assert_eq!(event.sender.to_string(), "@example:localhost");
             }
             _ => {
                 assert!(false);
@@ -338,6 +350,7 @@ mod tests {
                 assert_eq!(event.content.join_rule, JoinRule::Public);
                 assert_eq!(event.event_type, EventType::RoomJoinRules);
                 assert_eq!(event.state_key, "");
+                assert_eq!(event.sender.to_string(), "@example:localhost");
             }
             _ => {
                 assert!(false);
@@ -356,6 +369,7 @@ mod tests {
                 assert_eq!(event.content.url, "https://domain.com/image.jpg");
                 assert_eq!(event.event_type, EventType::RoomAvatar);
                 assert_eq!(event.state_key, "");
+                assert_eq!(event.sender.to_string(), "@example:localhost");
             }
             _ => {
                 assert!(false);
