@@ -1,5 +1,4 @@
-use syn::punctuated::Pair;
-use syn::{Expr, FieldValue, Lit, Member};
+use syn::{punctuated::Pair, Expr, FieldValue, Lit, Member};
 
 pub struct Metadata {
     pub description: String,

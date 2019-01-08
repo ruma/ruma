@@ -4,11 +4,12 @@
 //! See the documentation for the `ruma_api!` macro for usage details.
 
 #![deny(missing_debug_implementations)]
-#![recursion_limit="256"]
+#![recursion_limit = "256"]
 
 extern crate proc_macro;
 extern crate proc_macro2;
-#[macro_use] extern crate quote;
+#[macro_use]
+extern crate quote;
 extern crate ruma_api;
 extern crate syn;
 
