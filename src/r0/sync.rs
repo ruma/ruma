@@ -199,7 +199,7 @@ pub mod sync_events {
     use std::collections::HashMap;
 
     use ruma_api_macros::ruma_api;
-    use ruma_events::collections::{all, only};
+    use ruma_events::{collections::{all, only}, stripped};
     use ruma_identifiers::RoomId;
 
     use r0::filter::FilterDefinition;
@@ -360,7 +360,7 @@ pub mod sync_events {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct InviteState {
         /// A list of state events.
-        pub events: Vec<only::StateEvent>,
+        pub events: Vec<stripped::StrippedState>,
     }
 
     /// Updates to the presence status of other users.
