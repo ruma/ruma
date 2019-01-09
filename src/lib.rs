@@ -26,8 +26,7 @@ extern crate serde_urlencoded;
 #[cfg(test)]
 extern crate url;
 
-use std::convert::TryInto;
-use std::io;
+use std::{convert::TryInto, io};
 
 use futures::future::FutureFrom;
 use http::{Method, Request, Response, StatusCode};
@@ -137,9 +136,9 @@ mod tests {
         use std::convert::TryFrom;
 
         use futures::future::{err, ok, FutureFrom, FutureResult};
-        use http::header::CONTENT_TYPE;
-        use http::method::Method;
-        use http::{Request as HttpRequest, Response as HttpResponse};
+        use http::{
+            header::CONTENT_TYPE, method::Method, Request as HttpRequest, Response as HttpResponse,
+        };
         use ruma_identifiers::{RoomAliasId, RoomId};
         use serde::de::{Deserialize, IntoDeserializer};
         use serde_json;
@@ -220,11 +219,9 @@ mod tests {
                     room_id: request_body.room_id,
                     room_alias: {
                         let segment = path_segments.get(5).unwrap().as_bytes();
-                        let decoded =
-                            percent_encoding::percent_decode(segment)
-                            .decode_utf8_lossy();
+                        let decoded = percent_encoding::percent_decode(segment).decode_utf8_lossy();
                         RoomAliasId::deserialize(decoded.into_deserializer())
-                        .map_err(|e: serde_json::error::Error| e)?
+                            .map_err(|e: serde_json::error::Error| e)?
                     },
                 })
             }
