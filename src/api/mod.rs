@@ -1,34 +1,40 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{ToTokens, TokenStreamExt};
-use syn::{braced, Field, FieldValue, Ident, Meta, Token};
-use syn::parse::{Parse, ParseStream, Result};
+use syn::{
+    braced,
+    parse::{Parse, ParseStream, Result},
+    Field, FieldValue, Ident, Meta, Token,
+};
 
 mod metadata;
 mod request;
 mod response;
 
-use self::metadata::Metadata;
-use self::request::Request;
-use self::response::Response;
+use self::{metadata::Metadata, request::Request, response::Response};
 
 pub fn strip_serde_attrs(field: &Field) -> Field {
     let mut field = field.clone();
 
-    field.attrs = field.attrs.into_iter().filter(|attr| {
-        let meta = attr.interpret_meta()
-            .expect("ruma_api! could not parse field attributes");
+    field.attrs = field
+        .attrs
+        .into_iter()
+        .filter(|attr| {
+            let meta = attr
+                .interpret_meta()
+                .expect("ruma_api! could not parse field attributes");
 
-        let meta_list = match meta {
-            Meta::List(meta_list) => meta_list,
-            _ => return true,
-        };
+            let meta_list = match meta {
+                Meta::List(meta_list) => meta_list,
+                _ => return true,
+            };
 
-        if &meta_list.ident.to_string() == "serde" {
-            return false;
-        }
+            if &meta_list.ident.to_string() == "serde" {
+                return false;
+            }
 
-        true
-    }).collect();
+            true
+        })
+        .collect();
 
     field
 }
@@ -200,7 +206,10 @@ impl ToTokens for Api {
         };
 
         let create_http_request = if let Some(field) = self.request.newtype_body_field() {
-            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+            let field_name = field
+                .ident
+                .as_ref()
+                .expect("expected field to have an identifier");
 
             quote! {
                 let request_body = RequestBody(request.#field_name);
@@ -239,7 +248,10 @@ impl ToTokens for Api {
         };
 
         let parse_request_body = if let Some(field) = self.request.newtype_body_field() {
-            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+            let field_name = field
+                .ident
+                .as_ref()
+                .expect("expected field to have an identifier");
 
             quote! {
                 #field_name: request_body,

@@ -1,7 +1,6 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{ToTokens, TokenStreamExt};
-use syn::spanned::Spanned;
-use syn::{Field, Ident, Lit, Meta, NestedMeta};
+use syn::{spanned::Spanned, Field, Ident, Lit, Meta, NestedMeta};
 
 use api::strip_serde_attrs;
 
@@ -27,8 +26,10 @@ impl Response {
     }
 
     pub fn init_fields(&self) -> TokenStream {
-        let fields = self.fields.iter().map(|response_field| {
-            match *response_field {
+        let fields = self
+            .fields
+            .iter()
+            .map(|response_field| match *response_field {
                 ResponseField::Body(ref field) => {
                     let field_name = field
                         .ident
@@ -67,8 +68,7 @@ impl Response {
                         #field_name: response_body
                     }
                 }
-            }
-        });
+            });
 
         quote! {
             #(#fields,)*
@@ -78,7 +78,10 @@ impl Response {
     pub fn apply_header_fields(&self) -> TokenStream {
         let header_calls = self.fields.iter().filter_map(|response_field| {
             if let ResponseField::Header(ref field, ref header) = *response_field {
-                let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+                let field_name = field
+                    .ident
+                    .as_ref()
+                    .expect("expected field to have an identifier");
                 let header_name = Ident::new(header.as_ref(), Span::call_site());
                 let span = field.span();
 
@@ -97,13 +100,19 @@ impl Response {
 
     pub fn to_body(&self) -> TokenStream {
         if let Some(ref field) = self.newtype_body_field() {
-            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+            let field_name = field
+                .ident
+                .as_ref()
+                .expect("expected field to have an identifier");
             let span = field.span();
             quote_spanned!(span=> response.#field_name)
         } else {
             let fields = self.fields.iter().filter_map(|response_field| {
                 if let ResponseField::Body(ref field) = *response_field {
-                    let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+                    let field_name = field
+                        .ident
+                        .as_ref()
+                        .expect("expected field to have an identifier");
                     let span = field.span();
 
                     Some(quote_spanned! {span=>
@@ -126,7 +135,6 @@ impl Response {
         for response_field in self.fields.iter() {
             match *response_field {
                 ResponseField::NewtypeBody(ref field) => {
-
                     return Some(field);
                 }
                 _ => continue,
@@ -135,7 +143,6 @@ impl Response {
 
         None
     }
-
 }
 
 impl From<Vec<Field>> for Response {
@@ -210,9 +217,7 @@ impl From<Vec<Field>> for Response {
             }
         }).collect();
 
-        Response {
-            fields,
-        }
+        Response { fields }
     }
 }
 
@@ -254,15 +259,16 @@ impl ToTokens for Response {
                 struct ResponseBody(#ty);
             }
         } else if self.has_body_fields() {
-            let fields = self.fields.iter().filter_map(|response_field| {
-                match *response_field {
+            let fields = self
+                .fields
+                .iter()
+                .filter_map(|response_field| match *response_field {
                     ResponseField::Body(ref field) => {
                         let span = field.span();
                         Some(quote_spanned!(span=> #field))
                     }
                     _ => None,
-                }
-            });
+                });
 
             quote! {
                 /// Data in the response body.

@@ -1,7 +1,6 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{ToTokens, TokenStreamExt};
-use syn::spanned::Spanned;
-use syn::{Field, Ident, Lit, Meta, NestedMeta};
+use syn::{spanned::Spanned, Field, Ident, Lit, Meta, NestedMeta};
 
 use api::strip_serde_attrs;
 
@@ -81,10 +80,13 @@ impl Request {
     }
 
     pub fn path_field(&self, name: &str) -> Option<&Field> {
-        self.fields.iter()
+        self.fields
+            .iter()
             .flat_map(|f| f.field_(RequestFieldKind::Path))
             .find(|field| {
-                field.ident.as_ref()
+                field
+                    .ident
+                    .as_ref()
                     .expect("expected field to have an identifier")
                     .to_string()
                     == name
@@ -220,9 +222,7 @@ impl From<Vec<Field>> for Request {
             RequestField::new(field_kind, field, header)
         }).collect();
 
-        Request {
-            fields,
-        }
+        Request { fields }
     }
 }
 
@@ -264,15 +264,16 @@ impl ToTokens for Request {
                 struct RequestBody(#ty);
             }
         } else if self.has_body_fields() {
-            let fields = self.fields.iter().filter_map(|request_field| {
-                match *request_field {
+            let fields = self
+                .fields
+                .iter()
+                .filter_map(|request_field| match *request_field {
                     RequestField::Body(ref field) => {
                         let span = field.span();
                         Some(quote_spanned!(span=> #field))
                     }
                     _ => None,
-                }
-            });
+                });
 
             quote! {
                 /// Data in the request body.
@@ -286,16 +287,17 @@ impl ToTokens for Request {
         };
 
         let request_path_struct = if self.has_path_fields() {
-            let fields = self.fields.iter().filter_map(|request_field| {
-                match *request_field {
+            let fields = self
+                .fields
+                .iter()
+                .filter_map(|request_field| match *request_field {
                     RequestField::Path(ref field) => {
                         let span = field.span();
 
                         Some(quote_spanned!(span=> #field))
                     }
                     _ => None,
-                }
-            });
+                });
 
             quote! {
                 /// Data in the request path.
@@ -309,15 +311,16 @@ impl ToTokens for Request {
         };
 
         let request_query_struct = if self.has_query_fields() {
-            let fields = self.fields.iter().filter_map(|request_field| {
-                match *request_field {
+            let fields = self
+                .fields
+                .iter()
+                .filter_map(|request_field| match *request_field {
                     RequestField::Query(ref field) => {
                         let span = field.span();
                         Some(quote_spanned!(span=> #field))
                     }
                     _ => None,
-                }
-            });
+                });
 
             quote! {
                 /// Data in the request's query string.
@@ -352,7 +355,9 @@ impl RequestField {
     fn new(kind: RequestFieldKind, field: Field, header: Option<String>) -> RequestField {
         match kind {
             RequestFieldKind::Body => RequestField::Body(field),
-            RequestFieldKind::Header => RequestField::Header(field, header.expect("missing header name")),
+            RequestFieldKind::Header => {
+                RequestField::Header(field, header.expect("missing header name"))
+            }
             RequestFieldKind::NewtypeBody => RequestField::NewtypeBody(field),
             RequestFieldKind::Path => RequestField::Path(field),
             RequestFieldKind::Query => RequestField::Query(field),
