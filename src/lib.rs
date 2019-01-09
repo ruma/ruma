@@ -124,16 +124,20 @@
 
 #![deny(missing_docs, warnings)]
 
-use std::collections::{HashMap, HashSet};
-use std::error::Error as StdError;
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::{
+    collections::{HashMap, HashSet},
+    error::Error as StdError,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 
 use base64::{decode_config, encode_config, CharacterSet, Config};
 use lazy_static::lazy_static;
 use ring::signature::{verify, Ed25519KeyPair as RingEd25519KeyPair, ED25519};
-use serde::de::{Error as SerdeError, MapAccess, Unexpected, Visitor};
-use serde::ser::SerializeMap;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{
+    de::{Error as SerdeError, MapAccess, Unexpected, Visitor},
+    ser::SerializeMap,
+    Deserialize, Deserializer, Serialize, Serializer,
+};
 use serde_json::{to_string, Value};
 use untrusted::Input;
 use url::Url;
@@ -699,15 +703,8 @@ mod test {
     use serde_json::{from_str, to_string, to_value};
 
     use super::{
-        sign_json,
-        verify_json,
-        Ed25519KeyPair,
-        Ed25519Verifier,
-        KeyPair,
-        Signature,
-        SignatureSet,
-        Signatures,
-        BASE64_CONFIG,
+        sign_json, verify_json, Ed25519KeyPair, Ed25519Verifier, KeyPair, Signature, SignatureSet,
+        Signatures, BASE64_CONFIG,
     };
 
     const PUBLIC_KEY: &'static str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
