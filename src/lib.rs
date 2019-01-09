@@ -4,20 +4,6 @@
 #![deny(missing_docs)]
 #![feature(try_from)]
 
-extern crate futures;
-extern crate http;
-extern crate hyper;
-#[cfg(feature = "tls")]
-extern crate hyper_tls;
-#[cfg(feature = "tls")]
-extern crate native_tls;
-extern crate ruma_api;
-extern crate ruma_client_api;
-extern crate ruma_identifiers;
-extern crate serde_json;
-extern crate serde_urlencoded;
-extern crate url;
-
 use std::{cell::RefCell, convert::TryInto, rc::Rc, str::FromStr};
 
 use futures::{
@@ -35,8 +21,7 @@ use native_tls::Error as NativeTlsError;
 use ruma_api::Endpoint;
 use url::Url;
 
-pub use error::Error;
-pub use session::Session;
+pub use crate::{error::Error, session::Session};
 
 /// Matrix client-server API endpoints.
 pub mod api;
@@ -113,7 +98,7 @@ where
         password: String,
         device_id: Option<String>,
     ) -> impl Future<Item = Session, Error = Error> {
-        use api::r0::session::login;
+        use crate::api::r0::session::login;
 
         let data = self.0.clone();
 
@@ -140,7 +125,7 @@ where
     /// this method stores the session data returned by the endpoint in this
     /// client, instead of returning it.
     pub fn register_guest(&self) -> impl Future<Item = Session, Error = Error> {
-        use api::r0::account::register;
+        use crate::api::r0::account::register;
 
         let data = self.0.clone();
 
@@ -177,7 +162,7 @@ where
         username: Option<String>,
         password: String,
     ) -> impl Future<Item = Session, Error = Error> {
-        use api::r0::account::register;
+        use crate::api::r0::account::register;
 
         let data = self.0.clone();
 
@@ -212,7 +197,7 @@ where
         since: Option<String>,
         set_presence: bool,
     ) -> impl Stream<Item = api::r0::sync::sync_events::Response, Error = Error> {
-        use api::r0::sync::sync_events;
+        use crate::api::r0::sync::sync_events;
 
         let client = self.clone();
         let set_presence = if set_presence {

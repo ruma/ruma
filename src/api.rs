@@ -29,7 +29,7 @@ macro_rules! endpoint {
                 $($import),*
             };
 
-            use {Client, Error};
+            use crate::{Client, Error};
 
             /// Make a request to this API endpoint.
             pub fn call<C>(
