@@ -12,25 +12,14 @@
 #![deny(missing_docs)]
 #![feature(try_from)]
 
-extern crate futures;
-extern crate http;
-extern crate hyper;
-extern crate ruma_identifiers;
-#[cfg(test)]
-extern crate serde;
-#[cfg(test)]
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-extern crate serde_urlencoded;
-#[cfg(test)]
-extern crate url;
-
 use std::{convert::TryInto, io};
 
 use futures::future::FutureFrom;
-use http::{Method, Request, Response, StatusCode};
-use hyper::Body;
+use http::{self, Method, Request, Response, StatusCode};
+use hyper::{self, Body};
+use ruma_identifiers;
+use serde_json;
+use serde_urlencoded;
 
 /// A Matrix API endpoint.
 pub trait Endpoint<T = Body, U = Body> {
@@ -141,6 +130,7 @@ mod tests {
         };
         use ruma_identifiers::{RoomAliasId, RoomId};
         use serde::de::{Deserialize, IntoDeserializer};
+        use serde_derive::{Deserialize, Serialize};
         use serde_json;
         use url::percent_encoding;
 
