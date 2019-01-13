@@ -59,12 +59,13 @@ impl_enum! {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_str, to_string};
     use std::convert::TryFrom;
 
     use ruma_identifiers::UserId;
+    use serde_json::{from_str, to_string};
+
     use super::{PresenceEvent, PresenceEventContent, PresenceState};
-    use super::super::{EventType};
+    use crate::EventType;
 
     /// Test serialization and deserialization of example m.presence event from the spec
     /// https://github.com/turt2live/matrix-doc/blob/master/event-schemas/examples/m.presence
@@ -84,18 +85,9 @@ mod tests {
         let serialized_event =
             r#"{"content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online"},"type":"m.presence","sender":"@example:localhost"}"#;
 
-        assert_eq!(
-            to_string(&event).unwrap(),
-            serialized_event
-        );
+        assert_eq!(to_string(&event).unwrap(), serialized_event);
         let deserialized_event = from_str::<PresenceEvent>(serialized_event).unwrap();
-        assert_eq!(
-            deserialized_event.content,
-            event.content
-        );
-        assert_eq!(
-            deserialized_event.sender,
-            event.sender
-        );
+        assert_eq!(deserialized_event.content, event.content);
+        assert_eq!(deserialized_event.sender, event.sender);
     }
 }

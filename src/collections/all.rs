@@ -1,34 +1,28 @@
 //! Enums for heterogeneous collections of events, inclusive for every event type that implements
 //! the trait of the same name.
 
-use call::answer::AnswerEvent;
-use call::candidates::CandidatesEvent;
-use call::hangup::HangupEvent;
-use call::invite::InviteEvent;
+use call::{
+    answer::AnswerEvent, candidates::CandidatesEvent, hangup::HangupEvent, invite::InviteEvent,
+};
 use direct::DirectEvent;
 use presence::PresenceEvent;
 use receipt::ReceiptEvent;
-use room::aliases::AliasesEvent;
-use room::avatar::AvatarEvent;
-use room::canonical_alias::CanonicalAliasEvent;
-use room::create::CreateEvent;
-use room::guest_access::GuestAccessEvent;
-use room::history_visibility::HistoryVisibilityEvent;
-use room::join_rules::JoinRulesEvent;
-use room::member::MemberEvent;
-use room::message::MessageEvent;
-use room::name::NameEvent;
-use room::pinned_events::PinnedEventsEvent;
-use room::power_levels::PowerLevelsEvent;
-use room::redaction::RedactionEvent;
-use room::third_party_invite::ThirdPartyInviteEvent;
-use room::topic::TopicEvent;
+use room::{
+    aliases::AliasesEvent, avatar::AvatarEvent, canonical_alias::CanonicalAliasEvent,
+    create::CreateEvent, guest_access::GuestAccessEvent,
+    history_visibility::HistoryVisibilityEvent, join_rules::JoinRulesEvent, member::MemberEvent,
+    message::MessageEvent, name::NameEvent, pinned_events::PinnedEventsEvent,
+    power_levels::PowerLevelsEvent, redaction::RedactionEvent,
+    third_party_invite::ThirdPartyInviteEvent, topic::TopicEvent,
+};
 use tag::TagEvent;
 use typing::TypingEvent;
-use {CustomEvent, CustomRoomEvent, CustomStateEvent, EventType};
+use CustomEvent;
+use CustomRoomEvent;
+use CustomStateEvent;
+use EventType;
 
-use serde::de::Error;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
 /// A basic event, room event, or state event.
@@ -425,7 +419,8 @@ impl<'de> Deserialize<'de> for Event {
                     };
 
                     Ok(Event::CustomState(event))
-                } else if value.get("event_id").is_some() && value.get("room_id").is_some()
+                } else if value.get("event_id").is_some()
+                    && value.get("room_id").is_some()
                     && value.get("sender").is_some()
                 {
                     let event = match from_value::<CustomRoomEvent>(value) {

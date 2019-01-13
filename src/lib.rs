@@ -110,8 +110,10 @@ extern crate serde_json;
 use std::fmt::{Debug, Display, Error as FmtError, Formatter, Result as FmtResult};
 
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::de::{Error as SerdeError, Visitor};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{
+    de::{Error as SerdeError, Visitor},
+    Deserialize, Deserializer, Serialize, Serializer,
+};
 use serde_json::Value;
 
 #[macro_use]
