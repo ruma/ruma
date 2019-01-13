@@ -7,17 +7,11 @@
 #![recursion_limit = "256"]
 
 extern crate proc_macro;
-extern crate proc_macro2;
-#[macro_use]
-extern crate quote;
-extern crate ruma_api;
-extern crate syn;
 
 use proc_macro::TokenStream;
-
 use quote::ToTokens;
 
-use api::{Api, RawApi};
+use crate::api::{Api, RawApi};
 
 mod api;
 
@@ -122,22 +116,12 @@ mod api;
 /// # Examples
 ///
 /// ```rust,no_run
-/// #![feature(proc_macro, try_from)]
-///
-/// extern crate futures;
-/// extern crate http;
-/// extern crate hyper;
-/// extern crate ruma_api;
-/// extern crate ruma_api_macros;
-/// extern crate serde;
-/// #[macro_use] extern crate serde_derive;
-/// extern crate serde_json;
-/// extern crate serde_urlencoded;
-/// extern crate url;
+/// #![feature(try_from)]
 ///
 /// # fn main() {
 /// pub mod some_endpoint {
 ///     use ruma_api_macros::ruma_api;
+///     use serde_derive::{Deserialize, Serialize};
 ///
 ///     ruma_api! {
 ///         metadata {
@@ -173,6 +157,7 @@ mod api;
 ///
 /// pub mod newtype_body_endpoint {
 ///     use ruma_api_macros::ruma_api;
+///     use serde_derive::{Deserialize, Serialize};
 ///
 ///     #[derive(Clone, Debug, Deserialize, Serialize)]
 ///     pub struct MyCustomType {
