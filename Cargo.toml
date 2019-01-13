@@ -9,9 +9,10 @@ name = "ruma-identifiers"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma-identifiers"
 version = "0.11.1"
+edition = "2018"
 
 [dependencies]
-lazy_static = "1.0"
+lazy_static = "1.2"
 rand = "0.5"
 regex = "1.0"
 serde = "1.0"
