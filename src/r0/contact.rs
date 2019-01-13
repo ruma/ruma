@@ -3,6 +3,7 @@
 /// [POST /_matrix/client/r0/account/3pid](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-3pid)
 pub mod create_contact {
     use ruma_api_macros::ruma_api;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -43,6 +44,7 @@ pub mod create_contact {
 /// [GET /_matrix/client/r0/account/3pid](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-account-3pid)
 pub mod get_contacts {
     use ruma_api_macros::ruma_api;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -84,6 +86,7 @@ pub mod get_contacts {
 /// [POST /_matrix/client/r0/account/3pid/email/requestToken](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-3pid-email-requesttoken)
 pub mod request_contact_verification_token {
     use ruma_api_macros::ruma_api;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {

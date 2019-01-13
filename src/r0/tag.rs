@@ -5,6 +5,7 @@ pub mod create_tag {
     use ruma_api_macros::ruma_api;
     use ruma_events::tag::TagInfo;
     use ruma_identifiers::{RoomId, UserId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -40,6 +41,7 @@ pub mod get_tags {
     use ruma_api_macros::ruma_api;
     use ruma_events::tag::TagEventContent;
     use ruma_identifiers::{RoomId, UserId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -71,6 +73,7 @@ pub mod get_tags {
 pub mod delete_tag {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{RoomId, UserId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {

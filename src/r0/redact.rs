@@ -4,6 +4,7 @@
 pub mod redact_event {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{EventId, RoomId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {

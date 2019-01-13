@@ -1,6 +1,7 @@
 //! Endpoints for room membership.
 
 use ruma_signatures::Signatures;
+use serde_derive::{Deserialize, Serialize};
 
 // TODO: spec requires a nesting ThirdPartySigned { signed: Signed { mxid: ..., ... } }
 //       for join_room_by_id_or_alias but not for join_room_by_id, inconsistency?
@@ -23,6 +24,7 @@ pub struct ThirdPartySigned {
 pub mod invite_user {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{RoomId, UserId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -50,6 +52,7 @@ pub mod invite_user {
 pub mod join_room_by_id_or_alias {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{RoomId, RoomIdOrAliasId};
+    use serde_derive::{Deserialize, Serialize};
 
     use super::ThirdPartySigned;
 
@@ -84,6 +87,7 @@ pub mod join_room_by_id_or_alias {
 pub mod join_room_by_id {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::RoomId;
+    use serde_derive::{Deserialize, Serialize};
 
     use super::ThirdPartySigned;
 
@@ -118,6 +122,7 @@ pub mod join_room_by_id {
 pub mod forget_room {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::RoomId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -143,6 +148,7 @@ pub mod forget_room {
 pub mod leave_room {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::RoomId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -168,6 +174,7 @@ pub mod leave_room {
 pub mod kick_user {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{RoomId, UserId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -198,6 +205,7 @@ pub mod kick_user {
 pub mod unban_user {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{RoomId, UserId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -225,6 +233,7 @@ pub mod unban_user {
 pub mod ban_user {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{RoomId, UserId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {

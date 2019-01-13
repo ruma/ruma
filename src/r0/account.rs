@@ -4,6 +4,7 @@
 pub mod register {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -101,6 +102,7 @@ pub mod register {
 /// [POST /_matrix/client/r0/account/password/email/requestToken](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-password-email-requesttoken)
 pub mod request_password_change_token {
     use ruma_api_macros::ruma_api;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -153,6 +155,7 @@ pub mod deactivate {
 /// [POST /_matrix/client/r0/account/password](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-password)
 pub mod change_password {
     use ruma_api_macros::ruma_api;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -177,6 +180,7 @@ pub mod change_password {
 /// [POST /_matrix/client/r0/register/email/requestToken](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-register-email-requesttoken)
 pub mod request_register_token {
     use ruma_api_macros::ruma_api;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {

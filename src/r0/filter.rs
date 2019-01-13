@@ -1,6 +1,7 @@
 //! Endpoints for event filters.
 
 use ruma_identifiers::{RoomId, UserId};
+use serde_derive::{Deserialize, Serialize};
 
 /// Format to use for returned events
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
@@ -169,6 +170,7 @@ pub struct FilterDefinition {
 pub mod create_filter {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
 
     use super::FilterDefinition;
 
@@ -204,6 +206,7 @@ pub mod create_filter {
 pub mod get_filter {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
 
     use super::FilterDefinition;
 

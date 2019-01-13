@@ -5,6 +5,7 @@ pub mod send_state_event_for_empty_key {
     use ruma_api_macros::ruma_api;
     use ruma_events::EventType;
     use ruma_identifiers::{EventId, RoomId};
+    use serde_derive::{Deserialize, Serialize};
     use serde_json::Value;
 
     ruma_api! {
@@ -41,6 +42,7 @@ pub mod send_state_event_for_key {
     use ruma_api_macros::ruma_api;
     use ruma_events::EventType;
     use ruma_identifiers::{EventId, RoomId};
+    use serde_derive::{Deserialize, Serialize};
     use serde_json::Value;
 
     ruma_api! {
@@ -80,6 +82,7 @@ pub mod send_message_event {
     use ruma_api_macros::ruma_api;
     use ruma_events::{room::message::MessageEventContent, EventType};
     use ruma_identifiers::{EventId, RoomId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {

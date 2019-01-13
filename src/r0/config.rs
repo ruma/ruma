@@ -4,6 +4,7 @@
 pub mod set_room_account_data {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{RoomId, UserId};
+    use serde_derive::{Deserialize, Serialize};
     use serde_json::Value;
 
     ruma_api! {
@@ -43,6 +44,7 @@ pub mod set_room_account_data {
 pub mod set_global_account_data {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
     use serde_json::Value;
 
     ruma_api! {

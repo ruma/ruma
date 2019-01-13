@@ -5,6 +5,7 @@ pub mod get_context {
     use ruma_api_macros::ruma_api;
     use ruma_events::collections::only;
     use ruma_identifiers::{EventId, RoomId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {

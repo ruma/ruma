@@ -7,8 +7,9 @@ pub mod search_events {
     use ruma_api_macros::ruma_api;
     use ruma_events::collections::all::Event;
     use ruma_identifiers::{EventId, RoomId, UserId};
+    use serde_derive::{Deserialize, Serialize};
 
-    use r0::filter::RoomEventFilter;
+    use crate::r0::filter::RoomEventFilter;
 
     ruma_api! {
         metadata {
