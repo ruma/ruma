@@ -227,12 +227,12 @@ where
         Err(Error::top_level())
     }
 
-    /// Returns an error.
+    /// Returns `Ok`.
     fn serialize_unit_struct(
         self,
         _name: &'static str,
     ) -> Result<Self::Ok, Error> {
-        Err(Error::top_level())
+        Ok(self.urlencoder)
     }
 
     /// Returns an error.
