@@ -81,7 +81,7 @@ pub mod register {
         #[serde(rename = "type")]
         kind: String,
         /// The value of the session key given by the homeserver.
-        session: Option<String>
+        session: Option<String>,
     }
 
     /// The kind of account being registered.
@@ -90,10 +90,10 @@ pub mod register {
         /// A guest account
         ///
         /// These accounts may have limited permissions and may not be supported by all servers.
-        #[serde(rename="guest")]
+        #[serde(rename = "guest")]
         Guest,
         /// A regular user account
-        #[serde(rename="user")]
+        #[serde(rename = "user")]
         User,
     }
 }

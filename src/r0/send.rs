@@ -3,8 +3,8 @@
 /// [PUT /_matrix/client/r0/rooms/{roomId}/state/{eventType}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-state-eventtype)
 pub mod send_state_event_for_empty_key {
     use ruma_api_macros::ruma_api;
-    use ruma_identifiers::{RoomId, EventId};
     use ruma_events::EventType;
+    use ruma_identifiers::{EventId, RoomId};
     use serde_json::Value;
 
     ruma_api! {
@@ -39,8 +39,8 @@ pub mod send_state_event_for_empty_key {
 /// [PUT /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-state-eventtype-statekey)
 pub mod send_state_event_for_key {
     use ruma_api_macros::ruma_api;
-    use ruma_identifiers::{RoomId, EventId};
     use ruma_events::EventType;
+    use ruma_identifiers::{EventId, RoomId};
     use serde_json::Value;
 
     ruma_api! {
@@ -78,9 +78,9 @@ pub mod send_state_event_for_key {
 /// [PUT /_matrix/client/r0/rooms/{roomId}/send/{eventType}/{txnId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-send-eventtype-txnid)
 pub mod send_message_event {
     use ruma_api_macros::ruma_api;
-    use ruma_identifiers::{RoomId, EventId};
-    use ruma_events::EventType;
     use ruma_events::room::message::MessageEventContent;
+    use ruma_events::EventType;
+    use ruma_identifiers::{EventId, RoomId};
 
     ruma_api! {
         metadata {

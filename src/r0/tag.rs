@@ -4,7 +4,7 @@
 pub mod create_tag {
     use ruma_api_macros::ruma_api;
     use ruma_events::tag::TagInfo;
-    use ruma_identifiers::{UserId, RoomId};
+    use ruma_identifiers::{RoomId, UserId};
 
     ruma_api! {
         metadata {
@@ -39,7 +39,7 @@ pub mod create_tag {
 pub mod get_tags {
     use ruma_api_macros::ruma_api;
     use ruma_events::tag::TagEventContent;
-    use ruma_identifiers::{UserId, RoomId};
+    use ruma_identifiers::{RoomId, UserId};
 
     ruma_api! {
         metadata {
@@ -70,7 +70,7 @@ pub mod get_tags {
 /// [DELETE /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags/{tag}](https://matrix.org/docs/spec/client_server/r0.2.0.html#delete-matrix-client-r0-user-userid-rooms-roomid-tags-tag)
 pub mod delete_tag {
     use ruma_api_macros::ruma_api;
-    use ruma_identifiers::{UserId, RoomId};
+    use ruma_identifiers::{RoomId, UserId};
 
     ruma_api! {
         metadata {

@@ -15,7 +15,8 @@ extern crate ruma_identifiers;
 extern crate ruma_signatures;
 extern crate serde;
 extern crate serde_json;
-#[macro_use] extern crate serde_derive;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_urlencoded;
 extern crate url;
 

@@ -3,7 +3,7 @@
 /// [PUT /_matrix/client/r0/rooms/{roomId}/redact/{eventId}/{txnId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-redact-eventid-txnid)
 pub mod redact_event {
     use ruma_api_macros::ruma_api;
-    use ruma_identifiers::{RoomId, EventId};
+    use ruma_identifiers::{EventId, RoomId};
 
     ruma_api! {
         metadata {

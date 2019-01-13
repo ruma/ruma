@@ -3,7 +3,7 @@
 /// [PUT /_matrix/client/r0/rooms/{roomId}/typing/{userId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-typing-userid)
 pub mod create_typing_event {
     use ruma_api_macros::ruma_api;
-    use ruma_identifiers::{UserId, RoomId};
+    use ruma_identifiers::{RoomId, UserId};
 
     ruma_api! {
         metadata {

@@ -67,7 +67,7 @@ pub mod get_contacts {
     #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
     pub enum Medium {
         /// An email address.
-        #[serde(rename="email")]
+        #[serde(rename = "email")]
         Email,
     }
 

@@ -41,7 +41,7 @@ pub mod search_events {
     pub struct Categories {
         /// Criteria for searching a category of events.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_events: Option<Criteria>
+        pub room_events: Option<Criteria>,
     }
 
     /// Criteria for searching a category of events.
@@ -107,17 +107,17 @@ pub mod search_events {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Grouping {
         /// The key within events to use for this grouping.
-        pub key: GroupingKey
+        pub key: GroupingKey,
     }
 
     /// The key within events to use for this grouping.
     #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
     pub enum GroupingKey {
         /// `room_id`
-        #[serde(rename="room_id")]
+        #[serde(rename = "room_id")]
         RoomId,
         /// `sender`
-        #[serde(rename="sender")]
+        #[serde(rename = "sender")]
         Sender,
     }
 
@@ -132,13 +132,13 @@ pub mod search_events {
     #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
     pub enum SearchKeys {
         /// content.body
-        #[serde(rename="content.body")]
+        #[serde(rename = "content.body")]
         ContentBody,
         /// content.name
-        #[serde(rename="content.name")]
+        #[serde(rename = "content.name")]
         ContentName,
         /// content.topic
-        #[serde(rename="content.topic")]
+        #[serde(rename = "content.topic")]
         ContentTopic,
     }
 
@@ -147,10 +147,10 @@ pub mod search_events {
     pub enum OrderBy {
         /// Prioritize events by a numerical ranking of how closely they matched the search
         /// criteria.
-        #[serde(rename="rank")]
+        #[serde(rename = "rank")]
         Rank,
         /// Prioritize recent events.
-        #[serde(rename="recent")]
+        #[serde(rename = "recent")]
         Recent,
     }
 
