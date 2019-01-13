@@ -1,6 +1,7 @@
 //! Types for the *m.room.create* event.
 
 use ruma_identifiers::UserId;
+use serde_derive::{Deserialize, Serialize};
 
 state_event! {
     /// This is the first event in a room and cannot be changed. It acts as the root of all other

@@ -1,5 +1,7 @@
 //! Types for the *m.room.join_rules* event.
 
+use serde_derive::{Deserialize, Serialize};
+
 state_event! {
     /// Describes how users are allowed to join the room.
     pub struct JoinRulesEvent(JoinRulesEventContent) {}

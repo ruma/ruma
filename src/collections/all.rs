@@ -1,26 +1,25 @@
 //! Enums for heterogeneous collections of events, inclusive for every event type that implements
 //! the trait of the same name.
 
-use call::{
-    answer::AnswerEvent, candidates::CandidatesEvent, hangup::HangupEvent, invite::InviteEvent,
+use crate::{
+    call::{
+        answer::AnswerEvent, candidates::CandidatesEvent, hangup::HangupEvent, invite::InviteEvent,
+    },
+    direct::DirectEvent,
+    presence::PresenceEvent,
+    receipt::ReceiptEvent,
+    room::{
+        aliases::AliasesEvent, avatar::AvatarEvent, canonical_alias::CanonicalAliasEvent,
+        create::CreateEvent, guest_access::GuestAccessEvent,
+        history_visibility::HistoryVisibilityEvent, join_rules::JoinRulesEvent,
+        member::MemberEvent, message::MessageEvent, name::NameEvent,
+        pinned_events::PinnedEventsEvent, power_levels::PowerLevelsEvent,
+        redaction::RedactionEvent, third_party_invite::ThirdPartyInviteEvent, topic::TopicEvent,
+    },
+    tag::TagEvent,
+    typing::TypingEvent,
+    CustomEvent, CustomRoomEvent, CustomStateEvent, EventType,
 };
-use direct::DirectEvent;
-use presence::PresenceEvent;
-use receipt::ReceiptEvent;
-use room::{
-    aliases::AliasesEvent, avatar::AvatarEvent, canonical_alias::CanonicalAliasEvent,
-    create::CreateEvent, guest_access::GuestAccessEvent,
-    history_visibility::HistoryVisibilityEvent, join_rules::JoinRulesEvent, member::MemberEvent,
-    message::MessageEvent, name::NameEvent, pinned_events::PinnedEventsEvent,
-    power_levels::PowerLevelsEvent, redaction::RedactionEvent,
-    third_party_invite::ThirdPartyInviteEvent, topic::TopicEvent,
-};
-use tag::TagEvent;
-use typing::TypingEvent;
-use CustomEvent;
-use CustomRoomEvent;
-use CustomStateEvent;
-use EventType;
 
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};

@@ -1,6 +1,7 @@
 //! Types for the *m.room.aliases* event.
 
 use ruma_identifiers::RoomAliasId;
+use serde_derive::{Deserialize, Serialize};
 
 state_event! {
     /// Informs the room about what room aliases it has been given.

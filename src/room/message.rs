@@ -1,6 +1,7 @@
 //! Types for the *m.room.message* event.
 
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use serde_derive::{Deserialize, Serialize};
 use serde_json::{from_value, Value};
 
 use super::{ImageInfo, ThumbnailInfo};

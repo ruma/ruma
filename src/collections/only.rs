@@ -5,18 +5,18 @@ use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
 pub use super::all::StateEvent;
-use call::{
-    answer::AnswerEvent, candidates::CandidatesEvent, hangup::HangupEvent, invite::InviteEvent,
+use crate::{
+    call::{
+        answer::AnswerEvent, candidates::CandidatesEvent, hangup::HangupEvent, invite::InviteEvent,
+    },
+    direct::DirectEvent,
+    presence::PresenceEvent,
+    receipt::ReceiptEvent,
+    room::{message::MessageEvent, redaction::RedactionEvent},
+    tag::TagEvent,
+    typing::TypingEvent,
+    CustomEvent, CustomRoomEvent, EventType,
 };
-use direct::DirectEvent;
-use presence::PresenceEvent;
-use receipt::ReceiptEvent;
-use room::{message::MessageEvent, redaction::RedactionEvent};
-use tag::TagEvent;
-use typing::TypingEvent;
-use CustomEvent;
-use CustomRoomEvent;
-use EventType;
 
 /// A basic event.
 #[derive(Clone, Debug)]

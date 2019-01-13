@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 
 use ruma_identifiers::{RoomId, UserId};
+use serde_derive::{Deserialize, Serialize};
 
 event! {
     /// Informs the client about the rooms that are considered direct by a user.

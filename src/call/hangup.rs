@@ -1,5 +1,7 @@
 //! Types for the *m.call.hangup* event.
 
+use serde_derive::{Deserialize, Serialize};
+
 room_event! {
     /// Sent by either party to signal their termination of the call. This can be sent either once
     /// the call has has been established or before to abort the call.

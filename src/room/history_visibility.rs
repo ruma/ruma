@@ -1,5 +1,7 @@
 //! Types for the *m.room.history_visibility* event.
 
+use serde_derive::{Deserialize, Serialize};
+
 state_event! {
     /// This event controls whether a member of a room can see the events that happened in a room
     /// from before they joined.
