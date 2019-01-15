@@ -5,19 +5,14 @@
 #![deny(missing_debug_implementations, missing_docs)]
 #![feature(try_from)]
 
-extern crate futures;
-extern crate http;
-extern crate hyper;
-extern crate ruma_api;
-extern crate ruma_api_macros;
-extern crate ruma_events;
-extern crate ruma_identifiers;
-extern crate ruma_signatures;
-extern crate serde;
-extern crate serde_json;
-#[macro_use] extern crate serde_derive;
-extern crate serde_urlencoded;
-extern crate url;
+use futures;
+use http;
+use hyper;
+use ruma_api;
+use serde;
+use serde_json;
+use serde_urlencoded;
+use url;
 
 /// Endpoints for the r0.x.x versions of the client API specification.
 pub mod r0 {

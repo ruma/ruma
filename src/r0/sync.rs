@@ -5,6 +5,7 @@ pub mod get_state_events {
     use ruma_api_macros::ruma_api;
     use ruma_events::collections::only;
     use ruma_identifiers::RoomId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -37,6 +38,7 @@ pub mod get_state_events_for_empty_key {
     use ruma_api_macros::ruma_api;
     use ruma_events::EventType;
     use ruma_identifiers::RoomId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -70,6 +72,7 @@ pub mod get_state_events_for_key {
     use ruma_api_macros::ruma_api;
     use ruma_events::EventType;
     use ruma_identifiers::RoomId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -106,6 +109,7 @@ pub mod get_member_events {
     use ruma_api_macros::ruma_api;
     use ruma_events::room::member::MemberEvent;
     use ruma_identifiers::RoomId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -135,6 +139,7 @@ pub mod get_message_events {
     use ruma_api_macros::ruma_api;
     use ruma_events::collections::only;
     use ruma_identifiers::RoomId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -186,10 +191,10 @@ pub mod get_message_events {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub enum Direction {
         /// Return events backwards in time from the requested `from` token.
-        #[serde(rename="b")]
+        #[serde(rename = "b")]
         Backward,
         /// Return events forwards in time from the requested `from` token.
-        #[serde(rename="f")]
+        #[serde(rename = "f")]
         Forward,
     }
 }
@@ -199,10 +204,14 @@ pub mod sync_events {
     use std::collections::HashMap;
 
     use ruma_api_macros::ruma_api;
-    use ruma_events::{collections::{all, only}, stripped};
+    use ruma_events::{
+        collections::{all, only},
+        stripped,
+    };
     use ruma_identifiers::RoomId;
+    use serde_derive::{Deserialize, Serialize};
 
-    use r0::filter::FilterDefinition;
+    use crate::r0::filter::FilterDefinition;
 
     ruma_api! {
         metadata {
@@ -252,7 +261,7 @@ pub mod sync_events {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub enum SetPresence {
         /// Do not set the presence of the user calling this API.
-        #[serde(rename="offline")]
+        #[serde(rename = "offline")]
         Offline,
     }
 

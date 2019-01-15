@@ -4,6 +4,7 @@
 pub mod get_display_name {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -33,6 +34,7 @@ pub mod get_display_name {
 pub mod set_display_name {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -61,6 +63,7 @@ pub mod set_display_name {
 pub mod get_avatar_url {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -90,6 +93,7 @@ pub mod get_avatar_url {
 pub mod set_avatar_url {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -117,6 +121,7 @@ pub mod set_avatar_url {
 pub mod get_profile {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {

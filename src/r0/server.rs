@@ -6,6 +6,7 @@ pub mod get_user_info {
 
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {

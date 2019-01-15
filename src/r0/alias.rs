@@ -4,6 +4,7 @@
 pub mod create_alias {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{RoomAliasId, RoomId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -31,6 +32,7 @@ pub mod create_alias {
 pub mod delete_alias {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::RoomAliasId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -56,6 +58,7 @@ pub mod delete_alias {
 pub mod get_alias {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{RoomAliasId, RoomId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {

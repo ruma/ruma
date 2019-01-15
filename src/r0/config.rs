@@ -4,6 +4,7 @@
 pub mod set_room_account_data {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{RoomId, UserId};
+    use serde_derive::{Deserialize, Serialize};
     use serde_json::Value;
 
     ruma_api! {
@@ -40,9 +41,10 @@ pub mod set_room_account_data {
 }
 
 /// [PUT /_matrix/client/r0/user/{userId}/account_data/{type}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-user-userid-account-data-type)
-pub mod set_global_account_data  {
+pub mod set_global_account_data {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
     use serde_json::Value;
 
     ruma_api! {

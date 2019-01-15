@@ -2,8 +2,9 @@
 
 /// [GET /_matrix/client/r0/publicRooms](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-publicrooms)
 pub mod get_public_rooms {
-    use ruma_identifiers::{RoomId, RoomAliasId};
     use ruma_api_macros::ruma_api;
+    use ruma_identifiers::{RoomAliasId, RoomId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {

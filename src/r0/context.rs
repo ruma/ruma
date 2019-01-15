@@ -2,9 +2,10 @@
 
 /// [GET /_matrix/client/r0/rooms/{roomId}/context/{eventId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-context-eventid)
 pub mod get_context {
-    use ruma_identifiers::{EventId, RoomId};
-    use ruma_events::collections::only;
     use ruma_api_macros::ruma_api;
+    use ruma_events::collections::only;
+    use ruma_identifiers::{EventId, RoomId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {

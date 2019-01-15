@@ -2,8 +2,9 @@
 
 /// [POST /_matrix/client/r0/createRoom](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-createroom)
 pub mod create_room {
-    use ruma_identifiers::{RoomId, UserId};
     use ruma_api_macros::ruma_api;
+    use ruma_identifiers::{RoomId, UserId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -59,7 +60,7 @@ pub mod create_room {
         /// Whether users on other servers can join this room.
         ///
         /// Defaults to `true` if key does not exist.
-        #[serde(rename="m.federate")]
+        #[serde(rename = "m.federate")]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub federate: Option<bool>,
     }
@@ -68,13 +69,13 @@ pub mod create_room {
     #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
     pub enum RoomPreset {
         /// `join_rules` is set to `invite` and `history_visibility` is set to `shared`.
-        #[serde(rename="private_chat")]
+        #[serde(rename = "private_chat")]
         PrivateChat,
         /// `join_rules` is set to `public` and `history_visibility` is set to `shared`.
-        #[serde(rename="public_chat")]
+        #[serde(rename = "public_chat")]
         PublicChat,
         /// Same as `PrivateChat`, but all initial invitees get the same power level as the creator.
-        #[serde(rename="trusted_private_chat")]
+        #[serde(rename = "trusted_private_chat")]
         TrustedPrivateChat,
     }
 

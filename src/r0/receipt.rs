@@ -6,6 +6,7 @@ pub mod create_receipt {
 
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::{EventId, RoomId};
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -41,7 +42,7 @@ pub mod create_receipt {
     }
 
     impl Display for ReceiptType {
-        fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
             match *self {
                 ReceiptType::Read => write!(f, "m.read"),
             }

@@ -3,8 +3,9 @@
 /// [PUT /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-presence-userid-status)
 pub mod set_presence {
     use ruma_api_macros::ruma_api;
-    use ruma_identifiers::UserId;
     use ruma_events::presence::PresenceState;
+    use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -36,6 +37,7 @@ pub mod get_presence {
     use ruma_api_macros::ruma_api;
     use ruma_events::presence::PresenceState;
     use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -73,6 +75,7 @@ pub mod get_presence {
 pub mod update_presence_subscriptions {
     use ruma_api_macros::ruma_api;
     use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
@@ -107,6 +110,7 @@ pub mod get_subscribed_presences {
     use ruma_api_macros::ruma_api;
     use ruma_events::presence::PresenceEvent;
     use ruma_identifiers::UserId;
+    use serde_derive::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
