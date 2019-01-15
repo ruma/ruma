@@ -16,10 +16,8 @@
 //! A homeserver signs JSON with a key pair:
 //!
 //! ```rust,no_run
-//! # extern crate ruma_signatures;
-//! # extern crate serde_json;
-//! # fn main() {
-//! # use ruma_signatures::KeyPair;
+//! # use ruma_signatures::{self, KeyPair};
+//! # use serde_json;
 //! # let public_key = [0; 32];
 //! # let private_key = [0; 32];
 //! // Create an Ed25519 key pair.
@@ -30,7 +28,6 @@
 //! ).expect("the provided keys should be suitable for Ed25519");
 //! let value = serde_json::from_str("{}").expect("an empty JSON object should deserialize");
 //! ruma_signatures::sign_json(&key_pair, &value).expect("value is a a JSON object"); // `Signature`
-//! # }
 //! ```
 //!
 //! # Signing Matrix events
@@ -43,9 +40,8 @@
 //! A client application or another homeserver can verify a signature on arbitrary JSON:
 //!
 //! ```rust,no_run
-//! # extern crate ruma_signatures;
-//! # extern crate serde_json;
-//! # fn main() {
+//! # use ruma_signatures;
+//! # use serde_json;
 //! # let public_key = [0; 32];
 //! # let signature_bytes = [0, 32];
 //! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).expect(
@@ -54,7 +50,6 @@
 //! let value = serde_json::from_str("{}").expect("an empty JSON object should deserialize");
 //! let verifier = ruma_signatures::Ed25519Verifier::new();
 //! assert!(ruma_signatures::verify_json(&verifier, &public_key, &signature, &value).is_ok());
-//! # }
 //! ```
 //!
 //! Verifying signatures of Matrix events is not yet implemented by ruma_signatures.
@@ -83,10 +78,9 @@
 //! This inner object can be created by serializing a `SignatureSet`:
 //!
 //! ```rust,no_run
-//! # extern crate ruma_signatures;
-//! # extern crate serde;
-//! # extern crate serde_json;
-//! # fn main() {
+//! # use ruma_signatures;
+//! # use serde;
+//! # use serde_json;
 //! # let signature_bytes = [0, 32];
 //! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).expect(
 //!     "key identifier should be valid"
@@ -94,7 +88,6 @@
 //! let mut signature_set = ruma_signatures::SignatureSet::new();
 //! signature_set.insert(signature);
 //! serde_json::to_string(&signature_set).expect("signature_set should serialize");
-//! # }
 //! ```
 //!
 //! This code produces the object under the "example.com" key in the preceeding JSON. Similarly,
@@ -104,10 +97,9 @@
 //! created like this:
 //!
 //! ```rust,no_run
-//! # extern crate ruma_signatures;
-//! # extern crate serde;
-//! # extern crate serde_json;
-//! # fn main() {
+//! # use ruma_signatures;
+//! # use serde;
+//! # use serde_json;
 //! # let signature_bytes = [0, 32];
 //! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).expect(
 //!     "key identifier should be valid"
@@ -117,7 +109,6 @@
 //! let mut signatures = ruma_signatures::Signatures::new();
 //! signatures.insert("example.com", signature_set).expect("example.com is a valid server name");
 //! serde_json::to_string(&signatures).expect("signatures should serialize");
-//! # }
 //! ```
 //!
 //! Just like the `SignatureSet` itself, the `Signatures` value can also be deserialized from JSON.
