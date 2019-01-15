@@ -1,8 +1,8 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{ToTokens, TokenStreamExt};
+use quote::{quote, quote_spanned, ToTokens, TokenStreamExt};
 use syn::{spanned::Spanned, Field, Ident, Lit, Meta, NestedMeta};
 
-use api::strip_serde_attrs;
+use crate::api::strip_serde_attrs;
 
 pub struct Response {
     fields: Vec<ResponseField>,
@@ -249,7 +249,7 @@ impl ToTokens for Response {
         };
 
         let response_body_struct = if let Some(newtype_body_field) = self.newtype_body_field() {
-            let mut field = newtype_body_field.clone();
+            let field = newtype_body_field.clone();
             let ty = &field.ty;
             let span = field.span();
 

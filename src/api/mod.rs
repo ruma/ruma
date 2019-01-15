@@ -1,5 +1,5 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{ToTokens, TokenStreamExt};
+use quote::{quote, ToTokens, TokenStreamExt};
 use syn::{
     braced,
     parse::{Parse, ParseStream, Result},
@@ -478,7 +478,7 @@ pub struct RawApi {
 }
 
 impl Parse for RawApi {
-    fn parse(input: ParseStream) -> Result<Self> {
+    fn parse(input: ParseStream<'_>) -> Result<Self> {
         input.parse::<kw::metadata>()?;
         let metadata;
         braced!(metadata in input);
