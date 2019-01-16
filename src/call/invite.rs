@@ -1,5 +1,7 @@
 //! Types for the *m.call.invite* event.
 
+use serde_derive::{Deserialize, Serialize};
+
 use super::SessionDescription;
 
 room_event! {

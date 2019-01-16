@@ -1,7 +1,7 @@
 macro_rules! impl_enum {
     ($name:ident { $($variant:ident => $s:expr,)+ }) => {
         impl ::std::fmt::Display for $name {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 let variant = match *self {
                     $($name::$variant => $s,)*
                 };
@@ -39,7 +39,7 @@ macro_rules! event {
             pub content: $content_type,
 
             /// The type of the event.
-            #[serde(rename="type")]
+            #[serde(rename = "type")]
             pub event_type: $crate::EventType,
 
             $(
@@ -87,7 +87,7 @@ macro_rules! room_event {
             pub event_id: ::ruma_identifiers::EventId,
 
             /// The type of the event.
-            #[serde(rename="type")]
+            #[serde(rename = "type")]
             pub event_type: $crate::EventType,
 
             /// Timestamp in milliseconds on originating homeserver when this event was sent.
@@ -98,7 +98,7 @@ macro_rules! room_event {
             pub room_id: Option<::ruma_identifiers::RoomId>,
 
             /// Additional key-value pairs not signed by the homeserver.
-            #[serde(skip_serializing_if="Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub unsigned: Option<::serde_json::Value>,
 
             /// The unique identifier for the user who sent this event.
@@ -162,14 +162,14 @@ macro_rules! state_event {
             pub event_id: ::ruma_identifiers::EventId,
 
             /// The type of the event.
-            #[serde(rename="type")]
+            #[serde(rename = "type")]
             pub event_type: $crate::EventType,
 
             /// Timestamp in milliseconds on originating homeserver when this event was sent.
             pub origin_server_ts: u64,
 
             /// The previous content for this state key, if any.
-            #[serde(skip_serializing_if="Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub prev_content: Option<$content_type>,
 
             /// The unique identifier for the room associated with this event.
@@ -180,7 +180,7 @@ macro_rules! state_event {
             pub state_key: String,
 
             /// Additional key-value pairs not signed by the homeserver.
-            #[serde(skip_serializing_if="Option::is_none")]
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub unsigned: Option<::serde_json::Value>,
 
             /// The unique identifier for the user associated with this event.

@@ -3,8 +3,9 @@
 use std::collections::HashMap;
 
 use ruma_identifiers::UserId;
+use serde_derive::{Deserialize, Serialize};
 
-use EventType;
+use crate::EventType;
 
 state_event! {
     /// Defines the power levels (privileges) of users in the room.

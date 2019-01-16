@@ -1,7 +1,7 @@
 //! Types for the *m.room.message* event.
 
-use serde::de::Error;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use serde_derive::{Deserialize, Serialize};
 use serde_json::{from_value, Value};
 
 use super::{ImageInfo, ThumbnailInfo};
@@ -396,17 +396,17 @@ mod tests {
         assert_eq!(
             from_str::<MessageEventContent>(
                 r#"{"body":"test","msgtype":"m.audio","url":"http://example.com/audio.mp3"}"#
-            ).unwrap(),
+            )
+            .unwrap(),
             message_event_content
         );
     }
 
     #[test]
     fn deserialization_failure() {
-        assert!(
-            from_str::<MessageEventContent>(
-                r#"{"body":"test","msgtype":"m.location","url":"http://example.com/audio.mp3"}"#
-            ).is_err()
-        );
+        assert!(from_str::<MessageEventContent>(
+            r#"{"body":"test","msgtype":"m.location","url":"http://example.com/audio.mp3"}"#
+        )
+        .is_err());
     }
 }

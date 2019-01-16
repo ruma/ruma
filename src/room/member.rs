@@ -2,8 +2,9 @@
 
 use ruma_identifiers::UserId;
 use ruma_signatures::Signatures;
+use serde_derive::{Deserialize, Serialize};
 
-use stripped::StrippedState;
+use crate::stripped::StrippedState;
 
 state_event! {
     /// The current membership state of a user in the room.
@@ -22,7 +23,7 @@ state_event! {
     /// on a few select state events such as the room name.
     pub struct MemberEvent(MemberEventContent) {
         /// A subset of the state of the room at the time of the invite.
-        #[serde(skip_serializing_if="Option::is_none")]
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub invite_room_state: Option<Vec<StrippedState>>
     }
 }

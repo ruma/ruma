@@ -100,18 +100,14 @@
 #![deny(missing_docs)]
 #![deny(warnings)]
 
-extern crate ruma_identifiers;
-extern crate ruma_signatures;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-
 use std::fmt::{Debug, Display, Error as FmtError, Formatter, Result as FmtResult};
 
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::de::{Error as SerdeError, Visitor};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{
+    de::{Error as SerdeError, Visitor},
+    Deserialize, Deserializer, Serialize, Serializer,
+};
+use serde_derive::{Deserialize, Serialize};
 use serde_json::Value;
 
 #[macro_use]
@@ -251,7 +247,7 @@ state_event! {
 }
 
 impl Display for EventType {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
         let event_type_str = match *self {
             EventType::CallAnswer => "m.call.answer",
             EventType::CallCandidates => "m.call.candidates",
@@ -335,7 +331,7 @@ impl<'de> Deserialize<'de> for EventType {
         impl<'de> Visitor<'de> for EventTypeVisitor {
             type Value = EventType;
 
-            fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+            fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
                 write!(formatter, "a Matrix event type as a string")
             }
 

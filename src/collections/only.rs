@@ -1,24 +1,22 @@
 //! Enums for heterogeneous collections of events, exclusive to event types that implement "at
 //! most" the trait of the same name.
 
-use call::answer::AnswerEvent;
-use call::candidates::CandidatesEvent;
-use call::hangup::HangupEvent;
-use call::invite::InviteEvent;
-use direct::DirectEvent;
-use presence::PresenceEvent;
-use receipt::ReceiptEvent;
-use room::message::MessageEvent;
-use room::redaction::RedactionEvent;
-use tag::TagEvent;
-use typing::TypingEvent;
-use {CustomEvent, CustomRoomEvent, EventType};
-
-use serde::de::Error;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
 pub use super::all::StateEvent;
+use crate::{
+    call::{
+        answer::AnswerEvent, candidates::CandidatesEvent, hangup::HangupEvent, invite::InviteEvent,
+    },
+    direct::DirectEvent,
+    presence::PresenceEvent,
+    receipt::ReceiptEvent,
+    room::{message::MessageEvent, redaction::RedactionEvent},
+    tag::TagEvent,
+    typing::TypingEvent,
+    CustomEvent, CustomRoomEvent, EventType,
+};
 
 /// A basic event.
 #[derive(Clone, Debug)]

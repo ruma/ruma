@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 
 use ruma_identifiers::{RoomId, UserId};
+use serde_derive::{Deserialize, Serialize};
 
 event! {
     /// Informs the client about the rooms that are considered direct by a user.
@@ -22,9 +23,11 @@ mod tests {
     use ruma_identifiers::{RoomId, UserId};
     use serde_json::{from_str, to_string};
 
-    use super::super::EventType;
-    use collections;
-    use direct::{DirectEvent, DirectEventContent};
+    use crate::{
+        collections,
+        direct::{DirectEvent, DirectEventContent},
+        EventType,
+    };
 
     #[test]
     fn serialization() {

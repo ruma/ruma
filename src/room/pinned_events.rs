@@ -1,6 +1,7 @@
 //! Types for the *m.room.pinned_events* event.
 
 use ruma_identifiers::EventId;
+use serde_derive::{Deserialize, Serialize};
 
 state_event! {
     /// Used to "pin" particular events in a room for other participants to review later.
@@ -19,11 +20,10 @@ mod tests {
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{from_str, to_string};
 
-    use room::pinned_events::{PinnedEventsContent, PinnedEventsEvent};
-    use Event;
-    use EventType;
-    use RoomEvent;
-    use StateEvent;
+    use crate::{
+        room::pinned_events::{PinnedEventsContent, PinnedEventsEvent},
+        Event, EventType, RoomEvent, StateEvent,
+    };
 
     #[test]
     fn serialization_deserialization() {

@@ -6,23 +6,21 @@
 //! the other fields are otherwise inapplicable.
 
 use ruma_identifiers::UserId;
-use serde::de::Error;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use serde_derive::{Deserialize, Serialize};
 use serde_json::{from_value, Value};
 
-use room::aliases::AliasesEventContent;
-use room::avatar::AvatarEventContent;
-use room::canonical_alias::CanonicalAliasEventContent;
-use room::create::CreateEventContent;
-use room::guest_access::GuestAccessEventContent;
-use room::history_visibility::HistoryVisibilityEventContent;
-use room::join_rules::JoinRulesEventContent;
-use room::member::MemberEventContent;
-use room::name::NameEventContent;
-use room::power_levels::PowerLevelsEventContent;
-use room::third_party_invite::ThirdPartyInviteEventContent;
-use room::topic::TopicEventContent;
-use EventType;
+use crate::{
+    room::{
+        aliases::AliasesEventContent, avatar::AvatarEventContent,
+        canonical_alias::CanonicalAliasEventContent, create::CreateEventContent,
+        guest_access::GuestAccessEventContent, history_visibility::HistoryVisibilityEventContent,
+        join_rules::JoinRulesEventContent, member::MemberEventContent, name::NameEventContent,
+        power_levels::PowerLevelsEventContent, third_party_invite::ThirdPartyInviteEventContent,
+        topic::TopicEventContent,
+    },
+    EventType,
+};
 
 /// A stripped-down version of a state event that is included along with some other events.
 #[derive(Clone, Debug)]
@@ -265,9 +263,10 @@ mod tests {
     use serde_json::{from_str, to_string};
 
     use super::{StrippedRoomTopic, StrippedState};
-    use room::join_rules::JoinRule;
-    use room::topic::TopicEventContent;
-    use EventType;
+    use crate::{
+        room::{join_rules::JoinRule, topic::TopicEventContent},
+        EventType,
+    };
 
     #[test]
     fn serialize_stripped_state_event() {

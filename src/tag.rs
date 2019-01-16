@@ -2,6 +2,8 @@
 
 use std::collections::HashMap;
 
+use serde_derive::{Deserialize, Serialize};
+
 event! {
     /// Informs the client of tags on a room.
     pub struct TagEvent(TagEventContent) {}

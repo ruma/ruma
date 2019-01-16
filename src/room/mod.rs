@@ -2,6 +2,8 @@
 //!
 //! This module also contains types shared by events in its child namespaces.
 
+use serde_derive::{Deserialize, Serialize};
+
 pub mod aliases;
 pub mod avatar;
 pub mod canonical_alias;
