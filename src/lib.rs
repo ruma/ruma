@@ -4,7 +4,7 @@
 #![deny(missing_docs)]
 #![feature(try_from)]
 
-use std::{cell::RefCell, convert::TryInto, rc::Rc, str::FromStr};
+use std::{convert::TryInto, str::FromStr, sync::{Arc, Mutex}};
 
 use futures::{
     future::{Future, FutureFrom, IntoFuture},
@@ -30,7 +30,7 @@ mod session;
 
 /// A client for the Matrix client-server API.
 #[derive(Debug)]
-pub struct Client<C: Connect>(Rc<ClientData<C>>);
+pub struct Client<C: Connect>(Arc<ClientData<C>>);
 
 /// Data contained in Client's Rc
 #[derive(Debug)]
@@ -40,16 +40,16 @@ where
 {
     homeserver_url: Url,
     hyper: HyperClient<C>,
-    session: RefCell<Option<Session>>,
+    session: Mutex<Option<Session>>,
 }
 
 impl Client<HttpConnector> {
     /// Creates a new client for making HTTP requests to the given homeserver.
     pub fn new(homeserver_url: Url, session: Option<Session>) -> Self {
-        Client(Rc::new(ClientData {
+        Client(Arc::new(ClientData {
             homeserver_url,
             hyper: HyperClient::builder().keep_alive(true).build_http(),
-            session: RefCell::new(session),
+            session: Mutex::new(session),
         }))
     }
 }
@@ -60,10 +60,10 @@ impl Client<HttpsConnector<HttpConnector>> {
     pub fn https(homeserver_url: Url, session: Option<Session>) -> Result<Self, NativeTlsError> {
         let connector = HttpsConnector::new(4)?;
 
-        Ok(Client(Rc::new(ClientData {
+        Ok(Client(Arc::new(ClientData {
             homeserver_url,
             hyper: { HyperClient::builder().keep_alive(true).build(connector) },
-            session: RefCell::new(session),
+            session: Mutex::new(session),
         })))
     }
 }
@@ -80,10 +80,10 @@ where
         homeserver_url: Url,
         session: Option<Session>,
     ) -> Self {
-        Client(Rc::new(ClientData {
+        Client(Arc::new(ClientData {
             homeserver_url,
             hyper: hyper_client,
-            session: RefCell::new(session),
+            session: Mutex::new(session),
         }))
     }
 
@@ -115,7 +115,7 @@ where
         )
         .map(move |response| {
             let session = Session::new(response.access_token, response.user_id, response.device_id);
-            *data.session.borrow_mut() = Some(session.clone());
+            *data.session.lock().unwrap() = Some(session.clone());
 
             session
         })
@@ -143,7 +143,7 @@ where
         )
         .map(move |response| {
             let session = Session::new(response.access_token, response.user_id, response.device_id);
-            *data.session.borrow_mut() = Some(session.clone());
+            *data.session.lock().unwrap() = Some(session.clone());
 
             session
         })
@@ -180,7 +180,7 @@ where
         )
         .map(move |response| {
             let session = Session::new(response.access_token, response.user_id, response.device_id);
-            *data.session.borrow_mut() = Some(session.clone());
+            *data.session.lock().unwrap() = Some(session.clone());
 
             session
         })
@@ -250,7 +250,7 @@ where
                     url.set_query(uri.query());
 
                     if E::METADATA.requires_authentication {
-                        if let Some(ref session) = *data1.session.borrow() {
+                        if let Some(ref session) = *data1.session.lock().unwrap() {
                             url.query_pairs_mut()
                                 .append_pair("access_token", session.access_token());
                         } else {
