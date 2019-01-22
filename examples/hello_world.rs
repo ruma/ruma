@@ -9,7 +9,6 @@ use ruma_events::{
     EventType,
 };
 use ruma_identifiers::RoomAliasId;
-use tokio_core::reactor::Core;
 use url::Url;
 
 // from https://stackoverflow.com/a/43992218/1592377
@@ -66,8 +65,6 @@ fn main() {
         }
     };
 
-    Core::new()
-        .unwrap()
-        .run(hello_world(homeserver_url.parse().unwrap(), room))
-        .unwrap();
+    tokio::run(hello_world(homeserver_url.parse().unwrap(), room)
+               .map_err(|e| { dbg!(e); () }));
 }

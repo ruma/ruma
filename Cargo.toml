@@ -32,7 +32,7 @@ version = "0.2.2"
 
 [dev-dependencies]
 ruma-events = "0.11.0"
-tokio-core = "0.1.17"
+tokio = "0.1"
 
 [features]
 default = ["tls"]
