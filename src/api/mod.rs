@@ -329,8 +329,8 @@ impl ToTokens for Api {
             #[allow(unused_imports)]
             use ::futures::{Future as _Future, IntoFuture as _IntoFuture, Stream as _Stream};
             use ::ruma_api::Endpoint as _RumaApiEndpoint;
-            use ::serde::Deserialize;
-            use ::serde::de::{Error as _SerdeError, IntoDeserializer};
+            use ::serde::Deserialize as _Deserialize;
+            use ::serde::de::{Error as _SerdeError, IntoDeserializer as _IntoDeserializer};
 
             use ::std::convert::{TryInto as _TryInto};
 
