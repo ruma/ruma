@@ -26,6 +26,9 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
+#[cfg(feature = "diesel")]
+use diesel::sql_types::Text;
+
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use regex::Regex;
 use serde::{
@@ -85,7 +88,8 @@ pub enum Error {
 /// );
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-#[cfg_attr(feature = "diesel", derive(FromSqlRow))]
+#[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
+#[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct EventId {
     hostname: Host,
     opaque_id: String,
@@ -107,7 +111,8 @@ pub struct EventId {
 /// );
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-#[cfg_attr(feature = "diesel", derive(FromSqlRow))]
+#[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
+#[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct RoomAliasId {
     alias: String,
     hostname: Host,
@@ -129,7 +134,8 @@ pub struct RoomAliasId {
 /// );
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-#[cfg_attr(feature = "diesel", derive(FromSqlRow))]
+#[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
+#[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct RoomId {
     hostname: Host,
     opaque_id: String,
@@ -156,7 +162,8 @@ pub struct RoomId {
 ///     "!n8f893n9:example.com"
 /// );
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-#[cfg_attr(feature = "diesel", derive(FromSqlRow))]
+#[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
+#[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub enum RoomIdOrAliasId {
     /// A Matrix room alias ID.
     RoomAliasId(RoomAliasId),
@@ -179,7 +186,8 @@ pub enum RoomIdOrAliasId {
 /// );
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-#[cfg_attr(feature = "diesel", derive(FromSqlRow))]
+#[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
+#[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct UserId {
     hostname: Host,
     localpart: String,
@@ -758,11 +766,11 @@ mod diesel_integration {
 
             impl<DB> FromSql<Text, DB> for $crate::$name
             where
-                DB: Backend<RawValue = [u8]>,
+                String: FromSql<Text, DB>,
+                DB: Backend,
             {
-                fn from_sql(bytes: Option<&[u8]>) -> DeserializeResult<Self> {
-                    let string: String = FromSql::<Text, DB>::from_sql(bytes)?;
-
+                fn from_sql(value: Option<&<DB as Backend>::RawValue>) -> DeserializeResult<Self> {
+                    let string = <String as FromSql<Text, DB>>::from_sql(value)?;
                     $crate::$name::try_from(string.as_str())
                         .map_err(|error| Box::new(error) as Box<StdError + Send + Sync>)
                 }
