@@ -129,8 +129,7 @@ mod tests {
             header::CONTENT_TYPE, method::Method, Request as HttpRequest, Response as HttpResponse,
         };
         use ruma_identifiers::{RoomAliasId, RoomId};
-        use serde::de::{Deserialize, IntoDeserializer};
-        use serde_derive::{Deserialize, Serialize};
+        use serde::{de::IntoDeserializer, Deserialize, Serialize};
         use serde_json;
         use url::percent_encoding;
 
