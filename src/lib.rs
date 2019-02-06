@@ -121,7 +121,7 @@ mod api;
 /// # fn main() {
 /// pub mod some_endpoint {
 ///     use ruma_api_macros::ruma_api;
-///     use serde_derive::{Deserialize, Serialize};
+///     use serde::{Deserialize, Serialize};
 ///
 ///     ruma_api! {
 ///         metadata {
@@ -157,7 +157,7 @@ mod api;
 ///
 /// pub mod newtype_body_endpoint {
 ///     use ruma_api_macros::ruma_api;
-///     use serde_derive::{Deserialize, Serialize};
+///     use serde::{Deserialize, Serialize};
 ///
 ///     #[derive(Clone, Debug, Deserialize, Serialize)]
 ///     pub struct MyCustomType {
