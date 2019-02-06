@@ -2,7 +2,7 @@
 
 pub mod some_endpoint {
     use ruma_api_macros::ruma_api;
-    use serde_derive::{Deserialize, Serialize};
+    use serde::{Deserialize, Serialize};
 
     ruma_api! {
         metadata {
