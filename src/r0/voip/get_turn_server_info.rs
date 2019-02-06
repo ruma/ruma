@@ -1,7 +1,7 @@
 //! [GET /_matrix/client/r0/voip/turnServer](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-voip-turnserver)
 
 use ruma_api_macros::ruma_api;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 ruma_api! {
     metadata {

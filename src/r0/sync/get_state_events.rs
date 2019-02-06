@@ -3,7 +3,7 @@
 use ruma_api_macros::ruma_api;
 use ruma_events::collections::only;
 use ruma_identifiers::RoomId;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 ruma_api! {
     metadata {
