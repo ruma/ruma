@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use ruma_identifiers::UserId;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::EventType;
 

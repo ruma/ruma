@@ -1,6 +1,6 @@
 //! Types for the *m.room.name* event.
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 state_event! {
     /// A human-friendly room name designed to be displayed to the end-user.

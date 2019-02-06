@@ -1,7 +1,7 @@
 //! Types for the *m.typing* event.
 
 use ruma_identifiers::{RoomId, UserId};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 event! {
     /// Informs the client of the list of users currently typing.

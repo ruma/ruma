@@ -1,6 +1,6 @@
 //! Types for the *m.room.third_party_invite* event.
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 state_event! {
     /// An invitation to a room issued to a third party identifier, rather than a matrix user ID.

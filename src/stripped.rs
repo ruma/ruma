@@ -7,7 +7,6 @@
 
 use ruma_identifiers::UserId;
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
-use serde_derive::{Deserialize, Serialize};
 use serde_json::{from_value, Value};
 
 use crate::{

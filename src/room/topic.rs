@@ -1,6 +1,6 @@
 //! Types for the *m.room.topic* event.
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 state_event! {
     /// A topic is a short message detailing what is currently being discussed in the room.

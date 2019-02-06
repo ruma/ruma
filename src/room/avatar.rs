@@ -1,6 +1,6 @@
 //! Types for the *m.room.avatar* event.
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use super::ImageInfo;
 

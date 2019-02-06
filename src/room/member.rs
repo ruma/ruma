@@ -2,7 +2,7 @@
 
 use ruma_identifiers::UserId;
 use ruma_signatures::Signatures;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::stripped::StrippedState;
 

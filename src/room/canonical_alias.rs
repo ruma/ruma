@@ -1,7 +1,7 @@
 //! Types for the *m.room.canonical_alias* event.
 
 use ruma_identifiers::RoomAliasId;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 state_event! {
     /// Informs the room as to which alias is the canonical one.

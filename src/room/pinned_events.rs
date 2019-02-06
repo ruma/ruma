@@ -1,7 +1,7 @@
 //! Types for the *m.room.pinned_events* event.
 
 use ruma_identifiers::EventId;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 state_event! {
     /// Used to "pin" particular events in a room for other participants to review later.
