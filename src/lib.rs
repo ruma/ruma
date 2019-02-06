@@ -107,7 +107,6 @@ use serde::{
     de::{Error as SerdeError, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use serde_derive::{Deserialize, Serialize};
 use serde_json::Value;
 
 #[macro_use]

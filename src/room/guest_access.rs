@@ -1,6 +1,6 @@
 //! Types for the *m.room.guest_access* event.
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 state_event! {
     /// Controls whether guest users are allowed to join rooms.

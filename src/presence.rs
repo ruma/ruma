@@ -1,6 +1,6 @@
 //! Types for the *m.presence* event.
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use ruma_identifiers::UserId;
 

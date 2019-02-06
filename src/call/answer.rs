@@ -1,6 +1,6 @@
 //! Types for the *m.call.answer* event.
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use super::SessionDescription;
 

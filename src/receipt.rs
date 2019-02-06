@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 event! {
     /// Informs the client of new receipts.

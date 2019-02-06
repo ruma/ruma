@@ -1,6 +1,6 @@
 //! Types for the *m.call.candidates* event.
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 room_event! {
     /// This event is sent by callers after sending an invite and by the callee after answering.

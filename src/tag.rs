@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 event! {
     /// Informs the client of tags on a room.

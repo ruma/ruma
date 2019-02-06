@@ -1,7 +1,7 @@
 //! Types for the *m.room.redaction* event.
 
 use ruma_identifiers::EventId;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 room_event! {
     /// A redaction of an event.
