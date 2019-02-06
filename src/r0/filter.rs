@@ -4,7 +4,7 @@ pub mod create_filter;
 pub mod get_filter;
 
 use ruma_identifiers::{RoomId, UserId};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 /// Format to use for returned events
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]

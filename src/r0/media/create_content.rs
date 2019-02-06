@@ -1,7 +1,7 @@
 //! [POST /_matrix/media/r0/upload](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-media-r0-upload)
 
 use ruma_api_macros::ruma_api;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 ruma_api! {
     metadata {

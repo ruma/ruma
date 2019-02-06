@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use ruma_api_macros::ruma_api;
 use ruma_identifiers::UserId;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 ruma_api! {
     metadata {

@@ -8,7 +8,7 @@ use ruma_events::{
     stripped,
 };
 use ruma_identifiers::RoomId;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::r0::filter::FilterDefinition;
 

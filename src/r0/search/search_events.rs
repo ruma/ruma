@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use ruma_api_macros::ruma_api;
 use ruma_events::collections::all::Event;
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::r0::filter::RoomEventFilter;
 

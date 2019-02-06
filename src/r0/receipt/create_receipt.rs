@@ -4,7 +4,7 @@ use std::fmt::{Display, Error as FmtError, Formatter};
 
 use ruma_api_macros::ruma_api;
 use ruma_identifiers::{EventId, RoomId};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 ruma_api! {
     metadata {

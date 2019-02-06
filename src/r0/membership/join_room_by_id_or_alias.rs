@@ -2,7 +2,7 @@
 
 use ruma_api_macros::ruma_api;
 use ruma_identifiers::{RoomId, RoomIdOrAliasId};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use super::ThirdPartySigned;
 

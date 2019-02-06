@@ -11,7 +11,7 @@ pub mod leave_room;
 pub mod unban_user;
 
 use ruma_signatures::Signatures;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 // TODO: spec requires a nesting ThirdPartySigned { signed: Signed { mxid: ..., ... } }
 //       for join_room_by_id_or_alias but not for join_room_by_id, inconsistency?
