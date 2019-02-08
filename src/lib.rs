@@ -114,7 +114,11 @@ where
             },
         )
         .map(move |response| {
-            let session = Session::new(response.access_token, response.user_id, response.device_id);
+            let session = Session {
+                access_token: response.access_token,
+                device_id: response.device_id,
+                user_id: response.user_id,
+            };
             *data.session.lock().unwrap() = Some(session.clone());
 
             session
@@ -142,7 +146,11 @@ where
             },
         )
         .map(move |response| {
-            let session = Session::new(response.access_token, response.user_id, response.device_id);
+            let session = Session {
+                access_token: response.access_token,
+                device_id: response.device_id,
+                user_id: response.user_id,
+            };
             *data.session.lock().unwrap() = Some(session.clone());
 
             session
@@ -179,7 +187,11 @@ where
             },
         )
         .map(move |response| {
-            let session = Session::new(response.access_token, response.user_id, response.device_id);
+            let session = Session {
+                access_token: response.access_token,
+                device_id: response.device_id,
+                user_id: response.user_id,
+            };
             *data.session.lock().unwrap() = Some(session.clone());
 
             session
@@ -252,7 +264,7 @@ where
                     if E::METADATA.requires_authentication {
                         if let Some(ref session) = *data1.session.lock().unwrap() {
                             url.query_pairs_mut()
-                                .append_pair("access_token", session.access_token());
+                                .append_pair("access_token", &session.access_token);
                         } else {
                             return Err(Error::AuthenticationRequired);
                         }
