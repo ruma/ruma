@@ -333,7 +333,7 @@ mod tests {
 
         match from_str::<StrippedState>(name_event).unwrap() {
             StrippedState::RoomName(event) => {
-                assert_eq!(event.content.name, "Ruma");
+                assert_eq!(event.content.name, Some("Ruma".to_string()));
                 assert_eq!(event.event_type, EventType::RoomName);
                 assert_eq!(event.state_key, "");
                 assert_eq!(event.sender.to_string(), "@example:localhost");
