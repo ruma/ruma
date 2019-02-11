@@ -6,20 +6,6 @@
 #![deny(missing_docs)]
 #![deny(warnings)]
 
-#[macro_use]
-extern crate lazy_static;
-extern crate rand;
-extern crate regex;
-extern crate serde;
-extern crate url;
-
-#[cfg(feature = "diesel")]
-#[macro_use]
-extern crate diesel;
-
-#[cfg(test)]
-extern crate serde_json;
-
 use std::{
     convert::TryFrom,
     error::Error as StdError,
@@ -27,8 +13,9 @@ use std::{
 };
 
 #[cfg(feature = "diesel")]
-use diesel::sql_types::Text;
+use diesel::{FromSqlRow, sql_types::Text};
 
+use lazy_static::lazy_static;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use regex::Regex;
 use serde::{
@@ -201,7 +188,7 @@ struct RoomIdOrAliasIdVisitor;
 struct UserIdVisitor;
 
 fn display(
-    f: &mut Formatter,
+    f: &mut Formatter<'_>,
     sigil: char,
     localpart: &str,
     hostname: &Host,
@@ -261,7 +248,7 @@ fn parse_id<'a>(required_sigil: char, id: &'a str) -> Result<(&'a str, Host, u16
 }
 
 impl Display for Error {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}", self.description())
     }
 }
@@ -411,25 +398,25 @@ impl From<ParseError> for Error {
 }
 
 impl Display for EventId {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         display(f, '$', &self.opaque_id, &self.hostname, self.port)
     }
 }
 
 impl Display for RoomAliasId {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         display(f, '#', &self.alias, &self.hostname, self.port)
     }
 }
 
 impl Display for RoomId {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         display(f, '!', &self.opaque_id, &self.hostname, self.port)
     }
 }
 
 impl Display for RoomIdOrAliasId {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match *self {
             RoomIdOrAliasId::RoomAliasId(ref room_alias_id) => display(
                 f,
@@ -446,7 +433,7 @@ impl Display for RoomIdOrAliasId {
 }
 
 impl Display for UserId {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         display(f, '@', &self.localpart, &self.hostname, self.port)
     }
 }
@@ -655,7 +642,7 @@ impl<'a> TryFrom<&'a str> for UserId {
 impl<'de> Visitor<'de> for EventIdVisitor {
     type Value = EventId;
 
-    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         write!(formatter, "a Matrix event ID as a string")
     }
 
@@ -673,7 +660,7 @@ impl<'de> Visitor<'de> for EventIdVisitor {
 impl<'de> Visitor<'de> for RoomAliasIdVisitor {
     type Value = RoomAliasId;
 
-    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         write!(formatter, "a Matrix room alias ID as a string")
     }
 
@@ -691,7 +678,7 @@ impl<'de> Visitor<'de> for RoomAliasIdVisitor {
 impl<'de> Visitor<'de> for RoomIdVisitor {
     type Value = RoomId;
 
-    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         write!(formatter, "a Matrix room ID as a string")
     }
 
@@ -709,7 +696,7 @@ impl<'de> Visitor<'de> for RoomIdVisitor {
 impl<'de> Visitor<'de> for RoomIdOrAliasIdVisitor {
     type Value = RoomIdOrAliasId;
 
-    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         write!(formatter, "a Matrix room ID or room alias ID as a string")
     }
 
@@ -727,7 +714,7 @@ impl<'de> Visitor<'de> for RoomIdOrAliasIdVisitor {
 impl<'de> Visitor<'de> for UserIdVisitor {
     type Value = UserId;
 
-    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         write!(formatter, "a Matrix user ID as a string")
     }
 
