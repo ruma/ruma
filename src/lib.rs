@@ -691,6 +691,7 @@ impl Display for Algorithm {
 #[cfg(test)]
 mod test {
     use base64::decode_config;
+    use serde::Serialize;
     use serde_json::{from_str, to_string, to_value};
 
     use super::{
@@ -753,7 +754,7 @@ mod test {
 
     #[test]
     fn signatures_empty_json() {
-        #[derive(serde_derive::Serialize)]
+        #[derive(Serialize)]
         struct EmptyWithSignatures {
             signatures: Signatures,
         }
@@ -786,13 +787,13 @@ mod test {
 
     #[test]
     fn sign_minimal_json() {
-        #[derive(serde_derive::Serialize)]
+        #[derive(Serialize)]
         struct Alpha {
             one: u8,
             two: String,
         }
 
-        #[derive(serde_derive::Serialize)]
+        #[derive(Serialize)]
         struct ReverseAlpha {
             two: String,
             one: u8,
@@ -873,7 +874,7 @@ mod test {
 
     #[test]
     fn signatures_minimal_json() {
-        #[derive(serde_derive::Serialize)]
+        #[derive(Serialize)]
         struct MinimalWithSignatures {
             one: u8,
             signatures: Signatures,
