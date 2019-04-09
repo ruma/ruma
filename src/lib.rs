@@ -1,7 +1,6 @@
 //! Crate **ruma_identifiers** contains types for [Matrix](https://matrix.org/) identifiers
 //! for events, rooms, room aliases, and users.
 
-#![feature(try_from)]
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
 #![deny(warnings)]
@@ -13,7 +12,7 @@ use std::{
 };
 
 #[cfg(feature = "diesel")]
-use diesel::{FromSqlRow, sql_types::Text};
+use diesel::sql_types::Text;
 
 use lazy_static::lazy_static;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
