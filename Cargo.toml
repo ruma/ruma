@@ -12,18 +12,18 @@ version = "0.2.0"
 edition = "2018"
 
 [dependencies]
-futures = "0.1.25"
-http = "0.1.14"
-hyper = "0.12.16"
-ruma-api = "0.6.0"
-ruma-api-macros = "0.3.0"
-ruma-events = "0.11.0"
-ruma-identifiers = "0.11.0"
-ruma-signatures = "0.4.1"
-serde_json = "1.0.38"
+futures = "0.1.26"
+http = "0.1.17"
+hyper = "0.12.27"
+ruma-api = "0.7.0"
+ruma-api-macros = "0.4.0"
+ruma-events = "0.12.0"
+ruma-identifiers = "0.12.0"
+ruma-signatures = "0.4.2"
+serde_json = "1.0.39"
 serde_urlencoded = "0.5.4"
 url = "1.7.2"
 
 [dependencies.serde]
-version = "1.0.87"
+version = "1.0.90"
 features = ["derive"]
