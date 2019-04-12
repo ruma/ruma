@@ -3,7 +3,6 @@
 //! shared by client and server code.
 
 #![deny(missing_debug_implementations, missing_docs)]
-#![feature(try_from)]
 
 use futures;
 use http;
