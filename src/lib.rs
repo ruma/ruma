@@ -2,7 +2,6 @@
 
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
-#![feature(try_from)]
 
 use std::{convert::TryInto, str::FromStr, sync::{Arc, Mutex}};
 

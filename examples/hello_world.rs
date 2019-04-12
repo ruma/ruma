@@ -1,5 +1,3 @@
-#![feature(try_from)]
-
 use std::{convert::TryFrom, env, process::exit};
 
 use futures::Future;
