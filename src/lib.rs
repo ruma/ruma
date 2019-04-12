@@ -5,6 +5,10 @@
 #![deny(missing_docs)]
 #![deny(warnings)]
 
+#[cfg(feature = "diesel")]
+#[cfg_attr(feature = "diesel", macro_use)]
+extern crate diesel;
+
 use std::{
     convert::TryFrom,
     error::Error as StdError,
