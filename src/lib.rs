@@ -65,7 +65,6 @@ pub enum Error {
 /// into a string as needed.
 ///
 /// ```
-/// # #![feature(try_from)]
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::EventId;
 /// assert_eq!(
@@ -88,7 +87,6 @@ pub struct EventId {
 /// needed.
 ///
 /// ```
-/// # #![feature(try_from)]
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomAliasId;
 /// assert_eq!(
@@ -111,7 +109,6 @@ pub struct RoomAliasId {
 /// into a string as needed.
 ///
 /// ```
-/// # #![feature(try_from)]
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomId;
 /// assert_eq!(
@@ -135,7 +132,6 @@ pub struct RoomId {
 /// string slice, the variant is determined by the leading sigil character.
 ///
 /// ```
-/// # #![feature(try_from)]
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomIdOrAliasId;
 /// assert_eq!(
@@ -163,7 +159,6 @@ pub enum RoomIdOrAliasId {
 /// into a string as needed.
 ///
 /// ```
-/// # #![feature(try_from)]
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::UserId;
 /// assert_eq!(
