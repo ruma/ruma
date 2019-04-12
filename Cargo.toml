@@ -12,31 +12,31 @@ repository = "https://github.com/ruma/ruma-client"
 version = "0.1.0"
 
 [dependencies]
-futures = "0.1.25"
-http = "0.1.14"
-hyper = "0.12.16"
-ruma-api = "0.6.0"
-ruma-client-api = "0.2.0"
-ruma-identifiers = "0.11.0"
-serde_json = "1.0.33"
+futures = "0.1.26"
+http = "0.1.17"
+hyper = "0.12.27"
+ruma-api = "0.7.0"
+ruma-client-api = "0.3.0"
+ruma-identifiers = "0.12.0"
+serde_json = "1.0.39"
 serde_urlencoded = "0.5.4"
 url = "1.7.2"
 
 [dependencies.hyper-tls]
 optional = true
-version = "0.3.1"
+version = "0.3.2"
 
 [dependencies.native-tls]
 optional = true
 version = "0.2.2"
 
 [dependencies.serde]
-version = "1.0.87"
+version = "1.0.90"
 features = ["derive"]
 
 [dev-dependencies]
-ruma-events = "0.11.0"
-tokio = "0.1"
+ruma-events = "0.12.0"
+tokio = "0.1.18"
 
 [features]
 default = ["tls"]
