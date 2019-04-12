@@ -4,14 +4,5 @@
 
 #![deny(missing_debug_implementations, missing_docs)]
 
-use futures;
-use http;
-use hyper;
-use ruma_api;
-use serde;
-use serde_json;
-use serde_urlencoded;
-use url;
-
 pub mod r0;
 pub mod unversioned;
