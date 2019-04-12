@@ -116,8 +116,6 @@ mod api;
 /// # Examples
 ///
 /// ```rust,no_run
-/// #![feature(try_from)]
-///
 /// # fn main() {
 /// pub mod some_endpoint {
 ///     use ruma_api_macros::ruma_api;

@@ -1,5 +1,3 @@
-#![feature(try_from)]
-
 pub mod some_endpoint {
     use ruma_api_macros::ruma_api;
     use serde::{Deserialize, Serialize};
