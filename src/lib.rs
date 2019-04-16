@@ -2,8 +2,8 @@
 
 #![warn(unused_extern_crates)]
 
-extern crate itoa;
 extern crate dtoa;
+extern crate itoa;
 #[macro_use]
 extern crate serde;
 extern crate url;
@@ -12,6 +12,6 @@ pub mod de;
 pub mod ser;
 
 #[doc(inline)]
-pub use de::{Deserializer, from_bytes, from_reader, from_str};
+pub use de::{from_bytes, from_reader, from_str, Deserializer};
 #[doc(inline)]
-pub use ser::{Serializer, to_string};
+pub use ser::{to_string, Serializer};
