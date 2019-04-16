@@ -1,12 +1,12 @@
 //! Deserialization support for the `application/x-www-form-urlencoded` format.
 
-use serde::de::{self, IntoDeserializer};
-use serde::de::Error as de_Error;
 use serde::de::value::MapDeserializer;
+use serde::de::Error as de_Error;
+use serde::de::{self, IntoDeserializer};
 use std::borrow::Cow;
 use std::io::Read;
-use url::form_urlencoded::Parse as UrlEncodedParse;
 use url::form_urlencoded::parse;
+use url::form_urlencoded::Parse as UrlEncodedParse;
 
 #[doc(inline)]
 pub use serde::de::value::Error;
@@ -27,7 +27,8 @@ pub use serde::de::value::Error;
 ///     Ok(meal));
 /// ```
 pub fn from_bytes<'de, T>(input: &'de [u8]) -> Result<T, Error>
-    where T: de::Deserialize<'de>,
+where
+    T: de::Deserialize<'de>,
 {
     T::deserialize(Deserializer::new(parse(input)))
 }
@@ -48,7 +49,8 @@ pub fn from_bytes<'de, T>(input: &'de [u8]) -> Result<T, Error>
 ///     Ok(meal));
 /// ```
 pub fn from_str<'de, T>(input: &'de str) -> Result<T, Error>
-    where T: de::Deserialize<'de>,
+where
+    T: de::Deserialize<'de>,
 {
     from_bytes(input.as_bytes())
 }
@@ -56,14 +58,14 @@ pub fn from_str<'de, T>(input: &'de str) -> Result<T, Error>
 /// Convenience function that reads all bytes from `reader` and deserializes
 /// them with `from_bytes`.
 pub fn from_reader<T, R>(mut reader: R) -> Result<T, Error>
-    where T: de::DeserializeOwned,
-          R: Read,
+where
+    T: de::DeserializeOwned,
+    R: Read,
 {
     let mut buf = vec![];
-    reader.read_to_end(&mut buf)
-        .map_err(|e| {
-            de::Error::custom(format_args!("could not read input: {}", e))
-        })?;
+    reader.read_to_end(&mut buf).map_err(|e| {
+        de::Error::custom(format_args!("could not read input: {}", e))
+    })?;
     from_bytes(&buf)
 }
 
@@ -93,25 +95,29 @@ impl<'de> de::Deserializer<'de> for Deserializer<'de> {
     type Error = Error;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-        where V: de::Visitor<'de>,
+    where
+        V: de::Visitor<'de>,
     {
         self.deserialize_map(visitor)
     }
 
     fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-        where V: de::Visitor<'de>,
+    where
+        V: de::Visitor<'de>,
     {
         visitor.visit_map(self.inner)
     }
 
     fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-        where V: de::Visitor<'de>,
+    where
+        V: de::Visitor<'de>,
     {
         visitor.visit_seq(self.inner)
     }
 
     fn deserialize_unit<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-        where V:  de::Visitor<'de>,
+    where
+        V: de::Visitor<'de>,
     {
         self.inner.end()?;
         visitor.visit_unit()
@@ -158,8 +164,7 @@ impl<'de> Iterator for PartIterator<'de> {
 
 struct Part<'de>(Cow<'de, str>);
 
-impl<'de> IntoDeserializer<'de> for Part<'de>
-{
+impl<'de> IntoDeserializer<'de> for Part<'de> {
     type Deserializer = Self;
 
     fn into_deserializer(self) -> Self::Deserializer {
@@ -186,13 +191,15 @@ impl<'de> de::Deserializer<'de> for Part<'de> {
     type Error = Error;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-        where V: de::Visitor<'de>,
+    where
+        V: de::Visitor<'de>,
     {
         self.0.into_deserializer().deserialize_any(visitor)
     }
 
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-        where V: de::Visitor<'de>,
+    where
+        V: de::Visitor<'de>,
     {
         visitor.visit_some(self)
     }
@@ -203,7 +210,8 @@ impl<'de> de::Deserializer<'de> for Part<'de> {
         _variants: &'static [&'static str],
         visitor: V,
     ) -> Result<V::Value, Self::Error>
-        where V: de::Visitor<'de>,
+    where
+        V: de::Visitor<'de>,
     {
         visitor.visit_enum(ValueEnumAccess(self.0))
     }
@@ -213,7 +221,8 @@ impl<'de> de::Deserializer<'de> for Part<'de> {
         _name: &'static str,
         visitor: V,
     ) -> Result<V::Value, Self::Error>
-        where V: de::Visitor<'de>,
+    where
+        V: de::Visitor<'de>,
     {
         visitor.visit_newtype_struct(self)
     }
@@ -260,7 +269,8 @@ impl<'de> de::EnumAccess<'de> for ValueEnumAccess<'de> {
         self,
         seed: V,
     ) -> Result<(V::Value, Self::Variant), Self::Error>
-        where V: de::DeserializeSeed<'de>,
+    where
+        V: de::DeserializeSeed<'de>,
     {
         let variant = seed.deserialize(self.0.into_deserializer())?;
         Ok((variant, UnitOnlyVariantAccess))
@@ -277,7 +287,8 @@ impl<'de> de::VariantAccess<'de> for UnitOnlyVariantAccess {
     }
 
     fn newtype_variant_seed<T>(self, _seed: T) -> Result<T::Value, Self::Error>
-        where T: de::DeserializeSeed<'de>,
+    where
+        T: de::DeserializeSeed<'de>,
     {
         Err(Error::custom("expected unit variant"))
     }
@@ -287,7 +298,8 @@ impl<'de> de::VariantAccess<'de> for UnitOnlyVariantAccess {
         _len: usize,
         _visitor: V,
     ) -> Result<V::Value, Self::Error>
-        where V: de::Visitor<'de>,
+    where
+        V: de::Visitor<'de>,
     {
         Err(Error::custom("expected unit variant"))
     }
@@ -297,7 +309,8 @@ impl<'de> de::VariantAccess<'de> for UnitOnlyVariantAccess {
         _fields: &'static [&'static str],
         _visitor: V,
     ) -> Result<V::Value, Self::Error>
-        where V: de::Visitor<'de>,
+    where
+        V: de::Visitor<'de>,
     {
         Err(Error::custom("expected unit variant"))
     }

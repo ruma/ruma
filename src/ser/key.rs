@@ -1,5 +1,5 @@
-use ser::Error;
 use ser::part::Sink;
+use ser::Error;
 use serde::Serialize;
 use std::borrow::Cow;
 use std::ops::Deref;
@@ -34,7 +34,8 @@ pub struct KeySink<End> {
 }
 
 impl<End, Ok> KeySink<End>
-    where End: for<'key> FnOnce(Key<'key>) -> Result<Ok, Error>
+where
+    End: for<'key> FnOnce(Key<'key>) -> Result<Ok, Error>,
 {
     pub fn new(end: End) -> Self {
         KeySink { end: end }
@@ -42,13 +43,12 @@ impl<End, Ok> KeySink<End>
 }
 
 impl<End, Ok> Sink for KeySink<End>
-    where End: for<'key> FnOnce(Key<'key>) -> Result<Ok, Error>
+where
+    End: for<'key> FnOnce(Key<'key>) -> Result<Ok, Error>,
 {
     type Ok = Ok;
 
-    fn serialize_static_str(self,
-                            value: &'static str)
-                            -> Result<Ok, Error> {
+    fn serialize_static_str(self, value: &'static str) -> Result<Ok, Error> {
         (self.end)(Key::Static(value))
     }
 
@@ -64,9 +64,10 @@ impl<End, Ok> Sink for KeySink<End>
         Err(self.unsupported())
     }
 
-    fn serialize_some<T: ?Sized + Serialize>(self,
-                                             _value: &T)
-                                             -> Result<Ok, Error> {
+    fn serialize_some<T: ?Sized + Serialize>(
+        self,
+        _value: &T,
+    ) -> Result<Ok, Error> {
         Err(self.unsupported())
     }
 
