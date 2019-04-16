@@ -194,7 +194,10 @@ impl<'de> de::Deserializer<'de> for Part<'de> {
     where
         V: de::Visitor<'de>,
     {
-        self.0.into_deserializer().deserialize_any(visitor)
+        match self.0 {
+            Cow::Borrowed(value) => visitor.visit_borrowed_str(value),
+            Cow::Owned(value) => visitor.visit_string(value),
+        }
     }
 
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>

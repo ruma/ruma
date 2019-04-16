@@ -30,6 +30,13 @@ fn deserialize_str() {
 }
 
 #[test]
+fn deserialize_borrowed_str() {
+    let result = vec![("first", 23), ("last", 42)];
+
+    assert_eq!(serde_urlencoded::from_str("first=23&last=42"), Ok(result));
+}
+
+#[test]
 fn deserialize_reader() {
     let result = vec![("first".to_owned(), 23), ("last".to_owned(), 42)];
 
