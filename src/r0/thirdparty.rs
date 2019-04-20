@@ -74,7 +74,7 @@ pub struct User {
 }
 
 /// The medium of a third party identifier.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Medium {
     /// Email address identifier

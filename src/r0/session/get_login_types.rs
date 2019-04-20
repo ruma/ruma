@@ -3,8 +3,6 @@
 use ruma_api::ruma_api;
 use serde::{Deserialize, Serialize};
 
-use super::login::LoginType;
-
 ruma_api! {
     metadata {
         description: "Gets the homeserver's supported login types to authenticate users. Clients should pick one of these and supply it as the type when logging in.",
@@ -29,4 +27,16 @@ pub struct LoginFlow {
     /// The login type.
     #[serde(rename = "type")]
     pub login_type: LoginType,
+}
+
+/// The authentication mechanism.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(tag = "type")]
+pub enum LoginType {
+    /// A password is supplied to authenticate.
+    #[serde(rename = "m.login.password")]
+    Password,
+    /// Token-based login.
+    #[serde(rename = "m.login.token")]
+    Token,
 }
