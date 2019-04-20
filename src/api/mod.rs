@@ -1,5 +1,5 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, ToTokens, TokenStreamExt};
+use quote::{quote, ToTokens};
 use syn::{
     braced,
     parse::{Parse, ParseStream, Result},
@@ -325,7 +325,7 @@ impl ToTokens for Api {
             }
         };
 
-        tokens.append_all(quote! {
+        let api = quote! {
             #[allow(unused_imports)]
             use ::futures::{Future as _Future, IntoFuture as _IntoFuture, Stream as _Stream};
             use ::ruma_api::Endpoint as _RumaApiEndpoint;
@@ -459,7 +459,9 @@ impl ToTokens for Api {
                     requires_authentication: #requires_authentication,
                 };
             }
-        });
+        };
+
+        api.to_tokens(tokens);
     }
 }
 
