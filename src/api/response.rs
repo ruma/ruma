@@ -1,5 +1,5 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, quote_spanned, ToTokens, TokenStreamExt};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::{spanned::Spanned, Field, Ident, Lit, Meta, NestedMeta};
 
 use crate::api::strip_serde_attrs;
@@ -281,11 +281,13 @@ impl ToTokens for Response {
             TokenStream::new()
         };
 
-        tokens.append_all(quote! {
+        let response = quote! {
             #response_struct_header
             #response_struct_body
             #response_body_struct
-        });
+        };
+
+        response.to_tokens(tokens);
     }
 }
 
