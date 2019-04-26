@@ -1,4 +1,4 @@
-//! [POST /_matrix/media/r0/upload](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-media-r0-upload)
+//! [POST /_matrix/media/r0/upload](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-media-r0-upload)
 
 use ruma_api_macros::ruma_api;
 use serde::{Deserialize, Serialize};
@@ -9,14 +9,21 @@ ruma_api! {
         method: POST,
         name: "create_media_content",
         path: "/_matrix/media/r0/upload",
-        rate_limited: false,
-        requires_authentication: false,
+        rate_limited: true,
+        requires_authentication: true,
     }
 
     request {
+        /// The name of the file being uploaded.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(query)]
+        pub filename: Option<String>,
         /// The content type of the file being uploaded.
         #[ruma_api(header = "CONTENT_TYPE")]
         pub content_type: String,
+        /// The file contents to upload.
+        #[ruma_api(body)]
+        pub file: Vec<u8>,
     }
 
     response {
