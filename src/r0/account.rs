@@ -5,3 +5,4 @@ pub mod deactivate;
 pub mod register;
 pub mod request_password_change_token;
 pub mod request_register_token;
+pub mod whoami;
