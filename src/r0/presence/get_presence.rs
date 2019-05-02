@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-presence-userid-status)
+//! [GET /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-presence-userid-status)
 
 use ruma_api_macros::ruma_api;
 use ruma_events::presence::PresenceState;

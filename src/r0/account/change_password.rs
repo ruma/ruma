@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/account/password](https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-account-password)
+//! [POST /_matrix/client/r0/account/password](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-account-password)
 
 use ruma_api_macros::ruma_api;
 use serde::{Deserialize, Serialize};

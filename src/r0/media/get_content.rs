@@ -1,6 +1,6 @@
 //! Endpoints for the media repository.
 
-//! [GET /_matrix/media/r0/download/{serverName}/{mediaId}](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-media-r0-download-servername-mediaid)
+//! [GET /_matrix/media/r0/download/{serverName}/{mediaId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-media-r0-download-servername-mediaid)
 
 use ruma_api_macros::ruma_api;
 use serde::{Deserialize, Serialize};

@@ -1,4 +1,4 @@
-//! [DELETE /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags/{tag}](https://matrix.org/docs/spec/client_server/r0.2.0.html#delete-matrix-client-r0-user-userid-rooms-roomid-tags-tag)
+//! [DELETE /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags/{tag}](https://matrix.org/docs/spec/client_server/r0.4.0.html#delete-matrix-client-r0-user-userid-rooms-roomid-tags-tag)
 
 use ruma_api_macros::ruma_api;
 use ruma_identifiers::{RoomId, UserId};

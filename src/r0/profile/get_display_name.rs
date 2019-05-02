@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/profile/{userId}/displayname](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-profile-userid-displayname)
+//! [GET /_matrix/client/r0/profile/{userId}/displayname](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-profile-userid-displayname)
 
 use ruma_api_macros::ruma_api;
 use ruma_identifiers::UserId;

@@ -1,4 +1,4 @@
-//! [PUT /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags/{tag}](https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-user-userid-rooms-roomid-tags-tag)
+//! [PUT /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags/{tag}](https://matrix.org/docs/spec/client_server/r0.4.0.html#put-matrix-client-r0-user-userid-rooms-roomid-tags-tag)
 
 use ruma_api_macros::ruma_api;
 use ruma_events::tag::TagInfo;

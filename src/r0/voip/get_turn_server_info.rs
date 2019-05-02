@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/voip/turnServer](https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-voip-turnserver)
+//! [GET /_matrix/client/r0/voip/turnServer](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-voip-turnserver)
 
 use ruma_api_macros::ruma_api;
 use serde::{Deserialize, Serialize};
