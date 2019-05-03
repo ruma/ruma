@@ -327,12 +327,12 @@ impl ToTokens for Api {
 
         let api = quote! {
             #[allow(unused_imports)]
-            use ::futures::{Future as _Future, IntoFuture as _IntoFuture, Stream as _Stream};
-            use ::ruma_api::Endpoint as _RumaApiEndpoint;
-            use ::serde::Deserialize as _Deserialize;
-            use ::serde::de::{Error as _SerdeError, IntoDeserializer as _IntoDeserializer};
+            use ::futures::{Future as _, IntoFuture as _, Stream as _};
+            use ::ruma_api::Endpoint as _;
+            use ::serde::Deserialize as _;
+            use ::serde::de::{Error as _, IntoDeserializer as _};
 
-            use ::std::convert::{TryInto as _TryInto};
+            use ::std::convert::{TryInto as _};
 
             /// The API endpoint.
             #[derive(Debug)]
@@ -360,7 +360,7 @@ impl ToTokens for Api {
             }
 
             impl ::futures::future::FutureFrom<::http::Request<::hyper::Body>> for Request {
-                type Future = Box<_Future<Item = Self, Error = Self::Error> + Send>;
+                type Future = Box<::futures::Future<Item = Self, Error = Self::Error> + Send>;
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_variables)]
@@ -422,7 +422,7 @@ impl ToTokens for Api {
             }
 
             impl ::futures::future::FutureFrom<::http::Response<::hyper::Body>> for Response {
-                type Future = Box<_Future<Item = Self, Error = Self::Error> + Send>;
+                type Future = Box<::futures::Future<Item = Self, Error = Self::Error> + Send>;
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_variables)]
