@@ -20,7 +20,7 @@ pub struct IdentityServerInfo {
 
 ruma_api! {
     metadata {
-        description: "Get the versions of the client-server API supported by this homeserver.",
+        description: "Get discovery information about the domain.",
         method: GET,
         name: "discover_homeserver",
         path: "/.well-known/matrix/client",
