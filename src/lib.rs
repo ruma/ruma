@@ -147,6 +147,7 @@ pub struct RoomId {
 ///     RoomIdOrAliasId::try_from("!n8f893n9:example.com").unwrap().to_string(),
 ///     "!n8f893n9:example.com"
 /// );
+/// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
 #[cfg_attr(feature = "diesel", sql_type = "Text")]
