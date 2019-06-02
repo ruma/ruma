@@ -1,4 +1,10 @@
 language: "rust"
+before_script:
+  - "rustup component add rustfmt"
+script:
+  - "cargo fmt --all -- --check"
+  - "cargo build --verbose"
+  - "cargo test --verbose"
 notifications:
   email: false
   irc:

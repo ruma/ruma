@@ -63,6 +63,10 @@ fn main() {
         }
     };
 
-    tokio::run(hello_world(homeserver_url.parse().unwrap(), room)
-               .map_err(|e| { dbg!(e); () }));
+    tokio::run(
+        hello_world(homeserver_url.parse().unwrap(), room).map_err(|e| {
+            dbg!(e);
+            ()
+        }),
+    );
 }

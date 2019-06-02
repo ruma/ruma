@@ -3,7 +3,11 @@
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
 
-use std::{convert::TryInto, str::FromStr, sync::{Arc, Mutex}};
+use std::{
+    convert::TryInto,
+    str::FromStr,
+    sync::{Arc, Mutex},
+};
 
 use futures::{
     future::{Future, FutureFrom, IntoFuture},
