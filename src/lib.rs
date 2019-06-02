@@ -67,7 +67,7 @@
 //!
 //! Although any Rust type that implements `Event`, `RoomEvent`, or `StateEvent` can serve as a
 //! Matrix event type, ruma_events also includes a few convenience types for representing events
-//! that are not convered by the spec and not otherwise known by the application.
+//! that are not covered by the spec and not otherwise known by the application.
 //! `CustomEvent`, `CustomRoomEvent`, and `CustomStateEvent` are simple implementations of their
 //! respective event traits whose `content` field is simply a `serde_json::Value` value, which
 //! represents arbitrary JSON.

@@ -1,7 +1,7 @@
 //! "Stripped-down" versions of the core state events.
 //!
 //! Each "stripped" event includes only the `content`, `type`, and `state_key` fields of its full
-//! version. These stripped types are useful for APIs where the a is providing the content of a
+//! version. These stripped types are useful for APIs where the user is providing the content of a
 //! state event to be created, when the other fields can be inferred from a larger context, or where
 //! the other fields are otherwise inapplicable.
 
