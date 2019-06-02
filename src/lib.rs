@@ -1,4 +1,79 @@
 //! Crate `ruma_client` is a [Matrix](https://matrix.org/) client library.
+//!
+//! # Usage
+//!
+//! Begin by creating a `Client` type, usually using the `https` method for a client that supports
+//! secure connections, and then logging in:
+//!
+//! ```no_run
+//! use futures::Future;
+//! use ruma_client::Client;
+//!
+//! let homeserver_url = "https://example.com".parse().unwrap();
+//! let client = Client::https(homeserver_url, None).unwrap();
+//!
+//! let work = client
+//!     .log_in("@alice:example.com".to_string(), "secret".to_string(), None)
+//!     .and_then(|session| {
+//!         // You're now logged in! Write the session to a file if you want to restore it later.
+//!         // Then start using the API!
+//!         # Ok::<(), ruma_client::Error>(())
+//!     });
+//!
+//! // Start `work` on a futures runtime...
+//! ```
+//!
+//! You can also pass an existing session to the `Client` constructor to restore a previous session
+//! rather than calling `log_in`.
+//!
+//! For the standard use case of synchronizing with the homeserver (i.e. getting all the latest
+//! events), use the `Client::sync`:
+//!
+//! ```no_run
+//! # use futures::{Future, Stream};
+//! # use ruma_client::Client;
+//! # let homeserver_url = "https://example.com".parse().unwrap();
+//! # let client = Client::https(homeserver_url, None).unwrap();
+//! let work = client.sync(None, None, true).map(|response| {
+//!   // Do something with the data in the response...
+//!     # Ok::<(), ruma_client::Error>(())
+//! });
+//!
+//! // Start `work` on a futures runtime...
+//! ```
+//!
+//! The `Client` type also provides methods for registering a new account if you don't already have
+//! one with the given homeserver.
+//!
+//! Beyond these basic convenience methods, `ruma-client` gives you access to the entire Matrix
+//! client-server API via the `api` module. Each leaf module under this tree of modules contains
+//! the necessary types for one API endpoint. Simply call the module's `call` method, passing it
+//! the logged in `Client` and the relevant `Request` type. `call` will return a future that will
+//! resolve to the relevant `Response` type.
+//!
+//! For example:
+//!
+//! ```no_run
+//! # use futures::Future;
+//! # use ruma_client::Client;
+//! # let homeserver_url = "https://example.com".parse().unwrap();
+//! # let client = Client::https(homeserver_url, None).unwrap();
+//! use std::convert::TryFrom;
+//!
+//! use ruma_client::api::r0::alias::get_alias;
+//! use ruma_identifiers::{RoomAliasId, RoomId};
+//!
+//! let request = get_alias::Request {
+//!     room_alias: RoomAliasId::try_from("#example_room:example.com").unwrap(),
+//! };
+//!
+//! let work = get_alias::call(client, request).and_then(|response| {
+//!     assert_eq!(response.room_id, RoomId::try_from("!n8f893n9:example.com").unwrap());
+//!     # Ok::<(), ruma_client::Error>(())
+//! });
+//!
+//! // Start `work` on a futures runtime...
+//! ```
 
 #![deny(
     missing_copy_implementations,
