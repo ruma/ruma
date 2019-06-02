@@ -33,7 +33,7 @@ pub struct Client<C: Connect>(Arc<ClientData<C>>);
 
 /// Data contained in Client's Rc
 #[derive(Debug)]
-pub struct ClientData<C>
+struct ClientData<C>
 where
     C: Connect,
 {
