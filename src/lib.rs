@@ -1,7 +1,29 @@
 //! Crate `ruma_client` is a [Matrix](https://matrix.org/) client library.
 
-#![deny(missing_debug_implementations)]
-#![deny(missing_docs)]
+#![deny(
+    missing_copy_implementations,
+    missing_debug_implementations,
+    missing_docs,
+    warnings
+)]
+#![warn(
+    clippy::empty_line_after_outer_attr,
+    clippy::expl_impl_clone_on_copy,
+    clippy::if_not_else,
+    clippy::items_after_statements,
+    clippy::match_same_arms,
+    clippy::mem_forget,
+    clippy::missing_docs_in_private_items,
+    clippy::mut_mut,
+    clippy::needless_borrow,
+    clippy::needless_continue,
+    clippy::single_match_else,
+    clippy::unicode_not_nfc,
+    clippy::use_self,
+    clippy::used_underscore_binding,
+    clippy::wrong_pub_self_convention,
+    clippy::wrong_self_convention
+)]
 
 use std::{
     convert::TryInto,
@@ -41,15 +63,18 @@ struct ClientData<C>
 where
     C: Connect,
 {
+    /// The URL of the homeserver to connect to.
     homeserver_url: Url,
+    /// The underlying HTTP client.
     hyper: HyperClient<C>,
+    /// User session data.
     session: Mutex<Option<Session>>,
 }
 
 impl Client<HttpConnector> {
     /// Creates a new client for making HTTP requests to the given homeserver.
     pub fn new(homeserver_url: Url, session: Option<Session>) -> Self {
-        Client(Arc::new(ClientData {
+        Self(Arc::new(ClientData {
             homeserver_url,
             hyper: HyperClient::builder().keep_alive(true).build_http(),
             session: Mutex::new(session),
@@ -63,7 +88,7 @@ impl Client<HttpsConnector<HttpConnector>> {
     pub fn https(homeserver_url: Url, session: Option<Session>) -> Result<Self, NativeTlsError> {
         let connector = HttpsConnector::new(4)?;
 
-        Ok(Client(Arc::new(ClientData {
+        Ok(Self(Arc::new(ClientData {
             homeserver_url,
             hyper: { HyperClient::builder().keep_alive(true).build(connector) },
             session: Mutex::new(session),
@@ -83,7 +108,7 @@ where
         homeserver_url: Url,
         session: Option<Session>,
     ) -> Self {
-        Client(Arc::new(ClientData {
+        Self(Arc::new(ClientData {
             homeserver_url,
             hyper: hyper_client,
             session: Mutex::new(session),
@@ -290,7 +315,7 @@ where
 }
 
 impl<C: Connect> Clone for Client<C> {
-    fn clone(&self) -> Client<C> {
-        Client(self.0.clone())
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
     }
 }

@@ -1,3 +1,5 @@
+//! Error conditions.
+
 use http::uri::InvalidUri;
 use hyper::error::Error as HyperError;
 use ruma_api::Error as RumaApiError;
@@ -25,37 +27,37 @@ pub enum Error {
 }
 
 impl From<HyperError> for Error {
-    fn from(error: HyperError) -> Error {
+    fn from(error: HyperError) -> Self {
         Error::Hyper(error)
     }
 }
 
 impl From<InvalidUri> for Error {
-    fn from(error: InvalidUri) -> Error {
+    fn from(error: InvalidUri) -> Self {
         Error::Uri(error)
     }
 }
 
 impl From<ParseError> for Error {
-    fn from(error: ParseError) -> Error {
+    fn from(error: ParseError) -> Self {
         Error::Url(error)
     }
 }
 
 impl From<RumaApiError> for Error {
-    fn from(error: RumaApiError) -> Error {
+    fn from(error: RumaApiError) -> Self {
         Error::RumaApi(error)
     }
 }
 
 impl From<SerdeJsonError> for Error {
-    fn from(error: SerdeJsonError) -> Error {
+    fn from(error: SerdeJsonError) -> Self {
         Error::SerdeJson(error)
     }
 }
 
 impl From<SerdeUrlEncodedSerializeError> for Error {
-    fn from(error: SerdeUrlEncodedSerializeError) -> Error {
+    fn from(error: SerdeUrlEncodedSerializeError) -> Self {
         Error::SerdeUrlEncodedSerialize(error)
     }
 }

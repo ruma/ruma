@@ -1,3 +1,5 @@
+//! User sessions.
+
 use ruma_identifiers::UserId;
 
 /// A user session, containing an access token and information about the associated user account.
@@ -15,7 +17,7 @@ impl Session {
     /// Create a new user session from an access token and a user ID.
     #[deprecated]
     pub fn new(access_token: String, user_id: UserId, device_id: String) -> Self {
-        Session {
+        Self {
             access_token,
             user_id,
             device_id,
