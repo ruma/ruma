@@ -5,5 +5,3 @@ notifications:
     channels:
       - secure: "mNgl6XfDZZjqZoKb+iQ8aKp+q3XhX7wfI1oNWgVj8HPW9jKYOqE1RlVhVnbey2QUwocPcvNwcchE4rGnnO67Xnvf3J5EygEtgyTlA7c7OYpMsvvNrxFnVtsFIrU2Q9ZfwoF88RJR1N7rOMVkOhdVeliudR1iiwDJuH9HazElhv1viUuhewl/ZH/a/xNWh/O7wjohsN7/27svbTNwZZe0Pra3rZrlfT26AQFqLZCxMWwWLvc/VGbaV+fxjfs94TOKsDxk999aVGqJ2Lb4E9xKI6xJ+1oQsMogMJrTNHBnIM0Fk3ULOpG+iDKzJZV/E2rOMRZqcGVgsA2+DyZxDAGzTc1p9yDgVW+mByVgWI/CXiGoxw/aPjqsw4ABp2Jq2YchHWjjhrudn0NyltBOqDPF8bvtc2+hWaYYeK8re6yEOe3URvViQm0Lv7cBC9rORs+l4Ni+icpT/loSyOdIuJmTnYkdivOevKwIob/xlgWknE0SzPRWorVpoPisVAO9VP98w+phjZIJCUIADk6H6j1oKioNBh896LnSsgpO01/n23xdlvF5oeVVwroPNfwRJ/KLZIHqvSKvUK0ZOgrjoJOGi6iLhXtm6X1RMhhNF4OHcrWOtowcNx88PkXAapuOSMJuIYhrxz7/vXTavyNTkzPFTCh6CX6aNKCH3aoF0cdK6UY="
     use_notice: true
-rust:
-  - "nightly"
