@@ -1,23 +1,44 @@
 //! Error conditions.
 
+use std::error::Error as StdError;
+use std::fmt::{Display, Formatter, Result as FmtResult};
+
 use http::uri::InvalidUri;
 use hyper::error::Error as HyperError;
 use ruma_api::Error as RumaApiError;
 use serde_json::Error as SerdeJsonError;
 use serde_urlencoded::ser::Error as SerdeUrlEncodedSerializeError;
-use url::ParseError;
 
-/// An error that occurs during client operations.
+/// An error that can occur during client operations.
 #[derive(Debug)]
-pub enum Error {
-    /// Queried endpoint requires authentication but was called on an anonymous client
+pub struct Error(pub(crate) InnerError);
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        let message = match self.0 {
+            InnerError::AuthenticationRequired => "The queried endpoint requires authentication but was called with an anonymous client.",
+            InnerError::Hyper(_) => "An HTTP error occurred.",
+            InnerError::Uri(_) => "Provided string could not be converted into a URI.",
+            InnerError::RumaApi(_) => "An error occurred converting between ruma_client_api and hyper types.",
+            InnerError::SerdeJson(_) => "A serialization error occurred.",
+            InnerError::SerdeUrlEncodedSerialize(_) => "An error occurred serializing data to a query string.",
+        };
+
+        write!(f, "{}", message)
+    }
+}
+
+impl StdError for Error {}
+
+/// Internal representation of errors.
+#[derive(Debug)]
+pub(crate) enum InnerError {
+    /// Queried endpoint requires authentication but was called on an anonymous client.
     AuthenticationRequired,
     /// An error at the HTTP layer.
     Hyper(HyperError),
     /// An error when parsing a string as a URI.
     Uri(InvalidUri),
-    /// An error when parsing a string as a URL.
-    Url(ParseError),
     /// An error converting between ruma_client_api types and Hyper types.
     RumaApi(RumaApiError),
     /// An error when serializing or deserializing a JSON value.
@@ -28,36 +49,30 @@ pub enum Error {
 
 impl From<HyperError> for Error {
     fn from(error: HyperError) -> Self {
-        Error::Hyper(error)
+        Self(InnerError::Hyper(error))
     }
 }
 
 impl From<InvalidUri> for Error {
     fn from(error: InvalidUri) -> Self {
-        Error::Uri(error)
-    }
-}
-
-impl From<ParseError> for Error {
-    fn from(error: ParseError) -> Self {
-        Error::Url(error)
+        Self(InnerError::Uri(error))
     }
 }
 
 impl From<RumaApiError> for Error {
     fn from(error: RumaApiError) -> Self {
-        Error::RumaApi(error)
+        Self(InnerError::RumaApi(error))
     }
 }
 
 impl From<SerdeJsonError> for Error {
     fn from(error: SerdeJsonError) -> Self {
-        Error::SerdeJson(error)
+        Self(InnerError::SerdeJson(error))
     }
 }
 
 impl From<SerdeUrlEncodedSerializeError> for Error {
     fn from(error: SerdeUrlEncodedSerializeError) -> Self {
-        Error::SerdeUrlEncodedSerialize(error)
+        Self(InnerError::SerdeUrlEncodedSerialize(error))
     }
 }

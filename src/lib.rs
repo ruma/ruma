@@ -121,6 +121,7 @@ use native_tls::Error as NativeTlsError;
 use ruma_api::Endpoint;
 use url::Url;
 
+use crate::error::InnerError;
 pub use crate::{error::Error, session::Session};
 
 /// Matrix client-server API endpoints.
@@ -380,7 +381,7 @@ where
                             url.query_pairs_mut()
                                 .append_pair("access_token", &session.access_token);
                         } else {
-                            return Err(Error::AuthenticationRequired);
+                            return Err(Error(InnerError::AuthenticationRequired));
                         }
                     }
                 }
