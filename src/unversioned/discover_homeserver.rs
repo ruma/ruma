@@ -8,6 +8,7 @@ use url::Url;
 #[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct HomeserverInfo {
     /// The base URL for the homeserver for client-server connections.
+    #[serde(with = "url_serde")]
     pub base_url: Url,
 }
 
@@ -15,6 +16,7 @@ pub struct HomeserverInfo {
 #[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct IdentityServerInfo {
     /// The base URL for the identity server for client-server connections.
+    #[serde(with = "url_serde")]
     pub base_url: Url,
 }
 
