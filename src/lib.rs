@@ -1,5 +1,5 @@
 //! Crate **ruma_identifiers** contains types for [Matrix](https://matrix.org/) identifiers
-//! for events, rooms, room aliases, and users.
+//! for events, rooms, room aliases, room versions, and users.
 
 #![deny(
     missing_copy_implementations,
@@ -40,7 +40,7 @@ pub use url::Host;
 
 pub use crate::{
     error::Error, event_id::EventId, room_alias_id::RoomAliasId, room_id::RoomId,
-    room_id_or_room_alias_id::RoomIdOrAliasId, user_id::UserId,
+    room_id_or_room_alias_id::RoomIdOrAliasId, room_version_id::RoomVersionId, user_id::UserId,
 };
 
 #[cfg(feature = "diesel")]
@@ -50,9 +50,10 @@ mod event_id;
 mod room_alias_id;
 mod room_id;
 mod room_id_or_room_alias_id;
+mod room_version_id;
 mod user_id;
 
-/// All events must be 255 bytes or less.
+/// All identifiers must be 255 bytes or less.
 const MAX_BYTES: usize = 255;
 /// The minimum number of characters an ID can be.
 ///

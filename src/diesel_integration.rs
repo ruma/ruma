@@ -38,4 +38,5 @@ diesel_impl!(EventId);
 diesel_impl!(RoomAliasId);
 diesel_impl!(RoomId);
 diesel_impl!(RoomIdOrAliasId);
+diesel_impl!(RoomVersionId);
 diesel_impl!(UserId);

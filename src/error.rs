@@ -16,9 +16,9 @@ pub enum Error {
     InvalidCharacters,
     /// The domain part of the the ID string is not a valid IP address or DNS name.
     InvalidHost,
-    /// The ID exceeds 255 bytes.
+    /// The ID exceeds 255 bytes (or 32 codepoints for a room version ID.)
     MaximumLengthExceeded,
-    /// The ID is less than 4 characters.
+    /// The ID is less than 4 characters (or is an empty room version ID.)
     MinimumLengthNotSatisfied,
     /// The ID is missing the colon delimiter between localpart and server name.
     MissingDelimiter,
