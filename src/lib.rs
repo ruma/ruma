@@ -1,9 +1,31 @@
 //! Crate **ruma_identifiers** contains types for [Matrix](https://matrix.org/) identifiers
 //! for events, rooms, room aliases, and users.
 
-#![deny(missing_debug_implementations)]
-#![deny(missing_docs)]
-#![deny(warnings)]
+#![deny(
+    missing_copy_implementations,
+    missing_debug_implementations,
+    missing_docs,
+    warnings
+)]
+#![warn(
+    clippy::empty_line_after_outer_attr,
+    clippy::expl_impl_clone_on_copy,
+    clippy::if_not_else,
+    clippy::items_after_statements,
+    clippy::match_same_arms,
+    clippy::mem_forget,
+    clippy::missing_docs_in_private_items,
+    clippy::multiple_inherent_impl,
+    clippy::mut_mut,
+    clippy::needless_borrow,
+    clippy::needless_continue,
+    clippy::single_match_else,
+    clippy::unicode_not_nfc,
+    clippy::use_self,
+    clippy::used_underscore_binding,
+    clippy::wrong_pub_self_convention,
+    clippy::wrong_self_convention
+)]
 
 #[cfg(feature = "diesel")]
 #[cfg_attr(feature = "diesel", macro_use)]
@@ -80,8 +102,11 @@ pub enum Error {
 #[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
 #[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct EventId {
+    /// The hostname of the homeserver.
     hostname: Host,
+    /// The event's unique ID.
     opaque_id: String,
+    /// The network port of the homeserver.
     port: u16,
 }
 
@@ -102,8 +127,11 @@ pub struct EventId {
 #[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
 #[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct RoomAliasId {
+    /// The alias for the room.
     alias: String,
+    /// The hostname of the homeserver.
     hostname: Host,
+    /// The network port of the homeserver.
     port: u16,
 }
 
@@ -124,8 +152,11 @@ pub struct RoomAliasId {
 #[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
 #[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct RoomId {
+    /// The hostname of the homeserver.
     hostname: Host,
+    /// The room's unique ID.
     opaque_id: String,
+    /// The network port of the homeserver.
     port: u16,
 }
 
@@ -175,17 +206,26 @@ pub enum RoomIdOrAliasId {
 #[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
 #[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct UserId {
+    /// The hostname of the homeserver.
     hostname: Host,
+    /// The user's unique ID.
     localpart: String,
+    /// The network port of the homeserver.
     port: u16,
 }
 
+/// A serde visitor for `EventId`.
 struct EventIdVisitor;
+/// A serde visitor for `RoomAliasId`.
 struct RoomAliasIdVisitor;
+/// A serde visitor for `RoomId`.
 struct RoomIdVisitor;
+/// A serde visitor for `RoomIdOrAliasId`.
 struct RoomIdOrAliasIdVisitor;
+/// A serde visitor for `UserId`.
 struct UserIdVisitor;
 
+/// `Display` implementation shared by identifier types.
 fn display(
     f: &mut Formatter<'_>,
     sigil: char,
@@ -200,6 +240,7 @@ fn display(
     }
 }
 
+/// Generates a random identifier localpart.
 fn generate_localpart(length: usize) -> String {
     thread_rng()
         .sample_iter(&Alphanumeric)
@@ -207,7 +248,8 @@ fn generate_localpart(length: usize) -> String {
         .collect()
 }
 
-fn validate_id<'a>(id: &'a str) -> Result<(), Error> {
+/// Checks if an identifier is within the acceptable byte lengths.
+fn validate_id(id: &str) -> Result<(), Error> {
     if id.len() > MAX_BYTES {
         return Err(Error::MaximumLengthExceeded);
     }
@@ -219,7 +261,8 @@ fn validate_id<'a>(id: &'a str) -> Result<(), Error> {
     Ok(())
 }
 
-fn parse_id<'a>(required_sigil: char, id: &'a str) -> Result<(&'a str, Host, u16), Error> {
+/// Parses the localpart, host, and port from a string identifier.
+fn parse_id(required_sigil: char, id: &str) -> Result<(&str, Host, u16), Error> {
     validate_id(id)?;
 
     if !id.starts_with(required_sigil) {
@@ -274,10 +317,10 @@ impl EventId {
         let event_id = format!("${}:{}", generate_localpart(18), server_name);
         let (opaque_id, host, port) = parse_id('$', &event_id)?;
 
-        Ok(EventId {
+        Ok(Self {
             hostname: host,
             opaque_id: opaque_id.to_string(),
-            port: port,
+            port,
         })
     }
 
@@ -309,10 +352,10 @@ impl RoomId {
         let room_id = format!("!{}:{}", generate_localpart(18), server_name);
         let (opaque_id, host, port) = parse_id('!', &room_id)?;
 
-        Ok(RoomId {
+        Ok(Self {
             hostname: host,
             opaque_id: opaque_id.to_string(),
-            port: port,
+            port,
         })
     }
 
@@ -364,10 +407,10 @@ impl UserId {
         let user_id = format!("@{}:{}", generate_localpart(12).to_lowercase(), server_name);
         let (localpart, host, port) = parse_id('@', &user_id)?;
 
-        Ok(UserId {
+        Ok(Self {
             hostname: host,
             localpart: localpart.to_string(),
-            port: port,
+            port,
         })
     }
 
@@ -391,7 +434,7 @@ impl UserId {
 }
 
 impl From<ParseError> for Error {
-    fn from(_: ParseError) -> Error {
+    fn from(_: ParseError) -> Self {
         Error::InvalidHost
     }
 }
@@ -542,10 +585,10 @@ impl<'a> TryFrom<&'a str> for EventId {
     fn try_from(event_id: &'a str) -> Result<Self, Self::Error> {
         let (opaque_id, host, port) = parse_id('$', event_id)?;
 
-        Ok(EventId {
+        Ok(Self {
             hostname: host,
             opaque_id: opaque_id.to_owned(),
-            port: port,
+            port,
         })
     }
 }
@@ -560,10 +603,10 @@ impl<'a> TryFrom<&'a str> for RoomAliasId {
     fn try_from(room_id: &'a str) -> Result<Self, Error> {
         let (alias, host, port) = parse_id('#', room_id)?;
 
-        Ok(RoomAliasId {
+        Ok(Self {
             alias: alias.to_owned(),
             hostname: host,
-            port: port,
+            port,
         })
     }
 }
@@ -578,10 +621,10 @@ impl<'a> TryFrom<&'a str> for RoomId {
     fn try_from(room_id: &'a str) -> Result<Self, Error> {
         let (opaque_id, host, port) = parse_id('!', room_id)?;
 
-        Ok(RoomId {
+        Ok(Self {
             hostname: host,
             opaque_id: opaque_id.to_owned(),
-            port: port,
+            port,
         })
     }
 }
@@ -622,7 +665,7 @@ impl<'a> TryFrom<&'a str> for UserId {
     ///
     /// The string must include the leading @ sigil, the localpart, a literal colon, and a valid
     /// server name.
-    fn try_from(user_id: &'a str) -> Result<UserId, Error> {
+    fn try_from(user_id: &'a str) -> Result<Self, Error> {
         let (localpart, host, port) = parse_id('@', user_id)?;
         let downcased_localpart = localpart.to_lowercase();
 
@@ -630,9 +673,9 @@ impl<'a> TryFrom<&'a str> for UserId {
             return Err(Error::InvalidCharacters);
         }
 
-        Ok(UserId {
+        Ok(Self {
             hostname: host,
-            port: port,
+            port,
             localpart: downcased_localpart.to_owned(),
         })
     }
@@ -728,6 +771,7 @@ impl<'de> Visitor<'de> for UserIdVisitor {
     }
 }
 
+/// Implements traits from Diesel, allowing identifiers to be used as database fields.
 #[cfg(feature = "diesel")]
 mod diesel_integration {
     use std::{convert::TryFrom, error::Error as StdError, io::Write};
@@ -757,7 +801,7 @@ mod diesel_integration {
             {
                 fn from_sql(value: Option<&<DB as Backend>::RawValue>) -> DeserializeResult<Self> {
                     let string = <String as FromSql<Text, DB>>::from_sql(value)?;
-                    $crate::$name::try_from(string.as_str())
+                    Self::try_from(string.as_str())
                         .map_err(|error| Box::new(error) as Box<StdError + Send + Sync>)
                 }
             }
