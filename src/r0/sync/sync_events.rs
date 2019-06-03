@@ -57,7 +57,7 @@ ruma_api! {
 }
 
 /// Whether to set presence or not during sync.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub enum SetPresence {
     /// Do not set the presence of the user calling this API.
     #[serde(rename = "offline")]
@@ -80,16 +80,18 @@ pub enum Filter {
     // (there are probably some corner cases like leading whitespace)
     #[serde(with = "filter_def_serde")]
     /// A complete filter definition serialized to JSON.
-    FilterDefinition(FilterDefinition),
+    FilterDefinition(Box<FilterDefinition>),
     /// The ID of a filter saved on the server.
     FilterId(String),
 }
 
+/// Serialization and deserialization logic for filter definitions.
 mod filter_def_serde {
     use serde::{de::Error as _, ser::Error as _, Deserialize, Deserializer, Serializer};
 
     use crate::r0::filter::FilterDefinition;
 
+    /// Serialization logic for filter definitions.
     pub fn serialize<S>(filter_def: &FilterDefinition, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -98,12 +100,15 @@ mod filter_def_serde {
         serializer.serialize_str(&string)
     }
 
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<FilterDefinition, D::Error>
+    /// Deserialization logic for filter definitions.
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Box<FilterDefinition>, D::Error>
     where
         D: Deserializer<'de>,
     {
         let filter_str = <&str>::deserialize(deserializer)?;
-        serde_json::from_str(filter_str).map_err(D::Error::custom)
+        serde_json::from_str(filter_str)
+            .map(Box::new)
+            .map_err(D::Error::custom)
     }
 }
 
@@ -147,7 +152,7 @@ pub struct JoinedRoom {
 }
 
 /// unread notifications count
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct UnreadNotificationsCount {
     /// The number of unread notifications for this room with the highlight flag set.
     #[serde(skip_serializing_if = "Option::is_none")]

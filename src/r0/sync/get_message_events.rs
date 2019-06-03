@@ -52,7 +52,7 @@ ruma_api! {
 }
 
 /// The direction to return events from.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub enum Direction {
     /// Return events backwards in time from the requested `from` token.
     #[serde(rename = "b")]

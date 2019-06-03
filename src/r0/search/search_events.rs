@@ -72,7 +72,7 @@ pub struct Criteria {
 }
 
 /// Configures whether any context for the events returned are included in the response.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct EventContext {
     /// How many events after the result are returned.
     pub after_limit: u64,
@@ -103,7 +103,7 @@ pub struct EventContextResult {
 }
 
 /// A grouping for partioning the result set.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct Grouping {
     /// The key within events to use for this grouping.
     pub key: GroupingKey,

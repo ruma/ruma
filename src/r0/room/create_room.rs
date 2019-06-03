@@ -53,7 +53,7 @@ ruma_api! {
 }
 
 /// Extra options to be added to the `m.room.create` event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct CreationContent {
     /// Whether users on other servers can join this room.
     ///

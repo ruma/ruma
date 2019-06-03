@@ -53,7 +53,7 @@ ruma_api! {
 }
 
 /// The medium of a third party identifier.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub enum Medium {
     /// An email address.
     #[serde(rename = "email")]
@@ -61,7 +61,7 @@ pub enum Medium {
 }
 
 /// The authentication mechanism.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub enum LoginType {
     /// A password is supplied to authenticate.
     #[serde(rename = "m.login.password")]
