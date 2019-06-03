@@ -38,11 +38,14 @@ use url::Url;
 
 pub use url::Host;
 
+#[doc(inline)]
+pub use crate::device_id::DeviceId;
 pub use crate::{
     error::Error, event_id::EventId, room_alias_id::RoomAliasId, room_id::RoomId,
     room_id_or_room_alias_id::RoomIdOrAliasId, room_version_id::RoomVersionId, user_id::UserId,
 };
 
+pub mod device_id;
 #[cfg(feature = "diesel")]
 mod diesel_integration;
 mod error;
