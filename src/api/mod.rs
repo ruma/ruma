@@ -1,3 +1,5 @@
+//! Details of the `ruma-api` procedural macro.
+
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{
@@ -12,6 +14,7 @@ mod response;
 
 use self::{metadata::Metadata, request::Request, response::Response};
 
+/// Removes `serde` attributes from struct fields.
 pub fn strip_serde_attrs(field: &Field) -> Field {
     let mut field = field.clone();
 
@@ -39,15 +42,19 @@ pub fn strip_serde_attrs(field: &Field) -> Field {
     field
 }
 
+/// The result of processing the `ruma_api` macro, ready for output back to source code.
 pub struct Api {
+    /// The `metadata` section of the macro.
     metadata: Metadata,
+    /// The `request` section of the macro.
     request: Request,
+    /// The `response` section of the macro.
     response: Response,
 }
 
 impl From<RawApi> for Api {
     fn from(raw_api: RawApi) -> Self {
-        Api {
+        Self {
             metadata: raw_api.metadata.into(),
             request: raw_api.request.into(),
             response: raw_api.response.into(),
@@ -88,7 +95,7 @@ impl ToTokens for Api {
 
             let request_path_init_fields = self.request.request_path_init_fields();
 
-            let path_segments = path_str[1..].split('/').into_iter();
+            let path_segments = path_str[1..].split('/');
             let path_segment_push = path_segments.clone().map(|segment| {
                 let arg = if segment.starts_with(':') {
                     let path_var = &segment[1..];
@@ -450,6 +457,7 @@ impl ToTokens for Api {
                 type Request = Request;
                 type Response = Response;
 
+                /// Metadata for this endpoint.
                 const METADATA: ::ruma_api::Metadata = ::ruma_api::Metadata {
                     description: #description,
                     method: ::http::Method::#method,
@@ -465,6 +473,7 @@ impl ToTokens for Api {
     }
 }
 
+/// Custom keyword macros for syn.
 mod kw {
     use syn::custom_keyword;
 
@@ -473,9 +482,13 @@ mod kw {
     custom_keyword!(response);
 }
 
+/// The entire `ruma_api!` macro structure directly as it appears in the source code..
 pub struct RawApi {
+    /// The `metadata` section of the macro.
     pub metadata: Vec<FieldValue>,
+    /// The `request` section of the macro.
     pub request: Vec<Field>,
+    /// The `response` section of the macro.
     pub response: Vec<Field>,
 }
 
@@ -493,7 +506,7 @@ impl Parse for RawApi {
         let response;
         braced!(response in input);
 
-        Ok(RawApi {
+        Ok(Self {
             metadata: metadata
                 .parse_terminated::<FieldValue, Token![,]>(FieldValue::parse)?
                 .into_iter()

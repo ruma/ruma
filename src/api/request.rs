@@ -1,14 +1,19 @@
+//! Details of the `request` section of the procedural macro.
+
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{spanned::Spanned, Field, Ident, Lit, Meta, NestedMeta};
 
 use crate::api::strip_serde_attrs;
 
+/// The result of processing the `request` section of the macro.
 pub struct Request {
+    /// The fields of the request.
     fields: Vec<RequestField>,
 }
 
 impl Request {
+    /// Produces code to add necessary HTTP headers to an `http::Request`.
     pub fn add_headers_to_request(&self) -> TokenStream {
         let append_stmts = self.header_fields().map(|request_field| {
             let (field, header_name_string) = match request_field {
@@ -33,6 +38,7 @@ impl Request {
         }
     }
 
+    /// Produces code to extract fields from the HTTP headers in an `http::Request`.
     pub fn parse_headers_from_request(&self) -> TokenStream {
         let fields = self.header_fields().map(|request_field| {
             let (field, header_name_string) = match request_field {
@@ -56,43 +62,50 @@ impl Request {
         }
     }
 
+    /// Whether or not this request has any data in the HTTP body.
     pub fn has_body_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_body())
     }
 
+    /// Whether or not this request has any data in HTTP headers.
     pub fn has_header_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_header())
     }
+    /// Whether or not this request has any data in the URL path.
     pub fn has_path_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_path())
     }
 
+    /// Whether or not this request has any data in the query string.
     pub fn has_query_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_query())
     }
 
+    /// Produces an iterator over all the header fields.
     pub fn header_fields(&self) -> impl Iterator<Item = &RequestField> {
         self.fields.iter().filter(|field| field.is_header())
     }
 
+    /// Gets the number of path fields.
     pub fn path_field_count(&self) -> usize {
         self.fields.iter().filter(|field| field.is_path()).count()
     }
 
+    /// Gets the path field with the given name.
     pub fn path_field(&self, name: &str) -> Option<&Field> {
         self.fields
             .iter()
-            .flat_map(|f| f.field_(RequestFieldKind::Path))
+            .flat_map(|f| f.field_of_kind(RequestFieldKind::Path))
             .find(|field| {
                 field
                     .ident
                     .as_ref()
                     .expect("expected field to have an identifier")
-                    .to_string()
                     == name
             })
     }
 
+    /// Returns the body field.
     pub fn newtype_body_field(&self) -> Option<&Field> {
         for request_field in self.fields.iter() {
             match *request_field {
@@ -106,33 +119,41 @@ impl Request {
         None
     }
 
+    /// Produces code for a struct initializer for body fields on a variable named `request`.
     pub fn request_body_init_fields(&self) -> TokenStream {
         self.struct_init_fields(RequestFieldKind::Body, quote!(request))
     }
 
+    /// Produces code for a struct initializer for path fields on a variable named `request`.
     pub fn request_path_init_fields(&self) -> TokenStream {
         self.struct_init_fields(RequestFieldKind::Path, quote!(request))
     }
 
+    /// Produces code for a struct initializer for query string fields on a variable named `request`.
     pub fn request_query_init_fields(&self) -> TokenStream {
         self.struct_init_fields(RequestFieldKind::Query, quote!(request))
     }
 
+    /// Produces code for a struct initializer for body fields on a variable named `request_body`.
     pub fn request_init_body_fields(&self) -> TokenStream {
         self.struct_init_fields(RequestFieldKind::Body, quote!(request_body))
     }
 
+    /// Produces code for a struct initializer for query string fields on a variable named
+    /// `request_query`.
     pub fn request_init_query_fields(&self) -> TokenStream {
         self.struct_init_fields(RequestFieldKind::Query, quote!(request_query))
     }
 
+    /// Produces code for a struct initializer for the given field kind to be accessed through the
+    /// given variable name.
     fn struct_init_fields(
         &self,
         request_field_kind: RequestFieldKind,
         src: TokenStream,
     ) -> TokenStream {
         let fields = self.fields.iter().filter_map(|f| {
-            f.field_(request_field_kind).map(|field| {
+            f.field_of_kind(request_field_kind).map(|field| {
                 let field_name = field
                     .ident
                     .as_ref()
@@ -222,7 +243,7 @@ impl From<Vec<Field>> for Request {
             RequestField::new(field_kind, field, header)
         }).collect();
 
-        Request { fields }
+        Self { fields }
     }
 }
 
@@ -345,16 +366,23 @@ impl ToTokens for Request {
     }
 }
 
+/// The types of fields that a request can have.
 pub enum RequestField {
+    /// JSON data in the body of the request.
     Body(Field),
+    /// Data in an HTTP header.
     Header(Field, String),
+    /// A specific data type in the body of the request.
     NewtypeBody(Field),
+    /// Data that appears in the URL path.
     Path(Field),
+    /// Data that appears in the query string.
     Query(Field),
 }
 
 impl RequestField {
-    fn new(kind: RequestFieldKind, field: Field, header: Option<String>) -> RequestField {
+    /// Creates a new `RequestField`.
+    fn new(kind: RequestFieldKind, field: Field, header: Option<String>) -> Self {
         match kind {
             RequestFieldKind::Body => RequestField::Body(field),
             RequestFieldKind::Header => {
@@ -366,6 +394,7 @@ impl RequestField {
         }
     }
 
+    /// Gets the kind of the request field.
     fn kind(&self) -> RequestFieldKind {
         match *self {
             RequestField::Body(..) => RequestFieldKind::Body,
@@ -376,33 +405,39 @@ impl RequestField {
         }
     }
 
+    /// Whether or not this request field is a body kind.
     fn is_body(&self) -> bool {
         self.kind() == RequestFieldKind::Body
     }
 
+    /// Whether or not this request field is a header kind.
     fn is_header(&self) -> bool {
         self.kind() == RequestFieldKind::Header
     }
 
+    /// Whether or not this request field is a path kind.
     fn is_path(&self) -> bool {
         self.kind() == RequestFieldKind::Path
     }
 
+    /// Whether or not this request field is a query string kind.
     fn is_query(&self) -> bool {
         self.kind() == RequestFieldKind::Query
     }
 
+    /// Gets the inner `Field` value.
     fn field(&self) -> &Field {
         match *self {
-            RequestField::Body(ref field) => field,
-            RequestField::Header(ref field, _) => field,
-            RequestField::NewtypeBody(ref field) => field,
-            RequestField::Path(ref field) => field,
-            RequestField::Query(ref field) => field,
+            RequestField::Body(ref field)
+            | RequestField::Header(ref field, _)
+            | RequestField::NewtypeBody(ref field)
+            | RequestField::Path(ref field)
+            | RequestField::Query(ref field) => field,
         }
     }
 
-    fn field_(&self, kind: RequestFieldKind) -> Option<&Field> {
+    /// Gets the inner `Field` value if it's of the provided kind.
+    fn field_of_kind(&self, kind: RequestFieldKind) -> Option<&Field> {
         if self.kind() == kind {
             Some(self.field())
         } else {
@@ -411,11 +446,17 @@ impl RequestField {
     }
 }
 
+/// The types of fields that a request can have, without their values.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum RequestFieldKind {
+    /// See the similarly named variant of `RequestField`.
     Body,
+    /// See the similarly named variant of `RequestField`.
     Header,
+    /// See the similarly named variant of `RequestField`.
     NewtypeBody,
+    /// See the similarly named variant of `RequestField`.
     Path,
+    /// See the similarly named variant of `RequestField`.
     Query,
 }

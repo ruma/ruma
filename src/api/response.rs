@@ -1,30 +1,39 @@
+//! Details of the `response` section of the procedural macro.
+
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{spanned::Spanned, Field, Ident, Lit, Meta, NestedMeta};
 
 use crate::api::strip_serde_attrs;
 
+/// The result of processing the `request` section of the macro.
 pub struct Response {
+    /// The fields of the response.
     fields: Vec<ResponseField>,
 }
 
 impl Response {
+    /// Whether or not this response has any data in the HTTP body.
     pub fn has_body_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_body())
     }
 
+    /// Whether or not this response has any fields.
     pub fn has_fields(&self) -> bool {
         !self.fields.is_empty()
     }
 
+    /// Whether or not this response has any data in HTTP headers.
     pub fn has_header_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_header())
     }
 
+    /// Whether or not this response has any data in the HTTP body.
     pub fn has_body(&self) -> bool {
         self.fields.iter().any(|field| !field.is_header())
     }
 
+    /// Produces code for a request struct initializer.
     pub fn init_fields(&self) -> TokenStream {
         let fields = self
             .fields
@@ -75,6 +84,7 @@ impl Response {
         }
     }
 
+    /// Produces code to add necessary HTTP headers to an `http::Response`.
     pub fn apply_header_fields(&self) -> TokenStream {
         let header_calls = self.fields.iter().filter_map(|response_field| {
             if let ResponseField::Header(ref field, ref header) = *response_field {
@@ -98,8 +108,9 @@ impl Response {
         }
     }
 
+    /// Produces code to initialize the struct that will be used to create the response body.
     pub fn to_body(&self) -> TokenStream {
-        if let Some(ref field) = self.newtype_body_field() {
+        if let Some(field) = self.newtype_body_field() {
             let field_name = field
                 .ident
                 .as_ref()
@@ -131,6 +142,7 @@ impl Response {
         }
     }
 
+    /// Gets the newtype body field, if this request has one.
     pub fn newtype_body_field(&self) -> Option<&Field> {
         for response_field in self.fields.iter() {
             match *response_field {
@@ -217,7 +229,7 @@ impl From<Vec<Field>> for Response {
             }
         }).collect();
 
-        Response { fields }
+        Self { fields }
     }
 }
 
@@ -291,28 +303,35 @@ impl ToTokens for Response {
     }
 }
 
+/// The types of fields that a response can have.
 pub enum ResponseField {
+    /// JSON data in the body of the response.
     Body(Field),
+    /// Data in an HTTP header.
     Header(Field, String),
+    /// A specific data type in the body of the response.
     NewtypeBody(Field),
 }
 
 impl ResponseField {
+    /// Gets the inner `Field` value.
     fn field(&self) -> &Field {
         match *self {
-            ResponseField::Body(ref field) => field,
-            ResponseField::Header(ref field, _) => field,
-            ResponseField::NewtypeBody(ref field) => field,
+            ResponseField::Body(ref field)
+            | ResponseField::Header(ref field, _)
+            | ResponseField::NewtypeBody(ref field) => field,
         }
     }
 
+    /// Whether or not this response field is a body kind.
     fn is_body(&self) -> bool {
         match *self {
-            ResponseField::Body(..) => true,
+            ResponseField::Body(_) => true,
             _ => false,
         }
     }
 
+    /// Whether or not this response field is a header kind.
     fn is_header(&self) -> bool {
         match *self {
             ResponseField::Header(..) => true,
@@ -321,8 +340,12 @@ impl ResponseField {
     }
 }
 
+/// The types of fields that a response can have, without their values.
 enum ResponseFieldKind {
+    /// See the similarly named variant of `ResponseField`.
     Body,
+    /// See the similarly named variant of `ResponseField`.
     Header,
+    /// See the similarly named variant of `ResponseField`.
     NewtypeBody,
 }

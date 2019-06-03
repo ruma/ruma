@@ -1,11 +1,20 @@
+//! Details of the `metadata` section of the procedural macro.
+
 use syn::{punctuated::Pair, Expr, FieldValue, Lit, Member};
 
+/// The result of processing the `metadata` section of the macro.
 pub struct Metadata {
+    /// The description field.
     pub description: String,
+    /// The method field.
     pub method: String,
+    /// The name field.
     pub name: String,
+    /// The path field.
     pub path: String,
+    /// The rate_limited field.
     pub rate_limited: bool,
+    /// The description field.
     pub requires_authentication: bool,
 }
 
@@ -101,7 +110,7 @@ impl From<Vec<FieldValue>> for Metadata {
             }
         }
 
-        Metadata {
+        Self {
             description: description.expect("ruma_api! `metadata` is missing `description`"),
             method: method.expect("ruma_api! `metadata` is missing `method`"),
             name: name.expect("ruma_api! `metadata` is missing `name`"),
