@@ -59,7 +59,7 @@ impl Display for RoomIdOrAliasId {
             RoomIdOrAliasId::RoomId(ref room_id) => display(
                 f,
                 '!',
-                room_id.opaque_id(),
+                room_id.localpart(),
                 room_id.hostname(),
                 room_id.port(),
             ),
@@ -95,9 +95,9 @@ impl<'a> TryFrom<&'a str> for RoomIdOrAliasId {
 
     /// Attempts to create a new Matrix room ID or a room alias ID from a string representation.
     ///
-    /// The string must either
-    /// include the leading ! sigil, the opaque ID, a literal colon, and a valid server name or
-    /// include the leading # sigil, the alias, a literal colon, and a valid server name.
+    /// The string must either include the leading ! sigil, the localpart, a literal colon, and a
+    /// valid homeserver host or include the leading # sigil, the alias, a literal colon, and a
+    /// valid homeserver host.
     fn try_from(room_id_or_alias_id: &'a str) -> Result<Self, Error> {
         validate_id(room_id_or_alias_id)?;
 

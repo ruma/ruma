@@ -83,9 +83,9 @@ impl EventId {
     /// of 18 random ASCII characters. This should only be used for events in the original format
     /// as used by Matrix room versions 1 and 2.
     ///
-    /// Fails if the given origin server name cannot be parsed as a valid host.
-    pub fn new(server_name: &str) -> Result<Self, Error> {
-        let event_id = format!("${}:{}", generate_localpart(18), server_name);
+    /// Fails if the homeserver cannot be parsed as a valid host.
+    pub fn new(homeserver_host: &str) -> Result<Self, Error> {
+        let event_id = format!("${}:{}", generate_localpart(18), homeserver_host);
         let (localpart, host, port) = parse_id('$', &event_id)?;
 
         Ok(Self(Format::Original(Original {

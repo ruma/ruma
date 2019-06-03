@@ -54,9 +54,13 @@ impl UserId {
     /// Attempts to generate a `UserId` for the given origin server with a localpart consisting of
     /// 12 random ASCII characters.
     ///
-    /// Fails if the given origin server name cannot be parsed as a valid host.
-    pub fn new(server_name: &str) -> Result<Self, Error> {
-        let user_id = format!("@{}:{}", generate_localpart(12).to_lowercase(), server_name);
+    /// Fails if the given homeserver cannot be parsed as a valid host.
+    pub fn new(homeserver_host: &str) -> Result<Self, Error> {
+        let user_id = format!(
+            "@{}:{}",
+            generate_localpart(12).to_lowercase(),
+            homeserver_host
+        );
         let (localpart, host, port) = parse_id('@', &user_id)?;
 
         Ok(Self {

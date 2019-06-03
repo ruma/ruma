@@ -35,7 +35,7 @@ pub struct RoomId {
     /// The hostname of the homeserver.
     hostname: Host,
     /// The room's unique ID.
-    opaque_id: String,
+    localpart: String,
     /// The network port of the homeserver.
     port: u16,
 }
@@ -47,14 +47,14 @@ impl RoomId {
     /// Attempts to generate a `RoomId` for the given origin server with a localpart consisting of
     /// 18 random ASCII characters.
     ///
-    /// Fails if the given origin server name cannot be parsed as a valid host.
-    pub fn new(server_name: &str) -> Result<Self, Error> {
-        let room_id = format!("!{}:{}", generate_localpart(18), server_name);
-        let (opaque_id, host, port) = parse_id('!', &room_id)?;
+    /// Fails if the given homeserver cannot be parsed as a valid host.
+    pub fn new(homeserver_host: &str) -> Result<Self, Error> {
+        let room_id = format!("!{}:{}", generate_localpart(18), homeserver_host);
+        let (localpart, host, port) = parse_id('!', &room_id)?;
 
         Ok(Self {
             hostname: host,
-            opaque_id: opaque_id.to_string(),
+            localpart: localpart.to_string(),
             port,
         })
     }
@@ -67,9 +67,9 @@ impl RoomId {
         &self.hostname
     }
 
-    /// Returns the event's opaque ID.
-    pub fn opaque_id(&self) -> &str {
-        &self.opaque_id
+    /// Returns the rooms's unique ID.
+    pub fn localpart(&self) -> &str {
+        &self.localpart
     }
 
     /// Returns the port the originating homeserver can be accessed on.
@@ -80,7 +80,7 @@ impl RoomId {
 
 impl Display for RoomId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        display(f, '!', &self.opaque_id, &self.hostname, self.port)
+        display(f, '!', &self.localpart, &self.hostname, self.port)
     }
 }
 
@@ -107,14 +107,14 @@ impl<'a> TryFrom<&'a str> for RoomId {
 
     /// Attempts to create a new Matrix room ID from a string representation.
     ///
-    /// The string must include the leading ! sigil, the opaque ID, a literal colon, and a valid
+    /// The string must include the leading ! sigil, the localpart, a literal colon, and a valid
     /// server name.
     fn try_from(room_id: &'a str) -> Result<Self, Error> {
-        let (opaque_id, host, port) = parse_id('!', room_id)?;
+        let (localpart, host, port) = parse_id('!', room_id)?;
 
         Ok(Self {
             hostname: host,
-            opaque_id: opaque_id.to_owned(),
+            localpart: localpart.to_owned(),
             port,
         })
     }
