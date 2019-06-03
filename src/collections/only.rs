@@ -37,6 +37,7 @@ pub enum Event {
 
 /// A room event.
 #[derive(Clone, Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum RoomEvent {
     /// m.call.answer
     CallAnswer(AnswerEvent),
@@ -154,11 +155,9 @@ impl<'de> Deserialize<'de> for Event {
             | EventType::RoomPowerLevels
             | EventType::RoomRedaction
             | EventType::RoomThirdPartyInvite
-            | EventType::RoomTopic => {
-                return Err(D::Error::custom(
-                    "not exclusively a basic event".to_string(),
-                ));
-            }
+            | EventType::RoomTopic => Err(D::Error::custom(
+                "not exclusively a basic event".to_string(),
+            )),
         }
     }
 }
@@ -272,7 +271,7 @@ impl<'de> Deserialize<'de> for RoomEvent {
             | EventType::RoomTopic
             | EventType::Tag
             | EventType::Typing => {
-                return Err(D::Error::custom("not exclusively a room event".to_string()));
+                Err(D::Error::custom("not exclusively a room event".to_string()))
             }
         }
     }

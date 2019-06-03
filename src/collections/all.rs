@@ -26,6 +26,7 @@ use serde_json::{from_value, Value};
 
 /// A basic event, room event, or state event.
 #[derive(Clone, Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum Event {
     /// m.call.answer
     CallAnswer(AnswerEvent),
@@ -85,6 +86,7 @@ pub enum Event {
 
 /// A room event or state event.
 #[derive(Clone, Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum RoomEvent {
     /// m.call.answer
     CallAnswer(AnswerEvent),
@@ -132,6 +134,7 @@ pub enum RoomEvent {
 
 /// A state event.
 #[derive(Clone, Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum StateEvent {
     /// m.room.aliases
     RoomAliases(AliasesEvent),
@@ -663,9 +666,7 @@ impl<'de> Deserialize<'de> for RoomEvent {
             | EventType::Presence
             | EventType::Receipt
             | EventType::Tag
-            | EventType::Typing => {
-                return Err(D::Error::custom("not a room event".to_string()));
-            }
+            | EventType::Typing => Err(D::Error::custom("not a room event".to_string())),
         }
     }
 }
@@ -834,9 +835,7 @@ impl<'de> Deserialize<'de> for StateEvent {
             | EventType::RoomMessage
             | EventType::RoomRedaction
             | EventType::Tag
-            | EventType::Typing => {
-                return Err(D::Error::custom("not a state event".to_string()));
-            }
+            | EventType::Typing => Err(D::Error::custom("not a state event".to_string())),
         }
     }
 }

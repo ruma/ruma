@@ -38,7 +38,7 @@ mod tests {
         content.insert(alice.clone(), room.clone());
 
         let event = DirectEvent {
-            content: content,
+            content,
             event_type: EventType::Direct,
         };
 

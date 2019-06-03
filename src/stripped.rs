@@ -23,6 +23,7 @@ use crate::{
 
 /// A stripped-down version of a state event that is included along with some other events.
 #[derive(Clone, Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum StrippedState {
     /// A stripped-down version of the *m.room.aliases* event.
     RoomAliases(StrippedRoomAliases),
@@ -211,9 +212,7 @@ impl<'de> Deserialize<'de> for StrippedState {
 
                 Ok(StrippedState::RoomTopic(event))
             }
-            _ => {
-                return Err(D::Error::custom("not a state event".to_string()));
-            }
+            _ => Err(D::Error::custom("not a state event".to_string())),
         }
     }
 }
