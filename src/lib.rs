@@ -113,7 +113,31 @@
 //!
 //! Just like the `SignatureSet` itself, the `Signatures` value can also be deserialized from JSON.
 
-#![deny(missing_docs, warnings)]
+#![deny(
+    missing_copy_implementations,
+    missing_debug_implementations,
+    missing_docs,
+    warnings
+)]
+#![warn(
+    clippy::empty_line_after_outer_attr,
+    clippy::expl_impl_clone_on_copy,
+    clippy::if_not_else,
+    clippy::items_after_statements,
+    clippy::match_same_arms,
+    clippy::mem_forget,
+    clippy::missing_docs_in_private_items,
+    clippy::multiple_inherent_impl,
+    clippy::mut_mut,
+    clippy::needless_borrow,
+    clippy::needless_continue,
+    clippy::single_match_else,
+    clippy::unicode_not_nfc,
+    clippy::use_self,
+    clippy::used_underscore_binding,
+    clippy::wrong_pub_self_convention,
+    clippy::wrong_self_convention
+)]
 
 use std::{
     collections::{HashMap, HashSet},
@@ -212,12 +236,15 @@ where
 /// An error when trying to extract the algorithm and version from a key identifier.
 #[derive(Debug)]
 enum SplitError<'a> {
+    /// The signature's ID has an invalid length.
     InvalidLength(usize),
+    /// The signature uses an unknown algorithm.
     UnknownAlgorithm(&'a str),
 }
 
 /// Extract the algorithm and version from a key identifier.
 fn split_id(id: &str) -> Result<(Algorithm, String), SplitError<'_>> {
+    /// The length of a valid signature ID.
     const SIGNATURE_ID_LENGTH: usize = 2;
 
     let signature_id: Vec<&str> = id.split(':').collect();
@@ -246,18 +273,22 @@ pub enum Algorithm {
 }
 
 /// An Ed25519 key pair.
+#[derive(Debug)]
 pub struct Ed25519KeyPair {
+    /// The *ring* key pair.
     ring_key_pair: RingEd25519KeyPair,
+    /// The version of the key pair.
     version: String,
 }
 
 /// A verifier for Ed25519 digital signatures.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct Ed25519Verifier;
 
-/// An error produced when ruma_signatures operations fail.
+/// An error produced when `ruma_signatures` operations fail.
 #[derive(Clone, Debug)]
 pub struct Error {
+    /// A human-readable description of the error.
     message: String,
 }
 
@@ -290,14 +321,18 @@ pub trait KeyPair: Sized {
 /// A digital signature.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Signature {
+    /// The cryptographic algorithm to use.
     algorithm: Algorithm,
+    /// The signature data.
     signature: Vec<u8>,
+    /// The version of the signature.
     version: String,
 }
 
 /// A map of server names to sets of digital signatures created by that server.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Signatures {
+    /// A map of homeservers to sets of signatures for the homeserver.
     map: HashMap<Host, SignatureSet>,
 }
 
@@ -305,8 +340,9 @@ pub struct Signatures {
 struct SignaturesVisitor;
 
 /// A set of digital signatures created by a single homeserver.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct SignatureSet {
+    /// A set of signatures for a homeserver.
     set: HashSet<Signature>,
 }
 
@@ -336,13 +372,13 @@ pub trait Verifier {
 
 impl KeyPair for Ed25519KeyPair {
     fn new(public_key: &[u8], private_key: &[u8], version: String) -> Result<Self, Error> {
-        Ok(Ed25519KeyPair {
+        Ok(Self {
             ring_key_pair: RingEd25519KeyPair::from_seed_and_public_key(
                 Input::from(private_key),
                 Input::from(public_key),
             )
             .map_err(|_| Error::new("invalid key pair"))?,
-            version: version,
+            version,
         })
     }
 
@@ -389,7 +425,7 @@ impl Error {
     where
         T: Into<String>,
     {
-        Error {
+        Self {
             message: message.into(),
         }
     }
@@ -426,10 +462,10 @@ impl Signature {
             }
         })?;
 
-        Ok(Signature {
-            algorithm: algorithm,
+        Ok(Self {
+            algorithm,
             signature: bytes.to_vec(),
-            version: version,
+            version,
         })
     }
 
@@ -466,7 +502,7 @@ impl Signature {
 impl Signatures {
     /// Initializes a new empty Signatures.
     pub fn new() -> Self {
-        Signatures {
+        Self {
             map: HashMap::new(),
         }
     }
@@ -477,7 +513,7 @@ impl Signatures {
     ///
     /// * capacity: The number of items to allocate memory for.
     pub fn with_capacity(capacity: usize) -> Self {
-        Signatures {
+        Self {
             map: HashMap::with_capacity(capacity),
         }
     }
@@ -515,6 +551,11 @@ impl Signatures {
     /// The number of servers in the collection.
     pub fn len(&self) -> usize {
         self.map.len()
+    }
+
+    /// Whether or not the collection of signatures is empty.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 
@@ -562,7 +603,7 @@ impl<'de> Visitor<'de> for SignaturesVisitor {
         while let Some((server_name, signature_set)) =
             visitor.next_entry::<String, SignatureSet>()?
         {
-            if let Err(_) = signatures.insert(&server_name, signature_set) {
+            if signatures.insert(&server_name, signature_set).is_err() {
                 return Err(M::Error::invalid_value(
                     Unexpected::Str(&server_name),
                     &self,
@@ -577,7 +618,7 @@ impl<'de> Visitor<'de> for SignaturesVisitor {
 impl SignatureSet {
     /// Initializes a new empty SignatureSet.
     pub fn new() -> Self {
-        SignatureSet {
+        Self {
             set: HashSet::new(),
         }
     }
@@ -588,7 +629,7 @@ impl SignatureSet {
     ///
     /// * capacity: The number of items to allocate memory for.
     pub fn with_capacity(capacity: usize) -> Self {
-        SignatureSet {
+        Self {
             set: HashSet::with_capacity(capacity),
         }
     }
@@ -608,6 +649,11 @@ impl SignatureSet {
     /// The number of signatures in the set.
     pub fn len(&self) -> usize {
         self.set.len()
+    }
+
+    /// Whether or not the set of signatures is empty.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 
@@ -666,9 +712,9 @@ impl<'de> Visitor<'de> for SignatureSetVisitor {
             };
 
             let signature = Signature {
-                algorithm: algorithm,
+                algorithm,
                 signature: signature_bytes,
-                version: version,
+                version,
             };
 
             signature_set.insert(signature);
@@ -773,9 +819,7 @@ mod test {
         let mut signatures = Signatures::with_capacity(1);
         signatures.insert("domain", signature_set).ok();
 
-        let empty = EmptyWithSignatures {
-            signatures: signatures,
-        };
+        let empty = EmptyWithSignatures { signatures };
 
         let json = to_string(&empty).unwrap();
 
