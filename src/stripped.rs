@@ -338,7 +338,7 @@ mod tests {
                 assert_eq!(event.sender.to_string(), "@example:localhost");
             }
             _ => {
-                assert!(false);
+                unreachable!();
             }
         };
 
@@ -350,7 +350,7 @@ mod tests {
                 assert_eq!(event.sender.to_string(), "@example:localhost");
             }
             _ => {
-                assert!(false);
+                unreachable!();
             }
         };
 
@@ -362,14 +362,14 @@ mod tests {
                 assert_eq!(image_info.width, 128);
                 assert_eq!(image_info.mimetype, "image/jpeg");
                 assert_eq!(image_info.size, 1024);
-                assert_eq!(event.content.thumbnail_info.unwrap().size, 32);
+                assert_eq!(image_info.thumbnail_info.unwrap().size, 32);
                 assert_eq!(event.content.url, "https://domain.com/image.jpg");
                 assert_eq!(event.event_type, EventType::RoomAvatar);
                 assert_eq!(event.state_key, "");
                 assert_eq!(event.sender.to_string(), "@example:localhost");
             }
             _ => {
-                assert!(false);
+                unreachable!();
             }
         };
     }

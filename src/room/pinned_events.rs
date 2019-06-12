@@ -36,7 +36,7 @@ mod tests {
             content: content.clone(),
             event_id: EventId::new("example.com").unwrap(),
             event_type: EventType::RoomPinnedEvents,
-            origin_server_ts: 1432804485886,
+            origin_server_ts: 1_432_804_485_886,
             prev_content: None,
             room_id: Some(RoomId::new("example.com").unwrap()),
             sender: UserId::new("example.com").unwrap(),

@@ -15,4 +15,29 @@ pub struct HangupEventContent {
     pub call_id: String,
     /// The version of the VoIP specification this messages adheres to.
     pub version: u64,
+    /// Optional error reason for the hangup.
+    pub reason: Option<Reason>,
+}
+
+/// A reason for a hangup.
+///
+/// This should not be provided when the user naturally ends or rejects the call. When there was an
+/// error in the call negotiation, this should be `ice_failed` for when ICE negotiation fails or
+/// `invite_timeout` for when the other party did not answer in time.
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+pub enum Reason {
+    /// ICE negotiation failure.
+    #[serde(rename = "ice_failed")]
+    IceFailed,
+
+    /// Party did not answer in time.
+    #[serde(rename = "invite_timeout")]
+    InviteTimeout,
+}
+
+impl_enum! {
+    Reason {
+        IceFailed => "ice_failed",
+        InviteTimeout => "invite_timeout",
+    }
 }

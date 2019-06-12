@@ -118,6 +118,7 @@ pub mod collections {
     pub mod only;
 }
 pub mod direct;
+pub mod fully_read;
 pub mod presence;
 pub mod receipt;
 pub mod room;
@@ -142,6 +143,8 @@ pub enum EventType {
     CallInvite,
     /// m.direct
     Direct,
+    /// m.fully_read
+    FullyRead,
     /// m.presence
     Presence,
     /// m.receipt
@@ -164,6 +167,8 @@ pub enum EventType {
     RoomMember,
     /// m.room.message
     RoomMessage,
+    /// m.room.message.feedback
+    RoomMessageFeedback,
     /// m.room.name
     RoomName,
     /// m.room.pinned_events
@@ -253,6 +258,7 @@ impl Display for EventType {
             EventType::CallHangup => "m.call.hangup",
             EventType::CallInvite => "m.call.invite",
             EventType::Direct => "m.direct",
+            EventType::FullyRead => "m.fully_read",
             EventType::Presence => "m.presence",
             EventType::Receipt => "m.receipt",
             EventType::RoomAliases => "m.room.aliases",
@@ -264,6 +270,7 @@ impl Display for EventType {
             EventType::RoomJoinRules => "m.room.join_rules",
             EventType::RoomMember => "m.room.member",
             EventType::RoomMessage => "m.room.message",
+            EventType::RoomMessageFeedback => "m.room.message.feedback",
             EventType::RoomName => "m.room.name",
             EventType::RoomPinnedEvents => "m.room.pinned_events",
             EventType::RoomPowerLevels => "m.room.power_levels",
@@ -287,6 +294,7 @@ impl<'a> From<&'a str> for EventType {
             "m.call.hangup" => EventType::CallHangup,
             "m.call.invite" => EventType::CallInvite,
             "m.direct" => EventType::Direct,
+            "m.fully_read" => EventType::FullyRead,
             "m.presence" => EventType::Presence,
             "m.receipt" => EventType::Receipt,
             "m.room.aliases" => EventType::RoomAliases,
@@ -298,6 +306,7 @@ impl<'a> From<&'a str> for EventType {
             "m.room.join_rules" => EventType::RoomJoinRules,
             "m.room.member" => EventType::RoomMember,
             "m.room.message" => EventType::RoomMessage,
+            "m.room.message.feedback" => EventType::RoomMessageFeedback,
             "m.room.name" => EventType::RoomName,
             "m.room.pinned_events" => EventType::RoomPinnedEvents,
             "m.room.power_levels" => EventType::RoomPowerLevels,

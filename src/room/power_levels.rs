@@ -52,6 +52,19 @@ pub struct PowerLevelsEventContent {
     /// The default power level for every user in the room.
     #[serde(default)]
     pub users_default: u64,
+
+    /// The power level requirements for specific notification types.
+    ///
+    /// This is a mapping from `key` to power level for that notifications key.
+    pub notifications: NotificationPowerLevels,
+}
+
+/// The power level requirements for specific notification types.
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+pub struct NotificationPowerLevels {
+    /// The level required to trigger an `@room` notification.
+    #[serde(default = "default_power_level")]
+    pub room: u64,
 }
 
 fn default_power_level() -> u64 {

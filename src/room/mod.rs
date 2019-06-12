@@ -2,6 +2,8 @@
 //!
 //! This module also contains types shared by events in its child namespaces.
 
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 pub mod aliases;
@@ -33,9 +35,12 @@ pub struct ImageInfo {
     /// Metadata about the image referred to in `thumbnail_url`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<ThumbnailInfo>,
-    /// The URL to the thumbnail of the image.
+    /// The URL to the thumbnail of the image. Only present if the thumbnail is unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_url: Option<String>,
+    /// Information on the encrypted thumbnail image. Only present if the thumbnail is encrypted.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thumbnail_file: Option<EncryptedFile>,
     /// The width of the image in pixels.
     #[serde(rename = "w")]
     pub width: u64,
@@ -54,4 +59,36 @@ pub struct ThumbnailInfo {
     /// The width of the thumbnail in pixels.
     #[serde(rename = "w")]
     pub width: u64,
+}
+
+/// A file sent to a room with end-to-end encryption enabled.
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct EncryptedFile {
+    /// The URL to the file.
+    pub url: String,
+    /// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
+    pub key: JsonWebKey,
+    /// The initialization vector used by AES-CTR, encoded as unpadded base64.
+    pub iv: String,
+    /// A map from an algorithm name to a hash of the ciphertext, encoded as unpadded base64.
+    /// Clients should support the SHA-256 hash, which uses the key sha256.
+    pub hashes: HashMap<String, String>,
+    /// Version of the encrypted attachments protocol. Must be `v2`.
+    pub v: String,
+}
+
+/// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct JsonWebKey {
+    /// Key type. Must be `oct`.
+    pub kty: String,
+    /// Key operations. Must at least contain `encrypt` and `decrypt`.
+    pub key_ops: Vec<String>,
+    /// Required. Algorithm. Must be `A256CTR`.
+    pub alg: String,
+    /// The key, encoded as urlsafe unpadded base64.
+    pub k: String,
+    /// Extractable. Must be `true`. This is a
+    /// [W3C extension](https://w3c.github.io/webcrypto/#iana-section-jwk).
+    pub ext: bool,
 }

@@ -7,11 +7,7 @@ event! {
     /// Informs the client of the list of users currently typing.
     pub struct TypingEvent(TypingEventContent) {
         /// The unique identifier for the room associated with this event.
-        ///
-        /// This can be `None` if the event came from a context where there is
-        /// no ambiguity which room it belongs to, like a `/sync` response for example.
-        #[serde(skip_serializing_if="Option::is_none")]
-        pub room_id: Option<RoomId>
+        pub room_id: RoomId
     }
 }
 

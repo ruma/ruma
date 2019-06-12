@@ -1,9 +1,12 @@
 //! Types for the *m.room.message* event.
 
+use ruma_identifiers::EventId;
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
-use super::{ImageInfo, ThumbnailInfo};
+use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
+
+pub mod feedback;
 
 room_event! {
     /// A message sent to a room.
@@ -47,6 +50,7 @@ pub enum MessageType {
 }
 
 /// The payload of a message event.
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum MessageEventContent {
     /// An audio message.
@@ -84,8 +88,13 @@ pub struct AudioMessageEventContent {
     pub info: Option<AudioInfo>,
     /// The message type. Always *m.audio*.
     pub msgtype: MessageType,
-    /// The URL to the audio clip.
-    pub url: String,
+    /// The URL to the audio clip. Required if the file is unencrypted. The URL (typically
+    /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to the audio clip.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    /// Required if the audio clip is encrypted. Information on the encrypted audio clip.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file: Option<EncryptedFile>,
 }
 
 /// Metadata about an audio clip.
@@ -109,6 +118,13 @@ pub struct EmoteMessageEventContent {
     pub body: String,
     /// The message type. Always *m.emote*.
     pub msgtype: MessageType,
+    /// The format used in the `formatted_body`. Currently only `org.matrix.custom.html` is
+    /// supported.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub format: Option<String>,
+    /// The formatted version of the `body`. This is required if `format` is specified.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub formatted_body: Option<String>,
 }
 
 /// The payload of a file message.
@@ -118,14 +134,20 @@ pub struct FileMessageEventContent {
     /// original upload.
     pub body: String,
     /// The original filename of the uploaded file.
-    pub filename: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filename: Option<String>,
     /// Metadata about the file referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<FileInfo>,
     /// The message type. Always *m.file*.
     pub msgtype: MessageType,
-    /// The URL to the file.
-    pub url: String,
+    /// The URL to the file. Required if the file is unencrypted. The URL (typically
+    /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to the file.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    /// Required if file is encrypted. Information on the encrypted file.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file: Option<EncryptedFile>,
 }
 
 /// Metadata about a file.
@@ -138,9 +160,12 @@ pub struct FileInfo {
     /// Metadata about the image referred to in `thumbnail_url`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<ThumbnailInfo>,
-    /// The URL to the thumbnail of the file.
+    /// The URL to the thumbnail of the file. Only present if the thumbnail is unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_url: Option<String>,
+    /// Information on the encrypted thumbnail file. Only present if the thumbnail is encrypted.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thumbnail_file: Option<EncryptedFile>,
 }
 
 /// The payload of an image message.
@@ -154,8 +179,12 @@ pub struct ImageMessageEventContent {
     pub info: Option<ImageInfo>,
     /// The message type. Always *m.image*.
     pub msgtype: MessageType,
-    /// The URL to the image.
-    pub url: String,
+    /// The URL to the image.  Required if the file is unencrypted. The URL (typically
+    /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to the image.
+    pub url: Option<String>,
+    /// Required if image is encrypted. Information on the encrypted image.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file: Option<EncryptedFile>,
 }
 
 /// The payload of a location message.
@@ -176,12 +205,17 @@ pub struct LocationMessageEventContent {
 /// Thumbnail info associated with a location.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct LocationInfo {
-    /// Metadata about the image referred to in `thumbnail_url`.
+    /// Metadata about the image referred to in `thumbnail_url` or `thumbnail_file`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<ThumbnailInfo>,
-    /// The URL to a thumbnail of the location being represented.
+    /// The URL to a thumbnail of the location being represented. Only present if the thumbnail is
+    /// unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_url: Option<String>,
+    /// Information on an encrypted thumbnail of the location being represented. Only present if the
+    /// thumbnail is encrypted.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thumbnail_file: Option<EncryptedFile>,
 }
 
 /// The payload of a notice message.
@@ -191,6 +225,11 @@ pub struct NoticeMessageEventContent {
     pub body: String,
     /// The message type. Always *m.notice*.
     pub msgtype: MessageType,
+    /// Information about related messages for
+    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.5.0#rich-replies).
+    #[serde(rename = "m.relates_to")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub relates_to: Option<RelatesTo>,
 }
 
 /// The payload of a text message.
@@ -200,6 +239,18 @@ pub struct TextMessageEventContent {
     pub body: String,
     /// The message type. Always *m.text*.
     pub msgtype: MessageType,
+    /// The format used in the `formatted_body`. Currently only `org.matrix.custom.html` is
+    /// supported.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub format: Option<String>,
+    /// The formatted version of the `body`. This is required if `format` is specified.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub formatted_body: Option<String>,
+    /// Information about related messages for
+    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.5.0#rich-replies).
+    #[serde(rename = "m.relates_to")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub relates_to: Option<RelatesTo>,
 }
 
 /// The payload of a video message.
@@ -213,8 +264,12 @@ pub struct VideoMessageEventContent {
     pub info: Option<VideoInfo>,
     /// The message type. Always *m.video*.
     pub msgtype: MessageType,
-    /// The URL to the video clip.
-    pub url: String,
+    /// The URL to the video clip.  Required if the file is unencrypted. The URL (typically
+    /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to the video clip.
+    pub url: Option<String>,
+    /// Required if video clip is encrypted. Information on the encrypted video clip.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file: Option<EncryptedFile>,
 }
 
 /// Metadata about a video.
@@ -236,13 +291,33 @@ pub struct VideoInfo {
     /// Metadata about an image.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<ThumbnailInfo>,
-    /// The URL to a thumbnail of the video clip.
+    /// The URL (typically [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to
+    /// an image thumbnail of the video clip. Only present if the thumbnail is unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_url: Option<String>,
+    /// Information on the encrypted thumbnail file.  Only present if the thumbnail is encrypted.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thumbnail_file: Option<EncryptedFile>,
     /// The width of the video in pixels.
     #[serde(rename = "w")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub width: Option<u64>,
+}
+
+/// Information about related messages for
+/// [rich replies](https://matrix.org/docs/spec/client_server/r0.5.0#rich-replies).
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct RelatesTo {
+    /// Information about another message being replied to.
+    #[serde(rename = "m.in_reply_to")]
+    pub in_reply_to: InReplyTo,
+}
+
+/// Information about the event a "rich reply" is replying to.
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct InReplyTo {
+    /// The event being replied to.
+    pub event_id: EventId,
 }
 
 impl_enum! {
@@ -374,7 +449,8 @@ mod tests {
             body: "test".to_string(),
             info: None,
             msgtype: MessageType::Audio,
-            url: "http://example.com/audio.mp3".to_string(),
+            url: Some("http://example.com/audio.mp3".to_string()),
+            file: None,
         });
 
         assert_eq!(
@@ -389,7 +465,8 @@ mod tests {
             body: "test".to_string(),
             info: None,
             msgtype: MessageType::Audio,
-            url: "http://example.com/audio.mp3".to_string(),
+            url: Some("http://example.com/audio.mp3".to_string()),
+            file: None,
         });
 
         assert_eq!(

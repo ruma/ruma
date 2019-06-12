@@ -6,15 +6,25 @@ use crate::{
         answer::AnswerEvent, candidates::CandidatesEvent, hangup::HangupEvent, invite::InviteEvent,
     },
     direct::DirectEvent,
+    fully_read::FullyReadEvent,
     presence::PresenceEvent,
     receipt::ReceiptEvent,
     room::{
-        aliases::AliasesEvent, avatar::AvatarEvent, canonical_alias::CanonicalAliasEvent,
-        create::CreateEvent, guest_access::GuestAccessEvent,
-        history_visibility::HistoryVisibilityEvent, join_rules::JoinRulesEvent,
-        member::MemberEvent, message::MessageEvent, name::NameEvent,
-        pinned_events::PinnedEventsEvent, power_levels::PowerLevelsEvent,
-        redaction::RedactionEvent, third_party_invite::ThirdPartyInviteEvent, topic::TopicEvent,
+        aliases::AliasesEvent,
+        avatar::AvatarEvent,
+        canonical_alias::CanonicalAliasEvent,
+        create::CreateEvent,
+        guest_access::GuestAccessEvent,
+        history_visibility::HistoryVisibilityEvent,
+        join_rules::JoinRulesEvent,
+        member::MemberEvent,
+        message::{feedback::FeedbackEvent, MessageEvent},
+        name::NameEvent,
+        pinned_events::PinnedEventsEvent,
+        power_levels::PowerLevelsEvent,
+        redaction::RedactionEvent,
+        third_party_invite::ThirdPartyInviteEvent,
+        topic::TopicEvent,
     },
     tag::TagEvent,
     typing::TypingEvent,
@@ -38,6 +48,8 @@ pub enum Event {
     CallInvite(InviteEvent),
     /// m.direct
     Direct(DirectEvent),
+    /// m.fully_read
+    FullyRead(FullyReadEvent),
     /// m.presence
     Presence(PresenceEvent),
     /// m.receipt
@@ -60,6 +72,8 @@ pub enum Event {
     RoomMember(MemberEvent),
     /// m.room.message
     RoomMessage(MessageEvent),
+    /// m.room.message.feedback
+    RoomMessageFeedback(FeedbackEvent),
     /// m.room.name
     RoomName(NameEvent),
     /// m.room.pinned_events
@@ -114,6 +128,8 @@ pub enum RoomEvent {
     RoomMember(MemberEvent),
     /// m.room.message
     RoomMessage(MessageEvent),
+    /// m.room.message.feedback
+    RoomMessageFeedback(FeedbackEvent),
     /// m.room.name
     RoomName(NameEvent),
     /// m.room.pinned_events
@@ -177,6 +193,7 @@ impl Serialize for Event {
             Event::CallHangup(ref event) => event.serialize(serializer),
             Event::CallInvite(ref event) => event.serialize(serializer),
             Event::Direct(ref event) => event.serialize(serializer),
+            Event::FullyRead(ref event) => event.serialize(serializer),
             Event::Presence(ref event) => event.serialize(serializer),
             Event::Receipt(ref event) => event.serialize(serializer),
             Event::RoomAliases(ref event) => event.serialize(serializer),
@@ -188,6 +205,7 @@ impl Serialize for Event {
             Event::RoomJoinRules(ref event) => event.serialize(serializer),
             Event::RoomMember(ref event) => event.serialize(serializer),
             Event::RoomMessage(ref event) => event.serialize(serializer),
+            Event::RoomMessageFeedback(ref event) => event.serialize(serializer),
             Event::RoomName(ref event) => event.serialize(serializer),
             Event::RoomPinnedEvents(ref event) => event.serialize(serializer),
             Event::RoomPowerLevels(ref event) => event.serialize(serializer),
@@ -260,6 +278,14 @@ impl<'de> Deserialize<'de> for Event {
                 };
 
                 Ok(Event::Direct(event))
+            }
+            EventType::FullyRead => {
+                let event = match from_value::<FullyReadEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::FullyRead(event))
             }
             EventType::Presence => {
                 let event = match from_value::<PresenceEvent>(value) {
@@ -348,6 +374,14 @@ impl<'de> Deserialize<'de> for Event {
                 };
 
                 Ok(Event::RoomMessage(event))
+            }
+            EventType::RoomMessageFeedback => {
+                let event = match from_value::<FeedbackEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::RoomMessageFeedback(event))
             }
             EventType::RoomName => {
                 let event = match from_value::<NameEvent>(value) {
@@ -463,6 +497,7 @@ impl Serialize for RoomEvent {
             RoomEvent::RoomJoinRules(ref event) => event.serialize(serializer),
             RoomEvent::RoomMember(ref event) => event.serialize(serializer),
             RoomEvent::RoomMessage(ref event) => event.serialize(serializer),
+            RoomEvent::RoomMessageFeedback(ref event) => event.serialize(serializer),
             RoomEvent::RoomName(ref event) => event.serialize(serializer),
             RoomEvent::RoomPinnedEvents(ref event) => event.serialize(serializer),
             RoomEvent::RoomPowerLevels(ref event) => event.serialize(serializer),
@@ -597,6 +632,14 @@ impl<'de> Deserialize<'de> for RoomEvent {
 
                 Ok(RoomEvent::RoomMessage(event))
             }
+            EventType::RoomMessageFeedback => {
+                let event = match from_value::<FeedbackEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(RoomEvent::RoomMessageFeedback(event))
+            }
             EventType::RoomName => {
                 let event = match from_value::<NameEvent>(value) {
                     Ok(event) => event,
@@ -663,6 +706,7 @@ impl<'de> Deserialize<'de> for RoomEvent {
                 }
             }
             EventType::Direct
+            | EventType::FullyRead
             | EventType::Presence
             | EventType::Receipt
             | EventType::Tag
@@ -830,9 +874,11 @@ impl<'de> Deserialize<'de> for StateEvent {
             | EventType::CallHangup
             | EventType::CallInvite
             | EventType::Direct
+            | EventType::FullyRead
             | EventType::Presence
             | EventType::Receipt
             | EventType::RoomMessage
+            | EventType::RoomMessageFeedback
             | EventType::RoomRedaction
             | EventType::Tag
             | EventType::Typing => Err(D::Error::custom("not a state event".to_string())),
@@ -855,6 +901,7 @@ impl_from_t_for_event!(CandidatesEvent, CallCandidates);
 impl_from_t_for_event!(HangupEvent, CallHangup);
 impl_from_t_for_event!(InviteEvent, CallInvite);
 impl_from_t_for_event!(DirectEvent, Direct);
+impl_from_t_for_event!(FullyReadEvent, FullyRead);
 impl_from_t_for_event!(PresenceEvent, Presence);
 impl_from_t_for_event!(ReceiptEvent, Receipt);
 impl_from_t_for_event!(AliasesEvent, RoomAliases);
@@ -866,6 +913,7 @@ impl_from_t_for_event!(HistoryVisibilityEvent, RoomHistoryVisibility);
 impl_from_t_for_event!(JoinRulesEvent, RoomJoinRules);
 impl_from_t_for_event!(MemberEvent, RoomMember);
 impl_from_t_for_event!(MessageEvent, RoomMessage);
+impl_from_t_for_event!(FeedbackEvent, RoomMessageFeedback);
 impl_from_t_for_event!(NameEvent, RoomName);
 impl_from_t_for_event!(PinnedEventsEvent, RoomPinnedEvents);
 impl_from_t_for_event!(PowerLevelsEvent, RoomPowerLevels);
@@ -901,6 +949,7 @@ impl_from_t_for_room_event!(HistoryVisibilityEvent, RoomHistoryVisibility);
 impl_from_t_for_room_event!(JoinRulesEvent, RoomJoinRules);
 impl_from_t_for_room_event!(MemberEvent, RoomMember);
 impl_from_t_for_room_event!(MessageEvent, RoomMessage);
+impl_from_t_for_room_event!(FeedbackEvent, RoomMessageFeedback);
 impl_from_t_for_room_event!(NameEvent, RoomName);
 impl_from_t_for_room_event!(PinnedEventsEvent, RoomPinnedEvents);
 impl_from_t_for_room_event!(PowerLevelsEvent, RoomPowerLevels);

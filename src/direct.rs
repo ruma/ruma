@@ -85,7 +85,7 @@ mod tests {
                 assert!(direct_rooms.contains(&rooms[0]));
                 assert!(direct_rooms.contains(&rooms[1]));
             }
-            _ => assert!(false),
+            _ => unreachable!(),
         };
 
         match from_str::<collections::only::Event>(&json_data).unwrap() {
@@ -96,7 +96,7 @@ mod tests {
                 assert!(direct_rooms.contains(&rooms[0]));
                 assert!(direct_rooms.contains(&rooms[1]));
             }
-            _ => assert!(false),
+            _ => unreachable!(),
         };
     }
 }

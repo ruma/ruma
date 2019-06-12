@@ -4,38 +4,40 @@ use ruma_identifiers::UserId;
 use ruma_signatures::Signatures;
 use serde::{Deserialize, Serialize};
 
-use crate::stripped::StrippedState;
-
 state_event! {
     /// The current membership state of a user in the room.
     ///
     /// Adjusts the membership state for a user in a room. It is preferable to use the membership
-    /// APIs (``/rooms/<room id>/invite`` etc) when performing membership actions rather than
+    /// APIs (`/rooms/<room id>/invite` etc) when performing membership actions rather than
     /// adjusting the state directly as there are a restricted set of valid transformations. For
     /// example, user A cannot force user B to join a room, and trying to force this state change
     /// directly will fail.
     ///
-    /// The *third_party_invite* property will be set if this invite is an *invite* event and is the
+    /// The `third_party_invite` property will be set if this invite is an *invite* event and is the
     /// successor of an *m.room.third_party_invite* event, and absent otherwise.
     ///
-    /// This event may also include an *invite_room_state* key outside the *content* key. If
+    /// This event may also include an `invite_room_state` key inside the event's unsigned data. If
     /// present, this contains an array of `StrippedState` events. These events provide information
-    /// on a few select state events such as the room name.
-    pub struct MemberEvent(MemberEventContent) {
-        /// A subset of the state of the room at the time of the invite.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub invite_room_state: Option<Vec<StrippedState>>
-    }
+    /// on a subset of state events such as the room name.
+    ///
+    /// The user for which a membership applies is represented by the `state_key`. Under some
+    /// conditions, the `sender` and `state_key` may not match - this may be interpreted as the
+    /// `sender` affecting the membership state of the `state_key` user.
+    ///
+    /// The membership for a given user can change over time. Previous membership can be retrieved
+    /// from the `prev_content` object on an event. If not present, the user's previous membership
+    /// must be assumed as leave.
+    pub struct MemberEvent(MemberEventContent) {}
 }
 
 /// The payload of a `MemberEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MemberEventContent {
-    /// The avatar URL for this user.
+    /// The avatar URL for this user, if any. This is added by the homeserver.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar_url: Option<String>,
 
-    /// The display name for this user.
+    /// The display name for this user, if any. This is added by the homeserver.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub displayname: Option<String>,
 

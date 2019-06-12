@@ -78,7 +78,7 @@ mod tests {
                 avatar_url: Some("mxc://localhost:wefuiwegh8742w".to_string()),
                 currently_active: Some(false),
                 displayname: None,
-                last_active_ago: Some(2478593),
+                last_active_ago: Some(2_478_593),
                 presence: PresenceState::Online,
             },
             event_type: EventType::Presence,

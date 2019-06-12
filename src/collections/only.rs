@@ -10,9 +10,13 @@ use crate::{
         answer::AnswerEvent, candidates::CandidatesEvent, hangup::HangupEvent, invite::InviteEvent,
     },
     direct::DirectEvent,
+    fully_read::FullyReadEvent,
     presence::PresenceEvent,
     receipt::ReceiptEvent,
-    room::{message::MessageEvent, redaction::RedactionEvent},
+    room::{
+        message::{feedback::FeedbackEvent, MessageEvent},
+        redaction::RedactionEvent,
+    },
     tag::TagEvent,
     typing::TypingEvent,
     CustomEvent, CustomRoomEvent, EventType,
@@ -23,6 +27,8 @@ use crate::{
 pub enum Event {
     /// m.direct
     Direct(DirectEvent),
+    /// m.fully_read
+    FullyRead(FullyReadEvent),
     /// m.presence
     Presence(PresenceEvent),
     /// m.receipt
@@ -49,6 +55,8 @@ pub enum RoomEvent {
     CallInvite(InviteEvent),
     /// m.room.message
     RoomMessage(MessageEvent),
+    /// m.room.message.feedback
+    RoomMessageFeedback(FeedbackEvent),
     /// m.room.redaction
     RoomRedaction(RedactionEvent),
     /// Any room event that is not part of the specification.
@@ -62,6 +70,7 @@ impl Serialize for Event {
     {
         match *self {
             Event::Direct(ref event) => event.serialize(serializer),
+            Event::FullyRead(ref event) => event.serialize(serializer),
             Event::Presence(ref event) => event.serialize(serializer),
             Event::Receipt(ref event) => event.serialize(serializer),
             Event::Tag(ref event) => event.serialize(serializer),
@@ -96,6 +105,14 @@ impl<'de> Deserialize<'de> for Event {
                 };
 
                 Ok(Event::Direct(event))
+            }
+            EventType::FullyRead => {
+                let event = match from_value::<FullyReadEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::FullyRead(event))
             }
             EventType::Presence => {
                 let event = match from_value::<PresenceEvent>(value) {
@@ -150,6 +167,7 @@ impl<'de> Deserialize<'de> for Event {
             | EventType::RoomJoinRules
             | EventType::RoomMember
             | EventType::RoomMessage
+            | EventType::RoomMessageFeedback
             | EventType::RoomName
             | EventType::RoomPinnedEvents
             | EventType::RoomPowerLevels
@@ -173,6 +191,7 @@ impl Serialize for RoomEvent {
             RoomEvent::CallHangup(ref event) => event.serialize(serializer),
             RoomEvent::CallInvite(ref event) => event.serialize(serializer),
             RoomEvent::RoomMessage(ref event) => event.serialize(serializer),
+            RoomEvent::RoomMessageFeedback(ref event) => event.serialize(serializer),
             RoomEvent::RoomRedaction(ref event) => event.serialize(serializer),
             RoomEvent::CustomRoom(ref event) => event.serialize(serializer),
         }
@@ -237,6 +256,14 @@ impl<'de> Deserialize<'de> for RoomEvent {
 
                 Ok(RoomEvent::RoomMessage(event))
             }
+            EventType::RoomMessageFeedback => {
+                let event = match from_value::<FeedbackEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(RoomEvent::RoomMessageFeedback(event))
+            }
             EventType::RoomRedaction => {
                 let event = match from_value::<RedactionEvent>(value) {
                     Ok(event) => event,
@@ -254,6 +281,7 @@ impl<'de> Deserialize<'de> for RoomEvent {
                 Ok(RoomEvent::CustomRoom(event))
             }
             EventType::Direct
+            | EventType::FullyRead
             | EventType::Presence
             | EventType::Receipt
             | EventType::RoomAliases
@@ -287,6 +315,7 @@ macro_rules! impl_from_t_for_event {
 }
 
 impl_from_t_for_event!(DirectEvent, Direct);
+impl_from_t_for_event!(FullyReadEvent, FullyRead);
 impl_from_t_for_event!(PresenceEvent, Presence);
 impl_from_t_for_event!(ReceiptEvent, Receipt);
 impl_from_t_for_event!(TagEvent, Tag);
@@ -308,5 +337,6 @@ impl_from_t_for_room_event!(CandidatesEvent, CallCandidates);
 impl_from_t_for_room_event!(HangupEvent, CallHangup);
 impl_from_t_for_room_event!(InviteEvent, CallInvite);
 impl_from_t_for_room_event!(MessageEvent, RoomMessage);
+impl_from_t_for_room_event!(FeedbackEvent, RoomMessageFeedback);
 impl_from_t_for_room_event!(RedactionEvent, RoomRedaction);
 impl_from_t_for_room_event!(CustomRoomEvent, CustomRoom);

@@ -9,11 +9,7 @@ event! {
     /// Informs the client of new receipts.
     pub struct ReceiptEvent(ReceiptEventContent) {
         /// The unique identifier for the room associated with this event.
-        ///
-        /// This can be `None` if the event came from a context where there is
-        /// no ambiguity which room it belongs to, like a `/sync` response for example.
-        #[serde(skip_serializing_if="Option::is_none")]
-        pub room_id: Option<RoomId>
+        pub room_id: RoomId
     }
 }
 
@@ -29,7 +25,7 @@ pub struct Receipts {
     /// A collection of users who have sent *m.read* receipts for this event.
     #[serde(rename = "m.read")]
     #[serde(default)]
-    pub m_read: UserReceipts,
+    pub read: UserReceipts,
 }
 
 /// A mapping of user ID to receipt.
@@ -40,6 +36,6 @@ pub type UserReceipts = HashMap<UserId, Receipt>;
 /// An acknowledgement of an event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Receipt {
-    /// The timestamp the receipt was sent at.
+    /// The timestamp (milliseconds since the Unix epoch) when the receipt was sent.
     pub ts: u64,
 }
