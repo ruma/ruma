@@ -35,7 +35,12 @@
     clippy::wrong_self_convention
 )]
 
-use std::{convert::TryInto, io};
+use std::{
+    convert::TryInto,
+    error::Error as StdError,
+    fmt::{Display, Formatter, Result as FmtResult},
+    io,
+};
 
 use futures::future::FutureFrom;
 use http::{self, Method, Request, Response, StatusCode};
@@ -58,7 +63,29 @@ pub trait Endpoint<T = Body, U = Body> {
 /// An error when converting an `Endpoint::Request` to a `http::Request` or a `http::Response` to
 /// an `Endpoint::Response`.
 #[derive(Debug)]
-pub enum Error {
+pub struct Error(pub(crate) InnerError);
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        let message = match self.0 {
+            InnerError::Http(_) => "An error converting to or from `http` types occurred.".into(),
+            InnerError::Hyper(_) => "A Hyper error occurred.".into(),
+            InnerError::Io(_) => "An I/O error occurred.".into(),
+            InnerError::SerdeJson(_) => "A JSON error occurred.".into(),
+            InnerError::SerdeUrlEncodedDe(_) => "A URL encoding deserialization error occurred.".into(),
+            InnerError::SerdeUrlEncodedSer(_) => "A URL encoding serialization error occurred.".into(),
+            InnerError::RumaIdentifiers(_) => "A ruma-identifiers error occurred.".into(),
+            InnerError::StatusCode(code) => format!("A HTTP {} error occurred.", code),
+        };
+
+        write!(f, "{}", message)
+    }
+}
+
+impl StdError for Error {}
+
+#[derive(Debug)]
+pub(crate) enum InnerError {
     /// An HTTP error.
     Http(http::Error),
     /// An Hyper error.
@@ -75,51 +102,53 @@ pub enum Error {
     RumaIdentifiers(ruma_identifiers::Error),
     /// An HTTP status code indicating error.
     StatusCode(StatusCode),
-    /// Standard hack to prevent exhaustive matching.
-    /// This will be replaced by the #[non_exhaustive] feature when available.
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 impl From<http::Error> for Error {
     fn from(error: http::Error) -> Self {
-        Error::Http(error)
+        Self(InnerError::Http(error))
     }
 }
 
 impl From<hyper::Error> for Error {
     fn from(error: hyper::Error) -> Self {
-        Error::Hyper(error)
+        Self(InnerError::Hyper(error))
     }
 }
 
 impl From<io::Error> for Error {
     fn from(error: io::Error) -> Self {
-        Error::Io(error)
+        Self(InnerError::Io(error))
     }
 }
 
 impl From<serde_json::Error> for Error {
     fn from(error: serde_json::Error) -> Self {
-        Error::SerdeJson(error)
+        Self(InnerError::SerdeJson(error))
     }
 }
 
 impl From<serde_urlencoded::de::Error> for Error {
     fn from(error: serde_urlencoded::de::Error) -> Self {
-        Error::SerdeUrlEncodedDe(error)
+        Self(InnerError::SerdeUrlEncodedDe(error))
     }
 }
 
 impl From<serde_urlencoded::ser::Error> for Error {
     fn from(error: serde_urlencoded::ser::Error) -> Self {
-        Error::SerdeUrlEncodedSer(error)
+        Self(InnerError::SerdeUrlEncodedSer(error))
     }
 }
 
 impl From<ruma_identifiers::Error> for Error {
     fn from(error: ruma_identifiers::Error) -> Self {
-        Error::RumaIdentifiers(error)
+        Self(InnerError::RumaIdentifiers(error))
+    }
+}
+
+impl From<StatusCode> for Error {
+    fn from(error: StatusCode) -> Self {
+        Self(InnerError::StatusCode(error))
     }
 }
 
@@ -240,7 +269,7 @@ mod tests {
         }
 
         /// The response to a request to create a new room alias.
-        #[derive(Debug)]
+        #[derive(Clone, Copy, Debug)]
         pub struct Response;
 
         impl FutureFrom<HttpResponse<Vec<u8>>> for Response {
@@ -253,7 +282,7 @@ mod tests {
                 if http_response.status().is_success() {
                     ok(Response)
                 } else {
-                    err(Error::StatusCode(http_response.status().clone()))
+                    err(http_response.status().clone().into())
                 }
             }
         }
