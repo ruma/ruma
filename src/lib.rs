@@ -72,8 +72,12 @@ impl Display for Error {
             InnerError::Hyper(_) => "A Hyper error occurred.".into(),
             InnerError::Io(_) => "An I/O error occurred.".into(),
             InnerError::SerdeJson(_) => "A JSON error occurred.".into(),
-            InnerError::SerdeUrlEncodedDe(_) => "A URL encoding deserialization error occurred.".into(),
-            InnerError::SerdeUrlEncodedSer(_) => "A URL encoding serialization error occurred.".into(),
+            InnerError::SerdeUrlEncodedDe(_) => {
+                "A URL encoding deserialization error occurred.".into()
+            }
+            InnerError::SerdeUrlEncodedSer(_) => {
+                "A URL encoding serialization error occurred.".into()
+            }
             InnerError::RumaIdentifiers(_) => "A ruma-identifiers error occurred.".into(),
             InnerError::StatusCode(code) => format!("A HTTP {} error occurred.", code),
         };
