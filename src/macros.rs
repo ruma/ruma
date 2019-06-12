@@ -90,7 +90,8 @@ macro_rules! room_event {
             #[serde(rename = "type")]
             pub event_type: $crate::EventType,
 
-            /// Timestamp in milliseconds on originating homeserver when this event was sent.
+            /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
+            /// event was sent.
             pub origin_server_ts: u64,
 
             /// The unique identifier for the room associated with this event.

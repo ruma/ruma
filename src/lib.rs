@@ -204,7 +204,8 @@ pub trait RoomEvent: Event {
     /// The unique identifier for the event.
     fn event_id(&self) -> &EventId;
 
-    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this event was
+    /// sent.
     fn origin_server_ts(&self) -> u64;
 
     /// The unique identifier for the room associated with this event.
