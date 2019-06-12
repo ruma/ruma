@@ -454,7 +454,7 @@ impl ToTokens for Api {
 
                         Box::new(future_response)
                     } else {
-                        Box::new(::futures::future::err(::ruma_api::Error::StatusCode(http_response.status().clone())))
+                        Box::new(::futures::future::err(http_response.status().clone().into()))
                     }
                 }
             }

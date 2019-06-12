@@ -13,26 +13,26 @@ edition = "2018"
 
 [dependencies]
 quote = "0.6.12"
-ruma-api = "0.7.0"
+ruma-api = "0.8.0"
 
 [dependencies.syn]
-version = "0.15.30"
+version = "0.15.35"
 features = ["full"]
 
 [dependencies.proc-macro2]
-version = "0.4.27"
+version = "0.4.30"
 features = ["nightly"]
 
 [dev-dependencies]
-futures = "0.1.26"
+futures = "0.1.27"
 http = "0.1.17"
-hyper = "0.12.27"
+hyper = "0.12.29"
 serde_json = "1.0.39"
-serde_urlencoded = "0.5.4"
+serde_urlencoded = "0.5.5"
 url = "1.7.2"
 
 [dev-dependencies.serde]
-version = "1.0.90"
+version = "1.0.92"
 features = ["derive"]
 
 [lib]
