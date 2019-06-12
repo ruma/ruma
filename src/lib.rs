@@ -29,7 +29,6 @@
     clippy::needless_continue,
     clippy::single_match_else,
     clippy::unicode_not_nfc,
-    clippy::use_self,
     clippy::used_underscore_binding,
     clippy::wrong_pub_self_convention,
     clippy::wrong_self_convention
@@ -88,6 +87,7 @@ impl Display for Error {
 
 impl StdError for Error {}
 
+/// Internal representation of errors.
 #[derive(Debug)]
 pub(crate) enum InnerError {
     /// An HTTP error.
@@ -256,7 +256,7 @@ mod tests {
         impl TryFrom<HttpRequest<Vec<u8>>> for Request {
             type Error = Error;
 
-            fn try_from(request: HttpRequest<Vec<u8>>) -> Result<Request, Self::Error> {
+            fn try_from(request: HttpRequest<Vec<u8>>) -> Result<Self, Self::Error> {
                 let request_body: RequestBody =
                     ::serde_json::from_slice(request.body().as_slice())?;
                 let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
@@ -286,7 +286,7 @@ mod tests {
                 if http_response.status().is_success() {
                     ok(Response)
                 } else {
-                    err(http_response.status().clone().into())
+                    err(http_response.status().into())
                 }
             }
         }
@@ -297,7 +297,7 @@ mod tests {
             fn try_from(_response: Response) -> Result<HttpResponse<Vec<u8>>, Self::Error> {
                 let response = HttpResponse::builder()
                     .header(CONTENT_TYPE, "application/json")
-                    .body("{}".as_bytes().to_vec())
+                    .body(b"{}".to_vec())
                     .unwrap();
                 Ok(response)
             }
