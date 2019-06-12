@@ -332,6 +332,10 @@ impl ToTokens for Api {
             }
         };
 
+        let endpoint_doc = format!("The `{}` API endpoint.\n\n{}", name, description);
+        let request_doc = format!("Data for a request to the `{}` API endpoint.", name);
+        let response_doc = format!("Data in the response from the `{}` API endpoint.", name);
+
         let api = quote! {
             #[allow(unused_imports)]
             use ::futures::{Future as _, IntoFuture as _, Stream as _};
@@ -341,10 +345,11 @@ impl ToTokens for Api {
 
             use ::std::convert::{TryInto as _};
 
-            /// The API endpoint.
+            #[doc = #endpoint_doc]
             #[derive(Debug)]
             pub struct Endpoint;
 
+            #[doc = #request_doc]
             #request_types
 
             impl ::std::convert::TryFrom<::http::Request<Vec<u8>>> for Request {
@@ -412,6 +417,7 @@ impl ToTokens for Api {
                 }
             }
 
+            #[doc = #response_doc]
             #response_types
 
             impl ::std::convert::TryFrom<Response> for ::http::Response<::hyper::Body> {
@@ -457,7 +463,7 @@ impl ToTokens for Api {
                 type Request = Request;
                 type Response = Response;
 
-                /// Metadata for this endpoint.
+                /// Metadata for the `#name` endpoint.
                 const METADATA: ::ruma_api::Metadata = ::ruma_api::Metadata {
                     description: #description,
                     method: ::http::Method::#method,
