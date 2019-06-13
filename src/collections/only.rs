@@ -18,6 +18,7 @@ use crate::{
         message::{feedback::FeedbackEvent, MessageEvent},
         redaction::RedactionEvent,
     },
+    sticker::StickerEvent,
     tag::TagEvent,
     typing::TypingEvent,
     CustomEvent, CustomRoomEvent, EventType,
@@ -62,6 +63,8 @@ pub enum RoomEvent {
     RoomMessageFeedback(FeedbackEvent),
     /// m.room.redaction
     RoomRedaction(RedactionEvent),
+    /// m.sticker
+    Sticker(StickerEvent),
     /// Any room event that is not part of the specification.
     CustomRoom(CustomRoomEvent),
 }
@@ -185,7 +188,8 @@ impl<'de> Deserialize<'de> for Event {
             | EventType::RoomPowerLevels
             | EventType::RoomRedaction
             | EventType::RoomThirdPartyInvite
-            | EventType::RoomTopic => Err(D::Error::custom(
+            | EventType::RoomTopic
+            | EventType::Sticker => Err(D::Error::custom(
                 "not exclusively a basic event".to_string(),
             )),
         }
@@ -205,6 +209,7 @@ impl Serialize for RoomEvent {
             RoomEvent::RoomMessage(ref event) => event.serialize(serializer),
             RoomEvent::RoomMessageFeedback(ref event) => event.serialize(serializer),
             RoomEvent::RoomRedaction(ref event) => event.serialize(serializer),
+            RoomEvent::Sticker(ref event) => event.serialize(serializer),
             RoomEvent::CustomRoom(ref event) => event.serialize(serializer),
         }
     }
@@ -284,6 +289,14 @@ impl<'de> Deserialize<'de> for RoomEvent {
 
                 Ok(RoomEvent::RoomRedaction(event))
             }
+            EventType::Sticker => {
+                let event = match from_value::<StickerEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(RoomEvent::Sticker(event))
+            }
             EventType::Custom(_) => {
                 let event = match from_value::<CustomRoomEvent>(value) {
                     Ok(event) => event,
@@ -353,4 +366,5 @@ impl_from_t_for_room_event!(InviteEvent, CallInvite);
 impl_from_t_for_room_event!(MessageEvent, RoomMessage);
 impl_from_t_for_room_event!(FeedbackEvent, RoomMessageFeedback);
 impl_from_t_for_room_event!(RedactionEvent, RoomRedaction);
+impl_from_t_for_room_event!(StickerEvent, Sticker);
 impl_from_t_for_room_event!(CustomRoomEvent, CustomRoom);

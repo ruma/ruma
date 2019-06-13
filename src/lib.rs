@@ -123,6 +123,7 @@ pub mod ignored_user_list;
 pub mod presence;
 pub mod receipt;
 pub mod room;
+pub mod sticker;
 pub mod stripped;
 pub mod tag;
 pub mod typing;
@@ -184,6 +185,8 @@ pub enum EventType {
     RoomThirdPartyInvite,
     /// m.room.topic
     RoomTopic,
+    /// m.sticker
+    Sticker,
     /// m.tag
     Tag,
     /// m.typing
@@ -281,6 +284,7 @@ impl Display for EventType {
             EventType::RoomRedaction => "m.room.redaction",
             EventType::RoomThirdPartyInvite => "m.room.third_party_invite",
             EventType::RoomTopic => "m.room.topic",
+            EventType::Sticker => "m.sticker",
             EventType::Tag => "m.tag",
             EventType::Typing => "m.typing",
             EventType::Custom(ref event_type) => event_type,
@@ -318,6 +322,7 @@ impl<'a> From<&'a str> for EventType {
             "m.room.redaction" => EventType::RoomRedaction,
             "m.room.third_party_invite" => EventType::RoomThirdPartyInvite,
             "m.room.topic" => EventType::RoomTopic,
+            "m.sticker" => EventType::Sticker,
             "m.tag" => EventType::Tag,
             "m.typing" => EventType::Typing,
             event_type => EventType::Custom(event_type.to_string()),

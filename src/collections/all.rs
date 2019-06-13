@@ -27,6 +27,7 @@ use crate::{
         third_party_invite::ThirdPartyInviteEvent,
         topic::TopicEvent,
     },
+    sticker::StickerEvent,
     tag::TagEvent,
     typing::TypingEvent,
     CustomEvent, CustomRoomEvent, CustomStateEvent, EventType,
@@ -89,6 +90,8 @@ pub enum Event {
     RoomThirdPartyInvite(ThirdPartyInviteEvent),
     /// m.room.topic
     RoomTopic(TopicEvent),
+    /// m.sticker
+    Sticker(StickerEvent),
     /// m.tag
     Tag(TagEvent),
     /// m.typing
@@ -145,6 +148,8 @@ pub enum RoomEvent {
     RoomThirdPartyInvite(ThirdPartyInviteEvent),
     /// m.room.topic
     RoomTopic(TopicEvent),
+    /// m.sticker
+    Sticker(StickerEvent),
     /// Any room event that is not part of the specification.
     CustomRoom(CustomRoomEvent),
     /// Any state event that is not part of the specification.
@@ -216,6 +221,7 @@ impl Serialize for Event {
             Event::RoomRedaction(ref event) => event.serialize(serializer),
             Event::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
             Event::RoomTopic(ref event) => event.serialize(serializer),
+            Event::Sticker(ref event) => event.serialize(serializer),
             Event::Tag(ref event) => event.serialize(serializer),
             Event::Typing(ref event) => event.serialize(serializer),
             Event::Custom(ref event) => event.serialize(serializer),
@@ -443,6 +449,14 @@ impl<'de> Deserialize<'de> for Event {
 
                 Ok(Event::RoomTopic(event))
             }
+            EventType::Sticker => {
+                let event = match from_value::<StickerEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::Sticker(event))
+            }
             EventType::Tag => {
                 let event = match from_value::<TagEvent>(value) {
                     Ok(event) => event,
@@ -516,6 +530,7 @@ impl Serialize for RoomEvent {
             RoomEvent::RoomRedaction(ref event) => event.serialize(serializer),
             RoomEvent::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
             RoomEvent::RoomTopic(ref event) => event.serialize(serializer),
+            RoomEvent::Sticker(ref event) => event.serialize(serializer),
             RoomEvent::CustomRoom(ref event) => event.serialize(serializer),
             RoomEvent::CustomState(ref event) => event.serialize(serializer),
         }
@@ -699,6 +714,14 @@ impl<'de> Deserialize<'de> for RoomEvent {
                 };
 
                 Ok(RoomEvent::RoomTopic(event))
+            }
+            EventType::Sticker => {
+                let event = match from_value::<StickerEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(RoomEvent::Sticker(event))
             }
             EventType::Custom(_) => {
                 if value.get("state_key").is_some() {
@@ -894,6 +917,7 @@ impl<'de> Deserialize<'de> for StateEvent {
             | EventType::RoomMessage
             | EventType::RoomMessageFeedback
             | EventType::RoomRedaction
+            | EventType::Sticker
             | EventType::Tag
             | EventType::Typing => Err(D::Error::custom("not a state event".to_string())),
         }
@@ -935,6 +959,7 @@ impl_from_t_for_event!(PowerLevelsEvent, RoomPowerLevels);
 impl_from_t_for_event!(RedactionEvent, RoomRedaction);
 impl_from_t_for_event!(ThirdPartyInviteEvent, RoomThirdPartyInvite);
 impl_from_t_for_event!(TopicEvent, RoomTopic);
+impl_from_t_for_event!(StickerEvent, Sticker);
 impl_from_t_for_event!(TagEvent, Tag);
 impl_from_t_for_event!(TypingEvent, Typing);
 impl_from_t_for_event!(CustomEvent, Custom);
@@ -969,6 +994,7 @@ impl_from_t_for_room_event!(NameEvent, RoomName);
 impl_from_t_for_room_event!(PinnedEventsEvent, RoomPinnedEvents);
 impl_from_t_for_room_event!(PowerLevelsEvent, RoomPowerLevels);
 impl_from_t_for_room_event!(RedactionEvent, RoomRedaction);
+impl_from_t_for_room_event!(StickerEvent, Sticker);
 impl_from_t_for_room_event!(ThirdPartyInviteEvent, RoomThirdPartyInvite);
 impl_from_t_for_room_event!(TopicEvent, RoomTopic);
 impl_from_t_for_room_event!(CustomRoomEvent, CustomRoom);
