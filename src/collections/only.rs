@@ -189,6 +189,7 @@ impl<'de> Deserialize<'de> for Event {
             | EventType::RoomRedaction
             | EventType::RoomServerAcl
             | EventType::RoomThirdPartyInvite
+            | EventType::RoomTombstone
             | EventType::RoomTopic
             | EventType::Sticker => Err(D::Error::custom(
                 "not exclusively a basic event".to_string(),
@@ -324,6 +325,7 @@ impl<'de> Deserialize<'de> for RoomEvent {
             | EventType::RoomPowerLevels
             | EventType::RoomServerAcl
             | EventType::RoomThirdPartyInvite
+            | EventType::RoomTombstone
             | EventType::RoomTopic
             | EventType::Tag
             | EventType::Typing => {

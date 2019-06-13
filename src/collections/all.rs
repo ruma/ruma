@@ -26,6 +26,7 @@ use crate::{
         redaction::RedactionEvent,
         server_acl::ServerAclEvent,
         third_party_invite::ThirdPartyInviteEvent,
+        tombstone::TombstoneEvent,
         topic::TopicEvent,
     },
     sticker::StickerEvent,
@@ -91,6 +92,8 @@ pub enum Event {
     RoomServerAcl(ServerAclEvent),
     /// m.room.third_party_invite
     RoomThirdPartyInvite(ThirdPartyInviteEvent),
+    /// m.room.tombstone
+    RoomTombstone(TombstoneEvent),
     /// m.room.topic
     RoomTopic(TopicEvent),
     /// m.sticker
@@ -151,6 +154,8 @@ pub enum RoomEvent {
     RoomServerAcl(ServerAclEvent),
     /// m.room.third_party_invite
     RoomThirdPartyInvite(ThirdPartyInviteEvent),
+    /// m.room.tombstone
+    RoomTombstone(TombstoneEvent),
     /// m.room.topic
     RoomTopic(TopicEvent),
     /// m.sticker
@@ -191,6 +196,8 @@ pub enum StateEvent {
     RoomServerAcl(ServerAclEvent),
     /// m.room.third_party_invite
     RoomThirdPartyInvite(ThirdPartyInviteEvent),
+    /// m.room.tombstone
+    RoomTombstone(TombstoneEvent),
     /// m.room.topic
     RoomTopic(TopicEvent),
     /// Any state event that is not part of the specification.
@@ -228,6 +235,7 @@ impl Serialize for Event {
             Event::RoomRedaction(ref event) => event.serialize(serializer),
             Event::RoomServerAcl(ref event) => event.serialize(serializer),
             Event::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
+            Event::RoomTombstone(ref event) => event.serialize(serializer),
             Event::RoomTopic(ref event) => event.serialize(serializer),
             Event::Sticker(ref event) => event.serialize(serializer),
             Event::Tag(ref event) => event.serialize(serializer),
@@ -457,6 +465,14 @@ impl<'de> Deserialize<'de> for Event {
 
                 Ok(Event::RoomThirdPartyInvite(event))
             }
+            EventType::RoomTombstone => {
+                let event = match from_value::<TombstoneEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::RoomTombstone(event))
+            }
             EventType::RoomTopic => {
                 let event = match from_value::<TopicEvent>(value) {
                     Ok(event) => event,
@@ -546,6 +562,7 @@ impl Serialize for RoomEvent {
             RoomEvent::RoomRedaction(ref event) => event.serialize(serializer),
             RoomEvent::RoomServerAcl(ref event) => event.serialize(serializer),
             RoomEvent::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
+            RoomEvent::RoomTombstone(ref event) => event.serialize(serializer),
             RoomEvent::RoomTopic(ref event) => event.serialize(serializer),
             RoomEvent::Sticker(ref event) => event.serialize(serializer),
             RoomEvent::CustomRoom(ref event) => event.serialize(serializer),
@@ -732,6 +749,14 @@ impl<'de> Deserialize<'de> for RoomEvent {
 
                 Ok(RoomEvent::RoomThirdPartyInvite(event))
             }
+            EventType::RoomTombstone => {
+                let event = match from_value::<TombstoneEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(RoomEvent::RoomTombstone(event))
+            }
             EventType::RoomTopic => {
                 let event = match from_value::<TopicEvent>(value) {
                     Ok(event) => event,
@@ -795,6 +820,7 @@ impl Serialize for StateEvent {
             StateEvent::RoomPowerLevels(ref event) => event.serialize(serializer),
             StateEvent::RoomServerAcl(ref event) => event.serialize(serializer),
             StateEvent::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
+            StateEvent::RoomTombstone(ref event) => event.serialize(serializer),
             StateEvent::RoomTopic(ref event) => event.serialize(serializer),
             StateEvent::CustomState(ref event) => event.serialize(serializer),
         }
@@ -923,6 +949,14 @@ impl<'de> Deserialize<'de> for StateEvent {
 
                 Ok(StateEvent::RoomThirdPartyInvite(event))
             }
+            EventType::RoomTombstone => {
+                let event = match from_value::<TombstoneEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(StateEvent::RoomTombstone(event))
+            }
             EventType::RoomTopic => {
                 let event = match from_value::<TopicEvent>(value) {
                     Ok(event) => event,
@@ -993,6 +1027,7 @@ impl_from_t_for_event!(PowerLevelsEvent, RoomPowerLevels);
 impl_from_t_for_event!(RedactionEvent, RoomRedaction);
 impl_from_t_for_event!(ServerAclEvent, RoomServerAcl);
 impl_from_t_for_event!(ThirdPartyInviteEvent, RoomThirdPartyInvite);
+impl_from_t_for_event!(TombstoneEvent, RoomTombstone);
 impl_from_t_for_event!(TopicEvent, RoomTopic);
 impl_from_t_for_event!(StickerEvent, Sticker);
 impl_from_t_for_event!(TagEvent, Tag);
@@ -1032,6 +1067,7 @@ impl_from_t_for_room_event!(RedactionEvent, RoomRedaction);
 impl_from_t_for_room_event!(ServerAclEvent, RoomServerAcl);
 impl_from_t_for_room_event!(StickerEvent, Sticker);
 impl_from_t_for_room_event!(ThirdPartyInviteEvent, RoomThirdPartyInvite);
+impl_from_t_for_room_event!(TombstoneEvent, RoomTombstone);
 impl_from_t_for_room_event!(TopicEvent, RoomTopic);
 impl_from_t_for_room_event!(CustomRoomEvent, CustomRoom);
 impl_from_t_for_room_event!(CustomStateEvent, CustomState);
@@ -1059,5 +1095,6 @@ impl_from_t_for_state_event!(PinnedEventsEvent, RoomPinnedEvents);
 impl_from_t_for_state_event!(PowerLevelsEvent, RoomPowerLevels);
 impl_from_t_for_state_event!(ServerAclEvent, RoomServerAcl);
 impl_from_t_for_state_event!(ThirdPartyInviteEvent, RoomThirdPartyInvite);
+impl_from_t_for_state_event!(TombstoneEvent, RoomTombstone);
 impl_from_t_for_state_event!(TopicEvent, RoomTopic);
 impl_from_t_for_state_event!(CustomStateEvent, CustomState);

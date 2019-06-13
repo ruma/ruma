@@ -185,6 +185,8 @@ pub enum EventType {
     RoomServerAcl,
     /// m.room.third_party_invite
     RoomThirdPartyInvite,
+    /// m.room.tombstone
+    RoomTombstone,
     /// m.room.topic
     RoomTopic,
     /// m.sticker
@@ -286,6 +288,7 @@ impl Display for EventType {
             EventType::RoomRedaction => "m.room.redaction",
             EventType::RoomServerAcl => "m.room.server_acl",
             EventType::RoomThirdPartyInvite => "m.room.third_party_invite",
+            EventType::RoomTombstone => "m.room.tombstone",
             EventType::RoomTopic => "m.room.topic",
             EventType::Sticker => "m.sticker",
             EventType::Tag => "m.tag",
@@ -325,6 +328,7 @@ impl<'a> From<&'a str> for EventType {
             "m.room.redaction" => EventType::RoomRedaction,
             "m.room.server_acl" => EventType::RoomServerAcl,
             "m.room.third_party_invite" => EventType::RoomThirdPartyInvite,
+            "m.room.tombstone" => EventType::RoomTombstone,
             "m.room.topic" => EventType::RoomTopic,
             "m.sticker" => EventType::Sticker,
             "m.tag" => EventType::Tag,
