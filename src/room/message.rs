@@ -40,6 +40,10 @@ pub enum MessageType {
     #[serde(rename = "m.notice")]
     Notice,
 
+    /// A server notice.
+    #[serde(rename = "m.server_notice")]
+    ServerNotice,
+
     /// A text message.
     #[serde(rename = "m.text")]
     Text,
@@ -70,6 +74,9 @@ pub enum MessageEventContent {
 
     /// A notice message.
     Notice(NoticeMessageEventContent),
+
+    /// A server notice message.
+    ServerNotice(ServerNoticeMessageEventContent),
 
     /// An text message.
     Text(TextMessageEventContent),
@@ -232,6 +239,44 @@ pub struct NoticeMessageEventContent {
     pub relates_to: Option<RelatesTo>,
 }
 
+/// The payload of a server notice message.
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct ServerNoticeMessageEventContent {
+    /// A human-readable description of the notice.
+    pub body: String,
+    /// The message type. Always *m.server_notice*.
+    pub msgtype: MessageType,
+    /// The type of notice being represented.
+    pub server_notice_type: ServerNoticeType,
+    /// A URI giving a contact method for the server administrator.
+    ///
+    /// Required if the notice type is `m.server_notice.usage_limit_reached`.
+    pub admin_contact: Option<String>,
+    /// The kind of usage limit the server has exceeded.
+    ///
+    /// Required if the notice type is `m.server_notice.usage_limit_reached`.
+    pub limit_type: Option<LimitType>,
+}
+
+/// Types of server notices.
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+pub enum ServerNoticeType {
+    /// The server has exceeded some limit which requires the server administrator to intervene.
+    #[serde(rename = "m.server_notice.usage_limit_reached")]
+    UsageLimitReached,
+}
+
+/// Types of usage limits.
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+pub enum LimitType {
+    /// The server's number of active users in the last 30 days has exceeded the maximum.
+    ///
+    /// New connections are being refused by the server. What defines "active" is left as an
+    /// implementation detail, however servers are encouraged to treat syncing users as "active".
+    #[serde(rename = "monthly_active_user")]
+    MonthlyActiveUser,
+}
+
 /// The payload of a text message.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct TextMessageEventContent {
@@ -328,6 +373,7 @@ impl_enum! {
         Image => "m.image",
         Location => "m.location",
         Notice => "m.notice",
+        ServerNotice => "m.server_notice",
         Text => "m.text",
         Video => "m.video",
     }
@@ -345,6 +391,7 @@ impl Serialize for MessageEventContent {
             MessageEventContent::Image(ref content) => content.serialize(serializer),
             MessageEventContent::Location(ref content) => content.serialize(serializer),
             MessageEventContent::Notice(ref content) => content.serialize(serializer),
+            MessageEventContent::ServerNotice(ref content) => content.serialize(serializer),
             MessageEventContent::Text(ref content) => content.serialize(serializer),
             MessageEventContent::Video(ref content) => content.serialize(serializer),
         }
@@ -416,6 +463,14 @@ impl<'de> Deserialize<'de> for MessageEventContent {
                 };
 
                 Ok(MessageEventContent::Notice(content))
+            }
+            MessageType::ServerNotice => {
+                let content = match from_value::<ServerNoticeMessageEventContent>(value) {
+                    Ok(content) => content,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(MessageEventContent::ServerNotice(content))
             }
             MessageType::Text => {
                 let content = match from_value::<TextMessageEventContent>(value) {
