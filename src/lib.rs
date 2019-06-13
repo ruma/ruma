@@ -398,6 +398,11 @@ where
     }
 }
 
+/// Used to default the `bool` fields to `true` during deserialization.
+fn default_true() -> bool {
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use serde_json::{from_str, to_string};

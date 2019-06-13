@@ -2,6 +2,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::default_true;
+
 state_event! {
     /// An event to indicate which servers are permitted to participate in the room.
     pub struct ServerAclEvent(ServerAclEventContent) {}
@@ -32,11 +34,6 @@ pub struct ServerAclEventContent {
     /// This defaults to an empty list when not provided.
     #[serde(default)]
     pub deny: Vec<String>,
-}
-
-/// Used to default the `allow_ip_literals` field to `true` during deserialization.
-fn default_true() -> bool {
-    true
 }
 
 #[cfg(test)]

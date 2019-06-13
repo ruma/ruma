@@ -67,6 +67,7 @@ pub struct NotificationPowerLevels {
     pub room: u64,
 }
 
+/// Used to default power levels to 50 during deserialization.
 fn default_power_level() -> u64 {
     50
 }
