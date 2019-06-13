@@ -187,6 +187,7 @@ impl<'de> Deserialize<'de> for Event {
             | EventType::RoomPinnedEvents
             | EventType::RoomPowerLevels
             | EventType::RoomRedaction
+            | EventType::RoomServerAcl
             | EventType::RoomThirdPartyInvite
             | EventType::RoomTopic
             | EventType::Sticker => Err(D::Error::custom(
@@ -321,6 +322,7 @@ impl<'de> Deserialize<'de> for RoomEvent {
             | EventType::RoomName
             | EventType::RoomPinnedEvents
             | EventType::RoomPowerLevels
+            | EventType::RoomServerAcl
             | EventType::RoomThirdPartyInvite
             | EventType::RoomTopic
             | EventType::Tag

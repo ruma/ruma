@@ -181,6 +181,8 @@ pub enum EventType {
     RoomPowerLevels,
     /// m.room.redaction
     RoomRedaction,
+    /// m.room.server_acl
+    RoomServerAcl,
     /// m.room.third_party_invite
     RoomThirdPartyInvite,
     /// m.room.topic
@@ -282,6 +284,7 @@ impl Display for EventType {
             EventType::RoomPinnedEvents => "m.room.pinned_events",
             EventType::RoomPowerLevels => "m.room.power_levels",
             EventType::RoomRedaction => "m.room.redaction",
+            EventType::RoomServerAcl => "m.room.server_acl",
             EventType::RoomThirdPartyInvite => "m.room.third_party_invite",
             EventType::RoomTopic => "m.room.topic",
             EventType::Sticker => "m.sticker",
@@ -320,6 +323,7 @@ impl<'a> From<&'a str> for EventType {
             "m.room.pinned_events" => EventType::RoomPinnedEvents,
             "m.room.power_levels" => EventType::RoomPowerLevels,
             "m.room.redaction" => EventType::RoomRedaction,
+            "m.room.server_acl" => EventType::RoomServerAcl,
             "m.room.third_party_invite" => EventType::RoomThirdPartyInvite,
             "m.room.topic" => EventType::RoomTopic,
             "m.sticker" => EventType::Sticker,

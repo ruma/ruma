@@ -19,6 +19,7 @@ pub mod name;
 pub mod pinned_events;
 pub mod power_levels;
 pub mod redaction;
+pub mod server_acl;
 pub mod third_party_invite;
 pub mod topic;
 
