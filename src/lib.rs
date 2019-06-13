@@ -119,6 +119,7 @@ pub mod collections {
 }
 pub mod direct;
 pub mod fully_read;
+pub mod ignored_user_list;
 pub mod presence;
 pub mod receipt;
 pub mod room;
@@ -145,6 +146,8 @@ pub enum EventType {
     Direct,
     /// m.fully_read
     FullyRead,
+    /// m.ignored_user_list
+    IgnoredUserList,
     /// m.presence
     Presence,
     /// m.receipt
@@ -259,6 +262,7 @@ impl Display for EventType {
             EventType::CallInvite => "m.call.invite",
             EventType::Direct => "m.direct",
             EventType::FullyRead => "m.fully_read",
+            EventType::IgnoredUserList => "m.ignored_user_list",
             EventType::Presence => "m.presence",
             EventType::Receipt => "m.receipt",
             EventType::RoomAliases => "m.room.aliases",
@@ -295,6 +299,7 @@ impl<'a> From<&'a str> for EventType {
             "m.call.invite" => EventType::CallInvite,
             "m.direct" => EventType::Direct,
             "m.fully_read" => EventType::FullyRead,
+            "m.ignored_user_list" => EventType::IgnoredUserList,
             "m.presence" => EventType::Presence,
             "m.receipt" => EventType::Receipt,
             "m.room.aliases" => EventType::RoomAliases,

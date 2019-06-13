@@ -11,6 +11,7 @@ use crate::{
     },
     direct::DirectEvent,
     fully_read::FullyReadEvent,
+    ignored_user_list::IgnoredUserListEvent,
     presence::PresenceEvent,
     receipt::ReceiptEvent,
     room::{
@@ -29,6 +30,8 @@ pub enum Event {
     Direct(DirectEvent),
     /// m.fully_read
     FullyRead(FullyReadEvent),
+    /// m.ignored_user_list
+    IgnoredUserList(IgnoredUserListEvent),
     /// m.presence
     Presence(PresenceEvent),
     /// m.receipt
@@ -71,6 +74,7 @@ impl Serialize for Event {
         match *self {
             Event::Direct(ref event) => event.serialize(serializer),
             Event::FullyRead(ref event) => event.serialize(serializer),
+            Event::IgnoredUserList(ref event) => event.serialize(serializer),
             Event::Presence(ref event) => event.serialize(serializer),
             Event::Receipt(ref event) => event.serialize(serializer),
             Event::Tag(ref event) => event.serialize(serializer),
@@ -113,6 +117,14 @@ impl<'de> Deserialize<'de> for Event {
                 };
 
                 Ok(Event::FullyRead(event))
+            }
+            EventType::IgnoredUserList => {
+                let event = match from_value::<IgnoredUserListEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::IgnoredUserList(event))
             }
             EventType::Presence => {
                 let event = match from_value::<PresenceEvent>(value) {
@@ -282,6 +294,7 @@ impl<'de> Deserialize<'de> for RoomEvent {
             }
             EventType::Direct
             | EventType::FullyRead
+            | EventType::IgnoredUserList
             | EventType::Presence
             | EventType::Receipt
             | EventType::RoomAliases
@@ -316,6 +329,7 @@ macro_rules! impl_from_t_for_event {
 
 impl_from_t_for_event!(DirectEvent, Direct);
 impl_from_t_for_event!(FullyReadEvent, FullyRead);
+impl_from_t_for_event!(IgnoredUserListEvent, IgnoredUserList);
 impl_from_t_for_event!(PresenceEvent, Presence);
 impl_from_t_for_event!(ReceiptEvent, Receipt);
 impl_from_t_for_event!(TagEvent, Tag);
