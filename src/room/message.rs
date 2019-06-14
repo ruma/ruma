@@ -161,9 +161,9 @@ pub struct FileMessageEventContent {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct FileInfo {
     /// The mimetype of the file, e.g. "application/msword."
-    pub mimetype: String,
+    pub mimetype: Option<String>,
     /// The size of the file in bytes.
-    pub size: u64,
+    pub size: Option<u64>,
     /// Metadata about the image referred to in `thumbnail_url`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<ThumbnailInfo>,

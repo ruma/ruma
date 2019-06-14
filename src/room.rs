@@ -29,11 +29,18 @@ pub mod topic;
 pub struct ImageInfo {
     /// The height of the image in pixels.
     #[serde(rename = "h")]
-    pub height: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub height: Option<u64>,
+    /// The width of the image in pixels.
+    #[serde(rename = "w")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub width: Option<u64>,
     /// The MIME type of the image, e.g. "image/png."
-    pub mimetype: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mimetype: Option<String>,
     /// The file size of the image in bytes.
-    pub size: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub size: Option<u64>,
     /// Metadata about the image referred to in `thumbnail_url`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<ThumbnailInfo>,
@@ -43,9 +50,6 @@ pub struct ImageInfo {
     /// Information on the encrypted thumbnail image. Only present if the thumbnail is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_file: Option<EncryptedFile>,
-    /// The width of the image in pixels.
-    #[serde(rename = "w")]
-    pub width: u64,
 }
 
 /// Metadata about a thumbnail.
@@ -53,14 +57,18 @@ pub struct ImageInfo {
 pub struct ThumbnailInfo {
     /// The height of the thumbnail in pixels.
     #[serde(rename = "h")]
-    pub height: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub height: Option<u64>,
     /// The MIME type of the thumbnail, e.g. "image/png."
-    pub mimetype: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mimetype: Option<String>,
     /// The file size of the thumbnail in bytes.
-    pub size: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub size: Option<u64>,
     /// The width of the thumbnail in pixels.
     #[serde(rename = "w")]
-    pub width: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub width: Option<u64>,
 }
 
 /// A file sent to a room with end-to-end encryption enabled.
