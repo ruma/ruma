@@ -25,7 +25,7 @@ pub struct Receipts {
     /// A collection of users who have sent *m.read* receipts for this event.
     #[serde(rename = "m.read")]
     #[serde(default)]
-    pub read: UserReceipts,
+    pub read: Option<UserReceipts>,
 }
 
 /// A mapping of user ID to receipt.
@@ -37,5 +37,5 @@ pub type UserReceipts = HashMap<UserId, Receipt>;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Receipt {
     /// The timestamp (milliseconds since the Unix epoch) when the receipt was sent.
-    pub ts: u64,
+    pub ts: Option<u64>,
 }
