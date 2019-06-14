@@ -84,12 +84,13 @@ mod tests {
                 displayname: None,
                 last_active_ago: Some(2_478_593),
                 presence: PresenceState::Online,
+                status_msg: Some("Making cupcakes".to_string()),
             },
             event_type: EventType::Presence,
             sender: UserId::try_from("@example:localhost").unwrap(),
         };
         let serialized_event =
-            r#"{"content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online"},"type":"m.presence","sender":"@example:localhost"}"#;
+            r#"{"content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online","status_msg":"Making cupcakes"},"type":"m.presence","sender":"@example:localhost"}"#;
 
         assert_eq!(to_string(&event).unwrap(), serialized_event);
         let deserialized_event = from_str::<PresenceEvent>(serialized_event).unwrap();

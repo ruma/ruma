@@ -358,11 +358,11 @@ mod tests {
             StrippedState::RoomAvatar(event) => {
                 let image_info = event.content.info.unwrap();
 
-                assert_eq!(image_info.height, 128);
-                assert_eq!(image_info.width, 128);
-                assert_eq!(image_info.mimetype, "image/jpeg");
-                assert_eq!(image_info.size, 1024);
-                assert_eq!(image_info.thumbnail_info.unwrap().size, 32);
+                assert_eq!(image_info.height.unwrap(), 128);
+                assert_eq!(image_info.width.unwrap(), 128);
+                assert_eq!(image_info.mimetype.unwrap(), "image/jpeg");
+                assert_eq!(image_info.size.unwrap(), 1024);
+                assert_eq!(image_info.thumbnail_info.unwrap().size.unwrap(), 32);
                 assert_eq!(event.content.url, "https://domain.com/image.jpg");
                 assert_eq!(event.event_type, EventType::RoomAvatar);
                 assert_eq!(event.state_key, "");
