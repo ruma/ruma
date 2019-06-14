@@ -33,6 +33,10 @@ pub struct PresenceEventContent {
 
     /// The presence state for this user.
     pub presence: PresenceState,
+
+    /// An optional description to accompany the presence.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status_msg: Option<String>,
 }
 
 /// A description of a user's connectivity and availability for chat.
