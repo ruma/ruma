@@ -137,64 +137,94 @@ pub struct ParseError;
 pub enum EventType {
     /// m.call.answer
     CallAnswer,
+
     /// m.call.candidates
     CallCandidates,
+
     /// m.call.hangup
     CallHangup,
+
     /// m.call.invite
     CallInvite,
+
     /// m.direct
     Direct,
+
     /// m.fully_read
     FullyRead,
+
     /// m.ignored_user_list
     IgnoredUserList,
+
     /// m.presence
     Presence,
+
     /// m.receipt
     Receipt,
+
     /// m.room.aliases
     RoomAliases,
+
     /// m.room.avatar
     RoomAvatar,
+
     /// m.room.canonical_alias
     RoomCanonicalAlias,
+
     /// m.room.create
     RoomCreate,
+
     /// m.room.guest_access
     RoomGuestAccess,
+
     /// m.room.history_visibility
     RoomHistoryVisibility,
+
     /// m.room.join_rules
     RoomJoinRules,
+
     /// m.room.member
     RoomMember,
+
     /// m.room.message
     RoomMessage,
+
     /// m.room.message.feedback
     RoomMessageFeedback,
+
     /// m.room.name
     RoomName,
+
     /// m.room.pinned_events
     RoomPinnedEvents,
+
     /// m.room.power_levels
     RoomPowerLevels,
+
     /// m.room.redaction
     RoomRedaction,
+
     /// m.room.server_acl
     RoomServerAcl,
+
     /// m.room.third_party_invite
     RoomThirdPartyInvite,
+
     /// m.room.tombstone
     RoomTombstone,
+
     /// m.room.topic
     RoomTopic,
+
     /// m.sticker
     Sticker,
+
     /// m.tag
     Tag,
+
     /// m.typing
     Typing,
+
     /// Any event that is not part of the specification.
     Custom(String),
 }

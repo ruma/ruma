@@ -98,6 +98,7 @@ pub struct ThirdPartyInvite {
     /// A name which can be displayed to represent the user instead of their third party
     /// identifier.
     pub display_name: String,
+
     /// A block of content which has been signed, which servers can use to verify the event.
     /// Clients should ignore this.
     pub signed: SignedContent,
@@ -111,9 +112,11 @@ pub struct SignedContent {
     ///
     /// Must be equal to the user_id property of the event.
     pub mxid: UserId,
+
     /// A single signature from the verifying server, in the format specified by the Signing Events
     /// section of the server-server API.
     pub signatures: Signatures,
+
     /// The token property of the containing third_party_invite object.
     pub token: String,
 }

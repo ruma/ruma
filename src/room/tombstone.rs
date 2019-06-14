@@ -14,6 +14,7 @@ state_event! {
 pub struct TombstoneEventContent {
     /// A server-defined message.
     pub body: String,
+
     /// The new room the client should be visiting.
     pub replacement_room: RoomId,
 }

@@ -18,13 +18,16 @@ state_event! {
 pub struct CreateEventContent {
     /// The `user_id` of the room creator. This is set by the homeserver.
     pub creator: UserId,
+
     /// Whether or not this room's data should be transferred to other homeservers.
     #[serde(rename = "m.federate")]
     #[serde(default = "default_true")]
     pub federate: bool,
+
     /// The version of the room. Defaults to "1" if the key does not exist.
     #[serde(default = "default_room_version_id")]
     pub room_version: RoomVersionId,
+
     /// A reference to the room this room replaces, if the previous room was upgraded.
     pub predecessor: Option<PreviousRoom>,
 }
@@ -34,6 +37,7 @@ pub struct CreateEventContent {
 pub struct PreviousRoom {
     /// The ID of the old room.
     pub room_id: RoomId,
+
     /// The event ID of the last known event in the old room.
     pub event_id: EventId,
 }

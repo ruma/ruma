@@ -44,68 +44,100 @@ use serde_json::{from_value, Value};
 pub enum Event {
     /// m.call.answer
     CallAnswer(AnswerEvent),
+
     /// m.call.candidates
     CallCandidates(CandidatesEvent),
+
     /// m.call.hangup
     CallHangup(HangupEvent),
+
     /// m.call.invite
     CallInvite(InviteEvent),
+
     /// m.direct
     Direct(DirectEvent),
+
     /// m.fully_read
     FullyRead(FullyReadEvent),
+
     /// m.ignored_user_list
     IgnoredUserList(IgnoredUserListEvent),
+
     /// m.presence
     Presence(PresenceEvent),
+
     /// m.receipt
     Receipt(ReceiptEvent),
+
     /// m.room.aliases
     RoomAliases(AliasesEvent),
+
     /// m.room.avatar
     RoomAvatar(AvatarEvent),
+
     /// m.room.canonical_alias
     RoomCanonicalAlias(CanonicalAliasEvent),
+
     /// m.room.create
     RoomCreate(CreateEvent),
+
     /// m.room.guest_access
     RoomGuestAccess(GuestAccessEvent),
+
     /// m.room.history_visibility
     RoomHistoryVisibility(HistoryVisibilityEvent),
+
     /// m.room.join_rules
     RoomJoinRules(JoinRulesEvent),
+
     /// m.room.member
     RoomMember(MemberEvent),
+
     /// m.room.message
     RoomMessage(MessageEvent),
+
     /// m.room.message.feedback
     RoomMessageFeedback(FeedbackEvent),
+
     /// m.room.name
     RoomName(NameEvent),
+
     /// m.room.pinned_events
     RoomPinnedEvents(PinnedEventsEvent),
+
     /// m.room.power_levels
     RoomPowerLevels(PowerLevelsEvent),
+
     /// m.room.redaction
     RoomRedaction(RedactionEvent),
+
     /// m.room.server_acl,
     RoomServerAcl(ServerAclEvent),
+
     /// m.room.third_party_invite
     RoomThirdPartyInvite(ThirdPartyInviteEvent),
+
     /// m.room.tombstone
     RoomTombstone(TombstoneEvent),
+
     /// m.room.topic
     RoomTopic(TopicEvent),
+
     /// m.sticker
     Sticker(StickerEvent),
+
     /// m.tag
     Tag(TagEvent),
+
     /// m.typing
     Typing(TypingEvent),
+
     /// Any basic event that is not part of the specification.
     Custom(CustomEvent),
+
     /// Any room event that is not part of the specification.
     CustomRoom(CustomRoomEvent),
+
     /// Any state event that is not part of the specification.
     CustomState(CustomStateEvent),
 }
@@ -116,52 +148,76 @@ pub enum Event {
 pub enum RoomEvent {
     /// m.call.answer
     CallAnswer(AnswerEvent),
+
     /// m.call.candidates
     CallCandidates(CandidatesEvent),
+
     /// m.call.hangup
     CallHangup(HangupEvent),
+
     /// m.call.invite
     CallInvite(InviteEvent),
+
     /// m.room.aliases
     RoomAliases(AliasesEvent),
+
     /// m.room.avatar
     RoomAvatar(AvatarEvent),
+
     /// m.room.canonical_alias
     RoomCanonicalAlias(CanonicalAliasEvent),
+
     /// m.room.create
     RoomCreate(CreateEvent),
+
     /// m.room.guest_access
     RoomGuestAccess(GuestAccessEvent),
+
     /// m.room.history_visibility
     RoomHistoryVisibility(HistoryVisibilityEvent),
+
     /// m.room.join_rules
     RoomJoinRules(JoinRulesEvent),
+
     /// m.room.member
     RoomMember(MemberEvent),
+
     /// m.room.message
     RoomMessage(MessageEvent),
+
     /// m.room.message.feedback
     RoomMessageFeedback(FeedbackEvent),
+
     /// m.room.name
     RoomName(NameEvent),
+
     /// m.room.pinned_events
     RoomPinnedEvents(PinnedEventsEvent),
+
     /// m.room.power_levels
     RoomPowerLevels(PowerLevelsEvent),
+
     /// m.room.redaction
     RoomRedaction(RedactionEvent),
+
     /// m.room.server_acl,
     RoomServerAcl(ServerAclEvent),
+
     /// m.room.third_party_invite
     RoomThirdPartyInvite(ThirdPartyInviteEvent),
+
     /// m.room.tombstone
     RoomTombstone(TombstoneEvent),
+
     /// m.room.topic
     RoomTopic(TopicEvent),
+
     /// m.sticker
     Sticker(StickerEvent),
+
     /// Any room event that is not part of the specification.
     CustomRoom(CustomRoomEvent),
+
     /// Any state event that is not part of the specification.
     CustomState(CustomStateEvent),
 }
@@ -172,34 +228,49 @@ pub enum RoomEvent {
 pub enum StateEvent {
     /// m.room.aliases
     RoomAliases(AliasesEvent),
+
     /// m.room.avatar
     RoomAvatar(AvatarEvent),
+
     /// m.room.canonical_alias
     RoomCanonicalAlias(CanonicalAliasEvent),
+
     /// m.room.create
     RoomCreate(CreateEvent),
+
     /// m.room.guest_access
     RoomGuestAccess(GuestAccessEvent),
+
     /// m.room.history_visibility
     RoomHistoryVisibility(HistoryVisibilityEvent),
+
     /// m.room.join_rules
     RoomJoinRules(JoinRulesEvent),
+
     /// m.room.member
     RoomMember(MemberEvent),
+
     /// m.room.name
     RoomName(NameEvent),
+
     /// m.room.pinned_events
     RoomPinnedEvents(PinnedEventsEvent),
+
     /// m.room.power_levels
     RoomPowerLevels(PowerLevelsEvent),
+
     /// m.room.server_acl,
     RoomServerAcl(ServerAclEvent),
+
     /// m.room.third_party_invite
     RoomThirdPartyInvite(ThirdPartyInviteEvent),
+
     /// m.room.tombstone
     RoomTombstone(TombstoneEvent),
+
     /// m.room.topic
     RoomTopic(TopicEvent),
+
     /// Any state event that is not part of the specification.
     CustomState(CustomStateEvent),
 }

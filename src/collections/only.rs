@@ -29,18 +29,25 @@ use crate::{
 pub enum Event {
     /// m.direct
     Direct(DirectEvent),
+
     /// m.fully_read
     FullyRead(FullyReadEvent),
+
     /// m.ignored_user_list
     IgnoredUserList(IgnoredUserListEvent),
+
     /// m.presence
     Presence(PresenceEvent),
+
     /// m.receipt
     Receipt(ReceiptEvent),
+
     /// m.tag
     Tag(TagEvent),
+
     /// m.typing
     Typing(TypingEvent),
+
     /// Any basic event that is not part of the specification.
     Custom(CustomEvent),
 }
@@ -51,20 +58,28 @@ pub enum Event {
 pub enum RoomEvent {
     /// m.call.answer
     CallAnswer(AnswerEvent),
+
     /// m.call.candidates
     CallCandidates(CandidatesEvent),
+
     /// m.call.hangup
     CallHangup(HangupEvent),
+
     /// m.call.invite
     CallInvite(InviteEvent),
+
     /// m.room.message
     RoomMessage(MessageEvent),
+
     /// m.room.message.feedback
     RoomMessageFeedback(FeedbackEvent),
+
     /// m.room.redaction
     RoomRedaction(RedactionEvent),
+
     /// m.sticker
     Sticker(StickerEvent),
+
     /// Any room event that is not part of the specification.
     CustomRoom(CustomRoomEvent),
 }

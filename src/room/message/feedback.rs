@@ -16,6 +16,7 @@ room_event! {
 pub struct FeedbackEventContent {
     /// The event that this feedback is related to.
     pub target_event_id: EventId,
+
     /// The type of feedback.
     #[serde(rename = "type")]
     pub feedback_type: FeedbackType,

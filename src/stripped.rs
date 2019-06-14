@@ -67,11 +67,14 @@ pub enum StrippedState {
 pub struct StrippedStateContent<C> {
     /// Data specific to the event type.
     pub content: C,
+
     /// The type of the event.
     #[serde(rename = "type")]
     pub event_type: EventType,
+
     /// A key that determines which piece of room state the event represents.
     pub state_key: String,
+
     /// The unique identifier for the user who sent this event.
     pub sender: UserId,
 }

@@ -20,6 +20,7 @@ pub struct ServerAclEventContent {
     /// registered domain name.
     #[serde(default = "default_true")]
     pub allow_ip_literals: bool,
+
     /// The server names to allow in the room, excluding any port information. Wildcards may be used
     /// to cover a wider range of hosts, where * matches zero or more characters and ? matches
     /// exactly one character.
@@ -27,6 +28,7 @@ pub struct ServerAclEventContent {
     /// **This defaults to an empty list when not provided, effectively disallowing every server.**
     #[serde(default)]
     pub allow: Vec<String>,
+
     /// The server names to disallow in the room, excluding any port information. Wildcards may be
     /// used to cover a wider range of hosts, where * matches zero or more characters and ? matches
     /// exactly one character.

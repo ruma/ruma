@@ -15,6 +15,7 @@ pub struct SessionDescription {
     /// The type of session description.
     #[serde(rename = "type")]
     pub session_type: SessionDescriptionType,
+
     /// The SDP text of the session description.
     pub sdp: String,
 }
@@ -25,6 +26,7 @@ pub enum SessionDescriptionType {
     /// An answer.
     #[serde(rename = "answer")]
     Answer,
+
     /// An offer.
     #[serde(rename = "offer")]
     Offer,

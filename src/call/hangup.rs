@@ -13,8 +13,10 @@ room_event! {
 pub struct HangupEventContent {
     /// The ID of the call this event relates to.
     pub call_id: String,
+
     /// The version of the VoIP specification this messages adheres to.
     pub version: u64,
+
     /// Optional error reason for the hangup.
     pub reason: Option<Reason>,
 }
