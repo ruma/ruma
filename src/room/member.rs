@@ -18,7 +18,10 @@ state_event! {
     ///
     /// This event may also include an `invite_room_state` key inside the event's unsigned data. If
     /// present, this contains an array of `StrippedState` events. These events provide information
-    /// on a subset of state events such as the room name.
+    /// on a subset of state events such as the room name. Note that ruma-events treats unsigned
+    /// data on events as arbitrary JSON values, and the ruma-events types for this event don't
+    /// provide direct access to these `invite_room_state`. If you need this data, you must extract
+    /// and convert it from a `serde_json::Value` yourself.
     ///
     /// The user for which a membership applies is represented by the `state_key`. Under some
     /// conditions, the `sender` and `state_key` may not match - this may be interpreted as the
