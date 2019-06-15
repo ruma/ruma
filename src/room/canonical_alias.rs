@@ -10,7 +10,7 @@ state_event! {
 }
 
 /// The payload of a `CanonicalAliasEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct CanonicalAliasEventContent {
     /// The canonical alias.
     /// Rooms with `alias: None` should be treated the same as a room with no canonical alias.

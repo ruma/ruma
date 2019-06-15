@@ -9,7 +9,7 @@ state_event! {
 }
 
 /// The payload of a `HistoryVisibilityEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct HistoryVisibilityEventContent {
     /// Who can see the room history.
     pub history_visibility: HistoryVisibility,

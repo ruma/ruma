@@ -12,7 +12,7 @@ state_event! {
 }
 
 /// The payload of a `ThirdPartyInviteEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ThirdPartyInviteEventContent {
     /// A user-readable string which represents the user who has been invited.
     pub display_name: String,
@@ -29,7 +29,7 @@ pub struct ThirdPartyInviteEventContent {
 }
 
 /// A public key for signing a third party invite token.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct PublicKey {
     /// An optional URL which can be fetched to validate whether the key has been revoked.
     ///

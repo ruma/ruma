@@ -10,7 +10,7 @@ room_event! {
 }
 
 /// The payload of a `CandidatesEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct CandidatesEventContent {
     /// The ID of the call this event relates to.
     pub call_id: String,
@@ -23,7 +23,7 @@ pub struct CandidatesEventContent {
 }
 
 /// An ICE (Interactive Connectivity Establishment) candidate.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Candidate {
     /// The SDP "a" line of the candidate.
     pub candidate: String,

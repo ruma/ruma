@@ -12,7 +12,7 @@ room_event! {
 }
 
 /// The payload of a `RedactionEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct RedactionEventContent {
     /// The reason for the redaction, if any.
     #[serde(skip_serializing_if = "Option::is_none")]

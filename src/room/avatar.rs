@@ -12,7 +12,7 @@ state_event! {
 }
 
 /// The payload of an `AvatarEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct AvatarEventContent {
     /// Information about the avatar image.
     #[serde(skip_serializing_if = "Option::is_none")]

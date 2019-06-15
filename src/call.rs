@@ -10,7 +10,7 @@ pub mod hangup;
 pub mod invite;
 
 /// A VoIP session description.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct SessionDescription {
     /// The type of session description.
     #[serde(rename = "type")]

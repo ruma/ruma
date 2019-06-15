@@ -11,7 +11,7 @@ state_event! {
 }
 
 /// The payload of a `GuestAccessEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct GuestAccessEventContent {
     /// A policy for guest user access to a room.
     pub guest_access: GuestAccess,

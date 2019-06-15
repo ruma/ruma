@@ -9,7 +9,7 @@ state_event! {
 }
 
 /// The payload of a `NameEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct NameEventContent {
     /// The name of the room. This MUST NOT exceed 255 bytes.
     // The spec says “A room with an m.room.name event with an absent, null, or empty name field

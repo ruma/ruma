@@ -20,7 +20,7 @@ event! {
 pub type ReceiptEventContent = HashMap<EventId, Receipts>;
 
 /// A collection of receipts.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Receipts {
     /// A collection of users who have sent *m.read* receipts for this event.
     #[serde(rename = "m.read")]
@@ -34,7 +34,7 @@ pub struct Receipts {
 pub type UserReceipts = HashMap<UserId, Receipt>;
 
 /// An acknowledgement of an event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Receipt {
     /// The timestamp (milliseconds since the Unix epoch) when the receipt was sent.
     pub ts: Option<u64>,

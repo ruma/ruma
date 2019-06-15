@@ -9,7 +9,7 @@ room_event! {
 }
 
 /// The payload of a `HangupEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct HangupEventContent {
     /// The ID of the call this event relates to.
     pub call_id: String,

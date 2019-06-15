@@ -13,7 +13,7 @@ state_event! {
 }
 
 /// The payload of a `PowerLevelsEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct PowerLevelsEventContent {
     /// The level required to ban a user.
     #[serde(default = "default_power_level")]
@@ -60,7 +60,7 @@ pub struct PowerLevelsEventContent {
 }
 
 /// The power level requirements for specific notification types.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub struct NotificationPowerLevels {
     /// The level required to trigger an `@room` notification.
     #[serde(default = "default_power_level")]

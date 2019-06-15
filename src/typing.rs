@@ -12,7 +12,7 @@ event! {
 }
 
 /// The payload of a `TypingEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct TypingEventContent {
     /// The list of user IDs typing in this room, if any.
     pub user_ids: Vec<UserId>,

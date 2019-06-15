@@ -10,7 +10,7 @@ event! {
 }
 
 /// The payload of an *m.key.verification.key* event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct KeyEventContent {
     /// An opaque identifier for the verification process.
     ///

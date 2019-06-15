@@ -9,7 +9,7 @@ state_event! {
 }
 
 /// The payload of a `NameEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct PinnedEventsContent {
     /// An ordered list of event IDs to pin.
     pub pinned: Vec<EventId>,

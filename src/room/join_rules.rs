@@ -8,7 +8,7 @@ state_event! {
 }
 
 /// The payload of a `JoinRulesEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct JoinRulesEventContent {
     /// The type of rules used for users wishing to join this room.
     pub join_rule: JoinRule,
