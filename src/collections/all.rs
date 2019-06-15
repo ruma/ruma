@@ -6,8 +6,14 @@ use crate::{
         answer::AnswerEvent, candidates::CandidatesEvent, hangup::HangupEvent, invite::InviteEvent,
     },
     direct::DirectEvent,
+    dummy::DummyEvent,
+    forwarded_room_key::ForwardedRoomKeyEvent,
     fully_read::FullyReadEvent,
     ignored_user_list::IgnoredUserListEvent,
+    key::verification::{
+        accept::AcceptEvent, cancel::CancelEvent, key::KeyEvent, mac::MacEvent,
+        request::RequestEvent, start::StartEvent,
+    },
     presence::PresenceEvent,
     receipt::ReceiptEvent,
     room::{
@@ -15,6 +21,8 @@ use crate::{
         avatar::AvatarEvent,
         canonical_alias::CanonicalAliasEvent,
         create::CreateEvent,
+        encrypted::EncryptedEvent,
+        encryption::EncryptionEvent,
         guest_access::GuestAccessEvent,
         history_visibility::HistoryVisibilityEvent,
         join_rules::JoinRulesEvent,
@@ -29,6 +37,8 @@ use crate::{
         tombstone::TombstoneEvent,
         topic::TopicEvent,
     },
+    room_key::RoomKeyEvent,
+    room_key_request::RoomKeyRequestEvent,
     sticker::StickerEvent,
     tag::TagEvent,
     typing::TypingEvent,
@@ -57,11 +67,35 @@ pub enum Event {
     /// m.direct
     Direct(DirectEvent),
 
+    /// m.dummy
+    Dummy(DummyEvent),
+
+    /// m.forwarded_room_key
+    ForwardedRoomKey(ForwardedRoomKeyEvent),
+
     /// m.fully_read
     FullyRead(FullyReadEvent),
 
     /// m.ignored_user_list
     IgnoredUserList(IgnoredUserListEvent),
+
+    /// m.key.verification.accept
+    KeyVerificationAccept(AcceptEvent),
+
+    /// m.key.verification.cancel
+    KeyVerificationCancel(CancelEvent),
+
+    /// m.key.verification.key
+    KeyVerificationKey(KeyEvent),
+
+    /// m.key.verification.mac
+    KeyVerificationMac(MacEvent),
+
+    /// m.key.verification.request
+    KeyVerificationRequest(RequestEvent),
+
+    /// m.key.verification.start
+    KeyVerificationStart(StartEvent),
 
     /// m.presence
     Presence(PresenceEvent),
@@ -80,6 +114,12 @@ pub enum Event {
 
     /// m.room.create
     RoomCreate(CreateEvent),
+
+    /// m.room.encrypted
+    RoomEncrypted(EncryptedEvent),
+
+    /// m.room.encryption
+    RoomEncryption(EncryptionEvent),
 
     /// m.room.guest_access
     RoomGuestAccess(GuestAccessEvent),
@@ -122,6 +162,12 @@ pub enum Event {
 
     /// m.room.topic
     RoomTopic(TopicEvent),
+
+    /// m.room_key
+    RoomKey(RoomKeyEvent),
+
+    /// m.room_key_request
+    RoomKeyRequest(RoomKeyRequestEvent),
 
     /// m.sticker
     Sticker(StickerEvent),
@@ -169,6 +215,12 @@ pub enum RoomEvent {
 
     /// m.room.create
     RoomCreate(CreateEvent),
+
+    /// m.room.encrypted
+    RoomEncrypted(EncryptedEvent),
+
+    /// m.room.encryption
+    RoomEncryption(EncryptionEvent),
 
     /// m.room.guest_access
     RoomGuestAccess(GuestAccessEvent),
@@ -238,6 +290,9 @@ pub enum StateEvent {
     /// m.room.create
     RoomCreate(CreateEvent),
 
+    /// m.room.encryption
+    RoomEncryption(EncryptionEvent),
+
     /// m.room.guest_access
     RoomGuestAccess(GuestAccessEvent),
 
@@ -286,7 +341,15 @@ impl Serialize for Event {
             Event::CallHangup(ref event) => event.serialize(serializer),
             Event::CallInvite(ref event) => event.serialize(serializer),
             Event::Direct(ref event) => event.serialize(serializer),
+            Event::Dummy(ref event) => event.serialize(serializer),
+            Event::ForwardedRoomKey(ref event) => event.serialize(serializer),
             Event::FullyRead(ref event) => event.serialize(serializer),
+            Event::KeyVerificationAccept(ref event) => event.serialize(serializer),
+            Event::KeyVerificationCancel(ref event) => event.serialize(serializer),
+            Event::KeyVerificationKey(ref event) => event.serialize(serializer),
+            Event::KeyVerificationMac(ref event) => event.serialize(serializer),
+            Event::KeyVerificationRequest(ref event) => event.serialize(serializer),
+            Event::KeyVerificationStart(ref event) => event.serialize(serializer),
             Event::IgnoredUserList(ref event) => event.serialize(serializer),
             Event::Presence(ref event) => event.serialize(serializer),
             Event::Receipt(ref event) => event.serialize(serializer),
@@ -294,6 +357,8 @@ impl Serialize for Event {
             Event::RoomAvatar(ref event) => event.serialize(serializer),
             Event::RoomCanonicalAlias(ref event) => event.serialize(serializer),
             Event::RoomCreate(ref event) => event.serialize(serializer),
+            Event::RoomEncrypted(ref event) => event.serialize(serializer),
+            Event::RoomEncryption(ref event) => event.serialize(serializer),
             Event::RoomGuestAccess(ref event) => event.serialize(serializer),
             Event::RoomHistoryVisibility(ref event) => event.serialize(serializer),
             Event::RoomJoinRules(ref event) => event.serialize(serializer),
@@ -308,6 +373,8 @@ impl Serialize for Event {
             Event::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
             Event::RoomTombstone(ref event) => event.serialize(serializer),
             Event::RoomTopic(ref event) => event.serialize(serializer),
+            Event::RoomKey(ref event) => event.serialize(serializer),
+            Event::RoomKeyRequest(ref event) => event.serialize(serializer),
             Event::Sticker(ref event) => event.serialize(serializer),
             Event::Tag(ref event) => event.serialize(serializer),
             Event::Typing(ref event) => event.serialize(serializer),
@@ -376,6 +443,22 @@ impl<'de> Deserialize<'de> for Event {
 
                 Ok(Event::Direct(event))
             }
+            EventType::Dummy => {
+                let event = match from_value::<DummyEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::Dummy(event))
+            }
+            EventType::ForwardedRoomKey => {
+                let event = match from_value::<ForwardedRoomKeyEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::ForwardedRoomKey(event))
+            }
             EventType::FullyRead => {
                 let event = match from_value::<FullyReadEvent>(value) {
                     Ok(event) => event,
@@ -383,6 +466,54 @@ impl<'de> Deserialize<'de> for Event {
                 };
 
                 Ok(Event::FullyRead(event))
+            }
+            EventType::KeyVerificationAccept => {
+                let event = match from_value::<AcceptEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::KeyVerificationAccept(event))
+            }
+            EventType::KeyVerificationCancel => {
+                let event = match from_value::<CancelEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::KeyVerificationCancel(event))
+            }
+            EventType::KeyVerificationKey => {
+                let event = match from_value::<KeyEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::KeyVerificationKey(event))
+            }
+            EventType::KeyVerificationMac => {
+                let event = match from_value::<MacEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::KeyVerificationMac(event))
+            }
+            EventType::KeyVerificationRequest => {
+                let event = match from_value::<RequestEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::KeyVerificationRequest(event))
+            }
+            EventType::KeyVerificationStart => {
+                let event = match from_value::<StartEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::KeyVerificationStart(event))
             }
             EventType::IgnoredUserList => {
                 let event = match from_value::<IgnoredUserListEvent>(value) {
@@ -439,6 +570,22 @@ impl<'de> Deserialize<'de> for Event {
                 };
 
                 Ok(Event::RoomCreate(event))
+            }
+            EventType::RoomEncrypted => {
+                let event = match from_value::<EncryptedEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::RoomEncrypted(event))
+            }
+            EventType::RoomEncryption => {
+                let event = match from_value::<EncryptionEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::RoomEncryption(event))
             }
             EventType::RoomGuestAccess => {
                 let event = match from_value::<GuestAccessEvent>(value) {
@@ -552,6 +699,22 @@ impl<'de> Deserialize<'de> for Event {
 
                 Ok(Event::RoomTopic(event))
             }
+            EventType::RoomKey => {
+                let event = match from_value::<RoomKeyEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::RoomKey(event))
+            }
+            EventType::RoomKeyRequest => {
+                let event = match from_value::<RoomKeyRequestEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::RoomKeyRequest(event))
+            }
             EventType::Sticker => {
                 let event = match from_value::<StickerEvent>(value) {
                     Ok(event) => event,
@@ -624,6 +787,8 @@ impl Serialize for RoomEvent {
             RoomEvent::RoomAvatar(ref event) => event.serialize(serializer),
             RoomEvent::RoomCanonicalAlias(ref event) => event.serialize(serializer),
             RoomEvent::RoomCreate(ref event) => event.serialize(serializer),
+            RoomEvent::RoomEncrypted(ref event) => event.serialize(serializer),
+            RoomEvent::RoomEncryption(ref event) => event.serialize(serializer),
             RoomEvent::RoomGuestAccess(ref event) => event.serialize(serializer),
             RoomEvent::RoomHistoryVisibility(ref event) => event.serialize(serializer),
             RoomEvent::RoomJoinRules(ref event) => event.serialize(serializer),
@@ -726,6 +891,22 @@ impl<'de> Deserialize<'de> for RoomEvent {
                 };
 
                 Ok(RoomEvent::RoomCreate(event))
+            }
+            EventType::RoomEncrypted => {
+                let event = match from_value::<EncryptedEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(RoomEvent::RoomEncrypted(event))
+            }
+            EventType::RoomEncryption => {
+                let event = match from_value::<EncryptionEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(RoomEvent::RoomEncryption(event))
             }
             EventType::RoomGuestAccess => {
                 let event = match from_value::<GuestAccessEvent>(value) {
@@ -865,10 +1046,20 @@ impl<'de> Deserialize<'de> for RoomEvent {
                 }
             }
             EventType::Direct
+            | EventType::Dummy
+            | EventType::ForwardedRoomKey
             | EventType::FullyRead
+            | EventType::KeyVerificationAccept
+            | EventType::KeyVerificationCancel
+            | EventType::KeyVerificationKey
+            | EventType::KeyVerificationMac
+            | EventType::KeyVerificationRequest
+            | EventType::KeyVerificationStart
             | EventType::IgnoredUserList
             | EventType::Presence
             | EventType::Receipt
+            | EventType::RoomKey
+            | EventType::RoomKeyRequest
             | EventType::Tag
             | EventType::Typing => Err(D::Error::custom("not a room event".to_string())),
             EventType::__Nonexhaustive => {
@@ -888,6 +1079,7 @@ impl Serialize for StateEvent {
             StateEvent::RoomAvatar(ref event) => event.serialize(serializer),
             StateEvent::RoomCanonicalAlias(ref event) => event.serialize(serializer),
             StateEvent::RoomCreate(ref event) => event.serialize(serializer),
+            StateEvent::RoomEncryption(ref event) => event.serialize(serializer),
             StateEvent::RoomGuestAccess(ref event) => event.serialize(serializer),
             StateEvent::RoomHistoryVisibility(ref event) => event.serialize(serializer),
             StateEvent::RoomJoinRules(ref event) => event.serialize(serializer),
@@ -953,6 +1145,14 @@ impl<'de> Deserialize<'de> for StateEvent {
                 };
 
                 Ok(StateEvent::RoomCreate(event))
+            }
+            EventType::RoomEncryption => {
+                let event = match from_value::<EncryptionEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(StateEvent::RoomEncryption(event))
             }
             EventType::RoomGuestAccess => {
                 let event = match from_value::<GuestAccessEvent>(value) {
@@ -1055,13 +1255,24 @@ impl<'de> Deserialize<'de> for StateEvent {
             | EventType::CallHangup
             | EventType::CallInvite
             | EventType::Direct
+            | EventType::Dummy
+            | EventType::ForwardedRoomKey
             | EventType::FullyRead
+            | EventType::KeyVerificationAccept
+            | EventType::KeyVerificationCancel
+            | EventType::KeyVerificationKey
+            | EventType::KeyVerificationMac
+            | EventType::KeyVerificationRequest
+            | EventType::KeyVerificationStart
             | EventType::IgnoredUserList
             | EventType::Presence
             | EventType::Receipt
+            | EventType::RoomEncrypted
             | EventType::RoomMessage
             | EventType::RoomMessageFeedback
             | EventType::RoomRedaction
+            | EventType::RoomKey
+            | EventType::RoomKeyRequest
             | EventType::Sticker
             | EventType::Tag
             | EventType::Typing => Err(D::Error::custom("not a state event".to_string())),
@@ -1087,7 +1298,15 @@ impl_from_t_for_event!(CandidatesEvent, CallCandidates);
 impl_from_t_for_event!(HangupEvent, CallHangup);
 impl_from_t_for_event!(InviteEvent, CallInvite);
 impl_from_t_for_event!(DirectEvent, Direct);
+impl_from_t_for_event!(DummyEvent, Dummy);
+impl_from_t_for_event!(ForwardedRoomKeyEvent, ForwardedRoomKey);
 impl_from_t_for_event!(FullyReadEvent, FullyRead);
+impl_from_t_for_event!(AcceptEvent, KeyVerificationAccept);
+impl_from_t_for_event!(CancelEvent, KeyVerificationCancel);
+impl_from_t_for_event!(KeyEvent, KeyVerificationKey);
+impl_from_t_for_event!(MacEvent, KeyVerificationMac);
+impl_from_t_for_event!(RequestEvent, KeyVerificationRequest);
+impl_from_t_for_event!(StartEvent, KeyVerificationStart);
 impl_from_t_for_event!(IgnoredUserListEvent, IgnoredUserList);
 impl_from_t_for_event!(PresenceEvent, Presence);
 impl_from_t_for_event!(ReceiptEvent, Receipt);
@@ -1095,6 +1314,8 @@ impl_from_t_for_event!(AliasesEvent, RoomAliases);
 impl_from_t_for_event!(AvatarEvent, RoomAvatar);
 impl_from_t_for_event!(CanonicalAliasEvent, RoomCanonicalAlias);
 impl_from_t_for_event!(CreateEvent, RoomCreate);
+impl_from_t_for_event!(EncryptedEvent, RoomEncrypted);
+impl_from_t_for_event!(EncryptionEvent, RoomEncryption);
 impl_from_t_for_event!(GuestAccessEvent, RoomGuestAccess);
 impl_from_t_for_event!(HistoryVisibilityEvent, RoomHistoryVisibility);
 impl_from_t_for_event!(JoinRulesEvent, RoomJoinRules);
@@ -1109,6 +1330,8 @@ impl_from_t_for_event!(ServerAclEvent, RoomServerAcl);
 impl_from_t_for_event!(ThirdPartyInviteEvent, RoomThirdPartyInvite);
 impl_from_t_for_event!(TombstoneEvent, RoomTombstone);
 impl_from_t_for_event!(TopicEvent, RoomTopic);
+impl_from_t_for_event!(RoomKeyEvent, RoomKey);
+impl_from_t_for_event!(RoomKeyRequestEvent, RoomKeyRequest);
 impl_from_t_for_event!(StickerEvent, Sticker);
 impl_from_t_for_event!(TagEvent, Tag);
 impl_from_t_for_event!(TypingEvent, Typing);
@@ -1134,6 +1357,8 @@ impl_from_t_for_room_event!(AliasesEvent, RoomAliases);
 impl_from_t_for_room_event!(AvatarEvent, RoomAvatar);
 impl_from_t_for_room_event!(CanonicalAliasEvent, RoomCanonicalAlias);
 impl_from_t_for_room_event!(CreateEvent, RoomCreate);
+impl_from_t_for_room_event!(EncryptedEvent, RoomEncrypted);
+impl_from_t_for_room_event!(EncryptionEvent, RoomEncryption);
 impl_from_t_for_room_event!(GuestAccessEvent, RoomGuestAccess);
 impl_from_t_for_room_event!(HistoryVisibilityEvent, RoomHistoryVisibility);
 impl_from_t_for_room_event!(JoinRulesEvent, RoomJoinRules);
@@ -1166,6 +1391,7 @@ impl_from_t_for_state_event!(AliasesEvent, RoomAliases);
 impl_from_t_for_state_event!(AvatarEvent, RoomAvatar);
 impl_from_t_for_state_event!(CanonicalAliasEvent, RoomCanonicalAlias);
 impl_from_t_for_state_event!(CreateEvent, RoomCreate);
+impl_from_t_for_state_event!(EncryptionEvent, RoomEncryption);
 impl_from_t_for_state_event!(GuestAccessEvent, RoomGuestAccess);
 impl_from_t_for_state_event!(HistoryVisibilityEvent, RoomHistoryVisibility);
 impl_from_t_for_state_event!(JoinRulesEvent, RoomJoinRules);

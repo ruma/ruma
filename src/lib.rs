@@ -155,8 +155,32 @@ pub enum EventType {
     /// m.direct
     Direct,
 
+    /// m.dummy
+    Dummy,
+
+    /// m.forwarded_room_key
+    ForwardedRoomKey,
+
     /// m.fully_read
     FullyRead,
+
+    /// m.key.verification.accept
+    KeyVerificationAccept,
+
+    /// m.key.verification.cancel
+    KeyVerificationCancel,
+
+    /// m.key.verification.key
+    KeyVerificationKey,
+
+    /// m.key.verification.mac
+    KeyVerificationMac,
+
+    /// m.key.verification.request
+    KeyVerificationRequest,
+
+    /// m.key.verification.start
+    KeyVerificationStart,
 
     /// m.ignored_user_list
     IgnoredUserList,
@@ -178,6 +202,12 @@ pub enum EventType {
 
     /// m.room.create
     RoomCreate,
+
+    /// m.room.encrypted
+    RoomEncrypted,
+
+    /// m.room.encryption
+    RoomEncryption,
 
     /// m.room.guest_access
     RoomGuestAccess,
@@ -220,6 +250,12 @@ pub enum EventType {
 
     /// m.room.topic
     RoomTopic,
+
+    /// m.room_key
+    RoomKey,
+
+    /// m.room_key_request
+    RoomKeyRequest,
 
     /// m.sticker
     Sticker,
@@ -308,7 +344,15 @@ impl Display for EventType {
             EventType::CallHangup => "m.call.hangup",
             EventType::CallInvite => "m.call.invite",
             EventType::Direct => "m.direct",
+            EventType::Dummy => "m.dummy",
+            EventType::ForwardedRoomKey => "m.forwarded_room_key",
             EventType::FullyRead => "m.fully_read",
+            EventType::KeyVerificationAccept => "m.key.verification.accept",
+            EventType::KeyVerificationCancel => "m.key.verification.cancel",
+            EventType::KeyVerificationKey => "m.key.verification.key",
+            EventType::KeyVerificationMac => "m.key.verification.mac",
+            EventType::KeyVerificationRequest => "m.key.verification.request",
+            EventType::KeyVerificationStart => "m.key.verification.start",
             EventType::IgnoredUserList => "m.ignored_user_list",
             EventType::Presence => "m.presence",
             EventType::Receipt => "m.receipt",
@@ -316,6 +360,8 @@ impl Display for EventType {
             EventType::RoomAvatar => "m.room.avatar",
             EventType::RoomCanonicalAlias => "m.room.canonical_alias",
             EventType::RoomCreate => "m.room.create",
+            EventType::RoomEncrypted => "m.room.encrypted",
+            EventType::RoomEncryption => "m.room.encryption",
             EventType::RoomGuestAccess => "m.room.guest_access",
             EventType::RoomHistoryVisibility => "m.room.history_visibility",
             EventType::RoomJoinRules => "m.room.join_rules",
@@ -330,6 +376,8 @@ impl Display for EventType {
             EventType::RoomThirdPartyInvite => "m.room.third_party_invite",
             EventType::RoomTombstone => "m.room.tombstone",
             EventType::RoomTopic => "m.room.topic",
+            EventType::RoomKey => "m.room_key",
+            EventType::RoomKeyRequest => "m.room_key_request",
             EventType::Sticker => "m.sticker",
             EventType::Tag => "m.tag",
             EventType::Typing => "m.typing",
@@ -351,7 +399,15 @@ impl<'a> From<&'a str> for EventType {
             "m.call.hangup" => EventType::CallHangup,
             "m.call.invite" => EventType::CallInvite,
             "m.direct" => EventType::Direct,
+            "m.dummy" => EventType::Dummy,
+            "m.forwarded_room_key" => EventType::ForwardedRoomKey,
             "m.fully_read" => EventType::FullyRead,
+            "m.key.verification.accept" => EventType::KeyVerificationAccept,
+            "m.key.verification.cancel" => EventType::KeyVerificationCancel,
+            "m.key.verification.key" => EventType::KeyVerificationKey,
+            "m.key.verification.mac" => EventType::KeyVerificationMac,
+            "m.key.verification.request" => EventType::KeyVerificationRequest,
+            "m.key.verification.start" => EventType::KeyVerificationStart,
             "m.ignored_user_list" => EventType::IgnoredUserList,
             "m.presence" => EventType::Presence,
             "m.receipt" => EventType::Receipt,
@@ -359,6 +415,8 @@ impl<'a> From<&'a str> for EventType {
             "m.room.avatar" => EventType::RoomAvatar,
             "m.room.canonical_alias" => EventType::RoomCanonicalAlias,
             "m.room.create" => EventType::RoomCreate,
+            "m.room.encrypted" => EventType::RoomEncrypted,
+            "m.room.encryption" => EventType::RoomEncryption,
             "m.room.guest_access" => EventType::RoomGuestAccess,
             "m.room.history_visibility" => EventType::RoomHistoryVisibility,
             "m.room.join_rules" => EventType::RoomJoinRules,
@@ -373,6 +431,8 @@ impl<'a> From<&'a str> for EventType {
             "m.room.third_party_invite" => EventType::RoomThirdPartyInvite,
             "m.room.tombstone" => EventType::RoomTombstone,
             "m.room.topic" => EventType::RoomTopic,
+            "m.room_key" => EventType::RoomKey,
+            "m.room_key_request" => EventType::RoomKeyRequest,
             "m.sticker" => EventType::Sticker,
             "m.tag" => EventType::Tag,
             "m.typing" => EventType::Typing,
