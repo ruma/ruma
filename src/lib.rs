@@ -1,4 +1,4 @@
-//! Crate ruma_events contains serializable types for the events in the [Matrix](https://matrix.org)
+//! Crate `ruma_events` contains serializable types for the events in the [Matrix](https://matrix.org)
 //! specification that can be shared by client and server code.
 //!
 //! All data exchanged over Matrix is expressed as an event.
@@ -7,19 +7,19 @@
 //! While anyone can create a new event type for their own purposes, the Matrix specification
 //! defines a number of event types which are considered core to the protocol, and Matrix clients
 //! and servers must understand their semantics.
-//! ruma_events contains Rust types for each of the event types defined by the specification and
+//! ruma-events contains Rust types for each of the event types defined by the specification and
 //! facilities for extending the event system for custom event types.
 //!
 //! # Event types
 //!
-//! ruma_events includes a Rust enum called `EventType`, which provides a simple enumeration of
+//! ruma-events includes a Rust enum called `EventType`, which provides a simple enumeration of
 //! all the event types defined by the Matrix specification. Matrix event types are serialized to
 //! JSON strings in [reverse domain name
 //! notation](https://en.wikipedia.org/wiki/Reverse_domain_name_notation), although the core event
 //! types all use the special "m" TLD, e.g. *m.room.message*.
 //! `EventType` also includes a variant called `Custom`, which is a catch-all that stores a string
 //! containing the name of any event type that isn't part of the specification.
-//! `EventType` is used throughout ruma_events to identify and differentiate between events of
+//! `EventType` is used throughout ruma-events to identify and differentiate between events of
 //! different types.
 //!
 //! # Event traits
@@ -49,24 +49,24 @@
 //!     *   Optionally, `prev_content`, a JSON object containing the `content` object from the
 //!     previous event of the given `(event_type, state_key)` tuple in the given room.
 //!
-//! ruma_events represents these three event kinds as traits, allowing any Rust type to serve as a
+//! ruma-events represents these three event kinds as traits, allowing any Rust type to serve as a
 //! Matrix event so long as it upholds the contract expected of its kind.
 //!
 //! # Core event types
 //!
-//! ruma_events includes Rust types for every one of the event types in the Matrix specification.
+//! ruma-events includes Rust types for every one of the event types in the Matrix specification.
 //! To better organize the crate, these types live in separate modules with a hierarchy that
 //! matches the reverse domain name notation of the event type.
 //! For example, the *m.room.message* event lives at `ruma_events::room::message::MessageEvent`.
 //! Each type's module also contains a Rust type for that event type's `content` field, and any
 //! other supporting types required by the event's other fields.
-//! All concrete event types in ruma_events are serializable and deserializable using the
+//! All concrete event types in ruma-events are serializable and deserializable using the
 //! [Serde](https://serde.rs/) serialization library.
 //!
 //! # Custom events
 //!
 //! Although any Rust type that implements `Event`, `RoomEvent`, or `StateEvent` can serve as a
-//! Matrix event type, ruma_events also includes a few convenience types for representing events
+//! Matrix event type, ruma-events also includes a few convenience types for representing events
 //! that are not covered by the spec and not otherwise known by the application.
 //! `CustomEvent`, `CustomRoomEvent`, and `CustomStateEvent` are simple implementations of their
 //! respective event traits whose `content` field is simply a `serde_json::Value` value, which
@@ -79,7 +79,7 @@
 //! However, there are APIs in the Matrix specification that involve heterogeneous collections of
 //! events, i.e. a list of events of different event types.
 //! Because Rust does not have a facility for arrays, vectors, or slices containing multiple
-//! concrete types, ruma_events provides special collection types for this purpose.
+//! concrete types, ruma-events provides special collection types for this purpose.
 //! The collection types are enums which effectively "wrap" each possible event type of a
 //! particular event "kind."
 //!
@@ -270,7 +270,7 @@ pub enum EventType {
     Custom(String),
 
     /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to `ruma-events`.
+    /// to ruma-events.
     #[doc(hidden)]
     __Nonexhaustive,
 }

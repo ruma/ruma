@@ -29,7 +29,7 @@ pub enum GuestAccess {
     Forbidden,
 
     /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to `ruma-events`.
+    /// to ruma-events.
     #[doc(hidden)]
     #[serde(skip)]
     __Nonexhaustive,

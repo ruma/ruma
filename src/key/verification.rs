@@ -19,7 +19,7 @@ pub enum HashAlgorithm {
     Sha256,
 
     /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to `ruma-events`.
+    /// to ruma-events.
     #[doc(hidden)]
     #[serde(skip)]
     __Nonexhaustive,
@@ -39,7 +39,7 @@ pub enum KeyAgreementProtocol {
     Curve25519,
 
     /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to `ruma-events`.
+    /// to ruma-events.
     #[doc(hidden)]
     #[serde(skip)]
     __Nonexhaustive,
@@ -59,7 +59,7 @@ pub enum MessageAuthenticationCode {
     HkdfHmacSha256,
 
     /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to `ruma-events`.
+    /// to ruma-events.
     #[doc(hidden)]
     #[serde(skip)]
     __Nonexhaustive,
@@ -83,7 +83,7 @@ pub enum ShortAuthenticationString {
     Emoji,
 
     /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to `ruma-events`.
+    /// to ruma-events.
     #[doc(hidden)]
     #[serde(skip)]
     __Nonexhaustive,
@@ -104,7 +104,7 @@ pub enum VerificationMethod {
     MSasV1,
 
     /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to `ruma-events`.
+    /// to ruma-events.
     #[doc(hidden)]
     #[serde(skip)]
     __Nonexhaustive,

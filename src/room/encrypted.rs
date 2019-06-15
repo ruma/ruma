@@ -24,7 +24,7 @@ pub enum EncryptedEventContent {
     MegolmV1AesSha2(MegolmV1AesSha2Content),
 
     /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to `ruma-events`.
+    /// to ruma-events.
     #[doc(hidden)]
     __Nonexhaustive,
 }
