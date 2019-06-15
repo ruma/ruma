@@ -118,11 +118,16 @@ pub mod collections {
     pub mod only;
 }
 pub mod direct;
+pub mod dummy;
+pub mod forwarded_room_key;
 pub mod fully_read;
 pub mod ignored_user_list;
+pub mod key;
 pub mod presence;
 pub mod receipt;
 pub mod room;
+pub mod room_key;
+pub mod room_key_request;
 pub mod sticker;
 pub mod stripped;
 pub mod tag;
@@ -411,6 +416,84 @@ impl<'de> Deserialize<'de> for EventType {
     }
 }
 
+/// An encryption algorithm to be used to encrypt messages sent to a room.
+#[derive(Clone, Debug, PartialEq)]
+pub enum Algorithm {
+    /// Olm version 1 using Curve25519, AES-256, and SHA-256.
+    OlmV1Curve25519AesSha2,
+
+    /// Megolm version 1 using AES-256 and SHA-256.
+    MegolmV1AesSha2,
+
+    /// Any algorithm that is not part of the specification.
+    Custom(String),
+
+    /// Additional variants may be added in the future and will not be considered breaking changes
+    /// to `ruma-events`.
+    #[doc(hidden)]
+    __Nonexhaustive,
+}
+
+impl Display for Algorithm {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        let algorithm_str = match *self {
+            Algorithm::OlmV1Curve25519AesSha2 => "m.olm.v1.curve25519-aes-sha2",
+            Algorithm::MegolmV1AesSha2 => "m.megolm.v1.aes-sha2",
+            Algorithm::Custom(ref algorithm) => algorithm,
+            Algorithm::__Nonexhaustive => {
+                panic!("__Nonexhaustive enum variant is not intended for use.")
+            }
+        };
+
+        write!(f, "{}", algorithm_str)
+    }
+}
+
+impl<'a> From<&'a str> for Algorithm {
+    fn from(s: &'a str) -> Algorithm {
+        match s {
+            "m.olm.v1.curve25519-aes-sha2" => Algorithm::OlmV1Curve25519AesSha2,
+            "m.megolm.v1.aes-sha2" => Algorithm::MegolmV1AesSha2,
+            algorithm => Algorithm::Custom(algorithm.to_string()),
+        }
+    }
+}
+
+impl Serialize for Algorithm {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for Algorithm {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct CancelCodeVisitor;
+
+        impl<'de> Visitor<'de> for CancelCodeVisitor {
+            type Value = Algorithm;
+
+            fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
+                write!(formatter, "an encryption algorithm code as a string")
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: SerdeError,
+            {
+                Ok(Algorithm::from(v))
+            }
+        }
+
+        deserializer.deserialize_str(CancelCodeVisitor)
+    }
+}
+
 /// Serde deserialization decorator to map empty Strings to None,
 /// and forward non-empty Strings to the Deserialize implementation for T.
 /// Useful for the typical
@@ -445,7 +528,7 @@ fn default_true() -> bool {
 mod tests {
     use serde_json::{from_str, to_string};
 
-    use super::EventType;
+    use super::{Algorithm, EventType};
 
     #[test]
     fn event_types_serialize_to_display_form() {
@@ -476,6 +559,38 @@ mod tests {
         assert_eq!(
             from_str::<EventType>(r#""io.ruma.test""#).unwrap(),
             EventType::Custom("io.ruma.test".to_string())
+        )
+    }
+
+    #[test]
+    fn algorithms_serialize_to_display_form() {
+        assert_eq!(
+            to_string(&Algorithm::MegolmV1AesSha2).unwrap(),
+            r#""m.megolm.v1.aes-sha2""#
+        );
+    }
+
+    #[test]
+    fn custom_algorithms_serialize_to_display_form() {
+        assert_eq!(
+            to_string(&Algorithm::Custom("io.ruma.test".to_string())).unwrap(),
+            r#""io.ruma.test""#
+        );
+    }
+
+    #[test]
+    fn algorithms_deserialize_from_display_form() {
+        assert_eq!(
+            from_str::<Algorithm>(r#""m.megolm.v1.aes-sha2""#).unwrap(),
+            Algorithm::MegolmV1AesSha2
+        );
+    }
+
+    #[test]
+    fn custom_algorithms_deserialize_from_display_form() {
+        assert_eq!(
+            from_str::<Algorithm>(r#""io.ruma.test""#).unwrap(),
+            Algorithm::Custom("io.ruma.test".to_string())
         )
     }
 }
