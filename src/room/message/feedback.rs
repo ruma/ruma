@@ -32,6 +32,12 @@ pub enum FeedbackType {
     /// Sent when a message has been observed by the end user.
     #[serde(rename = "read")]
     Read,
+
+    /// Additional variants may be added in the future and will not be considered breaking changes
+    /// to `ruma-events`.
+    #[doc(hidden)]
+    #[serde(skip)]
+    __Nonexhaustive,
 }
 
 impl_enum! {

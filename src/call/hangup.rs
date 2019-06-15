@@ -35,6 +35,12 @@ pub enum Reason {
     /// Party did not answer in time.
     #[serde(rename = "invite_timeout")]
     InviteTimeout,
+
+    /// Additional variants may be added in the future and will not be considered breaking changes
+    /// to `ruma-events`.
+    #[doc(hidden)]
+    #[serde(skip)]
+    __Nonexhaustive,
 }
 
 impl_enum! {

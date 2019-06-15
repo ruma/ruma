@@ -227,6 +227,11 @@ pub enum EventType {
 
     /// Any event that is not part of the specification.
     Custom(String),
+
+    /// Additional variants may be added in the future and will not be considered breaking changes
+    /// to `ruma-events`.
+    #[doc(hidden)]
+    __Nonexhaustive,
 }
 
 /// A basic event.
@@ -324,6 +329,9 @@ impl Display for EventType {
             EventType::Tag => "m.tag",
             EventType::Typing => "m.typing",
             EventType::Custom(ref event_type) => event_type,
+            EventType::__Nonexhaustive => {
+                panic!("__Nonexhaustive enum variant is not intended for use.")
+            }
         };
 
         write!(f, "{}", event_type_str)

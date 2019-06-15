@@ -39,6 +39,12 @@ pub enum HistoryVisibility {
     /// participating homeserver with anyone, regardless of whether they have ever joined the room.
     #[serde(rename = "world_readable")]
     WorldReadable,
+
+    /// Additional variants may be added in the future and will not be considered breaking changes
+    /// to `ruma-events`.
+    #[doc(hidden)]
+    #[serde(skip)]
+    __Nonexhaustive,
 }
 
 impl_enum! {

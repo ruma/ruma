@@ -209,6 +209,9 @@ impl<'de> Deserialize<'de> for Event {
             | EventType::Sticker => Err(D::Error::custom(
                 "not exclusively a basic event".to_string(),
             )),
+            EventType::__Nonexhaustive => {
+                panic!("__Nonexhaustive enum variant is not intended for use.")
+            }
         }
     }
 }
@@ -345,6 +348,9 @@ impl<'de> Deserialize<'de> for RoomEvent {
             | EventType::Tag
             | EventType::Typing => {
                 Err(D::Error::custom("not exclusively a room event".to_string()))
+            }
+            EventType::__Nonexhaustive => {
+                panic!("__Nonexhaustive enum variant is not intended for use.")
             }
         }
     }

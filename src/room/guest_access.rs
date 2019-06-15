@@ -27,6 +27,12 @@ pub enum GuestAccess {
     /// Guests are not allowed to join the room.
     #[serde(rename = "forbidden")]
     Forbidden,
+
+    /// Additional variants may be added in the future and will not be considered breaking changes
+    /// to `ruma-events`.
+    #[doc(hidden)]
+    #[serde(skip)]
+    __Nonexhaustive,
 }
 
 impl_enum! {

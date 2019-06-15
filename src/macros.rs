@@ -4,6 +4,7 @@ macro_rules! impl_enum {
             fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> Result<(), ::std::fmt::Error> {
                 let variant = match *self {
                     $($name::$variant => $s,)*
+                    $name::__Nonexhaustive => panic!("__Nonexhaustive enum variant is not intended for use."),
                 };
 
                 write!(f, "{}", variant)

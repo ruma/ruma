@@ -80,6 +80,12 @@ pub enum MembershipState {
     /// The user has left.
     #[serde(rename = "leave")]
     Leave,
+
+    /// Additional variants may be added in the future and will not be considered breaking changes
+    /// to `ruma-events`.
+    #[doc(hidden)]
+    #[serde(skip)]
+    __Nonexhaustive,
 }
 
 impl_enum! {

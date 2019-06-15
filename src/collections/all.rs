@@ -603,6 +603,9 @@ impl<'de> Deserialize<'de> for Event {
                     Ok(Event::Custom(event))
                 }
             }
+            EventType::__Nonexhaustive => {
+                panic!("__Nonexhaustive enum variant is not intended for use.")
+            }
         }
     }
 }
@@ -868,6 +871,9 @@ impl<'de> Deserialize<'de> for RoomEvent {
             | EventType::Receipt
             | EventType::Tag
             | EventType::Typing => Err(D::Error::custom("not a room event".to_string())),
+            EventType::__Nonexhaustive => {
+                panic!("__Nonexhaustive enum variant is not intended for use.")
+            }
         }
     }
 }
@@ -1059,6 +1065,9 @@ impl<'de> Deserialize<'de> for StateEvent {
             | EventType::Sticker
             | EventType::Tag
             | EventType::Typing => Err(D::Error::custom("not a state event".to_string())),
+            EventType::__Nonexhaustive => {
+                panic!("__Nonexhaustive enum variant is not intended for use.")
+            }
         }
     }
 }

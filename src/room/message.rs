@@ -51,6 +51,12 @@ pub enum MessageType {
     /// A video message.
     #[serde(rename = "m.video")]
     Video,
+
+    /// Additional variants may be added in the future and will not be considered breaking changes
+    /// to `ruma-events`.
+    #[doc(hidden)]
+    #[serde(skip)]
+    __Nonexhaustive,
 }
 
 /// The payload of a message event.
@@ -536,6 +542,9 @@ impl<'de> Deserialize<'de> for MessageEventContent {
 
                 Ok(MessageEventContent::Video(content))
             }
+            MessageType::__Nonexhaustive => Err(D::Error::custom(
+                "Attempted to deserialize __Nonexhaustive variant.",
+            )),
         }
     }
 }
