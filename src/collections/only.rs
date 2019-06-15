@@ -19,6 +19,7 @@ use crate::{
         request::RequestEvent, start::StartEvent,
     },
     presence::PresenceEvent,
+    push_rules::PushRulesEvent,
     receipt::ReceiptEvent,
     room::{
         encrypted::EncryptedEvent,
@@ -71,6 +72,9 @@ pub enum Event {
 
     /// m.presence
     Presence(PresenceEvent),
+
+    /// m.push_rules
+    PushRules(PushRulesEvent),
 
     /// m.room_key
     RoomKey(RoomKeyEvent),
@@ -144,6 +148,7 @@ impl Serialize for Event {
             Event::KeyVerificationStart(ref event) => event.serialize(serializer),
             Event::IgnoredUserList(ref event) => event.serialize(serializer),
             Event::Presence(ref event) => event.serialize(serializer),
+            Event::PushRules(ref event) => event.serialize(serializer),
             Event::Receipt(ref event) => event.serialize(serializer),
             Event::RoomKey(ref event) => event.serialize(serializer),
             Event::RoomKeyRequest(ref event) => event.serialize(serializer),
@@ -267,6 +272,14 @@ impl<'de> Deserialize<'de> for Event {
                 };
 
                 Ok(Event::Presence(event))
+            }
+            EventType::PushRules => {
+                let event = match from_value::<PushRulesEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::PushRules(event))
             }
             EventType::Receipt => {
                 let event = match from_value::<ReceiptEvent>(value) {
@@ -480,6 +493,7 @@ impl<'de> Deserialize<'de> for RoomEvent {
             | EventType::KeyVerificationStart
             | EventType::IgnoredUserList
             | EventType::Presence
+            | EventType::PushRules
             | EventType::Receipt
             | EventType::RoomAliases
             | EventType::RoomAvatar
@@ -531,6 +545,7 @@ impl_from_t_for_event!(RequestEvent, KeyVerificationRequest);
 impl_from_t_for_event!(StartEvent, KeyVerificationStart);
 impl_from_t_for_event!(IgnoredUserListEvent, IgnoredUserList);
 impl_from_t_for_event!(PresenceEvent, Presence);
+impl_from_t_for_event!(PushRulesEvent, PushRules);
 impl_from_t_for_event!(ReceiptEvent, Receipt);
 impl_from_t_for_event!(TagEvent, Tag);
 impl_from_t_for_event!(TypingEvent, Typing);

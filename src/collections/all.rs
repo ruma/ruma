@@ -15,6 +15,7 @@ use crate::{
         request::RequestEvent, start::StartEvent,
     },
     presence::PresenceEvent,
+    push_rules::PushRulesEvent,
     receipt::ReceiptEvent,
     room::{
         aliases::AliasesEvent,
@@ -99,6 +100,9 @@ pub enum Event {
 
     /// m.presence
     Presence(PresenceEvent),
+
+    /// m.push_rules
+    PushRules(PushRulesEvent),
 
     /// m.receipt
     Receipt(ReceiptEvent),
@@ -352,6 +356,7 @@ impl Serialize for Event {
             Event::KeyVerificationStart(ref event) => event.serialize(serializer),
             Event::IgnoredUserList(ref event) => event.serialize(serializer),
             Event::Presence(ref event) => event.serialize(serializer),
+            Event::PushRules(ref event) => event.serialize(serializer),
             Event::Receipt(ref event) => event.serialize(serializer),
             Event::RoomAliases(ref event) => event.serialize(serializer),
             Event::RoomAvatar(ref event) => event.serialize(serializer),
@@ -530,6 +535,14 @@ impl<'de> Deserialize<'de> for Event {
                 };
 
                 Ok(Event::Presence(event))
+            }
+            EventType::PushRules => {
+                let event = match from_value::<PushRulesEvent>(value) {
+                    Ok(event) => event,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(Event::PushRules(event))
             }
             EventType::Receipt => {
                 let event = match from_value::<ReceiptEvent>(value) {
@@ -1057,6 +1070,7 @@ impl<'de> Deserialize<'de> for RoomEvent {
             | EventType::KeyVerificationStart
             | EventType::IgnoredUserList
             | EventType::Presence
+            | EventType::PushRules
             | EventType::Receipt
             | EventType::RoomKey
             | EventType::RoomKeyRequest
@@ -1266,6 +1280,7 @@ impl<'de> Deserialize<'de> for StateEvent {
             | EventType::KeyVerificationStart
             | EventType::IgnoredUserList
             | EventType::Presence
+            | EventType::PushRules
             | EventType::Receipt
             | EventType::RoomEncrypted
             | EventType::RoomMessage
@@ -1309,6 +1324,7 @@ impl_from_t_for_event!(RequestEvent, KeyVerificationRequest);
 impl_from_t_for_event!(StartEvent, KeyVerificationStart);
 impl_from_t_for_event!(IgnoredUserListEvent, IgnoredUserList);
 impl_from_t_for_event!(PresenceEvent, Presence);
+impl_from_t_for_event!(PushRulesEvent, PushRules);
 impl_from_t_for_event!(ReceiptEvent, Receipt);
 impl_from_t_for_event!(AliasesEvent, RoomAliases);
 impl_from_t_for_event!(AvatarEvent, RoomAvatar);

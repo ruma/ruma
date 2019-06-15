@@ -124,6 +124,7 @@ pub mod fully_read;
 pub mod ignored_user_list;
 pub mod key;
 pub mod presence;
+pub mod push_rules;
 pub mod receipt;
 pub mod room;
 pub mod room_key;
@@ -187,6 +188,9 @@ pub enum EventType {
 
     /// m.presence
     Presence,
+
+    /// m.push_rules
+    PushRules,
 
     /// m.receipt
     Receipt,
@@ -355,6 +359,7 @@ impl Display for EventType {
             EventType::KeyVerificationStart => "m.key.verification.start",
             EventType::IgnoredUserList => "m.ignored_user_list",
             EventType::Presence => "m.presence",
+            EventType::PushRules => "m.push_rules",
             EventType::Receipt => "m.receipt",
             EventType::RoomAliases => "m.room.aliases",
             EventType::RoomAvatar => "m.room.avatar",
@@ -410,6 +415,7 @@ impl<'a> From<&'a str> for EventType {
             "m.key.verification.start" => EventType::KeyVerificationStart,
             "m.ignored_user_list" => EventType::IgnoredUserList,
             "m.presence" => EventType::Presence,
+            "m.push_rules" => EventType::PushRules,
             "m.receipt" => EventType::Receipt,
             "m.room.aliases" => EventType::RoomAliases,
             "m.room.avatar" => EventType::RoomAvatar,
