@@ -1,5 +1,6 @@
 [package]
 authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
+categories = ["api-bindings", "web-programming"]
 description = "A procedural macro for generating ruma-api Endpoints."
 documentation = "https://docs.rs/ruma-api-macros"
 homepage = "https://github.com/ruma/ruma-api-macros"
