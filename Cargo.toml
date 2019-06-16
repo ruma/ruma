@@ -1,5 +1,6 @@
 [package]
 authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
+categories = ["api-bindings", "web-programming"]
 description = "A Matrix client library."
 documentation = "https://docs.rs/ruma-client"
 edition = "2018"
