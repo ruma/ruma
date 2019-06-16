@@ -1,5 +1,6 @@
 //! Types for the *m.room.pinned_events* event.
 
+use js_int::UInt;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 
@@ -17,6 +18,9 @@ pub struct PinnedEventsContent {
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
+    use js_int::UInt;
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{from_str, to_string};
 
@@ -36,7 +40,7 @@ mod tests {
             content: content.clone(),
             event_id: EventId::new("example.com").unwrap(),
             event_type: EventType::RoomPinnedEvents,
-            origin_server_ts: 1_432_804_485_886,
+            origin_server_ts: UInt::try_from(1_432_804_485_886u64).unwrap(),
             prev_content: None,
             room_id: Some(RoomId::new("example.com").unwrap()),
             sender: UserId::new("example.com").unwrap(),

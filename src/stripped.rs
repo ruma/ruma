@@ -260,6 +260,7 @@ pub type StrippedRoomTopic = StrippedStateContent<TopicEventContent>;
 mod tests {
     use std::convert::TryFrom;
 
+    use js_int::UInt;
     use ruma_identifiers::UserId;
     use serde_json::{from_str, to_string};
 
@@ -361,11 +362,14 @@ mod tests {
             StrippedState::RoomAvatar(event) => {
                 let image_info = event.content.info.unwrap();
 
-                assert_eq!(image_info.height.unwrap(), 128);
-                assert_eq!(image_info.width.unwrap(), 128);
+                assert_eq!(image_info.height.unwrap(), UInt::try_from(128).unwrap());
+                assert_eq!(image_info.width.unwrap(), UInt::try_from(128).unwrap());
                 assert_eq!(image_info.mimetype.unwrap(), "image/jpeg");
-                assert_eq!(image_info.size.unwrap(), 1024);
-                assert_eq!(image_info.thumbnail_info.unwrap().size.unwrap(), 32);
+                assert_eq!(image_info.size.unwrap(), UInt::try_from(1024).unwrap());
+                assert_eq!(
+                    image_info.thumbnail_info.unwrap().size.unwrap(),
+                    UInt::try_from(32).unwrap()
+                );
                 assert_eq!(event.content.url, "https://domain.com/image.jpg");
                 assert_eq!(event.event_type, EventType::RoomAvatar);
                 assert_eq!(event.state_key, "");

@@ -1,5 +1,6 @@
 //! Types for the *m.room.tombstone* event.
 
+use js_int::UInt;
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 

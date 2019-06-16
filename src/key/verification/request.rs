@@ -1,5 +1,6 @@
 //! Types for the *m.key.verification.request* event.
 
+use js_int::UInt;
 use ruma_identifiers::DeviceId;
 use serde::{Deserialize, Serialize};
 
@@ -30,5 +31,5 @@ pub struct RequestEventContent {
     ///
     /// If the request is in the future by more than 5 minutes or more than 10 minutes in the past,
     /// the message should be ignored by the receiver.
-    pub timestamp: u64,
+    pub timestamp: UInt,
 }

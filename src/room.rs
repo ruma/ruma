@@ -4,6 +4,7 @@
 
 use std::collections::HashMap;
 
+use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
 pub mod aliases;
@@ -32,12 +33,12 @@ pub struct ImageInfo {
     /// The height of the image in pixels.
     #[serde(rename = "h")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub height: Option<u64>,
+    pub height: Option<UInt>,
 
     /// The width of the image in pixels.
     #[serde(rename = "w")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub width: Option<u64>,
+    pub width: Option<UInt>,
 
     /// The MIME type of the image, e.g. "image/png."
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -45,7 +46,7 @@ pub struct ImageInfo {
 
     /// The file size of the image in bytes.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<u64>,
+    pub size: Option<UInt>,
 
     /// Metadata about the image referred to in `thumbnail_url`.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -66,12 +67,12 @@ pub struct ThumbnailInfo {
     /// The height of the thumbnail in pixels.
     #[serde(rename = "h")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub height: Option<u64>,
+    pub height: Option<UInt>,
 
     /// The width of the thumbnail in pixels.
     #[serde(rename = "w")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub width: Option<u64>,
+    pub width: Option<UInt>,
 
     /// The MIME type of the thumbnail, e.g. "image/png."
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -79,7 +80,7 @@ pub struct ThumbnailInfo {
 
     /// The file size of the thumbnail in bytes.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<u64>,
+    pub size: Option<UInt>,
 }
 
 /// A file sent to a room with end-to-end encryption enabled.

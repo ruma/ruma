@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 
+use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
@@ -37,5 +38,5 @@ pub type UserReceipts = HashMap<UserId, Receipt>;
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Receipt {
     /// The timestamp (milliseconds since the Unix epoch) when the receipt was sent.
-    pub ts: Option<u64>,
+    pub ts: Option<UInt>,
 }

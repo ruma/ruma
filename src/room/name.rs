@@ -1,7 +1,9 @@
 //! Types for the *m.room.name* event.
 
-use crate::empty_string_as_none;
+use js_int::UInt;
 use serde::{Deserialize, Serialize};
+
+use crate::empty_string_as_none;
 
 state_event! {
     /// A human-friendly room name designed to be displayed to the end-user.

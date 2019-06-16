@@ -1,5 +1,6 @@
 //! Types for the *m.room.topic* event.
 
+use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
 state_event! {

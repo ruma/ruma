@@ -1,5 +1,6 @@
 //! Types for the *m.room.member* event.
 
+use js_int::UInt;
 use ruma_identifiers::UserId;
 use ruma_signatures::Signatures;
 use serde::{Deserialize, Serialize};

@@ -16,6 +16,10 @@ ruma-identifiers = "0.13.0"
 ruma-signatures = "0.4.2"
 serde_json = "1.0.39"
 
+[dependencies.js_int]
+version = "0.1.0"
+features = ["serde"]
+
 [dependencies.serde]
 version = "1.0.92"
 features = ["derive"]

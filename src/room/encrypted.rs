@@ -1,5 +1,6 @@
 //! Types for the *m.room.encrypted* event.
 
+use js_int::UInt;
 use ruma_identifiers::DeviceId;
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
@@ -52,7 +53,7 @@ pub struct CiphertextInfo {
 
     /// The Olm message type.
     #[serde(rename = "type")]
-    pub message_type: u64,
+    pub message_type: UInt,
 }
 
 /// The payload of an *m.room.encrypted* event using the *m.megolm.v1.aes-sha2* algorithm.

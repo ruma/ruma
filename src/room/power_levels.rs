@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 
+use js_int::{Int, UInt};
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
@@ -17,41 +18,41 @@ state_event! {
 pub struct PowerLevelsEventContent {
     /// The level required to ban a user.
     #[serde(default = "default_power_level")]
-    pub ban: u64,
+    pub ban: Int,
 
     /// The level required to send specific event types.
     ///
     /// This is a mapping from event type to power level required.
-    pub events: HashMap<EventType, u64>,
+    pub events: HashMap<EventType, Int>,
 
     /// The default level required to send message events.
     #[serde(default)]
-    pub events_default: u64,
+    pub events_default: Int,
 
     /// The level required to invite a user.
     #[serde(default = "default_power_level")]
-    pub invite: u64,
+    pub invite: Int,
 
     /// The level required to kick a user.
     #[serde(default = "default_power_level")]
-    pub kick: u64,
+    pub kick: Int,
 
     /// The level required to redact an event.
     #[serde(default = "default_power_level")]
-    pub redact: u64,
+    pub redact: Int,
 
     /// The default level required to send state events.
     #[serde(default = "default_power_level")]
-    pub state_default: u64,
+    pub state_default: Int,
 
     /// The power levels for specific users.
     ///
     /// This is a mapping from `user_id` to power level for that user.
-    pub users: HashMap<UserId, u64>,
+    pub users: HashMap<UserId, Int>,
 
     /// The default power level for every user in the room.
     #[serde(default)]
-    pub users_default: u64,
+    pub users_default: Int,
 
     /// The power level requirements for specific notification types.
     ///
@@ -64,10 +65,10 @@ pub struct PowerLevelsEventContent {
 pub struct NotificationPowerLevels {
     /// The level required to trigger an `@room` notification.
     #[serde(default = "default_power_level")]
-    pub room: u64,
+    pub room: Int,
 }
 
 /// Used to default power levels to 50 during deserialization.
-fn default_power_level() -> u64 {
-    50
+fn default_power_level() -> Int {
+    Int::from(50)
 }

@@ -1,5 +1,6 @@
 //! Types for the *m.sticker* event.
 
+use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
 use crate::room::ImageInfo;

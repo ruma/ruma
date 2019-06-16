@@ -1,5 +1,6 @@
 //! Types for the *m.room.message* event.
 
+use js_int::UInt;
 use ruma_identifiers::EventId;
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
@@ -119,7 +120,7 @@ pub struct AudioMessageEventContent {
 pub struct AudioInfo {
     /// The duration of the audio in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub duration: Option<u64>,
+    pub duration: Option<UInt>,
 
     /// The mimetype of the audio, e.g. "audio/aac."
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -127,7 +128,7 @@ pub struct AudioInfo {
 
     /// The size of the audio clip in bytes.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<u64>,
+    pub size: Option<UInt>,
 }
 
 /// The payload of an emote message.
@@ -184,7 +185,7 @@ pub struct FileInfo {
     pub mimetype: Option<String>,
 
     /// The size of the file in bytes.
-    pub size: Option<u64>,
+    pub size: Option<UInt>,
 
     /// Metadata about the image referred to in `thumbnail_url`.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -369,17 +370,17 @@ pub struct VideoMessageEventContent {
 pub struct VideoInfo {
     /// The duration of the video in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub duration: Option<u64>,
+    pub duration: Option<UInt>,
 
     /// The height of the video in pixels.
     #[serde(rename = "h")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub height: Option<u64>,
+    pub height: Option<UInt>,
 
     /// The width of the video in pixels.
     #[serde(rename = "w")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub width: Option<u64>,
+    pub width: Option<UInt>,
 
     /// The mimetype of the video, e.g. "video/mp4."
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -387,7 +388,7 @@ pub struct VideoInfo {
 
     /// The size of the video in bytes.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub size: Option<u64>,
+    pub size: Option<UInt>,
 
     /// Metadata about an image.
     #[serde(skip_serializing_if = "Option::is_none")]

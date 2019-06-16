@@ -1,5 +1,6 @@
 //! Types for the *m.room.avatar* event.
 
+use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
 use super::ImageInfo;

@@ -1,5 +1,6 @@
 //! Types for the *m.room.aliases* event.
 
+use js_int::UInt;
 use ruma_identifiers::RoomAliasId;
 use serde::{Deserialize, Serialize};
 

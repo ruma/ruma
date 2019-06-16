@@ -1,8 +1,8 @@
 //! Types for the *m.presence* event.
 
-use serde::{Deserialize, Serialize};
-
+use js_int::UInt;
 use ruma_identifiers::UserId;
+use serde::{Deserialize, Serialize};
 
 event! {
     /// Informs the client of a user's presence state change.
@@ -29,7 +29,7 @@ pub struct PresenceEventContent {
 
     /// The last time since this user performed some action, in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_active_ago: Option<u64>,
+    pub last_active_ago: Option<UInt>,
 
     /// The presence state for this user.
     pub presence: PresenceState,
@@ -73,6 +73,7 @@ impl_enum! {
 mod tests {
     use std::convert::TryFrom;
 
+    use js_int::UInt;
     use ruma_identifiers::UserId;
     use serde_json::{from_str, to_string};
 
@@ -88,7 +89,7 @@ mod tests {
                 avatar_url: Some("mxc://localhost:wefuiwegh8742w".to_string()),
                 currently_active: Some(false),
                 displayname: None,
-                last_active_ago: Some(2_478_593),
+                last_active_ago: Some(UInt::try_from(2_478_593).unwrap()),
                 presence: PresenceState::Online,
                 status_msg: Some("Making cupcakes".to_string()),
             },

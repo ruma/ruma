@@ -1,5 +1,6 @@
 //! Types for the *m.room.redaction* event.
 
+use js_int::UInt;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 

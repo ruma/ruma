@@ -1,5 +1,6 @@
 //! Types for the *m.room.encryption* event.
 
+use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
 use crate::Algorithm;
@@ -20,10 +21,10 @@ pub struct EncryptionEventContent {
     /// How long the session should be used before changing it.
     ///
     /// 604800000 (a week) is the recommended default.
-    pub rotation_period_ms: Option<u64>,
+    pub rotation_period_ms: Option<UInt>,
 
     /// How many messages should be sent before changing the session.
     ///
     /// 100 is the recommended default.
-    pub rotation_period_msgs: Option<u64>,
+    pub rotation_period_msgs: Option<UInt>,
 }

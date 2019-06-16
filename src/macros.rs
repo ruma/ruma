@@ -93,7 +93,7 @@ macro_rules! room_event {
 
             /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
             /// event was sent.
-            pub origin_server_ts: u64,
+            pub origin_server_ts: UInt,
 
             /// The unique identifier for the room associated with this event.
             #[serde(skip_serializing_if="Option::is_none")]
@@ -125,7 +125,7 @@ macro_rules! impl_room_event {
                 &self.event_id
             }
 
-            fn origin_server_ts(&self) -> u64 {
+            fn origin_server_ts(&self) -> UInt {
                 self.origin_server_ts
             }
 
@@ -168,7 +168,7 @@ macro_rules! state_event {
             pub event_type: $crate::EventType,
 
             /// Timestamp in milliseconds on originating homeserver when this event was sent.
-            pub origin_server_ts: u64,
+            pub origin_server_ts: UInt,
 
             /// The previous content for this state key, if any.
             #[serde(skip_serializing_if = "Option::is_none")]

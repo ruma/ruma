@@ -1,5 +1,6 @@
 //! Types for the *m.room.server_acl* event.
 
+use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
 use crate::default_true;

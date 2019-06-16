@@ -1,5 +1,6 @@
 //! Types for the *m.call.candidates* event.
 
+use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
 room_event! {
@@ -19,7 +20,7 @@ pub struct CandidatesEventContent {
     pub candidates: Vec<Candidate>,
 
     /// The version of the VoIP specification this messages adheres to.
-    pub version: u64,
+    pub version: UInt,
 }
 
 /// An ICE (Interactive Connectivity Establishment) candidate.
@@ -34,5 +35,5 @@ pub struct Candidate {
 
     /// The index of the SDP "m" line this candidate is intended for.
     #[serde(rename = "sdpMLineIndex")]
-    pub sdp_m_line_index: u64,
+    pub sdp_m_line_index: UInt,
 }

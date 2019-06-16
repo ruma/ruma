@@ -1,8 +1,10 @@
 //! Types for the *m.room.canonical_alias* event.
 
-use crate::empty_string_as_none;
+use js_int::UInt;
 use ruma_identifiers::RoomAliasId;
 use serde::{Deserialize, Serialize};
+
+use crate::empty_string_as_none;
 
 state_event! {
     /// Informs the room as to which alias is the canonical one.

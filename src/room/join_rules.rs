@@ -1,5 +1,6 @@
 //! Types for the *m.room.join_rules* event.
 
+use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
 state_event! {

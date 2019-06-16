@@ -2,6 +2,7 @@
 
 use std::convert::TryFrom;
 
+use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde::{Deserialize, Serialize};
 

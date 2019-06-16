@@ -1,5 +1,6 @@
 //! Types for the *m.call.answer* event.
 
+use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
 use super::SessionDescription;
@@ -19,5 +20,5 @@ pub struct AnswerEventContent {
     pub call_id: String,
 
     /// The version of the VoIP specification this messages adheres to.
-    pub version: u64,
+    pub version: UInt,
 }

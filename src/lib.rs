@@ -101,6 +101,7 @@
 
 use std::fmt::{Debug, Display, Error as FmtError, Formatter, Result as FmtResult};
 
+use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{
     de::{Error as SerdeError, IntoDeserializer, Visitor},
@@ -301,7 +302,7 @@ pub trait RoomEvent: Event {
 
     /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this event was
     /// sent.
-    fn origin_server_ts(&self) -> u64;
+    fn origin_server_ts(&self) -> UInt;
 
     /// The unique identifier for the room associated with this event.
     ///
