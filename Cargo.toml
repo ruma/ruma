@@ -1,5 +1,6 @@
 [package]
 authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
+categories = ["api-bindings"]
 description = "Resource identifiers for Matrix."
 documentation = "https://docs.rs/ruma-identifiers"
 homepage = "https://github.com/ruma/ruma-identifiers"
