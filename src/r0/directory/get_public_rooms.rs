@@ -1,5 +1,6 @@
 //! [GET /_matrix/client/r0/publicRooms](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-publicrooms)
 
+use js_int::UInt;
 use ruma_api_macros::ruma_api;
 use ruma_identifiers::{RoomAliasId, RoomId};
 use serde::{Deserialize, Serialize};
@@ -43,7 +44,7 @@ pub struct PublicRoomsChunk {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// The number of members joined to the room.
-    pub num_joined_members: u64,
+    pub num_joined_members: UInt,
     /// The ID of the room.
     pub room_id: RoomId,
     /// The topic of the room, if any.

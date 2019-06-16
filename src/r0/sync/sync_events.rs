@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 
+use js_int::UInt;
 use ruma_api_macros::ruma_api;
 use ruma_events::{
     collections::{all, only},
@@ -42,7 +43,7 @@ ruma_api! {
         /// The maximum time to poll in milliseconds before returning this request.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub timeout: Option<u64>,
+        pub timeout: Option<UInt>,
     }
 
     response {
@@ -156,10 +157,10 @@ pub struct JoinedRoom {
 pub struct UnreadNotificationsCount {
     /// The number of unread notifications for this room with the highlight flag set.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub highlight_count: Option<u64>,
+    pub highlight_count: Option<UInt>,
     /// The total number of unread notifications for this room.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub notification_count: Option<u64>,
+    pub notification_count: Option<UInt>,
 }
 
 /// Events in the room.

@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 
+use js_int::UInt;
 use ruma_api_macros::ruma_api;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
@@ -36,7 +37,7 @@ pub struct ConnectionInfo {
     /// Most recently seen IP address of the session.
     pub ip: String,
     /// Unix timestamp that the session was last active.
-    pub last_seen: u64,
+    pub last_seen: UInt,
     /// User agent string last seen in the session.
     pub user_agent: String,
 }

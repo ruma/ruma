@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 
+use js_int::UInt;
 use ruma_api_macros::ruma_api;
 use ruma_events::collections::all::Event;
 use ruma_identifiers::{EventId, RoomId, UserId};
@@ -75,9 +76,9 @@ pub struct Criteria {
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct EventContext {
     /// How many events after the result are returned.
-    pub after_limit: u64,
+    pub after_limit: UInt,
     /// How many events before the result are returned.
-    pub before_limit: u64,
+    pub before_limit: UInt,
     /// Requests that the server returns the historic profile information for the users that
     /// sent the events that were returned.
     pub include_profile: bool,
@@ -165,7 +166,7 @@ pub struct ResultCategories {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RoomEventResults {
     /// An approximate count of the total number of results found.
-    pub count: u64,
+    pub count: UInt,
     /// Any groups that were requested.
     // TODO: Not sure this is right. https://github.com/matrix-org/matrix-doc/issues/773
     pub groups: HashMap<GroupingKey, HashMap<RoomId, ResultGroup>>,
@@ -191,7 +192,7 @@ pub struct ResultGroup {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub next_batch: Option<String>,
     /// Key that can be used to order different groups.
-    pub order: u64,
+    pub order: UInt,
     /// Which results are in this group.
     pub results: Vec<EventId>,
 }

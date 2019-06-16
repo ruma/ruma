@@ -1,5 +1,6 @@
 //! [GET /_matrix/media/r0/thumbnail/{serverName}/{mediaId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-media-r0-thumbnail-servername-mediaid)
 
+use js_int::UInt;
 use ruma_api_macros::ruma_api;
 use serde::{Deserialize, Serialize};
 
@@ -34,14 +35,14 @@ ruma_api! {
         /// The *desired* height of the thumbnail. The actual thumbnail may not match the size
         /// specified.
         #[ruma_api(query)]
-        pub height: Option<u64>,
+        pub height: Option<UInt>,
         /// The desired resizing method.
         #[ruma_api(query)]
         pub method: Option<Method>,
         /// The *desired* width of the thumbnail. The actual thumbnail may not match the size
         /// specified.
         #[ruma_api(query)]
-        pub width: Option<u64>,
+        pub width: Option<UInt>,
     }
 
     response {

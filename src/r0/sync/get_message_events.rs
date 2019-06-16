@@ -1,5 +1,6 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/messages](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-rooms-roomid-messages)
 
+use js_int::UInt;
 use ruma_api_macros::ruma_api;
 use ruma_events::collections::only;
 use ruma_identifiers::RoomId;
@@ -38,7 +39,7 @@ ruma_api! {
         ///
         /// Default: 10.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub limit: Option<u64>,
+        pub limit: Option<UInt>,
     }
 
     response {

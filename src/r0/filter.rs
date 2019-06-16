@@ -3,6 +3,7 @@
 pub mod create_filter;
 pub mod get_filter;
 
+use js_int::UInt;
 use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
@@ -37,7 +38,7 @@ pub struct RoomEventFilter {
     pub not_rooms: Vec<String>,
     /// The maximum number of events to return.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<u64>,
+    pub limit: Option<UInt>,
     /// A list of room IDs to include.
     ///
     /// If this list is absent then all rooms are included.
@@ -117,7 +118,7 @@ pub struct Filter {
     pub not_types: Vec<String>,
     /// The maximum number of events to return.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<u64>,
+    pub limit: Option<UInt>,
     /// A list of senders IDs to include.
     ///
     /// If this list is absent then all senders are included.

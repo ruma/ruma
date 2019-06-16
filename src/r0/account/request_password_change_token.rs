@@ -1,5 +1,6 @@
 //! [POST /_matrix/client/r0/account/password/email/requestToken](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-account-password-email-requesttoken)
 
+use js_int::UInt;
 use ruma_api_macros::ruma_api;
 use serde::{Deserialize, Serialize};
 
@@ -22,7 +23,7 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub id_server: Option<String>,
         /// TODO: This parameter is not documented in the spec.
-        pub send_attempt: u64,
+        pub send_attempt: UInt,
     }
 
     response {}
