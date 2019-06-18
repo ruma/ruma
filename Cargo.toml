@@ -15,14 +15,11 @@ edition = "2018"
 [dependencies]
 quote = "0.6.12"
 ruma-api = "0.8.0"
+proc-macro2 = "0.4.30"
 
 [dependencies.syn]
 version = "0.15.35"
 features = ["full"]
-
-[dependencies.proc-macro2]
-version = "0.4.30"
-features = ["nightly"]
 
 [dev-dependencies]
 futures = "0.1.27"
