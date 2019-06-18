@@ -34,9 +34,10 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::ToTokens;
 
-use crate::event::{RumaEvent, RumaEventInput};
+use crate::{gen::RumaEvent, parse::RumaEventInput};
 
-mod event;
+mod gen;
+mod parse;
 
 // A note about the `example` modules that appears in doctests:
 //

@@ -1,8 +1,7 @@
-//! Details of the `ruma_event` procedural macro.
+//! Details of parsing input for the `ruma_event` procedural macro.
 
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::Span;
 
-use quote::{quote, ToTokens};
 use syn::{
     braced,
     parse::{self, Parse, ParseStream},
@@ -11,27 +10,6 @@ use syn::{
     Attribute, Expr, Field, FieldValue, Ident, Member, Path, PathArguments, PathSegment, Token,
     TypePath,
 };
-
-/// The result of processing the `ruma_event` macro, ready for output back to source code.
-pub struct RumaEvent;
-
-impl From<RumaEventInput> for RumaEvent {
-    // TODO: Provide an actual impl for this.
-    fn from(_input: RumaEventInput) -> Self {
-        Self
-    }
-}
-
-impl ToTokens for RumaEvent {
-    // TODO: Provide an actual impl for this.
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let output = quote!(
-            pub struct Foo {}
-        );
-
-        output.to_tokens(tokens);
-    }
-}
 
 /// The entire `ruma_event!` macro structure directly as it appears in the source code..
 pub struct RumaEventInput {
