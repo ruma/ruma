@@ -7,7 +7,7 @@ use std::{
 
 use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
 
-use super::{default_true, ParseError};
+use super::{default_true, FromStrError};
 
 event! {
     /// Describes all push rules for a user.
@@ -106,14 +106,14 @@ pub enum Action {
 }
 
 impl FromStr for Action {
-    type Err = ParseError;
+    type Err = FromStrError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let action = match s {
             "notify" => Action::Notify,
             "dont_notify" => Action::DontNotify,
             "coalesce" => Action::Coalesce,
-            _ => return Err(ParseError),
+            _ => return Err(FromStrError),
         };
 
         Ok(action)

@@ -99,7 +99,10 @@
 #![deny(missing_docs)]
 #![deny(warnings)]
 
-use std::fmt::{Debug, Display, Error as FmtError, Formatter, Result as FmtResult};
+use std::{
+    error::Error,
+    fmt::{Debug, Display, Error as FmtError, Formatter, Result as FmtResult},
+};
 
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
@@ -135,9 +138,79 @@ pub mod stripped;
 pub mod tag;
 pub mod typing;
 
-/// An error when attempting to convert a string to an enum that only accepts certain values.
+/// An event that is malformed or otherwise invalid.
+///
+/// When attempting to create an event from a string of JSON data, an error in the input data may
+/// cause deserialization to fail, or the JSON structure may not corresponded to ruma-events's
+/// strict definition of the event's schema. If deserialization completely fails, this type will
+/// provide a message with details about the deserialization error. If deserialization succeeds but
+/// the event is otherwise invalid, a similar message will be provided, as well as a
+/// `serde_json::Value` containing the raw JSON data as it was deserialized.
+#[derive(Debug)]
+pub struct InvalidEvent(InnerInvalidEvent);
+
+impl InvalidEvent {
+    /// A message describing why the event is invalid.
+    pub fn message(&self) -> String {
+        match self.0 {
+            InnerInvalidEvent::Deserialization { ref error } => error.to_string(),
+            InnerInvalidEvent::Validation { ref message, .. } => message.to_string(),
+        }
+    }
+
+    /// The raw `serde_json::Value` representation of the invalid event, if available.
+    pub fn json(&self) -> Option<&Value> {
+        match self.0 {
+            InnerInvalidEvent::Validation { ref json, .. } => Some(json),
+            _ => None,
+        }
+    }
+}
+
+impl Display for InvalidEvent {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.message())
+    }
+}
+
+impl Error for InvalidEvent {}
+
+/// An event that is malformed or otherwise invalid.
+#[derive(Debug)]
+enum InnerInvalidEvent {
+    /// An event that failed to deserialize from JSON.
+    Deserialization {
+        /// The deserialization error returned by serde.
+        error: serde_json::Error,
+    },
+
+    /// An event that deserialized but failed validation.
+    Validation {
+        /// The raw `serde_json::Value` representation of the invalid event.
+        json: Value,
+
+        /// An message describing why the event was invalid.
+        message: String,
+    },
+}
+
+impl From<serde_json::Error> for InvalidEvent {
+    fn from(error: serde_json::Error) -> Self {
+        InvalidEvent(InnerInvalidEvent::Deserialization { error })
+    }
+}
+
+/// An error when attempting to create a value from a string via the `FromStr` trait.
 #[derive(Clone, Copy, Eq, Debug, Hash, PartialEq)]
-pub struct ParseError;
+pub struct FromStrError;
+
+impl Display for FromStrError {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "failed to parse type from string")
+    }
+}
+
+impl Error for FromStrError {}
 
 /// The type of an event.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]

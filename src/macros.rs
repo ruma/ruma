@@ -12,12 +12,12 @@ macro_rules! impl_enum {
         }
 
         impl ::std::str::FromStr for $name {
-            type Err = $crate::ParseError;
+            type Err = $crate::FromStrError;
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 match s {
                     $($s => Ok($name::$variant),)*
-                    _ => Err($crate::ParseError),
+                    _ => Err($crate::FromStrError),
                 }
             }
         }
