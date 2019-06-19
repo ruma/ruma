@@ -6,7 +6,7 @@ use syn::{
     parse::{self, Parse, ParseStream},
     parse_quote,
     punctuated::Punctuated,
-    Attribute, Field, Ident, Token,
+    Attribute, Field, Ident, Path, Token,
 };
 
 use crate::parse::{Content, EventKind, RumaEventInput};
@@ -21,6 +21,10 @@ pub struct RumaEvent {
 
     /// The name of the type of the event's `content` field.
     content_name: Ident,
+
+    /// The variant of `ruma_events::EventType` for this event, determined by the `event_type`
+    /// field.
+    event_type: Path,
 
     /// Struct fields of the event.
     fields: Vec<Field>,
@@ -58,6 +62,7 @@ impl From<RumaEventInput> for RumaEvent {
             attrs: input.attrs,
             content: input.content,
             content_name,
+            event_type: input.event_type,
             fields,
             kind,
             name,
@@ -69,18 +74,17 @@ impl ToTokens for RumaEvent {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let attrs = &self.attrs;
         let content_name = &self.content_name;
-
         let event_fields = &self.fields;
-
+        let event_type = &self.event_type;
         let name = &self.name;
-
+        let name_str = format!("{}", name);
         let content_docstring = format!("The payload for `{}`.", name);
 
         let content = match &self.content {
             Content::Struct(fields) => {
                 quote! {
                     #[doc = #content_docstring]
-                    #[derive(Clone, Debug)]
+                    #[derive(Clone, Debug, serde::Serialize)]
                     pub struct #content_name {
                         #(#fields),*
                     }
@@ -110,6 +114,21 @@ impl ToTokens for RumaEvent {
             Content::Typedef(_) => TokenStream::new(),
         };
 
+        let field_count = event_fields.len() + 1; // + 1 because of manually adding `event_type`
+
+        let mut serialize_field_calls: Vec<TokenStream> = Vec::with_capacity(event_fields.len());
+
+        for field in event_fields {
+            let ident = field.ident.clone().unwrap();
+            let ident_str = format!("{}", ident);
+
+            let token_stream = quote! {
+                state.serialize_field(#ident_str, &self.#ident)?;
+            };
+
+            serialize_field_calls.push(token_stream);
+        }
+
         let output = quote!(
             #(#attrs)*
             #[derive(Clone, Debug)]
@@ -118,6 +137,35 @@ impl ToTokens for RumaEvent {
             }
 
             #content
+
+            use serde::ser::SerializeStruct as _;
+
+            impl serde::Serialize  for #name {
+                fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                where
+                    S: serde::Serializer
+                {
+                    let mut state = serializer.serialize_struct(#name_str, #field_count)?;
+
+                    #(#serialize_field_calls)*
+                    state.serialize_field("type", &self.event_type())?;
+
+                    state.end()
+                }
+            }
+
+            impl crate::Event for #name {
+                /// The type of the event.
+                const EVENT_TYPE: crate::EventType = #event_type;
+
+                /// The type of this event's `content` field.
+                type Content = #content_name;
+
+                /// The event's content.
+                fn content(&self) -> &Self::Content {
+                    &self.content
+                }
+            }
 
             /// "Raw" versions of the event and its content which implement `serde::Deserialize`.
             mod raw {

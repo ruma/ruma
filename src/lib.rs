@@ -28,6 +28,7 @@
     clippy::wrong_pub_self_convention,
     clippy::wrong_self_convention
 )]
+#![recursion_limit = "128"]
 
 extern crate proc_macro;
 
@@ -52,7 +53,7 @@ mod parse;
 /// The most common form of event is a struct with all the standard fields for an event of its
 /// kind and a struct for its `content` field:
 ///
-/// ```rust,no_run
+/// ```ignore
 /// # pub mod example {
 /// # use ruma_events_macros::ruma_event;
 /// ruma_event! {
@@ -72,7 +73,7 @@ mod parse;
 /// Occasionally an event will have non-standard fields at its top level (outside the `content`
 /// field). These extra fields are declared in block labeled with `fields`:
 ///
-/// ```rust,no_run
+/// ```ignore
 /// # pub mod example {
 /// # use ruma_events_macros::ruma_event;
 /// ruma_event! {
@@ -96,7 +97,7 @@ mod parse;
 /// Sometimes the type of the `content` should be a type alias rather than a struct or enum. This
 /// is designated with `content_type_alias`:
 ///
-/// ```rust,no_run
+/// ```ignore
 /// # pub mod example {
 /// # use ruma_events_macros::ruma_event;
 /// ruma_event! {

@@ -1,5 +1,44 @@
+use std::fmt::Debug;
+
+use serde::{Deserialize, Serialize};
+
+/// The type of an event.
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+pub enum EventType {
+    /// m.direct
+    Direct,
+
+    /// m.room.aliases
+    RoomAliases,
+
+    /// m.room.redaction
+    RoomRedaction,
+}
+
+/// A basic event.
+pub trait Event
+where
+    Self: Debug + Serialize,
+{
+    /// The type of the event.
+    const EVENT_TYPE: EventType;
+
+    /// The type of this event's `content` field.
+    type Content: Debug + Serialize;
+
+    /// The event's content.
+    fn content(&self) -> &Self::Content;
+
+    /// The type of the event.
+    fn event_type(&self) -> EventType {
+        Self::EVENT_TYPE
+    }
+}
+
 // See note about wrapping macro expansion in a module from `src/lib.rs`
 pub mod common_case {
+    use super::Event;
+
     use ruma_events_macros::ruma_event;
 
     ruma_event! {
@@ -16,6 +55,8 @@ pub mod common_case {
 }
 
 pub mod extra_fields {
+    use super::Event;
+
     use ruma_events_macros::ruma_event;
 
     ruma_event! {
@@ -36,6 +77,8 @@ pub mod extra_fields {
 }
 
 pub mod type_alias {
+    use super::Event;
+
     use ruma_events_macros::ruma_event;
 
     ruma_event! {
