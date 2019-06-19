@@ -16,7 +16,7 @@ pub struct RumaEventInput {
     /// Outer attributes on the field, such as a docstring.
     pub attrs: Vec<Attribute>,
 
-    /// The name of the field.
+    /// The name of the event.
     pub name: Ident,
 
     /// The kind of event, determiend by the `kind` field.

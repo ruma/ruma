@@ -19,3 +19,9 @@ proc-macro2 = "0.4.30"
 
 [lib]
 proc-macro = true
+
+[dev-dependencies]
+ruma-identifiers = "0.13.1"
+serde_json = "1.0.39"
+js_int = "0.1.0"
+serde = "1.0.92"

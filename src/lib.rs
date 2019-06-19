@@ -62,7 +62,7 @@ mod parse;
 ///         event_type: RoomAliases,
 ///         content: {
 ///             /// A list of room aliases.
-///             pub aliases: Vec<RoomAliasId>,
+///             pub aliases: Vec<ruma_identifiers::RoomAliasId>,
 ///         }
 ///     }
 /// }
@@ -82,7 +82,7 @@ mod parse;
 ///         event_type: RoomRedaction,
 ///         fields: {
 ///             /// The ID of the event that was redacted.
-///             pub redacts: EventId
+///             pub redacts: ruma_identifiers::EventId
 ///         },
 ///         content: {
 ///             /// The reason for the redaction, if any.
@@ -109,7 +109,7 @@ mod parse;
 ///             ///
 ///             /// A mapping of `UserId`'s to a collection of `RoomId`'s which are considered
 ///             /// *direct* for that particular user.
-///             HashMap<UserId, Vec<RoomId>>
+///             HashMap<UserId, Vec<ruma_identifiers::RoomId>>
 ///         }
 ///     }
 /// }
