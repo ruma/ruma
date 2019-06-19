@@ -1,5 +1,5 @@
 // See note about wrapping macro expansion in a module from `src/lib.rs`
-pub mod tests {
+pub mod common_case {
     use ruma_events_macros::ruma_event;
 
     ruma_event! {
@@ -13,6 +13,10 @@ pub mod tests {
             }
         }
     }
+}
+
+pub mod extra_fields {
+    use ruma_events_macros::ruma_event;
 
     ruma_event! {
         /// A redaction of an event.
@@ -29,6 +33,10 @@ pub mod tests {
             },
         }
     }
+}
+
+pub mod type_alias {
+    use ruma_events_macros::ruma_event;
 
     ruma_event! {
         /// Informs the client about the rooms that are considered direct by a user.

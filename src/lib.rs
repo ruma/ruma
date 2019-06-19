@@ -109,7 +109,7 @@ mod parse;
 ///             ///
 ///             /// A mapping of `UserId`'s to a collection of `RoomId`'s which are considered
 ///             /// *direct* for that particular user.
-///             HashMap<UserId, Vec<ruma_identifiers::RoomId>>
+///             std::collections::HashMap<ruma_identifiers::UserId, Vec<ruma_identifiers::RoomId>>
 ///         }
 ///     }
 /// }

@@ -9,12 +9,15 @@ use syn::{
     Attribute, Field, Ident, Token,
 };
 
-use crate::parse::{EventKind, RumaEventInput};
+use crate::parse::{Content, EventKind, RumaEventInput};
 
 /// The result of processing the `ruma_event` macro, ready for output back to source code.
 pub struct RumaEvent {
     /// Outer attributes on the field, such as a docstring.
     attrs: Vec<Attribute>,
+
+    /// Information for generating the type used for the event's `content` field.
+    content: Content,
 
     /// The name of the type of the event's `content` field.
     content_name: Ident,
@@ -53,6 +56,7 @@ impl From<RumaEventInput> for RumaEvent {
 
         Self {
             attrs: input.attrs,
+            content: input.content,
             content_name,
             fields,
             kind,
@@ -72,16 +76,60 @@ impl ToTokens for RumaEvent {
 
         let content_docstring = format!("The payload for `{}`.", name);
 
+        let content = match &self.content {
+            Content::Struct(fields) => {
+                quote! {
+                    #[doc = #content_docstring]
+                    #[derive(Clone, Debug)]
+                    pub struct #content_name {
+                        #(#fields),*
+                    }
+                }
+            }
+            Content::Typedef(typedef) => {
+                let content_attrs = &typedef.attrs;
+                let path = &typedef.path;
+
+                quote! {
+                    #(#content_attrs)*
+                    pub type #content_name = #path;
+                }
+            }
+        };
+
+        let raw_content = match &self.content {
+            Content::Struct(fields) => {
+                quote! {
+                    #[doc = #content_docstring]
+                    #[derive(Clone, Debug, serde::Deserialize)]
+                    pub struct #content_name {
+                        #(#fields),*
+                    }
+                }
+            }
+            Content::Typedef(_) => TokenStream::new(),
+        };
+
         let output = quote!(
-            #(#attrs),*
+            #(#attrs)*
             #[derive(Clone, Debug)]
             pub struct #name {
                 #(#event_fields),*
             }
 
-            #[doc = #content_docstring]
-            #[derive(Clone, Debug)]
-            pub struct #content_name {
+            #content
+
+            /// "Raw" versions of the event and its content which implement `serde::Deserialize`.
+            mod raw {
+                use super::*;
+
+                #(#attrs)*
+                #[derive(Clone, Debug, serde::Deserialize)]
+                pub struct #name {
+                    #(#event_fields),*
+                }
+
+                #raw_content
             }
         );
 
