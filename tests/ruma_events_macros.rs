@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 
 /// The type of an event.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum EventType {
     /// m.direct
     Direct,
@@ -13,6 +13,9 @@ pub enum EventType {
 
     /// m.room.redaction
     RoomRedaction,
+
+    /// Any event that is not part of the specification.
+    Custom(String),
 }
 
 /// A basic event.
@@ -20,9 +23,6 @@ pub trait Event
 where
     Self: Debug + Serialize,
 {
-    /// The type of the event.
-    const EVENT_TYPE: EventType;
-
     /// The type of this event's `content` field.
     type Content: Debug + Serialize;
 
@@ -30,9 +30,7 @@ where
     fn content(&self) -> &Self::Content;
 
     /// The type of the event.
-    fn event_type(&self) -> EventType {
-        Self::EVENT_TYPE
-    }
+    fn event_type(&self) -> EventType;
 }
 
 /// An event within the context of a room.
@@ -87,6 +85,23 @@ pub mod common_case {
                 /// A list of room aliases.
                 pub aliases: Vec<ruma_identifiers::RoomAliasId>,
             }
+        }
+    }
+}
+
+pub mod custom_event_type {
+    use ruma_events_macros::ruma_event;
+    use serde_json::Value;
+
+    ruma_event! {
+        /// A custom event.
+        CustomEvent {
+            kind: Event,
+            event_type: Custom,
+            content_type_alias: {
+                /// The payload for `CustomEvent`.
+                Value
+            },
         }
     }
 }
