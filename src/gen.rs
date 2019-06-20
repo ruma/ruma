@@ -143,7 +143,7 @@ impl ToTokens for RumaEvent {
 
                         quote! {
                             content: #content_name {
-                                #(#content_field_values),*
+                                #(#content_field_values)*
                             },
                         }
                     }
@@ -172,7 +172,7 @@ impl ToTokens for RumaEvent {
                         quote! {
                             prev_content: raw.prev_content.map(|prev| {
                                 #content_name {
-                                    #(#content_field_values),*
+                                    #(#content_field_values)*
                                 }
                             }),
                         }
