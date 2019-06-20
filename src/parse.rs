@@ -167,6 +167,7 @@ impl Parse for RumaEventInput {
 /// Which kind of event is being generated.
 ///
 /// Determined by the `kind` field in the macro body.
+#[derive(PartialEq)]
 pub enum EventKind {
     /// A basic event.
     Event,

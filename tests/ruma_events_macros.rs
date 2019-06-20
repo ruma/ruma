@@ -35,6 +35,37 @@ where
     }
 }
 
+/// An event within the context of a room.
+pub trait RoomEvent: Event {
+    /// The unique identifier for the event.
+    fn event_id(&self) -> &ruma_identifiers::EventId;
+
+    /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this event was
+    /// sent.
+    fn origin_server_ts(&self) -> js_int::UInt;
+
+    /// The unique identifier for the room associated with this event.
+    ///
+    /// This can be `None` if the event came from a context where there is
+    /// no ambiguity which room it belongs to, like a `/sync` response for example.
+    fn room_id(&self) -> Option<&ruma_identifiers::RoomId>;
+
+    /// The unique identifier for the user who sent this event.
+    fn sender(&self) -> &ruma_identifiers::UserId;
+
+    /// Additional key-value pairs not signed by the homeserver.
+    fn unsigned(&self) -> Option<&serde_json::Value>;
+}
+
+/// An event that describes persistent state about a room.
+pub trait StateEvent: RoomEvent {
+    /// The previous content for this state key, if any.
+    fn prev_content(&self) -> Option<&Self::Content>;
+
+    /// A key that determines which piece of room state the event represents.
+    fn state_key(&self) -> &str;
+}
+
 pub struct InvalidEvent;
 
 impl From<serde_json::Error> for InvalidEvent {
