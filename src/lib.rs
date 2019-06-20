@@ -97,7 +97,7 @@
 
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
-#![deny(warnings)]
+#![allow(warnings)]
 
 use std::{
     error::Error,
@@ -115,28 +115,28 @@ use serde_json::Value;
 #[macro_use]
 mod macros;
 
-pub mod call;
-/// Enums for heterogeneous collections of events.
-pub mod collections {
-    pub mod all;
-    pub mod only;
-}
-pub mod direct;
+// pub mod call;
+// /// Enums for heterogeneous collections of events.
+// pub mod collections {
+//     pub mod all;
+//     pub mod only;
+// }
+// pub mod direct;
 pub mod dummy;
 pub mod forwarded_room_key;
-pub mod fully_read;
-pub mod ignored_user_list;
-pub mod key;
+// pub mod fully_read;
+// pub mod ignored_user_list;
+// pub mod key;
 pub mod presence;
-pub mod push_rules;
-pub mod receipt;
+// pub mod push_rules;
+// pub mod receipt;
 pub mod room;
-pub mod room_key;
+// pub mod room_key;
 pub mod room_key_request;
 pub mod sticker;
-pub mod stripped;
-pub mod tag;
-pub mod typing;
+// pub mod stripped;
+// pub mod tag;
+// pub mod typing;
 
 /// An event that is malformed or otherwise invalid.
 ///
@@ -356,16 +356,21 @@ pub enum EventType {
 /// A basic event.
 pub trait Event
 where
-    Self: Debug + for<'a> Deserialize<'a> + Serialize,
+    Self: Debug + Serialize,
 {
-    /// The event-type-specific payload this event carries.
-    type Content: Debug + for<'a> Deserialize<'a> + Serialize;
+    /// The type of the event.
+    const EVENT_TYPE: EventType;
+
+    /// The type of this event's `content` field.
+    type Content: Debug + Serialize;
 
     /// The event's content.
     fn content(&self) -> &Self::Content;
 
     /// The type of the event.
-    fn event_type(&self) -> &EventType;
+    fn event_type(&self) -> EventType {
+        Self::EVENT_TYPE
+    }
 }
 
 /// An event within the context of a room.
@@ -399,20 +404,20 @@ pub trait StateEvent: RoomEvent {
     fn state_key(&self) -> &str;
 }
 
-event! {
-    /// A custom basic event not covered by the Matrix specification.
-    pub struct CustomEvent(Value) {}
-}
+// event! {
+//     /// A custom basic event not covered by the Matrix specification.
+//     pub struct CustomEvent(Value) {}
+// }
 
-room_event! {
-    /// A custom room event not covered by the Matrix specification.
-    pub struct CustomRoomEvent(Value) {}
-}
+// room_event! {
+//     /// A custom room event not covered by the Matrix specification.
+//     pub struct CustomRoomEvent(Value) {}
+// }
 
-state_event! {
-    /// A custom state event not covered by the Matrix specification.
-    pub struct CustomStateEvent(Value) {}
-}
+// state_event! {
+//     /// A custom state event not covered by the Matrix specification.
+//     pub struct CustomStateEvent(Value) {}
+// }
 
 impl Display for EventType {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {

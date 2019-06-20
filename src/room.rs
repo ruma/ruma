@@ -7,25 +7,25 @@ use std::collections::HashMap;
 use js_int::UInt;
 use serde::{Deserialize, Serialize};
 
-pub mod aliases;
-pub mod avatar;
-pub mod canonical_alias;
-pub mod create;
-pub mod encrypted;
-pub mod encryption;
-pub mod guest_access;
-pub mod history_visibility;
-pub mod join_rules;
-pub mod member;
-pub mod message;
-pub mod name;
-pub mod pinned_events;
-pub mod power_levels;
-pub mod redaction;
-pub mod server_acl;
-pub mod third_party_invite;
-pub mod tombstone;
-pub mod topic;
+// pub mod aliases;
+// pub mod avatar;
+// pub mod canonical_alias;
+// pub mod create;
+// pub mod encrypted;
+// pub mod encryption;
+// pub mod guest_access;
+// pub mod history_visibility;
+// pub mod join_rules;
+// pub mod member;
+// pub mod message;
+// pub mod name;
+// pub mod pinned_events;
+// pub mod power_levels;
+// pub mod redaction;
+// pub mod server_acl;
+// pub mod third_party_invite;
+// pub mod tombstone;
+// pub mod topic;
 
 /// Metadata about an image.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]

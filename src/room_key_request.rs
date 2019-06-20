@@ -1,36 +1,37 @@
 //! Types for the *m.room_key_request* event.
 
+use ruma_events_macros::ruma_event;
 use ruma_identifiers::{DeviceId, RoomId};
 use serde::{Deserialize, Serialize};
 
 use super::Algorithm;
 
-event! {
+ruma_event! {
     /// This event type is used to request keys for end-to-end encryption.
     ///
     /// It is sent as an unencrypted to-device event.
-    pub struct RoomKeyRequestEvent(RoomKeyRequestEventContent) {}
-}
+    RoomKeyRequestEvent {
+        kind: Event,
+        event_type: RoomKeyRequest,
+        content: {
+            /// Whether this is a new key request or a cancellation of a previous request.
+            pub action: Action,
 
-/// The payload of an *m.room_key_request* event.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct RoomKeyRequestEventContent {
-    /// Whether this is a new key request or a cancellation of a previous request.
-    pub action: Action,
+            /// Information about the requested key.
+            ///
+            /// Required when action is `request`.
+            pub body: Option<RequestedKeyInfo>,
 
-    /// Information about the requested key.
-    ///
-    /// Required when action is `request`.
-    pub body: Option<RequestedKeyInfo>,
+            /// ID of the device requesting the key.
+            pub requesting_device_id: DeviceId,
 
-    /// ID of the device requesting the key.
-    pub requesting_device_id: DeviceId,
-
-    /// A random string uniquely identifying the request for a key.
-    ///
-    /// If the key is requested multiple times, it should be reused. It should also reused in order
-    /// to cancel a request.
-    pub request_id: String,
+            /// A random string uniquely identifying the request for a key.
+            ///
+            /// If the key is requested multiple times, it should be reused. It should also reused
+            /// in order to cancel a request.
+            pub request_id: String,
+        },
+    }
 }
 
 /// A new key request or a cancellation of a previous request.

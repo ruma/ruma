@@ -1,25 +1,25 @@
 //! Types for the *m.sticker* event.
 
-use js_int::UInt;
-use serde::{Deserialize, Serialize};
+use ruma_events_macros::ruma_event;
 
 use crate::room::ImageInfo;
 
-room_event! {
+ruma_event! {
     /// A sticker message.
-    pub struct StickerEvent(StickerEventContent) {}
-}
+    StickerEvent {
+        kind: RoomEvent,
+        event_type: Sticker,
+        content: {
+            /// A textual representation or associated description of the sticker image. This could
+            /// be the alt text of the original image, or a message to accompany and further
+            /// describe the sticker.
+            pub body: String,
 
-/// The payload of a `StickerEvent`.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct StickerEventContent {
-    /// A textual representation or associated description of the sticker image. This could be the
-    /// alt text of the original image, or a message to accompany and further describe the sticker.
-    pub body: String,
+            /// Metadata about the image referred to in `url` including a thumbnail representation.
+            pub info: ImageInfo,
 
-    /// Metadata about the image referred to in `url` including a thumbnail representation.
-    pub info: ImageInfo,
-
-    /// The URL to the sticker image. This must be a valid `mxc://` URI.
-    pub url: String,
+            /// The URL to the sticker image. This must be a valid `mxc://` URI.
+            pub url: String,
+        },
+    }
 }

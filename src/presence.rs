@@ -1,42 +1,44 @@
 //! Types for the *m.presence* event.
 
 use js_int::UInt;
+use ruma_events_macros::ruma_event;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
-event! {
+ruma_event! {
     /// Informs the client of a user's presence state change.
-    pub struct PresenceEvent(PresenceEventContent) {
-        /// The unique identifier for the user associated with this event.
-        pub sender: UserId
+    PresenceEvent {
+        kind: Event,
+        event_type: Presence,
+        fields: {
+            /// The unique identifier for the user associated with this event.
+            pub sender: UserId,
+        },
+        content: {
+            /// The current avatar URL for this user.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub avatar_url: Option<String>,
+
+            /// Whether or not the user is currently active.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub currently_active: Option<bool>,
+
+            /// The current display name for this user.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub displayname: Option<String>,
+
+            /// The last time since this user performed some action, in milliseconds.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub last_active_ago: Option<UInt>,
+
+            /// The presence state for this user.
+            pub presence: PresenceState,
+
+            /// An optional description to accompany the presence.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub status_msg: Option<String>,
+        },
     }
-}
-
-/// The payload of a `PresenceEvent`.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
-pub struct PresenceEventContent {
-    /// The current avatar URL for this user.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar_url: Option<String>,
-
-    /// Whether or not the user is currently active.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub currently_active: Option<bool>,
-
-    /// The current display name for this user.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub displayname: Option<String>,
-
-    /// The last time since this user performed some action, in milliseconds.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_active_ago: Option<UInt>,
-
-    /// The presence state for this user.
-    pub presence: PresenceState,
-
-    /// An optional description to accompany the presence.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub status_msg: Option<String>,
 }
 
 /// A description of a user's connectivity and availability for chat.
@@ -93,14 +95,13 @@ mod tests {
                 presence: PresenceState::Online,
                 status_msg: Some("Making cupcakes".to_string()),
             },
-            event_type: EventType::Presence,
             sender: UserId::try_from("@example:localhost").unwrap(),
         };
         let serialized_event =
-            r#"{"content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online","status_msg":"Making cupcakes"},"type":"m.presence","sender":"@example:localhost"}"#;
+            r#"{"content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online","status_msg":"Making cupcakes"},"sender":"@example:localhost","type":"m.presence"}"#;
 
         assert_eq!(to_string(&event).unwrap(), serialized_event);
-        let deserialized_event = from_str::<PresenceEvent>(serialized_event).unwrap();
+        let deserialized_event = PresenceEvent::from_str(serialized_event).unwrap();
         assert_eq!(deserialized_event.content, event.content);
         assert_eq!(deserialized_event.sender, event.sender);
     }
