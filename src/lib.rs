@@ -125,7 +125,7 @@ mod macros;
 pub mod direct;
 pub mod dummy;
 pub mod forwarded_room_key;
-// pub mod fully_read;
+pub mod fully_read;
 pub mod ignored_user_list;
 // pub mod key;
 pub mod presence;
