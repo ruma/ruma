@@ -76,8 +76,6 @@ impl From<serde_json::Error> for InvalidEvent {
 
 // See note about wrapping macro expansion in a module from `src/lib.rs`
 pub mod common_case {
-    use super::Event;
-
     use ruma_events_macros::ruma_event;
 
     ruma_event! {
@@ -94,8 +92,6 @@ pub mod common_case {
 }
 
 pub mod extra_fields {
-    use super::Event;
-
     use ruma_events_macros::ruma_event;
 
     ruma_event! {
@@ -116,8 +112,6 @@ pub mod extra_fields {
 }
 
 pub mod type_alias {
-    use super::Event;
-
     use ruma_events_macros::ruma_event;
 
     ruma_event! {

@@ -281,6 +281,8 @@ impl ToTokens for RumaEvent {
                 where
                     S: serde::Serializer
                 {
+                    use crate::Event as _;
+
                     let mut state = serializer.serialize_struct(#name_str, #field_count)?;
 
                     #(#serialize_field_calls)*
