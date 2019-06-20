@@ -1,11 +1,12 @@
 //! Details of generating code for the `ruma_event` procedural macro.
 
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::{
     parse::{self, Parse, ParseStream},
     parse_quote,
     punctuated::Punctuated,
+    spanned::Spanned,
     Attribute, Field, Ident, Path, Token,
 };
 
@@ -124,6 +125,7 @@ impl ToTokens for RumaEvent {
         for field in event_fields {
             let ident = field.ident.clone().unwrap();
             let ident_str = format!("{}", ident);
+            let span = field.span();
 
             let from_str_field_value = if ident == "content" {
                 match &self.content {
@@ -133,22 +135,23 @@ impl ToTokens for RumaEvent {
 
                         for content_field in content_fields {
                             let content_field_ident = content_field.ident.clone().unwrap();
+                            let span = content_field.span();
 
-                            let token_stream = quote! {
+                            let token_stream = quote_spanned! {span=>
                                 #content_field_ident: raw.content.#content_field_ident,
                             };
 
                             content_field_values.push(token_stream);
                         }
 
-                        quote! {
+                        quote_spanned! {span=>
                             content: #content_name {
                                 #(#content_field_values)*
                             },
                         }
                     }
                     Content::Typedef(_) => {
-                        quote! {
+                        quote_spanned! {span=>
                             content: raw.content,
                         }
                     }
@@ -161,15 +164,16 @@ impl ToTokens for RumaEvent {
 
                         for content_field in content_fields {
                             let content_field_ident = content_field.ident.clone().unwrap();
+                            let span = content_field.span();
 
-                            let token_stream = quote! {
+                            let token_stream = quote_spanned! {span=>
                                 #content_field_ident: prev.#content_field_ident,
                             };
 
                             content_field_values.push(token_stream);
                         }
 
-                        quote! {
+                        quote_spanned! {span=>
                             prev_content: raw.prev_content.map(|prev| {
                                 #content_name {
                                     #(#content_field_values)*
@@ -178,20 +182,20 @@ impl ToTokens for RumaEvent {
                         }
                     }
                     Content::Typedef(_) => {
-                        quote! {
+                        quote_spanned! {span=>
                             content: raw.content,
                         }
                     }
                 }
             } else {
-                quote! {
+                quote_spanned! {span=>
                     #ident: raw.#ident,
                 }
             };
 
             from_str_field_values.push(from_str_field_value);
 
-            let serialize_field_call = quote! {
+            let serialize_field_call = quote_spanned! {span=>
                 state.serialize_field(#ident_str, &self.#ident)?;
             };
 
