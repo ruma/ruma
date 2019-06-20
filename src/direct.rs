@@ -2,32 +2,32 @@
 
 use std::collections::HashMap;
 
+use ruma_events_macros::ruma_event;
 use ruma_identifiers::{RoomId, UserId};
-use serde::{Deserialize, Serialize};
 
-event! {
+ruma_event! {
     /// Informs the client about the rooms that are considered direct by a user.
-    pub struct DirectEvent(DirectEventContent) {}
+    DirectEvent {
+        kind: Event,
+        event_type: Direct,
+        content_type_alias: {
+            /// The payload for `DirectEvent`.
+            ///
+            /// A mapping of `UserId`s to a list of `RoomId`s which are considered *direct* for that
+            /// particular user.
+            HashMap<UserId, Vec<RoomId>>
+        },
+    }
 }
-
-/// The payload of a `DirectEvent`.
-///
-/// A mapping of `UserId`'s to a collection of `RoomId`'s which are considered
-/// *direct* for that particular user.
-pub type DirectEventContent = HashMap<UserId, Vec<RoomId>>;
 
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
 
     use ruma_identifiers::{RoomId, UserId};
-    use serde_json::{from_str, to_string};
+    use serde_json::to_string;
 
-    use crate::{
-        collections,
-        direct::{DirectEvent, DirectEventContent},
-        EventType,
-    };
+    use super::{DirectEvent, DirectEventContent};
 
     #[test]
     fn serialization() {
@@ -39,7 +39,6 @@ mod tests {
 
         let event = DirectEvent {
             content,
-            event_type: EventType::Direct,
         };
 
         assert_eq!(
@@ -70,33 +69,10 @@ mod tests {
             rooms[1].to_string()
         );
 
-        let event = from_str::<DirectEvent>(&json_data).unwrap();
-        assert_eq!(event.event_type, EventType::Direct);
-
+        let event = DirectEvent::from_str(&json_data).unwrap();
         let direct_rooms = event.content.get(&alice).unwrap();
+
         assert!(direct_rooms.contains(&rooms[0]));
         assert!(direct_rooms.contains(&rooms[1]));
-
-        match from_str::<collections::all::Event>(&json_data).unwrap() {
-            collections::all::Event::Direct(event) => {
-                assert_eq!(event.event_type, EventType::Direct);
-
-                let direct_rooms = event.content.get(&alice).unwrap();
-                assert!(direct_rooms.contains(&rooms[0]));
-                assert!(direct_rooms.contains(&rooms[1]));
-            }
-            _ => unreachable!(),
-        };
-
-        match from_str::<collections::only::Event>(&json_data).unwrap() {
-            collections::only::Event::Direct(event) => {
-                assert_eq!(event.event_type, EventType::Direct);
-
-                let direct_rooms = event.content.get(&alice).unwrap();
-                assert!(direct_rooms.contains(&rooms[0]));
-                assert!(direct_rooms.contains(&rooms[1]));
-            }
-            _ => unreachable!(),
-        };
     }
 }

@@ -77,10 +77,9 @@ mod tests {
 
     use js_int::UInt;
     use ruma_identifiers::UserId;
-    use serde_json::{from_str, to_string};
+    use serde_json::to_string;
 
     use super::{PresenceEvent, PresenceEventContent, PresenceState};
-    use crate::EventType;
 
     /// Test serialization and deserialization of example m.presence event from the spec
     /// https://github.com/turt2live/matrix-doc/blob/master/event-schemas/examples/m.presence

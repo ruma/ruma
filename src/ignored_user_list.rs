@@ -3,25 +3,100 @@
 use std::collections::HashMap;
 
 use ruma_identifiers::UserId;
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 
-event! {
-    /// A list of users to ignore.
-    pub struct IgnoredUserListEvent(IgnoredUserListEventContent) {}
+use crate::{Empty, Event};
+
+/// A list of users to ignore.
+#[derive(Clone, Debug, PartialEq)]
+pub struct IgnoredUserListEvent {
+    /// The event's content.
+    pub content: IgnoredUserListEventContent,
 }
 
-/// The payload of an `IgnoredUserListEvent`.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+/// The payload for `IgnoredUserListEvent`.
+#[derive(Clone, Debug, PartialEq)]
 pub struct IgnoredUserListEventContent {
     /// A list of users to ignore.
-    ///
-    /// The values in the hash map are not meaningful. They are used to generate an empty JSON
-    /// object to support the odd structure used by the Matrix specification:
-    ///
-    /// ```text
-    /// "@someone:example.org": {}
-    /// ```
-    pub ignored_users: HashMap<UserId, HashMap<(), ()>>,
+    pub ignored_users: Vec<UserId>,
+}
+
+impl IgnoredUserListEvent {
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    pub fn from_str(json: &str) -> Result<Self, crate::InvalidEvent> {
+        let raw = serde_json::from_str::<raw::IgnoredUserListEvent>(json)?;
+
+        Ok(Self {
+            content: IgnoredUserListEventContent {
+                ignored_users: raw.content.ignored_users.keys().cloned().collect(),
+            },
+        })
+    }
+}
+
+impl Serialize for IgnoredUserListEvent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer
+    {
+        let mut state = serializer.serialize_struct("IgnoredUserListEvent", 2)?;
+
+        state.serialize_field("content", &self.content);
+        state.serialize_field("type", &self.event_type());
+
+        state.end()
+    }
+}
+
+impl crate::Event for IgnoredUserListEvent {
+    /// The type of the event.
+    const EVENT_TYPE: crate::EventType = crate::EventType::IgnoredUserList;
+
+    /// The type of this event's `content` field.
+    type Content = IgnoredUserListEventContent;
+
+    /// The event's content.
+    fn content(&self) -> &Self::Content {
+        &self.content
+    }
+}
+
+impl Serialize for IgnoredUserListEventContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer
+    {
+        let mut map = HashMap::new();
+
+        for user_id in &self.ignored_users {
+            map.insert(user_id.clone(), Empty);
+        }
+
+        let raw = raw::IgnoredUserListEventContent {
+            ignored_users: map,
+        };
+
+        raw.serialize(serializer)
+    }
+}
+
+mod raw {
+    use crate::Empty;
+    use super::*;
+
+    /// A list of users to ignore.
+    #[derive(Clone, Debug, Deserialize)]
+    pub struct IgnoredUserListEvent {
+        /// The event's content.
+        pub content: IgnoredUserListEventContent,
+    }
+
+    /// The payload for `IgnoredUserListEvent`.
+    #[derive(Clone, Debug, Deserialize, Serialize)]
+    pub struct IgnoredUserListEventContent {
+        /// A list of users to ignore.
+        pub ignored_users: HashMap<UserId, Empty>,
+    }
 }
 
 #[cfg(test)]
@@ -30,40 +105,33 @@ mod tests {
 
     use ruma_identifiers::UserId;
 
-    use super::IgnoredUserListEventContent;
+    use super::{IgnoredUserListEvent, IgnoredUserListEventContent};
 
     #[test]
-    fn serialize_to_empty_json_object() {
-        let mut ignored_user_list_event_content = IgnoredUserListEventContent {
-            ignored_users: HashMap::new(),
+    fn serialization() {
+        let ignored_user_list_event = IgnoredUserListEvent {
+            content: IgnoredUserListEventContent {
+                ignored_users: vec![UserId::try_from("@carl:example.com").unwrap()],
+            },
         };
 
-        let user_id = UserId::try_from("@carl:example.com").unwrap();
+        let json = serde_json::to_string(&ignored_user_list_event).unwrap();
 
-        ignored_user_list_event_content
-            .ignored_users
-            .insert(user_id, HashMap::new());
-
-        let json = serde_json::to_string(&ignored_user_list_event_content).unwrap();
-
-        assert_eq!(json, r#"{"ignored_users":{"@carl:example.com":{}}}"#);
+        assert_eq!(json, r#"{"content":{"ignored_users":{"@carl:example.com":{}}},"type":"m.ignored_user_list"}"#);
     }
 
     #[test]
-    fn deserialize_from_empty_json_object() {
-        let json = r#"{"ignored_users":{"@carl:example.com":{}}}"#;
+    fn deserialization() {
+        let json = r#"{"content":{"ignored_users":{"@carl:example.com":{}}},"type":"m.ignored_user_list"}"#;
 
-        let ignored_user_list_event_content: IgnoredUserListEventContent =
-            serde_json::from_str(&json).unwrap();
+        let actual = IgnoredUserListEvent::from_str(json).unwrap();
 
-        let mut expected = IgnoredUserListEventContent {
-            ignored_users: HashMap::new(),
+        let expected = IgnoredUserListEvent {
+            content: IgnoredUserListEventContent {
+                ignored_users: vec![UserId::try_from("@carl:example.com").unwrap()],
+            },
         };
 
-        let user_id = UserId::try_from("@carl:example.com").unwrap();
-
-        expected.ignored_users.insert(user_id, HashMap::new());
-
-        assert_eq!(ignored_user_list_event_content, expected);
+        assert_eq!(actual, expected);
     }
 }

@@ -1,19 +1,20 @@
 //! Types for the *m.typing* event.
 
+use ruma_events_macros::ruma_event;
 use ruma_identifiers::{RoomId, UserId};
-use serde::{Deserialize, Serialize};
 
-event! {
+ruma_event! {
     /// Informs the client of the list of users currently typing.
-    pub struct TypingEvent(TypingEventContent) {
-        /// The unique identifier for the room associated with this event.
-        pub room_id: RoomId
+    TypingEvent {
+        kind: Event,
+        event_type: Typing,
+        fields: {
+            /// The unique identifier for the room associated with this event.
+            pub room_id: RoomId,
+        },
+        content: {
+            /// The list of user IDs typing in this room, if any.
+            pub user_ids: Vec<UserId>,
+        },
     }
-}
-
-/// The payload of a `TypingEvent`.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct TypingEventContent {
-    /// The list of user IDs typing in this room, if any.
-    pub user_ids: Vec<UserId>,
 }

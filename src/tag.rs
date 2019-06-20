@@ -2,18 +2,19 @@
 
 use std::collections::HashMap;
 
+use ruma_events_macros::ruma_event;
 use serde::{Deserialize, Serialize};
 
-event! {
+ruma_event! {
     /// Informs the client of tags on a room.
-    pub struct TagEvent(TagEventContent) {}
-}
-
-/// The payload of a `TagEvent`.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct TagEventContent {
-    /// A map of tag names to tag info.
-    pub tags: HashMap<String, TagInfo>,
+    TagEvent {
+        kind: Event,
+        event_type: Tag,
+        content: {
+            /// A map of tag names to tag info.
+            pub tags: HashMap<String, TagInfo>,
+        },
+    }
 }
 
 /// Information about a tag.

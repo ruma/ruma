@@ -3,22 +3,28 @@
 use std::collections::HashMap;
 
 use js_int::UInt;
+use ruma_events_macros::ruma_event;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-event! {
+ruma_event! {
     /// Informs the client of new receipts.
-    pub struct ReceiptEvent(ReceiptEventContent) {
-        /// The unique identifier for the room associated with this event.
-        pub room_id: RoomId
+    ReceiptEvent {
+        kind: Event,
+        event_type: Receipt,
+        fields: {
+            /// The unique identifier for the room associated with this event.
+            pub room_id: RoomId,
+        },
+        content_type_alias: {
+            /// The payload for `ReceiptEvent`.
+            ///
+            /// A mapping of event ID to a collection of receipts for this event ID. The event ID is the ID of
+            /// the event being acknowledged and *not* an ID for the receipt itself.
+            HashMap<EventId, Receipts>
+        },
     }
 }
-
-/// The payload of a `ReceiptEvent`.
-///
-/// A mapping of event ID to a collection of receipts for this event ID. The event ID is the ID of
-/// the event being acknowledged and *not* an ID for the receipt itself.
-pub type ReceiptEventContent = HashMap<EventId, Receipts>;
 
 /// A collection of receipts.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]

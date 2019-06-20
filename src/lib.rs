@@ -107,7 +107,8 @@ use std::{
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{
-    de::{Error as SerdeError, IntoDeserializer, Visitor},
+    de::{Error as SerdeError, IntoDeserializer, MapAccess, Visitor},
+    ser::SerializeMap,
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use serde_json::Value;
@@ -121,22 +122,22 @@ mod macros;
 //     pub mod all;
 //     pub mod only;
 // }
-// pub mod direct;
+pub mod direct;
 pub mod dummy;
 pub mod forwarded_room_key;
 // pub mod fully_read;
-// pub mod ignored_user_list;
+pub mod ignored_user_list;
 // pub mod key;
 pub mod presence;
 // pub mod push_rules;
-// pub mod receipt;
+pub mod receipt;
 pub mod room;
 // pub mod room_key;
 pub mod room_key_request;
 pub mod sticker;
 // pub mod stripped;
-// pub mod tag;
-// pub mod typing;
+pub mod tag;
+pub mod typing;
 
 /// An event that is malformed or otherwise invalid.
 ///
@@ -211,6 +212,48 @@ impl Display for FromStrError {
 }
 
 impl Error for FromStrError {}
+
+/// A meaningless value that serializes to an empty JSON object.
+///
+/// This type is used in a few places where the Matrix specification requires an empty JSON object,
+/// but it's wasteful to represent it as a `HashMap` in Rust code.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Empty;
+
+impl Serialize for Empty {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer
+    {
+        serializer.serialize_map(Some(0))?.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for Empty {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>
+    {
+        struct EmptyMapVisitor;
+
+        impl <'de> Visitor<'de> for EmptyMapVisitor {
+            type Value = Empty;
+
+            fn expecting(&self, f: &mut Formatter) -> FmtResult {
+                write!(f, "an object/map")
+            }
+
+            fn visit_map<A>(self, _map: A) -> Result<Self::Value, A::Error>
+            where
+                A: MapAccess<'de>
+            {
+                Ok(Empty)
+            }
+        }
+
+        deserializer.deserialize_map(EmptyMapVisitor)
+    }
+}
 
 /// The type of an event.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
