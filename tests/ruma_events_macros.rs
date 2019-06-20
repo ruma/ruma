@@ -35,6 +35,14 @@ where
     }
 }
 
+pub struct InvalidEvent;
+
+impl From<serde_json::Error> for InvalidEvent {
+    fn from(_: serde_json::Error) -> Self {
+        Self
+    }
+}
+
 // See note about wrapping macro expansion in a module from `src/lib.rs`
 pub mod common_case {
     use super::Event;

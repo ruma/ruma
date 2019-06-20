@@ -71,6 +71,9 @@ impl From<RumaEventInput> for RumaEvent {
 }
 
 impl ToTokens for RumaEvent {
+    // TODO: Maybe break this off into functions so it's not so large. Then remove the clippy
+    // allowance.
+    #[allow(clippy::cognitive_complexity)]
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let attrs = &self.attrs;
         let content_name = &self.content_name;
@@ -116,17 +119,84 @@ impl ToTokens for RumaEvent {
 
         let field_count = event_fields.len() + 1; // + 1 because of manually adding `event_type`
 
+        let mut from_str_field_values: Vec<TokenStream> = Vec::with_capacity(event_fields.len());
         let mut serialize_field_calls: Vec<TokenStream> = Vec::with_capacity(event_fields.len());
 
         for field in event_fields {
             let ident = field.ident.clone().unwrap();
             let ident_str = format!("{}", ident);
 
-            let token_stream = quote! {
+            let from_str_field_value = if ident == "content" {
+                match &self.content {
+                    Content::Struct(content_fields) => {
+                        let mut content_field_values: Vec<TokenStream> =
+                            Vec::with_capacity(content_fields.len());
+
+                        for content_field in content_fields {
+                            let content_field_ident = content_field.ident.clone().unwrap();
+
+                            let token_stream = quote! {
+                                #content_field_ident: raw.content.#content_field_ident,
+                            };
+
+                            content_field_values.push(token_stream);
+                        }
+
+                        quote! {
+                            content: #content_name {
+                                #(#content_field_values),*
+                            },
+                        }
+                    }
+                    Content::Typedef(_) => {
+                        quote! {
+                            content: raw.content,
+                        }
+                    }
+                }
+            } else if ident == "prev_content" {
+                match &self.content {
+                    Content::Struct(content_fields) => {
+                        let mut content_field_values: Vec<TokenStream> =
+                            Vec::with_capacity(content_fields.len());
+
+                        for content_field in content_fields {
+                            let content_field_ident = content_field.ident.clone().unwrap();
+
+                            let token_stream = quote! {
+                                #content_field_ident: prev.#content_field_ident,
+                            };
+
+                            content_field_values.push(token_stream);
+                        }
+
+                        quote! {
+                            prev_content: raw.prev_content.map(|prev| {
+                                #content_name {
+                                    #(#content_field_values),*
+                                }
+                            }),
+                        }
+                    }
+                    Content::Typedef(_) => {
+                        quote! {
+                            content: raw.content,
+                        }
+                    }
+                }
+            } else {
+                quote! {
+                    #ident: raw.#ident,
+                }
+            };
+
+            from_str_field_values.push(from_str_field_value);
+
+            let serialize_field_call = quote! {
                 state.serialize_field(#ident_str, &self.#ident)?;
             };
 
-            serialize_field_calls.push(token_stream);
+            serialize_field_calls.push(serialize_field_call);
         }
 
         let output = quote!(
@@ -137,6 +207,17 @@ impl ToTokens for RumaEvent {
             }
 
             #content
+
+            impl #name {
+                /// Attempt to create `Self` from parsing a string of JSON data.
+                pub fn from_str(json: &str) -> Result<Self, crate::InvalidEvent> {
+                    let raw = serde_json::from_str::<raw::#name>(json)?;
+
+                    Ok(Self {
+                        #(#from_str_field_values)*
+                    })
+                }
+            }
 
             use serde::ser::SerializeStruct as _;
 
