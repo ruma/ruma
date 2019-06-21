@@ -42,6 +42,6 @@ mod tests {
     fn deserialization() {
         let json = r#"{"content":{},"type":"m.dummy"}"#;
 
-        assert!(DummyEvent::from_str(json).is_ok());
+        assert!(json.parse::<DummyEvent>().is_ok());
     }
 }

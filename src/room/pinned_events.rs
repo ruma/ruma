@@ -47,7 +47,7 @@ mod tests {
         };
 
         let serialized_event = to_string(&event).unwrap();
-        let parsed_event = PinnedEventsEvent::from_str(&serialized_event).unwrap();
+        let parsed_event: PinnedEventsEvent = serialized_event.parse().unwrap();
 
         assert_eq!(parsed_event.event_id(), event.event_id());
         assert_eq!(parsed_event.room_id(), event.room_id());

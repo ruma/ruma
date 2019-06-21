@@ -67,7 +67,7 @@ mod tests {
             rooms[1].to_string()
         );
 
-        let event = DirectEvent::from_str(&json_data).unwrap();
+        let event: DirectEvent = json_data.parse().unwrap();
         let direct_rooms = event.content.get(&alice).unwrap();
 
         assert!(direct_rooms.contains(&rooms[0]));

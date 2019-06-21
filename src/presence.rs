@@ -100,7 +100,7 @@ mod tests {
             r#"{"content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online","status_msg":"Making cupcakes"},"sender":"@example:localhost","type":"m.presence"}"#;
 
         assert_eq!(to_string(&event).unwrap(), serialized_event);
-        let deserialized_event = PresenceEvent::from_str(serialized_event).unwrap();
+        let deserialized_event: PresenceEvent = serialized_event.parse().unwrap();
         assert_eq!(deserialized_event.content, event.content);
         assert_eq!(deserialized_event.sender, event.sender);
     }
