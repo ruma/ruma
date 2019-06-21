@@ -215,7 +215,7 @@ impl ToTokens for RumaEvent {
                     }
                     Content::Typedef(_) => {
                         quote_spanned! {span=>
-                            content: raw.content,
+                            prev_content: raw.prev_content,
                         }
                     }
                 }
