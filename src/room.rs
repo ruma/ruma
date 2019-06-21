@@ -18,7 +18,7 @@ pub mod history_visibility;
 pub mod join_rules;
 // pub mod member;
 // pub mod message;
-// pub mod name;
+pub mod name;
 pub mod pinned_events;
 // pub mod power_levels;
 pub mod redaction;

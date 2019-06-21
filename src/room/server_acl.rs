@@ -96,7 +96,7 @@ impl FromStr for ServerAclEvent {
 }
 
 impl<'a> TryFrom<&'a str> for ServerAclEvent {
-    type Error = crate::InvalidEvent;
+    type Error = InvalidEvent;
 
     /// Attempt to create `Self` from parsing a string of JSON data.
     fn try_from(json: &'a str) -> Result<Self, Self::Error> {

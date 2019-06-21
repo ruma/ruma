@@ -205,6 +205,18 @@ impl From<serde_json::Error> for InvalidEvent {
     }
 }
 
+/// An error returned when attempting to create an event with data that would make it invalid.
+#[derive(Clone, Debug, PartialEq)]
+pub struct InvalidInput(String);
+
+impl Display for InvalidInput {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl Error for InvalidInput {}
+
 /// An error when attempting to create a value from a string via the `FromStr` trait.
 #[derive(Clone, Copy, Eq, Debug, Hash, PartialEq)]
 pub struct FromStrError;
