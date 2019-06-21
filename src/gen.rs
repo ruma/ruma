@@ -145,7 +145,7 @@ impl ToTokens for RumaEvent {
         let event_type_field_count = if self.is_custom { 0 } else { 1 };
         let field_count = event_fields.len() + event_type_field_count;
 
-        let mut from_str_field_values: Vec<TokenStream> = Vec::with_capacity(event_fields.len());
+        let mut try_from_field_values: Vec<TokenStream> = Vec::with_capacity(event_fields.len());
         let mut serialize_field_calls: Vec<TokenStream> = Vec::with_capacity(event_fields.len());
 
         for field in event_fields {
@@ -159,7 +159,7 @@ impl ToTokens for RumaEvent {
 
             let span = field.span();
 
-            let from_str_field_value = if ident == "content" {
+            let try_from_field_value = if ident == "content" {
                 match &self.content {
                     Content::Struct(content_fields) => {
                         let mut content_field_values: Vec<TokenStream> =
@@ -225,7 +225,7 @@ impl ToTokens for RumaEvent {
                 }
             };
 
-            from_str_field_values.push(from_str_field_value);
+            try_from_field_values.push(try_from_field_value);
 
             let serialize_field_call = quote_spanned! {span=>
                 state.serialize_field(#ident_str, &self.#ident)?;
@@ -316,14 +316,25 @@ impl ToTokens for RumaEvent {
 
             #content
 
-            impl #name {
+            impl std::str::FromStr for #name {
+                type Err = crate::InvalidEvent;
+
                 /// Attempt to create `Self` from parsing a string of JSON data.
-                pub fn from_str(json: &str) -> Result<Self, crate::InvalidEvent> {
+                fn from_str(json: &str) -> Result<Self, Self::Err> {
                     let raw = serde_json::from_str::<raw::#name>(json)?;
 
                     Ok(Self {
-                        #(#from_str_field_values)*
+                        #(#try_from_field_values)*
                     })
+                }
+            }
+
+            impl<'a> std::convert::TryFrom<&'a str> for #name {
+                type Error = crate::InvalidEvent;
+
+                /// Attempt to create `Self` from parsing a string of JSON data.
+                fn try_from(json: &'a str) -> Result<Self, Self::Error> {
+                    std::str::FromStr::from_str(json)
                 }
             }
 
