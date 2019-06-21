@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use ruma_identifiers::UserId;
-use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 
 use crate::{Empty, Event, EventType};
 
@@ -41,8 +41,8 @@ impl Serialize for IgnoredUserListEvent {
     {
         let mut state = serializer.serialize_struct("IgnoredUserListEvent", 2)?;
 
-        state.serialize_field("content", &self.content);
-        state.serialize_field("type", &self.event_type());
+        state.serialize_field("content", &self.content)?;
+        state.serialize_field("type", &self.event_type())?;
 
         state.end()
     }

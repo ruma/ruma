@@ -120,7 +120,7 @@ pub use custom_state::CustomStateEvent;
 #[macro_use]
 mod macros;
 
-// pub mod call;
+pub mod call;
 // /// Enums for heterogeneous collections of events.
 // pub mod collections {
 //     pub mod all;

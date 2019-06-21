@@ -1,26 +1,27 @@
 //! Types for the *m.room.message.feedback* event.
 
 use js_int::UInt;
+use ruma_events_macros::ruma_event;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 
-room_event! {
+ruma_event! {
     /// An acknowledgement of a message.
     ///
     /// N.B.: Usage of this event is discouraged in favor of the receipts module. Most clients will
-    /// not recognise this event.
-    pub struct FeedbackEvent(FeedbackEventContent) {}
-}
+    /// not recognize this event.
+    FeedbackEvent {
+        kind: RoomEvent,
+        event_type: RoomMessageFeedback,
+        content: {
+            /// The event that this feedback is related to.
+            pub target_event_id: EventId,
 
-/// The payload of an *m.room.message.feedback* event.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct FeedbackEventContent {
-    /// The event that this feedback is related to.
-    pub target_event_id: EventId,
-
-    /// The type of feedback.
-    #[serde(rename = "type")]
-    pub feedback_type: FeedbackType,
+            /// The type of feedback.
+            #[serde(rename = "type")]
+            pub feedback_type: FeedbackType,
+        },
+    }
 }
 
 /// A type of feedback.

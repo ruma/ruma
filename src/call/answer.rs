@@ -1,24 +1,24 @@
 //! Types for the *m.call.answer* event.
 
 use js_int::UInt;
-use serde::{Deserialize, Serialize};
+use ruma_events_macros::ruma_event;
 
 use super::SessionDescription;
 
-room_event! {
+ruma_event! {
     /// This event is sent by the callee when they wish to answer the call.
-    pub struct AnswerEvent(AnswerEventContent) {}
-}
+    AnswerEvent {
+        kind: RoomEvent,
+        event_type: CallAnswer,
+        content: {
+            /// The VoIP session description object. The session description type must be *answer*.
+            pub answer: SessionDescription,
 
-/// The payload of an `AnswerEvent`.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct AnswerEventContent {
-    /// The VoIP session description object. The session description type must be *answer*.
-    pub answer: SessionDescription,
+            /// The ID of the call this event relates to.
+            pub call_id: String,
 
-    /// The ID of the call this event relates to.
-    pub call_id: String,
-
-    /// The version of the VoIP specification this messages adheres to.
-    pub version: UInt,
+            /// The version of the VoIP specification this messages adheres to.
+            pub version: UInt,
+        },
+    }
 }

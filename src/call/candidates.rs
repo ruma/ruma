@@ -1,26 +1,27 @@
 //! Types for the *m.call.candidates* event.
 
 use js_int::UInt;
+use ruma_events_macros::ruma_event;
 use serde::{Deserialize, Serialize};
 
-room_event! {
+ruma_event! {
     /// This event is sent by callers after sending an invite and by the callee after answering.
     /// Its purpose is to give the other party additional ICE candidates to try using to
     /// communicate.
-    pub struct CandidatesEvent(CandidatesEventContent) {}
-}
+    CandidatesEvent {
+        kind: RoomEvent,
+        event_type: CallCandidates,
+        content: {
+            /// The ID of the call this event relates to.
+            pub call_id: String,
 
-/// The payload of a `CandidatesEvent`.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct CandidatesEventContent {
-    /// The ID of the call this event relates to.
-    pub call_id: String,
+            /// A list of candidates.
+            pub candidates: Vec<Candidate>,
 
-    /// A list of candidates.
-    pub candidates: Vec<Candidate>,
-
-    /// The version of the VoIP specification this messages adheres to.
-    pub version: UInt,
+            /// The version of the VoIP specification this messages adheres to.
+            pub version: UInt,
+        },
+    }
 }
 
 /// An ICE (Interactive Connectivity Establishment) candidate.

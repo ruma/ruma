@@ -1,21 +1,21 @@
 //! Types for the *m.room.redaction* event.
 
-use js_int::UInt;
+use ruma_events_macros::ruma_event;
 use ruma_identifiers::EventId;
-use serde::{Deserialize, Serialize};
 
-room_event! {
+ruma_event! {
     /// A redaction of an event.
-    pub struct RedactionEvent(RedactionEventContent) {
-        /// The ID of the event that was redacted.
-        pub redacts: EventId
+    RedactionEvent {
+        kind: RoomEvent,
+        event_type: RoomRedaction,
+        fields: {
+            /// The ID of the event that was redacted.
+            pub redacts: EventId,
+        },
+        content: {
+            /// The reason for the redaction, if any.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub reason: Option<String>,
+        }
     }
-}
-
-/// The payload of a `RedactionEvent`.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct RedactionEventContent {
-    /// The reason for the redaction, if any.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason: Option<String>,
 }
