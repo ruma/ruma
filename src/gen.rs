@@ -7,7 +7,7 @@ use syn::{
     parse_quote,
     punctuated::Punctuated,
     spanned::Spanned,
-    Attribute, Field, Ident, Path, Token,
+    Attribute, Field, Ident, Path, Token, Type,
 };
 
 use crate::parse::{Content, EventKind, RumaEventInput};
@@ -142,8 +142,11 @@ impl ToTokens for RumaEvent {
 
         // Custom events will already have an event_type field. All other events need to account
         // for this field being manually inserted in `Serialize` impls.
-        let event_type_field_count = if self.is_custom { 0 } else { 1 };
-        let field_count = event_fields.len() + event_type_field_count;
+        let mut base_field_count: usize = if self.is_custom { 0 } else { 1 };
+
+        // Keep track of all the optional fields, because we'll need to check at runtime if they
+        // are `Some` in order to increase the number of fields we tell serde to serialize.
+        let mut optional_field_idents = Vec::with_capacity(event_fields.len());
 
         let mut try_from_field_values: Vec<TokenStream> = Vec::with_capacity(event_fields.len());
         let mut serialize_field_calls: Vec<TokenStream> = Vec::with_capacity(event_fields.len());
@@ -227,8 +230,21 @@ impl ToTokens for RumaEvent {
 
             try_from_field_values.push(try_from_field_value);
 
-            let serialize_field_call = quote_spanned! {span=>
-                state.serialize_field(#ident_str, &self.#ident)?;
+            // Does the same thing as #[serde(skip_serializing_if = "Option::is_none")]
+            let serialize_field_call = if is_option(&field.ty) {
+                optional_field_idents.push(ident.clone());
+
+                quote_spanned! {span=>
+                    if self.#ident.is_some() {
+                        state.serialize_field(#ident_str, &self.#ident)?;
+                    }
+                }
+            } else {
+                base_field_count += 1;
+
+                quote_spanned! {span=>
+                    state.serialize_field(#ident_str, &self.#ident)?;
+                }
             };
 
             serialize_field_calls.push(serialize_field_call);
@@ -249,6 +265,27 @@ impl ToTokens for RumaEvent {
                 manually_serialize_type_field,
                 import_event_in_serialize_impl,
             )
+        };
+
+        let increment_struct_len_statements: Vec<TokenStream> = optional_field_idents
+            .iter()
+            .map(|ident| {
+                let span = ident.span();
+
+                quote_spanned! {span=>
+                    if self.#ident.is_some() {
+                        len += 1;
+                    }
+                }
+            })
+            .collect();
+
+        let set_up_struct_serializer = quote! {
+            let mut len = #base_field_count;
+
+            #(#increment_struct_len_statements)*
+
+            let mut state = serializer.serialize_struct(#name_str, len)?;
         };
 
         let impl_room_event = match self.kind {
@@ -347,7 +384,7 @@ impl ToTokens for RumaEvent {
                 {
                     #import_event_in_serialize_impl
 
-                    let mut state = serializer.serialize_struct(#name_str, #field_count)?;
+                    #set_up_struct_serializer
 
                     #(#serialize_field_calls)*
                     #manually_serialize_type_field
@@ -488,6 +525,15 @@ fn populate_state_fields(is_custom: bool, content_name: Ident, fields: Vec<Field
 /// Checks if the given `Path` refers to `EventType::Custom`.
 fn is_custom_event_type(event_type: &Path) -> bool {
     event_type.segments.last().unwrap().value().ident == "Custom"
+}
+
+/// Checks if a type is an `Option`.
+fn is_option(ty: &Type) -> bool {
+    if let Type::Path(ref type_path) = ty {
+        type_path.path.segments.first().unwrap().value().ident == "Option"
+    } else {
+        panic!("struct field had unexpected non-path type");
+    }
 }
 
 /// A wrapper around `syn::Field` that makes it possible to parse `Punctuated<Field, Token![,]>`
