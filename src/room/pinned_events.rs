@@ -1,19 +1,18 @@
 //! Types for the *m.room.pinned_events* event.
 
-use js_int::UInt;
+use ruma_events_macros::ruma_event;
 use ruma_identifiers::EventId;
-use serde::{Deserialize, Serialize};
 
-state_event! {
+ruma_event! {
     /// Used to "pin" particular events in a room for other participants to review later.
-    pub struct PinnedEventsEvent(PinnedEventsContent) {}
-}
-
-/// The payload of a `NameEvent`.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct PinnedEventsContent {
-    /// An ordered list of event IDs to pin.
-    pub pinned: Vec<EventId>,
+    PinnedEventsEvent {
+        kind: StateEvent,
+        event_type: RoomPinnedEvents,
+        content: {
+            /// An ordered list of event IDs to pin.
+            pub pinned: Vec<EventId>,
+        },
+    }
 }
 
 #[cfg(test)]
@@ -22,16 +21,16 @@ mod tests {
 
     use js_int::UInt;
     use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde_json::{from_str, to_string};
+    use serde_json::to_string;
 
     use crate::{
-        room::pinned_events::{PinnedEventsContent, PinnedEventsEvent},
-        Event, EventType, RoomEvent, StateEvent,
+        room::pinned_events::{PinnedEventsEvent, PinnedEventsEventContent},
+        Event, RoomEvent, StateEvent,
     };
 
     #[test]
     fn serialization_deserialization() {
-        let mut content: PinnedEventsContent = PinnedEventsContent { pinned: Vec::new() };
+        let mut content: PinnedEventsEventContent = PinnedEventsEventContent { pinned: Vec::new() };
 
         content.pinned.push(EventId::new("example.com").unwrap());
         content.pinned.push(EventId::new("example.com").unwrap());
@@ -39,7 +38,6 @@ mod tests {
         let event = PinnedEventsEvent {
             content: content.clone(),
             event_id: EventId::new("example.com").unwrap(),
-            event_type: EventType::RoomPinnedEvents,
             origin_server_ts: UInt::try_from(1_432_804_485_886u64).unwrap(),
             prev_content: None,
             room_id: Some(RoomId::new("example.com").unwrap()),
@@ -49,7 +47,7 @@ mod tests {
         };
 
         let serialized_event = to_string(&event).unwrap();
-        let parsed_event: PinnedEventsEvent = from_str(&serialized_event).unwrap();
+        let parsed_event = PinnedEventsEvent::from_str(&serialized_event).unwrap();
 
         assert_eq!(parsed_event.event_id(), event.event_id());
         assert_eq!(parsed_event.room_id(), event.room_id());

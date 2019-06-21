@@ -1,30 +1,30 @@
 //! Types for the *m.room.encryption* event.
 
 use js_int::UInt;
-use serde::{Deserialize, Serialize};
+use ruma_events_macros::ruma_event;
 
 use crate::Algorithm;
 
-state_event! {
+ruma_event! {
     /// Defines how messages sent in this room should be encrypted.
-    pub struct EncryptionEvent(EncryptionEventContent) {}
-}
+    EncryptionEvent {
+        kind: StateEvent,
+        event_type: RoomEncryption,
+        content: {
+            /// The encryption algorithm to be used to encrypt messages sent in this room.
+            ///
+            /// Must be `m.megolm.v1.aes-sha2`.
+            pub algorithm: Algorithm,
 
-/// The payload of an *m.room.encryption* event.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct EncryptionEventContent {
-    /// The encryption algorithm to be used to encrypt messages sent in this room.
-    ///
-    /// Must be `m.megolm.v1.aes-sha2`.
-    pub algorithm: Algorithm,
+            /// How long the session should be used before changing it.
+            ///
+            /// 604800000 (a week) is the recommended default.
+            pub rotation_period_ms: Option<UInt>,
 
-    /// How long the session should be used before changing it.
-    ///
-    /// 604800000 (a week) is the recommended default.
-    pub rotation_period_ms: Option<UInt>,
-
-    /// How many messages should be sent before changing the session.
-    ///
-    /// 100 is the recommended default.
-    pub rotation_period_msgs: Option<UInt>,
+            /// How many messages should be sent before changing the session.
+            ///
+            /// 100 is the recommended default.
+            pub rotation_period_msgs: Option<UInt>,
+        },
+    }
 }

@@ -1,25 +1,24 @@
 //! Types for the *m.room.avatar* event.
 
-use js_int::UInt;
-use serde::{Deserialize, Serialize};
+use ruma_events_macros::ruma_event;
 
 use super::ImageInfo;
 
-state_event! {
+ruma_event! {
     /// A picture that is associated with the room.
     ///
     /// This can be displayed alongside the room information.
-    pub struct AvatarEvent(AvatarEventContent) {}
-}
+    AvatarEvent {
+        kind: StateEvent,
+        event_type: RoomAvatar,
+        content: {
+            /// Information about the avatar image.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub info: Option<ImageInfo>,
 
-/// The payload of an `AvatarEvent`.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct AvatarEventContent {
-    /// Information about the avatar image.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub info: Option<ImageInfo>,
-
-    /// Information about the avatar thumbnail image.
-    /// URL of the avatar image.
-    pub url: String,
+            /// Information about the avatar thumbnail image.
+            /// URL of the avatar image.
+            pub url: String,
+        },
+    }
 }

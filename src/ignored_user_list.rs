@@ -101,7 +101,7 @@ mod raw {
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::HashMap, convert::TryFrom};
+    use std::convert::TryFrom;
 
     use ruma_identifiers::UserId;
 

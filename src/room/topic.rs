@@ -1,16 +1,15 @@
 //! Types for the *m.room.topic* event.
 
-use js_int::UInt;
-use serde::{Deserialize, Serialize};
+use ruma_events_macros::ruma_event;
 
-state_event! {
+ruma_event! {
     /// A topic is a short message detailing what is currently being discussed in the room.
-    pub struct TopicEvent(TopicEventContent) {}
-}
-
-/// The payload of a `TopicEvent`.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct TopicEventContent {
-    /// The topic text.
-    pub topic: String,
+    TopicEvent {
+        kind: StateEvent,
+        event_type: RoomTopic,
+        content: {
+            /// The topic text.
+            pub topic: String,
+        },
+    }
 }

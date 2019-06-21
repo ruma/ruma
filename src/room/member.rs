@@ -1,11 +1,12 @@
 //! Types for the *m.room.member* event.
 
 use js_int::UInt;
+use ruma_events_macros::ruma_event;
 use ruma_identifiers::UserId;
 use ruma_signatures::Signatures;
 use serde::{Deserialize, Serialize};
 
-state_event! {
+ruma_event! {
     /// The current membership state of a user in the room.
     ///
     /// Adjusts the membership state for a user in a room. It is preferable to use the membership
@@ -31,32 +32,32 @@ state_event! {
     /// The membership for a given user can change over time. Previous membership can be retrieved
     /// from the `prev_content` object on an event. If not present, the user's previous membership
     /// must be assumed as leave.
-    pub struct MemberEvent(MemberEventContent) {}
-}
+    MemberEvent {
+        kind: StateEvent,
+        event_type: RoomMember,
+        content: {
+            /// The avatar URL for this user, if any. This is added by the homeserver.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub avatar_url: Option<String>,
 
-/// The payload of a `MemberEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct MemberEventContent {
-    /// The avatar URL for this user, if any. This is added by the homeserver.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar_url: Option<String>,
+            /// The display name for this user, if any. This is added by the homeserver.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub displayname: Option<String>,
 
-    /// The display name for this user, if any. This is added by the homeserver.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub displayname: Option<String>,
+            /// Flag indicating if the room containing this event was created
+            /// with the intention of being a direct chat.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub is_direct: Option<bool>,
 
-    /// Flag indicating if the room containing this event was created
-    /// with the intention of being a direct chat.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_direct: Option<bool>,
+            /// The membership state of this user.
+            pub membership: MembershipState,
 
-    /// The membership state of this user.
-    pub membership: MembershipState,
-
-    /// If this member event is the successor to a third party invitation, this field will contain
-    /// information about that invitation.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub third_party_invite: Option<ThirdPartyInvite>,
+            /// If this member event is the successor to a third party invitation, this field will
+            /// contain information about that invitation.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub third_party_invite: Option<ThirdPartyInvite>,
+        },
+    }
 }
 
 /// The membership state of a user.

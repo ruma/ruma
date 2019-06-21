@@ -1,18 +1,18 @@
 //! Types for the *m.room.join_rules* event.
 
-use js_int::UInt;
+use ruma_events_macros::ruma_event;
 use serde::{Deserialize, Serialize};
 
-state_event! {
+ruma_event! {
     /// Describes how users are allowed to join the room.
-    pub struct JoinRulesEvent(JoinRulesEventContent) {}
-}
-
-/// The payload of a `JoinRulesEvent`.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct JoinRulesEventContent {
-    /// The type of rules used for users wishing to join this room.
-    pub join_rule: JoinRule,
+    JoinRulesEvent {
+        kind: StateEvent,
+        event_type: RoomJoinRules,
+        content: {
+            /// The type of rules used for users wishing to join this room.
+            pub join_rule: JoinRule,
+        },
+    }
 }
 
 /// The rule used for users wishing to join this room.

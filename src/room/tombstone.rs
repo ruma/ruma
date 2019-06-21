@@ -1,21 +1,20 @@
 //! Types for the *m.room.tombstone* event.
 
-use js_int::UInt;
+use ruma_events_macros::ruma_event;
 use ruma_identifiers::RoomId;
-use serde::{Deserialize, Serialize};
 
-state_event! {
+ruma_event! {
     /// A state event signifying that a room has been upgraded to a different room version, and that
     /// clients should go there.
-    pub struct TombstoneEvent(TombstoneEventContent) {}
-}
+    TombstoneEvent {
+        kind: StateEvent,
+        event_type: RoomTombstone,
+        content: {
+            /// A server-defined message.
+            pub body: String,
 
-/// The payload of an *m.room.tombstone* event.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct TombstoneEventContent {
-    /// A server-defined message.
-    pub body: String,
-
-    /// The new room the client should be visiting.
-    pub replacement_room: RoomId,
+            /// The new room the client should be visiting.
+            pub replacement_room: RoomId,
+        },
+    }
 }
