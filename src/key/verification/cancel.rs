@@ -2,31 +2,32 @@
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
+use ruma_events_macros::ruma_event;
 use serde::{
     de::{Error as SerdeError, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
 
-event! {
+ruma_event! {
     /// Cancels a key verification process/request.
     ///
     /// Typically sent as a to-device event.
-    pub struct CancelEvent(CancelEventContent) {}
-}
+    CancelEvent {
+        kind: Event,
+        event_type: KeyVerificationCancel,
+        content: {
+            /// The opaque identifier for the verification process/request.
+            pub transaction_id: String,
 
-/// The payload of an *m.key.verification.cancel* event.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct CancelEventContent {
-    /// The opaque identifier for the verification process/request.
-    pub transaction_id: String,
+            /// A human readable description of the `code`.
+            ///
+            /// The client should only rely on this string if it does not understand the `code`.
+            pub reason: String,
 
-    /// A human readable description of the `code`.
-    ///
-    /// The client should only rely on this string if it does not understand the `code`.
-    pub reason: String,
-
-    /// The error code for why the process/request was cancelled by the user.
-    pub code: CancelCode,
+            /// The error code for why the process/request was cancelled by the user.
+            pub code: CancelCode,
+        },
+    }
 }
 
 /// An error code for why the process/request was cancelled by the user.

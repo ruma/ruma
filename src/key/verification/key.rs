@@ -1,22 +1,22 @@
 //! Types for the *m.key.verification.key* event.
 
-use serde::{Deserialize, Serialize};
+use ruma_events_macros::ruma_event;
 
-event! {
+ruma_event! {
     /// Sends the ephemeral public key for a device to the partner device.
     ///
     /// Typically sent as a to-device event.
-    pub struct KeyEvent(KeyEventContent) {}
-}
+    KeyEvent {
+        kind: Event,
+        event_type: KeyVerificationKey,
+        content: {
+            /// An opaque identifier for the verification process.
+            ///
+            /// Must be the same as the one used for the *m.key.verification.start* message.
+            pub transaction_id: String,
 
-/// The payload of an *m.key.verification.key* event.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct KeyEventContent {
-    /// An opaque identifier for the verification process.
-    ///
-    /// Must be the same as the one used for the *m.key.verification.start* message.
-    pub transaction_id: String,
-
-    /// The device's ephemeral public key, encoded as unpadded Base64.
-    pub key: String,
+            /// The device's ephemeral public key, encoded as unpadded Base64.
+            pub key: String,
+        },
+    }
 }

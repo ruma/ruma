@@ -37,9 +37,7 @@ mod tests {
 
         content.insert(alice.clone(), room.clone());
 
-        let event = DirectEvent {
-            content,
-        };
+        let event = DirectEvent { content };
 
         assert_eq!(
             to_string(&event).unwrap(),

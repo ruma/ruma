@@ -7,9 +7,9 @@ use serde::{Deserialize, Serialize};
 pub mod accept;
 pub mod cancel;
 pub mod key;
-pub mod mac;
+// pub mod mac;
 pub mod request;
-pub mod start;
+// pub mod start;
 
 /// A hash algorithm.
 #[derive(Clone, Copy, Debug, Serialize, PartialEq, Deserialize)]

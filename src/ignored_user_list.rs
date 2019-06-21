@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use ruma_identifiers::UserId;
 use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::{Empty, Event};
+use crate::{Empty, Event, EventType};
 
 /// A list of users to ignore.
 #[derive(Clone, Debug, PartialEq)]
@@ -37,7 +37,7 @@ impl IgnoredUserListEvent {
 impl Serialize for IgnoredUserListEvent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: Serializer
+        S: Serializer,
     {
         let mut state = serializer.serialize_struct("IgnoredUserListEvent", 2)?;
 
@@ -49,9 +49,6 @@ impl Serialize for IgnoredUserListEvent {
 }
 
 impl crate::Event for IgnoredUserListEvent {
-    /// The type of the event.
-    const EVENT_TYPE: crate::EventType = crate::EventType::IgnoredUserList;
-
     /// The type of this event's `content` field.
     type Content = IgnoredUserListEventContent;
 
@@ -59,12 +56,17 @@ impl crate::Event for IgnoredUserListEvent {
     fn content(&self) -> &Self::Content {
         &self.content
     }
+
+    /// The type of the event.
+    fn event_type(&self) -> EventType {
+        EventType::IgnoredUserList
+    }
 }
 
 impl Serialize for IgnoredUserListEventContent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: Serializer
+        S: Serializer,
     {
         let mut map = HashMap::new();
 
@@ -72,17 +74,15 @@ impl Serialize for IgnoredUserListEventContent {
             map.insert(user_id.clone(), Empty);
         }
 
-        let raw = raw::IgnoredUserListEventContent {
-            ignored_users: map,
-        };
+        let raw = raw::IgnoredUserListEventContent { ignored_users: map };
 
         raw.serialize(serializer)
     }
 }
 
 mod raw {
-    use crate::Empty;
     use super::*;
+    use crate::Empty;
 
     /// A list of users to ignore.
     #[derive(Clone, Debug, Deserialize)]

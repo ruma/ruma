@@ -29,10 +29,8 @@ mod tests {
     use super::{DummyEvent, Empty};
 
     #[test]
-    fn serialization()  {
-        let dummy_event = DummyEvent {
-            content: Empty,
-        };
+    fn serialization() {
+        let dummy_event = DummyEvent { content: Empty };
 
         let actual = serde_json::to_string(&dummy_event).unwrap();
         let expected = r#"{"content":{},"type":"m.dummy"}"#;

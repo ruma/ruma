@@ -113,6 +113,10 @@ use serde::{
 };
 use serde_json::Value;
 
+pub use custom::CustomEvent;
+pub use custom_room::CustomRoomEvent;
+pub use custom_state::CustomStateEvent;
+
 #[macro_use]
 mod macros;
 
@@ -127,12 +131,12 @@ pub mod dummy;
 pub mod forwarded_room_key;
 pub mod fully_read;
 pub mod ignored_user_list;
-// pub mod key;
+pub mod key;
 pub mod presence;
 // pub mod push_rules;
 pub mod receipt;
 pub mod room;
-// pub mod room_key;
+pub mod room_key;
 pub mod room_key_request;
 pub mod sticker;
 // pub mod stripped;
@@ -223,7 +227,7 @@ pub struct Empty;
 impl Serialize for Empty {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: Serializer
+        S: Serializer,
     {
         serializer.serialize_map(Some(0))?.end()
     }
@@ -232,11 +236,11 @@ impl Serialize for Empty {
 impl<'de> Deserialize<'de> for Empty {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: Deserializer<'de>
+        D: Deserializer<'de>,
     {
         struct EmptyMapVisitor;
 
-        impl <'de> Visitor<'de> for EmptyMapVisitor {
+        impl<'de> Visitor<'de> for EmptyMapVisitor {
             type Value = Empty;
 
             fn expecting(&self, f: &mut Formatter) -> FmtResult {
@@ -245,7 +249,7 @@ impl<'de> Deserialize<'de> for Empty {
 
             fn visit_map<A>(self, _map: A) -> Result<Self::Value, A::Error>
             where
-                A: MapAccess<'de>
+                A: MapAccess<'de>,
             {
                 Ok(Empty)
             }
@@ -401,9 +405,6 @@ pub trait Event
 where
     Self: Debug + Serialize,
 {
-    /// The type of the event.
-    const EVENT_TYPE: EventType;
-
     /// The type of this event's `content` field.
     type Content: Debug + Serialize;
 
@@ -411,9 +412,7 @@ where
     fn content(&self) -> &Self::Content;
 
     /// The type of the event.
-    fn event_type(&self) -> EventType {
-        Self::EVENT_TYPE
-    }
+    fn event_type(&self) -> EventType;
 }
 
 /// An event within the context of a room.
@@ -447,20 +446,56 @@ pub trait StateEvent: RoomEvent {
     fn state_key(&self) -> &str;
 }
 
-// event! {
-//     /// A custom basic event not covered by the Matrix specification.
-//     pub struct CustomEvent(Value) {}
-// }
+mod custom {
+    use ruma_events_macros::ruma_event;
+    use serde_json::Value;
 
-// room_event! {
-//     /// A custom room event not covered by the Matrix specification.
-//     pub struct CustomRoomEvent(Value) {}
-// }
+    ruma_event! {
+        /// A custom basic event not covered by the Matrix specification.
+        CustomEvent {
+            kind: Event,
+            event_type: Custom,
+            content_type_alias: {
+                /// The payload for `CustomEvent`.
+                Value
+            },
+        }
+    }
+}
 
-// state_event! {
-//     /// A custom state event not covered by the Matrix specification.
-//     pub struct CustomStateEvent(Value) {}
-// }
+mod custom_room {
+    use ruma_events_macros::ruma_event;
+    use serde_json::Value;
+
+    ruma_event! {
+        /// A custom room event not covered by the Matrix specification.
+        CustomRoomEvent {
+            kind: RoomEvent,
+            event_type: Custom,
+            content_type_alias: {
+                /// The payload for `CustomRoomEvent`.
+                Value
+            },
+        }
+    }
+}
+
+mod custom_state {
+    use ruma_events_macros::ruma_event;
+    use serde_json::Value;
+
+    ruma_event! {
+        /// A custom state event not covered by the Matrix specification.
+        CustomStateEvent {
+            kind: StateEvent,
+            event_type: Custom,
+            content_type_alias: {
+                /// The payload for `CustomStateEvent`.
+                Value
+            },
+        }
+    }
+}
 
 impl Display for EventType {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
