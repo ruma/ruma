@@ -23,3 +23,77 @@ macro_rules! impl_enum {
         }
     }
 }
+
+macro_rules! impl_event {
+    ($name:ident, $content_name:ident, $event_type:path) => {
+        impl Event for $name {
+            /// The type of this event's `content` field.
+            type Content = $content_name;
+
+            /// The event's content.
+            fn content(&self) -> &Self::Content {
+                &self.content
+            }
+
+            /// The type of the event.
+            fn event_type(&self) -> EventType {
+                $event_type
+            }
+        }
+    };
+}
+
+macro_rules! impl_room_event {
+    ($name:ident, $content_name:ident, $event_type:path) => {
+        impl_event!($name, $content_name, $event_type);
+
+        impl RoomEvent for $name {
+            /// The unique identifier for the event.
+            fn event_id(&self) -> &EventId {
+                &self.event_id
+            }
+
+            /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this event was
+            /// sent.
+            fn origin_server_ts(&self) -> UInt {
+                self.origin_server_ts
+            }
+
+            /// The unique identifier for the room associated with this event.
+            ///
+            /// This can be `None` if the event came from a context where there is
+            /// no ambiguity which room it belongs to, like a `/sync` response for example.
+            fn room_id(&self) -> Option<&RoomId> {
+                self.room_id.as_ref()
+            }
+
+            /// The unique identifier for the user who sent this event.
+            fn sender(&self) -> &UserId {
+                &self.sender
+            }
+
+            /// Additional key-value pairs not signed by the homeserver.
+            fn unsigned(&self) -> Option<&Value> {
+                self.unsigned.as_ref()
+            }
+        }
+    };
+}
+
+macro_rules! impl_state_event {
+    ($name:ident, $content_name:ident, $event_type:path) => {
+        impl_room_event!($name, $content_name, $event_type);
+
+        impl StateEvent for $name {
+            /// The previous content for this state key, if any.
+            fn prev_content(&self) -> Option<&Self::Content> {
+                self.prev_content.as_ref()
+            }
+
+            /// A key that determines which piece of room state the event represents.
+            fn state_key(&self) -> &str {
+                &self.state_key
+            }
+        }
+    };
+}
