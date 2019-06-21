@@ -203,7 +203,33 @@ mod raw {
 
 #[cfg(test)]
 mod tests {
-    use super::NameEvent;
+    use std::convert::TryFrom;
+
+    use js_int::UInt;
+    use ruma_identifiers::{EventId, UserId};
+
+    use super::{NameEvent, NameEventContent};
+
+    #[test]
+    fn serialization_with_optional_fields_as_none() {
+        let name_event = NameEvent {
+            content: NameEventContent {
+                name: Some("The room name".to_string()),
+            },
+            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+            origin_server_ts: UInt::try_from(1).unwrap(),
+            prev_content: None,
+            room_id: None,
+            unsigned: None,
+            sender: UserId::try_from("@carl:matrix.org").unwrap(),
+            state_key: "".to_string(),
+        };
+
+        let actual = serde_json::to_string(&name_event).unwrap();
+        let expected = r#"{"content":{"name":"The room name"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:matrix.org","state_key":"","type":"m.room.name"}"#;
+
+        assert_eq!(actual, expected);
+    }
 
     #[test]
     fn absent_field_as_none() {

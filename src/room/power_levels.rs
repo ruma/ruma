@@ -2,15 +2,12 @@
 
 use std::{collections::HashMap, convert::TryFrom, str::FromStr};
 
-use js_int::UInt;
+use js_int::{Int, UInt};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{
-    Event, EventType, InvalidEvent, InvalidInput, RoomEvent, StateEvent,
-};
-
+use crate::{Event, EventType, InvalidEvent, InvalidInput, RoomEvent, StateEvent};
 
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Clone, Debug, PartialEq)]
@@ -26,7 +23,7 @@ pub struct PowerLevelsEvent {
     pub origin_server_ts: UInt,
 
     /// The previous content for this state key, if any.
-    pub prev_content: Option<NameEventContent>,
+    pub prev_content: Option<PowerLevelsEventContent>,
 
     /// The unique identifier for the room associated with this event.
     pub room_id: Option<RoomId>,
@@ -110,20 +107,18 @@ impl FromStr for PowerLevelsEvent {
             },
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
-            prev_content: raw
-                .prev_content
-                .map(|prev| PowerLevelsEventContent {
-                    ban: prev.ban,
-                    events: prev.events,
-                    events_default: prev.events_default,
-                    invite: prev.invite,
-                    kick: prev.kick,
-                    redact: prev.redact,
-                    state_default: prev.state_default,
-                    users: prev.users,
-                    users_default: prev.users_default,
-                    notifications: prev.notifications,
-                }),
+            prev_content: raw.prev_content.map(|prev| PowerLevelsEventContent {
+                ban: prev.ban,
+                events: prev.events,
+                events_default: prev.events_default,
+                invite: prev.invite,
+                kick: prev.kick,
+                redact: prev.redact,
+                state_default: prev.state_default,
+                users: prev.users,
+                users_default: prev.users_default,
+                notifications: prev.notifications,
+            }),
             room_id: raw.room_id,
             unsigned: raw.unsigned,
             sender: raw.sender,
@@ -141,7 +136,7 @@ impl<'a> TryFrom<&'a str> for PowerLevelsEvent {
     }
 }
 
-impl Serialize for NameEvent {
+impl Serialize for PowerLevelsEvent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -186,7 +181,11 @@ impl Serialize for NameEvent {
     }
 }
 
-impl_state_event!(PowerLevelsEvent, PowerLevelsEventContent, EventType::RoomPowerLevels);
+impl_state_event!(
+    PowerLevelsEvent,
+    PowerLevelsEventContent,
+    EventType::RoomPowerLevels
+);
 
 mod raw {
     use super::*;
@@ -205,7 +204,7 @@ mod raw {
         pub origin_server_ts: UInt,
 
         /// The previous content for this state key, if any.
-        pub prev_content: Option<NameEventContent>,
+        pub prev_content: Option<PowerLevelsEventContent>,
 
         /// The unique identifier for the room associated with this event.
         pub room_id: Option<RoomId>,
@@ -279,4 +278,46 @@ pub struct NotificationPowerLevels {
 /// Used to default power levels to 50 during deserialization.
 fn default_power_level() -> Int {
     Int::from(50)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{collections::HashMap, convert::TryFrom};
+
+    use js_int::{Int, UInt};
+    use ruma_identifiers::{EventId, UserId};
+
+    use super::{NotificationPowerLevels, PowerLevelsEvent, PowerLevelsEventContent};
+
+    #[test]
+    fn serialization_with_optional_fields_as_none() {
+        let default = Int::try_from(50).unwrap();
+
+        let power_levels_event = PowerLevelsEvent {
+            content: PowerLevelsEventContent {
+                ban: default,
+                events: HashMap::new(),
+                events_default: default,
+                invite: default,
+                kick: default,
+                redact: default,
+                state_default: default,
+                users: HashMap::new(),
+                users_default: default,
+                notifications: NotificationPowerLevels { room: default },
+            },
+            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+            origin_server_ts: UInt::try_from(1).unwrap(),
+            prev_content: None,
+            room_id: None,
+            unsigned: None,
+            sender: UserId::try_from("@carl:matrix.org").unwrap(),
+            state_key: "".to_string(),
+        };
+
+        let actual = serde_json::to_string(&power_levels_event).unwrap();
+        let expected = r#"{"content":{"ban":50,"events":{},"events_default":50,"invite":50,"kick":50,"redact":50,"state_default":50,"users":{},"users_default":50,"notifications":{"room":50}},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:matrix.org","state_key":"","type":"m.room.power_levels"}"#;
+
+        assert_eq!(actual, expected);
+    }
 }
