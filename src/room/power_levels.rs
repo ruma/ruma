@@ -285,7 +285,8 @@ mod tests {
     use std::{collections::HashMap, convert::TryFrom};
 
     use js_int::{Int, UInt};
-    use ruma_identifiers::{EventId, UserId};
+    use ruma_identifiers::{EventId, RoomId, UserId};
+    use serde_json::Value;
 
     use super::{NotificationPowerLevels, PowerLevelsEvent, PowerLevelsEventContent};
 
@@ -311,12 +312,56 @@ mod tests {
             prev_content: None,
             room_id: None,
             unsigned: None,
-            sender: UserId::try_from("@carl:matrix.org").unwrap(),
+            sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
         };
 
         let actual = serde_json::to_string(&power_levels_event).unwrap();
-        let expected = r#"{"content":{"ban":50,"events":{},"events_default":50,"invite":50,"kick":50,"redact":50,"state_default":50,"users":{},"users_default":50,"notifications":{"room":50}},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:matrix.org","state_key":"","type":"m.room.power_levels"}"#;
+        let expected = r#"{"content":{"ban":50,"events":{},"events_default":50,"invite":50,"kick":50,"redact":50,"state_default":50,"users":{},"users_default":50,"notifications":{"room":50}},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.power_levels"}"#;
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn serialization_with_all_fields() {
+        let default = Int::try_from(50).unwrap();
+
+        let power_levels_event = PowerLevelsEvent {
+            content: PowerLevelsEventContent {
+                ban: default,
+                events: HashMap::new(),
+                events_default: default,
+                invite: default,
+                kick: default,
+                redact: default,
+                state_default: default,
+                users: HashMap::new(),
+                users_default: default,
+                notifications: NotificationPowerLevels { room: default },
+            },
+            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+            origin_server_ts: UInt::try_from(1).unwrap(),
+            prev_content: Some(PowerLevelsEventContent {
+                // Make just one field different so we at least know they're two different objects.
+                ban: Int::try_from(75).unwrap(),
+                events: HashMap::new(),
+                events_default: default,
+                invite: default,
+                kick: default,
+                redact: default,
+                state_default: default,
+                users: HashMap::new(),
+                users_default: default,
+                notifications: NotificationPowerLevels { room: default },
+            }),
+            room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
+            unsigned: Some(serde_json::from_str::<Value>(r#"{"foo":"bar"}"#).unwrap()),
+            sender: UserId::try_from("@carl:example.com").unwrap(),
+            state_key: "".to_string(),
+        };
+
+        let actual = serde_json::to_string(&power_levels_event).unwrap();
+        let expected = r#"{"content":{"ban":50,"events":{},"events_default":50,"invite":50,"kick":50,"redact":50,"state_default":50,"users":{},"users_default":50,"notifications":{"room":50}},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"prev_content":{"ban":75,"events":{},"events_default":50,"invite":50,"kick":50,"redact":50,"state_default":50,"users":{},"users_default":50,"notifications":{"room":50}},"room_id":"!n8f893n9:example.com","unsigned":{"foo":"bar"},"sender":"@carl:example.com","state_key":"","type":"m.room.power_levels"}"#;
 
         assert_eq!(actual, expected);
     }

@@ -30,14 +30,14 @@ pub struct NameEvent {
     /// The unique identifier for the room associated with this event.
     pub room_id: Option<RoomId>,
 
-    /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Option<Value>,
-
     /// The unique identifier for the user who sent this event.
     pub sender: UserId,
 
     /// A key that determines which piece of room state the event represents.
     pub state_key: String,
+
+    /// Additional key-value pairs not signed by the homeserver.
+    pub unsigned: Option<Value>,
 }
 
 /// The payload for `NameEvent`.
@@ -206,7 +206,8 @@ mod tests {
     use std::convert::TryFrom;
 
     use js_int::UInt;
-    use ruma_identifiers::{EventId, UserId};
+    use ruma_identifiers::{EventId, RoomId, UserId};
+    use serde_json::Value;
 
     use super::{NameEvent, NameEventContent};
 
@@ -221,12 +222,35 @@ mod tests {
             prev_content: None,
             room_id: None,
             unsigned: None,
-            sender: UserId::try_from("@carl:matrix.org").unwrap(),
+            sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
         };
 
         let actual = serde_json::to_string(&name_event).unwrap();
-        let expected = r#"{"content":{"name":"The room name"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:matrix.org","state_key":"","type":"m.room.name"}"#;
+        let expected = r#"{"content":{"name":"The room name"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#;
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn serialization_with_all_fields() {
+        let name_event = NameEvent {
+            content: NameEventContent {
+                name: Some("The room name".to_string()),
+            },
+            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+            origin_server_ts: UInt::try_from(1).unwrap(),
+            prev_content: Some(NameEventContent {
+                name: Some("The old name".to_string()),
+            }),
+            room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
+            unsigned: Some(serde_json::from_str::<Value>(r#"{"foo":"bar"}"#).unwrap()),
+            sender: UserId::try_from("@carl:example.com").unwrap(),
+            state_key: "".to_string(),
+        };
+
+        let actual = serde_json::to_string(&name_event).unwrap();
+        let expected = r#"{"content":{"name":"The room name"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"prev_content":{"name":"The old name"},"room_id":"!n8f893n9:example.com","unsigned":{"foo":"bar"},"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#;
 
         assert_eq!(actual, expected);
     }
@@ -234,7 +258,7 @@ mod tests {
     #[test]
     fn absent_field_as_none() {
         assert_eq!(
-            r#"{"content":{},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:matrix.org","state_key":"","type":"m.room.name"}"#
+            r#"{"content":{},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
                 .parse::<NameEvent>()
                 .unwrap()
                 .content
@@ -246,7 +270,7 @@ mod tests {
     #[test]
     fn null_field_as_none() {
         assert_eq!(
-            r#"{"content":{"name":null},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:matrix.org","state_key":"","type":"m.room.name"}"#
+            r#"{"content":{"name":null},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
                 .parse::<NameEvent>()
                 .unwrap()
                 .content
@@ -258,7 +282,7 @@ mod tests {
     #[test]
     fn empty_string_as_none() {
         assert_eq!(
-            r#"{"content":{"name":""},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:matrix.org","state_key":"","type":"m.room.name"}"#
+            r#"{"content":{"name":""},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
                 .parse::<NameEvent>()
                 .unwrap()
                 .content
@@ -272,7 +296,7 @@ mod tests {
         let name = Some("The room name".to_string());
 
         assert_eq!(
-            r#"{"content":{"name":"The room name"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:matrix.org","state_key":"","type":"m.room.name"}"#
+            r#"{"content":{"name":"The room name"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
                 .parse::<NameEvent>()
                 .unwrap()
                 .content
