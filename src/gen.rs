@@ -481,11 +481,12 @@ fn populate_room_event_fields(
         /// The unique identifier for the room associated with this event.
         pub room_id: Option<ruma_identifiers::RoomId>,
 
+        /// The unique identifier for the user who sent this event.
+        pub sender: ruma_identifiers::UserId,
+
         /// Additional key-value pairs not signed by the homeserver.
         pub unsigned: Option<serde_json::Value>,
 
-        /// The unique identifier for the user who sent this event.
-        pub sender: ruma_identifiers::UserId,
     };
 
     let mut additional_fields = Vec::with_capacity(punctuated_fields.len());
