@@ -28,14 +28,14 @@ pub struct ServerAclEvent {
     /// The unique identifier for the room associated with this event.
     pub room_id: Option<RoomId>,
 
-    /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Option<Value>,
-
     /// The unique identifier for the user who sent this event.
     pub sender: UserId,
 
     /// A key that determines which piece of room state the event represents.
     pub state_key: String,
+
+    /// Additional key-value pairs not signed by the homeserver.
+    pub unsigned: Option<Value>,
 }
 
 /// The payload for `ServerAclEvent`.
