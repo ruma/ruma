@@ -40,7 +40,7 @@ pub struct CanonicalAliasEvent {
     pub unsigned: Option<Value>,
 }
 
-/// The payload of a `CanonicalAliasEvent`.
+/// The payload for `CanonicalAliasEvent`.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct CanonicalAliasEventContent {
     /// The canonical alias.
