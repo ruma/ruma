@@ -120,9 +120,9 @@ impl FromStr for PowerLevelsEvent {
                 notifications: prev.notifications,
             }),
             room_id: raw.room_id,
-            unsigned: raw.unsigned,
             sender: raw.sender,
             state_key: raw.state_key,
+            unsigned: raw.unsigned,
         })
     }
 }

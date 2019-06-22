@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 pub mod aliases;
 pub mod avatar;
-// pub mod canonical_alias;
+pub mod canonical_alias;
 // pub mod create;
 // pub mod encrypted;
 pub mod encryption;

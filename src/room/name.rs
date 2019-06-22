@@ -44,12 +44,6 @@ pub struct NameEvent {
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct NameEventContent {
     /// The name of the room. This MUST NOT exceed 255 bytes.
-    // The spec says “A room with an m.room.name event with an absent, null, or empty name field
-    // should be treated the same as a room with no m.room.name event.”.
-    // Serde maps null fields to None by default, serde(default) maps an absent field to None,
-    // and empty_string_as_none completes the handling.
-    #[serde(default)]
-    #[serde(deserialize_with = "empty_string_as_none")]
     pub(crate) name: Option<String>,
 }
 
@@ -70,9 +64,9 @@ impl FromStr for NameEvent {
                 .prev_content
                 .map(|prev| NameEventContent { name: prev.name }),
             room_id: raw.room_id,
-            unsigned: raw.unsigned,
             sender: raw.sender,
             state_key: raw.state_key,
+            unsigned: raw.unsigned,
         })
     }
 }
@@ -177,24 +171,22 @@ mod raw {
         /// The unique identifier for the room associated with this event.
         pub room_id: Option<RoomId>,
 
-        /// Additional key-value pairs not signed by the homeserver.
-        pub unsigned: Option<Value>,
-
         /// The unique identifier for the user who sent this event.
         pub sender: UserId,
 
         /// A key that determines which piece of room state the event represents.
         pub state_key: String,
+
+        /// Additional key-value pairs not signed by the homeserver.
+        pub unsigned: Option<Value>,
     }
 
     /// The payload of a `NameEvent`.
     #[derive(Clone, Debug, Deserialize, PartialEq)]
     pub struct NameEventContent {
         /// The name of the room. This MUST NOT exceed 255 bytes.
-        // The spec says “A room with an m.room.name event with an absent, null, or empty name field
-        // should be treated the same as a room with no m.room.name event.”.
-        // Serde maps null fields to None by default, serde(default) maps an absent field to None,
-        // and empty_string_as_none completes the handling.
+        // The spec says "A room with an m.room.name event with an absent, null, or empty name field
+        // should be treated the same as a room with no m.room.name event."
         #[serde(default)]
         #[serde(deserialize_with = "empty_string_as_none")]
         pub(crate) name: Option<String>,
@@ -221,9 +213,9 @@ mod tests {
             origin_server_ts: UInt::try_from(1).unwrap(),
             prev_content: None,
             room_id: None,
-            unsigned: None,
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
+            unsigned: None,
         };
 
         let actual = serde_json::to_string(&name_event).unwrap();
@@ -244,9 +236,9 @@ mod tests {
                 name: Some("The old name".to_string()),
             }),
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
-            unsigned: Some(serde_json::from_str::<Value>(r#"{"foo":"bar"}"#).unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
+            unsigned: Some(serde_json::from_str::<Value>(r#"{"foo":"bar"}"#).unwrap()),
         };
 
         let actual = serde_json::to_string(&name_event).unwrap();
