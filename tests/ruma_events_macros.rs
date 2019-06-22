@@ -1,6 +1,9 @@
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
-use serde::{de::{Error as SerdeError, Visitor}, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{
+    de::{Error as SerdeError, Visitor},
+    Deserialize, Deserializer, Serialize, Serializer,
+};
 
 /// The type of an event.
 #[derive(Clone, Debug, PartialEq)]
