@@ -451,13 +451,7 @@ fn populate_event_fields(
         }
     };
 
-    let mut additional_fields = Vec::with_capacity(punctuated_fields.len());
-
-    for punctuated_field in punctuated_fields {
-        additional_fields.push(punctuated_field.field);
-    }
-
-    fields.extend(additional_fields);
+    fields.extend(punctuated_fields.into_iter().map(|p| p.field));
 
     fields
 }
@@ -486,16 +480,9 @@ fn populate_room_event_fields(
 
         /// Additional key-value pairs not signed by the homeserver.
         pub unsigned: Option<serde_json::Value>,
-
     };
 
-    let mut additional_fields = Vec::with_capacity(punctuated_fields.len());
-
-    for punctuated_field in punctuated_fields {
-        additional_fields.push(punctuated_field.field);
-    }
-
-    fields.extend(additional_fields);
+    fields.extend(punctuated_fields.into_iter().map(|p| p.field));
 
     fields
 }
@@ -512,13 +499,7 @@ fn populate_state_fields(is_custom: bool, content_name: Ident, fields: Vec<Field
         pub state_key: String,
     };
 
-    let mut additional_fields = Vec::with_capacity(punctuated_fields.len());
-
-    for punctuated_field in punctuated_fields {
-        additional_fields.push(punctuated_field.field);
-    }
-
-    fields.extend(additional_fields);
+    fields.extend(punctuated_fields.into_iter().map(|p| p.field));
 
     fields
 }
