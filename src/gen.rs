@@ -344,6 +344,48 @@ impl ToTokens for RumaEvent {
             TokenStream::new()
         };
 
+        let impl_conversions_for_content = if let Content::Struct(content_fields) = &self.content {
+            let mut content_field_values: Vec<TokenStream> =
+                Vec::with_capacity(content_fields.len());
+
+            for content_field in content_fields {
+                let content_field_ident = content_field.ident.clone().unwrap();
+                let span = content_field.span();
+
+                let token_stream = quote_spanned! {span=>
+                    #content_field_ident: raw.#content_field_ident,
+                };
+
+                content_field_values.push(token_stream);
+            }
+
+            quote! {
+                impl std::str::FromStr for #content_name {
+                    type Err = crate::InvalidEvent;
+
+                    /// Attempt to create `Self` from parsing a string of JSON data.
+                    fn from_str(json: &str) -> Result<Self, Self::Err> {
+                        let raw = serde_json::from_str::<raw::#content_name>(json)?;
+
+                        Ok(Self {
+                            #(#content_field_values)*
+                        })
+                    }
+                }
+
+                impl<'a> std::convert::TryFrom<&'a str> for #content_name {
+                    type Error = crate::InvalidEvent;
+
+                    /// Attempt to create `Self` from parsing a string of JSON data.
+                    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
+                        std::str::FromStr::from_str(json)
+                    }
+                }
+            }
+        } else {
+            TokenStream::new()
+        };
+
         let output = quote!(
             #(#attrs)*
             #[derive(Clone, PartialEq, Debug)]
@@ -374,6 +416,8 @@ impl ToTokens for RumaEvent {
                     std::str::FromStr::from_str(json)
                 }
             }
+
+            #impl_conversions_for_content
 
             use serde::ser::SerializeStruct as _;
 
