@@ -169,13 +169,13 @@ impl Serialize for PowerLevelsEvent {
             state.serialize_field("room_id", &self.room_id)?;
         }
 
-        if self.unsigned.is_some() {
-            state.serialize_field("unsigned", &self.unsigned)?;
-        }
-
         state.serialize_field("sender", &self.sender)?;
         state.serialize_field("state_key", &self.state_key)?;
         state.serialize_field("type", &self.event_type())?;
+
+        if self.unsigned.is_some() {
+            state.serialize_field("unsigned", &self.unsigned)?;
+        }
 
         state.end()
     }
@@ -361,7 +361,7 @@ mod tests {
         };
 
         let actual = serde_json::to_string(&power_levels_event).unwrap();
-        let expected = r#"{"content":{"ban":50,"events":{},"events_default":50,"invite":50,"kick":50,"redact":50,"state_default":50,"users":{},"users_default":50,"notifications":{"room":50}},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"prev_content":{"ban":75,"events":{},"events_default":50,"invite":50,"kick":50,"redact":50,"state_default":50,"users":{},"users_default":50,"notifications":{"room":50}},"room_id":"!n8f893n9:example.com","unsigned":{"foo":"bar"},"sender":"@carl:example.com","state_key":"","type":"m.room.power_levels"}"#;
+        let expected = r#"{"content":{"ban":50,"events":{},"events_default":50,"invite":50,"kick":50,"redact":50,"state_default":50,"users":{},"users_default":50,"notifications":{"room":50}},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"prev_content":{"ban":75,"events":{},"events_default":50,"invite":50,"kick":50,"redact":50,"state_default":50,"users":{},"users_default":50,"notifications":{"room":50}},"room_id":"!n8f893n9:example.com","sender":"@carl:example.com","state_key":"","type":"m.room.power_levels","unsigned":{"foo":"bar"}}"#;
 
         assert_eq!(actual, expected);
     }

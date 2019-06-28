@@ -114,12 +114,12 @@ impl Serialize for EncryptedEvent {
             state.serialize_field("room_id", &self.room_id)?;
         }
 
+        state.serialize_field("sender", &self.sender)?;
+        state.serialize_field("type", &self.event_type())?;
+
         if self.unsigned.is_some() {
             state.serialize_field("unsigned", &self.unsigned)?;
         }
-
-        state.serialize_field("sender", &self.sender)?;
-        state.serialize_field("type", &self.event_type())?;
 
         state.end()
     }

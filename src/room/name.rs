@@ -113,13 +113,13 @@ impl Serialize for NameEvent {
             state.serialize_field("room_id", &self.room_id)?;
         }
 
-        if self.unsigned.is_some() {
-            state.serialize_field("unsigned", &self.unsigned)?;
-        }
-
         state.serialize_field("sender", &self.sender)?;
         state.serialize_field("state_key", &self.state_key)?;
         state.serialize_field("type", &self.event_type())?;
+
+        if self.unsigned.is_some() {
+            state.serialize_field("unsigned", &self.unsigned)?;
+        }
 
         state.end()
     }
@@ -242,7 +242,7 @@ mod tests {
         };
 
         let actual = serde_json::to_string(&name_event).unwrap();
-        let expected = r#"{"content":{"name":"The room name"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"prev_content":{"name":"The old name"},"room_id":"!n8f893n9:example.com","unsigned":{"foo":"bar"},"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#;
+        let expected = r#"{"content":{"name":"The room name"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"prev_content":{"name":"The old name"},"room_id":"!n8f893n9:example.com","sender":"@carl:example.com","state_key":"","type":"m.room.name","unsigned":{"foo":"bar"}}"#;
 
         assert_eq!(actual, expected);
     }
