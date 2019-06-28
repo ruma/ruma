@@ -1,17 +1,381 @@
 //! Types for the *m.room.message* event.
 
+use std::{convert::TryFrom, str::FromStr};
+
 use js_int::UInt;
-use ruma_identifiers::EventId;
-use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use ruma_identifiers::{EventId, RoomId, UserId};
+use serde::{
+    de::Error as _,
+    ser::{Error as _, SerializeStruct},
+    Deserialize, Deserializer, Serialize, Serializer,
+};
 use serde_json::{from_value, Value};
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
+use crate::{Event, EventType, InvalidEvent, InvalidInput, RoomEvent};
 
 pub mod feedback;
 
-room_event! {
+/// A message sent to a room.
+#[derive(Clone, Debug, PartialEq)]
+pub struct MessageEvent {
+    /// The event's content.
+    pub content: MessageEventContent,
+
+    /// The unique identifier for the event.
+    pub event_id: EventId,
+
+    /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
+    /// event was sent.
+    pub origin_server_ts: UInt,
+
+    /// The unique identifier for the room associated with this event.
+    pub room_id: Option<RoomId>,
+
+    /// The unique identifier for the user who sent this event.
+    pub sender: UserId,
+
+    /// Additional key-value pairs not signed by the homeserver.
+    pub unsigned: Option<Value>,
+}
+
+/// The payload for `MessageEvent`.
+#[allow(clippy::large_enum_variant)]
+#[derive(Clone, Debug, PartialEq)]
+pub enum MessageEventContent {
+    /// An audio message.
+    Audio(AudioMessageEventContent),
+
+    /// An emote message.
+    Emote(EmoteMessageEventContent),
+
+    /// A file message.
+    File(FileMessageEventContent),
+
+    /// An image message.
+    Image(ImageMessageEventContent),
+
+    /// A location message.
+    Location(LocationMessageEventContent),
+
+    /// A notice message.
+    Notice(NoticeMessageEventContent),
+
+    /// A server notice message.
+    ServerNotice(ServerNoticeMessageEventContent),
+
+    /// An text message.
+    Text(TextMessageEventContent),
+
+    /// A video message.
+    Video(VideoMessageEventContent),
+
+    /// Additional variants may be added in the future and will not be considered breaking changes
+    /// to ruma-events.
+    #[doc(hidden)]
+    __Nonexhaustive,
+}
+
+impl FromStr for MessageEvent {
+    type Err = crate::InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn from_str(json: &str) -> Result<Self, Self::Err> {
+        let raw = serde_json::from_str::<raw::MessageEvent>(json)?;
+
+        Ok(Self {
+            content: match raw.content {
+                raw::MessageEventContent::Audio(content) => MessageEventContent::Audio(content),
+                raw::MessageEventContent::Emote(content) => MessageEventContent::Emote(content),
+                raw::MessageEventContent::File(content) => MessageEventContent::File(content),
+                raw::MessageEventContent::Image(content) => MessageEventContent::Image(content),
+                raw::MessageEventContent::Location(content) => {
+                    MessageEventContent::Location(content)
+                }
+                raw::MessageEventContent::Notice(content) => MessageEventContent::Notice(content),
+                raw::MessageEventContent::ServerNotice(content) => {
+                    MessageEventContent::ServerNotice(content)
+                }
+                raw::MessageEventContent::Text(content) => MessageEventContent::Text(content),
+                raw::MessageEventContent::Video(content) => MessageEventContent::Video(content),
+                raw::MessageEventContent::__Nonexhaustive => {
+                    panic!("__Nonexhaustive enum variant is not intended for use.")
+                }
+            },
+            event_id: raw.event_id,
+            origin_server_ts: raw.origin_server_ts,
+            room_id: raw.room_id,
+            sender: raw.sender,
+            unsigned: raw.unsigned,
+        })
+    }
+}
+
+impl<'a> TryFrom<&'a str> for MessageEvent {
+    type Error = InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
+        FromStr::from_str(json)
+    }
+}
+
+impl Serialize for MessageEvent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut len = 5;
+
+        if self.room_id.is_some() {
+            len += 1;
+        }
+
+        if self.unsigned.is_some() {
+            len += 1;
+        }
+
+        let mut state = serializer.serialize_struct("MessageEvent", len)?;
+
+        state.serialize_field("content", &self.content)?;
+        state.serialize_field("event_id", &self.event_id)?;
+        state.serialize_field("origin_server_ts", &self.origin_server_ts)?;
+
+        if self.room_id.is_some() {
+            state.serialize_field("room_id", &self.room_id)?;
+        }
+
+        state.serialize_field("sender", &self.sender)?;
+        state.serialize_field("type", &self.event_type())?;
+
+        if self.unsigned.is_some() {
+            state.serialize_field("unsigned", &self.unsigned)?;
+        }
+
+        state.end()
+    }
+}
+
+impl_room_event!(MessageEvent, MessageEventContent, EventType::RoomMessage);
+
+impl Serialize for MessageEventContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match *self {
+            MessageEventContent::Audio(ref content) => content.serialize(serializer),
+            MessageEventContent::Emote(ref content) => content.serialize(serializer),
+            MessageEventContent::File(ref content) => content.serialize(serializer),
+            MessageEventContent::Image(ref content) => content.serialize(serializer),
+            MessageEventContent::Location(ref content) => content.serialize(serializer),
+            MessageEventContent::Notice(ref content) => content.serialize(serializer),
+            MessageEventContent::ServerNotice(ref content) => content.serialize(serializer),
+            MessageEventContent::Text(ref content) => content.serialize(serializer),
+            MessageEventContent::Video(ref content) => content.serialize(serializer),
+            MessageEventContent::__Nonexhaustive => Err(S::Error::custom(
+                "Attempted to deserialize __Nonexhaustive variant.",
+            )),
+        }
+    }
+}
+
+impl FromStr for MessageEventContent {
+    type Err = InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn from_str(json: &str) -> Result<Self, Self::Err> {
+        let raw = serde_json::from_str::<raw::MessageEventContent>(json)?;
+
+        match raw {
+            raw::MessageEventContent::Audio(content) => Ok(MessageEventContent::Audio(content)),
+            raw::MessageEventContent::Emote(content) => Ok(MessageEventContent::Emote(content)),
+            raw::MessageEventContent::File(content) => Ok(MessageEventContent::File(content)),
+            raw::MessageEventContent::Image(content) => Ok(MessageEventContent::Image(content)),
+            raw::MessageEventContent::Location(content) => {
+                Ok(MessageEventContent::Location(content))
+            }
+            raw::MessageEventContent::Notice(content) => Ok(MessageEventContent::Notice(content)),
+            raw::MessageEventContent::ServerNotice(content) => {
+                Ok(MessageEventContent::ServerNotice(content))
+            }
+            raw::MessageEventContent::Text(content) => Ok(MessageEventContent::Text(content)),
+            raw::MessageEventContent::Video(content) => Ok(MessageEventContent::Video(content)),
+            raw::MessageEventContent::__Nonexhaustive => {
+                panic!("__Nonexhaustive enum variant is not intended for use.")
+            }
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a str> for MessageEventContent {
+    type Error = InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
+        FromStr::from_str(json)
+    }
+}
+
+mod raw {
+    use super::*;
+
     /// A message sent to a room.
-    pub struct MessageEvent(MessageEventContent) {}
+    #[derive(Clone, Debug, Deserialize, PartialEq)]
+    pub struct MessageEvent {
+        /// The event's content.
+        pub content: MessageEventContent,
+
+        /// The unique identifier for the event.
+        pub event_id: EventId,
+
+        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
+        /// event was sent.
+        pub origin_server_ts: UInt,
+
+        /// The unique identifier for the room associated with this event.
+        pub room_id: Option<RoomId>,
+
+        /// The unique identifier for the user who sent this event.
+        pub sender: UserId,
+
+        /// Additional key-value pairs not signed by the homeserver.
+        pub unsigned: Option<Value>,
+    }
+
+    /// The payload for `MessageEvent`.
+    #[allow(clippy::large_enum_variant)]
+    #[derive(Clone, Debug, PartialEq)]
+    pub enum MessageEventContent {
+        /// An audio message.
+        Audio(AudioMessageEventContent),
+
+        /// An emote message.
+        Emote(EmoteMessageEventContent),
+
+        /// A file message.
+        File(FileMessageEventContent),
+
+        /// An image message.
+        Image(ImageMessageEventContent),
+
+        /// A location message.
+        Location(LocationMessageEventContent),
+
+        /// A notice message.
+        Notice(NoticeMessageEventContent),
+
+        /// A server notice message.
+        ServerNotice(ServerNoticeMessageEventContent),
+
+        /// An text message.
+        Text(TextMessageEventContent),
+
+        /// A video message.
+        Video(VideoMessageEventContent),
+
+        /// Additional variants may be added in the future and will not be considered breaking changes
+        /// to ruma-events.
+        #[doc(hidden)]
+        __Nonexhaustive,
+    }
+
+    impl<'de> Deserialize<'de> for MessageEventContent {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            let value: Value = Deserialize::deserialize(deserializer)?;
+
+            let message_type_value = match value.get("msgtype") {
+                Some(value) => value.clone(),
+                None => return Err(D::Error::missing_field("msgtype")),
+            };
+
+            let message_type = match from_value::<MessageType>(message_type_value.clone()) {
+                Ok(message_type) => message_type,
+                Err(error) => return Err(D::Error::custom(error.to_string())),
+            };
+
+            match message_type {
+                MessageType::Audio => {
+                    let content = match from_value::<AudioMessageEventContent>(value) {
+                        Ok(content) => content,
+                        Err(error) => return Err(D::Error::custom(error.to_string())),
+                    };
+
+                    Ok(MessageEventContent::Audio(content))
+                }
+                MessageType::Emote => {
+                    let content = match from_value::<EmoteMessageEventContent>(value) {
+                        Ok(content) => content,
+                        Err(error) => return Err(D::Error::custom(error.to_string())),
+                    };
+
+                    Ok(MessageEventContent::Emote(content))
+                }
+                MessageType::File => {
+                    let content = match from_value::<FileMessageEventContent>(value) {
+                        Ok(content) => content,
+                        Err(error) => return Err(D::Error::custom(error.to_string())),
+                    };
+
+                    Ok(MessageEventContent::File(content))
+                }
+                MessageType::Image => {
+                    let content = match from_value::<ImageMessageEventContent>(value) {
+                        Ok(content) => content,
+                        Err(error) => return Err(D::Error::custom(error.to_string())),
+                    };
+
+                    Ok(MessageEventContent::Image(content))
+                }
+                MessageType::Location => {
+                    let content = match from_value::<LocationMessageEventContent>(value) {
+                        Ok(content) => content,
+                        Err(error) => return Err(D::Error::custom(error.to_string())),
+                    };
+
+                    Ok(MessageEventContent::Location(content))
+                }
+                MessageType::Notice => {
+                    let content = match from_value::<NoticeMessageEventContent>(value) {
+                        Ok(content) => content,
+                        Err(error) => return Err(D::Error::custom(error.to_string())),
+                    };
+
+                    Ok(MessageEventContent::Notice(content))
+                }
+                MessageType::ServerNotice => {
+                    let content = match from_value::<ServerNoticeMessageEventContent>(value) {
+                        Ok(content) => content,
+                        Err(error) => return Err(D::Error::custom(error.to_string())),
+                    };
+
+                    Ok(MessageEventContent::ServerNotice(content))
+                }
+                MessageType::Text => {
+                    let content = match from_value::<TextMessageEventContent>(value) {
+                        Ok(content) => content,
+                        Err(error) => return Err(D::Error::custom(error.to_string())),
+                    };
+
+                    Ok(MessageEventContent::Text(content))
+                }
+                MessageType::Video => {
+                    let content = match from_value::<VideoMessageEventContent>(value) {
+                        Ok(content) => content,
+                        Err(error) => return Err(D::Error::custom(error.to_string())),
+                    };
+
+                    Ok(MessageEventContent::Video(content))
+                }
+                MessageType::__Nonexhaustive => Err(D::Error::custom(
+                    "Attempted to deserialize __Nonexhaustive variant.",
+                )),
+            }
+        }
+    }
 }
 
 /// The message type of message event, e.g. `m.image` or `m.text`.
@@ -60,40 +424,8 @@ pub enum MessageType {
     __Nonexhaustive,
 }
 
-/// The payload of a message event.
-#[allow(clippy::large_enum_variant)]
-#[derive(Clone, Debug, PartialEq)]
-pub enum MessageEventContent {
-    /// An audio message.
-    Audio(AudioMessageEventContent),
-
-    /// An emote message.
-    Emote(EmoteMessageEventContent),
-
-    /// A file message.
-    File(FileMessageEventContent),
-
-    /// An image message.
-    Image(ImageMessageEventContent),
-
-    /// A location message.
-    Location(LocationMessageEventContent),
-
-    /// A notice message.
-    Notice(NoticeMessageEventContent),
-
-    /// A server notice message.
-    ServerNotice(ServerNoticeMessageEventContent),
-
-    /// An text message.
-    Text(TextMessageEventContent),
-
-    /// A video message.
-    Video(VideoMessageEventContent),
-}
-
-/// The payload of an audio message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+/// The payload for an audio message.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct AudioMessageEventContent {
     /// The textual representation of this message.
     pub body: String,
@@ -101,9 +433,6 @@ pub struct AudioMessageEventContent {
     /// Metadata for the audio clip referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<AudioInfo>,
-
-    /// The message type. Always *m.audio*.
-    pub msgtype: MessageType,
 
     /// The URL to the audio clip. Required if the file is unencrypted. The URL (typically
     /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to the audio clip.
@@ -131,14 +460,11 @@ pub struct AudioInfo {
     pub size: Option<UInt>,
 }
 
-/// The payload of an emote message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+/// The payload for an emote message.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct EmoteMessageEventContent {
     /// The emote action to perform.
     pub body: String,
-
-    /// The message type. Always *m.emote*.
-    pub msgtype: MessageType,
 
     /// The format used in the `formatted_body`. Currently only `org.matrix.custom.html` is
     /// supported.
@@ -150,8 +476,8 @@ pub struct EmoteMessageEventContent {
     pub formatted_body: Option<String>,
 }
 
-/// The payload of a file message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+/// The payload for a file message.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct FileMessageEventContent {
     /// A human-readable description of the file. This is recommended to be the filename of the
     /// original upload.
@@ -164,9 +490,6 @@ pub struct FileMessageEventContent {
     /// Metadata about the file referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<FileInfo>,
-
-    /// The message type. Always *m.file*.
-    pub msgtype: MessageType,
 
     /// The URL to the file. Required if the file is unencrypted. The URL (typically
     /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to the file.
@@ -200,8 +523,8 @@ pub struct FileInfo {
     pub thumbnail_file: Option<EncryptedFile>,
 }
 
-/// The payload of an image message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+/// The payload for an image message.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct ImageMessageEventContent {
     /// A textual representation of the image. This could be the alt text of the image, the filename
     /// of the image, or some kind of content description for accessibility e.g. "image attachment."
@@ -210,9 +533,6 @@ pub struct ImageMessageEventContent {
     /// Metadata about the image referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<ImageInfo>,
-
-    /// The message type. Always *m.image*.
-    pub msgtype: MessageType,
 
     /// The URL to the image.  Required if the file is unencrypted. The URL (typically
     /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to the image.
@@ -223,8 +543,8 @@ pub struct ImageMessageEventContent {
     pub file: Option<EncryptedFile>,
 }
 
-/// The payload of a location message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+/// The payload for a location message.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct LocationMessageEventContent {
     /// A description of the location e.g. "Big Ben, London, UK,"or some kind of content description
     /// for accessibility, e.g. "location attachment."
@@ -232,9 +552,6 @@ pub struct LocationMessageEventContent {
 
     /// A geo URI representing the location.
     pub geo_uri: String,
-
-    /// The message type. Always *m.location*.
-    pub msgtype: MessageType,
 
     /// Info about the location being represented.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -259,14 +576,11 @@ pub struct LocationInfo {
     pub thumbnail_file: Option<EncryptedFile>,
 }
 
-/// The payload of a notice message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+/// The payload for a notice message.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct NoticeMessageEventContent {
     /// The notice text to send.
     pub body: String,
-
-    /// The message type. Always *m.notice*.
-    pub msgtype: MessageType,
 
     /// Information about related messages for
     /// [rich replies](https://matrix.org/docs/spec/client_server/r0.5.0#rich-replies).
@@ -275,14 +589,11 @@ pub struct NoticeMessageEventContent {
     pub relates_to: Option<RelatesTo>,
 }
 
-/// The payload of a server notice message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+/// The payload for a server notice message.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct ServerNoticeMessageEventContent {
     /// A human-readable description of the notice.
     pub body: String,
-
-    /// The message type. Always *m.server_notice*.
-    pub msgtype: MessageType,
 
     /// The type of notice being represented.
     pub server_notice_type: ServerNoticeType,
@@ -304,6 +615,12 @@ pub enum ServerNoticeType {
     /// The server has exceeded some limit which requires the server administrator to intervene.
     #[serde(rename = "m.server_notice.usage_limit_reached")]
     UsageLimitReached,
+
+    /// Additional variants may be added in the future and will not be considered breaking changes
+    /// to ruma-events.
+    #[doc(hidden)]
+    #[serde(skip)]
+    __Nonexhaustive,
 }
 
 /// Types of usage limits.
@@ -315,16 +632,19 @@ pub enum LimitType {
     /// implementation detail, however servers are encouraged to treat syncing users as "active".
     #[serde(rename = "monthly_active_user")]
     MonthlyActiveUser,
+
+    /// Additional variants may be added in the future and will not be considered breaking changes
+    /// to ruma-events.
+    #[doc(hidden)]
+    #[serde(skip)]
+    __Nonexhaustive,
 }
 
-/// The payload of a text message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+/// The payload for a text message.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct TextMessageEventContent {
     /// The body of the message.
     pub body: String,
-
-    /// The message type. Always *m.text*.
-    pub msgtype: MessageType,
 
     /// The format used in the `formatted_body`. Currently only `org.matrix.custom.html` is
     /// supported.
@@ -342,8 +662,8 @@ pub struct TextMessageEventContent {
     pub relates_to: Option<RelatesTo>,
 }
 
-/// The payload of a video message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+/// The payload for a video message.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct VideoMessageEventContent {
     /// A description of the video, e.g. "Gangnam Style," or some kind of content description for
     /// accessibility, e.g. "video attachment."
@@ -352,9 +672,6 @@ pub struct VideoMessageEventContent {
     /// Metadata about the video clip referred to in `url`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<VideoInfo>,
-
-    /// The message type. Always *m.video*.
-    pub msgtype: MessageType,
 
     /// The URL to the video clip.  Required if the file is unencrypted. The URL (typically
     /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to the video clip.
@@ -434,125 +751,335 @@ impl_enum! {
     }
 }
 
-impl Serialize for MessageEventContent {
+impl Serialize for AudioMessageEventContent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        match *self {
-            MessageEventContent::Audio(ref content) => content.serialize(serializer),
-            MessageEventContent::Emote(ref content) => content.serialize(serializer),
-            MessageEventContent::File(ref content) => content.serialize(serializer),
-            MessageEventContent::Image(ref content) => content.serialize(serializer),
-            MessageEventContent::Location(ref content) => content.serialize(serializer),
-            MessageEventContent::Notice(ref content) => content.serialize(serializer),
-            MessageEventContent::ServerNotice(ref content) => content.serialize(serializer),
-            MessageEventContent::Text(ref content) => content.serialize(serializer),
-            MessageEventContent::Video(ref content) => content.serialize(serializer),
+        let mut len = 2;
+
+        if self.info.is_some() {
+            len += 1;
         }
+
+        if self.url.is_some() {
+            len += 1;
+        }
+
+        if self.file.is_some() {
+            len += 1;
+        }
+
+        let mut state = serializer.serialize_struct("AudioMessageEventContent", len)?;
+
+        state.serialize_field("body", &self.body)?;
+
+        if self.info.is_some() {
+            state.serialize_field("info", &self.info)?;
+        }
+
+        state.serialize_field("msgtype", "m.audio")?;
+
+        if self.url.is_some() {
+            state.serialize_field("url", &self.url)?;
+        }
+
+        if self.file.is_some() {
+            state.serialize_field("file", &self.file)?;
+        }
+
+        state.end()
     }
 }
 
-impl<'de> Deserialize<'de> for MessageEventContent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+impl Serialize for EmoteMessageEventContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        D: Deserializer<'de>,
+        S: Serializer,
     {
-        let value: Value = Deserialize::deserialize(deserializer)?;
+        let mut len = 2;
 
-        let message_type_value = match value.get("msgtype") {
-            Some(value) => value.clone(),
-            None => return Err(D::Error::missing_field("msgtype")),
-        };
-
-        let message_type = match from_value::<MessageType>(message_type_value.clone()) {
-            Ok(message_type) => message_type,
-            Err(error) => return Err(D::Error::custom(error.to_string())),
-        };
-
-        match message_type {
-            MessageType::Audio => {
-                let content = match from_value::<AudioMessageEventContent>(value) {
-                    Ok(content) => content,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(MessageEventContent::Audio(content))
-            }
-            MessageType::Emote => {
-                let content = match from_value::<EmoteMessageEventContent>(value) {
-                    Ok(content) => content,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(MessageEventContent::Emote(content))
-            }
-            MessageType::File => {
-                let content = match from_value::<FileMessageEventContent>(value) {
-                    Ok(content) => content,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(MessageEventContent::File(content))
-            }
-            MessageType::Image => {
-                let content = match from_value::<ImageMessageEventContent>(value) {
-                    Ok(content) => content,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(MessageEventContent::Image(content))
-            }
-            MessageType::Location => {
-                let content = match from_value::<LocationMessageEventContent>(value) {
-                    Ok(content) => content,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(MessageEventContent::Location(content))
-            }
-            MessageType::Notice => {
-                let content = match from_value::<NoticeMessageEventContent>(value) {
-                    Ok(content) => content,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(MessageEventContent::Notice(content))
-            }
-            MessageType::ServerNotice => {
-                let content = match from_value::<ServerNoticeMessageEventContent>(value) {
-                    Ok(content) => content,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(MessageEventContent::ServerNotice(content))
-            }
-            MessageType::Text => {
-                let content = match from_value::<TextMessageEventContent>(value) {
-                    Ok(content) => content,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(MessageEventContent::Text(content))
-            }
-            MessageType::Video => {
-                let content = match from_value::<VideoMessageEventContent>(value) {
-                    Ok(content) => content,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(MessageEventContent::Video(content))
-            }
-            MessageType::__Nonexhaustive => Err(D::Error::custom(
-                "Attempted to deserialize __Nonexhaustive variant.",
-            )),
+        if self.format.is_some() {
+            len += 1;
         }
+
+        if self.formatted_body.is_some() {
+            len += 1;
+        }
+
+        let mut state = serializer.serialize_struct("EmoteMessageEventContent", len)?;
+
+        state.serialize_field("body", &self.body)?;
+
+        if self.format.is_some() {
+            state.serialize_field("format", &self.format)?;
+        }
+
+        if self.formatted_body.is_some() {
+            state.serialize_field("formatted_body", &self.formatted_body)?;
+        }
+
+        state.serialize_field("msgtype", "m.emote")?;
+
+        state.end()
+    }
+}
+
+impl Serialize for FileMessageEventContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut len = 2;
+
+        if self.filename.is_some() {
+            len += 1;
+        }
+
+        if self.info.is_some() {
+            len += 1;
+        }
+
+        if self.url.is_some() {
+            len += 1;
+        }
+
+        if self.file.is_some() {
+            len += 1;
+        }
+
+        let mut state = serializer.serialize_struct("FileMessageEventContent", len)?;
+
+        state.serialize_field("body", &self.body)?;
+
+        if self.filename.is_some() {
+            state.serialize_field("filename", &self.filename)?;
+        }
+
+        state.serialize_field("msgtype", "m.file")?;
+
+        if self.info.is_some() {
+            state.serialize_field("info", &self.info)?;
+        }
+
+        if self.url.is_some() {
+            state.serialize_field("url", &self.url)?;
+        }
+
+        if self.file.is_some() {
+            state.serialize_field("file", &self.file)?;
+        }
+
+        state.end()
+    }
+}
+
+impl Serialize for ImageMessageEventContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut len = 2;
+
+        if self.info.is_some() {
+            len += 1;
+        }
+
+        if self.url.is_some() {
+            len += 1;
+        }
+
+        if self.file.is_some() {
+            len += 1;
+        }
+
+        let mut state = serializer.serialize_struct("ImageMessageEventContent", len)?;
+
+        state.serialize_field("body", &self.body)?;
+        state.serialize_field("msgtype", "m.image")?;
+
+        if self.info.is_some() {
+            state.serialize_field("info", &self.info)?;
+        }
+
+        if self.url.is_some() {
+            state.serialize_field("url", &self.url)?;
+        }
+
+        if self.file.is_some() {
+            state.serialize_field("file", &self.file)?;
+        }
+
+        state.end()
+    }
+}
+
+impl Serialize for LocationMessageEventContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut len = 3;
+
+        if self.info.is_some() {
+            len += 1;
+        }
+
+        let mut state = serializer.serialize_struct("LocationMessageEventContent", len)?;
+
+        state.serialize_field("body", &self.body)?;
+        state.serialize_field("geo_uri", &self.geo_uri)?;
+        state.serialize_field("msgtype", "m.location")?;
+
+        if self.info.is_some() {
+            state.serialize_field("info", &self.info)?;
+        }
+
+        state.end()
+    }
+}
+
+impl Serialize for NoticeMessageEventContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut len = 2;
+
+        if self.relates_to.is_some() {
+            len += 1;
+        }
+
+        let mut state = serializer.serialize_struct("NoticeMessageEventContent", len)?;
+
+        state.serialize_field("body", &self.body)?;
+        state.serialize_field("msgtype", "m.notice")?;
+
+        if self.relates_to.is_some() {
+            state.serialize_field("relates_to", &self.relates_to)?;
+        }
+
+        state.end()
+    }
+}
+
+impl Serialize for ServerNoticeMessageEventContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut len = 3;
+
+        if self.admin_contact.is_some() {
+            len += 1;
+        }
+
+        if self.limit_type.is_some() {
+            len += 1;
+        }
+
+        let mut state = serializer.serialize_struct("ServerNoticeMessageEventContent", len)?;
+
+        state.serialize_field("body", &self.body)?;
+        state.serialize_field("msgtype", "m.server_notice")?;
+        state.serialize_field("server_notice_type", &self.server_notice_type)?;
+
+        if self.admin_contact.is_some() {
+            state.serialize_field("admin_contact", &self.admin_contact)?;
+        }
+
+        if self.limit_type.is_some() {
+            state.serialize_field("limit_type", &self.limit_type)?;
+        }
+
+        state.end()
+    }
+}
+
+impl Serialize for TextMessageEventContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut len = 2;
+
+        if self.format.is_some() {
+            len += 1;
+        }
+
+        if self.formatted_body.is_some() {
+            len += 1;
+        }
+
+        if self.relates_to.is_some() {
+            len += 1;
+        }
+
+        let mut state = serializer.serialize_struct("TextMessageEventContent", len)?;
+
+        state.serialize_field("body", &self.body)?;
+
+        if self.format.is_some() {
+            state.serialize_field("format", &self.format)?;
+        }
+
+        if self.formatted_body.is_some() {
+            state.serialize_field("formatted_body", &self.formatted_body)?;
+        }
+
+        state.serialize_field("msgtype", "m.text")?;
+
+        if self.relates_to.is_some() {
+            state.serialize_field("relates_to", &self.relates_to)?;
+        }
+
+        state.end()
+    }
+}
+
+impl Serialize for VideoMessageEventContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut len = 2;
+
+        if self.info.is_some() {
+            len += 1;
+        }
+
+        if self.url.is_some() {
+            len += 1;
+        }
+
+        if self.file.is_some() {
+            len += 1;
+        }
+
+        let mut state = serializer.serialize_struct("VideoMessageEventContent", len)?;
+
+        state.serialize_field("body", &self.body)?;
+        state.serialize_field("msgtype", "m.video")?;
+
+        if self.info.is_some() {
+            state.serialize_field("info", &self.info)?;
+        }
+
+        if self.url.is_some() {
+            state.serialize_field("url", &self.url)?;
+        }
+
+        if self.file.is_some() {
+            state.serialize_field("file", &self.file)?;
+        }
+
+        state.end()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_str, to_string};
+    use serde_json::to_string;
 
     use super::{AudioMessageEventContent, MessageEventContent, MessageType};
 
@@ -561,7 +1088,6 @@ mod tests {
         let message_event_content = MessageEventContent::Audio(AudioMessageEventContent {
             body: "test".to_string(),
             info: None,
-            msgtype: MessageType::Audio,
             url: Some("http://example.com/audio.mp3".to_string()),
             file: None,
         });
@@ -577,25 +1103,24 @@ mod tests {
         let message_event_content = MessageEventContent::Audio(AudioMessageEventContent {
             body: "test".to_string(),
             info: None,
-            msgtype: MessageType::Audio,
             url: Some("http://example.com/audio.mp3".to_string()),
             file: None,
         });
 
         assert_eq!(
-            from_str::<MessageEventContent>(
-                r#"{"body":"test","msgtype":"m.audio","url":"http://example.com/audio.mp3"}"#
-            )
-            .unwrap(),
+            r#"{"body":"test","msgtype":"m.audio","url":"http://example.com/audio.mp3"}"#
+                .parse::<MessageEventContent>()
+                .unwrap(),
             message_event_content
         );
     }
 
     #[test]
     fn deserialization_failure() {
-        assert!(from_str::<MessageEventContent>(
+        assert!(
             r#"{"body":"test","msgtype":"m.location","url":"http://example.com/audio.mp3"}"#
-        )
-        .is_err());
+                .parse::<MessageEventContent>()
+                .is_err()
+        );
     }
 }
