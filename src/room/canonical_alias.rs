@@ -147,6 +147,39 @@ impl_state_event!(
     EventType::RoomCanonicalAlias
 );
 
+impl FromStr for CanonicalAliasEventContent {
+    type Err = InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn from_str(json: &str) -> Result<Self, Self::Err> {
+        let raw = match serde_json::from_str::<raw::CanonicalAliasEventContent>(json) {
+            Ok(raw) => raw,
+            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+                Ok(value) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: error.to_string(),
+                    }));
+                }
+                Err(error) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+                }
+            },
+        };
+
+        Ok(Self { alias: raw.alias })
+    }
+}
+
+impl<'a> TryFrom<&'a str> for CanonicalAliasEventContent {
+    type Error = InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
+        FromStr::from_str(json)
+    }
+}
+
 mod raw {
     use super::*;
 

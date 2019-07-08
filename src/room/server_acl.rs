@@ -133,61 +133,46 @@ impl Serialize for ServerAclEvent {
     }
 }
 
-impl Event for ServerAclEvent {
-    /// The type of this event's `content` field.
-    type Content = ServerAclEventContent;
+impl_state_event!(
+    ServerAclEvent,
+    ServerAclEventContent,
+    EventType::RoomServerAcl
+);
 
-    /// The event's content.
-    fn content(&self) -> &Self::Content {
-        &self.content
-    }
+impl FromStr for ServerAclEventContent {
+    type Err = InvalidEvent;
 
-    /// The type of the event.
-    fn event_type(&self) -> EventType {
-        EventType::RoomServerAcl
-    }
-}
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn from_str(json: &str) -> Result<Self, Self::Err> {
+        let raw = match serde_json::from_str::<raw::ServerAclEventContent>(json) {
+            Ok(raw) => raw,
+            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+                Ok(value) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: error.to_string(),
+                    }));
+                }
+                Err(error) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+                }
+            },
+        };
 
-impl RoomEvent for ServerAclEvent {
-    /// The unique identifier for the event.
-    fn event_id(&self) -> &EventId {
-        &self.event_id
-    }
-
-    /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this event was
-    /// sent.
-    fn origin_server_ts(&self) -> UInt {
-        self.origin_server_ts
-    }
-
-    /// The unique identifier for the room associated with this event.
-    ///
-    /// This can be `None` if the event came from a context where there is
-    /// no ambiguity which room it belongs to, like a `/sync` response for example.
-    fn room_id(&self) -> Option<&RoomId> {
-        self.room_id.as_ref()
-    }
-
-    /// The unique identifier for the user who sent this event.
-    fn sender(&self) -> &UserId {
-        &self.sender
-    }
-
-    /// Additional key-value pairs not signed by the homeserver.
-    fn unsigned(&self) -> Option<&Value> {
-        self.unsigned.as_ref()
+        Ok(Self {
+            allow_ip_literals: raw.allow_ip_literals,
+            allow: raw.allow,
+            deny: raw.deny,
+        })
     }
 }
 
-impl StateEvent for ServerAclEvent {
-    /// The previous content for this state key, if any.
-    fn prev_content(&self) -> Option<&Self::Content> {
-        self.prev_content.as_ref()
-    }
+impl<'a> TryFrom<&'a str> for ServerAclEventContent {
+    type Error = InvalidEvent;
 
-    /// A key that determines which piece of room state the event represents.
-    fn state_key(&self) -> &str {
-        &self.state_key
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
+        FromStr::from_str(json)
     }
 }
 
