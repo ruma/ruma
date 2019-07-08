@@ -126,13 +126,34 @@ pub trait StateEvent: RoomEvent {
     fn state_key(&self) -> &str;
 }
 
+/// An event that is malformed or otherwise invalid.
+///
+/// When attempting to create an event from a string of JSON data, an error in the input data may
+/// cause deserialization to fail, or the JSON structure may not corresponded to ruma-events's
+/// strict definition of the event's schema. If deserialization completely fails, this type will
+/// provide a message with details about the deserialization error. If deserialization succeeds but
+/// the event is otherwise invalid, a similar message will be provided, as well as a
+/// `serde_json::Value` containing the raw JSON data as it was deserialized.
 #[derive(Debug)]
-pub struct InvalidEvent;
+pub struct InvalidEvent(InnerInvalidEvent);
 
-impl From<serde_json::Error> for InvalidEvent {
-    fn from(_: serde_json::Error) -> Self {
-        Self
-    }
+/// An event that is malformed or otherwise invalid.
+#[derive(Debug)]
+enum InnerInvalidEvent {
+    /// An event that failed to deserialize from JSON.
+    Deserialization {
+        /// The deserialization error returned by serde.
+        error: serde_json::Error,
+    },
+
+    /// An event that deserialized but failed validation.
+    Validation {
+        /// The raw `serde_json::Value` representation of the invalid event.
+        json: serde_json::Value,
+
+        /// An message describing why the event was invalid.
+        message: String,
+    },
 }
 
 // See note about wrapping macro expansion in a module from `src/lib.rs`
