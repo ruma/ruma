@@ -161,6 +161,21 @@ impl<'a> TryFrom<&'a str> for EncryptedEventContent {
     }
 }
 
+impl Serialize for EncryptedEventContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match *self {
+            EncryptedEventContent::OlmV1Curve25519AesSha2(ref content) => {
+                content.serialize(serializer)
+            }
+            EncryptedEventContent::MegolmV1AesSha2(ref content) => content.serialize(serializer),
+            _ => panic!("Attempted to serialize __Nonexhaustive variant."),
+        }
+    }
+}
+
 mod raw {
     use super::*;
 
@@ -203,23 +218,6 @@ mod raw {
         /// changes to ruma-events.
         #[doc(hidden)]
         __Nonexhaustive,
-    }
-
-    impl Serialize for EncryptedEventContent {
-        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
-        {
-            match *self {
-                EncryptedEventContent::OlmV1Curve25519AesSha2(ref content) => {
-                    content.serialize(serializer)
-                }
-                EncryptedEventContent::MegolmV1AesSha2(ref content) => {
-                    content.serialize(serializer)
-                }
-                _ => panic!("Attempted to serialize __Nonexhaustive variant."),
-            }
-        }
     }
 
     impl<'de> Deserialize<'de> for EncryptedEventContent {
@@ -310,21 +308,6 @@ pub struct MegolmV1AesSha2Content {
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,
-}
-
-impl Serialize for EncryptedEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match *self {
-            EncryptedEventContent::OlmV1Curve25519AesSha2(ref content) => {
-                content.serialize(serializer)
-            }
-            EncryptedEventContent::MegolmV1AesSha2(ref content) => content.serialize(serializer),
-            _ => panic!("Attempted to serialize __Nonexhaustive variant."),
-        }
-    }
 }
 
 #[cfg(test)]
