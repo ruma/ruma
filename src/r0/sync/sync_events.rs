@@ -67,6 +67,7 @@ pub enum SetPresence {
 
 /// A filter represented either as its full JSON definition or the ID of a saved filter.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[allow(clippy::large_enum_variant)]
 #[serde(untagged)]
 pub enum Filter {
     // The filter definition needs to be (de)serialized twice because it is a URL-encoded JSON
@@ -81,7 +82,7 @@ pub enum Filter {
     // (there are probably some corner cases like leading whitespace)
     #[serde(with = "filter_def_serde")]
     /// A complete filter definition serialized to JSON.
-    FilterDefinition(Box<FilterDefinition>),
+    FilterDefinition(FilterDefinition),
     /// The ID of a filter saved on the server.
     FilterId(String),
 }
@@ -102,14 +103,13 @@ mod filter_def_serde {
     }
 
     /// Deserialization logic for filter definitions.
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<Box<FilterDefinition>, D::Error>
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<FilterDefinition, D::Error>
     where
         D: Deserializer<'de>,
     {
         let filter_str = <&str>::deserialize(deserializer)?;
-        serde_json::from_str(filter_str)
-            .map(Box::new)
-            .map_err(D::Error::custom)
+
+        serde_json::from_str(filter_str).map_err(D::Error::custom)
     }
 }
 
