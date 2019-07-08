@@ -7,7 +7,7 @@ use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
 use serde::{de::Error, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
-use crate::{Algorithm, Event, EventType, InvalidEvent, RoomEvent, StateEvent};
+use crate::{Algorithm, Event, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent, StateEvent};
 
 /// This event type is used when sending encrypted events.
 ///
@@ -55,7 +55,20 @@ impl FromStr for EncryptedEvent {
 
     /// Attempt to create `Self` from parsing a string of JSON data.
     fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = serde_json::from_str::<raw::EncryptedEvent>(json)?;
+        let raw = match serde_json::from_str::<raw::EncryptedEvent>(json) {
+            Ok(raw) => raw,
+            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+                Ok(value) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: error.to_string(),
+                    }));
+                }
+                Err(error) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+                }
+            },
+        };
 
         let content = match raw.content {
             raw::EncryptedEventContent::OlmV1Curve25519AesSha2(content) => {
@@ -136,7 +149,20 @@ impl FromStr for EncryptedEventContent {
 
     /// Attempt to create `Self` from parsing a string of JSON data.
     fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = serde_json::from_str::<raw::EncryptedEventContent>(json)?;
+        let raw = match serde_json::from_str::<raw::EncryptedEventContent>(json) {
+            Ok(raw) => raw,
+            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+                Ok(value) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: error.to_string(),
+                    }));
+                }
+                Err(error) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+                }
+            },
+        };
 
         match raw {
             raw::EncryptedEventContent::OlmV1Curve25519AesSha2(content) => {

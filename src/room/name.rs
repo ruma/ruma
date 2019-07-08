@@ -8,7 +8,8 @@ use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
 use crate::{
-    empty_string_as_none, Event, EventType, InvalidEvent, InvalidInput, RoomEvent, StateEvent,
+    empty_string_as_none, Event, EventType, InnerInvalidEvent, InvalidEvent, InvalidInput,
+    RoomEvent, StateEvent,
 };
 
 /// A human-friendly room name designed to be displayed to the end-user.
@@ -52,7 +53,20 @@ impl FromStr for NameEvent {
 
     /// Attempt to create `Self` from parsing a string of JSON data.
     fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = serde_json::from_str::<raw::NameEvent>(json)?;
+        let raw = match serde_json::from_str::<raw::NameEvent>(json) {
+            Ok(raw) => raw,
+            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+                Ok(value) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: error.to_string(),
+                    }));
+                }
+                Err(error) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+                }
+            },
+        };
 
         Ok(Self {
             content: NameEventContent {

@@ -12,7 +12,7 @@ use serde::{
 use serde_json::{from_value, Value};
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
-use crate::{Event, EventType, InvalidEvent, InvalidInput, RoomEvent};
+use crate::{Event, EventType, InnerInvalidEvent, InvalidEvent, InvalidInput, RoomEvent};
 
 pub mod feedback;
 
@@ -81,7 +81,20 @@ impl FromStr for MessageEvent {
 
     /// Attempt to create `Self` from parsing a string of JSON data.
     fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = serde_json::from_str::<raw::MessageEvent>(json)?;
+        let raw = match serde_json::from_str::<raw::MessageEvent>(json) {
+            Ok(raw) => raw,
+            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+                Ok(value) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: error.to_string(),
+                    }));
+                }
+                Err(error) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+                }
+            },
+        };
 
         Ok(Self {
             content: match raw.content {
@@ -185,7 +198,20 @@ impl FromStr for MessageEventContent {
 
     /// Attempt to create `Self` from parsing a string of JSON data.
     fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = serde_json::from_str::<raw::MessageEventContent>(json)?;
+        let raw = match serde_json::from_str::<raw::MessageEventContent>(json) {
+            Ok(raw) => raw,
+            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+                Ok(value) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: error.to_string(),
+                    }));
+                }
+                Err(error) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+                }
+            },
+        };
 
         match raw {
             raw::MessageEventContent::Audio(content) => Ok(MessageEventContent::Audio(content)),

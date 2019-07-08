@@ -7,7 +7,9 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{default_true, Event, EventType, InvalidEvent, RoomEvent, StateEvent};
+use crate::{
+    default_true, Event, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent, StateEvent,
+};
 
 /// An event to indicate which servers are permitted to participate in the room.
 #[derive(Clone, Debug, PartialEq)]
@@ -72,7 +74,20 @@ impl FromStr for ServerAclEvent {
 
     /// Attempt to create `Self` from parsing a string of JSON data.
     fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = serde_json::from_str::<raw::ServerAclEvent>(json)?;
+        let raw = match serde_json::from_str::<raw::ServerAclEvent>(json) {
+            Ok(raw) => raw,
+            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+                Ok(value) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: error.to_string(),
+                    }));
+                }
+                Err(error) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+                }
+            },
+        };
 
         Ok(Self {
             content: ServerAclEventContent {

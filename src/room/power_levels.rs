@@ -7,7 +7,9 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{Event, EventType, InvalidEvent, InvalidInput, RoomEvent, StateEvent};
+use crate::{
+    Event, EventType, InnerInvalidEvent, InvalidEvent, InvalidInput, RoomEvent, StateEvent,
+};
 
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Clone, Debug, PartialEq)]
@@ -90,7 +92,20 @@ impl FromStr for PowerLevelsEvent {
 
     /// Attempt to create `Self` from parsing a string of JSON data.
     fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = serde_json::from_str::<raw::PowerLevelsEvent>(json)?;
+        let raw = match serde_json::from_str::<raw::PowerLevelsEvent>(json) {
+            Ok(raw) => raw,
+            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+                Ok(value) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: error.to_string(),
+                    }));
+                }
+                Err(error) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+                }
+            },
+        };
 
         Ok(Self {
             content: PowerLevelsEventContent {
