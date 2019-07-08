@@ -206,6 +206,9 @@ impl From<serde_json::Error> for InvalidEvent {
 }
 
 /// An error returned when attempting to create an event with data that would make it invalid.
+///
+/// This type is similar to `InvalidEvent`, but used during the construction of a new event, as
+/// opposed to deserialization of an existing event from JSON.
 #[derive(Clone, Debug, PartialEq)]
 pub struct InvalidInput(String);
 
