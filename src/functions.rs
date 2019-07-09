@@ -1,10 +1,8 @@
 //! Functions for signing and verifying JSON and events.
 
-use std::error::Error as _;
-
 use base64::{encode_config, STANDARD_NO_PAD};
 use ring::digest::{digest, SHA256};
-use serde_json::{json, to_string, to_value, Value};
+use serde_json::{from_str, json, to_string, to_value, Value};
 
 use crate::{
     keys::KeyPair,
@@ -54,26 +52,72 @@ static CONTENT_HASH_FIELDS_TO_REMOVE: &[&str] = &["hashes", "signatures", "unsig
 /// The fields to remove from a JSON object when creating a reference hash of an event.
 static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "unsigned"];
 
-/// Signs an arbitrary JSON object.
+/// Signs an arbitrary JSON object and adds the signature to an object under the key `signatures`.
+///
+/// If `signatures` is already present, the new signature will be appended to the existing ones.
 ///
 /// # Parameters
 ///
+/// * server_name: The hostname or IP of the homeserver, e.g. `example.com`.
 /// * key_pair: A cryptographic key pair used to sign the JSON.
-/// * value: A JSON object to be signed according to the Matrix specification.
+/// * value: A JSON object to sign according and append a signature to.
 ///
 /// # Errors
 ///
 /// Returns an error if the JSON value is not a JSON object.
-pub fn sign_json<K>(key_pair: &K, value: &Value) -> Result<Signature, Error>
+pub fn sign_json<K>(server_name: &str, key_pair: &K, value: &mut Value) -> Result<(), Error>
 where
     K: KeyPair,
 {
-    let json = to_canonical_json(value)?;
+    let mut signature_map;
+    let maybe_unsigned;
 
-    Ok(key_pair.sign(json.as_bytes()))
+    // Pull `signatures` and `unsigned` out of the object, and limit the scope of the mutable
+    // borrow of `value` so we can call `to_string` with it below.
+    {
+        let map = match value {
+            Value::Object(ref mut map) => map,
+            _ => return Err(Error::new("JSON value must be a JSON object")),
+        };
+
+        signature_map = match map.remove("signatures") {
+            Some(signatures_value) => match signatures_value.as_object() {
+                Some(signatures) => from_str(&to_string(signatures)?)?,
+                None => return Err(Error::new("Field `signatures` must be a JSON object")),
+            },
+            None => SignatureMap::with_capacity(1),
+        };
+
+        maybe_unsigned = map.remove("unsigned");
+    }
+
+    // Get the canonical JSON.
+    let json = to_string(&value)?;
+
+    // Sign the canonical JSON.
+    let signature = key_pair.sign(json.as_bytes());
+
+    // Insert the new signature in the map we pulled out (or created) previously.
+    let signature_set = signature_map
+        .entry(server_name)?
+        .or_insert_with(|| SignatureSet::with_capacity(1));
+
+    signature_set.insert(signature);
+
+    // Safe to unwrap because we did this exact check at the beginning of the function.
+    let map = value.as_object_mut().unwrap();
+
+    // Put `signatures` and `unsigned` back in.
+    map.insert("signatures".to_string(), to_value(signature_map)?);
+
+    if let Some(unsigned) = maybe_unsigned {
+        map.insert("unsigned".to_string(), to_value(unsigned)?);
+    }
+
+    Ok(())
 }
 
-/// Converts a JSON object into the "canonical" string form, suitable for signing.
+/// Converts a JSON object into the "canonical" string form.
 ///
 /// # Parameters
 ///
@@ -112,6 +156,8 @@ where
 
 /// Creates a *content hash* for the JSON representation of an event.
 ///
+/// Returns the hash as a Base64-encoded string without padding.
+///
 /// The content hash of an event covers the complete event including the unredacted contents. It is
 /// used during federation and is described in the Matrix server-server specification.
 pub fn content_hash(value: &Value) -> Result<String, Error> {
@@ -123,6 +169,8 @@ pub fn content_hash(value: &Value) -> Result<String, Error> {
 }
 
 /// Creates a *reference hash* for the JSON representation of an event.
+///
+/// Returns the hash as a Base64-encoded string without padding.
 ///
 /// The reference hash of an event covers the essential fields of an event, including content
 /// hashes. It is used to generate event identifiers and is described in the Matrix server-server
@@ -173,23 +221,14 @@ where
         object.insert("hashes".to_string(), hashes);
     }
 
-    let redacted = redact(&owned_value)?;
+    let mut redacted = redact(&owned_value)?;
 
-    let signature = sign_json(key_pair, &redacted)?;
-
-    let mut signature_set = SignatureSet::with_capacity(1);
-    signature_set.insert(signature);
-
-    let mut signature_map = SignatureMap::with_capacity(1);
-    signature_map.insert(server_name, signature_set)?;
-
-    let signature_map_value =
-        to_value(signature_map).map_err(|error| Error::new(error.to_string()))?;
+    sign_json(server_name, key_pair, &mut redacted)?;
 
     let object = owned_value
         .as_object_mut()
         .expect("safe since we checked above");
-    object.insert("signatures".to_string(), signature_map_value);
+    object.insert("signatures".to_string(), redacted["signatures"].take());
 
     Ok(owned_value)
 }
@@ -216,7 +255,7 @@ fn to_canonical_json_with_fields_to_remove(
         }
     }
 
-    to_string(&owned_value).map_err(|error| Error::new(error.description()))
+    to_string(&owned_value).map_err(Error::from)
 }
 
 /// Redact the JSON representation of an event using the rules specified in the Matrix

@@ -25,12 +25,9 @@
 //!     &public_key, // &[u8]
 //!     &private_key, // &[u8]
 //!     "1".to_string(), // The "version" of the key.
-//! ).expect("the provided keys should be suitable for Ed25519");
-//! let value = serde_json::from_str("{}").expect("an empty JSON object should deserialize");
-//! let signature = ruma_signatures::sign_json(
-//!     &key_pair,
-//!     &value,
-//! ).expect("`value` must be a JSON object");
+//! ).unwrap();
+//! let mut value = serde_json::from_str("{}").unwrap();
+//! ruma_signatures::sign_json("example.com", &key_pair, &mut value).unwrap()
 //! ```
 //!
 //! # Signing Matrix events
@@ -197,6 +194,12 @@ impl Display for Error {
     }
 }
 
+impl From<serde_json::Error> for Error {
+    fn from(error: serde_json::Error) -> Self {
+        Self::new(error.to_string())
+    }
+}
+
 /// The algorithm used for signing data.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Algorithm {
@@ -342,11 +345,11 @@ mod test {
         )
         .unwrap();
 
-        let value = from_str("{}").unwrap();
+        let mut value = from_str("{}").unwrap();
 
-        let signature = sign_json(&key_pair, &value).unwrap();
+        sign_json("example.com", &key_pair, &mut value).unwrap();
 
-        assert_eq!(signature.base64(), EMPTY_JSON_SIGNATURE);
+        assert_eq!(value.pointer("/signatures/example.com/ed25519:1").unwrap(), EMPTY_JSON_SIGNATURE);
     }
 
     #[test]
@@ -442,15 +445,15 @@ mod test {
             one: 1,
         };
 
-        let alpha_value = to_value(alpha).expect("alpha should serialize");
-        let alpha_signature = sign_json(&key_pair, &alpha_value).unwrap();
+        let mut alpha_value = to_value(alpha).expect("alpha should serialize");
+        sign_json("example.com", &key_pair, &mut alpha_value).unwrap();
 
-        assert_eq!(alpha_signature.base64(), MINIMAL_JSON_SIGNATURE);
+        assert_eq!(alpha_value.pointer("/signatures/example.com/ed25519:1").unwrap(), MINIMAL_JSON_SIGNATURE);
 
-        let reverse_alpha_value = to_value(reverse_alpha).expect("reverse_alpha should serialize");
-        let reverse_alpha_signature = sign_json(&key_pair, &reverse_alpha_value).unwrap();
+        let mut reverse_alpha_value = to_value(reverse_alpha).expect("reverse_alpha should serialize");
+        sign_json("example.com", &key_pair, &mut reverse_alpha_value).unwrap();
 
-        assert_eq!(reverse_alpha_signature.base64(), MINIMAL_JSON_SIGNATURE);
+        assert_eq!(reverse_alpha_value.pointer("/signatures/example.com/ed25519:1").unwrap(), MINIMAL_JSON_SIGNATURE);
     }
 
     #[test]
