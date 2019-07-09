@@ -133,7 +133,7 @@ pub mod fully_read;
 pub mod ignored_user_list;
 pub mod key;
 pub mod presence;
-// pub mod push_rules;
+pub mod push_rules;
 pub mod receipt;
 pub mod room;
 pub mod room_key;

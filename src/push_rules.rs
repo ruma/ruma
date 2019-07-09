@@ -5,20 +5,25 @@ use std::{
     str::FromStr,
 };
 
-use serde::{de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
+use ruma_events_macros::ruma_event;
+use serde::{
+    de::{Error, Visitor},
+    Deserialize, Deserializer, Serialize, Serializer,
+};
+use serde_json::{from_value, Value};
 
 use super::{default_true, FromStrError};
 
-event! {
+ruma_event! {
     /// Describes all push rules for a user.
-    pub struct PushRulesEvent(PushRulesEventContent) {}
-}
-
-/// The payload of an *m.push_rules* event.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct PushRulesEventContent {
-    /// The global ruleset.
-    pub global: Ruleset,
+    PushRulesEvent {
+        kind: Event,
+        event_type: PushRules,
+        content: {
+            /// The global ruleset.
+            pub global: Ruleset,
+        },
+    }
 }
 
 /// A push ruleset scopes a set of rules according to some criteria.
@@ -28,11 +33,11 @@ pub struct PushRulesEventContent {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Ruleset {
     /// These rules configure behaviour for (unencrypted) messages that match certain patterns.
-    pub content: Vec<PushRule>,
+    pub content: Vec<PatternedPushRule>,
 
     /// These user-configured rules are given the highest priority.
     #[serde(rename = "override")]
-    pub override_rules: Vec<PushRule>,
+    pub override_rules: Vec<ConditionalPushRule>,
 
     /// These rules change the behaviour of all messages for a given room.
     pub room: Vec<PushRule>,
@@ -42,7 +47,7 @@ pub struct Ruleset {
 
     /// These rules are identical to override rules, but have a lower priority than `content`,
     /// `room` and `sender` rules.
-    pub underride: Vec<PushRule>,
+    pub underride: Vec<ConditionalPushRule>,
 }
 
 /// A push rule is a single rule that states under what conditions an event should be passed onto a
@@ -63,18 +68,50 @@ pub struct PushRule {
 
     /// The ID of this rule.
     pub rule_id: String,
+}
+
+/// Like `PushRule`, but with an additional `conditions` field.
+///
+/// Only applicable to underride and override rules.
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct ConditionalPushRule {
+    /// Actions to determine if and how a notification is delivered for events matching this rule.
+    pub actions: Vec<Action>,
+
+    /// Whether this is a default rule, or has been set explicitly.
+    pub default: bool,
+
+    /// Whether the push rule is enabled or not.
+    pub enabled: bool,
+
+    /// The ID of this rule.
+    pub rule_id: String,
 
     /// The conditions that must hold true for an event in order for a rule to be applied to an event.
     ///
     /// A rule with no conditions always matches.
-    ///
-    /// Only applicable to underride and override rules.
-    pub conditions: Option<Vec<PushCondition>>,
+    pub conditions: Vec<PushCondition>,
+}
+
+/// Like `PushRule`, but with an additional `pattern` field.
+///
+/// Only applicable to content rules.
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct PatternedPushRule {
+    /// Actions to determine if and how a notification is delivered for events matching this rule.
+    pub actions: Vec<Action>,
+
+    /// Whether this is a default rule, or has been set explicitly.
+    pub default: bool,
+
+    /// Whether the push rule is enabled or not.
+    pub enabled: bool,
+
+    /// The ID of this rule.
+    pub rule_id: String,
 
     /// The glob-style pattern to match against.
-    ///
-    /// Only applicable to content rules.
-    pub pattern: Option<String>,
+    pub pattern: String,
 }
 
 /// An action affects if and how a notification is delivered for a matching event.
@@ -204,59 +241,190 @@ pub enum Tweak {
 }
 
 /// A condition that must apply for an associated push rule's action to be taken.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct PushCondition {
-    /// The kind of condition to apply.
-    pub kind: PushConditionKind,
-
-    /// Required for `event_match` conditions. The dot-separated field of the event to match.
-    ///
-    /// Required for `sender_notification_permission` conditions. The field in the power level event
-    /// the user needs a minimum power level for. Fields must be specified under the `notifications`
-    /// property in the power level event's `content`.
-    pub key: Option<String>,
-
-    /// Required for `event_match` conditions. The glob-style pattern to match against.
-    ///
-    /// Patterns with no special glob characters should be treated as having asterisks prepended and
-    /// appended when testing the condition.
-    pub pattern: Option<String>,
-
-    /// Required for `room_member_count` conditions. A decimal integer optionally prefixed by one of
-    /// `==`, `<`, `>`, `>=` or `<=`.
-    ///
-    /// A prefix of `<` matches rooms where the member count is strictly less than the given number
-    /// and so forth. If no prefix is present, this parameter defaults to `==`.
-    pub is: Option<String>,
-}
-
-/// A kind of push rule condition.
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
-pub enum PushConditionKind {
+#[derive(Clone, Debug, PartialEq)]
+pub enum PushCondition {
     /// This is a glob pattern match on a field of the event.
-    #[serde(rename = "event_match")]
-    EventMatch,
+    EventMatch(EventMatchCondition),
 
     /// This matches unencrypted messages where `content.body` contains the owner's display name in
     /// that room.
-    #[serde(rename = "contains_display_name")]
     ContainsDisplayName,
 
     /// This matches the current number of members in the room.
-    #[serde(rename = "room_member_count")]
-    RoomMemberCount,
+    RoomMemberCount(RoomMemberCountCondition),
 
     /// This takes into account the current power levels in the room, ensuring the sender of the
     /// event has high enough power to trigger the notification.
-    #[serde(rename = "sender_notification_permission")]
-    SenderNotificationPermission,
+    SenderNotificationPermission(SenderNotificationPermissionCondition),
+
+    /// Additional variants may be added in the future and will not be considered breaking changes
+    /// to ruma-events.
+    #[doc(hidden)]
+    __Nonexhaustive,
+}
+
+impl Serialize for PushCondition {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match *self {
+            PushCondition::EventMatch(ref condition) => condition.serialize(serializer),
+            PushCondition::ContainsDisplayName => {
+                let mut state = serializer.serialize_struct("ContainsDisplayNameCondition", 1)?;
+
+                state.serialize_field("kind", "contains_display_name")?;
+
+                state.end()
+            }
+            PushCondition::RoomMemberCount(ref condition) => condition.serialize(serializer),
+            PushCondition::SenderNotificationPermission(ref condition) => {
+                condition.serialize(serializer)
+            }
+            PushCondition::__Nonexhaustive => {
+                panic!("__Nonexhaustive enum variant is not intended for use.");
+            }
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for PushCondition {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value: Value = Deserialize::deserialize(deserializer)?;
+
+        let kind_value = match value.get("kind") {
+            Some(value) => value.clone(),
+            None => return Err(D::Error::missing_field("kind")),
+        };
+
+        let kind = match kind_value.as_str() {
+            Some(kind) => kind,
+            None => return Err(D::Error::custom("field `kind` must be a string")),
+        };
+
+        match kind {
+            "event_match" => {
+                let condition = match from_value::<EventMatchCondition>(value) {
+                    Ok(condition) => condition,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(PushCondition::EventMatch(condition))
+            }
+            "contains_display_name" => Ok(PushCondition::ContainsDisplayName),
+            "room_member_count" => {
+                let condition = match from_value::<RoomMemberCountCondition>(value) {
+                    Ok(condition) => condition,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(PushCondition::RoomMemberCount(condition))
+            }
+            "sender_notification_permission" => {
+                let condition = match from_value::<SenderNotificationPermissionCondition>(value) {
+                    Ok(condition) => condition,
+                    Err(error) => return Err(D::Error::custom(error.to_string())),
+                };
+
+                Ok(PushCondition::SenderNotificationPermission(condition))
+            }
+            unknown_kind => {
+                return Err(D::Error::custom(&format!(
+                    "unknown condition kind `{}`",
+                    unknown_kind
+                )))
+            }
+        }
+    }
+}
+/// A push condition that matches a glob pattern match on a field of the event.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct EventMatchCondition {
+    /// The dot-separated field of the event to match.
+    pub key: String,
+
+    /// The glob-style pattern to match against.
+    ///
+    /// Patterns with no special glob characters should be treated as having asterisks prepended and
+    /// appended when testing the condition.
+    pub pattern: String,
+}
+
+impl Serialize for EventMatchCondition {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("EventMatchCondition", 3)?;
+
+        state.serialize_field("key", &self.key)?;
+        state.serialize_field("kind", "event_match")?;
+        state.serialize_field("pattern", &self.pattern)?;
+
+        state.end()
+    }
+}
+
+/// A push condition that matches the current number of members in the room.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct RoomMemberCountCondition {
+    /// A decimal integer optionally prefixed by one of `==`, `<`, `>`, `>=` or `<=`.
+    ///
+    /// A prefix of `<` matches rooms where the member count is strictly less than the given number
+    /// and so forth. If no prefix is present, this parameter defaults to `==`.
+    pub is: String,
+}
+
+impl Serialize for RoomMemberCountCondition {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("RoomMemberCountCondition", 2)?;
+
+        state.serialize_field("is", &self.is)?;
+        state.serialize_field("kind", "room_member_count")?;
+
+        state.end()
+    }
+}
+
+/// A push condition that takes into account the current power levels in the room, ensuring the
+/// sender of the event has high enough power to trigger the notification.
+#[derive(Clone, Debug, Deserialize, PartialEq)]
+pub struct SenderNotificationPermissionCondition {
+    /// The field in the power level event the user needs a minimum power level for.
+    ///
+    /// Fields must be specified under the `notifications` property in the power level event's
+    /// `content`.
+    pub key: String,
+}
+
+impl Serialize for SenderNotificationPermissionCondition {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("SenderNotificationPermissionCondition", 2)?;
+
+        state.serialize_field("key", &self.key)?;
+        state.serialize_field("kind", "sender_notification_permission")?;
+
+        state.end()
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use serde_json::{from_str, to_string};
 
-    use super::{Action, Tweak};
+    use super::{
+        Action, EventMatchCondition, PushCondition, PushRulesEvent, RoomMemberCountCondition,
+        SenderNotificationPermissionCondition, Tweak,
+    };
 
     #[test]
     fn serialize_string_action() {
@@ -311,5 +479,289 @@ mod tests {
             from_str::<Action>(r#"{"set_tweak":"highlight"}"#).unwrap(),
             Action::SetTweak(Tweak::Highlight { value: true })
         );
+    }
+
+    #[test]
+    fn serialize_event_match_condition() {
+        assert_eq!(
+            to_string(&PushCondition::EventMatch(EventMatchCondition {
+                key: "content.msgtype".to_string(),
+                pattern: "m.notice".to_string(),
+            }))
+            .unwrap(),
+            r#"{"key":"content.msgtype","kind":"event_match","pattern":"m.notice"}"#
+        );
+    }
+
+    #[test]
+    fn serialize_contains_display_name_condition() {
+        assert_eq!(
+            to_string(&PushCondition::ContainsDisplayName).unwrap(),
+            r#"{"kind":"contains_display_name"}"#
+        );
+    }
+
+    #[test]
+    fn serialize_room_member_count_condition() {
+        assert_eq!(
+            to_string(&PushCondition::RoomMemberCount(RoomMemberCountCondition {
+                is: "2".to_string(),
+            }))
+            .unwrap(),
+            r#"{"is":"2","kind":"room_member_count"}"#
+        );
+    }
+
+    #[test]
+    fn serialize_sender_notification_permission_condition() {
+        assert_eq!(
+            r#"{"key":"room","kind":"sender_notification_permission"}"#,
+            to_string(&PushCondition::SenderNotificationPermission(
+                SenderNotificationPermissionCondition {
+                    key: "room".to_string(),
+                }
+            ))
+            .unwrap(),
+        );
+    }
+
+    #[test]
+    fn deserialize_event_match_condition() {
+        assert_eq!(
+            from_str::<PushCondition>(
+                r#"{"key":"content.msgtype","kind":"event_match","pattern":"m.notice"}"#
+            )
+            .unwrap(),
+            PushCondition::EventMatch(EventMatchCondition {
+                key: "content.msgtype".to_string(),
+                pattern: "m.notice".to_string(),
+            })
+        );
+    }
+
+    #[test]
+    fn deserialize_contains_display_name_condition() {
+        assert_eq!(
+            from_str::<PushCondition>(r#"{"kind":"contains_display_name"}"#).unwrap(),
+            PushCondition::ContainsDisplayName,
+        );
+    }
+
+    #[test]
+    fn deserialize_room_member_count_condition() {
+        assert_eq!(
+            from_str::<PushCondition>(r#"{"is":"2","kind":"room_member_count"}"#).unwrap(),
+            PushCondition::RoomMemberCount(RoomMemberCountCondition {
+                is: "2".to_string(),
+            })
+        );
+    }
+
+    #[test]
+    fn deserialize_sender_notification_permission_condition() {
+        assert_eq!(
+            from_str::<PushCondition>(r#"{"key":"room","kind":"sender_notification_permission"}"#)
+                .unwrap(),
+            PushCondition::SenderNotificationPermission(SenderNotificationPermissionCondition {
+                key: "room".to_string(),
+            })
+        );
+    }
+
+    #[test]
+    fn sanity_check() {
+        // This is a full example of a push rules event from the specification.
+        let json = r#"{
+    "content": {
+        "global": {
+            "content": [
+                {
+                    "actions": [
+                        "notify",
+                        {
+                            "set_tweak": "sound",
+                            "value": "default"
+                        },
+                        {
+                            "set_tweak": "highlight"
+                        }
+                    ],
+                    "default": true,
+                    "enabled": true,
+                    "pattern": "alice",
+                    "rule_id": ".m.rule.contains_user_name"
+                }
+            ],
+            "override": [
+                {
+                    "actions": [
+                        "dont_notify"
+                    ],
+                    "conditions": [],
+                    "default": true,
+                    "enabled": false,
+                    "rule_id": ".m.rule.master"
+                },
+                {
+                    "actions": [
+                        "dont_notify"
+                    ],
+                    "conditions": [
+                        {
+                            "key": "content.msgtype",
+                            "kind": "event_match",
+                            "pattern": "m.notice"
+                        }
+                    ],
+                    "default": true,
+                    "enabled": true,
+                    "rule_id": ".m.rule.suppress_notices"
+                }
+            ],
+            "room": [],
+            "sender": [],
+            "underride": [
+                {
+                    "actions": [
+                        "notify",
+                        {
+                            "set_tweak": "sound",
+                            "value": "ring"
+                        },
+                        {
+                            "set_tweak": "highlight",
+                            "value": false
+                        }
+                    ],
+                    "conditions": [
+                        {
+                            "key": "type",
+                            "kind": "event_match",
+                            "pattern": "m.call.invite"
+                        }
+                    ],
+                    "default": true,
+                    "enabled": true,
+                    "rule_id": ".m.rule.call"
+                },
+                {
+                    "actions": [
+                        "notify",
+                        {
+                            "set_tweak": "sound",
+                            "value": "default"
+                        },
+                        {
+                            "set_tweak": "highlight"
+                        }
+                    ],
+                    "conditions": [
+                        {
+                            "kind": "contains_display_name"
+                        }
+                    ],
+                    "default": true,
+                    "enabled": true,
+                    "rule_id": ".m.rule.contains_display_name"
+                },
+                {
+                    "actions": [
+                        "notify",
+                        {
+                            "set_tweak": "sound",
+                            "value": "default"
+                        },
+                        {
+                            "set_tweak": "highlight",
+                            "value": false
+                        }
+                    ],
+                    "conditions": [
+                        {
+                            "is": "2",
+                            "kind": "room_member_count"
+                        }
+                    ],
+                    "default": true,
+                    "enabled": true,
+                    "rule_id": ".m.rule.room_one_to_one"
+                },
+                {
+                    "actions": [
+                        "notify",
+                        {
+                            "set_tweak": "sound",
+                            "value": "default"
+                        },
+                        {
+                            "set_tweak": "highlight",
+                            "value": false
+                        }
+                    ],
+                    "conditions": [
+                        {
+                            "key": "type",
+                            "kind": "event_match",
+                            "pattern": "m.room.member"
+                        },
+                        {
+                            "key": "content.membership",
+                            "kind": "event_match",
+                            "pattern": "invite"
+                        },
+                        {
+                            "key": "state_key",
+                            "kind": "event_match",
+                            "pattern": "@alice:example.com"
+                        }
+                    ],
+                    "default": true,
+                    "enabled": true,
+                    "rule_id": ".m.rule.invite_for_me"
+                },
+                {
+                    "actions": [
+                        "notify",
+                        {
+                            "set_tweak": "highlight",
+                            "value": false
+                        }
+                    ],
+                    "conditions": [
+                        {
+                            "key": "type",
+                            "kind": "event_match",
+                            "pattern": "m.room.member"
+                        }
+                    ],
+                    "default": true,
+                    "enabled": true,
+                    "rule_id": ".m.rule.member_event"
+                },
+                {
+                    "actions": [
+                        "notify",
+                        {
+                            "set_tweak": "highlight",
+                            "value": false
+                        }
+                    ],
+                    "conditions": [
+                        {
+                            "key": "type",
+                            "kind": "event_match",
+                            "pattern": "m.room.message"
+                        }
+                    ],
+                    "default": true,
+                    "enabled": true,
+                    "rule_id": ".m.rule.message"
+                }
+            ]
+        }
+    },
+    "type": "m.push_rules"
+}"#;
+        assert!(json.parse::<PushRulesEvent>().is_ok());
     }
 }
