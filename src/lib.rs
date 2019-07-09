@@ -286,11 +286,11 @@ impl Display for Algorithm {
 mod test {
     use base64::{decode_config, STANDARD_NO_PAD};
     use serde::Serialize;
-    use serde_json::{from_str, to_string, to_value};
+    use serde_json::{from_str, to_string, to_value, Value};
 
     use super::{
-        sign_json, verify_json, Ed25519KeyPair, Ed25519Verifier, KeyPair, Signature, SignatureMap,
-        SignatureSet,
+        sign_json, to_canonical_json, verify_json, Ed25519KeyPair, Ed25519Verifier, KeyPair,
+        Signature, SignatureMap, SignatureSet,
     };
 
     const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
@@ -300,6 +300,102 @@ mod test {
         "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
     const MINIMAL_JSON_SIGNATURE: &str =
         "KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw";
+
+    fn test_canonical_json(input: &str) -> String {
+        let value = from_str::<Value>(input).unwrap();
+
+        to_canonical_json(&value).unwrap()
+    }
+
+    #[test]
+    fn canonical_json_examples() {
+        assert_eq!(&test_canonical_json("{}"), "{}");
+
+        assert_eq!(
+            &test_canonical_json(
+                r#"{
+                "one": 1,
+                "two": "Two"
+            }"#
+            ),
+            r#"{"one":1,"two":"Two"}"#
+        );
+
+        assert_eq!(
+            &test_canonical_json(
+                r#"{
+                "b": "2",
+                "a": "1"
+            }"#
+            ),
+            r#"{"a":"1","b":"2"}"#
+        );
+
+        assert_eq!(
+            &test_canonical_json(r#"{"b":"2","a":"1"}"#),
+            r#"{"a":"1","b":"2"}"#
+        );
+
+        assert_eq!(&test_canonical_json(
+            r#"{
+                "auth": {
+                    "success": true,
+                    "mxid": "@john.doe:example.com",
+                    "profile": {
+                        "display_name": "John Doe",
+                        "three_pids": [
+                            {
+                                "medium": "email",
+                                "address": "john.doe@example.org"
+                            },
+                            {
+                                "medium": "msisdn",
+                                "address": "123456789"
+                            }
+                        ]
+                    }
+                }
+            }"#),
+            r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#
+        );
+
+        assert_eq!(
+            &test_canonical_json(
+                r#"{
+                "a": "日本語"
+            }"#
+            ),
+            r#"{"a":"日本語"}"#
+        );
+
+        assert_eq!(
+            &test_canonical_json(
+                r#"{
+                "本": 2,
+                "日": 1
+            }"#
+            ),
+            r#"{"日":1,"本":2}"#
+        );
+
+        assert_eq!(
+            &test_canonical_json(
+                r#"{
+                "a": "\u65E5"
+            }"#
+            ),
+            r#"{"a":"日"}"#
+        );
+
+        assert_eq!(
+            &test_canonical_json(
+                r#"{
+                "a": null
+            }"#
+            ),
+            r#"{"a":null}"#
+        );
+    }
 
     #[test]
     fn sign_empty_json() {
