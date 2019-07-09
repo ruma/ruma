@@ -1,7 +1,7 @@
 //! Digital signatures and collections of signatures.
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{hash_map::Entry, HashMap, HashSet},
     error::Error as _,
     fmt::{Formatter, Result as FmtResult},
 };
@@ -134,6 +134,13 @@ impl SignatureMap {
         let host = server_name_to_host(server_name)?;
 
         Ok(self.map.insert(host, signature_set))
+    }
+
+    /// Gets the given server's corresponding signature set for in-place manipulation.
+    pub fn entry(&mut self, server_name: &str) -> Result<Entry<Host, SignatureSet>, Error> {
+        let host = server_name_to_host(server_name)?;
+
+        Ok(self.map.entry(host))
     }
 
     /// Gets a reference to the signature set for the given server, if any.
