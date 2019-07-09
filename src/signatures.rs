@@ -42,7 +42,8 @@ impl Signature {
     /// Returns an error if the key identifier is invalid.
     pub fn new(id: &str, bytes: &[u8]) -> Result<Self, Error> {
         let (algorithm, version) = split_id(id).map_err(|split_error| match split_error {
-            SplitError::InvalidLength(_) => Error::new("malformed signature ID"),
+            SplitError::InvalidLength(length) => Error::new(format!("malformed signature ID: expected exactly 2 segment separated by a colon, found {}", length)),
+            SplitError::InvalidVersion(version) => Error::new(format!("malformed signature ID: expected version to contain only characters in the character set `[a-zA-Z0-9_]`, found `{}`", version)),
             SplitError::UnknownAlgorithm(algorithm) => {
                 Error::new(format!("unknown algorithm: {}", algorithm))
             }
@@ -347,6 +348,9 @@ impl<'de> Visitor<'de> for SignatureSetVisitor {
         while let Some((key, value)) = visitor.next_entry::<String, String>()? {
             let (algorithm, version) = split_id(&key).map_err(|split_error| match split_error {
                 SplitError::InvalidLength(length) => M::Error::invalid_length(length, &self),
+                SplitError::InvalidVersion(version) => {
+                    M::Error::invalid_value(Unexpected::Str(version), &self)
+                }
                 SplitError::UnknownAlgorithm(algorithm) => {
                     M::Error::invalid_value(Unexpected::Str(algorithm), &self)
                 }
@@ -373,8 +377,10 @@ impl<'de> Visitor<'de> for SignatureSetVisitor {
 /// An error when trying to extract the algorithm and version from a key identifier.
 #[derive(Clone, Debug, PartialEq)]
 enum SplitError<'a> {
-    /// The signature's ID has an invalid length.
+    /// The signature's ID does not have exactly two components separated by a colon.
     InvalidLength(usize),
+    /// The signature's ID contains invalid characters in its version.
+    InvalidVersion(&'a str),
     /// The signature uses an unknown algorithm.
     UnknownAlgorithm(&'a str),
 }
@@ -390,6 +396,19 @@ fn split_id(id: &str) -> Result<(Algorithm, String), SplitError<'_>> {
 
     if signature_id_length != SIGNATURE_ID_LENGTH {
         return Err(SplitError::InvalidLength(signature_id_length));
+    }
+
+    let version = signature_id[1];
+
+    let invalid_character_index = version.find(|ch| {
+        !((ch >= 'a' && ch <= 'z')
+            || (ch >= 'A' && ch <= 'Z')
+            || (ch >= '0' && ch <= '9')
+            || ch == '_')
+    });
+
+    if invalid_character_index.is_some() {
+        return Err(SplitError::InvalidVersion(version));
     }
 
     let algorithm_input = signature_id[0];
@@ -411,5 +430,30 @@ fn server_name_to_host(server_name: &str) -> Result<Host, Error> {
     match url.host() {
         Some(host) => Ok(host.to_owned()),
         None => Err(Error::new(format!("invalid server name: {}", server_name))),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Signature;
+
+    #[test]
+    fn valid_key_id() {
+        assert!(Signature::new("ed25519:abcdef", &[]).is_ok());
+    }
+
+    #[test]
+    fn invalid_valid_key_id_length() {
+        assert!(Signature::new("ed25519:abcdef:123456", &[]).is_err());
+    }
+
+    #[test]
+    fn invalid_key_id_version() {
+        assert!(Signature::new("ed25519:abc!def", &[]).is_err());
+    }
+
+    #[test]
+    fn invalid_key_id_algorithm() {
+        assert!(Signature::new("foobar:abcdef", &[]).is_err());
     }
 }
