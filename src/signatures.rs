@@ -131,16 +131,39 @@ impl SignatureMap {
         server_name: &str,
         signature_set: SignatureSet,
     ) -> Result<Option<SignatureSet>, Error> {
-        let url_string = format!("https://{}", server_name);
-        let url = Url::parse(&url_string)
-            .map_err(|_| Error::new(format!("invalid server name: {}", server_name)))?;
-
-        let host = match url.host() {
-            Some(host) => host.to_owned(),
-            None => return Err(Error::new(format!("invalid server name: {}", server_name))),
-        };
+        let host = server_name_to_host(server_name)?;
 
         Ok(self.map.insert(host, signature_set))
+    }
+
+    /// Gets a reference to the signature set for the given server, if any.
+    ///
+    /// # Parameters
+    ///
+    /// * server_name: The hostname or IP of the homeserver, e.g. `example.com`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the given server name cannot be parsed as a valid host.
+    pub fn get(&self, server_name: &str) -> Result<Option<&SignatureSet>, Error> {
+        let host = server_name_to_host(server_name)?;
+
+        Ok(self.map.get(&host))
+    }
+
+    /// Gets a mutable reference to the signature set for the given server, if any.
+    ///
+    /// # Parameters
+    ///
+    /// * server_name: The hostname or IP of the homeserver, e.g. `example.com`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the given server name cannot be parsed as a valid host.
+    pub fn get_mut(&mut self, server_name: &str) -> Result<Option<&mut SignatureSet>, Error> {
+        let host = server_name_to_host(server_name)?;
+
+        Ok(self.map.get_mut(&host))
     }
 
     /// The number of servers in the collection.
@@ -362,4 +385,16 @@ fn split_id(id: &str) -> Result<(Algorithm, String), SplitError<'_>> {
     };
 
     Ok((algorithm, signature_id[1].to_string()))
+}
+
+/// Attempts to convert a server name as a string into a `url::Host`.
+fn server_name_to_host(server_name: &str) -> Result<Host, Error> {
+    let url_string = format!("https://{}", server_name);
+    let url = Url::parse(&url_string)
+        .map_err(|_| Error::new(format!("invalid server name: {}", server_name)))?;
+
+    match url.host() {
+        Some(host) => Ok(host.to_owned()),
+        None => Err(Error::new(format!("invalid server name: {}", server_name))),
+    }
 }
