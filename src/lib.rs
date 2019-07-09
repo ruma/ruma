@@ -30,10 +30,87 @@
 //! ruma_signatures::sign_json("example.com", &key_pair, &mut value).unwrap()
 //! ```
 //!
-//! # Signing Matrix events
+//! This will modify the JSON from an empty object to a structure like this:
 //!
-//! Signing an event uses a more involved process than signing arbitrary JSON.
-//! Event signing is not yet implemented by ruma-signatures.
+//! ```json
+//! {
+//!     "signatures": {
+//!         "example.com": {
+//!             "ed25519:1": "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"
+//!         }
+//!     }
+//! }
+//! ```
+//!
+//! # Hashing and signing Matrix events
+//!
+//! Signing an event uses a more involved process than signing arbitrary JSON because events can be
+//! redacted and signatures need to remain valid even if data is removed from an event later.
+//! Homeservers are required to generate hashes of event contents and sign events before exchanging
+//! them with other homeservers. Although the algorithm for hashing and signing an event is more
+//! complicated than for signing arbitrary JSON, the interface to a user of ruma-signatures is the
+//! same:
+//!
+//! ```rust,no_run
+//! # use ruma_signatures::{self, KeyPair};
+//! # use serde_json;
+//! # let public_key = [0; 32];
+//! # let private_key = [0; 32];
+//! // Create an Ed25519 key pair.
+//! let key_pair = ruma_signatures::Ed25519KeyPair::new(
+//!     &public_key, // &[u8]
+//!     &private_key, // &[u8]
+//!     "1".to_string(), // The "version" of the key.
+//! ).unwrap();
+//! let mut value = serde_json::from_str(
+//!     r#"{
+//!         "room_id": "!x:domain",
+//!         "sender": "@a:domain",
+//!         "origin": "domain",
+//!         "origin_server_ts": 1000000,
+//!         "signatures": {},
+//!         "hashes": {},
+//!         "type": "X",
+//!         "content": {},
+//!         "prev_events": [],
+//!         "auth_events": [],
+//!         "depth": 3,
+//!         "unsigned": {
+//!             "age_ts": 1000000
+//!         }
+//!     }"#
+//! ).unwrap();
+//! ruma_signatures::hash_and_sign_event("example.com", &key_pair, &mut value).unwrap()
+//! ```
+//!
+//! This will modify the JSON from the structure shown to a structure like this:
+//!
+//! ```json
+//! {
+//!     "auth_events": [],
+//!     "content": {},
+//!     "depth": 3,
+//!     "hashes": {
+//!         "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+//!     },
+//!     "origin": "domain",
+//!     "origin_server_ts": 1000000,
+//!     "prev_events": [],
+//!     "room_id": "!x:domain",
+//!     "sender": "@a:domain",
+//!     "signatures": {
+//!         "domain": {
+//!             "ed25519:1": "KxwGjPSDEtvnFgU00fwFz+l6d2pJM6XBIaMEn81SXPTRl16AqLAYqfIReFGZlHi5KLjAWbOoMszkwsQma+lYAg"
+//!         }
+//!     },
+//!     "type": "X",
+//!     "unsigned": {
+//!         "age_ts": 1000000
+//!     }
+//! }
+//! ```
+//!
+//! Notice the addition of `hashes` and `signatures`.
 //!
 //! # Verifying signatures
 //!
