@@ -137,6 +137,14 @@ impl SignatureMap {
     }
 
     /// Gets the given server's corresponding signature set for in-place manipulation.
+    ///
+    /// # Parameters
+    ///
+    /// * server_name: The hostname or IP of the homeserver, e.g. `example.com`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the given server name cannot be parsed as a valid host.
     pub fn entry(&mut self, server_name: &str) -> Result<Entry<Host, SignatureSet>, Error> {
         let host = server_name_to_host(server_name)?;
 

@@ -64,7 +64,11 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 ///
 /// # Errors
 ///
-/// Returns an error if the JSON value is not a JSON object.
+/// Returns an error if:
+///
+/// * `value` is not a JSON object.
+/// * `value` contains a field called `signatures` that is not a JSON object.
+/// * `server_name` cannot be parsed as a valid host.
 pub fn sign_json<K>(server_name: &str, key_pair: &K, value: &mut Value) -> Result<(), Error>
 where
     K: KeyPair,
@@ -160,6 +164,14 @@ where
 ///
 /// The content hash of an event covers the complete event including the unredacted contents. It is
 /// used during federation and is described in the Matrix server-server specification.
+///
+/// # Parameters
+///
+/// value: A JSON object to generate a content hash for.
+///
+/// # Errors
+///
+/// Returns an error if the provided JSON value is not a JSON object.
 pub fn content_hash(value: &Value) -> Result<String, Error> {
     let json = to_canonical_json_with_fields_to_remove(value, CONTENT_HASH_FIELDS_TO_REMOVE)?;
 
@@ -175,6 +187,14 @@ pub fn content_hash(value: &Value) -> Result<String, Error> {
 /// The reference hash of an event covers the essential fields of an event, including content
 /// hashes. It is used to generate event identifiers and is described in the Matrix server-server
 /// specification.
+///
+/// # Parameters
+///
+/// value: A JSON object to generate a reference hash for.
+///
+/// # Errors
+///
+/// Returns an error if the provided JSON value is not a JSON object.
 pub fn reference_hash(value: &Value) -> Result<String, Error> {
     let redacted_value = redact(value)?;
 
@@ -197,6 +217,17 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 /// * server_name: The hostname or IP of the homeserver, e.g. `example.com`.
 /// * key_pair: A cryptographic key pair used to sign the event.
 /// * value: A JSON object to be hashed and signed according to the Matrix specification.
+///
+/// # Errors
+///
+/// Returns an error if:
+///
+/// * `value` is not a JSON object.
+/// * `value` contains a field called `content` that is not a JSON object.
+/// * `value` contains a field called `hashes` that is not a JSON object.
+/// * `value` contains a field called `signatures` that is not a JSON object.
+/// * `value` is missing the `type` field or the field is not a JSON string.
+/// * `server_name` cannot be parsed as a valid host.
 pub fn hash_and_sign_event<K>(
     server_name: &str,
     key_pair: &K,
