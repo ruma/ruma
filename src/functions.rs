@@ -160,7 +160,7 @@ where
 
 /// Creates a *content hash* for the JSON representation of an event.
 ///
-/// Returns the hash as a Base64-encoded string without padding.
+/// Returns the hash as a Base64-encoded string, using the standard character set, without padding.
 ///
 /// The content hash of an event covers the complete event including the unredacted contents. It is
 /// used during federation and is described in the Matrix server-server specification.
@@ -182,7 +182,7 @@ pub fn content_hash(value: &Value) -> Result<String, Error> {
 
 /// Creates a *reference hash* for the JSON representation of an event.
 ///
-/// Returns the hash as a Base64-encoded string without padding.
+/// Returns the hash as a Base64-encoded string, using the standard character set, without padding.
 ///
 /// The reference hash of an event covers the essential fields of an event, including content
 /// hashes. It is used to generate event identifiers and is described in the Matrix server-server

@@ -11,6 +11,9 @@
 //! algorithm it uses and a "version" string, separated by a colon. The version is an arbitrary
 //! identifier used to distinguish key pairs using the same algorithm from the same homeserver.
 //!
+//! In JSON representations, signatures and hashes appear as Base64-encoded strings, using the
+//! standard character set, without padding.
+//!
 //! # Signing JSON
 //!
 //! A homeserver signs JSON with a key pair:
