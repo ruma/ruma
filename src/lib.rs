@@ -51,7 +51,7 @@
 //!     "key identifier should be valid"
 //! );
 //! let value = serde_json::from_str("{}").expect("an empty JSON object should deserialize");
-//! let verifier = ruma_signatures::Ed25519Verifier::new();
+//! let verifier = ruma_signatures::Ed25519Verifier;
 //! assert!(ruma_signatures::verify_json(&verifier, &public_key, &signature, &value).is_ok());
 //! ```
 //!
@@ -416,13 +416,6 @@ impl Debug for Ed25519KeyPair {
             .field("public_key", &self.public_key)
             .field("version", &self.version)
             .finish()
-    }
-}
-
-impl Ed25519Verifier {
-    /// Creates a new `Ed25519Verifier`.
-    pub fn new() -> Self {
-        Ed25519Verifier
     }
 }
 
@@ -813,7 +806,7 @@ mod test {
 
         let value = from_str("{}").unwrap();
 
-        let verifier = Ed25519Verifier::new();
+        let verifier = Ed25519Verifier;
 
         assert!(verify_json(
             &verifier,
@@ -917,7 +910,7 @@ mod test {
             r#"{"one":1,"signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
         ).unwrap();
 
-        let verifier = Ed25519Verifier::new();
+        let verifier = Ed25519Verifier;
 
         assert!(verify_json(
             &verifier,
@@ -992,7 +985,7 @@ mod test {
 
         let value = from_str(r#"{"not":"empty"}"#).unwrap();
 
-        let verifier = Ed25519Verifier::new();
+        let verifier = Ed25519Verifier;
 
         assert!(verify_json(
             &verifier,
