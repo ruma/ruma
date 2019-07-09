@@ -148,87 +148,17 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
-use serde_json::{to_string, Value};
-
 pub use url::Host;
 
+pub use functions::{content_hash, reference_hash, sign_json, to_canonical_json, verify_json};
 pub use keys::{Ed25519KeyPair, KeyPair};
 pub use signatures::{Signature, SignatureMap, SignatureSet};
 pub use verification::{Ed25519Verifier, Verifier};
 
+mod functions;
 mod keys;
 mod signatures;
 mod verification;
-
-/// Signs an arbitrary JSON object.
-///
-/// # Parameters
-///
-/// * key_pair: A cryptographic key pair used to sign the JSON.
-/// * value: A JSON object to be signed according to the Matrix specification.
-///
-/// # Errors
-///
-/// Returns an error if the JSON value is not a JSON object.
-pub fn sign_json<K>(key_pair: &K, value: &Value) -> Result<Signature, Error>
-where
-    K: KeyPair,
-{
-    let json = to_canonical_json(value)?;
-
-    Ok(key_pair.sign(json.as_bytes()))
-}
-
-/// Converts a JSON object into the "canonical" string form, suitable for signing.
-///
-/// # Parameters
-///
-/// * value: The `serde_json::Value` (JSON value) to convert.
-///
-/// # Errors
-///
-/// Returns an error if the provided JSON value is not a JSON object.
-pub fn to_canonical_json(value: &Value) -> Result<String, Error> {
-    if !value.is_object() {
-        return Err(Error::new("JSON value must be a JSON object"));
-    }
-
-    let mut owned_value = value.clone();
-
-    {
-        let object = owned_value
-            .as_object_mut()
-            .expect("safe since we checked above");
-        object.remove("signatures");
-        object.remove("unsigned");
-    }
-
-    to_string(&owned_value).map_err(|error| Error::new(error.description()))
-}
-
-/// Use a public key to verify a signature of a JSON object.
-///
-/// # Parameters
-///
-/// * verifier: A `Verifier` appropriate for the digital signature algorithm that was used.
-/// * public_key: The public key of the key pair used to sign the JSON, as a series of bytes.
-/// * signature: The `Signature` to verify.
-/// * value: The `serde_json::Value` (JSON value) that was signed.
-///
-/// # Errors
-///
-/// Returns an error if verification fails.
-pub fn verify_json<V>(
-    verifier: &V,
-    public_key: &[u8],
-    signature: &Signature,
-    value: &Value,
-) -> Result<(), Error>
-where
-    V: Verifier,
-{
-    verifier.verify_json(public_key, signature, to_canonical_json(value)?.as_bytes())
-}
 
 /// An error produced when ruma-signatures operations fail.
 #[derive(Clone, Debug, PartialEq)]
