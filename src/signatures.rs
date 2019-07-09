@@ -89,20 +89,20 @@ impl Signature {
 
 /// A map of server names to sets of digital signatures created by that server.
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Signatures {
+pub struct SignatureMap {
     /// A map of homeservers to sets of signatures for the homeserver.
     map: HashMap<Host, SignatureSet>,
 }
 
-impl Signatures {
-    /// Initializes a new empty Signatures.
+impl SignatureMap {
+    /// Initializes a new empty `SignatureMap`.
     pub fn new() -> Self {
         Self {
             map: HashMap::new(),
         }
     }
 
-    /// Initializes a new empty Signatures with room for a specific number of servers.
+    /// Initializes a new empty `SignatureMap` with room for a specific number of servers.
     ///
     /// # Parameters
     ///
@@ -154,7 +154,7 @@ impl Signatures {
     }
 }
 
-impl Serialize for Signatures {
+impl Serialize for SignatureMap {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -170,20 +170,20 @@ impl Serialize for Signatures {
     }
 }
 
-impl<'de> Deserialize<'de> for Signatures {
+impl<'de> Deserialize<'de> for SignatureMap {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_map(SignaturesVisitor)
+        deserializer.deserialize_map(SignatureMapVisitor)
     }
 }
 
-/// Serde Visitor for deserializing `Signatures`.
-struct SignaturesVisitor;
+/// Serde Visitor for deserializing `SignatureMap`.
+struct SignatureMapVisitor;
 
-impl<'de> Visitor<'de> for SignaturesVisitor {
-    type Value = Signatures;
+impl<'de> Visitor<'de> for SignatureMapVisitor {
+    type Value = SignatureMap;
 
     fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         write!(formatter, "digital signatures")
@@ -194,8 +194,8 @@ impl<'de> Visitor<'de> for SignaturesVisitor {
         M: MapAccess<'de>,
     {
         let mut signatures = match visitor.size_hint() {
-            Some(capacity) => Signatures::with_capacity(capacity),
-            None => Signatures::new(),
+            Some(capacity) => SignatureMap::with_capacity(capacity),
+            None => SignatureMap::new(),
         };
 
         while let Some((server_name, signature_set)) =

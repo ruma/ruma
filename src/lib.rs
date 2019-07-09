@@ -57,7 +57,7 @@
 //!
 //! Verifying signatures of Matrix events is not yet implemented by ruma-signatures.
 //!
-//! # Signature sets
+//! # Signature sets and maps
 //!
 //! Signatures that a homeserver has added to an event are stored in a JSON object under the
 //! "signatures" key in the event's JSON representation:
@@ -96,7 +96,7 @@
 //! This code produces the object under the "example.com" key in the preceeding JSON. Similarly,
 //! a `SignatureSet` can be produced by deserializing JSON that follows this form.
 //!
-//! The outer object (the map of server names to signature sets) is a `Signatures` value and
+//! The outer object (the map of server names to signature sets) is a `SignatureMap` value and
 //! created like this:
 //!
 //! ```rust,no_run
@@ -109,12 +109,13 @@
 //! );
 //! let mut signature_set = ruma_signatures::SignatureSet::new();
 //! signature_set.insert(signature);
-//! let mut signatures = ruma_signatures::Signatures::new();
-//! signatures.insert("example.com", signature_set).expect("example.com is a valid server name");
-//! serde_json::to_string(&signatures).expect("signatures should serialize");
+//! let mut signature_map = ruma_signatures::SignatureMap::new();
+//! signature_map.insert("example.com", signature_set).expect("example.com is a valid server name");
+//! serde_json::to_string(&signature_map).expect("signature_map should serialize");
 //! ```
 //!
-//! Just like the `SignatureSet` itself, the `Signatures` value can also be deserialized from JSON.
+//! Just like the `SignatureSet` itself, the `SignatureMap` value can also be deserialized from
+//! JSON.
 
 #![deny(
     missing_copy_implementations,
@@ -152,7 +153,7 @@ use serde_json::{to_string, Value};
 pub use url::Host;
 
 pub use keys::{Ed25519KeyPair, KeyPair};
-pub use signatures::{Signature, SignatureSet, Signatures};
+pub use signatures::{Signature, SignatureMap, SignatureSet};
 pub use verification::{Ed25519Verifier, Verifier};
 
 mod keys;
@@ -288,8 +289,8 @@ mod test {
     use serde_json::{from_str, to_string, to_value};
 
     use super::{
-        sign_json, verify_json, Ed25519KeyPair, Ed25519Verifier, KeyPair, Signature, SignatureSet,
-        Signatures,
+        sign_json, verify_json, Ed25519KeyPair, Ed25519Verifier, KeyPair, Signature, SignatureMap,
+        SignatureSet,
     };
 
     const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
@@ -346,10 +347,10 @@ mod test {
     }
 
     #[test]
-    fn signatures_empty_json() {
+    fn signature_map_empty_json() {
         #[derive(Serialize)]
-        struct EmptyWithSignatures {
-            signatures: Signatures,
+        struct EmptyWithSignatureMap {
+            signatures: SignatureMap,
         }
 
         let signature = Signature::new(
@@ -363,10 +364,12 @@ mod test {
         let mut signature_set = SignatureSet::with_capacity(1);
         signature_set.insert(signature);
 
-        let mut signatures = Signatures::with_capacity(1);
-        signatures.insert("domain", signature_set).ok();
+        let mut signature_map = SignatureMap::with_capacity(1);
+        signature_map.insert("domain", signature_set).ok();
 
-        let empty = EmptyWithSignatures { signatures };
+        let empty = EmptyWithSignatureMap {
+            signatures: signature_map,
+        };
 
         let json = to_string(&empty).unwrap();
 
@@ -464,11 +467,11 @@ mod test {
     }
 
     #[test]
-    fn signatures_minimal_json() {
+    fn signature_map_minimal_json() {
         #[derive(Serialize)]
-        struct MinimalWithSignatures {
+        struct MinimalWithSignatureMap {
             one: u8,
-            signatures: Signatures,
+            signatures: SignatureMap,
             two: String,
         }
 
@@ -483,12 +486,12 @@ mod test {
         let mut signature_set = SignatureSet::with_capacity(1);
         signature_set.insert(signature);
 
-        let mut signatures = Signatures::with_capacity(1);
-        signatures.insert("domain", signature_set).ok();
+        let mut signature_map = SignatureMap::with_capacity(1);
+        signature_map.insert("domain", signature_set).ok();
 
-        let minimal = MinimalWithSignatures {
+        let minimal = MinimalWithSignatureMap {
             one: 1,
-            signatures: signatures.clone(),
+            signatures: signature_map.clone(),
             two: "Two".to_string(),
         };
 
