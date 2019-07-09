@@ -449,7 +449,7 @@ impl Error {
     /// # Parameters
     ///
     /// * message: The error message.
-    pub fn new<T>(message: T) -> Self
+    pub(crate) fn new<T>(message: T) -> Self
     where
         T: Into<String>,
     {
