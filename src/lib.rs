@@ -1,4 +1,4 @@
-//! Crate **ruma_signatures** implements digital signatures according to the
+//! Crate `ruma_signatures` implements digital signatures according to the
 //! [Matrix](https://matrix.org/) specification.
 //!
 //! Digital signatures are used by Matrix homeservers to verify the authenticity of events in the
@@ -27,13 +27,16 @@
 //!     "1".to_string(), // The "version" of the key.
 //! ).expect("the provided keys should be suitable for Ed25519");
 //! let value = serde_json::from_str("{}").expect("an empty JSON object should deserialize");
-//! ruma_signatures::sign_json(&key_pair, &value).expect("value is a a JSON object"); // `Signature`
+//! let signature = ruma_signatures::sign_json(
+//!     &key_pair,
+//!     &value,
+//! ).expect("`value` must be a JSON object");
 //! ```
 //!
 //! # Signing Matrix events
 //!
 //! Signing an event uses a more involved process than signing arbitrary JSON.
-//! Event signing is not yet implemented by ruma_signatures.
+//! Event signing is not yet implemented by ruma-signatures.
 //!
 //! # Verifying signatures
 //!
@@ -52,7 +55,7 @@
 //! assert!(ruma_signatures::verify_json(&verifier, &public_key, &signature, &value).is_ok());
 //! ```
 //!
-//! Verifying signatures of Matrix events is not yet implemented by ruma_signatures.
+//! Verifying signatures of Matrix events is not yet implemented by ruma-signatures.
 //!
 //! # Signature sets
 //!
@@ -142,7 +145,7 @@
 use std::{
     collections::{HashMap, HashSet},
     error::Error as StdError,
-    fmt::{Display, Formatter, Result as FmtResult},
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
 
 use base64::{decode_config, encode_config, CharacterSet, Config};
@@ -234,7 +237,7 @@ where
 }
 
 /// An error when trying to extract the algorithm and version from a key identifier.
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 enum SplitError<'a> {
     /// The signature's ID has an invalid length.
     InvalidLength(usize),
@@ -273,20 +276,24 @@ pub enum Algorithm {
 }
 
 /// An Ed25519 key pair.
-#[derive(Debug)]
+#[derive(Clone, PartialEq)]
 pub struct Ed25519KeyPair {
-    /// The *ring* key pair.
-    ring_key_pair: RingEd25519KeyPair,
+    /// The public key.
+    public_key: Vec<u8>,
+
+    /// The private key.
+    private_key: Vec<u8>,
+
     /// The version of the key pair.
     version: String,
 }
 
 /// A verifier for Ed25519 digital signatures.
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Ed25519Verifier;
 
-/// An error produced when `ruma_signatures` operations fail.
-#[derive(Clone, Debug)]
+/// An error produced when ruma-signatures operations fail.
+#[derive(Clone, Debug, PartialEq)]
 pub struct Error {
     /// A human-readable description of the error.
     message: String,
@@ -330,7 +337,7 @@ pub struct Signature {
 }
 
 /// A map of server names to sets of digital signatures created by that server.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Signatures {
     /// A map of homeservers to sets of signatures for the homeserver.
     map: HashMap<Host, SignatureSet>,
@@ -340,7 +347,7 @@ pub struct Signatures {
 struct SignaturesVisitor;
 
 /// A set of digital signatures created by a single homeserver.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct SignatureSet {
     /// A set of signatures for a homeserver.
     set: HashSet<Signature>,
@@ -372,22 +379,43 @@ pub trait Verifier {
 
 impl KeyPair for Ed25519KeyPair {
     fn new(public_key: &[u8], private_key: &[u8], version: String) -> Result<Self, Error> {
+        if let Err(error) = RingEd25519KeyPair::from_seed_and_public_key(
+            Input::from(private_key),
+            Input::from(public_key),
+        ) {
+            return Err(Error::new(error.to_string()));
+        }
+
         Ok(Self {
-            ring_key_pair: RingEd25519KeyPair::from_seed_and_public_key(
-                Input::from(private_key),
-                Input::from(public_key),
-            )
-            .map_err(|_| Error::new("invalid key pair"))?,
+            public_key: public_key.to_owned(),
+            private_key: private_key.to_owned(),
             version,
         })
     }
 
     fn sign(&self, message: &[u8]) -> Signature {
+        // Okay to unwrap because we verified the input in the `new`.
+        let ring_key_pair = RingEd25519KeyPair::from_seed_and_public_key(
+            Input::from(&self.private_key),
+            Input::from(&self.public_key),
+        )
+        .unwrap();
+
         Signature {
             algorithm: Algorithm::Ed25519,
-            signature: self.ring_key_pair.sign(message).as_ref().to_vec(),
+            signature: ring_key_pair.sign(message).as_ref().to_vec(),
             version: self.version.clone(),
         }
+    }
+}
+
+impl Debug for Ed25519KeyPair {
+    fn fmt(&self, formatter: &mut Formatter) -> FmtResult {
+        formatter
+            .debug_struct("Ed25519KeyPair")
+            .field("public_key", &self.public_key)
+            .field("version", &self.version)
+            .finish()
     }
 }
 
@@ -745,12 +773,12 @@ mod test {
         Signatures, BASE64_CONFIG,
     };
 
-    const PUBLIC_KEY: &'static str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
-    const PRIVATE_KEY: &'static str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
+    const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+    const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
 
-    const EMPTY_JSON_SIGNATURE: &'static str =
+    const EMPTY_JSON_SIGNATURE: &str =
         "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
-    const MINIMAL_JSON_SIGNATURE: &'static str =
+    const MINIMAL_JSON_SIGNATURE: &str =
         "KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw";
 
     #[test]
