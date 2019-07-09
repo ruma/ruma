@@ -2,7 +2,7 @@
 
 use base64::{encode_config, STANDARD_NO_PAD};
 use ring::digest::{digest, SHA256};
-use serde_json::{from_str, map::Map, to_string, to_value, Value};
+use serde_json::{from_value, map::Map, to_string, to_value, Value};
 
 use crate::{
     keys::KeyPair,
@@ -86,7 +86,7 @@ where
 
         signature_map = match map.remove("signatures") {
             Some(signatures_value) => match signatures_value.as_object() {
-                Some(signatures) => from_str(&to_string(signatures)?)?,
+                Some(signatures) => from_value(Value::Object(signatures.clone()))?,
                 None => return Err(Error::new("Field `signatures` must be a JSON object")),
             },
             None => SignatureMap::with_capacity(1),
