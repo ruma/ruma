@@ -537,4 +537,42 @@ mod test {
             r#"{"auth_events":[],"content":{},"depth":3,"hashes":{"sha256":"5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"},"origin":"domain","origin_server_ts":1000000,"prev_events":[],"room_id":"!x:domain","sender":"@a:domain","signatures":{"domain":{"ed25519:1":"KxwGjPSDEtvnFgU00fwFz+l6d2pJM6XBIaMEn81SXPTRl16AqLAYqfIReFGZlHi5KLjAWbOoMszkwsQma+lYAg"}},"type":"X","unsigned":{"age_ts":1000000}}"#
         );
     }
+
+    #[test]
+    fn sign_redacted_event() {
+        let key_pair = Ed25519KeyPair::new(
+            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
+                .unwrap()
+                .as_slice(),
+            decode_config(&PRIVATE_KEY, STANDARD_NO_PAD)
+                .unwrap()
+                .as_slice(),
+            "1".to_string(),
+        )
+        .unwrap();
+
+        let json = r#"{
+            "content": {
+                "body": "Here is the message content"
+            },
+            "event_id": "$0:domain",
+            "origin": "domain",
+            "origin_server_ts": 1000000,
+            "type": "m.room.message",
+            "room_id": "!r:domain",
+            "sender": "@u:domain",
+            "signatures": {},
+            "unsigned": {
+                "age_ts": 1000000
+            }
+        }"#;
+
+        let mut value = from_str::<Value>(json).unwrap();
+        hash_and_sign_event("domain", &key_pair, &mut value).unwrap();
+
+        assert_eq!(
+            to_string(&value).unwrap(),
+            r#"{"content":{"body":"Here is the message content"},"event_id":"$0:domain","hashes":{"sha256":"onLKD1bGljeBWQhWZ1kaP9SorVmRQNdN5aM2JYU2n/g"},"origin":"domain","origin_server_ts":1000000,"room_id":"!r:domain","sender":"@u:domain","signatures":{"domain":{"ed25519:1":"Wm+VzmOUOz08Ds+0NTWb1d4CZrVsJSikkeRxh6aCcUwu6pNC78FunoD7KNWzqFn241eYHYMGCA5McEiVPdhzBA"}},"type":"m.room.message","unsigned":{"age_ts":1000000}}"#
+        );
+    }
 }
