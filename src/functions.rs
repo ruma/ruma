@@ -322,27 +322,26 @@ fn redact(value: &Value) -> Result<Value, Error> {
     };
 
     if let Some(content_value) = event.get_mut("content") {
-        if !content_value.is_object() {
-            return Err(Error::new(
-                "Field `content` in JSON value must be a JSON object",
-            ));
-        }
+        let map = match content_value {
+            Value::Object(ref mut map) => map,
+            _ => {
+                return Err(Error::new(
+                    "Field `content` in JSON value must be a JSON object",
+                ))
+            }
+        };
 
-        let content = content_value
-            .as_object_mut()
-            .expect("safe since we checked above");
-
-        for key in content.clone().keys() {
+        for key in map.clone().keys() {
             match event_type.as_ref() {
-                "m.room.member" if key != "membership" => content.remove(key),
-                "m.room.create" if key != "creator" => content.remove(key),
-                "m.room.join_rules" if key != "join_rules" => content.remove(key),
+                "m.room.member" if key != "membership" => map.remove(key),
+                "m.room.create" if key != "creator" => map.remove(key),
+                "m.room.join_rules" if key != "join_rules" => map.remove(key),
                 "m.room.power_levels" if !ALLOWED_POWER_LEVELS_KEYS.contains(&key.as_ref()) => {
-                    content.remove(key)
+                    map.remove(key)
                 }
-                "m.room.aliases" if key != "aliases" => content.remove(key),
-                "m.room.history_visibility" if key != "history_visibility" => content.remove(key),
-                _ => content.remove(key),
+                "m.room.aliases" if key != "aliases" => map.remove(key),
+                "m.room.history_visibility" if key != "history_visibility" => map.remove(key),
+                _ => map.remove(key),
             };
         }
     }
