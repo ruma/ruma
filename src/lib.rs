@@ -225,17 +225,17 @@ mod test {
 
     use super::{
         sign_json, to_canonical_json, verify_json, Ed25519KeyPair, Ed25519Verifier, KeyPair,
-        Signature, SignatureMap, SignatureSet,
+        Signature,
     };
-
-    const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
-    const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
-
     const EMPTY_JSON_SIGNATURE: &str =
         "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
     const MINIMAL_JSON_SIGNATURE: &str =
         "KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw";
 
+    const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+    const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
+
+    /// Convenience for converting a string of JSON into its canonical form.
     fn test_canonical_json(input: &str) -> String {
         let value = from_str::<Value>(input).unwrap();
 
@@ -349,7 +349,10 @@ mod test {
 
         sign_json("example.com", &key_pair, &mut value).unwrap();
 
-        assert_eq!(value.pointer("/signatures/example.com/ed25519:1").unwrap(), EMPTY_JSON_SIGNATURE);
+        assert_eq!(
+            to_string(&value).unwrap(),
+            r#"{"signatures":{"example.com":{"ed25519:1":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}}"#
+        );
     }
 
     #[test]
@@ -375,39 +378,6 @@ mod test {
             &value,
         )
         .is_ok());
-    }
-
-    #[test]
-    fn signature_map_empty_json() {
-        #[derive(Serialize)]
-        struct EmptyWithSignatureMap {
-            signatures: SignatureMap,
-        }
-
-        let signature = Signature::new(
-            "ed25519:1",
-            decode_config(&EMPTY_JSON_SIGNATURE, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
-        )
-        .unwrap();
-
-        let mut signature_set = SignatureSet::with_capacity(1);
-        signature_set.insert(signature);
-
-        let mut signature_map = SignatureMap::with_capacity(1);
-        signature_map.insert("domain", signature_set).ok();
-
-        let empty = EmptyWithSignatureMap {
-            signatures: signature_map,
-        };
-
-        let json = to_string(&empty).unwrap();
-
-        assert_eq!(
-            json,
-            r#"{"signatures":{"domain":{"ed25519:1":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}}"#
-        );
     }
 
     #[test]
@@ -448,12 +418,19 @@ mod test {
         let mut alpha_value = to_value(alpha).expect("alpha should serialize");
         sign_json("example.com", &key_pair, &mut alpha_value).unwrap();
 
-        assert_eq!(alpha_value.pointer("/signatures/example.com/ed25519:1").unwrap(), MINIMAL_JSON_SIGNATURE);
+        assert_eq!(
+            to_string(&alpha_value).unwrap(),
+            r#"{"one":1,"signatures":{"example.com":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
+        );
 
-        let mut reverse_alpha_value = to_value(reverse_alpha).expect("reverse_alpha should serialize");
+        let mut reverse_alpha_value =
+            to_value(reverse_alpha).expect("reverse_alpha should serialize");
         sign_json("example.com", &key_pair, &mut reverse_alpha_value).unwrap();
 
-        assert_eq!(reverse_alpha_value.pointer("/signatures/example.com/ed25519:1").unwrap(), MINIMAL_JSON_SIGNATURE);
+        assert_eq!(
+            to_string(&reverse_alpha_value).unwrap(),
+            r#"{"one":1,"signatures":{"example.com":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
+        );
     }
 
     #[test]
@@ -467,7 +444,7 @@ mod test {
         .unwrap();
 
         let value = from_str(
-            r#"{"one":1,"signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
+            r#"{"one":1,"signatures":{"example.com":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
         ).unwrap();
 
         let verifier = Ed25519Verifier;
@@ -483,7 +460,7 @@ mod test {
         .is_ok());
 
         let reverse_value = from_str(
-            r#"{"two":"Two","signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"one":1}"#
+            r#"{"two":"Two","signatures":{"example.com":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"one":1}"#
         ).unwrap();
 
         assert!(verify_json(
@@ -498,43 +475,7 @@ mod test {
     }
 
     #[test]
-    fn signature_map_minimal_json() {
-        #[derive(Serialize)]
-        struct MinimalWithSignatureMap {
-            one: u8,
-            signatures: SignatureMap,
-            two: String,
-        }
-
-        let signature = Signature::new(
-            "ed25519:1",
-            decode_config(&MINIMAL_JSON_SIGNATURE, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
-        )
-        .unwrap();
-
-        let mut signature_set = SignatureSet::with_capacity(1);
-        signature_set.insert(signature);
-
-        let mut signature_map = SignatureMap::with_capacity(1);
-        signature_map.insert("domain", signature_set).ok();
-
-        let minimal = MinimalWithSignatureMap {
-            one: 1,
-            signatures: signature_map.clone(),
-            two: "Two".to_string(),
-        };
-
-        let json = to_string(&minimal).unwrap();
-        assert_eq!(
-            json,
-            r#"{"one":1,"signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
-        );
-    }
-
-    #[test]
-    fn fail_verify() {
+    fn fail_verify_json() {
         let signature = Signature::new(
             "ed25519:1",
             decode_config(&EMPTY_JSON_SIGNATURE, STANDARD_NO_PAD)
