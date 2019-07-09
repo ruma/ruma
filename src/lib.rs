@@ -148,8 +148,7 @@ use std::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
 
-use base64::{decode_config, encode_config, CharacterSet, Config};
-use lazy_static::lazy_static;
+use base64::{decode_config, encode_config, STANDARD_NO_PAD};
 use ring::signature::{verify, Ed25519KeyPair as RingEd25519KeyPair, ED25519};
 use serde::{
     de::{Error as SerdeError, MapAccess, Unexpected, Visitor},
@@ -161,10 +160,6 @@ use untrusted::Input;
 use url::Url;
 
 pub use url::Host;
-
-lazy_static! {
-    static ref BASE64_CONFIG: Config = Config::new(CharacterSet::Standard, false);
-}
 
 /// Signs an arbitrary JSON object.
 ///
@@ -501,8 +496,10 @@ impl Signature {
     }
 
     /// A Base64 encoding of the signature.
+    ///
+    /// Uses the standard character set with no padding.
     pub fn base64(&self) -> String {
-        encode_config(self.signature.as_slice(), *BASE64_CONFIG)
+        encode_config(self.signature.as_slice(), STANDARD_NO_PAD)
     }
 
     /// The key identifier, a string containing the signature algorithm and the key "version"
@@ -727,7 +724,7 @@ impl<'de> Visitor<'de> for SignatureSetVisitor {
                 }
             })?;
 
-            let signature_bytes: Vec<u8> = match decode_config(&value, *BASE64_CONFIG) {
+            let signature_bytes: Vec<u8> = match decode_config(&value, STANDARD_NO_PAD) {
                 Ok(raw) => raw,
                 Err(error) => return Err(M::Error::custom(error.description())),
             };
@@ -757,13 +754,13 @@ impl Display for Algorithm {
 
 #[cfg(test)]
 mod test {
-    use base64::decode_config;
+    use base64::{decode_config, STANDARD_NO_PAD};
     use serde::Serialize;
     use serde_json::{from_str, to_string, to_value};
 
     use super::{
         sign_json, verify_json, Ed25519KeyPair, Ed25519Verifier, KeyPair, Signature, SignatureSet,
-        Signatures, BASE64_CONFIG,
+        Signatures,
     };
 
     const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
@@ -777,10 +774,10 @@ mod test {
     #[test]
     fn sign_empty_json() {
         let key_pair = Ed25519KeyPair::new(
-            decode_config(&PUBLIC_KEY, *BASE64_CONFIG)
+            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
                 .unwrap()
                 .as_slice(),
-            decode_config(&PRIVATE_KEY, *BASE64_CONFIG)
+            decode_config(&PRIVATE_KEY, STANDARD_NO_PAD)
                 .unwrap()
                 .as_slice(),
             "1".to_string(),
@@ -798,7 +795,7 @@ mod test {
     fn verify_empty_json() {
         let signature = Signature::new(
             "ed25519:1",
-            decode_config(&EMPTY_JSON_SIGNATURE, *BASE64_CONFIG)
+            decode_config(&EMPTY_JSON_SIGNATURE, STANDARD_NO_PAD)
                 .unwrap()
                 .as_slice(),
         )
@@ -810,7 +807,7 @@ mod test {
 
         assert!(verify_json(
             &verifier,
-            decode_config(&PUBLIC_KEY, *BASE64_CONFIG)
+            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
                 .unwrap()
                 .as_slice(),
             &signature,
@@ -828,7 +825,7 @@ mod test {
 
         let signature = Signature::new(
             "ed25519:1",
-            decode_config(&EMPTY_JSON_SIGNATURE, *BASE64_CONFIG)
+            decode_config(&EMPTY_JSON_SIGNATURE, STANDARD_NO_PAD)
                 .unwrap()
                 .as_slice(),
         )
@@ -865,10 +862,10 @@ mod test {
         }
 
         let key_pair = Ed25519KeyPair::new(
-            decode_config(&PUBLIC_KEY, *BASE64_CONFIG)
+            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
                 .unwrap()
                 .as_slice(),
-            decode_config(&PRIVATE_KEY, *BASE64_CONFIG)
+            decode_config(&PRIVATE_KEY, STANDARD_NO_PAD)
                 .unwrap()
                 .as_slice(),
             "1".to_string(),
@@ -900,7 +897,7 @@ mod test {
     fn verify_minimal_json() {
         let signature = Signature::new(
             "ed25519:1",
-            decode_config(&MINIMAL_JSON_SIGNATURE, *BASE64_CONFIG)
+            decode_config(&MINIMAL_JSON_SIGNATURE, STANDARD_NO_PAD)
                 .unwrap()
                 .as_slice(),
         )
@@ -914,7 +911,7 @@ mod test {
 
         assert!(verify_json(
             &verifier,
-            decode_config(&PUBLIC_KEY, *BASE64_CONFIG)
+            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
                 .unwrap()
                 .as_slice(),
             &signature,
@@ -928,7 +925,7 @@ mod test {
 
         assert!(verify_json(
             &verifier,
-            decode_config(&PUBLIC_KEY, *BASE64_CONFIG)
+            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
                 .unwrap()
                 .as_slice(),
             &signature,
@@ -948,7 +945,7 @@ mod test {
 
         let signature = Signature::new(
             "ed25519:1",
-            decode_config(&MINIMAL_JSON_SIGNATURE, *BASE64_CONFIG)
+            decode_config(&MINIMAL_JSON_SIGNATURE, STANDARD_NO_PAD)
                 .unwrap()
                 .as_slice(),
         )
@@ -977,7 +974,7 @@ mod test {
     fn fail_verify() {
         let signature = Signature::new(
             "ed25519:1",
-            decode_config(&EMPTY_JSON_SIGNATURE, *BASE64_CONFIG)
+            decode_config(&EMPTY_JSON_SIGNATURE, STANDARD_NO_PAD)
                 .unwrap()
                 .as_slice(),
         )
@@ -989,7 +986,7 @@ mod test {
 
         assert!(verify_json(
             &verifier,
-            decode_config(&PUBLIC_KEY, *BASE64_CONFIG)
+            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
                 .unwrap()
                 .as_slice(),
             &signature,
