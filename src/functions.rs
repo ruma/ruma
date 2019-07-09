@@ -125,7 +125,7 @@ pub fn content_hash(value: &Value) -> Result<String, Error> {
 /// Creates a *reference hash* for the JSON representation of an event.
 ///
 /// The reference hash of an event covers the essential fields of an event, including content
-/// hashes. It is used during federation and is described in the Matrix server-server
+/// hashes. It is used to generate event identifiers and is described in the Matrix server-server
 /// specification.
 pub fn reference_hash(value: &Value) -> Result<String, Error> {
     let redacted_value = redact(value)?;
