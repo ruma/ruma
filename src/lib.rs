@@ -44,10 +44,8 @@
 //! # use serde_json;
 //! # let public_key = [0; 32];
 //! # let signature_bytes = [0, 32];
-//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).expect(
-//!     "key identifier should be valid"
-//! );
-//! let value = serde_json::from_str("{}").expect("an empty JSON object should deserialize");
+//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
+//! let value = serde_json::from_str("{}").unwrap();
 //! let verifier = ruma_signatures::Ed25519Verifier;
 //! assert!(ruma_signatures::verify_json(&verifier, &public_key, &signature, &value).is_ok());
 //! ```
@@ -82,12 +80,10 @@
 //! # use serde;
 //! # use serde_json;
 //! # let signature_bytes = [0, 32];
-//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).expect(
-//!     "key identifier should be valid"
-//! );
+//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
 //! let mut signature_set = ruma_signatures::SignatureSet::new();
 //! signature_set.insert(signature);
-//! serde_json::to_string(&signature_set).expect("signature_set should serialize");
+//! serde_json::to_string(&signature_set).unwrap();
 //! ```
 //!
 //! This code produces the object under the "example.com" key in the preceeding JSON. Similarly,
@@ -101,14 +97,12 @@
 //! # use serde;
 //! # use serde_json;
 //! # let signature_bytes = [0, 32];
-//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).expect(
-//!     "key identifier should be valid"
-//! );
+//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
 //! let mut signature_set = ruma_signatures::SignatureSet::new();
 //! signature_set.insert(signature);
 //! let mut signature_map = ruma_signatures::SignatureMap::new();
-//! signature_map.insert("example.com", signature_set).expect("example.com is a valid server name");
-//! serde_json::to_string(&signature_map).expect("signature_map should serialize");
+//! signature_map.insert("example.com", signature_set).unwrap();
+//! serde_json::to_string(&signature_map).unwrap();
 //! ```
 //!
 //! Just like the `SignatureSet` itself, the `SignatureMap` value can also be deserialized from
