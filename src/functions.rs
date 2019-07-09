@@ -4,9 +4,14 @@ use std::error::Error as _;
 
 use base64::{encode_config, STANDARD_NO_PAD};
 use ring::digest::{digest, SHA256};
-use serde_json::{to_string, Value};
+use serde_json::{json, to_string, to_value, Value};
 
-use crate::{keys::KeyPair, signatures::Signature, verification::Verifier, Error};
+use crate::{
+    keys::KeyPair,
+    signatures::{Signature, SignatureMap, SignatureSet},
+    verification::Verifier,
+    Error,
+};
 
 /// The fields that are allowed to remain in an event during redaction.
 static ALLOWED_KEYS: &[&str] = &[
@@ -131,6 +136,62 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
     let hash = digest(&SHA256, json.as_bytes());
 
     Ok(encode_config(&hash, STANDARD_NO_PAD))
+}
+
+/// Hashes and signs the JSON representation of an event.
+///
+/// # Parameters
+///
+/// * server_name: The hostname or IP of the homeserver, e.g. `example.com`.
+/// * key_pair: A cryptographic key pair used to sign the event.
+/// * value: A JSON object to be hashed and signed according to the Matrix specification.
+pub fn hash_and_sign_event<K>(
+    server_name: &str,
+    key_pair: &K,
+    value: &Value,
+) -> Result<Value, Error>
+where
+    K: KeyPair,
+{
+    let hash = content_hash(value)?;
+
+    if !value.is_object() {
+        return Err(Error::new("JSON value must be a JSON object"));
+    }
+
+    let mut owned_value = value.clone();
+
+    // Limit the scope of the mutable borrow so `owned_value` can be passed immutably to `redact`
+    // below.
+    {
+        let object = owned_value
+            .as_object_mut()
+            .expect("safe since we checked above");
+
+        let hashes = json!({ "sha256": hash });
+
+        object.insert("hashes".to_string(), hashes);
+    }
+
+    let redacted = redact(&owned_value)?;
+
+    let signature = sign_json(key_pair, &redacted)?;
+
+    let mut signature_set = SignatureSet::with_capacity(1);
+    signature_set.insert(signature);
+
+    let mut signature_map = SignatureMap::with_capacity(1);
+    signature_map.insert(server_name, signature_set)?;
+
+    let signature_map_value =
+        to_value(signature_map).map_err(|error| Error::new(error.to_string()))?;
+
+    let object = owned_value
+        .as_object_mut()
+        .expect("safe since we checked above");
+    object.insert("signatures".to_string(), signature_map_value);
+
+    Ok(owned_value)
 }
 
 /// Internal implementation detail of the canonical JSON algorithm. Allows customization of the

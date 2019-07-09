@@ -150,7 +150,9 @@ use std::{
 
 pub use url::Host;
 
-pub use functions::{content_hash, reference_hash, sign_json, to_canonical_json, verify_json};
+pub use functions::{
+    content_hash, hash_and_sign_event, reference_hash, sign_json, to_canonical_json, verify_json,
+};
 pub use keys::{Ed25519KeyPair, KeyPair};
 pub use signatures::{Signature, SignatureMap, SignatureSet};
 pub use verification::{Ed25519Verifier, Verifier};
