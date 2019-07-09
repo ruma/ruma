@@ -2,7 +2,7 @@
 
 use base64::{encode_config, STANDARD_NO_PAD};
 use ring::digest::{digest, SHA256};
-use serde_json::{from_str, json, to_string, to_value, Value};
+use serde_json::{from_str, map::Map, to_string, to_value, Value};
 
 use crate::{
     keys::KeyPair,
@@ -186,7 +186,11 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
     Ok(encode_config(&hash, STANDARD_NO_PAD))
 }
 
-/// Hashes and signs the JSON representation of an event.
+/// Hashes and signs the JSON representation of an event and adds the hash and signature to objects
+/// under the keys `hashes` and `signatures`, respectively.
+///
+/// If `hashes` and/or `signatures` are already present, the new data will be appended to the
+/// existing data.
 ///
 /// # Parameters
 ///
@@ -196,41 +200,40 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 pub fn hash_and_sign_event<K>(
     server_name: &str,
     key_pair: &K,
-    value: &Value,
-) -> Result<Value, Error>
+    value: &mut Value,
+) -> Result<(), Error>
 where
     K: KeyPair,
 {
     let hash = content_hash(value)?;
 
-    if !value.is_object() {
-        return Err(Error::new("JSON value must be a JSON object"));
-    }
-
-    let mut owned_value = value.clone();
-
-    // Limit the scope of the mutable borrow so `owned_value` can be passed immutably to `redact`
-    // below.
+    // Limit the scope of the mutable borrow so `value` can be passed immutably to `redact` below.
     {
-        let object = owned_value
-            .as_object_mut()
-            .expect("safe since we checked above");
+        let map = match value {
+            Value::Object(ref mut map) => map,
+            _ => return Err(Error::new("JSON value must be a JSON object")),
+        };
 
-        let hashes = json!({ "sha256": hash });
+        let hashes_value = map
+            .entry("hashes")
+            .or_insert_with(|| Value::Object(Map::with_capacity(1)));
 
-        object.insert("hashes".to_string(), hashes);
+        match hashes_value.as_object_mut() {
+            Some(hashes) => hashes.insert("sha256".to_string(), Value::String(hash)),
+            None => return Err(Error::new("Field `hashes` must be a JSON object")),
+        };
     }
 
-    let mut redacted = redact(&owned_value)?;
+    let mut redacted = redact(value)?;
 
     sign_json(server_name, key_pair, &mut redacted)?;
 
-    let object = owned_value
-        .as_object_mut()
-        .expect("safe since we checked above");
-    object.insert("signatures".to_string(), redacted["signatures"].take());
+    // Safe to unwrap because we did this exact check at the beginning of the function.
+    let map = value.as_object_mut().unwrap();
 
-    Ok(owned_value)
+    map.insert("signatures".to_string(), redacted["signatures"].take());
+
+    Ok(())
 }
 
 /// Internal implementation detail of the canonical JSON algorithm. Allows customization of the

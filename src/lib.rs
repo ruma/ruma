@@ -224,8 +224,8 @@ mod test {
     use serde_json::{from_str, to_string, to_value, Value};
 
     use super::{
-        sign_json, to_canonical_json, verify_json, Ed25519KeyPair, Ed25519Verifier, KeyPair,
-        Signature,
+        hash_and_sign_event, sign_json, to_canonical_json, verify_json, Ed25519KeyPair,
+        Ed25519Verifier, KeyPair, Signature,
     };
     const EMPTY_JSON_SIGNATURE: &str =
         "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
@@ -497,5 +497,44 @@ mod test {
             &value,
         )
         .is_err());
+    }
+
+    #[test]
+    fn sign_minimal_event() {
+        let key_pair = Ed25519KeyPair::new(
+            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
+                .unwrap()
+                .as_slice(),
+            decode_config(&PRIVATE_KEY, STANDARD_NO_PAD)
+                .unwrap()
+                .as_slice(),
+            "1".to_string(),
+        )
+        .unwrap();
+
+        let json = r#"{
+            "room_id": "!x:domain",
+            "sender": "@a:domain",
+            "origin": "domain",
+            "origin_server_ts": 1000000,
+            "signatures": {},
+            "hashes": {},
+            "type": "X",
+            "content": {},
+            "prev_events": [],
+            "auth_events": [],
+            "depth": 3,
+            "unsigned": {
+                "age_ts": 1000000
+            }
+        }"#;
+
+        let mut value = from_str::<Value>(json).unwrap();
+        hash_and_sign_event("domain", &key_pair, &mut value).unwrap();
+
+        assert_eq!(
+            to_string(&value).unwrap(),
+            r#"{"auth_events":[],"content":{},"depth":3,"hashes":{"sha256":"5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"},"origin":"domain","origin_server_ts":1000000,"prev_events":[],"room_id":"!x:domain","sender":"@a:domain","signatures":{"domain":{"ed25519:1":"KxwGjPSDEtvnFgU00fwFz+l6d2pJM6XBIaMEn81SXPTRl16AqLAYqfIReFGZlHi5KLjAWbOoMszkwsQma+lYAg"}},"type":"X","unsigned":{"age_ts":1000000}}"#
+        );
     }
 }
