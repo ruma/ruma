@@ -385,13 +385,15 @@ impl Display for Algorithm {
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashMap;
+
     use base64::{decode_config, STANDARD_NO_PAD};
     use serde::Serialize;
     use serde_json::{from_str, to_string, to_value, Value};
 
     use super::{
-        hash_and_sign_event, sign_json, to_canonical_json, verify_json, Ed25519KeyPair,
-        Ed25519Verifier, KeyPair, Signature,
+        hash_and_sign_event, sign_json, to_canonical_json, verify_event, verify_json,
+        Ed25519KeyPair, Ed25519Verifier, KeyPair, Signature,
     };
     const EMPTY_JSON_SIGNATURE: &str =
         "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
@@ -740,5 +742,45 @@ mod test {
             to_string(&value).unwrap(),
             r#"{"content":{"body":"Here is the message content"},"event_id":"$0:domain","hashes":{"sha256":"onLKD1bGljeBWQhWZ1kaP9SorVmRQNdN5aM2JYU2n/g"},"origin":"domain","origin_server_ts":1000000,"room_id":"!r:domain","sender":"@u:domain","signatures":{"domain":{"ed25519:1":"Wm+VzmOUOz08Ds+0NTWb1d4CZrVsJSikkeRxh6aCcUwu6pNC78FunoD7KNWzqFn241eYHYMGCA5McEiVPdhzBA"}},"type":"m.room.message","unsigned":{"age_ts":1000000}}"#
         );
+    }
+
+    #[test]
+    fn verify_minimal_event() {
+        let public_key = decode_config(&PUBLIC_KEY, STANDARD_NO_PAD).unwrap();
+
+        let mut example_server_keys = HashMap::new();
+        example_server_keys.insert("ed25519:1", public_key.as_slice());
+
+        let mut verify_key_map = HashMap::new();
+        verify_key_map.insert("domain", example_server_keys);
+
+        let value = from_str(
+            r#"{
+                "auth_events": [],
+                "content": {},
+                "depth": 3,
+                "hashes": {
+                    "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+                },
+                "origin": "domain",
+                "origin_server_ts": 1000000,
+                "prev_events": [],
+                "room_id": "!x:domain",
+                "sender": "@a:domain",
+                "signatures": {
+                    "domain": {
+                        "ed25519:1": "KxwGjPSDEtvnFgU00fwFz+l6d2pJM6XBIaMEn81SXPTRl16AqLAYqfIReFGZlHi5KLjAWbOoMszkwsQma+lYAg"
+                    }
+                },
+                "type": "X",
+                "unsigned": {
+                    "age_ts": 1000000
+                }
+            }"#
+        ).unwrap();
+
+        let verifier = Ed25519Verifier;
+
+        assert!(verify_event(&verifier, verify_key_map, &value).is_ok());
     }
 }
