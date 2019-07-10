@@ -1,7 +1,7 @@
 //! Digital signatures and collections of signatures.
 
 use std::{
-    collections::{hash_map::Entry, HashMap, HashSet},
+    collections::{hash_map::Entry, HashMap},
     error::Error as _,
     fmt::{Formatter, Result as FmtResult},
 };
@@ -256,14 +256,14 @@ impl<'de> Visitor<'de> for SignatureMapVisitor {
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct SignatureSet {
     /// A set of signatures for a homeserver.
-    set: HashSet<Signature>,
+    map: HashMap<String, Signature>,
 }
 
 impl SignatureSet {
     /// Initializes a new empty SignatureSet.
     pub fn new() -> Self {
         Self {
-            set: HashSet::new(),
+            map: HashMap::new(),
         }
     }
 
@@ -274,25 +274,43 @@ impl SignatureSet {
     /// * capacity: The number of items to allocate memory for.
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
-            set: HashSet::with_capacity(capacity),
+            map: HashMap::with_capacity(capacity),
         }
     }
 
     /// Adds a signature to the set.
     ///
-    /// The boolean return value indicates whether or not the value was actually inserted, since
-    /// subsequent inserts of the same signature have no effect.
+    /// If no signature with the given key ID existed in the collection, `None` is returned.
+    /// Otherwise, the signature is returned.
     ///
     /// # Parameters
     ///
     /// * signature: A `Signature` to insert into the set.
-    pub fn insert(&mut self, signature: Signature) -> bool {
-        self.set.insert(signature)
+    pub fn insert(&mut self, signature: Signature) -> Option<Signature> {
+        self.map.insert(signature.id(), signature)
+    }
+
+    /// Gets a reference to the signature with the given key ID, if any.
+    ///
+    /// # Parameters
+    ///
+    /// * key_id: The identifier of the public key (e.g. "ed25519:1") for the desired signature.
+    pub fn get(&self, key_id: &str) -> Option<&Signature> {
+        self.map.get(key_id)
+    }
+
+    /// Gets a mutable reference to the signature with the given ID, if any.
+    ///
+    /// # Parameters
+    ///
+    /// * key_id: The identifier of the public key (e.g. "ed25519:1") for the desired signature.
+    pub fn get_mut(&mut self, key_id: &str) -> Option<&mut Signature> {
+        self.map.get_mut(key_id)
     }
 
     /// The number of signatures in the set.
     pub fn len(&self) -> usize {
-        self.set.len()
+        self.map.len()
     }
 
     /// Whether or not the set of signatures is empty.
@@ -308,7 +326,7 @@ impl Serialize for SignatureSet {
     {
         let mut map_serializer = serializer.serialize_map(Some(self.len()))?;
 
-        for signature in self.set.iter() {
+        for signature in self.map.values() {
             map_serializer.serialize_key(&signature.id())?;
             map_serializer.serialize_value(&signature.base64())?;
         }
