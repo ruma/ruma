@@ -183,7 +183,7 @@ mod test {
 
     use super::{
         hash_and_sign_event, sign_json, to_canonical_json, verify_event, verify_json,
-        Ed25519KeyPair, Ed25519Verifier, KeyPair, Signature,
+        Ed25519KeyPair, Ed25519Verifier, Signature,
     };
     const EMPTY_JSON_SIGNATURE: &str =
         "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";

@@ -77,8 +77,6 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 /// A homeserver signs JSON with a key pair:
 ///
 /// ```rust
-/// use ruma_signatures::KeyPair as _;
-///
 /// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 /// const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
 ///
@@ -297,8 +295,6 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 /// # Examples
 ///
 /// ```rust
-/// use ruma_signatures::KeyPair as _;
-///
 /// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 /// const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
 ///

@@ -9,22 +9,6 @@ use crate::{signatures::Signature, Algorithm, Error};
 
 /// A cryptographic key pair for digitally signing data.
 pub trait KeyPair: Sized {
-    /// Initializes a new key pair.
-    ///
-    /// # Parameters
-    ///
-    /// * public_key: The public key of the key pair.
-    /// * private_key: The private key of the key pair.
-    /// * version: The "version" of the key used for this signature.
-    ///   Versions are used as an identifier to distinguish signatures generated from different keys
-    ///   but using the same algorithm on the same homeserver.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the public and private keys provided are invalid for the implementing
-    /// algorithm.
-    fn new(public_key: &[u8], private_key: &[u8], version: String) -> Result<Self, Error>;
-
     /// Signs a JSON object.
     ///
     /// # Parameters
@@ -46,8 +30,22 @@ pub struct Ed25519KeyPair {
     version: String,
 }
 
-impl KeyPair for Ed25519KeyPair {
-    fn new(public_key: &[u8], private_key: &[u8], version: String) -> Result<Self, Error> {
+impl Ed25519KeyPair {
+    /// Initializes a new key pair.
+    ///
+    /// # Parameters
+    ///
+    /// * public_key: The public key of the key pair.
+    /// * private_key: The private key of the key pair.
+    /// * version: The "version" of the key used for this signature.
+    ///   Versions are used as an identifier to distinguish signatures generated from different keys
+    ///   but using the same algorithm on the same homeserver.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the public and private keys provided are invalid for the implementing
+    /// algorithm.
+    pub fn new(public_key: &[u8], private_key: &[u8], version: String) -> Result<Self, Error> {
         if let Err(error) = RingEd25519KeyPair::from_seed_and_public_key(
             Input::from(private_key),
             Input::from(public_key),
@@ -61,9 +59,11 @@ impl KeyPair for Ed25519KeyPair {
             version,
         })
     }
+}
 
+impl KeyPair for Ed25519KeyPair {
     fn sign(&self, message: &[u8]) -> Signature {
-        // Okay to unwrap because we verified the input in the `new`.
+        // Okay to unwrap because we verified the input in `new`.
         let ring_key_pair = RingEd25519KeyPair::from_seed_and_public_key(
             Input::from(&self.private_key),
             Input::from(&self.public_key),
