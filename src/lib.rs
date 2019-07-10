@@ -19,8 +19,7 @@
 //! A homeserver signs JSON with a key pair:
 //!
 //! ```rust,no_run
-//! # use ruma_signatures::{self, KeyPair};
-//! # use serde_json;
+//! # use ruma_signatures::KeyPair;
 //! # let public_key = [0; 32];
 //! # let private_key = [0; 32];
 //! // Create an Ed25519 key pair.
@@ -55,8 +54,7 @@
 //! same:
 //!
 //! ```rust,no_run
-//! # use ruma_signatures::{self, KeyPair};
-//! # use serde_json;
+//! # use ruma_signatures::KeyPair;
 //! # let public_key = [0; 32];
 //! # let private_key = [0; 32];
 //! // Create an Ed25519 key pair.
@@ -120,8 +118,6 @@
 //! A client application or another homeserver can verify a signature on arbitrary JSON:
 //!
 //! ```rust,no_run
-//! # use ruma_signatures;
-//! # use serde_json;
 //! # let public_key = [0; 32];
 //! # let signature_bytes = [0, 32];
 //! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
@@ -130,7 +126,24 @@
 //! assert!(ruma_signatures::verify_json(&verifier, &public_key, &signature, &value).is_ok());
 //! ```
 //!
-//! Verifying signatures of Matrix events is not yet implemented by ruma-signatures.
+//! Verifying the signatures on a Matrix event are slightly different:
+//!
+//! ```rust,no_run
+//! # use std::collections::HashMap;
+//! # let public_key_vec = Vec::new();
+//! # let public_key = public_key_vec.as_slice();
+//! # let event_json = "";
+//! let mut verify_key_map = HashMap::new();
+//! let mut example_server_keys = HashMap::new();
+//! example_server_keys.insert("ed25519:1", public_key); // public_key: &[u8]
+//! verify_key_map.insert("example.com", example_server_keys);
+//! let value = serde_json::from_str(event_json).unwrap();
+//! let verifier = ruma_signatures::Ed25519Verifier;
+//! assert!(ruma_signatures::verify_event(&verifier, verify_key_map, &value).is_ok());
+//! ```
+//!
+//! See the documentation for `verify_event` for details on what verification entails and the
+//! `verify_key_map` parameter.
 //!
 //! # Signature sets and maps
 //!
@@ -156,9 +169,6 @@
 //! This inner object can be created by serializing a `SignatureSet`:
 //!
 //! ```rust,no_run
-//! # use ruma_signatures;
-//! # use serde;
-//! # use serde_json;
 //! # let signature_bytes = [0, 32];
 //! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
 //! let mut signature_set = ruma_signatures::SignatureSet::new();
@@ -173,9 +183,6 @@
 //! created like this:
 //!
 //! ```rust,no_run
-//! # use ruma_signatures;
-//! # use serde;
-//! # use serde_json;
 //! # let signature_bytes = [0, 32];
 //! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
 //! let mut signature_set = ruma_signatures::SignatureSet::new();
@@ -222,7 +229,8 @@ use std::{
 pub use url::Host;
 
 pub use functions::{
-    content_hash, hash_and_sign_event, reference_hash, sign_json, to_canonical_json, verify_json,
+    content_hash, hash_and_sign_event, reference_hash, sign_json, to_canonical_json, verify_event,
+    verify_json,
 };
 pub use keys::{Ed25519KeyPair, KeyPair};
 pub use signatures::{Signature, SignatureMap, SignatureSet};

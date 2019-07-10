@@ -1,8 +1,10 @@
 //! Functions for signing and verifying JSON and events.
 
+use std::{collections::HashMap, hash::BuildHasher};
+
 use base64::{encode_config, STANDARD_NO_PAD};
 use ring::digest::{digest, SHA256};
-use serde_json::{from_value, map::Map, to_string, to_value, Value};
+use serde_json::{from_str, from_value, map::Map, to_string, to_value, Value};
 
 use crate::{
     keys::KeyPair,
@@ -134,7 +136,7 @@ pub fn to_canonical_json(value: &Value) -> Result<String, Error> {
     to_canonical_json_with_fields_to_remove(value, CANONICAL_JSON_FIELDS_TO_REMOVE)
 }
 
-/// Use a public key to verify a signature of a JSON object.
+/// Uses a public key to verify a signature of a JSON object.
 ///
 /// # Parameters
 ///
@@ -263,6 +265,94 @@ where
     let map = value.as_object_mut().unwrap();
 
     map.insert("signatures".to_string(), redacted["signatures"].take());
+
+    Ok(())
+}
+
+/// Uses a set of public keys to verify a signed JSON representation of an event.
+///
+/// Some room versions may require signatures from multiple homeservers, so this function takes a
+/// map of servers to sets of public keys. For each homeserver present in the map, this function
+/// will require a valid signature. All known public keys for a homeserver should be provided. The
+/// first one found on the given event will be used.
+///
+/// # Parameters
+///
+/// * verifier: A `Verifier` appropriate for the digital signature algorithm that was used.
+/// * verify_key_map: A map of server names to a map of key identifiers to public keys. Server
+/// names are the hostname or IP of a homeserver (e.g. "example.com") for which a signature must be
+/// verified. Key identifiers for each server (e.g. "ed25519:1") then map to their respective public
+/// keys.
+/// * value: The `serde_json::Value` (JSON value) of the event that was signed.
+pub fn verify_event<V, S>(
+    verifier: &V,
+    verify_key_map: HashMap<&str, HashMap<&str, &[u8], S>, S>,
+    value: &Value,
+) -> Result<(), Error>
+where
+    V: Verifier,
+    S: BuildHasher,
+{
+    let redacted = redact(value)?;
+
+    let map = match redacted {
+        Value::Object(ref map) => map,
+        _ => return Err(Error::new("JSON value must be a JSON object")),
+    };
+
+    let signature_map: SignatureMap = match map.get("signatures") {
+        Some(signatures_value) => match signatures_value.as_object() {
+            Some(signatures) => from_value(Value::Object(signatures.clone()))?,
+            None => return Err(Error::new("Field `signatures` must be a JSON object")),
+        },
+        None => return Err(Error::new("JSON object must contain a `signatures` field.")),
+    };
+
+    for (server_name, verify_keys) in verify_key_map {
+        let signature_set = match signature_map.get(server_name)? {
+            Some(set) => set,
+            None => {
+                return Err(Error::new(format!(
+                    "no signatures found for server `{}`",
+                    server_name
+                )))
+            }
+        };
+
+        let mut maybe_signature = None;
+        let mut maybe_verify_key = None;
+
+        for (key_id, verify_key) in verify_keys {
+            if let Some(signature) = signature_set.get(key_id) {
+                maybe_signature = Some(signature);
+                maybe_verify_key = Some(verify_key);
+
+                break;
+            }
+        }
+
+        let signature = match maybe_signature {
+            Some(signature) => signature,
+            None => {
+                return Err(Error::new(
+                    "event is not signed with any of the given verify keys",
+                ))
+            }
+        };
+
+        let verify_key = match maybe_verify_key {
+            Some(verify_key) => verify_key,
+            None => {
+                return Err(Error::new(
+                    "event is not signed with any of the given verify keys",
+                ))
+            }
+        };
+
+        let canonical_json = from_str(&to_canonical_json(&redacted)?)?;
+
+        verify_json(verifier, verify_key, signature, &canonical_json)?;
+    }
 
     Ok(())
 }
