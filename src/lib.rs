@@ -18,18 +18,27 @@
 //!
 //! A homeserver signs JSON with a key pair:
 //!
-//! ```rust,no_run
-//! # use ruma_signatures::KeyPair;
-//! # let public_key = [0; 32];
-//! # let private_key = [0; 32];
+//! ```rust
+//! use ruma_signatures::KeyPair as _;
+//!
+//! const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+//! const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
+//!
+//! let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
+//! let private_key = base64::decode_config(&PRIVATE_KEY, base64::STANDARD_NO_PAD).unwrap();
+//!
 //! // Create an Ed25519 key pair.
 //! let key_pair = ruma_signatures::Ed25519KeyPair::new(
-//!     &public_key, // &[u8]
-//!     &private_key, // &[u8]
+//!     &public_key,
+//!     &private_key,
 //!     "1".to_string(), // The "version" of the key.
 //! ).unwrap();
+//!
+//! // Deserialize some JSON.
 //! let mut value = serde_json::from_str("{}").unwrap();
-//! ruma_signatures::sign_json("example.com", &key_pair, &mut value).unwrap()
+//!
+//! // Sign the JSON with the key pair.
+//! assert!(ruma_signatures::sign_json("example.com", &key_pair, &mut value).is_ok());
 //! ```
 //!
 //! This will modify the JSON from an empty object to a structure like this:
@@ -53,16 +62,23 @@
 //! complicated than for signing arbitrary JSON, the interface to a user of ruma-signatures is the
 //! same:
 //!
-//! ```rust,no_run
-//! # use ruma_signatures::KeyPair;
-//! # let public_key = [0; 32];
-//! # let private_key = [0; 32];
+//! ```rust
+//! use ruma_signatures::KeyPair as _;
+//!
+//! const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+//! const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
+//!
+//! let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
+//! let private_key = base64::decode_config(&PRIVATE_KEY, base64::STANDARD_NO_PAD).unwrap();
+//!
 //! // Create an Ed25519 key pair.
 //! let key_pair = ruma_signatures::Ed25519KeyPair::new(
-//!     &public_key, // &[u8]
-//!     &private_key, // &[u8]
+//!     &public_key,
+//!     &private_key,
 //!     "1".to_string(), // The "version" of the key.
 //! ).unwrap();
+//!
+//! // Deserialize an event from JSON.
 //! let mut value = serde_json::from_str(
 //!     r#"{
 //!         "room_id": "!x:domain",
@@ -81,7 +97,9 @@
 //!         }
 //!     }"#
 //! ).unwrap();
-//! ruma_signatures::hash_and_sign_event("example.com", &key_pair, &mut value).unwrap()
+//!
+//! // Hash and sign the JSON with the key pair.
+//! assert!(ruma_signatures::hash_and_sign_event("example.com", &key_pair, &mut value).is_ok());
 //! ```
 //!
 //! This will modify the JSON from the structure shown to a structure like this:
@@ -117,28 +135,76 @@
 //!
 //! A client application or another homeserver can verify a signature on arbitrary JSON:
 //!
-//! ```rust,no_run
-//! # let public_key = [0; 32];
-//! # let signature_bytes = [0, 32];
+//! ```rust
+//! const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+//! const SIGNATURE_BYTES: &str =
+//!     "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
+//!
+//! // Decode the public key used to generate the signature into raw bytes.
+//! let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
+//!
+//! // Create a `Signature` from the raw bytes of the signature.
+//! let signature_bytes = base64::decode_config(&SIGNATURE_BYTES, base64::STANDARD_NO_PAD).unwrap();
 //! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
+//!
+//! // Deserialize the signed JSON.
 //! let value = serde_json::from_str("{}").unwrap();
+//!
+//! // Create the verifier for the Ed25519 algorithm.
 //! let verifier = ruma_signatures::Ed25519Verifier;
+//!
+//! // Verify the signature.
 //! assert!(ruma_signatures::verify_json(&verifier, &public_key, &signature, &value).is_ok());
 //! ```
 //!
 //! Verifying the signatures on a Matrix event are slightly different:
 //!
-//! ```rust,no_run
-//! # use std::collections::HashMap;
-//! # let public_key_vec = Vec::new();
-//! # let public_key = public_key_vec.as_slice();
-//! # let event_json = "";
-//! let mut verify_key_map = HashMap::new();
+//! ```rust
+//! use std::collections::HashMap;
+//!
+//! const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+//!
+//! // Decode the public key used to generate the signature into raw bytes.
+//! let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
+//!
+//! // Create a map of key ID to public key.
 //! let mut example_server_keys = HashMap::new();
-//! example_server_keys.insert("ed25519:1", public_key); // public_key: &[u8]
-//! verify_key_map.insert("example.com", example_server_keys);
-//! let value = serde_json::from_str(event_json).unwrap();
+//! example_server_keys.insert("ed25519:1", public_key.as_slice());
+//!
+//! // Insert the public keys into a map keyed by server name.
+//! let mut verify_key_map = HashMap::new();
+//! verify_key_map.insert("domain", example_server_keys);
+//!
+//! // Deserialize an event from JSON.
+//! let value = serde_json::from_str(
+//!     r#"{
+//!         "auth_events": [],
+//!         "content": {},
+//!         "depth": 3,
+//!         "hashes": {
+//!             "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+//!         },
+//!         "origin": "domain",
+//!         "origin_server_ts": 1000000,
+//!         "prev_events": [],
+//!         "room_id": "!x:domain",
+//!         "sender": "@a:domain",
+//!         "signatures": {
+//!             "domain": {
+//!                 "ed25519:1": "KxwGjPSDEtvnFgU00fwFz+l6d2pJM6XBIaMEn81SXPTRl16AqLAYqfIReFGZlHi5KLjAWbOoMszkwsQma+lYAg"
+//!             }
+//!         },
+//!         "type": "X",
+//!         "unsigned": {
+//!             "age_ts": 1000000
+//!         }
+//!     }"#
+//! ).unwrap();
+//!
+//! // Create the verifier for the Ed25519 algorithm.
 //! let verifier = ruma_signatures::Ed25519Verifier;
+//!
+//! // Verify at least one signature for each server in `verify_key_map`.
 //! assert!(ruma_signatures::verify_event(&verifier, verify_key_map, &value).is_ok());
 //! ```
 //!
@@ -168,12 +234,20 @@
 //!
 //! This inner object can be created by serializing a `SignatureSet`:
 //!
-//! ```rust,no_run
-//! # let signature_bytes = [0, 32];
+//! ```rust
+//! const SIGNATURE_BYTES: &str =
+//!     "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
+//!
+//! // Create a `Signature` from the raw bytes of the signature.
+//! let signature_bytes = base64::decode_config(&SIGNATURE_BYTES, base64::STANDARD_NO_PAD).unwrap();
 //! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
+//!
+//! // Create a `SignatureSet` and insert the signature into it.
 //! let mut signature_set = ruma_signatures::SignatureSet::new();
 //! signature_set.insert(signature);
-//! serde_json::to_string(&signature_set).unwrap();
+//!
+//! // Serialize the set to JSON.
+//! assert!(serde_json::to_string(&signature_set).is_ok());
 //! ```
 //!
 //! This code produces the object under the "example.com" key in the preceeding JSON. Similarly,
@@ -182,14 +256,24 @@
 //! The outer object (the map of server names to signature sets) is a `SignatureMap` value and
 //! created like this:
 //!
-//! ```rust,no_run
-//! # let signature_bytes = [0, 32];
+//! ```rust
+//! const SIGNATURE_BYTES: &str =
+//!     "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
+//!
+//! // Create a `Signature` from the raw bytes of the signature.
+//! let signature_bytes = base64::decode_config(&SIGNATURE_BYTES, base64::STANDARD_NO_PAD).unwrap();
 //! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
+//!
+//! // Create a `SignatureSet` and insert the signature into it.
 //! let mut signature_set = ruma_signatures::SignatureSet::new();
 //! signature_set.insert(signature);
+//!
+//! // Create a `SignatureMap` and insert the set into it, keyed by the homeserver name.
 //! let mut signature_map = ruma_signatures::SignatureMap::new();
 //! signature_map.insert("example.com", signature_set).unwrap();
-//! serde_json::to_string(&signature_map).unwrap();
+//!
+//! // Serialize the map to JSON.
+//! assert!(serde_json::to_string(&signature_map).is_ok());
 //! ```
 //!
 //! Just like the `SignatureSet` itself, the `SignatureMap` value can also be deserialized from
