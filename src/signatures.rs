@@ -88,10 +88,35 @@ impl Signature {
     }
 }
 
-/// A map of server names to sets of digital signatures created by that server.
+/// A map from server names to sets of digital signatures created by that server.
+///
+/// # Examples
+///
+/// Creating and serializing a `SignatureMap`:
+///
+/// ```rust
+/// const SIGNATURE_BYTES: &str =
+///     "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
+///
+/// // Create a `Signature` from the raw bytes of the signature.
+/// let signature_bytes = base64::decode_config(&SIGNATURE_BYTES, base64::STANDARD_NO_PAD).unwrap();
+/// let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
+///
+/// // Create a `SignatureSet` and insert the signature into it.
+/// let mut signature_set = ruma_signatures::SignatureSet::new();
+/// signature_set.insert(signature);
+///
+/// // Create a `SignatureMap` and insert the set into it, keyed by the homeserver name.
+/// let mut signature_map = ruma_signatures::SignatureMap::new();
+/// signature_map.insert("example.com", signature_set).unwrap();
+///
+/// // Serialize the map to JSON.
+/// assert!(serde_json::to_string(&signature_map).is_ok());
+/// ```
+///
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct SignatureMap {
-    /// A map of homeservers to sets of signatures for the homeserver.
+    /// A map from homeservers to sets of signatures for the homeserver.
     map: HashMap<Host, SignatureSet>,
 }
 
@@ -253,6 +278,26 @@ impl<'de> Visitor<'de> for SignatureMapVisitor {
 }
 
 /// A set of digital signatures created by a single homeserver.
+///
+/// # Examples
+///
+/// Creating and serializing a `SignatureSet`:
+///
+/// ```rust
+/// const SIGNATURE_BYTES: &str =
+///     "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
+///
+/// // Create a `Signature` from the raw bytes of the signature.
+/// let signature_bytes = base64::decode_config(&SIGNATURE_BYTES, base64::STANDARD_NO_PAD).unwrap();
+/// let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
+///
+/// // Create a `SignatureSet` and insert the signature into it.
+/// let mut signature_set = ruma_signatures::SignatureSet::new();
+/// signature_set.insert(signature);
+///
+/// // Serialize the set to JSON.
+/// assert!(serde_json::to_string(&signature_set).is_ok());
+/// ```
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct SignatureSet {
     /// A set of signatures for a homeserver.

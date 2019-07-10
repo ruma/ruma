@@ -71,6 +71,45 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 /// * `value` is not a JSON object.
 /// * `value` contains a field called `signatures` that is not a JSON object.
 /// * `server_name` cannot be parsed as a valid host.
+///
+/// # Examples
+///
+/// A homeserver signs JSON with a key pair:
+///
+/// ```rust
+/// use ruma_signatures::KeyPair as _;
+///
+/// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+/// const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
+///
+/// let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
+/// let private_key = base64::decode_config(&PRIVATE_KEY, base64::STANDARD_NO_PAD).unwrap();
+///
+/// // Create an Ed25519 key pair.
+/// let key_pair = ruma_signatures::Ed25519KeyPair::new(
+///     &public_key,
+///     &private_key,
+///     "1".to_string(), // The "version" of the key.
+/// ).unwrap();
+///
+/// // Deserialize some JSON.
+/// let mut value = serde_json::from_str("{}").unwrap();
+///
+/// // Sign the JSON with the key pair.
+/// assert!(ruma_signatures::sign_json("example.com", &key_pair, &mut value).is_ok());
+/// ```
+///
+/// This will modify the JSON from an empty object to a structure like this:
+///
+/// ```json
+/// {
+///     "signatures": {
+///         "example.com": {
+///             "ed25519:1": "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"
+///         }
+///     }
+/// }
+/// ```
 pub fn sign_json<K>(server_name: &str, key_pair: &K, value: &mut Value) -> Result<(), Error>
 where
     K: KeyPair,
@@ -148,6 +187,30 @@ pub fn to_canonical_json(value: &Value) -> Result<String, Error> {
 /// # Errors
 ///
 /// Returns an error if verification fails.
+///
+/// # Examples
+///
+/// ```rust
+/// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+/// const SIGNATURE_BYTES: &str =
+///     "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
+///
+/// // Decode the public key used to generate the signature into raw bytes.
+/// let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
+///
+/// // Create a `Signature` from the raw bytes of the signature.
+/// let signature_bytes = base64::decode_config(&SIGNATURE_BYTES, base64::STANDARD_NO_PAD).unwrap();
+/// let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
+///
+/// // Deserialize the signed JSON.
+/// let value = serde_json::from_str("{}").unwrap();
+///
+/// // Create the verifier for the Ed25519 algorithm.
+/// let verifier = ruma_signatures::Ed25519Verifier;
+///
+/// // Verify the signature.
+/// assert!(ruma_signatures::verify_json(&verifier, &public_key, &signature, &value).is_ok());
+/// ```
 pub fn verify_json<V>(
     verifier: &V,
     public_key: &[u8],
@@ -230,6 +293,77 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 /// * `value` contains a field called `signatures` that is not a JSON object.
 /// * `value` is missing the `type` field or the field is not a JSON string.
 /// * `server_name` cannot be parsed as a valid host.
+///
+/// # Examples
+///
+/// ```rust
+/// use ruma_signatures::KeyPair as _;
+///
+/// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+/// const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
+///
+/// let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
+/// let private_key = base64::decode_config(&PRIVATE_KEY, base64::STANDARD_NO_PAD).unwrap();
+///
+/// // Create an Ed25519 key pair.
+/// let key_pair = ruma_signatures::Ed25519KeyPair::new(
+///     &public_key,
+///     &private_key,
+///     "1".to_string(), // The "version" of the key.
+/// ).unwrap();
+///
+/// // Deserialize an event from JSON.
+/// let mut value = serde_json::from_str(
+///     r#"{
+///         "room_id": "!x:domain",
+///         "sender": "@a:domain",
+///         "origin": "domain",
+///         "origin_server_ts": 1000000,
+///         "signatures": {},
+///         "hashes": {},
+///         "type": "X",
+///         "content": {},
+///         "prev_events": [],
+///         "auth_events": [],
+///         "depth": 3,
+///         "unsigned": {
+///             "age_ts": 1000000
+///         }
+///     }"#
+/// ).unwrap();
+///
+/// // Hash and sign the JSON with the key pair.
+/// assert!(ruma_signatures::hash_and_sign_event("example.com", &key_pair, &mut value).is_ok());
+/// ```
+///
+/// This will modify the JSON from the structure shown to a structure like this:
+///
+/// ```json
+/// {
+///     "auth_events": [],
+///     "content": {},
+///     "depth": 3,
+///     "hashes": {
+///         "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+///     },
+///     "origin": "domain",
+///     "origin_server_ts": 1000000,
+///     "prev_events": [],
+///     "room_id": "!x:domain",
+///     "sender": "@a:domain",
+///     "signatures": {
+///         "domain": {
+///             "ed25519:1": "KxwGjPSDEtvnFgU00fwFz+l6d2pJM6XBIaMEn81SXPTRl16AqLAYqfIReFGZlHi5KLjAWbOoMszkwsQma+lYAg"
+///         }
+///     },
+///     "type": "X",
+///     "unsigned": {
+///         "age_ts": 1000000
+///     }
+/// }
+/// ```
+///
+/// Notice the addition of `hashes` and `signatures`.
 pub fn hash_and_sign_event<K>(
     server_name: &str,
     key_pair: &K,
@@ -272,18 +406,69 @@ where
 /// Uses a set of public keys to verify a signed JSON representation of an event.
 ///
 /// Some room versions may require signatures from multiple homeservers, so this function takes a
-/// map of servers to sets of public keys. For each homeserver present in the map, this function
+/// map from servers to sets of public keys. For each homeserver present in the map, this function
 /// will require a valid signature. All known public keys for a homeserver should be provided. The
 /// first one found on the given event will be used.
 ///
 /// # Parameters
 ///
 /// * verifier: A `Verifier` appropriate for the digital signature algorithm that was used.
-/// * verify_key_map: A map of server names to a map of key identifiers to public keys. Server
+/// * verify_key_map: A map from server names to a map from key identifiers to public keys. Server
 /// names are the hostname or IP of a homeserver (e.g. "example.com") for which a signature must be
 /// verified. Key identifiers for each server (e.g. "ed25519:1") then map to their respective public
 /// keys.
 /// * value: The `serde_json::Value` (JSON value) of the event that was signed.
+///
+/// # Examples
+///
+/// ```rust
+/// use std::collections::HashMap;
+///
+/// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
+///
+/// // Decode the public key used to generate the signature into raw bytes.
+/// let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
+///
+/// // Create a map from key ID to public key.
+/// let mut example_server_keys = HashMap::new();
+/// example_server_keys.insert("ed25519:1", public_key.as_slice());
+///
+/// // Insert the public keys into a map keyed by server name.
+/// let mut verify_key_map = HashMap::new();
+/// verify_key_map.insert("domain", example_server_keys);
+///
+/// // Deserialize an event from JSON.
+/// let value = serde_json::from_str(
+///     r#"{
+///         "auth_events": [],
+///         "content": {},
+///         "depth": 3,
+///         "hashes": {
+///             "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
+///         },
+///         "origin": "domain",
+///         "origin_server_ts": 1000000,
+///         "prev_events": [],
+///         "room_id": "!x:domain",
+///         "sender": "@a:domain",
+///         "signatures": {
+///             "domain": {
+///                 "ed25519:1": "KxwGjPSDEtvnFgU00fwFz+l6d2pJM6XBIaMEn81SXPTRl16AqLAYqfIReFGZlHi5KLjAWbOoMszkwsQma+lYAg"
+///             }
+///         },
+///         "type": "X",
+///         "unsigned": {
+///             "age_ts": 1000000
+///         }
+///     }"#
+/// ).unwrap();
+///
+/// // Create the verifier for the Ed25519 algorithm.
+/// let verifier = ruma_signatures::Ed25519Verifier;
+///
+/// // Verify at least one signature for each server in `verify_key_map`.
+/// assert!(ruma_signatures::verify_event(&verifier, verify_key_map, &value).is_ok());
+/// ```
 pub fn verify_event<V, S>(
     verifier: &V,
     verify_key_map: HashMap<&str, HashMap<&str, &[u8], S>, S>,

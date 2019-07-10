@@ -3,218 +3,30 @@
 //!
 //! Digital signatures are used by Matrix homeservers to verify the authenticity of events in the
 //! Matrix system, as well as requests between homeservers for federation. Each homeserver has one
-//! or more signing key pairs which it uses to sign all events and federation requests. Matrix
-//! clients and other Matrix homeservers can ask the homeserver for its public keys and use those
-//! keys to verify the signed data.
+//! or more signing key pairs (sometimes referred to as "verify keys") which it uses to sign all
+//! events and federation requests. Matrix clients and other Matrix homeservers can ask the
+//! homeserver for its public keys and use those keys to verify the signed data.
 //!
 //! Each signing key pair has an identifier, which consists of the name of the digital signature
 //! algorithm it uses and a "version" string, separated by a colon. The version is an arbitrary
 //! identifier used to distinguish key pairs using the same algorithm from the same homeserver.
 //!
-//! In JSON representations, signatures and hashes appear as Base64-encoded strings, using the
+//! Arbitrary JSON objects can be signed as well as JSON representations of Matrix events. In both
+//! cases, the signatures are stored within the JSON object itself under a `signatures` key. Events
+//! are also required to contain hashes of their content, which are similarly stored within the
+//! hashed JSON object under a `hashes` key.
+//!
+//! In JSON representations, both signatures and hashes appear as Base64-encoded strings, using the
 //! standard character set, without padding.
 //!
-//! # Signing JSON
+//! # Signatures, maps, and sets
 //!
-//! A homeserver signs JSON with a key pair:
+//! An individual signature is represented in ruma-signatures by the `Signature` type. This type
+//! encapsulates the raw bytes of the signature, the identifier for the signing key used, and the
+//! algorithm used to create the signature.
 //!
-//! ```rust
-//! use ruma_signatures::KeyPair as _;
-//!
-//! const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
-//! const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
-//!
-//! let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
-//! let private_key = base64::decode_config(&PRIVATE_KEY, base64::STANDARD_NO_PAD).unwrap();
-//!
-//! // Create an Ed25519 key pair.
-//! let key_pair = ruma_signatures::Ed25519KeyPair::new(
-//!     &public_key,
-//!     &private_key,
-//!     "1".to_string(), // The "version" of the key.
-//! ).unwrap();
-//!
-//! // Deserialize some JSON.
-//! let mut value = serde_json::from_str("{}").unwrap();
-//!
-//! // Sign the JSON with the key pair.
-//! assert!(ruma_signatures::sign_json("example.com", &key_pair, &mut value).is_ok());
-//! ```
-//!
-//! This will modify the JSON from an empty object to a structure like this:
-//!
-//! ```json
-//! {
-//!     "signatures": {
-//!         "example.com": {
-//!             "ed25519:1": "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"
-//!         }
-//!     }
-//! }
-//! ```
-//!
-//! # Hashing and signing Matrix events
-//!
-//! Signing an event uses a more involved process than signing arbitrary JSON because events can be
-//! redacted and signatures need to remain valid even if data is removed from an event later.
-//! Homeservers are required to generate hashes of event contents and sign events before exchanging
-//! them with other homeservers. Although the algorithm for hashing and signing an event is more
-//! complicated than for signing arbitrary JSON, the interface to a user of ruma-signatures is the
-//! same:
-//!
-//! ```rust
-//! use ruma_signatures::KeyPair as _;
-//!
-//! const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
-//! const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
-//!
-//! let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
-//! let private_key = base64::decode_config(&PRIVATE_KEY, base64::STANDARD_NO_PAD).unwrap();
-//!
-//! // Create an Ed25519 key pair.
-//! let key_pair = ruma_signatures::Ed25519KeyPair::new(
-//!     &public_key,
-//!     &private_key,
-//!     "1".to_string(), // The "version" of the key.
-//! ).unwrap();
-//!
-//! // Deserialize an event from JSON.
-//! let mut value = serde_json::from_str(
-//!     r#"{
-//!         "room_id": "!x:domain",
-//!         "sender": "@a:domain",
-//!         "origin": "domain",
-//!         "origin_server_ts": 1000000,
-//!         "signatures": {},
-//!         "hashes": {},
-//!         "type": "X",
-//!         "content": {},
-//!         "prev_events": [],
-//!         "auth_events": [],
-//!         "depth": 3,
-//!         "unsigned": {
-//!             "age_ts": 1000000
-//!         }
-//!     }"#
-//! ).unwrap();
-//!
-//! // Hash and sign the JSON with the key pair.
-//! assert!(ruma_signatures::hash_and_sign_event("example.com", &key_pair, &mut value).is_ok());
-//! ```
-//!
-//! This will modify the JSON from the structure shown to a structure like this:
-//!
-//! ```json
-//! {
-//!     "auth_events": [],
-//!     "content": {},
-//!     "depth": 3,
-//!     "hashes": {
-//!         "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
-//!     },
-//!     "origin": "domain",
-//!     "origin_server_ts": 1000000,
-//!     "prev_events": [],
-//!     "room_id": "!x:domain",
-//!     "sender": "@a:domain",
-//!     "signatures": {
-//!         "domain": {
-//!             "ed25519:1": "KxwGjPSDEtvnFgU00fwFz+l6d2pJM6XBIaMEn81SXPTRl16AqLAYqfIReFGZlHi5KLjAWbOoMszkwsQma+lYAg"
-//!         }
-//!     },
-//!     "type": "X",
-//!     "unsigned": {
-//!         "age_ts": 1000000
-//!     }
-//! }
-//! ```
-//!
-//! Notice the addition of `hashes` and `signatures`.
-//!
-//! # Verifying signatures
-//!
-//! A client application or another homeserver can verify a signature on arbitrary JSON:
-//!
-//! ```rust
-//! const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
-//! const SIGNATURE_BYTES: &str =
-//!     "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
-//!
-//! // Decode the public key used to generate the signature into raw bytes.
-//! let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
-//!
-//! // Create a `Signature` from the raw bytes of the signature.
-//! let signature_bytes = base64::decode_config(&SIGNATURE_BYTES, base64::STANDARD_NO_PAD).unwrap();
-//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
-//!
-//! // Deserialize the signed JSON.
-//! let value = serde_json::from_str("{}").unwrap();
-//!
-//! // Create the verifier for the Ed25519 algorithm.
-//! let verifier = ruma_signatures::Ed25519Verifier;
-//!
-//! // Verify the signature.
-//! assert!(ruma_signatures::verify_json(&verifier, &public_key, &signature, &value).is_ok());
-//! ```
-//!
-//! Verifying the signatures on a Matrix event are slightly different:
-//!
-//! ```rust
-//! use std::collections::HashMap;
-//!
-//! const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
-//!
-//! // Decode the public key used to generate the signature into raw bytes.
-//! let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
-//!
-//! // Create a map of key ID to public key.
-//! let mut example_server_keys = HashMap::new();
-//! example_server_keys.insert("ed25519:1", public_key.as_slice());
-//!
-//! // Insert the public keys into a map keyed by server name.
-//! let mut verify_key_map = HashMap::new();
-//! verify_key_map.insert("domain", example_server_keys);
-//!
-//! // Deserialize an event from JSON.
-//! let value = serde_json::from_str(
-//!     r#"{
-//!         "auth_events": [],
-//!         "content": {},
-//!         "depth": 3,
-//!         "hashes": {
-//!             "sha256": "5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"
-//!         },
-//!         "origin": "domain",
-//!         "origin_server_ts": 1000000,
-//!         "prev_events": [],
-//!         "room_id": "!x:domain",
-//!         "sender": "@a:domain",
-//!         "signatures": {
-//!             "domain": {
-//!                 "ed25519:1": "KxwGjPSDEtvnFgU00fwFz+l6d2pJM6XBIaMEn81SXPTRl16AqLAYqfIReFGZlHi5KLjAWbOoMszkwsQma+lYAg"
-//!             }
-//!         },
-//!         "type": "X",
-//!         "unsigned": {
-//!             "age_ts": 1000000
-//!         }
-//!     }"#
-//! ).unwrap();
-//!
-//! // Create the verifier for the Ed25519 algorithm.
-//! let verifier = ruma_signatures::Ed25519Verifier;
-//!
-//! // Verify at least one signature for each server in `verify_key_map`.
-//! assert!(ruma_signatures::verify_event(&verifier, verify_key_map, &value).is_ok());
-//! ```
-//!
-//! See the documentation for `verify_event` for details on what verification entails and the
-//! `verify_key_map` parameter.
-//!
-//! # Signature sets and maps
-//!
-//! Signatures that a homeserver has added to an event are stored in a JSON object under the
-//! "signatures" key in the event's JSON representation:
+//! As mentioned, signatures that a homeserver has added to an event are stored in a JSON object
+//! under the `signatures` key in the event's JSON representation:
 //!
 //! ```json
 //! {
@@ -228,56 +40,34 @@
 //! }
 //! ```
 //!
-//! The keys inside the "signatures" object are the hostnames of homeservers that have added
-//! signatures. Within each of those objects are a set of signatures, keyed by the signing key
-//! pair's identifier.
+//! The value of the the `signatures` key is represented in ruma-signatures by the `SignatureMap`
+//! type. This type maps the name of a homeserver to a set of its signatures for the containing
+//! data. The set of signatures for each homeserver (which appears as a map from key ID to signature
+//! in the JSON representation) is represented in ruma-signatures by the `SignatureSet` type. Both
+//! `SignatureMap`s and `SignatureSet`s can be serialized and deserialized with
+//! [https://serde.rs/](Serde).
 //!
-//! This inner object can be created by serializing a `SignatureSet`:
+//! # Signing and hashing
 //!
-//! ```rust
-//! const SIGNATURE_BYTES: &str =
-//!     "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
+//! To sign an arbitrary JSON object, use the `sign_json` function. See the documentation of this
+//! function for more details and a full example of use.
 //!
-//! // Create a `Signature` from the raw bytes of the signature.
-//! let signature_bytes = base64::decode_config(&SIGNATURE_BYTES, base64::STANDARD_NO_PAD).unwrap();
-//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
+//! Signing an event uses a more complicated process than signing arbitrary JSON, because events can
+//! be redacted, and signatures need to remain valid even if data is removed from an event later.
+//! Homeservers are required to generate hashes of event contents as well as signing events before
+//! exchanging them with other homeservers. Although the algorithm for hashing and signing an event
+//! is more complicated than for signing arbitrary JSON, the interface to a user of ruma-signatures
+//! is the same. To hash and sign an event, use the `hash_and_sign_event` function. See the
+//! documentation of this function for more details and a full example of use.
 //!
-//! // Create a `SignatureSet` and insert the signature into it.
-//! let mut signature_set = ruma_signatures::SignatureSet::new();
-//! signature_set.insert(signature);
+//! # Verifying signatures and hashes
 //!
-//! // Serialize the set to JSON.
-//! assert!(serde_json::to_string(&signature_set).is_ok());
-//! ```
+//! When a homeserver receives data from another homeserver via the federation, it's necessary to
+//! verify the authenticity and integrity of the data by verifying their signatures.
 //!
-//! This code produces the object under the "example.com" key in the preceeding JSON. Similarly,
-//! a `SignatureSet` can be produced by deserializing JSON that follows this form.
-//!
-//! The outer object (the map of server names to signature sets) is a `SignatureMap` value and
-//! created like this:
-//!
-//! ```rust
-//! const SIGNATURE_BYTES: &str =
-//!     "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
-//!
-//! // Create a `Signature` from the raw bytes of the signature.
-//! let signature_bytes = base64::decode_config(&SIGNATURE_BYTES, base64::STANDARD_NO_PAD).unwrap();
-//! let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
-//!
-//! // Create a `SignatureSet` and insert the signature into it.
-//! let mut signature_set = ruma_signatures::SignatureSet::new();
-//! signature_set.insert(signature);
-//!
-//! // Create a `SignatureMap` and insert the set into it, keyed by the homeserver name.
-//! let mut signature_map = ruma_signatures::SignatureMap::new();
-//! signature_map.insert("example.com", signature_set).unwrap();
-//!
-//! // Serialize the map to JSON.
-//! assert!(serde_json::to_string(&signature_map).is_ok());
-//! ```
-//!
-//! Just like the `SignatureSet` itself, the `SignatureMap` value can also be deserialized from
-//! JSON.
+//! To verify a signature on arbitrary JSON, use the `verify_json` function. To verify the
+//! signatures and hashes on an event, use the `verify_event` function. See the documentation for
+//! these respective functions for more details and full examples of use.
 
 #![deny(
     missing_copy_implementations,
