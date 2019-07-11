@@ -3,7 +3,7 @@
 use ring::signature::{verify, ED25519};
 use untrusted::Input;
 
-use crate::{signatures::Signature, Error};
+use crate::Error;
 
 /// A digital signature verifier.
 pub trait Verifier {
@@ -11,19 +11,15 @@ pub trait Verifier {
     ///
     /// # Parameters
     ///
-    /// * public_key: The public key of the key pair used to sign the message.
-    /// * signature: The `Signature` to verify.
-    /// * message: The message that was signed.
+    /// * public_key: The raw bytes of the public key of the key pair used to sign the message.
+    /// * signature: The raw bytes of the signature to verify.
+    /// * message: The raw bytes of the message that was signed.
     ///
     /// # Errors
     ///
     /// Returns an error if verification fails.
-    fn verify_json(
-        &self,
-        public_key: &[u8],
-        signature: &Signature,
-        message: &[u8],
-    ) -> Result<(), Error>;
+    fn verify_json(&self, public_key: &[u8], signature: &[u8], message: &[u8])
+        -> Result<(), Error>;
 }
 
 /// A verifier for Ed25519 digital signatures.
@@ -34,14 +30,14 @@ impl Verifier for Ed25519Verifier {
     fn verify_json(
         &self,
         public_key: &[u8],
-        signature: &Signature,
+        signature: &[u8],
         message: &[u8],
     ) -> Result<(), Error> {
         verify(
             &ED25519,
             Input::from(public_key),
             Input::from(message),
-            Input::from(signature.as_bytes()),
+            Input::from(signature),
         )
         .map_err(|_| Error::new("signature verification failed"))
     }

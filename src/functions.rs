@@ -1,17 +1,12 @@
 //! Functions for signing and verifying JSON and events.
 
-use std::{collections::HashMap, hash::BuildHasher};
+use std::collections::HashMap;
 
 use base64::{decode_config, encode_config, STANDARD_NO_PAD};
 use ring::digest::{digest, SHA256};
 use serde_json::{from_str, from_value, map::Map, to_string, to_value, Value};
 
-use crate::{
-    keys::KeyPair,
-    signatures::{Signature, SignatureMap},
-    verification::Verifier,
-    Error,
-};
+use crate::{keys::KeyPair, signatures::SignatureMap, verification::Verifier, Error};
 
 /// The fields that are allowed to remain in an event during redaction.
 static ALLOWED_KEYS: &[&str] = &[
@@ -189,6 +184,8 @@ pub fn to_canonical_json(value: &Value) -> Result<String, Error> {
 /// # Examples
 ///
 /// ```rust
+/// use std::collections::HashMap;
+///
 /// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 /// const SIGNATURE_BYTES: &str =
 ///     "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
@@ -201,18 +198,119 @@ pub fn to_canonical_json(value: &Value) -> Result<String, Error> {
 /// let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
 ///
 /// // Deserialize the signed JSON.
-/// let value = serde_json::from_str("{}").unwrap();
+/// let value = serde_json::from_str(
+///     r#"{
+///         "signatures": {
+///             "example.com": {
+///                 "ed25519:1": "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"
+///             }
+///         }
+///     }"#
+/// ).unwrap();
 ///
 /// // Create the verifier for the Ed25519 algorithm.
 /// let verifier = ruma_signatures::Ed25519Verifier;
 ///
-/// // Verify the signature.
-/// assert!(ruma_signatures::verify_json(&verifier, &public_key, &signature, &value).is_ok());
+/// // Create the `SignatureMap` that will inform `verify_json` which signatures to verify.
+/// let mut signature_set = HashMap::new();
+/// signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
+/// let mut verify_key_map = HashMap::new();
+/// verify_key_map.insert("example.com".to_string(), signature_set);
+///
+/// // Verify at least one signature for each server in `verify_key_map`.
+/// assert!(ruma_signatures::verify_json(&verifier, &verify_key_map, &value).is_ok());
 /// ```
 pub fn verify_json<V>(
     verifier: &V,
+    verify_key_map: &SignatureMap,
+    value: &Value,
+) -> Result<(), Error>
+where
+    V: Verifier,
+{
+    let map = match value {
+        Value::Object(ref map) => map,
+        _ => return Err(Error::new("JSON value must be a JSON object")),
+    };
+
+    let signature_map: SignatureMap = match map.get("signatures") {
+        Some(signatures_value) => match signatures_value.as_object() {
+            Some(signatures) => from_value(Value::Object(signatures.clone()))?,
+            None => return Err(Error::new("Field `signatures` must be a JSON object")),
+        },
+        None => return Err(Error::new("JSON object must contain a `signatures` field.")),
+    };
+
+    for (server_name, verify_keys) in verify_key_map {
+        let signature_set = match signature_map.get(server_name) {
+            Some(set) => set,
+            None => {
+                return Err(Error::new(format!(
+                    "no signatures found for server `{}`",
+                    server_name
+                )))
+            }
+        };
+
+        let mut maybe_signature = None;
+        let mut maybe_verify_key = None;
+
+        for (key_id, verify_key) in verify_keys {
+            if let Some(signature) = signature_set.get(key_id) {
+                maybe_signature = Some(signature);
+                maybe_verify_key = Some(verify_key);
+
+                break;
+            }
+        }
+
+        let signature = match maybe_signature {
+            Some(signature) => signature,
+            None => {
+                return Err(Error::new(
+                    "event is not signed with any of the given verify keys",
+                ))
+            }
+        };
+
+        let verify_key = match maybe_verify_key {
+            Some(verify_key) => verify_key,
+            None => {
+                return Err(Error::new(
+                    "event is not signed with any of the given verify keys",
+                ))
+            }
+        };
+
+        let signature_bytes = decode_config(signature, STANDARD_NO_PAD)?;
+
+        let verify_key_bytes = decode_config(&verify_key, STANDARD_NO_PAD)?;
+
+        verify_json_with(verifier, &verify_key_bytes, &signature_bytes, value)?;
+    }
+
+    Ok(())
+}
+
+/// Uses a public key to verify a signed JSON object.
+///
+/// # Parameters
+///
+/// * verifier: A `Verifier` appropriate for the digital signature algorithm that was used.
+/// * public_key: The raw bytes of the public key used to sign the JSON.
+/// * signature: The raw bytes of the signature.
+/// * value: The `serde_json::Value` (JSON value) that was signed.
+///
+/// # Errors
+///
+/// Returns an error if:
+///
+/// * The provided JSON value is not a JSON object.
+/// * Verification fails.
+pub fn verify_json_with<V>(
+    verifier: &V,
     public_key: &[u8],
-    signature: &Signature,
+    signature: &[u8],
     value: &Value,
 ) -> Result<(), Error>
 where
@@ -422,17 +520,6 @@ where
 ///
 /// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 ///
-/// // Decode the public key used to generate the signature into raw bytes.
-/// let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
-///
-/// // Create a map from key ID to public key.
-/// let mut example_server_keys = HashMap::new();
-/// example_server_keys.insert("ed25519:1", public_key.as_slice());
-///
-/// // Insert the public keys into a map keyed by server name.
-/// let mut verify_key_map = HashMap::new();
-/// verify_key_map.insert("domain", example_server_keys);
-///
 /// // Deserialize an event from JSON.
 /// let value = serde_json::from_str(
 ///     r#"{
@@ -462,17 +549,24 @@ where
 /// // Create the verifier for the Ed25519 algorithm.
 /// let verifier = ruma_signatures::Ed25519Verifier;
 ///
+/// // Create a map from key ID to public key.
+/// let mut example_server_keys = HashMap::new();
+/// example_server_keys.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
+///
+/// // Insert the public keys into a map keyed by server name.
+/// let mut verify_key_map = HashMap::new();
+/// verify_key_map.insert("domain".to_string(), example_server_keys);
+///
 /// // Verify at least one signature for each server in `verify_key_map`.
-/// assert!(ruma_signatures::verify_event(&verifier, verify_key_map, &value).is_ok());
+/// assert!(ruma_signatures::verify_event(&verifier, &verify_key_map, &value).is_ok());
 /// ```
-pub fn verify_event<V, S>(
+pub fn verify_event<V>(
     verifier: &V,
-    verify_key_map: HashMap<&str, HashMap<&str, &[u8], S>, S>,
+    verify_key_map: &SignatureMap,
     value: &Value,
 ) -> Result<(), Error>
 where
     V: Verifier,
-    S: BuildHasher,
 {
     let redacted = redact(value)?;
 
@@ -532,13 +626,14 @@ where
 
         let canonical_json = from_str(&to_canonical_json(&redacted)?)?;
 
-        verify_json(
+        let signature_bytes = decode_config(signature, STANDARD_NO_PAD)?;
+
+        let verify_key_bytes = decode_config(&verify_key, STANDARD_NO_PAD)?;
+
+        verify_json_with(
             verifier,
-            verify_key,
-            &Signature::new(
-                "ed25519:fixme",
-                &decode_config(signature, STANDARD_NO_PAD).expect("FIXME"),
-            )?,
+            &verify_key_bytes,
+            &signature_bytes,
             &canonical_json,
         )?;
     }

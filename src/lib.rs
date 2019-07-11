@@ -100,8 +100,6 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
-pub use url::Host;
-
 pub use functions::{
     content_hash, hash_and_sign_event, reference_hash, sign_json, to_canonical_json, verify_event,
     verify_json,
@@ -150,6 +148,12 @@ impl Display for Error {
     }
 }
 
+impl From<base64::DecodeError> for Error {
+    fn from(error: base64::DecodeError) -> Self {
+        Self::new(error.to_string())
+    }
+}
+
 impl From<serde_json::Error> for Error {
     fn from(error: serde_json::Error) -> Self {
         Self::new(error.to_string())
@@ -183,12 +187,8 @@ mod test {
 
     use super::{
         hash_and_sign_event, sign_json, to_canonical_json, verify_event, verify_json,
-        Ed25519KeyPair, Ed25519Verifier, Signature,
+        Ed25519KeyPair, Ed25519Verifier,
     };
-    const EMPTY_JSON_SIGNATURE: &str =
-        "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
-    const MINIMAL_JSON_SIGNATURE: &str =
-        "KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw";
 
     const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
     const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
@@ -315,27 +315,17 @@ mod test {
 
     #[test]
     fn verify_empty_json() {
-        let signature = Signature::new(
-            "ed25519:1",
-            decode_config(&EMPTY_JSON_SIGNATURE, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
-        )
-        .unwrap();
-
-        let value = from_str("{}").unwrap();
+        let value = from_str(r#"{"signatures":{"example.com":{"ed25519:1":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}}"#).unwrap();
 
         let verifier = Ed25519Verifier;
 
-        assert!(verify_json(
-            &verifier,
-            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
-            &signature,
-            &value,
-        )
-        .is_ok());
+        let mut signature_set = HashMap::new();
+        signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
+
+        let mut verify_key_map = HashMap::new();
+        verify_key_map.insert("example.com".to_string(), signature_set);
+
+        assert!(verify_json(&verifier, &verify_key_map, &value).is_ok());
     }
 
     #[test]
@@ -393,68 +383,40 @@ mod test {
 
     #[test]
     fn verify_minimal_json() {
-        let signature = Signature::new(
-            "ed25519:1",
-            decode_config(&MINIMAL_JSON_SIGNATURE, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
-        )
-        .unwrap();
-
         let value = from_str(
             r#"{"one":1,"signatures":{"example.com":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
         ).unwrap();
 
         let verifier = Ed25519Verifier;
 
-        assert!(verify_json(
-            &verifier,
-            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
-            &signature,
-            &value,
-        )
-        .is_ok());
+        let mut signature_set = HashMap::new();
+        signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
+
+        let mut verify_key_map = HashMap::new();
+        verify_key_map.insert("example.com".to_string(), signature_set);
+
+        assert!(verify_json(&verifier, &verify_key_map, &value).is_ok());
 
         let reverse_value = from_str(
             r#"{"two":"Two","signatures":{"example.com":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"one":1}"#
         ).unwrap();
 
-        assert!(verify_json(
-            &verifier,
-            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
-            &signature,
-            &reverse_value,
-        )
-        .is_ok());
+        assert!(verify_json(&verifier, &verify_key_map, &reverse_value).is_ok());
     }
 
     #[test]
     fn fail_verify_json() {
-        let signature = Signature::new(
-            "ed25519:1",
-            decode_config(&EMPTY_JSON_SIGNATURE, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
-        )
-        .unwrap();
-
-        let value = from_str(r#"{"not":"empty"}"#).unwrap();
+        let value = from_str(r#"{"not":"empty","signatures":{"example.com":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}"#).unwrap();
 
         let verifier = Ed25519Verifier;
 
-        assert!(verify_json(
-            &verifier,
-            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
-            &signature,
-            &value,
-        )
-        .is_err());
+        let mut signature_set = HashMap::new();
+        signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
+
+        let mut verify_key_map = HashMap::new();
+        verify_key_map.insert("example.com".to_string(), signature_set);
+
+        assert!(verify_json(&verifier, &verify_key_map, &value).is_err());
     }
 
     #[test]
@@ -536,13 +498,11 @@ mod test {
 
     #[test]
     fn verify_minimal_event() {
-        let public_key = decode_config(&PUBLIC_KEY, STANDARD_NO_PAD).unwrap();
-
-        let mut example_server_keys = HashMap::new();
-        example_server_keys.insert("ed25519:1", public_key.as_slice());
+        let mut signature_set = HashMap::new();
+        signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 
         let mut verify_key_map = HashMap::new();
-        verify_key_map.insert("domain", example_server_keys);
+        verify_key_map.insert("domain".to_string(), signature_set);
 
         let value = from_str(
             r#"{
@@ -571,6 +531,6 @@ mod test {
 
         let verifier = Ed25519Verifier;
 
-        assert!(verify_event(&verifier, verify_key_map, &value).is_ok());
+        assert!(verify_event(&verifier, &verify_key_map, &value).is_ok());
     }
 }
