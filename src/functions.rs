@@ -2,13 +2,13 @@
 
 use std::{collections::HashMap, hash::BuildHasher};
 
-use base64::{encode_config, STANDARD_NO_PAD};
+use base64::{decode_config, encode_config, STANDARD_NO_PAD};
 use ring::digest::{digest, SHA256};
 use serde_json::{from_str, from_value, map::Map, to_string, to_value, Value};
 
 use crate::{
     keys::KeyPair,
-    signatures::{Signature, SignatureMap, SignatureSet},
+    signatures::{Signature, SignatureMap},
     verification::Verifier,
     Error,
 };
@@ -128,7 +128,7 @@ where
                 Some(signatures) => from_value(Value::Object(signatures.clone()))?,
                 None => return Err(Error::new("Field `signatures` must be a JSON object")),
             },
-            None => SignatureMap::with_capacity(1),
+            None => HashMap::with_capacity(1),
         };
 
         maybe_unsigned = map.remove("unsigned");
@@ -142,10 +142,10 @@ where
 
     // Insert the new signature in the map we pulled out (or created) previously.
     let signature_set = signature_map
-        .entry(server_name)?
-        .or_insert_with(|| SignatureSet::with_capacity(1));
+        .entry(server_name.to_string())
+        .or_insert_with(|| HashMap::with_capacity(1));
 
-    signature_set.insert(signature);
+    signature_set.insert(signature.id(), signature.base64());
 
     // Safe to unwrap because we did this exact check at the beginning of the function.
     let map = value.as_object_mut().unwrap();
@@ -490,7 +490,7 @@ where
     };
 
     for (server_name, verify_keys) in verify_key_map {
-        let signature_set = match signature_map.get(server_name)? {
+        let signature_set = match signature_map.get(server_name) {
             Some(set) => set,
             None => {
                 return Err(Error::new(format!(
@@ -532,7 +532,15 @@ where
 
         let canonical_json = from_str(&to_canonical_json(&redacted)?)?;
 
-        verify_json(verifier, verify_key, signature, &canonical_json)?;
+        verify_json(
+            verifier,
+            verify_key,
+            &Signature::new(
+                "ed25519:fixme",
+                &decode_config(signature, STANDARD_NO_PAD).expect("FIXME"),
+            )?,
+            &canonical_json,
+        )?;
     }
 
     Ok(())
