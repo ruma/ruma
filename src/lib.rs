@@ -101,12 +101,12 @@ use std::{
 };
 
 pub use functions::{
-    content_hash, hash_and_sign_event, reference_hash, sign_json, to_canonical_json, verify_event,
-    verify_json,
+    content_hash, hash_and_sign_event, redact, reference_hash, sign_json, to_canonical_json,
+    verify_event, verify_json,
 };
 pub use keys::{Ed25519KeyPair, KeyPair};
 pub use signatures::{Signature, SignatureMap, SignatureSet};
-pub use verification::{Ed25519Verifier, Verifier};
+pub use verification::{Ed25519Verifier, Verified, Verifier};
 
 mod functions;
 mod keys;

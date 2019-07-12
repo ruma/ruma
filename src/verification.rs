@@ -42,3 +42,21 @@ impl Verifier for Ed25519Verifier {
         .map_err(|_| Error::new("signature verification failed"))
     }
 }
+
+/// A value returned when an event is successfully verified.
+///
+/// Event verification involves verifying both signatures and a content hash. It is possible for
+/// the signatures on an event to be valid, but for the hash to be different than the one
+/// calculated during verification. This is not necessarily an error condition, as it may indicate
+/// that the event has been redacted. In this case, receiving homeservers should store a redacted
+/// version of the event.
+#[derive(Debug, Clone, Copy, Hash, PartialEq)]
+pub enum Verified {
+    /// All signatures are valid and the content hashes match.
+    All,
+
+    /// All signatures are valid but the content hashes don't match.
+    ///
+    /// This may indicate a redacted event.
+    Signatures,
+}

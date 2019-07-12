@@ -6,7 +6,12 @@ use base64::{decode_config, encode_config, STANDARD_NO_PAD};
 use ring::digest::{digest, SHA256};
 use serde_json::{from_str, from_value, map::Map, to_string, to_value, Value};
 
-use crate::{keys::KeyPair, signatures::SignatureMap, verification::Verifier, Error};
+use crate::{
+    keys::KeyPair,
+    signatures::SignatureMap,
+    verification::{Verified, Verifier},
+    Error,
+};
 
 /// The fields that are allowed to remain in an event during redaction.
 static ALLOWED_KEYS: &[&str] = &[
@@ -121,7 +126,7 @@ where
         signature_map = match map.remove("signatures") {
             Some(signatures_value) => match signatures_value.as_object() {
                 Some(signatures) => from_value(Value::Object(signatures.clone()))?,
-                None => return Err(Error::new("Field `signatures` must be a JSON object")),
+                None => return Err(Error::new("field `signatures` must be a JSON object")),
             },
             None => HashMap::with_capacity(1),
         };
@@ -236,7 +241,7 @@ where
     let signature_map: SignatureMap = match map.get("signatures") {
         Some(signatures_value) => match signatures_value.as_object() {
             Some(signatures) => from_value(Value::Object(signatures.clone()))?,
-            None => return Err(Error::new("Field `signatures` must be a JSON object")),
+            None => return Err(Error::new("field `signatures` must be a JSON object")),
         },
         None => return Err(Error::new("JSON object must contain a `signatures` field.")),
     };
@@ -481,7 +486,7 @@ where
 
         match hashes_value.as_object_mut() {
             Some(hashes) => hashes.insert("sha256".to_string(), Value::String(hash)),
-            None => return Err(Error::new("Field `hashes` must be a JSON object")),
+            None => return Err(Error::new("field `hashes` must be a JSON object")),
         };
     }
 
@@ -503,6 +508,10 @@ where
 /// map from servers to sets of public keys. For each homeserver present in the map, this function
 /// will require a valid signature. All known public keys for a homeserver should be provided. The
 /// first one found on the given event will be used.
+///
+/// If the `Ok` variant is returned by this function, it will contain a `Verified` value which
+/// distinguishes an event with valid signatures and a matching content hash with an event with
+/// only valid signatures. See the documetation for `Verified` for details.
 ///
 /// # Parameters
 ///
@@ -564,7 +573,7 @@ pub fn verify_event<V>(
     verifier: &V,
     verify_key_map: &SignatureMap,
     value: &Value,
-) -> Result<(), Error>
+) -> Result<Verified, Error>
 where
     V: Verifier,
 {
@@ -575,10 +584,24 @@ where
         _ => return Err(Error::new("JSON value must be a JSON object")),
     };
 
+    let hash = match map.get("hashes") {
+        Some(hashes_value) => match hashes_value.as_object() {
+            Some(hashes) => match hashes.get("sha256") {
+                Some(hash_value) => match hash_value.as_str() {
+                    Some(hash) => hash,
+                    None => return Err(Error::new("sha256 hash must be a JSON string")),
+                },
+                None => return Err(Error::new("field `hashes` must be a JSON object")),
+            },
+            None => return Err(Error::new("event missing sha256 hash")),
+        },
+        None => return Err(Error::new("field `hashes` must be present")),
+    };
+
     let signature_map: SignatureMap = match map.get("signatures") {
         Some(signatures_value) => match signatures_value.as_object() {
             Some(signatures) => from_value(Value::Object(signatures.clone()))?,
-            None => return Err(Error::new("Field `signatures` must be a JSON object")),
+            None => return Err(Error::new("field `signatures` must be a JSON object")),
         },
         None => return Err(Error::new("JSON object must contain a `signatures` field.")),
     };
@@ -638,7 +661,13 @@ where
         )?;
     }
 
-    Ok(())
+    let calculated_hash = content_hash(value)?;
+
+    if hash == calculated_hash {
+        Ok(Verified::All)
+    } else {
+        Ok(Verified::Signatures)
+    }
 }
 
 /// Internal implementation detail of the canonical JSON algorithm. Allows customization of the
@@ -666,11 +695,20 @@ fn to_canonical_json_with_fields_to_remove(
     to_string(&owned_value).map_err(Error::from)
 }
 
-/// Redact the JSON representation of an event using the rules specified in the Matrix
+/// Redacts the JSON representation of an event using the rules specified in the Matrix
 /// client-server specification.
 ///
 /// This is part of the process of signing an event.
-fn redact(value: &Value) -> Result<Value, Error> {
+///
+/// Redaction is also suggested when a verifying an event with `verify_event` returns
+/// `Verified::Signatures`. See the documentation for `Verified` for details.
+///
+/// Returns a new `serde_json::Value` with all applicable fields redacted.
+///
+/// # Parameters
+///
+/// * value: A JSON object to redact.
+pub fn redact(value: &Value) -> Result<Value, Error> {
     if !value.is_object() {
         return Err(Error::new("JSON value must be a JSON object"));
     }
@@ -683,14 +721,14 @@ fn redact(value: &Value) -> Result<Value, Error> {
 
     let event_type_value = match event.get("type") {
         Some(event_type_value) => event_type_value,
-        None => return Err(Error::new("Field `type` in JSON value must be present")),
+        None => return Err(Error::new("field `type` in JSON value must be present")),
     };
 
     let event_type = match event_type_value.as_str() {
         Some(event_type) => event_type.to_string(),
         None => {
             return Err(Error::new(
-                "Field `type` in JSON value must be a JSON string",
+                "field `type` in JSON value must be a JSON string",
             ))
         }
     };
@@ -700,7 +738,7 @@ fn redact(value: &Value) -> Result<Value, Error> {
             Value::Object(ref mut map) => map,
             _ => {
                 return Err(Error::new(
-                    "Field `content` in JSON value must be a JSON object",
+                    "field `content` in JSON value must be a JSON object",
                 ))
             }
         };
