@@ -171,6 +171,22 @@ where
 /// # Errors
 ///
 /// Returns an error if the provided JSON value is not a JSON object.
+///
+/// # Examples
+///
+/// ```rust
+/// let input =
+///     r#"{
+///         "本": 2,
+///         "日": 1
+///     }"#;
+///
+/// let value = serde_json::from_str::<serde_json::Value>(input).unwrap();
+///
+/// let canonical = ruma_signatures::canonical_json(&value).unwrap();
+///
+/// assert_eq!(canonical, r#"{"日":1,"本":2}"#);
+/// ```
 pub fn canonical_json(value: &Value) -> Result<String, Error> {
     canonical_json_with_fields_to_remove(value, CANONICAL_JSON_FIELDS_TO_REMOVE)
 }
@@ -195,15 +211,6 @@ pub fn canonical_json(value: &Value) -> Result<String, Error> {
 /// use std::collections::HashMap;
 ///
 /// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
-/// const SIGNATURE_BYTES: &str =
-///     "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ";
-///
-/// // Decode the public key used to generate the signature into raw bytes.
-/// let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
-///
-/// // Create a `Signature` from the raw bytes of the signature.
-/// let signature_bytes = base64::decode_config(&SIGNATURE_BYTES, base64::STANDARD_NO_PAD).unwrap();
-/// let signature = ruma_signatures::Signature::new("ed25519:1", &signature_bytes).unwrap();
 ///
 /// // Deserialize the signed JSON.
 /// let value = serde_json::from_str(

@@ -223,9 +223,9 @@ mod test {
         assert_eq!(
             &test_canonical_json(
                 r#"{
-                "one": 1,
-                "two": "Two"
-            }"#
+                    "one": 1,
+                    "two": "Two"
+                }"#
             ),
             r#"{"one":1,"two":"Two"}"#
         );
@@ -233,9 +233,9 @@ mod test {
         assert_eq!(
             &test_canonical_json(
                 r#"{
-                "b": "2",
-                "a": "1"
-            }"#
+                    "b": "2",
+                    "a": "1"
+                }"#
             ),
             r#"{"a":"1","b":"2"}"#
         );
@@ -271,8 +271,8 @@ mod test {
         assert_eq!(
             &test_canonical_json(
                 r#"{
-                "a": "日本語"
-            }"#
+                    "a": "日本語"
+                }"#
             ),
             r#"{"a":"日本語"}"#
         );
@@ -280,9 +280,9 @@ mod test {
         assert_eq!(
             &test_canonical_json(
                 r#"{
-                "本": 2,
-                "日": 1
-            }"#
+                    "本": 2,
+                    "日": 1
+                }"#
             ),
             r#"{"日":1,"本":2}"#
         );
@@ -290,8 +290,8 @@ mod test {
         assert_eq!(
             &test_canonical_json(
                 r#"{
-                "a": "\u65E5"
-            }"#
+                    "a": "\u65E5"
+                }"#
             ),
             r#"{"a":"日"}"#
         );
