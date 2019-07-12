@@ -19,34 +19,6 @@
 //! In JSON representations, both signatures and hashes appear as Base64-encoded strings, using the
 //! standard character set, without padding.
 //!
-//! # Signatures, maps, and sets
-//!
-//! An individual signature is represented in ruma-signatures by the `Signature` type. This type
-//! encapsulates the raw bytes of the signature, the identifier for the signing key used, and the
-//! algorithm used to create the signature.
-//!
-//! As mentioned, signatures that a homeserver has added to an event are stored in a JSON object
-//! under the `signatures` key in the event's JSON representation:
-//!
-//! ```json
-//! {
-//!   "content": {},
-//!   "event_type": "not.a.real.event",
-//!   "signatures": {
-//!     "example.com": {
-//!       "ed25519:1": "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"
-//!     }
-//!   }
-//! }
-//! ```
-//!
-//! The value of the the `signatures` key is represented in ruma-signatures by the `SignatureMap`
-//! type. This type maps the name of a homeserver to a set of its signatures for the containing
-//! data. The set of signatures for each homeserver (which appears as a map from key ID to signature
-//! in the JSON representation) is represented in ruma-signatures by the `SignatureSet` type. Both
-//! `SignatureMap`s and `SignatureSet`s can be serialized and deserialized with
-//! [https://serde.rs/](Serde).
-//!
 //! # Signing and hashing
 //!
 //! To sign an arbitrary JSON object, use the `sign_json` function. See the documentation of this
