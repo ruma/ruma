@@ -160,7 +160,8 @@ where
     Ok(())
 }
 
-/// Converts a JSON object into the "canonical" string form.
+/// Converts a JSON object into the
+/// [canonical](https://matrix.org/docs/spec/appendices#canonical-json)  string form.
 ///
 /// # Parameters
 ///
@@ -169,11 +170,11 @@ where
 /// # Errors
 ///
 /// Returns an error if the provided JSON value is not a JSON object.
-pub fn to_canonical_json(value: &Value) -> Result<String, Error> {
-    to_canonical_json_with_fields_to_remove(value, CANONICAL_JSON_FIELDS_TO_REMOVE)
+pub fn canonical_json(value: &Value) -> Result<String, Error> {
+    canonical_json_with_fields_to_remove(value, CANONICAL_JSON_FIELDS_TO_REMOVE)
 }
 
-/// Uses a public key to verify a signature of a JSON object.
+/// Uses a set of public keys to verify a signed JSON object.
 ///
 /// # Parameters
 ///
@@ -321,7 +322,7 @@ pub fn verify_json_with<V>(
 where
     V: Verifier,
 {
-    verifier.verify_json(public_key, signature, to_canonical_json(value)?.as_bytes())
+    verifier.verify_json(public_key, signature, canonical_json(value)?.as_bytes())
 }
 
 /// Creates a *content hash* for the JSON representation of an event.
@@ -339,7 +340,7 @@ where
 ///
 /// Returns an error if the provided JSON value is not a JSON object.
 pub fn content_hash(value: &Value) -> Result<String, Error> {
-    let json = to_canonical_json_with_fields_to_remove(value, CONTENT_HASH_FIELDS_TO_REMOVE)?;
+    let json = canonical_json_with_fields_to_remove(value, CONTENT_HASH_FIELDS_TO_REMOVE)?;
 
     let hash = digest(&SHA256, json.as_bytes());
 
@@ -365,7 +366,7 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
     let redacted_value = redact(value)?;
 
     let json =
-        to_canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
+        canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
 
     let hash = digest(&SHA256, json.as_bytes());
 
@@ -647,7 +648,7 @@ where
             }
         };
 
-        let canonical_json = from_str(&to_canonical_json(&redacted)?)?;
+        let canonical_json = from_str(&canonical_json(&redacted)?)?;
 
         let signature_bytes = decode_config(signature, STANDARD_NO_PAD)?;
 
@@ -672,10 +673,7 @@ where
 
 /// Internal implementation detail of the canonical JSON algorithm. Allows customization of the
 /// fields that will be removed before serializing.
-fn to_canonical_json_with_fields_to_remove(
-    value: &Value,
-    fields: &[&str],
-) -> Result<String, Error> {
+fn canonical_json_with_fields_to_remove(value: &Value, fields: &[&str]) -> Result<String, Error> {
     if !value.is_object() {
         return Err(Error::new("JSON value must be a JSON object"));
     }

@@ -101,7 +101,7 @@ use std::{
 };
 
 pub use functions::{
-    content_hash, hash_and_sign_event, redact, reference_hash, sign_json, to_canonical_json,
+    canonical_json, content_hash, hash_and_sign_event, redact, reference_hash, sign_json,
     verify_event, verify_json,
 };
 pub use keys::{Ed25519KeyPair, KeyPair};
@@ -186,8 +186,8 @@ mod test {
     use serde_json::{from_str, to_string, to_value, Value};
 
     use super::{
-        hash_and_sign_event, sign_json, to_canonical_json, verify_event, verify_json,
-        Ed25519KeyPair, Ed25519Verifier,
+        canonical_json, hash_and_sign_event, sign_json, verify_event, verify_json, Ed25519KeyPair,
+        Ed25519Verifier,
     };
 
     const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
@@ -197,7 +197,7 @@ mod test {
     fn test_canonical_json(input: &str) -> String {
         let value = from_str::<Value>(input).unwrap();
 
-        to_canonical_json(&value).unwrap()
+        canonical_json(&value).unwrap()
     }
 
     #[test]
