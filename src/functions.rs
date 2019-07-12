@@ -60,7 +60,8 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 ///
 /// # Parameters
 ///
-/// * server_name: The hostname or IP of the homeserver, e.g. `example.com`.
+/// * entity_id: The identifier of the entity creating the signature. Generally this means a
+/// homeserver, e.g. "example.com".
 /// * key_pair: A cryptographic key pair used to sign the JSON.
 /// * value: A JSON object to sign according and append a signature to.
 ///
@@ -70,7 +71,6 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 ///
 /// * `value` is not a JSON object.
 /// * `value` contains a field called `signatures` that is not a JSON object.
-/// * `server_name` cannot be parsed as a valid host.
 ///
 /// # Examples
 ///
@@ -108,7 +108,7 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 ///     }
 /// }
 /// ```
-pub fn sign_json<K>(server_name: &str, key_pair: &K, value: &mut Value) -> Result<(), Error>
+pub fn sign_json<K>(entity_id: &str, key_pair: &K, value: &mut Value) -> Result<(), Error>
 where
     K: KeyPair,
 {
@@ -142,7 +142,7 @@ where
 
     // Insert the new signature in the map we pulled out (or created) previously.
     let signature_set = signature_map
-        .entry(server_name.to_string())
+        .entry(entity_id.to_string())
         .or_insert_with(|| HashMap::with_capacity(1));
 
     signature_set.insert(signature.id(), signature.base64());
@@ -223,7 +223,7 @@ pub fn canonical_json(value: &Value) -> Result<String, Error> {
 /// let mut verify_key_map = HashMap::new();
 /// verify_key_map.insert("example.com".to_string(), signature_set);
 ///
-/// // Verify at least one signature for each server in `verify_key_map`.
+/// // Verify at least one signature for each entity in `verify_key_map`.
 /// assert!(ruma_signatures::verify_json(&verifier, &verify_key_map, &value).is_ok());
 /// ```
 pub fn verify_json<V>(
@@ -247,13 +247,13 @@ where
         None => return Err(Error::new("JSON object must contain a `signatures` field.")),
     };
 
-    for (server_name, verify_keys) in verify_key_map {
-        let signature_set = match signature_map.get(server_name) {
+    for (entity_id, verify_keys) in verify_key_map {
+        let signature_set = match signature_map.get(entity_id) {
             Some(set) => set,
             None => {
                 return Err(Error::new(format!(
-                    "no signatures found for server `{}`",
-                    server_name
+                    "no signatures found for entity `{}`",
+                    entity_id
                 )))
             }
         };
@@ -381,7 +381,8 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 ///
 /// # Parameters
 ///
-/// * server_name: The hostname or IP of the homeserver, e.g. `example.com`.
+/// * entity_id: The identifier of the entity creating the signature. Generally this means a
+/// homeserver, e.g. "example.com".
 /// * key_pair: A cryptographic key pair used to sign the event.
 /// * value: A JSON object to be hashed and signed according to the Matrix specification.
 ///
@@ -394,7 +395,6 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 /// * `value` contains a field called `hashes` that is not a JSON object.
 /// * `value` contains a field called `signatures` that is not a JSON object.
 /// * `value` is missing the `type` field or the field is not a JSON string.
-/// * `server_name` cannot be parsed as a valid host.
 ///
 /// # Examples
 ///
@@ -465,7 +465,7 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 ///
 /// Notice the addition of `hashes` and `signatures`.
 pub fn hash_and_sign_event<K>(
-    server_name: &str,
+    entity_id: &str,
     key_pair: &K,
     value: &mut Value,
 ) -> Result<(), Error>
@@ -493,7 +493,7 @@ where
 
     let mut redacted = redact(value)?;
 
-    sign_json(server_name, key_pair, &mut redacted)?;
+    sign_json(entity_id, key_pair, &mut redacted)?;
 
     // Safe to unwrap because we did this exact check at the beginning of the function.
     let map = value.as_object_mut().unwrap();
@@ -517,10 +517,10 @@ where
 /// # Parameters
 ///
 /// * verifier: A `Verifier` appropriate for the digital signature algorithm that was used.
-/// * verify_key_map: A map from server names to a map from key identifiers to public keys. Server
-/// names are the hostname or IP of a homeserver (e.g. "example.com") for which a signature must be
-/// verified. Key identifiers for each server (e.g. "ed25519:1") then map to their respective public
-/// keys.
+/// * verify_key_map: A map from entity identifiers to a map from key identifiers to public keys.
+/// Generally, entity identifiers are server names—the host/IP/port of a homeserver (e.g.
+/// "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
+/// "ed25519:1") then map to their respective public keys.
 /// * value: The `serde_json::Value` (JSON value) of the event that was signed.
 ///
 /// # Examples
@@ -563,11 +563,11 @@ where
 /// let mut example_server_keys = HashMap::new();
 /// example_server_keys.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 ///
-/// // Insert the public keys into a map keyed by server name.
+/// // Insert the public keys into a map keyed by entity ID.
 /// let mut verify_key_map = HashMap::new();
 /// verify_key_map.insert("domain".to_string(), example_server_keys);
 ///
-/// // Verify at least one signature for each server in `verify_key_map`.
+/// // Verify at least one signature for each entity in `verify_key_map`.
 /// assert!(ruma_signatures::verify_event(&verifier, &verify_key_map, &value).is_ok());
 /// ```
 pub fn verify_event<V>(
@@ -607,13 +607,13 @@ where
         None => return Err(Error::new("JSON object must contain a `signatures` field.")),
     };
 
-    for (server_name, verify_keys) in verify_key_map {
-        let signature_set = match signature_map.get(server_name) {
+    for (entity_id, verify_keys) in verify_key_map {
+        let signature_set = match signature_map.get(entity_id) {
             Some(set) => set,
             None => {
                 return Err(Error::new(format!(
-                    "no signatures found for server `{}`",
-                    server_name
+                    "no signatures found for entity `{}`",
+                    entity_id
                 )))
             }
         };

@@ -89,7 +89,7 @@ impl Signature {
 
 /// A map from entity names to sets of digital signatures created by that entity.
 ///
-/// "Entity" is currently always a homeserver, e.g. "example.com".
+/// "Entity" is generally a homeserver, e.g. "example.com".
 pub type SignatureMap = HashMap<String, SignatureSet>;
 
 /// A set of digital signatures created by a single homeserver.
