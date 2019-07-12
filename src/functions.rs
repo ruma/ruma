@@ -7,7 +7,7 @@ use ring::digest::{digest, SHA256};
 use serde_json::{from_str, from_value, map::Map, to_string, to_value, Value};
 
 use crate::{
-    keys::KeyPair,
+    keys::{KeyPair, PublicKeyMap},
     signatures::SignatureMap,
     split_id,
     verification::{Ed25519Verifier, Verified, Verifier},
@@ -95,7 +95,7 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 /// let mut value = serde_json::from_str("{}").unwrap();
 ///
 /// // Sign the JSON with the key pair.
-/// assert!(ruma_signatures::sign_json("example.com", &key_pair, &mut value).is_ok());
+/// assert!(ruma_signatures::sign_json("domain", &key_pair, &mut value).is_ok());
 /// ```
 ///
 /// This will modify the JSON from an empty object to a structure like this:
@@ -103,7 +103,7 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 /// ```json
 /// {
 ///     "signatures": {
-///         "example.com": {
+///         "domain": {
 ///             "ed25519:1": "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"
 ///         }
 ///     }
@@ -209,23 +209,23 @@ pub fn canonical_json(value: &Value) -> Result<String, Error> {
 /// let value = serde_json::from_str(
 ///     r#"{
 ///         "signatures": {
-///             "example.com": {
+///             "domain": {
 ///                 "ed25519:1": "K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"
 ///             }
 ///         }
 ///     }"#
 /// ).unwrap();
 ///
-/// // Create the `SignatureMap` that will inform `verify_json` which signatures to verify.
-/// let mut signature_set = HashMap::new();
-/// signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
+/// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
+/// let mut public_key_set = HashMap::new();
+/// public_key_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 /// let mut public_key_map = HashMap::new();
-/// public_key_map.insert("example.com".to_string(), signature_set);
+/// public_key_map.insert("domain".to_string(), public_key_set);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
 /// assert!(ruma_signatures::verify_json(&public_key_map, &value).is_ok());
 /// ```
-pub fn verify_json(public_key_map: &SignatureMap, value: &Value) -> Result<(), Error> {
+pub fn verify_json(public_key_map: &PublicKeyMap, value: &Value) -> Result<(), Error> {
     let map = match value {
         Value::Object(ref map) => map,
         _ => return Err(Error::new("JSON value must be a JSON object")),
@@ -431,7 +431,7 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 /// ).unwrap();
 ///
 /// // Hash and sign the JSON with the key pair.
-/// assert!(ruma_signatures::hash_and_sign_event("example.com", &key_pair, &mut value).is_ok());
+/// assert!(ruma_signatures::hash_and_sign_event("domain", &key_pair, &mut value).is_ok());
 /// ```
 ///
 /// This will modify the JSON from the structure shown to a structure like this:
@@ -549,18 +549,16 @@ where
 ///     }"#
 /// ).unwrap();
 ///
-/// // Create a map from key ID to public key.
-/// let mut example_server_keys = HashMap::new();
-/// example_server_keys.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
-///
-/// // Insert the public keys into a map keyed by entity ID.
+/// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
+/// let mut public_key_set = HashMap::new();
+/// public_key_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 /// let mut public_key_map = HashMap::new();
-/// public_key_map.insert("domain".to_string(), example_server_keys);
+/// public_key_map.insert("domain".to_string(), public_key_set);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
 /// assert!(ruma_signatures::verify_event(&public_key_map, &value).is_ok());
 /// ```
-pub fn verify_event(public_key_map: &SignatureMap, value: &Value) -> Result<Verified, Error> {
+pub fn verify_event(public_key_map: &PublicKeyMap, value: &Value) -> Result<Verified, Error> {
     let redacted = redact(value)?;
 
     let map = match redacted {

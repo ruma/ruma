@@ -1,6 +1,9 @@
 //! Public and private key pairs.
 
-use std::fmt::{Debug, Formatter, Result as FmtResult};
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Formatter, Result as FmtResult},
+};
 
 use ring::signature::Ed25519KeyPair as RingEd25519KeyPair;
 use untrusted::Input;
@@ -87,3 +90,13 @@ impl Debug for Ed25519KeyPair {
             .finish()
     }
 }
+
+/// A map from entity names to sets of public keys for that entity.
+///
+/// "Entity" is generally a homeserver, e.g. "example.com".
+pub type PublicKeyMap = HashMap<String, PublicKeySet>;
+
+/// A set of public keys for a single homeserver.
+///
+/// This is represented as a map from key ID to Base64-encoded signature.
+pub type PublicKeySet = HashMap<String, String>;

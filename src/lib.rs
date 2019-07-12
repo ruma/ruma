@@ -104,8 +104,8 @@ pub use functions::{
     canonical_json, content_hash, hash_and_sign_event, redact, reference_hash, sign_json,
     verify_event, verify_json,
 };
-pub use keys::{Ed25519KeyPair, KeyPair};
-pub use signatures::{Signature, SignatureMap, SignatureSet};
+pub use keys::{Ed25519KeyPair, KeyPair, PublicKeyMap, PublicKeySet};
+pub use signatures::Signature;
 
 mod functions;
 mod keys;
@@ -350,23 +350,23 @@ mod test {
 
         let mut value = from_str("{}").unwrap();
 
-        sign_json("example.com", &key_pair, &mut value).unwrap();
+        sign_json("domain", &key_pair, &mut value).unwrap();
 
         assert_eq!(
             to_string(&value).unwrap(),
-            r#"{"signatures":{"example.com":{"ed25519:1":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}}"#
+            r#"{"signatures":{"domain":{"ed25519:1":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}}"#
         );
     }
 
     #[test]
     fn verify_empty_json() {
-        let value = from_str(r#"{"signatures":{"example.com":{"ed25519:1":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}}"#).unwrap();
+        let value = from_str(r#"{"signatures":{"domain":{"ed25519:1":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}}"#).unwrap();
 
         let mut signature_set = HashMap::new();
         signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 
         let mut public_key_map = HashMap::new();
-        public_key_map.insert("example.com".to_string(), signature_set);
+        public_key_map.insert("domain".to_string(), signature_set);
 
         assert!(verify_json(&public_key_map, &value).is_ok());
     }
@@ -407,39 +407,39 @@ mod test {
         };
 
         let mut alpha_value = to_value(alpha).expect("alpha should serialize");
-        sign_json("example.com", &key_pair, &mut alpha_value).unwrap();
+        sign_json("domain", &key_pair, &mut alpha_value).unwrap();
 
         assert_eq!(
             to_string(&alpha_value).unwrap(),
-            r#"{"one":1,"signatures":{"example.com":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
+            r#"{"one":1,"signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
         );
 
         let mut reverse_alpha_value =
             to_value(reverse_alpha).expect("reverse_alpha should serialize");
-        sign_json("example.com", &key_pair, &mut reverse_alpha_value).unwrap();
+        sign_json("domain", &key_pair, &mut reverse_alpha_value).unwrap();
 
         assert_eq!(
             to_string(&reverse_alpha_value).unwrap(),
-            r#"{"one":1,"signatures":{"example.com":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
+            r#"{"one":1,"signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
         );
     }
 
     #[test]
     fn verify_minimal_json() {
         let value = from_str(
-            r#"{"one":1,"signatures":{"example.com":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
+            r#"{"one":1,"signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
         ).unwrap();
 
         let mut signature_set = HashMap::new();
         signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 
         let mut public_key_map = HashMap::new();
-        public_key_map.insert("example.com".to_string(), signature_set);
+        public_key_map.insert("domain".to_string(), signature_set);
 
         assert!(verify_json(&public_key_map, &value).is_ok());
 
         let reverse_value = from_str(
-            r#"{"two":"Two","signatures":{"example.com":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"one":1}"#
+            r#"{"two":"Two","signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"one":1}"#
         ).unwrap();
 
         assert!(verify_json(&public_key_map, &reverse_value).is_ok());
@@ -447,13 +447,13 @@ mod test {
 
     #[test]
     fn fail_verify_json() {
-        let value = from_str(r#"{"not":"empty","signatures":{"example.com":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}"#).unwrap();
+        let value = from_str(r#"{"not":"empty","signatures":{"domain":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}"#).unwrap();
 
         let mut signature_set = HashMap::new();
         signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 
         let mut public_key_map = HashMap::new();
-        public_key_map.insert("example.com".to_string(), signature_set);
+        public_key_map.insert("domain".to_string(), signature_set);
 
         assert!(verify_json(&public_key_map, &value).is_err());
     }
