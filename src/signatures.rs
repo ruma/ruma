@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use base64::{encode_config, STANDARD_NO_PAD};
 
-use crate::{Algorithm, Error};
+use crate::{split_id, Algorithm, Error, SplitError};
 
 /// A digital signature.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -38,7 +38,11 @@ impl Signature {
     ///
     /// # Errors
     ///
-    /// Returns an error if the key identifier is invalid.
+    /// Returns an error if:
+    ///
+    /// * The key ID specifies an unknown algorithm.
+    /// * The key ID is malformed.
+    /// * The key ID contains a version with invalid characters.
     pub fn new(id: &str, bytes: &[u8]) -> Result<Self, Error> {
         let (algorithm, version) = split_id(id).map_err(|split_error| match split_error {
             SplitError::InvalidLength(length) => Error::new(format!("malformed signature ID: expected exactly 2 segment separated by a colon, found {}", length)),
@@ -96,53 +100,6 @@ pub type SignatureMap = HashMap<String, SignatureSet>;
 ///
 /// This is represented as a map from signing key ID to Base64-encoded signature.
 pub type SignatureSet = HashMap<String, String>;
-
-/// An error when trying to extract the algorithm and version from a key identifier.
-#[derive(Clone, Debug, PartialEq)]
-enum SplitError<'a> {
-    /// The signature's ID does not have exactly two components separated by a colon.
-    InvalidLength(usize),
-    /// The signature's ID contains invalid characters in its version.
-    InvalidVersion(&'a str),
-    /// The signature uses an unknown algorithm.
-    UnknownAlgorithm(&'a str),
-}
-
-/// Extract the algorithm and version from a key identifier.
-fn split_id(id: &str) -> Result<(Algorithm, String), SplitError<'_>> {
-    /// The length of a valid signature ID.
-    const SIGNATURE_ID_LENGTH: usize = 2;
-
-    let signature_id: Vec<&str> = id.split(':').collect();
-
-    let signature_id_length = signature_id.len();
-
-    if signature_id_length != SIGNATURE_ID_LENGTH {
-        return Err(SplitError::InvalidLength(signature_id_length));
-    }
-
-    let version = signature_id[1];
-
-    let invalid_character_index = version.find(|ch| {
-        !((ch >= 'a' && ch <= 'z')
-            || (ch >= 'A' && ch <= 'Z')
-            || (ch >= '0' && ch <= '9')
-            || ch == '_')
-    });
-
-    if invalid_character_index.is_some() {
-        return Err(SplitError::InvalidVersion(version));
-    }
-
-    let algorithm_input = signature_id[0];
-
-    let algorithm = match algorithm_input {
-        "ed25519" => Algorithm::Ed25519,
-        algorithm => return Err(SplitError::UnknownAlgorithm(algorithm)),
-    };
-
-    Ok((algorithm, signature_id[1].to_string()))
-}
 
 #[cfg(test)]
 mod tests {

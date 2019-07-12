@@ -106,7 +106,6 @@ pub use functions::{
 };
 pub use keys::{Ed25519KeyPair, KeyPair};
 pub use signatures::{Signature, SignatureMap, SignatureSet};
-pub use verification::{Ed25519Verifier, Verified, Verifier};
 
 mod functions;
 mod keys;
@@ -177,6 +176,53 @@ impl Display for Algorithm {
     }
 }
 
+/// An error when trying to extract the algorithm and version from a key identifier.
+#[derive(Clone, Debug, PartialEq)]
+enum SplitError<'a> {
+    /// The signature's ID does not have exactly two components separated by a colon.
+    InvalidLength(usize),
+    /// The signature's ID contains invalid characters in its version.
+    InvalidVersion(&'a str),
+    /// The signature uses an unknown algorithm.
+    UnknownAlgorithm(&'a str),
+}
+
+/// Extract the algorithm and version from a key identifier.
+fn split_id(id: &str) -> Result<(Algorithm, String), SplitError<'_>> {
+    /// The length of a valid signature ID.
+    const SIGNATURE_ID_LENGTH: usize = 2;
+
+    let signature_id: Vec<&str> = id.split(':').collect();
+
+    let signature_id_length = signature_id.len();
+
+    if signature_id_length != SIGNATURE_ID_LENGTH {
+        return Err(SplitError::InvalidLength(signature_id_length));
+    }
+
+    let version = signature_id[1];
+
+    let invalid_character_index = version.find(|ch| {
+        !((ch >= 'a' && ch <= 'z')
+            || (ch >= 'A' && ch <= 'Z')
+            || (ch >= '0' && ch <= '9')
+            || ch == '_')
+    });
+
+    if invalid_character_index.is_some() {
+        return Err(SplitError::InvalidVersion(version));
+    }
+
+    let algorithm_input = signature_id[0];
+
+    let algorithm = match algorithm_input {
+        "ed25519" => Algorithm::Ed25519,
+        algorithm => return Err(SplitError::UnknownAlgorithm(algorithm)),
+    };
+
+    Ok((algorithm, signature_id[1].to_string()))
+}
+
 #[cfg(test)]
 mod test {
     use std::collections::HashMap;
@@ -187,7 +233,6 @@ mod test {
 
     use super::{
         canonical_json, hash_and_sign_event, sign_json, verify_event, verify_json, Ed25519KeyPair,
-        Ed25519Verifier,
     };
 
     const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
@@ -317,15 +362,13 @@ mod test {
     fn verify_empty_json() {
         let value = from_str(r#"{"signatures":{"example.com":{"ed25519:1":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}}"#).unwrap();
 
-        let verifier = Ed25519Verifier;
-
         let mut signature_set = HashMap::new();
         signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 
         let mut public_key_map = HashMap::new();
         public_key_map.insert("example.com".to_string(), signature_set);
 
-        assert!(verify_json(&verifier, &public_key_map, &value).is_ok());
+        assert!(verify_json(&public_key_map, &value).is_ok());
     }
 
     #[test]
@@ -387,36 +430,32 @@ mod test {
             r#"{"one":1,"signatures":{"example.com":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
         ).unwrap();
 
-        let verifier = Ed25519Verifier;
-
         let mut signature_set = HashMap::new();
         signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 
         let mut public_key_map = HashMap::new();
         public_key_map.insert("example.com".to_string(), signature_set);
 
-        assert!(verify_json(&verifier, &public_key_map, &value).is_ok());
+        assert!(verify_json(&public_key_map, &value).is_ok());
 
         let reverse_value = from_str(
             r#"{"two":"Two","signatures":{"example.com":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"one":1}"#
         ).unwrap();
 
-        assert!(verify_json(&verifier, &public_key_map, &reverse_value).is_ok());
+        assert!(verify_json(&public_key_map, &reverse_value).is_ok());
     }
 
     #[test]
     fn fail_verify_json() {
         let value = from_str(r#"{"not":"empty","signatures":{"example.com":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}"#).unwrap();
 
-        let verifier = Ed25519Verifier;
-
         let mut signature_set = HashMap::new();
         signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 
         let mut public_key_map = HashMap::new();
         public_key_map.insert("example.com".to_string(), signature_set);
 
-        assert!(verify_json(&verifier, &public_key_map, &value).is_err());
+        assert!(verify_json(&public_key_map, &value).is_err());
     }
 
     #[test]
@@ -529,8 +568,6 @@ mod test {
             }"#
         ).unwrap();
 
-        let verifier = Ed25519Verifier;
-
-        assert!(verify_event(&verifier, &public_key_map, &value).is_ok());
+        assert!(verify_event(&public_key_map, &value).is_ok());
     }
 }

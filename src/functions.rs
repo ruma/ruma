@@ -9,7 +9,8 @@ use serde_json::{from_str, from_value, map::Map, to_string, to_value, Value};
 use crate::{
     keys::KeyPair,
     signatures::SignatureMap,
-    verification::{Verified, Verifier},
+    split_id,
+    verification::{Ed25519Verifier, Verified, Verifier},
     Error,
 };
 
@@ -178,7 +179,6 @@ pub fn canonical_json(value: &Value) -> Result<String, Error> {
 ///
 /// # Parameters
 ///
-/// * verifier: A `Verifier` appropriate for the digital signature algorithm that was used.
 /// * public_key_map: A map from entity identifiers to a map from key identifiers to public keys.
 /// Generally, entity identifiers are server names—the host/IP/port of a homeserver (e.g.
 /// "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
@@ -216,9 +216,6 @@ pub fn canonical_json(value: &Value) -> Result<String, Error> {
 ///     }"#
 /// ).unwrap();
 ///
-/// // Create the verifier for the Ed25519 algorithm.
-/// let verifier = ruma_signatures::Ed25519Verifier;
-///
 /// // Create the `SignatureMap` that will inform `verify_json` which signatures to verify.
 /// let mut signature_set = HashMap::new();
 /// signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
@@ -226,16 +223,9 @@ pub fn canonical_json(value: &Value) -> Result<String, Error> {
 /// public_key_map.insert("example.com".to_string(), signature_set);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
-/// assert!(ruma_signatures::verify_json(&verifier, &public_key_map, &value).is_ok());
+/// assert!(ruma_signatures::verify_json(&public_key_map, &value).is_ok());
 /// ```
-pub fn verify_json<V>(
-    verifier: &V,
-    public_key_map: &SignatureMap,
-    value: &Value,
-) -> Result<(), Error>
-where
-    V: Verifier,
-{
+pub fn verify_json(public_key_map: &SignatureMap, value: &Value) -> Result<(), Error> {
     let map = match value {
         Value::Object(ref map) => map,
         _ => return Err(Error::new("JSON value must be a JSON object")),
@@ -264,6 +254,12 @@ where
         let mut maybe_public_key = None;
 
         for (key_id, public_key) in public_keys {
+            // Since only ed25519 is supported right now, we don't actually need to check what the
+            // algorithm is. If it split successfully, it's ed25519.
+            if split_id(key_id).is_err() {
+                break;
+            }
+
             if let Some(signature) = signature_set.get(key_id) {
                 maybe_signature = Some(signature);
                 maybe_public_key = Some(public_key);
@@ -294,7 +290,7 @@ where
 
         let public_key_bytes = decode_config(&public_key, STANDARD_NO_PAD)?;
 
-        verify_json_with(verifier, &public_key_bytes, &signature_bytes, value)?;
+        verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, value)?;
     }
 
     Ok(())
@@ -514,7 +510,6 @@ where
 ///
 /// # Parameters
 ///
-/// * verifier: A `Verifier` appropriate for the digital signature algorithm that was used.
 /// * public_key_map: A map from entity identifiers to a map from key identifiers to public keys.
 /// Generally, entity identifiers are server names—the host/IP/port of a homeserver (e.g.
 /// "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
@@ -554,9 +549,6 @@ where
 ///     }"#
 /// ).unwrap();
 ///
-/// // Create the verifier for the Ed25519 algorithm.
-/// let verifier = ruma_signatures::Ed25519Verifier;
-///
 /// // Create a map from key ID to public key.
 /// let mut example_server_keys = HashMap::new();
 /// example_server_keys.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
@@ -566,16 +558,9 @@ where
 /// public_key_map.insert("domain".to_string(), example_server_keys);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
-/// assert!(ruma_signatures::verify_event(&verifier, &public_key_map, &value).is_ok());
+/// assert!(ruma_signatures::verify_event(&public_key_map, &value).is_ok());
 /// ```
-pub fn verify_event<V>(
-    verifier: &V,
-    public_key_map: &SignatureMap,
-    value: &Value,
-) -> Result<Verified, Error>
-where
-    V: Verifier,
-{
+pub fn verify_event(public_key_map: &SignatureMap, value: &Value) -> Result<Verified, Error> {
     let redacted = redact(value)?;
 
     let map = match redacted {
@@ -620,6 +605,12 @@ where
         let mut maybe_public_key = None;
 
         for (key_id, public_key) in public_keys {
+            // Since only ed25519 is supported right now, we don't actually need to check what the
+            // algorithm is. If it split successfully, it's ed25519.
+            if split_id(key_id).is_err() {
+                break;
+            }
+
             if let Some(signature) = signature_set.get(key_id) {
                 maybe_signature = Some(signature);
                 maybe_public_key = Some(public_key);
@@ -653,7 +644,7 @@ where
         let public_key_bytes = decode_config(&public_key, STANDARD_NO_PAD)?;
 
         verify_json_with(
-            verifier,
+            &Ed25519Verifier,
             &public_key_bytes,
             &signature_bytes,
             &canonical_json,
