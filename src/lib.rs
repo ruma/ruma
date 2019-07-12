@@ -228,8 +228,7 @@ mod test {
     use std::collections::HashMap;
 
     use base64::{decode_config, STANDARD_NO_PAD};
-    use serde::Serialize;
-    use serde_json::{from_str, to_string, to_value, Value};
+    use serde_json::{from_str, json, to_string, to_value, Value};
 
     use super::{
         canonical_json, hash_and_sign_event, sign_json, verify_event, verify_json, Ed25519KeyPair,
@@ -373,18 +372,6 @@ mod test {
 
     #[test]
     fn sign_minimal_json() {
-        #[derive(Serialize)]
-        struct Alpha {
-            one: u8,
-            two: String,
-        }
-
-        #[derive(Serialize)]
-        struct ReverseAlpha {
-            two: String,
-            one: u8,
-        }
-
         let key_pair = Ed25519KeyPair::new(
             decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
                 .unwrap()
@@ -396,15 +383,15 @@ mod test {
         )
         .unwrap();
 
-        let alpha = Alpha {
-            one: 1,
-            two: "Two".to_string(),
-        };
+        let alpha = json!({
+            "one": 1,
+            "two": "Two",
+        });
 
-        let reverse_alpha = ReverseAlpha {
-            two: "Two".to_string(),
-            one: 1,
-        };
+        let reverse_alpha = json!({
+            "two": "Two",
+            "one": 1,
+        });
 
         let mut alpha_value = to_value(alpha).expect("alpha should serialize");
         sign_json("domain", &key_pair, &mut alpha_value).unwrap();
