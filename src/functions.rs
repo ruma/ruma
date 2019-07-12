@@ -179,8 +179,10 @@ pub fn canonical_json(value: &Value) -> Result<String, Error> {
 /// # Parameters
 ///
 /// * verifier: A `Verifier` appropriate for the digital signature algorithm that was used.
-/// * public_key: The public key of the key pair used to sign the JSON, as a series of bytes.
-/// * signature: The `Signature` to verify.
+/// * public_key_map: A map from entity identifiers to a map from key identifiers to public keys.
+/// Generally, entity identifiers are server names—the host/IP/port of a homeserver (e.g.
+/// "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
+/// "ed25519:1") then map to their respective public keys.
 /// * value: The `serde_json::Value` (JSON value) that was signed.
 ///
 /// # Errors
@@ -220,15 +222,15 @@ pub fn canonical_json(value: &Value) -> Result<String, Error> {
 /// // Create the `SignatureMap` that will inform `verify_json` which signatures to verify.
 /// let mut signature_set = HashMap::new();
 /// signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
-/// let mut verify_key_map = HashMap::new();
-/// verify_key_map.insert("example.com".to_string(), signature_set);
+/// let mut public_key_map = HashMap::new();
+/// public_key_map.insert("example.com".to_string(), signature_set);
 ///
-/// // Verify at least one signature for each entity in `verify_key_map`.
-/// assert!(ruma_signatures::verify_json(&verifier, &verify_key_map, &value).is_ok());
+/// // Verify at least one signature for each entity in `public_key_map`.
+/// assert!(ruma_signatures::verify_json(&verifier, &public_key_map, &value).is_ok());
 /// ```
 pub fn verify_json<V>(
     verifier: &V,
-    verify_key_map: &SignatureMap,
+    public_key_map: &SignatureMap,
     value: &Value,
 ) -> Result<(), Error>
 where
@@ -247,7 +249,7 @@ where
         None => return Err(Error::new("JSON object must contain a `signatures` field.")),
     };
 
-    for (entity_id, verify_keys) in verify_key_map {
+    for (entity_id, public_keys) in public_key_map {
         let signature_set = match signature_map.get(entity_id) {
             Some(set) => set,
             None => {
@@ -259,12 +261,12 @@ where
         };
 
         let mut maybe_signature = None;
-        let mut maybe_verify_key = None;
+        let mut maybe_public_key = None;
 
-        for (key_id, verify_key) in verify_keys {
+        for (key_id, public_key) in public_keys {
             if let Some(signature) = signature_set.get(key_id) {
                 maybe_signature = Some(signature);
-                maybe_verify_key = Some(verify_key);
+                maybe_public_key = Some(public_key);
 
                 break;
             }
@@ -274,25 +276,25 @@ where
             Some(signature) => signature,
             None => {
                 return Err(Error::new(
-                    "event is not signed with any of the given verify keys",
+                    "event is not signed with any of the given public keys",
                 ))
             }
         };
 
-        let verify_key = match maybe_verify_key {
-            Some(verify_key) => verify_key,
+        let public_key = match maybe_public_key {
+            Some(public_key) => public_key,
             None => {
                 return Err(Error::new(
-                    "event is not signed with any of the given verify keys",
+                    "event is not signed with any of the given public keys",
                 ))
             }
         };
 
         let signature_bytes = decode_config(signature, STANDARD_NO_PAD)?;
 
-        let verify_key_bytes = decode_config(&verify_key, STANDARD_NO_PAD)?;
+        let public_key_bytes = decode_config(&public_key, STANDARD_NO_PAD)?;
 
-        verify_json_with(verifier, &verify_key_bytes, &signature_bytes, value)?;
+        verify_json_with(verifier, &public_key_bytes, &signature_bytes, value)?;
     }
 
     Ok(())
@@ -313,7 +315,7 @@ where
 ///
 /// * The provided JSON value is not a JSON object.
 /// * Verification fails.
-pub fn verify_json_with<V>(
+fn verify_json_with<V>(
     verifier: &V,
     public_key: &[u8],
     signature: &[u8],
@@ -464,11 +466,7 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 /// ```
 ///
 /// Notice the addition of `hashes` and `signatures`.
-pub fn hash_and_sign_event<K>(
-    entity_id: &str,
-    key_pair: &K,
-    value: &mut Value,
-) -> Result<(), Error>
+pub fn hash_and_sign_event<K>(entity_id: &str, key_pair: &K, value: &mut Value) -> Result<(), Error>
 where
     K: KeyPair,
 {
@@ -517,7 +515,7 @@ where
 /// # Parameters
 ///
 /// * verifier: A `Verifier` appropriate for the digital signature algorithm that was used.
-/// * verify_key_map: A map from entity identifiers to a map from key identifiers to public keys.
+/// * public_key_map: A map from entity identifiers to a map from key identifiers to public keys.
 /// Generally, entity identifiers are server names—the host/IP/port of a homeserver (e.g.
 /// "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
 /// "ed25519:1") then map to their respective public keys.
@@ -564,15 +562,15 @@ where
 /// example_server_keys.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 ///
 /// // Insert the public keys into a map keyed by entity ID.
-/// let mut verify_key_map = HashMap::new();
-/// verify_key_map.insert("domain".to_string(), example_server_keys);
+/// let mut public_key_map = HashMap::new();
+/// public_key_map.insert("domain".to_string(), example_server_keys);
 ///
-/// // Verify at least one signature for each entity in `verify_key_map`.
-/// assert!(ruma_signatures::verify_event(&verifier, &verify_key_map, &value).is_ok());
+/// // Verify at least one signature for each entity in `public_key_map`.
+/// assert!(ruma_signatures::verify_event(&verifier, &public_key_map, &value).is_ok());
 /// ```
 pub fn verify_event<V>(
     verifier: &V,
-    verify_key_map: &SignatureMap,
+    public_key_map: &SignatureMap,
     value: &Value,
 ) -> Result<Verified, Error>
 where
@@ -607,7 +605,7 @@ where
         None => return Err(Error::new("JSON object must contain a `signatures` field.")),
     };
 
-    for (entity_id, verify_keys) in verify_key_map {
+    for (entity_id, public_keys) in public_key_map {
         let signature_set = match signature_map.get(entity_id) {
             Some(set) => set,
             None => {
@@ -619,12 +617,12 @@ where
         };
 
         let mut maybe_signature = None;
-        let mut maybe_verify_key = None;
+        let mut maybe_public_key = None;
 
-        for (key_id, verify_key) in verify_keys {
+        for (key_id, public_key) in public_keys {
             if let Some(signature) = signature_set.get(key_id) {
                 maybe_signature = Some(signature);
-                maybe_verify_key = Some(verify_key);
+                maybe_public_key = Some(public_key);
 
                 break;
             }
@@ -634,16 +632,16 @@ where
             Some(signature) => signature,
             None => {
                 return Err(Error::new(
-                    "event is not signed with any of the given verify keys",
+                    "event is not signed with any of the given public keys",
                 ))
             }
         };
 
-        let verify_key = match maybe_verify_key {
-            Some(verify_key) => verify_key,
+        let public_key = match maybe_public_key {
+            Some(public_key) => public_key,
             None => {
                 return Err(Error::new(
-                    "event is not signed with any of the given verify keys",
+                    "event is not signed with any of the given public keys",
                 ))
             }
         };
@@ -652,11 +650,11 @@ where
 
         let signature_bytes = decode_config(signature, STANDARD_NO_PAD)?;
 
-        let verify_key_bytes = decode_config(&verify_key, STANDARD_NO_PAD)?;
+        let public_key_bytes = decode_config(&public_key, STANDARD_NO_PAD)?;
 
         verify_json_with(
             verifier,
-            &verify_key_bytes,
+            &public_key_bytes,
             &signature_bytes,
             &canonical_json,
         )?;

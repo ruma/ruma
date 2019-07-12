@@ -322,10 +322,10 @@ mod test {
         let mut signature_set = HashMap::new();
         signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 
-        let mut verify_key_map = HashMap::new();
-        verify_key_map.insert("example.com".to_string(), signature_set);
+        let mut public_key_map = HashMap::new();
+        public_key_map.insert("example.com".to_string(), signature_set);
 
-        assert!(verify_json(&verifier, &verify_key_map, &value).is_ok());
+        assert!(verify_json(&verifier, &public_key_map, &value).is_ok());
     }
 
     #[test]
@@ -392,16 +392,16 @@ mod test {
         let mut signature_set = HashMap::new();
         signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 
-        let mut verify_key_map = HashMap::new();
-        verify_key_map.insert("example.com".to_string(), signature_set);
+        let mut public_key_map = HashMap::new();
+        public_key_map.insert("example.com".to_string(), signature_set);
 
-        assert!(verify_json(&verifier, &verify_key_map, &value).is_ok());
+        assert!(verify_json(&verifier, &public_key_map, &value).is_ok());
 
         let reverse_value = from_str(
             r#"{"two":"Two","signatures":{"example.com":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"one":1}"#
         ).unwrap();
 
-        assert!(verify_json(&verifier, &verify_key_map, &reverse_value).is_ok());
+        assert!(verify_json(&verifier, &public_key_map, &reverse_value).is_ok());
     }
 
     #[test]
@@ -413,10 +413,10 @@ mod test {
         let mut signature_set = HashMap::new();
         signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 
-        let mut verify_key_map = HashMap::new();
-        verify_key_map.insert("example.com".to_string(), signature_set);
+        let mut public_key_map = HashMap::new();
+        public_key_map.insert("example.com".to_string(), signature_set);
 
-        assert!(verify_json(&verifier, &verify_key_map, &value).is_err());
+        assert!(verify_json(&verifier, &public_key_map, &value).is_err());
     }
 
     #[test]
@@ -501,8 +501,8 @@ mod test {
         let mut signature_set = HashMap::new();
         signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
 
-        let mut verify_key_map = HashMap::new();
-        verify_key_map.insert("domain".to_string(), signature_set);
+        let mut public_key_map = HashMap::new();
+        public_key_map.insert("domain".to_string(), signature_set);
 
         let value = from_str(
             r#"{
@@ -531,6 +531,6 @@ mod test {
 
         let verifier = Ed25519Verifier;
 
-        assert!(verify_event(&verifier, &verify_key_map, &value).is_ok());
+        assert!(verify_event(&verifier, &public_key_map, &value).is_ok());
     }
 }
