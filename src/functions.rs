@@ -706,6 +706,16 @@ fn canonical_json_with_fields_to_remove(value: &Value, fields: &[&str]) -> Resul
 /// # Parameters
 ///
 /// * value: A JSON object to redact.
+///
+/// # Errors
+///
+/// Returns an error if:
+///
+/// * `value` is not a JSON object.
+/// * `value` contains a field called `content` that is not a JSON object.
+/// * `value` contains a field called `hashes` that is not a JSON object.
+/// * `value` contains a field called `signatures` that is not a JSON object.
+/// * `value` is missing the `type` field or the field is not a JSON string.
 pub fn redact(value: &Value) -> Result<Value, Error> {
     if !value.is_object() {
         return Err(Error::new("JSON value must be a JSON object"));
