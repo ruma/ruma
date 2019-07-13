@@ -5,9 +5,11 @@
 //! state event to be created, when the other fields can be inferred from a larger context, or where
 //! the other fields are otherwise inapplicable.
 
+use std::{convert::TryFrom, str::FromStr};
+
 use ruma_identifiers::UserId;
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
-use serde_json::{from_value, Value};
+use serde_json::{from_value, to_string, Value};
 
 use crate::{
     room::{
@@ -18,7 +20,7 @@ use crate::{
         power_levels::PowerLevelsEventContent, third_party_invite::ThirdPartyInviteEventContent,
         topic::TopicEventContent,
     },
-    EventType,
+    EventType, InnerInvalidEvent, InvalidEvent,
 };
 
 /// A stripped-down version of a state event that is included along with some other events.
@@ -63,7 +65,7 @@ pub enum StrippedState {
 }
 
 /// A "stripped-down" version of a core state event.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct StrippedStateContent<C> {
     /// Data specific to the event type.
     pub content: C,
@@ -77,6 +79,80 @@ pub struct StrippedStateContent<C> {
 
     /// The unique identifier for the user who sent this event.
     pub sender: UserId,
+}
+
+impl FromStr for StrippedState {
+    type Err = InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn from_str(json: &str) -> Result<Self, Self::Err> {
+        let value = match serde_json::from_str::<Value>(json) {
+            Ok(value) => value,
+            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+                Ok(value) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: error.to_string(),
+                    }));
+                }
+                Err(error) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+                }
+            },
+        };
+
+        let event_type_value = match value.get("type") {
+            Some(value) => value.clone(),
+            None => {
+                return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: "missing field `type`".to_string(),
+                }))
+            }
+        };
+
+        let event_type = match from_value::<EventType>(event_type_value.clone()) {
+            Ok(event_type) => event_type,
+            Err(error) => {
+                return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                }))
+            }
+        };
+
+        match event_type {
+            EventType::RoomAliases => Ok(StrippedState::RoomAliases(json.parse()?)),
+            EventType::RoomAvatar => Ok(StrippedState::RoomAvatar(json.parse()?)),
+            EventType::RoomCanonicalAlias => Ok(StrippedState::RoomCanonicalAlias(json.parse()?)),
+            EventType::RoomCreate => Ok(StrippedState::RoomCreate(json.parse()?)),
+            EventType::RoomGuestAccess => Ok(StrippedState::RoomGuestAccess(json.parse()?)),
+            EventType::RoomHistoryVisibility => {
+                Ok(StrippedState::RoomHistoryVisibility(json.parse()?))
+            }
+            EventType::RoomJoinRules => Ok(StrippedState::RoomJoinRules(json.parse()?)),
+            EventType::RoomMember => Ok(StrippedState::RoomMember(json.parse()?)),
+            EventType::RoomName => Ok(StrippedState::RoomName(json.parse()?)),
+            EventType::RoomPowerLevels => Ok(StrippedState::RoomPowerLevels(json.parse()?)),
+            EventType::RoomThirdPartyInvite => {
+                Ok(StrippedState::RoomThirdPartyInvite(json.parse()?))
+            }
+            EventType::RoomTopic => Ok(StrippedState::RoomTopic(json.parse()?)),
+            _ => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                json: value,
+                message: "not a state event".to_string(),
+            })),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a str> for StrippedState {
+    type Error = InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
+        FromStr::from_str(json)
+    }
 }
 
 impl Serialize for StrippedState {
@@ -101,122 +177,108 @@ impl Serialize for StrippedState {
     }
 }
 
-impl<'de> Deserialize<'de> for StrippedState {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let value: Value = Deserialize::deserialize(deserializer)?;
+impl<C> FromStr for StrippedStateContent<C>
+where
+    C: FromStr,
+    <C as FromStr>::Err: ToString,
+{
+    type Err = InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn from_str(json: &str) -> Result<Self, Self::Err> {
+        let value = match serde_json::from_str::<Value>(json) {
+            Ok(value) => value,
+            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+                Ok(value) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: error.to_string(),
+                    }));
+                }
+                Err(error) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+                }
+            },
+        };
 
         let event_type_value = match value.get("type") {
             Some(value) => value.clone(),
-            None => return Err(D::Error::missing_field("type")),
+            None => {
+                return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: "missing field `type`".to_string(),
+                }))
+            }
         };
 
         let event_type = match from_value::<EventType>(event_type_value.clone()) {
             Ok(event_type) => event_type,
-            Err(error) => return Err(D::Error::custom(error.to_string())),
+            Err(error) => {
+                return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                }))
+            }
         };
 
+        let content = match value.get("content") {
+            Some(content_value) => match content_value.as_object() {
+                Some(content) => content,
+                None => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: "field `content` must be an object".to_string(),
+                    }))
+                }
+            },
+            None => {
+                return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: "missing field `content`".to_string(),
+                }))
+            }
+        };
+
+        // Unwrap is safe because we already know this can deserialize to a `Value`.
+        let json_string = to_string(content).unwrap();
+
         match event_type {
-            EventType::RoomAliases => {
-                let event = match from_value::<StrippedRoomAliases>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(StrippedState::RoomAliases(event))
-            }
-            EventType::RoomAvatar => {
-                let event = match from_value::<StrippedRoomAvatar>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(StrippedState::RoomAvatar(event))
-            }
+            EventType::RoomAliases => stripped_state_content(&json_string, event_type, value),
+            EventType::RoomAvatar => stripped_state_content(&json_string, event_type, value),
             EventType::RoomCanonicalAlias => {
-                let event = match from_value::<StrippedRoomCanonicalAlias>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(StrippedState::RoomCanonicalAlias(event))
+                stripped_state_content(&json_string, event_type, value)
             }
-            EventType::RoomCreate => {
-                let event = match from_value::<StrippedRoomCreate>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(StrippedState::RoomCreate(event))
-            }
-            EventType::RoomGuestAccess => {
-                let event = match from_value::<StrippedRoomGuestAccess>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(StrippedState::RoomGuestAccess(event))
-            }
+            EventType::RoomCreate => stripped_state_content(&json_string, event_type, value),
+            EventType::RoomGuestAccess => stripped_state_content(&json_string, event_type, value),
             EventType::RoomHistoryVisibility => {
-                let event = match from_value::<StrippedRoomHistoryVisibility>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(StrippedState::RoomHistoryVisibility(event))
+                stripped_state_content(&json_string, event_type, value)
             }
-            EventType::RoomJoinRules => {
-                let event = match from_value::<StrippedRoomJoinRules>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(StrippedState::RoomJoinRules(event))
-            }
-            EventType::RoomMember => {
-                let event = match from_value::<StrippedRoomMember>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(StrippedState::RoomMember(event))
-            }
-            EventType::RoomName => {
-                let event = match from_value::<StrippedRoomName>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(StrippedState::RoomName(event))
-            }
-            EventType::RoomPowerLevels => {
-                let event = match from_value::<StrippedRoomPowerLevels>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(StrippedState::RoomPowerLevels(event))
-            }
+            EventType::RoomJoinRules => stripped_state_content(&json_string, event_type, value),
+            EventType::RoomMember => stripped_state_content(&json_string, event_type, value),
+            EventType::RoomName => stripped_state_content(&json_string, event_type, value),
+            EventType::RoomPowerLevels => stripped_state_content(&json_string, event_type, value),
             EventType::RoomThirdPartyInvite => {
-                let event = match from_value::<StrippedRoomThirdPartyInvite>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(StrippedState::RoomThirdPartyInvite(event))
+                stripped_state_content(&json_string, event_type, value)
             }
-            EventType::RoomTopic => {
-                let event = match from_value::<StrippedRoomTopic>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(StrippedState::RoomTopic(event))
-            }
-            _ => Err(D::Error::custom("not a state event".to_string())),
+            EventType::RoomTopic => stripped_state_content(&json_string, event_type, value),
+            _ => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                json: value,
+                message: "not a state event".to_string(),
+            })),
         }
+    }
+}
+
+impl<'a, C> TryFrom<&'a str> for StrippedStateContent<C>
+where
+    C: FromStr,
+    <C as FromStr>::Err: ToString,
+{
+    type Error = InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
+        FromStr::from_str(json)
     }
 }
 
@@ -256,6 +318,75 @@ pub type StrippedRoomThirdPartyInvite = StrippedStateContent<ThirdPartyInviteEve
 /// A stripped-down version of the *m.room.topic* event.
 pub type StrippedRoomTopic = StrippedStateContent<TopicEventContent>;
 
+/// Reduces the boilerplate in the match arms of `impl FromStr for StrippedState`.
+#[inline]
+fn stripped_state_content<C>(
+    json: &str,
+    event_type: EventType,
+    value: Value,
+) -> Result<StrippedStateContent<C>, InvalidEvent>
+where
+    C: FromStr,
+    <C as FromStr>::Err: ToString,
+{
+    let content = match json.parse::<C>() {
+        Ok(content) => content,
+        Err(error) => {
+            return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                json: value,
+                message: error.to_string(),
+            }))
+        }
+    };
+
+    Ok(StrippedStateContent {
+        content,
+        event_type,
+        state_key: match value.get("state_key") {
+            Some(state_key_value) => match state_key_value.as_str() {
+                Some(state_key) => state_key.to_string(),
+                None => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: "field `state_key` must be a string".to_string(),
+                    }))
+                }
+            },
+            None => {
+                return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: "missing field `state_key`".to_string(),
+                }))
+            }
+        },
+        sender: match value.get("sender") {
+            Some(sender_value) => match sender_value.as_str() {
+                Some(sender_str) => match UserId::try_from(sender_str) {
+                    Ok(sender) => sender,
+                    Err(error) => {
+                        return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                            json: value,
+                            message: error.to_string(),
+                        }))
+                    }
+                },
+                None => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: "field `sender` must be a string".to_string(),
+                    }))
+                }
+            },
+            None => {
+                return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: "missing field `sender`".to_string(),
+                }))
+            }
+        },
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use std::convert::TryFrom;
@@ -264,7 +395,7 @@ mod tests {
     use ruma_identifiers::UserId;
     use serde_json::{from_str, to_string};
 
-    use super::{StrippedRoomTopic, StrippedState};
+    use super::{StrippedRoomName, StrippedRoomTopic, StrippedState};
     use crate::{
         room::{join_rules::JoinRule, topic::TopicEventContent},
         EventType,
@@ -334,31 +465,30 @@ mod tests {
             }
         }"#;
 
-        match from_str::<StrippedState>(name_event).unwrap() {
+        match name_event.parse().unwrap() {
             StrippedState::RoomName(event) => {
                 assert_eq!(event.content.name, Some("Ruma".to_string()));
                 assert_eq!(event.event_type, EventType::RoomName);
                 assert_eq!(event.state_key, "");
                 assert_eq!(event.sender.to_string(), "@example:localhost");
             }
-            _ => {
-                unreachable!();
-            }
+            _ => unreachable!(),
         };
 
-        match from_str::<StrippedState>(join_rules_event).unwrap() {
+        // Ensure `StrippedStateContent` can be parsed, not just `StrippedState`.
+        assert!(name_event.parse::<StrippedRoomName>().is_ok());
+
+        match join_rules_event.parse().unwrap() {
             StrippedState::RoomJoinRules(event) => {
                 assert_eq!(event.content.join_rule, JoinRule::Public);
                 assert_eq!(event.event_type, EventType::RoomJoinRules);
                 assert_eq!(event.state_key, "");
                 assert_eq!(event.sender.to_string(), "@example:localhost");
             }
-            _ => {
-                unreachable!();
-            }
+            _ => unreachable!(),
         };
 
-        match from_str::<StrippedState>(avatar_event).unwrap() {
+        match avatar_event.parse().unwrap() {
             StrippedState::RoomAvatar(event) => {
                 let image_info = event.content.info.unwrap();
 
@@ -375,9 +505,7 @@ mod tests {
                 assert_eq!(event.state_key, "");
                 assert_eq!(event.sender.to_string(), "@example:localhost");
             }
-            _ => {
-                unreachable!();
-            }
+            _ => unreachable!(),
         };
     }
 }
