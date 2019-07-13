@@ -49,7 +49,7 @@ pub struct NameEventContent {
 }
 
 impl FromStr for NameEvent {
-    type Err = crate::InvalidEvent;
+    type Err = InvalidEvent;
 
     /// Attempt to create `Self` from parsing a string of JSON data.
     fn from_str(json: &str) -> Result<Self, Self::Err> {

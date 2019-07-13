@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use ruma_identifiers::UserId;
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 
-use crate::{Empty, Event, EventType};
+use crate::{Empty, Event, EventType, InvalidEvent};
 
 /// A list of users to ignore.
 #[derive(Clone, Debug, PartialEq)]
@@ -23,7 +23,7 @@ pub struct IgnoredUserListEventContent {
 
 impl IgnoredUserListEvent {
     /// Attempt to create `Self` from parsing a string of JSON data.
-    pub fn from_str(json: &str) -> Result<Self, crate::InvalidEvent> {
+    pub fn from_str(json: &str) -> Result<Self, InvalidEvent> {
         let raw = serde_json::from_str::<raw::IgnoredUserListEvent>(json)?;
 
         Ok(Self {
