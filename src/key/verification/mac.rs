@@ -1,7 +1,8 @@
 //! Types for the *m.key.verification.mac* event.
 
+use std::collections::HashMap;
+
 use ruma_events_macros::ruma_event;
-use ruma_signatures::SignatureSet;
 
 ruma_event! {
     /// Sends the MAC of a device's key to the partner device.
@@ -19,7 +20,7 @@ ruma_event! {
             /// A map of the key ID to the MAC of the key, using the algorithm in the verification process.
             ///
             /// The MAC is encoded as unpadded Base64.
-            pub mac: SignatureSet,
+            pub mac: HashMap<String, String>,
 
             /// The MAC of the comma-separated, sorted, list of key IDs given in the `mac` property, encoded
             /// as unpadded Base64.
