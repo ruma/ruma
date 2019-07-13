@@ -1,9 +1,10 @@
 //! Types for the *m.room.member* event.
 
+use std::collections::HashMap;
+
 use js_int::UInt;
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::UserId;
-use ruma_signatures::Signatures;
 use serde::{Deserialize, Serialize};
 
 ruma_event! {
@@ -22,8 +23,8 @@ ruma_event! {
     /// present, this contains an array of `StrippedState` events. These events provide information
     /// on a subset of state events such as the room name. Note that ruma-events treats unsigned
     /// data on events as arbitrary JSON values, and the ruma-events types for this event don't
-    /// provide direct access to these `invite_room_state`. If you need this data, you must extract
-    /// and convert it from a `serde_json::Value` yourself.
+    /// provide direct access to `invite_room_state`. If you need this data, you must extract and
+    /// convert it from a `serde_json::Value` yourself.
     ///
     /// The user for which a membership applies is represented by the `state_key`. Under some
     /// conditions, the `sender` and `state_key` may not match - this may be interpreted as the
@@ -101,7 +102,7 @@ impl_enum! {
 }
 
 /// Information about a third party invitation.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ThirdPartyInvite {
     /// A name which can be displayed to represent the user instead of their third party
     /// identifier.
@@ -114,7 +115,7 @@ pub struct ThirdPartyInvite {
 
 /// A block of content which has been signed, which servers can use to verify a third party
 /// invitation.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct SignedContent {
     /// The invited Matrix user ID.
     ///
@@ -123,7 +124,7 @@ pub struct SignedContent {
 
     /// A single signature from the verifying server, in the format specified by the Signing Events
     /// section of the server-server API.
-    pub signatures: Signatures,
+    pub signatures: HashMap<String, HashMap<String, String>>,
 
     /// The token property of the containing third_party_invite object.
     pub token: String,
