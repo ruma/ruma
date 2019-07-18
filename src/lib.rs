@@ -35,25 +35,26 @@
 )]
 
 use std::{
-    convert::TryInto,
+    convert::{TryFrom, TryInto},
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
     io,
 };
 
-use futures::future::FutureFrom;
 use http::{self, Method, Request, Response, StatusCode};
-use hyper::{self, Body};
 use ruma_identifiers;
 use serde_json;
 use serde_urlencoded;
 
 /// A Matrix API endpoint.
-pub trait Endpoint<T = Body, U = Body> {
+pub trait Endpoint {
     /// Data needed to make a request to the endpoint.
-    type Request: TryInto<Request<T>, Error = Error> + FutureFrom<Request<T>, Error = Error>;
+    type Request: TryFrom<Request<Vec<u8>>, Error = Error>
+        + TryInto<Request<Vec<u8>>, Error = Error>;
+
     /// Data returned from the endpoint.
-    type Response: FutureFrom<Response<U>, Error = Error> + TryInto<Response<U>>;
+    type Response: TryFrom<Response<Vec<u8>>, Error = Error>
+        + TryInto<Response<Vec<u8>>, Error = Error>;
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;
@@ -68,7 +69,6 @@ impl Display for Error {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         let message = match self.0 {
             InnerError::Http(_) => "An error converting to or from `http` types occurred.".into(),
-            InnerError::Hyper(_) => "A Hyper error occurred.".into(),
             InnerError::Io(_) => "An I/O error occurred.".into(),
             InnerError::SerdeJson(_) => "A JSON error occurred.".into(),
             InnerError::SerdeUrlEncodedDe(_) => {
@@ -92,8 +92,6 @@ impl StdError for Error {}
 pub(crate) enum InnerError {
     /// An HTTP error.
     Http(http::Error),
-    /// An Hyper error.
-    Hyper(hyper::Error),
     /// A I/O error.
     Io(io::Error),
     /// A Serde JSON error.
@@ -111,12 +109,6 @@ pub(crate) enum InnerError {
 impl From<http::Error> for Error {
     fn from(error: http::Error) -> Self {
         Self(InnerError::Http(error))
-    }
-}
-
-impl From<hyper::Error> for Error {
-    fn from(error: hyper::Error) -> Self {
-        Self(InnerError::Hyper(error))
     }
 }
 
@@ -180,7 +172,6 @@ mod tests {
     pub mod create {
         use std::convert::TryFrom;
 
-        use futures::future::{err, ok, FutureFrom, FutureResult};
         use http::{
             header::CONTENT_TYPE, method::Method, Request as HttpRequest, Response as HttpResponse,
         };
@@ -189,12 +180,12 @@ mod tests {
         use serde_json;
         use url::percent_encoding;
 
-        use super::super::{Endpoint as ApiEndpoint, Error, Metadata};
+        use crate::{Endpoint as ApiEndpoint, Error, Metadata};
 
         #[derive(Debug)]
         pub struct Endpoint;
 
-        impl ApiEndpoint<Vec<u8>, Vec<u8>> for Endpoint {
+        impl ApiEndpoint for Endpoint {
             type Request = Request;
             type Response = Response;
 
@@ -244,15 +235,6 @@ mod tests {
             }
         }
 
-        impl FutureFrom<HttpRequest<Vec<u8>>> for Request {
-            type Future = FutureResult<Self, Self::Error>;
-            type Error = Error;
-
-            fn future_from(request: HttpRequest<Vec<u8>>) -> Self::Future {
-                FutureResult::from(Self::try_from(request))
-            }
-        }
-
         impl TryFrom<HttpRequest<Vec<u8>>> for Request {
             type Error = Error;
 
@@ -276,17 +258,14 @@ mod tests {
         #[derive(Clone, Copy, Debug)]
         pub struct Response;
 
-        impl FutureFrom<HttpResponse<Vec<u8>>> for Response {
-            type Future = FutureResult<Self, Self::Error>;
+        impl TryFrom<HttpResponse<Vec<u8>>> for Response {
             type Error = Error;
 
-            fn future_from(
-                http_response: HttpResponse<Vec<u8>>,
-            ) -> FutureResult<Self, Self::Error> {
+            fn try_from(http_response: HttpResponse<Vec<u8>>) -> Result<Response, Self::Error> {
                 if http_response.status().is_success() {
-                    ok(Response)
+                    Ok(Response)
                 } else {
-                    err(http_response.status().into())
+                    Err(http_response.status().into())
                 }
             }
         }
