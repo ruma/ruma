@@ -1,11 +1,11 @@
 //! Types for the *m.ignored_user_list* event.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, convert::TryFrom, str::FromStr};
 
 use ruma_identifiers::UserId;
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 
-use crate::{Empty, Event, EventType, InvalidEvent};
+use crate::{Empty, Event, EventType, InnerInvalidEvent, InvalidEvent};
 
 /// A list of users to ignore.
 #[derive(Clone, Debug, PartialEq)]
@@ -21,16 +21,40 @@ pub struct IgnoredUserListEventContent {
     pub ignored_users: Vec<UserId>,
 }
 
-impl IgnoredUserListEvent {
+impl FromStr for IgnoredUserListEvent {
+    type Err = InvalidEvent;
+
     /// Attempt to create `Self` from parsing a string of JSON data.
-    pub fn from_str(json: &str) -> Result<Self, InvalidEvent> {
-        let raw = serde_json::from_str::<raw::IgnoredUserListEvent>(json)?;
+    fn from_str(json: &str) -> Result<Self, InvalidEvent> {
+        let raw = match serde_json::from_str::<raw::IgnoredUserListEvent>(json) {
+            Ok(raw) => raw,
+            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+                Ok(value) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: error.to_string(),
+                    }));
+                }
+                Err(error) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+                }
+            },
+        };
 
         Ok(Self {
             content: IgnoredUserListEventContent {
                 ignored_users: raw.content.ignored_users.keys().cloned().collect(),
             },
         })
+    }
+}
+
+impl<'a> TryFrom<&'a str> for IgnoredUserListEvent {
+    type Error = InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
+        FromStr::from_str(json)
     }
 }
 
@@ -48,18 +72,44 @@ impl Serialize for IgnoredUserListEvent {
     }
 }
 
-impl crate::Event for IgnoredUserListEvent {
-    /// The type of this event's `content` field.
-    type Content = IgnoredUserListEventContent;
+impl_event!(
+    IgnoredUserListEvent,
+    IgnoredUserListEventContent,
+    EventType::IgnoredUserList
+);
 
-    /// The event's content.
-    fn content(&self) -> &Self::Content {
-        &self.content
+impl FromStr for IgnoredUserListEventContent {
+    type Err = InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn from_str(json: &str) -> Result<Self, Self::Err> {
+        let raw = match serde_json::from_str::<raw::IgnoredUserListEventContent>(json) {
+            Ok(raw) => raw,
+            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+                Ok(value) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                        json: value,
+                        message: error.to_string(),
+                    }));
+                }
+                Err(error) => {
+                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+                }
+            },
+        };
+
+        Ok(Self {
+            ignored_users: raw.ignored_users.keys().cloned().collect(),
+        })
     }
+}
 
-    /// The type of the event.
-    fn event_type(&self) -> EventType {
-        EventType::IgnoredUserList
+impl<'a> TryFrom<&'a str> for IgnoredUserListEventContent {
+    type Error = InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
+        FromStr::from_str(json)
     }
 }
 
@@ -124,7 +174,7 @@ mod tests {
     fn deserialization() {
         let json = r#"{"content":{"ignored_users":{"@carl:example.com":{}}},"type":"m.ignored_user_list"}"#;
 
-        let actual = IgnoredUserListEvent::from_str(json).unwrap();
+        let actual: IgnoredUserListEvent = json.parse().unwrap();
 
         let expected = IgnoredUserListEvent {
             content: IgnoredUserListEventContent {
