@@ -13,9 +13,7 @@ version = "0.8.0"
 edition = "2018"
 
 [dependencies]
-futures = "0.1.27"
 http = "0.1.17"
-hyper = "0.12.29"
 serde_json = "1.0.39"
 serde_urlencoded = "0.5.5"
 ruma-identifiers = "0.13.0"
