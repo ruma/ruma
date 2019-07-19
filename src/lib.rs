@@ -1,4 +1,4 @@
-//! Crate `ruma-events-macros` provides a procedural macro for generating
+//! Crate `ruma_events_macros` provides a procedural macro for generating
 //! [ruma-events](https://github.com/ruma/ruma-events) events.
 //!
 //! See the documentation for the `ruma_event!` macro for usage details.
@@ -122,13 +122,13 @@ mod parse;
 ///
 /// The event type and content type will have copies generated inside a private `raw` module. These
 /// "raw" versions are the same, except they implement `serde::Deserialize`. An implementation of
-/// `TryFrom<&str>` will be provided, which (through a blanket implementation in the standard
-/// library for `FromStr` will allow the user to call `parse` on a string slice of JSON data in
-/// attempt to convert into the event type. `TryFrom<&str>` attempts to deserialize the type using
-/// the "raw" version. If deserialization fails, an error is returned to the user. If
-/// deserialization succeeds, a value of the public event type will be populated from the raw
-/// version's fields and returned. If any semantic error is found after deserialization, a
-/// `serde_json::Value` of the deserialized data will be returned in an `InvalidEvent`.
+/// `std::str::FromStr` (and for completeness, `std::convert::TryFrom<&str>`) will be provided,
+/// which will allow the user to call `parse` on a string slice of JSON data in attempt to convert
+/// into the event type. `FromStr` attempts to deserialize the type using the "raw" version. If
+/// deserialization fails, an error is returned to the user. If deserialization succeeds, a value of
+/// the public event type will be populated from the raw version's fields and returned. If any
+/// semantic error is found after deserialization, a `serde_json::Value` of the deserialized data
+/// will be returned in an `InvalidEvent`.
 #[proc_macro]
 pub fn ruma_event(input: TokenStream) -> TokenStream {
     let ruma_event_input = syn::parse_macro_input!(input as RumaEventInput);
