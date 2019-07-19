@@ -13,15 +13,16 @@ repository = "https://github.com/ruma/ruma-client"
 version = "0.2.0"
 
 [dependencies]
-futures = "0.1.26"
+futures-preview = "0.3.0-alpha.17"
 http = "0.1.17"
-hyper = "0.12.27"
-ruma-api = "0.7.0"
-ruma-client-api = "0.3.0"
-ruma-identifiers = "0.12.0"
+ruma-api = "0.9.0"
+ruma-identifiers = "0.13.1"
 serde_json = "1.0.39"
 serde_urlencoded = "0.5.4"
 url = "1.7.2"
+
+[dependencies.hyper]
+git = "https://github.com/hyperium/hyper"
 
 [dependencies.hyper-tls]
 optional = true
@@ -31,14 +32,20 @@ version = "0.3.2"
 optional = true
 version = "0.2.2"
 
+[dependencies.ruma-client-api]
+git = "https://github.com/ruma/ruma-client-api"
+branch = "update-deps"
+
 [dependencies.serde]
 version = "1.0.90"
 features = ["derive"]
 
-[dev-dependencies]
-ruma-events = "0.12.0"
-tokio = "0.1.18"
+[dev-dependencies.ruma-events]
+git = "https://github.com/ruma/ruma-events"
+
+[dev-dependencies.tokio]
+git = "https://github.com/tokio-rs/tokio"
 
 [features]
-default = ["tls"]
+default = []
 tls = ["hyper-tls", "native-tls"]
