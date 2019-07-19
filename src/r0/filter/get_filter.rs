@@ -1,8 +1,8 @@
 //! [GET /_matrix/client/r0/user/{userId}/filter/{filterId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-user-userid-filter-filterid)
 
-use ruma_api_macros::ruma_api;
+use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use super::FilterDefinition;
 

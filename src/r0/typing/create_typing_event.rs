@@ -1,9 +1,8 @@
 //! [PUT /_matrix/client/r0/rooms/{roomId}/typing/{userId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#put-matrix-client-r0-rooms-roomid-typing-userid)
 
 use js_int::UInt;
-use ruma_api_macros::ruma_api;
+use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, UserId};
-use serde::{Deserialize, Serialize};
 
 ruma_api! {
     metadata {

@@ -1,8 +1,8 @@
 //! [GET /_matrix/client/r0/profile/{userId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-profile-userid)
 
-use ruma_api_macros::ruma_api;
+use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 ruma_api! {
     metadata {

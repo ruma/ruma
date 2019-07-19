@@ -1,9 +1,9 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/members](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-rooms-roomid-members)
 
-use ruma_api_macros::ruma_api;
+use ruma_api::ruma_api;
 use ruma_events::room::member::MemberEvent;
 use ruma_identifiers::RoomId;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 ruma_api! {
     metadata {

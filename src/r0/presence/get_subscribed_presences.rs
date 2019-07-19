@@ -1,9 +1,8 @@
 //! [GET /_matrix/client/r0/presence/list/{userId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-presence-list-userid)
 
-use ruma_api_macros::ruma_api;
+use ruma_api::ruma_api;
 use ruma_events::presence::PresenceEvent;
 use ruma_identifiers::UserId;
-use serde::{Deserialize, Serialize};
 
 ruma_api! {
     metadata {

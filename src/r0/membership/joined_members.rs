@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use ruma_api_macros::ruma_api;
+use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
 

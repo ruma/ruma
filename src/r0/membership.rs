@@ -11,7 +11,8 @@ pub mod kick_user;
 pub mod leave_room;
 pub mod unban_user;
 
-use ruma_signatures::Signatures;
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 // TODO: spec requires a nesting ThirdPartySigned { signed: Signed { mxid: ..., ... } }
@@ -26,7 +27,7 @@ pub struct ThirdPartySigned {
     /// The Matrix ID of the user who issued the invite.
     pub sender: String,
     /// A signatures object containing a signature of the entire signed object.
-    pub signatures: Signatures,
+    pub signatures: HashMap<String, HashMap<String, String>>,
     /// The state key of the m.third_party_invite event.
     pub token: String,
 }
