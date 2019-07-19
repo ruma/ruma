@@ -221,7 +221,7 @@ impl ToTokens for Api {
             quote! {
                 let request_body = RequestBody(request.#field_name);
 
-                let mut http_request = ::http::Request::new(::serde_json::to_vec(&request_body)?.into());
+                let mut http_request = ::http::Request::new(::serde_json::to_vec(&request_body)?);
             }
         } else if self.request.has_body_fields() {
             let request_body_init_fields = self.request.request_body_init_fields();
@@ -231,11 +231,11 @@ impl ToTokens for Api {
                     #request_body_init_fields
                 };
 
-                let mut http_request = ::http::Request::new(::serde_json::to_vec(&request_body)?.into());
+                let mut http_request = ::http::Request::new(::serde_json::to_vec(&request_body)?);
             }
         } else {
             quote! {
-                let mut http_request = ::http::Request::new(::hyper::Body::empty());
+                let mut http_request = ::http::Request::new(Vec::new());
             }
         };
 
@@ -269,39 +269,20 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let deserialize_response_body = if let Some(field) = self.response.newtype_body_field() {
+        let try_deserialize_response_body = if let Some(field) = self.response.newtype_body_field()
+        {
             let field_type = &field.ty;
 
             quote! {
-                let future_response = http_response.into_body()
-                    .fold(Vec::new(), |mut vec, chunk| {
-                        vec.extend(chunk.iter());
-                        ::futures::future::ok::<_, ::hyper::Error>(vec)
-                    })
-                    .map_err(::ruma_api::Error::from)
-                    .and_then(|data|
-                              ::serde_json::from_slice::<#field_type>(data.as_slice())
-                              .map_err(::ruma_api::Error::from)
-                              .into_future()
-                    )
+                ::serde_json::from_slice::<#field_type>(http_response.into_body().as_slice())?
             }
         } else if self.response.has_body_fields() {
             quote! {
-                let future_response = http_response.into_body()
-                    .fold(Vec::new(), |mut vec, chunk| {
-                        vec.extend(chunk.iter());
-                        ::futures::future::ok::<_, ::hyper::Error>(vec)
-                    })
-                    .map_err(::ruma_api::Error::from)
-                    .and_then(|data|
-                              ::serde_json::from_slice::<ResponseBody>(data.as_slice())
-                              .map_err(::ruma_api::Error::from)
-                              .into_future()
-                    )
+                ::serde_json::from_slice::<ResponseBody>(http_response.into_body().as_slice())?
             }
         } else {
             quote! {
-                let future_response = ::futures::future::ok(())
+                ()
             }
         };
 
@@ -321,14 +302,14 @@ impl ToTokens for Api {
 
         let serialize_response_headers = self.response.apply_header_fields();
 
-        let serialize_response_body = if self.response.has_body() {
+        let try_serialize_response_body = if self.response.has_body() {
             let body = self.response.to_body();
             quote! {
-                .body(::hyper::Body::from(::serde_json::to_vec(&#body)?))
+                ::serde_json::to_vec(&#body)?
             }
         } else {
             quote! {
-                .body(::hyper::Body::from("{}".as_bytes().to_vec()))
+                "{}".as_bytes().to_vec()
             }
         };
 
@@ -337,8 +318,6 @@ impl ToTokens for Api {
         let response_doc = format!("Data in the response from the `{}` API endpoint.", name);
 
         let api = quote! {
-            #[allow(unused_imports)]
-            use ::futures::{Future as _, IntoFuture as _, Stream as _};
             use ::ruma_api::Endpoint as _;
             use ::serde::Deserialize as _;
             use ::serde::de::{Error as _, IntoDeserializer as _};
@@ -371,27 +350,7 @@ impl ToTokens for Api {
                 }
             }
 
-            impl ::futures::future::FutureFrom<::http::Request<::hyper::Body>> for Request {
-                type Future = Box<::futures::Future<Item = Self, Error = Self::Error> + Send>;
-                type Error = ::ruma_api::Error;
-
-                #[allow(unused_variables)]
-                fn future_from(request: ::http::Request<::hyper::Body>) -> Self::Future {
-                    let (parts, body) = request.into_parts();
-                    let future = body.from_err().fold(Vec::new(), |mut vec, chunk| {
-                        vec.extend(chunk.iter());
-                        ::futures::future::ok::<_, Self::Error>(vec)
-                    }).and_then(|body| {
-                        ::http::Request::from_parts(parts, body)
-                            .try_into()
-                            .into_future()
-                            .from_err()
-                    });
-                    Box::new(future)
-                }
-            }
-
-            impl ::std::convert::TryFrom<Request> for ::http::Request<::hyper::Body> {
+            impl ::std::convert::TryFrom<Request> for ::http::Request<Vec<u8>> {
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_mut, unused_variables)]
@@ -420,7 +379,7 @@ impl ToTokens for Api {
             #[doc = #response_doc]
             #response_types
 
-            impl ::std::convert::TryFrom<Response> for ::http::Response<::hyper::Body> {
+            impl ::std::convert::TryFrom<Response> for ::http::Response<Vec<u8>> {
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_variables)]
@@ -428,33 +387,26 @@ impl ToTokens for Api {
                     let response = ::http::Response::builder()
                         .header(::http::header::CONTENT_TYPE, "application/json")
                         #serialize_response_headers
-                        #serialize_response_body
+                        .body(#try_serialize_response_body)
                         .unwrap();
                     Ok(response)
                 }
             }
 
-            impl ::futures::future::FutureFrom<::http::Response<::hyper::Body>> for Response {
-                type Future = Box<::futures::Future<Item = Self, Error = Self::Error> + Send>;
+            impl ::std::convert::TryFrom<::http::Response<Vec<u8>>> for Response {
                 type Error = ::ruma_api::Error;
 
                 #[allow(unused_variables)]
-                fn future_from(http_response: ::http::Response<::hyper::Body>) -> Self::Future {
+                fn try_from(http_response: ::http::Response<Vec<u8>>) -> Result<Self, Self::Error> {
                     if http_response.status().is_success() {
                         #extract_response_headers
 
-                        #deserialize_response_body
-                        .and_then(move |response_body| {
-                            let response = Response {
-                                #response_init_fields
-                            };
-
-                            Ok(response)
-                        });
-
-                        Box::new(future_response)
+                        let response_body = #try_deserialize_response_body;
+                        Ok(Response {
+                            #response_init_fields
+                        })
                     } else {
-                        Box::new(::futures::future::err(http_response.status().clone().into()))
+                        Err(http_response.status().clone().into())
                     }
                 }
             }

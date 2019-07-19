@@ -12,7 +12,6 @@ Here is an example that shows most of the macro's functionality.
 ``` rust
 #![feature(proc_macro, try_from)]
 
-extern crate futures;
 extern crate http;
 extern crate ruma_api;
 extern crate ruma_api_macros;
