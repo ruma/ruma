@@ -8,8 +8,7 @@ use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
 use crate::{
-    empty_string_as_none, Event, EventType, InnerInvalidEvent, InvalidEvent, InvalidInput,
-    RoomEvent, StateEvent,
+    empty_string_as_none, Event, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent, StateEvent,
 };
 
 /// Informs the room as to which alias is the canonical one.
@@ -231,8 +230,7 @@ mod tests {
     use std::convert::TryFrom;
 
     use js_int::UInt;
-    use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
-    use serde_json::Value;
+    use ruma_identifiers::{EventId, RoomAliasId, UserId};
 
     use super::{CanonicalAliasEvent, CanonicalAliasEventContent};
 

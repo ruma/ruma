@@ -8,7 +8,7 @@
 use std::{convert::TryFrom, str::FromStr};
 
 use ruma_identifiers::UserId;
-use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Serialize, Serializer};
 use serde_json::{from_value, to_string, Value};
 
 use crate::{
@@ -393,7 +393,7 @@ mod tests {
 
     use js_int::UInt;
     use ruma_identifiers::UserId;
-    use serde_json::{from_str, to_string};
+    use serde_json::to_string;
 
     use super::{StrippedRoomName, StrippedRoomTopic, StrippedState};
     use crate::{

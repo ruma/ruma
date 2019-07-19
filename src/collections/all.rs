@@ -1,7 +1,10 @@
 //! Enums for heterogeneous collections of events, inclusive for every event type that implements
 //! the trait of the same name.
 
-use std::{convert::TryFrom, str::FromStr};
+use std::str::FromStr;
+
+use serde::{Serialize, Serializer};
+use serde_json::{from_value, Value};
 
 use crate::{
     call::{
@@ -47,9 +50,6 @@ use crate::{
     typing::TypingEvent,
     CustomEvent, CustomRoomEvent, CustomStateEvent, EventType, InnerInvalidEvent, InvalidEvent,
 };
-
-use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
-use serde_json::{from_value, Value};
 
 /// A basic event, room event, or state event.
 #[derive(Clone, Debug)]
@@ -396,6 +396,7 @@ impl FromStr for Event {
     type Err = InvalidEvent;
 
     /// Attempt to create `Self` from parsing a string of JSON data.
+    #[allow(clippy::cognitive_complexity)]
     fn from_str(json: &str) -> Result<Self, Self::Err> {
         let value: Value = serde_json::from_str(json)?;
 
@@ -799,6 +800,7 @@ impl FromStr for RoomEvent {
     type Err = InvalidEvent;
 
     /// Attempt to create `Self` from parsing a string of JSON data.
+    #[allow(clippy::cognitive_complexity)]
     fn from_str(json: &str) -> Result<Self, Self::Err> {
         let value: Value = serde_json::from_str(json)?;
 

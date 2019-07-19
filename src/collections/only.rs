@@ -1,9 +1,9 @@
 //! Enums for heterogeneous collections of events, exclusive to event types that implement "at
 //! most" the trait of the same name.
 
-use std::{convert::TryFrom, str::FromStr};
+use std::str::FromStr;
 
-use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Serialize, Serializer};
 use serde_json::{from_value, Value};
 
 pub use super::all::StateEvent;
@@ -38,6 +38,7 @@ use crate::{
 
 /// A basic event.
 #[derive(Clone, Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum Event {
     /// m.direct
     Direct(DirectEvent),

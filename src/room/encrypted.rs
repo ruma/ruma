@@ -7,7 +7,7 @@ use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
 use serde::{de::Error, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
-use crate::{Algorithm, Event, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent, StateEvent};
+use crate::{Algorithm, Event, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent};
 
 /// This event type is used when sending encrypted events.
 ///
@@ -83,7 +83,7 @@ impl FromStr for EncryptedEvent {
         };
 
         Ok(Self {
-            content: content,
+            content,
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
             room_id: raw.room_id,

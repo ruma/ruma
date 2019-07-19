@@ -7,9 +7,7 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{
-    Event, EventType, InnerInvalidEvent, InvalidEvent, InvalidInput, RoomEvent, StateEvent,
-};
+use crate::{Event, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent, StateEvent};
 
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Clone, Debug, PartialEq)]

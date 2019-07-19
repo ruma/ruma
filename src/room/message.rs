@@ -12,7 +12,7 @@ use serde::{
 use serde_json::{from_value, Value};
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
-use crate::{Event, EventType, InnerInvalidEvent, InvalidEvent, InvalidInput, RoomEvent};
+use crate::{Event, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent};
 
 pub mod feedback;
 
@@ -1107,7 +1107,7 @@ impl Serialize for VideoMessageEventContent {
 mod tests {
     use serde_json::to_string;
 
-    use super::{AudioMessageEventContent, MessageEventContent, MessageType};
+    use super::{AudioMessageEventContent, MessageEventContent};
 
     #[test]
     fn serialization() {

@@ -97,7 +97,7 @@
 
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
-#![allow(warnings)]
+#![deny(warnings)]
 
 use std::{
     error::Error,

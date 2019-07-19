@@ -2,7 +2,6 @@
 
 use std::collections::HashMap;
 
-use js_int::UInt;
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};

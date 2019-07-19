@@ -2,8 +2,7 @@
 
 use std::{convert::TryFrom, str::FromStr};
 
-use js_int::UInt;
-use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
+use ruma_identifiers::DeviceId;
 use serde::{de::Error, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
@@ -11,7 +10,7 @@ use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
     VerificationMethod,
 };
-use crate::{Algorithm, Event, EventType, InnerInvalidEvent, InvalidEvent, InvalidInput};
+use crate::{Event, EventType, InnerInvalidEvent, InvalidEvent, InvalidInput};
 
 /// Begins an SAS key verification process.
 ///
@@ -61,7 +60,7 @@ impl FromStr for StartEvent {
             }
         };
 
-        Ok(Self { content: content })
+        Ok(Self { content })
     }
 }
 
@@ -388,12 +387,11 @@ impl Serialize for MSasV1Content {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_str, to_string};
+    use serde_json::to_string;
 
     use super::{
         HashAlgorithm, KeyAgreementProtocol, MSasV1Content, MSasV1ContentOptions,
         MessageAuthenticationCode, ShortAuthenticationString, StartEvent, StartEventContent,
-        VerificationMethod,
     };
 
     #[test]

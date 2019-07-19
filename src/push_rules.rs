@@ -331,12 +331,10 @@ impl<'de> Deserialize<'de> for PushCondition {
 
                 Ok(PushCondition::SenderNotificationPermission(condition))
             }
-            unknown_kind => {
-                return Err(D::Error::custom(&format!(
-                    "unknown condition kind `{}`",
-                    unknown_kind
-                )))
-            }
+            unknown_kind => Err(D::Error::custom(&format!(
+                "unknown condition kind `{}`",
+                unknown_kind
+            ))),
         }
     }
 }
