@@ -121,11 +121,11 @@ pub use custom_state::CustomStateEvent;
 mod macros;
 
 pub mod call;
-// /// Enums for heterogeneous collections of events.
-// pub mod collections {
-//     pub mod all;
-//     pub mod only;
-// }
+/// Enums for heterogeneous collections of events.
+pub mod collections {
+    pub mod all;
+    pub mod only;
+}
 pub mod direct;
 pub mod dummy;
 pub mod forwarded_room_key;

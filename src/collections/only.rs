@@ -1,6 +1,8 @@
 //! Enums for heterogeneous collections of events, exclusive to event types that implement "at
 //! most" the trait of the same name.
 
+use std::{convert::TryFrom, str::FromStr};
+
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
@@ -31,7 +33,7 @@ use crate::{
     sticker::StickerEvent,
     tag::TagEvent,
     typing::TypingEvent,
-    CustomEvent, CustomRoomEvent, EventType,
+    CustomEvent, CustomRoomEvent, EventType, InnerInvalidEvent, InvalidEvent,
 };
 
 /// A basic event.
@@ -159,176 +161,167 @@ impl Serialize for Event {
     }
 }
 
-impl<'de> Deserialize<'de> for Event {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let value: Value = Deserialize::deserialize(deserializer)?;
+impl FromStr for Event {
+    type Err = InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn from_str(json: &str) -> Result<Self, Self::Err> {
+        let value: Value = serde_json::from_str(json)?;
 
         let event_type_value = match value.get("type") {
             Some(value) => value.clone(),
-            None => return Err(D::Error::missing_field("type")),
+            None => {
+                return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: "missing field `type`".to_string(),
+                }))
+            }
         };
 
         let event_type = match from_value::<EventType>(event_type_value.clone()) {
             Ok(event_type) => event_type,
-            Err(error) => return Err(D::Error::custom(error.to_string())),
+            Err(error) => {
+                return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                }))
+            }
         };
 
         match event_type {
-            EventType::Direct => {
-                let event = match from_value::<DirectEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::Direct(event))
-            }
-            EventType::Dummy => {
-                let event = match from_value::<DummyEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::Dummy(event))
-            }
-            EventType::ForwardedRoomKey => {
-                let event = match from_value::<ForwardedRoomKeyEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::ForwardedRoomKey(event))
-            }
-            EventType::FullyRead => {
-                let event = match from_value::<FullyReadEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::FullyRead(event))
-            }
-            EventType::KeyVerificationAccept => {
-                let event = match from_value::<AcceptEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::KeyVerificationAccept(event))
-            }
-            EventType::KeyVerificationCancel => {
-                let event = match from_value::<CancelEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::KeyVerificationCancel(event))
-            }
-            EventType::KeyVerificationKey => {
-                let event = match from_value::<KeyEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::KeyVerificationKey(event))
-            }
-            EventType::KeyVerificationMac => {
-                let event = match from_value::<MacEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::KeyVerificationMac(event))
-            }
-            EventType::KeyVerificationRequest => {
-                let event = match from_value::<RequestEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::KeyVerificationRequest(event))
-            }
-            EventType::KeyVerificationStart => {
-                let event = match from_value::<StartEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::KeyVerificationStart(event))
-            }
-            EventType::IgnoredUserList => {
-                let event = match from_value::<IgnoredUserListEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::IgnoredUserList(event))
-            }
-            EventType::Presence => {
-                let event = match from_value::<PresenceEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::Presence(event))
-            }
-            EventType::PushRules => {
-                let event = match from_value::<PushRulesEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::PushRules(event))
-            }
-            EventType::Receipt => {
-                let event = match from_value::<ReceiptEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::Receipt(event))
-            }
-            EventType::RoomKey => {
-                let event = match from_value::<RoomKeyEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::RoomKey(event))
-            }
-            EventType::RoomKeyRequest => {
-                let event = match from_value::<RoomKeyRequestEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::RoomKeyRequest(event))
-            }
-            EventType::Tag => {
-                let event = match from_value::<TagEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::Tag(event))
-            }
-            EventType::Typing => {
-                let event = match from_value::<TypingEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::Typing(event))
-            }
-            EventType::Custom(_) => {
-                let event = match from_value::<CustomEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(Event::Custom(event))
-            }
+            EventType::Direct => match json.parse() {
+                Ok(event) => Ok(Event::Direct(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::Dummy => match json.parse() {
+                Ok(event) => Ok(Event::Dummy(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::ForwardedRoomKey => match json.parse() {
+                Ok(event) => Ok(Event::ForwardedRoomKey(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::FullyRead => match json.parse() {
+                Ok(event) => Ok(Event::FullyRead(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::KeyVerificationAccept => match json.parse() {
+                Ok(event) => Ok(Event::KeyVerificationAccept(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::KeyVerificationCancel => match json.parse() {
+                Ok(event) => Ok(Event::KeyVerificationCancel(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::KeyVerificationKey => match json.parse() {
+                Ok(event) => Ok(Event::KeyVerificationKey(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::KeyVerificationMac => match json.parse() {
+                Ok(event) => Ok(Event::KeyVerificationMac(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::KeyVerificationRequest => match json.parse() {
+                Ok(event) => Ok(Event::KeyVerificationRequest(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::KeyVerificationStart => match json.parse() {
+                Ok(event) => Ok(Event::KeyVerificationStart(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::IgnoredUserList => match json.parse() {
+                Ok(event) => Ok(Event::IgnoredUserList(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::Presence => match json.parse() {
+                Ok(event) => Ok(Event::Presence(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::PushRules => match json.parse() {
+                Ok(event) => Ok(Event::PushRules(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::Receipt => match json.parse() {
+                Ok(event) => Ok(Event::Receipt(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::RoomKey => match json.parse() {
+                Ok(event) => Ok(Event::RoomKey(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::RoomKeyRequest => match json.parse() {
+                Ok(event) => Ok(Event::RoomKeyRequest(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::Tag => match json.parse() {
+                Ok(event) => Ok(Event::Tag(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::Typing => match json.parse() {
+                Ok(event) => Ok(Event::Typing(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::Custom(_) => match json.parse() {
+                Ok(event) => Ok(Event::Custom(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
             EventType::CallAnswer
             | EventType::CallCandidates
             | EventType::CallHangup
@@ -353,9 +346,10 @@ impl<'de> Deserialize<'de> for Event {
             | EventType::RoomThirdPartyInvite
             | EventType::RoomTombstone
             | EventType::RoomTopic
-            | EventType::Sticker => Err(D::Error::custom(
-                "not exclusively a basic event".to_string(),
-            )),
+            | EventType::Sticker => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                json: value,
+                message: "not exclusively a basic event".to_string(),
+            })),
             EventType::__Nonexhaustive => {
                 panic!("__Nonexhaustive enum variant is not intended for use.")
             }
@@ -383,104 +377,104 @@ impl Serialize for RoomEvent {
     }
 }
 
-impl<'de> Deserialize<'de> for RoomEvent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let value: Value = Deserialize::deserialize(deserializer)?;
+impl FromStr for RoomEvent {
+    type Err = InvalidEvent;
+
+    /// Attempt to create `Self` from parsing a string of JSON data.
+    fn from_str(json: &str) -> Result<Self, Self::Err> {
+        let value: Value = serde_json::from_str(json)?;
 
         let event_type_value = match value.get("type") {
             Some(value) => value.clone(),
-            None => return Err(D::Error::missing_field("type")),
+            None => {
+                return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: "missing field `type`".to_string(),
+                }))
+            }
         };
 
         let event_type = match from_value::<EventType>(event_type_value.clone()) {
             Ok(event_type) => event_type,
-            Err(error) => return Err(D::Error::custom(error.to_string())),
+            Err(error) => {
+                return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                }))
+            }
         };
 
         match event_type {
-            EventType::CallAnswer => {
-                let event = match from_value::<AnswerEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(RoomEvent::CallAnswer(event))
-            }
-            EventType::CallCandidates => {
-                let event = match from_value::<CandidatesEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(RoomEvent::CallCandidates(event))
-            }
-            EventType::CallHangup => {
-                let event = match from_value::<HangupEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(RoomEvent::CallHangup(event))
-            }
-            EventType::CallInvite => {
-                let event = match from_value::<InviteEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(RoomEvent::CallInvite(event))
-            }
-            EventType::RoomEncrypted => {
-                let event = match from_value::<EncryptedEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(RoomEvent::RoomEncrypted(event))
-            }
-            EventType::RoomMessage => {
-                let event = match from_value::<MessageEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(RoomEvent::RoomMessage(event))
-            }
-            EventType::RoomMessageFeedback => {
-                let event = match from_value::<FeedbackEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(RoomEvent::RoomMessageFeedback(event))
-            }
-            EventType::RoomRedaction => {
-                let event = match from_value::<RedactionEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(RoomEvent::RoomRedaction(event))
-            }
-            EventType::Sticker => {
-                let event = match from_value::<StickerEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(RoomEvent::Sticker(event))
-            }
-            EventType::Custom(_) => {
-                let event = match from_value::<CustomRoomEvent>(value) {
-                    Ok(event) => event,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(RoomEvent::CustomRoom(event))
-            }
+            EventType::CallAnswer => match json.parse() {
+                Ok(event) => Ok(RoomEvent::CallAnswer(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::CallCandidates => match json.parse() {
+                Ok(event) => Ok(RoomEvent::CallCandidates(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::CallHangup => match json.parse() {
+                Ok(event) => Ok(RoomEvent::CallHangup(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::CallInvite => match json.parse() {
+                Ok(event) => Ok(RoomEvent::CallInvite(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::RoomEncrypted => match json.parse() {
+                Ok(event) => Ok(RoomEvent::RoomEncrypted(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::RoomMessage => match json.parse() {
+                Ok(event) => Ok(RoomEvent::RoomMessage(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::RoomMessageFeedback => match json.parse() {
+                Ok(event) => Ok(RoomEvent::RoomMessageFeedback(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::RoomRedaction => match json.parse() {
+                Ok(event) => Ok(RoomEvent::RoomRedaction(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::Sticker => match json.parse() {
+                Ok(event) => Ok(RoomEvent::Sticker(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
+            EventType::Custom(_) => match json.parse() {
+                Ok(event) => Ok(RoomEvent::CustomRoom(event)),
+                Err(error) => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })),
+            },
             EventType::Direct
             | EventType::Dummy
             | EventType::ForwardedRoomKey
@@ -514,9 +508,10 @@ impl<'de> Deserialize<'de> for RoomEvent {
             | EventType::RoomKey
             | EventType::RoomKeyRequest
             | EventType::Tag
-            | EventType::Typing => {
-                Err(D::Error::custom("not exclusively a room event".to_string()))
-            }
+            | EventType::Typing => Err(InvalidEvent(InnerInvalidEvent::Validation {
+                json: value,
+                message: "not exclusively a room event".to_string(),
+            })),
             EventType::__Nonexhaustive => {
                 panic!("__Nonexhaustive enum variant is not intended for use.")
             }
