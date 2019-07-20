@@ -124,7 +124,10 @@ use ruma_api::Endpoint;
 use url::Url;
 
 use crate::error::InnerError;
+
 pub use crate::{error::Error, session::Session};
+pub use ruma_events as events;
+pub use ruma_identifiers as identifiers;
 
 /// Matrix client-server API endpoints.
 //pub mod api;

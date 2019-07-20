@@ -2,13 +2,16 @@
 
 use std::{convert::TryFrom, env, process::exit};
 
-use ruma_client::{self, Client};
-use ruma_client_api::r0;
-use ruma_events::{
-    room::message::{MessageEventContent, MessageType, TextMessageEventContent},
-    EventType,
+use ruma_client::{
+    self,
+    events::{
+        room::message::{MessageEventContent, MessageType, TextMessageEventContent},
+        EventType,
+    },
+    identifiers::RoomAliasId,
+    Client,
 };
-use ruma_identifiers::RoomAliasId;
+use ruma_client_api::r0;
 use url::Url;
 
 async fn hello_world(homeserver_url: Url, room: String) -> Result<(), ruma_client::Error> {

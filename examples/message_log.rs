@@ -3,8 +3,14 @@
 use std::{env, process::exit};
 
 use futures::stream::{StreamExt as _, TryStreamExt as _};
-use ruma_events::collections::all::RoomEvent;
-use ruma_events::room::message::{MessageEvent, MessageEventContent, TextMessageEventContent};
+use ruma_client::{
+    self,
+    events::{
+        collections::all::RoomEvent,
+        room::message::{MessageEvent, MessageEventContent, TextMessageEventContent},
+    },
+    HttpClient,
+};
 use url::Url;
 
 async fn log_messages(
@@ -12,7 +18,7 @@ async fn log_messages(
     username: String,
     password: String,
 ) -> Result<(), ruma_client::Error> {
-    let client = ruma_client::Client::new(homeserver_url, None);
+    let client = HttpClient::new(homeserver_url, None);
 
     client.log_in(username, password, None).await?;
 
