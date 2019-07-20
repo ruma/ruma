@@ -126,6 +126,7 @@ use url::Url;
 use crate::error::InnerError;
 
 pub use crate::{error::Error, session::Session};
+pub use ruma_client_api as api;
 pub use ruma_events as events;
 pub use ruma_identifiers as identifiers;
 
@@ -225,7 +226,7 @@ where
         password: String,
         device_id: Option<String>,
     ) -> Result<Session, Error> {
-        use ruma_client_api::r0::session::login;
+        use api::r0::session::login;
 
         let response = self
             .request(login::Request {
@@ -252,7 +253,7 @@ where
     /// this method stores the session data returned by the endpoint in this
     /// client, instead of returning it.
     pub async fn register_guest(&self) -> Result<Session, Error> {
-        use ruma_client_api::r0::account::register;
+        use api::r0::account::register;
 
         let response = self
             .request(register::Request {
@@ -289,7 +290,7 @@ where
         username: Option<String>,
         password: String,
     ) -> Result<Session, Error> {
-        use ruma_client_api::r0::account::register;
+        use api::r0::account::register;
 
         let response = self
             .request(register::Request {
@@ -320,13 +321,12 @@ where
     /// the logged-in users account and are visible to them.
     pub fn sync(
         &self,
-        filter: Option<ruma_client_api::r0::sync::sync_events::Filter>,
+        filter: Option<api::r0::sync::sync_events::Filter>,
         since: Option<String>,
         set_presence: bool,
-    ) -> impl Stream<Item = Result<ruma_client_api::r0::sync::sync_events::Response, Error>>
-                 + TryStream<Ok = ruma_client_api::r0::sync::sync_events::Response, Error = Error>
-    {
-        use ruma_client_api::r0::sync::sync_events;
+    ) -> impl Stream<Item = Result<api::r0::sync::sync_events::Response, Error>>
+                 + TryStream<Ok = api::r0::sync::sync_events::Response, Error = Error> {
+        use api::r0::sync::sync_events;
 
         // TODO: Is this really the way TryStreams are supposed to work?
         #[derive(Debug, PartialEq, Eq)]
