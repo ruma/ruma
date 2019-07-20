@@ -32,8 +32,8 @@ async fn hello_world(homeserver_url: Url, room: String) -> Result<(), ruma_clien
         )
         .await?;
 
-    client.request::<r0::send::send_message_event::Endpoint>(
-        r0::send::send_message_event::Request {
+    client
+        .request::<r0::send::send_message_event::Endpoint>(r0::send::send_message_event::Request {
             room_id: room_id,
             event_type: EventType::RoomMessage,
             txn_id: "1".to_owned(),
@@ -44,8 +44,8 @@ async fn hello_world(homeserver_url: Url, room: String) -> Result<(), ruma_clien
                 formatted_body: None,
                 relates_to: None,
             }),
-        },
-    ).await?;
+        })
+        .await?;
 
     Ok(())
 }
