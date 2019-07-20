@@ -149,7 +149,10 @@ where
     session: Mutex<Option<Session>>,
 }
 
-impl Client<HttpConnector> {
+/// Non-secured variant of the client (using plain HTTP requests)
+pub type HttpClient = Client<HttpConnector>;
+
+impl HttpClient {
     /// Creates a new client for making HTTP requests to the given homeserver.
     pub fn new(homeserver_url: Url, session: Option<Session>) -> Self {
         Self(Arc::new(ClientData {
@@ -171,8 +174,12 @@ impl Client<HttpConnector> {
     }
 }
 
+/// Secured variant of the client (using HTTPS requests)
 #[cfg(feature = "tls")]
-impl Client<HttpsConnector<HttpConnector>> {
+pub type HttpsClient = Client<HttpsConnector<HttpConnector>>;
+
+#[cfg(feature = "tls")]
+impl HttpsClient {
     /// Creates a new client for making HTTPS requests to the given homeserver.
     pub fn https(homeserver_url: Url, session: Option<Session>) -> Result<Self, NativeTlsError> {
         let connector = HttpsConnector::new(4)?;
