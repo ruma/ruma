@@ -102,7 +102,7 @@
 )]
 
 use std::{
-    convert::{TryFrom, TryInto},
+    convert::TryFrom,
     str::FromStr,
     sync::{Arc, Mutex},
 };
@@ -228,7 +228,7 @@ where
         use ruma_client_api::r0::session::login;
 
         let response = self
-            .request::<login::Endpoint>(login::Request {
+            .request(login::Request {
                 address: None,
                 login_type: login::LoginType::Password,
                 medium: None,
@@ -255,7 +255,7 @@ where
         use ruma_client_api::r0::account::register;
 
         let response = self
-            .request::<register::Endpoint>(register::Request {
+            .request(register::Request {
                 auth: None,
                 bind_email: None,
                 device_id: None,
@@ -292,7 +292,7 @@ where
         use ruma_client_api::r0::account::register;
 
         let response = self
-            .request::<register::Endpoint>(register::Request {
+            .request(register::Request {
                 auth: None,
                 bind_email: None,
                 device_id: None,
@@ -360,7 +360,7 @@ where
                 };
 
                 let res = client
-                    .request::<sync_events::Endpoint>(sync_events::Request {
+                    .request(sync_events::Request {
                         filter,
                         since,
                         full_state: None,
@@ -381,10 +381,10 @@ where
     }
 
     /// Makes a request to a Matrix API endpoint.
-    pub fn request<E: Endpoint>(
+    pub fn request<Request: Endpoint>(
         &self,
-        request: E::Request,
-    ) -> impl Future<Output = Result<E::Response, Error>> {
+        request: Request,
+    ) -> impl Future<Output = Result<Request::Response, Error>> {
         let client = self.0.clone();
 
         async move {
@@ -398,7 +398,7 @@ where
                 url.set_path(uri.path());
                 url.set_query(uri.query());
 
-                if E::METADATA.requires_authentication {
+                if Request::METADATA.requires_authentication {
                     if let Some(ref session) = *client.session.lock().unwrap() {
                         url.query_pairs_mut()
                             .append_pair("access_token", &session.access_token);
@@ -415,7 +415,7 @@ where
             let full_response =
                 HttpResponse::from_parts(head, body.try_concat().await?.as_ref().to_owned());
 
-            Ok(E::Response::try_from(full_response)?)
+            Ok(Request::Response::try_from(full_response)?)
         }
     }
 }

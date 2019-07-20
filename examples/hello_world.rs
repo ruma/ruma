@@ -19,7 +19,7 @@ async fn hello_world(homeserver_url: Url, room: String) -> Result<(), ruma_clien
 
     client.register_guest().await?;
     let response = client
-        .request::<r0::alias::get_alias::Endpoint>(r0::alias::get_alias::Request {
+        .request(r0::alias::get_alias::Request {
             room_alias: RoomAliasId::try_from(&room[..]).unwrap(),
         })
         .await?;
@@ -27,16 +27,14 @@ async fn hello_world(homeserver_url: Url, room: String) -> Result<(), ruma_clien
     let room_id = response.room_id;
 
     client
-        .request::<r0::membership::join_room_by_id::Endpoint>(
-            r0::membership::join_room_by_id::Request {
-                room_id: room_id.clone(),
-                third_party_signed: None,
-            },
-        )
+        .request(r0::membership::join_room_by_id::Request {
+            room_id: room_id.clone(),
+            third_party_signed: None,
+        })
         .await?;
 
     client
-        .request::<r0::send::send_message_event::Endpoint>(r0::send::send_message_event::Request {
+        .request(r0::send::send_message_event::Request {
             room_id: room_id,
             event_type: EventType::RoomMessage,
             txn_id: "1".to_owned(),
