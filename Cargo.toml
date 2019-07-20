@@ -42,6 +42,7 @@ features = ["derive"]
 
 [dev-dependencies.ruma-events]
 git = "https://github.com/ruma/ruma-events"
+rev = "1b0be0d0e7fa1040fc51b748256b290e24677b19"
 
 [dev-dependencies.tokio]
 git = "https://github.com/tokio-rs/tokio"
