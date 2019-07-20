@@ -65,8 +65,11 @@ impl From<RawApi> for Api {
 impl ToTokens for Api {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let description = &self.metadata.description;
-        let method = Ident::new(self.metadata.method.as_ref(), Span::call_site());
-        let name = &self.metadata.name;
+        let method = &self.metadata.method;
+        // We don't (currently) use this literal as a literal in the generated code. Instead we just
+        // put it into doc comments, for which the span information is irrelevant. So we can work
+        // with only the literal's value from here on.
+        let name = &self.metadata.name.value();
         let path = &self.metadata.path;
         let rate_limited = &self.metadata.rate_limited;
         let requires_authentication = &self.metadata.requires_authentication;
@@ -85,7 +88,7 @@ impl ToTokens for Api {
         };
 
         let (set_request_path, parse_request_path) = if self.request.has_path_fields() {
-            let path_str = path.as_str();
+            let path_str = path.value();
 
             assert!(path_str.starts_with('/'), "path needs to start with '/'");
             assert!(
@@ -313,7 +316,7 @@ impl ToTokens for Api {
             }
         };
 
-        let endpoint_doc = format!("The `{}` API endpoint.\n\n{}", name, description);
+        let endpoint_doc = format!("The `{}` API endpoint.\n\n{}", name, description.value());
         let request_doc = format!("Data for a request to the `{}` API endpoint.", name);
         let response_doc = format!("Data in the response from the `{}` API endpoint.", name);
 
