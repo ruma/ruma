@@ -109,7 +109,7 @@ use std::{
 
 use futures::{
     future::Future,
-    stream::{self, TryStream, TryStreamExt as _},
+    stream::{self, Stream, TryStream, TryStreamExt as _},
 };
 use http::Response as HttpResponse;
 use hyper::{
@@ -320,7 +320,9 @@ where
         filter: Option<ruma_client_api::r0::sync::sync_events::Filter>,
         since: Option<String>,
         set_presence: bool,
-    ) -> impl TryStream<Ok = ruma_client_api::r0::sync::sync_events::Response, Error = Error> {
+    ) -> impl Stream<Item = Result<ruma_client_api::r0::sync::sync_events::Response, Error>>
+                 + TryStream<Ok = ruma_client_api::r0::sync::sync_events::Response, Error = Error>
+    {
         use ruma_client_api::r0::sync::sync_events;
 
         // TODO: Is this really the way TryStreams are supposed to work?
