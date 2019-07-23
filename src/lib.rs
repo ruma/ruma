@@ -112,6 +112,7 @@
 use std::{
     error::Error,
     fmt::{Debug, Display, Error as FmtError, Formatter, Result as FmtResult},
+    str::FromStr,
 };
 
 use js_int::UInt;
@@ -431,7 +432,7 @@ pub enum EventType {
 /// A basic event.
 pub trait Event
 where
-    Self: Debug + Serialize,
+    Self: Debug + FromStr + Serialize,
 {
     /// The type of this event's `content` field.
     type Content: Debug + Serialize;
