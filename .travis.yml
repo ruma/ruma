@@ -4,6 +4,7 @@ before_script:
   - "rustup component add rustfmt"
   - "rustup component add clippy"
   - "cargo install --force cargo-audit"
+  - "cargo generate-lockfile"
 script:
   - "cargo audit"
   - "cargo fmt --all -- --check"
