@@ -213,7 +213,7 @@ mod tests {
     #[test]
     fn invalid_room_alias_id_host() {
         assert_eq!(
-            RoomAliasId::try_from("#ruma:-").err().unwrap(),
+            RoomAliasId::try_from("#ruma:/").err().unwrap(),
             Error::InvalidHost
         );
     }

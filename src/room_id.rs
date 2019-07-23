@@ -231,7 +231,7 @@ mod tests {
     #[test]
     fn invalid_room_id_host() {
         assert_eq!(
-            RoomId::try_from("!29fhd83h92h0:-").err().unwrap(),
+            RoomId::try_from("!29fhd83h92h0:/").err().unwrap(),
             Error::InvalidHost
         );
     }

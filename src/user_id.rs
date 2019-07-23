@@ -262,7 +262,7 @@ mod tests {
     #[test]
     fn invalid_user_id_host() {
         assert_eq!(
-            UserId::try_from("@carl:-").err().unwrap(),
+            UserId::try_from("@carl:/").err().unwrap(),
             Error::InvalidHost
         );
     }
