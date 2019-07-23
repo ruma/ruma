@@ -75,7 +75,8 @@
 //! All concrete event types in ruma-events can be serialized via the `Serialize` trait from
 //! [serde](https://serde.rs/) and can be deserialized from a `&str` of JSON data via the `FromStr`
 //! trait from the standard library. (`TryFrom<&str>` is also implemented and can be used in place
-//! of `FromStr` if preferred.) In order to handle incoming data that may not conform to
+//! of `FromStr` if preferred.) Supporting types for each event generally implement serde's
+//! `Deserialize` trait directly. In order to handle incoming data that may not conform to
 //! ruma-events's strict definitions of event structures, deserializing from JSON will return an
 //! `InvalidEvent` on error. This error covers both invalid JSON data as well as valid JSON that
 //! doesn't match the structure expected by ruma-events's event types. In the latter case, the error
