@@ -1,7 +1,7 @@
 //! Types for the the *m.push_rules* event.
 
 use std::{
-    fmt::{Formatter, Result as FmtResult},
+    fmt::{Display, Formatter, Result as FmtResult},
     str::FromStr,
 };
 
@@ -140,6 +140,22 @@ pub enum Action {
     /// to ruma-events.
     #[doc(hidden)]
     __Nonexhaustive,
+}
+
+impl Display for Action {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        let variant = match *self {
+            Action::Notify => "notify",
+            Action::DontNotify => "dont_notify",
+            Action::Coalesce => "coalesce",
+            Action::SetTweak(_) => "set_tweak",
+            Action::__Nonexhaustive => {
+                panic!("__Nonexhaustive enum variant is not intended for use.")
+            }
+        };
+
+        write!(f, "{}", variant)
+    }
 }
 
 impl FromStr for Action {
