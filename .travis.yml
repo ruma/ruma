@@ -1,0 +1,15 @@
+language: "rust"
+before_script:
+  - "rustup component add rustfmt"
+  - "rustup component add clippy"
+script:
+  - "cargo fmt --all -- --check"
+  - "cargo clippy --all-targets --all-features -- -D warnings"
+  - "cargo build --verbose"
+  - "cargo test --verbose"
+notifications:
+  email: false
+  irc:
+    channels:
+      - secure: "QCqLuvSHYRxTj28ze9lu5K4mgyAQBfBQA105GlVJLcG4x2rfkUXJR538qXuIt5IUBwXePgu8RzXRLjKd3Ev0bFnCDGzK2OTXIBg2517vuLmmhbJ97yVtLk6F0nfQ8IPMJq67EkfB5ecZYgNHmmzv1/+F4M7xU0BC4QwkpJparYTwJLrsC8B/pPQds45aZFmkfbe5Mh5nNcFlx7ueP/FQLrOxPWthgpKBZreS8PX7l/6uQYZdu0HmX8xP6HZk8GAdLj8oL8H2WcJ0PrmiQ7JdCJ+V50WgiB7beiqaRieag75XWmIxNpEF2s12dZD8FEUC2aDPyysGT/SUU8gAqsI6DUDwySeCEoad7dpr+CfmOu621X9Yw2ukOkQXH2EbHq/gKcr5GOaIteh0ZD56iZmzAxmo/4UOgJ1qaP14o936ry5+Vz4QP7Iphg9y0owVRB7BZPszN8PS9g70NDkd7Pvwe8V7OypckSHcIGRhAI0iKV8i4FhNNBJbKVcyjGUQpq2YsAQcBGB07JrkrfDfwkiuy2Eh6dzkv9U5VsMKSZtSLpKNAr/ZSGOn74iHVxlRrC4LKmGO2CqmPCW/7g2cBqH7cogWVJS+v/FRuec40ueKiarh8daacAmBggKuCsAqMJbhm3AF7Q8NWom+44Q+VO1upwTu9hT9laQq08HMXOT/uP8="
+    use_notice: true
