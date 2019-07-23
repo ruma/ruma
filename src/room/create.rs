@@ -28,6 +28,7 @@ ruma_event! {
             pub room_version: RoomVersionId,
 
             /// A reference to the room this room replaces, if the previous room was upgraded.
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub predecessor: Option<PreviousRoom>,
         },
     }
@@ -46,4 +47,41 @@ pub struct PreviousRoom {
 /// Used to default the `room_version` field to room version 1.
 fn default_room_version_id() -> RoomVersionId {
     RoomVersionId::try_from("1").unwrap()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::convert::TryFrom;
+
+    use ruma_identifiers::{RoomVersionId, UserId};
+
+    use super::CreateEventContent;
+
+    #[test]
+    fn serialization() {
+        let content = CreateEventContent {
+            creator: UserId::try_from("@carl:example.com").unwrap(),
+            federate: true,
+            room_version: RoomVersionId::version_4(),
+            predecessor: None,
+        };
+
+        let json = r#"{"creator":"@carl:example.com","m.federate":true,"room_version":"4"}"#;
+
+        assert_eq!(serde_json::to_string(&content).unwrap(), json);
+    }
+
+    #[test]
+    fn deserialization() {
+        let content = CreateEventContent {
+            creator: UserId::try_from("@carl:example.com").unwrap(),
+            federate: true,
+            room_version: RoomVersionId::version_4(),
+            predecessor: None,
+        };
+
+        let json = r#"{"creator":"@carl:example.com","m.federate":true,"room_version":"4"}"#;
+
+        assert_eq!(json.parse::<CreateEventContent>().unwrap(), content);
+    }
 }
