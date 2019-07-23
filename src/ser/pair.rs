@@ -9,7 +9,7 @@ use url::form_urlencoded::Serializer as UrlEncodedSerializer;
 use url::form_urlencoded::Target as UrlEncodedTarget;
 
 pub struct PairSerializer<'target, Target: 'target + UrlEncodedTarget> {
-    urlencoder: &'target mut UrlEncodedSerializer<Target>,
+    urlencoder: &'target mut UrlEncodedSerializer<'static, Target>,
     state: PairState,
 }
 
@@ -17,7 +17,7 @@ impl<'target, Target> PairSerializer<'target, Target>
 where
     Target: 'target + UrlEncodedTarget,
 {
-    pub fn new(urlencoder: &'target mut UrlEncodedSerializer<Target>) -> Self {
+    pub fn new(urlencoder: &'target mut UrlEncodedSerializer<'static, Target>) -> Self {
         PairSerializer {
             urlencoder: urlencoder,
             state: PairState::WaitingForKey,

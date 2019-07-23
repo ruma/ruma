@@ -9,7 +9,7 @@ pub struct ValueSink<'key, 'target, Target>
 where
     Target: 'target + UrlEncodedTarget,
 {
-    urlencoder: &'target mut UrlEncodedSerializer<Target>,
+    urlencoder: &'target mut UrlEncodedSerializer<'static, Target>,
     key: &'key str,
 }
 
@@ -18,7 +18,7 @@ where
     Target: 'target + UrlEncodedTarget,
 {
     pub fn new(
-        urlencoder: &'target mut UrlEncodedSerializer<Target>,
+        urlencoder: &'target mut UrlEncodedSerializer<'static, Target>,
         key: &'key str,
     ) -> Self {
         ValueSink {
