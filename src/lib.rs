@@ -22,7 +22,7 @@
 //! `EventType` is used throughout ruma-events to identify and differentiate between events of
 //! different types.
 //!
-//! # Event traits
+//! # Event kinds
 //!
 //! Matrix defines three "kinds" of events:
 //!
