@@ -60,10 +60,8 @@
 //! For example, the *m.room.message* event lives at `ruma_events::room::message::MessageEvent`.
 //! Each type's module also contains a Rust type for that event type's `content` field, and any
 //! other supporting types required by the event's other fields.
-//! All concrete event types in ruma-events are serializable and deserializable using the
-//! [Serde](https://serde.rs/) serialization library.
 //!
-//! # Custom events
+//! # Custom event types
 //!
 //! Although any Rust type that implements `Event`, `RoomEvent`, or `StateEvent` can serve as a
 //! Matrix event type, ruma-events also includes a few convenience types for representing events
@@ -71,6 +69,18 @@
 //! `CustomEvent`, `CustomRoomEvent`, and `CustomStateEvent` are simple implementations of their
 //! respective event traits whose `content` field is simply a `serde_json::Value` value, which
 //! represents arbitrary JSON.
+//!
+//! # Serialization and deserialization
+//!
+//! All concrete event types in ruma-events can be serialized via the `Serialize` trait from
+//! [serde](https://serde.rs/) and can be deserialized from a `&str` of JSON data via the `FromStr`
+//! trait from the standard library. In order to handle incoming data that may not conform to
+//! ruma-events's strict definitions of event structures, deserializing from JSON will return an
+//! `InvalidEvent` on error. This error covers both invalid JSON data as well as valid JSON that
+//! doesn't match the structure expected by ruma-events's event types. In the latter case, the
+//! error exposes the deserialized `serde_json::Value` so that developers can still work with the
+//! received event data. This also makes it possible to deserialize a collection of events without
+//! the entire collection failing to deserialize due to a single invalid event.
 //!
 //! # Collections
 //!
