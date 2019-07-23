@@ -81,10 +81,8 @@ mod tests {
 
     use super::{PresenceEvent, PresenceEventContent, PresenceState};
 
-    /// Test serialization and deserialization of example m.presence event from the spec
-    /// https://github.com/turt2live/matrix-doc/blob/master/event-schemas/examples/m.presence
     #[test]
-    fn test_example_event() {
+    fn serialization() {
         let event = PresenceEvent {
             content: PresenceEventContent {
                 avatar_url: Some("mxc://localhost:wefuiwegh8742w".to_string()),
@@ -96,12 +94,30 @@ mod tests {
             },
             sender: UserId::try_from("@example:localhost").unwrap(),
         };
-        let serialized_event =
+
+        let json =
             r#"{"content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online","status_msg":"Making cupcakes"},"sender":"@example:localhost","type":"m.presence"}"#;
 
-        assert_eq!(to_string(&event).unwrap(), serialized_event);
-        let deserialized_event: PresenceEvent = serialized_event.parse().unwrap();
-        assert_eq!(deserialized_event.content, event.content);
-        assert_eq!(deserialized_event.sender, event.sender);
+        assert_eq!(to_string(&event).unwrap(), json);
+    }
+
+    #[test]
+    fn deserialization() {
+        let event = PresenceEvent {
+            content: PresenceEventContent {
+                avatar_url: Some("mxc://localhost:wefuiwegh8742w".to_string()),
+                currently_active: Some(false),
+                displayname: None,
+                last_active_ago: Some(UInt::try_from(2_478_593).unwrap()),
+                presence: PresenceState::Online,
+                status_msg: Some("Making cupcakes".to_string()),
+            },
+            sender: UserId::try_from("@example:localhost").unwrap(),
+        };
+
+        let json =
+            r#"{"content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online","status_msg":"Making cupcakes"},"sender":"@example:localhost","type":"m.presence"}"#;
+
+        assert_eq!(json.parse::<PresenceEvent>().unwrap(), event);
     }
 }
