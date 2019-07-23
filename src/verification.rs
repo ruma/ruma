@@ -1,6 +1,6 @@
 //! Verification of digital signatures.
 
-use ring::signature::{verify, ED25519};
+use ring::signature::{VerificationAlgorithm, ED25519};
 use untrusted::Input;
 
 use crate::Error;
@@ -33,13 +33,13 @@ impl Verifier for Ed25519Verifier {
         signature: &[u8],
         message: &[u8],
     ) -> Result<(), Error> {
-        verify(
-            &ED25519,
-            Input::from(public_key),
-            Input::from(message),
-            Input::from(signature),
-        )
-        .map_err(|_| Error::new("signature verification failed"))
+        ED25519
+            .verify(
+                Input::from(public_key),
+                Input::from(message),
+                Input::from(signature),
+            )
+            .map_err(|_| Error::new("signature verification failed"))
     }
 }
 
