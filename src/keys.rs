@@ -6,7 +6,6 @@ use std::{
 };
 
 use ring::signature::Ed25519KeyPair as RingEd25519KeyPair;
-use untrusted::Input;
 
 use crate::{signatures::Signature, Algorithm, Error};
 
@@ -49,10 +48,7 @@ impl Ed25519KeyPair {
     /// Returns an error if the public and private keys provided are invalid for the implementing
     /// algorithm.
     pub fn new(public_key: &[u8], private_key: &[u8], version: String) -> Result<Self, Error> {
-        if let Err(error) = RingEd25519KeyPair::from_seed_and_public_key(
-            Input::from(private_key),
-            Input::from(public_key),
-        ) {
+        if let Err(error) = RingEd25519KeyPair::from_seed_and_public_key(private_key, public_key) {
             return Err(Error::new(error.to_string()));
         }
 
@@ -67,11 +63,9 @@ impl Ed25519KeyPair {
 impl KeyPair for Ed25519KeyPair {
     fn sign(&self, message: &[u8]) -> Signature {
         // Okay to unwrap because we verified the input in `new`.
-        let ring_key_pair = RingEd25519KeyPair::from_seed_and_public_key(
-            Input::from(&self.private_key),
-            Input::from(&self.public_key),
-        )
-        .unwrap();
+        let ring_key_pair =
+            RingEd25519KeyPair::from_seed_and_public_key(&self.private_key, &self.public_key)
+                .unwrap();
 
         Signature {
             algorithm: Algorithm::Ed25519,
