@@ -376,7 +376,7 @@ mod tests {
     #[test]
     fn invalid_event_id_host() {
         assert_eq!(
-            EventId::try_from("$39hvsi03hlne:-").err().unwrap(),
+            EventId::try_from("$39hvsi03hlne:/").err().unwrap(),
             Error::InvalidHost
         );
     }
