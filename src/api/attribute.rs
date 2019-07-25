@@ -22,10 +22,8 @@ impl Meta {
                 segments,
             } => {
                 if segments.len() == 1 && segments[0].ident == "ruma_api" {
-                    Ok(
-                        syn::parse2(attr.tts)
-                            .expect("ruma_api! could not parse request field attributes"),
-                    )
+                    Ok(syn::parse2(attr.tts)
+                        .expect("ruma_api! could not parse request field attributes"))
                 } else {
                     Err(attr)
                 }
