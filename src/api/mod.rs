@@ -1,4 +1,4 @@
-//! Details of the `ruma-api` procedural macro.
+//! Details of the `ruma_api` procedural macro.
 
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
@@ -8,6 +8,7 @@ use syn::{
     Field, FieldValue, Ident, Meta, Token,
 };
 
+mod attribute;
 mod metadata;
 mod request;
 mod response;

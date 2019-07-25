@@ -39,7 +39,7 @@ pub mod some_endpoint {
             pub foo: String,
 
             // This value will be put into the "Content-Type" HTTP header.
-            #[ruma_api(header = "CONTENT_TYPE")]
+            #[ruma_api(header = CONTENT_TYPE)]
             pub content_type: String
 
             // This value will be put into the query string of the request's URL.
@@ -54,7 +54,7 @@ pub mod some_endpoint {
 
         response {
             // This value will be extracted from the "Content-Type" HTTP header.
-            #[ruma_api(header = "CONTENT_TYPE")]
+            #[ruma_api(header = CONTENT_TYPE)]
             pub content_type: String
 
             // With no attribute on the field, it will be extracted from the body of the response.

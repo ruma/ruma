@@ -1,10 +1,13 @@
 //! Details of the `response` section of the procedural macro.
 
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{spanned::Spanned, Field, Ident, Lit, Meta, NestedMeta};
+use syn::{spanned::Spanned, Field, Ident};
 
-use crate::api::strip_serde_attrs;
+use crate::api::{
+    attribute::{Meta, MetaNameValue},
+    strip_serde_attrs,
+};
 
 /// The result of processing the `request` section of the macro.
 pub struct Response {
@@ -50,12 +53,11 @@ impl Response {
                         #field_name: response_body.#field_name
                     }
                 }
-                ResponseField::Header(ref field, ref header) => {
+                ResponseField::Header(ref field, ref header_name) => {
                     let field_name = field
                         .ident
                         .clone()
                         .expect("expected field to have an identifier");
-                    let header_name = Ident::new(header.as_ref(), Span::call_site());
                     let span = field.span();
 
                     quote_spanned! {span=>
@@ -87,12 +89,11 @@ impl Response {
     /// Produces code to add necessary HTTP headers to an `http::Response`.
     pub fn apply_header_fields(&self) -> TokenStream {
         let header_calls = self.fields.iter().filter_map(|response_field| {
-            if let ResponseField::Header(ref field, ref header) = *response_field {
+            if let ResponseField::Header(ref field, ref header_name) = *response_field {
                 let field_name = field
                     .ident
                     .as_ref()
                     .expect("expected field to have an identifier");
-                let header_name = Ident::new(header.as_ref(), Span::call_site());
                 let span = field.span();
 
                 Some(quote_spanned! {span=>
@@ -165,64 +166,44 @@ impl From<Vec<Field>> for Response {
             let mut field_kind = ResponseFieldKind::Body;
             let mut header = None;
 
-            field.attrs = field.attrs.into_iter().filter(|attr| {
-                let meta = attr.interpret_meta()
-                    .expect("ruma_api! could not parse response field attributes");
-
-                let meta_list = match meta {
-                    Meta::List(meta_list) => meta_list,
-                    _ => return true,
+            field.attrs = field.attrs.into_iter().filter_map(|attr| {
+                let meta = match Meta::from_attribute(attr) {
+                    Ok(meta) => meta,
+                    Err(attr) => return Some(attr),
                 };
 
-                if &meta_list.ident.to_string() != "ruma_api" {
-                    return true;
-                }
+                match meta {
+                    Meta::Word(ident) => {
+                        assert!(
+                            ident == "body",
+                            "ruma_api! single-word attribute on responses must be: body"
+                        );
 
-                for nested_meta_item in meta_list.nested {
-                    match nested_meta_item {
-                        NestedMeta::Meta(meta_item) => {
-                            match meta_item {
-                                Meta::Word(ident) => {
-                                    match &ident.to_string()[..] {
-                                        "body" => {
-                                            has_newtype_body = true;
-                                            field_kind = ResponseFieldKind::NewtypeBody;
-                                        }
-                                        _ => panic!("ruma_api! single-word attribute on responses must be: body"),
-                                    }
-                                }
-                                Meta::NameValue(name_value) => {
-                                    match &name_value.ident.to_string()[..] {
-                                        "header" => {
-                                            match name_value.lit {
-                                                Lit::Str(lit_str) => header = Some(lit_str.value()),
-                                                _ => panic!("ruma_api! header attribute's value must be a string literal"),
-                                            }
+                        has_newtype_body = true;
+                        field_kind = ResponseFieldKind::NewtypeBody;
+                    }
+                    Meta::NameValue(MetaNameValue { name, value }) => {
+                        assert!(
+                            name == "header",
+                            "ruma_api! name/value pair attribute on requests must be: header"
+                        );
 
-                                            field_kind = ResponseFieldKind::Header;
-                                        }
-                                        _ => panic!("ruma_api! name/value pair attribute on requests must be: header"),
-                                    }
-                                }
-                                _ => panic!("ruma_api! attributes on responses must be a single word or a name/value pair"),
-                            }
-                        }
-                        NestedMeta::Literal(_) => panic!(
-                            "ruma_api! attribute meta item on responses must be: header"
-                        ),
+                        header = Some(value);
+                        field_kind = ResponseFieldKind::Header;
                     }
                 }
 
-                false
+                None
             }).collect();
 
             match field_kind {
                 ResponseFieldKind::Body => {
-                    if has_newtype_body {
-                        panic!("ruma_api! responses cannot have both normal body fields and a newtype body field");
-                    } else {
-                        ResponseField::Body(field)
-                    }
+                    assert!(
+                        !has_newtype_body,
+                        "ruma_api! responses cannot have both normal body fields and a newtype body field"
+                    );
+
+                    ResponseField::Body(field)
                 }
                 ResponseFieldKind::Header => ResponseField::Header(field, header.expect("missing header name")),
                 ResponseFieldKind::NewtypeBody => ResponseField::NewtypeBody(field),
@@ -307,7 +288,7 @@ pub enum ResponseField {
     /// JSON data in the body of the response.
     Body(Field),
     /// Data in an HTTP header.
-    Header(Field, String),
+    Header(Field, Ident),
     /// A specific data type in the body of the response.
     NewtypeBody(Field),
 }
