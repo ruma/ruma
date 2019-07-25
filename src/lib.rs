@@ -185,10 +185,10 @@ mod tests {
         use std::convert::TryFrom;
 
         use http::{self, header::CONTENT_TYPE, method::Method};
+        use percent_encoding;
         use ruma_identifiers::{RoomAliasId, RoomId};
         use serde::{de::IntoDeserializer, Deserialize, Serialize};
         use serde_json;
-        use url::percent_encoding;
 
         use crate::{Endpoint, Error, Metadata};
 
