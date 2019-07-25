@@ -41,22 +41,20 @@ use std::{
     io,
 };
 
-use http::{self, Method, Request, Response, StatusCode};
+use http::{self, Method, Request as HttpRequest, Response as HttpResponse, StatusCode};
 use ruma_identifiers;
 use serde_json;
 use serde_urlencoded;
 
-/// A Matrix API endpoint.
-pub trait Endpoint {
-    /// Data needed to make a request to the endpoint.
-    type Request: TryFrom<Request<Vec<u8>>, Error = Error>
-        + TryInto<Request<Vec<u8>>, Error = Error>;
+/// A Matrix API endpoint's Request type
+pub trait Endpoint:
+    TryFrom<HttpRequest<Vec<u8>>, Error = Error> + TryInto<HttpRequest<Vec<u8>>, Error = Error>
+{
+    /// The corresponding Response type
+    type Response: TryFrom<HttpResponse<Vec<u8>>, Error = Error>
+        + TryInto<HttpResponse<Vec<u8>>, Error = Error>;
 
-    /// Data returned from the endpoint.
-    type Response: TryFrom<Response<Vec<u8>>, Error = Error>
-        + TryInto<Response<Vec<u8>>, Error = Error>;
-
-    /// Metadata about the endpoint.
+    /// Metadata about the endpoint
     const METADATA: Metadata;
 }
 
@@ -180,13 +178,9 @@ mod tests {
         use serde_json;
         use url::percent_encoding;
 
-        use crate::{Endpoint as ApiEndpoint, Error, Metadata};
+        use crate::{Endpoint, Error, Metadata};
 
-        #[derive(Debug)]
-        pub struct Endpoint;
-
-        impl ApiEndpoint for Endpoint {
-            type Request = Request;
+        impl Endpoint for Request {
             type Response = Response;
 
             const METADATA: Metadata = Metadata {
@@ -215,7 +209,7 @@ mod tests {
             type Error = Error;
 
             fn try_from(request: Request) -> Result<HttpRequest<Vec<u8>>, Self::Error> {
-                let metadata = Endpoint::METADATA;
+                let metadata = Request::METADATA;
 
                 let path = metadata
                     .path
