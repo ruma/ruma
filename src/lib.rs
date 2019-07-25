@@ -1,9 +1,10 @@
-//! Crate ruma_api contains core types used to define the requests and responses for each endpoint
+//! Crate `ruma_api` contains core types used to define the requests and responses for each endpoint
 //! in the various [Matrix](https://matrix.org) API specifications.
 //! These types can be shared by client and server code for all Matrix APIs.
 //!
-//! When implementing a new Matrix API, each endpoint has a type that implements `Endpoint`, plus
-//! the necessary associated types.
+//! When implementing a new Matrix API, each endpoint has a request type which implements
+//! `Endpoint`, and a response type connected via an associated type.
+//!
 //! An implementation of `Endpoint` contains all the information about the HTTP method, the path and
 //! input parameters for requests, and the structure of a successful response.
 //! Such types can then be used by client code to make requests, and by server code to fulfill
@@ -41,25 +42,27 @@ use std::{
     io,
 };
 
-use http::{self, Method, Request as HttpRequest, Response as HttpResponse, StatusCode};
+use http::{self, Method, StatusCode};
 use ruma_identifiers;
 use serde_json;
 use serde_urlencoded;
 
-/// A Matrix API endpoint's Request type
+/// A Matrix API endpoint.
+///
+/// The type implementing this trait contains any data needed to make a request to the endpoint.
 pub trait Endpoint:
-    TryFrom<HttpRequest<Vec<u8>>, Error = Error> + TryInto<HttpRequest<Vec<u8>>, Error = Error>
+    TryFrom<http::Request<Vec<u8>>, Error = Error> + TryInto<http::Request<Vec<u8>>, Error = Error>
 {
-    /// The corresponding Response type
-    type Response: TryFrom<HttpResponse<Vec<u8>>, Error = Error>
-        + TryInto<HttpResponse<Vec<u8>>, Error = Error>;
+    /// Data returned in a successful response from the endpoint.
+    type Response: TryFrom<http::Response<Vec<u8>>, Error = Error>
+        + TryInto<http::Response<Vec<u8>>, Error = Error>;
 
-    /// Metadata about the endpoint
+    /// Metadata about the endpoint.
     const METADATA: Metadata;
 }
 
-/// An error when converting an `Endpoint::Request` to a `http::Request` or a `http::Response` to
-/// an `Endpoint::Response`.
+/// An error when converting an `Endpoint` request or response to the corresponding type from the
+/// `http` crate.
 #[derive(Debug)]
 pub struct Error(pub(crate) InnerError);
 
@@ -90,16 +93,22 @@ impl StdError for Error {}
 pub(crate) enum InnerError {
     /// An HTTP error.
     Http(http::Error),
+
     /// A I/O error.
     Io(io::Error),
+
     /// A Serde JSON error.
     SerdeJson(serde_json::Error),
+
     /// A Serde URL decoding error.
     SerdeUrlEncodedDe(serde_urlencoded::de::Error),
+
     /// A Serde URL encoding error.
     SerdeUrlEncodedSer(serde_urlencoded::ser::Error),
+
     /// A Ruma Identitifiers error.
     RumaIdentifiers(ruma_identifiers::Error),
+
     /// An HTTP status code indicating error.
     StatusCode(StatusCode),
 }
@@ -151,15 +160,20 @@ impl From<StatusCode> for Error {
 pub struct Metadata {
     /// A human-readable description of the endpoint.
     pub description: &'static str,
+
     /// The HTTP method used by this endpoint.
     pub method: Method,
+
     /// A unique identifier for this endpoint.
     pub name: &'static str,
+
     /// The path of this endpoint's URL, with variable names where path parameters should be filled
     /// in during a request.
     pub path: &'static str,
+
     /// Whether or not this endpoint is rate limited by the server.
     pub rate_limited: bool,
+
     /// Whether or not the server requires an authenticated user for this endpoint.
     pub requires_authentication: bool,
 }
@@ -170,15 +184,20 @@ mod tests {
     pub mod create {
         use std::convert::TryFrom;
 
-        use http::{
-            header::CONTENT_TYPE, method::Method, Request as HttpRequest, Response as HttpResponse,
-        };
+        use http::{self, header::CONTENT_TYPE, method::Method};
         use ruma_identifiers::{RoomAliasId, RoomId};
         use serde::{de::IntoDeserializer, Deserialize, Serialize};
         use serde_json;
         use url::percent_encoding;
 
         use crate::{Endpoint, Error, Metadata};
+
+        /// A request to create a new room alias.
+        #[derive(Debug)]
+        pub struct Request {
+            pub room_id: RoomId,         // body
+            pub room_alias: RoomAliasId, // path
+        }
 
         impl Endpoint for Request {
             type Response = Response;
@@ -193,22 +212,10 @@ mod tests {
             };
         }
 
-        /// A request to create a new room alias.
-        #[derive(Debug)]
-        pub struct Request {
-            pub room_id: RoomId,         // body
-            pub room_alias: RoomAliasId, // path
-        }
-
-        #[derive(Debug, Serialize, Deserialize)]
-        struct RequestBody {
-            room_id: RoomId,
-        }
-
-        impl TryFrom<Request> for HttpRequest<Vec<u8>> {
+        impl TryFrom<Request> for http::Request<Vec<u8>> {
             type Error = Error;
 
-            fn try_from(request: Request) -> Result<HttpRequest<Vec<u8>>, Self::Error> {
+            fn try_from(request: Request) -> Result<http::Request<Vec<u8>>, Self::Error> {
                 let metadata = Request::METADATA;
 
                 let path = metadata
@@ -220,7 +227,7 @@ mod tests {
                     room_id: request.room_id,
                 };
 
-                let http_request = HttpRequest::builder()
+                let http_request = http::Request::builder()
                     .method(metadata.method)
                     .uri(path)
                     .body(serde_json::to_vec(&request_body).map_err(Error::from)?)?;
@@ -229,10 +236,10 @@ mod tests {
             }
         }
 
-        impl TryFrom<HttpRequest<Vec<u8>>> for Request {
+        impl TryFrom<http::Request<Vec<u8>>> for Request {
             type Error = Error;
 
-            fn try_from(request: HttpRequest<Vec<u8>>) -> Result<Self, Self::Error> {
+            fn try_from(request: http::Request<Vec<u8>>) -> Result<Self, Self::Error> {
                 let request_body: RequestBody =
                     ::serde_json::from_slice(request.body().as_slice())?;
                 let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
@@ -248,14 +255,19 @@ mod tests {
             }
         }
 
+        #[derive(Debug, Serialize, Deserialize)]
+        struct RequestBody {
+            room_id: RoomId,
+        }
+
         /// The response to a request to create a new room alias.
         #[derive(Clone, Copy, Debug)]
         pub struct Response;
 
-        impl TryFrom<HttpResponse<Vec<u8>>> for Response {
+        impl TryFrom<http::Response<Vec<u8>>> for Response {
             type Error = Error;
 
-            fn try_from(http_response: HttpResponse<Vec<u8>>) -> Result<Response, Self::Error> {
+            fn try_from(http_response: http::Response<Vec<u8>>) -> Result<Response, Self::Error> {
                 if http_response.status().is_success() {
                     Ok(Response)
                 } else {
@@ -264,14 +276,15 @@ mod tests {
             }
         }
 
-        impl TryFrom<Response> for HttpResponse<Vec<u8>> {
+        impl TryFrom<Response> for http::Response<Vec<u8>> {
             type Error = Error;
 
-            fn try_from(_response: Response) -> Result<HttpResponse<Vec<u8>>, Self::Error> {
-                let response = HttpResponse::builder()
+            fn try_from(_: Response) -> Result<http::Response<Vec<u8>>, Self::Error> {
+                let response = http::Response::builder()
                     .header(CONTENT_TYPE, "application/json")
                     .body(b"{}".to_vec())
                     .unwrap();
+
                 Ok(response)
             }
         }
