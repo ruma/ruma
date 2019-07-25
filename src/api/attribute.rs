@@ -15,6 +15,8 @@ pub enum Meta {
 }
 
 impl Meta {
+    /// Check if the given attribute is a ruma_api attribute. If it is, parse it, if not, return
+    /// it unchanged. Panics if the argument is an invalid ruma_api attribute.
     pub fn from_attribute(attr: syn::Attribute) -> Result<Self, syn::Attribute> {
         match &attr.path {
             syn::Path {
