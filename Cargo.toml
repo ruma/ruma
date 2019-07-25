@@ -13,14 +13,14 @@ version = "0.13.0"
 edition = "2018"
 
 [dependencies]
-ruma-identifiers = "0.13.0"
+ruma-identifiers = "0.14.0"
 ruma-events-macros = "0.1.0"
-serde_json = "1.0.39"
+serde_json = "1.0.40"
 
 [dependencies.js_int]
-version = "0.1.0"
+version = "0.1.1"
 features = ["serde"]
 
 [dependencies.serde]
-version = "1.0.92"
+version = "1.0.97"
 features = ["derive"]
