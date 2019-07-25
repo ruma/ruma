@@ -6,21 +6,26 @@
 //! secure connections, and then logging in:
 //!
 //! ```no_run
-//! use futures::Future;
+//! # #![feature(impl_trait_in_bindings)]
+//! #![feature(async_await)]
 //! use ruma_client::Client;
 //!
-//! let homeserver_url = "https://example.com".parse().unwrap();
-//! let client = Client::https(homeserver_url, None).unwrap();
+//! let work = async {
+//!     let homeserver_url = "https://example.com".parse().unwrap();
+//!     let client = Client::https(homeserver_url, None).unwrap();
 //!
-//! let work = client
-//!     .log_in("@alice:example.com".to_string(), "secret".to_string(), None)
-//!     .and_then(|session| {
-//!         // You're now logged in! Write the session to a file if you want to restore it later.
-//!         // Then start using the API!
-//!         # Ok::<(), ruma_client::Error>(())
-//!     });
+//!     let session = client
+//!         .log_in("@alice:example.com".to_string(), "secret".to_string(), None)
+//!         .await?;
+//!
+//!     // You're now logged in! Write the session to a file if you want to restore it later.
+//!     // Then start using the API!
+//! # Ok(())
+//! };
 //!
 //! // Start `work` on a futures runtime...
+//! # let work_typehint: impl futures::future::TryFuture<Ok = (), Error = ruma_client::Error>
+//! #     = work;
 //! ```
 //!
 //! You can also pass an existing session to the `Client` constructor to restore a previous session
@@ -30,16 +35,18 @@
 //! events), use the `Client::sync`:
 //!
 //! ```no_run
-//! # use futures::{Future, Stream};
+//! # #![feature(async_await)]
+//! # use futures::stream::{StreamExt as _, TryStreamExt as _};
 //! # use ruma_client::Client;
 //! # let homeserver_url = "https://example.com".parse().unwrap();
 //! # let client = Client::https(homeserver_url, None).unwrap();
-//! let work = client.sync(None, None, true).map(|response| {
-//!   // Do something with the data in the response...
-//!     # Ok::<(), ruma_client::Error>(())
-//! });
-//!
-//! // Start `work` on a futures runtime...
+//! # async {
+//! let mut sync_stream = Box::pin(client.sync(None, None, true));
+//! while let Some(response) = sync_stream.try_next().await? {
+//!     // Do something with the data in the response...
+//! }
+//! # Result::<(), ruma_client::Error>::Ok(())
+//! # };
 //! ```
 //!
 //! The `Client` type also provides methods for registering a new account if you don't already have
@@ -54,7 +61,7 @@
 //! For example:
 //!
 //! ```no_run
-//! # use futures::Future;
+//! # #![feature(async_await)]
 //! # use ruma_client::Client;
 //! # let homeserver_url = "https://example.com".parse().unwrap();
 //! # let client = Client::https(homeserver_url, None).unwrap();
@@ -63,16 +70,17 @@
 //! use ruma_client::api::r0::alias::get_alias;
 //! use ruma_identifiers::{RoomAliasId, RoomId};
 //!
-//! let request = get_alias::Request {
-//!     room_alias: RoomAliasId::try_from("#example_room:example.com").unwrap(),
-//! };
+//! async {
+//!     let response = client
+//!         .request(get_alias::Request {
+//!             room_alias: RoomAliasId::try_from("#example_room:example.com").unwrap(),
+//!         })
+//!         .await?;
 //!
-//! let work = get_alias::call(client, request).and_then(|response| {
 //!     assert_eq!(response.room_id, RoomId::try_from("!n8f893n9:example.com").unwrap());
-//!     # Ok::<(), ruma_client::Error>(())
-//! });
-//!
-//! // Start `work` on a futures runtime...
+//! #   Result::<(), ruma_client::Error>::Ok(())
+//! }
+//! # ;
 //! ```
 
 #![feature(async_await, async_closure)]
