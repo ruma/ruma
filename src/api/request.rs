@@ -1,10 +1,13 @@
 //! Details of the `request` section of the procedural macro.
 
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{spanned::Spanned, Field, Ident, Lit, Meta, NestedMeta};
+use syn::{spanned::Spanned, Field, Ident};
 
-use crate::api::strip_serde_attrs;
+use crate::api::{
+    attribute::{Meta, MetaNameValue},
+    strip_serde_attrs,
+};
 
 /// The result of processing the `request` section of the macro.
 pub struct Request {
@@ -16,13 +19,12 @@ impl Request {
     /// Produces code to add necessary HTTP headers to an `http::Request`.
     pub fn add_headers_to_request(&self) -> TokenStream {
         let append_stmts = self.header_fields().map(|request_field| {
-            let (field, header_name_string) = match request_field {
-                RequestField::Header(field, header_name_string) => (field, header_name_string),
+            let (field, header_name) = match request_field {
+                RequestField::Header(field, header_name) => (field, header_name),
                 _ => panic!("expected request field to be header variant"),
             };
 
             let field_name = &field.ident;
-            let header_name = Ident::new(header_name_string.as_ref(), Span::call_site());
 
             quote! {
                 headers.append(
@@ -41,13 +43,13 @@ impl Request {
     /// Produces code to extract fields from the HTTP headers in an `http::Request`.
     pub fn parse_headers_from_request(&self) -> TokenStream {
         let fields = self.header_fields().map(|request_field| {
-            let (field, header_name_string) = match request_field {
-                RequestField::Header(field, header_name_string) => (field, header_name_string),
+            let (field, header_name) = match request_field {
+                RequestField::Header(field, header_name) => (field, header_name),
                 _ => panic!("expected request field to be header variant"),
             };
 
             let field_name = &field.ident;
-            let header_name = Ident::new(header_name_string.as_ref(), Span::call_site());
+            let header_name_string = header_name.to_string();
 
             quote! {
                 #field_name: headers.get(::http::header::#header_name)
@@ -180,57 +182,36 @@ impl From<Vec<Field>> for Request {
             let mut field_kind = RequestFieldKind::Body;
             let mut header = None;
 
-            field.attrs = field.attrs.into_iter().filter(|attr| {
-                let meta = attr.interpret_meta()
-                    .expect("ruma_api! could not parse request field attributes");
-
-                let meta_list = match meta {
-                    Meta::List(meta_list) => meta_list,
-                    _ => return true,
+            field.attrs = field.attrs.into_iter().filter_map(|attr| {
+                let meta = match Meta::from_attribute(attr) {
+                    Ok(meta) => meta,
+                    Err(attr) => return Some(attr),
                 };
 
-                if &meta_list.ident.to_string() != "ruma_api" {
-                    return true;
-                }
-
-                for nested_meta_item in meta_list.nested {
-                    match nested_meta_item {
-                        NestedMeta::Meta(meta_item) => {
-                            match meta_item {
-                                Meta::Word(ident) => {
-                                    match &ident.to_string()[..] {
-                                        "body" => {
-                                            has_newtype_body = true;
-                                            field_kind = RequestFieldKind::NewtypeBody;
-                                        }
-                                        "path" => field_kind = RequestFieldKind::Path,
-                                        "query" => field_kind = RequestFieldKind::Query,
-                                        _ => panic!("ruma_api! single-word attribute on requests must be: body, path, or query"),
-                                    }
-                                }
-                                Meta::NameValue(name_value) => {
-                                    match &name_value.ident.to_string()[..] {
-                                        "header" => {
-                                            match name_value.lit {
-                                                Lit::Str(lit_str) => header = Some(lit_str.value()),
-                                                _ => panic!("ruma_api! header attribute's value must be a string literal"),
-                                            }
-
-                                            field_kind = RequestFieldKind::Header;
-                                        }
-                                        _ => panic!("ruma_api! name/value pair attribute on requests must be: header"),
-                                    }
-                                }
-                                _ => panic!("ruma_api! attributes on requests must be a single word or a name/value pair"),
+                match meta {
+                    Meta::Word(ident) => {
+                        match &ident.to_string()[..] {
+                            "body" => {
+                                has_newtype_body = true;
+                                field_kind = RequestFieldKind::NewtypeBody;
                             }
+                            "path" => field_kind = RequestFieldKind::Path,
+                            "query" => field_kind = RequestFieldKind::Query,
+                            _ => panic!("ruma_api! single-word attribute on requests must be: body, path, or query"),
                         }
-                        NestedMeta::Literal(_) => panic!(
-                            "ruma_api! attributes on requests must be: body, header, path, or query"
-                        ),
+                    }
+                    Meta::NameValue(MetaNameValue { name, value }) => {
+                        assert!(
+                            name == "header",
+                            "ruma_api! name/value pair attribute on requests must be: header"
+                        );
+
+                        header = Some(value);
+                        field_kind = RequestFieldKind::Header;
                     }
                 }
 
-                false
+                None
             }).collect();
 
             if field_kind == RequestFieldKind::Body {
@@ -370,7 +351,7 @@ pub enum RequestField {
     /// JSON data in the body of the request.
     Body(Field),
     /// Data in an HTTP header.
-    Header(Field, String),
+    Header(Field, Ident),
     /// A specific data type in the body of the request.
     NewtypeBody(Field),
     /// Data that appears in the URL path.
@@ -381,7 +362,7 @@ pub enum RequestField {
 
 impl RequestField {
     /// Creates a new `RequestField`.
-    fn new(kind: RequestFieldKind, field: Field, header: Option<String>) -> Self {
+    fn new(kind: RequestFieldKind, field: Field, header: Option<Ident>) -> Self {
         match kind {
             RequestFieldKind::Body => RequestField::Body(field),
             RequestFieldKind::Header => {

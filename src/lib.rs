@@ -158,7 +158,7 @@ mod api;
 ///         request {
 ///             pub foo: String,
 ///
-///             #[ruma_api(header = "CONTENT_TYPE")]
+///             #[ruma_api(header = CONTENT_TYPE)]
 ///             pub content_type: String,
 ///
 ///             #[ruma_api(query)]
@@ -169,7 +169,7 @@ mod api;
 ///         }
 ///
 ///         response {
-///             #[ruma_api(header = "CONTENT_TYPE")]
+///             #[ruma_api(header = CONTENT_TYPE)]
 ///             pub content_type: String,
 ///
 ///             pub value: String,
