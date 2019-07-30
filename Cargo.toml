@@ -1,6 +1,6 @@
 [package]
 name = "serde_urlencoded"
-version = "0.5.5"
+version = "0.6.0"
 authors = ["Anthony Ramine <n.oxyde@gmail.com>"]
 license = "MIT/Apache-2.0"
 repository = "https://github.com/nox/serde_urlencoded"
@@ -19,7 +19,7 @@ test = false
 dtoa = "0.4.0"
 itoa = "0.4.0"
 serde = "1.0.0"
-url = "1.0.0"
+url = "2.0.0"
 
 [dev-dependencies]
 serde_derive = "1.0"
