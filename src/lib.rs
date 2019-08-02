@@ -47,6 +47,22 @@ use ruma_identifiers;
 use serde_json;
 use serde_urlencoded;
 
+#[cfg(feature = "with-ruma-api-macros")]
+pub use ruma_api_macros::ruma_api;
+
+#[cfg(feature = "with-ruma-api-macros")]
+#[doc(hidden)]
+/// This module is used to support the generated code from ruma-api-macros.
+/// It is not considered part of ruma-api's public API.
+pub mod exports {
+    pub use http;
+    pub use percent_encoding;
+    pub use serde;
+    pub use serde_json;
+    pub use serde_urlencoded;
+    pub use url;
+}
+
 /// A Matrix API endpoint.
 ///
 /// The type implementing this trait contains any data needed to make a request to the endpoint.

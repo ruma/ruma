@@ -139,11 +139,10 @@ mod api;
 ///
 /// # Examples
 ///
-/// ```rust,no_run
+/// ```rust,ignore
 /// # fn main() {
 /// pub mod some_endpoint {
 ///     use ruma_api_macros::ruma_api;
-///     use serde::{Deserialize, Serialize};
 ///
 ///     ruma_api! {
 ///         metadata {
@@ -179,7 +178,6 @@ mod api;
 ///
 /// pub mod newtype_body_endpoint {
 ///     use ruma_api_macros::ruma_api;
-///     use serde::{Deserialize, Serialize};
 ///
 ///     #[derive(Clone, Debug, Deserialize, Serialize)]
 ///     pub struct MyCustomType {

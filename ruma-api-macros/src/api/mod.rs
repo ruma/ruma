@@ -142,10 +142,10 @@ impl ToTokens for Api {
                         #path_var_ident: {
                             let segment = path_segments.get(#i).unwrap().as_bytes();
                             let decoded =
-                                ::url::percent_encoding::percent_decode(segment)
+                                ruma_api::exports::percent_encoding::percent_decode(segment)
                                 .decode_utf8_lossy();
                             #ty::deserialize(decoded.into_deserializer())
-                                .map_err(|e: ::serde_json::error::Error| e)?
+                                .map_err(|e: ruma_api::exports::serde_json::error::Error| e)?
                         }
                     }
                 });
@@ -171,7 +171,7 @@ impl ToTokens for Api {
                     #request_query_init_fields
                 };
 
-                url.set_query(Some(&::serde_urlencoded::to_string(request_query)?));
+                url.set_query(Some(&ruma_api::exports::serde_urlencoded::to_string(request_query)?));
             }
         } else {
             TokenStream::new()
@@ -180,7 +180,7 @@ impl ToTokens for Api {
         let extract_request_query = if self.request.has_query_fields() {
             quote! {
                 let request_query: RequestQuery =
-                    ::serde_urlencoded::from_str(&request.uri().query().unwrap_or(""))?;
+                    ruma_api::exports::serde_urlencoded::from_str(&request.uri().query().unwrap_or(""))?;
             }
         } else {
             TokenStream::new()
@@ -225,7 +225,7 @@ impl ToTokens for Api {
             quote! {
                 let request_body = RequestBody(request.#field_name);
 
-                let mut http_request = ::http::Request::new(::serde_json::to_vec(&request_body)?);
+                let mut http_request = ruma_api::exports::http::Request::new(ruma_api::exports::serde_json::to_vec(&request_body)?);
             }
         } else if self.request.has_body_fields() {
             let request_body_init_fields = self.request.request_body_init_fields();
@@ -235,11 +235,11 @@ impl ToTokens for Api {
                     #request_body_init_fields
                 };
 
-                let mut http_request = ::http::Request::new(::serde_json::to_vec(&request_body)?);
+                let mut http_request = ruma_api::exports::http::Request::new(ruma_api::exports::serde_json::to_vec(&request_body)?);
             }
         } else {
             quote! {
-                let mut http_request = ::http::Request::new(Vec::new());
+                let mut http_request = ruma_api::exports::http::Request::new(Vec::new());
             }
         };
 
@@ -247,12 +247,12 @@ impl ToTokens for Api {
             let ty = &field.ty;
             quote! {
                 let request_body: #ty =
-                    ::serde_json::from_slice(request.body().as_slice())?;
+                    ruma_api::exports::serde_json::from_slice(request.body().as_slice())?;
             }
         } else if self.request.has_body_fields() {
             quote! {
                 let request_body: RequestBody =
-                    ::serde_json::from_slice(request.body().as_slice())?;
+                    ruma_api::exports::serde_json::from_slice(request.body().as_slice())?;
             }
         } else {
             TokenStream::new()
@@ -278,11 +278,11 @@ impl ToTokens for Api {
             let field_type = &field.ty;
 
             quote! {
-                ::serde_json::from_slice::<#field_type>(http_response.into_body().as_slice())?
+                ruma_api::exports::serde_json::from_slice::<#field_type>(http_response.into_body().as_slice())?
             }
         } else if self.response.has_body_fields() {
             quote! {
-                ::serde_json::from_slice::<ResponseBody>(http_response.into_body().as_slice())?
+                ruma_api::exports::serde_json::from_slice::<ResponseBody>(http_response.into_body().as_slice())?
             }
         } else {
             quote! {
@@ -309,7 +309,7 @@ impl ToTokens for Api {
         let try_serialize_response_body = if self.response.has_body() {
             let body = self.response.to_body();
             quote! {
-                ::serde_json::to_vec(&#body)?
+                ruma_api::exports::serde_json::to_vec(&#body)?
             }
         } else {
             quote! {
@@ -317,29 +317,28 @@ impl ToTokens for Api {
             }
         };
 
-        let endpoint_doc = format!("The `{}` API endpoint.\n\n{}", name, description.value());
-        let request_doc = format!("Data for a request to the `{}` API endpoint.", name);
+        let request_doc = format!(
+            "Data for a request to the `{}` API endpoint.\n\n{}",
+            name,
+            description.value()
+        );
         let response_doc = format!("Data in the response from the `{}` API endpoint.", name);
 
         let api = quote! {
-            use ::ruma_api::Endpoint as _;
-            use ::serde::Deserialize as _;
-            use ::serde::de::{Error as _, IntoDeserializer as _};
+            use ruma_api::Endpoint as _;
+            use ruma_api::exports::serde::Deserialize as _;
+            use ruma_api::exports::serde::de::{Error as _, IntoDeserializer as _};
 
-            use ::std::convert::{TryInto as _};
-
-            #[doc = #endpoint_doc]
-            #[derive(Debug)]
-            pub struct Endpoint;
+            use std::convert::{TryInto as _};
 
             #[doc = #request_doc]
             #request_types
 
-            impl ::std::convert::TryFrom<::http::Request<Vec<u8>>> for Request {
-                type Error = ::ruma_api::Error;
+            impl std::convert::TryFrom<ruma_api::exports::http::Request<Vec<u8>>> for Request {
+                type Error = ruma_api::Error;
 
                 #[allow(unused_variables)]
-                fn try_from(request: ::http::Request<Vec<u8>>) -> Result<Self, Self::Error> {
+                fn try_from(request: ruma_api::exports::http::Request<Vec<u8>>) -> Result<Self, Self::Error> {
                     #extract_request_path
                     #extract_request_query
                     #extract_request_headers
@@ -354,24 +353,24 @@ impl ToTokens for Api {
                 }
             }
 
-            impl ::std::convert::TryFrom<Request> for ::http::Request<Vec<u8>> {
-                type Error = ::ruma_api::Error;
+            impl std::convert::TryFrom<Request> for ruma_api::exports::http::Request<Vec<u8>> {
+                type Error = ruma_api::Error;
 
                 #[allow(unused_mut, unused_variables)]
                 fn try_from(request: Request) -> Result<Self, Self::Error> {
-                    let metadata = Endpoint::METADATA;
+                    let metadata = Request::METADATA;
 
                     // Use dummy homeserver url which has to be overwritten in
                     // the calling code. Previously (with http::Uri) this was
                     // not required, but Url::parse only accepts absolute urls.
-                    let mut url = ::url::Url::parse("http://invalid-host-please-change/").unwrap();
+                    let mut url = ruma_api::exports::url::Url::parse("http://invalid-host-please-change/").unwrap();
 
                     { #set_request_path }
                     { #set_request_query }
 
                     #create_http_request
 
-                    *http_request.method_mut() = ::http::Method::#method;
+                    *http_request.method_mut() = ruma_api::exports::http::Method::#method;
                     *http_request.uri_mut() = url.into_string().parse().unwrap();
 
                     { #add_headers_to_request }
@@ -383,13 +382,13 @@ impl ToTokens for Api {
             #[doc = #response_doc]
             #response_types
 
-            impl ::std::convert::TryFrom<Response> for ::http::Response<Vec<u8>> {
-                type Error = ::ruma_api::Error;
+            impl std::convert::TryFrom<Response> for ruma_api::exports::http::Response<Vec<u8>> {
+                type Error = ruma_api::Error;
 
                 #[allow(unused_variables)]
                 fn try_from(response: Response) -> Result<Self, Self::Error> {
-                    let response = ::http::Response::builder()
-                        .header(::http::header::CONTENT_TYPE, "application/json")
+                    let response = ruma_api::exports::http::Response::builder()
+                        .header(ruma_api::exports::http::header::CONTENT_TYPE, "application/json")
                         #serialize_response_headers
                         .body(#try_serialize_response_body)
                         .unwrap();
@@ -397,11 +396,11 @@ impl ToTokens for Api {
                 }
             }
 
-            impl ::std::convert::TryFrom<::http::Response<Vec<u8>>> for Response {
-                type Error = ::ruma_api::Error;
+            impl std::convert::TryFrom<ruma_api::exports::http::Response<Vec<u8>>> for Response {
+                type Error = ruma_api::Error;
 
                 #[allow(unused_variables)]
-                fn try_from(http_response: ::http::Response<Vec<u8>>) -> Result<Self, Self::Error> {
+                fn try_from(http_response: ruma_api::exports::http::Response<Vec<u8>>) -> Result<Self, Self::Error> {
                     if http_response.status().is_success() {
                         #extract_response_headers
 
@@ -415,14 +414,13 @@ impl ToTokens for Api {
                 }
             }
 
-            impl ::ruma_api::Endpoint for Endpoint {
-                type Request = Request;
+            impl ruma_api::Endpoint for Request {
                 type Response = Response;
 
                 /// Metadata for the `#name` endpoint.
-                const METADATA: ::ruma_api::Metadata = ::ruma_api::Metadata {
+                const METADATA: ruma_api::Metadata = ruma_api::Metadata {
                     description: #description,
-                    method: ::http::Method::#method,
+                    method: ruma_api::exports::http::Method::#method,
                     name: #name,
                     path: #path,
                     rate_limited: #rate_limited,

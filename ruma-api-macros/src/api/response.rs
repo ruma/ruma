@@ -61,7 +61,7 @@ impl Response {
                     let span = field.span();
 
                     quote_spanned! {span=>
-                        #field_name: headers.remove(::http::header::#header_name)
+                        #field_name: headers.remove(ruma_api::exports::http::header::#header_name)
                             .expect("response missing expected header")
                             .to_str()
                             .expect("failed to convert HeaderValue to str")
@@ -97,7 +97,7 @@ impl Response {
                 let span = field.span();
 
                 Some(quote_spanned! {span=>
-                    .header(::http::header::#header_name, response.#field_name)
+                    .header(ruma_api::exports::http::header::#header_name, response.#field_name)
                 })
             } else {
                 None
@@ -247,7 +247,7 @@ impl ToTokens for Response {
 
             quote_spanned! {span=>
                 /// Data in the response body.
-                #[derive(Debug, Deserialize, Serialize)]
+                #[derive(Debug, ruma_api::exports::serde::Deserialize, ruma_api::exports::serde::Serialize)]
                 struct ResponseBody(#ty);
             }
         } else if self.has_body_fields() {
@@ -264,7 +264,7 @@ impl ToTokens for Response {
 
             quote! {
                 /// Data in the response body.
-                #[derive(Debug, Deserialize, Serialize)]
+                #[derive(Debug, ruma_api::exports::serde::Deserialize, ruma_api::exports::serde::Serialize)]
                 struct ResponseBody {
                     #(#fields),*
                 }

@@ -28,8 +28,8 @@ impl Request {
 
             quote! {
                 headers.append(
-                    ::http::header::#header_name,
-                    ::http::header::HeaderValue::from_str(request.#field_name.as_ref())
+                    ruma_api::exports::http::header::#header_name,
+                    ruma_api::exports::http::header::HeaderValue::from_str(request.#field_name.as_ref())
                         .expect("failed to convert value into HeaderValue"),
                 );
             }
@@ -52,9 +52,9 @@ impl Request {
             let header_name_string = header_name.to_string();
 
             quote! {
-                #field_name: headers.get(::http::header::#header_name)
+                #field_name: headers.get(ruma_api::exports::http::header::#header_name)
                     .and_then(|v| v.to_str().ok())
-                    .ok_or(::serde_json::Error::missing_field(#header_name_string))?
+                    .ok_or(ruma_api::exports::serde_json::Error::missing_field(#header_name_string))?
                     .to_owned()
             }
         });
@@ -261,7 +261,7 @@ impl ToTokens for Request {
 
             quote_spanned! {span=>
                 /// Data in the request body.
-                #[derive(Debug, Deserialize, Serialize)]
+                #[derive(Debug, ruma_api::exports::serde::Deserialize, ruma_api::exports::serde::Serialize)]
                 struct RequestBody(#ty);
             }
         } else if self.has_body_fields() {
@@ -278,7 +278,7 @@ impl ToTokens for Request {
 
             quote! {
                 /// Data in the request body.
-                #[derive(Debug, Deserialize, Serialize)]
+                #[derive(Debug, ruma_api::exports::serde::Deserialize, ruma_api::exports::serde::Serialize)]
                 struct RequestBody {
                     #(#fields),*
                 }
@@ -302,7 +302,7 @@ impl ToTokens for Request {
 
             quote! {
                 /// Data in the request path.
-                #[derive(Debug, Deserialize, Serialize)]
+                #[derive(Debug, ruma_api::exports::serde::Deserialize, ruma_api::exports::serde::Serialize)]
                 struct RequestPath {
                     #(#fields),*
                 }
@@ -325,7 +325,7 @@ impl ToTokens for Request {
 
             quote! {
                 /// Data in the request's query string.
-                #[derive(Debug, Deserialize, Serialize)]
+                #[derive(Debug, ruma_api::exports::serde::Deserialize, ruma_api::exports::serde::Serialize)]
                 struct RequestQuery {
                     #(#fields),*
                 }

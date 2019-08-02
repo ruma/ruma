@@ -1,6 +1,5 @@
 pub mod some_endpoint {
-    use ruma_api_macros::ruma_api;
-    use serde::{Deserialize, Serialize};
+    use ruma_api::ruma_api;
 
     ruma_api! {
         metadata {
@@ -37,6 +36,36 @@ pub mod some_endpoint {
 
             // With no attribute on the field, it will be extracted from the body of the response.
             pub value: String,
+        }
+    }
+}
+
+pub mod newtype_body_endpoint {
+    use ruma_api_macros::ruma_api;
+
+    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+    pub struct MyCustomType {
+        pub foo: String,
+    }
+
+    ruma_api! {
+        metadata {
+            description: "Does something.",
+            method: GET,
+            name: "newtype_body_endpoint",
+            path: "/_matrix/some/newtype/body/endpoint",
+            rate_limited: false,
+            requires_authentication: false,
+        }
+
+        request {
+            #[ruma_api(body)]
+            pub file: Vec<u8>,
+        }
+
+        response {
+            #[ruma_api(body)]
+            pub my_custom_type: MyCustomType,
         }
     }
 }
