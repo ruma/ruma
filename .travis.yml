@@ -8,9 +8,9 @@ before_script:
 script:
   - "cargo audit"
   - "cargo fmt --all -- --check"
-  - "cargo clippy --all-targets --all-features -- -D warnings"
-  - "cargo build --verbose"
-  - "cargo test --verbose"
+  - "cargo clippy --all --all-targets --all-features -- -D warnings"
+  - "cargo build --all --verbose"
+  - "cargo test --all --verbose"
 notifications:
   email: false
   irc:
