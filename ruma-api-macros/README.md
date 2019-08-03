@@ -1,6 +1,6 @@
 # ruma-api-macros
 
-[![Build Status](https://travis-ci.org/ruma/ruma-api-macros.svg?branch=master)](https://travis-ci.org/ruma/ruma-api-macros)
+[![Build Status](https://travis-ci.org/ruma/ruma-api.svg?branch=master)](https://travis-ci.org/ruma/ruma-api)
 
 **ruma-api-macros** provides a procedural macro for easily generating [ruma-api](https://github.com/ruma/ruma-api)-compatible API endpoints.
 You define the endpoint's metadata, request fields, and response fields, and the macro generates all the necessary types and implements all the necessary traits.
@@ -10,17 +10,6 @@ You define the endpoint's metadata, request fields, and response fields, and the
 Here is an example that shows most of the macro's functionality.
 
 ``` rust
-#![feature(proc_macro, try_from)]
-
-extern crate http;
-extern crate ruma_api;
-extern crate ruma_api_macros;
-extern crate serde;
-#[macro_use] extern crate serde_derive;
-extern crate serde_json;
-extern crate serde_urlencoded;
-extern crate url;
-
 pub mod some_endpoint {
     use ruma_api_macros::ruma_api;
 
