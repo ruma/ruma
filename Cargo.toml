@@ -15,7 +15,7 @@ edition = "2018"
 [dependencies]
 http = "0.1.18"
 serde_json = "1.0.40"
-serde_urlencoded = "0.6.0"
+serde_urlencoded = "0.6.1"
 ruma-identifiers = "0.14.0"
 
 [dependencies.percent-encoding]
