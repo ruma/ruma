@@ -1,8 +1,7 @@
 //! [PUT /_matrix/client/r0/user/{userId}/rooms/{roomId}/account_data/{type}](https://matrix.org/docs/spec/client_server/r0.4.0.html#put-matrix-client-r0-user-userid-rooms-roomid-account-data-type)
 
-use ruma_api_macros::ruma_api;
+use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, UserId};
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 ruma_api! {

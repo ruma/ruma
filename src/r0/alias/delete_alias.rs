@@ -1,8 +1,8 @@
 //! [DELETE /_matrix/client/r0/directory/room/{roomAlias}](https://matrix.org/docs/spec/client_server/r0.4.0.html#delete-matrix-client-r0-directory-room-roomalias)
 
-use ruma_api_macros::ruma_api;
+use ruma_api::ruma_api;
 use ruma_identifiers::RoomAliasId;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 ruma_api! {
     metadata {

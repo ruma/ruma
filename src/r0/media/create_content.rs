@@ -1,7 +1,6 @@
 //! [POST /_matrix/media/r0/upload](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-media-r0-upload)
 
-use ruma_api_macros::ruma_api;
-use serde::{Deserialize, Serialize};
+use ruma_api::ruma_api;
 
 ruma_api! {
     metadata {
@@ -19,7 +18,7 @@ ruma_api! {
         #[ruma_api(query)]
         pub filename: Option<String>,
         /// The content type of the file being uploaded.
-        #[ruma_api(header = "CONTENT_TYPE")]
+        #[ruma_api(header = CONTENT_TYPE)]
         pub content_type: String,
         /// The file contents to upload.
         #[ruma_api(body)]

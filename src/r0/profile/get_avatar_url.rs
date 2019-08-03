@@ -1,8 +1,7 @@
 //! [GET /_matrix/client/r0/profile/{userId}/avatar_url](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-profile-userid-avatar-url)
 
-use ruma_api_macros::ruma_api;
+use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
-use serde::{Deserialize, Serialize};
 
 ruma_api! {
     metadata {

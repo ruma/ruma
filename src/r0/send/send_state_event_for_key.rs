@@ -1,9 +1,8 @@
 //! [PUT /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}](https://matrix.org/docs/spec/client_server/r0.4.0.html#put-matrix-client-r0-rooms-roomid-state-eventtype-statekey)
 
-use ruma_api_macros::ruma_api;
+use ruma_api::ruma_api;
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomId};
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 ruma_api! {

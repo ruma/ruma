@@ -2,8 +2,7 @@
 
 //! [GET /_matrix/media/r0/download/{serverName}/{mediaId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-media-r0-download-servername-mediaid)
 
-use ruma_api_macros::ruma_api;
-use serde::{Deserialize, Serialize};
+use ruma_api::ruma_api;
 
 ruma_api! {
     metadata {
@@ -29,10 +28,10 @@ ruma_api! {
         #[ruma_api(body)]
         pub file: Vec<u8>,
         /// The content type of the file that was previously uploaded.
-        #[ruma_api(header = "CONTENT_TYPE")]
+        #[ruma_api(header = CONTENT_TYPE)]
         pub content_type: String,
         /// The name of the file that was previously uploaded, if set.
-        #[ruma_api(header = "CONTENT_DISPOSITION")]
+        #[ruma_api(header = CONTENT_DISPOSITION)]
         pub content_disposition: String,
     }
 }

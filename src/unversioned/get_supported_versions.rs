@@ -1,7 +1,6 @@
 //! [GET /_matrix/client/versions](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-versions)
 
-use ruma_api_macros::ruma_api;
-use serde::{Deserialize, Serialize};
+use ruma_api::ruma_api;
 
 ruma_api! {
     metadata {
