@@ -11,6 +11,7 @@ script:
   - "cargo clippy --all-targets --all-features -- -D warnings"
   - "cargo build --verbose"
   - "cargo test --verbose"
+if: "type != push OR (tag IS blank AND branch = master)"
 notifications:
   email: false
   irc:
