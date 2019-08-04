@@ -2,7 +2,6 @@
 
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
-use serde::Deserialize;
 
 use super::FilterDefinition;
 

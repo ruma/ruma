@@ -3,7 +3,6 @@
 use ruma_api::ruma_api;
 use ruma_events::room::member::MemberEvent;
 use ruma_identifiers::RoomId;
-use serde::Deserialize;
 
 ruma_api! {
     metadata {
