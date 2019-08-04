@@ -14,14 +14,14 @@ version = "0.2.0"
 
 [dependencies]
 futures-preview = "0.3.0-alpha.17"
-http = "0.1.17"
+http = "0.1.18"
 hyper = { git = "https://github.com/hyperium/hyper" }
-ruma-api = { git = "https://github.com/ruma/ruma-api" }
-ruma-client-api = { git = "https://github.com/ruma/ruma-client-api", branch = "update-deps" }
+ruma-api = "0.10.0"
+ruma-client-api = { git = "https://github.com/ruma/ruma-client-api" }
 ruma-identifiers = "0.14.0"
-serde_json = "1.0.39"
-serde_urlencoded = "0.5.4"
-url = "1.7.2"
+serde_json = "1.0.40"
+serde_urlencoded = "0.6.1"
+url = "2.0.0"
 
 [dependencies.hyper-tls]
 optional = true
@@ -29,14 +29,14 @@ git = "https://github.com/hyperium/hyper-tls"
 
 [dependencies.native-tls]
 optional = true
-version = "0.2.2"
+version = "0.2.3"
 
 [dependencies.ruma-events]
 git = "https://github.com/ruma/ruma-events"
 rev = "1b0be0d0e7fa1040fc51b748256b290e24677b19"
 
 [dependencies.serde]
-version = "1.0.90"
+version = "1.0.98"
 features = ["derive"]
 
 [dev-dependencies.tokio]
@@ -45,3 +45,7 @@ git = "https://github.com/tokio-rs/tokio"
 [features]
 default = ["tls"]
 tls = ["hyper-tls", "native-tls"]
+
+[patch.crates-io.ruma-events]
+git = "https://github.com/ruma/ruma-events"
+rev = "1b0be0d0e7fa1040fc51b748256b290e24677b19"
