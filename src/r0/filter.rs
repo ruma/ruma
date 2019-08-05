@@ -42,9 +42,9 @@ pub struct RoomEventFilter {
     /// A list of room IDs to include.
     ///
     /// If this list is absent then all rooms are included.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
-    pub rooms: Vec<RoomId>,
+    pub rooms: Option<Vec<RoomId>>,
     /// A list of sender IDs to exclude.
     ///
     /// If this list is absent then no senders are excluded. A matching sender will be excluded even
@@ -55,16 +55,16 @@ pub struct RoomEventFilter {
     /// A list of senders IDs to include.
     ///
     /// If this list is absent then all senders are included.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
-    pub senders: Vec<UserId>,
+    pub senders: Option<Vec<UserId>>,
     /// A list of event types to include.
     ///
     /// If this list is absent then all event types are included. A '*' can be used as a wildcard to
     /// match any sequence of characters.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
-    pub types: Vec<String>,
+    pub types: Option<Vec<String>>,
 }
 
 /// Filters to be applied to room data
@@ -100,9 +100,9 @@ pub struct RoomFilter {
     ///
     /// If this list is absent then all rooms are included. This filter is applied before the
     /// filters in `ephemeral`, `state`, `timeline` or `account_data`.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
-    pub rooms: Vec<RoomId>,
+    pub rooms: Option<Vec<RoomId>>,
 }
 
 /// Filter for not-room data
@@ -122,16 +122,16 @@ pub struct Filter {
     /// A list of senders IDs to include.
     ///
     /// If this list is absent then all senders are included.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
-    pub senders: Vec<UserId>,
+    pub senders: Option<Vec<UserId>>,
     /// A list of event types to include.
     ///
     /// If this list is absent then all event types are included. A '*' can be used as a wildcard to
     /// match any sequence of characters.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
-    pub types: Vec<String>,
+    pub types: Option<Vec<String>>,
     /// A list of sender IDs to exclude.
     ///
     /// If this list is absent then no senders are excluded. A matching sender will be excluded even
@@ -150,9 +150,9 @@ pub struct FilterDefinition {
     /// to indicate sub-fields. So ['content.body'] will include the 'body' field of the 'content'
     /// object. A literal '.' character in a field name may be escaped using a '\'. A server may
     /// include more fields than were requested.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
-    pub event_fields: Vec<String>,
+    pub event_fields: Option<Vec<String>>,
     /// The format to use for events.
     ///
     /// 'client' will return the events in a format suitable for clients. 'federation' will return
