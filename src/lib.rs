@@ -236,6 +236,33 @@ impl Display for InvalidInput {
 
 impl Error for InvalidInput {}
 
+/// The result of deserializing an event, which may or may not be valid.
+///
+/// When data is successfully deserialized and validated, this structure will contain the
+/// deserialized value `T`. When deserialization succeeds, but the event is invalid for any reason,
+/// this structure will contain an `InvalidEvent`. See the documentation for `InvalidEvent` for
+/// more details.
+#[derive(Debug)]
+pub enum EventResult<T> {
+    /// `T` deserialized and validated successfully.
+    Ok(T),
+
+    /// `T` deserialized but was invalid.
+    ///
+    /// `InvalidEvent` contains the original input.
+    Err(InvalidEvent),
+}
+
+impl<T> EventResult<T> {
+    /// Convert `EventResult<T>` into the equivalent `std::result::Result<T, InvalidEvent>`.
+    pub fn into(self) -> Result<T, InvalidEvent> {
+        match self {
+            EventResult::Ok(t) => Ok(t),
+            EventResult::Err(invalid_event) => Err(invalid_event),
+        }
+    }
+}
+
 /// An error when attempting to create a value from a string via the `FromStr` trait.
 ///
 /// This error type is only used for simple enums with unit variants. Event deserialization through
