@@ -255,7 +255,7 @@ pub enum EventResult<T> {
 
 impl<T> EventResult<T> {
     /// Convert `EventResult<T>` into the equivalent `std::result::Result<T, InvalidEvent>`.
-    pub fn into(self) -> Result<T, InvalidEvent> {
+    pub fn into_result(self) -> Result<T, InvalidEvent> {
         match self {
             EventResult::Ok(t) => Ok(t),
             EventResult::Err(invalid_event) => Err(invalid_event),

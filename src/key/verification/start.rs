@@ -602,7 +602,7 @@ mod tests {
                 r#"{"from_device":"123","transaction_id":"456","method":"m.sas.v1","hashes":["sha256"],"key_agreement_protocols":["curve25519"],"message_authentication_codes":["hkdf-hmac-sha256"],"short_authentication_string":["decimal"]}"#
             )
                 .unwrap()
-                .into()
+                .into_result()
                 .unwrap(),
             key_verification_start_content
         );
@@ -616,7 +616,7 @@ mod tests {
                 r#"{"content":{"from_device":"123","transaction_id":"456","method":"m.sas.v1","key_agreement_protocols":["curve25519"],"hashes":["sha256"],"message_authentication_codes":["hkdf-hmac-sha256"],"short_authentication_string":["decimal"]},"type":"m.key.verification.start"}"#
             )
                 .unwrap()
-                .into()
+                .into_result()
                 .unwrap(),
             key_verification_start
         )
@@ -634,7 +634,7 @@ mod tests {
         let error =
             serde_json::from_str::<EventResult<StartEventContent>>(r#"{"from_device":"123"}"#)
                 .unwrap()
-                .into()
+                .into_result()
                 .unwrap_err();
 
         assert!(error.message().contains("missing field"));
@@ -648,7 +648,7 @@ mod tests {
                 r#"{"from_device":"123","transaction_id":"456","method":"m.sas.v1","key_agreement_protocols":[],"hashes":["sha256"],"message_authentication_codes":["hkdf-hmac-sha256"],"short_authentication_string":["decimal"]}"#
             )
                 .unwrap()
-                .into()
+                .into_result()
                 .unwrap_err();
 
         assert!(error.message().contains("key_agreement_protocols"));
@@ -662,7 +662,7 @@ mod tests {
                 r#"{"from_device":"123","transaction_id":"456","method":"m.sas.v1","key_agreement_protocols":["curve25519"],"hashes":[],"message_authentication_codes":["hkdf-hmac-sha256"],"short_authentication_string":["decimal"]}"#
             )
                 .unwrap()
-                .into()
+                .into_result()
                 .unwrap_err();
 
         assert!(error.message().contains("hashes"));
@@ -676,7 +676,7 @@ mod tests {
                 r#"{"from_device":"123","transaction_id":"456","method":"m.sas.v1","key_agreement_protocols":["curve25519"],"hashes":["sha256"],"message_authentication_codes":[],"short_authentication_string":["decimal"]}"#
             )
                 .unwrap()
-                .into()
+                .into_result()
                 .unwrap_err();
 
         assert!(error.message().contains("message_authentication_codes"));
@@ -690,7 +690,7 @@ mod tests {
                 r#"{"from_device":"123","transaction_id":"456","method":"m.sas.v1","key_agreement_protocols":["curve25519"],"hashes":["sha256"],"message_authentication_codes":["hkdf-hmac-sha256"],"short_authentication_string":[]}"#
             )
                 .unwrap()
-                .into()
+                .into_result()
                 .unwrap_err();
 
         assert!(error.message().contains("short_authentication_string"));
