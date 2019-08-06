@@ -3,9 +3,9 @@
 use std::{collections::HashMap, convert::TryFrom, str::FromStr};
 
 use ruma_identifiers::UserId;
-use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
+use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::{Empty, Event, EventType, InnerInvalidEvent, InvalidEvent};
+use crate::{Empty, Event, EventResult, EventType, InnerInvalidEvent, InvalidEvent};
 
 /// A list of users to ignore.
 #[derive(Clone, Debug, PartialEq)]
@@ -19,6 +19,33 @@ pub struct IgnoredUserListEvent {
 pub struct IgnoredUserListEventContent {
     /// A list of users to ignore.
     pub ignored_users: Vec<UserId>,
+}
+
+impl<'de> Deserialize<'de> for EventResult<IgnoredUserListEvent> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = serde_json::Value::deserialize(deserializer)?;
+
+        let raw: raw::IgnoredUserListEvent = match serde_json::from_value(json.clone()) {
+            Ok(raw) => raw,
+            Err(error) => {
+                return Ok(EventResult::Err(InvalidEvent(
+                    InnerInvalidEvent::Validation {
+                        json,
+                        message: error.to_string(),
+                    },
+                )));
+            }
+        };
+
+        Ok(EventResult::Ok(IgnoredUserListEvent {
+            content: IgnoredUserListEventContent {
+                ignored_users: raw.content.ignored_users.keys().cloned().collect(),
+            },
+        }))
+    }
 }
 
 impl FromStr for IgnoredUserListEvent {
@@ -77,6 +104,31 @@ impl_event!(
     IgnoredUserListEventContent,
     EventType::IgnoredUserList
 );
+
+impl<'de> Deserialize<'de> for EventResult<IgnoredUserListEventContent> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = serde_json::Value::deserialize(deserializer)?;
+
+        let raw: raw::IgnoredUserListEventContent = match serde_json::from_value(json.clone()) {
+            Ok(raw) => raw,
+            Err(error) => {
+                return Ok(EventResult::Err(InvalidEvent(
+                    InnerInvalidEvent::Validation {
+                        json,
+                        message: error.to_string(),
+                    },
+                )));
+            }
+        };
+
+        Ok(EventResult::Ok(IgnoredUserListEventContent {
+            ignored_users: raw.ignored_users.keys().cloned().collect(),
+        }))
+    }
+}
 
 impl FromStr for IgnoredUserListEventContent {
     type Err = InvalidEvent;
@@ -155,7 +207,7 @@ mod tests {
 
     use ruma_identifiers::UserId;
 
-    use super::{IgnoredUserListEvent, IgnoredUserListEventContent};
+    use super::{EventResult, IgnoredUserListEvent, IgnoredUserListEventContent};
 
     #[test]
     fn serialization() {
@@ -174,7 +226,10 @@ mod tests {
     fn deserialization() {
         let json = r#"{"content":{"ignored_users":{"@carl:example.com":{}}},"type":"m.ignored_user_list"}"#;
 
-        let actual: IgnoredUserListEvent = json.parse().unwrap();
+        let actual = serde_json::from_str::<EventResult<IgnoredUserListEvent>>(json)
+            .unwrap()
+            .into_result()
+            .unwrap();
 
         let expected = IgnoredUserListEvent {
             content: IgnoredUserListEventContent {
