@@ -4,10 +4,12 @@ use std::{collections::HashMap, convert::TryFrom, str::FromStr};
 
 use js_int::{Int, UInt};
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
+use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{Event, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent, StateEvent};
+use crate::{
+    Event, EventResult, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent, StateEvent,
+};
 
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Clone, Debug, PartialEq)]
@@ -83,6 +85,60 @@ pub struct PowerLevelsEventContent {
     ///
     /// This is a mapping from `key` to power level for that notifications key.
     pub notifications: NotificationPowerLevels,
+}
+
+impl<'de> Deserialize<'de> for EventResult<PowerLevelsEvent> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = serde_json::Value::deserialize(deserializer)?;
+
+        let raw: raw::PowerLevelsEvent = match serde_json::from_value(json.clone()) {
+            Ok(raw) => raw,
+            Err(error) => {
+                return Ok(EventResult::Err(InvalidEvent(
+                    InnerInvalidEvent::Validation {
+                        json,
+                        message: error.to_string(),
+                    },
+                )));
+            }
+        };
+
+        Ok(EventResult::Ok(PowerLevelsEvent {
+            content: PowerLevelsEventContent {
+                ban: raw.content.ban,
+                events: raw.content.events,
+                events_default: raw.content.events_default,
+                invite: raw.content.invite,
+                kick: raw.content.kick,
+                redact: raw.content.redact,
+                state_default: raw.content.state_default,
+                users: raw.content.users,
+                users_default: raw.content.users_default,
+                notifications: raw.content.notifications,
+            },
+            event_id: raw.event_id,
+            origin_server_ts: raw.origin_server_ts,
+            prev_content: raw.prev_content.map(|prev| PowerLevelsEventContent {
+                ban: prev.ban,
+                events: prev.events,
+                events_default: prev.events_default,
+                invite: prev.invite,
+                kick: prev.kick,
+                redact: prev.redact,
+                state_default: prev.state_default,
+                users: prev.users,
+                users_default: prev.users_default,
+                notifications: prev.notifications,
+            }),
+            room_id: raw.room_id,
+            sender: raw.sender,
+            state_key: raw.state_key,
+            unsigned: raw.unsigned,
+        }))
+    }
 }
 
 impl FromStr for PowerLevelsEvent {
@@ -199,6 +255,40 @@ impl_state_event!(
     PowerLevelsEventContent,
     EventType::RoomPowerLevels
 );
+
+impl<'de> Deserialize<'de> for EventResult<PowerLevelsEventContent> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = serde_json::Value::deserialize(deserializer)?;
+
+        let raw: raw::PowerLevelsEventContent = match serde_json::from_value(json.clone()) {
+            Ok(raw) => raw,
+            Err(error) => {
+                return Ok(EventResult::Err(InvalidEvent(
+                    InnerInvalidEvent::Validation {
+                        json,
+                        message: error.to_string(),
+                    },
+                )));
+            }
+        };
+
+        Ok(EventResult::Ok(PowerLevelsEventContent {
+            ban: raw.ban,
+            events: raw.events,
+            events_default: raw.events_default,
+            invite: raw.invite,
+            kick: raw.kick,
+            redact: raw.redact,
+            state_default: raw.state_default,
+            users: raw.users,
+            users_default: raw.users_default,
+            notifications: raw.notifications,
+        }))
+    }
+}
 
 impl FromStr for PowerLevelsEventContent {
     type Err = InvalidEvent;
