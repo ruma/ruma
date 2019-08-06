@@ -4,11 +4,12 @@ use std::{convert::TryFrom, str::FromStr};
 
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
-use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
+use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 
 use crate::{
-    empty_string_as_none, Event, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent, StateEvent,
+    empty_string_as_none, Event, EventResult, EventType, InnerInvalidEvent, InvalidEvent,
+    RoomEvent, StateEvent,
 };
 
 /// Informs the room as to which alias is the canonical one.
@@ -47,6 +48,42 @@ pub struct CanonicalAliasEventContent {
     ///
     /// Rooms with `alias: None` should be treated the same as a room with no canonical alias.
     pub alias: Option<RoomAliasId>,
+}
+
+impl<'de> Deserialize<'de> for EventResult<CanonicalAliasEvent> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = serde_json::Value::deserialize(deserializer)?;
+
+        let raw: raw::CanonicalAliasEvent = match serde_json::from_value(json.clone()) {
+            Ok(raw) => raw,
+            Err(error) => {
+                return Ok(EventResult::Err(InvalidEvent(
+                    InnerInvalidEvent::Validation {
+                        json,
+                        message: error.to_string(),
+                    },
+                )));
+            }
+        };
+
+        Ok(EventResult::Ok(CanonicalAliasEvent {
+            content: CanonicalAliasEventContent {
+                alias: raw.content.alias,
+            },
+            event_id: raw.event_id,
+            origin_server_ts: raw.origin_server_ts,
+            prev_content: raw
+                .prev_content
+                .map(|prev| CanonicalAliasEventContent { alias: prev.alias }),
+            room_id: raw.room_id,
+            sender: raw.sender,
+            state_key: raw.state_key,
+            unsigned: raw.unsigned,
+        }))
+    }
 }
 
 impl FromStr for CanonicalAliasEvent {
@@ -146,6 +183,31 @@ impl_state_event!(
     EventType::RoomCanonicalAlias
 );
 
+impl<'de> Deserialize<'de> for EventResult<CanonicalAliasEventContent> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = serde_json::Value::deserialize(deserializer)?;
+
+        let raw: raw::CanonicalAliasEventContent = match serde_json::from_value(json.clone()) {
+            Ok(raw) => raw,
+            Err(error) => {
+                return Ok(EventResult::Err(InvalidEvent(
+                    InnerInvalidEvent::Validation {
+                        json,
+                        message: error.to_string(),
+                    },
+                )));
+            }
+        };
+
+        Ok(EventResult::Ok(CanonicalAliasEventContent {
+            alias: raw.alias,
+        }))
+    }
+}
+
 impl FromStr for CanonicalAliasEventContent {
     type Err = InvalidEvent;
 
@@ -232,7 +294,7 @@ mod tests {
     use js_int::UInt;
     use ruma_identifiers::{EventId, RoomAliasId, UserId};
 
-    use super::{CanonicalAliasEvent, CanonicalAliasEventContent};
+    use super::{CanonicalAliasEvent, CanonicalAliasEventContent, EventResult};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -258,8 +320,11 @@ mod tests {
     #[test]
     fn absent_field_as_none() {
         assert_eq!(
-            r#"{"content":{},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.canonical_alias"}"#
-                .parse::<CanonicalAliasEvent>()
+            serde_json::from_str::<EventResult<CanonicalAliasEvent>>(
+                r#"{"content":{},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.canonical_alias"}"#
+            )
+                .unwrap()
+                .into_result()
                 .unwrap()
                 .content
                 .alias,
@@ -270,8 +335,11 @@ mod tests {
     #[test]
     fn null_field_as_none() {
         assert_eq!(
-            r#"{"content":{"alias":null},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.canonical_alias"}"#
-                .parse::<CanonicalAliasEvent>()
+            serde_json::from_str::<EventResult<CanonicalAliasEvent>>(
+                r#"{"content":{"alias":null},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.canonical_alias"}"#
+            )
+                .unwrap()
+                .into_result()
                 .unwrap()
                 .content
                 .alias,
@@ -282,8 +350,11 @@ mod tests {
     #[test]
     fn empty_field_as_none() {
         assert_eq!(
-            r#"{"content":{"alias":""},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.canonical_alias"}"#
-                .parse::<CanonicalAliasEvent>()
+            serde_json::from_str::<EventResult<CanonicalAliasEvent>>(
+                r#"{"content":{"alias":""},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.canonical_alias"}"#
+            )
+                .unwrap()
+                .into_result()
                 .unwrap()
                 .content
                 .alias,
@@ -296,8 +367,11 @@ mod tests {
         let alias = Some(RoomAliasId::try_from("#somewhere:localhost").unwrap());
 
         assert_eq!(
-            r##"{"content":{"alias":"#somewhere:localhost"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.canonical_alias"}"##
-                .parse::<CanonicalAliasEvent>()
+            serde_json::from_str::<EventResult<CanonicalAliasEvent>>(
+                r##"{"content":{"alias":"#somewhere:localhost"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.canonical_alias"}"##
+            )
+                .unwrap()
+                .into_result()
                 .unwrap()
                 .content
                 .alias,
