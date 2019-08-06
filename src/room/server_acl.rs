@@ -4,11 +4,12 @@ use std::{convert::TryFrom, str::FromStr};
 
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
+use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 
 use crate::{
-    default_true, Event, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent, StateEvent,
+    default_true, Event, EventResult, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent,
+    StateEvent,
 };
 
 /// An event to indicate which servers are permitted to participate in the room.
@@ -67,6 +68,46 @@ pub struct ServerAclEventContent {
     /// This defaults to an empty list when not provided.
     #[serde(default)]
     pub deny: Vec<String>,
+}
+
+impl<'de> Deserialize<'de> for EventResult<ServerAclEvent> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = serde_json::Value::deserialize(deserializer)?;
+
+        let raw: raw::ServerAclEvent = match serde_json::from_value(json.clone()) {
+            Ok(raw) => raw,
+            Err(error) => {
+                return Ok(EventResult::Err(InvalidEvent(
+                    InnerInvalidEvent::Validation {
+                        json,
+                        message: error.to_string(),
+                    },
+                )));
+            }
+        };
+
+        Ok(EventResult::Ok(ServerAclEvent {
+            content: ServerAclEventContent {
+                allow_ip_literals: raw.content.allow_ip_literals,
+                allow: raw.content.allow,
+                deny: raw.content.deny,
+            },
+            event_id: raw.event_id,
+            origin_server_ts: raw.origin_server_ts,
+            prev_content: raw.prev_content.map(|prev| ServerAclEventContent {
+                allow_ip_literals: prev.allow_ip_literals,
+                allow: prev.allow,
+                deny: prev.deny,
+            }),
+            room_id: raw.room_id,
+            unsigned: raw.unsigned,
+            sender: raw.sender,
+            state_key: raw.state_key,
+        }))
+    }
 }
 
 impl FromStr for ServerAclEvent {
@@ -138,6 +179,33 @@ impl_state_event!(
     ServerAclEventContent,
     EventType::RoomServerAcl
 );
+
+impl<'de> Deserialize<'de> for EventResult<ServerAclEventContent> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = serde_json::Value::deserialize(deserializer)?;
+
+        let raw: raw::ServerAclEventContent = match serde_json::from_value(json.clone()) {
+            Ok(raw) => raw,
+            Err(error) => {
+                return Ok(EventResult::Err(InvalidEvent(
+                    InnerInvalidEvent::Validation {
+                        json,
+                        message: error.to_string(),
+                    },
+                )));
+            }
+        };
+
+        Ok(EventResult::Ok(ServerAclEventContent {
+            allow_ip_literals: raw.allow_ip_literals,
+            allow: raw.allow,
+            deny: raw.deny,
+        }))
+    }
+}
 
 impl FromStr for ServerAclEventContent {
     type Err = InvalidEvent;
