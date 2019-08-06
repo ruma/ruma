@@ -4,12 +4,12 @@ use std::{convert::TryFrom, str::FromStr};
 
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
+use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 
 use crate::{
-    empty_string_as_none, Event, EventType, InnerInvalidEvent, InvalidEvent, InvalidInput,
-    RoomEvent, StateEvent,
+    empty_string_as_none, Event, EventResult, EventType, InnerInvalidEvent, InvalidEvent,
+    InvalidInput, RoomEvent, StateEvent,
 };
 
 /// A human-friendly room name designed to be displayed to the end-user.
@@ -46,6 +46,42 @@ pub struct NameEvent {
 pub struct NameEventContent {
     /// The name of the room. This MUST NOT exceed 255 bytes.
     pub(crate) name: Option<String>,
+}
+
+impl<'de> Deserialize<'de> for EventResult<NameEvent> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = serde_json::Value::deserialize(deserializer)?;
+
+        let raw: raw::NameEvent = match serde_json::from_value(json.clone()) {
+            Ok(raw) => raw,
+            Err(error) => {
+                return Ok(EventResult::Err(InvalidEvent(
+                    InnerInvalidEvent::Validation {
+                        json,
+                        message: error.to_string(),
+                    },
+                )));
+            }
+        };
+
+        Ok(EventResult::Ok(NameEvent {
+            content: NameEventContent {
+                name: raw.content.name,
+            },
+            event_id: raw.event_id,
+            origin_server_ts: raw.origin_server_ts,
+            prev_content: raw
+                .prev_content
+                .map(|prev| NameEventContent { name: prev.name }),
+            room_id: raw.room_id,
+            sender: raw.sender,
+            state_key: raw.state_key,
+            unsigned: raw.unsigned,
+        }))
+    }
 }
 
 impl FromStr for NameEvent {
@@ -163,6 +199,29 @@ impl NameEventContent {
     }
 }
 
+impl<'de> Deserialize<'de> for EventResult<NameEventContent> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = serde_json::Value::deserialize(deserializer)?;
+
+        let raw: raw::NameEventContent = match serde_json::from_value(json.clone()) {
+            Ok(raw) => raw,
+            Err(error) => {
+                return Ok(EventResult::Err(InvalidEvent(
+                    InnerInvalidEvent::Validation {
+                        json,
+                        message: error.to_string(),
+                    },
+                )));
+            }
+        };
+
+        Ok(EventResult::Ok(NameEventContent { name: raw.name }))
+    }
+}
+
 impl FromStr for NameEventContent {
     type Err = InvalidEvent;
 
@@ -248,7 +307,7 @@ mod tests {
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::Value;
 
-    use super::{NameEvent, NameEventContent};
+    use super::{EventResult, NameEvent, NameEventContent};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -297,8 +356,11 @@ mod tests {
     #[test]
     fn absent_field_as_none() {
         assert_eq!(
-            r#"{"content":{},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
-                .parse::<NameEvent>()
+            serde_json::from_str::<EventResult<NameEvent>>(
+                r#"{"content":{},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
+            )
+                .unwrap()
+                .into_result()
                 .unwrap()
                 .content
                 .name,
@@ -309,8 +371,11 @@ mod tests {
     #[test]
     fn null_field_as_none() {
         assert_eq!(
-            r#"{"content":{"name":null},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
-                .parse::<NameEvent>()
+            serde_json::from_str::<EventResult<NameEvent>>(
+                r#"{"content":{"name":null},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
+            )
+                .unwrap()
+                .into_result()
                 .unwrap()
                 .content
                 .name,
@@ -321,8 +386,11 @@ mod tests {
     #[test]
     fn empty_string_as_none() {
         assert_eq!(
-            r#"{"content":{"name":""},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
-                .parse::<NameEvent>()
+            serde_json::from_str::<EventResult<NameEvent>>(
+                r#"{"content":{"name":""},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
+            )
+                .unwrap()
+                .into_result()
                 .unwrap()
                 .content
                 .name,
@@ -335,8 +403,11 @@ mod tests {
         let name = Some("The room name".to_string());
 
         assert_eq!(
-            r#"{"content":{"name":"The room name"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
-                .parse::<NameEvent>()
+            serde_json::from_str::<EventResult<NameEvent>>(
+                r#"{"content":{"name":"The room name"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
+            )
+                .unwrap()
+                .into_result()
                 .unwrap()
                 .content
                 .name,
