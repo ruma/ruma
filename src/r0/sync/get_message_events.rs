@@ -2,7 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_events::collections::only;
+use ruma_events::{collections::only, EventResult};
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
@@ -46,7 +46,7 @@ ruma_api! {
         /// The token the pagination starts from.
         pub start: String,
         /// A list of room events.
-        pub chunk: Vec<only::RoomEvent>,
+        pub chunk: Vec<EventResult<only::RoomEvent>>,
         /// The token the pagination ends at.
         pub end: String,
     }

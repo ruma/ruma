@@ -1,7 +1,7 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/members](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-rooms-roomid-members)
 
 use ruma_api::ruma_api;
-use ruma_events::room::member::MemberEvent;
+use ruma_events::{room::member::MemberEvent, EventResult};
 use ruma_identifiers::RoomId;
 
 ruma_api! {
@@ -22,6 +22,6 @@ ruma_api! {
 
     response {
         /// A list of member events.
-        pub chunk: Vec<MemberEvent>
+        pub chunk: Vec<EventResult<MemberEvent>>
     }
 }

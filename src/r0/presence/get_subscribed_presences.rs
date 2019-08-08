@@ -1,7 +1,7 @@
 //! [GET /_matrix/client/r0/presence/list/{userId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-presence-list-userid)
 
 use ruma_api::ruma_api;
-use ruma_events::presence::PresenceEvent;
+use ruma_events::{presence::PresenceEvent, EventResult};
 use ruma_identifiers::UserId;
 
 ruma_api! {
@@ -23,6 +23,6 @@ ruma_api! {
     response {
         /// A list of presence events for every user on this list.
         #[ruma_api(body)]
-        pub presence_events: Vec<PresenceEvent>,
+        pub presence_events: Vec<EventResult<PresenceEvent>>,
     }
 }

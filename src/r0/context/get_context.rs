@@ -1,7 +1,7 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/context/{eventId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-rooms-roomid-context-eventid)
 
 use ruma_api::ruma_api;
-use ruma_events::collections::only;
+use ruma_events::{collections::only, EventResult};
 use ruma_identifiers::{EventId, RoomId};
 
 ruma_api! {
@@ -32,16 +32,16 @@ ruma_api! {
         /// A token that can be used to paginate forwards with.
         pub end: String,
         /// Details of the requested event.
-        pub event: only::RoomEvent,
+        pub event: EventResult<only::RoomEvent>,
         /// A list of room events that happened just after the requested event, in chronological
         /// order.
-        pub events_after: Vec<only::RoomEvent>,
+        pub events_after: Vec<EventResult<only::RoomEvent>>,
         /// A list of room events that happened just before the requested event, in
         /// reverse-chronological order.
-        pub events_before: Vec<only::RoomEvent>,
+        pub events_before: Vec<EventResult<only::RoomEvent>>,
         /// A token that can be used to paginate backwards with.
         pub start: String,
         /// The state of the room at the last event returned.
-        pub state: Vec<only::StateEvent>,
+        pub state: Vec<EventResult<only::StateEvent>>,
     }
 }

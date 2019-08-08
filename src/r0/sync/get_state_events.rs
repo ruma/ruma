@@ -1,7 +1,7 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/state](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-rooms-roomid-state)
 
 use ruma_api::ruma_api;
-use ruma_events::collections::only;
+use ruma_events::{collections::only, EventResult};
 use ruma_identifiers::RoomId;
 
 ruma_api! {
@@ -25,6 +25,6 @@ ruma_api! {
         /// list of events. If the user has left the room then this will be the state of the
         /// room when they left as a list of events.
         #[ruma_api(body)]
-        pub room_state: Vec<only::StateEvent>,
+        pub room_state: Vec<EventResult<only::StateEvent>>,
     }
 }

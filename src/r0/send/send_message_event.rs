@@ -1,7 +1,7 @@
 //! [PUT /_matrix/client/r0/rooms/{roomId}/send/{eventType}/{txnId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#put-matrix-client-r0-rooms-roomid-send-eventtype-txnid)
 
 use ruma_api::ruma_api;
-use ruma_events::{room::message::MessageEventContent, EventType};
+use ruma_events::{room::message::MessageEventContent, EventResult, EventType};
 use ruma_identifiers::{EventId, RoomId};
 
 ruma_api! {
@@ -30,7 +30,7 @@ ruma_api! {
         pub txn_id: String,
         /// The event's content.
         #[ruma_api(body)]
-        pub data: MessageEventContent,
+        pub data: EventResult<MessageEventContent>, // FIXME
     }
 
     response {

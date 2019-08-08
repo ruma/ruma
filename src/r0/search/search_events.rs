@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_events::collections::all::Event;
+use ruma_events::{collections::all::Event, EventResult};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
@@ -91,10 +91,10 @@ pub struct EventContextResult {
     pub end: String,
     /// Events just after the result.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub events_after: Option<Vec<Event>>,
+    pub events_after: Option<Vec<EventResult<Event>>>,
     /// Events just before the result.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub events_before: Option<Vec<Event>>,
+    pub events_before: Option<Vec<EventResult<Event>>>,
     /// The historic profile information of the users that sent the events returned.
     // TODO: Not sure this is right. https://github.com/matrix-org/matrix-doc/issues/773
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -206,7 +206,7 @@ pub struct SearchResult {
     /// A number that describes how closely this result matches the search. Higher is closer.
     pub rank: f64,
     /// The event that matched.
-    pub result: Event,
+    pub result: EventResult<Event>,
 }
 
 /// A user profile.

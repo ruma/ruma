@@ -6,7 +6,7 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_events::{
     collections::{all, only},
-    stripped,
+    stripped, EventResult,
 };
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
@@ -172,28 +172,28 @@ pub struct Timeline {
     /// `/rooms/{roomId}/messages` endpoint.
     pub prev_batch: String,
     /// A list of events.
-    pub events: Vec<all::RoomEvent>,
+    pub events: Vec<EventResult<all::RoomEvent>>,
 }
 
 /// State events in the room.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct State {
     /// A list of state events.
-    pub events: Vec<only::StateEvent>,
+    pub events: Vec<EventResult<only::StateEvent>>,
 }
 
 /// The private data that this user has attached to this room.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AccountData {
     /// A list of events.
-    pub events: Vec<only::Event>,
+    pub events: Vec<EventResult<only::Event>>,
 }
 
 /// Ephemeral events not recorded in the timeline or state of the room.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Ephemeral {
     /// A list of events.
-    pub events: Vec<only::Event>,
+    pub events: Vec<EventResult<only::Event>>,
 }
 
 /// Updates to the rooms that the user has been invited to.
@@ -207,12 +207,12 @@ pub struct InvitedRoom {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct InviteState {
     /// A list of state events.
-    pub events: Vec<stripped::StrippedState>,
+    pub events: Vec<EventResult<stripped::StrippedState>>,
 }
 
 /// Updates to the presence status of other users.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Presence {
     /// A list of events.
-    pub events: Vec<only::Event>,
+    pub events: Vec<EventResult<only::Event>>,
 }
