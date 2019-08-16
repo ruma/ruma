@@ -1,7 +1,6 @@
 //! Details of the `#[ruma_api(...)]` attributes.
 
 use syn::{
-    parenthesized,
     parse::{Parse, ParseStream},
     Ident, Token,
 };
@@ -24,7 +23,8 @@ impl Meta {
                 segments,
             } => {
                 if segments.len() == 1 && segments[0].ident == "ruma_api" {
-                    Ok(syn::parse2(attr.tts)
+                    Ok(attr
+                        .parse_args()
                         .expect("ruma_api! could not parse request field attributes"))
                 } else {
                     Err(attr)
@@ -46,15 +46,13 @@ pub struct MetaNameValue {
 
 impl Parse for Meta {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let content;
-        let _ = parenthesized!(content in input);
-        let ident = content.parse()?;
+        let ident = input.parse()?;
 
-        if content.peek(Token![=]) {
-            let _ = content.parse::<Token![=]>();
+        if input.peek(Token![=]) {
+            let _ = input.parse::<Token![=]>();
             Ok(Meta::NameValue(MetaNameValue {
                 name: ident,
-                value: content.parse()?,
+                value: input.parse()?,
             }))
         } else {
             Ok(Meta::Word(ident))

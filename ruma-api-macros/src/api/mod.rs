@@ -24,19 +24,16 @@ pub fn strip_serde_attrs(field: &Field) -> Field {
         .into_iter()
         .filter(|attr| {
             let meta = attr
-                .interpret_meta()
+                .parse_meta()
                 .expect("ruma_api! could not parse field attributes");
 
-            let meta_list = match meta {
-                Meta::List(meta_list) => meta_list,
-                _ => return true,
-            };
-
-            if &meta_list.ident.to_string() == "serde" {
-                return false;
+            match meta {
+                Meta::List(meta_list) => {
+                    let segments = &meta_list.path.segments;
+                    segments.len() != 1 || segments[0].ident != "serde"
+                }
+                _ => true,
             }
-
-            true
         })
         .collect();
 

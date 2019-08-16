@@ -19,21 +19,21 @@ serde_urlencoded = "0.6.1"
 ruma-identifiers = "0.14.0"
 
 [dependencies.percent-encoding]
-version = "2.0.0"
+version = "2.1.0"
 optional = true
 
 [dependencies.ruma-api-macros]
-version = "0.7.0"
+version = "0.7.1"
 path = "ruma-api-macros"
 optional = true
 
 [dependencies.serde]
-version = "1.0.98"
+version = "1.0.99"
 features = ["derive"]
 optional = true
 
 [dependencies.url]
-version = "2.0.0"
+version = "2.1.0"
 optional = true
 
 [features]
