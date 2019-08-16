@@ -28,6 +28,7 @@
     clippy::wrong_pub_self_convention,
     clippy::wrong_self_convention
 )]
+#![allow(clippy::cognitive_complexity)]
 #![recursion_limit = "256"]
 
 extern crate proc_macro;
