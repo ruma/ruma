@@ -360,40 +360,31 @@ impl ToTokens for RumaEvent {
             }
 
             quote! {
-                impl std::str::FromStr for #content_name {
-                    type Err = crate::InvalidEvent;
+                impl<'de> serde::Deserialize<'de> for crate::EventResult<#content_name> {
+                    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                    where
+                        D: serde::Deserializer<'de>,
+                    {
+                        let json = serde_json::Value::deserialize(deserializer)?;
 
-                    /// Attempt to create `Self` from parsing a string of JSON data.
-                    fn from_str(json: &str) -> Result<Self, Self::Err> {
-                        let raw = match serde_json::from_str::<raw::#content_name>(json) {
+                        let raw: raw::#content_name = match serde_json::from_value(json.clone()) {
                             Ok(raw) => raw,
-                            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
-                                Ok(value) => {
-                                    return Err(crate::InvalidEvent(crate::InnerInvalidEvent::Validation {
-                                        json: value,
+                            Err(error) => {
+                                return Ok(crate::EventResult::Err(crate::InvalidEvent(
+                                    crate::InnerInvalidEvent::Validation {
+                                        json,
                                         message: error.to_string(),
-                                    }));
-                                }
-                                Err(error) => {
-                                    return Err(crate::InvalidEvent(crate::InnerInvalidEvent::Deserialization { error }));
-                                }
-                            },
+                                    },
+                                )));
+                            }
                         };
 
-                        Ok(Self {
+                        Ok(crate::EventResult::Ok(#content_name {
                             #(#content_field_values)*
-                        })
+                        }))
                     }
                 }
 
-                impl<'a> std::convert::TryFrom<&'a str> for #content_name {
-                    type Error = crate::InvalidEvent;
-
-                    /// Attempt to create `Self` from parsing a string of JSON data.
-                    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
-                        std::str::FromStr::from_str(json)
-                    }
-                }
             }
         } else {
             TokenStream::new()
@@ -408,38 +399,28 @@ impl ToTokens for RumaEvent {
 
             #content
 
-            impl std::str::FromStr for #name {
-                type Err = crate::InvalidEvent;
+            impl<'de> serde::Deserialize<'de> for crate::EventResult<#name> {
+                fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                where
+                    D: serde::Deserializer<'de>,
+                {
+                    let json = serde_json::Value::deserialize(deserializer)?;
 
-                /// Attempt to create `Self` from parsing a string of JSON data.
-                fn from_str(json: &str) -> Result<Self, Self::Err> {
-                    let raw = match serde_json::from_str::<raw::#name>(json) {
+                    let raw: raw::#name = match serde_json::from_value(json.clone()) {
                         Ok(raw) => raw,
-                        Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
-                            Ok(value) => {
-                                return Err(crate::InvalidEvent(crate::InnerInvalidEvent::Validation {
-                                    json: value,
+                        Err(error) => {
+                            return Ok(crate::EventResult::Err(crate::InvalidEvent(
+                                crate::InnerInvalidEvent::Validation {
+                                    json,
                                     message: error.to_string(),
-                                }));
-                            }
-                            Err(error) => {
-                                return Err(crate::InvalidEvent(crate::InnerInvalidEvent::Deserialization { error }));
-                            }
-                        },
+                                },
+                            )));
+                        }
                     };
 
-                    Ok(Self {
+                    Ok(crate::EventResult::Ok(#name {
                         #(#try_from_field_values)*
-                    })
-                }
-            }
-
-            impl<'a> std::convert::TryFrom<&'a str> for #name {
-                type Error = crate::InvalidEvent;
-
-                /// Attempt to create `Self` from parsing a string of JSON data.
-                fn try_from(json: &'a str) -> Result<Self, Self::Error> {
-                    std::str::FromStr::from_str(json)
+                    }))
                 }
             }
 

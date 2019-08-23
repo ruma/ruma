@@ -80,6 +80,28 @@ impl<'de> Deserialize<'de> for EventType {
     }
 }
 
+/// The result of deserializing an event, which may or may not be valid.
+#[derive(Debug)]
+pub enum EventResult<T> {
+    /// `T` deserialized and validated successfully.
+    Ok(T),
+
+    /// `T` deserialized but was invalid.
+    ///
+    /// `InvalidEvent` contains the original input.
+    Err(InvalidEvent),
+}
+
+impl<T> EventResult<T> {
+    /// Convert `EventResult<T>` into the equivalent `std::result::Result<T, InvalidEvent>`.
+    pub fn into_result(self) -> Result<T, InvalidEvent> {
+        match self {
+            EventResult::Ok(t) => Ok(t),
+            EventResult::Err(invalid_event) => Err(invalid_event),
+        }
+    }
+}
+
 /// A basic event.
 pub trait Event
 where
@@ -140,12 +162,6 @@ pub struct InvalidEvent(InnerInvalidEvent);
 /// An event that is malformed or otherwise invalid.
 #[derive(Debug)]
 enum InnerInvalidEvent {
-    /// An event that failed to deserialize from JSON.
-    Deserialization {
-        /// The deserialization error returned by serde.
-        error: serde_json::Error,
-    },
-
     /// An event that deserialized but failed validation.
     Validation {
         /// The raw `serde_json::Value` representation of the invalid event.
@@ -164,6 +180,8 @@ pub mod common_case {
     use ruma_events_macros::ruma_event;
     use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
     use serde_json::Value;
+
+    use super::EventResult;
 
     ruma_event! {
         /// Informs the room about what room aliases it has been given.
@@ -248,7 +266,8 @@ pub mod common_case {
     fn deserialization() {
         let json = r##"{"content":{"aliases":["#room:example.org"]},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"prev_content":{"aliases":[]},"room_id":"!n8f893n9:example.com","sender":"@carl:example.com","state_key":"example.com","unsigned":{"foo":"bar"},"type":"m.room.aliases"}"##;
 
-        let actual: AliasesEvent = json.parse().unwrap();
+        let event_result: EventResult<AliasesEvent> = serde_json::from_str(json).unwrap();
+        let actual: AliasesEvent = event_result.into_result().unwrap();
 
         let expected = AliasesEvent {
             content: AliasesEventContent {
