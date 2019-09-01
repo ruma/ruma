@@ -81,20 +81,11 @@ impl Parse for RumaEventInput {
                     if ident == "kind" {
                         let event_kind = match field_value.expr {
                             Expr::Path(expr_path) => {
-                                if expr_path
-                                    .path
-                                    .is_ident(Ident::new("Event", Span::call_site()))
-                                {
+                                if expr_path.path.is_ident("Event") {
                                     EventKind::Event
-                                } else if expr_path
-                                    .path
-                                    .is_ident(Ident::new("RoomEvent", Span::call_site()))
-                                {
+                                } else if expr_path.path.is_ident("RoomEvent") {
                                     EventKind::RoomEvent
-                                } else if expr_path
-                                    .path
-                                    .is_ident(Ident::new("StateEvent", Span::call_site()))
-                                {
+                                } else if expr_path.path.is_ident("StateEvent") {
                                     EventKind::StateEvent
                                 } else {
                                     panic!("value of field `kind` must be one of `Event`, `RoomEvent`, or `StateEvent`");
@@ -114,7 +105,7 @@ impl Parse for RumaEventInput {
                                 }
 
                                 let path = expr_path.path;
-                                let variant = path.segments.first().unwrap().into_value();
+                                let variant = path.segments.first().unwrap();
 
                                 let mut punctuated = Punctuated::new();
                                 punctuated.push(PathSegment {
@@ -189,6 +180,7 @@ pub enum Content {
 }
 
 /// The style of field within the macro body.
+#[allow(clippy::large_enum_variant)]
 enum RumaEventField {
     /// The value of a field is a block with a type alias in it.
     ///
