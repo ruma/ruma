@@ -5,11 +5,11 @@
 //! state event to be created, when the other fields can be inferred from a larger context, or where
 //! the other fields are otherwise inapplicable.
 
-use std::{convert::TryFrom, str::FromStr};
+use std::convert::TryFrom;
 
 use ruma_identifiers::UserId;
-use serde::{Serialize, Serializer};
-use serde_json::{from_value, to_string, Value};
+use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::from_value;
 
 use crate::{
     room::{
@@ -20,7 +20,7 @@ use crate::{
         power_levels::PowerLevelsEventContent, third_party_invite::ThirdPartyInviteEventContent,
         topic::TopicEventContent,
     },
-    EventType, InnerInvalidEvent, InvalidEvent,
+    EventResult, EventType, InnerInvalidEvent, InvalidEvent,
 };
 
 /// A stripped-down version of a state event that is included along with some other events.
@@ -81,207 +81,6 @@ pub struct StrippedStateContent<C> {
     pub sender: UserId,
 }
 
-impl FromStr for StrippedState {
-    type Err = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let value = match serde_json::from_str::<Value>(json) {
-            Ok(value) => value,
-            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
-                Ok(value) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: value,
-                        message: error.to_string(),
-                    }));
-                }
-                Err(error) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
-                }
-            },
-        };
-
-        let event_type_value = match value.get("type") {
-            Some(value) => value.clone(),
-            None => {
-                return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                    json: value,
-                    message: "missing field `type`".to_string(),
-                }))
-            }
-        };
-
-        let event_type = match from_value::<EventType>(event_type_value.clone()) {
-            Ok(event_type) => event_type,
-            Err(error) => {
-                return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                    json: value,
-                    message: error.to_string(),
-                }))
-            }
-        };
-
-        match event_type {
-            EventType::RoomAliases => Ok(StrippedState::RoomAliases(json.parse()?)),
-            EventType::RoomAvatar => Ok(StrippedState::RoomAvatar(json.parse()?)),
-            EventType::RoomCanonicalAlias => Ok(StrippedState::RoomCanonicalAlias(json.parse()?)),
-            EventType::RoomCreate => Ok(StrippedState::RoomCreate(json.parse()?)),
-            EventType::RoomGuestAccess => Ok(StrippedState::RoomGuestAccess(json.parse()?)),
-            EventType::RoomHistoryVisibility => {
-                Ok(StrippedState::RoomHistoryVisibility(json.parse()?))
-            }
-            EventType::RoomJoinRules => Ok(StrippedState::RoomJoinRules(json.parse()?)),
-            EventType::RoomMember => Ok(StrippedState::RoomMember(json.parse()?)),
-            EventType::RoomName => Ok(StrippedState::RoomName(json.parse()?)),
-            EventType::RoomPowerLevels => Ok(StrippedState::RoomPowerLevels(json.parse()?)),
-            EventType::RoomThirdPartyInvite => {
-                Ok(StrippedState::RoomThirdPartyInvite(json.parse()?))
-            }
-            EventType::RoomTopic => Ok(StrippedState::RoomTopic(json.parse()?)),
-            _ => Err(InvalidEvent(InnerInvalidEvent::Validation {
-                json: value,
-                message: "not a state event".to_string(),
-            })),
-        }
-    }
-}
-
-impl<'a> TryFrom<&'a str> for StrippedState {
-    type Error = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
-        FromStr::from_str(json)
-    }
-}
-
-impl Serialize for StrippedState {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match *self {
-            StrippedState::RoomAliases(ref event) => event.serialize(serializer),
-            StrippedState::RoomAvatar(ref event) => event.serialize(serializer),
-            StrippedState::RoomCanonicalAlias(ref event) => event.serialize(serializer),
-            StrippedState::RoomCreate(ref event) => event.serialize(serializer),
-            StrippedState::RoomGuestAccess(ref event) => event.serialize(serializer),
-            StrippedState::RoomHistoryVisibility(ref event) => event.serialize(serializer),
-            StrippedState::RoomJoinRules(ref event) => event.serialize(serializer),
-            StrippedState::RoomMember(ref event) => event.serialize(serializer),
-            StrippedState::RoomName(ref event) => event.serialize(serializer),
-            StrippedState::RoomPowerLevels(ref event) => event.serialize(serializer),
-            StrippedState::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
-            StrippedState::RoomTopic(ref event) => event.serialize(serializer),
-        }
-    }
-}
-
-impl<C> FromStr for StrippedStateContent<C>
-where
-    C: FromStr,
-    <C as FromStr>::Err: ToString,
-{
-    type Err = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let value = match serde_json::from_str::<Value>(json) {
-            Ok(value) => value,
-            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
-                Ok(value) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: value,
-                        message: error.to_string(),
-                    }));
-                }
-                Err(error) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
-                }
-            },
-        };
-
-        let event_type_value = match value.get("type") {
-            Some(value) => value.clone(),
-            None => {
-                return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                    json: value,
-                    message: "missing field `type`".to_string(),
-                }))
-            }
-        };
-
-        let event_type = match from_value::<EventType>(event_type_value.clone()) {
-            Ok(event_type) => event_type,
-            Err(error) => {
-                return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                    json: value,
-                    message: error.to_string(),
-                }))
-            }
-        };
-
-        let content = match value.get("content") {
-            Some(content_value) => match content_value.as_object() {
-                Some(content) => content,
-                None => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: value,
-                        message: "field `content` must be an object".to_string(),
-                    }))
-                }
-            },
-            None => {
-                return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                    json: value,
-                    message: "missing field `content`".to_string(),
-                }))
-            }
-        };
-
-        // Unwrap is safe because we already know this can deserialize to a `Value`.
-        let json_string = to_string(content).unwrap();
-
-        match event_type {
-            EventType::RoomAliases => stripped_state_content(&json_string, event_type, value),
-            EventType::RoomAvatar => stripped_state_content(&json_string, event_type, value),
-            EventType::RoomCanonicalAlias => {
-                stripped_state_content(&json_string, event_type, value)
-            }
-            EventType::RoomCreate => stripped_state_content(&json_string, event_type, value),
-            EventType::RoomGuestAccess => stripped_state_content(&json_string, event_type, value),
-            EventType::RoomHistoryVisibility => {
-                stripped_state_content(&json_string, event_type, value)
-            }
-            EventType::RoomJoinRules => stripped_state_content(&json_string, event_type, value),
-            EventType::RoomMember => stripped_state_content(&json_string, event_type, value),
-            EventType::RoomName => stripped_state_content(&json_string, event_type, value),
-            EventType::RoomPowerLevels => stripped_state_content(&json_string, event_type, value),
-            EventType::RoomThirdPartyInvite => {
-                stripped_state_content(&json_string, event_type, value)
-            }
-            EventType::RoomTopic => stripped_state_content(&json_string, event_type, value),
-            _ => Err(InvalidEvent(InnerInvalidEvent::Validation {
-                json: value,
-                message: "not a state event".to_string(),
-            })),
-        }
-    }
-}
-
-impl<'a, C> TryFrom<&'a str> for StrippedStateContent<C>
-where
-    C: FromStr,
-    <C as FromStr>::Err: ToString,
-{
-    type Error = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
-        FromStr::from_str(json)
-    }
-}
-
 /// A stripped-down version of the *m.room.aliases* event.
 pub type StrippedRoomAliases = StrippedStateContent<AliasesEventContent>;
 
@@ -318,74 +117,498 @@ pub type StrippedRoomThirdPartyInvite = StrippedStateContent<ThirdPartyInviteEve
 /// A stripped-down version of the *m.room.topic* event.
 pub type StrippedRoomTopic = StrippedStateContent<TopicEventContent>;
 
-/// Reduces the boilerplate in the match arms of `impl FromStr for StrippedState`.
-#[inline]
-fn stripped_state_content<C>(
-    json: &str,
-    event_type: EventType,
-    value: Value,
-) -> Result<StrippedStateContent<C>, InvalidEvent>
-where
-    C: FromStr,
-    <C as FromStr>::Err: ToString,
-{
-    let content = match json.parse::<C>() {
-        Ok(content) => content,
-        Err(error) => {
-            return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                json: value,
-                message: error.to_string(),
-            }))
-        }
-    };
+impl<'de> Deserialize<'de> for EventResult<StrippedState> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = serde_json::Value::deserialize(deserializer)?;
 
-    Ok(StrippedStateContent {
-        content,
-        event_type,
-        state_key: match value.get("state_key") {
-            Some(state_key_value) => match state_key_value.as_str() {
-                Some(state_key) => state_key.to_string(),
-                None => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: value,
-                        message: "field `state_key` must be a string".to_string(),
-                    }))
-                }
-            },
+        let event_type_value = match value.get("type") {
+            Some(value) => value.clone(),
             None => {
-                return Err(InvalidEvent(InnerInvalidEvent::Validation {
+                return Ok(EventResult::Err(InvalidEvent(InnerInvalidEvent::Validation {
                     json: value,
-                    message: "missing field `state_key`".to_string(),
-                }))
+                    message: "missing field `type`".to_string(),
+                })))
             }
-        },
-        sender: match value.get("sender") {
-            Some(sender_value) => match sender_value.as_str() {
-                Some(sender_str) => match UserId::try_from(sender_str) {
-                    Ok(sender) => sender,
-                    Err(error) => {
-                        return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                            json: value,
-                            message: error.to_string(),
-                        }))
-                    }
-                },
-                None => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: value,
-                        message: "field `sender` must be a string".to_string(),
-                    }))
-                }
-            },
+        };
+
+        let event_type = match from_value::<EventType>(event_type_value.clone()) {
+            Ok(event_type) => event_type,
+            Err(error) => {
+                return Ok(EventResult::Err(InvalidEvent(InnerInvalidEvent::Validation {
+                    json: value,
+                    message: error.to_string(),
+                })))
+            }
+        };
+
+        let content = match value.get("content") {
+            Some(content_value) => content_value,
             None => {
-                return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                    json: value,
-                    message: "missing field `sender`".to_string(),
-                }))
+                return Ok(EventResult::validation_error("missing field `content`".to_string(), value))
             }
-        },
-    })
+        };
+
+        let stripped_state = match event_type {
+            // TODO: On the next stream, start with doing the other variants in this match.
+            EventType::RoomAliases => {
+                let content_result = match from_value::<EventResult<AliasesEventContent>>(content.clone()) {
+                    Ok(content_result) => content_result,
+                    Err(error) => return Err(D::Error::custom(error)),
+                };
+
+                let content = match content_result {
+                    EventResult::Ok(content) => content,
+                    EventResult::Err(error) => return Ok(EventResult::Err(error)),
+                };
+
+                StrippedState::RoomAliases(StrippedStateContent {
+                    content,
+                    event_type,
+                    state_key: match value.get("state_key") {
+                        Some(state_key_value) => match state_key_value.as_str() {
+                            Some(state_key) => state_key.to_string(),
+                            None => {
+                                return Ok(EventResult::validation_error("field `state_key` must be a string".to_string(), value));
+                            }
+                        },
+                        None => {
+                            return Ok(EventResult::validation_error("missing field `state_key`".to_string(), value));
+                        }
+                    },
+                    sender: match value.get("sender") {
+                        Some(sender_value) => match sender_value.as_str() {
+                            Some(sender_str) => match UserId::try_from(sender_str) {
+                                Ok(sender) => sender,
+                                Err(error) => {
+                                    return Ok(EventResult::validation_error(error.to_string(), value));
+                                }
+                            },
+                            None => {
+                                return Ok(EventResult::validation_error("field `sender` must be a string".to_string(), value));
+                            }
+                        },
+                        None => {
+                            return Ok(EventResult::validation_error("missing field `sender`".to_string(), value));
+                        }
+                    },
+                })
+            }
+            // EventType::RoomAvatar => match from_value::<StrippedRoomAvatar>(value) {
+            //     Ok(stripped_state) => StrippedState::RoomAvatar(stripped_state),
+            //     Err(error) => {
+            //         return Ok(EventResult::Ok(InvalidEvent(InnerInvalidEvent::Validation {
+            //             json: value,
+            //             message: error.to_string(),
+            //         })))
+            //     }
+            // },
+            // EventType::RoomCanonicalAlias => match from_value::<StrippedRoomCanonicalAlias>(value) {
+            //     Ok(stripped_state) => StrippedState::RoomCanonicalAlias(stripped_state),
+            //     Err(error) => {
+            //         return Ok(EventResult::Ok(InvalidEvent(InnerInvalidEvent::Validation {
+            //             json: value,
+            //             message: error.to_string(),
+            //         })))
+            //     }
+            // },
+            // EventType::RoomCreate => match from_value::<StrippedRoomCreate>(value) {
+            //     Ok(stripped_state) => StrippedState::RoomCreate(stripped_state),
+            //     Err(error) => {
+            //         return Ok(EventResult::Ok(InvalidEvent(InnerInvalidEvent::Validation {
+            //             json: value,
+            //             message: error.to_string(),
+            //         })))
+            //     }
+            // },
+            // EventType::RoomGuestAccess => match from_value::<StrippedRoomGuestAccess>(value) {
+            //     Ok(stripped_state) => StrippedState::RoomGuestAccess(stripped_state),
+            //     Err(error) => {
+            //         return Ok(EventResult::Ok(InvalidEvent(InnerInvalidEvent::Validation {
+            //             json: value,
+            //             message: error.to_string(),
+            //         })))
+            //     }
+            // },
+            // EventType::RoomHistoryVisibility => match from_value::<StrippedRoomHistoryVisibility>(value) {
+            //     Ok(stripped_state) => StrippedState::RoomHistoryVisibility(stripped_state),
+            //     Err(error) => {
+            //         return Ok(EventResult::Ok(InvalidEvent(InnerInvalidEvent::Validation {
+            //             json: value,
+            //             message: error.to_string(),
+            //         })))
+            //     }
+            // },
+            // EventType::RoomJoinRules => match from_value::<StrippedRoomJoinRules>(value) {
+            //     Ok(stripped_state) => StrippedState::RoomJoinRules(stripped_state),
+            //     Err(error) => {
+            //         return Ok(EventResult::Ok(InvalidEvent(InnerInvalidEvent::Validation {
+            //             json: value,
+            //             message: error.to_string(),
+            //         })))
+            //     }
+            // },
+            // EventType::RoomMember => match from_value::<StrippedRoomMember>(value) {
+            //     Ok(stripped_state) => StrippedState::RoomMember(stripped_state),
+            //     Err(error) => {
+            //         return Ok(EventResult::Ok(InvalidEvent(InnerInvalidEvent::Validation {
+            //             json: value,
+            //             message: error.to_string(),
+            //         })))
+            //     }
+            // },
+            // EventType::RoomName => match from_value::<StrippedRoomName>(value) {
+            //     Ok(stripped_state) => StrippedState::RoomName(stripped_state),
+            //     Err(error) => {
+            //         return Ok(EventResult::Ok(InvalidEvent(InnerInvalidEvent::Validation {
+            //             json: value,
+            //             message: error.to_string(),
+            //         })))
+            //     }
+            // },
+            // EventType::RoomPowerLevels => match from_value::<StrippedRoomPowerLevels>(value) {
+            //     Ok(stripped_state) => StrippedState::RoomPowerLevels(stripped_state),
+            //     Err(error) => {
+            //         return Ok(EventResult::Ok(InvalidEvent(InnerInvalidEvent::Validation {
+            //             json: value,
+            //             message: error.to_string(),
+            //         })))
+            //     }
+            // },
+            // EventType::RoomThirdPartyInvite => match from_value::<StrippedRoomThirdPartyInvite>(value) {
+            //     Ok(stripped_state) => StrippedState::RoomThirdPartyInvite(stripped_state),
+            //     Err(error) => {
+            //         return Ok(EventResult::Ok(InvalidEvent(InnerInvalidEvent::Validation {
+            //             json: value,
+            //             message: error.to_string(),
+            //         })))
+            //     }
+            // },
+            // EventType::RoomTopic => match from_value::<StrippedRoomTopic>(value) {
+            //     Ok(stripped_state) => StrippedState::RoomTopic(stripped_state),
+            //     Err(error) => {
+            //         return Ok(EventResult::Ok(InvalidEvent(InnerInvalidEvent::Validation {
+            //             json: value,
+            //             message: error.to_string(),
+            //         })))
+            //     }
+            // },
+            _ => return Ok(EventResult::Err(InvalidEvent(InnerInvalidEvent::Validation {
+                json: value,
+                message: "not a state event".to_string(),
+            }))),
+        };
+
+        Ok(EventResult::Ok(stripped_state))
+    }
 }
+
+// impl FromStr for StrippedState {
+//     type Err = InvalidEvent;
+
+//     /// Attempt to create `Self` from parsing a string of JSON data.
+//     fn from_str(json: &str) -> Result<Self, Self::Err> {
+//         let value = match serde_json::from_str::<Value>(json) {
+//             Ok(value) => value,
+//             Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+//                 Ok(value) => {
+//                     return Err(InvalidEvent(InnerInvalidEvent::Validation {
+//                         json: value,
+//                         message: error.to_string(),
+//                     }));
+//                 }
+//                 Err(error) => {
+//                     return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+//                 }
+//             },
+//         };
+
+//         let event_type_value = match value.get("type") {
+//             Some(value) => value.clone(),
+//             None => {
+//                 return Err(InvalidEvent(InnerInvalidEvent::Validation {
+//                     json: value,
+//                     message: "missing field `type`".to_string(),
+//                 }))
+//             }
+//         };
+
+//         let event_type = match from_value::<EventType>(event_type_value.clone()) {
+//             Ok(event_type) => event_type,
+//             Err(error) => {
+//                 return Err(InvalidEvent(InnerInvalidEvent::Validation {
+//                     json: value,
+//                     message: error.to_string(),
+//                 }))
+//             }
+//         };
+
+//         match event_type {
+//             EventType::RoomAliases => Ok(StrippedState::RoomAliases(json.parse()?)),
+//             EventType::RoomAvatar => Ok(StrippedState::RoomAvatar(json.parse()?)),
+//             EventType::RoomCanonicalAlias => Ok(StrippedState::RoomCanonicalAlias(json.parse()?)),
+//             EventType::RoomCreate => Ok(StrippedState::RoomCreate(json.parse()?)),
+//             EventType::RoomGuestAccess => Ok(StrippedState::RoomGuestAccess(json.parse()?)),
+//             EventType::RoomHistoryVisibility => {
+//                 Ok(StrippedState::RoomHistoryVisibility(json.parse()?))
+//             }
+//             EventType::RoomJoinRules => Ok(StrippedState::RoomJoinRules(json.parse()?)),
+//             EventType::RoomMember => Ok(StrippedState::RoomMember(json.parse()?)),
+//             EventType::RoomName => Ok(StrippedState::RoomName(json.parse()?)),
+//             EventType::RoomPowerLevels => Ok(StrippedState::RoomPowerLevels(json.parse()?)),
+//             EventType::RoomThirdPartyInvite => {
+//                 Ok(StrippedState::RoomThirdPartyInvite(json.parse()?))
+//             }
+//             EventType::RoomTopic => Ok(StrippedState::RoomTopic(json.parse()?)),
+//             _ => Err(InvalidEvent(InnerInvalidEvent::Validation {
+//                 json: value,
+//                 message: "not a state event".to_string(),
+//             })),
+//         }
+//     }
+// }
+
+// impl<'a> TryFrom<&'a str> for StrippedState {
+//     type Error = InvalidEvent;
+
+//     /// Attempt to create `Self` from parsing a string of JSON data.
+//     fn try_from(json: &'a str) -> Result<Self, Self::Error> {
+//         FromStr::from_str(json)
+//     }
+// }
+
+impl Serialize for StrippedState {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match *self {
+            StrippedState::RoomAliases(ref event) => event.serialize(serializer),
+            StrippedState::RoomAvatar(ref event) => event.serialize(serializer),
+            StrippedState::RoomCanonicalAlias(ref event) => event.serialize(serializer),
+            StrippedState::RoomCreate(ref event) => event.serialize(serializer),
+            StrippedState::RoomGuestAccess(ref event) => event.serialize(serializer),
+            StrippedState::RoomHistoryVisibility(ref event) => event.serialize(serializer),
+            StrippedState::RoomJoinRules(ref event) => event.serialize(serializer),
+            StrippedState::RoomMember(ref event) => event.serialize(serializer),
+            StrippedState::RoomName(ref event) => event.serialize(serializer),
+            StrippedState::RoomPowerLevels(ref event) => event.serialize(serializer),
+            StrippedState::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
+            StrippedState::RoomTopic(ref event) => event.serialize(serializer),
+        }
+    }
+}
+
+// impl<'de, C> Deserialize<'de> for EventResult<StrippedStateContent<C>>
+// where
+//     EventResult<C>: Deserialize<'de>,
+// {
+//     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+//     where
+//         D: Deserializer<'de>,
+//     {
+//         let value = serde_json::Value::deserialize(deserializer)?;
+
+//         let event_type_value = match value.get("type") {
+//             Some(value) => value.clone(),
+//             None => {
+//                 return Ok(EventResult::validation_error("missing field `type`".to_string(), value))
+//             }
+//         };
+
+//         let event_type = match from_value::<EventType>(event_type_value.clone()) {
+//             Ok(event_type) => event_type,
+//             Err(error) => {
+//                 return Ok(EventResult::validation_error(error.to_string(), value))
+//             }
+//         };
+
+//         let content = match value.get("content") {
+//             Some(content_value) => match content_value.as_object() {
+//                 Some(content) => content,
+//                 None => {
+//                     return Ok(EventResult::validation_error("field `content` must be an object".to_string(), value))
+//                 }
+//             },
+//             None => {
+//                 return Ok(EventResult::validation_error("missing field `content`".to_string(), value))
+//             }
+//         };
+
+//         match event_type {
+//             EventType::RoomAliases => stripped_state_content::<AliasesEventContent>(event_type, value),
+//             EventType::RoomAvatar => stripped_state_content(event_type, value),
+//             EventType::RoomCanonicalAlias => {
+//                 stripped_state_content(event_type, value)
+//             }
+//             EventType::RoomCreate => stripped_state_content(event_type, value),
+//             EventType::RoomGuestAccess => stripped_state_content(event_type, value),
+//             EventType::RoomHistoryVisibility => {
+//                 stripped_state_content(event_type, value)
+//             }
+//             EventType::RoomJoinRules => stripped_state_content(event_type, value),
+//             EventType::RoomMember => stripped_state_content(event_type, value),
+//             EventType::RoomName => stripped_state_content(event_type, value),
+//             EventType::RoomPowerLevels => stripped_state_content(event_type, value),
+//             EventType::RoomThirdPartyInvite => {
+//                 stripped_state_content(event_type, value)
+//             }
+//             EventType::RoomTopic => stripped_state_content(event_type, value),
+//             _ => Ok(EventResult::validation_error("not a state event".to_string(), value)),
+//         }
+//     }
+// }
+
+// impl<C> FromStr for StrippedStateContent<C>
+// where
+//     C: FromStr,
+//     <C as FromStr>::Err: ToString,
+// {
+//     type Err = InvalidEvent;
+
+//     /// Attempt to create `Self` from parsing a string of JSON data.
+//     fn from_str(json: &str) -> Result<Self, Self::Err> {
+//         let value = match serde_json::from_str::<Value>(json) {
+//             Ok(value) => value,
+//             Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
+//                 Ok(value) => {
+//                     return Err(InvalidEvent(InnerInvalidEvent::Validation {
+//                         json: value,
+//                         message: error.to_string(),
+//                     }));
+//                 }
+//                 Err(error) => {
+//                     return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
+//                 }
+//             },
+//         };
+
+//         let event_type_value = match value.get("type") {
+//             Some(value) => value.clone(),
+//             None => {
+//                 return Err(InvalidEvent(InnerInvalidEvent::Validation {
+//                     json: value,
+//                     message: "missing field `type`".to_string(),
+//                 }))
+//             }
+//         };
+
+//         let event_type = match from_value::<EventType>(event_type_value.clone()) {
+//             Ok(event_type) => event_type,
+//             Err(error) => {
+//                 return Err(InvalidEvent(InnerInvalidEvent::Validation {
+//                     json: value,
+//                     message: error.to_string(),
+//                 }))
+//             }
+//         };
+
+//         let content = match value.get("content") {
+//             Some(content_value) => match content_value.as_object() {
+//                 Some(content) => content,
+//                 None => {
+//                     return Err(InvalidEvent(InnerInvalidEvent::Validation {
+//                         json: value,
+//                         message: "field `content` must be an object".to_string(),
+//                     }))
+//                 }
+//             },
+//             None => {
+//                 return Err(InvalidEvent(InnerInvalidEvent::Validation {
+//                     json: value,
+//                     message: "missing field `content`".to_string(),
+//                 }))
+//             }
+//         };
+
+//         // Unwrap is safe because we already know this can deserialize to a `Value`.
+//         let json_string = to_string(content).unwrap();
+
+//         match event_type {
+//             EventType::RoomAliases => stripped_state_content(&json_string, event_type, value),
+//             EventType::RoomAvatar => stripped_state_content(&json_string, event_type, value),
+//             EventType::RoomCanonicalAlias => {
+//                 stripped_state_content(&json_string, event_type, value)
+//             }
+//             EventType::RoomCreate => stripped_state_content(&json_string, event_type, value),
+//             EventType::RoomGuestAccess => stripped_state_content(&json_string, event_type, value),
+//             EventType::RoomHistoryVisibility => {
+//                 stripped_state_content(&json_string, event_type, value)
+//             }
+//             EventType::RoomJoinRules => stripped_state_content(&json_string, event_type, value),
+//             EventType::RoomMember => stripped_state_content(&json_string, event_type, value),
+//             EventType::RoomName => stripped_state_content(&json_string, event_type, value),
+//             EventType::RoomPowerLevels => stripped_state_content(&json_string, event_type, value),
+//             EventType::RoomThirdPartyInvite => {
+//                 stripped_state_content(&json_string, event_type, value)
+//             }
+//             EventType::RoomTopic => stripped_state_content(&json_string, event_type, value),
+//             _ => Err(InvalidEvent(InnerInvalidEvent::Validation {
+//                 json: value,
+//                 message: "not a state event".to_string(),
+//             })),
+//         }
+//     }
+// }
+
+// impl<'a, C> TryFrom<&'a str> for StrippedStateContent<C>
+// where
+//     C: FromStr,
+//     <C as FromStr>::Err: ToString,
+// {
+//     type Error = InvalidEvent;
+
+//     /// Attempt to create `Self` from parsing a string of JSON data.
+//     fn try_from(json: &'a str) -> Result<Self, Self::Error> {
+//         FromStr::from_str(json)
+//     }
+// }
+
+// /// Reduces the boilerplate in the match arms of `impl Deserialize for StrippedState`.
+// #[inline]
+// fn create_stripped_state(
+//     event_type: EventType,
+//     value: Value,
+// ) -> Result<EventResult<StrippedState>, serde_json::Error>
+// where
+//     for<'de> EventResult<C>: Deserialize<'de>,
+// {
+//     let event_result = from_value::<EventResult<C>>(value)?;
+
+//     Ok(EventResult::Ok(StrippedStateContent {
+//         content: event_result.into_result().unwrap(),
+//         event_type,
+//         state_key: match value.get("state_key") {
+//             Some(state_key_value) => match state_key_value.as_str() {
+//                 Some(state_key) => state_key.to_string(),
+//                 None => {
+//                     return Ok(EventResult::validation_error("field `state_key` must be a string".to_string(), value));
+//                 }
+//             },
+//             None => {
+//                 return Ok(EventResult::validation_error("missing field `state_key`".to_string(), value));
+//             }
+//         },
+//         sender: match value.get("sender") {
+//             Some(sender_value) => match sender_value.as_str() {
+//                 Some(sender_str) => match UserId::try_from(sender_str) {
+//                     Ok(sender) => sender,
+//                     Err(error) => {
+//                         return Ok(EventResult::validation_error(error.to_string(), value));
+//                     }
+//                 },
+//                 None => {
+//                     return Ok(EventResult::validation_error("field `sender` must be a string".to_string(), value));
+//                 }
+//             },
+//             None => {
+//                 return Ok(EventResult::validation_error("missing field `sender`".to_string(), value));
+//             }
+//         },
+//     }))
+// }
 
 #[cfg(test)]
 mod tests {

@@ -115,9 +115,10 @@
 #![deny(warnings)]
 
 use std::{
+    collections::HashMap,
     error::Error,
     fmt::{Debug, Display, Error as FmtError, Formatter, Result as FmtResult},
-    str::FromStr,
+    hash::Hash,
 };
 
 use js_int::UInt;
@@ -129,19 +130,19 @@ use serde::{
 };
 use serde_json::Value;
 
-pub use custom::CustomEvent;
-pub use custom_room::CustomRoomEvent;
-pub use custom_state::CustomStateEvent;
+// pub use custom::CustomEvent;
+// pub use custom_room::CustomRoomEvent;
+// pub use custom_state::CustomStateEvent;
 
 #[macro_use]
 mod macros;
 
 pub mod call;
-/// Enums for heterogeneous collections of events.
-pub mod collections {
-    pub mod all;
-    pub mod only;
-}
+// /// Enums for heterogeneous collections of events.
+// pub mod collections {
+//     pub mod all;
+//     pub mod only;
+// }
 pub mod direct;
 pub mod dummy;
 pub mod forwarded_room_key;
@@ -261,6 +262,43 @@ impl<T> EventResult<T> {
             EventResult::Err(invalid_event) => Err(invalid_event),
         }
     }
+
+    /// Helper for creating a validation error with an error message and the JSON that failed
+    /// validation.
+    #[inline]
+    pub(crate) fn validation_error(message: String, json: serde_json::Value) -> Self {
+        EventResult::Err(InvalidEvent(InnerInvalidEvent::Validation {
+            json,
+            message,
+        }))
+    }
+}
+
+impl<'de, K, V> Deserialize<'de> for EventResult<HashMap<K, V>>
+where
+    K: for<'inner> Deserialize<'inner> + Eq + Hash,
+    V: for<'inner> Deserialize<'inner>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = serde_json::Value::deserialize(deserializer)?;
+
+        let hash_map: HashMap<K, V> = match serde_json::from_value(json.clone()) {
+            Ok(hash_map) => hash_map,
+            Err(error) => {
+                return Ok(EventResult::Err(InvalidEvent(
+                    InnerInvalidEvent::Validation {
+                        json,
+                        message: error.to_string(),
+                    },
+                )));
+            }
+        };
+
+        Ok(EventResult::Ok(hash_map))
+    }
 }
 
 /// An error when attempting to create a value from a string via the `FromStr` trait.
@@ -317,6 +355,29 @@ impl<'de> Deserialize<'de> for Empty {
         }
 
         deserializer.deserialize_map(EmptyMapVisitor)
+    }
+}
+
+impl<'de> Deserialize<'de> for EventResult<Empty> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = serde_json::Value::deserialize(deserializer)?;
+
+        let empty: Empty = match serde_json::from_value(json.clone()) {
+            Ok(empty) => empty,
+            Err(error) => {
+                return Ok(EventResult::Err(InvalidEvent(
+                    InnerInvalidEvent::Validation {
+                        json,
+                        message: error.to_string(),
+                    },
+                )));
+            }
+        };
+
+        Ok(EventResult::Ok(empty))
     }
 }
 
@@ -464,7 +525,9 @@ pub enum EventType {
 /// A basic event.
 pub trait Event
 where
-    Self: Debug + FromStr + Serialize,
+    Self: Debug + Serialize + Sized,
+    for<'de> EventResult<Self>: Deserialize<'de>,
+    for<'de> EventResult<Self::Content>: Deserialize<'de>,
 {
     /// The type of this event's `content` field.
     type Content: Debug + Serialize;
@@ -477,7 +540,11 @@ where
 }
 
 /// An event within the context of a room.
-pub trait RoomEvent: Event {
+pub trait RoomEvent: Event
+where
+    for<'de> EventResult<Self>: Deserialize<'de>,
+    for<'de> EventResult<<Self as Event>::Content>: Deserialize<'de>,
+{
     /// The unique identifier for the event.
     fn event_id(&self) -> &EventId;
 
@@ -499,7 +566,11 @@ pub trait RoomEvent: Event {
 }
 
 /// An event that describes persistent state about a room.
-pub trait StateEvent: RoomEvent {
+pub trait StateEvent: RoomEvent
+where
+    for<'de> EventResult<Self>: Deserialize<'de>,
+    for<'de> EventResult<<Self as Event>::Content>: Deserialize<'de>,
+{
     /// The previous content for this state key, if any.
     fn prev_content(&self) -> Option<&Self::Content>;
 
@@ -507,56 +578,56 @@ pub trait StateEvent: RoomEvent {
     fn state_key(&self) -> &str;
 }
 
-mod custom {
-    use ruma_events_macros::ruma_event;
-    use serde_json::Value;
+// mod custom {
+//     use ruma_events_macros::ruma_event;
+//     use serde_json::Value;
 
-    ruma_event! {
-        /// A custom basic event not covered by the Matrix specification.
-        CustomEvent {
-            kind: Event,
-            event_type: Custom,
-            content_type_alias: {
-                /// The payload for `CustomEvent`.
-                Value
-            },
-        }
-    }
-}
+//     ruma_event! {
+//         /// A custom basic event not covered by the Matrix specification.
+//         CustomEvent {
+//             kind: Event,
+//             event_type: Custom,
+//             content_type_alias: {
+//                 /// The payload for `CustomEvent`.
+//                 Value
+//             },
+//         }
+//     }
+// }
 
-mod custom_room {
-    use ruma_events_macros::ruma_event;
-    use serde_json::Value;
+// mod custom_room {
+//     use ruma_events_macros::ruma_event;
+//     use serde_json::Value;
 
-    ruma_event! {
-        /// A custom room event not covered by the Matrix specification.
-        CustomRoomEvent {
-            kind: RoomEvent,
-            event_type: Custom,
-            content_type_alias: {
-                /// The payload for `CustomRoomEvent`.
-                Value
-            },
-        }
-    }
-}
+//     ruma_event! {
+//         /// A custom room event not covered by the Matrix specification.
+//         CustomRoomEvent {
+//             kind: RoomEvent,
+//             event_type: Custom,
+//             content_type_alias: {
+//                 /// The payload for `CustomRoomEvent`.
+//                 Value
+//             },
+//         }
+//     }
+// }
 
-mod custom_state {
-    use ruma_events_macros::ruma_event;
-    use serde_json::Value;
+// mod custom_state {
+//     use ruma_events_macros::ruma_event;
+//     use serde_json::Value;
 
-    ruma_event! {
-        /// A custom state event not covered by the Matrix specification.
-        CustomStateEvent {
-            kind: StateEvent,
-            event_type: Custom,
-            content_type_alias: {
-                /// The payload for `CustomStateEvent`.
-                Value
-            },
-        }
-    }
-}
+//     ruma_event! {
+//         /// A custom state event not covered by the Matrix specification.
+//         CustomStateEvent {
+//             kind: StateEvent,
+//             event_type: Custom,
+//             content_type_alias: {
+//                 /// The payload for `CustomStateEvent`.
+//                 Value
+//             },
+//         }
+//     }
+// }
 
 impl Display for EventType {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
