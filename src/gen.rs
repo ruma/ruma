@@ -557,13 +557,13 @@ fn populate_state_fields(is_custom: bool, content_name: Ident, fields: Vec<Field
 
 /// Checks if the given `Path` refers to `EventType::Custom`.
 fn is_custom_event_type(event_type: &Path) -> bool {
-    event_type.segments.last().unwrap().value().ident == "Custom"
+    event_type.segments.last().unwrap().ident == "Custom"
 }
 
 /// Checks if a type is an `Option`.
 fn is_option(ty: &Type) -> bool {
     if let Type::Path(ref type_path) = ty {
-        type_path.path.segments.first().unwrap().value().ident == "Option"
+        type_path.path.segments.first().unwrap().ident == "Option"
     } else {
         panic!("struct field had unexpected non-path type");
     }
