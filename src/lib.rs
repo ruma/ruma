@@ -83,7 +83,6 @@
 //! # ;
 //! ```
 
-#![feature(async_await, async_closure)]
 #![deny(
     missing_copy_implementations,
     missing_debug_implementations,
@@ -194,7 +193,7 @@ pub type HttpsClient = Client<HttpsConnector<HttpConnector>>;
 impl HttpsClient {
     /// Creates a new client for making HTTPS requests to the given homeserver.
     pub fn https(homeserver_url: Url, session: Option<Session>) -> Result<Self, NativeTlsError> {
-        let connector = HttpsConnector::new(4)?;
+        let connector = HttpsConnector::new()?;
 
         Ok(Self(Arc::new(ClientData {
             homeserver_url,
@@ -333,7 +332,7 @@ where
         since: Option<String>,
         set_presence: bool,
     ) -> impl Stream<Item = Result<api::r0::sync::sync_events::Response, Error>>
-                 + TryStream<Ok = api::r0::sync::sync_events::Response, Error = Error> {
+           + TryStream<Ok = api::r0::sync::sync_events::Response, Error = Error> {
         use api::r0::sync::sync_events;
 
         // TODO: Is this really the way TryStreams are supposed to work?
