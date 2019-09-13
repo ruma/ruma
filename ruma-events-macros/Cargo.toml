@@ -1,0 +1,27 @@
+[package]
+authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
+categories = ["api-bindings", "web-programming"]
+description = "A procedural macro used by the ruma-events crate."
+documentation = "https://docs.rs/ruma-events-macros"
+edition = "2018"
+homepage = "https://github.com/ruma/ruma-events-macros"
+keywords = ["matrix", "chat", "messaging", "ruma"]
+license = "MIT"
+name = "ruma-events-macros"
+readme = "README.md"
+repository = "https://github.com/ruma/ruma-api-macros"
+version = "0.1.0"
+
+[dependencies]
+syn = { version = "1.0.4", features = ["full"] }
+quote = "1.0.2"
+proc-macro2 = "1.0.1"
+
+[lib]
+proc-macro = true
+
+[dev-dependencies]
+ruma-identifiers = "0.14.0"
+serde_json = "1.0.40"
+js_int = { version = "0.1.2", features = ["serde"] }
+serde = { version = "1.0.99", features = ["derive"] }
