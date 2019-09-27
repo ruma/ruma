@@ -27,6 +27,7 @@ ruma_event! {
 #[cfg(test)]
 mod tests {
     use super::{DummyEvent, Empty};
+    use crate::EventResult;
 
     #[test]
     fn serialization() {
@@ -42,6 +43,9 @@ mod tests {
     fn deserialization() {
         let json = r#"{"content":{},"type":"m.dummy"}"#;
 
-        assert!(json.parse::<DummyEvent>().is_ok());
+        assert!(serde_json::from_str::<EventResult<DummyEvent>>(json)
+            .unwrap()
+            .into_result()
+            .is_ok());
     }
 }

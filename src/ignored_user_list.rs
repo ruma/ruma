@@ -1,11 +1,11 @@
 //! Types for the *m.ignored_user_list* event.
 
-use std::collections::HashMap;
+use std::convert::TryFrom;
 
 use ruma_identifiers::UserId;
-use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 
-use crate::{Empty, Event, EventResult, EventType, InnerInvalidEvent, InvalidEvent};
+use crate::{vec_as_map_of_empty, Event as _, EventType, Void};
 
 /// A list of users to ignore.
 #[derive(Clone, Debug, PartialEq)]
@@ -15,36 +15,29 @@ pub struct IgnoredUserListEvent {
 }
 
 /// The payload for `IgnoredUserListEvent`.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct IgnoredUserListEventContent {
     /// A list of users to ignore.
     pub ignored_users: Vec<UserId>,
 }
 
-impl<'de> Deserialize<'de> for EventResult<IgnoredUserListEvent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
+impl TryFrom<raw::IgnoredUserListEvent> for IgnoredUserListEvent {
+    type Error = (raw::IgnoredUserListEvent, Void);
 
-        let raw: raw::IgnoredUserListEvent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
+    fn try_from(raw: raw::IgnoredUserListEvent) -> Result<Self, Self::Error> {
+        Ok(Self {
+            content: crate::convert_content(raw.content),
+        })
+    }
+}
 
-        Ok(EventResult::Ok(IgnoredUserListEvent {
-            content: IgnoredUserListEventContent {
-                ignored_users: raw.content.ignored_users.keys().cloned().collect(),
-            },
-        }))
+impl TryFrom<raw::IgnoredUserListEventContent> for IgnoredUserListEventContent {
+    type Error = (raw::IgnoredUserListEventContent, Void);
+
+    fn try_from(raw: raw::IgnoredUserListEventContent) -> Result<Self, Self::Error> {
+        Ok(Self {
+            ignored_users: raw.ignored_users,
+        })
     }
 }
 
@@ -65,54 +58,12 @@ impl Serialize for IgnoredUserListEvent {
 impl_event!(
     IgnoredUserListEvent,
     IgnoredUserListEventContent,
-    EventType::IgnoredUserList
+    EventType::IgnoredUserList,
+    raw
 );
 
-impl<'de> Deserialize<'de> for EventResult<IgnoredUserListEventContent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
-
-        let raw: raw::IgnoredUserListEventContent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        Ok(EventResult::Ok(IgnoredUserListEventContent {
-            ignored_users: raw.ignored_users.keys().cloned().collect(),
-        }))
-    }
-}
-
-impl Serialize for IgnoredUserListEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut map = HashMap::new();
-
-        for user_id in &self.ignored_users {
-            map.insert(user_id.clone(), Empty);
-        }
-
-        let raw = raw::IgnoredUserListEventContent { ignored_users: map };
-
-        raw.serialize(serializer)
-    }
-}
-
-mod raw {
+pub(crate) mod raw {
     use super::*;
-    use crate::Empty;
 
     /// A list of users to ignore.
     #[derive(Clone, Debug, Deserialize)]
@@ -125,7 +76,8 @@ mod raw {
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct IgnoredUserListEventContent {
         /// A list of users to ignore.
-        pub ignored_users: HashMap<UserId, Empty>,
+        #[serde(with = "vec_as_map_of_empty")]
+        pub ignored_users: Vec<UserId>,
     }
 }
 
@@ -135,7 +87,8 @@ mod tests {
 
     use ruma_identifiers::UserId;
 
-    use super::{EventResult, IgnoredUserListEvent, IgnoredUserListEventContent};
+    use super::{IgnoredUserListEvent, IgnoredUserListEventContent};
+    use crate::EventResult;
 
     #[test]
     fn serialization() {

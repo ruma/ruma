@@ -56,6 +56,7 @@ mod tests {
     use ruma_identifiers::{RoomVersionId, UserId};
 
     use super::CreateEventContent;
+    use crate::EventResult;
 
     #[test]
     fn serialization() {
@@ -82,6 +83,12 @@ mod tests {
 
         let json = r#"{"creator":"@carl:example.com","m.federate":true,"room_version":"4"}"#;
 
-        assert_eq!(json.parse::<CreateEventContent>().unwrap(), content);
+        assert_eq!(
+            serde_json::from_str::<EventResult<CreateEventContent>>(json)
+                .unwrap()
+                .into_result()
+                .unwrap(),
+            content
+        );
     }
 }

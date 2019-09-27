@@ -1,11 +1,13 @@
 //! Types for the *m.room.encrypted* event.
 
+use std::convert::TryFrom;
+
 use js_int::UInt;
 use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
 use serde::{de::Error, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
-use crate::{Algorithm, Event, EventResult, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent};
+use crate::{Algorithm, Event, EventType, RoomEvent, Void};
 
 /// This event type is used when sending encrypted events.
 ///
@@ -48,45 +50,34 @@ pub enum EncryptedEventContent {
     __Nonexhaustive,
 }
 
-impl<'de> Deserialize<'de> for EventResult<EncryptedEvent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
+impl TryFrom<raw::EncryptedEvent> for EncryptedEvent {
+    type Error = (raw::EncryptedEvent, Void);
 
-        let raw: raw::EncryptedEvent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        let content = match raw.content {
-            raw::EncryptedEventContent::OlmV1Curve25519AesSha2(content) => {
-                EncryptedEventContent::OlmV1Curve25519AesSha2(content)
-            }
-            raw::EncryptedEventContent::MegolmV1AesSha2(content) => {
-                EncryptedEventContent::MegolmV1AesSha2(content)
-            }
-            raw::EncryptedEventContent::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.");
-            }
-        };
-
-        Ok(EventResult::Ok(EncryptedEvent {
-            content,
+    fn try_from(raw: raw::EncryptedEvent) -> Result<Self, Self::Error> {
+        Ok(Self {
+            content: crate::convert_content(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
             room_id: raw.room_id,
             sender: raw.sender,
             unsigned: raw.unsigned,
-        }))
+        })
+    }
+}
+
+impl TryFrom<raw::EncryptedEventContent> for EncryptedEventContent {
+    type Error = (raw::EncryptedEventContent, Void);
+
+    fn try_from(raw: raw::EncryptedEventContent) -> Result<Self, Self::Error> {
+        use raw::EncryptedEventContent::*;
+
+        Ok(match raw {
+            OlmV1Curve25519AesSha2(content) => Self::OlmV1Curve25519AesSha2(content),
+            MegolmV1AesSha2(content) => Self::MegolmV1AesSha2(content),
+            __Nonexhaustive => {
+                unreachable!("__Nonexhaustive variant should be impossible to obtain.")
+            }
+        })
     }
 }
 
@@ -129,41 +120,9 @@ impl Serialize for EncryptedEvent {
 impl_room_event!(
     EncryptedEvent,
     EncryptedEventContent,
-    EventType::RoomEncrypted
+    EventType::RoomEncrypted,
+    raw
 );
-
-impl<'de> Deserialize<'de> for EventResult<EncryptedEventContent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
-
-        let raw: raw::EncryptedEventContent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        match raw {
-            raw::EncryptedEventContent::OlmV1Curve25519AesSha2(content) => Ok(EventResult::Ok(
-                EncryptedEventContent::OlmV1Curve25519AesSha2(content),
-            )),
-            raw::EncryptedEventContent::MegolmV1AesSha2(content) => Ok(EventResult::Ok(
-                EncryptedEventContent::MegolmV1AesSha2(content),
-            )),
-            raw::EncryptedEventContent::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.");
-            }
-        }
-    }
-}
 
 impl Serialize for EncryptedEventContent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -180,7 +139,7 @@ impl Serialize for EncryptedEventContent {
     }
 }
 
-mod raw {
+pub(crate) mod raw {
     use super::*;
 
     /// This event type is used when sending encrypted events.
@@ -318,7 +277,8 @@ pub struct MegolmV1AesSha2Content {
 mod tests {
     use serde_json::to_string;
 
-    use super::{Algorithm, EncryptedEventContent, EventResult, MegolmV1AesSha2Content};
+    use super::{Algorithm, EncryptedEventContent, MegolmV1AesSha2Content};
+    use crate::EventResult;
 
     #[test]
     fn serializtion() {

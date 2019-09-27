@@ -25,8 +25,16 @@ macro_rules! impl_enum {
 }
 
 macro_rules! impl_event {
-    ($name:ident, $content_name:ident, $event_type:path) => {
-        impl Event for $name {
+    ($name:ident, $content_name:ident, $event_type:path, $raw_mod:ident) => {
+        impl crate::EventResultCompatible for $name {
+            type Raw = $raw_mod::$name;
+        }
+
+        impl crate::EventResultCompatible for $content_name {
+            type Raw = $raw_mod::$content_name;
+        }
+
+        impl crate::Event for $name {
             /// The type of this event's `content` field.
             type Content = $content_name;
 
@@ -36,7 +44,7 @@ macro_rules! impl_event {
             }
 
             /// The type of the event.
-            fn event_type(&self) -> EventType {
+            fn event_type(&self) -> crate::EventType {
                 $event_type
             }
         }
@@ -44,8 +52,8 @@ macro_rules! impl_event {
 }
 
 macro_rules! impl_room_event {
-    ($name:ident, $content_name:ident, $event_type:path) => {
-        impl_event!($name, $content_name, $event_type);
+    ($name:ident, $content_name:ident, $event_type:path, $raw_mod:ident) => {
+        impl_event!($name, $content_name, $event_type, $raw_mod);
 
         impl RoomEvent for $name {
             /// The unique identifier for the event.
@@ -81,8 +89,8 @@ macro_rules! impl_room_event {
 }
 
 macro_rules! impl_state_event {
-    ($name:ident, $content_name:ident, $event_type:path) => {
-        impl_room_event!($name, $content_name, $event_type);
+    ($name:ident, $content_name:ident, $event_type:path, $raw_mod:ident) => {
+        impl_room_event!($name, $content_name, $event_type, $raw_mod);
 
         impl StateEvent for $name {
             /// The previous content for this state key, if any.

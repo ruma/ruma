@@ -1,14 +1,13 @@
 //! Types for the *m.room.server_acl* event.
 
+use std::convert::TryFrom;
+
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{
-    default_true, Event, EventResult, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent,
-    StateEvent,
-};
+use crate::{default_true, Event as _, EventType, RoomEvent, StateEvent, Void};
 
 /// An event to indicate which servers are permitted to participate in the room.
 #[derive(Clone, Debug, PartialEq)]
@@ -68,43 +67,32 @@ pub struct ServerAclEventContent {
     pub deny: Vec<String>,
 }
 
-impl<'de> Deserialize<'de> for EventResult<ServerAclEvent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
+impl TryFrom<raw::ServerAclEvent> for ServerAclEvent {
+    type Error = (raw::ServerAclEvent, Void);
 
-        let raw: raw::ServerAclEvent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        Ok(EventResult::Ok(ServerAclEvent {
-            content: ServerAclEventContent {
-                allow_ip_literals: raw.content.allow_ip_literals,
-                allow: raw.content.allow,
-                deny: raw.content.deny,
-            },
+    fn try_from(raw: raw::ServerAclEvent) -> Result<Self, Self::Error> {
+        Ok(Self {
+            content: crate::convert_content(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
-            prev_content: raw.prev_content.map(|prev| ServerAclEventContent {
-                allow_ip_literals: prev.allow_ip_literals,
-                allow: prev.allow,
-                deny: prev.deny,
-            }),
+            prev_content: raw.prev_content.map(crate::convert_content),
             room_id: raw.room_id,
-            unsigned: raw.unsigned,
             sender: raw.sender,
             state_key: raw.state_key,
-        }))
+            unsigned: raw.unsigned,
+        })
+    }
+}
+
+impl TryFrom<raw::ServerAclEventContent> for ServerAclEventContent {
+    type Error = (raw::ServerAclEventContent, Void);
+
+    fn try_from(raw: raw::ServerAclEventContent) -> Result<Self, Self::Error> {
+        Ok(Self {
+            allow_ip_literals: raw.allow_ip_literals,
+            allow: raw.allow,
+            deny: raw.deny,
+        })
     }
 }
 
@@ -125,37 +113,11 @@ impl Serialize for ServerAclEvent {
 impl_state_event!(
     ServerAclEvent,
     ServerAclEventContent,
-    EventType::RoomServerAcl
+    EventType::RoomServerAcl,
+    raw
 );
 
-impl<'de> Deserialize<'de> for EventResult<ServerAclEventContent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
-
-        let raw: raw::ServerAclEventContent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        Ok(EventResult::Ok(ServerAclEventContent {
-            allow_ip_literals: raw.allow_ip_literals,
-            allow: raw.allow,
-            deny: raw.deny,
-        }))
-    }
-}
-
-mod raw {
+pub(crate) mod raw {
     use super::*;
 
     /// An event to indicate which servers are permitted to participate in the room.
@@ -221,12 +183,13 @@ mod raw {
 #[cfg(test)]
 mod tests {
     use super::ServerAclEvent;
+    use crate::EventResult;
 
     #[test]
     fn default_values() {
         let server_acl_event: ServerAclEvent =
-            r#"{"content":{},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.server_acl"}"#
-            .parse().unwrap();
+            serde_json::from_str::<EventResult<_>>(r#"{"content":{},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.server_acl"}"#)
+            .unwrap().into_result().unwrap();
 
         assert_eq!(server_acl_event.content.allow_ip_literals, true);
         assert!(server_acl_event.content.allow.is_empty());

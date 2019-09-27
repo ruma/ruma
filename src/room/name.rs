@@ -1,13 +1,14 @@
 //! Types for the *m.room.name* event.
 
+use std::convert::TryFrom;
+
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
 use crate::{
-    empty_string_as_none, Event, EventResult, EventType, InnerInvalidEvent, InvalidEvent,
-    InvalidInput, RoomEvent, StateEvent,
+    empty_string_as_none, Event as _, EventType, InvalidInput, RoomEvent, StateEvent, Void,
 };
 
 /// A human-friendly room name designed to be displayed to the end-user.
@@ -46,39 +47,28 @@ pub struct NameEventContent {
     pub(crate) name: Option<String>,
 }
 
-impl<'de> Deserialize<'de> for EventResult<NameEvent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
+impl TryFrom<raw::NameEvent> for NameEvent {
+    type Error = (raw::NameEvent, Void);
 
-        let raw: raw::NameEvent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        Ok(EventResult::Ok(NameEvent {
-            content: NameEventContent {
-                name: raw.content.name,
-            },
+    fn try_from(raw: raw::NameEvent) -> Result<Self, Self::Error> {
+        Ok(Self {
+            content: crate::convert_content(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
-            prev_content: raw
-                .prev_content
-                .map(|prev| NameEventContent { name: prev.name }),
+            prev_content: raw.prev_content.map(crate::convert_content),
             room_id: raw.room_id,
             sender: raw.sender,
             state_key: raw.state_key,
             unsigned: raw.unsigned,
-        }))
+        })
+    }
+}
+
+impl TryFrom<raw::NameEventContent> for NameEventContent {
+    type Error = (raw::NameEventContent, Void);
+
+    fn try_from(raw: raw::NameEventContent) -> Result<Self, Self::Error> {
+        Ok(Self { name: raw.name })
     }
 }
 
@@ -127,7 +117,7 @@ impl Serialize for NameEvent {
     }
 }
 
-impl_state_event!(NameEvent, NameEventContent, EventType::RoomName);
+impl_state_event!(NameEvent, NameEventContent, EventType::RoomName, raw);
 
 impl NameEventContent {
     /// Create a new `NameEventContent` with the given name.
@@ -151,30 +141,7 @@ impl NameEventContent {
     }
 }
 
-impl<'de> Deserialize<'de> for EventResult<NameEventContent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
-
-        let raw: raw::NameEventContent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        Ok(EventResult::Ok(NameEventContent { name: raw.name }))
-    }
-}
-
-mod raw {
+pub(crate) mod raw {
     use super::*;
 
     /// A human-friendly room name designed to be displayed to the end-user.
@@ -226,7 +193,8 @@ mod tests {
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::Value;
 
-    use super::{EventResult, NameEvent, NameEventContent};
+    use super::{NameEvent, NameEventContent};
+    use crate::EventResult;
 
     #[test]
     fn serialization_with_optional_fields_as_none() {

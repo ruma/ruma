@@ -1,11 +1,8 @@
 //! Enums for heterogeneous collections of events, inclusive for every event type that implements
 //! the trait of the same name.
 
-use std::convert::TryFrom;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use serde::{Serialize, Serializer};
-
-use super::raw::all as raw;
 use crate::{
     call::{
         answer::AnswerEvent, candidates::CandidatesEvent, hangup::HangupEvent, invite::InviteEvent,
@@ -48,7 +45,7 @@ use crate::{
     sticker::StickerEvent,
     tag::TagEvent,
     typing::TypingEvent,
-    CustomEvent, CustomRoomEvent, CustomStateEvent, EventResultCompatible, Void,
+    CustomEvent, CustomRoomEvent, CustomStateEvent,
 };
 
 /// A basic event, room event, or state event.
@@ -336,38 +333,29 @@ pub enum StateEvent {
     CustomState(CustomStateEvent),
 }
 
-impl EventResultCompatible for Event {
-    type Raw = raw::Event;
-}
-
-impl TryFrom<raw::Event> for Event {
-    type Error = (raw::Event, Void);
-
-    fn try_from(raw: raw::Event) -> Result<Self, Self::Error> {
+impl<'de> Deserialize<'de> for Event {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         unimplemented!()
     }
 }
 
-impl EventResultCompatible for RoomEvent {
-    type Raw = raw::RoomEvent;
-}
-
-impl TryFrom<raw::RoomEvent> for RoomEvent {
-    type Error = (raw::RoomEvent, Void);
-
-    fn try_from(raw: raw::RoomEvent) -> Result<Self, Self::Error> {
+impl<'de> Deserialize<'de> for RoomEvent {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         unimplemented!()
     }
 }
 
-impl EventResultCompatible for StateEvent {
-    type Raw = raw::StateEvent;
-}
-
-impl TryFrom<raw::StateEvent> for StateEvent {
-    type Error = (raw::StateEvent, Void);
-
-    fn try_from(raw: raw::StateEvent) -> Result<Self, Self::Error> {
+impl<'de> Deserialize<'de> for StateEvent {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
         unimplemented!()
     }
 }

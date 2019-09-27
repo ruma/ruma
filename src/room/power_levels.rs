@@ -1,15 +1,13 @@
 //! Types for the *m.room.power_levels* event.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, convert::TryFrom};
 
 use js_int::{Int, UInt};
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{
-    Event, EventResult, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent, StateEvent,
-};
+use crate::{Event, EventType, RoomEvent, StateEvent, Void};
 
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Clone, Debug, PartialEq)]
@@ -87,57 +85,39 @@ pub struct PowerLevelsEventContent {
     pub notifications: NotificationPowerLevels,
 }
 
-impl<'de> Deserialize<'de> for EventResult<PowerLevelsEvent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
+impl TryFrom<raw::PowerLevelsEvent> for PowerLevelsEvent {
+    type Error = (raw::PowerLevelsEvent, Void);
 
-        let raw: raw::PowerLevelsEvent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        Ok(EventResult::Ok(PowerLevelsEvent {
-            content: PowerLevelsEventContent {
-                ban: raw.content.ban,
-                events: raw.content.events,
-                events_default: raw.content.events_default,
-                invite: raw.content.invite,
-                kick: raw.content.kick,
-                redact: raw.content.redact,
-                state_default: raw.content.state_default,
-                users: raw.content.users,
-                users_default: raw.content.users_default,
-                notifications: raw.content.notifications,
-            },
+    fn try_from(raw: raw::PowerLevelsEvent) -> Result<Self, Self::Error> {
+        Ok(Self {
+            content: crate::convert_content(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
-            prev_content: raw.prev_content.map(|prev| PowerLevelsEventContent {
-                ban: prev.ban,
-                events: prev.events,
-                events_default: prev.events_default,
-                invite: prev.invite,
-                kick: prev.kick,
-                redact: prev.redact,
-                state_default: prev.state_default,
-                users: prev.users,
-                users_default: prev.users_default,
-                notifications: prev.notifications,
-            }),
+            prev_content: raw.prev_content.map(crate::convert_content),
             room_id: raw.room_id,
+            unsigned: raw.unsigned,
             sender: raw.sender,
             state_key: raw.state_key,
-            unsigned: raw.unsigned,
-        }))
+        })
+    }
+}
+
+impl TryFrom<raw::PowerLevelsEventContent> for PowerLevelsEventContent {
+    type Error = (raw::PowerLevelsEventContent, Void);
+
+    fn try_from(raw: raw::PowerLevelsEventContent) -> Result<Self, Self::Error> {
+        Ok(Self {
+            ban: raw.ban,
+            events: raw.events,
+            events_default: raw.events_default,
+            invite: raw.invite,
+            kick: raw.kick,
+            redact: raw.redact,
+            state_default: raw.state_default,
+            users: raw.users,
+            users_default: raw.users_default,
+            notifications: raw.notifications,
+        })
     }
 }
 
@@ -189,44 +169,11 @@ impl Serialize for PowerLevelsEvent {
 impl_state_event!(
     PowerLevelsEvent,
     PowerLevelsEventContent,
-    EventType::RoomPowerLevels
+    EventType::RoomPowerLevels,
+    raw
 );
 
-impl<'de> Deserialize<'de> for EventResult<PowerLevelsEventContent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
-
-        let raw: raw::PowerLevelsEventContent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        Ok(EventResult::Ok(PowerLevelsEventContent {
-            ban: raw.ban,
-            events: raw.events,
-            events_default: raw.events_default,
-            invite: raw.invite,
-            kick: raw.kick,
-            redact: raw.redact,
-            state_default: raw.state_default,
-            users: raw.users,
-            users_default: raw.users_default,
-            notifications: raw.notifications,
-        }))
-    }
-}
-
-mod raw {
+pub(crate) mod raw {
     use super::*;
 
     /// Defines the power levels (privileges) of users in the room.

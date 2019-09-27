@@ -1,14 +1,13 @@
 //! Types for the *m.room.canonical_alias* event.
 
+use std::convert::TryFrom;
+
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
-use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{
-    empty_string_as_none, Event, EventResult, EventType, InnerInvalidEvent, InvalidEvent,
-    RoomEvent, StateEvent,
-};
+use crate::{empty_string_as_none, Event, EventType, RoomEvent, StateEvent, Void};
 
 /// Informs the room as to which alias is the canonical one.
 #[derive(Clone, Debug, PartialEq)]
@@ -48,39 +47,28 @@ pub struct CanonicalAliasEventContent {
     pub alias: Option<RoomAliasId>,
 }
 
-impl<'de> Deserialize<'de> for EventResult<CanonicalAliasEvent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
+impl TryFrom<raw::CanonicalAliasEvent> for CanonicalAliasEvent {
+    type Error = (raw::CanonicalAliasEvent, Void);
 
-        let raw: raw::CanonicalAliasEvent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        Ok(EventResult::Ok(CanonicalAliasEvent {
-            content: CanonicalAliasEventContent {
-                alias: raw.content.alias,
-            },
+    fn try_from(raw: raw::CanonicalAliasEvent) -> Result<Self, Self::Error> {
+        Ok(Self {
+            content: crate::convert_content(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
-            prev_content: raw
-                .prev_content
-                .map(|prev| CanonicalAliasEventContent { alias: prev.alias }),
+            prev_content: raw.prev_content.map(crate::convert_content),
             room_id: raw.room_id,
             sender: raw.sender,
             state_key: raw.state_key,
             unsigned: raw.unsigned,
-        }))
+        })
+    }
+}
+
+impl TryFrom<raw::CanonicalAliasEventContent> for CanonicalAliasEventContent {
+    type Error = (raw::CanonicalAliasEventContent, Void);
+
+    fn try_from(raw: raw::CanonicalAliasEventContent) -> Result<Self, Self::Error> {
+        Ok(Self { alias: raw.alias })
     }
 }
 
@@ -132,35 +120,11 @@ impl Serialize for CanonicalAliasEvent {
 impl_state_event!(
     CanonicalAliasEvent,
     CanonicalAliasEventContent,
-    EventType::RoomCanonicalAlias
+    EventType::RoomCanonicalAlias,
+    raw
 );
 
-impl<'de> Deserialize<'de> for EventResult<CanonicalAliasEventContent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
-
-        let raw: raw::CanonicalAliasEventContent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        Ok(EventResult::Ok(CanonicalAliasEventContent {
-            alias: raw.alias,
-        }))
-    }
-}
-
-mod raw {
+pub(crate) mod raw {
     use super::*;
 
     /// Informs the room as to which alias is the canonical one.
@@ -213,7 +177,8 @@ mod tests {
     use js_int::UInt;
     use ruma_identifiers::{EventId, RoomAliasId, UserId};
 
-    use super::{CanonicalAliasEvent, CanonicalAliasEventContent, EventResult};
+    use super::{CanonicalAliasEvent, CanonicalAliasEventContent};
+    use crate::EventResult;
 
     #[test]
     fn serialization_with_optional_fields_as_none() {

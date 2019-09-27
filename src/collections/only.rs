@@ -1,12 +1,11 @@
 //! Enums for heterogeneous collections of events, exclusive to event types that implement "at
 //! most" the trait of the same name.
 
-use std::str::FromStr;
+use std::convert::TryFrom;
 
 use serde::{Serialize, Serializer};
-use serde_json::{from_value, Value};
 
-pub use super::all::StateEvent;
+pub use super::{all::StateEvent, raw::only as raw};
 use crate::{
     call::{
         answer::AnswerEvent, candidates::CandidatesEvent, hangup::HangupEvent, invite::InviteEvent,
@@ -33,7 +32,7 @@ use crate::{
     sticker::StickerEvent,
     tag::TagEvent,
     typing::TypingEvent,
-    CustomEvent, CustomRoomEvent, EventType, InnerInvalidEvent, InvalidEvent,
+    CustomEvent, CustomRoomEvent, EventResultCompatible, Void,
 };
 
 /// A basic event.
@@ -131,6 +130,30 @@ pub enum RoomEvent {
 
     /// Any room event that is not part of the specification.
     CustomRoom(CustomRoomEvent),
+}
+
+impl EventResultCompatible for Event {
+    type Raw = raw::Event;
+}
+
+impl TryFrom<raw::Event> for Event {
+    type Error = (raw::Event, Void);
+
+    fn try_from(raw: raw::Event) -> Result<Self, Self::Error> {
+        unimplemented!()
+    }
+}
+
+impl EventResultCompatible for RoomEvent {
+    type Raw = raw::RoomEvent;
+}
+
+impl TryFrom<raw::RoomEvent> for RoomEvent {
+    type Error = (raw::RoomEvent, Void);
+
+    fn try_from(raw: raw::RoomEvent) -> Result<Self, Self::Error> {
+        unimplemented!()
+    }
 }
 
 impl Serialize for Event {

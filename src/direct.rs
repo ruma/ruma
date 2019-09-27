@@ -28,6 +28,7 @@ mod tests {
     use serde_json::to_string;
 
     use super::{DirectEvent, DirectEventContent};
+    use crate::EventResult;
 
     #[test]
     fn serialization() {
@@ -67,7 +68,10 @@ mod tests {
             rooms[1].to_string()
         );
 
-        let event: DirectEvent = json_data.parse().unwrap();
+        let event: DirectEvent = serde_json::from_str::<EventResult<_>>(&json_data)
+            .unwrap()
+            .into_result()
+            .unwrap();
         let direct_rooms = event.content.get(&alice).unwrap();
 
         assert!(direct_rooms.contains(&rooms[0]));

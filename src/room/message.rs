@@ -1,5 +1,7 @@
 //! Types for the *m.room.message* event.
 
+use std::convert::TryFrom;
+
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{
@@ -10,7 +12,7 @@ use serde::{
 use serde_json::{from_value, Value};
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
-use crate::{Event, EventResult, EventType, InnerInvalidEvent, InvalidEvent, RoomEvent};
+use crate::{Event, EventType, RoomEvent, Void};
 
 pub mod feedback;
 
@@ -74,50 +76,41 @@ pub enum MessageEventContent {
     __Nonexhaustive,
 }
 
-impl<'de> Deserialize<'de> for EventResult<MessageEvent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
+impl TryFrom<raw::MessageEvent> for MessageEvent {
+    type Error = (raw::MessageEvent, Void);
 
-        let raw: raw::MessageEvent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        Ok(EventResult::Ok(MessageEvent {
-            content: match raw.content {
-                raw::MessageEventContent::Audio(content) => MessageEventContent::Audio(content),
-                raw::MessageEventContent::Emote(content) => MessageEventContent::Emote(content),
-                raw::MessageEventContent::File(content) => MessageEventContent::File(content),
-                raw::MessageEventContent::Image(content) => MessageEventContent::Image(content),
-                raw::MessageEventContent::Location(content) => {
-                    MessageEventContent::Location(content)
-                }
-                raw::MessageEventContent::Notice(content) => MessageEventContent::Notice(content),
-                raw::MessageEventContent::ServerNotice(content) => {
-                    MessageEventContent::ServerNotice(content)
-                }
-                raw::MessageEventContent::Text(content) => MessageEventContent::Text(content),
-                raw::MessageEventContent::Video(content) => MessageEventContent::Video(content),
-                raw::MessageEventContent::__Nonexhaustive => {
-                    panic!("__Nonexhaustive enum variant is not intended for use.")
-                }
-            },
+    fn try_from(raw: raw::MessageEvent) -> Result<Self, Self::Error> {
+        Ok(Self {
+            content: crate::convert_content(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
             room_id: raw.room_id,
             sender: raw.sender,
             unsigned: raw.unsigned,
-        }))
+        })
+    }
+}
+
+impl TryFrom<raw::MessageEventContent> for MessageEventContent {
+    type Error = (raw::MessageEventContent, Void);
+
+    fn try_from(raw: raw::MessageEventContent) -> Result<Self, Self::Error> {
+        use raw::MessageEventContent::*;
+
+        Ok(match raw {
+            Audio(content) => Self::Audio(content),
+            Emote(content) => Self::Emote(content),
+            File(content) => Self::File(content),
+            Image(content) => Self::Image(content),
+            Location(content) => Self::Location(content),
+            Notice(content) => Self::Notice(content),
+            ServerNotice(content) => Self::ServerNotice(content),
+            Text(content) => Self::Text(content),
+            Video(content) => Self::Video(content),
+            __Nonexhaustive => {
+                unreachable!("It should be impossible to obtain a __Nonexhaustive variant.")
+            }
+        })
     }
 }
 
@@ -157,7 +150,12 @@ impl Serialize for MessageEvent {
     }
 }
 
-impl_room_event!(MessageEvent, MessageEventContent, EventType::RoomMessage);
+impl_room_event!(
+    MessageEvent,
+    MessageEventContent,
+    EventType::RoomMessage,
+    raw
+);
 
 impl Serialize for MessageEventContent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -181,47 +179,7 @@ impl Serialize for MessageEventContent {
     }
 }
 
-impl<'de> Deserialize<'de> for EventResult<MessageEventContent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
-
-        let raw: raw::MessageEventContent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        let content = match raw {
-            raw::MessageEventContent::Audio(content) => MessageEventContent::Audio(content),
-            raw::MessageEventContent::Emote(content) => MessageEventContent::Emote(content),
-            raw::MessageEventContent::File(content) => MessageEventContent::File(content),
-            raw::MessageEventContent::Image(content) => MessageEventContent::Image(content),
-            raw::MessageEventContent::Location(content) => MessageEventContent::Location(content),
-            raw::MessageEventContent::Notice(content) => MessageEventContent::Notice(content),
-            raw::MessageEventContent::ServerNotice(content) => {
-                MessageEventContent::ServerNotice(content)
-            }
-            raw::MessageEventContent::Text(content) => MessageEventContent::Text(content),
-            raw::MessageEventContent::Video(content) => MessageEventContent::Video(content),
-            raw::MessageEventContent::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.")
-            }
-        };
-
-        Ok(EventResult::Ok(content))
-    }
-}
-
-mod raw {
+pub(crate) mod raw {
     use super::*;
 
     /// A message sent to a room.
@@ -1085,7 +1043,8 @@ impl Serialize for VideoMessageEventContent {
 mod tests {
     use serde_json::to_string;
 
-    use super::{AudioMessageEventContent, EventResult, MessageEventContent};
+    use super::{AudioMessageEventContent, MessageEventContent};
+    use crate::EventResult;
 
     #[test]
     fn serialization() {

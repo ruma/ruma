@@ -1,5 +1,7 @@
 //! Types for the *m.key.verification.start* event.
 
+use std::convert::{TryFrom, TryInto as _};
+
 use ruma_identifiers::DeviceId;
 use serde::{de::Error, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
@@ -8,7 +10,7 @@ use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
     VerificationMethod,
 };
-use crate::{Event, EventResult, EventType, InnerInvalidEvent, InvalidEvent, InvalidInput};
+use crate::{Event, EventType, InvalidInput};
 
 /// Begins an SAS key verification process.
 ///
@@ -31,38 +33,14 @@ pub enum StartEventContent {
     __Nonexhaustive,
 }
 
-impl<'de> Deserialize<'de> for EventResult<StartEvent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
+impl TryFrom<raw::StartEvent> for StartEvent {
+    type Error = (raw::StartEvent, &'static str);
 
-        let raw: raw::StartEvent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        let content = match StartEventContent::from_raw(raw.content) {
-            Ok(content) => content,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        Ok(EventResult::Ok(StartEvent { content }))
+    fn try_from(raw: raw::StartEvent) -> Result<Self, Self::Error> {
+        match raw.content.try_into() {
+            Ok(content) => Ok(Self { content }),
+            Err((content, msg)) => Err((raw::StartEvent { content }, msg)),
+        }
     }
 }
 
@@ -83,74 +61,58 @@ impl Serialize for StartEvent {
 impl_event!(
     StartEvent,
     StartEventContent,
-    EventType::KeyVerificationStart
+    EventType::KeyVerificationStart,
+    raw
 );
 
-impl StartEventContent {
-    fn from_raw(raw: raw::StartEventContent) -> Result<Self, &'static str> {
+impl TryFrom<raw::StartEventContent> for StartEventContent {
+    type Error = (raw::StartEventContent, &'static str);
+
+    fn try_from(raw: raw::StartEventContent) -> Result<Self, Self::Error> {
         match raw {
             raw::StartEventContent::MSasV1(content) => {
                 if !content
                     .key_agreement_protocols
                     .contains(&KeyAgreementProtocol::Curve25519)
                 {
-                    return Err("`key_agreement_protocols` must contain at least `KeyAgreementProtocol::Curve25519`");
+                    return Err(
+                        (raw::StartEventContent::MSasV1(content),
+                        "`key_agreement_protocols` must contain at least `KeyAgreementProtocol::Curve25519`",
+                    ));
                 }
 
                 if !content.hashes.contains(&HashAlgorithm::Sha256) {
-                    return Err("`hashes` must contain at least `HashAlgorithm::Sha256`");
+                    return Err((
+                        raw::StartEventContent::MSasV1(content),
+                        "`hashes` must contain at least `HashAlgorithm::Sha256`",
+                    ));
                 }
 
                 if !content
                     .message_authentication_codes
                     .contains(&MessageAuthenticationCode::HkdfHmacSha256)
                 {
-                    return Err("`message_authentication_codes` must contain at least `MessageAuthenticationCode::HkdfHmacSha256`");
+                    return Err(
+                        (raw::StartEventContent::MSasV1(content),
+                        "`message_authentication_codes` must contain at least `MessageAuthenticationCode::HkdfHmacSha256`",
+                    ));
                 }
 
                 if !content
                     .short_authentication_string
                     .contains(&ShortAuthenticationString::Decimal)
                 {
-                    return Err("`short_authentication_string` must contain at least `ShortAuthenticationString::Decimal`");
+                    return Err(
+                        (raw::StartEventContent::MSasV1(content),
+                        "`short_authentication_string` must contain at least `ShortAuthenticationString::Decimal`",
+                    ));
                 }
 
                 Ok(StartEventContent::MSasV1(content))
             }
             raw::StartEventContent::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.");
+                panic!("__Nonexhaustive enum variant is not intended for use.".to_owned());
             }
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for EventResult<StartEventContent> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
-
-        let raw: raw::StartEventContent = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Validation {
-                        json,
-                        message: error.to_string(),
-                    },
-                )));
-            }
-        };
-
-        match StartEventContent::from_raw(raw) {
-            Ok(content) => Ok(EventResult::Ok(content)),
-            Err(error) => Ok(EventResult::Err(InvalidEvent(
-                InnerInvalidEvent::Validation {
-                    json,
-                    message: error.to_string(),
-                },
-            ))),
         }
     }
 }
@@ -167,7 +129,7 @@ impl Serialize for StartEventContent {
     }
 }
 
-mod raw {
+pub(crate) mod raw {
     use super::*;
 
     /// Begins an SAS key verification process.
@@ -374,9 +336,10 @@ mod tests {
     use serde_json::to_string;
 
     use super::{
-        EventResult, HashAlgorithm, KeyAgreementProtocol, MSasV1Content, MSasV1ContentOptions,
+        HashAlgorithm, KeyAgreementProtocol, MSasV1Content, MSasV1ContentOptions,
         MessageAuthenticationCode, ShortAuthenticationString, StartEvent, StartEventContent,
     };
+    use crate::EventResult;
 
     #[test]
     fn invalid_m_sas_v1_content_missing_required_key_agreement_protocols() {
@@ -536,7 +499,7 @@ mod tests {
                 .unwrap_err();
 
         assert!(error.message().contains("key_agreement_protocols"));
-        assert!(error.json().is_some());
+        assert!(error.raw_data().is_some());
     }
 
     #[test]
@@ -550,7 +513,7 @@ mod tests {
                 .unwrap_err();
 
         assert!(error.message().contains("hashes"));
-        assert!(error.json().is_some());
+        assert!(error.raw_data().is_some());
     }
 
     #[test]
@@ -564,7 +527,7 @@ mod tests {
                 .unwrap_err();
 
         assert!(error.message().contains("message_authentication_codes"));
-        assert!(error.json().is_some());
+        assert!(error.raw_data().is_some());
     }
 
     #[test]
@@ -578,7 +541,7 @@ mod tests {
                 .unwrap_err();
 
         assert!(error.message().contains("short_authentication_string"));
-        assert!(error.json().is_some());
+        assert!(error.raw_data().is_some());
     }
 
     #[test]
@@ -593,6 +556,6 @@ mod tests {
                 .unwrap_err();
 
         assert!(error.message().contains("key_agreement_protocols"));
-        assert!(error.json().is_some());
+        assert!(error.raw_data().is_some());
     }
 }

@@ -439,6 +439,7 @@ mod tests {
         Action, EventMatchCondition, PushCondition, PushRulesEvent, RoomMemberCountCondition,
         SenderNotificationPermissionCondition, Tweak,
     };
+    use crate::EventResult;
 
     #[test]
     fn serialize_string_action() {
@@ -776,6 +777,9 @@ mod tests {
     },
     "type": "m.push_rules"
 }"#;
-        assert!(json.parse::<PushRulesEvent>().is_ok());
+        assert!(serde_json::from_str::<EventResult<PushRulesEvent>>(json)
+            .unwrap()
+            .into_result()
+            .is_ok());
     }
 }

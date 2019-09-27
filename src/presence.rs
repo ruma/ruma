@@ -80,6 +80,7 @@ mod tests {
     use serde_json::to_string;
 
     use super::{PresenceEvent, PresenceEventContent, PresenceState};
+    use crate::EventResult;
 
     #[test]
     fn serialization() {
@@ -118,6 +119,12 @@ mod tests {
         let json =
             r#"{"content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online","status_msg":"Making cupcakes"},"sender":"@example:localhost","type":"m.presence"}"#;
 
-        assert_eq!(json.parse::<PresenceEvent>().unwrap(), event);
+        assert_eq!(
+            serde_json::from_str::<EventResult<PresenceEvent>>(json)
+                .unwrap()
+                .into_result()
+                .unwrap(),
+            event
+        );
     }
 }
