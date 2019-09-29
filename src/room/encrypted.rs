@@ -1,7 +1,5 @@
 //! Types for the *m.room.encrypted* event.
 
-use std::{convert::TryFrom, str::FromStr};
-
 use js_int::UInt;
 use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
 use serde::{de::Error, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
@@ -92,58 +90,6 @@ impl<'de> Deserialize<'de> for EventResult<EncryptedEvent> {
     }
 }
 
-impl FromStr for EncryptedEvent {
-    type Err = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = match serde_json::from_str::<raw::EncryptedEvent>(json) {
-            Ok(raw) => raw,
-            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
-                Ok(value) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: value,
-                        message: error.to_string(),
-                    }));
-                }
-                Err(error) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
-                }
-            },
-        };
-
-        let content = match raw.content {
-            raw::EncryptedEventContent::OlmV1Curve25519AesSha2(content) => {
-                EncryptedEventContent::OlmV1Curve25519AesSha2(content)
-            }
-            raw::EncryptedEventContent::MegolmV1AesSha2(content) => {
-                EncryptedEventContent::MegolmV1AesSha2(content)
-            }
-            raw::EncryptedEventContent::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.");
-            }
-        };
-
-        Ok(Self {
-            content,
-            event_id: raw.event_id,
-            origin_server_ts: raw.origin_server_ts,
-            room_id: raw.room_id,
-            sender: raw.sender,
-            unsigned: raw.unsigned,
-        })
-    }
-}
-
-impl<'a> TryFrom<&'a str> for EncryptedEvent {
-    type Error = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
-        FromStr::from_str(json)
-    }
-}
-
 impl Serialize for EncryptedEvent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -216,49 +162,6 @@ impl<'de> Deserialize<'de> for EventResult<EncryptedEventContent> {
                 panic!("__Nonexhaustive enum variant is not intended for use.");
             }
         }
-    }
-}
-
-impl FromStr for EncryptedEventContent {
-    type Err = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = match serde_json::from_str::<raw::EncryptedEventContent>(json) {
-            Ok(raw) => raw,
-            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
-                Ok(value) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: value,
-                        message: error.to_string(),
-                    }));
-                }
-                Err(error) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
-                }
-            },
-        };
-
-        match raw {
-            raw::EncryptedEventContent::OlmV1Curve25519AesSha2(content) => {
-                Ok(EncryptedEventContent::OlmV1Curve25519AesSha2(content))
-            }
-            raw::EncryptedEventContent::MegolmV1AesSha2(content) => {
-                Ok(EncryptedEventContent::MegolmV1AesSha2(content))
-            }
-            raw::EncryptedEventContent::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.");
-            }
-        }
-    }
-}
-
-impl<'a> TryFrom<&'a str> for EncryptedEventContent {
-    type Error = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
-        FromStr::from_str(json)
     }
 }
 

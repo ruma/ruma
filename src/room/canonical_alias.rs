@@ -1,7 +1,5 @@
 //! Types for the *m.room.canonical_alias* event.
 
-use std::{convert::TryFrom, str::FromStr};
-
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
@@ -86,52 +84,6 @@ impl<'de> Deserialize<'de> for EventResult<CanonicalAliasEvent> {
     }
 }
 
-impl FromStr for CanonicalAliasEvent {
-    type Err = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = match serde_json::from_str::<raw::CanonicalAliasEvent>(json) {
-            Ok(raw) => raw,
-            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
-                Ok(value) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: value,
-                        message: error.to_string(),
-                    }));
-                }
-                Err(error) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
-                }
-            },
-        };
-
-        Ok(Self {
-            content: CanonicalAliasEventContent {
-                alias: raw.content.alias,
-            },
-            event_id: raw.event_id,
-            origin_server_ts: raw.origin_server_ts,
-            prev_content: raw
-                .prev_content
-                .map(|prev| CanonicalAliasEventContent { alias: prev.alias }),
-            room_id: raw.room_id,
-            sender: raw.sender,
-            state_key: raw.state_key,
-            unsigned: raw.unsigned,
-        })
-    }
-}
-
-impl<'a> TryFrom<&'a str> for CanonicalAliasEvent {
-    type Error = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
-        FromStr::from_str(json)
-    }
-}
-
 impl Serialize for CanonicalAliasEvent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -205,39 +157,6 @@ impl<'de> Deserialize<'de> for EventResult<CanonicalAliasEventContent> {
         Ok(EventResult::Ok(CanonicalAliasEventContent {
             alias: raw.alias,
         }))
-    }
-}
-
-impl FromStr for CanonicalAliasEventContent {
-    type Err = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = match serde_json::from_str::<raw::CanonicalAliasEventContent>(json) {
-            Ok(raw) => raw,
-            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
-                Ok(value) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: value,
-                        message: error.to_string(),
-                    }));
-                }
-                Err(error) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
-                }
-            },
-        };
-
-        Ok(Self { alias: raw.alias })
-    }
-}
-
-impl<'a> TryFrom<&'a str> for CanonicalAliasEventContent {
-    type Error = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
-        FromStr::from_str(json)
     }
 }
 

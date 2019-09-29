@@ -1,7 +1,5 @@
 //! Types for the *m.key.verification.start* event.
 
-use std::{convert::TryFrom, str::FromStr};
-
 use ruma_identifiers::DeviceId;
 use serde::{de::Error, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
@@ -65,46 +63,6 @@ impl<'de> Deserialize<'de> for EventResult<StartEvent> {
         };
 
         Ok(EventResult::Ok(StartEvent { content }))
-    }
-}
-
-impl FromStr for StartEvent {
-    type Err = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = match serde_json::from_str::<raw::StartEvent>(json) {
-            Ok(raw) => raw,
-            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
-                Ok(value) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: value,
-                        message: error.to_string(),
-                    }));
-                }
-                Err(error) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
-                }
-            },
-        };
-
-        let content = match raw.content {
-            raw::StartEventContent::MSasV1(content) => StartEventContent::MSasV1(content),
-            raw::StartEventContent::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.");
-            }
-        };
-
-        Ok(Self { content })
-    }
-}
-
-impl<'a> TryFrom<&'a str> for StartEvent {
-    type Error = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
-        FromStr::from_str(json)
     }
 }
 
@@ -194,84 +152,6 @@ impl<'de> Deserialize<'de> for EventResult<StartEventContent> {
                 },
             ))),
         }
-    }
-}
-
-impl FromStr for StartEventContent {
-    type Err = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = match serde_json::from_str::<raw::StartEventContent>(json) {
-            Ok(raw) => raw,
-            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
-                Ok(value) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: value,
-                        message: error.to_string(),
-                    }));
-                }
-                Err(error) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
-                }
-            },
-        };
-
-        match raw {
-            raw::StartEventContent::MSasV1(content) => {
-                if !content
-                    .key_agreement_protocols
-                    .contains(&KeyAgreementProtocol::Curve25519)
-                {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: serde_json::from_str::<Value>(json)?,
-                        message: "`key_agreement_protocols` must contain at least `KeyAgreementProtocol::Curve25519`".to_string(),
-                    }));
-                }
-
-                if !content.hashes.contains(&HashAlgorithm::Sha256) {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: serde_json::from_str::<Value>(json)?,
-                        message: "`hashes` must contain at least `HashAlgorithm::Sha256`"
-                            .to_string(),
-                    }));
-                }
-
-                if !content
-                    .message_authentication_codes
-                    .contains(&MessageAuthenticationCode::HkdfHmacSha256)
-                {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: serde_json::from_str::<Value>(json)?,
-                        message: "`message_authentication_codes` must contain at least `MessageAuthenticationCode::HkdfHmacSha256`".to_string(),
-                    }));
-                }
-
-                if !content
-                    .short_authentication_string
-                    .contains(&ShortAuthenticationString::Decimal)
-                {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: serde_json::from_str::<Value>(json)?,
-                        message: "`short_authentication_string` must contain at least `ShortAuthenticationString::Decimal`".to_string(),
-                    }));
-                }
-
-                Ok(StartEventContent::MSasV1(content))
-            }
-            raw::StartEventContent::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.");
-            }
-        }
-    }
-}
-
-impl<'a> TryFrom<&'a str> for StartEventContent {
-    type Error = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
-        FromStr::from_str(json)
     }
 }
 

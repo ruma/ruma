@@ -1,7 +1,5 @@
 //! Types for the *m.room.server_acl* event.
 
-use std::{convert::TryFrom, str::FromStr};
-
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
@@ -110,56 +108,6 @@ impl<'de> Deserialize<'de> for EventResult<ServerAclEvent> {
     }
 }
 
-impl FromStr for ServerAclEvent {
-    type Err = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = match serde_json::from_str::<raw::ServerAclEvent>(json) {
-            Ok(raw) => raw,
-            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
-                Ok(value) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: value,
-                        message: error.to_string(),
-                    }));
-                }
-                Err(error) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
-                }
-            },
-        };
-
-        Ok(Self {
-            content: ServerAclEventContent {
-                allow_ip_literals: raw.content.allow_ip_literals,
-                allow: raw.content.allow,
-                deny: raw.content.deny,
-            },
-            event_id: raw.event_id,
-            origin_server_ts: raw.origin_server_ts,
-            prev_content: raw.prev_content.map(|prev| ServerAclEventContent {
-                allow_ip_literals: prev.allow_ip_literals,
-                allow: prev.allow,
-                deny: prev.deny,
-            }),
-            room_id: raw.room_id,
-            unsigned: raw.unsigned,
-            sender: raw.sender,
-            state_key: raw.state_key,
-        })
-    }
-}
-
-impl<'a> TryFrom<&'a str> for ServerAclEvent {
-    type Error = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
-        FromStr::from_str(json)
-    }
-}
-
 impl Serialize for ServerAclEvent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -204,43 +152,6 @@ impl<'de> Deserialize<'de> for EventResult<ServerAclEventContent> {
             allow: raw.allow,
             deny: raw.deny,
         }))
-    }
-}
-
-impl FromStr for ServerAclEventContent {
-    type Err = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn from_str(json: &str) -> Result<Self, Self::Err> {
-        let raw = match serde_json::from_str::<raw::ServerAclEventContent>(json) {
-            Ok(raw) => raw,
-            Err(error) => match serde_json::from_str::<serde_json::Value>(json) {
-                Ok(value) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Validation {
-                        json: value,
-                        message: error.to_string(),
-                    }));
-                }
-                Err(error) => {
-                    return Err(InvalidEvent(InnerInvalidEvent::Deserialization { error }));
-                }
-            },
-        };
-
-        Ok(Self {
-            allow_ip_literals: raw.allow_ip_literals,
-            allow: raw.allow,
-            deny: raw.deny,
-        })
-    }
-}
-
-impl<'a> TryFrom<&'a str> for ServerAclEventContent {
-    type Error = InvalidEvent;
-
-    /// Attempt to create `Self` from parsing a string of JSON data.
-    fn try_from(json: &'a str) -> Result<Self, Self::Error> {
-        FromStr::from_str(json)
     }
 }
 
