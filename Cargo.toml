@@ -13,9 +13,9 @@ repository = "https://github.com/ruma/ruma-client"
 version = "0.2.0"
 
 [dependencies]
-futures-preview = "0.3.0-alpha.17"
+futures-preview = "0.3.0-alpha.18"
 http = "0.1.18"
-hyper = "0.13.0-alpha.1"
+hyper = { version = "0.13.0-alpha.4", features = ["unstable-stream"] }
 ruma-api = "0.10.0"
 ruma-client-api = { git = "https://github.com/ruma/ruma-client-api" }
 ruma-identifiers = "0.14.0"
@@ -25,7 +25,7 @@ url = "2.1.0"
 
 [dependencies.hyper-tls]
 optional = true
-version = "0.4.0-alpha.1"
+version = "0.4.0-alpha.4"
 
 [dependencies.native-tls]
 optional = true
@@ -36,11 +36,11 @@ git = "https://github.com/ruma/ruma-events"
 rev = "1b0be0d0e7fa1040fc51b748256b290e24677b19"
 
 [dependencies.serde]
-version = "1.0.99"
+version = "1.0.101"
 features = ["derive"]
 
 [dev-dependencies]
-tokio = "0.2.0-alpha.4"
+tokio = "0.2.0-alpha.6"
 
 [features]
 default = ["tls"]
