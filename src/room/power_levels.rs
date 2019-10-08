@@ -1,13 +1,13 @@
 //! Types for the *m.room.power_levels* event.
 
-use std::{collections::HashMap, convert::TryFrom};
+use std::collections::HashMap;
 
 use js_int::{Int, UInt};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{Event, EventType, RoomEvent, StateEvent, Void};
+use crate::{Event as _, EventResultCompatible, EventType, Void};
 
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Clone, Debug, PartialEq)]
@@ -85,15 +85,16 @@ pub struct PowerLevelsEventContent {
     pub notifications: NotificationPowerLevels,
 }
 
-impl TryFrom<raw::PowerLevelsEvent> for PowerLevelsEvent {
-    type Error = (raw::PowerLevelsEvent, Void);
+impl EventResultCompatible for PowerLevelsEvent {
+    type Raw = raw::PowerLevelsEvent;
+    type Err = Void;
 
-    fn try_from(raw: raw::PowerLevelsEvent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::PowerLevelsEvent) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self {
-            content: crate::convert_content(raw.content),
+            content: crate::from_raw(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
-            prev_content: raw.prev_content.map(crate::convert_content),
+            prev_content: raw.prev_content.map(crate::from_raw),
             room_id: raw.room_id,
             unsigned: raw.unsigned,
             sender: raw.sender,
@@ -102,10 +103,11 @@ impl TryFrom<raw::PowerLevelsEvent> for PowerLevelsEvent {
     }
 }
 
-impl TryFrom<raw::PowerLevelsEventContent> for PowerLevelsEventContent {
-    type Error = (raw::PowerLevelsEventContent, Void);
+impl EventResultCompatible for PowerLevelsEventContent {
+    type Raw = raw::PowerLevelsEventContent;
+    type Err = Void;
 
-    fn try_from(raw: raw::PowerLevelsEventContent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::PowerLevelsEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self {
             ban: raw.ban,
             events: raw.events,
@@ -169,8 +171,7 @@ impl Serialize for PowerLevelsEvent {
 impl_state_event!(
     PowerLevelsEvent,
     PowerLevelsEventContent,
-    EventType::RoomPowerLevels,
-    raw
+    EventType::RoomPowerLevels
 );
 
 pub(crate) mod raw {

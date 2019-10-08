@@ -1,13 +1,11 @@
 //! Types for the *m.room.canonical_alias* event.
 
-use std::convert::TryFrom;
-
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{empty_string_as_none, Event, EventType, RoomEvent, StateEvent, Void};
+use crate::{empty_string_as_none, Event, EventResultCompatible, EventType, Void};
 
 /// Informs the room as to which alias is the canonical one.
 #[derive(Clone, Debug, PartialEq)]
@@ -47,15 +45,16 @@ pub struct CanonicalAliasEventContent {
     pub alias: Option<RoomAliasId>,
 }
 
-impl TryFrom<raw::CanonicalAliasEvent> for CanonicalAliasEvent {
-    type Error = (raw::CanonicalAliasEvent, Void);
+impl EventResultCompatible for CanonicalAliasEvent {
+    type Raw = raw::CanonicalAliasEvent;
+    type Err = Void;
 
-    fn try_from(raw: raw::CanonicalAliasEvent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::CanonicalAliasEvent) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self {
-            content: crate::convert_content(raw.content),
+            content: crate::from_raw(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
-            prev_content: raw.prev_content.map(crate::convert_content),
+            prev_content: raw.prev_content.map(crate::from_raw),
             room_id: raw.room_id,
             sender: raw.sender,
             state_key: raw.state_key,
@@ -64,10 +63,11 @@ impl TryFrom<raw::CanonicalAliasEvent> for CanonicalAliasEvent {
     }
 }
 
-impl TryFrom<raw::CanonicalAliasEventContent> for CanonicalAliasEventContent {
-    type Error = (raw::CanonicalAliasEventContent, Void);
+impl EventResultCompatible for CanonicalAliasEventContent {
+    type Raw = raw::CanonicalAliasEventContent;
+    type Err = Void;
 
-    fn try_from(raw: raw::CanonicalAliasEventContent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::CanonicalAliasEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self { alias: raw.alias })
     }
 }
@@ -120,8 +120,7 @@ impl Serialize for CanonicalAliasEvent {
 impl_state_event!(
     CanonicalAliasEvent,
     CanonicalAliasEventContent,
-    EventType::RoomCanonicalAlias,
-    raw
+    EventType::RoomCanonicalAlias
 );
 
 pub(crate) mod raw {

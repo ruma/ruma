@@ -108,6 +108,19 @@ impl<T: EventResultCompatible> EventResult<T> {
 pub trait EventResultCompatible {
     /// The raw form of this event that deserialization falls back to if deserializing `Self` fails.
     type Raw;
+    type Err: Into<String>;
+
+    fn try_from_raw(_: Self::Raw) -> Result<Self, (Self::Err, Self::Raw)>;
+}
+
+fn from_raw<T>(raw: T::Raw) -> T
+where
+    T: EventResultCompatible<Err = Void>,
+{
+    match T::try_from_raw(raw) {
+        Ok(c) => c,
+        Err((void, _)) => match void {},
+    }
 }
 
 enum Void {}

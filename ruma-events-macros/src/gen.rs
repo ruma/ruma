@@ -166,10 +166,7 @@ impl ToTokens for RumaEvent {
                 match &self.content {
                     Content::Struct(_) => {
                         quote_spanned! {span=>
-                            content: match std::convert::TryFrom::try_from(raw.content) {
-                                Ok(c) => c,
-                                Err((_, void)) => match void {},
-                            },
+                            content: crate::from_raw(raw.content),
                         }
                     }
                     Content::Typedef(_) => {
@@ -182,12 +179,7 @@ impl ToTokens for RumaEvent {
                 match &self.content {
                     Content::Struct(_) => {
                         quote_spanned! {span=>
-                            prev_content: raw.prev_content.map(|prev_content| {
-                                match std::convert::TryFrom::try_from(prev_content) {
-                                    Ok(c) => c,
-                                    Err((_, void)) => match void {},
-                                }
-                            }),
+                            prev_content: raw.prev_content.map(crate::from_raw),
                         }
                     }
                     Content::Typedef(_) => {
@@ -318,39 +310,39 @@ impl ToTokens for RumaEvent {
             TokenStream::new()
         };
 
-        let impl_conversions_for_content = if let Content::Struct(content_fields) = &self.content {
-            let mut content_field_values: Vec<TokenStream> =
-                Vec::with_capacity(content_fields.len());
+        let impl_event_result_compatible_for_content =
+            if let Content::Struct(content_fields) = &self.content {
+                let mut content_field_values: Vec<TokenStream> =
+                    Vec::with_capacity(content_fields.len());
 
-            for content_field in content_fields {
-                let content_field_ident = content_field.ident.clone().unwrap();
-                let span = content_field.span();
+                for content_field in content_fields {
+                    let content_field_ident = content_field.ident.clone().unwrap();
+                    let span = content_field.span();
 
-                let token_stream = quote_spanned! {span=>
-                    #content_field_ident: raw.#content_field_ident,
-                };
+                    let token_stream = quote_spanned! {span=>
+                        #content_field_ident: raw.#content_field_ident,
+                    };
 
-                content_field_values.push(token_stream);
-            }
+                    content_field_values.push(token_stream);
+                }
 
-            quote! {
-                impl std::convert::TryFrom<raw::#content_name> for #content_name {
-                    type Error = (raw::#content_name, crate::Void);
+                quote! {
+                    impl crate::EventResultCompatible for #content_name {
+                        type Raw = raw::#content_name;
+                        type Err = crate::Void;
 
-                    fn try_from(raw: raw::#content_name) -> Result<Self, Self::Error> {
-                        Ok(Self {
-                            #(#content_field_values)*
-                        })
+                        fn try_from_raw(
+                            raw: raw::#content_name
+                        ) -> Result<Self, (Self::Err, Self::Raw)> {
+                            Ok(Self {
+                                #(#content_field_values)*
+                            })
+                        }
                     }
                 }
-
-                impl crate::EventResultCompatible for #content_name {
-                    type Raw = raw::#content_name;
-                }
-            }
-        } else {
-            TokenStream::new()
-        };
+            } else {
+                TokenStream::new()
+            };
 
         let output = quote!(
             #(#attrs)*
@@ -361,21 +353,18 @@ impl ToTokens for RumaEvent {
 
             #content
 
-            impl std::convert::TryFrom<raw::#name> for #name {
-                type Error = (raw::#name, crate::Void);
+            impl crate::EventResultCompatible for #name {
+                type Raw = raw::#name;
+                type Err = crate::Void;
 
-                fn try_from(raw: raw::#name) -> Result<Self, Self::Error> {
+                fn try_from_raw(raw: raw::#name) -> Result<Self, (Self::Err, Self::Raw)> {
                     Ok(Self {
                         #(#try_from_field_values)*
                     })
                 }
             }
 
-            impl crate::EventResultCompatible for #name {
-                type Raw = raw::#name;
-            }
-
-            #impl_conversions_for_content
+            #impl_event_result_compatible_for_content
 
             use serde::ser::SerializeStruct as _;
 

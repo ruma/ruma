@@ -1,11 +1,9 @@
 //! Types for the *m.ignored_user_list* event.
 
-use std::convert::TryFrom;
-
 use ruma_identifiers::UserId;
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 
-use crate::{vec_as_map_of_empty, Event as _, EventType, Void};
+use crate::{vec_as_map_of_empty, Event as _, EventResultCompatible, EventType, Void};
 
 /// A list of users to ignore.
 #[derive(Clone, Debug, PartialEq)]
@@ -14,29 +12,13 @@ pub struct IgnoredUserListEvent {
     pub content: IgnoredUserListEventContent,
 }
 
-/// The payload for `IgnoredUserListEvent`.
-#[derive(Clone, Debug, PartialEq, Serialize)]
-pub struct IgnoredUserListEventContent {
-    /// A list of users to ignore.
-    pub ignored_users: Vec<UserId>,
-}
+impl EventResultCompatible for IgnoredUserListEvent {
+    type Raw = raw::IgnoredUserListEvent;
+    type Err = Void;
 
-impl TryFrom<raw::IgnoredUserListEvent> for IgnoredUserListEvent {
-    type Error = (raw::IgnoredUserListEvent, Void);
-
-    fn try_from(raw: raw::IgnoredUserListEvent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::IgnoredUserListEvent) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self {
-            content: crate::convert_content(raw.content),
-        })
-    }
-}
-
-impl TryFrom<raw::IgnoredUserListEventContent> for IgnoredUserListEventContent {
-    type Error = (raw::IgnoredUserListEventContent, Void);
-
-    fn try_from(raw: raw::IgnoredUserListEventContent) -> Result<Self, Self::Error> {
-        Ok(Self {
-            ignored_users: raw.ignored_users,
+            content: crate::from_raw(raw.content),
         })
     }
 }
@@ -55,11 +37,28 @@ impl Serialize for IgnoredUserListEvent {
     }
 }
 
+/// The payload for `IgnoredUserListEvent`.
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub struct IgnoredUserListEventContent {
+    /// A list of users to ignore.
+    pub ignored_users: Vec<UserId>,
+}
+
+impl EventResultCompatible for IgnoredUserListEventContent {
+    type Raw = raw::IgnoredUserListEventContent;
+    type Err = Void;
+
+    fn try_from_raw(raw: raw::IgnoredUserListEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
+        Ok(Self {
+            ignored_users: raw.ignored_users,
+        })
+    }
+}
+
 impl_event!(
     IgnoredUserListEvent,
     IgnoredUserListEventContent,
-    EventType::IgnoredUserList,
-    raw
+    EventType::IgnoredUserList
 );
 
 pub(crate) mod raw {

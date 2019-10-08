@@ -1,8 +1,6 @@
 //! Enums for heterogeneous collections of events, exclusive to event types that implement "at
 //! most" the trait of the same name.
 
-use std::convert::TryFrom;
-
 use serde::{Serialize, Serializer};
 
 pub use super::{all::StateEvent, raw::only as raw};
@@ -134,24 +132,18 @@ pub enum RoomEvent {
 
 impl EventResultCompatible for Event {
     type Raw = raw::Event;
-}
+    type Err = Void;
 
-impl TryFrom<raw::Event> for Event {
-    type Error = (raw::Event, Void);
-
-    fn try_from(raw: raw::Event) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::Event) -> Result<Self, (Self::Err, Self::Raw)> {
         unimplemented!()
     }
 }
 
 impl EventResultCompatible for RoomEvent {
     type Raw = raw::RoomEvent;
-}
+    type Err = Void;
 
-impl TryFrom<raw::RoomEvent> for RoomEvent {
-    type Error = (raw::RoomEvent, Void);
-
-    fn try_from(raw: raw::RoomEvent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::RoomEvent) -> Result<Self, (Self::Err, Self::Raw)> {
         unimplemented!()
     }
 }

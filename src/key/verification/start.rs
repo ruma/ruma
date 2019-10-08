@@ -1,7 +1,5 @@
 //! Types for the *m.key.verification.start* event.
 
-use std::convert::{TryFrom, TryInto as _};
-
 use ruma_identifiers::DeviceId;
 use serde::{de::Error, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
@@ -10,7 +8,7 @@ use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
     VerificationMethod,
 };
-use crate::{Event, EventType, InvalidInput};
+use crate::{Event, EventResultCompatible, EventType, InvalidInput};
 
 /// Begins an SAS key verification process.
 ///
@@ -33,13 +31,14 @@ pub enum StartEventContent {
     __Nonexhaustive,
 }
 
-impl TryFrom<raw::StartEvent> for StartEvent {
-    type Error = (raw::StartEvent, &'static str);
+impl EventResultCompatible for StartEvent {
+    type Raw = raw::StartEvent;
+    type Err = &'static str;
 
-    fn try_from(raw: raw::StartEvent) -> Result<Self, Self::Error> {
-        match raw.content.try_into() {
+    fn try_from_raw(raw: raw::StartEvent) -> Result<Self, (Self::Err, Self::Raw)> {
+        match StartEventContent::try_from_raw(raw.content) {
             Ok(content) => Ok(Self { content }),
-            Err((content, msg)) => Err((raw::StartEvent { content }, msg)),
+            Err((msg, content)) => Err((msg, raw::StartEvent { content })),
         }
     }
 }
@@ -61,30 +60,30 @@ impl Serialize for StartEvent {
 impl_event!(
     StartEvent,
     StartEventContent,
-    EventType::KeyVerificationStart,
-    raw
+    EventType::KeyVerificationStart
 );
 
-impl TryFrom<raw::StartEventContent> for StartEventContent {
-    type Error = (raw::StartEventContent, &'static str);
+impl EventResultCompatible for StartEventContent {
+    type Raw = raw::StartEventContent;
+    type Err = &'static str;
 
-    fn try_from(raw: raw::StartEventContent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::StartEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
         match raw {
             raw::StartEventContent::MSasV1(content) => {
                 if !content
                     .key_agreement_protocols
                     .contains(&KeyAgreementProtocol::Curve25519)
                 {
-                    return Err(
-                        (raw::StartEventContent::MSasV1(content),
+                    return Err((
                         "`key_agreement_protocols` must contain at least `KeyAgreementProtocol::Curve25519`",
+                        raw::StartEventContent::MSasV1(content),
                     ));
                 }
 
                 if !content.hashes.contains(&HashAlgorithm::Sha256) {
                     return Err((
-                        raw::StartEventContent::MSasV1(content),
                         "`hashes` must contain at least `HashAlgorithm::Sha256`",
+                        raw::StartEventContent::MSasV1(content),
                     ));
                 }
 
@@ -92,9 +91,9 @@ impl TryFrom<raw::StartEventContent> for StartEventContent {
                     .message_authentication_codes
                     .contains(&MessageAuthenticationCode::HkdfHmacSha256)
                 {
-                    return Err(
-                        (raw::StartEventContent::MSasV1(content),
+                    return Err((
                         "`message_authentication_codes` must contain at least `MessageAuthenticationCode::HkdfHmacSha256`",
+                        raw::StartEventContent::MSasV1(content),
                     ));
                 }
 
@@ -102,9 +101,9 @@ impl TryFrom<raw::StartEventContent> for StartEventContent {
                     .short_authentication_string
                     .contains(&ShortAuthenticationString::Decimal)
                 {
-                    return Err(
-                        (raw::StartEventContent::MSasV1(content),
+                    return Err((
                         "`short_authentication_string` must contain at least `ShortAuthenticationString::Decimal`",
+                        raw::StartEventContent::MSasV1(content),
                     ));
                 }
 

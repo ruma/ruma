@@ -1,7 +1,5 @@
 //! Types for the *m.room.message* event.
 
-use std::convert::TryFrom;
-
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{
@@ -12,7 +10,7 @@ use serde::{
 use serde_json::{from_value, Value};
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
-use crate::{Event, EventType, RoomEvent, Void};
+use crate::{Event, EventResultCompatible, EventType, Void};
 
 pub mod feedback;
 
@@ -76,12 +74,13 @@ pub enum MessageEventContent {
     __Nonexhaustive,
 }
 
-impl TryFrom<raw::MessageEvent> for MessageEvent {
-    type Error = (raw::MessageEvent, Void);
+impl EventResultCompatible for MessageEvent {
+    type Raw = raw::MessageEvent;
+    type Err = Void;
 
-    fn try_from(raw: raw::MessageEvent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::MessageEvent) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self {
-            content: crate::convert_content(raw.content),
+            content: crate::from_raw(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
             room_id: raw.room_id,
@@ -91,10 +90,11 @@ impl TryFrom<raw::MessageEvent> for MessageEvent {
     }
 }
 
-impl TryFrom<raw::MessageEventContent> for MessageEventContent {
-    type Error = (raw::MessageEventContent, Void);
+impl EventResultCompatible for MessageEventContent {
+    type Raw = raw::MessageEventContent;
+    type Err = Void;
 
-    fn try_from(raw: raw::MessageEventContent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::MessageEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
         use raw::MessageEventContent::*;
 
         Ok(match raw {
@@ -150,12 +150,7 @@ impl Serialize for MessageEvent {
     }
 }
 
-impl_room_event!(
-    MessageEvent,
-    MessageEventContent,
-    EventType::RoomMessage,
-    raw
-);
+impl_room_event!(MessageEvent, MessageEventContent, EventType::RoomMessage);
 
 impl Serialize for MessageEventContent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

@@ -111,11 +111,10 @@
 //! because *m.room.message* implements a *more specific* event trait than `Event`.
 
 #![deny(missing_debug_implementations)]
-#![deny(missing_docs)]
+//#![deny(missing_docs)]
 //#![deny(warnings)]
 
 use std::{
-    convert::TryInto,
     error::Error,
     fmt::{Debug, Display, Error as FmtError, Formatter, Result as FmtResult},
 };
@@ -249,7 +248,10 @@ impl Error for InvalidInput {}
 /// Marks types that can be deserialized as EventResult<Self>
 pub trait EventResultCompatible: Sized {
     /// The raw form of this event that deserialization falls back to if deserializing `Self` fails.
-    type Raw: DeserializeOwned + TryInto<Self>;
+    type Raw: DeserializeOwned;
+    type Err: Into<String>;
+
+    fn try_from_raw(_: Self::Raw) -> Result<Self, (Self::Err, Self::Raw)>;
 }
 
 /// An empty type
@@ -262,13 +264,13 @@ impl From<Void> for String {
     }
 }
 
-fn convert_content<T, Raw>(res: Raw) -> T
+fn from_raw<T>(raw: T::Raw) -> T
 where
-    Raw: TryInto<T, Error = (Raw, Void)>,
+    T: EventResultCompatible<Err = Void>,
 {
-    match res.try_into() {
+    match T::try_from_raw(raw) {
         Ok(c) => c,
-        Err((_, void)) => match void {},
+        Err((void, _)) => match void {},
     }
 }
 
@@ -299,11 +301,9 @@ impl<T: EventResultCompatible> EventResult<T> {
     }
 }
 
-impl<'de, T, E> Deserialize<'de> for EventResult<T>
+impl<'de, T> Deserialize<'de> for EventResult<T>
 where
     T: EventResultCompatible,
-    T::Raw: TryInto<T, Error = (T::Raw, E)>,
-    E: Into<String>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -323,9 +323,9 @@ where
             }
         };
 
-        match raw_data.try_into() {
+        match T::try_from_raw(raw_data) {
             Ok(value) => Ok(EventResult::Ok(value)),
-            Err((raw_data, msg)) => Ok(EventResult::Err(InvalidEvent(
+            Err((msg, raw_data)) => Ok(EventResult::Err(InvalidEvent(
                 InnerInvalidEvent::Validation {
                     message: msg.into(),
                     raw_data,

@@ -5,10 +5,8 @@
 //! state event to be created, when the other fields can be inferred from a larger context, or where
 //! the other fields are otherwise inapplicable.
 
-use std::convert::TryFrom;
-
 use ruma_identifiers::UserId;
-use serde::{Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::{
     room::{
@@ -118,40 +116,29 @@ pub type StrippedRoomTopic = StrippedStateContent<TopicEventContent>;
 
 impl EventResultCompatible for StrippedState {
     type Raw = raw::StrippedState;
-}
+    type Err = String;
 
-impl TryFrom<raw::StrippedState> for StrippedState {
-    type Error = (raw::StrippedState, String);
-
-    fn try_from(raw: raw::StrippedState) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::StrippedState) -> Result<Self, (Self::Err, Self::Raw)> {
         unimplemented!()
     }
 }
 
-/*impl<C> EventResultCompatible for StrippedStateContent<C>
+impl<C> EventResultCompatible for StrippedStateContent<C>
 where
     C: EventResultCompatible,
 {
     type Raw = StrippedStateContent<C::Raw>;
-}
+    type Err = C::Err;
 
-// Orphan impl :(
-impl<C, E> TryFrom<StrippedStateContent<C::Raw>> for StrippedStateContent<C>
-where
-    C: EventResultCompatible,
-    C::Raw: TryInto<C, Error = (C::Raw, E)>,
-{
-    type Error = (StrippedStateContent<C::Raw>, E);
-
-    fn try_from(raw: StrippedStateContent<C::Raw>) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: StrippedStateContent<C::Raw>) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self {
-            content: raw.content.try_into()?,
+            content: C::try_from_raw(raw.content).map_err(|(msg, raw)| (msg, unimplemented!()))?,
             event_type: raw.event_type,
             state_key: raw.state_key,
             sender: raw.sender,
         })
     }
-}*/
+}
 
 impl Serialize for StrippedState {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -172,6 +159,18 @@ impl Serialize for StrippedState {
             StrippedState::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
             StrippedState::RoomTopic(ref event) => event.serialize(serializer),
         }
+    }
+}
+
+impl<'de, C> Deserialize<'de> for StrippedStateContent<C>
+where
+    C: Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        unimplemented!()
     }
 }
 
@@ -369,12 +368,12 @@ mod tests {
         };
 
         // Ensure `StrippedStateContent` can be parsed, not just `StrippedState`.
-        /*assert!(
+        assert!(
             serde_json::from_str::<EventResult<StrippedRoomName>>(name_event)
                 .unwrap()
                 .into_result()
                 .is_ok()
-        );*/
+        );
 
         match serde_json::from_str::<EventResult<_>>(join_rules_event)
             .unwrap()

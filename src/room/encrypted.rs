@@ -1,13 +1,11 @@
 //! Types for the *m.room.encrypted* event.
 
-use std::convert::TryFrom;
-
 use js_int::UInt;
 use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
 use serde::{de::Error, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
-use crate::{Algorithm, Event, EventType, RoomEvent, Void};
+use crate::{Algorithm, Event, EventResultCompatible, EventType, Void};
 
 /// This event type is used when sending encrypted events.
 ///
@@ -50,12 +48,13 @@ pub enum EncryptedEventContent {
     __Nonexhaustive,
 }
 
-impl TryFrom<raw::EncryptedEvent> for EncryptedEvent {
-    type Error = (raw::EncryptedEvent, Void);
+impl EventResultCompatible for EncryptedEvent {
+    type Raw = raw::EncryptedEvent;
+    type Err = Void;
 
-    fn try_from(raw: raw::EncryptedEvent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::EncryptedEvent) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self {
-            content: crate::convert_content(raw.content),
+            content: crate::from_raw(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
             room_id: raw.room_id,
@@ -65,10 +64,11 @@ impl TryFrom<raw::EncryptedEvent> for EncryptedEvent {
     }
 }
 
-impl TryFrom<raw::EncryptedEventContent> for EncryptedEventContent {
-    type Error = (raw::EncryptedEventContent, Void);
+impl EventResultCompatible for EncryptedEventContent {
+    type Raw = raw::EncryptedEventContent;
+    type Err = Void;
 
-    fn try_from(raw: raw::EncryptedEventContent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::EncryptedEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
         use raw::EncryptedEventContent::*;
 
         Ok(match raw {
@@ -120,8 +120,7 @@ impl Serialize for EncryptedEvent {
 impl_room_event!(
     EncryptedEvent,
     EncryptedEventContent,
-    EventType::RoomEncrypted,
-    raw
+    EventType::RoomEncrypted
 );
 
 impl Serialize for EncryptedEventContent {

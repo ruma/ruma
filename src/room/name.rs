@@ -1,14 +1,12 @@
 //! Types for the *m.room.name* event.
 
-use std::convert::TryFrom;
-
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
 use crate::{
-    empty_string_as_none, Event as _, EventType, InvalidInput, RoomEvent, StateEvent, Void,
+    empty_string_as_none, Event as _, EventResultCompatible, EventType, InvalidInput, Void,
 };
 
 /// A human-friendly room name designed to be displayed to the end-user.
@@ -47,15 +45,16 @@ pub struct NameEventContent {
     pub(crate) name: Option<String>,
 }
 
-impl TryFrom<raw::NameEvent> for NameEvent {
-    type Error = (raw::NameEvent, Void);
+impl EventResultCompatible for NameEvent {
+    type Raw = raw::NameEvent;
+    type Err = Void;
 
-    fn try_from(raw: raw::NameEvent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::NameEvent) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self {
-            content: crate::convert_content(raw.content),
+            content: crate::from_raw(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
-            prev_content: raw.prev_content.map(crate::convert_content),
+            prev_content: raw.prev_content.map(crate::from_raw),
             room_id: raw.room_id,
             sender: raw.sender,
             state_key: raw.state_key,
@@ -64,10 +63,11 @@ impl TryFrom<raw::NameEvent> for NameEvent {
     }
 }
 
-impl TryFrom<raw::NameEventContent> for NameEventContent {
-    type Error = (raw::NameEventContent, Void);
+impl EventResultCompatible for NameEventContent {
+    type Raw = raw::NameEventContent;
+    type Err = Void;
 
-    fn try_from(raw: raw::NameEventContent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::NameEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self { name: raw.name })
     }
 }
@@ -117,7 +117,7 @@ impl Serialize for NameEvent {
     }
 }
 
-impl_state_event!(NameEvent, NameEventContent, EventType::RoomName, raw);
+impl_state_event!(NameEvent, NameEventContent, EventType::RoomName);
 
 impl NameEventContent {
     /// Create a new `NameEventContent` with the given name.

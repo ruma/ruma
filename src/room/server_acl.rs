@@ -1,13 +1,11 @@
 //! Types for the *m.room.server_acl* event.
 
-use std::convert::TryFrom;
-
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{default_true, Event as _, EventType, RoomEvent, StateEvent, Void};
+use crate::{default_true, Event as _, EventResultCompatible, EventType, Void};
 
 /// An event to indicate which servers are permitted to participate in the room.
 #[derive(Clone, Debug, PartialEq)]
@@ -67,15 +65,16 @@ pub struct ServerAclEventContent {
     pub deny: Vec<String>,
 }
 
-impl TryFrom<raw::ServerAclEvent> for ServerAclEvent {
-    type Error = (raw::ServerAclEvent, Void);
+impl EventResultCompatible for ServerAclEvent {
+    type Raw = raw::ServerAclEvent;
+    type Err = Void;
 
-    fn try_from(raw: raw::ServerAclEvent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::ServerAclEvent) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self {
-            content: crate::convert_content(raw.content),
+            content: crate::from_raw(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
-            prev_content: raw.prev_content.map(crate::convert_content),
+            prev_content: raw.prev_content.map(crate::from_raw),
             room_id: raw.room_id,
             sender: raw.sender,
             state_key: raw.state_key,
@@ -84,10 +83,11 @@ impl TryFrom<raw::ServerAclEvent> for ServerAclEvent {
     }
 }
 
-impl TryFrom<raw::ServerAclEventContent> for ServerAclEventContent {
-    type Error = (raw::ServerAclEventContent, Void);
+impl EventResultCompatible for ServerAclEventContent {
+    type Raw = raw::ServerAclEventContent;
+    type Err = Void;
 
-    fn try_from(raw: raw::ServerAclEventContent) -> Result<Self, Self::Error> {
+    fn try_from_raw(raw: raw::ServerAclEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self {
             allow_ip_literals: raw.allow_ip_literals,
             allow: raw.allow,
@@ -113,8 +113,7 @@ impl Serialize for ServerAclEvent {
 impl_state_event!(
     ServerAclEvent,
     ServerAclEventContent,
-    EventType::RoomServerAcl,
-    raw
+    EventType::RoomServerAcl
 );
 
 pub(crate) mod raw {
