@@ -6,7 +6,8 @@
 //! the other fields are otherwise inapplicable.
 
 use ruma_identifiers::UserId;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::Value;
 
 use crate::{
     room::{
@@ -67,6 +68,7 @@ pub struct StrippedStateContent<C> {
     /// Data specific to the event type.
     pub content: C,
 
+    // FIXME(jplatte): It's unclear to me why this is stored
     /// The type of the event.
     #[serde(rename = "type")]
     pub event_type: EventType,
@@ -119,7 +121,34 @@ impl EventResultCompatible for StrippedState {
     type Err = String;
 
     fn try_from_raw(raw: raw::StrippedState) -> Result<Self, (Self::Err, Self::Raw)> {
-        unimplemented!()
+        use raw::StrippedState::*;
+
+        fn convert<T: EventResultCompatible>(
+            raw_variant: fn(T::Raw) -> raw::StrippedState,
+            variant: fn(T) -> StrippedState,
+            raw: T::Raw,
+        ) -> Result<StrippedState, (String, raw::StrippedState)> {
+            T::try_from_raw(raw)
+                .map(variant)
+                .map_err(|(msg, raw)| (msg.into(), raw_variant(raw)))
+        }
+
+        match raw {
+            RoomAliases(c) => convert(RoomAliases, Self::RoomAliases, c),
+            RoomAvatar(c) => convert(RoomAvatar, Self::RoomAvatar, c),
+            RoomCanonicalAlias(c) => convert(RoomCanonicalAlias, Self::RoomCanonicalAlias, c),
+            RoomCreate(c) => convert(RoomCreate, Self::RoomCreate, c),
+            RoomGuestAccess(c) => convert(RoomGuestAccess, Self::RoomGuestAccess, c),
+            RoomHistoryVisibility(c) => {
+                convert(RoomHistoryVisibility, Self::RoomHistoryVisibility, c)
+            }
+            RoomJoinRules(c) => convert(RoomJoinRules, Self::RoomJoinRules, c),
+            RoomMember(c) => convert(RoomMember, Self::RoomMember, c),
+            RoomName(c) => convert(RoomName, Self::RoomName, c),
+            RoomPowerLevels(c) => convert(RoomPowerLevels, Self::RoomPowerLevels, c),
+            RoomThirdPartyInvite(c) => convert(RoomThirdPartyInvite, Self::RoomThirdPartyInvite, c),
+            RoomTopic(c) => convert(RoomTopic, Self::RoomTopic, c),
+        }
     }
 }
 
@@ -130,9 +159,16 @@ where
     type Raw = StrippedStateContent<C::Raw>;
     type Err = C::Err;
 
-    fn try_from_raw(raw: StrippedStateContent<C::Raw>) -> Result<Self, (Self::Err, Self::Raw)> {
+    fn try_from_raw(mut raw: StrippedStateContent<C::Raw>) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self {
-            content: C::try_from_raw(raw.content).map_err(|(msg, raw)| (msg, unimplemented!()))?,
+            content: match C::try_from_raw(raw.content) {
+                Ok(c) => c,
+                Err((msg, raw_content)) => {
+                    // we moved raw.content, so we need to put it back before returning raw
+                    raw.content = raw_content;
+                    return Err((msg, raw));
+                }
+            },
             event_type: raw.event_type,
             state_key: raw.state_key,
             sender: raw.sender,
@@ -164,13 +200,58 @@ impl Serialize for StrippedState {
 
 impl<'de, C> Deserialize<'de> for StrippedStateContent<C>
 where
-    C: Deserialize<'de>,
+    C: DeserializeOwned,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        unimplemented!()
+        use serde::de::Error as _;
+        use serde_json::from_value;
+
+        let conv_err = |error: serde_json::Error| D::Error::custom(error.to_string());
+
+        // TODO: Optimize
+        let value = Value::deserialize(deserializer)?;
+
+        let event_type = from_value(
+            value
+                .get("type")
+                .map(Clone::clone)
+                .ok_or_else(|| D::Error::missing_field("type"))?,
+        )
+        .map_err(conv_err)?;
+
+        let content = from_value(
+            value
+                .get("content")
+                .map(Clone::clone)
+                .ok_or_else(|| D::Error::missing_field("content"))?,
+        )
+        .map_err(conv_err)?;
+
+        let sender = from_value(
+            value
+                .get("sender")
+                .map(Clone::clone)
+                .ok_or_else(|| D::Error::missing_field("sender"))?,
+        )
+        .map_err(conv_err)?;
+
+        let state_key = from_value(
+            value
+                .get("state_key")
+                .map(Clone::clone)
+                .ok_or_else(|| D::Error::missing_field("state_key"))?,
+        )
+        .map_err(conv_err)?;
+
+        Ok(Self {
+            content,
+            event_type,
+            state_key,
+            sender,
+        })
     }
 }
 
@@ -270,7 +351,44 @@ mod raw {
         where
             D: Deserializer<'de>,
         {
-            unimplemented!()
+            use crate::EventType::*;
+            use serde::de::Error as _;
+            use serde_json::{from_value, Value};
+
+            let conv_err = |error: serde_json::Error| D::Error::custom(error.to_string());
+
+            // TODO: Optimize
+            let value = Value::deserialize(deserializer)?;
+
+            let event_type = from_value(
+                value
+                    .get("type")
+                    .map(Clone::clone)
+                    .ok_or_else(|| D::Error::missing_field("type"))?,
+            )
+            .map_err(conv_err)?;
+
+            Ok(match event_type {
+                RoomAliases => StrippedState::RoomAliases(from_value(value).map_err(conv_err)?),
+                RoomAvatar => Self::RoomAvatar(from_value(value).map_err(conv_err)?),
+                RoomCanonicalAlias => {
+                    Self::RoomCanonicalAlias(from_value(value).map_err(conv_err)?)
+                }
+                RoomCreate => Self::RoomCreate(from_value(value).map_err(conv_err)?),
+                RoomGuestAccess => Self::RoomGuestAccess(from_value(value).map_err(conv_err)?),
+                RoomHistoryVisibility => {
+                    Self::RoomHistoryVisibility(from_value(value).map_err(conv_err)?)
+                }
+                RoomJoinRules => Self::RoomJoinRules(from_value(value).map_err(conv_err)?),
+                RoomMember => Self::RoomMember(from_value(value).map_err(conv_err)?),
+                RoomName => Self::RoomName(from_value(value).map_err(conv_err)?),
+                RoomPowerLevels => Self::RoomPowerLevels(from_value(value).map_err(conv_err)?),
+                RoomThirdPartyInvite => {
+                    Self::RoomThirdPartyInvite(from_value(value).map_err(conv_err)?)
+                }
+                RoomTopic => Self::RoomTopic(from_value(value).map_err(conv_err)?),
+                _ => return Err(D::Error::custom("not a state event")),
+            })
         }
     }
 }

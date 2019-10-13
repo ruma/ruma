@@ -254,6 +254,7 @@ pub trait EventResultCompatible: Sized {
     fn try_from_raw(_: Self::Raw) -> Result<Self, (Self::Err, Self::Raw)>;
 }
 
+// TODO: Replace with ! once that is stable
 /// An empty type
 #[derive(Debug)]
 pub enum Void {}
@@ -335,14 +336,15 @@ where
     }
 }
 
-impl<T: EventResultCompatible> Serialize for EventResult<T> {
+// For now, we don't support serialization of EventResult.
+// This is going to be added in a future version.
+/*impl<T: EventResultCompatible> Serialize for EventResult<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        unimplemented!()
     }
-}
+}*/
 
 /// An error when attempting to create a value from a string via the `FromStr` trait.
 ///
@@ -889,12 +891,13 @@ mod vec_as_map_of_empty {
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
     use std::{collections::HashMap, hash::Hash};
 
+    #[allow(clippy::ptr_arg)]
     pub fn serialize<S, T>(vec: &Vec<T>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
         T: Serialize + Hash + Eq,
     {
-        vec.into_iter()
+        vec.iter()
             .map(|v| (v, Empty))
             .collect::<HashMap<_, _>>()
             .serialize(serializer)
