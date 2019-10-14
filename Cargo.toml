@@ -13,19 +13,10 @@ version = "0.3.0"
 edition = "2018"
 
 [dependencies]
+js_int = { version = "0.1.2", features = ["serde"] }
 ruma-api = "0.10.0"
-ruma-events = { git = "https://github.com/ruma/ruma-events", branch = "event-result-stub" }
+ruma-events = { git = "https://github.com/ruma/ruma-events", branch = "event-result-2" }
 ruma-identifiers = "0.14.0"
-serde_json = "1.0.40"
-
-[dependencies.js_int]
-version = "0.1.2"
-features = ["serde"]
-
-[dependencies.serde]
-version = "1.0.98"
-features = ["derive"]
-
-[dependencies.url]
-version = "2.0.0"
-features = ["serde"]
+serde = { version = "1.0.101", features = ["derive"] }
+serde_json = "1.0.41"
+url = { version = "2.1.0", features = ["serde"] }
