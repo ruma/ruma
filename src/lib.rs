@@ -338,13 +338,14 @@ where
 
 // For now, we don't support serialization of EventResult.
 // This is going to be added in a future version.
-/*impl<T: EventResultCompatible> Serialize for EventResult<T> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+impl<T: EventResultCompatible> Serialize for EventResult<T> {
+    fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
+        unimplemented!("not supported yet")
     }
-}*/
+}
 
 /// An error when attempting to create a value from a string via the `FromStr` trait.
 ///
