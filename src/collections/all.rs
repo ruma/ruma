@@ -46,7 +46,7 @@ use crate::{
     sticker::StickerEvent,
     tag::TagEvent,
     typing::TypingEvent,
-    CustomEvent, CustomRoomEvent, CustomStateEvent, EventResultCompatible, Void,
+    CustomEvent, CustomRoomEvent, CustomStateEvent, TryFromRaw, Void,
 };
 
 /// A basic event, room event, or state event.
@@ -334,7 +334,7 @@ pub enum StateEvent {
     CustomState(CustomStateEvent),
 }
 
-impl EventResultCompatible for Event {
+impl TryFromRaw for Event {
     type Raw = raw::Event;
     type Err = Void;
 
@@ -343,7 +343,7 @@ impl EventResultCompatible for Event {
     }
 }
 
-impl EventResultCompatible for RoomEvent {
+impl TryFromRaw for RoomEvent {
     type Raw = raw::RoomEvent;
     type Err = Void;
 
@@ -352,7 +352,7 @@ impl EventResultCompatible for RoomEvent {
     }
 }
 
-impl EventResultCompatible for StateEvent {
+impl TryFromRaw for StateEvent {
     type Raw = raw::StateEvent;
     type Err = Void;
 

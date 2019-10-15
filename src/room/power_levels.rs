@@ -7,7 +7,7 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{Event as _, EventResultCompatible, EventType, Void};
+use crate::{Event as _, EventType, TryFromRaw, Void};
 
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Clone, Debug, PartialEq)]
@@ -85,7 +85,7 @@ pub struct PowerLevelsEventContent {
     pub notifications: NotificationPowerLevels,
 }
 
-impl EventResultCompatible for PowerLevelsEvent {
+impl TryFromRaw for PowerLevelsEvent {
     type Raw = raw::PowerLevelsEvent;
     type Err = Void;
 
@@ -103,7 +103,7 @@ impl EventResultCompatible for PowerLevelsEvent {
     }
 }
 
-impl EventResultCompatible for PowerLevelsEventContent {
+impl TryFromRaw for PowerLevelsEventContent {
     type Raw = raw::PowerLevelsEventContent;
     type Err = Void;
 

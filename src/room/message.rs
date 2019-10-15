@@ -10,7 +10,7 @@ use serde::{
 use serde_json::{from_value, Value};
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
-use crate::{Event, EventResultCompatible, EventType, Void};
+use crate::{Event, EventType, TryFromRaw, Void};
 
 pub mod feedback;
 
@@ -74,7 +74,7 @@ pub enum MessageEventContent {
     __Nonexhaustive,
 }
 
-impl EventResultCompatible for MessageEvent {
+impl TryFromRaw for MessageEvent {
     type Raw = raw::MessageEvent;
     type Err = Void;
 
@@ -90,7 +90,7 @@ impl EventResultCompatible for MessageEvent {
     }
 }
 
-impl EventResultCompatible for MessageEventContent {
+impl TryFromRaw for MessageEventContent {
     type Raw = raw::MessageEventContent;
     type Err = Void;
 

@@ -5,7 +5,7 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{default_true, Event as _, EventResultCompatible, EventType, Void};
+use crate::{default_true, Event as _, EventType, TryFromRaw, Void};
 
 /// An event to indicate which servers are permitted to participate in the room.
 #[derive(Clone, Debug, PartialEq)]
@@ -65,7 +65,7 @@ pub struct ServerAclEventContent {
     pub deny: Vec<String>,
 }
 
-impl EventResultCompatible for ServerAclEvent {
+impl TryFromRaw for ServerAclEvent {
     type Raw = raw::ServerAclEvent;
     type Err = Void;
 
@@ -83,7 +83,7 @@ impl EventResultCompatible for ServerAclEvent {
     }
 }
 
-impl EventResultCompatible for ServerAclEventContent {
+impl TryFromRaw for ServerAclEventContent {
     type Raw = raw::ServerAclEventContent;
     type Err = Void;
 

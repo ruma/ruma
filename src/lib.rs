@@ -246,7 +246,7 @@ impl Display for InvalidInput {
 impl Error for InvalidInput {}
 
 /// Marks types that can be deserialized as EventResult<Self>
-pub trait EventResultCompatible: Sized {
+pub trait TryFromRaw: Sized {
     /// The raw form of this event that deserialization falls back to if deserializing `Self` fails.
     type Raw: DeserializeOwned;
     type Err: Into<String>;
@@ -267,7 +267,7 @@ impl From<Void> for String {
 
 fn from_raw<T>(raw: T::Raw) -> T
 where
-    T: EventResultCompatible<Err = Void>,
+    T: TryFromRaw<Err = Void>,
 {
     match T::try_from_raw(raw) {
         Ok(c) => c,
@@ -282,7 +282,7 @@ where
 /// this structure will contain an `InvalidEvent`. See the documentation for `InvalidEvent` for
 /// more details.
 #[derive(Clone, Debug)]
-pub enum EventResult<T: EventResultCompatible> {
+pub enum EventResult<T: TryFromRaw> {
     /// `T` deserialized and validated successfully.
     Ok(T),
 
@@ -292,7 +292,7 @@ pub enum EventResult<T: EventResultCompatible> {
     Err(InvalidEvent<T::Raw>),
 }
 
-impl<T: EventResultCompatible> EventResult<T> {
+impl<T: TryFromRaw> EventResult<T> {
     /// Convert `EventResult<T>` into the equivalent `std::result::Result<T, InvalidEvent>`.
     pub fn into_result(self) -> Result<T, InvalidEvent<T::Raw>> {
         match self {
@@ -304,7 +304,7 @@ impl<T: EventResultCompatible> EventResult<T> {
 
 impl<'de, T> Deserialize<'de> for EventResult<T>
 where
-    T: EventResultCompatible,
+    T: TryFromRaw,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -338,7 +338,7 @@ where
 
 // For now, we don't support serialization of EventResult.
 // This is going to be added in a future version.
-impl<T: EventResultCompatible> Serialize for EventResult<T> {
+impl<T: TryFromRaw> Serialize for EventResult<T> {
     fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -546,7 +546,7 @@ pub enum EventType {
 }
 
 /// A basic event.
-pub trait Event: Debug + Serialize + Sized + EventResultCompatible {
+pub trait Event: Debug + Serialize + Sized + TryFromRaw {
     /// The type of this event's `content` field.
     type Content: Debug + Serialize;
 

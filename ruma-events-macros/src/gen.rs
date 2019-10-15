@@ -327,7 +327,7 @@ impl ToTokens for RumaEvent {
                 }
 
                 quote! {
-                    impl crate::EventResultCompatible for #content_name {
+                    impl crate::TryFromRaw for #content_name {
                         type Raw = raw::#content_name;
                         type Err = crate::Void;
 
@@ -353,7 +353,7 @@ impl ToTokens for RumaEvent {
 
             #content
 
-            impl crate::EventResultCompatible for #name {
+            impl crate::TryFromRaw for #name {
                 type Raw = raw::#name;
                 type Err = crate::Void;
 

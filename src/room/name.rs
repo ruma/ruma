@@ -5,9 +5,7 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{
-    empty_string_as_none, Event as _, EventResultCompatible, EventType, InvalidInput, Void,
-};
+use crate::{empty_string_as_none, Event as _, EventType, InvalidInput, TryFromRaw, Void};
 
 /// A human-friendly room name designed to be displayed to the end-user.
 #[derive(Clone, Debug, PartialEq)]
@@ -45,7 +43,7 @@ pub struct NameEventContent {
     pub(crate) name: Option<String>,
 }
 
-impl EventResultCompatible for NameEvent {
+impl TryFromRaw for NameEvent {
     type Raw = raw::NameEvent;
     type Err = Void;
 
@@ -63,7 +61,7 @@ impl EventResultCompatible for NameEvent {
     }
 }
 
-impl EventResultCompatible for NameEventContent {
+impl TryFromRaw for NameEventContent {
     type Raw = raw::NameEventContent;
     type Err = Void;
 

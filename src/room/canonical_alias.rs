@@ -5,7 +5,7 @@ use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{empty_string_as_none, Event, EventResultCompatible, EventType, Void};
+use crate::{empty_string_as_none, Event, EventType, TryFromRaw, Void};
 
 /// Informs the room as to which alias is the canonical one.
 #[derive(Clone, Debug, PartialEq)]
@@ -45,7 +45,7 @@ pub struct CanonicalAliasEventContent {
     pub alias: Option<RoomAliasId>,
 }
 
-impl EventResultCompatible for CanonicalAliasEvent {
+impl TryFromRaw for CanonicalAliasEvent {
     type Raw = raw::CanonicalAliasEvent;
     type Err = Void;
 
@@ -63,7 +63,7 @@ impl EventResultCompatible for CanonicalAliasEvent {
     }
 }
 
-impl EventResultCompatible for CanonicalAliasEventContent {
+impl TryFromRaw for CanonicalAliasEventContent {
     type Raw = raw::CanonicalAliasEventContent;
     type Err = Void;
 

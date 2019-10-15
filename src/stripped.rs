@@ -18,7 +18,7 @@ use crate::{
         power_levels::PowerLevelsEventContent, third_party_invite::ThirdPartyInviteEventContent,
         topic::TopicEventContent,
     },
-    EventResultCompatible, EventType,
+    EventType, TryFromRaw,
 };
 
 /// A stripped-down version of a state event that is included along with some other events.
@@ -116,14 +116,14 @@ pub type StrippedRoomThirdPartyInvite = StrippedStateContent<ThirdPartyInviteEve
 /// A stripped-down version of the *m.room.topic* event.
 pub type StrippedRoomTopic = StrippedStateContent<TopicEventContent>;
 
-impl EventResultCompatible for StrippedState {
+impl TryFromRaw for StrippedState {
     type Raw = raw::StrippedState;
     type Err = String;
 
     fn try_from_raw(raw: raw::StrippedState) -> Result<Self, (Self::Err, Self::Raw)> {
         use raw::StrippedState::*;
 
-        fn convert<T: EventResultCompatible>(
+        fn convert<T: TryFromRaw>(
             raw_variant: fn(T::Raw) -> raw::StrippedState,
             variant: fn(T) -> StrippedState,
             raw: T::Raw,
@@ -152,9 +152,9 @@ impl EventResultCompatible for StrippedState {
     }
 }
 
-impl<C> EventResultCompatible for StrippedStateContent<C>
+impl<C> TryFromRaw for StrippedStateContent<C>
 where
-    C: EventResultCompatible,
+    C: TryFromRaw,
 {
     type Raw = StrippedStateContent<C::Raw>;
     type Err = C::Err;

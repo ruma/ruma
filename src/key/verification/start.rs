@@ -8,7 +8,7 @@ use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
     VerificationMethod,
 };
-use crate::{Event, EventResultCompatible, EventType, InvalidInput};
+use crate::{Event, EventType, InvalidInput, TryFromRaw};
 
 /// Begins an SAS key verification process.
 ///
@@ -31,7 +31,7 @@ pub enum StartEventContent {
     __Nonexhaustive,
 }
 
-impl EventResultCompatible for StartEvent {
+impl TryFromRaw for StartEvent {
     type Raw = raw::StartEvent;
     type Err = &'static str;
 
@@ -63,7 +63,7 @@ impl_event!(
     EventType::KeyVerificationStart
 );
 
-impl EventResultCompatible for StartEventContent {
+impl TryFromRaw for StartEventContent {
     type Raw = raw::StartEventContent;
     type Err = &'static str;
 

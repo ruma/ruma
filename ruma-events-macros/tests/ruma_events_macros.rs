@@ -85,7 +85,7 @@ impl<'de> Deserialize<'de> for EventType {
 
 /// The result of deserializing an event, which may or may not be valid.
 #[derive(Debug)]
-pub enum EventResult<T: EventResultCompatible> {
+pub enum EventResult<T: TryFromRaw> {
     /// `T` deserialized and validated successfully.
     Ok(T),
 
@@ -95,7 +95,7 @@ pub enum EventResult<T: EventResultCompatible> {
     Err(InvalidEvent<T::Raw>),
 }
 
-impl<T: EventResultCompatible> EventResult<T> {
+impl<T: TryFromRaw> EventResult<T> {
     /// Convert `EventResult<T>` into the equivalent `std::result::Result<T, InvalidEvent<T::Raw>>`.
     pub fn into_result(self) -> Result<T, InvalidEvent<T::Raw>> {
         match self {
@@ -105,7 +105,7 @@ impl<T: EventResultCompatible> EventResult<T> {
     }
 }
 
-pub trait EventResultCompatible {
+pub trait TryFromRaw {
     /// The raw form of this event that deserialization falls back to if deserializing `Self` fails.
     type Raw;
     type Err: Into<String>;
@@ -115,7 +115,7 @@ pub trait EventResultCompatible {
 
 fn from_raw<T>(raw: T::Raw) -> T
 where
-    T: EventResultCompatible<Err = Void>,
+    T: TryFromRaw<Err = Void>,
 {
     match T::try_from_raw(raw) {
         Ok(c) => c,
@@ -132,7 +132,7 @@ impl From<Void> for String {
 }
 
 /// A basic event.
-pub trait Event: Debug + Serialize + EventResultCompatible {
+pub trait Event: Debug + Serialize + TryFromRaw {
     /// The type of this event's `content` field.
     type Content: Debug + Serialize;
 

@@ -30,7 +30,7 @@ use crate::{
     sticker::StickerEvent,
     tag::TagEvent,
     typing::TypingEvent,
-    CustomEvent, CustomRoomEvent, EventResultCompatible, Void,
+    CustomEvent, CustomRoomEvent, TryFromRaw, Void,
 };
 
 /// A basic event.
@@ -130,7 +130,7 @@ pub enum RoomEvent {
     CustomRoom(CustomRoomEvent),
 }
 
-impl EventResultCompatible for Event {
+impl TryFromRaw for Event {
     type Raw = raw::Event;
     type Err = Void;
 
@@ -139,7 +139,7 @@ impl EventResultCompatible for Event {
     }
 }
 
-impl EventResultCompatible for RoomEvent {
+impl TryFromRaw for RoomEvent {
     type Raw = raw::RoomEvent;
     type Err = Void;
 

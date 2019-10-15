@@ -5,7 +5,7 @@ use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
 use serde::{de::Error, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
-use crate::{Algorithm, Event, EventResultCompatible, EventType, Void};
+use crate::{Algorithm, Event, EventType, TryFromRaw, Void};
 
 /// This event type is used when sending encrypted events.
 ///
@@ -48,7 +48,7 @@ pub enum EncryptedEventContent {
     __Nonexhaustive,
 }
 
-impl EventResultCompatible for EncryptedEvent {
+impl TryFromRaw for EncryptedEvent {
     type Raw = raw::EncryptedEvent;
     type Err = Void;
 
@@ -64,7 +64,7 @@ impl EventResultCompatible for EncryptedEvent {
     }
 }
 
-impl EventResultCompatible for EncryptedEventContent {
+impl TryFromRaw for EncryptedEventContent {
     type Raw = raw::EncryptedEventContent;
     type Err = Void;
 

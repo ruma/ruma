@@ -3,7 +3,7 @@
 use ruma_identifiers::UserId;
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 
-use crate::{vec_as_map_of_empty, Event as _, EventResultCompatible, EventType, Void};
+use crate::{vec_as_map_of_empty, Event as _, EventType, TryFromRaw, Void};
 
 /// A list of users to ignore.
 #[derive(Clone, Debug, PartialEq)]
@@ -12,7 +12,7 @@ pub struct IgnoredUserListEvent {
     pub content: IgnoredUserListEventContent,
 }
 
-impl EventResultCompatible for IgnoredUserListEvent {
+impl TryFromRaw for IgnoredUserListEvent {
     type Raw = raw::IgnoredUserListEvent;
     type Err = Void;
 
@@ -44,7 +44,7 @@ pub struct IgnoredUserListEventContent {
     pub ignored_users: Vec<UserId>,
 }
 
-impl EventResultCompatible for IgnoredUserListEventContent {
+impl TryFromRaw for IgnoredUserListEventContent {
     type Raw = raw::IgnoredUserListEventContent;
     type Err = Void;
 
