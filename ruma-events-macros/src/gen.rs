@@ -166,7 +166,7 @@ impl ToTokens for RumaEvent {
                 match &self.content {
                     Content::Struct(_) => {
                         quote_spanned! {span=>
-                            content: crate::from_raw(raw.content),
+                            content: crate::FromRaw::from_raw(raw.content),
                         }
                     }
                     Content::Typedef(_) => {
@@ -179,7 +179,7 @@ impl ToTokens for RumaEvent {
                 match &self.content {
                     Content::Struct(_) => {
                         quote_spanned! {span=>
-                            prev_content: raw.prev_content.map(crate::from_raw),
+                            prev_content: raw.prev_content.map(crate::FromRaw::from_raw),
                         }
                     }
                     Content::Typedef(_) => {
@@ -327,16 +327,15 @@ impl ToTokens for RumaEvent {
                 }
 
                 quote! {
-                    impl crate::TryFromRaw for #content_name {
+                    impl crate::FromRaw for #content_name {
                         type Raw = raw::#content_name;
-                        type Err = crate::Void;
 
-                        fn try_from_raw(
+                        fn from_raw(
                             raw: raw::#content_name
-                        ) -> Result<Self, (Self::Err, Self::Raw)> {
-                            Ok(Self {
+                        ) -> Self {
+                            Self {
                                 #(#content_field_values)*
-                            })
+                            }
                         }
                     }
                 }
@@ -353,14 +352,13 @@ impl ToTokens for RumaEvent {
 
             #content
 
-            impl crate::TryFromRaw for #name {
+            impl crate::FromRaw for #name {
                 type Raw = raw::#name;
-                type Err = crate::Void;
 
-                fn try_from_raw(raw: raw::#name) -> Result<Self, (Self::Err, Self::Raw)> {
-                    Ok(Self {
+                fn from_raw(raw: raw::#name) -> Self {
+                    Self {
                         #(#try_from_field_values)*
-                    })
+                    }
                 }
             }
 

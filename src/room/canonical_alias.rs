@@ -5,7 +5,7 @@ use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{empty_string_as_none, Event, EventType, TryFromRaw, Void};
+use crate::{empty_string_as_none, Event, EventType, FromRaw};
 
 /// Informs the room as to which alias is the canonical one.
 #[derive(Clone, Debug, PartialEq)]
@@ -45,30 +45,28 @@ pub struct CanonicalAliasEventContent {
     pub alias: Option<RoomAliasId>,
 }
 
-impl TryFromRaw for CanonicalAliasEvent {
+impl FromRaw for CanonicalAliasEvent {
     type Raw = raw::CanonicalAliasEvent;
-    type Err = Void;
 
-    fn try_from_raw(raw: raw::CanonicalAliasEvent) -> Result<Self, (Self::Err, Self::Raw)> {
-        Ok(Self {
-            content: crate::from_raw(raw.content),
+    fn from_raw(raw: raw::CanonicalAliasEvent) -> Self {
+        Self {
+            content: FromRaw::from_raw(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
-            prev_content: raw.prev_content.map(crate::from_raw),
+            prev_content: raw.prev_content.map(FromRaw::from_raw),
             room_id: raw.room_id,
             sender: raw.sender,
             state_key: raw.state_key,
             unsigned: raw.unsigned,
-        })
+        }
     }
 }
 
-impl TryFromRaw for CanonicalAliasEventContent {
+impl FromRaw for CanonicalAliasEventContent {
     type Raw = raw::CanonicalAliasEventContent;
-    type Err = Void;
 
-    fn try_from_raw(raw: raw::CanonicalAliasEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
-        Ok(Self { alias: raw.alias })
+    fn from_raw(raw: raw::CanonicalAliasEventContent) -> Self {
+        Self { alias: raw.alias }
     }
 }
 

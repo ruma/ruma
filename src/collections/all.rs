@@ -336,7 +336,7 @@ pub enum StateEvent {
 
 impl TryFromRaw for Event {
     type Raw = raw::Event;
-    type Err = Void;
+    type Err = String;
 
     fn try_from_raw(raw: raw::Event) -> Result<Self, (Self::Err, Self::Raw)> {
         unimplemented!()
@@ -345,7 +345,7 @@ impl TryFromRaw for Event {
 
 impl TryFromRaw for RoomEvent {
     type Raw = raw::RoomEvent;
-    type Err = Void;
+    type Err = String;
 
     fn try_from_raw(raw: raw::RoomEvent) -> Result<Self, (Self::Err, Self::Raw)> {
         unimplemented!()

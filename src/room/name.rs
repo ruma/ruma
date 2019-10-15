@@ -5,7 +5,7 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{empty_string_as_none, Event as _, EventType, InvalidInput, TryFromRaw, Void};
+use crate::{empty_string_as_none, Event as _, EventType, FromRaw, InvalidInput};
 
 /// A human-friendly room name designed to be displayed to the end-user.
 #[derive(Clone, Debug, PartialEq)]
@@ -43,30 +43,28 @@ pub struct NameEventContent {
     pub(crate) name: Option<String>,
 }
 
-impl TryFromRaw for NameEvent {
+impl FromRaw for NameEvent {
     type Raw = raw::NameEvent;
-    type Err = Void;
 
-    fn try_from_raw(raw: raw::NameEvent) -> Result<Self, (Self::Err, Self::Raw)> {
-        Ok(Self {
-            content: crate::from_raw(raw.content),
+    fn from_raw(raw: raw::NameEvent) -> Self {
+        Self {
+            content: FromRaw::from_raw(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
-            prev_content: raw.prev_content.map(crate::from_raw),
+            prev_content: raw.prev_content.map(FromRaw::from_raw),
             room_id: raw.room_id,
             sender: raw.sender,
             state_key: raw.state_key,
             unsigned: raw.unsigned,
-        })
+        }
     }
 }
 
-impl TryFromRaw for NameEventContent {
+impl FromRaw for NameEventContent {
     type Raw = raw::NameEventContent;
-    type Err = Void;
 
-    fn try_from_raw(raw: raw::NameEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
-        Ok(Self { name: raw.name })
+    fn from_raw(raw: raw::NameEventContent) -> Self {
+        Self { name: raw.name }
     }
 }
 

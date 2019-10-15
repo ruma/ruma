@@ -10,7 +10,7 @@ use serde::{
 use serde_json::{from_value, Value};
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
-use crate::{Event, EventType, TryFromRaw, Void};
+use crate::{Event, EventType, FromRaw};
 
 pub mod feedback;
 
@@ -74,30 +74,28 @@ pub enum MessageEventContent {
     __Nonexhaustive,
 }
 
-impl TryFromRaw for MessageEvent {
+impl FromRaw for MessageEvent {
     type Raw = raw::MessageEvent;
-    type Err = Void;
 
-    fn try_from_raw(raw: raw::MessageEvent) -> Result<Self, (Self::Err, Self::Raw)> {
-        Ok(Self {
-            content: crate::from_raw(raw.content),
+    fn from_raw(raw: raw::MessageEvent) -> Self {
+        Self {
+            content: FromRaw::from_raw(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
             room_id: raw.room_id,
             sender: raw.sender,
             unsigned: raw.unsigned,
-        })
+        }
     }
 }
 
-impl TryFromRaw for MessageEventContent {
+impl FromRaw for MessageEventContent {
     type Raw = raw::MessageEventContent;
-    type Err = Void;
 
-    fn try_from_raw(raw: raw::MessageEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
+    fn from_raw(raw: raw::MessageEventContent) -> Self {
         use raw::MessageEventContent::*;
 
-        Ok(match raw {
+        match raw {
             Audio(content) => Self::Audio(content),
             Emote(content) => Self::Emote(content),
             File(content) => Self::File(content),
@@ -110,7 +108,7 @@ impl TryFromRaw for MessageEventContent {
             __Nonexhaustive => {
                 unreachable!("It should be impossible to obtain a __Nonexhaustive variant.")
             }
-        })
+        }
     }
 }
 

@@ -105,6 +105,15 @@ impl<T: TryFromRaw> EventResult<T> {
     }
 }
 
+/// Marks types that can be deserialized as EventResult<Self> (and don't need fallible conversion
+/// from their raw type)
+pub trait FromRaw: Sized {
+    /// The raw form of this event that deserialization falls back to if deserializing `Self` fails.
+    type Raw: DeserializeOwned;
+
+    fn from_raw(_: Self::Raw) -> Self;
+}
+
 pub trait TryFromRaw {
     /// The raw form of this event that deserialization falls back to if deserializing `Self` fails.
     type Raw;
@@ -113,13 +122,12 @@ pub trait TryFromRaw {
     fn try_from_raw(_: Self::Raw) -> Result<Self, (Self::Err, Self::Raw)>;
 }
 
-fn from_raw<T>(raw: T::Raw) -> T
-where
-    T: TryFromRaw<Err = Void>,
-{
-    match T::try_from_raw(raw) {
-        Ok(c) => c,
-        Err((void, _)) => match void {},
+impl<T: FromRaw> TryFromRaw for T {
+    type Raw = <T as FromRaw>::Raw;
+    type Err = Void;
+
+    fn try_from_raw(raw: Self::Raw) -> Result<Self, (Self::Err, Self::Raw)> {
+        Ok(Self::from_raw(raw))
     }
 }
 

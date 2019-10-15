@@ -5,7 +5,7 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{default_true, Event as _, EventType, TryFromRaw, Void};
+use crate::{default_true, Event as _, EventType, FromRaw};
 
 /// An event to indicate which servers are permitted to participate in the room.
 #[derive(Clone, Debug, PartialEq)]
@@ -65,34 +65,32 @@ pub struct ServerAclEventContent {
     pub deny: Vec<String>,
 }
 
-impl TryFromRaw for ServerAclEvent {
+impl FromRaw for ServerAclEvent {
     type Raw = raw::ServerAclEvent;
-    type Err = Void;
 
-    fn try_from_raw(raw: raw::ServerAclEvent) -> Result<Self, (Self::Err, Self::Raw)> {
-        Ok(Self {
-            content: crate::from_raw(raw.content),
+    fn from_raw(raw: raw::ServerAclEvent) -> Self {
+        Self {
+            content: FromRaw::from_raw(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
-            prev_content: raw.prev_content.map(crate::from_raw),
+            prev_content: raw.prev_content.map(FromRaw::from_raw),
             room_id: raw.room_id,
             sender: raw.sender,
             state_key: raw.state_key,
             unsigned: raw.unsigned,
-        })
+        }
     }
 }
 
-impl TryFromRaw for ServerAclEventContent {
+impl FromRaw for ServerAclEventContent {
     type Raw = raw::ServerAclEventContent;
-    type Err = Void;
 
-    fn try_from_raw(raw: raw::ServerAclEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
-        Ok(Self {
+    fn from_raw(raw: raw::ServerAclEventContent) -> Self {
+        Self {
             allow_ip_literals: raw.allow_ip_literals,
             allow: raw.allow,
             deny: raw.deny,
-        })
+        }
     }
 }
 

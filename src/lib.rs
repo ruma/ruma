@@ -245,6 +245,15 @@ impl Display for InvalidInput {
 
 impl Error for InvalidInput {}
 
+/// Marks types that can be deserialized as EventResult<Self> (and don't need fallible conversion
+/// from their raw type)
+pub trait FromRaw: Sized {
+    /// The raw form of this event that deserialization falls back to if deserializing `Self` fails.
+    type Raw: DeserializeOwned;
+
+    fn from_raw(_: Self::Raw) -> Self;
+}
+
 /// Marks types that can be deserialized as EventResult<Self>
 pub trait TryFromRaw: Sized {
     /// The raw form of this event that deserialization falls back to if deserializing `Self` fails.
@@ -252,6 +261,15 @@ pub trait TryFromRaw: Sized {
     type Err: Into<String>;
 
     fn try_from_raw(_: Self::Raw) -> Result<Self, (Self::Err, Self::Raw)>;
+}
+
+impl<T: FromRaw> TryFromRaw for T {
+    type Raw = <T as FromRaw>::Raw;
+    type Err = Void;
+
+    fn try_from_raw(raw: Self::Raw) -> Result<Self, (Self::Err, Self::Raw)> {
+        Ok(Self::from_raw(raw))
+    }
 }
 
 // TODO: Replace with ! once that is stable
@@ -262,16 +280,6 @@ pub enum Void {}
 impl From<Void> for String {
     fn from(v: Void) -> Self {
         match v {}
-    }
-}
-
-fn from_raw<T>(raw: T::Raw) -> T
-where
-    T: TryFromRaw<Err = Void>,
-{
-    match T::try_from_raw(raw) {
-        Ok(c) => c,
-        Err((void, _)) => match void {},
     }
 }
 

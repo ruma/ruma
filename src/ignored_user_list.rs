@@ -3,7 +3,7 @@
 use ruma_identifiers::UserId;
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 
-use crate::{vec_as_map_of_empty, Event as _, EventType, TryFromRaw, Void};
+use crate::{vec_as_map_of_empty, Event as _, EventType, FromRaw};
 
 /// A list of users to ignore.
 #[derive(Clone, Debug, PartialEq)]
@@ -12,14 +12,13 @@ pub struct IgnoredUserListEvent {
     pub content: IgnoredUserListEventContent,
 }
 
-impl TryFromRaw for IgnoredUserListEvent {
+impl FromRaw for IgnoredUserListEvent {
     type Raw = raw::IgnoredUserListEvent;
-    type Err = Void;
 
-    fn try_from_raw(raw: raw::IgnoredUserListEvent) -> Result<Self, (Self::Err, Self::Raw)> {
-        Ok(Self {
-            content: crate::from_raw(raw.content),
-        })
+    fn from_raw(raw: raw::IgnoredUserListEvent) -> Self {
+        Self {
+            content: FromRaw::from_raw(raw.content),
+        }
     }
 }
 
@@ -44,14 +43,13 @@ pub struct IgnoredUserListEventContent {
     pub ignored_users: Vec<UserId>,
 }
 
-impl TryFromRaw for IgnoredUserListEventContent {
+impl FromRaw for IgnoredUserListEventContent {
     type Raw = raw::IgnoredUserListEventContent;
-    type Err = Void;
 
-    fn try_from_raw(raw: raw::IgnoredUserListEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
-        Ok(Self {
+    fn from_raw(raw: raw::IgnoredUserListEventContent) -> Self {
+        Self {
             ignored_users: raw.ignored_users,
-        })
+        }
     }
 }
 

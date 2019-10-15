@@ -5,7 +5,7 @@ use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
 use serde::{de::Error, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
-use crate::{Algorithm, Event, EventType, TryFromRaw, Void};
+use crate::{Algorithm, Event, EventType, FromRaw};
 
 /// This event type is used when sending encrypted events.
 ///
@@ -48,36 +48,34 @@ pub enum EncryptedEventContent {
     __Nonexhaustive,
 }
 
-impl TryFromRaw for EncryptedEvent {
+impl FromRaw for EncryptedEvent {
     type Raw = raw::EncryptedEvent;
-    type Err = Void;
 
-    fn try_from_raw(raw: raw::EncryptedEvent) -> Result<Self, (Self::Err, Self::Raw)> {
-        Ok(Self {
-            content: crate::from_raw(raw.content),
+    fn from_raw(raw: raw::EncryptedEvent) -> Self {
+        Self {
+            content: FromRaw::from_raw(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
             room_id: raw.room_id,
             sender: raw.sender,
             unsigned: raw.unsigned,
-        })
+        }
     }
 }
 
-impl TryFromRaw for EncryptedEventContent {
+impl FromRaw for EncryptedEventContent {
     type Raw = raw::EncryptedEventContent;
-    type Err = Void;
 
-    fn try_from_raw(raw: raw::EncryptedEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
+    fn from_raw(raw: raw::EncryptedEventContent) -> Self {
         use raw::EncryptedEventContent::*;
 
-        Ok(match raw {
+        match raw {
             OlmV1Curve25519AesSha2(content) => Self::OlmV1Curve25519AesSha2(content),
             MegolmV1AesSha2(content) => Self::MegolmV1AesSha2(content),
             __Nonexhaustive => {
                 unreachable!("__Nonexhaustive variant should be impossible to obtain.")
             }
-        })
+        }
     }
 }
 

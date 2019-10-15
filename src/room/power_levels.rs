@@ -7,7 +7,7 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{Event as _, EventType, TryFromRaw, Void};
+use crate::{Event as _, EventType, FromRaw};
 
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Clone, Debug, PartialEq)]
@@ -85,30 +85,28 @@ pub struct PowerLevelsEventContent {
     pub notifications: NotificationPowerLevels,
 }
 
-impl TryFromRaw for PowerLevelsEvent {
+impl FromRaw for PowerLevelsEvent {
     type Raw = raw::PowerLevelsEvent;
-    type Err = Void;
 
-    fn try_from_raw(raw: raw::PowerLevelsEvent) -> Result<Self, (Self::Err, Self::Raw)> {
-        Ok(Self {
-            content: crate::from_raw(raw.content),
+    fn from_raw(raw: raw::PowerLevelsEvent) -> Self {
+        Self {
+            content: FromRaw::from_raw(raw.content),
             event_id: raw.event_id,
             origin_server_ts: raw.origin_server_ts,
-            prev_content: raw.prev_content.map(crate::from_raw),
+            prev_content: raw.prev_content.map(FromRaw::from_raw),
             room_id: raw.room_id,
             unsigned: raw.unsigned,
             sender: raw.sender,
             state_key: raw.state_key,
-        })
+        }
     }
 }
 
-impl TryFromRaw for PowerLevelsEventContent {
+impl FromRaw for PowerLevelsEventContent {
     type Raw = raw::PowerLevelsEventContent;
-    type Err = Void;
 
-    fn try_from_raw(raw: raw::PowerLevelsEventContent) -> Result<Self, (Self::Err, Self::Raw)> {
-        Ok(Self {
+    fn from_raw(raw: raw::PowerLevelsEventContent) -> Self {
+        Self {
             ban: raw.ban,
             events: raw.events,
             events_default: raw.events_default,
@@ -119,7 +117,7 @@ impl TryFromRaw for PowerLevelsEventContent {
             users: raw.users,
             users_default: raw.users_default,
             notifications: raw.notifications,
-        })
+        }
     }
 }
 
