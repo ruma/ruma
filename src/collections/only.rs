@@ -30,7 +30,7 @@ use crate::{
     sticker::StickerEvent,
     tag::TagEvent,
     typing::TypingEvent,
-    CustomEvent, CustomRoomEvent, TryFromRaw, Void,
+    CustomEvent, CustomRoomEvent, TryFromRaw,
 };
 
 /// A basic event.
@@ -132,19 +132,58 @@ pub enum RoomEvent {
 
 impl TryFromRaw for Event {
     type Raw = raw::Event;
-    type Err = Void;
+    type Err = String;
 
     fn try_from_raw(raw: raw::Event) -> Result<Self, (Self::Err, Self::Raw)> {
-        unimplemented!()
+        use crate::try_convert_variant as conv;
+        use raw::Event::*;
+
+        match raw {
+            Direct(c) => conv(Direct, Self::Direct, c),
+            Dummy(c) => conv(Dummy, Self::Dummy, c),
+            ForwardedRoomKey(c) => conv(ForwardedRoomKey, Self::ForwardedRoomKey, c),
+            FullyRead(c) => conv(FullyRead, Self::FullyRead, c),
+            KeyVerificationAccept(c) => conv(KeyVerificationAccept, Self::KeyVerificationAccept, c),
+            KeyVerificationCancel(c) => conv(KeyVerificationCancel, Self::KeyVerificationCancel, c),
+            KeyVerificationKey(c) => conv(KeyVerificationKey, Self::KeyVerificationKey, c),
+            KeyVerificationMac(c) => conv(KeyVerificationMac, Self::KeyVerificationMac, c),
+            KeyVerificationRequest(c) => {
+                conv(KeyVerificationRequest, Self::KeyVerificationRequest, c)
+            }
+            KeyVerificationStart(c) => conv(KeyVerificationStart, Self::KeyVerificationStart, c),
+            IgnoredUserList(c) => conv(IgnoredUserList, Self::IgnoredUserList, c),
+            Presence(c) => conv(Presence, Self::Presence, c),
+            PushRules(c) => conv(PushRules, Self::PushRules, c),
+            RoomKey(c) => conv(RoomKey, Self::RoomKey, c),
+            RoomKeyRequest(c) => conv(RoomKeyRequest, Self::RoomKeyRequest, c),
+            Receipt(c) => conv(Receipt, Self::Receipt, c),
+            Tag(c) => conv(Tag, Self::Tag, c),
+            Typing(c) => conv(Typing, Self::Typing, c),
+            Custom(c) => Ok(Self::Custom(c)),
+        }
     }
 }
 
 impl TryFromRaw for RoomEvent {
     type Raw = raw::RoomEvent;
-    type Err = Void;
+    type Err = String;
 
     fn try_from_raw(raw: raw::RoomEvent) -> Result<Self, (Self::Err, Self::Raw)> {
-        unimplemented!()
+        use crate::try_convert_variant as conv;
+        use raw::RoomEvent::*;
+
+        match raw {
+            CallAnswer(c) => conv(CallAnswer, Self::CallAnswer, c),
+            CallCandidates(c) => conv(CallCandidates, Self::CallCandidates, c),
+            CallHangup(c) => conv(CallHangup, Self::CallHangup, c),
+            CallInvite(c) => conv(CallInvite, Self::CallInvite, c),
+            RoomEncrypted(c) => conv(RoomEncrypted, Self::RoomEncrypted, c),
+            RoomMessage(c) => conv(RoomMessage, Self::RoomMessage, c),
+            RoomMessageFeedback(c) => conv(RoomMessageFeedback, Self::RoomMessageFeedback, c),
+            RoomRedaction(c) => conv(RoomRedaction, Self::RoomRedaction, c),
+            Sticker(c) => conv(Sticker, Self::Sticker, c),
+            CustomRoom(c) => Ok(Self::CustomRoom(c)),
+        }
     }
 }
 

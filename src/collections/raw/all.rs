@@ -1,50 +1,51 @@
 //! Enums for heterogeneous collections of events, inclusive for every event type that implements
 //! the trait of the same name.
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer};
 
 use crate::{
     call::{
-        answer::AnswerEvent, candidates::CandidatesEvent, hangup::HangupEvent, invite::InviteEvent,
+        answer::raw::AnswerEvent, candidates::raw::CandidatesEvent, hangup::raw::HangupEvent,
+        invite::raw::InviteEvent,
     },
-    direct::DirectEvent,
-    dummy::DummyEvent,
-    forwarded_room_key::ForwardedRoomKeyEvent,
-    fully_read::FullyReadEvent,
-    ignored_user_list::IgnoredUserListEvent,
+    direct::raw::DirectEvent,
+    dummy::raw::DummyEvent,
+    forwarded_room_key::raw::ForwardedRoomKeyEvent,
+    fully_read::raw::FullyReadEvent,
+    ignored_user_list::raw::IgnoredUserListEvent,
     key::verification::{
-        accept::AcceptEvent, cancel::CancelEvent, key::KeyEvent, mac::MacEvent,
-        request::RequestEvent, start::StartEvent,
+        accept::raw::AcceptEvent, cancel::raw::CancelEvent, key::raw::KeyEvent, mac::raw::MacEvent,
+        request::raw::RequestEvent, start::raw::StartEvent,
     },
-    presence::PresenceEvent,
-    push_rules::PushRulesEvent,
-    receipt::ReceiptEvent,
+    presence::raw::PresenceEvent,
+    push_rules::raw::PushRulesEvent,
+    receipt::raw::ReceiptEvent,
     room::{
-        aliases::AliasesEvent,
-        avatar::AvatarEvent,
-        canonical_alias::CanonicalAliasEvent,
-        create::CreateEvent,
-        encrypted::EncryptedEvent,
-        encryption::EncryptionEvent,
-        guest_access::GuestAccessEvent,
-        history_visibility::HistoryVisibilityEvent,
-        join_rules::JoinRulesEvent,
-        member::MemberEvent,
-        message::{feedback::FeedbackEvent, MessageEvent},
-        name::NameEvent,
-        pinned_events::PinnedEventsEvent,
-        power_levels::PowerLevelsEvent,
-        redaction::RedactionEvent,
-        server_acl::ServerAclEvent,
-        third_party_invite::ThirdPartyInviteEvent,
-        tombstone::TombstoneEvent,
-        topic::TopicEvent,
+        aliases::raw::AliasesEvent,
+        avatar::raw::AvatarEvent,
+        canonical_alias::raw::CanonicalAliasEvent,
+        create::raw::CreateEvent,
+        encrypted::raw::EncryptedEvent,
+        encryption::raw::EncryptionEvent,
+        guest_access::raw::GuestAccessEvent,
+        history_visibility::raw::HistoryVisibilityEvent,
+        join_rules::raw::JoinRulesEvent,
+        member::raw::MemberEvent,
+        message::{feedback::raw::FeedbackEvent, raw::MessageEvent},
+        name::raw::NameEvent,
+        pinned_events::raw::PinnedEventsEvent,
+        power_levels::raw::PowerLevelsEvent,
+        redaction::raw::RedactionEvent,
+        server_acl::raw::ServerAclEvent,
+        third_party_invite::raw::ThirdPartyInviteEvent,
+        tombstone::raw::TombstoneEvent,
+        topic::raw::TopicEvent,
     },
-    room_key::RoomKeyEvent,
-    room_key_request::RoomKeyRequestEvent,
-    sticker::StickerEvent,
-    tag::TagEvent,
-    typing::TypingEvent,
+    room_key::raw::RoomKeyEvent,
+    room_key_request::raw::RoomKeyRequestEvent,
+    sticker::raw::StickerEvent,
+    tag::raw::TagEvent,
+    typing::raw::TypingEvent,
     CustomEvent, CustomRoomEvent, CustomStateEvent,
 };
 
@@ -154,7 +155,7 @@ pub enum Event {
     /// m.room.redaction
     RoomRedaction(RedactionEvent),
 
-    /// m.room.server_acl,
+    /// m.room.server_acl
     RoomServerAcl(ServerAclEvent),
 
     /// m.room.third_party_invite
@@ -255,7 +256,7 @@ pub enum RoomEvent {
     /// m.room.redaction
     RoomRedaction(RedactionEvent),
 
-    /// m.room.server_acl,
+    /// m.room.server_acl
     RoomServerAcl(ServerAclEvent),
 
     /// m.room.third_party_invite
@@ -317,7 +318,7 @@ pub enum StateEvent {
     /// m.room.power_levels
     RoomPowerLevels(PowerLevelsEvent),
 
-    /// m.room.server_acl,
+    /// m.room.server_acl
     RoomServerAcl(ServerAclEvent),
 
     /// m.room.third_party_invite
@@ -360,7 +361,7 @@ impl<'de> Deserialize<'de> for StateEvent {
     }
 }
 
-impl Serialize for Event {
+/*impl Serialize for Event {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -478,7 +479,7 @@ impl Serialize for StateEvent {
             StateEvent::CustomState(ref event) => event.serialize(serializer),
         }
     }
-}
+}*/
 
 macro_rules! impl_from_t_for_event {
     ($ty:ty, $variant:ident) => {

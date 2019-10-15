@@ -121,33 +121,22 @@ impl TryFromRaw for StrippedState {
     type Err = String;
 
     fn try_from_raw(raw: raw::StrippedState) -> Result<Self, (Self::Err, Self::Raw)> {
+        use crate::try_convert_variant as conv;
         use raw::StrippedState::*;
 
-        fn convert<T: TryFromRaw>(
-            raw_variant: fn(T::Raw) -> raw::StrippedState,
-            variant: fn(T) -> StrippedState,
-            raw: T::Raw,
-        ) -> Result<StrippedState, (String, raw::StrippedState)> {
-            T::try_from_raw(raw)
-                .map(variant)
-                .map_err(|(msg, raw)| (msg.into(), raw_variant(raw)))
-        }
-
         match raw {
-            RoomAliases(c) => convert(RoomAliases, Self::RoomAliases, c),
-            RoomAvatar(c) => convert(RoomAvatar, Self::RoomAvatar, c),
-            RoomCanonicalAlias(c) => convert(RoomCanonicalAlias, Self::RoomCanonicalAlias, c),
-            RoomCreate(c) => convert(RoomCreate, Self::RoomCreate, c),
-            RoomGuestAccess(c) => convert(RoomGuestAccess, Self::RoomGuestAccess, c),
-            RoomHistoryVisibility(c) => {
-                convert(RoomHistoryVisibility, Self::RoomHistoryVisibility, c)
-            }
-            RoomJoinRules(c) => convert(RoomJoinRules, Self::RoomJoinRules, c),
-            RoomMember(c) => convert(RoomMember, Self::RoomMember, c),
-            RoomName(c) => convert(RoomName, Self::RoomName, c),
-            RoomPowerLevels(c) => convert(RoomPowerLevels, Self::RoomPowerLevels, c),
-            RoomThirdPartyInvite(c) => convert(RoomThirdPartyInvite, Self::RoomThirdPartyInvite, c),
-            RoomTopic(c) => convert(RoomTopic, Self::RoomTopic, c),
+            RoomAliases(c) => conv(RoomAliases, Self::RoomAliases, c),
+            RoomAvatar(c) => conv(RoomAvatar, Self::RoomAvatar, c),
+            RoomCanonicalAlias(c) => conv(RoomCanonicalAlias, Self::RoomCanonicalAlias, c),
+            RoomCreate(c) => conv(RoomCreate, Self::RoomCreate, c),
+            RoomGuestAccess(c) => conv(RoomGuestAccess, Self::RoomGuestAccess, c),
+            RoomHistoryVisibility(c) => conv(RoomHistoryVisibility, Self::RoomHistoryVisibility, c),
+            RoomJoinRules(c) => conv(RoomJoinRules, Self::RoomJoinRules, c),
+            RoomMember(c) => conv(RoomMember, Self::RoomMember, c),
+            RoomName(c) => conv(RoomName, Self::RoomName, c),
+            RoomPowerLevels(c) => conv(RoomPowerLevels, Self::RoomPowerLevels, c),
+            RoomThirdPartyInvite(c) => conv(RoomThirdPartyInvite, Self::RoomThirdPartyInvite, c),
+            RoomTopic(c) => conv(RoomTopic, Self::RoomTopic, c),
         }
     }
 }

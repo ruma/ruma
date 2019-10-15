@@ -272,6 +272,16 @@ impl<T: FromRaw> TryFromRaw for T {
     }
 }
 
+fn try_convert_variant<Enum: TryFromRaw, Content: TryFromRaw>(
+    raw_variant: fn(Content::Raw) -> Enum::Raw,
+    variant: fn(Content) -> Enum,
+    raw: Content::Raw,
+) -> Result<Enum, (String, Enum::Raw)> {
+    Content::try_from_raw(raw)
+        .map(variant)
+        .map_err(|(msg, raw)| (msg.into(), raw_variant(raw)))
+}
+
 // TODO: Replace with ! once that is stable
 /// An empty type
 #[derive(Debug)]
