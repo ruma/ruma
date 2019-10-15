@@ -2,6 +2,7 @@
 //! the trait of the same name.
 
 use serde::{Deserialize, Deserializer};
+use serde_json::Value;
 
 use crate::{
     call::{
@@ -46,7 +47,7 @@ use crate::{
     sticker::raw::StickerEvent,
     tag::raw::TagEvent,
     typing::raw::TypingEvent,
-    CustomEvent, CustomRoomEvent, CustomStateEvent,
+    CustomEvent, CustomRoomEvent, CustomStateEvent, EventType,
 };
 
 /// A basic event, room event, or state event.
@@ -339,7 +340,21 @@ impl<'de> Deserialize<'de> for Event {
     where
         D: Deserializer<'de>,
     {
-        unimplemented!()
+        use serde::de::Error as _;
+        use serde_json::from_value;
+
+        let conv_err = |error: serde_json::Error| D::Error::custom(error.to_string());
+
+        let value = Value::deserialize(deserializer)?;
+        let event_type: EventType = from_value(
+            value
+                .get("type")
+                .map(Clone::clone)
+                .ok_or_else(|| D::Error::missing_field("type"))?,
+        )
+        .map_err(conv_err)?;
+
+        unimplemented!("not yet implemented")
     }
 }
 
@@ -348,7 +363,21 @@ impl<'de> Deserialize<'de> for RoomEvent {
     where
         D: Deserializer<'de>,
     {
-        unimplemented!()
+        use serde::de::Error as _;
+        use serde_json::from_value;
+
+        let conv_err = |error: serde_json::Error| D::Error::custom(error.to_string());
+
+        let value = Value::deserialize(deserializer)?;
+        let event_type: EventType = from_value(
+            value
+                .get("type")
+                .map(Clone::clone)
+                .ok_or_else(|| D::Error::missing_field("type"))?,
+        )
+        .map_err(conv_err)?;
+
+        unimplemented!("not yet implemented")
     }
 }
 
@@ -357,7 +386,21 @@ impl<'de> Deserialize<'de> for StateEvent {
     where
         D: Deserializer<'de>,
     {
-        unimplemented!()
+        use serde::de::Error as _;
+        use serde_json::from_value;
+
+        let conv_err = |error: serde_json::Error| D::Error::custom(error.to_string());
+
+        let value = Value::deserialize(deserializer)?;
+        let event_type: EventType = from_value(
+            value
+                .get("type")
+                .map(Clone::clone)
+                .ok_or_else(|| D::Error::missing_field("type"))?,
+        )
+        .map_err(conv_err)?;
+
+        unimplemented!("not yet implemented")
     }
 }
 

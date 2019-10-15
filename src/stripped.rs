@@ -206,7 +206,7 @@ where
         let event_type = from_value(
             value
                 .get("type")
-                .map(Clone::clone)
+                .cloned()
                 .ok_or_else(|| D::Error::missing_field("type"))?,
         )
         .map_err(conv_err)?;
@@ -214,7 +214,7 @@ where
         let content = from_value(
             value
                 .get("content")
-                .map(Clone::clone)
+                .cloned()
                 .ok_or_else(|| D::Error::missing_field("content"))?,
         )
         .map_err(conv_err)?;
@@ -222,7 +222,7 @@ where
         let sender = from_value(
             value
                 .get("sender")
-                .map(Clone::clone)
+                .cloned()
                 .ok_or_else(|| D::Error::missing_field("sender"))?,
         )
         .map_err(conv_err)?;
@@ -230,7 +230,7 @@ where
         let state_key = from_value(
             value
                 .get("state_key")
-                .map(Clone::clone)
+                .cloned()
                 .ok_or_else(|| D::Error::missing_field("state_key"))?,
         )
         .map_err(conv_err)?;
@@ -352,7 +352,7 @@ mod raw {
             let event_type = from_value(
                 value
                     .get("type")
-                    .map(Clone::clone)
+                    .cloned()
                     .ok_or_else(|| D::Error::missing_field("type"))?,
             )
             .map_err(conv_err)?;
