@@ -114,7 +114,7 @@ mod filter_def_serde {
 }
 
 /// Updates to rooms.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Rooms {
     /// The rooms that the user has left or been banned from.
     pub leave: HashMap<RoomId, LeftRoom>,
@@ -125,7 +125,7 @@ pub struct Rooms {
 }
 
 /// Historical updates to left rooms.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct LeftRoom {
     /// The timeline of messages and state changes in the room up to the point when the user
     /// left.
@@ -135,7 +135,7 @@ pub struct LeftRoom {
 }
 
 /// Updates to joined rooms.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct JoinedRoom {
     /// Counts of unread notifications for this room.
     pub unread_notifications: UnreadNotificationsCount,
@@ -164,7 +164,7 @@ pub struct UnreadNotificationsCount {
 }
 
 /// Events in the room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Timeline {
     /// True if the number of events returned was limited by the `limit` on the filter.
     pub limited: bool,
@@ -176,42 +176,42 @@ pub struct Timeline {
 }
 
 /// State events in the room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct State {
     /// A list of state events.
     pub events: Vec<EventResult<only::StateEvent>>,
 }
 
 /// The private data that this user has attached to this room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct AccountData {
     /// A list of events.
     pub events: Vec<EventResult<only::Event>>,
 }
 
 /// Ephemeral events not recorded in the timeline or state of the room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Ephemeral {
     /// A list of events.
     pub events: Vec<EventResult<only::Event>>,
 }
 
 /// Updates to the rooms that the user has been invited to.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct InvitedRoom {
     /// The state of a room that the user has been invited to.
     pub invite_state: InviteState,
 }
 
 /// The state of a room that the user has been invited to.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct InviteState {
     /// A list of state events.
     pub events: Vec<EventResult<stripped::StrippedState>>,
 }
 
 /// Updates to the presence status of other users.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Presence {
     /// A list of events.
     pub events: Vec<EventResult<only::Event>>,

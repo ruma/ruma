@@ -85,7 +85,7 @@ pub struct EventContext {
 }
 
 /// Context for search results, if requested.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct EventContextResult {
     /// Pagination token for the end of the chunk.
     pub end: String,
@@ -155,7 +155,7 @@ pub enum OrderBy {
 }
 
 /// Categories of events that can be searched for.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct ResultCategories {
     /// Room event results.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -163,7 +163,7 @@ pub struct ResultCategories {
 }
 
 /// Categories of events that can be searched for.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct RoomEventResults {
     /// An approximate count of the total number of results found.
     pub count: UInt,
@@ -198,7 +198,7 @@ pub struct ResultGroup {
 }
 
 /// A search result.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct SearchResult {
     /// Context for result, if requested.
     #[serde(skip_serializing_if = "Option::is_none")]
