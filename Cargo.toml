@@ -14,7 +14,7 @@ edition = "2018"
 
 [dependencies]
 js_int = { version = "0.1.2", features = ["serde"] }
-ruma-api = "0.10.0"
+ruma-api = { git = "https://github.com/ruma/ruma-api", branch = "serverless" }
 ruma-events = { git = "https://github.com/ruma/ruma-events", branch = "event-result-2" }
 ruma-identifiers = "0.14.0"
 serde = { version = "1.0.101", features = ["derive"] }
