@@ -339,7 +339,7 @@ impl TryFromRaw for Event {
     type Err = String;
 
     fn try_from_raw(raw: raw::Event) -> Result<Self, (Self::Err, Self::Raw)> {
-        use crate::try_convert_variant as conv;
+        use crate::util::try_convert_variant as conv;
         use raw::Event::*;
 
         match raw {
@@ -400,7 +400,7 @@ impl TryFromRaw for RoomEvent {
     type Err = String;
 
     fn try_from_raw(raw: raw::RoomEvent) -> Result<Self, (Self::Err, Self::Raw)> {
-        use crate::try_convert_variant as conv;
+        use crate::util::try_convert_variant as conv;
         use raw::RoomEvent::*;
 
         match raw {
@@ -440,7 +440,7 @@ impl TryFromRaw for StateEvent {
     type Err = String;
 
     fn try_from_raw(raw: raw::StateEvent) -> Result<Self, (Self::Err, Self::Raw)> {
-        use crate::try_convert_variant as conv;
+        use crate::util::try_convert_variant as conv;
         use raw::StateEvent::*;
 
         match raw {

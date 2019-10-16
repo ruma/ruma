@@ -1,8 +1,8 @@
 //! Enums for heterogeneous collections of events, inclusive for every event type that implements
 //! the trait of the same name.
 
-use serde::{Deserialize, Deserializer};
-use serde_json::Value;
+use serde::{de::Error as _, Deserialize, Deserializer};
+use serde_json::{from_value, Value};
 
 use crate::{
     call::{
@@ -47,6 +47,7 @@ use crate::{
     sticker::raw::StickerEvent,
     tag::raw::TagEvent,
     typing::raw::TypingEvent,
+    util::{get_type_field, serde_json_error_to_generic_de_error as conv_err},
     CustomEvent, CustomRoomEvent, CustomStateEvent, EventType,
 };
 
@@ -340,21 +341,97 @@ impl<'de> Deserialize<'de> for Event {
     where
         D: Deserializer<'de>,
     {
-        use serde::de::Error as _;
-        use serde_json::from_value;
-
-        let conv_err = |error: serde_json::Error| D::Error::custom(error.to_string());
+        use EventType::*;
 
         let value = Value::deserialize(deserializer)?;
-        let event_type: EventType = from_value(
-            value
-                .get("type")
-                .map(Clone::clone)
-                .ok_or_else(|| D::Error::missing_field("type"))?,
-        )
-        .map_err(conv_err)?;
+        let event_type = get_type_field(&value)?;
 
-        unimplemented!("not yet implemented")
+        match event_type {
+            CallAnswer => from_value(value).map(Self::CallAnswer).map_err(conv_err),
+            CallCandidates => from_value(value)
+                .map(Self::CallCandidates)
+                .map_err(conv_err),
+            CallHangup => from_value(value).map(Self::CallHangup).map_err(conv_err),
+            CallInvite => from_value(value).map(Self::CallInvite).map_err(conv_err),
+            Direct => from_value(value).map(Self::Direct).map_err(conv_err),
+            Dummy => from_value(value).map(Self::Dummy).map_err(conv_err),
+            ForwardedRoomKey => from_value(value)
+                .map(Self::ForwardedRoomKey)
+                .map_err(conv_err),
+            FullyRead => from_value(value).map(Self::FullyRead).map_err(conv_err),
+            IgnoredUserList => from_value(value)
+                .map(Self::IgnoredUserList)
+                .map_err(conv_err),
+            KeyVerificationAccept => from_value(value)
+                .map(Self::KeyVerificationAccept)
+                .map_err(conv_err),
+            KeyVerificationCancel => from_value(value)
+                .map(Self::KeyVerificationCancel)
+                .map_err(conv_err),
+            KeyVerificationKey => from_value(value)
+                .map(Self::KeyVerificationKey)
+                .map_err(conv_err),
+            KeyVerificationMac => from_value(value)
+                .map(Self::KeyVerificationMac)
+                .map_err(conv_err),
+            KeyVerificationRequest => from_value(value)
+                .map(Self::KeyVerificationRequest)
+                .map_err(conv_err),
+            KeyVerificationStart => from_value(value)
+                .map(Self::KeyVerificationStart)
+                .map_err(conv_err),
+            Presence => from_value(value).map(Self::Presence).map_err(conv_err),
+            PushRules => from_value(value).map(Self::PushRules).map_err(conv_err),
+            Receipt => from_value(value).map(Self::Receipt).map_err(conv_err),
+            RoomAliases => from_value(value).map(Self::RoomAliases).map_err(conv_err),
+            RoomAvatar => from_value(value).map(Self::RoomAvatar).map_err(conv_err),
+            RoomCanonicalAlias => from_value(value)
+                .map(Self::RoomCanonicalAlias)
+                .map_err(conv_err),
+            RoomCreate => from_value(value).map(Self::RoomCreate).map_err(conv_err),
+            RoomEncrypted => from_value(value).map(Self::RoomEncrypted).map_err(conv_err),
+            RoomEncryption => from_value(value)
+                .map(Self::RoomEncryption)
+                .map_err(conv_err),
+            RoomGuestAccess => from_value(value)
+                .map(Self::RoomGuestAccess)
+                .map_err(conv_err),
+            RoomHistoryVisibility => from_value(value)
+                .map(Self::RoomHistoryVisibility)
+                .map_err(conv_err),
+            RoomJoinRules => from_value(value).map(Self::RoomJoinRules).map_err(conv_err),
+            RoomMember => from_value(value).map(Self::RoomMember).map_err(conv_err),
+            RoomMessage => from_value(value).map(Self::RoomMessage).map_err(conv_err),
+            RoomMessageFeedback => from_value(value)
+                .map(Self::RoomMessageFeedback)
+                .map_err(conv_err),
+            RoomName => from_value(value).map(Self::RoomName).map_err(conv_err),
+            RoomPinnedEvents => from_value(value)
+                .map(Self::RoomPinnedEvents)
+                .map_err(conv_err),
+            RoomPowerLevels => from_value(value)
+                .map(Self::RoomPowerLevels)
+                .map_err(conv_err),
+            RoomRedaction => from_value(value).map(Self::RoomRedaction).map_err(conv_err),
+            RoomServerAcl => from_value(value).map(Self::RoomServerAcl).map_err(conv_err),
+            RoomThirdPartyInvite => from_value(value)
+                .map(Self::RoomThirdPartyInvite)
+                .map_err(conv_err),
+            RoomTombstone => from_value(value).map(Self::RoomTombstone).map_err(conv_err),
+            RoomTopic => from_value(value).map(Self::RoomTopic).map_err(conv_err),
+            RoomKey => from_value(value).map(Self::RoomKey).map_err(conv_err),
+            RoomKeyRequest => from_value(value)
+                .map(Self::RoomKeyRequest)
+                .map_err(conv_err),
+            Sticker => from_value(value).map(Self::Sticker).map_err(conv_err),
+            Tag => from_value(value).map(Self::Tag).map_err(conv_err),
+            Typing => from_value(value).map(Self::Typing).map_err(conv_err),
+            // TODO
+            Custom(_event_type_name) => Err(D::Error::custom("invalid event type")),
+            __Nonexhaustive => {
+                unreachable!("__Nonexhaustive variant should be impossible to obtain.")
+            }
+        }
     }
 }
 
@@ -363,21 +440,58 @@ impl<'de> Deserialize<'de> for RoomEvent {
     where
         D: Deserializer<'de>,
     {
-        use serde::de::Error as _;
-        use serde_json::from_value;
-
-        let conv_err = |error: serde_json::Error| D::Error::custom(error.to_string());
+        use EventType::*;
 
         let value = Value::deserialize(deserializer)?;
-        let event_type: EventType = from_value(
-            value
-                .get("type")
-                .map(Clone::clone)
-                .ok_or_else(|| D::Error::missing_field("type"))?,
-        )
-        .map_err(conv_err)?;
+        let event_type = get_type_field(&value)?;
 
-        unimplemented!("not yet implemented")
+        match event_type {
+            CallAnswer => from_value(value).map(Self::CallAnswer).map_err(conv_err),
+            CallCandidates => from_value(value)
+                .map(Self::CallCandidates)
+                .map_err(conv_err),
+            CallHangup => from_value(value).map(Self::CallHangup).map_err(conv_err),
+            CallInvite => from_value(value).map(Self::CallInvite).map_err(conv_err),
+            RoomAliases => from_value(value).map(Self::RoomAliases).map_err(conv_err),
+            RoomAvatar => from_value(value).map(Self::RoomAvatar).map_err(conv_err),
+            RoomCanonicalAlias => from_value(value)
+                .map(Self::RoomCanonicalAlias)
+                .map_err(conv_err),
+            RoomCreate => from_value(value).map(Self::RoomCreate).map_err(conv_err),
+            RoomEncrypted => from_value(value).map(Self::RoomEncrypted).map_err(conv_err),
+            RoomEncryption => from_value(value)
+                .map(Self::RoomEncryption)
+                .map_err(conv_err),
+            RoomGuestAccess => from_value(value)
+                .map(Self::RoomGuestAccess)
+                .map_err(conv_err),
+            RoomHistoryVisibility => from_value(value)
+                .map(Self::RoomHistoryVisibility)
+                .map_err(conv_err),
+            RoomJoinRules => from_value(value).map(Self::RoomJoinRules).map_err(conv_err),
+            RoomMember => from_value(value).map(Self::RoomMember).map_err(conv_err),
+            RoomMessage => from_value(value).map(Self::RoomMessage).map_err(conv_err),
+            RoomMessageFeedback => from_value(value)
+                .map(Self::RoomMessageFeedback)
+                .map_err(conv_err),
+            RoomName => from_value(value).map(Self::RoomName).map_err(conv_err),
+            RoomPinnedEvents => from_value(value)
+                .map(Self::RoomPinnedEvents)
+                .map_err(conv_err),
+            RoomPowerLevels => from_value(value)
+                .map(Self::RoomPowerLevels)
+                .map_err(conv_err),
+            RoomRedaction => from_value(value).map(Self::RoomRedaction).map_err(conv_err),
+            RoomServerAcl => from_value(value).map(Self::RoomServerAcl).map_err(conv_err),
+            RoomThirdPartyInvite => from_value(value)
+                .map(Self::RoomThirdPartyInvite)
+                .map_err(conv_err),
+            RoomTombstone => from_value(value).map(Self::RoomTombstone).map_err(conv_err),
+            RoomTopic => from_value(value).map(Self::RoomTopic).map_err(conv_err),
+            Sticker => from_value(value).map(Self::Sticker).map_err(conv_err),
+            //Custom(_event_type_name) => unimplemented!("todo"),
+            _ => Err(D::Error::custom("invalid event type")),
+        }
     }
 }
 
@@ -386,21 +500,45 @@ impl<'de> Deserialize<'de> for StateEvent {
     where
         D: Deserializer<'de>,
     {
-        use serde::de::Error as _;
-        use serde_json::from_value;
-
-        let conv_err = |error: serde_json::Error| D::Error::custom(error.to_string());
+        use EventType::*;
 
         let value = Value::deserialize(deserializer)?;
-        let event_type: EventType = from_value(
-            value
-                .get("type")
-                .map(Clone::clone)
-                .ok_or_else(|| D::Error::missing_field("type"))?,
-        )
-        .map_err(conv_err)?;
+        let event_type = get_type_field(&value)?;
 
-        unimplemented!("not yet implemented")
+        match event_type {
+            RoomAliases => from_value(value).map(Self::RoomAliases).map_err(conv_err),
+            RoomAvatar => from_value(value).map(Self::RoomAvatar).map_err(conv_err),
+            RoomCanonicalAlias => from_value(value)
+                .map(Self::RoomCanonicalAlias)
+                .map_err(conv_err),
+            RoomCreate => from_value(value).map(Self::RoomCreate).map_err(conv_err),
+            RoomEncryption => from_value(value)
+                .map(Self::RoomEncryption)
+                .map_err(conv_err),
+            RoomGuestAccess => from_value(value)
+                .map(Self::RoomGuestAccess)
+                .map_err(conv_err),
+            RoomHistoryVisibility => from_value(value)
+                .map(Self::RoomHistoryVisibility)
+                .map_err(conv_err),
+            RoomJoinRules => from_value(value).map(Self::RoomJoinRules).map_err(conv_err),
+            RoomMember => from_value(value).map(Self::RoomMember).map_err(conv_err),
+            RoomName => from_value(value).map(Self::RoomName).map_err(conv_err),
+            RoomPinnedEvents => from_value(value)
+                .map(Self::RoomPinnedEvents)
+                .map_err(conv_err),
+            RoomPowerLevels => from_value(value)
+                .map(Self::RoomPowerLevels)
+                .map_err(conv_err),
+            RoomServerAcl => from_value(value).map(Self::RoomServerAcl).map_err(conv_err),
+            RoomThirdPartyInvite => from_value(value)
+                .map(Self::RoomThirdPartyInvite)
+                .map_err(conv_err),
+            RoomTombstone => from_value(value).map(Self::RoomTombstone).map_err(conv_err),
+            RoomTopic => from_value(value).map(Self::RoomTopic).map_err(conv_err),
+            //Custom(_event_type_name) => unimplemented!("todo"),
+            _ => Err(D::Error::custom("invalid event type")),
+        }
     }
 }
 

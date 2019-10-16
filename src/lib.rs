@@ -134,6 +134,7 @@ pub use custom_state::CustomStateEvent;
 
 #[macro_use]
 mod macros;
+mod util;
 
 pub mod call;
 /// Enums for heterogeneous collections of events.
@@ -270,16 +271,6 @@ impl<T: FromRaw> TryFromRaw for T {
     fn try_from_raw(raw: Self::Raw) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self::from_raw(raw))
     }
-}
-
-fn try_convert_variant<Enum: TryFromRaw, Content: TryFromRaw>(
-    raw_variant: fn(Content::Raw) -> Enum::Raw,
-    variant: fn(Content) -> Enum,
-    raw: Content::Raw,
-) -> Result<Enum, (String, Enum::Raw)> {
-    Content::try_from_raw(raw)
-        .map(variant)
-        .map_err(|(msg, raw)| (msg.into(), raw_variant(raw)))
 }
 
 // TODO: Replace with ! once that is stable

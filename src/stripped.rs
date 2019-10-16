@@ -121,7 +121,7 @@ impl TryFromRaw for StrippedState {
     type Err = String;
 
     fn try_from_raw(raw: raw::StrippedState) -> Result<Self, (Self::Err, Self::Raw)> {
-        use crate::try_convert_variant as conv;
+        use crate::util::try_convert_variant as conv;
         use raw::StrippedState::*;
 
         match raw {
