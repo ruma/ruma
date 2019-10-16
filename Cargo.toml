@@ -17,7 +17,7 @@ futures-preview = "0.3.0-alpha.19"
 http = "0.1.18"
 hyper = { version = "0.13.0-alpha.4", features = ["unstable-stream"] }
 hyper-tls = { version = "0.4.0-alpha.4", optional = true }
-ruma-api = "0.10.0"
+ruma-api = { git = "https://github.com/ruma/ruma-api", branch = "serverless" }
 ruma-client-api = { git = "https://github.com/ruma/ruma-client-api", branch = "event-result" }
 ruma-events = { git = "https://github.com/ruma/ruma-events", branch = "event-result-2" }
 ruma-identifiers = "0.14.0"
