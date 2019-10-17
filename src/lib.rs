@@ -882,9 +882,9 @@ where
     }
 }
 
-/// Serde serialization and deserialization functions that map a `Vec` to a
+/// Serde serialization and deserialization functions that map a `Vec<T>` to a `HashMap<T, Empty>`.
 ///
-/// To be used as `#[serde(with = "vec_as_map_of_empty")]
+/// To be used as `#[serde(with = "vec_as_map_of_empty")]`
 mod vec_as_map_of_empty {
     use super::Empty;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};

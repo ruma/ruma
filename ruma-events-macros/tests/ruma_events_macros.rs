@@ -1,12 +1,10 @@
-use std::{
-    fmt::{Debug, Display, Formatter, Result as FmtResult},
-    marker::PhantomData,
-};
+use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
 use serde::{
-    de::{Error as SerdeError, Visitor},
+    de::{DeserializeOwned, Error as SerdeError, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
+use serde_json::Value;
 
 /// The type of an event.
 #[derive(Clone, Debug, PartialEq)]
@@ -114,9 +112,9 @@ pub trait FromRaw: Sized {
     fn from_raw(_: Self::Raw) -> Self;
 }
 
-pub trait TryFromRaw {
+pub trait TryFromRaw: Sized {
     /// The raw form of this event that deserialization falls back to if deserializing `Self` fails.
-    type Raw;
+    type Raw: DeserializeOwned;
     type Err: Into<String>;
 
     fn try_from_raw(_: Self::Raw) -> Result<Self, (Self::Err, Self::Raw)>;
@@ -131,7 +129,41 @@ impl<T: FromRaw> TryFromRaw for T {
     }
 }
 
-enum Void {}
+impl<'de, T> Deserialize<'de> for EventResult<T>
+where
+    T: TryFromRaw,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let json = serde_json::Value::deserialize(deserializer)?;
+
+        let raw_data: T::Raw = match serde_json::from_value(json.clone()) {
+            Ok(raw) => raw,
+            Err(error) => {
+                return Ok(EventResult::Err(InvalidEvent(
+                    InnerInvalidEvent::Deserialization {
+                        json,
+                        error: error.to_string(),
+                    },
+                )));
+            }
+        };
+
+        match T::try_from_raw(raw_data) {
+            Ok(value) => Ok(EventResult::Ok(value)),
+            Err((msg, raw_data)) => Ok(EventResult::Err(InvalidEvent(
+                InnerInvalidEvent::Validation {
+                    message: msg.into(),
+                    raw_data,
+                },
+            ))),
+        }
+    }
+}
+
+pub enum Void {}
 
 impl From<Void> for String {
     fn from(v: Void) -> Self {
@@ -196,15 +228,22 @@ pub struct InvalidEvent<T>(InnerInvalidEvent<T>);
 /// An event that is malformed or otherwise invalid.
 #[derive(Debug)]
 enum InnerInvalidEvent<T> {
+    /// An event that failed to deserialize from JSON.
+    Deserialization {
+        /// The raw `serde_json::Value` representation of the invalid event.
+        json: Value,
+
+        /// The deserialization error returned by serde.
+        error: String,
+    },
+
     /// An event that deserialized but failed validation.
     Validation {
-        /// The raw `serde_json::Value` representation of the invalid event.
-        json: serde_json::Value,
+        /// The event data that failed validation.
+        raw_data: T,
 
         /// An message describing why the event was invalid.
         message: String,
-
-        dummy: PhantomData<T>,
     },
 }
 

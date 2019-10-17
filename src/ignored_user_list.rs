@@ -40,6 +40,7 @@ impl Serialize for IgnoredUserListEvent {
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct IgnoredUserListEventContent {
     /// A list of users to ignore.
+    #[serde(with = "vec_as_map_of_empty")]
     pub ignored_users: Vec<UserId>,
 }
 
@@ -97,7 +98,10 @@ mod tests {
 
         let json = serde_json::to_string(&ignored_user_list_event).unwrap();
 
-        assert_eq!(json, r#"{"content":{"ignored_users":{"@carl:example.com":{}}},"type":"m.ignored_user_list"}"#);
+        assert_eq!(
+            json,
+            r#"{"content":{"ignored_users":{"@carl:example.com":{}}},"type":"m.ignored_user_list"}"#
+        );
     }
 
     #[test]
