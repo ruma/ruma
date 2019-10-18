@@ -192,7 +192,7 @@ pub(crate) mod raw {
                 None => return Err(D::Error::missing_field("algorithm")),
             };
 
-            let method = match from_value::<Algorithm>(method_value.clone()) {
+            let method = match from_value::<Algorithm>(method_value) {
                 Ok(method) => method,
                 Err(error) => return Err(D::Error::custom(error.to_string())),
             };

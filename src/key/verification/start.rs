@@ -164,7 +164,7 @@ pub(crate) mod raw {
                 None => return Err(D::Error::missing_field("method")),
             };
 
-            let method = match from_value::<VerificationMethod>(method_value.clone()) {
+            let method = match from_value::<VerificationMethod>(method_value) {
                 Ok(method) => method,
                 Err(error) => return Err(D::Error::custom(error.to_string())),
             };

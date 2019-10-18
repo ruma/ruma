@@ -247,7 +247,7 @@ pub(crate) mod raw {
                 None => return Err(D::Error::missing_field("msgtype")),
             };
 
-            let message_type = match from_value::<MessageType>(message_type_value.clone()) {
+            let message_type = match from_value::<MessageType>(message_type_value) {
                 Ok(message_type) => message_type,
                 Err(error) => return Err(D::Error::custom(error.to_string())),
             };
