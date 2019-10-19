@@ -7,7 +7,7 @@ pub fn try_convert_variant<Enum: TryFromRaw, Content: TryFromRaw>(
 ) -> Result<Enum, (String, Enum::Raw)> {
     Content::try_from_raw(raw)
         .map(variant)
-        .map_err(|(msg, raw)| (msg.into(), raw_variant(raw)))
+        .map_err(|(err, raw)| (err.to_string(), raw_variant(raw)))
 }
 
 pub fn serde_json_error_to_generic_de_error<E: serde::de::Error>(error: serde_json::Error) -> E {

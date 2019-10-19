@@ -1,4 +1,7 @@
-use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
+use std::{
+    convert::Infallible,
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
+};
 
 use serde::{
     de::{DeserializeOwned, Error as SerdeError, Visitor},
@@ -115,14 +118,14 @@ pub trait FromRaw: Sized {
 pub trait TryFromRaw: Sized {
     /// The raw form of this event that deserialization falls back to if deserializing `Self` fails.
     type Raw: DeserializeOwned;
-    type Err: Into<String>;
+    type Err: Display;
 
     fn try_from_raw(_: Self::Raw) -> Result<Self, (Self::Err, Self::Raw)>;
 }
 
 impl<T: FromRaw> TryFromRaw for T {
     type Raw = <T as FromRaw>::Raw;
-    type Err = Void;
+    type Err = Infallible;
 
     fn try_from_raw(raw: Self::Raw) -> Result<Self, (Self::Err, Self::Raw)> {
         Ok(Self::from_raw(raw))
@@ -153,21 +156,13 @@ where
 
         match T::try_from_raw(raw_data) {
             Ok(value) => Ok(EventResult::Ok(value)),
-            Err((msg, raw_data)) => Ok(EventResult::Err(InvalidEvent(
+            Err((err, raw_data)) => Ok(EventResult::Err(InvalidEvent(
                 InnerInvalidEvent::Validation {
-                    message: msg.into(),
+                    message: err.to_string(),
                     raw_data,
                 },
             ))),
         }
-    }
-}
-
-pub enum Void {}
-
-impl From<Void> for String {
-    fn from(v: Void) -> Self {
-        match v {}
     }
 }
 
@@ -242,7 +237,7 @@ enum InnerInvalidEvent<T> {
         /// The event data that failed validation.
         raw_data: T,
 
-        /// An message describing why the event was invalid.
+        /// A message describing why the event was invalid.
         message: String,
     },
 }
