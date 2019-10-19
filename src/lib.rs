@@ -111,8 +111,8 @@
 //! because *m.room.message* implements a *more specific* event trait than `Event`.
 
 #![deny(missing_debug_implementations)]
-//#![deny(missing_docs)]
-//#![deny(warnings)]
+#![deny(missing_docs)]
+#![deny(warnings)]
 
 use std::{
     convert::Infallible,
@@ -247,21 +247,27 @@ impl Display for InvalidInput {
 
 impl Error for InvalidInput {}
 
-/// Marks types that can be deserialized as EventResult<Self> (and don't need fallible conversion
-/// from their raw type)
+/// See `TryFromRaw`. This trait is merely a convenience that can be implemented instead of
+/// `TryFromRaw` to get a `TryFromRaw` implementation with slightly less code if the conversion
+/// can't fail, that is, the raw type and `Self` are identical in definition.
 pub trait FromRaw: Sized {
-    /// The raw form of this event that deserialization falls back to if deserializing `Self` fails.
+    /// The raw type.
     type Raw: DeserializeOwned;
 
+    /// Converts the raw type to `Self`.
     fn from_raw(_: Self::Raw) -> Self;
 }
 
-/// Marks types that can be deserialized as EventResult<Self>
+/// Types corresponding to some item in the matrix spec. Types that implement this trait need to
+/// have a corresponding 'raw' type, a potentially invalid representation that can be converted to
+/// `Self`.
 pub trait TryFromRaw: Sized {
-    /// The raw form of this event that deserialization falls back to if deserializing `Self` fails.
+    /// The raw type.
     type Raw: DeserializeOwned;
+    /// The error type returned if conversion fails.
     type Err: Display;
 
+    /// Tries to convert the raw type to `Self`.
     fn try_from_raw(_: Self::Raw) -> Result<Self, (Self::Err, Self::Raw)>;
 }
 
