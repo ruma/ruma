@@ -32,7 +32,7 @@ use crate::{
     sticker::raw::StickerEvent,
     tag::raw::TagEvent,
     typing::raw::TypingEvent,
-    util::{get_type_field, serde_json_error_to_generic_de_error as conv_err},
+    util::{get_field, serde_json_error_to_generic_de_error as conv_err},
     CustomEvent, CustomRoomEvent, EventType,
 };
 
@@ -151,7 +151,7 @@ impl<'de> Deserialize<'de> for Event {
         use EventType::*;
 
         let value = Value::deserialize(deserializer)?;
-        let event_type = get_type_field(&value)?;
+        let event_type = get_field(&value, "type")?;
 
         match event_type {
             Direct => from_value(value).map(Self::Direct).map_err(conv_err),
@@ -204,7 +204,7 @@ impl<'de> Deserialize<'de> for RoomEvent {
         use EventType::*;
 
         let value = Value::deserialize(deserializer)?;
-        let event_type = get_type_field(&value)?;
+        let event_type = get_field(&value, "type")?;
 
         match event_type {
             CallAnswer => from_value(value).map(Self::CallAnswer).map_err(conv_err),

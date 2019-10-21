@@ -1,4 +1,6 @@
-use crate::{EventType, TryFromRaw};
+use serde::de::DeserializeOwned;
+
+use crate::TryFromRaw;
 
 pub fn try_convert_variant<Enum: TryFromRaw, Content: TryFromRaw>(
     raw_variant: fn(Content::Raw) -> Enum::Raw,
@@ -14,12 +16,15 @@ pub fn serde_json_error_to_generic_de_error<E: serde::de::Error>(error: serde_js
     E::custom(error.to_string())
 }
 
-pub fn get_type_field<E: serde::de::Error>(value: &serde_json::Value) -> Result<EventType, E> {
+pub fn get_field<T: DeserializeOwned, E: serde::de::Error>(
+    value: &serde_json::Value,
+    field: &'static str,
+) -> Result<T, E> {
     serde_json::from_value(
         value
-            .get("type")
+            .get(field)
             .cloned()
-            .ok_or_else(|| E::missing_field("type"))?,
+            .ok_or_else(|| E::missing_field(field))?,
     )
     .map_err(serde_json_error_to_generic_de_error)
 }

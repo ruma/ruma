@@ -18,6 +18,7 @@ use crate::{
         power_levels::PowerLevelsEventContent, third_party_invite::ThirdPartyInviteEventContent,
         topic::TopicEventContent,
     },
+    util::get_field,
     EventType, TryFromRaw,
 };
 
@@ -195,51 +196,14 @@ where
     where
         D: Deserializer<'de>,
     {
-        use serde::de::Error as _;
-        use serde_json::from_value;
-
-        let conv_err = |error: serde_json::Error| D::Error::custom(error.to_string());
-
         // TODO: Optimize
         let value = Value::deserialize(deserializer)?;
 
-        let event_type = from_value(
-            value
-                .get("type")
-                .cloned()
-                .ok_or_else(|| D::Error::missing_field("type"))?,
-        )
-        .map_err(conv_err)?;
-
-        let content = from_value(
-            value
-                .get("content")
-                .cloned()
-                .ok_or_else(|| D::Error::missing_field("content"))?,
-        )
-        .map_err(conv_err)?;
-
-        let sender = from_value(
-            value
-                .get("sender")
-                .cloned()
-                .ok_or_else(|| D::Error::missing_field("sender"))?,
-        )
-        .map_err(conv_err)?;
-
-        let state_key = from_value(
-            value
-                .get("state_key")
-                .cloned()
-                .ok_or_else(|| D::Error::missing_field("state_key"))?,
-        )
-        .map_err(conv_err)?;
-
         Ok(Self {
-            content,
-            event_type,
-            state_key,
-            sender,
+            content: get_field(&value, "content")?,
+            event_type: get_field(&value, "type")?,
+            state_key: get_field(&value, "state_key")?,
+            sender: get_field(&value, "sender")?,
         })
     }
 }
