@@ -110,7 +110,7 @@ impl TryFromRaw for StartEventContent {
                 Ok(StartEventContent::MSasV1(content))
             }
             raw::StartEventContent::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.".to_owned());
+                panic!("__Nonexhaustive enum variant is not intended for use.");
             }
         }
     }
