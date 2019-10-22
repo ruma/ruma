@@ -880,7 +880,11 @@ where
 
 /// Serde serialization and deserialization functions that map a `Vec<T>` to a `HashMap<T, Empty>`.
 ///
-/// To be used as `#[serde(with = "vec_as_map_of_empty")]`
+/// The Matrix spec sometimes specifies lists as hash maps so the list entries can be expanded with
+/// attributes without breaking compatibility. As that would be a breaking change for ruma's event
+/// types anyway, we convert them to `Vec`s for simplicity, using this module.
+///
+/// To be used as `#[serde(with = "vec_as_map_of_empty")]`.
 mod vec_as_map_of_empty {
     use super::Empty;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
