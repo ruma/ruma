@@ -174,62 +174,79 @@ pub mod typing;
 /// the event is otherwise invalid, a similar message will be provided, as well as a
 /// `serde_json::Value` containing the raw JSON data as it was deserialized.
 #[derive(Clone, Debug)]
-pub struct InvalidEvent<T>(InnerInvalidEvent<T>);
+pub enum InvalidEvent {
+    /// An error that occured during deserialization.
+    Deserialization(DeserializationError),
 
-impl<T> InvalidEvent<T> {
+    /// An error that occured during raw event validation.
+    Validation(ValidationError),
+
+    /// Additional variants may be added in the future and will not be considered breaking changes
+    /// to ruma-events.
+    #[doc(hidden)]
+    __Nonexhaustive,
+}
+
+impl InvalidEvent {
     /// A message describing why the event is invalid.
     pub fn message(&self) -> String {
-        match self.0 {
-            InnerInvalidEvent::Deserialization { ref error, .. } => error.to_string(),
-            InnerInvalidEvent::Validation { ref message, .. } => message.to_string(),
+        match self {
+            InvalidEvent::Deserialization(err) => err.message.clone(),
+            InvalidEvent::Validation(err) => err.message.clone(),
+            InvalidEvent::__Nonexhaustive => {
+                panic!("__Nonexhaustive enum variant is not intended for use.")
+        }
+    }
+    }
+
+    /// The `serde_json::Value` representation of the invalid event.
+    pub fn json(&self) -> &Value {
+        match self {
+            InvalidEvent::Deserialization(err) => &err.json,
+            InvalidEvent::Validation(err) => &err.json,
+            InvalidEvent::__Nonexhaustive => {
+                panic!("__Nonexhaustive enum variant is not intended for use.")
+            }
         }
     }
 
-    /// The raw event data, if deserialization succeeded but validation failed.
-    pub fn raw_data(&self) -> Option<&T> {
-        match self.0 {
-            InnerInvalidEvent::Validation { ref raw_data, .. } => Some(raw_data),
-            _ => None,
+    /// Returns whether this is a deserialization error.
+    pub fn is_deserialization(&self) -> bool {
+        match self {
+            InvalidEvent::Deserialization(_) => true,
+            _ => false,
         }
     }
 
-    /// The `serde_json::Value` representation of the invalid event, if deserialization failed.
-    pub fn json(&self) -> Option<&Value> {
-        match self.0 {
-            InnerInvalidEvent::Deserialization { ref json, .. } => Some(json),
-            _ => None,
+    /// Returns whether this is a validation error.
+    pub fn is_validation(&self) -> bool {
+        match self {
+            InvalidEvent::Validation(_) => true,
+            _ => false,
         }
     }
 }
 
-impl<T> Display for InvalidEvent<T> {
+impl Display for InvalidEvent {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(f, "{}", self.message())
     }
 }
 
-impl<T: Debug> Error for InvalidEvent<T> {}
+impl Error for InvalidEvent {}
 
-/// An event that is malformed or otherwise invalid.
+/// An error that occured during deserialization.
 #[derive(Clone, Debug)]
-enum InnerInvalidEvent<T> {
-    /// An event that failed to deserialize from JSON.
-    Deserialization {
-        /// The raw `serde_json::Value` representation of the invalid event.
+pub struct DeserializationError {
+    message: String,
         json: Value,
+}
 
-        /// The deserialization error returned by serde.
-        error: String,
-    },
-
-    /// An event that deserialized but failed validation.
-    Validation {
-        /// The event data that failed validation.
-        raw_data: T,
-
-        /// A message describing why the event was invalid.
+/// An error that occured during raw event validation.
+#[derive(Clone, Debug)]
+pub struct ValidationError {
         message: String,
-    },
+    json: Value,
 }
 
 /// An error returned when attempting to create an event with data that would make it invalid.
@@ -294,12 +311,12 @@ pub enum EventResult<T: TryFromRaw> {
     /// `T` failed either deserialization or validation.
     ///
     /// `InvalidEvent` contains the error message and the raw data.
-    Err(InvalidEvent<T::Raw>),
+    Err(InvalidEvent),
 }
 
 impl<T: TryFromRaw> EventResult<T> {
     /// Convert `EventResult<T>` into the equivalent `std::result::Result<T, InvalidEvent>`.
-    pub fn into_result(self) -> Result<T, InvalidEvent<T::Raw>> {
+    pub fn into_result(self) -> Result<T, InvalidEvent> {
         match self {
             EventResult::Ok(t) => Ok(t),
             EventResult::Err(invalid_event) => Err(invalid_event),
@@ -320,10 +337,10 @@ where
         let raw_data: T::Raw = match serde_json::from_value(json.clone()) {
             Ok(raw) => raw,
             Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Deserialization {
+                return Ok(EventResult::Err(InvalidEvent::Deserialization(
+                    DeserializationError {
                         json,
-                        error: error.to_string(),
+                        message: error.to_string(),
                     },
                 )));
             }
@@ -331,10 +348,10 @@ where
 
         match T::try_from_raw(raw_data) {
             Ok(value) => Ok(EventResult::Ok(value)),
-            Err((err, raw_data)) => Ok(EventResult::Err(InvalidEvent(
-                InnerInvalidEvent::Validation {
+            Err((err, _)) => Ok(EventResult::Err(InvalidEvent::Validation(
+                ValidationError {
                     message: err.to_string(),
-                    raw_data,
+                    json,
                 },
             ))),
         }

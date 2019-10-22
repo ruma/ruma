@@ -484,7 +484,7 @@ mod tests {
                 .unwrap_err();
 
         assert!(error.message().contains("missing field"));
-        assert!(error.json().is_some());
+        assert!(error.is_deserialization());
     }
 
     #[test]
@@ -498,7 +498,7 @@ mod tests {
                 .unwrap_err();
 
         assert!(error.message().contains("key_agreement_protocols"));
-        assert!(error.raw_data().is_some());
+        assert!(error.is_validation());
     }
 
     #[test]
@@ -512,7 +512,7 @@ mod tests {
                 .unwrap_err();
 
         assert!(error.message().contains("hashes"));
-        assert!(error.raw_data().is_some());
+        assert!(error.is_validation());
     }
 
     #[test]
@@ -526,7 +526,7 @@ mod tests {
                 .unwrap_err();
 
         assert!(error.message().contains("message_authentication_codes"));
-        assert!(error.raw_data().is_some());
+        assert!(error.is_validation());
     }
 
     #[test]
@@ -540,7 +540,7 @@ mod tests {
                 .unwrap_err();
 
         assert!(error.message().contains("short_authentication_string"));
-        assert!(error.raw_data().is_some());
+        assert!(error.is_validation());
     }
 
     #[test]
@@ -555,6 +555,6 @@ mod tests {
                 .unwrap_err();
 
         assert!(error.message().contains("key_agreement_protocols"));
-        assert!(error.raw_data().is_some());
+        assert!(error.is_validation());
     }
 }
