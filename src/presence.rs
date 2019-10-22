@@ -96,8 +96,7 @@ mod tests {
             sender: UserId::try_from("@example:localhost").unwrap(),
         };
 
-        let json =
-            r#"{"content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online","status_msg":"Making cupcakes"},"sender":"@example:localhost","type":"m.presence"}"#;
+        let json = r#"{"content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online","status_msg":"Making cupcakes"},"sender":"@example:localhost","type":"m.presence"}"#;
 
         assert_eq!(to_string(&event).unwrap(), json);
     }
@@ -116,8 +115,7 @@ mod tests {
             sender: UserId::try_from("@example:localhost").unwrap(),
         };
 
-        let json =
-            r#"{"content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online","status_msg":"Making cupcakes"},"sender":"@example:localhost","type":"m.presence"}"#;
+        let json = r#"{"content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online","status_msg":"Making cupcakes"},"sender":"@example:localhost","type":"m.presence"}"#;
 
         assert_eq!(
             serde_json::from_str::<EventResult<PresenceEvent>>(json)
