@@ -6,7 +6,7 @@ use ruma_events_macros::ruma_event;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::default_true;
+use crate::util::default_true;
 
 ruma_event! {
     /// This is the first event in a room and cannot be changed. It acts as the root of all other

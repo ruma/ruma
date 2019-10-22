@@ -12,7 +12,7 @@ use serde::{
 };
 use serde_json::{from_value, Value};
 
-use super::{default_true, FromStrError};
+use crate::{util::default_true, FromStrError};
 
 ruma_event! {
     /// Describes all push rules for a user.

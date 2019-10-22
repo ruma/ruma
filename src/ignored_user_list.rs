@@ -3,7 +3,7 @@
 use ruma_identifiers::UserId;
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 
-use crate::{vec_as_map_of_empty, Event as _, EventType, FromRaw};
+use crate::{util::vec_as_map_of_empty, Event as _, EventType, FromRaw};
 
 /// A list of users to ignore.
 #[derive(Clone, Debug, PartialEq)]

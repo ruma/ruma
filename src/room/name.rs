@@ -5,7 +5,7 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use serde_json::Value;
 
-use crate::{empty_string_as_none, Event as _, EventType, FromRaw, InvalidInput};
+use crate::{util::empty_string_as_none, Event as _, EventType, FromRaw, InvalidInput};
 
 /// A human-friendly room name designed to be displayed to the end-user.
 #[derive(Clone, Debug, PartialEq)]
