@@ -442,7 +442,7 @@ mod tests {
             .unwrap(),
         );
 
-        // Deserialize the content struct separately to verify `FromStr` is implemented for it.
+        // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_eq!(
             serde_json::from_str::<EventResult<StartEventContent>>(
                 r#"{"from_device":"123","transaction_id":"456","method":"m.sas.v1","hashes":["sha256"],"key_agreement_protocols":["curve25519"],"message_authentication_codes":["hkdf-hmac-sha256"],"short_authentication_string":["decimal"]}"#

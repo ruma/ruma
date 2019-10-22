@@ -73,19 +73,18 @@
 //! # Serialization and deserialization
 //!
 //! All concrete event types in ruma-events can be serialized via the `Serialize` trait from
-//! [serde](https://serde.rs/) and can be deserialized from a `&str` of JSON data via the `FromStr`
-//! trait from the standard library. (`TryFrom<&str>` is also implemented and can be used in place
-//! of `FromStr` if preferred.) Supporting types for each event generally implement serde's
-//! `Deserialize` trait directly. In order to handle incoming data that may not conform to
-//! ruma-events's strict definitions of event structures, deserializing from JSON will return an
-//! `InvalidEvent` on error. This error covers both invalid JSON data as well as valid JSON that
-//! doesn't match the structure expected by ruma-events's event types. In the latter case, the error
-//! exposes the deserialized `serde_json::Value` so that developers can still work with the received
-//! event data. This also makes it possible to deserialize a collection of events without the entire
+//! [serde](https://serde.rs/) and can be deserialized from as `EventResult<EventType>`. In order to
+//! handle incoming data that may not conform to `ruma-events`' strict definitions of event
+//! structures, deserialization will return `EventResult::Err` on error. This error covers both
+//! structurally invalid JSON data as well as structurally valid JSON that doesn't fulfill
+//! additional constraints the matrix specification defines for some event types. The error exposes
+//! the deserialized `serde_json::Value` so that developers can still work with the received
+//! event data. This makes it possible to deserialize a collection of events without the entire
 //! collection failing to deserialize due to a single invalid event. The "content" type for each
-//! event also implements `Serialize` and either `FromStr` (for dedicated content types) or
-//! `Deserialize` (when the content is a type alias), allowing content to be converted to and from
-//! JSON indepedently of the surrounding event structure, if needed.
+//! event also implements `Serialize` and either `TryFromRaw` (enabling usage as
+//! `EventResult<ContentType>` for dedicated content types) or `Deserialize` (when the content is a
+//! type alias), allowing content to be converted to and from JSON indepedently of the surrounding
+//! event structure, if needed.
 //!
 //! # Collections
 //!
@@ -195,8 +194,8 @@ impl InvalidEvent {
             InvalidEvent::Validation(err) => err.message.clone(),
             InvalidEvent::__Nonexhaustive => {
                 panic!("__Nonexhaustive enum variant is not intended for use.")
+            }
         }
-    }
     }
 
     /// The `serde_json::Value` representation of the invalid event.
@@ -239,13 +238,13 @@ impl Error for InvalidEvent {}
 #[derive(Clone, Debug)]
 pub struct DeserializationError {
     message: String,
-        json: Value,
+    json: Value,
 }
 
 /// An error that occured during raw event validation.
 #[derive(Clone, Debug)]
 pub struct ValidationError {
-        message: String,
+    message: String,
     json: Value,
 }
 
@@ -359,9 +358,6 @@ where
 }
 
 /// An error when attempting to create a value from a string via the `FromStr` trait.
-///
-/// This error type is only used for simple enums with unit variants. Event deserialization through
-/// the `FromStr` trait returns an `InvalidEvent` on error.
 #[derive(Clone, Copy, Eq, Debug, Hash, PartialEq)]
 pub struct FromStrError;
 
