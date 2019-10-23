@@ -112,6 +112,8 @@
 #![deny(missing_debug_implementations)]
 #![deny(missing_docs)]
 #![deny(warnings)]
+// Since we support Rust 1.34.2, we can't apply this suggestion yet
+#![allow(clippy::use_self)]
 
 use std::{
     convert::Infallible,
