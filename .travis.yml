@@ -12,7 +12,10 @@ jobs:
 
 before_script:
   - rustup component add rustfmt
-  - rustup component add clippy
+  - |
+      if [ "$TRAVIS_RUST_VERSION" != "1.34.2" ]; then
+        rustup component add clippy
+      fi
   - |
       if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
         cargo install --force cargo-audit
@@ -24,7 +27,10 @@ script:
         cargo audit
       fi
   - cargo fmt --all -- --check
-  - cargo clippy --all --all-targets --all-features -- -D warnings
+  - |
+      if [ "$TRAVIS_RUST_VERSION" != "1.34.2" ]; then
+        cargo clippy --all --all-targets --all-features -- -D warnings
+      fi
   - cargo build --all --verbose
   - cargo test --all --verbose
 if: "type != push OR (tag IS blank AND branch = master)"
