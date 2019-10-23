@@ -219,14 +219,17 @@ mod raw {
     use serde_json::Value;
 
     use super::StrippedStateContent;
-    use crate::room::{
-        aliases::raw::AliasesEventContent, avatar::raw::AvatarEventContent,
-        canonical_alias::raw::CanonicalAliasEventContent, create::raw::CreateEventContent,
-        guest_access::raw::GuestAccessEventContent,
-        history_visibility::raw::HistoryVisibilityEventContent,
-        join_rules::raw::JoinRulesEventContent, member::raw::MemberEventContent,
-        name::raw::NameEventContent, power_levels::raw::PowerLevelsEventContent,
-        third_party_invite::raw::ThirdPartyInviteEventContent, topic::raw::TopicEventContent,
+    use crate::{
+        room::{
+            aliases::raw::AliasesEventContent, avatar::raw::AvatarEventContent,
+            canonical_alias::raw::CanonicalAliasEventContent, create::raw::CreateEventContent,
+            guest_access::raw::GuestAccessEventContent,
+            history_visibility::raw::HistoryVisibilityEventContent,
+            join_rules::raw::JoinRulesEventContent, member::raw::MemberEventContent,
+            name::raw::NameEventContent, power_levels::raw::PowerLevelsEventContent,
+            third_party_invite::raw::ThirdPartyInviteEventContent, topic::raw::TopicEventContent,
+        },
+        util::get_field,
     };
 
     /// A stripped-down version of the *m.room.aliases* event.
@@ -311,54 +314,26 @@ mod raw {
         where
             D: Deserializer<'de>,
         {
-            use crate::{
-                util::{get_field, serde_json_error_to_generic_de_error as conv_err},
-                EventType::*,
-            };
+            use crate::{util::try_variant_from_value as from_value, EventType::*};
             use serde::de::Error as _;
-            use serde_json::from_value;
 
             // TODO: Optimize
             let value = Value::deserialize(deserializer)?;
             let event_type = get_field(&value, "type")?;
 
             match event_type {
-                RoomAliases => from_value(value)
-                    .map(StrippedState::RoomAliases)
-                    .map_err(conv_err),
-                RoomAvatar => from_value(value)
-                    .map(StrippedState::RoomAvatar)
-                    .map_err(conv_err),
-                RoomCanonicalAlias => from_value(value)
-                    .map(StrippedState::RoomCanonicalAlias)
-                    .map_err(conv_err),
-                RoomCreate => from_value(value)
-                    .map(StrippedState::RoomCreate)
-                    .map_err(conv_err),
-                RoomGuestAccess => from_value(value)
-                    .map(StrippedState::RoomGuestAccess)
-                    .map_err(conv_err),
-                RoomHistoryVisibility => from_value(value)
-                    .map(StrippedState::RoomHistoryVisibility)
-                    .map_err(conv_err),
-                RoomJoinRules => from_value(value)
-                    .map(StrippedState::RoomJoinRules)
-                    .map_err(conv_err),
-                RoomMember => from_value(value)
-                    .map(StrippedState::RoomMember)
-                    .map_err(conv_err),
-                RoomName => from_value(value)
-                    .map(StrippedState::RoomName)
-                    .map_err(conv_err),
-                RoomPowerLevels => from_value(value)
-                    .map(StrippedState::RoomPowerLevels)
-                    .map_err(conv_err),
-                RoomThirdPartyInvite => from_value(value)
-                    .map(StrippedState::RoomThirdPartyInvite)
-                    .map_err(conv_err),
-                RoomTopic => from_value(value)
-                    .map(StrippedState::RoomTopic)
-                    .map_err(conv_err),
+                RoomAliases => from_value(value, StrippedState::RoomAliases),
+                RoomAvatar => from_value(value, StrippedState::RoomAvatar),
+                RoomCanonicalAlias => from_value(value, StrippedState::RoomCanonicalAlias),
+                RoomCreate => from_value(value, StrippedState::RoomCreate),
+                RoomGuestAccess => from_value(value, StrippedState::RoomGuestAccess),
+                RoomHistoryVisibility => from_value(value, StrippedState::RoomHistoryVisibility),
+                RoomJoinRules => from_value(value, StrippedState::RoomJoinRules),
+                RoomMember => from_value(value, StrippedState::RoomMember),
+                RoomName => from_value(value, StrippedState::RoomName),
+                RoomPowerLevels => from_value(value, StrippedState::RoomPowerLevels),
+                RoomThirdPartyInvite => from_value(value, StrippedState::RoomThirdPartyInvite),
+                RoomTopic => from_value(value, StrippedState::RoomTopic),
                 _ => Err(D::Error::custom("not a state event")),
             }
         }

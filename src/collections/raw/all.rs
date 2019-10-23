@@ -2,7 +2,7 @@
 //! the trait of the same name.
 
 use serde::{de::Error as _, Deserialize, Deserializer};
-use serde_json::{from_value, Value};
+use serde_json::Value;
 
 use crate::{
     call::{
@@ -47,7 +47,7 @@ use crate::{
     sticker::raw::StickerEvent,
     tag::raw::TagEvent,
     typing::raw::TypingEvent,
-    util::{get_field, serde_json_error_to_generic_de_error as conv_err},
+    util::get_field,
     CustomEvent, CustomRoomEvent, CustomStateEvent, EventType,
 };
 
@@ -341,101 +341,56 @@ impl<'de> Deserialize<'de> for Event {
     where
         D: Deserializer<'de>,
     {
+        use crate::util::try_variant_from_value as from_value;
         use EventType::*;
 
         let value = Value::deserialize(deserializer)?;
         let event_type = get_field(&value, "type")?;
 
         match event_type {
-            CallAnswer => from_value(value).map(Event::CallAnswer).map_err(conv_err),
-            CallCandidates => from_value(value)
-                .map(Event::CallCandidates)
-                .map_err(conv_err),
-            CallHangup => from_value(value).map(Event::CallHangup).map_err(conv_err),
-            CallInvite => from_value(value).map(Event::CallInvite).map_err(conv_err),
-            Direct => from_value(value).map(Event::Direct).map_err(conv_err),
-            Dummy => from_value(value).map(Event::Dummy).map_err(conv_err),
-            ForwardedRoomKey => from_value(value)
-                .map(Event::ForwardedRoomKey)
-                .map_err(conv_err),
-            FullyRead => from_value(value).map(Event::FullyRead).map_err(conv_err),
-            IgnoredUserList => from_value(value)
-                .map(Event::IgnoredUserList)
-                .map_err(conv_err),
-            KeyVerificationAccept => from_value(value)
-                .map(Event::KeyVerificationAccept)
-                .map_err(conv_err),
-            KeyVerificationCancel => from_value(value)
-                .map(Event::KeyVerificationCancel)
-                .map_err(conv_err),
-            KeyVerificationKey => from_value(value)
-                .map(Event::KeyVerificationKey)
-                .map_err(conv_err),
-            KeyVerificationMac => from_value(value)
-                .map(Event::KeyVerificationMac)
-                .map_err(conv_err),
-            KeyVerificationRequest => from_value(value)
-                .map(Event::KeyVerificationRequest)
-                .map_err(conv_err),
-            KeyVerificationStart => from_value(value)
-                .map(Event::KeyVerificationStart)
-                .map_err(conv_err),
-            Presence => from_value(value).map(Event::Presence).map_err(conv_err),
-            PushRules => from_value(value).map(Event::PushRules).map_err(conv_err),
-            Receipt => from_value(value).map(Event::Receipt).map_err(conv_err),
-            RoomAliases => from_value(value).map(Event::RoomAliases).map_err(conv_err),
-            RoomAvatar => from_value(value).map(Event::RoomAvatar).map_err(conv_err),
-            RoomCanonicalAlias => from_value(value)
-                .map(Event::RoomCanonicalAlias)
-                .map_err(conv_err),
-            RoomCreate => from_value(value).map(Event::RoomCreate).map_err(conv_err),
-            RoomEncrypted => from_value(value)
-                .map(Event::RoomEncrypted)
-                .map_err(conv_err),
-            RoomEncryption => from_value(value)
-                .map(Event::RoomEncryption)
-                .map_err(conv_err),
-            RoomGuestAccess => from_value(value)
-                .map(Event::RoomGuestAccess)
-                .map_err(conv_err),
-            RoomHistoryVisibility => from_value(value)
-                .map(Event::RoomHistoryVisibility)
-                .map_err(conv_err),
-            RoomJoinRules => from_value(value)
-                .map(Event::RoomJoinRules)
-                .map_err(conv_err),
-            RoomMember => from_value(value).map(Event::RoomMember).map_err(conv_err),
-            RoomMessage => from_value(value).map(Event::RoomMessage).map_err(conv_err),
-            RoomMessageFeedback => from_value(value)
-                .map(Event::RoomMessageFeedback)
-                .map_err(conv_err),
-            RoomName => from_value(value).map(Event::RoomName).map_err(conv_err),
-            RoomPinnedEvents => from_value(value)
-                .map(Event::RoomPinnedEvents)
-                .map_err(conv_err),
-            RoomPowerLevels => from_value(value)
-                .map(Event::RoomPowerLevels)
-                .map_err(conv_err),
-            RoomRedaction => from_value(value)
-                .map(Event::RoomRedaction)
-                .map_err(conv_err),
-            RoomServerAcl => from_value(value)
-                .map(Event::RoomServerAcl)
-                .map_err(conv_err),
-            RoomThirdPartyInvite => from_value(value)
-                .map(Event::RoomThirdPartyInvite)
-                .map_err(conv_err),
-            RoomTombstone => from_value(value)
-                .map(Event::RoomTombstone)
-                .map_err(conv_err),
-            RoomTopic => from_value(value).map(Event::RoomTopic).map_err(conv_err),
-            RoomKey => from_value(value).map(Event::RoomKey).map_err(conv_err),
-            RoomKeyRequest => from_value(value)
-                .map(Event::RoomKeyRequest)
-                .map_err(conv_err),
-            Sticker => from_value(value).map(Event::Sticker).map_err(conv_err),
-            Tag => from_value(value).map(Event::Tag).map_err(conv_err),
-            Typing => from_value(value).map(Event::Typing).map_err(conv_err),
+            CallAnswer => from_value(value, Event::CallAnswer),
+            CallCandidates => from_value(value, Event::CallCandidates),
+            CallHangup => from_value(value, Event::CallHangup),
+            CallInvite => from_value(value, Event::CallInvite),
+            Direct => from_value(value, Event::Direct),
+            Dummy => from_value(value, Event::Dummy),
+            ForwardedRoomKey => from_value(value, Event::ForwardedRoomKey),
+            FullyRead => from_value(value, Event::FullyRead),
+            IgnoredUserList => from_value(value, Event::IgnoredUserList),
+            KeyVerificationAccept => from_value(value, Event::KeyVerificationAccept),
+            KeyVerificationCancel => from_value(value, Event::KeyVerificationCancel),
+            KeyVerificationKey => from_value(value, Event::KeyVerificationKey),
+            KeyVerificationMac => from_value(value, Event::KeyVerificationMac),
+            KeyVerificationRequest => from_value(value, Event::KeyVerificationRequest),
+            KeyVerificationStart => from_value(value, Event::KeyVerificationStart),
+            Presence => from_value(value, Event::Presence),
+            PushRules => from_value(value, Event::PushRules),
+            Receipt => from_value(value, Event::Receipt),
+            RoomAliases => from_value(value, Event::RoomAliases),
+            RoomAvatar => from_value(value, Event::RoomAvatar),
+            RoomCanonicalAlias => from_value(value, Event::RoomCanonicalAlias),
+            RoomCreate => from_value(value, Event::RoomCreate),
+            RoomEncrypted => from_value(value, Event::RoomEncrypted),
+            RoomEncryption => from_value(value, Event::RoomEncryption),
+            RoomGuestAccess => from_value(value, Event::RoomGuestAccess),
+            RoomHistoryVisibility => from_value(value, Event::RoomHistoryVisibility),
+            RoomJoinRules => from_value(value, Event::RoomJoinRules),
+            RoomMember => from_value(value, Event::RoomMember),
+            RoomMessage => from_value(value, Event::RoomMessage),
+            RoomMessageFeedback => from_value(value, Event::RoomMessageFeedback),
+            RoomName => from_value(value, Event::RoomName),
+            RoomPinnedEvents => from_value(value, Event::RoomPinnedEvents),
+            RoomPowerLevels => from_value(value, Event::RoomPowerLevels),
+            RoomRedaction => from_value(value, Event::RoomRedaction),
+            RoomServerAcl => from_value(value, Event::RoomServerAcl),
+            RoomThirdPartyInvite => from_value(value, Event::RoomThirdPartyInvite),
+            RoomTombstone => from_value(value, Event::RoomTombstone),
+            RoomTopic => from_value(value, Event::RoomTopic),
+            RoomKey => from_value(value, Event::RoomKey),
+            RoomKeyRequest => from_value(value, Event::RoomKeyRequest),
+            Sticker => from_value(value, Event::Sticker),
+            Tag => from_value(value, Event::Tag),
+            Typing => from_value(value, Event::Typing),
             // TODO
             Custom(_event_type_name) => Err(D::Error::custom("invalid event type")),
             __Nonexhaustive => {
@@ -450,83 +405,38 @@ impl<'de> Deserialize<'de> for RoomEvent {
     where
         D: Deserializer<'de>,
     {
+        use crate::util::try_variant_from_value as from_value;
         use EventType::*;
 
         let value = Value::deserialize(deserializer)?;
         let event_type = get_field(&value, "type")?;
 
         match event_type {
-            CallAnswer => from_value(value)
-                .map(RoomEvent::CallAnswer)
-                .map_err(conv_err),
-            CallCandidates => from_value(value)
-                .map(RoomEvent::CallCandidates)
-                .map_err(conv_err),
-            CallHangup => from_value(value)
-                .map(RoomEvent::CallHangup)
-                .map_err(conv_err),
-            CallInvite => from_value(value)
-                .map(RoomEvent::CallInvite)
-                .map_err(conv_err),
-            RoomAliases => from_value(value)
-                .map(RoomEvent::RoomAliases)
-                .map_err(conv_err),
-            RoomAvatar => from_value(value)
-                .map(RoomEvent::RoomAvatar)
-                .map_err(conv_err),
-            RoomCanonicalAlias => from_value(value)
-                .map(RoomEvent::RoomCanonicalAlias)
-                .map_err(conv_err),
-            RoomCreate => from_value(value)
-                .map(RoomEvent::RoomCreate)
-                .map_err(conv_err),
-            RoomEncrypted => from_value(value)
-                .map(RoomEvent::RoomEncrypted)
-                .map_err(conv_err),
-            RoomEncryption => from_value(value)
-                .map(RoomEvent::RoomEncryption)
-                .map_err(conv_err),
-            RoomGuestAccess => from_value(value)
-                .map(RoomEvent::RoomGuestAccess)
-                .map_err(conv_err),
-            RoomHistoryVisibility => from_value(value)
-                .map(RoomEvent::RoomHistoryVisibility)
-                .map_err(conv_err),
-            RoomJoinRules => from_value(value)
-                .map(RoomEvent::RoomJoinRules)
-                .map_err(conv_err),
-            RoomMember => from_value(value)
-                .map(RoomEvent::RoomMember)
-                .map_err(conv_err),
-            RoomMessage => from_value(value)
-                .map(RoomEvent::RoomMessage)
-                .map_err(conv_err),
-            RoomMessageFeedback => from_value(value)
-                .map(RoomEvent::RoomMessageFeedback)
-                .map_err(conv_err),
-            RoomName => from_value(value).map(RoomEvent::RoomName).map_err(conv_err),
-            RoomPinnedEvents => from_value(value)
-                .map(RoomEvent::RoomPinnedEvents)
-                .map_err(conv_err),
-            RoomPowerLevels => from_value(value)
-                .map(RoomEvent::RoomPowerLevels)
-                .map_err(conv_err),
-            RoomRedaction => from_value(value)
-                .map(RoomEvent::RoomRedaction)
-                .map_err(conv_err),
-            RoomServerAcl => from_value(value)
-                .map(RoomEvent::RoomServerAcl)
-                .map_err(conv_err),
-            RoomThirdPartyInvite => from_value(value)
-                .map(RoomEvent::RoomThirdPartyInvite)
-                .map_err(conv_err),
-            RoomTombstone => from_value(value)
-                .map(RoomEvent::RoomTombstone)
-                .map_err(conv_err),
-            RoomTopic => from_value(value)
-                .map(RoomEvent::RoomTopic)
-                .map_err(conv_err),
-            Sticker => from_value(value).map(RoomEvent::Sticker).map_err(conv_err),
+            CallAnswer => from_value(value, RoomEvent::CallAnswer),
+            CallCandidates => from_value(value, RoomEvent::CallCandidates),
+            CallHangup => from_value(value, RoomEvent::CallHangup),
+            CallInvite => from_value(value, RoomEvent::CallInvite),
+            RoomAliases => from_value(value, RoomEvent::RoomAliases),
+            RoomAvatar => from_value(value, RoomEvent::RoomAvatar),
+            RoomCanonicalAlias => from_value(value, RoomEvent::RoomCanonicalAlias),
+            RoomCreate => from_value(value, RoomEvent::RoomCreate),
+            RoomEncrypted => from_value(value, RoomEvent::RoomEncrypted),
+            RoomEncryption => from_value(value, RoomEvent::RoomEncryption),
+            RoomGuestAccess => from_value(value, RoomEvent::RoomGuestAccess),
+            RoomHistoryVisibility => from_value(value, RoomEvent::RoomHistoryVisibility),
+            RoomJoinRules => from_value(value, RoomEvent::RoomJoinRules),
+            RoomMember => from_value(value, RoomEvent::RoomMember),
+            RoomMessage => from_value(value, RoomEvent::RoomMessage),
+            RoomMessageFeedback => from_value(value, RoomEvent::RoomMessageFeedback),
+            RoomName => from_value(value, RoomEvent::RoomName),
+            RoomPinnedEvents => from_value(value, RoomEvent::RoomPinnedEvents),
+            RoomPowerLevels => from_value(value, RoomEvent::RoomPowerLevels),
+            RoomRedaction => from_value(value, RoomEvent::RoomRedaction),
+            RoomServerAcl => from_value(value, RoomEvent::RoomServerAcl),
+            RoomThirdPartyInvite => from_value(value, RoomEvent::RoomThirdPartyInvite),
+            RoomTombstone => from_value(value, RoomEvent::RoomTombstone),
+            RoomTopic => from_value(value, RoomEvent::RoomTopic),
+            Sticker => from_value(value, RoomEvent::Sticker),
             //Custom(_event_type_name) => unimplemented!("todo"),
             _ => Err(D::Error::custom("invalid event type")),
         }
@@ -538,60 +448,29 @@ impl<'de> Deserialize<'de> for StateEvent {
     where
         D: Deserializer<'de>,
     {
+        use crate::util::try_variant_from_value as from_value;
         use EventType::*;
 
         let value = Value::deserialize(deserializer)?;
         let event_type = get_field(&value, "type")?;
 
         match event_type {
-            RoomAliases => from_value(value)
-                .map(StateEvent::RoomAliases)
-                .map_err(conv_err),
-            RoomAvatar => from_value(value)
-                .map(StateEvent::RoomAvatar)
-                .map_err(conv_err),
-            RoomCanonicalAlias => from_value(value)
-                .map(StateEvent::RoomCanonicalAlias)
-                .map_err(conv_err),
-            RoomCreate => from_value(value)
-                .map(StateEvent::RoomCreate)
-                .map_err(conv_err),
-            RoomEncryption => from_value(value)
-                .map(StateEvent::RoomEncryption)
-                .map_err(conv_err),
-            RoomGuestAccess => from_value(value)
-                .map(StateEvent::RoomGuestAccess)
-                .map_err(conv_err),
-            RoomHistoryVisibility => from_value(value)
-                .map(StateEvent::RoomHistoryVisibility)
-                .map_err(conv_err),
-            RoomJoinRules => from_value(value)
-                .map(StateEvent::RoomJoinRules)
-                .map_err(conv_err),
-            RoomMember => from_value(value)
-                .map(StateEvent::RoomMember)
-                .map_err(conv_err),
-            RoomName => from_value(value)
-                .map(StateEvent::RoomName)
-                .map_err(conv_err),
-            RoomPinnedEvents => from_value(value)
-                .map(StateEvent::RoomPinnedEvents)
-                .map_err(conv_err),
-            RoomPowerLevels => from_value(value)
-                .map(StateEvent::RoomPowerLevels)
-                .map_err(conv_err),
-            RoomServerAcl => from_value(value)
-                .map(StateEvent::RoomServerAcl)
-                .map_err(conv_err),
-            RoomThirdPartyInvite => from_value(value)
-                .map(StateEvent::RoomThirdPartyInvite)
-                .map_err(conv_err),
-            RoomTombstone => from_value(value)
-                .map(StateEvent::RoomTombstone)
-                .map_err(conv_err),
-            RoomTopic => from_value(value)
-                .map(StateEvent::RoomTopic)
-                .map_err(conv_err),
+            RoomAliases => from_value(value, StateEvent::RoomAliases),
+            RoomAvatar => from_value(value, StateEvent::RoomAvatar),
+            RoomCanonicalAlias => from_value(value, StateEvent::RoomCanonicalAlias),
+            RoomCreate => from_value(value, StateEvent::RoomCreate),
+            RoomEncryption => from_value(value, StateEvent::RoomEncryption),
+            RoomGuestAccess => from_value(value, StateEvent::RoomGuestAccess),
+            RoomHistoryVisibility => from_value(value, StateEvent::RoomHistoryVisibility),
+            RoomJoinRules => from_value(value, StateEvent::RoomJoinRules),
+            RoomMember => from_value(value, StateEvent::RoomMember),
+            RoomName => from_value(value, StateEvent::RoomName),
+            RoomPinnedEvents => from_value(value, StateEvent::RoomPinnedEvents),
+            RoomPowerLevels => from_value(value, StateEvent::RoomPowerLevels),
+            RoomServerAcl => from_value(value, StateEvent::RoomServerAcl),
+            RoomThirdPartyInvite => from_value(value, StateEvent::RoomThirdPartyInvite),
+            RoomTombstone => from_value(value, StateEvent::RoomTombstone),
+            RoomTopic => from_value(value, StateEvent::RoomTopic),
             //Custom(_event_type_name) => unimplemented!("todo"),
             _ => Err(D::Error::custom("invalid event type")),
         }
