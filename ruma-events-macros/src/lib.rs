@@ -2,7 +2,6 @@
 //! [ruma-events](https://github.com/ruma/ruma-events) events.
 //!
 //! See the documentation for the `ruma_event!` macro for usage details.
-//!
 #![deny(
     missing_copy_implementations,
     missing_debug_implementations,
@@ -28,6 +27,8 @@
     clippy::wrong_pub_self_convention,
     clippy::wrong_self_convention
 )]
+// Since we support Rust 1.34.2, we can't apply this suggestion yet
+#![allow(clippy::use_self)]
 #![recursion_limit = "128"]
 
 extern crate proc_macro;
