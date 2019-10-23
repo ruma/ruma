@@ -154,42 +154,42 @@ impl<'de> Deserialize<'de> for Event {
         let event_type = get_field(&value, "type")?;
 
         match event_type {
-            Direct => from_value(value).map(Self::Direct).map_err(conv_err),
-            Dummy => from_value(value).map(Self::Dummy).map_err(conv_err),
+            Direct => from_value(value).map(Event::Direct).map_err(conv_err),
+            Dummy => from_value(value).map(Event::Dummy).map_err(conv_err),
             ForwardedRoomKey => from_value(value)
-                .map(Self::ForwardedRoomKey)
+                .map(Event::ForwardedRoomKey)
                 .map_err(conv_err),
-            FullyRead => from_value(value).map(Self::FullyRead).map_err(conv_err),
+            FullyRead => from_value(value).map(Event::FullyRead).map_err(conv_err),
             KeyVerificationAccept => from_value(value)
-                .map(Self::KeyVerificationAccept)
+                .map(Event::KeyVerificationAccept)
                 .map_err(conv_err),
             KeyVerificationCancel => from_value(value)
-                .map(Self::KeyVerificationCancel)
+                .map(Event::KeyVerificationCancel)
                 .map_err(conv_err),
             KeyVerificationKey => from_value(value)
-                .map(Self::KeyVerificationKey)
+                .map(Event::KeyVerificationKey)
                 .map_err(conv_err),
             KeyVerificationMac => from_value(value)
-                .map(Self::KeyVerificationMac)
+                .map(Event::KeyVerificationMac)
                 .map_err(conv_err),
             KeyVerificationRequest => from_value(value)
-                .map(Self::KeyVerificationRequest)
+                .map(Event::KeyVerificationRequest)
                 .map_err(conv_err),
             KeyVerificationStart => from_value(value)
-                .map(Self::KeyVerificationStart)
+                .map(Event::KeyVerificationStart)
                 .map_err(conv_err),
             IgnoredUserList => from_value(value)
-                .map(Self::IgnoredUserList)
+                .map(Event::IgnoredUserList)
                 .map_err(conv_err),
-            Presence => from_value(value).map(Self::Presence).map_err(conv_err),
-            PushRules => from_value(value).map(Self::PushRules).map_err(conv_err),
-            RoomKey => from_value(value).map(Self::RoomKey).map_err(conv_err),
+            Presence => from_value(value).map(Event::Presence).map_err(conv_err),
+            PushRules => from_value(value).map(Event::PushRules).map_err(conv_err),
+            RoomKey => from_value(value).map(Event::RoomKey).map_err(conv_err),
             RoomKeyRequest => from_value(value)
-                .map(Self::RoomKeyRequest)
+                .map(Event::RoomKeyRequest)
                 .map_err(conv_err),
-            Receipt => from_value(value).map(Self::Receipt).map_err(conv_err),
-            Tag => from_value(value).map(Self::Tag).map_err(conv_err),
-            Typing => from_value(value).map(Self::Typing).map_err(conv_err),
+            Receipt => from_value(value).map(Event::Receipt).map_err(conv_err),
+            Tag => from_value(value).map(Event::Tag).map_err(conv_err),
+            Typing => from_value(value).map(Event::Typing).map_err(conv_err),
             //Custom(_event_type_name) => unimplemented!("todo"),
             _ => Err(D::Error::custom("invalid event type")),
         }
@@ -207,19 +207,31 @@ impl<'de> Deserialize<'de> for RoomEvent {
         let event_type = get_field(&value, "type")?;
 
         match event_type {
-            CallAnswer => from_value(value).map(Self::CallAnswer).map_err(conv_err),
+            CallAnswer => from_value(value)
+                .map(RoomEvent::CallAnswer)
+                .map_err(conv_err),
             CallCandidates => from_value(value)
-                .map(Self::CallCandidates)
+                .map(RoomEvent::CallCandidates)
                 .map_err(conv_err),
-            CallHangup => from_value(value).map(Self::CallHangup).map_err(conv_err),
-            CallInvite => from_value(value).map(Self::CallInvite).map_err(conv_err),
-            RoomEncrypted => from_value(value).map(Self::RoomEncrypted).map_err(conv_err),
-            RoomMessage => from_value(value).map(Self::RoomMessage).map_err(conv_err),
+            CallHangup => from_value(value)
+                .map(RoomEvent::CallHangup)
+                .map_err(conv_err),
+            CallInvite => from_value(value)
+                .map(RoomEvent::CallInvite)
+                .map_err(conv_err),
+            RoomEncrypted => from_value(value)
+                .map(RoomEvent::RoomEncrypted)
+                .map_err(conv_err),
+            RoomMessage => from_value(value)
+                .map(RoomEvent::RoomMessage)
+                .map_err(conv_err),
             RoomMessageFeedback => from_value(value)
-                .map(Self::RoomMessageFeedback)
+                .map(RoomEvent::RoomMessageFeedback)
                 .map_err(conv_err),
-            RoomRedaction => from_value(value).map(Self::RoomRedaction).map_err(conv_err),
-            Sticker => from_value(value).map(Self::Sticker).map_err(conv_err),
+            RoomRedaction => from_value(value)
+                .map(RoomEvent::RoomRedaction)
+                .map_err(conv_err),
+            Sticker => from_value(value).map(RoomEvent::Sticker).map_err(conv_err),
             //Custom(_event_type_name) => unimplemented!("todo"),
             _ => Err(D::Error::custom("invalid event type")),
         }

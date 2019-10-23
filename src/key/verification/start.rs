@@ -1,7 +1,7 @@
 //! Types for the *m.key.verification.start* event.
 
 use ruma_identifiers::DeviceId;
-use serde::{de::Error, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
 use super::{
@@ -157,6 +157,8 @@ pub(crate) mod raw {
         where
             D: Deserializer<'de>,
         {
+            use serde::de::Error as _;
+
             let value: Value = Deserialize::deserialize(deserializer)?;
 
             let method_value = match value.get("method") {

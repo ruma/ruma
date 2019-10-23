@@ -126,18 +126,24 @@ impl TryFromRaw for StrippedState {
         use raw::StrippedState::*;
 
         match raw {
-            RoomAliases(c) => conv(RoomAliases, Self::RoomAliases, c),
-            RoomAvatar(c) => conv(RoomAvatar, Self::RoomAvatar, c),
-            RoomCanonicalAlias(c) => conv(RoomCanonicalAlias, Self::RoomCanonicalAlias, c),
-            RoomCreate(c) => conv(RoomCreate, Self::RoomCreate, c),
-            RoomGuestAccess(c) => conv(RoomGuestAccess, Self::RoomGuestAccess, c),
-            RoomHistoryVisibility(c) => conv(RoomHistoryVisibility, Self::RoomHistoryVisibility, c),
-            RoomJoinRules(c) => conv(RoomJoinRules, Self::RoomJoinRules, c),
-            RoomMember(c) => conv(RoomMember, Self::RoomMember, c),
-            RoomName(c) => conv(RoomName, Self::RoomName, c),
-            RoomPowerLevels(c) => conv(RoomPowerLevels, Self::RoomPowerLevels, c),
-            RoomThirdPartyInvite(c) => conv(RoomThirdPartyInvite, Self::RoomThirdPartyInvite, c),
-            RoomTopic(c) => conv(RoomTopic, Self::RoomTopic, c),
+            RoomAliases(c) => conv(RoomAliases, StrippedState::RoomAliases, c),
+            RoomAvatar(c) => conv(RoomAvatar, StrippedState::RoomAvatar, c),
+            RoomCanonicalAlias(c) => conv(RoomCanonicalAlias, StrippedState::RoomCanonicalAlias, c),
+            RoomCreate(c) => conv(RoomCreate, StrippedState::RoomCreate, c),
+            RoomGuestAccess(c) => conv(RoomGuestAccess, StrippedState::RoomGuestAccess, c),
+            RoomHistoryVisibility(c) => conv(
+                RoomHistoryVisibility,
+                StrippedState::RoomHistoryVisibility,
+                c,
+            ),
+            RoomJoinRules(c) => conv(RoomJoinRules, StrippedState::RoomJoinRules, c),
+            RoomMember(c) => conv(RoomMember, StrippedState::RoomMember, c),
+            RoomName(c) => conv(RoomName, StrippedState::RoomName, c),
+            RoomPowerLevels(c) => conv(RoomPowerLevels, StrippedState::RoomPowerLevels, c),
+            RoomThirdPartyInvite(c) => {
+                conv(RoomThirdPartyInvite, StrippedState::RoomThirdPartyInvite, c)
+            }
+            RoomTopic(c) => conv(RoomTopic, StrippedState::RoomTopic, c),
         }
     }
 }
@@ -210,6 +216,7 @@ where
 
 mod raw {
     use serde::{Deserialize, Deserializer};
+    use serde_json::Value;
 
     use super::StrippedStateContent;
     use crate::room::{
@@ -304,44 +311,56 @@ mod raw {
         where
             D: Deserializer<'de>,
         {
-            use crate::EventType::*;
+            use crate::{
+                util::{get_field, serde_json_error_to_generic_de_error as conv_err},
+                EventType::*,
+            };
             use serde::de::Error as _;
-            use serde_json::{from_value, Value};
-
-            let conv_err = |error: serde_json::Error| D::Error::custom(error.to_string());
+            use serde_json::from_value;
 
             // TODO: Optimize
             let value = Value::deserialize(deserializer)?;
+            let event_type = get_field(&value, "type")?;
 
-            let event_type = from_value(
-                value
-                    .get("type")
-                    .cloned()
-                    .ok_or_else(|| D::Error::missing_field("type"))?,
-            )
-            .map_err(conv_err)?;
-
-            Ok(match event_type {
-                RoomAliases => StrippedState::RoomAliases(from_value(value).map_err(conv_err)?),
-                RoomAvatar => Self::RoomAvatar(from_value(value).map_err(conv_err)?),
-                RoomCanonicalAlias => {
-                    Self::RoomCanonicalAlias(from_value(value).map_err(conv_err)?)
-                }
-                RoomCreate => Self::RoomCreate(from_value(value).map_err(conv_err)?),
-                RoomGuestAccess => Self::RoomGuestAccess(from_value(value).map_err(conv_err)?),
-                RoomHistoryVisibility => {
-                    Self::RoomHistoryVisibility(from_value(value).map_err(conv_err)?)
-                }
-                RoomJoinRules => Self::RoomJoinRules(from_value(value).map_err(conv_err)?),
-                RoomMember => Self::RoomMember(from_value(value).map_err(conv_err)?),
-                RoomName => Self::RoomName(from_value(value).map_err(conv_err)?),
-                RoomPowerLevels => Self::RoomPowerLevels(from_value(value).map_err(conv_err)?),
-                RoomThirdPartyInvite => {
-                    Self::RoomThirdPartyInvite(from_value(value).map_err(conv_err)?)
-                }
-                RoomTopic => Self::RoomTopic(from_value(value).map_err(conv_err)?),
-                _ => return Err(D::Error::custom("not a state event")),
-            })
+            match event_type {
+                RoomAliases => from_value(value)
+                    .map(StrippedState::RoomAliases)
+                    .map_err(conv_err),
+                RoomAvatar => from_value(value)
+                    .map(StrippedState::RoomAvatar)
+                    .map_err(conv_err),
+                RoomCanonicalAlias => from_value(value)
+                    .map(StrippedState::RoomCanonicalAlias)
+                    .map_err(conv_err),
+                RoomCreate => from_value(value)
+                    .map(StrippedState::RoomCreate)
+                    .map_err(conv_err),
+                RoomGuestAccess => from_value(value)
+                    .map(StrippedState::RoomGuestAccess)
+                    .map_err(conv_err),
+                RoomHistoryVisibility => from_value(value)
+                    .map(StrippedState::RoomHistoryVisibility)
+                    .map_err(conv_err),
+                RoomJoinRules => from_value(value)
+                    .map(StrippedState::RoomJoinRules)
+                    .map_err(conv_err),
+                RoomMember => from_value(value)
+                    .map(StrippedState::RoomMember)
+                    .map_err(conv_err),
+                RoomName => from_value(value)
+                    .map(StrippedState::RoomName)
+                    .map_err(conv_err),
+                RoomPowerLevels => from_value(value)
+                    .map(StrippedState::RoomPowerLevels)
+                    .map_err(conv_err),
+                RoomThirdPartyInvite => from_value(value)
+                    .map(StrippedState::RoomThirdPartyInvite)
+                    .map_err(conv_err),
+                RoomTopic => from_value(value)
+                    .map(StrippedState::RoomTopic)
+                    .map_err(conv_err),
+                _ => Err(D::Error::custom("not a state event")),
+            }
         }
     }
 }

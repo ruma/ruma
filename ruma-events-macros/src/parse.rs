@@ -215,20 +215,20 @@ impl Parse for RumaEventField {
                     .into_iter()
                     .collect();
 
-                Ok(Self::InlineStruct(FieldInlineStruct {
+                Ok(RumaEventField::InlineStruct(FieldInlineStruct {
                     attrs,
                     member,
                     colon_token,
                     fields,
                 }))
             }
-            "content_type_alias" => Ok(Self::Block(FieldBlock {
+            "content_type_alias" => Ok(RumaEventField::Block(FieldBlock {
                 attrs: input.call(Attribute::parse_outer)?,
                 member: input.parse()?,
                 colon_token: input.parse()?,
                 typedef: input.parse()?,
             })),
-            _ => Ok(Self::Value(input.parse()?)),
+            _ => Ok(RumaEventField::Value(input.parse()?)),
         }
     }
 }

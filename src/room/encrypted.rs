@@ -2,7 +2,7 @@
 
 use js_int::UInt;
 use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
-use serde::{de::Error, ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
 use crate::{Algorithm, Event, EventType, FromRaw};
@@ -70,8 +70,10 @@ impl FromRaw for EncryptedEventContent {
         use raw::EncryptedEventContent::*;
 
         match raw {
-            OlmV1Curve25519AesSha2(content) => Self::OlmV1Curve25519AesSha2(content),
-            MegolmV1AesSha2(content) => Self::MegolmV1AesSha2(content),
+            OlmV1Curve25519AesSha2(content) => {
+                EncryptedEventContent::OlmV1Curve25519AesSha2(content)
+            }
+            MegolmV1AesSha2(content) => EncryptedEventContent::MegolmV1AesSha2(content),
             __Nonexhaustive => {
                 unreachable!("__Nonexhaustive variant should be impossible to obtain.")
             }
@@ -185,6 +187,8 @@ pub(crate) mod raw {
         where
             D: Deserializer<'de>,
         {
+            use serde::de::Error as _;
+
             let value: Value = Deserialize::deserialize(deserializer)?;
 
             let method_value = match value.get("algorithm") {

@@ -139,27 +139,31 @@ impl TryFromRaw for Event {
         use raw::Event::*;
 
         match raw {
-            Direct(c) => conv(Direct, Self::Direct, c),
-            Dummy(c) => conv(Dummy, Self::Dummy, c),
-            ForwardedRoomKey(c) => conv(ForwardedRoomKey, Self::ForwardedRoomKey, c),
-            FullyRead(c) => conv(FullyRead, Self::FullyRead, c),
-            KeyVerificationAccept(c) => conv(KeyVerificationAccept, Self::KeyVerificationAccept, c),
-            KeyVerificationCancel(c) => conv(KeyVerificationCancel, Self::KeyVerificationCancel, c),
-            KeyVerificationKey(c) => conv(KeyVerificationKey, Self::KeyVerificationKey, c),
-            KeyVerificationMac(c) => conv(KeyVerificationMac, Self::KeyVerificationMac, c),
-            KeyVerificationRequest(c) => {
-                conv(KeyVerificationRequest, Self::KeyVerificationRequest, c)
+            Direct(c) => conv(Direct, Event::Direct, c),
+            Dummy(c) => conv(Dummy, Event::Dummy, c),
+            ForwardedRoomKey(c) => conv(ForwardedRoomKey, Event::ForwardedRoomKey, c),
+            FullyRead(c) => conv(FullyRead, Event::FullyRead, c),
+            KeyVerificationAccept(c) => {
+                conv(KeyVerificationAccept, Event::KeyVerificationAccept, c)
             }
-            KeyVerificationStart(c) => conv(KeyVerificationStart, Self::KeyVerificationStart, c),
-            IgnoredUserList(c) => conv(IgnoredUserList, Self::IgnoredUserList, c),
-            Presence(c) => conv(Presence, Self::Presence, c),
-            PushRules(c) => conv(PushRules, Self::PushRules, c),
-            RoomKey(c) => conv(RoomKey, Self::RoomKey, c),
-            RoomKeyRequest(c) => conv(RoomKeyRequest, Self::RoomKeyRequest, c),
-            Receipt(c) => conv(Receipt, Self::Receipt, c),
-            Tag(c) => conv(Tag, Self::Tag, c),
-            Typing(c) => conv(Typing, Self::Typing, c),
-            Custom(c) => Ok(Self::Custom(c)),
+            KeyVerificationCancel(c) => {
+                conv(KeyVerificationCancel, Event::KeyVerificationCancel, c)
+            }
+            KeyVerificationKey(c) => conv(KeyVerificationKey, Event::KeyVerificationKey, c),
+            KeyVerificationMac(c) => conv(KeyVerificationMac, Event::KeyVerificationMac, c),
+            KeyVerificationRequest(c) => {
+                conv(KeyVerificationRequest, Event::KeyVerificationRequest, c)
+            }
+            KeyVerificationStart(c) => conv(KeyVerificationStart, Event::KeyVerificationStart, c),
+            IgnoredUserList(c) => conv(IgnoredUserList, Event::IgnoredUserList, c),
+            Presence(c) => conv(Presence, Event::Presence, c),
+            PushRules(c) => conv(PushRules, Event::PushRules, c),
+            RoomKey(c) => conv(RoomKey, Event::RoomKey, c),
+            RoomKeyRequest(c) => conv(RoomKeyRequest, Event::RoomKeyRequest, c),
+            Receipt(c) => conv(Receipt, Event::Receipt, c),
+            Tag(c) => conv(Tag, Event::Tag, c),
+            Typing(c) => conv(Typing, Event::Typing, c),
+            Custom(c) => Ok(Event::Custom(c)),
         }
     }
 }
@@ -173,16 +177,16 @@ impl TryFromRaw for RoomEvent {
         use raw::RoomEvent::*;
 
         match raw {
-            CallAnswer(c) => conv(CallAnswer, Self::CallAnswer, c),
-            CallCandidates(c) => conv(CallCandidates, Self::CallCandidates, c),
-            CallHangup(c) => conv(CallHangup, Self::CallHangup, c),
-            CallInvite(c) => conv(CallInvite, Self::CallInvite, c),
-            RoomEncrypted(c) => conv(RoomEncrypted, Self::RoomEncrypted, c),
-            RoomMessage(c) => conv(RoomMessage, Self::RoomMessage, c),
-            RoomMessageFeedback(c) => conv(RoomMessageFeedback, Self::RoomMessageFeedback, c),
-            RoomRedaction(c) => conv(RoomRedaction, Self::RoomRedaction, c),
-            Sticker(c) => conv(Sticker, Self::Sticker, c),
-            CustomRoom(c) => Ok(Self::CustomRoom(c)),
+            CallAnswer(c) => conv(CallAnswer, RoomEvent::CallAnswer, c),
+            CallCandidates(c) => conv(CallCandidates, RoomEvent::CallCandidates, c),
+            CallHangup(c) => conv(CallHangup, RoomEvent::CallHangup, c),
+            CallInvite(c) => conv(CallInvite, RoomEvent::CallInvite, c),
+            RoomEncrypted(c) => conv(RoomEncrypted, RoomEvent::RoomEncrypted, c),
+            RoomMessage(c) => conv(RoomMessage, RoomEvent::RoomMessage, c),
+            RoomMessageFeedback(c) => conv(RoomMessageFeedback, RoomEvent::RoomMessageFeedback, c),
+            RoomRedaction(c) => conv(RoomRedaction, RoomEvent::RoomRedaction, c),
+            Sticker(c) => conv(Sticker, RoomEvent::Sticker, c),
+            CustomRoom(c) => Ok(RoomEvent::CustomRoom(c)),
         }
     }
 }

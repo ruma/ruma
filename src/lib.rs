@@ -128,9 +128,7 @@ use serde::{
 };
 use serde_json::Value;
 
-pub use custom::CustomEvent;
-pub use custom_room::CustomRoomEvent;
-pub use custom_state::CustomStateEvent;
+pub use self::{custom::CustomEvent, custom_room::CustomRoomEvent, custom_state::CustomStateEvent};
 
 #[macro_use]
 mod macros;

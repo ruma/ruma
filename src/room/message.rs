@@ -2,11 +2,7 @@
 
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{
-    de::Error as _,
-    ser::{Error as _, SerializeStruct},
-    Deserialize, Deserializer, Serialize, Serializer,
-};
+use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
@@ -96,15 +92,15 @@ impl FromRaw for MessageEventContent {
         use raw::MessageEventContent::*;
 
         match raw {
-            Audio(content) => Self::Audio(content),
-            Emote(content) => Self::Emote(content),
-            File(content) => Self::File(content),
-            Image(content) => Self::Image(content),
-            Location(content) => Self::Location(content),
-            Notice(content) => Self::Notice(content),
-            ServerNotice(content) => Self::ServerNotice(content),
-            Text(content) => Self::Text(content),
-            Video(content) => Self::Video(content),
+            Audio(content) => MessageEventContent::Audio(content),
+            Emote(content) => MessageEventContent::Emote(content),
+            File(content) => MessageEventContent::File(content),
+            Image(content) => MessageEventContent::Image(content),
+            Location(content) => MessageEventContent::Location(content),
+            Notice(content) => MessageEventContent::Notice(content),
+            ServerNotice(content) => MessageEventContent::ServerNotice(content),
+            Text(content) => MessageEventContent::Text(content),
+            Video(content) => MessageEventContent::Video(content),
             __Nonexhaustive => {
                 unreachable!("It should be impossible to obtain a __Nonexhaustive variant.")
             }
@@ -155,6 +151,8 @@ impl Serialize for MessageEventContent {
     where
         S: Serializer,
     {
+        use serde::ser::Error as _;
+
         match *self {
             MessageEventContent::Audio(ref content) => content.serialize(serializer),
             MessageEventContent::Emote(ref content) => content.serialize(serializer),
@@ -240,6 +238,8 @@ pub(crate) mod raw {
         where
             D: Deserializer<'de>,
         {
+            use serde::de::Error as _;
+
             let value: Value = Deserialize::deserialize(deserializer)?;
 
             let message_type_value = match value.get("msgtype") {
