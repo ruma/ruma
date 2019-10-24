@@ -166,11 +166,11 @@ pub mod typing;
 
 /// An event that is malformed or otherwise invalid.
 ///
-/// When attempting to deserialize an `EventResult`, an error in the input data may cause
-/// deserialization to fail, or the JSON structure may be correct, but additional constraints
-/// defined in the matrix specification are not upheld. This type provides an error message and a
-/// `serde_json::Value` representation of the invalid event, as well as a flag for which type of
-/// error was encountered.
+/// When attempting to deserialize an [`EventResult`](enum.EventResult.html), an error in the input
+/// data may cause deserialization to fail, or the JSON structure may be correct, but additional
+/// constraints defined in the matrix specification are not upheld. This type provides an error
+/// message and a `serde_json::Value` representation of the invalid event, as well as a flag for
+/// which type of error was encountered.
 #[derive(Clone, Debug)]
 pub struct InvalidEvent {
     message: String,
@@ -216,8 +216,8 @@ impl Error for InvalidEvent {}
 
 /// An error returned when attempting to create an event with data that would make it invalid.
 ///
-/// This type is similar to `InvalidEvent`, but used during the construction of a new event, as
-/// opposed to deserialization of an existing event from JSON.
+/// This type is similar to [`InvalidEvent`](struct.InvalidEvent.html), but used during the
+/// construction of a new event, as opposed to deserialization of an existing event from JSON.
 #[derive(Clone, Debug, PartialEq)]
 pub struct InvalidInput(String);
 
@@ -229,9 +229,11 @@ impl Display for InvalidInput {
 
 impl Error for InvalidInput {}
 
-/// See `TryFromRaw`. This trait is merely a convenience that can be implemented instead of
-/// `TryFromRaw` to get a `TryFromRaw` implementation with slightly less code if the conversion
-/// can't fail, that is, the raw type and `Self` are identical in definition.
+/// See [`TryFromRaw`][try]. This trait is merely a convenience that is be implemented instead of
+/// [`TryFromRaw`][try] to get a [`TryFromRaw`][try] implementation with slightly less code if the
+/// conversion can't fail, that is, the raw type and `Self` are identical in definition.
+///
+/// [try]: trait.TryFromRaw.html
 pub trait FromRaw: Sized {
     /// The raw type.
     type Raw: DeserializeOwned;
@@ -240,9 +242,8 @@ pub trait FromRaw: Sized {
     fn from_raw(_: Self::Raw) -> Self;
 }
 
-/// Types corresponding to some item in the matrix spec. Types that implement this trait need to
-/// have a corresponding 'raw' type, a potentially invalid representation that can be converted to
-/// `Self`.
+/// Types corresponding to some item in the matrix spec. Types that implement this trait have a
+/// corresponding 'raw' type, a potentially invalid representation that can be converted to `Self`.
 pub trait TryFromRaw: Sized {
     /// The raw type.
     type Raw: DeserializeOwned;
@@ -266,8 +267,8 @@ impl<T: FromRaw> TryFromRaw for T {
 ///
 /// When data is successfully deserialized and validated, this structure will contain the
 /// deserialized value `T`. When deserialization succeeds, but the event is invalid for any reason,
-/// this structure will contain an `InvalidEvent`. See the documentation for `InvalidEvent` for
-/// more details.
+/// this structure will contain an [`InvalidEvent`](struct.InvalidEvent.html). See the documentation
+/// for [`InvalidEvent`](struct.InvalidEvent.html) for more details.
 #[derive(Clone, Debug)]
 pub enum EventResult<T: TryFromRaw> {
     /// `T` deserialized and validated successfully.
@@ -275,7 +276,7 @@ pub enum EventResult<T: TryFromRaw> {
 
     /// `T` failed either deserialization or validation.
     ///
-    /// `InvalidEvent` contains the error message and the raw data.
+    /// [`InvalidEvent`](struct.InvalidEvent.html) contains the error message and the raw data.
     Err(InvalidEvent),
 }
 
