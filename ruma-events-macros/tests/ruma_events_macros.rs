@@ -93,12 +93,12 @@ pub enum EventResult<T: TryFromRaw> {
     /// `T` deserialized but was invalid.
     ///
     /// `InvalidEvent` contains the original input.
-    Err(InvalidEvent<T::Raw>),
+    Err(InvalidEvent),
 }
 
 impl<T: TryFromRaw> EventResult<T> {
-    /// Convert `EventResult<T>` into the equivalent `std::result::Result<T, InvalidEvent<T::Raw>>`.
-    pub fn into_result(self) -> Result<T, InvalidEvent<T::Raw>> {
+    /// Convert `EventResult<T>` into the equivalent `std::result::Result<T, InvalidEvent>`.
+    pub fn into_result(self) -> Result<T, InvalidEvent> {
         match self {
             EventResult::Ok(t) => Ok(t),
             EventResult::Err(invalid_event) => Err(invalid_event),
@@ -145,23 +145,21 @@ where
         let raw_data: T::Raw = match serde_json::from_value(json.clone()) {
             Ok(raw) => raw,
             Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent(
-                    InnerInvalidEvent::Deserialization {
-                        json,
-                        error: error.to_string(),
-                    },
-                )));
+                return Ok(EventResult::Err(InvalidEvent {
+                    json,
+                    message: error.to_string(),
+                    kind: InvalidEventKind::Deserialization,
+                }));
             }
         };
 
         match T::try_from_raw(raw_data) {
             Ok(value) => Ok(EventResult::Ok(value)),
-            Err((err, raw_data)) => Ok(EventResult::Err(InvalidEvent(
-                InnerInvalidEvent::Validation {
-                    message: err.to_string(),
-                    raw_data,
-                },
-            ))),
+            Err((err, _)) => Ok(EventResult::Err(InvalidEvent {
+                message: err.to_string(),
+                json,
+                kind: InvalidEventKind::Validation,
+            })),
         }
     }
 }
@@ -211,35 +209,50 @@ pub trait StateEvent: RoomEvent {
 
 /// An event that is malformed or otherwise invalid.
 ///
-/// When attempting to create an event from a string of JSON data, an error in the input data may
-/// cause deserialization to fail, or the JSON structure may not corresponded to ruma-events's
-/// strict definition of the event's schema. If deserialization completely fails, this type will
-/// provide a message with details about the deserialization error. If deserialization succeeds but
-/// the event is otherwise invalid, a similar message will be provided, as well as a
-/// `serde_json::Value` containing the raw JSON data as it was deserialized.
-#[derive(Debug)]
-pub struct InvalidEvent<T>(InnerInvalidEvent<T>);
+/// When attempting to deserialize an `EventResult`, an error in the input data may cause
+/// deserialization to fail, or the JSON structure may be correct, but additional constraints
+/// defined in the matrix specification are not upheld. This type provides an error message and a
+/// `serde_json::Value` representation of the invalid event, as well as a flag for which type of
+/// error was encountered.
+#[derive(Clone, Debug)]
+pub struct InvalidEvent {
+    message: String,
+    json: Value,
+    kind: InvalidEventKind,
+}
 
-/// An event that is malformed or otherwise invalid.
-#[derive(Debug)]
-enum InnerInvalidEvent<T> {
-    /// An event that failed to deserialize from JSON.
-    Deserialization {
-        /// The raw `serde_json::Value` representation of the invalid event.
-        json: Value,
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+enum InvalidEventKind {
+    Deserialization,
+    Validation,
+}
 
-        /// The deserialization error returned by serde.
-        error: String,
-    },
+impl InvalidEvent {
+    /// A message describing why the event is invalid.
+    pub fn message(&self) -> String {
+        self.message.clone()
+    }
 
-    /// An event that deserialized but failed validation.
-    Validation {
-        /// The event data that failed validation.
-        raw_data: T,
+    /// The `serde_json::Value` representation of the invalid event.
+    pub fn json(&self) -> &Value {
+        &self.json
+    }
 
-        /// A message describing why the event was invalid.
-        message: String,
-    },
+    /// Returns whether this is a deserialization error.
+    pub fn is_deserialization(&self) -> bool {
+        self.kind == InvalidEventKind::Deserialization
+    }
+
+    /// Returns whether this is a validation error.
+    pub fn is_validation(&self) -> bool {
+        self.kind == InvalidEventKind::Validation
+    }
+}
+
+impl Display for InvalidEvent {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.message())
+    }
 }
 
 // See note about wrapping macro expansion in a module from `src/lib.rs`
