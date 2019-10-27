@@ -457,7 +457,27 @@ impl<'de> Deserialize<'de> for RoomEvent {
                     from_value(value, RoomEvent::CustomRoom)
                 }
             }
-            _ => Err(D::Error::custom("invalid event type")),
+            Direct
+            | Dummy
+            | ForwardedRoomKey
+            | FullyRead
+            | IgnoredUserList
+            | KeyVerificationAccept
+            | KeyVerificationCancel
+            | KeyVerificationKey
+            | KeyVerificationMac
+            | KeyVerificationRequest
+            | KeyVerificationStart
+            | Presence
+            | PushRules
+            | Receipt
+            | RoomKey
+            | RoomKeyRequest
+            | Tag
+            | Typing => Err(D::Error::custom("invalid event type")),
+            __Nonexhaustive => {
+                unreachable!("__Nonexhaustive variant should be impossible to obtain.")
+            }
         }
     }
 }
@@ -491,7 +511,36 @@ impl<'de> Deserialize<'de> for StateEvent {
             RoomTombstone => from_value(value, StateEvent::RoomTombstone),
             RoomTopic => from_value(value, StateEvent::RoomTopic),
             Custom(_event_type_name) => from_value(value, StateEvent::CustomState),
-            _ => Err(D::Error::custom("invalid event type")),
+            CallAnswer
+            | CallCandidates
+            | CallHangup
+            | CallInvite
+            | Direct
+            | Dummy
+            | ForwardedRoomKey
+            | FullyRead
+            | IgnoredUserList
+            | KeyVerificationAccept
+            | KeyVerificationCancel
+            | KeyVerificationKey
+            | KeyVerificationMac
+            | KeyVerificationRequest
+            | KeyVerificationStart
+            | Presence
+            | PushRules
+            | Receipt
+            | RoomEncrypted
+            | RoomKey
+            | RoomKeyRequest
+            | RoomMessage
+            | RoomMessageFeedback
+            | RoomRedaction
+            | Sticker
+            | Tag
+            | Typing => Err(D::Error::custom("invalid event type")),
+            __Nonexhaustive => {
+                unreachable!("__Nonexhaustive variant should be impossible to obtain.")
+            }
         }
     }
 }

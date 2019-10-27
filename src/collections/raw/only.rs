@@ -176,7 +176,34 @@ impl<'de> Deserialize<'de> for Event {
             Tag => from_value(value, Event::Tag),
             Typing => from_value(value, Event::Typing),
             Custom(_event_type_name) => from_value(value, Event::Custom),
-            _ => Err(D::Error::custom("invalid event type")),
+            CallAnswer
+            | CallCandidates
+            | CallHangup
+            | CallInvite
+            | RoomAliases
+            | RoomAvatar
+            | RoomCanonicalAlias
+            | RoomCreate
+            | RoomEncrypted
+            | RoomEncryption
+            | RoomGuestAccess
+            | RoomHistoryVisibility
+            | RoomJoinRules
+            | RoomMember
+            | RoomMessage
+            | RoomMessageFeedback
+            | RoomName
+            | RoomPinnedEvents
+            | RoomPowerLevels
+            | RoomServerAcl
+            | RoomThirdPartyInvite
+            | RoomTombstone
+            | RoomTopic
+            | RoomRedaction
+            | Sticker => Err(D::Error::custom("invalid event type")),
+            __Nonexhaustive => {
+                unreachable!("__Nonexhaustive variant should be impossible to obtain.")
+            }
         }
     }
 }
@@ -203,7 +230,43 @@ impl<'de> Deserialize<'de> for RoomEvent {
             RoomRedaction => from_value(value, RoomEvent::RoomRedaction),
             Sticker => from_value(value, RoomEvent::Sticker),
             Custom(_event_type_name) => from_value(value, RoomEvent::CustomRoom),
-            _ => Err(D::Error::custom("invalid event type")),
+            Direct
+            | Dummy
+            | ForwardedRoomKey
+            | FullyRead
+            | IgnoredUserList
+            | KeyVerificationAccept
+            | KeyVerificationCancel
+            | KeyVerificationKey
+            | KeyVerificationMac
+            | KeyVerificationRequest
+            | KeyVerificationStart
+            | Presence
+            | PushRules
+            | Receipt
+            | RoomAvatar
+            | RoomAliases
+            | RoomCanonicalAlias
+            | RoomCreate
+            | RoomEncryption
+            | RoomGuestAccess
+            | RoomHistoryVisibility
+            | RoomJoinRules
+            | RoomKey
+            | RoomKeyRequest
+            | RoomMember
+            | RoomName
+            | RoomPinnedEvents
+            | RoomPowerLevels
+            | RoomServerAcl
+            | RoomThirdPartyInvite
+            | RoomTombstone
+            | RoomTopic
+            | Tag
+            | Typing => Err(D::Error::custom("invalid event type")),
+            __Nonexhaustive => {
+                unreachable!("__Nonexhaustive variant should be impossible to obtain.")
+            }
         }
     }
 }
