@@ -163,7 +163,7 @@ impl TryFromRaw for Event {
             Receipt(c) => conv(Receipt, Event::Receipt, c),
             Tag(c) => conv(Tag, Event::Tag, c),
             Typing(c) => conv(Typing, Event::Typing, c),
-            Custom(c) => Ok(Event::Custom(c)),
+            Custom(c) => conv(Custom, Event::Custom, c),
         }
     }
 }
@@ -186,7 +186,7 @@ impl TryFromRaw for RoomEvent {
             RoomMessageFeedback(c) => conv(RoomMessageFeedback, RoomEvent::RoomMessageFeedback, c),
             RoomRedaction(c) => conv(RoomRedaction, RoomEvent::RoomRedaction, c),
             Sticker(c) => conv(Sticker, RoomEvent::Sticker, c),
-            CustomRoom(c) => Ok(RoomEvent::CustomRoom(c)),
+            CustomRoom(c) => conv(CustomRoom, RoomEvent::CustomRoom, c),
         }
     }
 }

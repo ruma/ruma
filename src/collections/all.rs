@@ -394,9 +394,9 @@ impl TryFromRaw for Event {
             Sticker(c) => conv(Sticker, Event::Sticker, c),
             Tag(c) => conv(Tag, Event::Tag, c),
             Typing(c) => conv(Typing, Event::Typing, c),
-            Custom(c) => Ok(Event::Custom(c)),
-            CustomRoom(c) => Ok(Event::CustomRoom(c)),
-            CustomState(c) => Ok(Event::CustomState(c)),
+            Custom(c) => conv(Custom, Event::Custom, c),
+            CustomRoom(c) => conv(CustomRoom, Event::CustomRoom, c),
+            CustomState(c) => conv(CustomState, Event::CustomState, c),
         }
     }
 }
@@ -439,8 +439,8 @@ impl TryFromRaw for RoomEvent {
             RoomTombstone(c) => conv(RoomTombstone, RoomEvent::RoomTombstone, c),
             RoomTopic(c) => conv(RoomTopic, RoomEvent::RoomTopic, c),
             Sticker(c) => conv(Sticker, RoomEvent::Sticker, c),
-            CustomRoom(c) => Ok(RoomEvent::CustomRoom(c)),
-            CustomState(c) => Ok(RoomEvent::CustomState(c)),
+            CustomRoom(c) => conv(CustomRoom, RoomEvent::CustomRoom, c),
+            CustomState(c) => conv(CustomState, RoomEvent::CustomState, c),
         }
     }
 }
@@ -474,7 +474,7 @@ impl TryFromRaw for StateEvent {
             }
             RoomTombstone(c) => conv(RoomTombstone, StateEvent::RoomTombstone, c),
             RoomTopic(c) => conv(RoomTopic, StateEvent::RoomTopic, c),
-            CustomState(c) => Ok(StateEvent::CustomState(c)),
+            CustomState(c) => conv(CustomState, StateEvent::CustomState, c),
         }
     }
 }

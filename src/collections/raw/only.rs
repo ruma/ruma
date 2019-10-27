@@ -10,6 +10,8 @@ use crate::{
         answer::raw::AnswerEvent, candidates::raw::CandidatesEvent, hangup::raw::HangupEvent,
         invite::raw::InviteEvent,
     },
+    custom::raw::CustomEvent,
+    custom_room::raw::CustomRoomEvent,
     direct::raw::DirectEvent,
     dummy::raw::DummyEvent,
     forwarded_room_key::raw::ForwardedRoomKeyEvent,
@@ -33,7 +35,7 @@ use crate::{
     tag::raw::TagEvent,
     typing::raw::TypingEvent,
     util::get_field,
-    CustomEvent, CustomRoomEvent, EventType,
+    EventType,
 };
 
 /// A basic event.
@@ -173,7 +175,7 @@ impl<'de> Deserialize<'de> for Event {
             Receipt => from_value(value, Event::Receipt),
             Tag => from_value(value, Event::Tag),
             Typing => from_value(value, Event::Typing),
-            //Custom(_event_type_name) => unimplemented!("todo"),
+            Custom(_event_type_name) => from_value(value, Event::Custom),
             _ => Err(D::Error::custom("invalid event type")),
         }
     }
@@ -200,7 +202,7 @@ impl<'de> Deserialize<'de> for RoomEvent {
             RoomMessageFeedback => from_value(value, RoomEvent::RoomMessageFeedback),
             RoomRedaction => from_value(value, RoomEvent::RoomRedaction),
             Sticker => from_value(value, RoomEvent::Sticker),
-            //Custom(_event_type_name) => unimplemented!("todo"),
+            Custom(_event_type_name) => from_value(value, RoomEvent::CustomRoom),
             _ => Err(D::Error::custom("invalid event type")),
         }
     }

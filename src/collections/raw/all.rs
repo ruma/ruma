@@ -9,6 +9,9 @@ use crate::{
         answer::raw::AnswerEvent, candidates::raw::CandidatesEvent, hangup::raw::HangupEvent,
         invite::raw::InviteEvent,
     },
+    custom::raw::CustomEvent,
+    custom_room::raw::CustomRoomEvent,
+    custom_state::raw::CustomStateEvent,
     direct::raw::DirectEvent,
     dummy::raw::DummyEvent,
     forwarded_room_key::raw::ForwardedRoomKeyEvent,
@@ -48,7 +51,7 @@ use crate::{
     tag::raw::TagEvent,
     typing::raw::TypingEvent,
     util::get_field,
-    CustomEvent, CustomRoomEvent, CustomStateEvent, EventType,
+    EventType,
 };
 
 /// A basic event, room event, or state event.
@@ -391,8 +394,18 @@ impl<'de> Deserialize<'de> for Event {
             Sticker => from_value(value, Event::Sticker),
             Tag => from_value(value, Event::Tag),
             Typing => from_value(value, Event::Typing),
-            // TODO
-            Custom(_event_type_name) => Err(D::Error::custom("invalid event type")),
+            Custom(_event_type_name) => {
+                if value.get("state_key").is_some() {
+                    from_value(value, Event::CustomState)
+                } else if value.get("event_id").is_some()
+                    && value.get("room_id").is_some()
+                    && value.get("sender").is_some()
+                {
+                    from_value(value, Event::CustomRoom)
+                } else {
+                    from_value(value, Event::Custom)
+                }
+            }
             __Nonexhaustive => {
                 unreachable!("__Nonexhaustive variant should be impossible to obtain.")
             }
@@ -437,7 +450,13 @@ impl<'de> Deserialize<'de> for RoomEvent {
             RoomTombstone => from_value(value, RoomEvent::RoomTombstone),
             RoomTopic => from_value(value, RoomEvent::RoomTopic),
             Sticker => from_value(value, RoomEvent::Sticker),
-            //Custom(_event_type_name) => unimplemented!("todo"),
+            Custom(_event_type_name) => {
+                if value.get("state_key").is_some() {
+                    from_value(value, RoomEvent::CustomState)
+                } else {
+                    from_value(value, RoomEvent::CustomRoom)
+                }
+            }
             _ => Err(D::Error::custom("invalid event type")),
         }
     }
@@ -471,7 +490,7 @@ impl<'de> Deserialize<'de> for StateEvent {
             RoomThirdPartyInvite => from_value(value, StateEvent::RoomThirdPartyInvite),
             RoomTombstone => from_value(value, StateEvent::RoomTombstone),
             RoomTopic => from_value(value, StateEvent::RoomTopic),
-            //Custom(_event_type_name) => unimplemented!("todo"),
+            Custom(_event_type_name) => from_value(value, StateEvent::CustomState),
             _ => Err(D::Error::custom("invalid event type")),
         }
     }
