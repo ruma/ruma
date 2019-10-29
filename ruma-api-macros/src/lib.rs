@@ -29,6 +29,8 @@
     clippy::wrong_self_convention
 )]
 #![allow(clippy::cognitive_complexity)]
+// Since we support Rust 1.34.2, we can't apply this suggestion yet
+#![allow(clippy::use_self)]
 #![recursion_limit = "256"]
 
 extern crate proc_macro;
