@@ -143,7 +143,6 @@ mod api;
 /// # Examples
 ///
 /// ```rust,ignore
-/// # fn main() {
 /// pub mod some_endpoint {
 ///     use ruma_api_macros::ruma_api;
 ///
@@ -208,7 +207,6 @@ mod api;
 ///         }
 ///     }
 /// }
-/// # }
 /// ```
 #[proc_macro]
 pub fn ruma_api(input: TokenStream) -> TokenStream {
