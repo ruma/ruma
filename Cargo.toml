@@ -9,7 +9,7 @@ license = "MIT"
 name = "ruma-api"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma-api"
-version = "0.10.0"
+version = "0.11.0"
 edition = "2018"
 
 [dependencies]
@@ -19,7 +19,6 @@ serde_urlencoded = "0.6.1"
 ruma-identifiers = "0.14.0"
 
 [dependencies.ruma-api-macros]
-version = "0.7.1"
 path = "ruma-api-macros"
 optional = true
 
