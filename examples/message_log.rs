@@ -26,7 +26,12 @@ async fn log_messages(
     while let Some(res) = sync_stream.try_next().await? {
         // Only look at rooms the user hasn't left yet
         for (room_id, room) in res.rooms.join {
-            for event in room.timeline.events {
+            for event in room
+                .timeline
+                .events
+                .into_iter()
+                .flat_map(|r| r.into_result())
+            {
                 // Filter out the text messages
                 if let RoomEvent::RoomMessage(MessageEvent {
                     content:

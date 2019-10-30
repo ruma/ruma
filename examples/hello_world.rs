@@ -4,7 +4,7 @@ use ruma_client::{
     self,
     api::r0,
     events::{
-        room::message::{MessageEventContent, MessageType, TextMessageEventContent},
+        room::message::{MessageEventContent, TextMessageEventContent},
         EventType,
     },
     identifiers::RoomAliasId,
@@ -37,7 +37,6 @@ async fn hello_world(homeserver_url: Url, room: String) -> Result<(), ruma_clien
             event_type: EventType::RoomMessage,
             txn_id: "1".to_owned(),
             data: MessageEventContent::Text(TextMessageEventContent {
-                msgtype: MessageType::Text,
                 body: "Hello World!".to_owned(),
                 format: None,
                 formatted_body: None,

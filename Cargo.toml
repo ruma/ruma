@@ -13,22 +13,22 @@ repository = "https://github.com/ruma/ruma-client"
 version = "0.2.0"
 
 [dependencies]
-futures-preview = "0.3.0-alpha.19"
-http = "0.1.18"
-hyper = { version = "0.13.0-alpha.4", features = ["unstable-stream"] }
-hyper-tls = { version = "0.4.0-alpha.4", optional = true }
-ruma-api = { git = "https://github.com/ruma/ruma-api", branch = "serverless" }
-ruma-client-api = { git = "https://github.com/ruma/ruma-client-api", branch = "event-result" }
-ruma-events = { git = "https://github.com/ruma/ruma-events", branch = "event-result-2" }
+futures-preview = "=0.3.0-alpha.19"
+http = "=0.1.18"
+hyper = { version = "=0.13.0-alpha.4", features = ["unstable-stream"] }
+hyper-tls = { version = "=0.4.0-alpha.4", optional = true }
+ruma-api = "0.11.0"
+ruma-client-api = "0.4.0"
+ruma-events = "0.15.1"
 ruma-identifiers = "0.14.0"
 native-tls = { version = "0.2.3", optional = true }
-serde = { version = "1.0.101", features = ["derive"] }
+serde = { version = "1.0.102", features = ["derive"] }
 serde_json = "1.0.41"
 serde_urlencoded = "0.6.1"
 url = "2.1.0"
 
 [dev-dependencies]
-tokio = "0.2.0-alpha.6"
+tokio = "=0.2.0-alpha.6"
 
 [features]
 default = ["tls"]
