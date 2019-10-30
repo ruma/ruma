@@ -1,5 +1,3 @@
-#![feature(async_await)]
-
 use std::{env, process::exit};
 
 use futures::stream::{StreamExt as _, TryStreamExt as _};

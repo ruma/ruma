@@ -1,5 +1,3 @@
-#![feature(async_await)]
-
 use std::{convert::TryFrom, env, process::exit};
 
 use ruma_client::{
