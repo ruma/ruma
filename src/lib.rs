@@ -26,6 +26,8 @@
     clippy::wrong_pub_self_convention,
     clippy::wrong_self_convention
 )]
+// Since we support Rust 1.34.2, we can't apply this suggestion yet
+#![allow(clippy::use_self)]
 
 #[cfg(feature = "diesel")]
 #[cfg_attr(feature = "diesel", macro_use)]
