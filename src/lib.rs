@@ -109,9 +109,7 @@
 //! However, the `ruma_events::collections::only::Event` enum does *not* include *m.room.message*,
 //! because *m.room.message* implements a *more specific* event trait than `Event`.
 
-#![deny(missing_debug_implementations)]
-#![deny(missing_docs)]
-#![deny(warnings)]
+#![deny(missing_debug_implementations, missing_docs)]
 // Since we support Rust 1.34.2, we can't apply this suggestion yet
 #![allow(clippy::use_self)]
 
