@@ -131,7 +131,7 @@ impl<'a> TryFrom<&'a str> for UserId {
         Ok(Self {
             hostname: host,
             port,
-            localpart: downcased_localpart.to_owned(),
+            localpart: downcased_localpart,
         })
     }
 }

@@ -10,7 +10,7 @@ pub type DeviceId = String;
 
 /// Generates a random `DeviceId`, suitable for assignment to a new device.
 pub fn generate() -> DeviceId {
-    generate_localpart(8).to_string()
+    generate_localpart(8)
 }
 
 #[cfg(test)]
