@@ -6,7 +6,7 @@
 
 ## Minimum Rust version
 
-ruma-identifiers requires Rust 1.34 or later.
+ruma-identifiers requires Rust 1.34.2 or later.
 
 ## Documentation
 
