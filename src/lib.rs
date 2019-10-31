@@ -245,7 +245,8 @@ mod test {
             r#"{"a":"1","b":"2"}"#
         );
 
-        assert_eq!(&test_canonical_json(
+        assert_eq!(
+            &test_canonical_json(
             r#"{
                 "auth": {
                     "success": true,
@@ -264,7 +265,8 @@ mod test {
                         ]
                     }
                 }
-            }"#),
+                }"#
+            ),
             r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#
         );
 
