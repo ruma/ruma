@@ -13,7 +13,7 @@ repository = "https://github.com/ruma/ruma-signatures"
 version = "0.5.0"
 
 [dependencies]
-base64 = "0.10.1"
-ring = "0.16.1"
-serde_json = "1.0.40"
+base64 = "0.11.0"
+ring = "0.16.9"
+serde_json = "1.0.41"
 untrusted = "0.7.0"
