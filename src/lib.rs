@@ -352,7 +352,7 @@ where
                         filter,
                         since,
                         full_state: None,
-                        set_presence: set_presence.clone(),
+                        set_presence,
                         timeout: None,
                     })
                     .await;
@@ -362,7 +362,7 @@ where
                         let next_batch_clone = response.next_batch.clone();
                         Some((Ok(response), State::Since(next_batch_clone)))
                     }
-                    Err(e) => Some((Err(e.into()), State::Errored)),
+                    Err(e) => Some((Err(e), State::Errored)),
                 }
             }
         })
