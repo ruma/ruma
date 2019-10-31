@@ -141,7 +141,7 @@ pub enum Algorithm {
 impl Display for Algorithm {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let name = match *self {
-            Algorithm::Ed25519 => "ed25519",
+            Self::Ed25519 => "ed25519",
         };
 
         write!(f, "{}", name)
