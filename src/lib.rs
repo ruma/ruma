@@ -44,27 +44,7 @@
 #![deny(
     missing_copy_implementations,
     missing_debug_implementations,
-    missing_docs,
-    warnings
-)]
-#![warn(
-    clippy::empty_line_after_outer_attr,
-    clippy::expl_impl_clone_on_copy,
-    clippy::if_not_else,
-    clippy::items_after_statements,
-    clippy::match_same_arms,
-    clippy::mem_forget,
-    clippy::missing_docs_in_private_items,
-    clippy::multiple_inherent_impl,
-    clippy::mut_mut,
-    clippy::needless_borrow,
-    clippy::needless_continue,
-    clippy::single_match_else,
-    clippy::unicode_not_nfc,
-    clippy::use_self,
-    clippy::used_underscore_binding,
-    clippy::wrong_pub_self_convention,
-    clippy::wrong_self_convention
+    missing_docs
 )]
 
 use std::{
@@ -247,24 +227,24 @@ mod test {
 
         assert_eq!(
             &test_canonical_json(
-            r#"{
-                "auth": {
-                    "success": true,
-                    "mxid": "@john.doe:example.com",
-                    "profile": {
-                        "display_name": "John Doe",
-                        "three_pids": [
-                            {
-                                "medium": "email",
-                                "address": "john.doe@example.org"
-                            },
-                            {
-                                "medium": "msisdn",
-                                "address": "123456789"
-                            }
-                        ]
+                r#"{
+                    "auth": {
+                        "success": true,
+                        "mxid": "@john.doe:example.com",
+                        "profile": {
+                            "display_name": "John Doe",
+                            "three_pids": [
+                                {
+                                    "medium": "email",
+                                    "address": "john.doe@example.org"
+                                },
+                                {
+                                    "medium": "msisdn",
+                                    "address": "123456789"
+                                }
+                            ]
+                        }
                     }
-                }
                 }"#
             ),
             r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#
