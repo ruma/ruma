@@ -7,7 +7,7 @@ use std::{
 
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{
     de::{Error as SerdeError, Unexpected, Visitor},
@@ -17,10 +17,8 @@ use url::Host;
 
 use crate::{display, error::Error, generate_localpart, parse_id};
 
-lazy_static! {
-    static ref USER_LOCALPART_PATTERN: Regex =
-        Regex::new(r"\A[a-z0-9._=-]+\z").expect("Failed to create user localpart regex.");
-}
+static USER_LOCALPART_PATTERN: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"\A[a-z0-9._=-]+\z").expect("Failed to create user localpart regex."));
 
 /// A Matrix user ID.
 ///
