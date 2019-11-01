@@ -28,7 +28,7 @@ macro_rules! diesel_impl {
             fn from_sql(value: Option<&<DB as Backend>::RawValue>) -> DeserializeResult<Self> {
                 let string = <String as FromSql<Text, DB>>::from_sql(value)?;
                 Self::try_from(string.as_str())
-                    .map_err(|error| Box::new(error) as Box<StdError + Send + Sync>)
+                    .map_err(|error| Box::new(error) as Box<dyn StdError + Send + Sync>)
             }
         }
     };
