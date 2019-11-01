@@ -7,7 +7,7 @@ These types can be shared by client and server code.
 
 ## Minimum Rust version
 
-ruma-federation-api requires Rust 1.34 or later.
+ruma-federation-api requires Rust 1.34.2 or later.
 
 ## License
 
