@@ -205,7 +205,7 @@ where
 
     /// Log in with a username and password.
     ///
-    /// In contrast to api::r0::session::login::call(), this method stores the
+    /// In contrast to `api::r0::session::login::call()`, this method stores the
     /// session data returned by the endpoint in this client, instead of
     /// returning it.
     pub async fn log_in(
@@ -237,7 +237,7 @@ where
         Ok(session)
     }
 
-    /// Register as a guest. In contrast to api::r0::account::register::call(),
+    /// Register as a guest. In contrast to `api::r0::account::register::call()`,
     /// this method stores the session data returned by the endpoint in this
     /// client, instead of returning it.
     pub async fn register_guest(&self) -> Result<Session, Error> {
@@ -267,7 +267,7 @@ where
 
     /// Register as a new user on this server.
     ///
-    /// In contrast to api::r0::account::register::call(), this method stores
+    /// In contrast to `api::r0::account::register::call()`, this method stores
     /// the session data returned by the endpoint in this client, instead of
     /// returning it.
     ///
