@@ -30,7 +30,7 @@ and discussion related to any of the crates in this project.
 
 ## Minimum Rust version
 
-ruma-client requires Rust 1.34 or later.
+ruma-client requires Rust 1.39.0 or later.
 
 ## License
 
