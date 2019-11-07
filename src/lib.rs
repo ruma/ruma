@@ -7,7 +7,6 @@
 //!
 //! ```no_run
 //! # #![feature(impl_trait_in_bindings)]
-//! #![feature(async_await)]
 //! use ruma_client::Client;
 //!
 //! let work = async {
@@ -35,7 +34,6 @@
 //! events), use the `Client::sync`:
 //!
 //! ```no_run
-//! # #![feature(async_await)]
 //! # use futures::stream::{StreamExt as _, TryStreamExt as _};
 //! # use ruma_client::Client;
 //! # let homeserver_url = "https://example.com".parse().unwrap();
@@ -61,7 +59,6 @@
 //! For example:
 //!
 //! ```no_run
-//! # #![feature(async_await)]
 //! # use ruma_client::Client;
 //! # let homeserver_url = "https://example.com".parse().unwrap();
 //! # let client = Client::https(homeserver_url, None).unwrap();
