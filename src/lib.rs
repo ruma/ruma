@@ -6,7 +6,6 @@
 //! secure connections, and then logging in:
 //!
 //! ```no_run
-//! # #![feature(impl_trait_in_bindings)]
 //! use ruma_client::Client;
 //!
 //! let work = async {
@@ -19,12 +18,8 @@
 //!
 //!     // You're now logged in! Write the session to a file if you want to restore it later.
 //!     // Then start using the API!
-//! # Ok(())
+//! # Result::<(), ruma_client::Error>::Ok(())
 //! };
-//!
-//! // Start `work` on a futures runtime...
-//! # let work_typehint: impl futures::future::TryFuture<Ok = (), Error = ruma_client::Error>
-//! #     = work;
 //! ```
 //!
 //! You can also pass an existing session to the `Client` constructor to restore a previous session
