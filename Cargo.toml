@@ -1,0 +1,18 @@
+[package]
+authors = ["Wim de With <wf@dewith.io>"]
+categories = ["api-bindings", "web-programming"]
+description = "Types of the endpoints in the Matrix application service API."
+keywords = ["matrix", "chat", "messaging", "ruma"]
+license = "MIT"
+name = "ruma-appservice-api"
+readme = "README.md"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+ruma-api = "0.11.0"
+ruma-events = "0.15.1"
+ruma-identifiers = "0.14.0"
+serde = { version = "1.0.102", features = ["derive"] }
+serde_json = "1.0.41"
+url = { version = "2.1.0", features = ["serde"] }
