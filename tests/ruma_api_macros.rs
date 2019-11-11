@@ -4,7 +4,7 @@ pub mod some_endpoint {
     ruma_api! {
         metadata {
             description: "Does something.",
-            method: GET, // An `http::Method` constant. No imports required.
+            method: POST, // An `http::Method` constant. No imports required.
             name: "some_endpoint",
             path: "/_matrix/some/endpoint/:baz",
             rate_limited: false,
@@ -51,7 +51,7 @@ pub mod newtype_body_endpoint {
     ruma_api! {
         metadata {
             description: "Does something.",
-            method: GET,
+            method: PUT,
             name: "newtype_body_endpoint",
             path: "/_matrix/some/newtype/body/endpoint",
             rate_limited: false,
