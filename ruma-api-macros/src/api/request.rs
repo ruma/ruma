@@ -144,6 +144,11 @@ impl From<Vec<Field>> for Request {
                     Meta::Word(ident) => {
                         match &ident.to_string()[..] {
                             "body" => {
+                                assert!(
+                                    !has_newtype_body,
+                                    "ruma_api! body attribute can only be used once per request definition"
+                                );
+
                                 has_newtype_body = true;
                                 field_kind = RequestFieldKind::NewtypeBody;
                             }

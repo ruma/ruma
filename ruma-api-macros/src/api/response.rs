@@ -116,6 +116,10 @@ impl From<Vec<Field>> for Response {
                             ident == "body",
                             "ruma_api! single-word attribute on responses must be: body"
                         );
+                        assert!(
+                            !has_newtype_body,
+                            "ruma_api! body attribute can only be used once per response definition"
+                        );
 
                         has_newtype_body = true;
                         field_kind = ResponseFieldKind::NewtypeBody;
