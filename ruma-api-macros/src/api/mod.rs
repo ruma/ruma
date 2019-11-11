@@ -52,11 +52,19 @@ pub struct Api {
 
 impl From<RawApi> for Api {
     fn from(raw_api: RawApi) -> Self {
-        Self {
+        let res = Self {
             metadata: raw_api.metadata.into(),
             request: raw_api.request.into(),
             response: raw_api.response.into(),
-        }
+        };
+
+        assert!(
+            !(res.metadata.method == "GET"
+                && (res.request.has_body_fields() || res.request.newtype_body_field().is_some())),
+            "GET endpoints can't have body fields"
+        );
+
+        res
     }
 }
 
