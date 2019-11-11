@@ -58,32 +58,28 @@ pub struct CreationContent {
     /// Whether users on other servers can join this room.
     ///
     /// Defaults to `true` if key does not exist.
-    #[serde(rename = "m.federate")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "m.federate", skip_serializing_if = "Option::is_none")]
     pub federate: Option<bool>,
 }
 
 /// A convenience parameter for setting a few default state events.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum RoomPreset {
     /// `join_rules` is set to `invite` and `history_visibility` is set to `shared`.
-    #[serde(rename = "private_chat")]
     PrivateChat,
     /// `join_rules` is set to `public` and `history_visibility` is set to `shared`.
-    #[serde(rename = "public_chat")]
     PublicChat,
     /// Same as `PrivateChat`, but all initial invitees get the same power level as the creator.
-    #[serde(rename = "trusted_private_chat")]
     TrustedPrivateChat,
 }
 
 /// Whether or not a newly created room will be listed in the room directory.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Visibility {
     /// Indicates that the room will be shown in the published room list.
-    #[serde(rename = "public")]
     Public,
     /// Indicates that the room from the published room list.
-    #[serde(rename = "private")]
     Private,
 }
