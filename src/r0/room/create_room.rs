@@ -21,8 +21,7 @@ ruma_api! {
         /// A list of user IDs to invite to the room.
         ///
         /// This will tell the server to invite everyone in the list to the newly created room.
-        #[serde(skip_serializing_if = "Vec::is_empty")]
-        #[serde(default)]
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub invite: Vec<UserId>,
         /// If this is included, an `m.room.name` event will be sent into the room to indicate
         /// the name of the room.

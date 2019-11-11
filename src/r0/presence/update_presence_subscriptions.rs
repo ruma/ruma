@@ -15,12 +15,10 @@ ruma_api! {
 
     request {
         /// A list of user IDs to remove from the list.
-        #[serde(skip_serializing_if = "Vec::is_empty")]
-        #[serde(default)]
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub drop: Vec<UserId>,
         /// A list of user IDs to add to the list.
-        #[serde(skip_serializing_if = "Vec::is_empty")]
-        #[serde(default)]
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub invite: Vec<UserId>,
         /// The user whose presence state will be updated.
         #[ruma_api(path)]

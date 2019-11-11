@@ -6,12 +6,11 @@ use serde::{Deserialize, Serialize};
 
 /// The desired resizing method.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Method {
     /// Crop the original to produce the requested image dimensions.
-    #[serde(rename = "crop")]
     Crop,
     /// Maintain the original aspect ratio of the source image.
-    #[serde(rename = "scale")]
     Scale,
 }
 

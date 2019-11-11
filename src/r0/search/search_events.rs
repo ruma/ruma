@@ -62,8 +62,7 @@ pub struct Criteria {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_state: Option<bool>,
     /// The keys to search for. Defaults to all keys.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub keys: Vec<SearchKeys>,
     /// The order in which to search for results.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -112,12 +111,11 @@ pub struct Grouping {
 
 /// The key within events to use for this grouping.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum GroupingKey {
     /// `room_id`
-    #[serde(rename = "room_id")]
     RoomId,
     /// `sender`
-    #[serde(rename = "sender")]
     Sender,
 }
 
@@ -144,13 +142,12 @@ pub enum SearchKeys {
 
 /// The order in which to search for results.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum OrderBy {
     /// Prioritize events by a numerical ranking of how closely they matched the search
     /// criteria.
-    #[serde(rename = "rank")]
     Rank,
     /// Prioritize recent events.
-    #[serde(rename = "recent")]
     Recent,
 }
 

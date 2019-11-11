@@ -85,13 +85,12 @@ pub struct AuthenticationData {
 
 /// The kind of account being registered.
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum RegistrationKind {
     /// A guest account
     ///
     /// These accounts may have limited permissions and may not be supported by all servers.
-    #[serde(rename = "guest")]
     Guest,
     /// A regular user account
-    #[serde(rename = "user")]
     User,
 }
