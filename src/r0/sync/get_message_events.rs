@@ -25,6 +25,7 @@ ruma_api! {
         /// This token can be obtained from a
         /// prev_batch token returned for each room by the sync API, or from a start or end token
         /// returned by a previous request to this endpoint.
+        #[ruma_api(query)]
         pub from: String,
         /// The token to stop returning events at.
         ///
@@ -32,13 +33,16 @@ ruma_api! {
         /// token returned for each room by the sync endpoint, or from a start or end token returned
         /// by a previous request to this endpoint.
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(query)]
         pub to: Option<String>,
         /// The direction to return events from.
+        #[ruma_api(query)]
         pub dir: Direction,
         /// The maximum number of events to return.
         ///
         /// Default: 10.
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(query)]
         pub limit: Option<UInt>,
     }
 
