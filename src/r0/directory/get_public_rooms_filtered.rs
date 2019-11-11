@@ -21,18 +21,16 @@ ruma_api! {
         ///
         /// `None` means the server this request is sent to.
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(query)]
         server: Option<String>,
         /// Limit for the number of results to return.
         #[serde(skip_serializing_if = "Option::is_none")]
-        #[ruma_api(body)]
         limit: Option<UInt>,
         /// Pagination token from a previous request.
         #[serde(skip_serializing_if = "Option::is_none")]
-        #[ruma_api(body)]
         since: Option<String>,
         /// Filter to apply to the results.
         #[serde(skip_serializing_if = "Option::is_none")]
-        #[ruma_api(body)]
         filter: Option<Filter>,
     }
 
