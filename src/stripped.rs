@@ -405,7 +405,7 @@ mod tests {
                         "mimetype": "image/jpeg",
                         "size": 32
                     },
-                    "thumbnail_url": "https://domain.com/image-thumbnail.jpg"
+                    "thumbnail_url": "https://example.com/image-thumbnail.jpg"
                 },
                 "thumbnail_info": {
                     "h": 16,
@@ -413,8 +413,8 @@ mod tests {
                     "mimetype": "image/jpeg",
                     "size": 32
                 },
-                "thumbnail_url": "https://domain.com/image-thumbnail.jpg",
-                "url": "https://domain.com/image.jpg"
+                "thumbnail_url": "https://example.com/image-thumbnail.jpg",
+                "url": "https://example.com/image.jpg"
             }
         }"#;
 
@@ -470,7 +470,7 @@ mod tests {
                     image_info.thumbnail_info.unwrap().size.unwrap(),
                     UInt::try_from(32).unwrap()
                 );
-                assert_eq!(event.content.url, "https://domain.com/image.jpg");
+                assert_eq!(event.content.url, "https://example.com/image.jpg");
                 assert_eq!(event.event_type, EventType::RoomAvatar);
                 assert_eq!(event.state_key, "");
                 assert_eq!(event.sender.to_string(), "@example:localhost");
