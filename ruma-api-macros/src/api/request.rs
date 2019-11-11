@@ -134,10 +134,10 @@ impl From<Vec<Field>> for Request {
             let mut field_kind = RequestFieldKind::Body;
             let mut header = None;
 
-            field.attrs = field.attrs.into_iter().filter_map(|attr| {
+            field.attrs.retain(|attr| {
                 let meta = match Meta::from_attribute(attr) {
-                    Ok(meta) => meta,
-                    Err(attr) => return Some(attr),
+                    Some(meta) => meta,
+                    None => return true,
                 };
 
                 match meta {
@@ -163,8 +163,8 @@ impl From<Vec<Field>> for Request {
                     }
                 }
 
-                None
-            }).collect();
+                false
+            });
 
             if field_kind == RequestFieldKind::Body {
                 assert!(

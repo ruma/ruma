@@ -14,23 +14,27 @@ pub enum Meta {
 }
 
 impl Meta {
-    /// Check if the given attribute is a ruma_api attribute. If it is, parse it, if not, return
-    /// it unchanged. Panics if the argument is an invalid ruma_api attribute.
-    pub fn from_attribute(attr: syn::Attribute) -> Result<Self, syn::Attribute> {
+    /// Check if the given attribute is a ruma_api attribute. If it is, parse it.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the given attribute is a ruma_api attribute, but fails to parse.
+    pub fn from_attribute(attr: &syn::Attribute) -> Option<Self> {
         match &attr.path {
             syn::Path {
                 leading_colon: None,
                 segments,
             } => {
                 if segments.len() == 1 && segments[0].ident == "ruma_api" {
-                    Ok(attr
-                        .parse_args()
-                        .expect("ruma_api! could not parse request field attributes"))
+                    Some(
+                        attr.parse_args()
+                            .expect("ruma_api! could not parse request field attributes"),
+                    )
                 } else {
-                    Err(attr)
+                    None
                 }
             }
-            _ => Err(attr),
+            _ => None,
         }
     }
 }
