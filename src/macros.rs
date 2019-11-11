@@ -97,3 +97,13 @@ macro_rules! impl_state_event {
         }
     };
 }
+
+macro_rules! impl_from_for_enum {
+    ($self_ty:ident, $inner_ty:ty, $variant:ident) => {
+        impl From<$inner_ty> for $self_ty {
+            fn from(event: $inner_ty) -> Self {
+                $self_ty::$variant(event)
+            }
+        }
+    };
+}

@@ -482,125 +482,95 @@ impl TryFromRaw for StateEvent {
     }
 }
 
-macro_rules! impl_from_t_for_event {
-    ($ty:ty, $variant:ident) => {
-        impl From<$ty> for Event {
-            fn from(event: $ty) -> Self {
-                Event::$variant(event)
-            }
-        }
-    };
-}
+impl_from_for_enum!(Event, AnswerEvent, CallAnswer);
+impl_from_for_enum!(Event, CandidatesEvent, CallCandidates);
+impl_from_for_enum!(Event, HangupEvent, CallHangup);
+impl_from_for_enum!(Event, InviteEvent, CallInvite);
+impl_from_for_enum!(Event, DirectEvent, Direct);
+impl_from_for_enum!(Event, DummyEvent, Dummy);
+impl_from_for_enum!(Event, ForwardedRoomKeyEvent, ForwardedRoomKey);
+impl_from_for_enum!(Event, FullyReadEvent, FullyRead);
+impl_from_for_enum!(Event, AcceptEvent, KeyVerificationAccept);
+impl_from_for_enum!(Event, CancelEvent, KeyVerificationCancel);
+impl_from_for_enum!(Event, KeyEvent, KeyVerificationKey);
+impl_from_for_enum!(Event, MacEvent, KeyVerificationMac);
+impl_from_for_enum!(Event, RequestEvent, KeyVerificationRequest);
+impl_from_for_enum!(Event, StartEvent, KeyVerificationStart);
+impl_from_for_enum!(Event, IgnoredUserListEvent, IgnoredUserList);
+impl_from_for_enum!(Event, PresenceEvent, Presence);
+impl_from_for_enum!(Event, PushRulesEvent, PushRules);
+impl_from_for_enum!(Event, ReceiptEvent, Receipt);
+impl_from_for_enum!(Event, AliasesEvent, RoomAliases);
+impl_from_for_enum!(Event, AvatarEvent, RoomAvatar);
+impl_from_for_enum!(Event, CanonicalAliasEvent, RoomCanonicalAlias);
+impl_from_for_enum!(Event, CreateEvent, RoomCreate);
+impl_from_for_enum!(Event, EncryptedEvent, RoomEncrypted);
+impl_from_for_enum!(Event, EncryptionEvent, RoomEncryption);
+impl_from_for_enum!(Event, GuestAccessEvent, RoomGuestAccess);
+impl_from_for_enum!(Event, HistoryVisibilityEvent, RoomHistoryVisibility);
+impl_from_for_enum!(Event, JoinRulesEvent, RoomJoinRules);
+impl_from_for_enum!(Event, MemberEvent, RoomMember);
+impl_from_for_enum!(Event, MessageEvent, RoomMessage);
+impl_from_for_enum!(Event, FeedbackEvent, RoomMessageFeedback);
+impl_from_for_enum!(Event, NameEvent, RoomName);
+impl_from_for_enum!(Event, PinnedEventsEvent, RoomPinnedEvents);
+impl_from_for_enum!(Event, PowerLevelsEvent, RoomPowerLevels);
+impl_from_for_enum!(Event, RedactionEvent, RoomRedaction);
+impl_from_for_enum!(Event, ServerAclEvent, RoomServerAcl);
+impl_from_for_enum!(Event, ThirdPartyInviteEvent, RoomThirdPartyInvite);
+impl_from_for_enum!(Event, TombstoneEvent, RoomTombstone);
+impl_from_for_enum!(Event, TopicEvent, RoomTopic);
+impl_from_for_enum!(Event, RoomKeyEvent, RoomKey);
+impl_from_for_enum!(Event, RoomKeyRequestEvent, RoomKeyRequest);
+impl_from_for_enum!(Event, StickerEvent, Sticker);
+impl_from_for_enum!(Event, TagEvent, Tag);
+impl_from_for_enum!(Event, TypingEvent, Typing);
+impl_from_for_enum!(Event, CustomEvent, Custom);
+impl_from_for_enum!(Event, CustomRoomEvent, CustomRoom);
+impl_from_for_enum!(Event, CustomStateEvent, CustomState);
 
-impl_from_t_for_event!(AnswerEvent, CallAnswer);
-impl_from_t_for_event!(CandidatesEvent, CallCandidates);
-impl_from_t_for_event!(HangupEvent, CallHangup);
-impl_from_t_for_event!(InviteEvent, CallInvite);
-impl_from_t_for_event!(DirectEvent, Direct);
-impl_from_t_for_event!(DummyEvent, Dummy);
-impl_from_t_for_event!(ForwardedRoomKeyEvent, ForwardedRoomKey);
-impl_from_t_for_event!(FullyReadEvent, FullyRead);
-impl_from_t_for_event!(AcceptEvent, KeyVerificationAccept);
-impl_from_t_for_event!(CancelEvent, KeyVerificationCancel);
-impl_from_t_for_event!(KeyEvent, KeyVerificationKey);
-impl_from_t_for_event!(MacEvent, KeyVerificationMac);
-impl_from_t_for_event!(RequestEvent, KeyVerificationRequest);
-impl_from_t_for_event!(StartEvent, KeyVerificationStart);
-impl_from_t_for_event!(IgnoredUserListEvent, IgnoredUserList);
-impl_from_t_for_event!(PresenceEvent, Presence);
-impl_from_t_for_event!(PushRulesEvent, PushRules);
-impl_from_t_for_event!(ReceiptEvent, Receipt);
-impl_from_t_for_event!(AliasesEvent, RoomAliases);
-impl_from_t_for_event!(AvatarEvent, RoomAvatar);
-impl_from_t_for_event!(CanonicalAliasEvent, RoomCanonicalAlias);
-impl_from_t_for_event!(CreateEvent, RoomCreate);
-impl_from_t_for_event!(EncryptedEvent, RoomEncrypted);
-impl_from_t_for_event!(EncryptionEvent, RoomEncryption);
-impl_from_t_for_event!(GuestAccessEvent, RoomGuestAccess);
-impl_from_t_for_event!(HistoryVisibilityEvent, RoomHistoryVisibility);
-impl_from_t_for_event!(JoinRulesEvent, RoomJoinRules);
-impl_from_t_for_event!(MemberEvent, RoomMember);
-impl_from_t_for_event!(MessageEvent, RoomMessage);
-impl_from_t_for_event!(FeedbackEvent, RoomMessageFeedback);
-impl_from_t_for_event!(NameEvent, RoomName);
-impl_from_t_for_event!(PinnedEventsEvent, RoomPinnedEvents);
-impl_from_t_for_event!(PowerLevelsEvent, RoomPowerLevels);
-impl_from_t_for_event!(RedactionEvent, RoomRedaction);
-impl_from_t_for_event!(ServerAclEvent, RoomServerAcl);
-impl_from_t_for_event!(ThirdPartyInviteEvent, RoomThirdPartyInvite);
-impl_from_t_for_event!(TombstoneEvent, RoomTombstone);
-impl_from_t_for_event!(TopicEvent, RoomTopic);
-impl_from_t_for_event!(RoomKeyEvent, RoomKey);
-impl_from_t_for_event!(RoomKeyRequestEvent, RoomKeyRequest);
-impl_from_t_for_event!(StickerEvent, Sticker);
-impl_from_t_for_event!(TagEvent, Tag);
-impl_from_t_for_event!(TypingEvent, Typing);
-impl_from_t_for_event!(CustomEvent, Custom);
-impl_from_t_for_event!(CustomRoomEvent, CustomRoom);
-impl_from_t_for_event!(CustomStateEvent, CustomState);
+impl_from_for_enum!(RoomEvent, AnswerEvent, CallAnswer);
+impl_from_for_enum!(RoomEvent, CandidatesEvent, CallCandidates);
+impl_from_for_enum!(RoomEvent, HangupEvent, CallHangup);
+impl_from_for_enum!(RoomEvent, InviteEvent, CallInvite);
+impl_from_for_enum!(RoomEvent, AliasesEvent, RoomAliases);
+impl_from_for_enum!(RoomEvent, AvatarEvent, RoomAvatar);
+impl_from_for_enum!(RoomEvent, CanonicalAliasEvent, RoomCanonicalAlias);
+impl_from_for_enum!(RoomEvent, CreateEvent, RoomCreate);
+impl_from_for_enum!(RoomEvent, EncryptedEvent, RoomEncrypted);
+impl_from_for_enum!(RoomEvent, EncryptionEvent, RoomEncryption);
+impl_from_for_enum!(RoomEvent, GuestAccessEvent, RoomGuestAccess);
+impl_from_for_enum!(RoomEvent, HistoryVisibilityEvent, RoomHistoryVisibility);
+impl_from_for_enum!(RoomEvent, JoinRulesEvent, RoomJoinRules);
+impl_from_for_enum!(RoomEvent, MemberEvent, RoomMember);
+impl_from_for_enum!(RoomEvent, MessageEvent, RoomMessage);
+impl_from_for_enum!(RoomEvent, FeedbackEvent, RoomMessageFeedback);
+impl_from_for_enum!(RoomEvent, NameEvent, RoomName);
+impl_from_for_enum!(RoomEvent, PinnedEventsEvent, RoomPinnedEvents);
+impl_from_for_enum!(RoomEvent, PowerLevelsEvent, RoomPowerLevels);
+impl_from_for_enum!(RoomEvent, RedactionEvent, RoomRedaction);
+impl_from_for_enum!(RoomEvent, ServerAclEvent, RoomServerAcl);
+impl_from_for_enum!(RoomEvent, StickerEvent, Sticker);
+impl_from_for_enum!(RoomEvent, ThirdPartyInviteEvent, RoomThirdPartyInvite);
+impl_from_for_enum!(RoomEvent, TombstoneEvent, RoomTombstone);
+impl_from_for_enum!(RoomEvent, TopicEvent, RoomTopic);
+impl_from_for_enum!(RoomEvent, CustomRoomEvent, CustomRoom);
+impl_from_for_enum!(RoomEvent, CustomStateEvent, CustomState);
 
-macro_rules! impl_from_t_for_room_event {
-    ($ty:ty, $variant:ident) => {
-        impl From<$ty> for RoomEvent {
-            fn from(event: $ty) -> Self {
-                RoomEvent::$variant(event)
-            }
-        }
-    };
-}
-
-impl_from_t_for_room_event!(AnswerEvent, CallAnswer);
-impl_from_t_for_room_event!(CandidatesEvent, CallCandidates);
-impl_from_t_for_room_event!(HangupEvent, CallHangup);
-impl_from_t_for_room_event!(InviteEvent, CallInvite);
-impl_from_t_for_room_event!(AliasesEvent, RoomAliases);
-impl_from_t_for_room_event!(AvatarEvent, RoomAvatar);
-impl_from_t_for_room_event!(CanonicalAliasEvent, RoomCanonicalAlias);
-impl_from_t_for_room_event!(CreateEvent, RoomCreate);
-impl_from_t_for_room_event!(EncryptedEvent, RoomEncrypted);
-impl_from_t_for_room_event!(EncryptionEvent, RoomEncryption);
-impl_from_t_for_room_event!(GuestAccessEvent, RoomGuestAccess);
-impl_from_t_for_room_event!(HistoryVisibilityEvent, RoomHistoryVisibility);
-impl_from_t_for_room_event!(JoinRulesEvent, RoomJoinRules);
-impl_from_t_for_room_event!(MemberEvent, RoomMember);
-impl_from_t_for_room_event!(MessageEvent, RoomMessage);
-impl_from_t_for_room_event!(FeedbackEvent, RoomMessageFeedback);
-impl_from_t_for_room_event!(NameEvent, RoomName);
-impl_from_t_for_room_event!(PinnedEventsEvent, RoomPinnedEvents);
-impl_from_t_for_room_event!(PowerLevelsEvent, RoomPowerLevels);
-impl_from_t_for_room_event!(RedactionEvent, RoomRedaction);
-impl_from_t_for_room_event!(ServerAclEvent, RoomServerAcl);
-impl_from_t_for_room_event!(StickerEvent, Sticker);
-impl_from_t_for_room_event!(ThirdPartyInviteEvent, RoomThirdPartyInvite);
-impl_from_t_for_room_event!(TombstoneEvent, RoomTombstone);
-impl_from_t_for_room_event!(TopicEvent, RoomTopic);
-impl_from_t_for_room_event!(CustomRoomEvent, CustomRoom);
-impl_from_t_for_room_event!(CustomStateEvent, CustomState);
-
-macro_rules! impl_from_t_for_state_event {
-    ($ty:ty, $variant:ident) => {
-        impl From<$ty> for StateEvent {
-            fn from(event: $ty) -> Self {
-                StateEvent::$variant(event)
-            }
-        }
-    };
-}
-
-impl_from_t_for_state_event!(AliasesEvent, RoomAliases);
-impl_from_t_for_state_event!(AvatarEvent, RoomAvatar);
-impl_from_t_for_state_event!(CanonicalAliasEvent, RoomCanonicalAlias);
-impl_from_t_for_state_event!(CreateEvent, RoomCreate);
-impl_from_t_for_state_event!(EncryptionEvent, RoomEncryption);
-impl_from_t_for_state_event!(GuestAccessEvent, RoomGuestAccess);
-impl_from_t_for_state_event!(HistoryVisibilityEvent, RoomHistoryVisibility);
-impl_from_t_for_state_event!(JoinRulesEvent, RoomJoinRules);
-impl_from_t_for_state_event!(MemberEvent, RoomMember);
-impl_from_t_for_state_event!(NameEvent, RoomName);
-impl_from_t_for_state_event!(PinnedEventsEvent, RoomPinnedEvents);
-impl_from_t_for_state_event!(PowerLevelsEvent, RoomPowerLevels);
-impl_from_t_for_state_event!(ServerAclEvent, RoomServerAcl);
-impl_from_t_for_state_event!(ThirdPartyInviteEvent, RoomThirdPartyInvite);
-impl_from_t_for_state_event!(TombstoneEvent, RoomTombstone);
-impl_from_t_for_state_event!(TopicEvent, RoomTopic);
-impl_from_t_for_state_event!(CustomStateEvent, CustomState);
+impl_from_for_enum!(StateEvent, AliasesEvent, RoomAliases);
+impl_from_for_enum!(StateEvent, AvatarEvent, RoomAvatar);
+impl_from_for_enum!(StateEvent, CanonicalAliasEvent, RoomCanonicalAlias);
+impl_from_for_enum!(StateEvent, CreateEvent, RoomCreate);
+impl_from_for_enum!(StateEvent, EncryptionEvent, RoomEncryption);
+impl_from_for_enum!(StateEvent, GuestAccessEvent, RoomGuestAccess);
+impl_from_for_enum!(StateEvent, HistoryVisibilityEvent, RoomHistoryVisibility);
+impl_from_for_enum!(StateEvent, JoinRulesEvent, RoomJoinRules);
+impl_from_for_enum!(StateEvent, MemberEvent, RoomMember);
+impl_from_for_enum!(StateEvent, NameEvent, RoomName);
+impl_from_for_enum!(StateEvent, PinnedEventsEvent, RoomPinnedEvents);
+impl_from_for_enum!(StateEvent, PowerLevelsEvent, RoomPowerLevels);
+impl_from_for_enum!(StateEvent, ServerAclEvent, RoomServerAcl);
+impl_from_for_enum!(StateEvent, ThirdPartyInviteEvent, RoomThirdPartyInvite);
+impl_from_for_enum!(StateEvent, TombstoneEvent, RoomTombstone);
+impl_from_for_enum!(StateEvent, TopicEvent, RoomTopic);
+impl_from_for_enum!(StateEvent, CustomStateEvent, CustomState);
