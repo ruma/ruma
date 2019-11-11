@@ -121,7 +121,7 @@ mod api;
 /// There is also a special attribute available to control how the struct is created from a
 /// `http::Request`:
 ///
-/// *   `#[ruma_api(header = "HEADER_NAME")]`: Fields with this attribute will be treated as HTTP
+/// *   `#[ruma_api(header = HEADER_NAME)]`: Fields with this attribute will be treated as HTTP
 ///     headers on the response.
 ///     The value must implement `AsRef<str>`.
 ///     Generally this is a `String`.
