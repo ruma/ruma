@@ -135,16 +135,6 @@ pub enum RoomEvent {
     CustomRoom(CustomRoomEvent),
 }
 
-macro_rules! impl_from_t_for_event {
-    ($ty:ty, $variant:ident) => {
-        impl From<$ty> for Event {
-            fn from(event: $ty) -> Self {
-                Event::$variant(event)
-            }
-        }
-    };
-}
-
 impl<'de> Deserialize<'de> for Event {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -270,42 +260,3 @@ impl<'de> Deserialize<'de> for RoomEvent {
         }
     }
 }
-
-impl_from_t_for_event!(DirectEvent, Direct);
-impl_from_t_for_event!(DummyEvent, Dummy);
-impl_from_t_for_event!(ForwardedRoomKeyEvent, ForwardedRoomKey);
-impl_from_t_for_event!(FullyReadEvent, FullyRead);
-impl_from_t_for_event!(AcceptEvent, KeyVerificationAccept);
-impl_from_t_for_event!(CancelEvent, KeyVerificationCancel);
-impl_from_t_for_event!(KeyEvent, KeyVerificationKey);
-impl_from_t_for_event!(MacEvent, KeyVerificationMac);
-impl_from_t_for_event!(RequestEvent, KeyVerificationRequest);
-impl_from_t_for_event!(StartEvent, KeyVerificationStart);
-impl_from_t_for_event!(IgnoredUserListEvent, IgnoredUserList);
-impl_from_t_for_event!(PresenceEvent, Presence);
-impl_from_t_for_event!(PushRulesEvent, PushRules);
-impl_from_t_for_event!(ReceiptEvent, Receipt);
-impl_from_t_for_event!(TagEvent, Tag);
-impl_from_t_for_event!(TypingEvent, Typing);
-impl_from_t_for_event!(CustomEvent, Custom);
-
-macro_rules! impl_from_t_for_room_event {
-    ($ty:ty, $variant:ident) => {
-        impl From<$ty> for RoomEvent {
-            fn from(event: $ty) -> Self {
-                RoomEvent::$variant(event)
-            }
-        }
-    };
-}
-
-impl_from_t_for_room_event!(AnswerEvent, CallAnswer);
-impl_from_t_for_room_event!(CandidatesEvent, CallCandidates);
-impl_from_t_for_room_event!(HangupEvent, CallHangup);
-impl_from_t_for_room_event!(InviteEvent, CallInvite);
-impl_from_t_for_room_event!(EncryptedEvent, RoomEncrypted);
-impl_from_t_for_room_event!(MessageEvent, RoomMessage);
-impl_from_t_for_room_event!(FeedbackEvent, RoomMessageFeedback);
-impl_from_t_for_room_event!(RedactionEvent, RoomRedaction);
-impl_from_t_for_room_event!(StickerEvent, Sticker);
-impl_from_t_for_room_event!(CustomRoomEvent, CustomRoom);
