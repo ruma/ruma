@@ -1,32 +1,39 @@
-//! [GET /_matrix/client/r0/publicRooms](https://matrix.org/docs/spec/client_server/r0.6.0.html#get-matrix-client-r0-publicrooms)
+//! [POST /_matrix/client/r0/publicRooms](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-publicrooms)
 
 use js_int::UInt;
 use ruma_api::ruma_api;
+use serde::{Deserialize, Serialize};
 
 use super::PublicRoomsChunk;
 
 ruma_api! {
     metadata {
         description: "Get the list of rooms in this homeserver's public directory.",
-        method: GET,
-        name: "get_public_rooms",
+        method: POST,
+        name: "get_public_rooms_filtered",
         path: "/_matrix/client/r0/publicRooms",
         rate_limited: false,
-        requires_authentication: false,
+        requires_authentication: true,
     }
 
     request {
-        /// Limit for the number of results to return.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        limit: Option<UInt>,
-        /// Pagination token from a previous request.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        since: Option<String>,
         /// The server to fetch the public room lists from.
         ///
         /// `None` means the server this request is sent to.
         #[serde(skip_serializing_if = "Option::is_none")]
         server: Option<String>,
+        /// Limit for the number of results to return.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(body)]
+        limit: Option<UInt>,
+        /// Pagination token from a previous request.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(body)]
+        since: Option<String>,
+        /// Filter to apply to the results.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[ruma_api(body)]
+        filter: Option<Filter>,
     }
 
     response {
@@ -39,4 +46,12 @@ ruma_api! {
         /// An estimate on the total number of public rooms, if the server has an estimate.
         pub total_room_count_estimate: Option<UInt>,
     }
+}
+
+/// A filter for public rooms lists
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Filter {
+    /// A string to search for in the room metadata, e.g. name, topic, canonical alias etc.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    generic_search_term: Option<String>,
 }
