@@ -136,7 +136,9 @@ impl ToTokens for Api {
                     #request_query_init_fields
                 };
 
-                url.set_query(Some(&ruma_api::exports::serde_urlencoded::to_string(request_query)?));
+                url.set_query(Some(&ruma_api::exports::serde_urlencoded::to_string(
+                    request_query,
+                )?));
             }
         } else {
             TokenStream::new()
@@ -161,7 +163,9 @@ impl ToTokens for Api {
             quote! {
                 let request_body = RequestBody(request.#field_name);
 
-                let mut http_request = ruma_api::exports::http::Request::new(ruma_api::exports::serde_json::to_vec(&request_body)?);
+                let mut http_request = ruma_api::exports::http::Request::new(
+                    ruma_api::exports::serde_json::to_vec(&request_body)?,
+                );
             }
         } else if self.request.has_body_fields() {
             let request_body_init_fields = self.request.request_body_init_fields();
@@ -171,7 +175,9 @@ impl ToTokens for Api {
                     #request_body_init_fields
                 };
 
-                let mut http_request = ruma_api::exports::http::Request::new(ruma_api::exports::serde_json::to_vec(&request_body)?);
+                let mut http_request = ruma_api::exports::http::Request::new(
+                    ruma_api::exports::serde_json::to_vec(&request_body)?,
+                );
             }
         } else {
             quote! {
@@ -184,11 +190,15 @@ impl ToTokens for Api {
             let field_type = &field.ty;
 
             quote! {
-                ruma_api::exports::serde_json::from_slice::<#field_type>(http_response.into_body().as_slice())?
+                ruma_api::exports::serde_json::from_slice::<#field_type>(
+                    http_response.into_body().as_slice(),
+                )?
             }
         } else if self.response.has_body_fields() {
             quote! {
-                ruma_api::exports::serde_json::from_slice::<ResponseBody>(http_response.into_body().as_slice())?
+                ruma_api::exports::serde_json::from_slice::<ResponseBody>(
+                    http_response.into_body().as_slice(),
+                )?
             }
         } else {
             quote! {
@@ -218,11 +228,11 @@ impl ToTokens for Api {
         let response_doc = format!("Data in the response from the `{}` API endpoint.", name);
 
         let api = quote! {
-            use ruma_api::Endpoint as _;
-            use ruma_api::exports::serde::Deserialize as _;
             use ruma_api::exports::serde::de::{Error as _, IntoDeserializer as _};
+            use ruma_api::exports::serde::Deserialize as _;
+            use ruma_api::Endpoint as _;
 
-            use std::convert::{TryInto as _};
+            use std::convert::TryInto as _;
 
             #[doc = #request_doc]
             #request_types
@@ -237,7 +247,9 @@ impl ToTokens for Api {
                     // Use dummy homeserver url which has to be overwritten in
                     // the calling code. Previously (with http::Uri) this was
                     // not required, but Url::parse only accepts absolute urls.
-                    let mut url = ruma_api::exports::url::Url::parse("http://invalid-host-please-change/").unwrap();
+                    let mut url =
+                        ruma_api::exports::url::Url::parse("http://invalid-host-please-change/")
+                            .unwrap();
 
                     { #set_request_path }
                     { #set_request_query }
@@ -260,7 +272,9 @@ impl ToTokens for Api {
                 type Error = ruma_api::Error;
 
                 #[allow(unused_variables)]
-                fn try_from(http_response: ruma_api::exports::http::Response<Vec<u8>>) -> Result<Self, Self::Error> {
+                fn try_from(
+                    http_response: ruma_api::exports::http::Response<Vec<u8>>,
+                ) -> Result<Self, Self::Error> {
                     if http_response.status().is_success() {
                         #extract_response_headers
 

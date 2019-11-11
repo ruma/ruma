@@ -259,7 +259,11 @@ impl ToTokens for Request {
 
             quote! {
                 /// Data in the request path.
-                #[derive(Debug, ruma_api::exports::serde::Deserialize, ruma_api::exports::serde::Serialize)]
+                #[derive(
+                    Debug,
+                    ruma_api::exports::serde::Deserialize,
+                    ruma_api::exports::serde::Serialize,
+                )]
                 struct RequestPath {
                     #(#fields),*
                 }
@@ -282,7 +286,11 @@ impl ToTokens for Request {
 
             quote! {
                 /// Data in the request's query string.
-                #[derive(Debug, ruma_api::exports::serde::Deserialize, ruma_api::exports::serde::Serialize)]
+                #[derive(
+                    Debug,
+                    ruma_api::exports::serde::Deserialize,
+                    ruma_api::exports::serde::Serialize,
+                )]
                 struct RequestQuery {
                     #(#fields),*
                 }
