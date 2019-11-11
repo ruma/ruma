@@ -6,7 +6,7 @@
 //! the other fields are otherwise inapplicable.
 
 use ruma_identifiers::UserId;
-use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
 use crate::{
@@ -23,7 +23,8 @@ use crate::{
 };
 
 /// A stripped-down version of a state event that is included along with some other events.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
 pub enum StrippedState {
     /// A stripped-down version of the *m.room.aliases* event.
@@ -169,28 +170,6 @@ where
             state_key: raw.state_key,
             sender: raw.sender,
         })
-    }
-}
-
-impl Serialize for StrippedState {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match *self {
-            StrippedState::RoomAliases(ref event) => event.serialize(serializer),
-            StrippedState::RoomAvatar(ref event) => event.serialize(serializer),
-            StrippedState::RoomCanonicalAlias(ref event) => event.serialize(serializer),
-            StrippedState::RoomCreate(ref event) => event.serialize(serializer),
-            StrippedState::RoomGuestAccess(ref event) => event.serialize(serializer),
-            StrippedState::RoomHistoryVisibility(ref event) => event.serialize(serializer),
-            StrippedState::RoomJoinRules(ref event) => event.serialize(serializer),
-            StrippedState::RoomMember(ref event) => event.serialize(serializer),
-            StrippedState::RoomName(ref event) => event.serialize(serializer),
-            StrippedState::RoomPowerLevels(ref event) => event.serialize(serializer),
-            StrippedState::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
-            StrippedState::RoomTopic(ref event) => event.serialize(serializer),
-        }
     }
 }
 

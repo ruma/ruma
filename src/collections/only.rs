@@ -1,7 +1,7 @@
 //! Enums for heterogeneous collections of events, exclusive to event types that implement "at
 //! most" the trait of the same name.
 
-use serde::{Serialize, Serializer};
+use serde::Serialize;
 
 pub use super::{all::StateEvent, raw::only as raw};
 use crate::{
@@ -34,7 +34,8 @@ use crate::{
 };
 
 /// A basic event.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
 pub enum Event {
     /// m.direct
@@ -96,7 +97,8 @@ pub enum Event {
 }
 
 /// A room event.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
 pub enum RoomEvent {
     /// m.call.answer
@@ -187,55 +189,6 @@ impl TryFromRaw for RoomEvent {
             RoomRedaction(c) => conv(RoomRedaction, RoomEvent::RoomRedaction, c),
             Sticker(c) => conv(Sticker, RoomEvent::Sticker, c),
             CustomRoom(c) => conv(CustomRoom, RoomEvent::CustomRoom, c),
-        }
-    }
-}
-
-impl Serialize for Event {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match *self {
-            Event::Direct(ref event) => event.serialize(serializer),
-            Event::Dummy(ref event) => event.serialize(serializer),
-            Event::ForwardedRoomKey(ref event) => event.serialize(serializer),
-            Event::FullyRead(ref event) => event.serialize(serializer),
-            Event::KeyVerificationAccept(ref event) => event.serialize(serializer),
-            Event::KeyVerificationCancel(ref event) => event.serialize(serializer),
-            Event::KeyVerificationKey(ref event) => event.serialize(serializer),
-            Event::KeyVerificationMac(ref event) => event.serialize(serializer),
-            Event::KeyVerificationRequest(ref event) => event.serialize(serializer),
-            Event::KeyVerificationStart(ref event) => event.serialize(serializer),
-            Event::IgnoredUserList(ref event) => event.serialize(serializer),
-            Event::Presence(ref event) => event.serialize(serializer),
-            Event::PushRules(ref event) => event.serialize(serializer),
-            Event::Receipt(ref event) => event.serialize(serializer),
-            Event::RoomKey(ref event) => event.serialize(serializer),
-            Event::RoomKeyRequest(ref event) => event.serialize(serializer),
-            Event::Tag(ref event) => event.serialize(serializer),
-            Event::Typing(ref event) => event.serialize(serializer),
-            Event::Custom(ref event) => event.serialize(serializer),
-        }
-    }
-}
-
-impl Serialize for RoomEvent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match *self {
-            RoomEvent::CallAnswer(ref event) => event.serialize(serializer),
-            RoomEvent::CallCandidates(ref event) => event.serialize(serializer),
-            RoomEvent::CallHangup(ref event) => event.serialize(serializer),
-            RoomEvent::CallInvite(ref event) => event.serialize(serializer),
-            RoomEvent::RoomEncrypted(ref event) => event.serialize(serializer),
-            RoomEvent::RoomMessage(ref event) => event.serialize(serializer),
-            RoomEvent::RoomMessageFeedback(ref event) => event.serialize(serializer),
-            RoomEvent::RoomRedaction(ref event) => event.serialize(serializer),
-            RoomEvent::Sticker(ref event) => event.serialize(serializer),
-            RoomEvent::CustomRoom(ref event) => event.serialize(serializer),
         }
     }
 }

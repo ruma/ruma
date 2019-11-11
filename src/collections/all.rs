@@ -1,7 +1,7 @@
 //! Enums for heterogeneous collections of events, inclusive for every event type that implements
 //! the trait of the same name.
 
-use serde::{Serialize, Serializer};
+use serde::Serialize;
 
 use super::raw::all as raw;
 use crate::{
@@ -50,7 +50,8 @@ use crate::{
 };
 
 /// A basic event, room event, or state event.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
 pub enum Event {
     /// m.call.answer
@@ -193,7 +194,8 @@ pub enum Event {
 }
 
 /// A room event or state event.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
 pub enum RoomEvent {
     /// m.call.answer
@@ -279,7 +281,8 @@ pub enum RoomEvent {
 }
 
 /// A state event.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
 pub enum StateEvent {
     /// m.room.aliases
@@ -475,126 +478,6 @@ impl TryFromRaw for StateEvent {
             RoomTombstone(c) => conv(RoomTombstone, StateEvent::RoomTombstone, c),
             RoomTopic(c) => conv(RoomTopic, StateEvent::RoomTopic, c),
             CustomState(c) => conv(CustomState, StateEvent::CustomState, c),
-        }
-    }
-}
-
-impl Serialize for Event {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match *self {
-            Event::CallAnswer(ref event) => event.serialize(serializer),
-            Event::CallCandidates(ref event) => event.serialize(serializer),
-            Event::CallHangup(ref event) => event.serialize(serializer),
-            Event::CallInvite(ref event) => event.serialize(serializer),
-            Event::Direct(ref event) => event.serialize(serializer),
-            Event::Dummy(ref event) => event.serialize(serializer),
-            Event::ForwardedRoomKey(ref event) => event.serialize(serializer),
-            Event::FullyRead(ref event) => event.serialize(serializer),
-            Event::KeyVerificationAccept(ref event) => event.serialize(serializer),
-            Event::KeyVerificationCancel(ref event) => event.serialize(serializer),
-            Event::KeyVerificationKey(ref event) => event.serialize(serializer),
-            Event::KeyVerificationMac(ref event) => event.serialize(serializer),
-            Event::KeyVerificationRequest(ref event) => event.serialize(serializer),
-            Event::KeyVerificationStart(ref event) => event.serialize(serializer),
-            Event::IgnoredUserList(ref event) => event.serialize(serializer),
-            Event::Presence(ref event) => event.serialize(serializer),
-            Event::PushRules(ref event) => event.serialize(serializer),
-            Event::Receipt(ref event) => event.serialize(serializer),
-            Event::RoomAliases(ref event) => event.serialize(serializer),
-            Event::RoomAvatar(ref event) => event.serialize(serializer),
-            Event::RoomCanonicalAlias(ref event) => event.serialize(serializer),
-            Event::RoomCreate(ref event) => event.serialize(serializer),
-            Event::RoomEncrypted(ref event) => event.serialize(serializer),
-            Event::RoomEncryption(ref event) => event.serialize(serializer),
-            Event::RoomGuestAccess(ref event) => event.serialize(serializer),
-            Event::RoomHistoryVisibility(ref event) => event.serialize(serializer),
-            Event::RoomJoinRules(ref event) => event.serialize(serializer),
-            Event::RoomMember(ref event) => event.serialize(serializer),
-            Event::RoomMessage(ref event) => event.serialize(serializer),
-            Event::RoomMessageFeedback(ref event) => event.serialize(serializer),
-            Event::RoomName(ref event) => event.serialize(serializer),
-            Event::RoomPinnedEvents(ref event) => event.serialize(serializer),
-            Event::RoomPowerLevels(ref event) => event.serialize(serializer),
-            Event::RoomRedaction(ref event) => event.serialize(serializer),
-            Event::RoomServerAcl(ref event) => event.serialize(serializer),
-            Event::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
-            Event::RoomTombstone(ref event) => event.serialize(serializer),
-            Event::RoomTopic(ref event) => event.serialize(serializer),
-            Event::RoomKey(ref event) => event.serialize(serializer),
-            Event::RoomKeyRequest(ref event) => event.serialize(serializer),
-            Event::Sticker(ref event) => event.serialize(serializer),
-            Event::Tag(ref event) => event.serialize(serializer),
-            Event::Typing(ref event) => event.serialize(serializer),
-            Event::Custom(ref event) => event.serialize(serializer),
-            Event::CustomRoom(ref event) => event.serialize(serializer),
-            Event::CustomState(ref event) => event.serialize(serializer),
-        }
-    }
-}
-
-impl Serialize for RoomEvent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match *self {
-            RoomEvent::CallAnswer(ref event) => event.serialize(serializer),
-            RoomEvent::CallCandidates(ref event) => event.serialize(serializer),
-            RoomEvent::CallHangup(ref event) => event.serialize(serializer),
-            RoomEvent::CallInvite(ref event) => event.serialize(serializer),
-            RoomEvent::RoomAliases(ref event) => event.serialize(serializer),
-            RoomEvent::RoomAvatar(ref event) => event.serialize(serializer),
-            RoomEvent::RoomCanonicalAlias(ref event) => event.serialize(serializer),
-            RoomEvent::RoomCreate(ref event) => event.serialize(serializer),
-            RoomEvent::RoomEncrypted(ref event) => event.serialize(serializer),
-            RoomEvent::RoomEncryption(ref event) => event.serialize(serializer),
-            RoomEvent::RoomGuestAccess(ref event) => event.serialize(serializer),
-            RoomEvent::RoomHistoryVisibility(ref event) => event.serialize(serializer),
-            RoomEvent::RoomJoinRules(ref event) => event.serialize(serializer),
-            RoomEvent::RoomMember(ref event) => event.serialize(serializer),
-            RoomEvent::RoomMessage(ref event) => event.serialize(serializer),
-            RoomEvent::RoomMessageFeedback(ref event) => event.serialize(serializer),
-            RoomEvent::RoomName(ref event) => event.serialize(serializer),
-            RoomEvent::RoomPinnedEvents(ref event) => event.serialize(serializer),
-            RoomEvent::RoomPowerLevels(ref event) => event.serialize(serializer),
-            RoomEvent::RoomRedaction(ref event) => event.serialize(serializer),
-            RoomEvent::RoomServerAcl(ref event) => event.serialize(serializer),
-            RoomEvent::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
-            RoomEvent::RoomTombstone(ref event) => event.serialize(serializer),
-            RoomEvent::RoomTopic(ref event) => event.serialize(serializer),
-            RoomEvent::Sticker(ref event) => event.serialize(serializer),
-            RoomEvent::CustomRoom(ref event) => event.serialize(serializer),
-            RoomEvent::CustomState(ref event) => event.serialize(serializer),
-        }
-    }
-}
-
-impl Serialize for StateEvent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match *self {
-            StateEvent::RoomAliases(ref event) => event.serialize(serializer),
-            StateEvent::RoomAvatar(ref event) => event.serialize(serializer),
-            StateEvent::RoomCanonicalAlias(ref event) => event.serialize(serializer),
-            StateEvent::RoomCreate(ref event) => event.serialize(serializer),
-            StateEvent::RoomEncryption(ref event) => event.serialize(serializer),
-            StateEvent::RoomGuestAccess(ref event) => event.serialize(serializer),
-            StateEvent::RoomHistoryVisibility(ref event) => event.serialize(serializer),
-            StateEvent::RoomJoinRules(ref event) => event.serialize(serializer),
-            StateEvent::RoomMember(ref event) => event.serialize(serializer),
-            StateEvent::RoomName(ref event) => event.serialize(serializer),
-            StateEvent::RoomPinnedEvents(ref event) => event.serialize(serializer),
-            StateEvent::RoomPowerLevels(ref event) => event.serialize(serializer),
-            StateEvent::RoomServerAcl(ref event) => event.serialize(serializer),
-            StateEvent::RoomThirdPartyInvite(ref event) => event.serialize(serializer),
-            StateEvent::RoomTombstone(ref event) => event.serialize(serializer),
-            StateEvent::RoomTopic(ref event) => event.serialize(serializer),
-            StateEvent::CustomState(ref event) => event.serialize(serializer),
         }
     }
 }
