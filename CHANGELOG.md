@@ -1,5 +1,11 @@
 # [unreleased]
 
+Improvements:
+
+* Add more sanity checks
+    * No multiple `#[ruma_api(body)]` fields in one request / response definition
+    * No (newtype) body fields in GET endpoints
+
 # 0.11.0
 
 Breaking changes:
