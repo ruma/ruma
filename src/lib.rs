@@ -75,6 +75,7 @@
 //! # ;
 //! ```
 
+#![warn(rust_2018_idioms)]
 #![deny(
     missing_copy_implementations,
     missing_debug_implementations,

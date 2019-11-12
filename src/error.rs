@@ -14,7 +14,7 @@ use serde_urlencoded::ser::Error as SerdeUrlEncodedSerializeError;
 pub struct Error(pub(crate) InnerError);
 
 impl Display for Error {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let message = match self.0 {
             InnerError::AuthenticationRequired => "The queried endpoint requires authentication but was called with an anonymous client.",
             InnerError::Hyper(_) => "An HTTP error occurred.",
