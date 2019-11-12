@@ -76,7 +76,7 @@ impl KeyPair for Ed25519KeyPair {
 }
 
 impl Debug for Ed25519KeyPair {
-    fn fmt(&self, formatter: &mut Formatter) -> FmtResult {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         formatter
             .debug_struct("Ed25519KeyPair")
             .field("public_key", &self.public_key)
