@@ -109,6 +109,7 @@
 //! However, the `ruma_events::collections::only::Event` enum does *not* include *m.room.message*,
 //! because *m.room.message* implements a *more specific* event trait than `Event`.
 
+#![warn(rust_2018_idioms)]
 #![deny(missing_debug_implementations, missing_docs)]
 // Since we support Rust 1.34.2, we can't apply this suggestion yet
 #![allow(clippy::use_self)]
@@ -205,7 +206,7 @@ impl InvalidEvent {
 }
 
 impl Display for InvalidEvent {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}", self.message())
     }
 }
@@ -220,7 +221,7 @@ impl Error for InvalidEvent {}
 pub struct InvalidInput(String);
 
 impl Display for InvalidInput {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{}", self.0)
     }
 }
@@ -325,7 +326,7 @@ where
 pub struct FromStrError;
 
 impl Display for FromStrError {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "failed to parse type from string")
     }
 }
@@ -358,7 +359,7 @@ impl<'de> Deserialize<'de> for Empty {
         impl<'de> Visitor<'de> for EmptyMapVisitor {
             type Value = Empty;
 
-            fn expecting(&self, f: &mut Formatter) -> FmtResult {
+            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
                 write!(f, "an object/map")
             }
 

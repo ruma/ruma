@@ -198,7 +198,7 @@ impl<'de> Deserialize<'de> for Action {
         impl<'de> Visitor<'de> for StringOrStruct {
             type Value = Action;
 
-            fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+            fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
                 formatter.write_str("action as string or map")
             }
 
