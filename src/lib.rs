@@ -10,6 +10,7 @@
 //! Such types can then be used by client code to make requests, and by server code to fulfill
 //! those requests.
 
+#![warn(rust_2018_idioms)]
 #![deny(
     missing_copy_implementations,
     missing_debug_implementations,
@@ -62,7 +63,7 @@ pub trait Endpoint: TryInto<http::Request<Vec<u8>>, Error = Error> {
 pub struct Error(pub(crate) InnerError);
 
 impl Display for Error {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let message = match self.0 {
             InnerError::Http(_) => "An error converting to or from `http` types occurred.".into(),
             InnerError::Io(_) => "An I/O error occurred.".into(),
