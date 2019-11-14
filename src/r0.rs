@@ -22,4 +22,5 @@ pub mod session;
 pub mod sync;
 pub mod tag;
 pub mod typing;
+pub mod user_directory;
 pub mod voip;
