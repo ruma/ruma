@@ -5,7 +5,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::{spanned::Spanned, Field, Ident};
 
 use crate::api::{
-    attribute::{Meta, MetaNameValue},
+    attribute::{Meta, MetaList, MetaNameValue},
     strip_serde_attrs,
 };
 
@@ -98,59 +98,67 @@ impl Response {
 
 impl From<Vec<Field>> for Response {
     fn from(fields: Vec<Field>) -> Self {
-        let mut has_newtype_body = false;
+        let fields: Vec<_> = fields
+            .into_iter()
+            .map(|mut field| {
+                let mut field_kind = None;
+                let mut header = None;
 
-        let fields = fields.into_iter().map(|mut field| {
-            let mut field_kind = ResponseFieldKind::Body;
-            let mut header = None;
+                field.attrs.retain(|attr| {
+                    let meta_list = match MetaList::from_attribute(attr) {
+                        Some(list) => list,
+                        None => return true,
+                    };
 
-            field.attrs.retain(|attr| {
-                let meta = match Meta::from_attribute(attr) {
-                    Some(meta) => meta,
-                    None => return true,
-                };
+                    for meta in meta_list {
+                        match meta {
+                            Meta::Word(ident) => {
+                                assert!(
+                                    ident == "body",
+                                    "ruma_api! single-word attribute on responses must be: body"
+                                );
+                                assert!(
+                                    field_kind.is_none(),
+                                    "ruma_api! field kind can only be set once per field"
+                                );
 
-                match meta {
-                    Meta::Word(ident) => {
-                        assert!(
-                            ident == "body",
-                            "ruma_api! single-word attribute on responses must be: body"
-                        );
-                        assert!(
-                            !has_newtype_body,
-                            "ruma_api! body attribute can only be used once per response definition"
-                        );
+                                field_kind = Some(ResponseFieldKind::NewtypeBody);
+                            }
+                            Meta::NameValue(MetaNameValue { name, value }) => {
+                                assert!(
+                                    name == "header",
+                                    "ruma_api! name/value pair attribute on requests must be: header"
+                                );
+                                assert!(
+                                    field_kind.is_none(),
+                                    "ruma_api! field kind can only be set once per field"
+                                );
 
-                        has_newtype_body = true;
-                        field_kind = ResponseFieldKind::NewtypeBody;
+                                header = Some(value);
+                                field_kind = Some(ResponseFieldKind::Header);
+                            }
+                        }
                     }
-                    Meta::NameValue(MetaNameValue { name, value }) => {
-                        assert!(
-                            name == "header",
-                            "ruma_api! name/value pair attribute on requests must be: header"
-                        );
 
-                        header = Some(value);
-                        field_kind = ResponseFieldKind::Header;
+                    false
+                });
+
+                match field_kind.unwrap_or(ResponseFieldKind::Body) {
+                    ResponseFieldKind::Body => ResponseField::Body(field),
+                    ResponseFieldKind::Header => {
+                        ResponseField::Header(field, header.expect("missing header name"))
                     }
+                    ResponseFieldKind::NewtypeBody => ResponseField::NewtypeBody(field),
                 }
+            })
+            .collect();
 
-                false
-            });
-
-            match field_kind {
-                ResponseFieldKind::Body => {
-                    assert!(
-                        !has_newtype_body,
-                        "ruma_api! responses cannot have both normal body fields and a newtype body field"
-                    );
-
-                    ResponseField::Body(field)
-                }
-                ResponseFieldKind::Header => ResponseField::Header(field, header.expect("missing header name")),
-                ResponseFieldKind::NewtypeBody => ResponseField::NewtypeBody(field),
-            }
-        }).collect();
+        if fields.len() > 1 {
+            assert!(
+                !fields.iter().any(|field| field.is_newtype_body()),
+                "ruma_api! newtype body has to be the only response field"
+            )
+        }
 
         Self { fields }
     }
@@ -257,6 +265,14 @@ impl ResponseField {
     fn is_header(&self) -> bool {
         match *self {
             ResponseField::Header(..) => true,
+            _ => false,
+        }
+    }
+
+    /// Whether or not this response field is a newtype body kind.
+    fn is_newtype_body(&self) -> bool {
+        match *self {
+            ResponseField::NewtypeBody(..) => true,
             _ => false,
         }
     }

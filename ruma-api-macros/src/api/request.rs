@@ -5,7 +5,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::{spanned::Spanned, Field, Ident};
 
 use crate::api::{
-    attribute::{Meta, MetaNameValue},
+    attribute::{Meta, MetaList, MetaNameValue},
     strip_serde_attrs,
 };
 
@@ -128,58 +128,60 @@ impl Request {
 
 impl From<Vec<Field>> for Request {
     fn from(fields: Vec<Field>) -> Self {
-        let mut has_newtype_body = false;
-
-        let fields = fields.into_iter().map(|mut field| {
-            let mut field_kind = RequestFieldKind::Body;
+        let fields: Vec<_> = fields.into_iter().map(|mut field| {
+            let mut field_kind = None;
             let mut header = None;
 
             field.attrs.retain(|attr| {
-                let meta = match Meta::from_attribute(attr) {
-                    Some(meta) => meta,
+                let meta_list = match MetaList::from_attribute(attr) {
+                    Some(list) => list,
                     None => return true,
                 };
 
-                match meta {
-                    Meta::Word(ident) => {
-                        match &ident.to_string()[..] {
-                            "body" => {
-                                assert!(
-                                    !has_newtype_body,
-                                    "ruma_api! body attribute can only be used once per request definition"
-                                );
+                for meta in meta_list {
 
-                                has_newtype_body = true;
-                                field_kind = RequestFieldKind::NewtypeBody;
-                            }
-                            "path" => field_kind = RequestFieldKind::Path,
-                            "query" => field_kind = RequestFieldKind::Query,
-                            _ => panic!("ruma_api! single-word attribute on requests must be: body, path, or query"),
+                    match meta {
+                        Meta::Word(ident) => {
+                            assert!(
+                                field_kind.is_none(),
+                                "ruma_api! field kind can only be set once per field"
+                            );
+
+                            field_kind = Some(match &ident.to_string()[..] {
+                                "body" => RequestFieldKind::NewtypeBody,
+                                "path" => RequestFieldKind::Path,
+                                "query" => RequestFieldKind::Query,
+                                _ => panic!("ruma_api! single-word attribute on requests must be: body, path, or query"),
+                            });
                         }
-                    }
-                    Meta::NameValue(MetaNameValue { name, value }) => {
-                        assert!(
-                            name == "header",
-                            "ruma_api! name/value pair attribute on requests must be: header"
-                        );
+                        Meta::NameValue(MetaNameValue { name, value }) => {
+                            assert!(
+                                name == "header",
+                                "ruma_api! name/value pair attribute on requests must be: header"
+                            );
+                            assert!(
+                                field_kind.is_none(),
+                                "ruma_api! field kind can only be set once per field"
+                            );
 
-                        header = Some(value);
-                        field_kind = RequestFieldKind::Header;
+                            header = Some(value);
+                            field_kind = Some(RequestFieldKind::Header);
+                        }
                     }
                 }
 
                 false
             });
 
-            if field_kind == RequestFieldKind::Body {
-                assert!(
-                    !has_newtype_body,
-                    "ruma_api! requests cannot have both normal body fields and a newtype body field"
-                );
-            }
-
-            RequestField::new(field_kind, field, header)
+            RequestField::new(field_kind.unwrap_or(RequestFieldKind::Body), field, header)
         }).collect();
+
+        if fields.len() > 1 {
+            assert!(
+                !fields.iter().any(|field| field.is_newtype_body()),
+                "ruma_api! newtype body has to be the only response field"
+            )
+        }
 
         Self { fields }
     }
@@ -358,6 +360,11 @@ impl RequestField {
     /// Whether or not this request field is a header kind.
     fn is_header(&self) -> bool {
         self.kind() == RequestFieldKind::Header
+    }
+
+    /// Whether or not this request field is a newtype body kind.
+    fn is_newtype_body(&self) -> bool {
+        self.kind() == RequestFieldKind::NewtypeBody
     }
 
     /// Whether or not this request field is a path kind.
