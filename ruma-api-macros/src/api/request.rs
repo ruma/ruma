@@ -139,7 +139,6 @@ impl From<Vec<Field>> for Request {
                 };
 
                 for meta in meta_list {
-
                     match meta {
                         Meta::Word(ident) => {
                             assert!(
