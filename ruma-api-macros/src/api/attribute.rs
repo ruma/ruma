@@ -1,10 +1,7 @@
 //! Details of the `#[ruma_api(...)]` attributes.
 
-use std::vec;
-
 use syn::{
     parse::{Parse, ParseStream},
-    punctuated::{Pair, Punctuated},
     Ident, Token,
 };
 
@@ -25,26 +22,7 @@ pub enum Meta {
     NameValue(MetaNameValue),
 }
 
-impl Parse for Meta {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let ident = input.parse()?;
-
-        if input.peek(Token![=]) {
-            let _ = input.parse::<Token![=]>();
-            Ok(Meta::NameValue(MetaNameValue {
-                name: ident,
-                value: input.parse()?,
-            }))
-        } else {
-            Ok(Meta::Word(ident))
-        }
-    }
-}
-
-/// List of `Meta`s
-pub struct MetaList(Vec<Meta>);
-
-impl MetaList {
+impl Meta {
     /// Check if the given attribute is a ruma_api attribute. If it is, parse it.
     ///
     /// # Panics
@@ -70,22 +48,18 @@ impl MetaList {
     }
 }
 
-impl Parse for MetaList {
+impl Parse for Meta {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        Ok(MetaList(
-            Punctuated::<Meta, Token![,]>::parse_terminated(input)?
-                .into_pairs()
-                .map(Pair::into_value)
-                .collect(),
-        ))
-    }
-}
+        let ident = input.parse()?;
 
-impl IntoIterator for MetaList {
-    type Item = Meta;
-    type IntoIter = vec::IntoIter<Meta>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
+        if input.peek(Token![=]) {
+            let _ = input.parse::<Token![=]>();
+            Ok(Meta::NameValue(MetaNameValue {
+                name: ident,
+                value: input.parse()?,
+            }))
+        } else {
+            Ok(Meta::Word(ident))
+        }
     }
 }

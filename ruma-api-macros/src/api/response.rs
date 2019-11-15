@@ -5,7 +5,7 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::{spanned::Spanned, Field, Ident};
 
 use crate::api::{
-    attribute::{Meta, MetaList, MetaNameValue},
+    attribute::{Meta, MetaNameValue},
     strip_serde_attrs,
 };
 
@@ -105,38 +105,36 @@ impl From<Vec<Field>> for Response {
                 let mut header = None;
 
                 field.attrs.retain(|attr| {
-                    let meta_list = match MetaList::from_attribute(attr) {
-                        Some(list) => list,
+                    let meta = match Meta::from_attribute(attr) {
+                        Some(m) => m,
                         None => return true,
                     };
 
-                    for meta in meta_list {
-                        match meta {
-                            Meta::Word(ident) => {
-                                assert!(
-                                    ident == "body",
-                                    "ruma_api! single-word attribute on responses must be: body"
-                                );
-                                assert!(
-                                    field_kind.is_none(),
-                                    "ruma_api! field kind can only be set once per field"
-                                );
+                    match meta {
+                        Meta::Word(ident) => {
+                            assert!(
+                                ident == "body",
+                                "ruma_api! single-word attribute on responses must be: body"
+                            );
+                            assert!(
+                                field_kind.is_none(),
+                                "ruma_api! field kind can only be set once per field"
+                            );
 
-                                field_kind = Some(ResponseFieldKind::NewtypeBody);
-                            }
-                            Meta::NameValue(MetaNameValue { name, value }) => {
-                                assert!(
-                                    name == "header",
-                                    "ruma_api! name/value pair attribute on requests must be: header"
-                                );
-                                assert!(
-                                    field_kind.is_none(),
-                                    "ruma_api! field kind can only be set once per field"
-                                );
+                            field_kind = Some(ResponseFieldKind::NewtypeBody);
+                        }
+                        Meta::NameValue(MetaNameValue { name, value }) => {
+                            assert!(
+                                name == "header",
+                                "ruma_api! name/value pair attribute on requests must be: header"
+                            );
+                            assert!(
+                                field_kind.is_none(),
+                                "ruma_api! field kind can only be set once per field"
+                            );
 
-                                header = Some(value);
-                                field_kind = Some(ResponseFieldKind::Header);
-                            }
+                            header = Some(value);
+                            field_kind = Some(ResponseFieldKind::Header);
                         }
                     }
 
