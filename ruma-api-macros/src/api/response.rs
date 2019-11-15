@@ -33,6 +33,11 @@ impl Response {
         self.fields.iter().any(|field| field.is_header())
     }
 
+    /// Whether or not this response has any data in the HTTP body.
+    pub fn has_body(&self) -> bool {
+        self.fields.iter().any(|field| !field.is_header())
+    }
+
     /// Produces code for a response struct initializer.
     pub fn init_fields(&self) -> TokenStream {
         let fields = self.fields.iter().map(|response_field| match response_field {
@@ -71,6 +76,63 @@ impl Response {
 
         quote! {
             #(#fields,)*
+        }
+    }
+
+    /// Produces code to add necessary HTTP headers to an `http::Response`.
+    pub fn apply_header_fields(&self) -> TokenStream {
+        let header_calls = self.fields.iter().filter_map(|response_field| {
+            if let ResponseField::Header(ref field, ref header_name) = *response_field {
+                let field_name = field
+                    .ident
+                    .as_ref()
+                    .expect("expected field to have an identifier");
+                let span = field.span();
+
+                Some(quote_spanned! {span=>
+                    .header(ruma_api::exports::http::header::#header_name, response.#field_name)
+                })
+            } else {
+                None
+            }
+        });
+
+        quote! {
+            #(#header_calls)*
+        }
+    }
+
+    /// Produces code to initialize the struct that will be used to create the response body.
+    pub fn to_body(&self) -> TokenStream {
+        if let Some(field) = self.newtype_body_field() {
+            let field_name = field
+                .ident
+                .as_ref()
+                .expect("expected field to have an identifier");
+            let span = field.span();
+            quote_spanned!(span=> response.#field_name)
+        } else {
+            let fields = self.fields.iter().filter_map(|response_field| {
+                if let ResponseField::Body(ref field) = *response_field {
+                    let field_name = field
+                        .ident
+                        .as_ref()
+                        .expect("expected field to have an identifier");
+                    let span = field.span();
+
+                    Some(quote_spanned! {span=>
+                        #field_name: response.#field_name
+                    })
+                } else {
+                    None
+                }
+            });
+
+            quote! {
+                ResponseBody {
+                    #(#fields),*
+                }
+            }
         }
     }
 
@@ -195,7 +257,7 @@ impl ToTokens for Response {
 
             quote_spanned! {span=>
                 /// Data in the response body.
-                #[derive(Debug, ruma_api::exports::serde::Deserialize)]
+                #[derive(Debug, ruma_api::exports::serde::Deserialize, ruma_api::exports::serde::Serialize)]
                 struct ResponseBody(#ty);
             }
         } else if self.has_body_fields() {
@@ -203,7 +265,7 @@ impl ToTokens for Response {
 
             quote! {
                 /// Data in the response body.
-                #[derive(Debug, ruma_api::exports::serde::Deserialize)]
+                #[derive(Debug, ruma_api::exports::serde::Deserialize, ruma_api::exports::serde::Serialize)]
                 struct ResponseBody {
                     #(#fields),*
                 }

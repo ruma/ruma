@@ -206,6 +206,7 @@ pub use ruma_api_macros::ruma_api;
 /// It is not considered part of ruma-api's public API.
 pub mod exports {
     pub use http;
+    pub use percent_encoding;
     pub use serde;
     pub use serde_json;
     pub use serde_urlencoded;
@@ -215,9 +216,12 @@ pub mod exports {
 /// A Matrix API endpoint.
 ///
 /// The type implementing this trait contains any data needed to make a request to the endpoint.
-pub trait Endpoint: TryInto<http::Request<Vec<u8>>, Error = Error> {
+pub trait Endpoint:
+    TryFrom<http::Request<Vec<u8>>, Error = Error> + TryInto<http::Request<Vec<u8>>, Error = Error>
+{
     /// Data returned in a successful response from the endpoint.
-    type Response: TryFrom<http::Response<Vec<u8>>, Error = Error>;
+    type Response: TryFrom<http::Response<Vec<u8>>, Error = Error>
+        + TryInto<http::Response<Vec<u8>>, Error = Error>;
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;
@@ -346,9 +350,10 @@ mod tests {
     pub mod create {
         use std::convert::TryFrom;
 
-        use http::{self, method::Method};
+        use http::{self, header::CONTENT_TYPE, method::Method};
+        use percent_encoding;
         use ruma_identifiers::{RoomAliasId, RoomId};
-        use serde::{Deserialize, Serialize};
+        use serde::{de::IntoDeserializer, Deserialize, Serialize};
         use serde_json;
 
         use crate::{Endpoint, Error, Metadata};
@@ -395,6 +400,25 @@ mod tests {
             }
         }
 
+        impl TryFrom<http::Request<Vec<u8>>> for Request {
+            type Error = Error;
+
+            fn try_from(request: http::Request<Vec<u8>>) -> Result<Self, Self::Error> {
+                let request_body: RequestBody =
+                    ::serde_json::from_slice(request.body().as_slice())?;
+                let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
+                Ok(Request {
+                    room_id: request_body.room_id,
+                    room_alias: {
+                        let segment = path_segments.get(5).unwrap().as_bytes();
+                        let decoded = percent_encoding::percent_decode(segment).decode_utf8_lossy();
+                        RoomAliasId::deserialize(decoded.into_deserializer())
+                            .map_err(|e: serde_json::error::Error| e)?
+                    },
+                })
+            }
+        }
+
         #[derive(Debug, Serialize, Deserialize)]
         struct RequestBody {
             room_id: RoomId,
@@ -413,6 +437,19 @@ mod tests {
                 } else {
                     Err(http_response.status().into())
                 }
+            }
+        }
+
+        impl TryFrom<Response> for http::Response<Vec<u8>> {
+            type Error = Error;
+
+            fn try_from(_: Response) -> Result<http::Response<Vec<u8>>, Self::Error> {
+                let response = http::Response::builder()
+                    .header(CONTENT_TYPE, "application/json")
+                    .body(b"{}".to_vec())
+                    .unwrap();
+
+                Ok(response)
             }
         }
     }

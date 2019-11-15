@@ -42,6 +42,30 @@ impl Request {
         }
     }
 
+    /// Produces code to extract fields from the HTTP headers in an `http::Request`.
+    pub fn parse_headers_from_request(&self) -> TokenStream {
+        let fields = self.header_fields().map(|request_field| {
+            let (field, header_name) = match request_field {
+                RequestField::Header(field, header_name) => (field, header_name),
+                _ => panic!("expected request field to be header variant"),
+            };
+
+            let field_name = &field.ident;
+            let header_name_string = header_name.to_string();
+
+            quote! {
+                #field_name: headers.get(ruma_api::exports::http::header::#header_name)
+                    .and_then(|v| v.to_str().ok())
+                    .ok_or(ruma_api::exports::serde_json::Error::missing_field(#header_name_string))?
+                    .to_owned()
+            }
+        });
+
+        quote! {
+            #(#fields,)*
+        }
+    }
+
     /// Whether or not this request has any data in the HTTP body.
     pub fn has_body_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_body())
@@ -51,7 +75,6 @@ impl Request {
     pub fn has_header_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_header())
     }
-
     /// Whether or not this request has any data in the URL path.
     pub fn has_path_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_path())
@@ -77,6 +100,20 @@ impl Request {
         self.fields.iter().filter(|field| field.is_path()).count()
     }
 
+    /// Gets the path field with the given name.
+    pub fn path_field(&self, name: &str) -> Option<&Field> {
+        self.fields
+            .iter()
+            .flat_map(|f| f.field_of_kind(RequestFieldKind::Path))
+            .find(|field| {
+                field
+                    .ident
+                    .as_ref()
+                    .expect("expected field to have an identifier")
+                    == name
+            })
+    }
+
     /// Returns the body field.
     pub fn newtype_body_field(&self) -> Option<&Field> {
         self.fields.iter().find_map(RequestField::as_newtype_body_field)
@@ -100,6 +137,17 @@ impl Request {
     /// Produces code for a struct initializer for query string fields on a variable named `request`.
     pub fn request_query_init_fields(&self) -> TokenStream {
         self.struct_init_fields(RequestFieldKind::Query, quote!(request))
+    }
+
+    /// Produces code for a struct initializer for body fields on a variable named `request_body`.
+    pub fn request_init_body_fields(&self) -> TokenStream {
+        self.struct_init_fields(RequestFieldKind::Body, quote!(request_body))
+    }
+
+    /// Produces code for a struct initializer for query string fields on a variable named
+    /// `request_query`.
+    pub fn request_init_query_fields(&self) -> TokenStream {
+        self.struct_init_fields(RequestFieldKind::Query, quote!(request_query))
     }
 
     /// Produces code for a struct initializer for the given field kind to be accessed through the
@@ -270,7 +318,7 @@ impl ToTokens for Request {
 
             quote_spanned! {span=>
                 /// Data in the request body.
-                #[derive(Debug, ruma_api::exports::serde::Serialize)]
+                #[derive(Debug, ruma_api::exports::serde::Deserialize, ruma_api::exports::serde::Serialize)]
                 struct RequestBody(#ty);
             }
         } else if self.has_body_fields() {
@@ -278,7 +326,7 @@ impl ToTokens for Request {
 
             quote! {
                 /// Data in the request body.
-                #[derive(Debug, ruma_api::exports::serde::Serialize)]
+                #[derive(Debug, ruma_api::exports::serde::Deserialize, ruma_api::exports::serde::Serialize)]
                 struct RequestBody {
                     #(#fields),*
                 }
