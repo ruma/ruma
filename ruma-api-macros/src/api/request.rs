@@ -173,11 +173,17 @@ impl From<Vec<Field>> for Request {
             RequestField::new(field_kind.unwrap_or(RequestFieldKind::Body), field, header)
         }).collect();
 
-        if fields.len() > 1 {
+        let num_body_fields = fields.iter().filter(|f| f.is_body()).count();
+        let num_newtype_body_fields = fields.iter().filter(|f| f.is_newtype_body()).count();
+        assert!(
+            num_newtype_body_fields <= 1,
+            "ruma_api! request can only have one newtype body field"
+        );
+        if num_newtype_body_fields == 1 {
             assert!(
-                !fields.iter().any(|field| field.is_newtype_body()),
-                "ruma_api! newtype body has to be the only response field"
-            )
+                num_body_fields == 0,
+                "ruma_api! request can't have both regular body fields and a newtype body field"
+            );
         }
 
         Self { fields }
@@ -342,7 +348,7 @@ impl RequestField {
         self.kind() == RequestFieldKind::Query
     }
 
-    /// Return the contained field if this response field is a body kind.
+    /// Return the contained field if this request field is a body kind.
     fn as_body_field(&self) -> Option<&Field> {
         if let RequestField::Body(field) = self {
             Some(field)
@@ -351,7 +357,7 @@ impl RequestField {
         }
     }
 
-    /// Return the contained field if this response field is a path kind.
+    /// Return the contained field if this request field is a path kind.
     fn as_path_field(&self) -> Option<&Field> {
         if let RequestField::Path(field) = self {
             Some(field)
@@ -360,7 +366,7 @@ impl RequestField {
         }
     }
 
-    /// Return the contained field if this response field is a query kind.
+    /// Return the contained field if this request field is a query kind.
     fn as_query_field(&self) -> Option<&Field> {
         if let RequestField::Query(field) = self {
             Some(field)

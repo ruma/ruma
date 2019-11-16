@@ -9,7 +9,7 @@ use crate::api::{
     strip_serde_attrs,
 };
 
-/// The result of processing the `request` section of the macro.
+/// The result of processing the `response` section of the macro.
 pub struct Response {
     /// The fields of the response.
     fields: Vec<ResponseField>,
@@ -31,7 +31,7 @@ impl Response {
         self.fields.iter().any(|field| field.is_header())
     }
 
-    /// Produces code for a request struct initializer.
+    /// Produces code for a response struct initializer.
     pub fn init_fields(&self) -> TokenStream {
         let fields = self
             .fields
@@ -81,7 +81,7 @@ impl Response {
         }
     }
 
-    /// Gets the newtype body field, if this request has one.
+    /// Gets the newtype body field, if this response has one.
     pub fn newtype_body_field(&self) -> Option<&Field> {
         for response_field in self.fields.iter() {
             match *response_field {
@@ -126,7 +126,7 @@ impl From<Vec<Field>> for Response {
                         Meta::NameValue(MetaNameValue { name, value }) => {
                             assert!(
                                 name == "header",
-                                "ruma_api! name/value pair attribute on requests must be: header"
+                                "ruma_api! name/value pair attribute on responses must be: header"
                             );
                             assert!(
                                 field_kind.is_none(),
@@ -151,11 +151,17 @@ impl From<Vec<Field>> for Response {
             })
             .collect();
 
-        if fields.len() > 1 {
+        let num_body_fields = fields.iter().filter(|f| f.is_body()).count();
+        let num_newtype_body_fields = fields.iter().filter(|f| f.is_newtype_body()).count();
+        assert!(
+            num_newtype_body_fields <= 1,
+            "ruma_api! response can only have one newtype body field"
+        );
+        if num_newtype_body_fields == 1 {
             assert!(
-                !fields.iter().any(|field| field.is_newtype_body()),
-                "ruma_api! newtype body has to be the only response field"
-            )
+                num_body_fields == 0,
+                "ruma_api! response can't have both regular body fields and a newtype body field"
+            );
         }
 
         Self { fields }
