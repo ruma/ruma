@@ -172,14 +172,10 @@ impl ToTokens for Response {
         let response_struct_body = if self.fields.is_empty() {
             quote!(;)
         } else {
-            let fields = self.fields.iter().map(|response_field| {
-                let field = response_field.field();
-                let span = field.span();
-
-                let stripped_field = strip_serde_attrs(field);
-
-                quote_spanned!(span=> #stripped_field)
-            });
+            let fields = self
+                .fields
+                .iter()
+                .map(|response_field| strip_serde_attrs(response_field.field()));
 
             quote! {
                 {
@@ -199,16 +195,7 @@ impl ToTokens for Response {
                 struct ResponseBody(#ty);
             }
         } else if self.has_body_fields() {
-            let fields = self
-                .fields
-                .iter()
-                .filter_map(|response_field| match *response_field {
-                    ResponseField::Body(ref field) => {
-                        let span = field.span();
-                        Some(quote_spanned!(span=> #field))
-                    }
-                    _ => None,
-                });
+            let fields = self.fields.iter().filter_map(ResponseField::as_body_field);
 
             quote! {
                 /// Data in the response body.
@@ -253,10 +240,7 @@ impl ResponseField {
 
     /// Whether or not this response field is a body kind.
     fn is_body(&self) -> bool {
-        match *self {
-            ResponseField::Body(_) => true,
-            _ => false,
-        }
+        self.as_body_field().is_some()
     }
 
     /// Whether or not this response field is a header kind.
@@ -264,6 +248,14 @@ impl ResponseField {
         match *self {
             ResponseField::Header(..) => true,
             _ => false,
+        }
+    }
+
+    /// Return the contained field if this response field is a body kind.
+    fn as_body_field(&self) -> Option<&Field> {
+        match self {
+            ResponseField::Body(field) => Some(field),
+            _ => None,
         }
     }
 

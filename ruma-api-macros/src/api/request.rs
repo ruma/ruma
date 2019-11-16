@@ -194,14 +194,10 @@ impl ToTokens for Request {
         let request_struct_body = if self.fields.is_empty() {
             quote!(;)
         } else {
-            let fields = self.fields.iter().map(|request_field| {
-                let field = request_field.field();
-                let span = field.span();
-
-                let stripped_field = strip_serde_attrs(field);
-
-                quote_spanned!(span=> #stripped_field)
-            });
+            let fields = self
+                .fields
+                .iter()
+                .map(|request_field| strip_serde_attrs(request_field.field()));
 
             quote! {
                 {
@@ -221,16 +217,7 @@ impl ToTokens for Request {
                 struct RequestBody(#ty);
             }
         } else if self.has_body_fields() {
-            let fields = self
-                .fields
-                .iter()
-                .filter_map(|request_field| match *request_field {
-                    RequestField::Body(ref field) => {
-                        let span = field.span();
-                        Some(quote_spanned!(span=> #field))
-                    }
-                    _ => None,
-                });
+            let fields = self.fields.iter().filter_map(RequestField::as_body_field);
 
             quote! {
                 /// Data in the request body.
@@ -244,17 +231,7 @@ impl ToTokens for Request {
         };
 
         let request_path_struct = if self.has_path_fields() {
-            let fields = self
-                .fields
-                .iter()
-                .filter_map(|request_field| match *request_field {
-                    RequestField::Path(ref field) => {
-                        let span = field.span();
-
-                        Some(quote_spanned!(span=> #field))
-                    }
-                    _ => None,
-                });
+            let fields = self.fields.iter().filter_map(RequestField::as_path_field);
 
             quote! {
                 /// Data in the request path.
@@ -272,16 +249,7 @@ impl ToTokens for Request {
         };
 
         let request_query_struct = if self.has_query_fields() {
-            let fields = self
-                .fields
-                .iter()
-                .filter_map(|request_field| match *request_field {
-                    RequestField::Query(ref field) => {
-                        let span = field.span();
-                        Some(quote_spanned!(span=> #field))
-                    }
-                    _ => None,
-                });
+            let fields = self.fields.iter().filter_map(RequestField::as_query_field);
 
             quote! {
                 /// Data in the request's query string.
@@ -372,6 +340,33 @@ impl RequestField {
     /// Whether or not this request field is a query string kind.
     fn is_query(&self) -> bool {
         self.kind() == RequestFieldKind::Query
+    }
+
+    /// Return the contained field if this response field is a body kind.
+    fn as_body_field(&self) -> Option<&Field> {
+        if let RequestField::Body(field) = self {
+            Some(field)
+        } else {
+            None
+        }
+    }
+
+    /// Return the contained field if this response field is a path kind.
+    fn as_path_field(&self) -> Option<&Field> {
+        if let RequestField::Path(field) = self {
+            Some(field)
+        } else {
+            None
+        }
+    }
+
+    /// Return the contained field if this response field is a query kind.
+    fn as_query_field(&self) -> Option<&Field> {
+        if let RequestField::Query(field) = self {
+            Some(field)
+        } else {
+            None
+        }
     }
 
     /// Gets the inner `Field` value.
