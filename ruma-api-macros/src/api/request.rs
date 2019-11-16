@@ -72,16 +72,9 @@ impl Request {
 
     /// Returns the body field.
     pub fn newtype_body_field(&self) -> Option<&Field> {
-        for request_field in self.fields.iter() {
-            match *request_field {
-                RequestField::NewtypeBody(ref field) => {
-                    return Some(field);
-                }
-                _ => continue,
-            }
-        }
-
-        None
+        self.fields
+            .iter()
+            .find_map(RequestField::as_newtype_body_field)
     }
 
     /// Produces code for a struct initializer for body fields on a variable named `request`.
@@ -351,6 +344,11 @@ impl RequestField {
     /// Return the contained field if this request field is a body kind.
     fn as_body_field(&self) -> Option<&Field> {
         self.field_of_kind(RequestFieldKind::Body)
+    }
+
+    /// Return the contained field if this request field is a body kind.
+    fn as_newtype_body_field(&self) -> Option<&Field> {
+        self.field_of_kind(RequestFieldKind::NewtypeBody)
     }
 
     /// Return the contained field if this request field is a path kind.
