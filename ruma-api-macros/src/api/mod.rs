@@ -5,7 +5,7 @@ use quote::{quote, ToTokens};
 use syn::{
     braced,
     parse::{Parse, ParseStream, Result},
-    Field, FieldValue, Ident, Meta, Token,
+    Field, FieldValue, Ident, Token,
 };
 
 mod attribute;
@@ -18,25 +18,9 @@ use self::{metadata::Metadata, request::Request, response::Response};
 /// Removes `serde` attributes from struct fields.
 pub fn strip_serde_attrs(field: &Field) -> Field {
     let mut field = field.clone();
-
-    field.attrs = field
+    field
         .attrs
-        .into_iter()
-        .filter(|attr| {
-            let meta = attr
-                .parse_meta()
-                .expect("ruma_api! could not parse field attributes");
-
-            match meta {
-                Meta::List(meta_list) => {
-                    let segments = &meta_list.path.segments;
-                    segments.len() != 1 || segments[0].ident != "serde"
-                }
-                _ => true,
-            }
-        })
-        .collect();
-
+        .retain(|attr| attr.path.segments.len() != 1 || attr.path.segments[0].ident != "serde");
     field
 }
 
