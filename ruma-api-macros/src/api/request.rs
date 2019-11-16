@@ -350,29 +350,17 @@ impl RequestField {
 
     /// Return the contained field if this request field is a body kind.
     fn as_body_field(&self) -> Option<&Field> {
-        if let RequestField::Body(field) = self {
-            Some(field)
-        } else {
-            None
-        }
+        self.field_of_kind(RequestFieldKind::Body)
     }
 
     /// Return the contained field if this request field is a path kind.
     fn as_path_field(&self) -> Option<&Field> {
-        if let RequestField::Path(field) = self {
-            Some(field)
-        } else {
-            None
-        }
+        self.field_of_kind(RequestFieldKind::Path)
     }
 
     /// Return the contained field if this request field is a query kind.
     fn as_query_field(&self) -> Option<&Field> {
-        if let RequestField::Query(field) = self {
-            Some(field)
-        } else {
-            None
-        }
+        self.field_of_kind(RequestFieldKind::Query)
     }
 
     /// Gets the inner `Field` value.
