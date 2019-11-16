@@ -307,7 +307,7 @@ impl RequestField {
 
     /// Gets the kind of the request field.
     fn kind(&self) -> RequestFieldKind {
-        match *self {
+        match self {
             RequestField::Body(..) => RequestFieldKind::Body,
             RequestField::Header(..) => RequestFieldKind::Header,
             RequestField::NewtypeBody(..) => RequestFieldKind::NewtypeBody,
@@ -363,12 +363,12 @@ impl RequestField {
 
     /// Gets the inner `Field` value.
     fn field(&self) -> &Field {
-        match *self {
-            RequestField::Body(ref field)
-            | RequestField::Header(ref field, _)
-            | RequestField::NewtypeBody(ref field)
-            | RequestField::Path(ref field)
-            | RequestField::Query(ref field) => field,
+        match self {
+            RequestField::Body(field)
+            | RequestField::Header(field, _)
+            | RequestField::NewtypeBody(field)
+            | RequestField::Path(field)
+            | RequestField::Query(field) => field,
         }
     }
 

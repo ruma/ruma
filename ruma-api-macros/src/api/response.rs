@@ -36,8 +36,8 @@ impl Response {
         let fields = self
             .fields
             .iter()
-            .map(|response_field| match *response_field {
-                ResponseField::Body(ref field) => {
+            .map(|response_field| match response_field {
+                ResponseField::Body(field) => {
                     let field_name = field
                         .ident
                         .clone()
@@ -48,7 +48,7 @@ impl Response {
                         #field_name: response_body.#field_name
                     }
                 }
-                ResponseField::Header(ref field, ref header_name) => {
+                ResponseField::Header(field, header_name) => {
                     let field_name = field
                         .ident
                         .clone()
@@ -63,7 +63,7 @@ impl Response {
                             .to_owned()
                     }
                 }
-                ResponseField::NewtypeBody(ref field) => {
+                ResponseField::NewtypeBody(field) => {
                     let field_name = field
                         .ident
                         .clone()
@@ -230,10 +230,10 @@ pub enum ResponseField {
 impl ResponseField {
     /// Gets the inner `Field` value.
     fn field(&self) -> &Field {
-        match *self {
-            ResponseField::Body(ref field)
-            | ResponseField::Header(ref field, _)
-            | ResponseField::NewtypeBody(ref field) => field,
+        match self {
+            ResponseField::Body(field)
+            | ResponseField::Header(field, _)
+            | ResponseField::NewtypeBody(field) => field,
         }
     }
 
@@ -244,7 +244,7 @@ impl ResponseField {
 
     /// Whether or not this response field is a header kind.
     fn is_header(&self) -> bool {
-        match *self {
+        match self {
             ResponseField::Header(..) => true,
             _ => false,
         }
