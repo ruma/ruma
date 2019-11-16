@@ -81,7 +81,7 @@ impl ToTokens for Api {
             let request_path_init_fields = self.request.request_path_init_fields();
 
             let path_segments = path_str[1..].split('/');
-            let path_segment_push = path_segments.clone().map(|segment| {
+            let path_segment_push = path_segments.map(|segment| {
                 let arg = if segment.starts_with(':') {
                     let path_var = &segment[1..];
                     let path_var_ident = Ident::new(path_var, Span::call_site());

@@ -40,7 +40,7 @@ impl Response {
                 ResponseField::Body(field) => {
                     let field_name = field
                         .ident
-                        .clone()
+                        .as_ref()
                         .expect("expected field to have an identifier");
                     let span = field.span();
 
@@ -51,7 +51,7 @@ impl Response {
                 ResponseField::Header(field, header_name) => {
                     let field_name = field
                         .ident
-                        .clone()
+                        .as_ref()
                         .expect("expected field to have an identifier");
                     let span = field.span();
 
@@ -66,7 +66,7 @@ impl Response {
                 ResponseField::NewtypeBody(field) => {
                     let field_name = field
                         .ident
-                        .clone()
+                        .as_ref()
                         .expect("expected field to have an identifier");
                     let span = field.span();
 
@@ -183,8 +183,7 @@ impl ToTokens for Response {
             }
         };
 
-        let response_body_struct = if let Some(newtype_body_field) = self.newtype_body_field() {
-            let field = newtype_body_field.clone();
+        let response_body_struct = if let Some(field) = self.newtype_body_field() {
             let ty = &field.ty;
             let span = field.span();
 

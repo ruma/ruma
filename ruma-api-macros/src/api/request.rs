@@ -205,8 +205,7 @@ impl ToTokens for Request {
             }
         };
 
-        let request_body_struct = if let Some(newtype_body_field) = self.newtype_body_field() {
-            let field = newtype_body_field.clone();
+        let request_body_struct = if let Some(field) = self.newtype_body_field() {
             let ty = &field.ty;
             let span = field.span();
 
