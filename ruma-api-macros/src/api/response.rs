@@ -83,16 +83,9 @@ impl Response {
 
     /// Gets the newtype body field, if this response has one.
     pub fn newtype_body_field(&self) -> Option<&Field> {
-        for response_field in self.fields.iter() {
-            match *response_field {
-                ResponseField::NewtypeBody(ref field) => {
-                    return Some(field);
-                }
-                _ => continue,
-            }
-        }
-
-        None
+        self.fields
+            .iter()
+            .find_map(ResponseField::as_newtype_body_field)
     }
 }
 
@@ -257,6 +250,11 @@ impl ResponseField {
         }
     }
 
+    /// Whether or not this response field is a newtype body kind.
+    fn is_newtype_body(&self) -> bool {
+        self.as_newtype_body_field().is_some()
+    }
+
     /// Return the contained field if this response field is a body kind.
     fn as_body_field(&self) -> Option<&Field> {
         match self {
@@ -265,11 +263,11 @@ impl ResponseField {
         }
     }
 
-    /// Whether or not this response field is a newtype body kind.
-    fn is_newtype_body(&self) -> bool {
-        match *self {
-            ResponseField::NewtypeBody(..) => true,
-            _ => false,
+    /// Return the contained field if this response field is a newtype body kind.
+    fn as_newtype_body_field(&self) -> Option<&Field> {
+        match self {
+            ResponseField::NewtypeBody(field) => Some(field),
+            _ => None,
         }
     }
 }
