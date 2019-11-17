@@ -25,6 +25,7 @@ ruma_api! {
         /// list of events. If the user has left the room then this will be the state of the
         /// room when they left as a list of events.
         #[ruma_api(body)]
-        pub room_state: Vec<EventResult<only::StateEvent>>,
+        #[wrap_incoming(only::StateEvent with EventResult)]
+        pub room_state: Vec<only::StateEvent>,
     }
 }
