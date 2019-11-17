@@ -51,7 +51,7 @@ impl TryFrom<RawMetadata> for Metadata {
                     _ => return Err(syn::Error::new_spanned(expr, "expected a string literal")),
                 },
                 "method" => match expr {
-                    Expr::Path(ExprPath { path, .. }) if path.segments.len() == 1 => {
+                    Expr::Path(ExprPath { ref path, .. }) if path.segments.len() == 1 => {
                         method = Some(path.segments[0].ident.clone());
                     }
                     _ => return Err(syn::Error::new_spanned(expr, "expected an identifier")),
