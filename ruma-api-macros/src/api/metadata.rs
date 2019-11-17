@@ -1,7 +1,10 @@
 //! Details of the `metadata` section of the procedural macro.
 
-use proc_macro2::Ident;
-use syn::{Expr, ExprLit, FieldValue, Lit, LitBool, LitStr, Member};
+use std::convert::TryFrom;
+
+use syn::{Expr, ExprLit, ExprPath, Ident, Lit, LitBool, LitStr, Member};
+
+use crate::api::RawMetadata;
 
 /// The result of processing the `metadata` section of the macro.
 pub struct Metadata {
@@ -19,8 +22,10 @@ pub struct Metadata {
     pub requires_authentication: LitBool,
 }
 
-impl From<Vec<FieldValue>> for Metadata {
-    fn from(field_values: Vec<FieldValue>) -> Self {
+impl TryFrom<RawMetadata> for Metadata {
+    type Error = syn::Error;
+
+    fn try_from(raw: RawMetadata) -> syn::Result<Self> {
         let mut description = None;
         let mut method = None;
         let mut name = None;
@@ -28,84 +33,81 @@ impl From<Vec<FieldValue>> for Metadata {
         let mut rate_limited = None;
         let mut requires_authentication = None;
 
-        for field_value in field_values {
-            let identifier = match field_value.member {
+        for field_value in raw.field_values {
+            let identifier = match field_value.member.clone() {
                 Member::Named(identifier) => identifier,
                 _ => panic!("expected Member::Named"),
             };
+            let expr = field_value.expr.clone();
 
             match &identifier.to_string()[..] {
-                "description" => {
-                    let literal = match field_value.expr {
-                        Expr::Lit(ExprLit {
-                            lit: Lit::Str(s), ..
-                        }) => s,
-                        _ => panic!("expected string literal"),
-                    };
-                    description = Some(literal);
-                }
-                "method" => {
-                    let expr_path = match field_value.expr {
-                        Expr::Path(expr_path) => expr_path,
-                        _ => panic!("expected Expr::Path"),
-                    };
-                    let path = expr_path.path;
-                    let mut segments = path.segments.iter();
-                    let method_name = segments.next().expect("expected non-empty path");
-                    assert!(
-                        segments.next().is_none(),
-                        "ruma_api! expects a one-component path for `metadata` `method`"
-                    );
-                    method = Some(method_name.ident.clone());
-                }
-                "name" => {
-                    let literal = match field_value.expr {
-                        Expr::Lit(ExprLit {
-                            lit: Lit::Str(s), ..
-                        }) => s,
-                        _ => panic!("expected string literal"),
-                    };
-                    name = Some(literal);
-                }
-                "path" => {
-                    let literal = match field_value.expr {
-                        Expr::Lit(ExprLit {
-                            lit: Lit::Str(s), ..
-                        }) => s,
-                        _ => panic!("expected string literal"),
-                    };
-                    path = Some(literal);
-                }
-                "rate_limited" => {
-                    let literal = match field_value.expr {
-                        Expr::Lit(ExprLit {
-                            lit: Lit::Bool(b), ..
-                        }) => b,
-                        _ => panic!("expected Expr::Lit"),
-                    };
-                    rate_limited = Some(literal)
-                }
-                "requires_authentication" => {
-                    let literal = match field_value.expr {
-                        Expr::Lit(ExprLit {
-                            lit: Lit::Bool(b), ..
-                        }) => b,
-                        _ => panic!("expected Expr::Lit"),
-                    };
-                    requires_authentication = Some(literal)
-                }
-                _ => panic!("ruma_api! metadata included unexpected field"),
+                "description" => match expr {
+                    Expr::Lit(ExprLit {
+                        lit: Lit::Str(literal),
+                        ..
+                    }) => {
+                        description = Some(literal);
+                    }
+                    _ => return Err(syn::Error::new_spanned(expr, "expected a string literal")),
+                },
+                "method" => match expr {
+                    Expr::Path(ExprPath { path, .. }) if path.segments.len() == 1 => {
+                        method = Some(path.segments[0].ident.clone());
+                    }
+                    _ => return Err(syn::Error::new_spanned(expr, "expected an identifier")),
+                },
+                "name" => match expr {
+                    Expr::Lit(ExprLit {
+                        lit: Lit::Str(literal),
+                        ..
+                    }) => {
+                        name = Some(literal);
+                    }
+                    _ => return Err(syn::Error::new_spanned(expr, "expected a string literal")),
+                },
+                "path" => match expr {
+                    Expr::Lit(ExprLit {
+                        lit: Lit::Str(literal),
+                        ..
+                    }) => {
+                        path = Some(literal);
+                    }
+                    _ => return Err(syn::Error::new_spanned(expr, "expected a string literal")),
+                },
+                "rate_limited" => match expr {
+                    Expr::Lit(ExprLit {
+                        lit: Lit::Bool(literal),
+                        ..
+                    }) => {
+                        rate_limited = Some(literal);
+                    }
+                    _ => return Err(syn::Error::new_spanned(expr, "expected a bool literal")),
+                },
+                "requires_authentication" => match expr {
+                    Expr::Lit(ExprLit {
+                        lit: Lit::Bool(literal),
+                        ..
+                    }) => {
+                        requires_authentication = Some(literal);
+                    }
+                    _ => return Err(syn::Error::new_spanned(expr, "expected a bool literal")),
+                },
+                _ => return Err(syn::Error::new_spanned(field_value, "unexpected field")),
             }
         }
 
-        Self {
-            description: description.expect("ruma_api! `metadata` is missing `description`"),
-            method: method.expect("ruma_api! `metadata` is missing `method`"),
-            name: name.expect("ruma_api! `metadata` is missing `name`"),
-            path: path.expect("ruma_api! `metadata` is missing `path`"),
-            rate_limited: rate_limited.expect("ruma_api! `metadata` is missing `rate_limited`"),
+        let metadata_kw = raw.metadata_kw;
+        let missing_field =
+            |name| syn::Error::new_spanned(metadata_kw, format!("missing field `{}`", name));
+
+        Ok(Self {
+            description: description.ok_or_else(|| missing_field("description"))?,
+            method: method.ok_or_else(|| missing_field("method"))?,
+            name: name.ok_or_else(|| missing_field("name"))?,
+            path: path.ok_or_else(|| missing_field("path"))?,
+            rate_limited: rate_limited.ok_or_else(|| missing_field("rate_limited"))?,
             requires_authentication: requires_authentication
-                .expect("ruma_api! `metadata` is missing `requires_authentication`"),
-        }
+                .ok_or_else(|| missing_field("requires_authentication"))?,
+        })
     }
 }

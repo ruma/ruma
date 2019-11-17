@@ -1,5 +1,7 @@
 //! Details of the `request` section of the procedural macro.
 
+use std::convert::TryFrom;
+
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{spanned::Spanned, Field, Ident};
@@ -119,8 +121,10 @@ impl Request {
     }
 }
 
-impl From<Vec<Field>> for Request {
-    fn from(fields: Vec<Field>) -> Self {
+impl TryFrom<Vec<Field>> for Request {
+    type Error = syn::Error;
+
+    fn try_from(fields: Vec<Field>) -> syn::Result<Self> {
         let fields: Vec<_> = fields.into_iter().map(|mut field| {
             let mut field_kind = None;
             let mut header = None;
@@ -179,7 +183,7 @@ impl From<Vec<Field>> for Request {
             );
         }
 
-        Self { fields }
+        Ok(Self { fields })
     }
 }
 

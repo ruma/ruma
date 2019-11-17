@@ -1,5 +1,7 @@
 //! Details of the `response` section of the procedural macro.
 
+use std::convert::TryFrom;
+
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{spanned::Spanned, Field, Ident};
@@ -89,8 +91,10 @@ impl Response {
     }
 }
 
-impl From<Vec<Field>> for Response {
-    fn from(fields: Vec<Field>) -> Self {
+impl TryFrom<Vec<Field>> for Response {
+    type Error = syn::Error;
+
+    fn try_from(fields: Vec<Field>) -> syn::Result<Self> {
         let fields: Vec<_> = fields
             .into_iter()
             .map(|mut field| {
@@ -157,7 +161,7 @@ impl From<Vec<Field>> for Response {
             );
         }
 
-        Self { fields }
+        Ok(Self { fields })
     }
 }
 

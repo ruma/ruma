@@ -1,10 +1,12 @@
 //! Details of the `ruma_api` procedural macro.
 
+use std::convert::{TryFrom, TryInto as _};
+
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{
     braced,
-    parse::{Parse, ParseStream, Result},
+    parse::{Parse, ParseStream},
     Field, FieldValue, Ident, Token,
 };
 
@@ -34,12 +36,14 @@ pub struct Api {
     response: Response,
 }
 
-impl From<RawApi> for Api {
-    fn from(raw_api: RawApi) -> Self {
+impl TryFrom<RawApi> for Api {
+    type Error = syn::Error;
+
+    fn try_from(raw_api: RawApi) -> syn::Result<Self> {
         let res = Self {
-            metadata: raw_api.metadata.into(),
-            request: raw_api.request.into(),
-            response: raw_api.response.into(),
+            metadata: raw_api.metadata.try_into()?,
+            request: raw_api.request.try_into()?,
+            response: raw_api.response.try_into()?,
         };
 
         assert!(
@@ -48,7 +52,7 @@ impl From<RawApi> for Api {
             "GET endpoints can't have body fields"
         );
 
-        res
+        Ok(res)
     }
 }
 
@@ -303,7 +307,7 @@ mod kw {
 /// The entire `ruma_api!` macro structure directly as it appears in the source code..
 pub struct RawApi {
     /// The `metadata` section of the macro.
-    pub metadata: Vec<FieldValue>,
+    pub metadata: RawMetadata,
     /// The `request` section of the macro.
     pub request: Vec<Field>,
     /// The `response` section of the macro.
@@ -311,10 +315,8 @@ pub struct RawApi {
 }
 
 impl Parse for RawApi {
-    fn parse(input: ParseStream<'_>) -> Result<Self> {
-        input.parse::<kw::metadata>()?;
-        let metadata;
-        braced!(metadata in input);
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let metadata = input.parse::<RawMetadata>()?;
 
         input.parse::<kw::request>()?;
         let request;
@@ -325,16 +327,34 @@ impl Parse for RawApi {
         braced!(response in input);
 
         Ok(Self {
-            metadata: metadata
-                .parse_terminated::<FieldValue, Token![,]>(FieldValue::parse)?
-                .into_iter()
-                .collect(),
+            metadata,
             request: request
                 .parse_terminated::<Field, Token![,]>(Field::parse_named)?
                 .into_iter()
                 .collect(),
             response: response
                 .parse_terminated::<Field, Token![,]>(Field::parse_named)?
+                .into_iter()
+                .collect(),
+        })
+    }
+}
+
+pub struct RawMetadata {
+    pub metadata_kw: kw::metadata,
+    pub field_values: Vec<FieldValue>,
+}
+
+impl Parse for RawMetadata {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let metadata_kw = input.parse::<kw::metadata>()?;
+        let field_values;
+        braced!(field_values in input);
+
+        Ok(Self {
+            metadata_kw,
+            field_values: field_values
+                .parse_terminated::<FieldValue, Token![,]>(FieldValue::parse)?
                 .into_iter()
                 .collect(),
         })
