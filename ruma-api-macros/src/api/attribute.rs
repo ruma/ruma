@@ -33,16 +33,10 @@ impl Meta {
             syn::Path {
                 leading_colon: None,
                 segments,
-            } => {
-                if segments.len() == 1 && segments[0].ident == "ruma_api" {
-                    Some(
-                        attr.parse_args()
-                            .expect("ruma_api! could not parse request field attributes"),
-                    )
-                } else {
-                    None
-                }
-            }
+            } if segments.len() == 1 && segments[0].ident == "ruma_api" => Some(
+                attr.parse_args()
+                    .expect("ruma_api! could not parse request field attributes"),
+            ),
             _ => None,
         }
     }
