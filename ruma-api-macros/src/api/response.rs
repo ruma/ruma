@@ -1,6 +1,6 @@
 //! Details of the `response` section of the procedural macro.
 
-use std::convert::TryFrom;
+use std::{convert::TryFrom, mem};
 
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
@@ -8,7 +8,7 @@ use syn::{spanned::Spanned, Field, Ident};
 
 use crate::api::{
     attribute::{Meta, MetaNameValue},
-    strip_serde_attrs,
+    strip_serde_attrs, RawResponse,
 };
 
 /// The result of processing the `response` section of the macro.
@@ -91,74 +91,89 @@ impl Response {
     }
 }
 
-impl TryFrom<Vec<Field>> for Response {
+impl TryFrom<RawResponse> for Response {
     type Error = syn::Error;
 
-    fn try_from(fields: Vec<Field>) -> syn::Result<Self> {
-        let fields: Vec<_> = fields
+    fn try_from(raw: RawResponse) -> syn::Result<Self> {
+        let mut newtype_body_field = None;
+
+        let fields = raw
+            .fields
             .into_iter()
             .map(|mut field| {
                 let mut field_kind = None;
                 let mut header = None;
 
-                field.attrs.retain(|attr| {
-                    let meta = match Meta::from_attribute(attr) {
+                for attr in mem::replace(&mut field.attrs, Vec::new()) {
+                    let meta = match Meta::from_attribute(&attr) {
                         Some(m) => m,
-                        None => return true,
+                        None => {
+                            field.attrs.push(attr);
+                            continue;
+                        }
                     };
 
-                    match meta {
-                        Meta::Word(ident) => {
-                            assert!(
-                                ident == "body",
-                                "ruma_api! single-word attribute on responses must be: body"
-                            );
-                            assert!(
-                                field_kind.is_none(),
-                                "ruma_api! field kind can only be set once per field"
-                            );
-
-                            field_kind = Some(ResponseFieldKind::NewtypeBody);
-                        }
-                        Meta::NameValue(MetaNameValue { name, value }) => {
-                            assert!(
-                                name == "header",
-                                "ruma_api! name/value pair attribute on responses must be: header"
-                            );
-                            assert!(
-                                field_kind.is_none(),
-                                "ruma_api! field kind can only be set once per field"
-                            );
-
-                            header = Some(value);
-                            field_kind = Some(ResponseFieldKind::Header);
-                        }
+                    if field_kind.is_some() {
+                        return Err(syn::Error::new_spanned(
+                            attr,
+                            "There can only be one field kind attribute",
+                        ));
                     }
 
-                    false
-                });
+                    field_kind = Some(match meta {
+                        Meta::Word(ident) => {
+                            if ident != "body" {
+                                return Err(syn::Error::new_spanned(
+                                    ident,
+                                    "Invalid #[ruma_api] argument with value, expected `body`",
+                                ));
+                            }
 
-                match field_kind.unwrap_or(ResponseFieldKind::Body) {
+                            if let Some(f) = &newtype_body_field {
+                                let mut error = syn::Error::new_spanned(
+                                    field,
+                                    "There can only be one newtype body field",
+                                );
+                                error.combine(syn::Error::new_spanned(
+                                    f,
+                                    "Previous newtype body field",
+                                ));
+                                return Err(error);
+                            }
+
+                            newtype_body_field = Some(field.clone());
+                            ResponseFieldKind::NewtypeBody
+                        }
+                        Meta::NameValue(MetaNameValue { name, value }) => {
+                            if name != "header" {
+                                return Err(syn::Error::new_spanned(
+                                    name,
+                                    "Invalid #[ruma_api] argument with value, expected `header`",
+                                ));
+                            }
+
+                            header = Some(value);
+                            ResponseFieldKind::Header
+                        }
+                    });
+                }
+
+                Ok(match field_kind.unwrap_or(ResponseFieldKind::Body) {
                     ResponseFieldKind::Body => ResponseField::Body(field),
                     ResponseFieldKind::Header => {
                         ResponseField::Header(field, header.expect("missing header name"))
                     }
                     ResponseFieldKind::NewtypeBody => ResponseField::NewtypeBody(field),
-                }
+                })
             })
-            .collect();
+            .collect::<syn::Result<Vec<_>>>()?;
 
-        let num_body_fields = fields.iter().filter(|f| f.is_body()).count();
-        let num_newtype_body_fields = fields.iter().filter(|f| f.is_newtype_body()).count();
-        assert!(
-            num_newtype_body_fields <= 1,
-            "ruma_api! response can only have one newtype body field"
-        );
-        if num_newtype_body_fields == 1 {
-            assert!(
-                num_body_fields == 0,
-                "ruma_api! response can't have both regular body fields and a newtype body field"
-            );
+        if newtype_body_field.is_some() && fields.iter().any(|f| f.is_body()) {
+            return Err(syn::Error::new_spanned(
+                // TODO: raw,
+                raw.response_kw,
+                "Can't have both a newtype body field and regular body fields",
+            ));
         }
 
         Ok(Self { fields })
@@ -251,11 +266,6 @@ impl ResponseField {
             ResponseField::Header(..) => true,
             _ => false,
         }
-    }
-
-    /// Whether or not this response field is a newtype body kind.
-    fn is_newtype_body(&self) -> bool {
-        self.as_newtype_body_field().is_some()
     }
 
     /// Return the contained field if this response field is a body kind.
