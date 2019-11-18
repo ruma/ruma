@@ -309,7 +309,7 @@ pub struct RawApi {
     /// The `metadata` section of the macro.
     pub metadata: RawMetadata,
     /// The `request` section of the macro.
-    pub request: Vec<Field>,
+    pub request: RawRequest,
     /// The `response` section of the macro.
     pub response: Vec<Field>,
 }
@@ -317,10 +317,7 @@ pub struct RawApi {
 impl Parse for RawApi {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let metadata = input.parse::<RawMetadata>()?;
-
-        input.parse::<kw::request>()?;
-        let request;
-        braced!(request in input);
+        let request = input.parse::<RawRequest>()?;
 
         input.parse::<kw::response>()?;
         let response;
@@ -328,10 +325,7 @@ impl Parse for RawApi {
 
         Ok(Self {
             metadata,
-            request: request
-                .parse_terminated::<Field, Token![,]>(Field::parse_named)?
-                .into_iter()
-                .collect(),
+            request,
             response: response
                 .parse_terminated::<Field, Token![,]>(Field::parse_named)?
                 .into_iter()
@@ -355,6 +349,27 @@ impl Parse for RawMetadata {
             metadata_kw,
             field_values: field_values
                 .parse_terminated::<FieldValue, Token![,]>(FieldValue::parse)?
+                .into_iter()
+                .collect(),
+        })
+    }
+}
+
+pub struct RawRequest {
+    pub request_kw: kw::request,
+    pub fields: Vec<Field>,
+}
+
+impl Parse for RawRequest {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let request_kw = input.parse::<kw::request>()?;
+        let fields;
+        braced!(fields in input);
+
+        Ok(Self {
+            request_kw,
+            fields: fields
+                .parse_terminated::<Field, Token![,]>(Field::parse_named)?
                 .into_iter()
                 .collect(),
         })
