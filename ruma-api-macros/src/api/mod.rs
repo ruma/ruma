@@ -46,13 +46,32 @@ impl TryFrom<RawApi> for Api {
             response: raw_api.response.try_into()?,
         };
 
-        assert!(
-            !(res.metadata.method == "GET"
-                && (res.request.has_body_fields() || res.request.newtype_body_field().is_some())),
-            "GET endpoints can't have body fields"
-        );
+        let newtype_body_field = res.request.newtype_body_field();
+        if res.metadata.method == "GET"
+            && (res.request.has_body_fields() || newtype_body_field.is_some())
+        {
+            let mut combined_error: Option<syn::Error> = None;
+            let mut add_error = |field| {
+                let error = syn::Error::new_spanned(field, "GET endpoints can't have body fields");
+                if let Some(combined_error_ref) = &mut combined_error {
+                    combined_error_ref.combine(error);
+                } else {
+                    combined_error = Some(error);
+                }
+            };
 
-        Ok(res)
+            for field in res.request.body_fields() {
+                add_error(field);
+            }
+
+            if let Some(field) = newtype_body_field {
+                add_error(field);
+            }
+
+            Err(combined_error.unwrap())
+        } else {
+            Ok(res)
+        }
     }
 }
 

@@ -23,7 +23,7 @@ impl Request {
         let append_stmts = self.header_fields().map(|request_field| {
             let (field, header_name) = match request_field {
                 RequestField::Header(field, header_name) => (field, header_name),
-                _ => panic!("expected request field to be header variant"),
+                _ => unreachable!("expected request field to be header variant"),
             };
 
             let field_name = &field.ident;
@@ -60,6 +60,11 @@ impl Request {
     /// Whether or not this request has any data in the query string.
     pub fn has_query_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_query())
+    }
+
+    /// Produces an iterator over all the body fields.
+    pub fn body_fields(&self) -> impl Iterator<Item = &Field> {
+        self.fields.iter().filter_map(|field| field.as_body_field())
     }
 
     /// Produces an iterator over all the header fields.
@@ -135,7 +140,7 @@ impl TryFrom<RawRequest> for Request {
                 let mut header = None;
 
                 for attr in mem::replace(&mut field.attrs, Vec::new()) {
-                    let meta = match Meta::from_attribute(&attr) {
+                    let meta = match Meta::from_attribute(&attr)? {
                         Some(m) => m,
                         None => {
                             field.attrs.push(attr);

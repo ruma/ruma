@@ -105,7 +105,7 @@ impl TryFrom<RawResponse> for Response {
                 let mut header = None;
 
                 for attr in mem::replace(&mut field.attrs, Vec::new()) {
-                    let meta = match Meta::from_attribute(&attr) {
+                    let meta = match Meta::from_attribute(&attr)? {
                         Some(m) => m,
                         None => {
                             field.attrs.push(attr);
