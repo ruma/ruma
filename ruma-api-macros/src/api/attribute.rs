@@ -29,13 +29,10 @@ impl Meta {
     ///
     /// Panics if the given attribute is a ruma_api attribute, but fails to parse.
     pub fn from_attribute(attr: &syn::Attribute) -> syn::Result<Option<Self>> {
-        match &attr.path {
-            syn::Path { leading_colon: None, segments }
-                if segments.len() == 1 && segments[0].ident == "ruma_api" =>
-            {
-                attr.parse_args().map(Some)
-            }
-            _ => Ok(None),
+        if attr.path.is_ident("ruma_api") {
+            attr.parse_args().map(Some)
+        } else {
+            Ok(None)
         }
     }
 }

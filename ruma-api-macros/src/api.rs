@@ -20,9 +20,7 @@ use self::{metadata::Metadata, request::Request, response::Response};
 /// Removes `serde` attributes from struct fields.
 pub fn strip_serde_attrs(field: &Field) -> Field {
     let mut field = field.clone();
-    field
-        .attrs
-        .retain(|attr| attr.path.segments.len() != 1 || attr.path.segments[0].ident != "serde");
+    field.attrs.retain(|attr| attr.path.is_ident("serde"));
     field
 }
 
