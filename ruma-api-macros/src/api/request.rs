@@ -90,6 +90,11 @@ impl Request {
         self.fields.iter().filter_map(|field| field.as_body_field())
     }
 
+    /// Whether any field has a #[wrap_incoming] attribute.
+    pub fn uses_wrap_incoming(&self) -> bool {
+        self.fields.iter().any(|f| f.has_wrap_incoming_attr())
+    }
+
     /// Produces an iterator over all the header fields.
     pub fn header_fields(&self) -> impl Iterator<Item = &RequestField> {
         self.fields.iter().filter(|field| field.is_header())
@@ -102,16 +107,9 @@ impl Request {
 
     /// Gets the path field with the given name.
     pub fn path_field(&self, name: &str) -> Option<&Field> {
-        self.fields
-            .iter()
-            .flat_map(|f| f.field_of_kind(RequestFieldKind::Path))
-            .find(|field| {
-                field
-                    .ident
-                    .as_ref()
-                    .expect("expected field to have an identifier")
-                    == name
-            })
+        self.fields.iter().flat_map(|f| f.field_of_kind(RequestFieldKind::Path)).find(|field| {
+            field.ident.as_ref().expect("expected field to have an identifier") == name
+        })
     }
 
     /// Returns the body field.
@@ -273,8 +271,8 @@ impl TryFrom<RawRequest> for Request {
             .collect::<syn::Result<Vec<_>>>()?;
 
         if newtype_body_field.is_some() && fields.iter().any(|f| f.is_body()) {
+            // TODO: highlight conflicting fields,
             return Err(syn::Error::new_spanned(
-                // TODO: raw,
                 raw.request_kw,
                 "Can't have both a newtype body field and regular body fields",
             ));
@@ -295,7 +293,8 @@ impl TryFrom<RawRequest> for Request {
 impl ToTokens for Request {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let request_struct_header = quote! {
-            #[derive(Debug, Clone)]
+            #[derive(Debug, Clone, ruma_api::SendRecv)]
+            #[incoming_no_deserialize]
             pub struct Request
         };
 
@@ -312,28 +311,51 @@ impl ToTokens for Request {
             }
         };
 
-        let request_body_struct = if let Some(field) = self.newtype_body_field() {
-            let ty = &field.ty;
-            let span = field.span();
+        let request_body_struct =
+            if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
+                let field = body_field.field();
+                let ty = &field.ty;
+                let span = field.span();
+                let derive_deserialize = if body_field.has_wrap_incoming_attr() {
+                    TokenStream::new()
+                } else {
+                    quote!(ruma_api::exports::serde::Deserialize)
+                };
 
-            quote_spanned! {span=>
-                /// Data in the request body.
-                #[derive(Debug, ruma_api::exports::serde::Deserialize, ruma_api::exports::serde::Serialize)]
-                struct RequestBody(#ty);
-            }
-        } else if self.has_body_fields() {
-            let fields = self.fields.iter().filter_map(RequestField::as_body_field);
-
-            quote! {
-                /// Data in the request body.
-                #[derive(Debug, ruma_api::exports::serde::Deserialize, ruma_api::exports::serde::Serialize)]
-                struct RequestBody {
-                    #(#fields),*
+                quote_spanned! {span=>
+                    /// Data in the request body.
+                    #[derive(
+                        Debug,
+                        ruma_api::SendRecv,
+                        ruma_api::exports::serde::Serialize,
+                        #derive_deserialize
+                    )]
+                    struct RequestBody(#ty);
                 }
-            }
-        } else {
-            TokenStream::new()
-        };
+            } else if self.has_body_fields() {
+                let fields = self.fields.iter().filter(|f| f.is_body());
+                let derive_deserialize = if fields.clone().any(|f| f.has_wrap_incoming_attr()) {
+                    TokenStream::new()
+                } else {
+                    quote!(ruma_api::exports::serde::Deserialize)
+                };
+                let fields = fields.map(RequestField::field);
+
+                quote! {
+                    /// Data in the request body.
+                    #[derive(
+                        Debug,
+                        ruma_api::SendRecv,
+                        ruma_api::exports::serde::Serialize,
+                        #derive_deserialize
+                    )]
+                    struct RequestBody {
+                        #(#fields),*
+                    }
+                }
+            } else {
+                TokenStream::new()
+            };
 
         let request_path_struct = if self.has_path_fields() {
             let fields = self.fields.iter().filter_map(RequestField::as_path_field);
@@ -449,6 +471,11 @@ impl RequestField {
         self.kind() == RequestFieldKind::Header
     }
 
+    /// Whether or not this request field is a newtype body kind.
+    fn is_newtype_body(&self) -> bool {
+        self.kind() == RequestFieldKind::NewtypeBody
+    }
+
     /// Whether or not this request field is a path kind.
     fn is_path(&self) -> bool {
         self.kind() == RequestFieldKind::Path
@@ -503,6 +530,13 @@ impl RequestField {
         } else {
             None
         }
+    }
+
+    /// Whether or not the request field has a #[wrap_incoming] attribute.
+    fn has_wrap_incoming_attr(&self) -> bool {
+        self.field().attrs.iter().any(|attr| {
+            attr.path.segments.len() == 1 && attr.path.segments[0].ident == "wrap_incoming"
+        })
     }
 }
 

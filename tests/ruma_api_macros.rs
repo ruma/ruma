@@ -1,5 +1,6 @@
 pub mod some_endpoint {
     use ruma_api::ruma_api;
+    use ruma_events::{tag::TagEventContent, EventResult};
 
     ruma_api! {
         metadata {
@@ -40,6 +41,10 @@ pub mod some_endpoint {
             // You can use serde attributes on any kind of field
             #[serde(skip_serializing_if = "Option::is_none")]
             pub optional_flag: Option<bool>,
+
+            /// The user's tags for the room.
+            #[wrap_incoming(with EventResult)]
+            pub tags: TagEventContent,
         }
     }
 }
