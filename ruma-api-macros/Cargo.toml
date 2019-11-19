@@ -13,12 +13,9 @@ version = "0.8.0"
 edition = "2018"
 
 [dependencies]
-quote = "1.0.1"
-proc-macro2 = "1.0.1"
-
-[dependencies.syn]
-version = "1.0.2"
-features = ["full"]
+proc-macro2 = "1.0.6"
+quote = "1.0.2"
+syn = { version = "1.0.8", features = ["full"] }
 
 [lib]
 proc-macro = true
