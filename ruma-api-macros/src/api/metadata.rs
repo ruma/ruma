@@ -42,10 +42,7 @@ impl TryFrom<RawMetadata> for Metadata {
 
             match &identifier.to_string()[..] {
                 "description" => match expr {
-                    Expr::Lit(ExprLit {
-                        lit: Lit::Str(literal),
-                        ..
-                    }) => {
+                    Expr::Lit(ExprLit { lit: Lit::Str(literal), .. }) => {
                         description = Some(literal);
                     }
                     _ => return Err(syn::Error::new_spanned(expr, "expected a string literal")),
@@ -57,37 +54,25 @@ impl TryFrom<RawMetadata> for Metadata {
                     _ => return Err(syn::Error::new_spanned(expr, "expected an identifier")),
                 },
                 "name" => match expr {
-                    Expr::Lit(ExprLit {
-                        lit: Lit::Str(literal),
-                        ..
-                    }) => {
+                    Expr::Lit(ExprLit { lit: Lit::Str(literal), .. }) => {
                         name = Some(literal);
                     }
                     _ => return Err(syn::Error::new_spanned(expr, "expected a string literal")),
                 },
                 "path" => match expr {
-                    Expr::Lit(ExprLit {
-                        lit: Lit::Str(literal),
-                        ..
-                    }) => {
+                    Expr::Lit(ExprLit { lit: Lit::Str(literal), .. }) => {
                         path = Some(literal);
                     }
                     _ => return Err(syn::Error::new_spanned(expr, "expected a string literal")),
                 },
                 "rate_limited" => match expr {
-                    Expr::Lit(ExprLit {
-                        lit: Lit::Bool(literal),
-                        ..
-                    }) => {
+                    Expr::Lit(ExprLit { lit: Lit::Bool(literal), .. }) => {
                         rate_limited = Some(literal);
                     }
                     _ => return Err(syn::Error::new_spanned(expr, "expected a bool literal")),
                 },
                 "requires_authentication" => match expr {
-                    Expr::Lit(ExprLit {
-                        lit: Lit::Bool(literal),
-                        ..
-                    }) => {
+                    Expr::Lit(ExprLit { lit: Lit::Bool(literal), .. }) => {
                         requires_authentication = Some(literal);
                     }
                     _ => return Err(syn::Error::new_spanned(expr, "expected a bool literal")),

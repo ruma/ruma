@@ -162,10 +162,7 @@ impl ToTokens for Api {
         };
 
         let create_http_request = if let Some(field) = self.request.newtype_body_field() {
-            let field_name = field
-                .ident
-                .as_ref()
-                .expect("expected field to have an identifier");
+            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
 
             quote! {
                 let request_body = RequestBody(request.#field_name);
@@ -335,11 +332,7 @@ pub struct RawApi {
 
 impl Parse for RawApi {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        Ok(Self {
-            metadata: input.parse()?,
-            request: input.parse()?,
-            response: input.parse()?,
-        })
+        Ok(Self { metadata: input.parse()?, request: input.parse()?, response: input.parse()? })
     }
 }
 

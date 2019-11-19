@@ -79,9 +79,7 @@ impl Request {
 
     /// Returns the body field.
     pub fn newtype_body_field(&self) -> Option<&Field> {
-        self.fields
-            .iter()
-            .find_map(RequestField::as_newtype_body_field)
+        self.fields.iter().find_map(RequestField::as_newtype_body_field)
     }
 
     /// Produces code for a struct initializer for body fields on a variable named `request`.
@@ -108,10 +106,8 @@ impl Request {
     ) -> TokenStream {
         let fields = self.fields.iter().filter_map(|f| {
             f.field_of_kind(request_field_kind).map(|field| {
-                let field_name = field
-                    .ident
-                    .as_ref()
-                    .expect("expected field to have an identifier");
+                let field_name =
+                    field.ident.as_ref().expect("expected field to have an identifier");
                 let span = field.span();
 
                 quote_spanned! {span=>
@@ -228,10 +224,8 @@ impl ToTokens for Request {
         let request_struct_body = if self.fields.is_empty() {
             quote!(;)
         } else {
-            let fields = self
-                .fields
-                .iter()
-                .map(|request_field| strip_serde_attrs(request_field.field()));
+            let fields =
+                self.fields.iter().map(|request_field| strip_serde_attrs(request_field.field()));
 
             quote! {
                 {

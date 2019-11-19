@@ -35,48 +35,39 @@ impl Response {
 
     /// Produces code for a response struct initializer.
     pub fn init_fields(&self) -> TokenStream {
-        let fields = self
-            .fields
-            .iter()
-            .map(|response_field| match response_field {
-                ResponseField::Body(field) => {
-                    let field_name = field
-                        .ident
-                        .as_ref()
-                        .expect("expected field to have an identifier");
-                    let span = field.span();
+        let fields = self.fields.iter().map(|response_field| match response_field {
+            ResponseField::Body(field) => {
+                let field_name =
+                    field.ident.as_ref().expect("expected field to have an identifier");
+                let span = field.span();
 
-                    quote_spanned! {span=>
-                        #field_name: response_body.#field_name
-                    }
+                quote_spanned! {span=>
+                    #field_name: response_body.#field_name
                 }
-                ResponseField::Header(field, header_name) => {
-                    let field_name = field
-                        .ident
-                        .as_ref()
-                        .expect("expected field to have an identifier");
-                    let span = field.span();
+            }
+            ResponseField::Header(field, header_name) => {
+                let field_name =
+                    field.ident.as_ref().expect("expected field to have an identifier");
+                let span = field.span();
 
-                    quote_spanned! {span=>
-                        #field_name: headers.remove(ruma_api::exports::http::header::#header_name)
-                            .expect("response missing expected header")
-                            .to_str()
-                            .expect("failed to convert HeaderValue to str")
-                            .to_owned()
-                    }
+                quote_spanned! {span=>
+                    #field_name: headers.remove(ruma_api::exports::http::header::#header_name)
+                        .expect("response missing expected header")
+                        .to_str()
+                        .expect("failed to convert HeaderValue to str")
+                        .to_owned()
                 }
-                ResponseField::NewtypeBody(field) => {
-                    let field_name = field
-                        .ident
-                        .as_ref()
-                        .expect("expected field to have an identifier");
-                    let span = field.span();
+            }
+            ResponseField::NewtypeBody(field) => {
+                let field_name =
+                    field.ident.as_ref().expect("expected field to have an identifier");
+                let span = field.span();
 
-                    quote_spanned! {span=>
-                        #field_name: response_body
-                    }
+                quote_spanned! {span=>
+                    #field_name: response_body
                 }
-            });
+            }
+        });
 
         quote! {
             #(#fields,)*
@@ -85,9 +76,7 @@ impl Response {
 
     /// Gets the newtype body field, if this response has one.
     pub fn newtype_body_field(&self) -> Option<&Field> {
-        self.fields
-            .iter()
-            .find_map(ResponseField::as_newtype_body_field)
+        self.fields.iter().find_map(ResponseField::as_newtype_body_field)
     }
 }
 
@@ -190,10 +179,8 @@ impl ToTokens for Response {
         let response_struct_body = if self.fields.is_empty() {
             quote!(;)
         } else {
-            let fields = self
-                .fields
-                .iter()
-                .map(|response_field| strip_serde_attrs(response_field.field()));
+            let fields =
+                self.fields.iter().map(|response_field| strip_serde_attrs(response_field.field()));
 
             quote! {
                 {
