@@ -28,7 +28,7 @@ mod api;
 ///
 /// The macro expects the following structure as input:
 ///
-/// ```text
+/// ```rust
 /// ruma_api! {
 ///     metadata {
 ///         description: &'static str
@@ -49,7 +49,6 @@ mod api;
 ///         // in the response from this API endpoint.
 ///     }
 /// }
-/// # }
 /// ```
 ///
 /// This will generate a `ruma_api::Metadata` value to be used for the `ruma_api::Endpoint`'s
@@ -92,6 +91,10 @@ mod api;
 ///     component of the request URL.
 /// *   `#[ruma_api(query)]`: Fields with this attribute will be inserting into the URL's query
 ///     string.
+/// *   `#[ruma_api(query_map)]`: Instead of individual query fields, one query_map field, of any
+///     type that implements `IntoIterator<Item = (String, String)>` (e.g.
+///     `HashMap<String, String>`, can be used for cases where an endpoint supports arbitrary query
+///     parameters.
 ///
 /// Any field that does not include one of these attributes will be part of the request's JSON
 /// body.
