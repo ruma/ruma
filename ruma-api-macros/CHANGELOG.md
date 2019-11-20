@@ -1,5 +1,17 @@
 # [unreleased]
 
+Improvements:
+
+* Add spans to almost every error that can come up in `ruma_api!`
+* Add a new field kind: `#[ruma_api(query_map)]`
+    * This allows endpoints that have a dynamic set of query parameters to be implemented
+    * For details see the documentation of `ruma_api!`
+* Add more sanity checks
+    * No multiple `#[ruma_api(body)]` fields in one request / response definition
+    * No multiple field kind declarations `#[ruma_api(body|query|path)]` on one field
+    * No (newtype) body fields in GET endpoints
+* Lots of refactoring of the internals
+
 # 0.7.1
 
 Bug fixes:

@@ -1,12 +1,5 @@
 # [unreleased]
 
-Improvements:
-
-* Add more sanity checks
-    * No multiple `#[ruma_api(body)]` fields in one request / response definition
-    * No multiple field kind declarations `#[ruma_api(body|query|path)]` on one field
-    * No (newtype) body fields in GET endpoints
-
 # 0.11.0
 
 Breaking changes:
