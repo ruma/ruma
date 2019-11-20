@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.8.1
+
 Improvements:
 
 * Add spans to almost every error that can come up in `ruma_api!`

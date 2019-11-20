@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.11.1
+
+Improvements:
+
+* Update ruma-api-macros to 0.8.1
+
 # 0.11.0
 
 Breaking changes:
