@@ -69,3 +69,26 @@ pub mod newtype_body_endpoint {
         }
     }
 }
+
+pub mod query_map_endpoint {
+    use ruma_api_macros::ruma_api;
+
+    ruma_api! {
+        metadata {
+            description: "Does something.",
+            method: GET,
+            name: "newtype_body_endpoint",
+            path: "/_matrix/some/query/map/endpoint",
+            rate_limited: false,
+            requires_authentication: false,
+        }
+
+        request {
+            #[ruma_api(query_map)]
+            pub fields: Vec<(String, String)>,
+        }
+
+        response {
+        }
+    }
+}

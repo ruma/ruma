@@ -135,7 +135,41 @@ impl ToTokens for Api {
             }
         };
 
-        let set_request_query = if self.request.has_query_fields() {
+        let set_request_query = if let Some(field) = self.request.query_map_field() {
+            let field_name = field.ident.as_ref().expect("expected field to have identifier");
+            let field_type = &field.ty;
+
+            quote! {
+                // This function exists so that the compiler will throw an
+                // error when the type of the field with the query_map
+                // attribute doesn't implement IntoIterator<Item = (String, String)>
+                //
+                // This is necessary because the serde_urlencoded::to_string
+                // call will result in a runtime error when the type cannot be
+                // encoded as a list key-value pairs (?key1=value1&key2=value2)
+                //
+                // By asserting that it implements the iterator trait, we can
+                // ensure that it won't fail.
+                fn assert_trait_impl<T>()
+                where
+                    T: std::iter::IntoIterator<Item = (std::string::String, std::string::String)>,
+                {}
+                assert_trait_impl::<#field_type>();
+
+                let request_query = RequestQuery(request.#field_name);
+                let query_str = ruma_api::exports::serde_urlencoded::to_string(
+                    request_query,
+                )?;
+
+                let query_opt: Option<&str> = if query_str.is_empty() {
+                    None
+                } else {
+                    Some(&query_str)
+                };
+
+                url.set_query(query_opt);
+            }
+        } else if self.request.has_query_fields() {
             let request_query_init_fields = self.request.request_query_init_fields();
 
             quote! {

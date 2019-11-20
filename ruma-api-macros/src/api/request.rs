@@ -82,6 +82,11 @@ impl Request {
         self.fields.iter().find_map(RequestField::as_newtype_body_field)
     }
 
+    /// Returns the query map field.
+    pub fn query_map_field(&self) -> Option<&Field> {
+        self.fields.iter().find_map(RequestField::as_query_map_field)
+    }
+
     /// Produces code for a struct initializer for body fields on a variable named `request`.
     pub fn request_body_init_fields(&self) -> TokenStream {
         self.struct_init_fields(RequestFieldKind::Body, quote!(request))
@@ -127,6 +132,7 @@ impl TryFrom<RawRequest> for Request {
 
     fn try_from(raw: RawRequest) -> syn::Result<Self> {
         let mut newtype_body_field = None;
+        let mut query_map_field = None;
 
         let fields = raw
             .fields
@@ -172,10 +178,26 @@ impl TryFrom<RawRequest> for Request {
                                 }
                                 "path" => RequestFieldKind::Path,
                                 "query" => RequestFieldKind::Query,
+                                "query_map" => {
+                                    if let Some(f) = &query_map_field {
+                                        let mut error = syn::Error::new_spanned(
+                                            field,
+                                            "There can only be one query map field",
+                                        );
+                                        error.combine(syn::Error::new_spanned(
+                                            f,
+                                            "Previous query map field",
+                                        ));
+                                        return Err(error);
+                                    }
+
+                                    query_map_field = Some(field.clone());
+                                    RequestFieldKind::QueryMap
+                                },
                                 _ => {
                                     return Err(syn::Error::new_spanned(
                                         ident,
-                                        "Invalid #[ruma_api] argument, expected one of `body`, `path`, `query`",
+                                        "Invalid #[ruma_api] argument, expected one of `body`, `path`, `query`, `query_map`",
                                     ));
                                 }
                             }
@@ -207,6 +229,14 @@ impl TryFrom<RawRequest> for Request {
                 // TODO: raw,
                 raw.request_kw,
                 "Can't have both a newtype body field and regular body fields",
+            ));
+        }
+
+        if query_map_field.is_some() && fields.iter().any(|f| f.is_query()) {
+            return Err(syn::Error::new_spanned(
+                // TODO: raw,
+                raw.request_kw,
+                "Can't have both a query map field and regular query fields",
             ));
         }
 
@@ -275,7 +305,20 @@ impl ToTokens for Request {
             TokenStream::new()
         };
 
-        let request_query_struct = if self.has_query_fields() {
+        let request_query_struct = if let Some(field) = self.query_map_field() {
+            let ty = &field.ty;
+            let span = field.span();
+
+            quote_spanned! {span=>
+                /// Data in the request's query string.
+                #[derive(
+                    Debug,
+                    ruma_api::exports::serde::Deserialize,
+                    ruma_api::exports::serde::Serialize,
+                )]
+                struct RequestQuery(#ty);
+            }
+        } else if self.has_query_fields() {
             let fields = self.fields.iter().filter_map(RequestField::as_query_field);
 
             quote! {
@@ -317,6 +360,8 @@ pub enum RequestField {
     Path(Field),
     /// Data that appears in the query string.
     Query(Field),
+    /// Data that appears in the query string as dynamic key-value pairs.
+    QueryMap(Field),
 }
 
 impl RequestField {
@@ -330,6 +375,7 @@ impl RequestField {
             RequestFieldKind::NewtypeBody => RequestField::NewtypeBody(field),
             RequestFieldKind::Path => RequestField::Path(field),
             RequestFieldKind::Query => RequestField::Query(field),
+            RequestFieldKind::QueryMap => RequestField::QueryMap(field),
         }
     }
 
@@ -341,6 +387,7 @@ impl RequestField {
             RequestField::NewtypeBody(..) => RequestFieldKind::NewtypeBody,
             RequestField::Path(..) => RequestFieldKind::Path,
             RequestField::Query(..) => RequestFieldKind::Query,
+            RequestField::QueryMap(..) => RequestFieldKind::QueryMap,
         }
     }
 
@@ -384,6 +431,11 @@ impl RequestField {
         self.field_of_kind(RequestFieldKind::Query)
     }
 
+    /// Return the contained field if this request field is a query map kind.
+    fn as_query_map_field(&self) -> Option<&Field> {
+        self.field_of_kind(RequestFieldKind::QueryMap)
+    }
+
     /// Gets the inner `Field` value.
     fn field(&self) -> &Field {
         match self {
@@ -391,7 +443,8 @@ impl RequestField {
             | RequestField::Header(field, _)
             | RequestField::NewtypeBody(field)
             | RequestField::Path(field)
-            | RequestField::Query(field) => field,
+            | RequestField::Query(field)
+            | RequestField::QueryMap(field) => field,
         }
     }
 
@@ -418,4 +471,6 @@ enum RequestFieldKind {
     Path,
     /// See the similarly named variant of `RequestField`.
     Query,
+    /// See the similarly named variant of `RequestField`.
+    QueryMap,
 }
