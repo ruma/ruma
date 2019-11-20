@@ -28,7 +28,7 @@ mod api;
 ///
 /// The macro expects the following structure as input:
 ///
-/// ```rust
+/// ```ignore
 /// ruma_api! {
 ///     metadata {
 ///         description: &'static str
