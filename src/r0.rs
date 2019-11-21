@@ -21,6 +21,7 @@ pub mod server;
 pub mod session;
 pub mod sync;
 pub mod tag;
+pub mod thirdparty;
 pub mod typing;
 pub mod user_directory;
 pub mod voip;
