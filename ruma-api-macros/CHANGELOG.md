@@ -1,11 +1,19 @@
 # [unreleased]
 
+# 0.8.2
+
+Bug fixes:
+
+* Fix handling of `request` / `response` blocks containing fields with serde attributes ([#31][])
+
+[#31]: https://github.com/ruma/ruma-api/pull/31
+
 # 0.8.1
 
 Improvements:
 
 * Add spans to almost every error that can come up in `ruma_api!`
-* Add a new field kind: `#[ruma_api(query_map)]`
+* Add a new field kind: `#[ruma_api(query_map)]` ([#30][])
     * This allows endpoints that have a dynamic set of query parameters to be implemented
     * For details see the documentation of `ruma_api!`
 * Add more sanity checks
@@ -13,6 +21,8 @@ Improvements:
     * No multiple field kind declarations `#[ruma_api(body|query|path)]` on one field
     * No (newtype) body fields in GET endpoints
 * Lots of refactoring of the internals
+
+[#30]: https://github.com/ruma/ruma-api/pull/30
 
 # 0.7.1
 
