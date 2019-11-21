@@ -36,6 +36,10 @@ pub mod some_endpoint {
 
             // With no attribute on the field, it will be extracted from the body of the response.
             pub value: String,
+
+            // You can use serde attributes on any kind of field
+            #[serde(skip_serializing_if = "Option::is_none")]
+            pub optional_flag: Option<bool>,
         }
     }
 }
