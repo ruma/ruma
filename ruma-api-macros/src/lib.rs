@@ -9,7 +9,7 @@
     // missing_docs, # Uncomment when https://github.com/rust-lang/rust/pull/60562 is released.
 )]
 #![allow(clippy::cognitive_complexity)]
-// Since we support Rust 1.34.2, we can't apply this suggestion yet
+// Since we support Rust 1.36.0, we can't apply this suggestion yet
 #![allow(clippy::use_self)]
 #![recursion_limit = "256"]
 

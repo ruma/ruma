@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Our Minimum Supported Rust Version is now 1.36.0
+
 # 0.11.2
 
 Improvements:
