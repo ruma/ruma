@@ -1,7 +1,7 @@
 language: "rust"
 cache: "cargo"
 rust:
-  - 1.34.2
+  - 1.36.0
   - stable
   - beta
   - nightly
@@ -13,7 +13,7 @@ jobs:
 before_script:
   - rustup component add rustfmt
   - |
-      if [ "$TRAVIS_RUST_VERSION" != "1.34.2" ]; then
+      if [ "$TRAVIS_RUST_VERSION" != "1.36.0" ]; then
         rustup component add clippy
       fi
   - |
@@ -28,7 +28,7 @@ script:
       fi
   - cargo fmt -- --check
   - |
-      if [ "$TRAVIS_RUST_VERSION" != "1.34.2" ]; then
+      if [ "$TRAVIS_RUST_VERSION" != "1.36.0" ]; then
         cargo clippy --all-targets --all-features -- -D warnings
       fi
   - cargo build --verbose

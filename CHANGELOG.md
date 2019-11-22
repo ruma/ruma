@@ -3,6 +3,7 @@
 Breaking changes:
 
 * Move `r0::directory::get_public_rooms::PublicRoomsChunk` to `r0::directory::PublicRoomsChunk`
+* Our Minimum Supported Rust Version is now 1.36.0
 
 Improvements:
 
