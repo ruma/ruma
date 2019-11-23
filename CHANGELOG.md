@@ -9,3 +9,4 @@ Improvements:
 
 * Update `r0::directory::get_public_rooms` from r0.3.0 to r0.6.0
 * Add `r0::directory::get_public_rooms_filtered` (introduced upstream in r0.3.0)
+* Add `filter` optional parameter to `r0::sync::get_message_events` (introduced upstream in r0.3.0)
