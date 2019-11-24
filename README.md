@@ -6,7 +6,7 @@
 
 ## Minimum Rust version
 
-ruma-events requires Rust 1.34.2 or later.
+ruma-events requires Rust 1.36.0 or later.
 
 ## Documentation
 
