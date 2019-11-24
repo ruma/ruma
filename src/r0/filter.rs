@@ -58,6 +58,12 @@ pub struct RoomEventFilter {
     /// match any sequence of characters.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub types: Option<Vec<String>>,
+    /// If `true` include only events with a URL key in their content.
+    /// If `false`, exclude such events.
+    ///
+    /// If this item is absent then all event types are included.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contains_url: Option<bool>,
 }
 
 /// Filters to be applied to room data

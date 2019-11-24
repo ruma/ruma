@@ -12,3 +12,4 @@ Improvements:
 * Add `r0::directory::get_public_rooms_filtered` (introduced upstream in r0.3.0)
 * Add `filter` optional parameter to `r0::sync::get_message_events` (introduced upstream in r0.3.0)
 * Add `r0::appservice::set_room_visibility` (part of application service extensions for the client-server API)
+* Add `contains_url` to `r0::filter::RoomEventFilter` (introduced upstream in r0.3.0)
