@@ -4,13 +4,12 @@ use serde_json::Value;
 use crate::TryFromRaw;
 
 pub fn try_convert_variant<Enum: TryFromRaw, Content: TryFromRaw>(
-    raw_variant: fn(Content::Raw) -> Enum::Raw,
     variant: fn(Content) -> Enum,
     raw: Content::Raw,
-) -> Result<Enum, (String, Enum::Raw)> {
+) -> Result<Enum, String> {
     Content::try_from_raw(raw)
         .map(variant)
-        .map_err(|(err, raw)| (err.to_string(), raw_variant(raw)))
+        .map_err(|err| err.to_string())
 }
 
 pub fn try_variant_from_value<T, U, E>(value: Value, variant: fn(T) -> U) -> Result<U, E>

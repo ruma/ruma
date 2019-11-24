@@ -341,65 +341,57 @@ impl TryFromRaw for Event {
     type Raw = raw::Event;
     type Err = String;
 
-    fn try_from_raw(raw: raw::Event) -> Result<Self, (Self::Err, Self::Raw)> {
+    fn try_from_raw(raw: raw::Event) -> Result<Self, Self::Err> {
         use crate::util::try_convert_variant as conv;
         use raw::Event::*;
 
         match raw {
-            CallAnswer(c) => conv(CallAnswer, Event::CallAnswer, c),
-            CallCandidates(c) => conv(CallCandidates, Event::CallCandidates, c),
-            CallHangup(c) => conv(CallHangup, Event::CallHangup, c),
-            CallInvite(c) => conv(CallInvite, Event::CallInvite, c),
-            Direct(c) => conv(Direct, Event::Direct, c),
-            Dummy(c) => conv(Dummy, Event::Dummy, c),
-            ForwardedRoomKey(c) => conv(ForwardedRoomKey, Event::ForwardedRoomKey, c),
-            FullyRead(c) => conv(FullyRead, Event::FullyRead, c),
-            IgnoredUserList(c) => conv(IgnoredUserList, Event::IgnoredUserList, c),
-            KeyVerificationAccept(c) => {
-                conv(KeyVerificationAccept, Event::KeyVerificationAccept, c)
-            }
-            KeyVerificationCancel(c) => {
-                conv(KeyVerificationCancel, Event::KeyVerificationCancel, c)
-            }
-            KeyVerificationKey(c) => conv(KeyVerificationKey, Event::KeyVerificationKey, c),
-            KeyVerificationMac(c) => conv(KeyVerificationMac, Event::KeyVerificationMac, c),
-            KeyVerificationRequest(c) => {
-                conv(KeyVerificationRequest, Event::KeyVerificationRequest, c)
-            }
-            KeyVerificationStart(c) => conv(KeyVerificationStart, Event::KeyVerificationStart, c),
-            Presence(c) => conv(Presence, Event::Presence, c),
-            PushRules(c) => conv(PushRules, Event::PushRules, c),
-            Receipt(c) => conv(Receipt, Event::Receipt, c),
-            RoomAliases(c) => conv(RoomAliases, Event::RoomAliases, c),
-            RoomAvatar(c) => conv(RoomAvatar, Event::RoomAvatar, c),
-            RoomCanonicalAlias(c) => conv(RoomCanonicalAlias, Event::RoomCanonicalAlias, c),
-            RoomCreate(c) => conv(RoomCreate, Event::RoomCreate, c),
-            RoomEncrypted(c) => conv(RoomEncrypted, Event::RoomEncrypted, c),
-            RoomEncryption(c) => conv(RoomEncryption, Event::RoomEncryption, c),
-            RoomGuestAccess(c) => conv(RoomGuestAccess, Event::RoomGuestAccess, c),
-            RoomHistoryVisibility(c) => {
-                conv(RoomHistoryVisibility, Event::RoomHistoryVisibility, c)
-            }
-            RoomJoinRules(c) => conv(RoomJoinRules, Event::RoomJoinRules, c),
-            RoomMember(c) => conv(RoomMember, Event::RoomMember, c),
-            RoomMessage(c) => conv(RoomMessage, Event::RoomMessage, c),
-            RoomMessageFeedback(c) => conv(RoomMessageFeedback, Event::RoomMessageFeedback, c),
-            RoomName(c) => conv(RoomName, Event::RoomName, c),
-            RoomPinnedEvents(c) => conv(RoomPinnedEvents, Event::RoomPinnedEvents, c),
-            RoomPowerLevels(c) => conv(RoomPowerLevels, Event::RoomPowerLevels, c),
-            RoomRedaction(c) => conv(RoomRedaction, Event::RoomRedaction, c),
-            RoomServerAcl(c) => conv(RoomServerAcl, Event::RoomServerAcl, c),
-            RoomThirdPartyInvite(c) => conv(RoomThirdPartyInvite, Event::RoomThirdPartyInvite, c),
-            RoomTombstone(c) => conv(RoomTombstone, Event::RoomTombstone, c),
-            RoomTopic(c) => conv(RoomTopic, Event::RoomTopic, c),
-            RoomKey(c) => conv(RoomKey, Event::RoomKey, c),
-            RoomKeyRequest(c) => conv(RoomKeyRequest, Event::RoomKeyRequest, c),
-            Sticker(c) => conv(Sticker, Event::Sticker, c),
-            Tag(c) => conv(Tag, Event::Tag, c),
-            Typing(c) => conv(Typing, Event::Typing, c),
-            Custom(c) => conv(Custom, Event::Custom, c),
-            CustomRoom(c) => conv(CustomRoom, Event::CustomRoom, c),
-            CustomState(c) => conv(CustomState, Event::CustomState, c),
+            CallAnswer(c) => conv(Event::CallAnswer, c),
+            CallCandidates(c) => conv(Event::CallCandidates, c),
+            CallHangup(c) => conv(Event::CallHangup, c),
+            CallInvite(c) => conv(Event::CallInvite, c),
+            Direct(c) => conv(Event::Direct, c),
+            Dummy(c) => conv(Event::Dummy, c),
+            ForwardedRoomKey(c) => conv(Event::ForwardedRoomKey, c),
+            FullyRead(c) => conv(Event::FullyRead, c),
+            IgnoredUserList(c) => conv(Event::IgnoredUserList, c),
+            KeyVerificationAccept(c) => conv(Event::KeyVerificationAccept, c),
+            KeyVerificationCancel(c) => conv(Event::KeyVerificationCancel, c),
+            KeyVerificationKey(c) => conv(Event::KeyVerificationKey, c),
+            KeyVerificationMac(c) => conv(Event::KeyVerificationMac, c),
+            KeyVerificationRequest(c) => conv(Event::KeyVerificationRequest, c),
+            KeyVerificationStart(c) => conv(Event::KeyVerificationStart, c),
+            Presence(c) => conv(Event::Presence, c),
+            PushRules(c) => conv(Event::PushRules, c),
+            Receipt(c) => conv(Event::Receipt, c),
+            RoomAliases(c) => conv(Event::RoomAliases, c),
+            RoomAvatar(c) => conv(Event::RoomAvatar, c),
+            RoomCanonicalAlias(c) => conv(Event::RoomCanonicalAlias, c),
+            RoomCreate(c) => conv(Event::RoomCreate, c),
+            RoomEncrypted(c) => conv(Event::RoomEncrypted, c),
+            RoomEncryption(c) => conv(Event::RoomEncryption, c),
+            RoomGuestAccess(c) => conv(Event::RoomGuestAccess, c),
+            RoomHistoryVisibility(c) => conv(Event::RoomHistoryVisibility, c),
+            RoomJoinRules(c) => conv(Event::RoomJoinRules, c),
+            RoomMember(c) => conv(Event::RoomMember, c),
+            RoomMessage(c) => conv(Event::RoomMessage, c),
+            RoomMessageFeedback(c) => conv(Event::RoomMessageFeedback, c),
+            RoomName(c) => conv(Event::RoomName, c),
+            RoomPinnedEvents(c) => conv(Event::RoomPinnedEvents, c),
+            RoomPowerLevels(c) => conv(Event::RoomPowerLevels, c),
+            RoomRedaction(c) => conv(Event::RoomRedaction, c),
+            RoomServerAcl(c) => conv(Event::RoomServerAcl, c),
+            RoomThirdPartyInvite(c) => conv(Event::RoomThirdPartyInvite, c),
+            RoomTombstone(c) => conv(Event::RoomTombstone, c),
+            RoomTopic(c) => conv(Event::RoomTopic, c),
+            RoomKey(c) => conv(Event::RoomKey, c),
+            RoomKeyRequest(c) => conv(Event::RoomKeyRequest, c),
+            Sticker(c) => conv(Event::Sticker, c),
+            Tag(c) => conv(Event::Tag, c),
+            Typing(c) => conv(Event::Typing, c),
+            Custom(c) => conv(Event::Custom, c),
+            CustomRoom(c) => conv(Event::CustomRoom, c),
+            CustomState(c) => conv(Event::CustomState, c),
         }
     }
 }
@@ -408,42 +400,38 @@ impl TryFromRaw for RoomEvent {
     type Raw = raw::RoomEvent;
     type Err = String;
 
-    fn try_from_raw(raw: raw::RoomEvent) -> Result<Self, (Self::Err, Self::Raw)> {
+    fn try_from_raw(raw: raw::RoomEvent) -> Result<Self, Self::Err> {
         use crate::util::try_convert_variant as conv;
         use raw::RoomEvent::*;
 
         match raw {
-            CallAnswer(c) => conv(CallAnswer, RoomEvent::CallAnswer, c),
-            CallCandidates(c) => conv(CallCandidates, RoomEvent::CallCandidates, c),
-            CallHangup(c) => conv(CallHangup, RoomEvent::CallHangup, c),
-            CallInvite(c) => conv(CallInvite, RoomEvent::CallInvite, c),
-            RoomAliases(c) => conv(RoomAliases, RoomEvent::RoomAliases, c),
-            RoomAvatar(c) => conv(RoomAvatar, RoomEvent::RoomAvatar, c),
-            RoomCanonicalAlias(c) => conv(RoomCanonicalAlias, RoomEvent::RoomCanonicalAlias, c),
-            RoomCreate(c) => conv(RoomCreate, RoomEvent::RoomCreate, c),
-            RoomEncrypted(c) => conv(RoomEncrypted, RoomEvent::RoomEncrypted, c),
-            RoomEncryption(c) => conv(RoomEncryption, RoomEvent::RoomEncryption, c),
-            RoomGuestAccess(c) => conv(RoomGuestAccess, RoomEvent::RoomGuestAccess, c),
-            RoomHistoryVisibility(c) => {
-                conv(RoomHistoryVisibility, RoomEvent::RoomHistoryVisibility, c)
-            }
-            RoomJoinRules(c) => conv(RoomJoinRules, RoomEvent::RoomJoinRules, c),
-            RoomMember(c) => conv(RoomMember, RoomEvent::RoomMember, c),
-            RoomMessage(c) => conv(RoomMessage, RoomEvent::RoomMessage, c),
-            RoomMessageFeedback(c) => conv(RoomMessageFeedback, RoomEvent::RoomMessageFeedback, c),
-            RoomName(c) => conv(RoomName, RoomEvent::RoomName, c),
-            RoomPinnedEvents(c) => conv(RoomPinnedEvents, RoomEvent::RoomPinnedEvents, c),
-            RoomPowerLevels(c) => conv(RoomPowerLevels, RoomEvent::RoomPowerLevels, c),
-            RoomRedaction(c) => conv(RoomRedaction, RoomEvent::RoomRedaction, c),
-            RoomServerAcl(c) => conv(RoomServerAcl, RoomEvent::RoomServerAcl, c),
-            RoomThirdPartyInvite(c) => {
-                conv(RoomThirdPartyInvite, RoomEvent::RoomThirdPartyInvite, c)
-            }
-            RoomTombstone(c) => conv(RoomTombstone, RoomEvent::RoomTombstone, c),
-            RoomTopic(c) => conv(RoomTopic, RoomEvent::RoomTopic, c),
-            Sticker(c) => conv(Sticker, RoomEvent::Sticker, c),
-            CustomRoom(c) => conv(CustomRoom, RoomEvent::CustomRoom, c),
-            CustomState(c) => conv(CustomState, RoomEvent::CustomState, c),
+            CallAnswer(c) => conv(RoomEvent::CallAnswer, c),
+            CallCandidates(c) => conv(RoomEvent::CallCandidates, c),
+            CallHangup(c) => conv(RoomEvent::CallHangup, c),
+            CallInvite(c) => conv(RoomEvent::CallInvite, c),
+            RoomAliases(c) => conv(RoomEvent::RoomAliases, c),
+            RoomAvatar(c) => conv(RoomEvent::RoomAvatar, c),
+            RoomCanonicalAlias(c) => conv(RoomEvent::RoomCanonicalAlias, c),
+            RoomCreate(c) => conv(RoomEvent::RoomCreate, c),
+            RoomEncrypted(c) => conv(RoomEvent::RoomEncrypted, c),
+            RoomEncryption(c) => conv(RoomEvent::RoomEncryption, c),
+            RoomGuestAccess(c) => conv(RoomEvent::RoomGuestAccess, c),
+            RoomHistoryVisibility(c) => conv(RoomEvent::RoomHistoryVisibility, c),
+            RoomJoinRules(c) => conv(RoomEvent::RoomJoinRules, c),
+            RoomMember(c) => conv(RoomEvent::RoomMember, c),
+            RoomMessage(c) => conv(RoomEvent::RoomMessage, c),
+            RoomMessageFeedback(c) => conv(RoomEvent::RoomMessageFeedback, c),
+            RoomName(c) => conv(RoomEvent::RoomName, c),
+            RoomPinnedEvents(c) => conv(RoomEvent::RoomPinnedEvents, c),
+            RoomPowerLevels(c) => conv(RoomEvent::RoomPowerLevels, c),
+            RoomRedaction(c) => conv(RoomEvent::RoomRedaction, c),
+            RoomServerAcl(c) => conv(RoomEvent::RoomServerAcl, c),
+            RoomThirdPartyInvite(c) => conv(RoomEvent::RoomThirdPartyInvite, c),
+            RoomTombstone(c) => conv(RoomEvent::RoomTombstone, c),
+            RoomTopic(c) => conv(RoomEvent::RoomTopic, c),
+            Sticker(c) => conv(RoomEvent::Sticker, c),
+            CustomRoom(c) => conv(RoomEvent::CustomRoom, c),
+            CustomState(c) => conv(RoomEvent::CustomState, c),
         }
     }
 }
@@ -452,32 +440,28 @@ impl TryFromRaw for StateEvent {
     type Raw = raw::StateEvent;
     type Err = String;
 
-    fn try_from_raw(raw: raw::StateEvent) -> Result<Self, (Self::Err, Self::Raw)> {
+    fn try_from_raw(raw: raw::StateEvent) -> Result<Self, Self::Err> {
         use crate::util::try_convert_variant as conv;
         use raw::StateEvent::*;
 
         match raw {
-            RoomAliases(c) => conv(RoomAliases, StateEvent::RoomAliases, c),
-            RoomAvatar(c) => conv(RoomAvatar, StateEvent::RoomAvatar, c),
-            RoomCanonicalAlias(c) => conv(RoomCanonicalAlias, StateEvent::RoomCanonicalAlias, c),
-            RoomCreate(c) => conv(RoomCreate, StateEvent::RoomCreate, c),
-            RoomEncryption(c) => conv(RoomEncryption, StateEvent::RoomEncryption, c),
-            RoomGuestAccess(c) => conv(RoomGuestAccess, StateEvent::RoomGuestAccess, c),
-            RoomHistoryVisibility(c) => {
-                conv(RoomHistoryVisibility, StateEvent::RoomHistoryVisibility, c)
-            }
-            RoomJoinRules(c) => conv(RoomJoinRules, StateEvent::RoomJoinRules, c),
-            RoomMember(c) => conv(RoomMember, StateEvent::RoomMember, c),
-            RoomName(c) => conv(RoomName, StateEvent::RoomName, c),
-            RoomPinnedEvents(c) => conv(RoomPinnedEvents, StateEvent::RoomPinnedEvents, c),
-            RoomPowerLevels(c) => conv(RoomPowerLevels, StateEvent::RoomPowerLevels, c),
-            RoomServerAcl(c) => conv(RoomServerAcl, StateEvent::RoomServerAcl, c),
-            RoomThirdPartyInvite(c) => {
-                conv(RoomThirdPartyInvite, StateEvent::RoomThirdPartyInvite, c)
-            }
-            RoomTombstone(c) => conv(RoomTombstone, StateEvent::RoomTombstone, c),
-            RoomTopic(c) => conv(RoomTopic, StateEvent::RoomTopic, c),
-            CustomState(c) => conv(CustomState, StateEvent::CustomState, c),
+            RoomAliases(c) => conv(StateEvent::RoomAliases, c),
+            RoomAvatar(c) => conv(StateEvent::RoomAvatar, c),
+            RoomCanonicalAlias(c) => conv(StateEvent::RoomCanonicalAlias, c),
+            RoomCreate(c) => conv(StateEvent::RoomCreate, c),
+            RoomEncryption(c) => conv(StateEvent::RoomEncryption, c),
+            RoomGuestAccess(c) => conv(StateEvent::RoomGuestAccess, c),
+            RoomHistoryVisibility(c) => conv(StateEvent::RoomHistoryVisibility, c),
+            RoomJoinRules(c) => conv(StateEvent::RoomJoinRules, c),
+            RoomMember(c) => conv(StateEvent::RoomMember, c),
+            RoomName(c) => conv(StateEvent::RoomName, c),
+            RoomPinnedEvents(c) => conv(StateEvent::RoomPinnedEvents, c),
+            RoomPowerLevels(c) => conv(StateEvent::RoomPowerLevels, c),
+            RoomServerAcl(c) => conv(StateEvent::RoomServerAcl, c),
+            RoomThirdPartyInvite(c) => conv(StateEvent::RoomThirdPartyInvite, c),
+            RoomTombstone(c) => conv(StateEvent::RoomTombstone, c),
+            RoomTopic(c) => conv(StateEvent::RoomTopic, c),
+            CustomState(c) => conv(StateEvent::CustomState, c),
         }
     }
 }

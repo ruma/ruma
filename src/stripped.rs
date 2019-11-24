@@ -122,29 +122,23 @@ impl TryFromRaw for StrippedState {
     type Raw = raw::StrippedState;
     type Err = String;
 
-    fn try_from_raw(raw: raw::StrippedState) -> Result<Self, (Self::Err, Self::Raw)> {
+    fn try_from_raw(raw: raw::StrippedState) -> Result<Self, Self::Err> {
         use crate::util::try_convert_variant as conv;
         use raw::StrippedState::*;
 
         match raw {
-            RoomAliases(c) => conv(RoomAliases, StrippedState::RoomAliases, c),
-            RoomAvatar(c) => conv(RoomAvatar, StrippedState::RoomAvatar, c),
-            RoomCanonicalAlias(c) => conv(RoomCanonicalAlias, StrippedState::RoomCanonicalAlias, c),
-            RoomCreate(c) => conv(RoomCreate, StrippedState::RoomCreate, c),
-            RoomGuestAccess(c) => conv(RoomGuestAccess, StrippedState::RoomGuestAccess, c),
-            RoomHistoryVisibility(c) => conv(
-                RoomHistoryVisibility,
-                StrippedState::RoomHistoryVisibility,
-                c,
-            ),
-            RoomJoinRules(c) => conv(RoomJoinRules, StrippedState::RoomJoinRules, c),
-            RoomMember(c) => conv(RoomMember, StrippedState::RoomMember, c),
-            RoomName(c) => conv(RoomName, StrippedState::RoomName, c),
-            RoomPowerLevels(c) => conv(RoomPowerLevels, StrippedState::RoomPowerLevels, c),
-            RoomThirdPartyInvite(c) => {
-                conv(RoomThirdPartyInvite, StrippedState::RoomThirdPartyInvite, c)
-            }
-            RoomTopic(c) => conv(RoomTopic, StrippedState::RoomTopic, c),
+            RoomAliases(c) => conv(StrippedState::RoomAliases, c),
+            RoomAvatar(c) => conv(StrippedState::RoomAvatar, c),
+            RoomCanonicalAlias(c) => conv(StrippedState::RoomCanonicalAlias, c),
+            RoomCreate(c) => conv(StrippedState::RoomCreate, c),
+            RoomGuestAccess(c) => conv(StrippedState::RoomGuestAccess, c),
+            RoomHistoryVisibility(c) => conv(StrippedState::RoomHistoryVisibility, c),
+            RoomJoinRules(c) => conv(StrippedState::RoomJoinRules, c),
+            RoomMember(c) => conv(StrippedState::RoomMember, c),
+            RoomName(c) => conv(StrippedState::RoomName, c),
+            RoomPowerLevels(c) => conv(StrippedState::RoomPowerLevels, c),
+            RoomThirdPartyInvite(c) => conv(StrippedState::RoomThirdPartyInvite, c),
+            RoomTopic(c) => conv(StrippedState::RoomTopic, c),
         }
     }
 }
@@ -156,16 +150,9 @@ where
     type Raw = StrippedStateContent<C::Raw>;
     type Err = C::Err;
 
-    fn try_from_raw(mut raw: StrippedStateContent<C::Raw>) -> Result<Self, (Self::Err, Self::Raw)> {
+    fn try_from_raw(raw: StrippedStateContent<C::Raw>) -> Result<Self, Self::Err> {
         Ok(Self {
-            content: match C::try_from_raw(raw.content) {
-                Ok(c) => c,
-                Err((msg, raw_content)) => {
-                    // we moved raw.content, so we need to put it back before returning raw
-                    raw.content = raw_content;
-                    return Err((msg, raw));
-                }
-            },
+            content: C::try_from_raw(raw.content)?,
             event_type: raw.event_type,
             state_key: raw.state_key,
             sender: raw.sender,
