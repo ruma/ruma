@@ -4,6 +4,8 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
+use super::Visibility;
+
 ruma_api! {
     metadata {
         description: "Create a new room.",
@@ -71,14 +73,4 @@ pub enum RoomPreset {
     PublicChat,
     /// Same as `PrivateChat`, but all initial invitees get the same power level as the creator.
     TrustedPrivateChat,
-}
-
-/// Whether or not a newly created room will be listed in the room directory.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum Visibility {
-    /// Indicates that the room will be shown in the published room list.
-    Public,
-    /// Indicates that the room from the published room list.
-    Private,
 }

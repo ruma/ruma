@@ -2,6 +2,7 @@
 
 pub mod account;
 pub mod alias;
+pub mod appservice;
 pub mod config;
 pub mod contact;
 pub mod context;
