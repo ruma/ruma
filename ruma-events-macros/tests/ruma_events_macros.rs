@@ -120,14 +120,14 @@ pub trait TryFromRaw: Sized {
     type Raw: DeserializeOwned;
     type Err: Display;
 
-    fn try_from_raw(_: Self::Raw) -> Result<Self, (Self::Err, Self::Raw)>;
+    fn try_from_raw(_: Self::Raw) -> Result<Self, Self::Err>;
 }
 
 impl<T: FromRaw> TryFromRaw for T {
     type Raw = <T as FromRaw>::Raw;
     type Err = Infallible;
 
-    fn try_from_raw(raw: Self::Raw) -> Result<Self, (Self::Err, Self::Raw)> {
+    fn try_from_raw(raw: Self::Raw) -> Result<Self, Self::Err> {
         Ok(Self::from_raw(raw))
     }
 }
@@ -155,7 +155,7 @@ where
 
         match T::try_from_raw(raw_data) {
             Ok(value) => Ok(EventResult::Ok(value)),
-            Err((err, _)) => Ok(EventResult::Err(InvalidEvent {
+            Err(err) => Ok(EventResult::Err(InvalidEvent {
                 message: err.to_string(),
                 json,
                 kind: InvalidEventKind::Validation,
