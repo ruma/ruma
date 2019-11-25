@@ -293,7 +293,7 @@ impl TryFrom<RawRequest> for Request {
 impl ToTokens for Request {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let request_struct_header = quote! {
-            #[derive(Debug, Clone, ruma_api::SendRecv)]
+            #[derive(Debug, Clone, ruma_api::Outgoing)]
             #[incoming_no_deserialize]
             pub struct Request
         };
@@ -326,7 +326,7 @@ impl ToTokens for Request {
                     /// Data in the request body.
                     #[derive(
                         Debug,
-                        ruma_api::SendRecv,
+                        ruma_api::Outgoing,
                         ruma_api::exports::serde::Serialize,
                         #derive_deserialize
                     )]
@@ -345,7 +345,7 @@ impl ToTokens for Request {
                     /// Data in the request body.
                     #[derive(
                         Debug,
-                        ruma_api::SendRecv,
+                        ruma_api::Outgoing,
                         ruma_api::exports::serde::Serialize,
                         #derive_deserialize
                     )]

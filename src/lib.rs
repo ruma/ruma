@@ -200,16 +200,16 @@ use serde_urlencoded;
 ///
 /// ## Fallible deserialization
 ///
-/// All request and response types also derive `ruma_api::SendRecv`. As such, to allow fallible
+/// All request and response types also derive `ruma_api::Outgoing`. As such, to allow fallible
 /// deserialization, you can use the `#[wrap_incoming]` attribute. For details, see the
-/// documentation for [`SendRecv`][].
+/// documentation for [`Outgoing`][].
 ///
-/// [`SendRecv`]: derive.SendRecv.html
+/// [`Outgoing`]: derive.Outgoing.html
 #[cfg(feature = "with-ruma-api-macros")]
 pub use ruma_api_macros::ruma_api;
 
 #[cfg(feature = "with-ruma-api-macros")]
-pub use ruma_api_macros::SendRecv;
+pub use ruma_api_macros::Outgoing;
 
 #[cfg(feature = "with-ruma-api-macros")]
 #[doc(hidden)]
@@ -224,11 +224,13 @@ pub mod exports {
     pub use url;
 }
 
-/// A type that can be sent as well as received. Types that implement this trait have a
-/// corresponding 'Incoming' type, which is either just `Self`, or another type that has the same
-/// fields with some types exchanged by ones that allow fallible deserialization, e.g. `EventResult`
-/// from ruma_events.
-pub trait SendRecv {
+/// A type that can be sent to another party that understands the matrix protocol. If any of the
+/// fields of `Self` don't implement serde's `Deserialize`, you can derive this trait to generate a
+/// corresponding 'Incoming' type that supports deserialization. This is useful for things like
+/// ruma_events' `EventResult` type. For more details, see the [derive macro's documentation][doc].
+///
+/// [doc]: derive.Outgoing.html
+pub trait Outgoing {
     /// The 'Incoming' variant of `Self`.
     type Incoming;
 }
@@ -236,13 +238,13 @@ pub trait SendRecv {
 /// A Matrix API endpoint.
 ///
 /// The type implementing this trait contains any data needed to make a request to the endpoint.
-pub trait Endpoint: SendRecv + TryInto<http::Request<Vec<u8>>, Error = Error>
+pub trait Endpoint: Outgoing + TryInto<http::Request<Vec<u8>>, Error = Error>
 where
-    <Self as SendRecv>::Incoming: TryFrom<http::Request<Vec<u8>>, Error = Error>,
-    <Self::Response as SendRecv>::Incoming: TryFrom<http::Response<Vec<u8>>, Error = Error>,
+    <Self as Outgoing>::Incoming: TryFrom<http::Request<Vec<u8>>, Error = Error>,
+    <Self::Response as Outgoing>::Incoming: TryFrom<http::Response<Vec<u8>>, Error = Error>,
 {
     /// Data returned in a successful response from the endpoint.
-    type Response: SendRecv + TryInto<http::Response<Vec<u8>>, Error = Error>;
+    type Response: Outgoing + TryInto<http::Response<Vec<u8>>, Error = Error>;
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;
@@ -377,7 +379,7 @@ mod tests {
         use serde::{de::IntoDeserializer, Deserialize, Serialize};
         use serde_json;
 
-        use crate::{Endpoint, Error, Metadata, SendRecv};
+        use crate::{Endpoint, Error, Metadata, Outgoing};
 
         /// A request to create a new room alias.
         #[derive(Debug)]
@@ -386,7 +388,7 @@ mod tests {
             pub room_alias: RoomAliasId, // path
         }
 
-        impl SendRecv for Request {
+        impl Outgoing for Request {
             type Incoming = Self;
         }
 
@@ -453,7 +455,7 @@ mod tests {
         #[derive(Clone, Copy, Debug)]
         pub struct Response;
 
-        impl SendRecv for Response {
+        impl Outgoing for Response {
             type Incoming = Self;
         }
 

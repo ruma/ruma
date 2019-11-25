@@ -317,7 +317,7 @@ impl ToTokens for Api {
             }
         } else if self.request.has_body_fields() {
             quote! {
-                let request_body: <RequestBody as ruma_api::SendRecv>::Incoming =
+                let request_body: <RequestBody as ruma_api::Outgoing>::Incoming =
                     ruma_api::exports::serde_json::from_slice(request.body().as_slice())?;
             }
         } else {
@@ -337,7 +337,7 @@ impl ToTokens for Api {
         };
 
         let response_body_type_annotation = if self.response.has_body_fields() {
-            quote!(: <ResponseBody as ruma_api::SendRecv>::Incoming)
+            quote!(: <ResponseBody as ruma_api::Outgoing>::Incoming)
         } else {
             TokenStream::new()
         };

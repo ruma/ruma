@@ -11,7 +11,7 @@ mod wrap_incoming;
 
 use wrap_incoming::Meta;
 
-pub fn expand_send_recv(input: DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
     let derive_deserialize = if no_deserialize_in_attrs(&input.attrs) {
         TokenStream::new()
     } else {
@@ -20,7 +20,7 @@ pub fn expand_send_recv(input: DeriveInput) -> syn::Result<TokenStream> {
 
     let mut fields: Vec<_> = match input.data {
         Data::Enum(_) | Data::Union(_) => {
-            panic!("#[derive(SendRecv)] is only supported for structs")
+            panic!("#[derive(Outgoing)] is only supported for structs")
         }
         Data::Struct(s) => match s.fields {
             Fields::Named(fs) => fs.named.into_pairs().map(Pair::into_value).collect(),
@@ -65,7 +65,7 @@ pub fn expand_send_recv(input: DeriveInput) -> syn::Result<TokenStream> {
     }
 
     let vis = input.vis;
-    let doc = format!("\"Incoming\" variant of [{ty}](struct.{ty}.html).", ty = input.ident);
+    let doc = format!("'Incoming' variant of [{ty}](struct.{ty}.html).", ty = input.ident);
     let original_ident = input.ident;
     let incoming_ident = Ident::new(&format!("Incoming{}", original_ident), Span::call_site());
 
@@ -76,7 +76,7 @@ pub fn expand_send_recv(input: DeriveInput) -> syn::Result<TokenStream> {
             #(#fields,)*
         }
 
-        impl ruma_api::SendRecv for #original_ident {
+        impl ruma_api::Outgoing for #original_ident {
             type Incoming = #incoming_ident;
         }
     })
@@ -99,7 +99,7 @@ fn no_deserialize_in_attrs(attrs: &[Attribute]) -> bool {
 
 fn impl_send_recv_incoming_self(ident: Ident) -> TokenStream {
     quote! {
-        impl ruma_api::SendRecv for #ident {
+        impl ruma_api::Outgoing for #ident {
             type Incoming = Self;
         }
     }

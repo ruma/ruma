@@ -21,11 +21,11 @@ use syn::{parse_macro_input, DeriveInput};
 
 use self::{
     api::{Api, RawApi},
-    send_recv::expand_send_recv,
+    derive_outgoing::expand_derive_outgoing,
 };
 
 mod api;
-mod send_recv;
+mod derive_outgoing;
 
 #[proc_macro]
 pub fn ruma_api(input: TokenStream) -> TokenStream {
@@ -36,12 +36,12 @@ pub fn ruma_api(input: TokenStream) -> TokenStream {
     }
 }
 
-/// Derive the `SendRecv` trait, possibly generating an 'Incoming' version of the struct this
+/// Derive the `Outgoing` trait, possibly generating an 'Incoming' version of the struct this
 /// derive macro is used on. Specifically, if no `#[wrap_incoming]` attribute is used on any of the
 /// fields of the struct, this simple implementation will be generated:
 ///
 /// ```ignore
-/// impl SendRecv for MyType {
+/// impl Outgoing for MyType {
 ///     type Incoming = Self;
 /// }
 /// ```
@@ -51,7 +51,7 @@ pub fn ruma_api(input: TokenStream) -> TokenStream {
 /// is generated, with all of the fields with `#[wrap_incoming]` replaced:
 ///
 /// ```ignore
-/// #[derive(SendRecv)]
+/// #[derive(Outgoing)]
 /// struct MyType {
 ///     pub foo: Foo,
 ///     #[wrap_incoming]
@@ -73,8 +73,8 @@ pub fn ruma_api(input: TokenStream) -> TokenStream {
 ///     pub ys: Vec<EventResult<YEvent>>,
 /// }
 /// ```
-#[proc_macro_derive(SendRecv, attributes(wrap_incoming, incoming_no_deserialize))]
+#[proc_macro_derive(Outgoing, attributes(wrap_incoming, incoming_no_deserialize))]
 pub fn derive_send_recv(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_send_recv(input).unwrap_or_else(|err| err.to_compile_error()).into()
+    expand_derive_outgoing(input).unwrap_or_else(|err| err.to_compile_error()).into()
 }
