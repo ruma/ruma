@@ -7,11 +7,13 @@ You define the endpoint's metadata, request fields, and response fields, and the
 
 ## Usage
 
-Here is an example that shows most of the macro's functionality.
+This crate is not meant to be used directly; instead, you can use it through the re-exports in ruma-api.
 
-``` rust
+Here is an example that shows most of the macro's functionality:
+
+```rust
 pub mod some_endpoint {
-    use ruma_api_macros::ruma_api;
+    use ruma_api::ruma_api;
 
     ruma_api! {
         metadata {
@@ -55,7 +57,9 @@ pub mod some_endpoint {
 
 ## Documentation
 
-ruma-api-macros has [comprehensive documentation](https://docs.rs/ruma-api-macros) available on docs.rs.
+Please refer to the documentation of the `ruma_api!` re-export in [ruma-api][].
+
+[ruma-api]: https://docs.rs/ruma-api
 
 ## License
 
