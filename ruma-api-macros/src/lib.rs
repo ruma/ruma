@@ -36,6 +36,43 @@ pub fn ruma_api(input: TokenStream) -> TokenStream {
     }
 }
 
+/// Derive the `SendRecv` trait, possibly generating an 'Incoming' version of the struct this
+/// derive macro is used on. Specifically, if no `#[wrap_incoming]` attribute is used on any of the
+/// fields of the struct, this simple implementation will be generated:
+///
+/// ```ignore
+/// impl SendRecv for MyType {
+///     type Incoming = Self;
+/// }
+/// ```
+///
+/// If, however, `#[wrap_incoming]` is used (which is the only reason you should ever use this
+/// derive macro manually), a new struct `IncomingT` (where `T` is the type this derive is used on)
+/// is generated, with all of the fields with `#[wrap_incoming]` replaced:
+///
+/// ```ignore
+/// #[derive(SendRecv)]
+/// struct MyType {
+///     pub foo: Foo,
+///     #[wrap_incoming]
+///     pub bar: Bar,
+///     #[wrap_incoming(Baz)]
+///     pub baz: Option<Baz>,
+///     #[wrap_incoming(with EventResult)]
+///     pub x: XEvent,
+///     #[wrap_incoming(YEvent with EventResult)]
+///     pub ys: Vec<YEvent>,
+/// }
+///
+/// // generated
+/// struct IncomingMyType {
+///     pub foo: Foo,
+///     pub bar: IncomingBar,
+///     pub baz: Option<IncomingBaz>,
+///     pub x: EventResult<XEvent>,
+///     pub ys: Vec<EventResult<YEvent>>,
+/// }
+/// ```
 #[proc_macro_derive(SendRecv, attributes(wrap_incoming, incoming_no_deserialize))]
 pub fn derive_send_recv(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);

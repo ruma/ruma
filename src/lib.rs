@@ -197,6 +197,14 @@ use serde_urlencoded;
 ///     }
 /// }
 /// ```
+///
+/// ## Fallible deserialization
+///
+/// All request and response types also derive `ruma_api::SendRecv`. As such, to allow fallible
+/// deserialization, you can use the `#[wrap_incoming]` attribute. For details, see the
+/// documentation for [`SendRecv`][].
+///
+/// [`SendRecv`]: derive.SendRecv.html
 #[cfg(feature = "with-ruma-api-macros")]
 pub use ruma_api_macros::ruma_api;
 
