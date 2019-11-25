@@ -1,6 +1,7 @@
 pub mod some_endpoint {
-    use ruma_api::ruma_api;
-    use ruma_events::{tag::TagEventContent, EventResult};
+    use ruma_api::{ruma_api, Outgoing};
+    use ruma_events::{collections::all, sticker::StickerEvent, tag::TagEvent, EventResult};
+    use serde::Serialize;
 
     ruma_api! {
         metadata {
@@ -42,10 +43,26 @@ pub mod some_endpoint {
             #[serde(skip_serializing_if = "Option::is_none")]
             pub optional_flag: Option<bool>,
 
-            /// The user's tags for the room.
+            // This is how you usually use `#[wrap_incoming]` with event types
             #[wrap_incoming(with EventResult)]
-            pub tags: TagEventContent,
+            pub event: TagEvent,
+
+            // Same for lists of events
+            #[wrap_incoming(all::RoomEvent with EventResult)]
+            pub list_of_events: Vec<all::RoomEvent>,
+
+            // This is how `#[wrap_incoming]` is used with nested `EventResult`s
+            #[wrap_incoming]
+            pub object: ObjectContainingEvents,
         }
+    }
+
+    #[derive(Clone, Debug, Serialize, Outgoing)]
+    pub struct ObjectContainingEvents {
+        #[wrap_incoming(TagEvent with EventResult)]
+        pub event_list_1: Vec<TagEvent>,
+        #[wrap_incoming(StickerEvent with EventResult)]
+        pub event_list_2: Vec<StickerEvent>,
     }
 }
 
