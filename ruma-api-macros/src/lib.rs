@@ -1,7 +1,9 @@
-//! Crate `ruma-api-macros` provides a procedural macro for easily generating
+//! Crate ruma-api-macros provides a procedural macro for easily generating
 //! [ruma-api](https://github.com/ruma/ruma-api)-compatible endpoints.
 //!
-//! See the documentation for the `ruma_api!` macro for usage details.
+//! This crate should never be used directly; instead, use it through the
+//! re-exports in ruma-api. Also note that for technical reasons, the
+//! `ruma_api!` macro is only documented in ruma-api, not here.
 
 #![deny(missing_copy_implementations, missing_debug_implementations)]
 #![allow(clippy::cognitive_complexity)]
