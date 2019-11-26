@@ -12,6 +12,13 @@ mod wrap_incoming;
 use wrap_incoming::Meta;
 
 pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
+    if !input.generics.params.is_empty() {
+        return Err(syn::Error::new_spanned(
+            input.generics,
+            "derive(Outgoing) doesn't currently support types with generics!",
+        ));
+    }
+
     let derive_deserialize = if no_deserialize_in_attrs(&input.attrs) {
         TokenStream::new()
     } else {
