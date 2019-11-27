@@ -75,6 +75,7 @@ impl Request {
     pub fn has_header_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_header())
     }
+
     /// Whether or not this request has any data in the URL path.
     pub fn has_path_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_path())

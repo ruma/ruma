@@ -73,8 +73,10 @@ pub fn ruma_api(input: TokenStream) -> TokenStream {
 ///     pub ys: Vec<EventResult<YEvent>>,
 /// }
 /// ```
+// TODO: Make it clear that `#[wrap_incoming]` and `#[wrap_incoming(Type)]` without the "with" part
+// are (only) useful for fallible deserialization of nested structures.
 #[proc_macro_derive(Outgoing, attributes(wrap_incoming, incoming_no_deserialize))]
-pub fn derive_send_recv(input: TokenStream) -> TokenStream {
+pub fn derive_outgoing(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     expand_derive_outgoing(input).unwrap_or_else(|err| err.to_compile_error()).into()
 }

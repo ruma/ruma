@@ -200,11 +200,12 @@ use serde_urlencoded;
 ///
 /// ## Fallible deserialization
 ///
-/// All request and response types also derive `ruma_api::Outgoing`. As such, to allow fallible
+/// All request and response types also derive [`Outgoing`][]. As such, to allow fallible
 /// deserialization, you can use the `#[wrap_incoming]` attribute. For details, see the
 /// documentation for [`Outgoing`][].
 ///
 /// [`Outgoing`]: derive.Outgoing.html
+// TODO: Explain the concept of fallible deserialization before jumping to `ruma_api::Outgoing`
 #[cfg(feature = "with-ruma-api-macros")]
 pub use ruma_api_macros::ruma_api;
 
@@ -230,6 +231,7 @@ pub mod exports {
 /// ruma_events' `EventResult` type. For more details, see the [derive macro's documentation][doc].
 ///
 /// [doc]: derive.Outgoing.html
+// TODO: Better explain how this trait relates to serde's traits
 pub trait Outgoing {
     /// The 'Incoming' variant of `Self`.
     type Incoming;

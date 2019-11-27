@@ -32,7 +32,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
         Data::Struct(s) => match s.fields {
             Fields::Named(fs) => fs.named.into_pairs().map(Pair::into_value).collect(),
             Fields::Unnamed(fs) => fs.unnamed.into_pairs().map(Pair::into_value).collect(),
-            Fields::Unit => return Ok(impl_send_recv_incoming_self(input.ident)),
+            Fields::Unit => return Ok(impl_outgoing_with_incoming_self(input.ident)),
         },
     };
 
@@ -68,7 +68,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
     }
 
     if !any_attribute {
-        return Ok(impl_send_recv_incoming_self(input.ident));
+        return Ok(impl_outgoing_with_incoming_self(input.ident));
     }
 
     let vis = input.vis;
@@ -104,7 +104,7 @@ fn no_deserialize_in_attrs(attrs: &[Attribute]) -> bool {
     false
 }
 
-fn impl_send_recv_incoming_self(ident: Ident) -> TokenStream {
+fn impl_outgoing_with_incoming_self(ident: Ident) -> TokenStream {
     quote! {
         impl ruma_api::Outgoing for #ident {
             type Incoming = Self;
