@@ -108,7 +108,7 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let (set_request_path, parse_request_path) = if self.request.has_path_fields() {
+        let (url_set_path, parse_request_path) = if self.request.has_path_fields() {
             let path_str = path.value();
 
             assert!(path_str.starts_with('/'), "path needs to start with '/'");
@@ -182,7 +182,7 @@ impl ToTokens for Api {
             (set_tokens, parse_tokens)
         };
 
-        let set_request_query = if let Some(field) = self.request.query_map_field() {
+        let url_set_querystring = if let Some(field) = self.request.query_map_field() {
             let field_name = field.ident.as_ref().expect("expected field to have identifier");
             let field_type = &field.ty;
 
@@ -252,10 +252,8 @@ impl ToTokens for Api {
             quote! {
                 #field_name: request_query
             }
-        } else if self.request.has_query_fields() {
-            self.request.request_init_query_fields()
         } else {
-            TokenStream::new()
+            self.request.request_init_query_fields()
         };
 
         let add_headers_to_request = if self.request.has_header_fields() {
@@ -282,76 +280,22 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let create_http_request = if let Some(field) = self.request.newtype_body_field() {
+        let request_body_initializers = if let Some(field) = self.request.newtype_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-
-            quote! {
-                let request_body = RequestBody(request.#field_name);
-
-                let mut http_request = ruma_api::exports::http::Request::new(
-                    ruma_api::exports::serde_json::to_vec(&request_body)?,
-                );
-            }
-        } else if self.request.has_body_fields() {
-            let request_body_init_fields = self.request.request_body_init_fields();
-
-            quote! {
-                let request_body = RequestBody {
-                    #request_body_init_fields
-                };
-
-                let mut http_request = ruma_api::exports::http::Request::new(
-                    ruma_api::exports::serde_json::to_vec(&request_body)?,
-                );
-            }
+            quote! { (request.#field_name) }
         } else {
-            quote! {
-                let mut http_request = ruma_api::exports::http::Request::new(Vec::new());
-            }
-        };
-
-        let extract_request_body = if self.request.newtype_body_field().is_some() {
-            quote! {
-                let request_body =
-                    ruma_api::exports::serde_json::from_slice(request.body().as_slice())?;
-            }
-        } else if self.request.has_body_fields() {
-            quote! {
-                let request_body: <RequestBody as ruma_api::Outgoing>::Incoming =
-                    ruma_api::exports::serde_json::from_slice(request.body().as_slice())?;
-            }
-        } else {
-            TokenStream::new()
+            let initializers = self.request.request_body_init_fields();
+            quote! { { #initializers } }
         };
 
         let parse_request_body = if let Some(field) = self.request.newtype_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
 
             quote! {
-                #field_name: request_body,
+                #field_name: request_body.0,
             }
-        } else if self.request.has_body_fields() {
+        } else {
             self.request.request_init_body_fields()
-        } else {
-            TokenStream::new()
-        };
-
-        let response_body_type_annotation = if self.response.has_body_fields() {
-            quote!(: <ResponseBody as ruma_api::Outgoing>::Incoming)
-        } else {
-            TokenStream::new()
-        };
-
-        let try_deserialize_response_body = if self.response.has_body() {
-            quote! {
-                ruma_api::exports::serde_json::from_slice(
-                    http_response.into_body().as_slice(),
-                )?
-            }
-        } else {
-            quote! {
-                ()
-            }
         };
 
         let extract_response_headers = if self.response.has_header_fields() {
@@ -362,24 +306,11 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let response_init_fields = if self.response.has_fields() {
-            self.response.init_fields()
-        } else {
-            TokenStream::new()
-        };
+        let response_init_fields = self.response.init_fields();
 
         let serialize_response_headers = self.response.apply_header_fields();
 
-        let try_serialize_response_body = if self.response.has_body() {
-            let body = self.response.to_body();
-            quote! {
-                ruma_api::exports::serde_json::to_vec(&#body)?
-            }
-        } else {
-            quote! {
-                "{}".as_bytes().to_vec()
-            }
-        };
+        let body = self.response.to_body();
 
         let request_doc = format!(
             "Data for a request to the `{}` API endpoint.\n\n{}",
@@ -406,7 +337,9 @@ impl ToTokens for Api {
                     #extract_request_path
                     #extract_request_query
                     #extract_request_headers
-                    #extract_request_body
+
+                    let request_body: <RequestBody as ruma_api::Outgoing>::Incoming =
+                        ruma_api::exports::serde_json::from_slice(request.body().as_slice())?;
 
                     Ok(Self {
                         #parse_request_path
@@ -431,10 +364,14 @@ impl ToTokens for Api {
                         ruma_api::exports::url::Url::parse("http://invalid-host-please-change/")
                             .unwrap();
 
-                    { #set_request_path }
-                    { #set_request_query }
+                    { #url_set_path }
+                    { #url_set_querystring }
 
-                    #create_http_request
+                    let request_body = RequestBody #request_body_initializers;
+
+                    let mut http_request = ruma_api::exports::http::Request::new(
+                        ruma_api::exports::serde_json::to_vec(&request_body)?,
+                    );
 
                     *http_request.method_mut() = ruma_api::exports::http::Method::#method;
                     *http_request.uri_mut() = url.into_string().parse().unwrap();
@@ -456,7 +393,7 @@ impl ToTokens for Api {
                     let response = ruma_api::exports::http::Response::builder()
                         .header(ruma_api::exports::http::header::CONTENT_TYPE, "application/json")
                         #serialize_response_headers
-                        .body(#try_serialize_response_body)
+                        .body(ruma_api::exports::serde_json::to_vec(&#body)?)
                         .unwrap();
                     Ok(response)
                 }
@@ -472,8 +409,10 @@ impl ToTokens for Api {
                     if http_response.status().is_success() {
                         #extract_response_headers
 
-                        let response_body #response_body_type_annotation =
-                            #try_deserialize_response_body;
+                        let response_body: <ResponseBody as ruma_api::Outgoing>::Incoming =
+                            ruma_api::exports::serde_json::from_slice(
+                                http_response.into_body().as_slice(),
+                            )?;
 
                         Ok(Self {
                             #response_init_fields

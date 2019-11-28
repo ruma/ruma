@@ -23,19 +23,9 @@ impl Response {
         self.fields.iter().any(|field| field.is_body())
     }
 
-    /// Whether or not this response has any fields.
-    pub fn has_fields(&self) -> bool {
-        !self.fields.is_empty()
-    }
-
     /// Whether or not this response has any data in HTTP headers.
     pub fn has_header_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_header())
-    }
-
-    /// Whether or not this response has any data in the HTTP body.
-    pub fn has_body(&self) -> bool {
-        self.fields.iter().any(|field| !field.is_header())
     }
 
     /// Whether any field has a #[wrap_incoming] attribute.
@@ -74,7 +64,7 @@ impl Response {
                 let span = field.span();
 
                 quote_spanned! {span=>
-                    #field_name: response_body
+                    #field_name: response_body.0
                 }
             }
         });
@@ -100,9 +90,7 @@ impl Response {
             }
         });
 
-        quote! {
-            #(#header_calls)*
-        }
+        quote! { #(#header_calls)* }
     }
 
     /// Produces code to initialize the struct that will be used to create the response body.
@@ -127,9 +115,7 @@ impl Response {
             });
 
             quote! {
-                ResponseBody {
-                    #(#fields),*
-                }
+                ResponseBody { #(#fields),* }
             }
         }
     }
@@ -231,46 +217,25 @@ impl TryFrom<RawResponse> for Response {
 
 impl ToTokens for Response {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let response_struct_header = quote! {
-            #[derive(Debug, Clone, ruma_api::Outgoing)]
-            #[incoming_no_deserialize]
-            pub struct Response
-        };
-
-        let response_struct_body = if self.fields.is_empty() {
+        let response_def = if self.fields.is_empty() {
             quote!(;)
         } else {
             let fields =
                 self.fields.iter().map(|response_field| strip_serde_attrs(response_field.field()));
 
-            quote! {
-                {
-                    #(#fields),*
-                }
-            }
+            quote! { { #(#fields),* } }
         };
 
-        let response_body_struct =
+        let (derive_deserialize, response_body_def) =
             if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
-                let field = body_field.field();
-                let ty = &field.ty;
-                let span = field.span();
+                let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
                 let derive_deserialize = if body_field.has_wrap_incoming_attr() {
                     TokenStream::new()
                 } else {
                     quote!(ruma_api::exports::serde::Deserialize)
                 };
 
-                quote_spanned! {span=>
-                    /// Data in the response body.
-                    #[derive(
-                        Debug,
-                        ruma_api::Outgoing,
-                        ruma_api::exports::serde::Serialize,
-                        #derive_deserialize
-                    )]
-                    struct ResponseBody(#ty);
-                }
+                (derive_deserialize, quote! { (#field); })
             } else if self.has_body_fields() {
                 let fields = self.fields.iter().filter(|f| f.is_body());
                 let derive_deserialize = if fields.clone().any(|f| f.has_wrap_incoming_attr()) {
@@ -280,26 +245,24 @@ impl ToTokens for Response {
                 };
                 let fields = fields.map(ResponseField::field);
 
-                quote! {
-                    /// Data in the response body.
-                    #[derive(
-                        Debug,
-                        ruma_api::Outgoing,
-                        ruma_api::exports::serde::Serialize,
-                        #derive_deserialize
-                    )]
-                    struct ResponseBody {
-                        #(#fields),*
-                    }
-                }
+                (derive_deserialize, quote!({ #(#fields),* }))
             } else {
-                TokenStream::new()
+                (quote!(ruma_api::exports::serde::Deserialize), quote!(;))
             };
 
         let response = quote! {
-            #response_struct_header
-            #response_struct_body
-            #response_body_struct
+            #[derive(Debug, Clone, ruma_api::Outgoing)]
+            #[incoming_no_deserialize]
+            pub struct Response #response_def
+
+            /// Data in the response body.
+            #[derive(
+                Debug,
+                ruma_api::Outgoing,
+                ruma_api::exports::serde::Serialize,
+                #derive_deserialize
+            )]
+            struct ResponseBody #response_body_def
         };
 
         response.to_tokens(tokens);
