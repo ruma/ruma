@@ -4,6 +4,8 @@ use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
+use super::AuthenticationData;
+
 ruma_api! {
     metadata {
         description: "Register an account on this homeserver.",
@@ -71,16 +73,6 @@ ruma_api! {
         /// Will be the same as the corresponding parameter in the request, if one was specified.
         pub device_id: String,
     }
-}
-
-/// Additional authentication information for the user-interactive authentication API.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct AuthenticationData {
-    /// The login type that the client is attempting to complete.
-    #[serde(rename = "type")]
-    kind: String,
-    /// The value of the session key given by the homeserver.
-    session: Option<String>,
 }
 
 /// The kind of account being registered.

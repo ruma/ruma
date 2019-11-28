@@ -1,6 +1,8 @@
-//! [POST /_matrix/client/r0/account/password](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-account-password)
+//! [POST /_matrix/client/r0/account/password](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-account-password)
 
 use ruma_api::ruma_api;
+
+use super::AuthenticationData;
 
 ruma_api! {
     metadata {
@@ -15,7 +17,8 @@ ruma_api! {
     request {
         /// The new password for the account.
         pub new_password: String,
-        // TODO: missing `auth` field
+        /// Additional authentication information for the user-interactive authentication API.
+        pub auth: Option<AuthenticationData>,
     }
 
     response {}
