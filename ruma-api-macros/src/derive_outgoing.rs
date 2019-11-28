@@ -11,6 +11,11 @@ mod wrap_incoming;
 
 use wrap_incoming::Meta;
 
+enum StructKind {
+    Struct,
+    Tuple,
+}
+
 pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
     if !input.generics.params.is_empty() {
         return Err(syn::Error::new_spanned(
@@ -25,13 +30,17 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
         quote!(#[derive(ruma_api::exports::serde::Deserialize)])
     };
 
-    let mut fields: Vec<_> = match input.data {
+    let (mut fields, struct_kind): (Vec<_>, _) = match input.data {
         Data::Enum(_) | Data::Union(_) => {
             panic!("#[derive(Outgoing)] is only supported for structs")
         }
         Data::Struct(s) => match s.fields {
-            Fields::Named(fs) => fs.named.into_pairs().map(Pair::into_value).collect(),
-            Fields::Unnamed(fs) => fs.unnamed.into_pairs().map(Pair::into_value).collect(),
+            Fields::Named(fs) => {
+                (fs.named.into_pairs().map(Pair::into_value).collect(), StructKind::Struct)
+            }
+            Fields::Unnamed(fs) => {
+                (fs.unnamed.into_pairs().map(Pair::into_value).collect(), StructKind::Tuple)
+            }
             Fields::Unit => return Ok(impl_outgoing_with_incoming_self(input.ident)),
         },
     };
@@ -76,12 +85,15 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
     let original_ident = input.ident;
     let incoming_ident = Ident::new(&format!("Incoming{}", original_ident), Span::call_site());
 
+    let struct_def = match struct_kind {
+        StructKind::Struct => quote! { { #(#fields,)* } },
+        StructKind::Tuple => quote! { ( #(#fields,)* ); },
+    };
+
     Ok(quote! {
         #[doc = #doc]
         #derive_deserialize
-        #vis struct #incoming_ident {
-            #(#fields,)*
-        }
+        #vis struct #incoming_ident #struct_def
 
         impl ruma_api::Outgoing for #original_ident {
             type Incoming = #incoming_ident;
