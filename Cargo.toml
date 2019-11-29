@@ -14,16 +14,16 @@ version = "0.3.0-beta.1"
 
 [dependencies]
 futures-preview = "=0.3.0-alpha.19"
-http = "0.1.19"
+http = "0.1.20"
 hyper = { version = "=0.13.0-alpha.4", features = ["unstable-stream"] }
 hyper-tls = { version = "=0.4.0-alpha.4", optional = true }
-ruma-api = "0.11.0"
-ruma-client-api = "0.4.0"
+ruma-api = "0.12.0-alpha.1"
+ruma-client-api = "0.5.0-alpha.1"
 ruma-events = "0.15.1"
 ruma-identifiers = "0.14.0"
 native-tls = { version = "0.2.3", optional = true }
-serde = { version = "1.0.102", features = ["derive"] }
-serde_json = "1.0.41"
+serde = { version = "1.0.103", features = ["derive"] }
+serde_json = "1.0.42"
 serde_urlencoded = "0.6.1"
 url = "2.1.0"
 

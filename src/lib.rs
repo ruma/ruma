@@ -101,7 +101,7 @@ use hyper::{
 use hyper_tls::HttpsConnector;
 #[cfg(feature = "hyper-tls")]
 use native_tls::Error as NativeTlsError;
-use ruma_api::Endpoint;
+use ruma_api::{Endpoint, Outgoing};
 use url::Url;
 
 use crate::error::InnerError;
@@ -305,8 +305,8 @@ where
         filter: Option<api::r0::sync::sync_events::Filter>,
         since: Option<String>,
         set_presence: bool,
-    ) -> impl Stream<Item = Result<api::r0::sync::sync_events::Response, Error>>
-           + TryStream<Ok = api::r0::sync::sync_events::Response, Error = Error> {
+    ) -> impl Stream<Item = Result<api::r0::sync::sync_events::IncomingResponse, Error>>
+           + TryStream<Ok = api::r0::sync::sync_events::IncomingResponse, Error = Error> {
         use api::r0::sync::sync_events;
 
         // TODO: Is this really the way TryStreams are supposed to work?
@@ -365,7 +365,14 @@ where
     pub fn request<Request: Endpoint>(
         &self,
         request: Request,
-    ) -> impl Future<Output = Result<Request::Response, Error>> {
+    ) -> impl Future<Output = Result<<Request::Response as Outgoing>::Incoming, Error>>
+    // We need to duplicate Endpoint's where clauses because the compiler is not smart enough yet.
+    // See https://github.com/rust-lang/rust/issues/54149
+    where
+        Request::Incoming: TryFrom<http::Request<Vec<u8>>, Error = ruma_api::Error>,
+        <Request::Response as Outgoing>::Incoming:
+            TryFrom<http::Response<Vec<u8>>, Error = ruma_api::Error>,
+    {
         let client = self.0.clone();
 
         async move {
@@ -396,7 +403,9 @@ where
             let full_response =
                 HttpResponse::from_parts(head, body.try_concat().await?.as_ref().to_owned());
 
-            Ok(Request::Response::try_from(full_response)?)
+            Ok(<Request::Response as Outgoing>::Incoming::try_from(
+                full_response,
+            )?)
         }
     }
 }
