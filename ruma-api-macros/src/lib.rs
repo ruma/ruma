@@ -7,8 +7,6 @@
 
 #![deny(missing_copy_implementations, missing_debug_implementations)]
 #![allow(clippy::cognitive_complexity)]
-// Since we support Rust 1.36.0, we can't apply this suggestion yet
-#![allow(clippy::use_self)]
 #![recursion_limit = "256"]
 
 extern crate proc_macro;
