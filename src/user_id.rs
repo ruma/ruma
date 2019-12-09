@@ -17,8 +17,10 @@ use url::Host;
 
 use crate::{display, error::Error, generate_localpart, parse_id};
 
-static USER_LOCALPART_PATTERN: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"\A[a-z0-9._=-]+\z").expect("Failed to create user localpart regex."));
+// See https://matrix.org/docs/spec/appendices#user-identifiers
+static USER_LOCALPART_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"\A[a-z0-9\-.=_/]+\z").expect("Failed to create user localpart regex.")
+});
 
 /// A Matrix user ID.
 ///
