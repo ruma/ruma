@@ -7,8 +7,6 @@ use std::{
 
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
-use once_cell::sync::Lazy;
-use regex::Regex;
 use serde::{
     de::{Error as SerdeError, Unexpected, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
@@ -16,11 +14,6 @@ use serde::{
 use url::Host;
 
 use crate::{display, error::Error, generate_localpart, parse_id};
-
-// See https://matrix.org/docs/spec/appendices#user-identifiers
-static USER_LOCALPART_PATTERN: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"\A[a-z0-9\-.=_/]+\z").expect("Failed to create user localpart regex.")
-});
 
 /// A Matrix user ID.
 ///
@@ -124,7 +117,11 @@ impl<'a> TryFrom<&'a str> for UserId {
         let (localpart, host, port) = parse_id('@', user_id)?;
         let downcased_localpart = localpart.to_lowercase();
 
-        if !USER_LOCALPART_PATTERN.is_match(&downcased_localpart) {
+        // See https://matrix.org/docs/spec/appendices#user-identifiers
+        if downcased_localpart.bytes().any(|b| match b {
+            b'0'..=b'9' | b'a'..=b'z' | b'-' | b'.' | b'=' | b'_' | b'/' => false,
+            _ => true,
+        }) {
             return Err(Error::InvalidCharacters);
         }
 
