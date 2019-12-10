@@ -8,7 +8,7 @@ use std::{
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
 use serde::{
-    de::{Error as SerdeError, Unexpected, Visitor},
+    de::{Error as SerdeError, Expected, Unexpected},
     Deserialize, Deserializer, Serialize, Serializer,
 };
 
@@ -42,9 +42,6 @@ pub enum RoomIdOrAliasId {
     /// A Matrix room ID.
     RoomId(RoomId),
 }
-
-/// A serde visitor for `RoomIdOrAliasId`.
-struct RoomIdOrAliasIdVisitor;
 
 impl Display for RoomIdOrAliasId {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
@@ -86,7 +83,11 @@ impl<'de> Deserialize<'de> for RoomIdOrAliasId {
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_any(RoomIdOrAliasIdVisitor)
+        String::deserialize(deserializer).and_then(|v| {
+            RoomIdOrAliasId::try_from(&v as &str).map_err(|_| {
+                SerdeError::invalid_value(Unexpected::Str(&v), &ExpectedRoomIdOrAliasId)
+            })
+        })
     }
 }
 
@@ -119,21 +120,11 @@ impl<'a> TryFrom<&'a str> for RoomIdOrAliasId {
     }
 }
 
-impl<'de> Visitor<'de> for RoomIdOrAliasIdVisitor {
-    type Value = RoomIdOrAliasId;
+struct ExpectedRoomIdOrAliasId;
 
-    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
+impl Expected for ExpectedRoomIdOrAliasId {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         write!(formatter, "a Matrix room ID or room alias ID as a string")
-    }
-
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-    where
-        E: SerdeError,
-    {
-        match RoomIdOrAliasId::try_from(v) {
-            Ok(room_id_or_alias_id) => Ok(room_id_or_alias_id),
-            Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
-        }
     }
 }
 

@@ -8,7 +8,7 @@ use std::{
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
 use serde::{
-    de::{Error as SerdeError, Unexpected, Visitor},
+    de::{Error as SerdeError, Expected, Unexpected},
     Deserialize, Deserializer, Serialize, Serializer,
 };
 
@@ -54,9 +54,6 @@ enum InnerRoomVersionId {
     /// A custom room version.
     Custom(String),
 }
-
-/// A serde visitor for `RoomVersionId`.
-struct RoomVersionIdVisitor;
 
 impl RoomVersionId {
     /// Creates a version 1 room ID.
@@ -157,7 +154,10 @@ impl<'de> Deserialize<'de> for RoomVersionId {
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_any(RoomVersionIdVisitor)
+        String::deserialize(deserializer).and_then(|v| {
+            RoomVersionId::try_from(&v as &str)
+                .map_err(|_| SerdeError::invalid_value(Unexpected::Str(&v), &ExpectedRoomVersionId))
+        })
     }
 }
 
@@ -187,21 +187,11 @@ impl<'a> TryFrom<&'a str> for RoomVersionId {
     }
 }
 
-impl<'de> Visitor<'de> for RoomVersionIdVisitor {
-    type Value = RoomVersionId;
+struct ExpectedRoomVersionId;
 
-    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
+impl Expected for ExpectedRoomVersionId {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         write!(formatter, "a Matrix room version ID as a string")
-    }
-
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-    where
-        E: SerdeError,
-    {
-        match RoomVersionId::try_from(v) {
-            Ok(room_id) => Ok(room_id),
-            Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
-        }
     }
 }
 

@@ -8,7 +8,7 @@ use std::{
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
 use serde::{
-    de::{Error as SerdeError, Unexpected, Visitor},
+    de::{Error as SerdeError, Expected, Unexpected},
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use url::Host;
@@ -39,9 +39,6 @@ pub struct RoomAliasId {
     /// The network port of the homeserver.
     port: u16,
 }
-
-/// A serde visitor for `RoomAliasId`.
-struct RoomAliasIdVisitor;
 
 impl RoomAliasId {
     /// Returns a `Host` for the room alias ID, containing the server name (minus the port) of
@@ -83,7 +80,10 @@ impl<'de> Deserialize<'de> for RoomAliasId {
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_any(RoomAliasIdVisitor)
+        String::deserialize(deserializer).and_then(|v| {
+            RoomAliasId::try_from(&v as &str)
+                .map_err(|_| SerdeError::invalid_value(Unexpected::Str(&v), &ExpectedRoomAliasId))
+        })
     }
 }
 
@@ -105,21 +105,11 @@ impl<'a> TryFrom<&'a str> for RoomAliasId {
     }
 }
 
-impl<'de> Visitor<'de> for RoomAliasIdVisitor {
-    type Value = RoomAliasId;
+struct ExpectedRoomAliasId;
 
-    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
+impl Expected for ExpectedRoomAliasId {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         write!(formatter, "a Matrix room alias ID as a string")
-    }
-
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-    where
-        E: SerdeError,
-    {
-        match RoomAliasId::try_from(v) {
-            Ok(room_alias_id) => Ok(room_alias_id),
-            Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
-        }
     }
 }
 

@@ -8,7 +8,7 @@ use std::{
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
 use serde::{
-    de::{Error as SerdeError, Unexpected, Visitor},
+    de::{Error as SerdeError, Expected, Unexpected},
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use url::Host;
@@ -39,9 +39,6 @@ pub struct UserId {
     /// The network port of the homeserver.
     port: u16,
 }
-
-/// A serde visitor for `UserId`.
-struct UserIdVisitor;
 
 impl UserId {
     /// Attempts to generate a `UserId` for the given origin server with a localpart consisting of
@@ -102,7 +99,10 @@ impl<'de> Deserialize<'de> for UserId {
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_any(UserIdVisitor)
+        String::deserialize(deserializer).and_then(|v| {
+            UserId::try_from(&v as &str)
+                .map_err(|_| SerdeError::invalid_value(Unexpected::Str(&v), &ExpectedUserId))
+        })
     }
 }
 
@@ -133,21 +133,11 @@ impl<'a> TryFrom<&'a str> for UserId {
     }
 }
 
-impl<'de> Visitor<'de> for UserIdVisitor {
-    type Value = UserId;
+struct ExpectedUserId;
 
-    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
+impl Expected for ExpectedUserId {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         write!(formatter, "a Matrix user ID as a string")
-    }
-
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-    where
-        E: SerdeError,
-    {
-        match UserId::try_from(v) {
-            Ok(user_id) => Ok(user_id),
-            Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
-        }
     }
 }
 

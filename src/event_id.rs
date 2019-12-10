@@ -8,7 +8,7 @@ use std::{
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
 use serde::{
-    de::{Error as SerdeError, Unexpected, Visitor},
+    de::{Error as SerdeError, Expected, Unexpected},
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use url::Host;
@@ -74,9 +74,6 @@ struct Original {
     /// The network port of the homeserver.
     pub port: u16,
 }
-
-/// A serde visitor for `EventId`.
-struct EventIdVisitor;
 
 impl EventId {
     /// Attempts to generate an `EventId` for the given origin server with a localpart consisting
@@ -158,7 +155,10 @@ impl<'de> Deserialize<'de> for EventId {
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_any(EventIdVisitor)
+        String::deserialize(deserializer).and_then(|v| {
+            EventId::try_from(&v as &str)
+                .map_err(|_| SerdeError::invalid_value(Unexpected::Str(&v), &ExpectedEventId))
+        })
     }
 }
 
@@ -189,21 +189,11 @@ impl<'a> TryFrom<&'a str> for EventId {
     }
 }
 
-impl<'de> Visitor<'de> for EventIdVisitor {
-    type Value = EventId;
+struct ExpectedEventId;
 
-    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
+impl Expected for ExpectedEventId {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         write!(formatter, "a Matrix event ID as a string")
-    }
-
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-    where
-        E: SerdeError,
-    {
-        match EventId::try_from(v) {
-            Ok(event_id) => Ok(event_id),
-            Err(_) => Err(SerdeError::invalid_value(Unexpected::Str(v), &self)),
-        }
     }
 }
 
