@@ -7,12 +7,9 @@ use std::{
 
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
-use serde::{
-    de::{Error as SerdeError, Expected, Unexpected},
-    Deserialize, Deserializer, Serialize, Serializer,
-};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::error::Error;
+use crate::{deserialize_id, error::Error};
 
 /// Room version identifiers cannot be more than 32 code points.
 const MAX_CODE_POINTS: usize = 32;
@@ -154,10 +151,7 @@ impl<'de> Deserialize<'de> for RoomVersionId {
     where
         D: Deserializer<'de>,
     {
-        String::deserialize(deserializer).and_then(|v| {
-            RoomVersionId::try_from(&v as &str)
-                .map_err(|_| SerdeError::invalid_value(Unexpected::Str(&v), &ExpectedRoomVersionId))
-        })
+        deserialize_id(deserializer, "a Matrix room version ID as a string")
     }
 }
 
@@ -184,14 +178,6 @@ impl<'a> TryFrom<&'a str> for RoomVersionId {
         };
 
         Ok(version)
-    }
-}
-
-struct ExpectedRoomVersionId;
-
-impl Expected for ExpectedRoomVersionId {
-    fn fmt(&self, formatter: &mut Formatter<'_>) -> FmtResult {
-        write!(formatter, "a Matrix room version ID as a string")
     }
 }
 

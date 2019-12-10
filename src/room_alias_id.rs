@@ -7,13 +7,10 @@ use std::{
 
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
-use serde::{
-    de::{Error as SerdeError, Expected, Unexpected},
-    Deserialize, Deserializer, Serialize, Serializer,
-};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use url::Host;
 
-use crate::{display, error::Error, parse_id};
+use crate::{deserialize_id, display, error::Error, parse_id};
 
 /// A Matrix room alias ID.
 ///
@@ -80,10 +77,7 @@ impl<'de> Deserialize<'de> for RoomAliasId {
     where
         D: Deserializer<'de>,
     {
-        String::deserialize(deserializer).and_then(|v| {
-            RoomAliasId::try_from(&v as &str)
-                .map_err(|_| SerdeError::invalid_value(Unexpected::Str(&v), &ExpectedRoomAliasId))
-        })
+        deserialize_id(deserializer, "a Matrix room alias ID as a string")
     }
 }
 
@@ -102,14 +96,6 @@ impl<'a> TryFrom<&'a str> for RoomAliasId {
             hostname: host,
             port,
         })
-    }
-}
-
-struct ExpectedRoomAliasId;
-
-impl Expected for ExpectedRoomAliasId {
-    fn fmt(&self, formatter: &mut Formatter<'_>) -> FmtResult {
-        write!(formatter, "a Matrix room alias ID as a string")
     }
 }
 

@@ -14,9 +14,13 @@
 #[cfg_attr(feature = "diesel", macro_use)]
 extern crate diesel;
 
-use std::fmt::{Formatter, Result as FmtResult};
+use std::{
+    convert::TryFrom,
+    fmt::{Formatter, Result as FmtResult},
+};
 
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
 use url::Url;
 
 pub use url::Host;
@@ -111,4 +115,17 @@ fn parse_id(required_sigil: char, id: &str) -> Result<(&str, Host, u16), Error> 
     let port = url.port().unwrap_or(443);
 
     Ok((localpart, host, port))
+}
+
+/// Deserializes any type of id using the provided TryFrom implementation.
+///
+/// This is a helper function to reduce the boilerplate of the Deserialize implementations.
+fn deserialize_id<'de, D, T>(deserializer: D, expected_str: &str) -> Result<T, D::Error>
+where
+    D: Deserializer<'de>,
+    T: for<'a> TryFrom<&'a str>,
+{
+    String::deserialize(deserializer).and_then(|v| {
+        T::try_from(&v).map_err(|_| de::Error::invalid_value(Unexpected::Str(&v), &expected_str))
+    })
 }

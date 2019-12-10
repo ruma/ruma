@@ -7,12 +7,11 @@ use std::{
 
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
-use serde::{
-    de::{Error as SerdeError, Expected, Unexpected},
-    Deserialize, Deserializer, Serialize, Serializer,
-};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::{display, error::Error, room_alias_id::RoomAliasId, room_id::RoomId, validate_id};
+use crate::{
+    deserialize_id, display, error::Error, room_alias_id::RoomAliasId, room_id::RoomId, validate_id,
+};
 
 /// A Matrix room ID or a Matrix room alias ID.
 ///
@@ -83,11 +82,10 @@ impl<'de> Deserialize<'de> for RoomIdOrAliasId {
     where
         D: Deserializer<'de>,
     {
-        String::deserialize(deserializer).and_then(|v| {
-            RoomIdOrAliasId::try_from(&v as &str).map_err(|_| {
-                SerdeError::invalid_value(Unexpected::Str(&v), &ExpectedRoomIdOrAliasId)
-            })
-        })
+        deserialize_id(
+            deserializer,
+            "a Matrix room ID or room alias ID as a string",
+        )
     }
 }
 
@@ -117,14 +115,6 @@ impl<'a> TryFrom<&'a str> for RoomIdOrAliasId {
             }
             _ => Err(Error::MissingSigil),
         }
-    }
-}
-
-struct ExpectedRoomIdOrAliasId;
-
-impl Expected for ExpectedRoomIdOrAliasId {
-    fn fmt(&self, formatter: &mut Formatter<'_>) -> FmtResult {
-        write!(formatter, "a Matrix room ID or room alias ID as a string")
     }
 }
 

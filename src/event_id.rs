@@ -7,13 +7,10 @@ use std::{
 
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
-use serde::{
-    de::{Error as SerdeError, Expected, Unexpected},
-    Deserialize, Deserializer, Serialize, Serializer,
-};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use url::Host;
 
-use crate::{display, error::Error, generate_localpart, parse_id};
+use crate::{deserialize_id, display, error::Error, generate_localpart, parse_id};
 
 /// A Matrix event ID.
 ///
@@ -155,10 +152,7 @@ impl<'de> Deserialize<'de> for EventId {
     where
         D: Deserializer<'de>,
     {
-        String::deserialize(deserializer).and_then(|v| {
-            EventId::try_from(&v as &str)
-                .map_err(|_| SerdeError::invalid_value(Unexpected::Str(&v), &ExpectedEventId))
-        })
+        deserialize_id(deserializer, "a Matrix event ID as a string")
     }
 }
 
@@ -186,14 +180,6 @@ impl<'a> TryFrom<&'a str> for EventId {
         } else {
             Ok(Self(Format::UrlSafeBase64(event_id[1..].to_string())))
         }
-    }
-}
-
-struct ExpectedEventId;
-
-impl Expected for ExpectedEventId {
-    fn fmt(&self, formatter: &mut Formatter<'_>) -> FmtResult {
-        write!(formatter, "a Matrix event ID as a string")
     }
 }
 
