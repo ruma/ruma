@@ -10,7 +10,7 @@
 //!
 //! let work = async {
 //!     let homeserver_url = "https://example.com".parse().unwrap();
-//!     let client = Client::https(homeserver_url, None).unwrap();
+//!     let client = Client::https(homeserver_url, None);
 //!
 //!     let session = client
 //!         .log_in("@alice:example.com".to_string(), "secret".to_string(), None)
@@ -29,10 +29,10 @@
 //! events), use the `Client::sync`:
 //!
 //! ```no_run
-//! # use futures::stream::{StreamExt as _, TryStreamExt as _};
+//! # use futures_util::stream::{StreamExt as _, TryStreamExt as _};
 //! # use ruma_client::Client;
 //! # let homeserver_url = "https://example.com".parse().unwrap();
-//! # let client = Client::https(homeserver_url, None).unwrap();
+//! # let client = Client::https(homeserver_url, None);
 //! # async {
 //! let mut sync_stream = Box::pin(client.sync(None, None, true));
 //! while let Some(response) = sync_stream.try_next().await? {
@@ -56,7 +56,7 @@
 //! ```no_run
 //! # use ruma_client::Client;
 //! # let homeserver_url = "https://example.com".parse().unwrap();
-//! # let client = Client::https(homeserver_url, None).unwrap();
+//! # let client = Client::https(homeserver_url, None);
 //! use std::convert::TryFrom;
 //!
 //! use ruma_client::api::r0::alias::get_alias;
