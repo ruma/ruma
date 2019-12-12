@@ -22,7 +22,6 @@ ruma-api = "0.12.0"
 ruma-client-api = "0.5.0"
 ruma-events = "0.15.1"
 ruma-identifiers = "0.14.0"
-native-tls = { version = "0.2.3", optional = true }
 serde = { version = "1.0.103", features = ["derive"] }
 serde_json = "1.0.44"
 serde_urlencoded = "0.6.1"
@@ -34,4 +33,4 @@ tokio = { version = "0.2.4", features = ["macros"] }
 
 [features]
 default = ["tls"]
-tls = ["hyper-tls", "native-tls"]
+tls = ["hyper-tls"]

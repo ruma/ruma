@@ -100,8 +100,6 @@ use hyper::{
 };
 #[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
-#[cfg(feature = "hyper-tls")]
-use native_tls::Error as NativeTlsError;
 use ruma_api::{Endpoint, Outgoing};
 use tokio::io::{AsyncRead, AsyncWrite};
 use url::Url;
@@ -165,14 +163,14 @@ pub type HttpsClient = Client<HttpsConnector<HttpConnector>>;
 #[cfg(feature = "tls")]
 impl HttpsClient {
     /// Creates a new client for making HTTPS requests to the given homeserver.
-    pub fn https(homeserver_url: Url, session: Option<Session>) -> Result<Self, NativeTlsError> {
+    pub fn https(homeserver_url: Url, session: Option<Session>) -> Self {
         let connector = HttpsConnector::new();
 
-        Ok(Self(Arc::new(ClientData {
+        Self(Arc::new(ClientData {
             homeserver_url,
             hyper: HyperClient::builder().keep_alive(true).build(connector),
             session: Mutex::new(session),
-        })))
+        }))
     }
 }
 
