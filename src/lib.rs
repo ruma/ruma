@@ -7,8 +7,6 @@
     missing_debug_implementations,
     missing_docs
 )]
-// Since we support Rust 1.36.0, we can't apply this suggestion yet
-#![allow(clippy::use_self)]
 
 pub mod r0;
 pub mod unversioned;
