@@ -88,20 +88,22 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use futures::{
+use futures_core::{
     future::Future,
-    stream::{self, Stream, TryStream, TryStreamExt as _},
+    stream::{Stream, TryStream},
 };
+use futures_util::stream;
 use http::Response as HttpResponse;
 use hyper::{
-    client::{connect::Connect, HttpConnector},
-    Client as HyperClient, Uri,
+    client::connect::Connection, client::HttpConnector, service::Service, Client as HyperClient,
+    Uri,
 };
 #[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
 #[cfg(feature = "hyper-tls")]
 use native_tls::Error as NativeTlsError;
 use ruma_api::{Endpoint, Outgoing};
+use tokio::io::{AsyncRead, AsyncWrite};
 use url::Url;
 
 use crate::error::InnerError;
@@ -118,14 +120,11 @@ mod session;
 
 /// A client for the Matrix client-server API.
 #[derive(Debug)]
-pub struct Client<C: Connect>(Arc<ClientData<C>>);
+pub struct Client<C>(Arc<ClientData<C>>);
 
 /// Data contained in Client's Rc
 #[derive(Debug)]
-struct ClientData<C>
-where
-    C: Connect,
-{
+struct ClientData<C> {
     /// The URL of the homeserver to connect to.
     homeserver_url: Url,
     /// The underlying HTTP client.
@@ -167,7 +166,7 @@ pub type HttpsClient = Client<HttpsConnector<HttpConnector>>;
 impl HttpsClient {
     /// Creates a new client for making HTTPS requests to the given homeserver.
     pub fn https(homeserver_url: Url, session: Option<Session>) -> Result<Self, NativeTlsError> {
-        let connector = HttpsConnector::new()?;
+        let connector = HttpsConnector::new();
 
         Ok(Self(Arc::new(ClientData {
             homeserver_url,
@@ -179,7 +178,10 @@ impl HttpsClient {
 
 impl<C> Client<C>
 where
-    C: Connect + 'static,
+    C: Service<Uri> + Clone + Send + Sync + 'static,
+    C::Response: Connection + AsyncRead + AsyncWrite + Send + Unpin + 'static,
+    C::Future: Send + Unpin + 'static,
+    C::Error: Into<Box<dyn std::error::Error + Send + Sync + 'static>>,
 {
     /// Creates a new client using the given `hyper::Client`.
     ///
@@ -375,9 +377,9 @@ where
     {
         let client = self.0.clone();
 
-        async move {
-            let mut url = client.homeserver_url.clone();
+        let mut url = client.homeserver_url.clone();
 
+        async move {
             let mut hyper_request = request.try_into()?.map(hyper::Body::from);
 
             {
@@ -400,8 +402,11 @@ where
 
             let hyper_response = client.hyper.request(hyper_request).await?;
             let (head, body) = hyper_response.into_parts();
-            let full_response =
-                HttpResponse::from_parts(head, body.try_concat().await?.as_ref().to_owned());
+
+            // FIXME: We read the reponse into a contiguous buffer here (not actually required for
+            // deserialization) and then copy the whole thing to convert from Bytes to Vec<u8>.
+            let full_body = hyper::body::to_bytes(body).await?;
+            let full_response = HttpResponse::from_parts(head, full_body.as_ref().to_owned());
 
             Ok(<Request::Response as Outgoing>::Incoming::try_from(
                 full_response,
@@ -410,7 +415,7 @@ where
     }
 }
 
-impl<C: Connect> Clone for Client<C> {
+impl<C> Clone for Client<C> {
     fn clone(&self) -> Self {
         Self(self.0.clone())
     }

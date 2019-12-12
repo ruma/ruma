@@ -1,6 +1,6 @@
 use std::{env, process::exit};
 
-use futures::stream::{StreamExt as _, TryStreamExt as _};
+use futures_util::stream::{StreamExt as _, TryStreamExt as _};
 use ruma_client::{
     self,
     events::{
