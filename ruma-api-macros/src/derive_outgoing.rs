@@ -1,7 +1,7 @@
 use std::mem;
 
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse_quote, punctuated::Pair, spanned::Spanned, Attribute, Data, DeriveInput, Fields,
     GenericArgument, Path, PathArguments, Type, TypePath,
@@ -83,7 +83,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
     let vis = input.vis;
     let doc = format!("'Incoming' variant of [{ty}](struct.{ty}.html).", ty = input.ident);
     let original_ident = input.ident;
-    let incoming_ident = Ident::new(&format!("Incoming{}", original_ident), Span::call_site());
+    let incoming_ident = format_ident!("Incoming{}", original_ident, span = Span::call_site());
 
     let struct_def = match struct_kind {
         StructKind::Struct => quote! { { #(#fields,)* } },
@@ -131,7 +131,7 @@ fn wrap_ty(ty: &mut Type, path: Option<Path>) -> syn::Result<()> {
         match ty {
             Type::Path(TypePath { path, .. }) => {
                 let ty_ident = &mut path.segments.last_mut().unwrap().ident;
-                let ident = Ident::new(&format!("Incoming{}", ty_ident), Span::call_site());
+                let ident = format_ident!("Incoming{}", ty_ident, span = Span::call_site());
                 *ty_ident = parse_quote!(#ident);
             }
             _ => return Err(syn::Error::new_spanned(ty, "Can't wrap this type")),
@@ -200,7 +200,7 @@ fn wrap_generic_arg_impl(
                 *ty = parse_quote!(#wrapper_type<#ty>);
             } else if let Type::Path(TypePath { path, .. }) = ty {
                 let ty_ident = &mut path.segments.last_mut().unwrap().ident;
-                let ident = Ident::new(&format!("Incoming{}", ty_ident), Span::call_site());
+                let ident = format_ident!("Incoming{}", ty_ident, span = Span::call_site());
                 *ty_ident = parse_quote!(#ident);
             } else {
                 return Err(syn::Error::new_spanned(ty, "Can't wrap this type"));
