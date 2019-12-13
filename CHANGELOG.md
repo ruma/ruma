@@ -1,10 +1,13 @@
+# [unreleased]
+
 # r0.5.0
 
 Breaking changes:
 
+* Our Minimum Supported Rust Version is now 1.39.0
+* Update ruma-api from 0.11.0 to 0.12.0
 * Move `r0::directory::get_public_rooms::PublicRoomsChunk` to `r0::directory::PublicRoomsChunk`
 * Move `r0::room::create_room::Visibility` to `r0::room::Visibility`
-* Our Minimum Supported Rust Version is now 1.39.0
 * Move `r0::account::register::AuthenticationData` to `r0::account::AuthenticationData`
 
 Improvements:
