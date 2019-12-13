@@ -1,5 +1,15 @@
 # [unreleased]
 
+# 0.9.0
+
+Breaking changes:
+
+* Updated code generation to match the changes in ruma-api 0.12.0
+
+New features:
+
+* Added a derive macro for the new `Outgoing` trait from ruma-api
+
 # 0.8.2
 
 Bug fixes:

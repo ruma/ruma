@@ -1,8 +1,12 @@
 # [unreleased]
 
+# 0.12.0
+
 Breaking changes:
 
-* Our Minimum Supported Rust Version is now 1.36.0
+* Our Minimum Supported Rust Version is now 1.39.0
+* Support for the server-side use case has been restored. For details, see the documentation for
+  `ruma_api!`, the new `Outgoing` trait and its derive macro
 
 # 0.11.2
 
