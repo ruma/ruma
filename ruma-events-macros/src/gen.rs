@@ -1,7 +1,7 @@
 //! Details of generating code for the `ruma_event` procedural macro.
 
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
     parse::{self, Parse, ParseStream},
     parse_quote,
@@ -44,7 +44,7 @@ impl From<RumaEventInput> for RumaEvent {
     fn from(input: RumaEventInput) -> Self {
         let kind = input.kind;
         let name = input.name;
-        let content_name = Ident::new(&format!("{}Content", &name), Span::call_site());
+        let content_name = format_ident!("{}Content", name, span = Span::call_site());
         let event_type = input.event_type;
         let is_custom = is_custom_event_type(&event_type);
 
