@@ -236,7 +236,7 @@ mod tests {
     #[test]
     fn invalid_characters_in_user_id_localpart() {
         assert_eq!(
-            UserId::try_from("@te\nst:example.com").err().unwrap(),
+            UserId::try_from("@te\nst:example.com").unwrap_err(),
             Error::InvalidCharacters
         );
     }
@@ -244,7 +244,7 @@ mod tests {
     #[test]
     fn missing_user_id_sigil() {
         assert_eq!(
-            UserId::try_from("carl:example.com").err().unwrap(),
+            UserId::try_from("carl:example.com").unwrap_err(),
             Error::MissingSigil
         );
     }
@@ -252,25 +252,20 @@ mod tests {
     #[test]
     fn missing_user_id_delimiter() {
         assert_eq!(
-            UserId::try_from("@carl").err().unwrap(),
+            UserId::try_from("@carl").unwrap_err(),
             Error::MissingDelimiter
         );
     }
 
     #[test]
     fn invalid_user_id_host() {
-        assert_eq!(
-            UserId::try_from("@carl:/").err().unwrap(),
-            Error::InvalidHost
-        );
+        assert_eq!(UserId::try_from("@carl:/").unwrap_err(), Error::InvalidHost);
     }
 
     #[test]
     fn invalid_user_id_port() {
         assert_eq!(
-            UserId::try_from("@carl:example.com:notaport")
-                .err()
-                .unwrap(),
+            UserId::try_from("@carl:example.com:notaport").unwrap_err(),
             Error::InvalidHost
         );
     }

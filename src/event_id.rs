@@ -324,7 +324,7 @@ mod tests {
     #[test]
     fn missing_original_event_id_sigil() {
         assert_eq!(
-            EventId::try_from("39hvsi03hlne:example.com").err().unwrap(),
+            EventId::try_from("39hvsi03hlne:example.com").unwrap_err(),
             Error::MissingSigil
         );
     }
@@ -332,9 +332,7 @@ mod tests {
     #[test]
     fn missing_base64_event_id_sigil() {
         assert_eq!(
-            EventId::try_from("acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
-                .err()
-                .unwrap(),
+            EventId::try_from("acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk").unwrap_err(),
             Error::MissingSigil
         );
     }
@@ -342,9 +340,7 @@ mod tests {
     #[test]
     fn missing_url_safe_base64_event_id_sigil() {
         assert_eq!(
-            EventId::try_from("Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
-                .err()
-                .unwrap(),
+            EventId::try_from("Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg").unwrap_err(),
             Error::MissingSigil
         );
     }
@@ -352,7 +348,7 @@ mod tests {
     #[test]
     fn invalid_event_id_host() {
         assert_eq!(
-            EventId::try_from("$39hvsi03hlne:/").err().unwrap(),
+            EventId::try_from("$39hvsi03hlne:/").unwrap_err(),
             Error::InvalidHost
         );
     }
@@ -360,9 +356,7 @@ mod tests {
     #[test]
     fn invalid_event_id_port() {
         assert_eq!(
-            EventId::try_from("$39hvsi03hlne:example.com:notaport")
-                .err()
-                .unwrap(),
+            EventId::try_from("$39hvsi03hlne:example.com:notaport").unwrap_err(),
             Error::InvalidHost
         );
     }

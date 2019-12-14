@@ -171,9 +171,7 @@ mod tests {
     #[test]
     fn missing_room_alias_id_sigil() {
         assert_eq!(
-            RoomAliasId::try_from("39hvsi03hlne:example.com")
-                .err()
-                .unwrap(),
+            RoomAliasId::try_from("39hvsi03hlne:example.com").unwrap_err(),
             Error::MissingSigil
         );
     }
@@ -181,7 +179,7 @@ mod tests {
     #[test]
     fn missing_room_alias_id_delimiter() {
         assert_eq!(
-            RoomAliasId::try_from("#ruma").err().unwrap(),
+            RoomAliasId::try_from("#ruma").unwrap_err(),
             Error::MissingDelimiter
         );
     }
@@ -189,7 +187,7 @@ mod tests {
     #[test]
     fn invalid_room_alias_id_host() {
         assert_eq!(
-            RoomAliasId::try_from("#ruma:/").err().unwrap(),
+            RoomAliasId::try_from("#ruma:/").unwrap_err(),
             Error::InvalidHost
         );
     }
@@ -197,9 +195,7 @@ mod tests {
     #[test]
     fn invalid_room_alias_id_port() {
         assert_eq!(
-            RoomAliasId::try_from("#ruma:example.com:notaport")
-                .err()
-                .unwrap(),
+            RoomAliasId::try_from("#ruma:example.com:notaport").unwrap_err(),
             Error::InvalidHost
         );
     }

@@ -150,7 +150,7 @@ mod tests {
     #[test]
     fn missing_sigil_for_room_id_or_alias_id() {
         assert_eq!(
-            RoomIdOrAliasId::try_from("ruma:example.com").err().unwrap(),
+            RoomIdOrAliasId::try_from("ruma:example.com").unwrap_err(),
             Error::MissingSigil
         );
     }

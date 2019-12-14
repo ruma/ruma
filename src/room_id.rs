@@ -191,7 +191,7 @@ mod tests {
     #[test]
     fn missing_room_id_sigil() {
         assert_eq!(
-            RoomId::try_from("carl:example.com").err().unwrap(),
+            RoomId::try_from("carl:example.com").unwrap_err(),
             Error::MissingSigil
         );
     }
@@ -199,7 +199,7 @@ mod tests {
     #[test]
     fn missing_room_id_delimiter() {
         assert_eq!(
-            RoomId::try_from("!29fhd83h92h0").err().unwrap(),
+            RoomId::try_from("!29fhd83h92h0").unwrap_err(),
             Error::MissingDelimiter
         );
     }
@@ -207,7 +207,7 @@ mod tests {
     #[test]
     fn invalid_room_id_host() {
         assert_eq!(
-            RoomId::try_from("!29fhd83h92h0:/").err().unwrap(),
+            RoomId::try_from("!29fhd83h92h0:/").unwrap_err(),
             Error::InvalidHost
         );
     }
@@ -215,9 +215,7 @@ mod tests {
     #[test]
     fn invalid_room_id_port() {
         assert_eq!(
-            RoomId::try_from("!29fhd83h92h0:example.com:notaport")
-                .err()
-                .unwrap(),
+            RoomId::try_from("!29fhd83h92h0:example.com:notaport").unwrap_err(),
             Error::InvalidHost
         );
     }
