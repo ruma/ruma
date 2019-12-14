@@ -35,6 +35,12 @@ pub struct UserId {
     localpart: String,
     /// The network port of the homeserver.
     port: u16,
+    /// Whether this user id is a historical one.
+    ///
+    /// A historical user id is one that is not legal per the regular user id rules, but was
+    /// accepted by previous versions of the spec and thus has to be supported because users with
+    /// these kinds of ids still exist.
+    is_historical: bool,
 }
 
 impl UserId {
@@ -54,6 +60,7 @@ impl UserId {
             hostname: host,
             localpart: localpart.to_string(),
             port,
+            is_historical: false,
         })
     }
 
@@ -73,6 +80,13 @@ impl UserId {
     /// Returns the port the originating homeserver can be accessed on.
     pub fn port(&self) -> u16 {
         self.port
+    }
+
+    /// Whether this user ID is a historical one, i.e. one that doesn't conform to the latest
+    /// specification of the user ID grammar but is still accepted because it was previously
+    /// allowed.
+    pub fn is_historical(&self) -> bool {
+        self.is_historical
     }
 }
 
@@ -112,10 +126,19 @@ impl<'a> TryFrom<&'a str> for UserId {
         let downcased_localpart = localpart.to_lowercase();
 
         // See https://matrix.org/docs/spec/appendices#user-identifiers
-        if downcased_localpart.bytes().any(|b| match b {
-            b'0'..=b'9' | b'a'..=b'z' | b'-' | b'.' | b'=' | b'_' | b'/' => false,
-            _ => true,
-        }) {
+        let is_fully_conforming = downcased_localpart.bytes().all(|b| match b {
+            b'0'..=b'9' | b'a'..=b'z' | b'-' | b'.' | b'=' | b'_' | b'/' => true,
+            _ => false,
+        });
+
+        // If it's not fully conforming, check if it contains characters that are also disallowed
+        // for historical user IDs. If there are, return an error.
+        // See https://matrix.org/docs/spec/appendices#historical-user-ids
+        if !is_fully_conforming
+            && downcased_localpart
+                .bytes()
+                .any(|b| b < 0x21 || b == b':' || b > 0x7E)
+        {
             return Err(Error::InvalidCharacters);
         }
 
@@ -123,6 +146,7 @@ impl<'a> TryFrom<&'a str> for UserId {
             hostname: host,
             port,
             localpart: downcased_localpart,
+            is_historical: !is_fully_conforming,
         })
     }
 }
@@ -138,12 +162,16 @@ mod tests {
 
     #[test]
     fn valid_user_id() {
-        assert_eq!(
-            UserId::try_from("@carl:example.com")
-                .expect("Failed to create UserId.")
-                .to_string(),
-            "@carl:example.com"
-        );
+        let user_id = UserId::try_from("@carl:example.com").expect("Failed to create UserId.");
+        assert_eq!(user_id.to_string(), "@carl:example.com");
+        assert!(!user_id.is_historical());
+    }
+
+    #[test]
+    fn valid_historical_user_id() {
+        let user_id = UserId::try_from("@a%b[irc]:example.com").expect("Failed to create UserId.");
+        assert_eq!(user_id.to_string(), "@a%b[irc]:example.com");
+        assert!(user_id.is_historical());
     }
 
     #[test]
@@ -200,18 +228,15 @@ mod tests {
 
     #[test]
     fn valid_user_id_with_non_standard_port() {
-        assert_eq!(
-            UserId::try_from("@carl:example.com:5000")
-                .expect("Failed to create UserId.")
-                .to_string(),
-            "@carl:example.com:5000"
-        );
+        let user_id = UserId::try_from("@carl:example.com:5000").expect("Failed to create UserId.");
+        assert_eq!(user_id.to_string(), "@carl:example.com:5000");
+        assert!(!user_id.is_historical());
     }
 
     #[test]
     fn invalid_characters_in_user_id_localpart() {
         assert_eq!(
-            UserId::try_from("@%%%:example.com").err().unwrap(),
+            UserId::try_from("@te\nst:example.com").err().unwrap(),
             Error::InvalidCharacters
         );
     }
