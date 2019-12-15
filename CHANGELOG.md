@@ -4,6 +4,10 @@ Breaking changes:
 
 * `TryFromRaw::try_from_raw`'s signature has been simplified. The previous signature was a relict that was no longer sensible.
 
+Improvements:
+
+* `NameEvent`s are now validated properly and will be rejected if the `name` field is longer than 255 bytes.
+
 # 0.15.1
 
 Bug fixes:
