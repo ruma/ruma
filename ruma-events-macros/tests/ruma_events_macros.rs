@@ -38,8 +38,8 @@ impl Display for EventType {
     }
 }
 
-impl<'a> From<&'a str> for EventType {
-    fn from(s: &'a str) -> EventType {
+impl<'a> From<&str> for EventType {
+    fn from(s: &str) -> EventType {
         match s {
             "m.direct" => EventType::Direct,
             "m.room.aliases" => EventType::RoomAliases,

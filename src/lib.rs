@@ -666,8 +666,8 @@ impl Display for EventType {
     }
 }
 
-impl<'a> From<&'a str> for EventType {
-    fn from(s: &'a str) -> EventType {
+impl<'a> From<&str> for EventType {
+    fn from(s: &str) -> EventType {
         match s {
             "m.call.answer" => EventType::CallAnswer,
             "m.call.candidates" => EventType::CallCandidates,
@@ -785,8 +785,8 @@ impl Display for Algorithm {
     }
 }
 
-impl<'a> From<&'a str> for Algorithm {
-    fn from(s: &'a str) -> Algorithm {
+impl<'a> From<&str> for Algorithm {
+    fn from(s: &str) -> Algorithm {
         match s {
             "m.olm.v1.curve25519-aes-sha2" => Algorithm::OlmV1Curve25519AesSha2,
             "m.megolm.v1.aes-sha2" => Algorithm::MegolmV1AesSha2,

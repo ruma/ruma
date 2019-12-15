@@ -101,8 +101,8 @@ impl Display for CancelCode {
     }
 }
 
-impl<'a> From<&'a str> for CancelCode {
-    fn from(s: &'a str) -> CancelCode {
+impl<'a> From<&str> for CancelCode {
+    fn from(s: &str) -> CancelCode {
         match s {
             "m.user" => CancelCode::User,
             "m.timeout" => CancelCode::Timeout,
