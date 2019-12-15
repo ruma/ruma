@@ -15,6 +15,7 @@
 extern crate diesel;
 
 use std::{
+    borrow::Cow,
     convert::TryFrom,
     fmt::{Formatter, Result as FmtResult},
 };
@@ -125,7 +126,7 @@ where
     D: Deserializer<'de>,
     T: for<'a> TryFrom<&'a str>,
 {
-    String::deserialize(deserializer).and_then(|v| {
+    Cow::<'_, str>::deserialize(deserializer).and_then(|v| {
         T::try_from(&v).map_err(|_| de::Error::invalid_value(Unexpected::Str(&v), &expected_str))
     })
 }
