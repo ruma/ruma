@@ -1,16 +1,16 @@
 use std::{
+    borrow::Cow,
     convert::Infallible,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
 
-use serde::{
-    de::{DeserializeOwned, Error as SerdeError, Visitor},
-    Deserialize, Deserializer, Serialize, Serializer,
-};
+use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
 /// The type of an event.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+// Cow<str> because deserialization sometimes needs to copy to unescape things
+#[serde(from = "Cow<'_, str>", into = "String")]
 pub enum EventType {
     /// m.direct
     Direct,
@@ -38,49 +38,26 @@ impl Display for EventType {
     }
 }
 
-impl<'a> From<&str> for EventType {
-    fn from(s: &str) -> EventType {
-        match s {
+impl<'a> From<Cow<'a, str>> for EventType {
+    fn from(s: Cow<'a, str>) -> EventType {
+        match &s as &str {
             "m.direct" => EventType::Direct,
             "m.room.aliases" => EventType::RoomAliases,
             "m.room.redaction" => EventType::RoomRedaction,
-            event_type => EventType::Custom(event_type.to_string()),
+            _ => EventType::Custom(s.into_owned()),
         }
     }
 }
 
-impl Serialize for EventType {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
+impl From<&str> for EventType {
+    fn from(s: &str) -> EventType {
+        EventType::from(Cow::Borrowed(s))
     }
 }
 
-impl<'de> Deserialize<'de> for EventType {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct EventTypeVisitor;
-
-        impl<'de> Visitor<'de> for EventTypeVisitor {
-            type Value = EventType;
-
-            fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
-                write!(formatter, "a Matrix event type as a string")
-            }
-
-            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-            where
-                E: SerdeError,
-            {
-                Ok(EventType::from(v))
-            }
-        }
-
-        deserializer.deserialize_str(EventTypeVisitor)
+impl From<EventType> for String {
+    fn from(event_type: EventType) -> String {
+        event_type.to_string()
     }
 }
 

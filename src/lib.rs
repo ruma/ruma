@@ -115,6 +115,7 @@
 #![allow(clippy::use_self)]
 
 use std::{
+    borrow::Cow,
     convert::Infallible,
     error::Error,
     fmt::{Debug, Display, Error as FmtError, Formatter, Result as FmtResult},
@@ -123,7 +124,7 @@ use std::{
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{
-    de::{DeserializeOwned, Error as SerdeError, MapAccess, Visitor},
+    de::{DeserializeOwned, MapAccess, Visitor},
     ser::SerializeMap,
     Deserialize, Deserializer, Serialize, Serializer,
 };
@@ -376,7 +377,9 @@ impl<'de> Deserialize<'de> for Empty {
 }
 
 /// The type of an event.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
+// Cow<str> because deserialization sometimes needs to copy to unescape things
+#[serde(from = "Cow<'_, str>", into = "String")]
 pub enum EventType {
     /// m.call.answer
     CallAnswer,
@@ -666,9 +669,9 @@ impl Display for EventType {
     }
 }
 
-impl<'a> From<&str> for EventType {
-    fn from(s: &str) -> EventType {
-        match s {
+impl From<Cow<'_, str>> for EventType {
+    fn from(s: Cow<'_, str>) -> EventType {
+        match &s as &str {
             "m.call.answer" => EventType::CallAnswer,
             "m.call.candidates" => EventType::CallCandidates,
             "m.call.hangup" => EventType::CallHangup,
@@ -712,48 +715,27 @@ impl<'a> From<&str> for EventType {
             "m.sticker" => EventType::Sticker,
             "m.tag" => EventType::Tag,
             "m.typing" => EventType::Typing,
-            event_type => EventType::Custom(event_type.to_string()),
+            _ => EventType::Custom(s.into_owned()),
         }
     }
 }
 
-impl Serialize for EventType {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
+impl<'a> From<&str> for EventType {
+    fn from(s: &str) -> EventType {
+        EventType::from(Cow::Borrowed(s))
     }
 }
 
-impl<'de> Deserialize<'de> for EventType {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct EventTypeVisitor;
-
-        impl<'de> Visitor<'de> for EventTypeVisitor {
-            type Value = EventType;
-
-            fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
-                write!(formatter, "a Matrix event type as a string")
-            }
-
-            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-            where
-                E: SerdeError,
-            {
-                Ok(EventType::from(v))
-            }
-        }
-
-        deserializer.deserialize_str(EventTypeVisitor)
+impl From<EventType> for String {
+    fn from(event_type: EventType) -> String {
+        event_type.to_string()
     }
 }
 
 /// An encryption algorithm to be used to encrypt messages sent to a room.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+// Cow<str> because deserialization sometimes needs to copy to unescape things
+#[serde(from = "Cow<'_, str>", into = "String")]
 pub enum Algorithm {
     /// Olm version 1 using Curve25519, AES-256, and SHA-256.
     OlmV1Curve25519AesSha2,
@@ -785,48 +767,25 @@ impl Display for Algorithm {
     }
 }
 
-impl<'a> From<&str> for Algorithm {
-    fn from(s: &str) -> Algorithm {
-        match s {
+impl From<Cow<'_, str>> for Algorithm {
+    fn from(s: Cow<'_, str>) -> Algorithm {
+        match &s as &str {
             "m.olm.v1.curve25519-aes-sha2" => Algorithm::OlmV1Curve25519AesSha2,
             "m.megolm.v1.aes-sha2" => Algorithm::MegolmV1AesSha2,
-            algorithm => Algorithm::Custom(algorithm.to_string()),
+            _ => Algorithm::Custom(s.into_owned()),
         }
     }
 }
 
-impl Serialize for Algorithm {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
+impl From<&str> for Algorithm {
+    fn from(s: &str) -> Algorithm {
+        Algorithm::from(Cow::Borrowed(s))
     }
 }
 
-impl<'de> Deserialize<'de> for Algorithm {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct CancelCodeVisitor;
-
-        impl<'de> Visitor<'de> for CancelCodeVisitor {
-            type Value = Algorithm;
-
-            fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
-                write!(formatter, "an encryption algorithm code as a string")
-            }
-
-            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-            where
-                E: SerdeError,
-            {
-                Ok(Algorithm::from(v))
-            }
-        }
-
-        deserializer.deserialize_str(CancelCodeVisitor)
+impl From<Algorithm> for String {
+    fn from(algorithm: Algorithm) -> String {
+        algorithm.to_string()
     }
 }
 

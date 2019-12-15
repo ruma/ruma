@@ -1,12 +1,12 @@
 //! Types for the *m.key.verification.cancel* event.
 
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::{
+    borrow::Cow,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 
 use ruma_events_macros::ruma_event;
-use serde::{
-    de::{Error as SerdeError, Visitor},
-    Deserialize, Deserializer, Serialize, Serializer,
-};
+use serde::{Deserialize, Serialize};
 
 ruma_event! {
     /// Cancels a key verification process/request.
@@ -33,7 +33,9 @@ ruma_event! {
 /// An error code for why the process/request was cancelled by the user.
 ///
 /// Custom error codes should use the Java package naming convention.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+// Cow<str> because deserialization sometimes needs to copy to unescape things
+#[serde(from = "Cow<'_, str>", into = "String")]
 pub enum CancelCode {
     /// The user cancelled the verification.
     User,
@@ -101,9 +103,9 @@ impl Display for CancelCode {
     }
 }
 
-impl<'a> From<&str> for CancelCode {
-    fn from(s: &str) -> CancelCode {
-        match s {
+impl From<Cow<'_, str>> for CancelCode {
+    fn from(s: Cow<'_, str>) -> CancelCode {
+        match &s as &str {
             "m.user" => CancelCode::User,
             "m.timeout" => CancelCode::Timeout,
             "m.unknown_transaction" => CancelCode::UnknownTransaction,
@@ -113,43 +115,20 @@ impl<'a> From<&str> for CancelCode {
             "m.user_mismatch" => CancelCode::UserMismatch,
             "m.invalid_message" => CancelCode::InvalidMessage,
             "m.accepted" => CancelCode::Accepted,
-            cancel_code => CancelCode::Custom(cancel_code.to_string()),
+            _ => CancelCode::Custom(s.into_owned()),
         }
     }
 }
 
-impl Serialize for CancelCode {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
+impl From<&str> for CancelCode {
+    fn from(s: &str) -> CancelCode {
+        CancelCode::from(Cow::Borrowed(s))
     }
 }
 
-impl<'de> Deserialize<'de> for CancelCode {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct CancelCodeVisitor;
-
-        impl<'de> Visitor<'de> for CancelCodeVisitor {
-            type Value = CancelCode;
-
-            fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
-                write!(formatter, "an `m.key.verification.cancel` code as a string")
-            }
-
-            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-            where
-                E: SerdeError,
-            {
-                Ok(CancelCode::from(v))
-            }
-        }
-
-        deserializer.deserialize_str(CancelCodeVisitor)
+impl From<CancelCode> for String {
+    fn from(cancel_code: CancelCode) -> String {
+        cancel_code.to_string()
     }
 }
 
