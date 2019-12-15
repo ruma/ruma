@@ -89,7 +89,7 @@ impl<'de> Deserialize<'de> for RoomIdOrAliasId {
     }
 }
 
-impl<'a> TryFrom<&'a str> for RoomIdOrAliasId {
+impl TryFrom<&str> for RoomIdOrAliasId {
     type Error = Error;
 
     /// Attempts to create a new Matrix room ID or a room alias ID from a string representation.
@@ -97,7 +97,7 @@ impl<'a> TryFrom<&'a str> for RoomIdOrAliasId {
     /// The string must either include the leading ! sigil, the localpart, a literal colon, and a
     /// valid homeserver host or include the leading # sigil, the alias, a literal colon, and a
     /// valid homeserver host.
-    fn try_from(room_id_or_alias_id: &'a str) -> Result<Self, Error> {
+    fn try_from(room_id_or_alias_id: &str) -> Result<Self, Error> {
         validate_id(room_id_or_alias_id)?;
 
         let mut chars = room_id_or_alias_id.chars();

@@ -81,14 +81,14 @@ impl<'de> Deserialize<'de> for RoomAliasId {
     }
 }
 
-impl<'a> TryFrom<&'a str> for RoomAliasId {
+impl TryFrom<&str> for RoomAliasId {
     type Error = Error;
 
     /// Attempts to create a new Matrix room alias ID from a string representation.
     ///
     /// The string must include the leading # sigil, the alias, a literal colon, and a valid
     /// server name.
-    fn try_from(room_id: &'a str) -> Result<Self, Error> {
+    fn try_from(room_id: &str) -> Result<Self, Error> {
         let (alias, host, port) = parse_id('#', room_id)?;
 
         Ok(Self {

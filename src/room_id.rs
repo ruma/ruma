@@ -96,14 +96,14 @@ impl<'de> Deserialize<'de> for RoomId {
     }
 }
 
-impl<'a> TryFrom<&'a str> for RoomId {
+impl TryFrom<&str> for RoomId {
     type Error = Error;
 
     /// Attempts to create a new Matrix room ID from a string representation.
     ///
     /// The string must include the leading ! sigil, the localpart, a literal colon, and a valid
     /// server name.
-    fn try_from(room_id: &'a str) -> Result<Self, Error> {
+    fn try_from(room_id: &str) -> Result<Self, Error> {
         let (localpart, host, port) = parse_id('!', room_id)?;
 
         Ok(Self {

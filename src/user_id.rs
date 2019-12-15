@@ -114,14 +114,14 @@ impl<'de> Deserialize<'de> for UserId {
     }
 }
 
-impl<'a> TryFrom<&'a str> for UserId {
+impl TryFrom<&str> for UserId {
     type Error = Error;
 
     /// Attempts to create a new Matrix user ID from a string representation.
     ///
     /// The string must include the leading @ sigil, the localpart, a literal colon, and a valid
     /// server name.
-    fn try_from(user_id: &'a str) -> Result<Self, Error> {
+    fn try_from(user_id: &str) -> Result<Self, Error> {
         let (localpart, host, port) = parse_id('@', user_id)?;
         let downcased_localpart = localpart.to_lowercase();
 

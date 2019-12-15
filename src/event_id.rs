@@ -156,7 +156,7 @@ impl<'de> Deserialize<'de> for EventId {
     }
 }
 
-impl<'a> TryFrom<&'a str> for EventId {
+impl TryFrom<&str> for EventId {
     type Error = Error;
 
     /// Attempts to create a new Matrix event ID from a string representation.
@@ -164,7 +164,7 @@ impl<'a> TryFrom<&'a str> for EventId {
     /// If using the original event format as used by Matrix room versions 1 and 2, the string must
     /// include the leading $ sigil, the localpart, a literal colon, and a valid homeserver
     /// hostname.
-    fn try_from(event_id: &'a str) -> Result<Self, Self::Error> {
+    fn try_from(event_id: &str) -> Result<Self, Self::Error> {
         if event_id.contains(':') {
             let (localpart, host, port) = parse_id('$', event_id)?;
 

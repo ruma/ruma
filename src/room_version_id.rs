@@ -155,11 +155,11 @@ impl<'de> Deserialize<'de> for RoomVersionId {
     }
 }
 
-impl<'a> TryFrom<&'a str> for RoomVersionId {
+impl TryFrom<&str> for RoomVersionId {
     type Error = Error;
 
     /// Attempts to create a new Matrix room version ID from a string representation.
-    fn try_from(room_version_id: &'a str) -> Result<Self, Error> {
+    fn try_from(room_version_id: &str) -> Result<Self, Error> {
         let version = match room_version_id {
             "1" => Self(InnerRoomVersionId::Version1),
             "2" => Self(InnerRoomVersionId::Version2),
