@@ -298,7 +298,7 @@ where
     /// Convenience method that represents repeated calls to the sync_events endpoint as a stream.
     ///
     /// If the since parameter is None, the first Item might take a significant time to arrive and
-    /// be deserialized, because it contains all events that have occured in the whole lifetime of
+    /// be deserialized, because it contains all events that have occurred in the whole lifetime of
     /// the logged-in users account and are visible to them.
     pub fn sync(
         &self,
@@ -401,7 +401,7 @@ where
             let hyper_response = client.hyper.request(hyper_request).await?;
             let (head, body) = hyper_response.into_parts();
 
-            // FIXME: We read the reponse into a contiguous buffer here (not actually required for
+            // FIXME: We read the response into a contiguous buffer here (not actually required for
             // deserialization) and then copy the whole thing to convert from Bytes to Vec<u8>.
             let full_body = hyper::body::to_bytes(body).await?;
             let full_response = HttpResponse::from_parts(head, full_body.as_ref().to_owned());
