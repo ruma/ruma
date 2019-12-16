@@ -172,7 +172,7 @@ impl HttpsClient {
 
 impl<C> Client<C>
 where
-    C: hyper::client::connect::Connect,
+    C: hyper::client::connect::Connect + Clone + Send + Sync + 'static,
 {
     /// Creates a new client using the given `hyper::Client`.
     ///
