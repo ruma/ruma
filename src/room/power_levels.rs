@@ -48,6 +48,7 @@ pub struct PowerLevelsEventContent {
     /// The level required to send specific event types.
     ///
     /// This is a mapping from event type to power level required.
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub events: HashMap<EventType, Int>,
 
     /// The default level required to send message events.
@@ -73,6 +74,7 @@ pub struct PowerLevelsEventContent {
     /// The power levels for specific users.
     ///
     /// This is a mapping from `user_id` to power level for that user.
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub users: HashMap<UserId, Int>,
 
     /// The default power level for every user in the room.
@@ -82,6 +84,7 @@ pub struct PowerLevelsEventContent {
     /// The power level requirements for specific notification types.
     ///
     /// This is a mapping from `key` to power level for that notifications key.
+    #[serde(default, skip_serializing_if = "NotificationPowerLevels::is_default")]
     pub notifications: NotificationPowerLevels,
 }
 
@@ -214,6 +217,7 @@ pub(crate) mod raw {
         /// The level required to send specific event types.
         ///
         /// This is a mapping from event type to power level required.
+        #[serde(default, skip_serializing_if = "HashMap::is_empty")]
         pub events: HashMap<EventType, Int>,
 
         /// The default level required to send message events.
@@ -239,6 +243,7 @@ pub(crate) mod raw {
         /// The power levels for specific users.
         ///
         /// This is a mapping from `user_id` to power level for that user.
+        #[serde(default, skip_serializing_if = "HashMap::is_empty")]
         pub users: HashMap<UserId, Int>,
 
         /// The default power level for every user in the room.
@@ -248,6 +253,7 @@ pub(crate) mod raw {
         /// The power level requirements for specific notification types.
         ///
         /// This is a mapping from `key` to power level for that notifications key.
+        #[serde(default, skip_serializing_if = "NotificationPowerLevels::is_default")]
         pub notifications: NotificationPowerLevels,
     }
 }
@@ -258,6 +264,23 @@ pub struct NotificationPowerLevels {
     /// The level required to trigger an `@room` notification.
     #[serde(default = "default_power_level")]
     pub room: Int,
+}
+
+impl NotificationPowerLevels {
+    // TODO: Make public under this name?
+    // pass-by-ref required for #[serde(skip_serializing_if)]
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    fn is_default(&self) -> bool {
+        *self == Self::default()
+    }
+}
+
+impl Default for NotificationPowerLevels {
+    fn default() -> Self {
+        Self {
+            room: default_power_level(),
+        }
+    }
 }
 
 /// Used to default power levels to 50 during deserialization.
