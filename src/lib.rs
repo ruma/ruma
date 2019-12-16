@@ -94,14 +94,10 @@ use futures_core::{
 };
 use futures_util::stream;
 use http::Response as HttpResponse;
-use hyper::{
-    client::connect::Connection, client::HttpConnector, service::Service, Client as HyperClient,
-    Uri,
-};
+use hyper::{client::HttpConnector, Client as HyperClient, Uri};
 #[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
 use ruma_api::{Endpoint, Outgoing};
-use tokio::io::{AsyncRead, AsyncWrite};
 use url::Url;
 
 use crate::error::InnerError;
@@ -176,10 +172,7 @@ impl HttpsClient {
 
 impl<C> Client<C>
 where
-    C: Service<Uri> + Clone + Send + Sync + 'static,
-    C::Response: Connection + AsyncRead + AsyncWrite + Send + Unpin + 'static,
-    C::Future: Send + Unpin + 'static,
-    C::Error: Into<Box<dyn std::error::Error + Send + Sync + 'static>>,
+    C: hyper::client::connect::Connect,
 {
     /// Creates a new client using the given `hyper::Client`.
     ///
