@@ -25,6 +25,9 @@ features = ["serde"]
 version = "1.0.101"
 features = ["derive"]
 
+[dev-dependencies]
+maplit = "1.0.2"
+
 [workspace]
 members = [
     "ruma-events-macros",
