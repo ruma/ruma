@@ -19,3 +19,4 @@ Improvements:
 * Add `contains_url` to `r0::filter::RoomEventFilter` (introduced upstream in r0.3.0)
 * Update `r0::account::change_password` from r0.3.0 to r0.6.0
   * Add optional `auth` field
+* Add `r0::device` endpoints

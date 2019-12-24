@@ -1,7 +1,7 @@
 //! [POST /_matrix/client/r0/register](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-register)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::UserId;
+use ruma_identifiers::{DeviceId, UserId};
 use serde::{Deserialize, Serialize};
 
 use super::AuthenticationData;
@@ -37,7 +37,7 @@ ruma_api! {
         /// If this does not correspond to a known client device, a new device will be created.
         /// The server will auto-generate a device_id if this is not specified.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_id: Option<String>,
+        pub device_id: Option<DeviceId>,
         /// A display name to assign to the newly-created device.
         ///
         /// Ignored if `device_id` corresponds to a known device.
@@ -71,7 +71,7 @@ ruma_api! {
         /// ID of the registered device.
         ///
         /// Will be the same as the corresponding parameter in the request, if one was specified.
-        pub device_id: String,
+        pub device_id: DeviceId,
     }
 }
 
