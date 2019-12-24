@@ -1,7 +1,7 @@
 //! [POST /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-login)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::UserId;
+use ruma_identifiers::{DeviceId, UserId};
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -30,7 +30,7 @@ ruma_api! {
         pub address: Option<String>,
         /// ID of the client device
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_id: Option<String>,
+        pub device_id: Option<DeviceId>,
     }
 
     response {
