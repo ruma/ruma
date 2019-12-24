@@ -6,6 +6,7 @@ pub mod appservice;
 pub mod config;
 pub mod contact;
 pub mod context;
+pub mod device;
 pub mod directory;
 pub mod filter;
 pub mod media;
