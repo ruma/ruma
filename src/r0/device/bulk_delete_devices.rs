@@ -2,6 +2,7 @@
 
 use crate::r0::account::AuthenticationData;
 use ruma_api::ruma_api;
+use ruma_identifiers::DeviceId;
 
 ruma_api! {
     metadata {
@@ -15,7 +16,7 @@ ruma_api! {
 
     request {
         /// List of devices to delete.
-        devices: Vec<String>,
+        devices: Vec<DeviceId>,
 
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
