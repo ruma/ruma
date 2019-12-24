@@ -5,10 +5,10 @@ use ruma_api::ruma_api;
 
 ruma_api! {
     metadata {
-        description: "Delete specified devices",
+        description: "Delete specified devices.",
         method: POST,
         path: "/_matrix/client/r0/delete_devices",
-        name: "delete_devices",
+        name: "bulk_delete_devices",
         rate_limited: false,
         requires_authentication: true,
     }
