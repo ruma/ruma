@@ -1,6 +1,7 @@
 //! Endpoints for room creation.
 
 pub mod create_room;
+pub mod get_room_event;
 
 use serde::{Deserialize, Serialize};
 

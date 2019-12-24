@@ -20,3 +20,4 @@ Improvements:
 * Update `r0::account::change_password` from r0.3.0 to r0.6.0
   * Add optional `auth` field
 * Add `r0::device` endpoints
+* Add `r0::room::get_room_event` (introduced in r0.4.0)
