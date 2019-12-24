@@ -1,8 +1,8 @@
 //! [DELETE /_matrix/client/r0/devices/{deviceId}](https://matrix.org/docs/spec/client_server/r0.6.0#delete-matrix-client-r0-devices-deviceid)
 
+use crate::r0::account::AuthenticationData;
 use ruma_api::ruma_api;
 use ruma_identifiers::DeviceId;
-use crate::r0::account::AuthenticationData;
 
 ruma_api! {
     metadata {
