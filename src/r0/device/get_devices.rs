@@ -16,6 +16,6 @@ ruma_api! {
     request {}
 
     response {
-        devices: Vec<Device>
+        devices: Vec<Device>,
     }
 }

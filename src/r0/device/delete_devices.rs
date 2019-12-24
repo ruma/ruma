@@ -9,7 +9,7 @@ ruma_api! {
         description: "Delete specified devices.",
         method: POST,
         path: "/_matrix/client/r0/delete_devices",
-        name: "bulk_delete_devices",
+        name: "delete_devices",
         rate_limited: false,
         requires_authentication: true,
     }
@@ -23,5 +23,5 @@ ruma_api! {
         auth: Option<AuthenticationData>,
     }
 
-    response { }
+    response {}
 }

@@ -7,7 +7,7 @@ ruma_api! {
     metadata {
         description: "Update metadata for a device.",
         method: PUT,
-        name: "set_device",
+        name: "update_device",
         path: "/_matrix/client/r0/devices/:device_id",
         rate_limited: false,
         requires_authentication: true,

@@ -4,11 +4,11 @@ use js_int::UInt;
 use ruma_identifiers::DeviceId;
 use serde::{Deserialize, Serialize};
 
-pub mod bulk_delete_devices;
 pub mod delete_device;
+pub mod delete_devices;
 pub mod get_device;
 pub mod get_devices;
-pub mod set_device;
+pub mod update_device;
 
 /// Information about a registered device.
 #[derive(Clone, Debug, Deserialize, Hash, PartialEq, Serialize)]
