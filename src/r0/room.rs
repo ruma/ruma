@@ -1,4 +1,4 @@
-//! Endpoints for room creation.
+//! Endpoints for room management.
 
 pub mod create_room;
 pub mod get_room_event;
