@@ -9,6 +9,7 @@ Breaking changes:
 * Move `r0::directory::get_public_rooms::PublicRoomsChunk` to `r0::directory::PublicRoomsChunk`
 * Move `r0::room::create_room::Visibility` to `r0::room::Visibility`
 * Move `r0::account::register::AuthenticationData` to `r0::account::AuthenticationData`
+* Remove presence list endpoints `r0::presence::{get_subscribed_presences, update_presence_subscriptions}` (removed in 0.5.0)
 
 Improvements:
 
