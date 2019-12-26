@@ -8,7 +8,7 @@ ruma_api! {
     metadata {
         description: "Send a message event to a room.",
         method: PUT,
-        name: "send_message_event",
+        name: "create_message_event",
         path: "/_matrix/client/r0/rooms/:room_id/send/:event_type/:txn_id",
         rate_limited: false,
         requires_authentication: true,

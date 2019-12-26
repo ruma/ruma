@@ -2,6 +2,7 @@
 
 pub mod ban_user;
 pub mod forget_room;
+pub mod get_member_events;
 pub mod invite_user;
 pub mod join_room_by_id;
 pub mod join_room_by_id_or_alias;

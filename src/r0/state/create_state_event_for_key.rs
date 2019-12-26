@@ -9,7 +9,7 @@ ruma_api! {
     metadata {
         description: "Send a state event to a room associated with a given state key.",
         method: PUT,
-        name: "send_state_event_for_key",
+        name: "create_state_event_for_key",
         path: "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
         rate_limited: false,
         requires_authentication: true,
