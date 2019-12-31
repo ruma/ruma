@@ -5,8 +5,13 @@ use std::collections::HashMap;
 use js_int::UInt;
 use ruma_api::{ruma_api, Outgoing};
 use ruma_events::{
-    collections::{all, only},
-    stripped, EventResult,
+    collections::{
+        all::{RoomEvent, StateEvent},
+        only::Event as NonRoomEvent,
+    },
+    presence::PresenceEvent,
+    stripped::StrippedState,
+    EventResult,
 };
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
@@ -182,32 +187,33 @@ pub struct Timeline {
     /// `/rooms/{roomId}/messages` endpoint.
     pub prev_batch: String,
     /// A list of events.
-    #[wrap_incoming(all::RoomEvent with EventResult)]
-    pub events: Vec<all::RoomEvent>,
+    #[wrap_incoming(RoomEvent with EventResult)]
+    pub events: Vec<RoomEvent>,
 }
 
 /// State events in the room.
 #[derive(Clone, Debug, Serialize, Outgoing)]
 pub struct State {
     /// A list of state events.
-    #[wrap_incoming(only::StateEvent with EventResult)]
-    pub events: Vec<only::StateEvent>,
+    #[wrap_incoming(StateEvent with EventResult)]
+    pub events: Vec<StateEvent>,
 }
 
 /// The private data that this user has attached to this room.
 #[derive(Clone, Debug, Serialize, Outgoing)]
 pub struct AccountData {
     /// A list of events.
-    #[wrap_incoming(only::Event with EventResult)]
-    pub events: Vec<only::Event>,
+    // TODO: Create
+    #[wrap_incoming(NonRoomEvent with EventResult)]
+    pub events: Vec<NonRoomEvent>,
 }
 
 /// Ephemeral events not recorded in the timeline or state of the room.
 #[derive(Clone, Debug, Serialize, Outgoing)]
 pub struct Ephemeral {
     /// A list of events.
-    #[wrap_incoming(only::Event with EventResult)]
-    pub events: Vec<only::Event>,
+    #[wrap_incoming(NonRoomEvent with EventResult)]
+    pub events: Vec<NonRoomEvent>,
 }
 
 /// Updates to the rooms that the user has been invited to.
@@ -222,14 +228,14 @@ pub struct InvitedRoom {
 #[derive(Clone, Debug, Serialize, Outgoing)]
 pub struct InviteState {
     /// A list of state events.
-    #[wrap_incoming(stripped::StrippedState with EventResult)]
-    pub events: Vec<stripped::StrippedState>,
+    #[wrap_incoming(StrippedState with EventResult)]
+    pub events: Vec<StrippedState>,
 }
 
 /// Updates to the presence status of other users.
 #[derive(Clone, Debug, Serialize, Outgoing)]
 pub struct Presence {
     /// A list of events.
-    #[wrap_incoming(only::Event with EventResult)]
-    pub events: Vec<only::Event>,
+    #[wrap_incoming(PresenceEvent with EventResult)]
+    pub events: Vec<PresenceEvent>,
 }
