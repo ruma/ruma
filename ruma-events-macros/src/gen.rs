@@ -343,11 +343,15 @@ impl ToTokens for RumaEvent {
                 TokenStream::new()
             };
 
+        let stripped_fields = event_fields
+            .iter()
+            .map(|event_field| strip_serde_attrs(event_field));
+
         let output = quote!(
             #(#attrs)*
             #[derive(Clone, PartialEq, Debug)]
             pub struct #name {
-                #(#event_fields),*
+                #(#stripped_fields),*
             }
 
             #content
@@ -431,6 +435,7 @@ fn populate_event_fields(
             pub content: #content_name,
 
             /// The custom type of the event.
+            #[serde(rename = "type")]
             pub event_type: String,
         }
     } else {
@@ -522,4 +527,11 @@ impl Parse for ParsableNamedField {
 
         Ok(Self { field })
     }
+}
+
+/// Removes `serde` attributes from struct fields.
+pub fn strip_serde_attrs(field: &Field) -> Field {
+    let mut field = field.clone();
+    field.attrs.retain(|attr| !attr.path.is_ident("serde"));
+    field
 }
