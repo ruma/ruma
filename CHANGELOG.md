@@ -18,6 +18,7 @@ Improvements:
 
 * Add `r0::device` endpoints
 * Add `r0::room::get_room_event` (introduced in r0.4.0)
+* Add `r0::read_marker::set_read_marker` (introduced in r0.4.0)
 
 # 0.5.0
 

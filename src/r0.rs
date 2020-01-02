@@ -15,6 +15,7 @@ pub mod message;
 pub mod presence;
 pub mod profile;
 pub mod push;
+pub mod read_marker;
 pub mod receipt;
 pub mod redact;
 pub mod room;
