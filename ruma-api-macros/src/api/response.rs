@@ -35,36 +35,30 @@ impl Response {
 
     /// Produces code for a response struct initializer.
     pub fn init_fields(&self) -> TokenStream {
-        let fields = self.fields.iter().map(|response_field| match response_field {
-            ResponseField::Body(field) => {
-                let field_name =
-                    field.ident.as_ref().expect("expected field to have an identifier");
-                let span = field.span();
+        let fields = self.fields.iter().map(|response_field| {
+            let field = response_field.field();
+            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+            let span = field.span();
 
-                quote_spanned! {span=>
-                    #field_name: response_body.#field_name
+            match response_field {
+                ResponseField::Body(_) => {
+                    quote_spanned! {span=>
+                        #field_name: response_body.#field_name
+                    }
                 }
-            }
-            ResponseField::Header(field, header_name) => {
-                let field_name =
-                    field.ident.as_ref().expect("expected field to have an identifier");
-                let span = field.span();
-
-                quote_spanned! {span=>
-                    #field_name: headers.remove(ruma_api::exports::http::header::#header_name)
-                        .expect("response missing expected header")
-                        .to_str()
-                        .expect("failed to convert HeaderValue to str")
-                        .to_owned()
+                ResponseField::Header(_, header_name) => {
+                    quote_spanned! {span=>
+                        #field_name: headers.remove(ruma_api::exports::http::header::#header_name)
+                            .expect("response missing expected header")
+                            .to_str()
+                            .expect("failed to convert HeaderValue to str")
+                            .to_owned()
+                    }
                 }
-            }
-            ResponseField::NewtypeBody(field) => {
-                let field_name =
-                    field.ident.as_ref().expect("expected field to have an identifier");
-                let span = field.span();
-
-                quote_spanned! {span=>
-                    #field_name: response_body.0
+                ResponseField::NewtypeBody(_) => {
+                    quote_spanned! {span=>
+                        #field_name: response_body.0
+                    }
                 }
             }
         });
