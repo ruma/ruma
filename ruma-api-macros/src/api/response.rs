@@ -60,6 +60,11 @@ impl Response {
                         #field_name: response_body.0
                     }
                 }
+                ResponseField::NewtypeRawBody(_) => {
+                    quote_spanned! {span=>
+                        #field_name: response_body
+                    }
+                }
             }
         });
 
@@ -89,7 +94,17 @@ impl Response {
 
     /// Produces code to initialize the struct that will be used to create the response body.
     pub fn to_body(&self) -> TokenStream {
-        if let Some(field) = self.newtype_body_field() {
+        if let Some(field) = self.newtype_raw_body_field() {
+            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
+            let span = field.span();
+            return quote_spanned!(span=> response.#field_name);
+        }
+
+        if !self.has_body_fields() && self.newtype_body_field().is_none() {
+            return quote!(Vec::new());
+        }
+
+        let body = if let Some(field) = self.newtype_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let span = field.span();
             quote_spanned!(span=> response.#field_name)
@@ -111,12 +126,19 @@ impl Response {
             quote! {
                 ResponseBody { #(#fields),* }
             }
-        }
+        };
+
+        quote!(ruma_api::exports::serde_json::to_vec(&#body)?)
     }
 
     /// Gets the newtype body field, if this response has one.
     pub fn newtype_body_field(&self) -> Option<&Field> {
         self.fields.iter().find_map(ResponseField::as_newtype_body_field)
+    }
+
+    /// Gets the newtype raw body field, if this response has one.
+    pub fn newtype_raw_body_field(&self) -> Option<&Field> {
+        self.fields.iter().find_map(ResponseField::as_newtype_raw_body_field)
     }
 }
 
@@ -150,29 +172,34 @@ impl TryFrom<RawResponse> for Response {
                     }
 
                     field_kind = Some(match meta {
-                        Meta::Word(ident) => {
-                            if ident != "body" {
+                        Meta::Word(ident) => match &ident.to_string()[..] {
+                            s @ "body" | s @ "raw_body" => {
+                                if let Some(f) = &newtype_body_field {
+                                    let mut error = syn::Error::new_spanned(
+                                        field,
+                                        "There can only be one newtype body field",
+                                    );
+                                    error.combine(syn::Error::new_spanned(
+                                        f,
+                                        "Previous newtype body field",
+                                    ));
+                                    return Err(error);
+                                }
+
+                                newtype_body_field = Some(field.clone());
+                                match s {
+                                    "body" => ResponseFieldKind::NewtypeBody,
+                                    "raw_body" => ResponseFieldKind::NewtypeRawBody,
+                                    _ => unreachable!(),
+                                }
+                            }
+                            _ => {
                                 return Err(syn::Error::new_spanned(
                                     ident,
                                     "Invalid #[ruma_api] argument with value, expected `body`",
                                 ));
                             }
-
-                            if let Some(f) = &newtype_body_field {
-                                let mut error = syn::Error::new_spanned(
-                                    field,
-                                    "There can only be one newtype body field",
-                                );
-                                error.combine(syn::Error::new_spanned(
-                                    f,
-                                    "Previous newtype body field",
-                                ));
-                                return Err(error);
-                            }
-
-                            newtype_body_field = Some(field.clone());
-                            ResponseFieldKind::NewtypeBody
-                        }
+                        },
                         Meta::NameValue(MetaNameValue { name, value }) => {
                             if name != "header" {
                                 return Err(syn::Error::new_spanned(
@@ -193,6 +220,7 @@ impl TryFrom<RawResponse> for Response {
                         ResponseField::Header(field, header.expect("missing header name"))
                     }
                     ResponseFieldKind::NewtypeBody => ResponseField::NewtypeBody(field),
+                    ResponseFieldKind::NewtypeRawBody => ResponseField::NewtypeRawBody(field),
                 })
             })
             .collect::<syn::Result<Vec<_>>>()?;
@@ -220,7 +248,7 @@ impl ToTokens for Response {
             quote! { { #(#fields),* } }
         };
 
-        let (derive_deserialize, response_body_def) =
+        let response_body_struct =
             if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
                 let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
                 let derive_deserialize = if body_field.has_wrap_incoming_attr() {
@@ -229,7 +257,7 @@ impl ToTokens for Response {
                     quote!(ruma_api::exports::serde::Deserialize)
                 };
 
-                (derive_deserialize, quote! { (#field); })
+                Some((derive_deserialize, quote! { (#field); }))
             } else if self.has_body_fields() {
                 let fields = self.fields.iter().filter(|f| f.is_body());
                 let derive_deserialize = if fields.clone().any(|f| f.has_wrap_incoming_attr()) {
@@ -239,24 +267,29 @@ impl ToTokens for Response {
                 };
                 let fields = fields.map(ResponseField::field);
 
-                (derive_deserialize, quote!({ #(#fields),* }))
+                Some((derive_deserialize, quote!({ #(#fields),* })))
             } else {
-                (quote!(ruma_api::exports::serde::Deserialize), quote!(;))
-            };
+                None
+            }
+            .map(|(derive_deserialize, def)| {
+                quote! {
+                    /// Data in the response body.
+                    #[derive(
+                        Debug,
+                        ruma_api::Outgoing,
+                        ruma_api::exports::serde::Serialize,
+                        #derive_deserialize
+                    )]
+                    struct ResponseBody #def
+                }
+            });
 
         let response = quote! {
             #[derive(Debug, Clone, ruma_api::Outgoing)]
             #[incoming_no_deserialize]
             pub struct Response #response_def
 
-            /// Data in the response body.
-            #[derive(
-                Debug,
-                ruma_api::Outgoing,
-                ruma_api::exports::serde::Serialize,
-                #derive_deserialize
-            )]
-            struct ResponseBody #response_body_def
+            #response_body_struct
         };
 
         response.to_tokens(tokens);
@@ -271,6 +304,8 @@ pub enum ResponseField {
     Header(Field, Ident),
     /// A specific data type in the body of the response.
     NewtypeBody(Field),
+    /// Arbitrary bytes in the body of the response.
+    NewtypeRawBody(Field),
 }
 
 impl ResponseField {
@@ -279,7 +314,8 @@ impl ResponseField {
         match self {
             ResponseField::Body(field)
             | ResponseField::Header(field, _)
-            | ResponseField::NewtypeBody(field) => field,
+            | ResponseField::NewtypeBody(field)
+            | ResponseField::NewtypeRawBody(field) => field,
         }
     }
 
@@ -317,6 +353,14 @@ impl ResponseField {
         }
     }
 
+    /// Return the contained field if this response field is a newtype raw body kind.
+    fn as_newtype_raw_body_field(&self) -> Option<&Field> {
+        match self {
+            ResponseField::NewtypeRawBody(field) => Some(field),
+            _ => None,
+        }
+    }
+
     /// Whether or not the reponse field has a #[wrap_incoming] attribute.
     fn has_wrap_incoming_attr(&self) -> bool {
         self.field().attrs.iter().any(|attr| {
@@ -333,4 +377,6 @@ enum ResponseFieldKind {
     Header,
     /// See the similarly named variant of `ResponseField`.
     NewtypeBody,
+    /// See the similarly named variant of `ResponseField`.
+    NewtypeRawBody,
 }

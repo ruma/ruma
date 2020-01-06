@@ -118,6 +118,11 @@ impl Request {
         self.fields.iter().find_map(RequestField::as_newtype_body_field)
     }
 
+    /// Returns the body field.
+    pub fn newtype_raw_body_field(&self) -> Option<&Field> {
+        self.fields.iter().find_map(RequestField::as_newtype_raw_body_field)
+    }
+
     /// Returns the query map field.
     pub fn query_map_field(&self) -> Option<&Field> {
         self.fields.iter().find_map(RequestField::as_query_map_field)
@@ -205,7 +210,7 @@ impl TryFrom<RawRequest> for Request {
                     field_kind = Some(match meta {
                         Meta::Word(ident) => {
                             match &ident.to_string()[..] {
-                                "body" => {
+                                s @ "body" | s @ "raw_body" => {
                                     if let Some(f) = &newtype_body_field {
                                         let mut error = syn::Error::new_spanned(
                                             field,
@@ -219,7 +224,11 @@ impl TryFrom<RawRequest> for Request {
                                     }
 
                                     newtype_body_field = Some(field.clone());
-                                    RequestFieldKind::NewtypeBody
+                                    match s {
+                                        "body" => RequestFieldKind::NewtypeBody,
+                                        "raw_body" => RequestFieldKind::NewtypeRawBody,
+                                        _ => unreachable!(),
+                                    }
                                 }
                                 "path" => RequestFieldKind::Path,
                                 "query" => RequestFieldKind::Query,
@@ -299,7 +308,7 @@ impl ToTokens for Request {
             quote! { { #(#fields),* } }
         };
 
-        let (derive_deserialize, request_body_def) =
+        let request_body_struct =
             if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
                 let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
                 let derive_deserialize = if body_field.has_wrap_incoming_attr() {
@@ -308,7 +317,7 @@ impl ToTokens for Request {
                     quote!(ruma_api::exports::serde::Deserialize)
                 };
 
-                (derive_deserialize, quote! { (#field); })
+                Some((derive_deserialize, quote! { (#field); }))
             } else if self.has_body_fields() {
                 let fields = self.fields.iter().filter(|f| f.is_body());
                 let derive_deserialize = if fields.clone().any(|f| f.has_wrap_incoming_attr()) {
@@ -318,10 +327,22 @@ impl ToTokens for Request {
                 };
                 let fields = fields.map(RequestField::field);
 
-                (derive_deserialize, quote! { { #(#fields),* } })
+                Some((derive_deserialize, quote! { { #(#fields),* } }))
             } else {
-                (quote!(ruma_api::exports::serde::Deserialize), quote!(;))
-            };
+                None
+            }
+            .map(|(derive_deserialize, def)| {
+                quote! {
+                    /// Data in the request body.
+                    #[derive(
+                        Debug,
+                        ruma_api::Outgoing,
+                        ruma_api::exports::serde::Serialize,
+                        #derive_deserialize
+                    )]
+                    struct RequestBody #def
+                }
+            });
 
         let request_path_struct = if self.has_path_fields() {
             let fields = self.fields.iter().filter_map(RequestField::as_path_field);
@@ -376,15 +397,7 @@ impl ToTokens for Request {
             #[incoming_no_deserialize]
             pub struct Request #request_def
 
-            /// Data in the request body.
-            #[derive(
-                Debug,
-                ruma_api::Outgoing,
-                ruma_api::exports::serde::Serialize,
-                #derive_deserialize
-            )]
-            struct RequestBody #request_body_def
-
+            #request_body_struct
             #request_path_struct
             #request_query_struct
         };
@@ -401,6 +414,8 @@ pub enum RequestField {
     Header(Field, Ident),
     /// A specific data type in the body of the request.
     NewtypeBody(Field),
+    /// Arbitrary bytes in the body of the request.
+    NewtypeRawBody(Field),
     /// Data that appears in the URL path.
     Path(Field),
     /// Data that appears in the query string.
@@ -418,6 +433,7 @@ impl RequestField {
                 RequestField::Header(field, header.expect("missing header name"))
             }
             RequestFieldKind::NewtypeBody => RequestField::NewtypeBody(field),
+            RequestFieldKind::NewtypeRawBody => RequestField::NewtypeRawBody(field),
             RequestFieldKind::Path => RequestField::Path(field),
             RequestFieldKind::Query => RequestField::Query(field),
             RequestFieldKind::QueryMap => RequestField::QueryMap(field),
@@ -430,6 +446,7 @@ impl RequestField {
             RequestField::Body(..) => RequestFieldKind::Body,
             RequestField::Header(..) => RequestFieldKind::Header,
             RequestField::NewtypeBody(..) => RequestFieldKind::NewtypeBody,
+            RequestField::NewtypeRawBody(..) => RequestFieldKind::NewtypeRawBody,
             RequestField::Path(..) => RequestFieldKind::Path,
             RequestField::Query(..) => RequestFieldKind::Query,
             RequestField::QueryMap(..) => RequestFieldKind::QueryMap,
@@ -471,6 +488,11 @@ impl RequestField {
         self.field_of_kind(RequestFieldKind::NewtypeBody)
     }
 
+    /// Return the contained field if this request field is a raw body kind.
+    fn as_newtype_raw_body_field(&self) -> Option<&Field> {
+        self.field_of_kind(RequestFieldKind::NewtypeRawBody)
+    }
+
     /// Return the contained field if this request field is a path kind.
     fn as_path_field(&self) -> Option<&Field> {
         self.field_of_kind(RequestFieldKind::Path)
@@ -492,6 +514,7 @@ impl RequestField {
             RequestField::Body(field)
             | RequestField::Header(field, _)
             | RequestField::NewtypeBody(field)
+            | RequestField::NewtypeRawBody(field)
             | RequestField::Path(field)
             | RequestField::Query(field)
             | RequestField::QueryMap(field) => field,
@@ -524,6 +547,8 @@ enum RequestFieldKind {
     Header,
     /// See the similarly named variant of `RequestField`.
     NewtypeBody,
+    /// See the similarly named variant of `RequestField`.
+    NewtypeRawBody,
     /// See the similarly named variant of `RequestField`.
     Path,
     /// See the similarly named variant of `RequestField`.

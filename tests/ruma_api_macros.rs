@@ -86,12 +86,42 @@ pub mod newtype_body_endpoint {
 
         request {
             #[ruma_api(body)]
-            pub file: Vec<u8>,
+            pub list_of_custom_things: Vec<MyCustomType>,
         }
 
         response {
             #[ruma_api(body)]
-            pub my_custom_type: MyCustomType,
+            pub my_custom_thing: MyCustomType,
+        }
+    }
+}
+
+pub mod newtype_raw_body_endpoint {
+    use ruma_api_macros::ruma_api;
+
+    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+    pub struct MyCustomType {
+        pub foo: String,
+    }
+
+    ruma_api! {
+        metadata {
+            description: "Does something.",
+            method: PUT,
+            name: "newtype_body_endpoint",
+            path: "/_matrix/some/newtype/body/endpoint",
+            rate_limited: false,
+            requires_authentication: false,
+        }
+
+        request {
+            #[ruma_api(raw_body)]
+            pub file: Vec<u8>,
+        }
+
+        response {
+            #[ruma_api(raw_body)]
+            pub file: Vec<u8>,
         }
     }
 }

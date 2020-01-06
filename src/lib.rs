@@ -198,11 +198,9 @@ use serde_urlencoded;
 ///
 /// ## Fallible deserialization
 ///
-/// All request and response types also derive [`Outgoing`][]. As such, to allow fallible
+/// All request and response types also derive [`Outgoing`][Outgoing]. As such, to allow fallible
 /// deserialization, you can use the `#[wrap_incoming]` attribute. For details, see the
-/// documentation for [`Outgoing`][].
-///
-/// [`Outgoing`]: derive.Outgoing.html
+/// documentation for [the derive macro](derive.Outgoing.html).
 // TODO: Explain the concept of fallible deserialization before jumping to `ruma_api::Outgoing`
 #[cfg(feature = "with-ruma-api-macros")]
 pub use ruma_api_macros::ruma_api;
