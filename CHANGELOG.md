@@ -13,6 +13,10 @@ Breaking changes:
   * Move `r0::sync::get_state_events` to `r0::state::get_state_events`
   * Move `r0::sync::get_state_events_for_empty_key` to `r0::state::get_state_events_for_empty_key`
   * Move `r0::sync::get_state_events_for_key` to `r0::state::get_state_events_for_key`
+* Update endpoints for requesting account management tokens via email:
+  * Move `r0::account::request_password_change_token` to `r0::account::request_password_change_token_via_email`
+  * Move `r0::account::request_register_token` to `r0::account::request_registration_token_via_email`
+  * Modify `r0::account::request_registration_token_via_email` not to be rate-limited and require authentication
 
 Improvements:
 
@@ -23,6 +27,11 @@ Improvements:
 * Add `r0::keys` endpoints (introduced in r0.3.0)
 * Add `r0::session::get_login_types` (introduced in r0.4.0)
 * Add `r0::account::get_username_availability` (introduced in r0.4.0)
+* Add endpoints to request management tokens (introduced upstream in r0.4.0):
+  * `r0::account::request_3pid_management_token_via_msisdn`
+  * `r0::account::request_password_change_token_via_msisdn`
+  * `r0::account::request_registration_token_via_msisdn` 
+  * `r0::acount::request_3pid_management_token_via_email` 
 
 # 0.5.0
 
