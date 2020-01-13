@@ -17,6 +17,7 @@ Breaking changes:
   * Move `r0::account::request_password_change_token` to `r0::account::request_password_change_token_via_email`
   * Move `r0::account::request_register_token` to `r0::account::request_registration_token_via_email`
   * Modify `r0::account::request_registration_token_via_email` not to be rate-limited and require authentication
+* Merge duplicate enums `r0::contact::get_contact::Medium` and `r0::session::login::Medium` and move them to `r0::thirdparty`
 
 Improvements:
 
@@ -33,6 +34,9 @@ Improvements:
   * `r0::account::request_registration_token_via_msisdn`
   * `r0::acount::request_3pid_management_token_via_email`
 * Update `r0::presence_get_presence` from r0.4.0 to r0.6.0
+* Add `r0::account::bind_3pid`
+* Add `r0::account::delete_3pid`
+* Add `r0::account::unbind_3pid`
 
 # 0.5.0
 
