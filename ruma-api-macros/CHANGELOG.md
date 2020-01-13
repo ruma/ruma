@@ -1,5 +1,13 @@
 # [unreleased]
 
+# 0.9.1
+
+Improvements:
+
+* Add `#[ruma_api(raw_body)]` attribute to `ruma_api!`'s grammar
+  * This attribute is used to bypass (de)serialization for endpoints where the HTTP request /
+    response is arbitrary data rather than some JSON structure
+
 # 0.9.0
 
 Breaking changes:

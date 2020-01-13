@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.12.1
+
+Improvements:
+
+* Update ruma-api-macros to 0.9.1 to support `#[ruma_api(raw_body)]`
+
 # 0.12.0
 
 Breaking changes:
