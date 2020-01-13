@@ -25,7 +25,7 @@ ruma_api! {
 
     response {
         /// The content that was previously uploaded.
-        #[ruma_api(body)]
+        #[ruma_api(raw_body)]
         pub file: Vec<u8>,
         /// The content type of the file that was previously uploaded.
         #[ruma_api(header = CONTENT_TYPE)]

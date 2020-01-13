@@ -21,7 +21,7 @@ ruma_api! {
         #[ruma_api(header = CONTENT_TYPE)]
         pub content_type: String,
         /// The file contents to upload.
-        #[ruma_api(body)]
+        #[ruma_api(raw_body)]
         pub file: Vec<u8>,
     }
 
