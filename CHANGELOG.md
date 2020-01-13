@@ -30,8 +30,9 @@ Improvements:
 * Add endpoints to request management tokens (introduced upstream in r0.4.0):
   * `r0::account::request_3pid_management_token_via_msisdn`
   * `r0::account::request_password_change_token_via_msisdn`
-  * `r0::account::request_registration_token_via_msisdn` 
-  * `r0::acount::request_3pid_management_token_via_email` 
+  * `r0::account::request_registration_token_via_msisdn`
+  * `r0::acount::request_3pid_management_token_via_email`
+* Update `r0::presence_get_presence` from r0.4.0 to r0.6.0
 
 # 0.5.0
 

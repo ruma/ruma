@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-presence-userid-status)
+//! [GET /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-presence-userid-status)
 
 use js_int::UInt;
 use ruma_api::ruma_api;
@@ -12,7 +12,7 @@ ruma_api! {
         name: "get_presence",
         path: "/_matrix/client/r0/presence/:user_id/status",
         rate_limited: false,
-        requires_authentication: false,
+        requires_authentication: true,
     }
 
     request {
