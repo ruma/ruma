@@ -1,7 +1,9 @@
 //! Endpoints for account registration and management.
 
+pub mod bind_3pid;
 pub mod change_password;
 pub mod deactivate;
+pub mod delete_3pid;
 pub mod get_username_availability;
 pub mod register;
 pub mod request_3pid_management_token_via_email;
@@ -10,6 +12,7 @@ pub mod request_password_change_token_via_email;
 pub mod request_password_change_token_via_msisdn;
 pub mod request_registration_token_via_email;
 pub mod request_registration_token_via_msisdn;
+pub mod unbind_3pid;
 
 pub mod whoami;
 
@@ -30,8 +33,15 @@ pub struct AuthenticationData {
 pub struct IdentityServerInfo {
     /// The ID server to send the onward request to as a hostname with an
     /// appended colon and port number if the port is not the default.
-    /// Deprecated since r0.6.0.
     pub id_server: String,
     /// Access token previously registered with identity server.
     pub id_access_token: String,
+}
+
+/// Possible values for deleting or unbinding 3PIDs
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+enum ThirdPartyIdRemovalStatus {
+    NoSupport,
+    Success,
 }

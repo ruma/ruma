@@ -1,5 +1,6 @@
 //! [POST /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-login)
 
+use crate::r0::thirdparty::Medium;
 use ruma_api::ruma_api;
 use ruma_identifiers::{DeviceId, UserId};
 use serde::{Deserialize, Serialize};
@@ -50,14 +51,6 @@ ruma_api! {
         /// specified.
         pub device_id: String,
     }
-}
-
-/// The medium of a third party identifier.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-pub enum Medium {
-    /// An email address.
-    #[serde(rename = "email")]
-    Email,
 }
 
 /// The authentication mechanism.

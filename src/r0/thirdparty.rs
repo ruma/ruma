@@ -72,3 +72,13 @@ pub struct User {
     /// Information used to identify this third party user.
     pub fields: HashMap<String, String>,
 }
+
+/// The medium of a third party identifier.
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Medium {
+    /// Email address identifier
+    Email,
+    /// Phone number identifier
+    MSISDN,
+}

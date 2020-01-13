@@ -1,5 +1,6 @@
 //! [GET /_matrix/client/r0/account/3pid](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-account-3pid)
 
+use crate::r0::thirdparty::Medium;
 use ruma_api::ruma_api;
 use serde::{Deserialize, Serialize};
 
@@ -20,14 +21,6 @@ ruma_api! {
         /// account.
         pub threepids: Vec<ThirdPartyIdentifier>,
     }
-}
-
-/// The medium of third party identifier.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-pub enum Medium {
-    /// An email address.
-    #[serde(rename = "email")]
-    Email,
 }
 
 /// An identifier external to Matrix.
