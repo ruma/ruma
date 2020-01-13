@@ -126,6 +126,10 @@ use serde_urlencoded;
 /// each struct can be marked with this attribute. It is an error to have a newtype body field and
 /// normal body fields within the same struct.
 ///
+/// There is another kind of newtype body that is enabled with `#[ruma_api(raw_body)]`. It is used
+/// for endpoints in which the request or response body can be arbitrary bytes instead of a JSON
+/// objects. A field with `#[ruma_api(raw_body)]` needs to have the type `Vec<u8>`.
+///
 /// # Examples
 ///
 /// ```
