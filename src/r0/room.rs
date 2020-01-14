@@ -2,6 +2,7 @@
 
 pub mod create_room;
 pub mod get_room_event;
+pub mod report_content;
 
 use serde::{Deserialize, Serialize};
 
