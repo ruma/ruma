@@ -37,6 +37,7 @@ Improvements:
 * Add `r0::account::bind_3pid`
 * Add `r0::account::delete_3pid`
 * Add `r0::account::unbind_3pid`
+* Add `r0::push` endpoints
 
 # 0.5.0
 
