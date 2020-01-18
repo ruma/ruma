@@ -38,6 +38,7 @@ Improvements:
 * Add `r0::account::delete_3pid`
 * Add `r0::account::unbind_3pid`
 * Add `r0::push` endpoints
+* Add `r0::room::upgrade_room` (introduced upstream in 0.5.0)
 
 # 0.5.0
 
