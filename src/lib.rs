@@ -102,15 +102,14 @@ use url::Url;
 
 use crate::error::InnerError;
 
-pub use crate::{error::Error, session::Session};
 pub use ruma_client_api as api;
 pub use ruma_events as events;
 pub use ruma_identifiers as identifiers;
 
-/// Matrix client-server API endpoints.
-//pub mod api;
 mod error;
 mod session;
+
+pub use self::{error::Error, session::Session};
 
 /// A client for the Matrix client-server API.
 #[derive(Debug)]
