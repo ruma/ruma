@@ -301,14 +301,6 @@ where
            + TryStream<Ok = api::r0::sync::sync_events::IncomingResponse, Error = Error> {
         use api::r0::sync::sync_events;
 
-        // TODO: Is this really the way TryStreams are supposed to work?
-        #[derive(Debug, PartialEq, Eq)]
-        enum State {
-            InitialSync,
-            Since(String),
-            Errored,
-        }
-
         let client = self.clone();
         let set_presence = if set_presence {
             None
@@ -316,23 +308,12 @@ where
             Some(sync_events::SetPresence::Offline)
         };
 
-        let initial_state = match since {
-            Some(s) => State::Since(s),
-            None => State::InitialSync,
-        };
-
-        stream::unfold(initial_state, move |state| {
+        stream::try_unfold(since, move |since| {
             let client = client.clone();
             let filter = filter.clone();
 
             async move {
-                let since = match state {
-                    State::Errored => return None,
-                    State::Since(s) => Some(s),
-                    State::InitialSync => None,
-                };
-
-                let res = client
+                let response = client
                     .request(sync_events::Request {
                         filter,
                         since,
@@ -340,15 +321,10 @@ where
                         set_presence,
                         timeout: None,
                     })
-                    .await;
+                    .await?;
 
-                match res {
-                    Ok(response) => {
-                        let next_batch_clone = response.next_batch.clone();
-                        Some((Ok(response), State::Since(next_batch_clone)))
-                    }
-                    Err(e) => Some((Err(e), State::Errored)),
-                }
+                let next_batch_clone = response.next_batch.clone();
+                Ok(Some((response, Some(next_batch_clone))))
             }
         })
     }
