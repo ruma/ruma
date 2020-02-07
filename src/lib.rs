@@ -19,9 +19,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
-use http::{self, Method};
-use serde_json;
-use serde_urlencoded;
+use http::Method;
 
 /// Generates a `ruma_api::Endpoint` from a concise definition.
 ///
