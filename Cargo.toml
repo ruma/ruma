@@ -1,5 +1,8 @@
 [package]
-authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
+authors = [
+  "Jimmy Cuadra <jimmy@jimmycuadra.com>",
+  "Jonas Platte <jplatte@posteo.de>",
+]
 categories = ["api-bindings", "web-programming"]
 description = "An abstraction for Matrix API endpoints."
 documentation = "https://docs.rs/ruma-api"
