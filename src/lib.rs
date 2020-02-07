@@ -349,11 +349,9 @@ mod tests {
     pub mod create {
         use std::convert::TryFrom;
 
-        use http::{self, header::CONTENT_TYPE, method::Method};
-        use percent_encoding;
+        use http::{header::CONTENT_TYPE, method::Method};
         use ruma_identifiers::{RoomAliasId, RoomId};
         use serde::{de::IntoDeserializer, Deserialize, Serialize};
-        use serde_json;
 
         use crate::{Endpoint, FromHttpError, IntoHttpError, Metadata, Outgoing};
 
