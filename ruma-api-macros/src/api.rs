@@ -369,7 +369,7 @@ impl ToTokens for Api {
             #request_type
 
             impl std::convert::TryFrom<ruma_api::exports::http::Request<Vec<u8>>> for #request_try_from_type {
-                type Error = ruma_api::Error;
+                type Error = ruma_api::FromHttpError;
 
                 #[allow(unused_variables)]
                 fn try_from(request: ruma_api::exports::http::Request<Vec<u8>>) -> Result<Self, Self::Error> {
@@ -388,7 +388,7 @@ impl ToTokens for Api {
             }
 
             impl std::convert::TryFrom<Request> for ruma_api::exports::http::Request<Vec<u8>> {
-                type Error = ruma_api::Error;
+                type Error = ruma_api::IntoHttpError;
 
                 #[allow(unused_mut, unused_variables)]
                 fn try_from(request: Request) -> Result<Self, Self::Error> {
@@ -419,7 +419,7 @@ impl ToTokens for Api {
             #response_type
 
             impl std::convert::TryFrom<Response> for ruma_api::exports::http::Response<Vec<u8>> {
-                type Error = ruma_api::Error;
+                type Error = ruma_api::IntoHttpError;
 
                 #[allow(unused_variables)]
                 fn try_from(response: Response) -> Result<Self, Self::Error> {
@@ -433,7 +433,7 @@ impl ToTokens for Api {
             }
 
             impl std::convert::TryFrom<ruma_api::exports::http::Response<Vec<u8>>> for #response_try_from_type {
-                type Error = ruma_api::Error;
+                type Error = ruma_api::FromHttpError;
 
                 #[allow(unused_variables)]
                 fn try_from(
@@ -449,7 +449,7 @@ impl ToTokens for Api {
                             #response_init_fields
                         })
                     } else {
-                        Err(http_response.status().clone().into())
+                        Err(ruma_api::FromHttpError::Http(http_response))
                     }
                 }
             }

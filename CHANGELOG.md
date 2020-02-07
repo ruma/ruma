@@ -1,5 +1,12 @@
 # [unreleased]
 
+Breaking changes:
+
+* Instead of one `Error` type, there is now two: `FromHttpError` and `IntoHttpError`
+  * In constrast to the old `Error` types, these can be pattern matched and generally allow getting
+    much more context for why things failed
+* Out Minimum Supported Rust Version is now 1.40.0
+
 # 0.12.1
 
 Improvements:

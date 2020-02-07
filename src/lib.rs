@@ -17,11 +17,9 @@ use std::{
     convert::{TryFrom, TryInto},
     error::Error as StdError,
     fmt::{Display, Formatter, Result as FmtResult},
-    io,
 };
 
-use http::{self, Method, StatusCode};
-use ruma_identifiers;
+use http::{self, Method};
 use serde_json;
 use serde_urlencoded;
 
@@ -240,111 +238,89 @@ pub trait Outgoing {
 /// A Matrix API endpoint.
 ///
 /// The type implementing this trait contains any data needed to make a request to the endpoint.
-pub trait Endpoint: Outgoing + TryInto<http::Request<Vec<u8>>, Error = Error>
+pub trait Endpoint: Outgoing + TryInto<http::Request<Vec<u8>>, Error = IntoHttpError>
 where
-    <Self as Outgoing>::Incoming: TryFrom<http::Request<Vec<u8>>, Error = Error>,
-    <Self::Response as Outgoing>::Incoming: TryFrom<http::Response<Vec<u8>>, Error = Error>,
+    <Self as Outgoing>::Incoming: TryFrom<http::Request<Vec<u8>>, Error = FromHttpError>,
+    <Self::Response as Outgoing>::Incoming: TryFrom<http::Response<Vec<u8>>, Error = FromHttpError>,
 {
     /// Data returned in a successful response from the endpoint.
-    type Response: Outgoing + TryInto<http::Response<Vec<u8>>, Error = Error>;
+    type Response: Outgoing + TryInto<http::Response<Vec<u8>>, Error = IntoHttpError>;
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;
 }
 
-/// An error when converting an `Endpoint` request or response to the corresponding type from the
-/// `http` crate.
+/// An error when converting an `http` request or response to the corresponding
 #[derive(Debug)]
-pub struct Error(pub(crate) InnerError);
+#[non_exhaustive]
+pub enum FromHttpError {
+    /// The server returned a non-success status
+    Http(http::Response<Vec<u8>>),
+    /// JSON deserialization failed
+    Json(serde_json::Error),
+    /// Deserialization of query parameters failed
+    Query(serde_urlencoded::de::Error),
+}
 
-impl Display for Error {
+/// An error when converting a request or response to the corresponding http type.
+#[derive(Debug)]
+#[non_exhaustive]
+pub enum IntoHttpError {
+    /// JSON serialization failed
+    Json(serde_json::Error),
+    /// Serialization of query parameters failed
+    Query(serde_urlencoded::ser::Error),
+}
+
+impl From<serde_json::Error> for FromHttpError {
+    fn from(err: serde_json::Error) -> Self {
+        Self::Json(err)
+    }
+}
+
+impl From<serde_urlencoded::de::Error> for FromHttpError {
+    fn from(err: serde_urlencoded::de::Error) -> Self {
+        Self::Query(err)
+    }
+}
+
+impl Display for FromHttpError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let message = match self.0 {
-            InnerError::Http(_) => "An error converting to or from `http` types occurred.".into(),
-            InnerError::Io(_) => "An I/O error occurred.".into(),
-            InnerError::SerdeJson(_) => "A JSON error occurred.".into(),
-            InnerError::SerdeUrlEncodedDe(_) => {
-                "A URL encoding deserialization error occurred.".into()
-            }
-            InnerError::SerdeUrlEncodedSer(_) => {
-                "A URL encoding serialization error occurred.".into()
-            }
-            InnerError::RumaIdentifiers(_) => "A ruma-identifiers error occurred.".into(),
-            InnerError::StatusCode(code) => format!("A HTTP {} error occurred.", code),
-        };
-
-        write!(f, "{}", message)
+        match self {
+            Self::Http(res) => match res.status().canonical_reason() {
+                Some(reason) => write!(f, "HTTP status {} {}", res.status().as_str(), reason),
+                None => write!(f, "HTTP status {}", res.status().as_str()),
+            },
+            Self::Json(err) => write!(f, "JSON deserialization failed: {}", err),
+            Self::Query(err) => write!(f, "Query parameter deserialization failed: {}", err),
+        }
     }
 }
 
-impl StdError for Error {}
+impl StdError for FromHttpError {}
 
-/// Internal representation of errors.
-#[derive(Debug)]
-pub(crate) enum InnerError {
-    /// An HTTP error.
-    Http(http::Error),
-
-    /// A I/O error.
-    Io(io::Error),
-
-    /// A Serde JSON error.
-    SerdeJson(serde_json::Error),
-
-    /// A Serde URL decoding error.
-    SerdeUrlEncodedDe(serde_urlencoded::de::Error),
-
-    /// A Serde URL encoding error.
-    SerdeUrlEncodedSer(serde_urlencoded::ser::Error),
-
-    /// A Ruma Identitifiers error.
-    RumaIdentifiers(ruma_identifiers::Error),
-
-    /// An HTTP status code indicating error.
-    StatusCode(StatusCode),
-}
-
-impl From<http::Error> for Error {
-    fn from(error: http::Error) -> Self {
-        Self(InnerError::Http(error))
+impl From<serde_json::Error> for IntoHttpError {
+    fn from(err: serde_json::Error) -> Self {
+        Self::Json(err)
     }
 }
 
-impl From<io::Error> for Error {
-    fn from(error: io::Error) -> Self {
-        Self(InnerError::Io(error))
+impl From<serde_urlencoded::ser::Error> for IntoHttpError {
+    fn from(err: serde_urlencoded::ser::Error) -> Self {
+        Self::Query(err)
     }
 }
 
-impl From<serde_json::Error> for Error {
-    fn from(error: serde_json::Error) -> Self {
-        Self(InnerError::SerdeJson(error))
+impl Display for IntoHttpError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::Json(err) => write!(f, "JSON serialization failed: {}", err),
+            Self::Query(err) => write!(f, "Query parameter serialization failed: {}", err),
+        }
     }
 }
 
-impl From<serde_urlencoded::de::Error> for Error {
-    fn from(error: serde_urlencoded::de::Error) -> Self {
-        Self(InnerError::SerdeUrlEncodedDe(error))
-    }
-}
-
-impl From<serde_urlencoded::ser::Error> for Error {
-    fn from(error: serde_urlencoded::ser::Error) -> Self {
-        Self(InnerError::SerdeUrlEncodedSer(error))
-    }
-}
-
-impl From<ruma_identifiers::Error> for Error {
-    fn from(error: ruma_identifiers::Error) -> Self {
-        Self(InnerError::RumaIdentifiers(error))
-    }
-}
-
-impl From<StatusCode> for Error {
-    fn from(error: StatusCode) -> Self {
-        Self(InnerError::StatusCode(error))
-    }
-}
+impl StdError for IntoHttpError {}
 
 /// Metadata about an API endpoint.
 #[derive(Clone, Debug)]
@@ -381,7 +357,7 @@ mod tests {
         use serde::{de::IntoDeserializer, Deserialize, Serialize};
         use serde_json;
 
-        use crate::{Endpoint, Error, Metadata, Outgoing};
+        use crate::{Endpoint, FromHttpError, IntoHttpError, Metadata, Outgoing};
 
         /// A request to create a new room alias.
         #[derive(Debug)]
@@ -408,7 +384,7 @@ mod tests {
         }
 
         impl TryFrom<Request> for http::Request<Vec<u8>> {
-            type Error = Error;
+            type Error = IntoHttpError;
 
             fn try_from(request: Request) -> Result<http::Request<Vec<u8>>, Self::Error> {
                 let metadata = Request::METADATA;
@@ -423,14 +399,15 @@ mod tests {
                 let http_request = http::Request::builder()
                     .method(metadata.method)
                     .uri(path)
-                    .body(serde_json::to_vec(&request_body).map_err(Error::from)?)?;
+                    .body(serde_json::to_vec(&request_body)?)
+                    .expect("http request building to succeed");
 
                 Ok(http_request)
             }
         }
 
         impl TryFrom<http::Request<Vec<u8>>> for Request {
-            type Error = Error;
+            type Error = FromHttpError;
 
             fn try_from(request: http::Request<Vec<u8>>) -> Result<Self, Self::Error> {
                 let request_body: RequestBody =
@@ -462,19 +439,19 @@ mod tests {
         }
 
         impl TryFrom<http::Response<Vec<u8>>> for Response {
-            type Error = Error;
+            type Error = FromHttpError;
 
             fn try_from(http_response: http::Response<Vec<u8>>) -> Result<Response, Self::Error> {
                 if http_response.status().is_success() {
                     Ok(Response)
                 } else {
-                    Err(http_response.status().into())
+                    Err(FromHttpError::Http(http_response))
                 }
             }
         }
 
         impl TryFrom<Response> for http::Response<Vec<u8>> {
-            type Error = Error;
+            type Error = IntoHttpError;
 
             fn try_from(_: Response) -> Result<http::Response<Vec<u8>>, Self::Error> {
                 let response = http::Response::builder()
