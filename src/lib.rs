@@ -138,17 +138,6 @@ impl HttpClient {
             session: Mutex::new(session),
         }))
     }
-
-    /// Get a copy of the current `Session`, if any.
-    ///
-    /// Useful for serializing and persisting the session to be restored later.
-    pub fn session(&self) -> Option<Session> {
-        self.0
-            .session
-            .lock()
-            .expect("session mutex was poisoned")
-            .clone()
-    }
 }
 
 /// Secured variant of the client (using HTTPS requests)
@@ -186,6 +175,17 @@ where
             hyper: hyper_client,
             session: Mutex::new(session),
         }))
+    }
+
+    /// Get a copy of the current `Session`, if any.
+    ///
+    /// Useful for serializing and persisting the session to be restored later.
+    pub fn session(&self) -> Option<Session> {
+        self.0
+            .session
+            .lock()
+            .expect("session mutex was poisoned")
+            .clone()
     }
 
     /// Log in with a username and password.
