@@ -106,13 +106,6 @@ impl Request {
         self.fields.iter().filter(|field| field.is_path()).count()
     }
 
-    /// Gets the path field with the given name.
-    pub fn path_field(&self, name: &str) -> Option<&Field> {
-        self.fields.iter().flat_map(|f| f.field_of_kind(RequestFieldKind::Path)).find(|field| {
-            field.ident.as_ref().expect("expected field to have an identifier") == name
-        })
-    }
-
     /// Returns the body field.
     pub fn newtype_body_field(&self) -> Option<&Field> {
         self.fields.iter().find_map(RequestField::as_newtype_body_field)

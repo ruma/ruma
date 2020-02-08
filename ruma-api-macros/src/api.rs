@@ -150,20 +150,16 @@ impl ToTokens for Api {
                 |(i, segment)| {
                     let path_var = &segment[1..];
                     let path_var_ident = Ident::new(path_var, Span::call_site());
-                    let path_field = self
-                        .request
-                        .path_field(path_var)
-                        .expect("expected request to have path field");
-                    let ty = &path_field.ty;
 
                     quote! {
                         #path_var_ident: {
+                            use std::ops::Deref as _;
+
                             let segment = path_segments.get(#i).unwrap().as_bytes();
                             let decoded =
                                 ruma_api::exports::percent_encoding::percent_decode(segment)
                                 .decode_utf8_lossy();
-                            #ty::deserialize(decoded.into_deserializer())
-                                .map_err(|e: ruma_api::exports::serde_json::error::Error| e)?
+                            ruma_api::exports::serde_json::from_str(decoded.deref())?
                         }
                     }
                 },
@@ -359,7 +355,7 @@ impl ToTokens for Api {
         let response_doc = format!("Data in the response from the `{}` API endpoint.", name);
 
         let api = quote! {
-            use ruma_api::exports::serde::de::{Error as _, IntoDeserializer as _};
+            use ruma_api::exports::serde::de::Error as _;
             use ruma_api::exports::serde::Deserialize as _;
             use ruma_api::Endpoint as _;
 

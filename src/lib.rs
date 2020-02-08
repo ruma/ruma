@@ -347,11 +347,11 @@ pub struct Metadata {
 mod tests {
     /// PUT /_matrix/client/r0/directory/room/:room_alias
     pub mod create {
-        use std::convert::TryFrom;
+        use std::{convert::TryFrom, ops::Deref};
 
         use http::{header::CONTENT_TYPE, method::Method};
         use ruma_identifiers::{RoomAliasId, RoomId};
-        use serde::{de::IntoDeserializer, Deserialize, Serialize};
+        use serde::{Deserialize, Serialize};
 
         use crate::{Endpoint, FromHttpError, IntoHttpError, Metadata, Outgoing};
 
@@ -414,8 +414,7 @@ mod tests {
                     room_alias: {
                         let segment = path_segments.get(5).unwrap().as_bytes();
                         let decoded = percent_encoding::percent_decode(segment).decode_utf8_lossy();
-                        RoomAliasId::deserialize(decoded.into_deserializer())
-                            .map_err(|e: serde_json::error::Error| e)?
+                        serde_json::from_str(decoded.deref())?
                     },
                 })
             }
