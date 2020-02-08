@@ -12,16 +12,16 @@ license = "MIT"
 name = "ruma-api"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma-api"
-version = "0.12.1"
+version = "0.13.0"
 edition = "2018"
 
 [dependencies]
 http = "0.2.0"
 percent-encoding = { version = "2.1.0", optional = true }
-ruma-api-macros = { version = "=0.9.1", path = "ruma-api-macros", optional = true }
+ruma-api-macros = { version = "=0.10.0", path = "ruma-api-macros", optional = true }
 ruma-identifiers = { version = "0.14.1", optional = true }
 serde = { version = "1.0.104", features = ["derive"], optional = true }
-serde_json = "1.0.46"
+serde_json = "1.0.47"
 serde_urlencoded = "0.6.1"
 url = { version = "2.1.1", optional = true }
 

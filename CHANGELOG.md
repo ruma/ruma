@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.13.0
+
 Breaking changes:
 
 * Instead of one `Error` type, there is now many
