@@ -7,7 +7,7 @@ Breaking changes:
 * Instead of one `Error` type, there is now many
   * The new types live in their own `error` module
   * They provide access to details that were previously hidden
-* Out Minimum Supported Rust Version is now 1.40.0
+* Our Minimum Supported Rust Version is now 1.40.0
 
 # 0.12.1
 
