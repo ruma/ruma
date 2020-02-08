@@ -1,8 +1,11 @@
 # [unreleased]
 
+# 0.6.0
+
 Breaking changes:
 
-* Remove presence list endpoints `r0::presence::{get_subscribed_presences, update_presence_subscriptions}` (removed in 0.5.0)
+* Update ruma-api to 0.13.0
+* Remove presence list endpoints `r0::presence::{get_subscribed_presences, update_presence_subscriptions}` (removed in r0.5.0)
 * Refactor `r0::send` endpoints and remove module:
   * Move `r0::send::send_message_event` to `r0::message::create_message_event`
   * Move `r0::send::send_state_event_for_empty_key` to `r0::state:create_state_event_for_empty_key`
@@ -38,7 +41,7 @@ Improvements:
 * Add `r0::account::delete_3pid`
 * Add `r0::account::unbind_3pid`
 * Add `r0::push` endpoints
-* Add `r0::room::upgrade_room` (introduced upstream in 0.5.0)
+* Add `r0::room::upgrade_room` (introduced upstream in r0.5.0)
 
 # 0.5.0
 
