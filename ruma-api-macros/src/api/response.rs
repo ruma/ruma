@@ -62,7 +62,7 @@ impl Response {
                 }
                 ResponseField::NewtypeRawBody(_) => {
                     quote_spanned! {span=>
-                        #field_name: response_body
+                        #field_name: response.into_body()
                     }
                 }
             }
