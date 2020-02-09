@@ -18,7 +18,10 @@ async fn log_messages(
 ) -> Result<(), ruma_client::Error> {
     let client = HttpClient::new(homeserver_url, None);
 
-    client.log_in(username, password, None).await?;
+    client.log_in(username, password, None, None).await?;
+
+    // TODO: This is a horrible way to obtain an initial next_batch token that generates way too
+    //       much server load and network traffic. Fix this!
 
     //                                                           vvvvvvvv Skip initial sync reponse
     let mut sync_stream = Box::pin(client.sync(None, None, false).skip(1));

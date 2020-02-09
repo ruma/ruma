@@ -32,7 +32,7 @@ async fn hello_world(homeserver_url: Url, room: String) -> Result<(), ruma_clien
         .await?;
 
     client
-        .request(r0::send::send_message_event::Request {
+        .request(r0::message::create_message_event::Request {
             room_id,
             event_type: EventType::RoomMessage,
             txn_id: "1".to_owned(),

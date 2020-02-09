@@ -3,76 +3,68 @@
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-use http::uri::InvalidUri;
-use hyper::error::Error as HyperError;
-use ruma_api::Error as RumaApiError;
-use serde_json::Error as SerdeJsonError;
-use serde_urlencoded::ser::Error as SerdeUrlEncodedSerializeError;
+use ruma_api::error::{FromHttpResponseError, IntoHttpError};
 
 /// An error that can occur during client operations.
 #[derive(Debug)]
-pub struct Error(pub(crate) InnerError);
+#[non_exhaustive]
+pub enum Error {
+    /// Queried endpoint requires authentication but was called on an anonymous client.
+    AuthenticationRequired,
+    /// Construction of the HTTP request failed (this should never happen).
+    IntoHttp(IntoHttpError),
+    /// The request's URL is invalid (this should never happen).
+    Url(UrlError),
+    /// Couldn't obtain an HTTP response (e.g. due to network or DNS issues).
+    Response(ResponseError),
+    /// Converting the HTTP response to one of ruma's types failed.
+    FromHttpResponse(FromHttpResponseError),
+}
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let message = match self.0 {
-            InnerError::AuthenticationRequired => "The queried endpoint requires authentication but was called with an anonymous client.",
-            InnerError::Hyper(_) => "An HTTP error occurred.",
-            InnerError::Uri(_) => "Provided string could not be converted into a URI.",
-            InnerError::RumaApi(_) => "An error occurred converting between ruma_client_api and hyper types.",
-            InnerError::SerdeJson(_) => "A serialization error occurred.",
-            InnerError::SerdeUrlEncodedSerialize(_) => "An error occurred serializing data to a query string.",
-        };
+        match self {
+            Self::AuthenticationRequired => {
+                write!(f, "The queried endpoint requires authentication but was called with an anonymous client.")
+            }
+            Self::IntoHttp(err) => write!(f, "HTTP request construction failed: {}", err),
+            Self::Url(UrlError(err)) => write!(f, "Invalid URL: {}", err),
+            Self::Response(ResponseError(err)) => write!(f, "Couldn't obtain a response: {}", err),
+            Self::FromHttpResponse(err) => write!(f, "HTTP response conversion failed: {}", err),
+        }
+    }
+}
 
-        write!(f, "{}", message)
+impl From<IntoHttpError> for Error {
+    fn from(err: IntoHttpError) -> Self {
+        Error::IntoHttp(err)
+    }
+}
+
+#[doc(hidden)]
+impl From<http::uri::InvalidUri> for Error {
+    fn from(err: http::uri::InvalidUri) -> Self {
+        Error::Url(UrlError(err))
+    }
+}
+
+#[doc(hidden)]
+impl From<hyper::Error> for Error {
+    fn from(err: hyper::Error) -> Self {
+        Error::Response(ResponseError(err))
+    }
+}
+
+impl From<FromHttpResponseError> for Error {
+    fn from(err: FromHttpResponseError) -> Self {
+        Error::FromHttpResponse(err)
     }
 }
 
 impl StdError for Error {}
 
-/// Internal representation of errors.
 #[derive(Debug)]
-pub(crate) enum InnerError {
-    /// Queried endpoint requires authentication but was called on an anonymous client.
-    AuthenticationRequired,
-    /// An error at the HTTP layer.
-    Hyper(HyperError),
-    /// An error when parsing a string as a URI.
-    Uri(InvalidUri),
-    /// An error converting between ruma_client_api types and Hyper types.
-    RumaApi(RumaApiError),
-    /// An error when serializing or deserializing a JSON value.
-    SerdeJson(SerdeJsonError),
-    /// An error when serializing a query string value.
-    SerdeUrlEncodedSerialize(SerdeUrlEncodedSerializeError),
-}
+pub struct UrlError(http::uri::InvalidUri);
 
-impl From<HyperError> for Error {
-    fn from(error: HyperError) -> Self {
-        Self(InnerError::Hyper(error))
-    }
-}
-
-impl From<InvalidUri> for Error {
-    fn from(error: InvalidUri) -> Self {
-        Self(InnerError::Uri(error))
-    }
-}
-
-impl From<RumaApiError> for Error {
-    fn from(error: RumaApiError) -> Self {
-        Self(InnerError::RumaApi(error))
-    }
-}
-
-impl From<SerdeJsonError> for Error {
-    fn from(error: SerdeJsonError) -> Self {
-        Self(InnerError::SerdeJson(error))
-    }
-}
-
-impl From<SerdeUrlEncodedSerializeError> for Error {
-    fn from(error: SerdeUrlEncodedSerializeError) -> Self {
-        Self(InnerError::SerdeUrlEncodedSerialize(error))
-    }
-}
+#[derive(Debug)]
+pub struct ResponseError(hyper::Error);

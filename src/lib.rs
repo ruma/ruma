@@ -97,10 +97,12 @@ use http::Response as HttpResponse;
 use hyper::{client::HttpConnector, Client as HyperClient, Uri};
 #[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
-use ruma_api::{Endpoint, Outgoing};
+use ruma_api::{
+    error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError},
+    Endpoint, Outgoing,
+};
+use ruma_identifiers::DeviceId;
 use url::Url;
-
-use crate::error::InnerError;
 
 pub use ruma_client_api as api;
 pub use ruma_events as events;
@@ -197,18 +199,17 @@ where
         &self,
         user: String,
         password: String,
-        device_id: Option<String>,
+        device_id: Option<DeviceId>,
+        initial_device_display_name: Option<String>,
     ) -> Result<Session, Error> {
         use api::r0::session::login;
 
         let response = self
             .request(login::Request {
-                address: None,
-                login_type: login::LoginType::Password,
-                medium: None,
+                user: login::UserInfo::MatrixId(user),
+                login_info: login::LoginInfo::Password { password },
                 device_id,
-                password,
-                user,
+                initial_device_display_name,
             })
             .await?;
 
@@ -337,9 +338,9 @@ where
     // We need to duplicate Endpoint's where clauses because the compiler is not smart enough yet.
     // See https://github.com/rust-lang/rust/issues/54149
     where
-        Request::Incoming: TryFrom<http::Request<Vec<u8>>, Error = ruma_api::Error>,
+        Request::Incoming: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>,
         <Request::Response as Outgoing>::Incoming:
-            TryFrom<http::Response<Vec<u8>>, Error = ruma_api::Error>,
+            TryFrom<http::Response<Vec<u8>>, Error = FromHttpResponseError>,
     {
         let client = self.0.clone();
 
@@ -359,7 +360,7 @@ where
                         url.query_pairs_mut()
                             .append_pair("access_token", &session.access_token);
                     } else {
-                        return Err(Error(InnerError::AuthenticationRequired));
+                        return Err(Error::AuthenticationRequired);
                     }
                 }
             }
