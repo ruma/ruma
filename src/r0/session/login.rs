@@ -59,9 +59,9 @@ ruma_api! {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum UserInfo {
     /// Either a fully qualified Matrix user ID, or just the localpart (as part of the 'identifier'
-    /// field, recommended since r0.4.0).
+    /// field).
     MatrixId(String),
-    /// Third party identifier (as part of the 'identifier' field, recommended since r0.4.0).
+    /// Third party identifier (as part of the 'identifier' field).
     ThirdPartyId {
         /// Third party identifier for the user.
         address: String,
