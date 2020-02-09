@@ -98,7 +98,7 @@ use hyper::{client::HttpConnector, Client as HyperClient, Uri};
 #[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
 use ruma_api::{
-    error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError},
+    error::{FromHttpRequestError, FromHttpResponseError},
     Endpoint, Outgoing,
 };
 use ruma_identifiers::DeviceId;
