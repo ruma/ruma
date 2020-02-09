@@ -13,7 +13,7 @@
 //!     let client = Client::https(homeserver_url, None);
 //!
 //!     let session = client
-//!         .log_in("@alice:example.com".to_string(), "secret".to_string(), None)
+//!         .log_in("@alice:example.com".to_string(), "secret".to_string(), None, None)
 //!         .await?;
 //!
 //!     // You're now logged in! Write the session to a file if you want to restore it later.
