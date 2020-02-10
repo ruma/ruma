@@ -27,7 +27,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
     let derive_deserialize = if no_deserialize_in_attrs(&input.attrs) {
         TokenStream::new()
     } else {
-        quote!(#[derive(ruma_api::exports::serde::Deserialize)])
+        quote!(ruma_api::exports::serde::Deserialize)
     };
 
     let (mut fields, struct_kind): (Vec<_>, _) = match input.data {
@@ -92,7 +92,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
 
     Ok(quote! {
         #[doc = #doc]
-        #derive_deserialize
+        #[derive(Debug, #derive_deserialize)]
         #vis struct #incoming_ident #struct_def
 
         impl ruma_api::Outgoing for #original_ident {

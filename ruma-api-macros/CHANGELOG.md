@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.10.1
+
+Improvements:
+
+* Derive `Debug` for `Incoming` types
+
 # 0.10.0
 
 Breaking changes:

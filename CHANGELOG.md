@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.13.1
+
+Improvements:
+
+* Update ruma-api-macros to 0.10.1
+  * `Incoming` types will now implement `Debug`
+
 # 0.13.0
 
 Breaking changes:
