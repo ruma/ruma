@@ -58,7 +58,7 @@ pub enum MessageEventContent {
     /// A server notice message.
     ServerNotice(ServerNoticeMessageEventContent),
 
-    /// An text message.
+    /// A text message.
     Text(TextMessageEventContent),
 
     /// A video message.
