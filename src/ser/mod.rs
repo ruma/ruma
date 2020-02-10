@@ -86,6 +86,14 @@ impl error::Error for Error {
             Error::Utf8(ref err) => Some(err),
         }
     }
+
+    /// The lower-level source of this error, in the case of a `Utf8` error.
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match *self {
+            Error::Custom(_) => None,
+            Error::Utf8(ref err) => Some(err),
+        }
+    }
 }
 
 impl ser::Error for Error {
