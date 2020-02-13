@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Fix `r0::session::get_login_types`
+
 # 0.6.0
 
 Breaking changes:

@@ -17,19 +17,11 @@ ruma_api! {
 
     response {
         /// The homeserver's supported login types.
-        pub flows: Vec<LoginFlow>
+        pub flows: Vec<LoginType>
     }
 }
 
-/// A supported login type in a homeserver
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-pub struct LoginFlow {
-    /// The login type.
-    #[serde(rename = "type")]
-    pub login_type: LoginType,
-}
-
-/// The authentication mechanism.
+/// An authentication mechanism.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub enum LoginType {
@@ -39,4 +31,17 @@ pub enum LoginType {
     /// Token-based login.
     #[serde(rename = "m.login.token")]
     Token,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::LoginType;
+
+    #[test]
+    fn deserialize_login_type() {
+        assert_eq!(
+            serde_json::from_str::<LoginType>(r#" {"type": "m.login.password"} "#).unwrap(),
+            LoginType::Password,
+        );
+    }
 }
