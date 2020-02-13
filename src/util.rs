@@ -56,6 +56,8 @@ where
     T: serde::Deserialize<'de>,
 {
     let opt = Option::<String>::deserialize(de)?;
+    // TODO: Switch to and remove this attribute `opt.as_deref()` once MSRV is >= 1.40
+    #[allow(clippy::clippy::option_as_ref_deref)]
     let opt = opt.as_ref().map(String::as_str);
     match opt {
         None | Some("") => Ok(None),
