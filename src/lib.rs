@@ -8,5 +8,6 @@
     missing_docs
 )]
 
+pub mod error;
 pub mod r0;
 pub mod unversioned;
