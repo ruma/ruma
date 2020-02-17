@@ -102,7 +102,7 @@ impl TryFrom<&str> for RoomIdOrAliasId {
 
         let mut chars = room_id_or_alias_id.chars();
 
-        let sigil = chars.nth(0).expect("ID missing first character.");
+        let sigil = chars.next().expect("ID missing first character.");
 
         match sigil {
             '#' => {
