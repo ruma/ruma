@@ -13,6 +13,7 @@ version = "0.6.0"
 edition = "2018"
 
 [dependencies]
+http = "0.2.0"
 js_int = { version = "0.1.2", features = ["serde"] }
 ruma-api = "0.13.0"
 ruma-events = "0.15.1"
@@ -20,4 +21,3 @@ ruma-identifiers = "0.14.1"
 serde = { version = "1.0.104", features = ["derive"] }
 serde_json = "1.0.47"
 url = { version = "2.1.1", features = ["serde"] }
-http = "0.2.0"
