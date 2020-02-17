@@ -193,6 +193,7 @@ enum SerializationError {
 pub enum DeserializationError {
     Json(serde_json::Error),
     Query(serde_urlencoded::de::Error),
+    Ident(ruma_identifiers::Error),
 }
 
 impl Display for DeserializationError {
@@ -200,6 +201,7 @@ impl Display for DeserializationError {
         match self {
             DeserializationError::Json(err) => Display::fmt(err, f),
             DeserializationError::Query(err) => Display::fmt(err, f),
+            DeserializationError::Ident(err) => Display::fmt(err, f),
         }
     }
 }
@@ -215,5 +217,19 @@ impl From<serde_json::Error> for DeserializationError {
 impl From<serde_urlencoded::de::Error> for DeserializationError {
     fn from(err: serde_urlencoded::de::Error) -> Self {
         Self::Query(err)
+    }
+}
+
+#[doc(hidden)]
+impl From<ruma_identifiers::Error> for DeserializationError {
+    fn from(err: ruma_identifiers::Error) -> Self {
+        Self::Ident(err)
+    }
+}
+
+#[doc(hidden)]
+impl From<std::convert::Infallible> for DeserializationError {
+    fn from(err: std::convert::Infallible) -> Self {
+        match err {}
     }
 }

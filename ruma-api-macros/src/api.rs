@@ -160,7 +160,7 @@ impl ToTokens for Api {
                             let decoded =
                                 ruma_api::exports::percent_encoding::percent_decode(segment)
                                 .decode_utf8_lossy();
-                            match ruma_api::exports::serde_json::from_str(decoded.deref()) {
+                            match std::convert::TryFrom::try_from(decoded.deref()) {
                                 Ok(val) => val,
                                 Err(err) => {
                                     return Err(
