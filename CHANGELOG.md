@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add support for historical uppercase MXIDs 
+
 # 0.14.1
 
 Breaking changes:
