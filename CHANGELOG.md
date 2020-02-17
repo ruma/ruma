@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add an `Error` type that represents the well-known errors in the client-server API
+
 Breaking changes:
 
 * Fix `r0::session::get_login_types`
