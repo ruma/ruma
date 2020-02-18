@@ -4,6 +4,7 @@ Improvements:
 
 * Add an `Error` type that represents the well-known errors in the client-server API
 * Add OpenID token request endpoint.
+* Add `r0::client_exchange::send_event_to_device` (introduced in r0.3.0)
 
 Breaking changes:
 
