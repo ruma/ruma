@@ -353,11 +353,7 @@ impl ToTokens for Request {
 
             quote! {
                 /// Data in the request path.
-                #[derive(
-                    Debug,
-                    ruma_api::exports::serde::Deserialize,
-                    ruma_api::exports::serde::Serialize,
-                )]
+                #[derive(Debug)]
                 struct RequestPath {
                     #(#fields),*
                 }

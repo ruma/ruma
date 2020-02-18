@@ -194,6 +194,9 @@ pub enum DeserializationError {
     Json(serde_json::Error),
     Query(serde_urlencoded::de::Error),
     Ident(ruma_identifiers::Error),
+    // String <> Enum conversion failed. This can currently only happen in path
+    // segment deserialization
+    Strum(strum::ParseError),
 }
 
 impl Display for DeserializationError {
@@ -202,6 +205,7 @@ impl Display for DeserializationError {
             DeserializationError::Json(err) => Display::fmt(err, f),
             DeserializationError::Query(err) => Display::fmt(err, f),
             DeserializationError::Ident(err) => Display::fmt(err, f),
+            DeserializationError::Strum(err) => Display::fmt(err, f),
         }
     }
 }
@@ -224,6 +228,13 @@ impl From<serde_urlencoded::de::Error> for DeserializationError {
 impl From<ruma_identifiers::Error> for DeserializationError {
     fn from(err: ruma_identifiers::Error) -> Self {
         Self::Ident(err)
+    }
+}
+
+#[doc(hidden)]
+impl From<strum::ParseError> for DeserializationError {
+    fn from(err: strum::ParseError) -> Self {
+        Self::Strum(err)
     }
 }
 
