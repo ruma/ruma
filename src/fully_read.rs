@@ -13,7 +13,10 @@ ruma_event! {
         event_type: FullyRead,
         fields: {
             /// The unique identifier for the room associated with this event.
-            pub room_id: RoomId,
+            ///
+            /// `None` if the room is known through other means (such as this even being part of an
+            /// event list scoped to a room in a `/sync` response)
+            pub room_id: Option<RoomId>,
         },
         content: {
             /// The event the user's read marker is located at in the room.
