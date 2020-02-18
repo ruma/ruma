@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.16.0
+
 Breaking changes:
 
 * `TryFromRaw::try_from_raw`'s signature has been simplified. The previous signature was a relict that was no longer sensible.
