@@ -1,5 +1,11 @@
 # [unreleased]
 
+Breaking changes:
+
+* Update ruma-api-macros to 0.11.0
+  * This includes a fix that uses `TryFrom<&str>` instead of serde_json for path segment
+    deserialization
+
 # 0.13.1
 
 Improvements:

@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Use `TryFrom<&str>` instead of serde_json for path segment deserialization
+
 # 0.10.1
 
 Improvements:
