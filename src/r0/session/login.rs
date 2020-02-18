@@ -141,8 +141,6 @@ impl<'de> Deserialize<'de> for UserInfo {
 
 #[cfg(test)]
 mod tests {
-    use serde_json;
-
     use super::{LoginInfo, UserInfo};
 
     #[test]
