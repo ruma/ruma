@@ -4,6 +4,7 @@
 use serde::{de::Error as _, Deserialize, Deserializer};
 use serde_json::Value;
 
+use super::only;
 use crate::{
     call::{
         answer::raw::AnswerEvent, candidates::raw::CandidatesEvent, hangup::raw::HangupEvent,
@@ -542,5 +543,120 @@ impl<'de> Deserialize<'de> for StateEvent {
                 unreachable!("__Nonexhaustive variant should be impossible to obtain.")
             }
         }
+    }
+}
+
+impl From<only::Event> for Event {
+    fn from(event: only::Event) -> Self {
+        use only::Event::*;
+
+        match event {
+            Direct(ev) => Event::Direct(ev),
+            Dummy(ev) => Event::Dummy(ev),
+            ForwardedRoomKey(ev) => Event::ForwardedRoomKey(ev),
+            FullyRead(ev) => Event::FullyRead(ev),
+            KeyVerificationAccept(ev) => Event::KeyVerificationAccept(ev),
+            KeyVerificationCancel(ev) => Event::KeyVerificationCancel(ev),
+            KeyVerificationKey(ev) => Event::KeyVerificationKey(ev),
+            KeyVerificationMac(ev) => Event::KeyVerificationMac(ev),
+            KeyVerificationRequest(ev) => Event::KeyVerificationRequest(ev),
+            KeyVerificationStart(ev) => Event::KeyVerificationStart(ev),
+            IgnoredUserList(ev) => Event::IgnoredUserList(ev),
+            Presence(ev) => Event::Presence(ev),
+            PushRules(ev) => Event::PushRules(ev),
+            RoomKey(ev) => Event::RoomKey(ev),
+            RoomKeyRequest(ev) => Event::RoomKeyRequest(ev),
+            Receipt(ev) => Event::Receipt(ev),
+            Tag(ev) => Event::Tag(ev),
+            Typing(ev) => Event::Typing(ev),
+            Custom(ev) => Event::Custom(ev),
+        }
+    }
+}
+
+impl From<RoomEvent> for Event {
+    fn from(room_event: RoomEvent) -> Self {
+        use RoomEvent::*;
+
+        match room_event {
+            CallAnswer(ev) => Event::CallAnswer(ev),
+            CallCandidates(ev) => Event::CallCandidates(ev),
+            CallHangup(ev) => Event::CallHangup(ev),
+            CallInvite(ev) => Event::CallInvite(ev),
+            RoomAliases(ev) => Event::RoomAliases(ev),
+            RoomAvatar(ev) => Event::RoomAvatar(ev),
+            RoomCanonicalAlias(ev) => Event::RoomCanonicalAlias(ev),
+            RoomCreate(ev) => Event::RoomCreate(ev),
+            RoomEncrypted(ev) => Event::RoomEncrypted(ev),
+            RoomEncryption(ev) => Event::RoomEncryption(ev),
+            RoomGuestAccess(ev) => Event::RoomGuestAccess(ev),
+            RoomHistoryVisibility(ev) => Event::RoomHistoryVisibility(ev),
+            RoomJoinRules(ev) => Event::RoomJoinRules(ev),
+            RoomMember(ev) => Event::RoomMember(ev),
+            RoomMessage(ev) => Event::RoomMessage(ev),
+            RoomMessageFeedback(ev) => Event::RoomMessageFeedback(ev),
+            RoomName(ev) => Event::RoomName(ev),
+            RoomPinnedEvents(ev) => Event::RoomPinnedEvents(ev),
+            RoomPowerLevels(ev) => Event::RoomPowerLevels(ev),
+            RoomRedaction(ev) => Event::RoomRedaction(ev),
+            RoomServerAcl(ev) => Event::RoomServerAcl(ev),
+            RoomThirdPartyInvite(ev) => Event::RoomThirdPartyInvite(ev),
+            RoomTombstone(ev) => Event::RoomTombstone(ev),
+            RoomTopic(ev) => Event::RoomTopic(ev),
+            Sticker(ev) => Event::Sticker(ev),
+            CustomRoom(ev) => Event::CustomRoom(ev),
+            CustomState(ev) => Event::CustomState(ev),
+        }
+    }
+}
+
+impl From<only::RoomEvent> for RoomEvent {
+    fn from(room_event: only::RoomEvent) -> Self {
+        use only::RoomEvent::*;
+
+        match room_event {
+            CallAnswer(ev) => RoomEvent::CallAnswer(ev),
+            CallCandidates(ev) => RoomEvent::CallCandidates(ev),
+            CallHangup(ev) => RoomEvent::CallHangup(ev),
+            CallInvite(ev) => RoomEvent::CallInvite(ev),
+            RoomEncrypted(ev) => RoomEvent::RoomEncrypted(ev),
+            RoomMessage(ev) => RoomEvent::RoomMessage(ev),
+            RoomMessageFeedback(ev) => RoomEvent::RoomMessageFeedback(ev),
+            RoomRedaction(ev) => RoomEvent::RoomRedaction(ev),
+            Sticker(ev) => RoomEvent::Sticker(ev),
+            CustomRoom(ev) => RoomEvent::CustomRoom(ev),
+        }
+    }
+}
+
+impl From<StateEvent> for RoomEvent {
+    fn from(state_event: StateEvent) -> Self {
+        use StateEvent::*;
+
+        match state_event {
+            RoomAliases(ev) => RoomEvent::RoomAliases(ev),
+            RoomAvatar(ev) => RoomEvent::RoomAvatar(ev),
+            RoomCanonicalAlias(ev) => RoomEvent::RoomCanonicalAlias(ev),
+            RoomCreate(ev) => RoomEvent::RoomCreate(ev),
+            RoomEncryption(ev) => RoomEvent::RoomEncryption(ev),
+            RoomGuestAccess(ev) => RoomEvent::RoomGuestAccess(ev),
+            RoomHistoryVisibility(ev) => RoomEvent::RoomHistoryVisibility(ev),
+            RoomJoinRules(ev) => RoomEvent::RoomJoinRules(ev),
+            RoomMember(ev) => RoomEvent::RoomMember(ev),
+            RoomName(ev) => RoomEvent::RoomName(ev),
+            RoomPinnedEvents(ev) => RoomEvent::RoomPinnedEvents(ev),
+            RoomPowerLevels(ev) => RoomEvent::RoomPowerLevels(ev),
+            RoomServerAcl(ev) => RoomEvent::RoomServerAcl(ev),
+            RoomThirdPartyInvite(ev) => RoomEvent::RoomThirdPartyInvite(ev),
+            RoomTombstone(ev) => RoomEvent::RoomTombstone(ev),
+            RoomTopic(ev) => RoomEvent::RoomTopic(ev),
+            CustomState(ev) => RoomEvent::CustomState(ev),
+        }
+    }
+}
+
+impl From<StateEvent> for Event {
+    fn from(state_event: StateEvent) -> Self {
+        Event::from(RoomEvent::from(state_event))
     }
 }
