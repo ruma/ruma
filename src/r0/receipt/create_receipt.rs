@@ -1,10 +1,10 @@
 //! [POST /_matrix/client/r0/rooms/{roomId}/receipt/{receiptType}/{eventId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-rooms-roomid-receipt-receipttype-eventid)
 
-use std::fmt::{Display, Error as FmtError, Formatter};
+use std::convert::TryFrom;
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{EventId, RoomId};
-use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString};
 
 ruma_api! {
     metadata {
@@ -32,17 +32,17 @@ ruma_api! {
 }
 
 /// The type of receipt.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Display, EnumString)]
 pub enum ReceiptType {
     /// m.read
-    #[serde(rename = "m.read")]
+    #[strum(serialize = "m.read")]
     Read,
 }
 
-impl Display for ReceiptType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
-        match *self {
-            ReceiptType::Read => write!(f, "m.read"),
-        }
+impl TryFrom<&'_ str> for ReceiptType {
+    type Error = strum::ParseError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        s.parse()
     }
 }

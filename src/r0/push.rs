@@ -1,6 +1,9 @@
 //! Endpoints for push notifications.
 
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::{
+    convert::TryFrom,
+    fmt::{Formatter, Result as FmtResult},
+};
 
 use serde::{
     de::{Error as SerdeError, MapAccess, Unexpected, Visitor},
@@ -8,6 +11,7 @@ use serde::{
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use serde_json::Value as JsonValue;
+use strum::{Display, EnumString};
 
 pub mod delete_pushrule;
 pub mod get_notifications;
@@ -23,8 +27,9 @@ pub mod set_pushrule_actions;
 pub mod set_pushrule_enabled;
 
 /// The kinds of push rules that are available
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Display, EnumString)]
 #[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum RuleKind {
     /// User-configured rules that override all other kinds
     Override,
@@ -42,16 +47,11 @@ pub enum RuleKind {
     Content,
 }
 
-impl Display for RuleKind {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let s = match self {
-            RuleKind::Override => "override",
-            RuleKind::Underride => "underride",
-            RuleKind::Sender => "sender",
-            RuleKind::Room => "room",
-            RuleKind::Content => "content",
-        };
-        write!(f, "{}", s)
+impl TryFrom<&'_ str> for RuleKind {
+    type Error = strum::ParseError;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        s.parse()
     }
 }
 

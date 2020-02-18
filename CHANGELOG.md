@@ -8,6 +8,7 @@ Improvements:
 
 Breaking changes:
 
+* Update ruma-api to 0.14.0
 * Fix `r0::session::get_login_types`
 
 # 0.6.0
