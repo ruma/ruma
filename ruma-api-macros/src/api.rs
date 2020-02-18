@@ -117,14 +117,12 @@ impl ToTokens for Api {
                 "number of declared path parameters needs to match amount of placeholders in path"
             );
 
-            let request_path_init_fields = self.request.request_path_init_fields();
-
             let path_segments = path_str[1..].split('/');
             let path_segment_push = path_segments.clone().map(|segment| {
                 let arg = if segment.starts_with(':') {
                     let path_var = &segment[1..];
                     let path_var_ident = Ident::new(path_var, Span::call_site());
-                    quote!(&request_path.#path_var_ident.to_string())
+                    quote!(&request.#path_var_ident.to_string())
                 } else {
                     quote!(#segment)
                 };
@@ -135,10 +133,6 @@ impl ToTokens for Api {
             });
 
             let set_tokens = quote! {
-                let request_path = RequestPath {
-                    #request_path_init_fields
-                };
-
                 // This `unwrap()` can only fail when the url is a
                 // cannot-be-base url like `mailto:` or `data:`, which is not
                 // the case for our placeholder url.

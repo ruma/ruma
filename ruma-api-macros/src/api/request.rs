@@ -137,11 +137,6 @@ impl Request {
         self.struct_init_fields(RequestFieldKind::Body, quote!(request))
     }
 
-    /// Produces code for a struct initializer for path fields on a variable named `request`.
-    pub fn request_path_init_fields(&self) -> TokenStream {
-        self.struct_init_fields(RequestFieldKind::Path, quote!(request))
-    }
-
     /// Produces code for a struct initializer for query string fields on a variable named `request`.
     pub fn request_query_init_fields(&self) -> TokenStream {
         self.struct_init_fields(RequestFieldKind::Query, quote!(request))
@@ -348,20 +343,6 @@ impl ToTokens for Request {
                 }
             });
 
-        let request_path_struct = if self.has_path_fields() {
-            let fields = self.fields.iter().filter_map(RequestField::as_path_field);
-
-            quote! {
-                /// Data in the request path.
-                #[derive(Debug)]
-                struct RequestPath {
-                    #(#fields),*
-                }
-            }
-        } else {
-            TokenStream::new()
-        };
-
         let request_query_struct = if let Some(f) = self.query_map_field() {
             let field = Field { ident: None, colon_token: None, ..f.clone() };
 
@@ -398,7 +379,6 @@ impl ToTokens for Request {
             pub struct Request #request_def
 
             #request_body_struct
-            #request_path_struct
             #request_query_struct
         };
 
@@ -491,11 +471,6 @@ impl RequestField {
     /// Return the contained field if this request field is a raw body kind.
     fn as_newtype_raw_body_field(&self) -> Option<&Field> {
         self.field_of_kind(RequestFieldKind::NewtypeRawBody)
-    }
-
-    /// Return the contained field if this request field is a path kind.
-    fn as_path_field(&self) -> Option<&Field> {
-        self.field_of_kind(RequestFieldKind::Path)
     }
 
     /// Return the contained field if this request field is a query kind.
