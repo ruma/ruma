@@ -27,7 +27,7 @@ strum = "0.17.1"
 url = { version = "2.1.1", optional = true }
 
 [dev-dependencies]
-ruma-events = "0.15.1"
+ruma-events = "0.16.0"
 
 [features]
 default = ["with-ruma-api-macros"]
