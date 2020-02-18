@@ -3,6 +3,7 @@
 Improvements:
 
 * Add an `Error` type that represents the well-known errors in the client-server API
+* Add OpenID token request endpoint.
 
 Breaking changes:
 
