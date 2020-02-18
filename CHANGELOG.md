@@ -3,6 +3,7 @@
 Breaking changes:
 
 * `TryFromRaw::try_from_raw`'s signature has been simplified. The previous signature was a relict that was no longer sensible.
+* All remaining non-optional `room_id` event fields (not event content fields) have been made optional
 
 Improvements:
 
