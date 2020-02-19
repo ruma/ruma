@@ -21,6 +21,10 @@ ruma_api! {
         /// The server name from the mxc:// URI (the authoritory component).
         #[ruma_api(path)]
         pub server_name: String,
+        /// Whether to fetch media deemed remote.
+        /// Used to prevent routing loops. Defaults to `true`.
+        #[ruma_api(query)]
+        pub allow_remote: Option<bool>,
     }
 
     response {
