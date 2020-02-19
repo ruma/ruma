@@ -1,13 +1,13 @@
-//! [GET /_matrix/media/r0/download/{serverName}/{mediaId}](https://matrix.org/docs/spec/client_server/r0.6.0.html#get-matrix-media-r0-download-servername-mediaid)
+//! [GET /_matrix/media/r0/download/{serverName}/{mediaId}/{fileName}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-media-r0-download-servername-mediaid-filename)
 
 use ruma_api::ruma_api;
 
 ruma_api! {
     metadata {
-        description: "Retrieve content from the media store.",
+        description: "Retrieve content from the media store, specifying a filename to return.",
         method: GET,
-        name: "get_media_content",
-        path: "/_matrix/media/r0/download/:server_name/:media_id",
+        name: "get_media_content_as_filename",
+        path: "/_matrix/media/r0/download/:server_name/:media_id/:filename",
         rate_limited: false,
         requires_authentication: false,
     }
@@ -19,6 +19,9 @@ ruma_api! {
         /// The server name from the mxc:// URI (the authoritory component).
         #[ruma_api(path)]
         pub server_name: String,
+        /// The filename to return in the `Content-Disposition` header.
+        #[ruma_api(path)]
+        pub filename: String,
         /// Whether to fetch media deemed remote.
         /// Used to prevent routing loops. Defaults to `true`.
         #[ruma_api(query)]
