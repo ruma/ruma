@@ -6,11 +6,13 @@ Improvements:
 * Add OpenID token request endpoint.
 * Add `r0::client_exchange::send_event_to_device` (introduced in r0.3.0)
 * Add endpoints to retrieve account_data (introduced in r0.5.0)
+* Add media endpoints: `r0::media::{get_media_config, get_media_preview, get_content_as_filename}`
 
 Breaking changes:
 
 * Update ruma-api to 0.14.0
 * Fix `r0::session::get_login_types`
+* Add `allow_remote` parameter to `r0::media::get_content`
 
 # 0.6.0
 
