@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* `collections::only` no longer exports a `raw` submodule. It was never meant ot be exported in the first place.
+
 # 0.16.0
 
 Breaking changes:

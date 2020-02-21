@@ -3,7 +3,8 @@
 
 use serde::Serialize;
 
-pub use super::{all::StateEvent, raw::only as raw};
+pub use super::all::StateEvent;
+use super::raw::only as raw;
 use crate::{
     call::{
         answer::AnswerEvent, candidates::CandidatesEvent, hangup::HangupEvent, invite::InviteEvent,
