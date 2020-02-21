@@ -1,10 +1,13 @@
-//! [POST /_matrix/client/r0/createRoom](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-createroom)
+//! [POST /_matrix/client/r0/createRoom](https://matrix.org/docs/spec/client_server/r0.6.0.html#post-matrix-client-r0-createroom)
 
 use ruma_api::ruma_api;
+use ruma_events::{room::power_levels::PowerLevelsEventContent, EventResult};
 use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use super::Visibility;
+use crate::r0::thirdparty::Medium;
 
 ruma_api! {
     metadata {
@@ -20,21 +23,40 @@ ruma_api! {
         /// Extra keys to be added to the content of the `m.room.create`.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub creation_content: Option<CreationContent>,
+        /// List of state events to send to the new room.
+        ///
+        /// Takes precedence over events set by preset, but gets overriden by
+        /// name and topic keys.
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        pub initial_state: Vec<InitialStateEvent>,
         /// A list of user IDs to invite to the room.
         ///
         /// This will tell the server to invite everyone in the list to the newly created room.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub invite: Vec<UserId>,
+        /// List of third party IDs of users to invite.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub invite_3pid: Vec<Invite3pid>,
+        /// If set, this sets the `is_direct` flag on room invites.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub is_direct: Option<bool>,
         /// If this is included, an `m.room.name` event will be sent into the room to indicate
         /// the name of the room.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub name: Option<String>,
+        /// Power level content to override in the default power level event.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[wrap_incoming(PowerLevelsEventContent with EventResult)]
+        power_level_content_override: Option<PowerLevelsEventContent>,
         /// Convenience parameter for setting various default state events based on a preset.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub preset: Option<RoomPreset>,
         /// The desired room alias local part.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub room_alias_name: Option<String>,
+        /// Room version to set for the room. Defaults to homeserver's default if not specified.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub room_version: Option<String>,
         /// If this is included, an `m.room.topic` event will be sent into the room to indicate
         /// the topic for the room.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -44,7 +66,6 @@ ruma_api! {
         /// default to private visibility if this key is not included.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub visibility: Option<Visibility>,
-        // TODO: missing `invite_3pid`, `initial_state`
     }
 
     response {
@@ -73,4 +94,29 @@ pub enum RoomPreset {
     PublicChat,
     /// Same as `PrivateChat`, but all initial invitees get the same power level as the creator.
     TrustedPrivateChat,
+}
+
+/// Represents third party IDs to invite to the room.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Invite3pid {
+    /// Hostname and port of identity server to be used for account lookups.
+    id_server: String,
+    /// An access token registered with the identity server.
+    id_access_token: String,
+    /// Type of third party ID.
+    medium: Medium,
+    /// Third party identifier.
+    address: String,
+}
+
+/// Represents content of a state event to be used to initalize new room state.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct InitialStateEvent {
+    /// State event type.
+    #[serde(rename = "type")]
+    event_type: String,
+    /// `state_key` of the event to be sent.
+    state_key: Option<String>,
+    /// JSON content of the state event.
+    content: Value,
 }
