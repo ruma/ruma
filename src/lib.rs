@@ -180,7 +180,7 @@ use http::Method;
 ///         }
 ///
 ///         request {
-///             #[ruma_api(body)]
+///             #[ruma_api(raw_body)]
 ///             pub file: Vec<u8>,
 ///         }
 ///
