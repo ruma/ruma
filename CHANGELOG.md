@@ -14,6 +14,7 @@ Breaking changes:
 * Fix `r0::session::get_login_types`
 * Add `allow_remote` parameter to `r0::media::get_content`
 * Add missing parameters for `r0::room::create_room`
+* Remove deprecated endpoint `r0::contact::create_contact` (deprecated in r0.6.0)
 
 # 0.6.0
 
