@@ -24,9 +24,9 @@ use serde::{Deserialize, Serialize};
 pub struct AuthenticationData {
     /// The login type that the client is attempting to complete.
     #[serde(rename = "type")]
-    kind: String,
+    pub kind: String,
     /// The value of the session key given by the homeserver.
-    session: Option<String>,
+    pub session: Option<String>,
 }
 
 /// Additional authentication information for requestToken endpoints.
@@ -42,7 +42,10 @@ pub struct IdentityServerInfo {
 /// Possible values for deleting or unbinding 3PIDs
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]
-enum ThirdPartyIdRemovalStatus {
+pub enum ThirdPartyIdRemovalStatus {
+    /// Either the homeserver couldn't determine the right identity server to contact, or the
+    /// identity server refused the operation.
     NoSupport,
+    /// Success.
     Success,
 }

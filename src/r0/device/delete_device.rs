@@ -15,10 +15,12 @@ ruma_api! {
     }
 
     request {
+        /// The device to delete.
         #[ruma_api(path)]
-        device_id: DeviceId,
+        pub device_id: DeviceId,
+        /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
-        auth: Option<AuthenticationData>,
+        pub auth: Option<AuthenticationData>,
     }
 
     response {}

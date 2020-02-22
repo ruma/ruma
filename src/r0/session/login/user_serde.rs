@@ -8,14 +8,14 @@ use super::Medium;
 // The following three structs could just be used in place of the one in the parent module, but
 // that one is arguably much easier to deal with.
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
-pub struct UserInfo<'a> {
+pub(crate) struct UserInfo<'a> {
     #[serde(borrow)]
-    identifier: UserIdentifier<'a>,
+    pub identifier: UserIdentifier<'a>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(tag = "type")]
-pub enum UserIdentifier<'a> {
+pub(crate) enum UserIdentifier<'a> {
     #[serde(rename = "m.id.user")]
     MatrixId { user: &'a str },
     #[serde(rename = "m.id.thirdparty")]

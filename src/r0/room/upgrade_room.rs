@@ -16,13 +16,13 @@ ruma_api! {
     request {
         /// ID of the room to be upgraded.
         #[ruma_api(path)]
-        room_id: RoomId,
+        pub room_id: RoomId,
         /// New version for the room.
-        new_version: String,
+        pub new_version: String,
     }
 
     response {
         /// ID of the new room.
-        replacement_room: RoomId,
+        pub replacement_room: RoomId,
     }
 }

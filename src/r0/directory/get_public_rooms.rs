@@ -19,17 +19,17 @@ ruma_api! {
         /// Limit for the number of results to return.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        limit: Option<UInt>,
+        pub limit: Option<UInt>,
         /// Pagination token from a previous request.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        since: Option<String>,
+        pub since: Option<String>,
         /// The server to fetch the public room lists from.
         ///
         /// `None` means the server this request is sent to.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        server: Option<String>,
+        pub server: Option<String>,
     }
 
     response {

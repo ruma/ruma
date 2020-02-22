@@ -22,16 +22,16 @@ ruma_api! {
         /// `None` means the server this request is sent to.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        server: Option<String>,
+        pub server: Option<String>,
         /// Limit for the number of results to return.
         #[serde(skip_serializing_if = "Option::is_none")]
-        limit: Option<UInt>,
+        pub limit: Option<UInt>,
         /// Pagination token from a previous request.
         #[serde(skip_serializing_if = "Option::is_none")]
-        since: Option<String>,
+        pub since: Option<String>,
         /// Filter to apply to the results.
         #[serde(skip_serializing_if = "Option::is_none")]
-        filter: Option<Filter>,
+        pub filter: Option<Filter>,
     }
 
     response {
@@ -51,5 +51,5 @@ ruma_api! {
 pub struct Filter {
     /// A string to search for in the room metadata, e.g. name, topic, canonical alias etc.
     #[serde(skip_serializing_if = "Option::is_none")]
-    generic_search_term: Option<String>,
+    pub generic_search_term: Option<String>,
 }

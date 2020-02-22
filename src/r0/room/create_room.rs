@@ -47,7 +47,7 @@ ruma_api! {
         /// Power level content to override in the default power level event.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[wrap_incoming(PowerLevelsEventContent with EventResult)]
-        power_level_content_override: Option<PowerLevelsEventContent>,
+        pub power_level_content_override: Option<PowerLevelsEventContent>,
         /// Convenience parameter for setting various default state events based on a preset.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub preset: Option<RoomPreset>,
@@ -100,13 +100,13 @@ pub enum RoomPreset {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Invite3pid {
     /// Hostname and port of identity server to be used for account lookups.
-    id_server: String,
+    pub id_server: String,
     /// An access token registered with the identity server.
-    id_access_token: String,
+    pub id_access_token: String,
     /// Type of third party ID.
-    medium: Medium,
+    pub medium: Medium,
     /// Third party identifier.
-    address: String,
+    pub address: String,
 }
 
 /// Represents content of a state event to be used to initalize new room state.
@@ -114,9 +114,9 @@ pub struct Invite3pid {
 pub struct InitialStateEvent {
     /// State event type.
     #[serde(rename = "type")]
-    event_type: String,
+    pub event_type: String,
     /// `state_key` of the event to be sent.
-    state_key: Option<String>,
+    pub state_key: Option<String>,
     /// JSON content of the state event.
-    content: Value,
+    pub content: Value,
 }

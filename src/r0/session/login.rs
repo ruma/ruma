@@ -99,24 +99,26 @@ pub enum LoginInfo {
 /// Client configuration provided by the server.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct DiscoveryInfo {
+    /// Information about the homeserver to connect to.
     #[serde(rename = "m.homeserver")]
-    homeserver: HomeserverInfo,
+    pub homeserver: HomeserverInfo,
+    /// Information about the identity server to connect to.
     #[serde(rename = "m.identity_server")]
-    identity_server: Option<IdentityServerInfo>,
+    pub identity_server: Option<IdentityServerInfo>,
 }
 
 /// Information about the homeserver to connect to.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct HomeserverInfo {
     /// The base URL for the homeserver for client-server connections.
-    base_url: String,
+    pub base_url: String,
 }
 
 /// Information about the identity server to connect to.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct IdentityServerInfo {
     /// The base URL for the identity server for client-server connections.
-    base_url: String,
+    pub base_url: String,
 }
 
 mod user_serde;

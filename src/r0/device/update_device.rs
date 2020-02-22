@@ -14,10 +14,13 @@ ruma_api! {
     }
 
     request {
+        /// The device to update.
         #[ruma_api(path)]
-        device_id: DeviceId,
+        pub device_id: DeviceId,
+        /// The new display name for this device. If this is `None`, the display name won't be
+        /// changed.
         #[serde(skip_serializing_if = "Option::is_none")]
-        display_name: Option<String>,
+        pub display_name: Option<String>,
     }
 
     response {}

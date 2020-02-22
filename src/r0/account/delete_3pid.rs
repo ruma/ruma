@@ -18,16 +18,16 @@ ruma_api! {
     request {
         /// Identity server to delete from.
         #[serde(skip_serializing_if = "Option::is_none")]
-        id_server: Option<String>,
+        pub id_server: Option<String>,
         /// Medium of the 3PID to be removed.
-        medium: Medium,
+        pub medium: Medium,
         /// Third-party address being removed.
-        address: String,
+        pub address: String,
     }
 
     response {
         /// Result of unbind operation.
-        id_server_unbind_result: ThirdPartyIdRemovalStatus,
+        pub id_server_unbind_result: ThirdPartyIdRemovalStatus,
     }
 
 }

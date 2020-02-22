@@ -17,19 +17,19 @@ ruma_api! {
     request {
         /// User ID of user for whom to retrieve data.
         #[ruma_api(path)]
-        user_id: UserId,
+        pub user_id: UserId,
         /// Room ID for which to retrieve data.
         #[ruma_api(path)]
-        room_id: RoomId,
+        pub room_id: RoomId,
         /// Type of data to retrieve.
         #[ruma_api(path)]
-        event_type: String,
+        pub event_type: String,
     }
 
     response {
         /// Account data content for the given type.
         #[ruma_api(body)]
         #[wrap_incoming(with EventResult)]
-        account_data: only::Event,
+        pub account_data: only::Event,
     }
 }

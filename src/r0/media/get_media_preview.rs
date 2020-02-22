@@ -17,10 +17,10 @@ ruma_api! {
     request {
         /// URL to get a preview of.
         #[ruma_api(query)]
-        url: String,
+        pub url: String,
         /// Preferred point in time (in milliseconds) to return a preview for.
         #[ruma_api(query)]
-        ts: UInt,
+        pub ts: UInt,
     }
 
     response {
@@ -29,6 +29,6 @@ ruma_api! {
         /// Differences from OpenGraph: the image size in bytes is added to the `matrix:image:size`
         /// field, and `og:image` returns the MXC URI to the image, if any.
         #[ruma_api(body)]
-        data: Option<Value>,
+        pub data: Option<Value>,
     }
 }

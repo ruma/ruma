@@ -15,12 +15,14 @@ ruma_api! {
     }
 
     request {
+        /// The device to retrieve.
         #[ruma_api(path)]
-        device_id: DeviceId,
+        pub device_id: DeviceId,
     }
 
     response {
+        /// Information about the device.
         #[ruma_api(body)]
-        device: Device,
+        pub device: Device,
     }
 }

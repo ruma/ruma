@@ -16,11 +16,11 @@ ruma_api! {
 
     request {
         /// List of devices to delete.
-        devices: Vec<DeviceId>,
+        pub devices: Vec<DeviceId>,
 
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
-        auth: Option<AuthenticationData>,
+        pub auth: Option<AuthenticationData>,
     }
 
     response {}

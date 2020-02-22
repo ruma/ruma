@@ -18,18 +18,18 @@ ruma_api! {
     request {
         /// User ID of authenticated user.
         #[ruma_api(path)]
-        user_id: UserId,
+        pub user_id: UserId,
     }
 
     response {
         /// Access token for verifying user's identity.
-        access_token: String,
+        pub access_token: String,
         /// Access token type.
-        token_type: TokenType,
+        pub token_type: TokenType,
         /// Homeserver domain for verification of user's identity.
-        matrix_server_name: String,
+        pub matrix_server_name: String,
         /// Seconds until token expiration.
-        expires_in: UInt,
+        pub expires_in: UInt,
     }
 }
 

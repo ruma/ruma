@@ -18,6 +18,6 @@ ruma_api! {
     response {
         /// Maximum size of upload in bytes.
         #[serde(rename = "m.upload.size")]
-        upload_size: UInt,
+        pub upload_size: UInt,
     }
 }
