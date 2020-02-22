@@ -20,6 +20,7 @@ ruma_api! {
     }
 
     response {
+        #[ruma_api(body)]
         device: Device,
     }
 }
