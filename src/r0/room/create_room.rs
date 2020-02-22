@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::Visibility;
-use crate::r0::thirdparty::Medium;
+use crate::r0::membership::Invite3pid;
 
 ruma_api! {
     metadata {
@@ -94,19 +94,6 @@ pub enum RoomPreset {
     PublicChat,
     /// Same as `PrivateChat`, but all initial invitees get the same power level as the creator.
     TrustedPrivateChat,
-}
-
-/// Represents third party IDs to invite to the room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Invite3pid {
-    /// Hostname and port of identity server to be used for account lookups.
-    pub id_server: String,
-    /// An access token registered with the identity server.
-    pub id_access_token: String,
-    /// Type of third party ID.
-    pub medium: Medium,
-    /// Third party identifier.
-    pub address: String,
 }
 
 /// Represents content of a state event to be used to initalize new room state.

@@ -16,6 +16,8 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
+use crate::r0::thirdparty::Medium;
+
 // TODO: spec requires a nesting ThirdPartySigned { signed: Signed { mxid: ..., ... } }
 //       for join_room_by_id_or_alias but not for join_room_by_id, inconsistency?
 
@@ -31,4 +33,17 @@ pub struct ThirdPartySigned {
     pub signatures: HashMap<String, HashMap<String, String>>,
     /// The state key of the m.third_party_invite event.
     pub token: String,
+}
+
+/// Represents third party IDs to invite to the room.
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct Invite3pid {
+    /// Hostname and port of identity server to be used for account lookups.
+    pub id_server: String,
+    /// An access token registered with the identity server.
+    pub id_access_token: String,
+    /// Type of third party ID.
+    pub medium: Medium,
+    /// Third party identifier.
+    pub address: String,
 }

@@ -15,6 +15,9 @@ Breaking changes:
 * Fix `r0::session::get_login_types`
 * Add `allow_remote` parameter to `r0::media::get_content`
 * Add missing parameters for `r0::room::create_room`
+* Moved `r0::room::create_room::Invite3pid` to `r0::membership::Invite3pid`
+* Replaced `user_id` parameter of `r0::membership::invite_user` with `recipient` 
+  to allow invitation of users by either Matrix or third party identifiers.
 * Remove deprecated endpoint `r0::contact::create_contact` (deprecated in r0.6.0)
 
 # 0.6.0
