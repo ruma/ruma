@@ -141,7 +141,11 @@ impl<'de> Deserialize<'de> for UserInfo {
 
 #[cfg(test)]
 mod tests {
-    use super::{LoginInfo, UserInfo};
+    use std::convert::TryInto;
+
+    use serde_json::json;
+
+    use super::{LoginInfo, Medium, Request, UserInfo};
 
     #[test]
     fn deserialize_login_type() {
@@ -192,5 +196,37 @@ mod tests {
             .unwrap(),
             UserInfo::MatrixId("cheeky_monkey".into())
         );
+    }
+
+    #[test]
+    fn serialize_login_request_body() {
+        let req: http::Request<Vec<u8>> = Request {
+            user: UserInfo::ThirdPartyId {
+                address: "hello@example.com".to_owned(),
+                medium: Medium::Email,
+            },
+            login_info: LoginInfo::Token {
+                token: "0xdeadbeef".to_owned(),
+            },
+            device_id: None,
+            initial_device_display_name: Some("test".to_string()),
+        }
+        .try_into()
+        .unwrap();
+
+        let req_body_value: serde_json::Value = serde_json::from_slice(req.body()).unwrap();
+        assert_eq!(
+            req_body_value,
+            json!({
+                "identifier": {
+                    "type": "m.id.thirdparty",
+                    "medium": "email",
+                    "address": "hello@example.com"
+                },
+                "type": "m.login.token",
+                "token": "0xdeadbeef",
+                "initial_device_display_name": "test",
+            })
+        )
     }
 }
