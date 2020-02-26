@@ -1,7 +1,8 @@
-//! [POST /_matrix/client/r0/account/deactivate](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-account-deactivate)
-// TODO: missing request parameters
+//! [POST /_matrix/client/r0/account/deactivate](https://matrix.org/docs/spec/client_server/r0.6.0.html#post-matrix-client-r0-account-deactivate)
 
 use ruma_api::ruma_api;
+
+use super::{AuthenticationData, ThirdPartyIdRemovalStatus};
 
 ruma_api! {
     metadata {
@@ -13,7 +14,18 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {}
+    request {
+        /// Additional authentication information for the user-interactive authentication API.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        auth: Option<AuthenticationData>,
+        /// Identity server from which to unbind the user's third party
+        /// identifier.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        id_server: Option<String>,
+    }
 
-    response {}
+    response {
+        /// Result of unbind operation.
+        id_server_unbind_result: ThirdPartyIdRemovalStatus
+    }
 }
