@@ -32,7 +32,7 @@ ruma_api! {
         /// this should be the 'since' token of that sync request, or any later sync token.
         /// This allows the server to ensure its response contains the keys advertised by the notification in that sync.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub token: Option<String>
+        pub token: Option<String>,
     }
 
     response {
