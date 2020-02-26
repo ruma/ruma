@@ -17,15 +17,15 @@ ruma_api! {
     request {
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
-        auth: Option<AuthenticationData>,
+        pub auth: Option<AuthenticationData>,
         /// Identity server from which to unbind the user's third party
         /// identifier.
         #[serde(skip_serializing_if = "Option::is_none")]
-        id_server: Option<String>,
+        pub id_server: Option<String>,
     }
 
     response {
         /// Result of unbind operation.
-        id_server_unbind_result: ThirdPartyIdRemovalStatus
+        pub id_server_unbind_result: ThirdPartyIdRemovalStatus,
     }
 }
