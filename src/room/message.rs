@@ -911,7 +911,7 @@ impl Serialize for NoticeMessageEventContent {
         state.serialize_field("msgtype", "m.notice")?;
 
         if self.relates_to.is_some() {
-            state.serialize_field("relates_to", &self.relates_to)?;
+            state.serialize_field("m.relates_to", &self.relates_to)?;
         }
 
         state.end()
@@ -985,7 +985,7 @@ impl Serialize for TextMessageEventContent {
         state.serialize_field("msgtype", "m.text")?;
 
         if self.relates_to.is_some() {
-            state.serialize_field("relates_to", &self.relates_to)?;
+            state.serialize_field("m.relates_to", &self.relates_to)?;
         }
 
         state.end()
@@ -1037,7 +1037,10 @@ mod tests {
     use serde_json::to_string;
 
     use super::{AudioMessageEventContent, MessageEventContent};
+    use crate::room::message::{InReplyTo, RelatesTo, TextMessageEventContent};
     use crate::EventResult;
+    use ruma_identifiers::EventId;
+    use std::convert::TryFrom;
 
     #[test]
     fn serialization() {
@@ -1051,6 +1054,25 @@ mod tests {
         assert_eq!(
             to_string(&message_event_content).unwrap(),
             r#"{"body":"test","msgtype":"m.audio","url":"http://example.com/audio.mp3"}"#
+        );
+    }
+
+    #[test]
+    fn relates_to_serialization() {
+        let message_event_content = MessageEventContent::Text(TextMessageEventContent {
+            body: "> <@test:example.com> test\n\ntest reply".to_owned(),
+            format: None,
+            formatted_body: None,
+            relates_to: Some(RelatesTo {
+                in_reply_to: InReplyTo {
+                    event_id: EventId::try_from("$15827405538098VGFWH:example.com").unwrap(),
+                },
+            }),
+        });
+
+        assert_eq!(
+            to_string(&message_event_content).unwrap(),
+            r#"{"body":"> <@test:example.com> test\n\ntest reply","msgtype":"m.text","m.relates_to":{"m.in_reply_to":{"event_id":"$15827405538098VGFWH:example.com"}}}"#
         );
     }
 
