@@ -352,7 +352,13 @@ mod tests {
                     room_id: request_body.room_id,
                     room_alias: {
                         let segment = path_segments.get(5).unwrap().as_bytes();
-                        let decoded = percent_encoding::percent_decode(segment).decode_utf8_lossy();
+                        let decoded = match percent_encoding::percent_decode(segment).decode_utf8()
+                        {
+                            Ok(x) => x,
+                            Err(err) => {
+                                return Err(RequestDeserializationError::new(err, request).into())
+                            }
+                        };
                         match serde_json::from_str(decoded.deref()) {
                             Ok(id) => id,
                             Err(err) => {

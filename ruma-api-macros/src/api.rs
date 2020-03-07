@@ -151,9 +151,16 @@ impl ToTokens for Api {
                             use ruma_api::error::RequestDeserializationError;
 
                             let segment = path_segments.get(#i).unwrap().as_bytes();
-                            let decoded =
-                                ruma_api::exports::percent_encoding::percent_decode(segment)
-                                .decode_utf8_lossy();
+                            let decoded = match ruma_api::exports::percent_encoding::percent_decode(
+                                segment
+                            ).decode_utf8() {
+                                Ok(x) => x,
+                                Err(err) => {
+                                    return Err(
+                                        RequestDeserializationError::new(err, request).into()
+                                    );
+                                }
+                            };
                             match std::convert::TryFrom::try_from(decoded.deref()) {
                                 Ok(val) => val,
                                 Err(err) => {
