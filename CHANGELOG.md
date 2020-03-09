@@ -10,6 +10,7 @@ Improvements:
 * Add `unstable_features` to `unversioned::get_supported_versions` (introduced in r0.5.0)
 * Add request and response parameters for `r0::account::deactivate`
 * Add `r0::session::sso_login` (introduced in r0.5.0)
+* Add `filter` type for `r0::context::get_context`
 
 Breaking changes:
 
@@ -21,6 +22,8 @@ Breaking changes:
 * Replaced `user_id` parameter of `r0::membership::invite_user` with `recipient`
   to allow invitation of users by either Matrix or third party identifiers.
 * Remove deprecated endpoint `r0::contact::create_contact` (deprecated in r0.6.0)
+* Add lazy-loading options to `r0::filter::RoomEventFilter` (introduced in r0.5.0)
+* Change type for `limit` request parameter of `r0::context::get_context` from `u8` to `Option<js_int::UInt>`
 
 # 0.6.0
 

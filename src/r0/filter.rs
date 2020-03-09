@@ -3,9 +3,15 @@
 pub mod create_filter;
 pub mod get_filter;
 
+use std::fmt;
+
 use js_int::UInt;
 use ruma_identifiers::{RoomId, UserId};
-use serde::{Deserialize, Serialize};
+use serde::{
+    de::{MapAccess, Visitor},
+    ser::SerializeStruct,
+    Deserialize, Deserializer, Serialize, Serializer,
+};
 
 /// Format to use for returned events
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
@@ -64,6 +70,9 @@ pub struct RoomEventFilter {
     /// If this item is absent then all event types are included.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub contains_url: Option<bool>,
+    /// Options to control lazy-loading of membership events.
+    #[serde(flatten)]
+    pub lazy_load_options: LazyLoadOptions,
 }
 
 impl RoomEventFilter {
@@ -201,5 +210,148 @@ impl FilterDefinition {
             presence: Some(Filter::ignore_all()),
             ..Default::default()
         }
+    }
+}
+
+/// Specifies options for [lazy-loading membership events][lazy-loading] on
+/// supported endpoints
+///
+/// [lazy-loading]: https://matrix.org/docs/spec/client_server/r0.6.0#lazy-loading-room-members
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum LazyLoadOptions {
+    /// Disables lazy-loading of membership events.
+    Disabled,
+    /// Enables lazy-loading of events.
+    Enabled {
+        /// If `true`, sends all membership events for all events, even if they have
+        /// already been sent to the client. Defaults to `false`.
+        include_redundant_members: bool,
+    },
+}
+
+impl Serialize for LazyLoadOptions {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state;
+        match *self {
+            Self::Enabled {
+                include_redundant_members: true,
+            } => {
+                state = serializer.serialize_struct("LazyLoad", 2)?;
+                state.serialize_field("lazy_load_members", &true)?;
+                state.serialize_field("include_redundant_members", &true)?;
+            }
+            Self::Enabled { .. } => {
+                state = serializer.serialize_struct("LazyLoad", 1)?;
+                state.serialize_field("lazy_load_members", &true)?;
+            }
+            _ => {
+                state = serializer.serialize_struct("LazyLoad", 0)?;
+            }
+        }
+        state.end()
+    }
+}
+
+impl Default for LazyLoadOptions {
+    fn default() -> Self {
+        Self::Disabled
+    }
+}
+
+struct LazyLoadOptionsVisitor;
+
+impl<'de> Visitor<'de> for LazyLoadOptionsVisitor {
+    type Value = LazyLoadOptions;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str("Lazy load options")
+    }
+
+    fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
+    where
+        M: MapAccess<'de>,
+    {
+        let mut lazy_load_members = false;
+        let mut include_redundant_members = false;
+        while let Some((key, value)) = access.next_entry::<String, bool>()? {
+            match &*key {
+                "lazy_load_members" => lazy_load_members = value,
+                "include_redundant_members" => include_redundant_members = value,
+                _ => {}
+            };
+        }
+
+        Ok(if lazy_load_members {
+            LazyLoadOptions::Enabled {
+                include_redundant_members,
+            }
+        } else {
+            LazyLoadOptions::Disabled
+        })
+    }
+}
+
+impl<'de> Deserialize<'de> for LazyLoadOptions {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_map(LazyLoadOptionsVisitor)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::LazyLoadOptions;
+
+    #[test]
+    fn test_serializing_disabled_lazy_load() {
+        let lazy_load_options = LazyLoadOptions::Disabled;
+        assert_eq!(serde_json::to_value(lazy_load_options).unwrap(), json!({}));
+    }
+
+    #[test]
+    fn test_serializing_lazy_load_no_redundant() {
+        let lazy_load_options = LazyLoadOptions::Enabled {
+            include_redundant_members: false,
+        };
+        assert_eq!(
+            serde_json::to_value(lazy_load_options).unwrap(),
+            json!({ "lazy_load_members": true })
+        );
+    }
+
+    #[test]
+    fn test_serializing_lazy_load_with_redundant() {
+        let lazy_load_options = LazyLoadOptions::Enabled {
+            include_redundant_members: true,
+        };
+        assert_eq!(
+            serde_json::to_value(lazy_load_options).unwrap(),
+            json!({ "lazy_load_members": true, "include_redundant_members": true })
+        );
+    }
+
+    #[test]
+    fn test_deserializing_no_lazy_load() {
+        let json = json!({});
+        assert_eq!(
+            serde_json::from_value::<LazyLoadOptions>(json).unwrap(),
+            LazyLoadOptions::Disabled,
+        );
+    }
+
+    #[test]
+    fn test_deserializing_ignore_redundant_members_when_no_lazy_load() {
+        let json = json!({ "include_redundant_members": true });
+        assert_eq!(
+            serde_json::from_value::<LazyLoadOptions>(json).unwrap(),
+            LazyLoadOptions::Disabled,
+        );
     }
 }
