@@ -1,4 +1,5 @@
 //! Types for the *m.room.encrypted* event.
+use std::collections::HashMap;
 
 use js_int::UInt;
 use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
@@ -235,14 +236,14 @@ pub struct OlmV1Curve25519AesSha2Content {
     /// The encryption algorithm used to encrypt this event.
     pub algorithm: Algorithm,
 
-    /// The encrypted content of the event.
-    pub ciphertext: CiphertextInfo,
+    /// A map from the recipient Curve25519 identity key to ciphertext information.
+    pub ciphertext: HashMap<String, CiphertextInfo>,
 
     /// The Curve25519 key of the sender.
     pub sender_key: String,
 }
 
-/// A map from the recipient Curve25519 identity key to ciphertext information.
+/// Ciphertext information holding the ciphertext and message type.
 ///
 /// Used for messages encrypted with the *m.olm.v1.curve25519-aes-sha2* algorithm.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -318,6 +319,27 @@ mod tests {
             .unwrap(),
             key_verification_start_content
         );
+    }
+
+    #[test]
+    fn deserialization_olm() {
+        let content = serde_json::from_str::<EventResult<EncryptedEventContent>>(
+                r#"{"sender_key":"test_key", "ciphertext":{ "test_curve_key": { "body": "encrypted_body", "type": 1 }},"algorithm": "m.olm.v1.curve25519-aes-sha2"}"#
+            )
+            .unwrap()
+            .into_result()
+            .unwrap();
+
+        match content {
+            EncryptedEventContent::OlmV1Curve25519AesSha2(c) => {
+                assert_eq!(c.algorithm, Algorithm::OlmV1Curve25519AesSha2);
+                assert_eq!(c.sender_key, "test_key");
+                assert_eq!(c.ciphertext.len(), 1);
+                assert_eq!(c.ciphertext["test_curve_key"].body, "encrypted_body");
+                assert_eq!(c.ciphertext["test_curve_key"].message_type, 1u16.into());
+            }
+            _ => panic!("Wrong content type, expected a OlmV1 content"),
+        }
     }
 
     #[test]
