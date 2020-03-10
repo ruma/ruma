@@ -11,7 +11,7 @@ use url::form_urlencoded::Parse as UrlEncodedParse;
 #[doc(inline)]
 pub use serde::de::value::Error;
 
-/// Deserializes a `application/x-wwww-url-encoded` value from a `&[u8]`.
+/// Deserializes a `application/x-www-form-urlencoded` value from a `&[u8]`.
 ///
 /// ```
 /// let meal = vec![
@@ -33,7 +33,7 @@ where
     T::deserialize(Deserializer::new(parse(input)))
 }
 
-/// Deserializes a `application/x-wwww-url-encoded` value from a `&str`.
+/// Deserializes a `application/x-www-form-urlencoded` value from a `&str`.
 ///
 /// ```
 /// let meal = vec![
