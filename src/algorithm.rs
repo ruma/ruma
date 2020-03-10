@@ -61,3 +61,21 @@ impl From<Algorithm> for String {
         algorithm.to_string()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn serialize_and_deserialize_from_display_form() {
+        serde_eq!(r#""m.megolm.v1.aes-sha2""#, Algorithm::MegolmV1AesSha2);
+        serde_eq!(
+            r#""m.olm.v1.curve25519-aes-sha2""#,
+            Algorithm::OlmV1Curve25519AesSha2
+        );
+        serde_eq!(
+            r#""io.ruma.test""#,
+            Algorithm::Custom("io.ruma.test".to_string())
+        );
+    }
+}

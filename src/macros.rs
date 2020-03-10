@@ -107,3 +107,13 @@ macro_rules! impl_from_for_enum {
         }
     };
 }
+
+#[cfg(test)]
+macro_rules! serde_eq {
+    ($de:literal, $se:expr) => {
+        let mut val = $se;
+        assert_eq!($de, serde_json::to_string(&val).unwrap());
+        val = serde_json::from_str($de).unwrap();
+        assert_eq!(val, $se);
+    };
+}
