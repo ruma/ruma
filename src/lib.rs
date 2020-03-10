@@ -136,7 +136,7 @@ impl HttpClient {
     pub fn new(homeserver_url: Url, session: Option<Session>) -> Self {
         Self(Arc::new(ClientData {
             homeserver_url,
-            hyper: HyperClient::builder().keep_alive(true).build_http(),
+            hyper: HyperClient::builder().build_http(),
             session: Mutex::new(session),
         }))
     }
@@ -154,7 +154,7 @@ impl HttpsClient {
 
         Self(Arc::new(ClientData {
             homeserver_url,
-            hyper: HyperClient::builder().keep_alive(true).build(connector),
+            hyper: HyperClient::builder().build(connector),
             session: Mutex::new(session),
         }))
     }
