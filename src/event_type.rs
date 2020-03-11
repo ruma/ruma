@@ -269,78 +269,90 @@ impl From<EventType> for String {
 
 #[cfg(test)]
 mod tests {
+    use serde_json::json;
+
     use super::*;
+    use crate::util::serde_json_eq;
 
     #[allow(clippy::cognitive_complexity)]
     #[test]
     fn serialize_and_deserialize_from_display_form() {
-        serde_eq!(r#""m.call.answer""#, EventType::CallAnswer);
-        serde_eq!(r#""m.call.candidates""#, EventType::CallCandidates);
-        serde_eq!(r#""m.call.hangup""#, EventType::CallHangup);
-        serde_eq!(r#""m.call.invite""#, EventType::CallInvite);
-        serde_eq!(r#""m.direct""#, EventType::Direct);
-        serde_eq!(r#""m.dummy""#, EventType::Dummy);
-        serde_eq!(r#""m.forwarded_room_key""#, EventType::ForwardedRoomKey);
-        serde_eq!(r#""m.fully_read""#, EventType::FullyRead);
-        serde_eq!(
-            r#""m.key.verification.accept""#,
-            EventType::KeyVerificationAccept
+        serde_json_eq(EventType::CallAnswer, json!("m.call.answer"));
+        serde_json_eq(EventType::CallCandidates, json!("m.call.candidates"));
+        serde_json_eq(EventType::CallHangup, json!("m.call.hangup"));
+        serde_json_eq(EventType::CallInvite, json!("m.call.invite"));
+        serde_json_eq(EventType::Direct, json!("m.direct"));
+        serde_json_eq(EventType::Dummy, json!("m.dummy"));
+        serde_json_eq(EventType::ForwardedRoomKey, json!("m.forwarded_room_key"));
+        serde_json_eq(EventType::FullyRead, json!("m.fully_read"));
+        serde_json_eq(
+            EventType::KeyVerificationAccept,
+            json!("m.key.verification.accept"),
         );
-        serde_eq!(
-            r#""m.key.verification.cancel""#,
-            EventType::KeyVerificationCancel
+        serde_json_eq(
+            EventType::KeyVerificationCancel,
+            json!("m.key.verification.cancel"),
         );
-        serde_eq!(r#""m.key.verification.key""#, EventType::KeyVerificationKey);
-        serde_eq!(r#""m.key.verification.mac""#, EventType::KeyVerificationMac);
-        serde_eq!(
-            r#""m.key.verification.request""#,
-            EventType::KeyVerificationRequest
+        serde_json_eq(
+            EventType::KeyVerificationKey,
+            json!("m.key.verification.key"),
         );
-        serde_eq!(
-            r#""m.key.verification.start""#,
-            EventType::KeyVerificationStart
+        serde_json_eq(
+            EventType::KeyVerificationMac,
+            json!("m.key.verification.mac"),
         );
-        serde_eq!(r#""m.ignored_user_list""#, EventType::IgnoredUserList);
-        serde_eq!(r#""m.presence""#, EventType::Presence);
-        serde_eq!(r#""m.push_rules""#, EventType::PushRules);
-        serde_eq!(r#""m.receipt""#, EventType::Receipt);
-        serde_eq!(r#""m.room.aliases""#, EventType::RoomAliases);
-        serde_eq!(r#""m.room.avatar""#, EventType::RoomAvatar);
-        serde_eq!(r#""m.room.canonical_alias""#, EventType::RoomCanonicalAlias);
-        serde_eq!(r#""m.room.create""#, EventType::RoomCreate);
-        serde_eq!(r#""m.room.encrypted""#, EventType::RoomEncrypted);
-        serde_eq!(r#""m.room.encryption""#, EventType::RoomEncryption);
-        serde_eq!(r#""m.room.guest_access""#, EventType::RoomGuestAccess);
-        serde_eq!(
-            r#""m.room.history_visibility""#,
-            EventType::RoomHistoryVisibility
+        serde_json_eq(
+            EventType::KeyVerificationRequest,
+            json!("m.key.verification.request"),
         );
-        serde_eq!(r#""m.room.join_rules""#, EventType::RoomJoinRules);
-        serde_eq!(r#""m.room.member""#, EventType::RoomMember);
-        serde_eq!(r#""m.room.message""#, EventType::RoomMessage);
-        serde_eq!(
-            r#""m.room.message.feedback""#,
-            EventType::RoomMessageFeedback
+        serde_json_eq(
+            EventType::KeyVerificationStart,
+            json!("m.key.verification.start"),
         );
-        serde_eq!(r#""m.room.name""#, EventType::RoomName);
-        serde_eq!(r#""m.room.pinned_events""#, EventType::RoomPinnedEvents);
-        serde_eq!(r#""m.room.power_levels""#, EventType::RoomPowerLevels);
-        serde_eq!(r#""m.room.redaction""#, EventType::RoomRedaction);
-        serde_eq!(r#""m.room.server_acl""#, EventType::RoomServerAcl);
-        serde_eq!(
-            r#""m.room.third_party_invite""#,
-            EventType::RoomThirdPartyInvite
+        serde_json_eq(EventType::IgnoredUserList, json!("m.ignored_user_list"));
+        serde_json_eq(EventType::Presence, json!("m.presence"));
+        serde_json_eq(EventType::PushRules, json!("m.push_rules"));
+        serde_json_eq(EventType::Receipt, json!("m.receipt"));
+        serde_json_eq(EventType::RoomAliases, json!("m.room.aliases"));
+        serde_json_eq(EventType::RoomAvatar, json!("m.room.avatar"));
+        serde_json_eq(
+            EventType::RoomCanonicalAlias,
+            json!("m.room.canonical_alias"),
         );
-        serde_eq!(r#""m.room.tombstone""#, EventType::RoomTombstone);
-        serde_eq!(r#""m.room.topic""#, EventType::RoomTopic);
-        serde_eq!(r#""m.room_key""#, EventType::RoomKey);
-        serde_eq!(r#""m.room_key_request""#, EventType::RoomKeyRequest);
-        serde_eq!(r#""m.sticker""#, EventType::Sticker);
-        serde_eq!(r#""m.tag""#, EventType::Tag);
-        serde_eq!(r#""m.typing""#, EventType::Typing);
-        serde_eq!(
-            r#""io.ruma.test""#,
-            EventType::Custom("io.ruma.test".to_string())
+        serde_json_eq(EventType::RoomCreate, json!("m.room.create"));
+        serde_json_eq(EventType::RoomEncrypted, json!("m.room.encrypted"));
+        serde_json_eq(EventType::RoomEncryption, json!("m.room.encryption"));
+        serde_json_eq(EventType::RoomGuestAccess, json!("m.room.guest_access"));
+        serde_json_eq(
+            EventType::RoomHistoryVisibility,
+            json!("m.room.history_visibility"),
+        );
+        serde_json_eq(EventType::RoomJoinRules, json!("m.room.join_rules"));
+        serde_json_eq(EventType::RoomMember, json!("m.room.member"));
+        serde_json_eq(EventType::RoomMessage, json!("m.room.message"));
+        serde_json_eq(
+            EventType::RoomMessageFeedback,
+            json!("m.room.message.feedback"),
+        );
+        serde_json_eq(EventType::RoomName, json!("m.room.name"));
+        serde_json_eq(EventType::RoomPinnedEvents, json!("m.room.pinned_events"));
+        serde_json_eq(EventType::RoomPowerLevels, json!("m.room.power_levels"));
+        serde_json_eq(EventType::RoomRedaction, json!("m.room.redaction"));
+        serde_json_eq(EventType::RoomServerAcl, json!("m.room.server_acl"));
+        serde_json_eq(
+            EventType::RoomThirdPartyInvite,
+            json!("m.room.third_party_invite"),
+        );
+        serde_json_eq(EventType::RoomTombstone, json!("m.room.tombstone"));
+        serde_json_eq(EventType::RoomTopic, json!("m.room.topic"));
+        serde_json_eq(EventType::RoomKey, json!("m.room_key"));
+        serde_json_eq(EventType::RoomKeyRequest, json!("m.room_key_request"));
+        serde_json_eq(EventType::Sticker, json!("m.sticker"));
+        serde_json_eq(EventType::Tag, json!("m.tag"));
+        serde_json_eq(EventType::Typing, json!("m.typing"));
+        serde_json_eq(
+            EventType::Custom("io.ruma.test".to_string()),
+            json!("io.ruma.test"),
         );
     }
 }
