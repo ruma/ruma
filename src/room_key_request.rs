@@ -38,9 +38,11 @@ ruma_event! {
 #[derive(Clone, Copy, Deserialize, Debug, PartialEq, Serialize)]
 pub enum Action {
     /// Request a key.
+    #[serde(rename = "request")]
     Request,
 
     /// Cancel a request for a key.
+    #[serde(rename = "request_cancellation")]
     CancelRequest,
 
     /// Additional variants may be added in the future and will not be considered breaking changes
