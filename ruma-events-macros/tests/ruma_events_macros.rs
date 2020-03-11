@@ -1,11 +1,14 @@
 use std::{
     borrow::Cow,
-    convert::Infallible,
+    convert::{Infallible, TryFrom},
     fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
 
+use js_int::UInt;
+use ruma_events_macros::ruma_event;
+use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
-use serde_json::Value;
+use serde_json::{json, Value};
 
 /// The type of an event.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -232,16 +235,23 @@ impl Display for InvalidEvent {
     }
 }
 
+pub fn serde_json_eq_try_from_raw<T>(de: T, se: serde_json::Value)
+where
+    T: Clone + Debug + PartialEq + Serialize + TryFromRaw,
+{
+    assert_eq!(se, serde_json::to_value(de.clone()).unwrap());
+    assert_eq!(
+        de,
+        serde_json::from_value::<EventResult<_>>(se)
+            .unwrap()
+            .into_result()
+            .unwrap()
+    );
+}
+
 // See note about wrapping macro expansion in a module from `src/lib.rs`
-pub mod common_case {
-    use std::convert::TryFrom;
-
-    use js_int::UInt;
-    use ruma_events_macros::ruma_event;
-    use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
-    use serde_json::Value;
-
-    use super::EventResult;
+mod common_case {
+    use super::*;
 
     ruma_event! {
         /// Informs the room about what room aliases it has been given.
@@ -256,7 +266,7 @@ pub mod common_case {
     }
 
     #[test]
-    fn serialization_with_optional_fields_as_none() {
+    fn optional_fields_as_none() {
         let event = AliasesEvent {
             content: AliasesEventContent {
                 aliases: Vec::with_capacity(0),
@@ -269,15 +279,21 @@ pub mod common_case {
             state_key: "example.com".to_string(),
             unsigned: None,
         };
-
-        let actual = serde_json::to_string(&event).unwrap();
-        let expected = r#"{"content":{"aliases":[]},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"example.com","type":"m.room.aliases"}"#;
-
-        assert_eq!(actual, expected);
+        let json = json!({
+            "content": {
+                "aliases": []
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "sender": "@carl:example.com",
+            "state_key": "example.com",
+            "type": "m.room.aliases"
+        });
+        serde_json_eq_try_from_raw(event, json);
     }
 
     #[test]
-    fn serialization_with_some_optional_fields_as_some() {
+    fn some_optional_fields_as_some() {
         let event = AliasesEvent {
             content: AliasesEventContent {
                 aliases: vec![RoomAliasId::try_from("#room:example.org").unwrap()],
@@ -292,15 +308,25 @@ pub mod common_case {
             state_key: "example.com".to_string(),
             unsigned: None,
         };
-
-        let actual = serde_json::to_string(&event).unwrap();
-        let expected = r##"{"content":{"aliases":["#room:example.org"]},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"prev_content":{"aliases":[]},"room_id":"!n8f893n9:example.com","sender":"@carl:example.com","state_key":"example.com","type":"m.room.aliases"}"##;
-
-        assert_eq!(actual, expected);
+        let json = json!({
+            "content": {
+                "aliases": ["#room:example.org"]
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "prev_content": {
+                "aliases": []
+            },
+            "room_id": "!n8f893n9:example.com",
+            "sender": "@carl:example.com",
+            "state_key": "example.com",
+            "type": "m.room.aliases"
+        });
+        serde_json_eq_try_from_raw(event, json);
     }
 
     #[test]
-    fn serialization_with_all_optional_fields_as_some() {
+    fn all_optional_fields_as_some() {
         let event = AliasesEvent {
             content: AliasesEventContent {
                 aliases: vec![RoomAliasId::try_from("#room:example.org").unwrap()],
@@ -315,42 +341,29 @@ pub mod common_case {
             state_key: "example.com".to_string(),
             unsigned: Some(serde_json::from_str::<Value>(r#"{"foo":"bar"}"#).unwrap()),
         };
-
-        let actual = serde_json::to_string(&event).unwrap();
-        let expected = r##"{"content":{"aliases":["#room:example.org"]},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"prev_content":{"aliases":[]},"room_id":"!n8f893n9:example.com","sender":"@carl:example.com","state_key":"example.com","unsigned":{"foo":"bar"},"type":"m.room.aliases"}"##;
-
-        assert_eq!(actual, expected);
-    }
-
-    #[test]
-    fn deserialization() {
-        let json = r##"{"content":{"aliases":["#room:example.org"]},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"prev_content":{"aliases":[]},"room_id":"!n8f893n9:example.com","sender":"@carl:example.com","state_key":"example.com","unsigned":{"foo":"bar"},"type":"m.room.aliases"}"##;
-
-        let event_result: EventResult<AliasesEvent> = serde_json::from_str(json).unwrap();
-        let actual: AliasesEvent = event_result.into_result().unwrap();
-
-        let expected = AliasesEvent {
-            content: AliasesEventContent {
-                aliases: vec![RoomAliasId::try_from("#room:example.org").unwrap()],
+        let json = json!({
+            "content": {
+                "aliases": ["#room:example.org"]
             },
-            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UInt::try_from(1).unwrap(),
-            prev_content: Some(AliasesEventContent {
-                aliases: Vec::with_capacity(0),
-            }),
-            room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
-            sender: UserId::try_from("@carl:example.com").unwrap(),
-            state_key: "example.com".to_string(),
-            unsigned: Some(serde_json::from_str::<Value>(r#"{"foo":"bar"}"#).unwrap()),
-        };
-
-        assert_eq!(actual, expected);
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "prev_content": {
+                "aliases": []
+            },
+            "room_id": "!n8f893n9:example.com",
+            "sender": "@carl:example.com",
+            "state_key": "example.com",
+            "unsigned": {
+                "foo": "bar"
+            },
+            "type": "m.room.aliases"
+        });
+        serde_json_eq_try_from_raw(event, json);
     }
 }
 
-pub mod custom_event_type {
-    use ruma_events_macros::ruma_event;
-    use serde_json::Value;
+mod custom_event_type {
+    use super::*;
 
     ruma_event! {
         /// A custom event.
@@ -363,10 +376,43 @@ pub mod custom_event_type {
             },
         }
     }
+
+    #[test]
+    fn value_is_not_null() {
+        // Hint: serde_json::Value with default feature is sort
+        // alphabetically rather than preserve the sequence of json kv
+        // pairs. Check:
+        // + https://github.com/serde-rs/json/pull/80
+        // + https://github.com/serde-rs/json/blob/17d9a5ea9b8e11f01b0fcf13933c4a12d3f8db45/tests/map.rs.
+        let event = CustomEvent {
+            content: { serde_json::from_str::<Value>(r#"{"alice":["foo", "bar"]}"#).unwrap() },
+            event_type: "foo.bar".to_owned(),
+        };
+        let json = json!({
+            "content": {
+                "alice": ["foo", "bar"]
+            },
+            "type": "foo.bar"
+        });
+        serde_json_eq_try_from_raw(event, json);
+    }
+
+    #[test]
+    fn value_is_null() {
+        let event = CustomEvent {
+            content: { Value::Null },
+            event_type: "foo.bar".to_owned(),
+        };
+        let json = json!({
+            "content": null,
+            "type": "foo.bar"
+        });
+        serde_json_eq_try_from_raw(event, json);
+    }
 }
 
-pub mod extra_fields {
-    use ruma_events_macros::ruma_event;
+mod extra_fields {
+    use super::*;
 
     ruma_event! {
         /// A redaction of an event.
@@ -383,10 +429,38 @@ pub mod extra_fields {
             },
         }
     }
+
+    #[test]
+    fn field_serialization_deserialization() {
+        let event = RedactionEvent {
+            content: RedactionEventContent { reason: None },
+            redacts: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+            origin_server_ts: UInt::try_from(1).unwrap(),
+            room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
+            sender: UserId::try_from("@carl:example.com").unwrap(),
+            unsigned: Some(serde_json::from_str::<Value>(r#"{"foo":"bar"}"#).unwrap()),
+        };
+        let json = json!({
+            "content": {
+                "reason": null
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "redacts": "$h29iv0s8:example.com",
+            "room_id": "!n8f893n9:example.com",
+            "sender": "@carl:example.com",
+            "unsigned": {
+                "foo": "bar"
+            },
+            "type": "m.room.redaction"
+        });
+        serde_json_eq_try_from_raw(event, json);
+    }
 }
 
-pub mod type_alias {
-    use ruma_events_macros::ruma_event;
+mod type_alias {
+    use super::*;
 
     ruma_event! {
         /// Informs the client about the rooms that are considered direct by a user.
@@ -401,5 +475,35 @@ pub mod type_alias {
                 std::collections::HashMap<ruma_identifiers::UserId, Vec<ruma_identifiers::RoomId>>
             }
         }
+    }
+
+    #[test]
+    fn alias_is_not_empty() {
+        let content = vec![(
+            UserId::try_from("@bob:example.com").unwrap(),
+            vec![RoomId::try_from("!n8f893n9:example.com").unwrap()],
+        )]
+        .into_iter()
+        .collect();
+
+        let event = DirectEvent { content };
+        let json = json!({
+            "content": {
+                "@bob:example.com": ["!n8f893n9:example.com"]
+            },
+            "type": "m.direct"
+        });
+        serde_json_eq_try_from_raw(event, json);
+    }
+
+    #[test]
+    fn alias_empty() {
+        let content = Default::default();
+        let event = DirectEvent { content };
+        let json = json!({
+            "content": {},
+            "type": "m.direct"
+        });
+        serde_json_eq_try_from_raw(event, json);
     }
 }
