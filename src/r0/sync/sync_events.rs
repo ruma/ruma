@@ -11,6 +11,7 @@ use ruma_events::{
     },
     presence::PresenceEvent,
     stripped::AnyStrippedStateEvent,
+    to_device::AnyToDeviceEvent,
     EventResult,
 };
 use ruma_identifiers::RoomId;
@@ -60,6 +61,9 @@ ruma_api! {
         /// Updates to the presence status of other users.
         #[wrap_incoming]
         pub presence: Presence,
+        /// Messages sent dirrectly between devices.
+        #[wrap_incoming]
+        pub to_device: ToDevice,
     }
 }
 
@@ -238,4 +242,12 @@ pub struct Presence {
     /// A list of events.
     #[wrap_incoming(PresenceEvent with EventResult)]
     pub events: Vec<PresenceEvent>,
+}
+
+/// Messages sent dirrectly between devices.
+#[derive(Clone, Debug, Serialize, Outgoing)]
+pub struct ToDevice {
+    /// A list of to-device events.
+    #[wrap_incoming(AnyToDeviceEvent with EventResult)]
+    pub events: Vec<AnyToDeviceEvent>,
 }
