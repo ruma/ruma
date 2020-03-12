@@ -128,3 +128,311 @@ pub struct SignedContent {
     /// The token property of the containing third_party_invite object.
     pub token: String,
 }
+
+/// Translation of the membership change in `m.room.member` event.
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+pub enum MembershipChange {
+    /// No change.
+    None,
+
+    /// Must never happen.
+    Error,
+
+    /// User joined the room.
+    Joined,
+
+    /// User left the room.
+    Left,
+
+    /// User was banned.
+    Banned,
+
+    /// User was unbanned.
+    Unbanned,
+
+    /// User was kicked.
+    Kicked,
+
+    /// User was invited.
+    Invited,
+
+    /// User was kicked and banned.
+    KickedAndBanned,
+
+    /// User rejected the invite.
+    InvitationRejected,
+
+    /// User had their invite revoked.
+    InvitationRevoked,
+
+    /// `displayname` or `avatar_url` changed.
+    ProfileChanged,
+
+    /// Not implemented.
+    NotImplemented,
+
+    /// Additional variants may be added in the future and will not be considered breaking changes
+    /// to ruma-events.
+    #[doc(hidden)]
+    __Nonexhaustive,
+}
+
+impl MemberEvent {
+    /// Helper function for memebership change. Check [the specification][spec] for details.
+    ///
+    /// [spec]: https://matrix.org/docs/spec/client_server/latest#m-room-member
+    pub fn membership_change(&self) -> MembershipChange {
+        use MembershipState::*;
+        let prev_membership = if let Some(prev_content) = &self.prev_content {
+            prev_content.membership
+        } else {
+            Leave
+        };
+        match (prev_membership, &self.content.membership) {
+            (Invite, Invite) | (Leave, Leave) | (Ban, Ban) => MembershipChange::None,
+            (Invite, Join) | (Leave, Join) => MembershipChange::Joined,
+            (Invite, Leave) => {
+                if self.sender.to_string() == self.state_key {
+                    MembershipChange::InvitationRevoked
+                } else {
+                    MembershipChange::InvitationRejected
+                }
+            }
+            (Invite, Ban) | (Leave, Ban) => MembershipChange::Banned,
+            (Join, Invite) | (Ban, Invite) | (Ban, Join) => MembershipChange::Error,
+            (Join, Join) => MembershipChange::ProfileChanged,
+            (Join, Leave) => {
+                if self.sender.to_string() == self.state_key {
+                    MembershipChange::Left
+                } else {
+                    MembershipChange::Kicked
+                }
+            }
+            (Join, Ban) => MembershipChange::KickedAndBanned,
+            (Leave, Invite) => MembershipChange::Invited,
+            (Ban, Leave) => MembershipChange::Unbanned,
+            (Knock, _) | (_, Knock) => MembershipChange::NotImplemented,
+            (__Nonexhaustive, _) | (_, __Nonexhaustive) => {
+                panic!("__Nonexhaustive enum variant is not intended for use.")
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::convert::TryFrom;
+
+    use js_int::UInt;
+    use ruma_identifiers::{EventId, RoomId, UserId};
+    use serde_json::json;
+
+    use super::*;
+    use crate::util::serde_json_eq_try_from_raw;
+
+    #[test]
+    fn serde_with_no_prev_content() {
+        let event = MemberEvent {
+            content: MemberEventContent {
+                avatar_url: None,
+                displayname: None,
+                is_direct: None,
+                membership: MembershipState::Join,
+                third_party_invite: None,
+            },
+            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+            origin_server_ts: UInt::new(1).unwrap(),
+            room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
+            sender: UserId::try_from("@carl:example.com").unwrap(),
+            state_key: "example.com".to_string(),
+            unsigned: None,
+            prev_content: None,
+        };
+        let json = json!({
+            "content": {
+                "membership": "join"
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "room_id": "!n8f893n9:example.com",
+            "sender": "@carl:example.com",
+            "state_key": "example.com",
+            "type": "m.room.member"
+        });
+        serde_json_eq_try_from_raw(event, json);
+    }
+
+    #[test]
+    fn serde_with_prev_content() {
+        let event = MemberEvent {
+            content: MemberEventContent {
+                avatar_url: None,
+                displayname: None,
+                is_direct: None,
+                membership: MembershipState::Join,
+                third_party_invite: None,
+            },
+            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+            origin_server_ts: UInt::new(1).unwrap(),
+            room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
+            sender: UserId::try_from("@carl:example.com").unwrap(),
+            state_key: "example.com".to_string(),
+            unsigned: None,
+            prev_content: Some(MemberEventContent {
+                avatar_url: None,
+                displayname: None,
+                is_direct: None,
+                membership: MembershipState::Join,
+                third_party_invite: None,
+            }),
+        };
+        let json = json!({
+            "content": {
+                "membership": "join"
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "prev_content": {
+                "membership": "join"
+            },
+            "room_id": "!n8f893n9:example.com",
+            "sender": "@carl:example.com",
+            "state_key": "example.com",
+            "type": "m.room.member"
+        });
+        serde_json_eq_try_from_raw(event, json);
+    }
+
+    #[test]
+    fn serde_with_content_full() {
+        let signatures = vec![(
+            "magic.forest".to_owned(),
+            vec![("ed25519:3".to_owned(), "foobar".to_owned())]
+                .into_iter()
+                .collect(),
+        )]
+        .into_iter()
+        .collect();
+        let event = MemberEvent {
+            content: MemberEventContent {
+                avatar_url: Some("mxc://example.org/SEsfnsuifSDFSSEF".to_owned()),
+                displayname: Some("Alice Margatroid".to_owned()),
+                is_direct: Some(true),
+                membership: MembershipState::Invite,
+                third_party_invite: Some(ThirdPartyInvite {
+                    display_name: "alice".to_owned(),
+                    signed: SignedContent {
+                        mxid: UserId::try_from("@alice:example.org").unwrap(),
+                        signatures,
+                        token: "abc123".to_owned(),
+                    },
+                }),
+            },
+            event_id: EventId::try_from("$143273582443PhrSn:example.org").unwrap(),
+            origin_server_ts: UInt::new(233).unwrap(),
+            room_id: Some(RoomId::try_from("!jEsUZKDJdhlrceRyVU:example.org").unwrap()),
+            sender: UserId::try_from("@alice:example.org").unwrap(),
+            state_key: "@alice:example.org".to_string(),
+            unsigned: None,
+            prev_content: None,
+        };
+        let json = json!({
+            "content": {
+                "avatar_url": "mxc://example.org/SEsfnsuifSDFSSEF",
+                "displayname": "Alice Margatroid",
+                "is_direct": true,
+                "membership": "invite",
+                "third_party_invite": {
+                    "display_name": "alice",
+                    "signed": {
+                        "mxid": "@alice:example.org",
+                        "signatures": {
+                            "magic.forest": {
+                                "ed25519:3": "foobar"
+                            }
+                        },
+                        "token": "abc123"
+                    }
+                }
+            },
+            "event_id": "$143273582443PhrSn:example.org",
+            "origin_server_ts":233,
+            "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
+            "sender": "@alice:example.org",
+            "state_key": "@alice:example.org",
+            "type": "m.room.member"
+        });
+        serde_json_eq_try_from_raw(event, json);
+    }
+
+    #[test]
+    fn serde_with_prev_content_full() {
+        let signatures = vec![(
+            "magic.forest".to_owned(),
+            vec![("ed25519:3".to_owned(), "foobar".to_owned())]
+                .into_iter()
+                .collect(),
+        )]
+        .into_iter()
+        .collect();
+        let event = MemberEvent {
+            content: MemberEventContent {
+                avatar_url: None,
+                displayname: None,
+                is_direct: None,
+                membership: MembershipState::Join,
+                third_party_invite: None,
+            },
+            event_id: EventId::try_from("$143273582443PhrSn:example.org").unwrap(),
+            origin_server_ts: UInt::new(233).unwrap(),
+            room_id: Some(RoomId::try_from("!jEsUZKDJdhlrceRyVU:example.org").unwrap()),
+            sender: UserId::try_from("@alice:example.org").unwrap(),
+            state_key: "@alice:example.org".to_string(),
+            unsigned: None,
+            prev_content: Some(MemberEventContent {
+                avatar_url: Some("mxc://example.org/SEsfnsuifSDFSSEF".to_owned()),
+                displayname: Some("Alice Margatroid".to_owned()),
+                is_direct: Some(true),
+                membership: MembershipState::Invite,
+                third_party_invite: Some(ThirdPartyInvite {
+                    display_name: "alice".to_owned(),
+                    signed: SignedContent {
+                        mxid: UserId::try_from("@alice:example.org").unwrap(),
+                        signatures,
+                        token: "abc123".to_owned(),
+                    },
+                }),
+            }),
+        };
+        let json = json!({
+            "content": {
+                "membership": "join"
+            },
+            "event_id": "$143273582443PhrSn:example.org",
+            "origin_server_ts": 233,
+            "prev_content": {
+                "avatar_url": "mxc://example.org/SEsfnsuifSDFSSEF",
+                "displayname": "Alice Margatroid",
+                "is_direct": true,
+                "membership": "invite",
+                "third_party_invite": {
+                    "display_name": "alice",
+                    "signed": {
+                        "mxid": "@alice:example.org",
+                        "signatures": {
+                            "magic.forest": {
+                                "ed25519:3": "foobar"
+                            }
+                        },
+                        "token": "abc123"
+                    }
+                }
+            },
+            "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
+            "sender": "@alice:example.org",
+            "state_key": "@alice:example.org",
+            "type": "m.room.member"
+        });
+        serde_json_eq_try_from_raw(event, json);
+    }
+}
