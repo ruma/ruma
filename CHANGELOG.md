@@ -3,6 +3,17 @@
 Breaking changes:
 
 * `collections::only` no longer exports a `raw` submodule. It was never meant ot be exported in the first place.
+* Renamed `stripped::{StrippedState => AnyStrippedStateEvent, StrippedStateContent => StrippedStateEvent}`
+
+Improvements:
+
+* Added `to_device` module with to-device variants of events (as found in the `to_device` section of a sync response)
+* Added a helper method for computing the membership change from a `MemberEvent`
+
+Bug fixes:
+
+* Fixed missing `m.` in `m.relates_to` field of room messages
+* Fixed (de)serialization of encrypted events using `m.olm.v1.curve25519-aes-sha2`
 
 # 0.16.0
 
