@@ -26,7 +26,7 @@ use crate::{
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
 #[allow(clippy::large_enum_variant)]
-pub enum StrippedState {
+pub enum AnyStrippedStateEvent {
     /// A stripped-down version of the *m.room.aliases* event.
     RoomAliases(StrippedRoomAliases),
 
@@ -66,7 +66,7 @@ pub enum StrippedState {
 
 /// A "stripped-down" version of a core state event.
 #[derive(Clone, Debug, PartialEq, Serialize)]
-pub struct StrippedStateContent<C> {
+pub struct StrippedStateEvent<C> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -83,42 +83,42 @@ pub struct StrippedStateContent<C> {
 }
 
 /// A stripped-down version of the *m.room.aliases* event.
-pub type StrippedRoomAliases = StrippedStateContent<AliasesEventContent>;
+pub type StrippedRoomAliases = StrippedStateEvent<AliasesEventContent>;
 
 /// A stripped-down version of the *m.room.avatar* event.
-pub type StrippedRoomAvatar = StrippedStateContent<AvatarEventContent>;
+pub type StrippedRoomAvatar = StrippedStateEvent<AvatarEventContent>;
 
 /// A stripped-down version of the *m.room.canonical_alias* event.
-pub type StrippedRoomCanonicalAlias = StrippedStateContent<CanonicalAliasEventContent>;
+pub type StrippedRoomCanonicalAlias = StrippedStateEvent<CanonicalAliasEventContent>;
 
 /// A stripped-down version of the *m.room.create* event.
-pub type StrippedRoomCreate = StrippedStateContent<CreateEventContent>;
+pub type StrippedRoomCreate = StrippedStateEvent<CreateEventContent>;
 
 /// A stripped-down version of the *m.room.guest_access* event.
-pub type StrippedRoomGuestAccess = StrippedStateContent<GuestAccessEventContent>;
+pub type StrippedRoomGuestAccess = StrippedStateEvent<GuestAccessEventContent>;
 
 /// A stripped-down version of the *m.room.history_visibility* event.
-pub type StrippedRoomHistoryVisibility = StrippedStateContent<HistoryVisibilityEventContent>;
+pub type StrippedRoomHistoryVisibility = StrippedStateEvent<HistoryVisibilityEventContent>;
 
 /// A stripped-down version of the *m.room.join_rules* event.
-pub type StrippedRoomJoinRules = StrippedStateContent<JoinRulesEventContent>;
+pub type StrippedRoomJoinRules = StrippedStateEvent<JoinRulesEventContent>;
 
 /// A stripped-down version of the *m.room.member* event.
-pub type StrippedRoomMember = StrippedStateContent<MemberEventContent>;
+pub type StrippedRoomMember = StrippedStateEvent<MemberEventContent>;
 
 /// A stripped-down version of the *m.room.name* event.
-pub type StrippedRoomName = StrippedStateContent<NameEventContent>;
+pub type StrippedRoomName = StrippedStateEvent<NameEventContent>;
 
 /// A stripped-down version of the *m.room.power_levels* event.
-pub type StrippedRoomPowerLevels = StrippedStateContent<PowerLevelsEventContent>;
+pub type StrippedRoomPowerLevels = StrippedStateEvent<PowerLevelsEventContent>;
 
 /// A stripped-down version of the *m.room.third_party_invite* event.
-pub type StrippedRoomThirdPartyInvite = StrippedStateContent<ThirdPartyInviteEventContent>;
+pub type StrippedRoomThirdPartyInvite = StrippedStateEvent<ThirdPartyInviteEventContent>;
 
 /// A stripped-down version of the *m.room.topic* event.
-pub type StrippedRoomTopic = StrippedStateContent<TopicEventContent>;
+pub type StrippedRoomTopic = StrippedStateEvent<TopicEventContent>;
 
-impl TryFromRaw for StrippedState {
+impl TryFromRaw for AnyStrippedStateEvent {
     type Raw = raw::StrippedState;
     type Err = String;
 
@@ -127,30 +127,30 @@ impl TryFromRaw for StrippedState {
         use raw::StrippedState::*;
 
         match raw {
-            RoomAliases(c) => conv(StrippedState::RoomAliases, c),
-            RoomAvatar(c) => conv(StrippedState::RoomAvatar, c),
-            RoomCanonicalAlias(c) => conv(StrippedState::RoomCanonicalAlias, c),
-            RoomCreate(c) => conv(StrippedState::RoomCreate, c),
-            RoomGuestAccess(c) => conv(StrippedState::RoomGuestAccess, c),
-            RoomHistoryVisibility(c) => conv(StrippedState::RoomHistoryVisibility, c),
-            RoomJoinRules(c) => conv(StrippedState::RoomJoinRules, c),
-            RoomMember(c) => conv(StrippedState::RoomMember, c),
-            RoomName(c) => conv(StrippedState::RoomName, c),
-            RoomPowerLevels(c) => conv(StrippedState::RoomPowerLevels, c),
-            RoomThirdPartyInvite(c) => conv(StrippedState::RoomThirdPartyInvite, c),
-            RoomTopic(c) => conv(StrippedState::RoomTopic, c),
+            RoomAliases(c) => conv(AnyStrippedStateEvent::RoomAliases, c),
+            RoomAvatar(c) => conv(AnyStrippedStateEvent::RoomAvatar, c),
+            RoomCanonicalAlias(c) => conv(AnyStrippedStateEvent::RoomCanonicalAlias, c),
+            RoomCreate(c) => conv(AnyStrippedStateEvent::RoomCreate, c),
+            RoomGuestAccess(c) => conv(AnyStrippedStateEvent::RoomGuestAccess, c),
+            RoomHistoryVisibility(c) => conv(AnyStrippedStateEvent::RoomHistoryVisibility, c),
+            RoomJoinRules(c) => conv(AnyStrippedStateEvent::RoomJoinRules, c),
+            RoomMember(c) => conv(AnyStrippedStateEvent::RoomMember, c),
+            RoomName(c) => conv(AnyStrippedStateEvent::RoomName, c),
+            RoomPowerLevels(c) => conv(AnyStrippedStateEvent::RoomPowerLevels, c),
+            RoomThirdPartyInvite(c) => conv(AnyStrippedStateEvent::RoomThirdPartyInvite, c),
+            RoomTopic(c) => conv(AnyStrippedStateEvent::RoomTopic, c),
         }
     }
 }
 
-impl<C> TryFromRaw for StrippedStateContent<C>
+impl<C> TryFromRaw for StrippedStateEvent<C>
 where
     C: TryFromRaw,
 {
-    type Raw = StrippedStateContent<C::Raw>;
+    type Raw = StrippedStateEvent<C::Raw>;
     type Err = C::Err;
 
-    fn try_from_raw(raw: StrippedStateContent<C::Raw>) -> Result<Self, Self::Err> {
+    fn try_from_raw(raw: StrippedStateEvent<C::Raw>) -> Result<Self, Self::Err> {
         Ok(Self {
             content: C::try_from_raw(raw.content)?,
             event_type: raw.event_type,
@@ -160,7 +160,7 @@ where
     }
 }
 
-impl<'de, C> Deserialize<'de> for StrippedStateContent<C>
+impl<'de, C> Deserialize<'de> for StrippedStateEvent<C>
 where
     C: DeserializeOwned,
 {
@@ -184,7 +184,7 @@ mod raw {
     use serde::{Deserialize, Deserializer};
     use serde_json::Value;
 
-    use super::StrippedStateContent;
+    use super::StrippedStateEvent;
     use crate::{
         room::{
             aliases::raw::AliasesEventContent, avatar::raw::AvatarEventContent,
@@ -199,40 +199,40 @@ mod raw {
     };
 
     /// A stripped-down version of the *m.room.aliases* event.
-    pub type StrippedRoomAliases = StrippedStateContent<AliasesEventContent>;
+    pub type StrippedRoomAliases = StrippedStateEvent<AliasesEventContent>;
 
     /// A stripped-down version of the *m.room.avatar* event.
-    pub type StrippedRoomAvatar = StrippedStateContent<AvatarEventContent>;
+    pub type StrippedRoomAvatar = StrippedStateEvent<AvatarEventContent>;
 
     /// A stripped-down version of the *m.room.canonical_alias* event.
-    pub type StrippedRoomCanonicalAlias = StrippedStateContent<CanonicalAliasEventContent>;
+    pub type StrippedRoomCanonicalAlias = StrippedStateEvent<CanonicalAliasEventContent>;
 
     /// A stripped-down version of the *m.room.create* event.
-    pub type StrippedRoomCreate = StrippedStateContent<CreateEventContent>;
+    pub type StrippedRoomCreate = StrippedStateEvent<CreateEventContent>;
 
     /// A stripped-down version of the *m.room.guest_access* event.
-    pub type StrippedRoomGuestAccess = StrippedStateContent<GuestAccessEventContent>;
+    pub type StrippedRoomGuestAccess = StrippedStateEvent<GuestAccessEventContent>;
 
     /// A stripped-down version of the *m.room.history_visibility* event.
-    pub type StrippedRoomHistoryVisibility = StrippedStateContent<HistoryVisibilityEventContent>;
+    pub type StrippedRoomHistoryVisibility = StrippedStateEvent<HistoryVisibilityEventContent>;
 
     /// A stripped-down version of the *m.room.join_rules* event.
-    pub type StrippedRoomJoinRules = StrippedStateContent<JoinRulesEventContent>;
+    pub type StrippedRoomJoinRules = StrippedStateEvent<JoinRulesEventContent>;
 
     /// A stripped-down version of the *m.room.member* event.
-    pub type StrippedRoomMember = StrippedStateContent<MemberEventContent>;
+    pub type StrippedRoomMember = StrippedStateEvent<MemberEventContent>;
 
     /// A stripped-down version of the *m.room.name* event.
-    pub type StrippedRoomName = StrippedStateContent<NameEventContent>;
+    pub type StrippedRoomName = StrippedStateEvent<NameEventContent>;
 
     /// A stripped-down version of the *m.room.power_levels* event.
-    pub type StrippedRoomPowerLevels = StrippedStateContent<PowerLevelsEventContent>;
+    pub type StrippedRoomPowerLevels = StrippedStateEvent<PowerLevelsEventContent>;
 
     /// A stripped-down version of the *m.room.third_party_invite* event.
-    pub type StrippedRoomThirdPartyInvite = StrippedStateContent<ThirdPartyInviteEventContent>;
+    pub type StrippedRoomThirdPartyInvite = StrippedStateEvent<ThirdPartyInviteEventContent>;
 
     /// A stripped-down version of the *m.room.topic* event.
-    pub type StrippedRoomTopic = StrippedStateContent<TopicEventContent>;
+    pub type StrippedRoomTopic = StrippedStateEvent<TopicEventContent>;
 
     /// A stripped-down version of a state event that is included along with some other events.
     #[derive(Clone, Debug)]
@@ -314,7 +314,7 @@ mod tests {
     use ruma_identifiers::UserId;
     use serde_json::to_string;
 
-    use super::{StrippedRoomName, StrippedRoomTopic, StrippedState};
+    use super::{AnyStrippedStateEvent, StrippedRoomName, StrippedRoomTopic};
     use crate::{
         room::{join_rules::JoinRule, topic::TopicEventContent},
         EventResult, EventType,
@@ -331,7 +331,7 @@ mod tests {
             sender: UserId::try_from("@example:localhost").unwrap(),
         };
 
-        let event = StrippedState::RoomTopic(content);
+        let event = AnyStrippedStateEvent::RoomTopic(content);
 
         assert_eq!(
             to_string(&event).unwrap(),
@@ -389,7 +389,7 @@ mod tests {
             .into_result()
             .unwrap()
         {
-            StrippedState::RoomName(event) => {
+            AnyStrippedStateEvent::RoomName(event) => {
                 assert_eq!(event.content.name, Some("Ruma".to_string()));
                 assert_eq!(event.event_type, EventType::RoomName);
                 assert_eq!(event.state_key, "");
@@ -411,7 +411,7 @@ mod tests {
             .into_result()
             .unwrap()
         {
-            StrippedState::RoomJoinRules(event) => {
+            AnyStrippedStateEvent::RoomJoinRules(event) => {
                 assert_eq!(event.content.join_rule, JoinRule::Public);
                 assert_eq!(event.event_type, EventType::RoomJoinRules);
                 assert_eq!(event.state_key, "");
@@ -425,7 +425,7 @@ mod tests {
             .into_result()
             .unwrap()
         {
-            StrippedState::RoomAvatar(event) => {
+            AnyStrippedStateEvent::RoomAvatar(event) => {
                 let image_info = event.content.info.unwrap();
 
                 assert_eq!(image_info.height.unwrap(), UInt::try_from(128).unwrap());
