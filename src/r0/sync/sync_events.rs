@@ -10,7 +10,7 @@ use ruma_events::{
         only::Event as NonRoomEvent,
     },
     presence::PresenceEvent,
-    stripped::StrippedState,
+    stripped::AnyStrippedStateEvent,
     EventResult,
 };
 use ruma_identifiers::RoomId;
@@ -228,8 +228,8 @@ pub struct InvitedRoom {
 #[derive(Clone, Debug, Serialize, Outgoing)]
 pub struct InviteState {
     /// A list of state events.
-    #[wrap_incoming(StrippedState with EventResult)]
-    pub events: Vec<StrippedState>,
+    #[wrap_incoming(AnyStrippedStateEvent with EventResult)]
+    pub events: Vec<AnyStrippedStateEvent>,
 }
 
 /// Updates to the presence status of other users.
