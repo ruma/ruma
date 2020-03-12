@@ -25,7 +25,7 @@ use crate::{
 /// sync response.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[allow(clippy::large_enum_variant)]
-pub enum ToDevice {
+pub enum AnyToDeviceEvent {
     // TODO this should include a *m.dummy" event.
     /// To-device version of the *m.room_key* event.
     RoomKey(ToDeviceRoomKey),
@@ -88,25 +88,25 @@ pub type ToDeviceVerificationCancel = ToDeviceEvent<CancelEventContent>;
 /// To-device version of the *m.key.verification.request* event.
 pub type ToDeviceVerificationRequest = ToDeviceEvent<RequestEventContent>;
 
-impl TryFromRaw for ToDevice {
-    type Raw = raw::ToDevice;
+impl TryFromRaw for AnyToDeviceEvent {
+    type Raw = raw::AnyToDeviceEvent;
     type Err = String;
 
-    fn try_from_raw(raw: raw::ToDevice) -> Result<Self, Self::Err> {
+    fn try_from_raw(raw: raw::AnyToDeviceEvent) -> Result<Self, Self::Err> {
         use crate::util::try_convert_variant as conv;
-        use raw::ToDevice::*;
+        use raw::AnyToDeviceEvent::*;
 
         match raw {
-            RoomKey(c) => conv(ToDevice::RoomKey, c),
-            RoomEncrypted(c) => conv(ToDevice::RoomEncrypted, c),
-            ForwardedRoomKey(c) => conv(ToDevice::ForwardedRoomKey, c),
-            RoomKeyRequest(c) => conv(ToDevice::RoomKeyRequest, c),
-            KeyVerificationStart(c) => conv(ToDevice::KeyVerificationStart, c),
-            KeyVerificationAccept(c) => conv(ToDevice::KeyVerificationAccept, c),
-            KeyVerificationKey(c) => conv(ToDevice::KeyVerificationKey, c),
-            KeyVerificationMac(c) => conv(ToDevice::KeyVerificationMac, c),
-            KeyVerificationCancel(c) => conv(ToDevice::KeyVerificationCancel, c),
-            KeyVerificationRequest(c) => conv(ToDevice::KeyVerificationRequest, c),
+            RoomKey(c) => conv(AnyToDeviceEvent::RoomKey, c),
+            RoomEncrypted(c) => conv(AnyToDeviceEvent::RoomEncrypted, c),
+            ForwardedRoomKey(c) => conv(AnyToDeviceEvent::ForwardedRoomKey, c),
+            RoomKeyRequest(c) => conv(AnyToDeviceEvent::RoomKeyRequest, c),
+            KeyVerificationStart(c) => conv(AnyToDeviceEvent::KeyVerificationStart, c),
+            KeyVerificationAccept(c) => conv(AnyToDeviceEvent::KeyVerificationAccept, c),
+            KeyVerificationKey(c) => conv(AnyToDeviceEvent::KeyVerificationKey, c),
+            KeyVerificationMac(c) => conv(AnyToDeviceEvent::KeyVerificationMac, c),
+            KeyVerificationCancel(c) => conv(AnyToDeviceEvent::KeyVerificationCancel, c),
+            KeyVerificationRequest(c) => conv(AnyToDeviceEvent::KeyVerificationRequest, c),
         }
     }
 }
@@ -187,7 +187,7 @@ mod raw {
     /// A stripped-down version of a state event that is included along with some other events.
     #[derive(Clone, Debug)]
     #[allow(clippy::large_enum_variant)]
-    pub enum ToDevice {
+    pub enum AnyToDeviceEvent {
         /// To-device version of the *m.room_key* event.
         RoomKey(ToDeviceRoomKey),
         /// To-device version of the *m.room.encrypted* event.
@@ -210,7 +210,7 @@ mod raw {
         KeyVerificationRequest(ToDeviceVerificationRequest),
     }
 
-    impl<'de> Deserialize<'de> for ToDevice {
+    impl<'de> Deserialize<'de> for AnyToDeviceEvent {
         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where
             D: Deserializer<'de>,
@@ -224,16 +224,18 @@ mod raw {
             let event_type = get_field(&value, "type")?;
 
             match event_type {
-                RoomKey => from_value(value, ToDevice::RoomKey),
-                RoomEncrypted => from_value(value, ToDevice::RoomEncrypted),
-                ForwardedRoomKey => from_value(value, ToDevice::ForwardedRoomKey),
-                RoomKeyRequest => from_value(value, ToDevice::RoomKeyRequest),
-                KeyVerificationStart => from_value(value, ToDevice::KeyVerificationStart),
-                KeyVerificationAccept => from_value(value, ToDevice::KeyVerificationAccept),
-                KeyVerificationKey => from_value(value, ToDevice::KeyVerificationKey),
-                KeyVerificationMac => from_value(value, ToDevice::KeyVerificationMac),
-                KeyVerificationCancel => from_value(value, ToDevice::KeyVerificationCancel),
-                KeyVerificationRequest => from_value(value, ToDevice::KeyVerificationRequest),
+                RoomKey => from_value(value, AnyToDeviceEvent::RoomKey),
+                RoomEncrypted => from_value(value, AnyToDeviceEvent::RoomEncrypted),
+                ForwardedRoomKey => from_value(value, AnyToDeviceEvent::ForwardedRoomKey),
+                RoomKeyRequest => from_value(value, AnyToDeviceEvent::RoomKeyRequest),
+                KeyVerificationStart => from_value(value, AnyToDeviceEvent::KeyVerificationStart),
+                KeyVerificationAccept => from_value(value, AnyToDeviceEvent::KeyVerificationAccept),
+                KeyVerificationKey => from_value(value, AnyToDeviceEvent::KeyVerificationKey),
+                KeyVerificationMac => from_value(value, AnyToDeviceEvent::KeyVerificationMac),
+                KeyVerificationCancel => from_value(value, AnyToDeviceEvent::KeyVerificationCancel),
+                KeyVerificationRequest => {
+                    from_value(value, AnyToDeviceEvent::KeyVerificationRequest)
+                }
                 _ => Err(D::Error::custom("unknown to-device event")),
             }
         }
@@ -248,7 +250,7 @@ mod tests {
 
     use ruma_identifiers::{RoomId, UserId};
 
-    use super::ToDevice;
+    use super::AnyToDeviceEvent;
     use crate::{
         key::verification::{
             cancel::CancelCode, start::StartEventContent, HashAlgorithm, KeyAgreementProtocol,
@@ -261,7 +263,7 @@ mod tests {
 
     macro_rules! deserialize {
         ($source:ident, $($target:tt)*) => {{
-            let event = serde_json::from_str::<EventResult<ToDevice>>($source)
+            let event = serde_json::from_str::<EventResult<AnyToDeviceEvent>>($source)
                 .expect(&format!(
                     "Can't deserialize to-device event: {} from source {}",
                     stringify!($($target)*), $source
@@ -300,7 +302,7 @@ mod tests {
             "type": "m.room_key"
         }"#;
 
-        let event = deserialize! {room_key, ToDevice::RoomKey};
+        let event = deserialize! {room_key, AnyToDeviceEvent::RoomKey};
 
         assert_eq!(
             event.content.room_id,
@@ -332,7 +334,7 @@ mod tests {
             "sender": "@alice:example.org"
         }"#;
 
-        let event = deserialize! {source, ToDevice::RoomEncrypted};
+        let event = deserialize! {source, AnyToDeviceEvent::RoomEncrypted};
 
         let content = match &event.content {
             EncryptedEventContent::OlmV1Curve25519AesSha2(c) => c,
@@ -366,7 +368,7 @@ mod tests {
             "type": "m.forwarded_room_key"
         }"#;
 
-        let event = deserialize! {source, ToDevice::ForwardedRoomKey};
+        let event = deserialize! {source, AnyToDeviceEvent::ForwardedRoomKey};
 
         assert_eq!(
             event.content.room_id,
@@ -403,7 +405,7 @@ mod tests {
             "type": "m.room_key_request"
         }"#;
 
-        let event = deserialize! {source, ToDevice::RoomKeyRequest};
+        let event = deserialize! {source, AnyToDeviceEvent::RoomKeyRequest};
         let body = event.content.body.as_ref().unwrap();
 
         assert_eq!(event.content.action, Action::Request);
@@ -432,7 +434,7 @@ mod tests {
             "type": "m.room_key_request"
         }"#;
 
-        let event = deserialize! {source, ToDevice::RoomKeyRequest};
+        let event = deserialize! {source, AnyToDeviceEvent::RoomKeyRequest};
         assert_eq!(event.content.action, Action::CancelRequest);
         assert_eq!(event.content.request_id, "1495474790150.19");
         assert_eq!(event.content.requesting_device_id, "RJYKSTBOIE");
@@ -463,7 +465,7 @@ mod tests {
             "sender": "@alice:example.org"
         }"#;
 
-        let event = deserialize! {source, ToDevice::KeyVerificationStart};
+        let event = deserialize! {source, AnyToDeviceEvent::KeyVerificationStart};
 
         let content = match &event.content {
             StartEventContent::MSasV1(c) => c,
@@ -509,7 +511,7 @@ mod tests {
             "sender": "@alice:example.org"
         }"#;
 
-        let event = deserialize! {source, ToDevice::KeyVerificationAccept};
+        let event = deserialize! {source, AnyToDeviceEvent::KeyVerificationAccept};
         assert_eq!(event.content.hash, HashAlgorithm::Sha256);
         assert_eq!(
             event.content.commitment,
@@ -545,7 +547,7 @@ mod tests {
             "sender": "@alice:example.org"
         }"#;
 
-        let event = deserialize! {source, ToDevice::KeyVerificationKey};
+        let event = deserialize! {source, AnyToDeviceEvent::KeyVerificationKey};
 
         assert_eq!(event.content.transaction_id, "S0meUniqueAndOpaqueString");
         assert_eq!(
@@ -568,7 +570,7 @@ mod tests {
             "sender": "@alice:example.org"
         }"#;
 
-        let event = deserialize! {source, ToDevice::KeyVerificationMac};
+        let event = deserialize! {source, AnyToDeviceEvent::KeyVerificationMac};
         assert_eq!(event.content.transaction_id, "S0meUniqueAndOpaqueString");
         assert_eq!(
             event.content.keys,
@@ -592,7 +594,7 @@ mod tests {
             "sender": "@alice:example.org"
         }"#;
 
-        let event = deserialize! {source, ToDevice::KeyVerificationCancel};
+        let event = deserialize! {source, AnyToDeviceEvent::KeyVerificationCancel};
         assert_eq!(event.content.transaction_id, "S0meUniqueAndOpaqueString");
         assert_eq!(event.content.reason, "Some reason");
         assert_eq!(event.content.code, CancelCode::User);
@@ -613,7 +615,7 @@ mod tests {
             "sender": "@alice:example.org"
         }"#;
 
-        let event = deserialize! {source, ToDevice::KeyVerificationRequest};
+        let event = deserialize! {source, AnyToDeviceEvent::KeyVerificationRequest};
         assert_eq!(event.content.transaction_id, "S0meUniqueAndOpaqueString");
         assert_eq!(event.content.from_device, "AliceDevice2");
         assert_eq!(event.content.methods, &[VerificationMethod::MSasV1]);
