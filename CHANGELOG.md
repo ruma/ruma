@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add a convenience constructor to create a plain-text `TextMessageEventContent`
+
 # 0.17.0
 
 Breaking changes:
