@@ -6,7 +6,6 @@
     missing_copy_implementations,
     missing_debug_implementations,
     // missing_docs, # Uncomment when https://github.com/rust-lang/rust/pull/60562 is released.
-    warnings
 )]
 #![warn(
     clippy::empty_line_after_outer_attr,
