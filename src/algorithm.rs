@@ -1,6 +1,6 @@
 use std::{
     borrow::Cow,
-    fmt::{Debug, Display, Formatter, Result as FmtResult},
+    fmt::{Display, Formatter, Result as FmtResult},
 };
 
 use serde::{Deserialize, Serialize};
