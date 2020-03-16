@@ -148,7 +148,6 @@ impl ToTokens for RumaEvent {
         // are `Some` in order to increase the number of fields we tell serde to serialize.
         let mut optional_field_idents = Vec::with_capacity(event_fields.len());
 
-        let mut try_from_field_values: Vec<TokenStream> = Vec::with_capacity(event_fields.len());
         let mut serialize_field_calls: Vec<TokenStream> = Vec::with_capacity(event_fields.len());
 
         for field in event_fields {
@@ -161,40 +160,6 @@ impl ToTokens for RumaEvent {
             };
 
             let span = field.span();
-
-            let try_from_field_value = if ident == "content" {
-                match &self.content {
-                    Content::Struct(_) => {
-                        quote_spanned! {span=>
-                            content: crate::FromRaw::from_raw(raw.content),
-                        }
-                    }
-                    Content::Typedef(_) => {
-                        quote_spanned! {span=>
-                            content: raw.content,
-                        }
-                    }
-                }
-            } else if ident == "prev_content" {
-                match &self.content {
-                    Content::Struct(_) => {
-                        quote_spanned! {span=>
-                            prev_content: raw.prev_content.map(crate::FromRaw::from_raw),
-                        }
-                    }
-                    Content::Typedef(_) => {
-                        quote_spanned! {span=>
-                            prev_content: raw.prev_content,
-                        }
-                    }
-                }
-            } else {
-                quote_spanned! {span=>
-                    #ident: raw.#ident,
-                }
-            };
-
-            try_from_field_values.push(try_from_field_value);
 
             // Does the same thing as #[serde(skip_serializing_if = "Option::is_none")]
             let serialize_field_call = if is_option(&field.ty) {
@@ -341,22 +306,12 @@ impl ToTokens for RumaEvent {
 
         let output = quote!(
             #(#attrs)*
-            #[derive(Clone, PartialEq, Debug)]
+            #[derive(Clone, PartialEq, Debug, ruma_events_macros::FromRaw)]
             pub struct #name {
                 #(#stripped_fields),*
             }
 
             #content
-
-            impl crate::FromRaw for #name {
-                type Raw = raw::#name;
-
-                fn from_raw(raw: raw::#name) -> Self {
-                    Self {
-                        #(#try_from_field_values)*
-                    }
-                }
-            }
 
             #impl_event_result_compatible_for_content
 

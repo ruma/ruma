@@ -34,9 +34,11 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::ToTokens;
+use syn::{parse_macro_input, DeriveInput};
 
-use crate::{gen::RumaEvent, parse::RumaEventInput};
+use self::{from_raw::expand_from_raw, gen::RumaEvent, parse::RumaEventInput};
 
+mod from_raw;
 mod gen;
 mod parse;
 
@@ -131,4 +133,15 @@ pub fn ruma_event(input: TokenStream) -> TokenStream {
     let ruma_event = RumaEvent::from(ruma_event_input);
 
     ruma_event.into_token_stream().into()
+}
+
+/// Generates an implementation of `ruma_events::FromRaw`. Only usable inside of `ruma_events`.
+/// Requires there to be a `raw` module in the same scope, with a type with the same name and fields
+/// as the one that this macro is used on.
+#[proc_macro_derive(FromRaw)]
+pub fn derive_from_raw(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_from_raw(input)
+        .unwrap_or_else(|err| err.to_compile_error())
+        .into()
 }

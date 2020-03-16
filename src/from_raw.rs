@@ -1,4 +1,4 @@
-use std::{convert::Infallible, fmt::Display};
+use std::{collections::HashMap, convert::Infallible, fmt::Display};
 
 use serde::de::DeserializeOwned;
 
@@ -25,6 +25,25 @@ pub trait TryFromRaw: Sized {
 
     /// Tries to convert the raw type to `Self`.
     fn try_from_raw(_: Self::Raw) -> Result<Self, Self::Err>;
+}
+
+impl FromRaw for serde_json::Value {
+    type Raw = Self;
+
+    fn from_raw(raw: Self) -> Self {
+        raw
+    }
+}
+
+impl<K, V, S> FromRaw for HashMap<K, V, S>
+where
+    Self: DeserializeOwned,
+{
+    type Raw = Self;
+
+    fn from_raw(raw: Self) -> Self {
+        raw
+    }
 }
 
 impl<T: FromRaw> TryFromRaw for T {

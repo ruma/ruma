@@ -350,6 +350,14 @@ impl<'de> Deserialize<'de> for Empty {
     }
 }
 
+impl FromRaw for Empty {
+    type Raw = Self;
+
+    fn from_raw(raw: Self) -> Self {
+        raw
+    }
+}
+
 /// A basic event.
 pub trait Event: Debug + Serialize + Sized + TryFromRaw {
     /// The type of this event's `content` field.

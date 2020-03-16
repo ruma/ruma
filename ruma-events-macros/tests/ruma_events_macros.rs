@@ -1,5 +1,6 @@
 use std::{
     borrow::Cow,
+    collections::HashMap,
     convert::{Infallible, TryFrom},
     fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
@@ -101,6 +102,25 @@ pub trait TryFromRaw: Sized {
     type Err: Display;
 
     fn try_from_raw(_: Self::Raw) -> Result<Self, Self::Err>;
+}
+
+impl FromRaw for serde_json::Value {
+    type Raw = Self;
+
+    fn from_raw(raw: Self) -> Self {
+        raw
+    }
+}
+
+impl<K, V, S> FromRaw for HashMap<K, V, S>
+where
+    Self: DeserializeOwned,
+{
+    type Raw = Self;
+
+    fn from_raw(raw: Self) -> Self {
+        raw
+    }
 }
 
 impl<T: FromRaw> TryFromRaw for T {
@@ -472,7 +492,7 @@ mod type_alias {
                 ///
                 /// A mapping of `UserId`'s to a collection of `RoomId`'s which are considered
                 /// *direct* for that particular user.
-                std::collections::HashMap<ruma_identifiers::UserId, Vec<ruma_identifiers::RoomId>>
+                HashMap<ruma_identifiers::UserId, Vec<ruma_identifiers::RoomId>>
             }
         }
     }
