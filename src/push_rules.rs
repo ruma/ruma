@@ -8,6 +8,7 @@ use std::{
 use ruma_events_macros::ruma_event;
 use serde::{
     de::{Error, Visitor},
+    ser::SerializeStruct as _,
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use serde_json::{from_value, Value};

@@ -246,14 +246,6 @@ impl ToTokens for RumaEvent {
             })
             .collect();
 
-        let set_up_struct_serializer = quote! {
-            let mut len = #base_field_count;
-
-            #(#increment_struct_len_statements)*
-
-            let mut state = serializer.serialize_struct(#name_str, len)?;
-        };
-
         let impl_room_event = match self.kind {
             EventKind::RoomEvent | EventKind::StateEvent => {
                 quote! {
@@ -368,16 +360,20 @@ impl ToTokens for RumaEvent {
 
             #impl_event_result_compatible_for_content
 
-            use serde::ser::SerializeStruct as _;
-
             impl serde::Serialize for #name {
                 fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
                 where
                     S: serde::Serializer
                 {
+                    use serde::ser::SerializeStruct as _;
+
                     #import_event_in_serialize_impl
 
-                    #set_up_struct_serializer
+                    let mut len = #base_field_count;
+
+                    #(#increment_struct_len_statements)*
+
+                    let mut state = serializer.serialize_struct(#name_str, len)?;
 
                     #(#serialize_field_calls)*
                     #manually_serialize_type_field
