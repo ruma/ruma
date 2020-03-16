@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use js_int::{Int, UInt};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
-use serde_json::Value;
+use serde_json::{Map, Value};
 
 use crate::{Event as _, EventType, FromRaw};
 
@@ -29,7 +29,7 @@ pub struct PowerLevelsEvent {
     pub room_id: Option<RoomId>,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Option<Value>,
+    pub unsigned: Map<String, Value>,
 
     /// The unique identifier for the user who sent this event.
     pub sender: UserId,
@@ -139,7 +139,7 @@ impl Serialize for PowerLevelsEvent {
             len += 1;
         }
 
-        if self.unsigned.is_some() {
+        if !self.unsigned.is_empty() {
             len += 1;
         }
 
@@ -161,7 +161,7 @@ impl Serialize for PowerLevelsEvent {
         state.serialize_field("state_key", &self.state_key)?;
         state.serialize_field("type", &self.event_type())?;
 
-        if self.unsigned.is_some() {
+        if !self.unsigned.is_empty() {
             state.serialize_field("unsigned", &self.unsigned)?;
         }
 
@@ -198,7 +198,8 @@ pub(crate) mod raw {
         pub room_id: Option<RoomId>,
 
         /// Additional key-value pairs not signed by the homeserver.
-        pub unsigned: Option<Value>,
+        #[serde(default)]
+        pub unsigned: Map<String, Value>,
 
         /// The unique identifier for the user who sent this event.
         pub sender: UserId,
@@ -307,7 +308,7 @@ mod tests {
     use js_int::{Int, UInt};
     use maplit::hashmap;
     use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde_json::Value;
+    use serde_json::Map;
 
     use super::{
         default_power_level, NotificationPowerLevels, PowerLevelsEvent, PowerLevelsEventContent,
@@ -335,7 +336,7 @@ mod tests {
             origin_server_ts: UInt::from(1u32),
             prev_content: None,
             room_id: None,
-            unsigned: None,
+            unsigned: Map::new(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
         };
@@ -390,7 +391,7 @@ mod tests {
                 },
             }),
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
-            unsigned: Some(serde_json::from_str::<Value>(r#"{"foo":"bar"}"#).unwrap()),
+            unsigned: serde_json::from_str(r#"{"foo":"bar"}"#).unwrap(),
             sender: user,
             state_key: "".to_string(),
         };

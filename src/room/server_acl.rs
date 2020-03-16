@@ -3,7 +3,7 @@
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
-use serde_json::Value;
+use serde_json::{Map, Value};
 
 use crate::{util::default_true, Event as _, EventType, FromRaw};
 
@@ -33,7 +33,7 @@ pub struct ServerAclEvent {
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Option<Value>,
+    pub unsigned: Map<String, Value>,
 }
 
 /// The payload for `ServerAclEvent`.
@@ -137,7 +137,8 @@ pub(crate) mod raw {
         pub room_id: Option<RoomId>,
 
         /// Additional key-value pairs not signed by the homeserver.
-        pub unsigned: Option<Value>,
+        #[serde(default)]
+        pub unsigned: Map<String, Value>,
 
         /// The unique identifier for the user who sent this event.
         pub sender: UserId,

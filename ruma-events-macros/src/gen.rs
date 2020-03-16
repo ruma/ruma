@@ -154,8 +154,8 @@ impl ToTokens for RumaEvent {
                         }
 
                         /// Additional key-value pairs not signed by the homeserver.
-                        fn unsigned(&self) -> Option<&serde_json::Value> {
-                            self.unsigned.as_ref()
+                        fn unsigned(&self) -> &serde_json::Map<String, serde_json::Value> {
+                            &self.unsigned
                         }
                     }
                 }
@@ -296,8 +296,8 @@ fn populate_room_event_fields(content_name: Ident, fields: Vec<Field>) -> Vec<Fi
         pub sender: ruma_identifiers::UserId,
 
         /// Additional key-value pairs not signed by the homeserver.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub unsigned: Option<serde_json::Value>,
+        #[serde(default, skip_serializing_if = "serde_json::Map::is_empty")]
+        pub unsigned: serde_json::Map<String, serde_json::Value>,
     };
 
     fields.extend(punctuated_fields.into_iter().map(|p| p.field));

@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use js_int::UInt;
 use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
-use serde_json::{from_value, Value};
+use serde_json::{from_value, Map, Value};
 
 use crate::{Algorithm, Event, EventType, FromRaw};
 
@@ -31,7 +31,7 @@ pub struct EncryptedEvent {
     pub sender: UserId,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Option<Value>,
+    pub unsigned: Map<String, Value>,
 }
 
 /// The payload for `EncryptedEvent`.
@@ -93,7 +93,7 @@ impl Serialize for EncryptedEvent {
             len += 1;
         }
 
-        if self.unsigned.is_some() {
+        if !self.unsigned.is_empty() {
             len += 1;
         }
 
@@ -110,7 +110,7 @@ impl Serialize for EncryptedEvent {
         state.serialize_field("sender", &self.sender)?;
         state.serialize_field("type", &self.event_type())?;
 
-        if self.unsigned.is_some() {
+        if !self.unsigned.is_empty() {
             state.serialize_field("unsigned", &self.unsigned)?;
         }
 
@@ -165,7 +165,8 @@ pub(crate) mod raw {
         pub sender: UserId,
 
         /// Additional key-value pairs not signed by the homeserver.
-        pub unsigned: Option<Value>,
+        #[serde(default)]
+        pub unsigned: Map<String, Value>,
     }
 
     /// The payload for `EncryptedEvent`.

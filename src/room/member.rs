@@ -225,7 +225,7 @@ mod tests {
 
     use js_int::UInt;
     use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde_json::json;
+    use serde_json::{json, Map};
 
     use super::*;
     use crate::util::serde_json_eq_try_from_raw;
@@ -245,7 +245,7 @@ mod tests {
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "example.com".to_string(),
-            unsigned: None,
+            unsigned: Map::new(),
             prev_content: None,
         };
         let json = json!({
@@ -277,7 +277,7 @@ mod tests {
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "example.com".to_string(),
-            unsigned: None,
+            unsigned: Map::new(),
             prev_content: Some(MemberEventContent {
                 avatar_url: None,
                 displayname: None,
@@ -333,7 +333,7 @@ mod tests {
             room_id: Some(RoomId::try_from("!jEsUZKDJdhlrceRyVU:example.org").unwrap()),
             sender: UserId::try_from("@alice:example.org").unwrap(),
             state_key: "@alice:example.org".to_string(),
-            unsigned: None,
+            unsigned: Map::new(),
             prev_content: None,
         };
         let json = json!({
@@ -388,7 +388,7 @@ mod tests {
             room_id: Some(RoomId::try_from("!jEsUZKDJdhlrceRyVU:example.org").unwrap()),
             sender: UserId::try_from("@alice:example.org").unwrap(),
             state_key: "@alice:example.org".to_string(),
-            unsigned: None,
+            unsigned: Map::new(),
             prev_content: Some(MemberEventContent {
                 avatar_url: Some("mxc://example.org/SEsfnsuifSDFSSEF".to_owned()),
                 displayname: Some("Alice Margatroid".to_owned()),

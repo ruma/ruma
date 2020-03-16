@@ -126,7 +126,7 @@ use serde::{
     ser::SerializeMap,
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use serde_json::Value;
+use serde_json::{Map, Value};
 
 pub use self::{custom::CustomEvent, custom_room::CustomRoomEvent, custom_state::CustomStateEvent};
 
@@ -394,7 +394,7 @@ pub trait RoomEvent: Event {
     fn sender(&self) -> &UserId;
 
     /// Additional key-value pairs not signed by the homeserver.
-    fn unsigned(&self) -> Option<&Value>;
+    fn unsigned(&self) -> &Map<String, Value>;
 }
 
 /// An event that describes persistent state about a room.
@@ -461,7 +461,7 @@ mod custom_room {
 
     use ruma_events_macros::FromRaw;
     use serde::{Deserialize, Serialize};
-    use serde_json::Value;
+    use serde_json::{Map, Value};
 
     /// A custom room event not covered by the Matrix specification.
     #[derive(Clone, Debug, FromRaw, PartialEq, Serialize)]
@@ -481,7 +481,8 @@ mod custom_room {
         /// The unique identifier for the user who sent this event.
         pub sender: ruma_identifiers::UserId,
         /// Additional key-value pairs not signed by the homeserver.
-        pub unsigned: Option<serde_json::Value>,
+        #[serde(skip_serializing_if = "serde_json::Map::is_empty")]
+        pub unsigned: Map<String, Value>,
     }
 
     /// The payload for `CustomRoomEvent`.
@@ -522,8 +523,8 @@ mod custom_room {
             &self.sender
         }
         /// Additional key-value pairs not signed by the homeserver.
-        fn unsigned(&self) -> Option<&serde_json::Value> {
-            self.unsigned.as_ref()
+        fn unsigned(&self) -> &Map<String, Value> {
+            &self.unsigned
         }
     }
 
@@ -548,7 +549,8 @@ mod custom_room {
             /// The unique identifier for the user who sent this event.
             pub sender: ruma_identifiers::UserId,
             /// Additional key-value pairs not signed by the homeserver.
-            pub unsigned: Option<serde_json::Value>,
+            #[serde(default)]
+            pub unsigned: Map<String, Value>,
         }
     }
 }
@@ -558,7 +560,7 @@ mod custom_state {
 
     use ruma_events_macros::FromRaw;
     use serde::{Deserialize, Serialize};
-    use serde_json::Value;
+    use serde_json::{Map, Value};
 
     /// A custom state event not covered by the Matrix specification.
     #[derive(Clone, Debug, FromRaw, PartialEq, Serialize)]
@@ -582,7 +584,8 @@ mod custom_state {
         /// A key that determines which piece of room state the event represents.
         pub state_key: String,
         /// Additional key-value pairs not signed by the homeserver.
-        pub unsigned: Option<serde_json::Value>,
+        #[serde(skip_serializing_if = "serde_json::Map::is_empty")]
+        pub unsigned: Map<String, Value>,
     }
 
     /// The payload for `CustomStateEvent`.
@@ -623,8 +626,8 @@ mod custom_state {
             &self.sender
         }
         /// Additional key-value pairs not signed by the homeserver.
-        fn unsigned(&self) -> Option<&serde_json::Value> {
-            self.unsigned.as_ref()
+        fn unsigned(&self) -> &Map<String, Value> {
+            &self.unsigned
         }
     }
 
@@ -664,7 +667,8 @@ mod custom_state {
             /// A key that determines which piece of room state the event represents.
             pub state_key: String,
             /// Additional key-value pairs not signed by the homeserver.
-            pub unsigned: Option<serde_json::Value>,
+            #[serde(default)]
+            pub unsigned: Map<String, Value>,
         }
     }
 }

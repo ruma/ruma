@@ -3,7 +3,7 @@
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
-use serde_json::Value;
+use serde_json::{Map, Value};
 
 use crate::{util::empty_string_as_none, Event, EventType, FromRaw};
 
@@ -33,7 +33,7 @@ pub struct CanonicalAliasEvent {
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Option<Value>,
+    pub unsigned: Map<String, Value>,
 }
 
 /// The payload for `CanonicalAliasEvent`.
@@ -85,7 +85,7 @@ impl Serialize for CanonicalAliasEvent {
             len += 1;
         }
 
-        if self.unsigned.is_some() {
+        if !self.unsigned.is_empty() {
             len += 1;
         }
 
@@ -107,7 +107,7 @@ impl Serialize for CanonicalAliasEvent {
         state.serialize_field("state_key", &self.state_key)?;
         state.serialize_field("type", &self.event_type())?;
 
-        if self.unsigned.is_some() {
+        if !self.unsigned.is_empty() {
             state.serialize_field("unsigned", &self.unsigned)?;
         }
 
@@ -150,7 +150,8 @@ pub(crate) mod raw {
         pub state_key: String,
 
         /// Additional key-value pairs not signed by the homeserver.
-        pub unsigned: Option<Value>,
+        #[serde(default)]
+        pub unsigned: Map<String, Value>,
     }
 
     /// The payload of a `CanonicalAliasEvent`.
@@ -173,6 +174,7 @@ mod tests {
 
     use js_int::UInt;
     use ruma_identifiers::{EventId, RoomAliasId, UserId};
+    use serde_json::Map;
 
     use super::{CanonicalAliasEvent, CanonicalAliasEventContent};
     use crate::EventResult;
@@ -189,7 +191,7 @@ mod tests {
             room_id: None,
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
-            unsigned: None,
+            unsigned: Map::new(),
         };
 
         let actual = serde_json::to_string(&canonical_alias_event).unwrap();

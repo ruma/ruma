@@ -73,8 +73,8 @@ macro_rules! impl_room_event {
             }
 
             /// Additional key-value pairs not signed by the homeserver.
-            fn unsigned(&self) -> Option<&Value> {
-                self.unsigned.as_ref()
+            fn unsigned(&self) -> &serde_json::Map<String, serde_json::Value> {
+                &self.unsigned
             }
         }
     };

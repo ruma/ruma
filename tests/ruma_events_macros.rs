@@ -4,7 +4,7 @@ use js_int::UInt;
 use ruma_events::util::serde_json_eq_try_from_raw;
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
-use serde_json::{json, Value};
+use serde_json::json;
 
 // See note about wrapping macro expansion in a module from `src/lib.rs`
 mod common_case {
@@ -34,7 +34,7 @@ mod common_case {
             room_id: None,
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "example.com".to_string(),
-            unsigned: None,
+            unsigned: serde_json::Map::new(),
         };
         let json = json!({
             "content": {
@@ -63,7 +63,7 @@ mod common_case {
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "example.com".to_string(),
-            unsigned: None,
+            unsigned: serde_json::Map::new(),
         };
         let json = json!({
             "content": {
@@ -96,7 +96,7 @@ mod common_case {
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "example.com".to_string(),
-            unsigned: Some(serde_json::from_str::<Value>(r#"{"foo":"bar"}"#).unwrap()),
+            unsigned: serde_json::from_str(r#"{"foo":"bar"}"#).unwrap(),
         };
         let json = json!({
             "content": {
@@ -147,7 +147,7 @@ mod extra_fields {
             origin_server_ts: UInt::try_from(1).unwrap(),
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
-            unsigned: Some(serde_json::from_str::<Value>(r#"{"foo":"bar"}"#).unwrap()),
+            unsigned: serde_json::from_str(r#"{"foo":"bar"}"#).unwrap(),
         };
         let json = json!({
             "content": {

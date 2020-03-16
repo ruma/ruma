@@ -3,7 +3,7 @@
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
-use serde_json::Value;
+use serde_json::{Map, Value};
 
 use crate::{util::empty_string_as_none, Event as _, EventType, InvalidInput, TryFromRaw};
 
@@ -33,7 +33,7 @@ pub struct NameEvent {
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Option<Value>,
+    pub unsigned: Map<String, Value>,
 }
 
 /// The payload for `NameEvent`.
@@ -92,7 +92,7 @@ impl Serialize for NameEvent {
             len += 1;
         }
 
-        if self.unsigned.is_some() {
+        if !self.unsigned.is_empty() {
             len += 1;
         }
 
@@ -114,7 +114,7 @@ impl Serialize for NameEvent {
         state.serialize_field("state_key", &self.state_key)?;
         state.serialize_field("type", &self.event_type())?;
 
-        if self.unsigned.is_some() {
+        if !self.unsigned.is_empty() {
             state.serialize_field("unsigned", &self.unsigned)?;
         }
 
@@ -175,7 +175,8 @@ pub(crate) mod raw {
         pub state_key: String,
 
         /// Additional key-value pairs not signed by the homeserver.
-        pub unsigned: Option<Value>,
+        #[serde(default)]
+        pub unsigned: Map<String, Value>,
     }
 
     /// The payload of a `NameEvent`.
@@ -196,7 +197,7 @@ mod tests {
 
     use js_int::UInt;
     use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde_json::Value;
+    use serde_json::Map;
 
     use crate::EventResult;
 
@@ -214,7 +215,7 @@ mod tests {
             room_id: None,
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
-            unsigned: None,
+            unsigned: Map::new(),
         };
 
         let actual = serde_json::to_string(&name_event).unwrap();
@@ -237,7 +238,7 @@ mod tests {
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
-            unsigned: Some(serde_json::from_str::<Value>(r#"{"foo":"bar"}"#).unwrap()),
+            unsigned: serde_json::from_str(r#"{"foo":"bar"}"#).unwrap(),
         };
 
         let actual = serde_json::to_string(&name_event).unwrap();

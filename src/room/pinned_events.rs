@@ -21,7 +21,7 @@ mod tests {
 
     use js_int::UInt;
     use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde_json::to_string;
+    use serde_json::{to_string, Map};
 
     use crate::{
         room::pinned_events::{PinnedEventsEvent, PinnedEventsEventContent},
@@ -43,7 +43,7 @@ mod tests {
             room_id: Some(RoomId::new("example.com").unwrap()),
             sender: UserId::new("example.com").unwrap(),
             state_key: "".to_string(),
-            unsigned: None,
+            unsigned: Map::new(),
         };
 
         let serialized_event = to_string(&event).unwrap();
