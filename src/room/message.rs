@@ -706,6 +706,18 @@ impl_enum! {
     }
 }
 
+impl TextMessageEventContent {
+    /// A convenience constructor to create a plain text message
+    pub fn new_plain(body: impl Into<String>) -> TextMessageEventContent {
+        TextMessageEventContent {
+            body: body.into(),
+            format: None,
+            formatted_body: None,
+            relates_to: None,
+        }
+    }
+}
+
 impl Serialize for AudioMessageEventContent {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -1054,6 +1066,18 @@ mod tests {
         assert_eq!(
             to_string(&message_event_content).unwrap(),
             r#"{"body":"test","msgtype":"m.audio","url":"http://example.com/audio.mp3"}"#
+        );
+    }
+
+    #[test]
+    fn plain_text() {
+        let message_event_content = MessageEventContent::Text(TextMessageEventContent::new_plain(
+            "> <@test:example.com> test\n\ntest reply",
+        ));
+
+        assert_eq!(
+            to_string(&message_event_content).unwrap(),
+            r#"{"body":"> <@test:example.com> test\n\ntest reply","msgtype":"m.text"}"#
         );
     }
 
