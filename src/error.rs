@@ -4,6 +4,18 @@
 
 use std::fmt::{self, Display, Formatter};
 
+// FIXME when `!` becomes stable use it
+/// Default `ResponseError` for `ruma_api!` macro
+#[derive(Clone, Copy, Debug)]
+pub struct Void;
+
+impl crate::EndpointError for Void {
+    fn try_from_response(
+        response: http::Response<Vec<u8>>,
+    ) -> Result<Self, ResponseDeserializationError> {
+        Err(ResponseDeserializationError::from_response(response))
+    }
+}
 /// An error when converting one of ruma's endpoint-specific request or response
 /// types to the corresponding http type.
 #[derive(Debug)]
@@ -92,14 +104,14 @@ impl std::error::Error for RequestDeserializationError {}
 /// response types.
 #[derive(Debug)]
 #[non_exhaustive]
-pub enum FromHttpResponseError {
+pub enum FromHttpResponseError<E> {
     /// Deserialization failed
     Deserialization(ResponseDeserializationError),
     /// The server returned a non-success status
-    Http(ServerError),
+    Http(ServerError<E>),
 }
 
-impl Display for FromHttpResponseError {
+impl<E: Display> Display for FromHttpResponseError<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Deserialization(err) => write!(f, "deserialization failed: {}", err),
@@ -108,13 +120,13 @@ impl Display for FromHttpResponseError {
     }
 }
 
-impl From<ServerError> for FromHttpResponseError {
-    fn from(err: ServerError) -> Self {
+impl<E> From<ServerError<E>> for FromHttpResponseError<E> {
+    fn from(err: ServerError<E>) -> Self {
         Self::Http(err)
     }
 }
 
-impl From<ResponseDeserializationError> for FromHttpResponseError {
+impl<E> From<ResponseDeserializationError> for FromHttpResponseError<E> {
     fn from(err: ResponseDeserializationError) -> Self {
         Self::Deserialization(err)
     }
@@ -123,7 +135,7 @@ impl From<ResponseDeserializationError> for FromHttpResponseError {
 /// An error that occurred when trying to deserialize a response.
 #[derive(Debug)]
 pub struct ResponseDeserializationError {
-    inner: DeserializationError,
+    inner: Option<DeserializationError>,
     http_response: http::Response<Vec<u8>>,
 }
 
@@ -135,13 +147,25 @@ impl ResponseDeserializationError {
         inner: impl Into<DeserializationError>,
         http_response: http::Response<Vec<u8>>,
     ) -> Self {
-        Self { inner: inner.into(), http_response }
+        Self { inner: Some(inner.into()), http_response }
+    }
+
+    /// This method is public so it is accessible from `ruma_api!` generated
+    /// code. It is not considered part of ruma-api's public API.
+    /// Creates an Error from a `http::Response`.
+    #[doc(hidden)]
+    pub fn from_response(http_response: http::Response<Vec<u8>>) -> Self {
+        Self { http_response, inner: None }
     }
 }
 
 impl Display for ResponseDeserializationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        Display::fmt(&self.inner, f)
+        if let Some(ref inner) = self.inner {
+            Display::fmt(inner, f)
+        } else {
+            Display::fmt("deserialization error, no error specified", f)
+        }
     }
 }
 
@@ -149,36 +173,24 @@ impl std::error::Error for ResponseDeserializationError {}
 
 /// An error was reported by the server (HTTP status code 4xx or 5xx)
 #[derive(Debug)]
-pub struct ServerError {
-    http_response: http::Response<Vec<u8>>,
+pub enum ServerError<E> {
+    /// An error that is expected to happen under certain circumstances and
+    /// that has a well-defined structure
+    Known(E),
+    /// An error of unexpected type of structure
+    Unknown(ResponseDeserializationError),
 }
 
-impl ServerError {
-    /// This method is public so it is accessible from `ruma_api!` generated
-    /// code. It is not considered part of ruma-api's public API.
-    #[doc(hidden)]
-    pub fn new(http_response: http::Response<Vec<u8>>) -> Self {
-        Self { http_response }
-    }
-
-    /// Get the HTTP response without parsing its contents.
-    pub fn into_raw_reponse(self) -> http::Response<Vec<u8>> {
-        self.http_response
-    }
-}
-
-impl Display for ServerError {
+impl<E: Display> Display for ServerError<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self.http_response.status().canonical_reason() {
-            Some(reason) => {
-                write!(f, "HTTP status {} {}", self.http_response.status().as_str(), reason)
-            }
-            None => write!(f, "HTTP status {}", self.http_response.status().as_str()),
+        match self {
+            ServerError::Known(e) => Display::fmt(e, f),
+            ServerError::Unknown(res_err) => Display::fmt(res_err, f),
         }
     }
 }
 
-impl std::error::Error for ServerError {}
+impl<E: std::error::Error> std::error::Error for ServerError<E> {}
 
 #[derive(Debug)]
 enum SerializationError {

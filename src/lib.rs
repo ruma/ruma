@@ -232,17 +232,32 @@ pub trait Outgoing {
     type Incoming;
 }
 
+/// Gives users the ability to define their own serializable/deserializable errors.
+pub trait EndpointError: Sized {
+    /// Tries to construct `Self` from an `http::Response`.
+    ///
+    /// This will always return `Err` variant when no `error` field is defined in
+    /// the `ruma_api` macro.
+    fn try_from_response(
+        response: http::Response<Vec<u8>>,
+    ) -> Result<Self, error::ResponseDeserializationError>;
+}
+
 /// A Matrix API endpoint.
 ///
 /// The type implementing this trait contains any data needed to make a request to the endpoint.
 pub trait Endpoint: Outgoing + TryInto<http::Request<Vec<u8>>, Error = IntoHttpError>
 where
     <Self as Outgoing>::Incoming: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>,
-    <Self::Response as Outgoing>::Incoming:
-        TryFrom<http::Response<Vec<u8>>, Error = FromHttpResponseError>,
+    <Self::Response as Outgoing>::Incoming: TryFrom<
+        http::Response<Vec<u8>>,
+        Error = FromHttpResponseError<<Self as Endpoint>::ResponseError>,
+    >,
 {
     /// Data returned in a successful response from the endpoint.
     type Response: Outgoing + TryInto<http::Response<Vec<u8>>, Error = IntoHttpError>;
+    /// Error type returned when response from endpoint fails.
+    type ResponseError: EndpointError;
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;
@@ -284,7 +299,7 @@ mod tests {
         use crate::{
             error::{
                 FromHttpRequestError, FromHttpResponseError, IntoHttpError,
-                RequestDeserializationError, ServerError,
+                RequestDeserializationError, ServerError, Void,
             },
             Endpoint, Metadata, Outgoing,
         };
@@ -302,6 +317,7 @@ mod tests {
 
         impl Endpoint for Request {
             type Response = Response;
+            type ResponseError = Void;
 
             const METADATA: Metadata = Metadata {
                 description: "Add an alias to a room.",
@@ -384,13 +400,15 @@ mod tests {
         }
 
         impl TryFrom<http::Response<Vec<u8>>> for Response {
-            type Error = FromHttpResponseError;
+            type Error = FromHttpResponseError<Void>;
 
             fn try_from(http_response: http::Response<Vec<u8>>) -> Result<Response, Self::Error> {
                 if http_response.status().as_u16() < 400 {
                     Ok(Response)
                 } else {
-                    Err(FromHttpResponseError::Http(ServerError::new(http_response)))
+                    Err(FromHttpResponseError::Http(ServerError::Unknown(
+                        crate::error::ResponseDeserializationError::from_response(http_response),
+                    )))
                 }
             }
         }

@@ -7,7 +7,7 @@ use quote::{quote, ToTokens};
 use syn::{
     braced,
     parse::{Parse, ParseStream},
-    Field, FieldValue, Ident, Token,
+    Field, FieldValue, Ident, Token, Type,
 };
 
 mod attribute;
@@ -32,6 +32,8 @@ pub struct Api {
     request: Request,
     /// The `response` section of the macro.
     response: Response,
+    /// The `error` section of the macro.
+    error: Type,
 }
 
 impl TryFrom<RawApi> for Api {
@@ -42,6 +44,9 @@ impl TryFrom<RawApi> for Api {
             metadata: raw_api.metadata.try_into()?,
             request: raw_api.request.try_into()?,
             response: raw_api.response.try_into()?,
+            error: raw_api
+                .error
+                .map_or(syn::parse_str::<Type>("ruma_api::error::Void").unwrap(), |err| err.ty),
         };
 
         let newtype_body_field = res.request.newtype_body_field();
@@ -398,6 +403,8 @@ impl ToTokens for Api {
         );
         let response_doc = format!("Data in the response from the `{}` API endpoint.", name);
 
+        let error = &self.error;
+
         let api = quote! {
             use ruma_api::exports::serde::de::Error as _;
             use ruma_api::exports::serde::Deserialize as _;
@@ -473,7 +480,7 @@ impl ToTokens for Api {
             }
 
             impl std::convert::TryFrom<ruma_api::exports::http::Response<Vec<u8>>> for #response_try_from_type {
-                type Error = ruma_api::error::FromHttpResponseError;
+                type Error = ruma_api::error::FromHttpResponseError<#error>;
 
                 #[allow(unused_variables)]
                 fn try_from(
@@ -488,13 +495,17 @@ impl ToTokens for Api {
                             #response_init_fields
                         })
                     } else {
-                        Err(ruma_api::error::ServerError::new(response).into())
+                        match <#error as ruma_api::EndpointError>::try_from_response(response) {
+                            Ok(err) => Err(ruma_api::error::ServerError::Known(err).into()),
+                            Err(response_err) => Err(ruma_api::error::ServerError::Unknown(response_err).into())
+                        }
                     }
                 }
             }
 
             impl ruma_api::Endpoint for Request {
                 type Response = Response;
+                type ResponseError = #error;
 
                 /// Metadata for the `#name` endpoint.
                 const METADATA: ruma_api::Metadata = ruma_api::Metadata {
@@ -519,6 +530,7 @@ mod kw {
     custom_keyword!(metadata);
     custom_keyword!(request);
     custom_keyword!(response);
+    custom_keyword!(error);
 }
 
 /// The entire `ruma_api!` macro structure directly as it appears in the source code..
@@ -529,11 +541,18 @@ pub struct RawApi {
     pub request: RawRequest,
     /// The `response` section of the macro.
     pub response: RawResponse,
+    /// The `error` section of the macro.
+    pub error: Option<RawErrorType>,
 }
 
 impl Parse for RawApi {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        Ok(Self { metadata: input.parse()?, request: input.parse()?, response: input.parse()? })
+        Ok(Self {
+            metadata: input.parse()?,
+            request: input.parse()?,
+            response: input.parse()?,
+            error: input.parse().ok(),
+        })
     }
 }
 
@@ -597,5 +616,20 @@ impl Parse for RawResponse {
                 .into_iter()
                 .collect(),
         })
+    }
+}
+
+pub struct RawErrorType {
+    pub error_kw: kw::error,
+    pub ty: Type,
+}
+
+impl Parse for RawErrorType {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let error_kw = input.parse::<kw::error>()?;
+        input.parse::<Token![:]>()?;
+        let ty = input.parse()?;
+
+        Ok(Self { error_kw, ty })
     }
 }
