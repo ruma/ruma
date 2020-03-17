@@ -109,7 +109,7 @@ impl Parse for RumaEventInput {
 
                                 let mut punctuated = Punctuated::new();
                                 punctuated.push(PathSegment {
-                                    ident: Ident::new("crate", Span::call_site()),
+                                    ident: Ident::new("ruma_events", Span::call_site()),
                                     arguments: PathArguments::None,
                                 });
                                 punctuated.push(PathSegment {
@@ -119,7 +119,7 @@ impl Parse for RumaEventInput {
                                 punctuated.push(variant.clone());
 
                                 event_type = Some(Path {
-                                    leading_colon: None,
+                                    leading_colon: Some(Default::default()),
                                     segments: punctuated,
                                 });
                             }

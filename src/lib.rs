@@ -135,7 +135,12 @@ mod macros;
 mod algorithm;
 mod event_type;
 mod from_raw;
-mod util;
+#[doc(hidden)] // only public for external tests
+pub mod util;
+
+// Hack to allow both ruma-events itself and external crates (or tests) to use procedural macros
+// that expect `ruma_events` to exist in the prelude.
+extern crate self as ruma_events;
 
 pub mod call;
 /// Enums for heterogeneous collections of events.

@@ -92,7 +92,7 @@ impl ToTokens for RumaEvent {
 
         let event_type = if self.is_custom {
             quote! {
-                crate::EventType::Custom(self.event_type.clone())
+                ::ruma_events::EventType::Custom(self.event_type.clone())
             }
         } else {
             let event_type = &self.event_type;
@@ -189,7 +189,7 @@ impl ToTokens for RumaEvent {
             };
 
             let import_event_in_serialize_impl = quote! {
-                use crate::Event as _;
+                use ::ruma_events::Event as _;
             };
 
             (
@@ -214,7 +214,7 @@ impl ToTokens for RumaEvent {
         let impl_room_event = match self.kind {
             EventKind::RoomEvent | EventKind::StateEvent => {
                 quote! {
-                    impl crate::RoomEvent for #name {
+                    impl ::ruma_events::RoomEvent for #name {
                         /// The unique identifier for the event.
                         fn event_id(&self) -> &ruma_identifiers::EventId {
                             &self.event_id
@@ -251,7 +251,7 @@ impl ToTokens for RumaEvent {
 
         let impl_state_event = if self.kind == EventKind::StateEvent {
             quote! {
-                impl crate::StateEvent for #name {
+                impl ::ruma_events::StateEvent for #name {
                     /// The previous content for this state key, if any.
                     fn prev_content(&self) -> Option<&Self::Content> {
                         self.prev_content.as_ref()
@@ -284,7 +284,7 @@ impl ToTokens for RumaEvent {
                 }
 
                 quote! {
-                    impl crate::FromRaw for #content_name {
+                    impl ::ruma_events::FromRaw for #content_name {
                         type Raw = raw::#content_name;
 
                         fn from_raw(
@@ -337,7 +337,7 @@ impl ToTokens for RumaEvent {
                 }
             }
 
-            impl crate::Event for #name {
+            impl ::ruma_events::Event for #name {
                 /// The type of this event's `content` field.
                 type Content = #content_name;
 
@@ -347,7 +347,7 @@ impl ToTokens for RumaEvent {
                 }
 
                 /// The type of the event.
-                fn event_type(&self) -> crate::EventType {
+                fn event_type(&self) -> ::ruma_events::EventType {
                     #event_type
                 }
             }

@@ -21,11 +21,11 @@ pub fn expand_from_raw(input: DeriveInput) -> syn::Result<TokenStream> {
 
         if field_ident == "content" {
             quote_spanned! {field_span=>
-                content: crate::FromRaw::from_raw(raw.content),
+                content: ::ruma_events::FromRaw::from_raw(raw.content),
             }
         } else if field_ident == "prev_content" {
             quote_spanned! {field_span=>
-                prev_content: raw.prev_content.map(crate::FromRaw::from_raw),
+                prev_content: raw.prev_content.map(::ruma_events::FromRaw::from_raw),
             }
         } else {
             quote_spanned! {field_span=>
@@ -35,7 +35,7 @@ pub fn expand_from_raw(input: DeriveInput) -> syn::Result<TokenStream> {
     });
 
     Ok(quote! {
-        impl crate::FromRaw for #ident {
+        impl ::ruma_events::FromRaw for #ident {
             type Raw = raw::#ident;
 
             fn from_raw(raw: raw::#ident) -> Self {

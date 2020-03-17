@@ -1,7 +1,12 @@
-use serde::de::{Deserialize, DeserializeOwned, IntoDeserializer};
+use std::fmt::Debug;
+
+use serde::{
+    de::{Deserialize, DeserializeOwned, IntoDeserializer},
+    Serialize,
+};
 use serde_json::Value;
 
-use crate::TryFromRaw;
+use crate::{EventResult, TryFromRaw};
 
 pub fn try_convert_variant<Enum: TryFromRaw, Content: TryFromRaw>(
     variant: fn(Content) -> Enum,
@@ -107,35 +112,25 @@ pub fn default_true() -> bool {
 }
 
 #[cfg(test)]
-mod test_util {
-    use std::fmt::Debug;
-
-    use serde::{de::DeserializeOwned, Serialize};
-
-    use crate::{EventResult, TryFromRaw};
-
-    pub fn serde_json_eq<T>(de: T, se: serde_json::Value)
-    where
-        T: Clone + Debug + PartialEq + Serialize + DeserializeOwned,
-    {
-        assert_eq!(se, serde_json::to_value(de.clone()).unwrap());
-        assert_eq!(de, serde_json::from_value(se).unwrap());
-    }
-
-    pub fn serde_json_eq_try_from_raw<T>(de: T, se: serde_json::Value)
-    where
-        T: Clone + Debug + PartialEq + Serialize + TryFromRaw,
-    {
-        assert_eq!(se, serde_json::to_value(de.clone()).unwrap());
-        assert_eq!(
-            de,
-            serde_json::from_value::<EventResult<_>>(se)
-                .unwrap()
-                .into_result()
-                .unwrap()
-        );
-    }
+pub fn serde_json_eq<T>(de: T, se: serde_json::Value)
+where
+    T: Clone + Debug + PartialEq + Serialize + DeserializeOwned,
+{
+    assert_eq!(se, serde_json::to_value(de.clone()).unwrap());
+    assert_eq!(de, serde_json::from_value(se).unwrap());
 }
 
-#[cfg(test)]
-pub use test_util::*;
+// This would be #[cfg(test)] if it wasn't used from external tests
+pub fn serde_json_eq_try_from_raw<T>(de: T, se: serde_json::Value)
+where
+    T: Clone + Debug + PartialEq + Serialize + TryFromRaw,
+{
+    assert_eq!(se, serde_json::to_value(de.clone()).unwrap());
+    assert_eq!(
+        de,
+        serde_json::from_value::<EventResult<_>>(se)
+            .unwrap()
+            .into_result()
+            .unwrap()
+    );
+}
