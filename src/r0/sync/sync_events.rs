@@ -17,10 +17,7 @@ use ruma_events::{
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
-use crate::r0::{
-    filter::FilterDefinition,
-    keys::KeyAlgorithm,
-};
+use crate::r0::{filter::FilterDefinition, keys::KeyAlgorithm};
 
 ruma_api! {
     metadata {
@@ -308,5 +305,4 @@ pub struct DeviceLists {
     /// response.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub left: Vec<String>,
-
 }
