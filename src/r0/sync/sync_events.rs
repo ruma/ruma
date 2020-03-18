@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/sync](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-sync)
+//! [GET /_matrix/client/r0/sync](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-sync)
 
 use std::{collections::HashMap, time::Duration};
 
@@ -17,7 +17,10 @@ use ruma_events::{
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
-use crate::r0::filter::FilterDefinition;
+use crate::r0::{
+    filter::FilterDefinition,
+    keys::KeyAlgorithm,
+};
 
 ruma_api! {
     metadata {
@@ -35,6 +38,8 @@ ruma_api! {
         #[ruma_api(query)]
         pub filter: Option<Filter>,
         /// A point in time to continue a sync from.
+        /// Should be a token from the `next_batch` field of a previous `/sync`
+        /// request.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub since: Option<String>,
@@ -65,6 +70,14 @@ ruma_api! {
         /// Messages sent dirrectly between devices.
         #[wrap_incoming]
         pub to_device: ToDevice,
+        /// Information on E2E device updates.
+        /// Only present on an incremental sync.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub device_lists: Option<DeviceLists>,
+        /// For each key algorithm, the number of unclaimed one-time keys
+        /// currently held on the server for a device.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub device_one_time_keys_count: Option<HashMap<KeyAlgorithm, UInt>>
     }
 
     error: crate::Error
@@ -72,10 +85,14 @@ ruma_api! {
 
 /// Whether to set presence or not during sync.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum SetPresence {
     /// Do not set the presence of the user calling this API.
-    #[serde(rename = "offline")]
     Offline,
+    /// Mark client as online explicitly. Assumed by default.
+    Online,
+    /// Mark client as being idle.
+    Unavailable,
 }
 
 /// A filter represented either as its full JSON definition or the ID of a saved filter.
@@ -150,11 +167,17 @@ pub struct LeftRoom {
     /// The state updates for the room up to the start of the timeline.
     #[wrap_incoming]
     pub state: State,
+    /// The private data that this user has attached to this room.
+    #[wrap_incoming]
+    pub account_data: AccountData,
 }
 
 /// Updates to joined rooms.
 #[derive(Clone, Debug, Serialize, Outgoing)]
 pub struct JoinedRoom {
+    /// Information about the room which clients may need to correctly render it
+    /// to users.
+    pub summary: RoomSummary,
     /// Counts of unread notifications for this room.
     pub unread_notifications: UnreadNotificationsCount,
     /// The timeline of messages and state changes in the room.
@@ -189,10 +212,12 @@ pub struct UnreadNotificationsCount {
 #[derive(Clone, Debug, Serialize, Outgoing)]
 pub struct Timeline {
     /// True if the number of events returned was limited by the `limit` on the filter.
-    pub limited: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limited: Option<bool>,
     /// A token that can be supplied to to the `from` parameter of the
     /// `/rooms/{roomId}/messages` endpoint.
-    pub prev_batch: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prev_batch: Option<String>,
     /// A list of events.
     #[wrap_incoming(RoomEvent with EventResult)]
     pub events: Vec<RoomEvent>,
@@ -221,6 +246,23 @@ pub struct Ephemeral {
     /// A list of events.
     #[wrap_incoming(NonRoomEvent with EventResult)]
     pub events: Vec<NonRoomEvent>,
+}
+
+/// Information about room for rendering to clients.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct RoomSummary {
+    /// Users which can be used to generate a room name if the room does not have
+    /// one. Required if room name or canonical aliases are not set or empty.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub heroes: Vec<String>,
+    /// Number of users whose membership status is `join`.
+    /// Required if field has changed since last sync; otherwise, it may be
+    /// omitted.
+    pub joined_member_count: Option<UInt>,
+    /// Number of users whose membership status is `invite`.
+    /// Required if field has changed since last sync; otherwise, it may be
+    /// omitted.
+    pub invited_member_count: Option<UInt>,
 }
 
 /// Updates to the rooms that the user has been invited to.
@@ -253,4 +295,18 @@ pub struct ToDevice {
     /// A list of to-device events.
     #[wrap_incoming(AnyToDeviceEvent with EventResult)]
     pub events: Vec<AnyToDeviceEvent>,
+}
+
+/// Information on E2E device udpates.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct DeviceLists {
+    /// List of users who have updated their device identity keys or who now
+    /// share an encrypted room with the client since the previous sync
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub changed: Vec<String>,
+    /// List of users who no longer share encrypted rooms since the previous sync
+    /// response.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub left: Vec<String>,
+
 }
