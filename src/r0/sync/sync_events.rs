@@ -243,7 +243,6 @@ pub struct State {
 #[derive(Clone, Debug, Serialize, Outgoing)]
 pub struct AccountData {
     /// A list of events.
-    // TODO: Create
     #[wrap_incoming(NonRoomEvent with EventResult)]
     pub events: Vec<NonRoomEvent>,
 }
