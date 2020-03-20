@@ -24,6 +24,17 @@ Breaking changes:
 * Remove deprecated endpoint `r0::contact::create_contact` (deprecated in r0.6.0)
 * Add lazy-loading options to `r0::filter::RoomEventFilter` (introduced in r0.5.0)
 * Change type for `limit` request parameter of `r0::context::get_context` from `u8` to `Option<js_int::UInt>`
+* Use `std::time::Duration` for appropriate fields on several endpoints:
+  ```
+  r0::{
+      account::request_openid_token,
+      keys::{claim_keys, get_keys},
+      presence::get_presence,
+      sync::sync_events,
+      typing::create_typing_event,
+      voip::get_turn_server_info
+  }
+  ```
 
 # 0.6.0
 

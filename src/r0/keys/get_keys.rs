@@ -1,8 +1,7 @@
 //! [POST /_matrix/client/r0/keys/query](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-keys-query)
 
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Duration};
 
-use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_identifiers::{DeviceId, UserId};
 use serde_json::Value;
@@ -23,7 +22,8 @@ ruma_api! {
         /// The time (in milliseconds) to wait when downloading keys from remote servers.
         /// 10 seconds is the recommended default.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub timeout: Option<UInt>,
+        #[serde(default, with = "crate::serde::duration::opt_ms")]
+        pub timeout: Option<Duration>,
 
         /// The keys to be downloaded. An empty list indicates all devices for the corresponding user.
         pub device_keys: HashMap<UserId, Vec<DeviceId>>,

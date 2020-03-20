@@ -1,6 +1,7 @@
 //! [GET /_matrix/client/r0/voip/turnServer](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-voip-turnserver)
 
-use js_int::UInt;
+use std::time::Duration;
+
 use ruma_api::ruma_api;
 
 ruma_api! {
@@ -19,7 +20,8 @@ ruma_api! {
         /// The password to use.
         pub password: String,
         /// The time-to-live in seconds.
-        pub ttl: UInt,
+        #[serde(with = "crate::serde::duration::secs")]
+        pub ttl: Duration,
         /// A list of TURN URIs.
         pub uris: Vec<String>,
         /// The username to use.

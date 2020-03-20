@@ -1,6 +1,7 @@
 //! [GET /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-presence-userid-status)
 
-use js_int::UInt;
+use std::time::Duration;
+
 use ruma_api::ruma_api;
 use ruma_events::presence::PresenceState;
 use ruma_identifiers::UserId;
@@ -30,7 +31,8 @@ ruma_api! {
         pub currently_active: Option<bool>,
         /// The length of time in milliseconds since an action was performed by the user.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub last_active_ago: Option<UInt>,
+        #[serde(default, with = "crate::serde::duration::opt_ms")]
+        pub last_active_ago: Option<Duration>,
         /// The user's presence state.
         pub presence: PresenceState,
     }

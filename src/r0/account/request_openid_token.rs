@@ -1,6 +1,7 @@
 //! [POST /_matrix/client/r0/user/{userId}/openid/request_token](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-user-userid-openid-request-token)
 
-use js_int::UInt;
+use std::time::Duration;
+
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
@@ -29,7 +30,8 @@ ruma_api! {
         /// Homeserver domain for verification of user's identity.
         pub matrix_server_name: String,
         /// Seconds until token expiration.
-        pub expires_in: UInt,
+        #[serde(with = "crate::serde::duration::secs")]
+        pub expires_in: Duration,
     }
 }
 

@@ -2,7 +2,8 @@
 
 use std::collections::HashMap;
 
-use js_int::UInt;
+use std::time::Duration;
+
 use ruma_api::ruma_api;
 use ruma_identifiers::{DeviceId, UserId};
 use serde_json::Value;
@@ -23,7 +24,8 @@ ruma_api! {
         /// The time (in milliseconds) to wait when downloading keys from remote servers.
         /// 10 seconds is the recommended default.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub timeout: Option<UInt>,
+        #[serde(default, with = "crate::serde::duration::opt_ms")]
+        pub timeout: Option<Duration>,
 
         /// The keys to be claimed.
         pub one_time_keys: HashMap<UserId, HashMap<DeviceId, KeyAlgorithm>>,
