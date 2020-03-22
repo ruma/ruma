@@ -33,6 +33,8 @@ ruma_api! {
         #[serde(with = "crate::serde::duration::secs")]
         pub expires_in: Duration,
     }
+
+    error: crate::Error
 }
 
 /// Access token types.

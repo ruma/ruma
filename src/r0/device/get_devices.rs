@@ -18,4 +18,6 @@ ruma_api! {
     response {
         devices: Vec<Device>,
     }
+
+    error: crate::Error
 }

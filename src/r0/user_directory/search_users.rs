@@ -31,6 +31,8 @@ ruma_api! {
         /// Indicates if the result list has been truncated by the limit.
         pub limited: bool,
     }
+
+    error: crate::Error
 }
 
 /// User data as result of a search.

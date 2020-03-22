@@ -26,4 +26,6 @@ ruma_api! {
         #[ruma_api(body)]
         pub users: Vec<User>,
     }
+
+    error: crate::Error
 }

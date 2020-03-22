@@ -29,4 +29,6 @@ ruma_api! {
         #[ruma_api(body)]
         pub filter: FilterDefinition,
     }
+
+    error: crate::Error
 }

@@ -61,6 +61,8 @@ ruma_api! {
         /// The token the pagination ends at.
         pub end: String,
     }
+
+    error: crate::Error
 }
 
 /// The direction to return events from.

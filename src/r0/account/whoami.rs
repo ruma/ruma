@@ -18,4 +18,6 @@ ruma_api! {
         /// The id of the user that owns the access token.
         pub user_id: String,
     }
+
+    error: crate::Error
 }

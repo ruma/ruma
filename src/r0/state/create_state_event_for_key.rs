@@ -34,4 +34,6 @@ ruma_api! {
         /// A unique identifier for the event.
         pub event_id: EventId,
     }
+
+    error: crate::Error
 }

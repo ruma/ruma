@@ -30,4 +30,6 @@ ruma_api! {
         /// The ID of the filter that was created.
         pub filter_id: String,
     }
+
+    error: crate::Error
 }

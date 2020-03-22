@@ -29,6 +29,8 @@ ruma_api! {
     }
 
     response {}
+
+    error: crate::Error
 }
 
 /// The type of receipt.

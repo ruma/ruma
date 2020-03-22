@@ -32,4 +32,6 @@ ruma_api! {
         /// The actions to perform for this rule.
         pub actions: Vec<Action>
     }
+
+    error: crate::Error
 }

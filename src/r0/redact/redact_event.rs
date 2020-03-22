@@ -34,4 +34,6 @@ ruma_api! {
         /// The ID of the redacted event.
         pub event_id: EventId,
     }
+
+    error: crate::Error
 }

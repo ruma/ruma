@@ -23,4 +23,6 @@ ruma_api! {
         #[ruma_api(body)]
         pub protocols: HashMap<String, Protocol>,
     }
+
+    error: crate::Error
 }

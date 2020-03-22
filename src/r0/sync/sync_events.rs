@@ -66,6 +66,8 @@ ruma_api! {
         #[wrap_incoming]
         pub to_device: ToDevice,
     }
+
+    error: crate::Error
 }
 
 /// Whether to set presence or not during sync.

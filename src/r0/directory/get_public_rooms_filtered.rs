@@ -44,6 +44,8 @@ ruma_api! {
         /// An estimate on the total number of public rooms, if the server has an estimate.
         pub total_room_count_estimate: Option<UInt>,
     }
+
+    error: crate::Error
 }
 
 /// A filter for public rooms lists

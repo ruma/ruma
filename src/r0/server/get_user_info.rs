@@ -29,6 +29,8 @@ ruma_api! {
         /// A map of the user's device identifiers to information about that device.
         pub devices: HashMap<String, DeviceInfo>,
     }
+
+    error: crate::Error
 }
 
 /// Information about a connection in a user session.

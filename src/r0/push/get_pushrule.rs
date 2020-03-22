@@ -33,4 +33,6 @@ ruma_api! {
         #[ruma_api(body)]
         pub rule: PushRule
     }
+
+    error: crate::Error
 }

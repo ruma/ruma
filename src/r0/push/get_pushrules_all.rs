@@ -22,4 +22,6 @@ ruma_api! {
         /// The global ruleset
         pub global: HashMap<RuleKind, Vec<PushRule>>
     }
+
+    error: crate::Error
 }

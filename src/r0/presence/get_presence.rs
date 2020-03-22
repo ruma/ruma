@@ -36,4 +36,6 @@ ruma_api! {
         /// The user's presence state.
         pub presence: PresenceState,
     }
+
+    error: crate::Error
 }

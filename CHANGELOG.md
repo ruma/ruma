@@ -3,6 +3,7 @@
 Improvements:
 
 * Add an `Error` type that represents the well-known errors in the client-server API
+  * the response deserialization code will try to create an instance of this type from http responses that indicate an error
 * Add OpenID token request endpoint.
 * Add `r0::client_exchange::send_event_to_device` (introduced in r0.3.0)
 * Add endpoints to retrieve account_data (introduced in r0.5.0)
@@ -14,7 +15,7 @@ Improvements:
 
 Breaking changes:
 
-* Update ruma-api to 0.14.0
+* Update ruma-api to 0.15.0
 * Fix `r0::session::get_login_types`
 * Add `allow_remote` parameter to `r0::media::get_content`
 * Add missing parameters for `r0::room::create_room`

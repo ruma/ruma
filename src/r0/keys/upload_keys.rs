@@ -32,4 +32,6 @@ ruma_api! {
         /// type currently held on the server for this device.
         pub one_time_key_counts: HashMap<KeyAlgorithm, UInt>
     }
+
+    error: crate::Error
 }

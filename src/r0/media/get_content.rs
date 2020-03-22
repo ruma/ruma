@@ -36,4 +36,6 @@ ruma_api! {
         #[ruma_api(header = CONTENT_DISPOSITION)]
         pub content_disposition: String,
     }
+
+    error: crate::Error
 }

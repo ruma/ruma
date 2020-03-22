@@ -72,6 +72,8 @@ ruma_api! {
         /// The created room's ID.
         pub room_id: RoomId,
     }
+
+    error: crate::Error
 }
 
 /// Extra options to be added to the `m.room.create` event.

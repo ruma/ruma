@@ -21,6 +21,8 @@ ruma_api! {
         /// account.
         pub threepids: Vec<ThirdPartyIdentifier>,
     }
+
+    error: crate::Error
 }
 
 /// An identifier external to Matrix.

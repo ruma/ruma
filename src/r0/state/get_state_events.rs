@@ -28,4 +28,6 @@ ruma_api! {
         #[wrap_incoming(StateEvent with EventResult)]
         pub room_state: Vec<StateEvent>,
     }
+
+    error: crate::Error
 }

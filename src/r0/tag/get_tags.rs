@@ -28,4 +28,6 @@ ruma_api! {
         #[wrap_incoming(with EventResult)]
         pub tags: TagEventContent,
     }
+
+    error: crate::Error
 }

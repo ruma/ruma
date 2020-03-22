@@ -20,4 +20,6 @@ ruma_api! {
         /// An array containing the current pushers for the user.
         pub pushers: Vec<Pusher>
     }
+
+    error: crate::Error
 }

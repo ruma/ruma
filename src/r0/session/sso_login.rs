@@ -25,4 +25,6 @@ ruma_api! {
         #[ruma_api(header = LOCATION)]
         pub location: String,
     }
+
+    error: crate::Error
 }

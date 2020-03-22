@@ -73,6 +73,8 @@ ruma_api! {
         /// Will be the same as the corresponding parameter in the request, if one was specified.
         pub device_id: DeviceId,
     }
+
+    error: crate::Error
 }
 
 /// The kind of account being registered.

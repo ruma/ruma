@@ -23,4 +23,6 @@ ruma_api! {
         /// This should always be true when the server replies with 200 OK.
         pub available: bool
     }
+
+    error: crate::Error
 }

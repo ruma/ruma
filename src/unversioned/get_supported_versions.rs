@@ -23,4 +23,6 @@ ruma_api! {
         #[serde(default, skip_serializing_if = "HashMap::is_empty")]
         pub unstable_features: HashMap<String, bool>
     }
+
+    error: crate::Error
 }

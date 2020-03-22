@@ -32,4 +32,6 @@ ruma_api! {
         /// Whether the push rule is enabled or not.
         pub enabled: bool
     }
+
+    error: crate::Error
 }

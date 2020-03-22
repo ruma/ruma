@@ -43,4 +43,6 @@ ruma_api! {
         /// Information on the queried devices.
         pub device_keys: HashMap<UserId, HashMap<DeviceId, DeviceKeys>>,
     }
+
+    error: crate::Error
 }

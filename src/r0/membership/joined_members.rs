@@ -27,6 +27,8 @@ ruma_api! {
         /// the ID of each room in which the user has joined membership.
         pub joined: HashMap<UserId, RoomMember>,
     }
+
+    error: crate::Error
 }
 
 // TODO: Find out whether display_name and avatar_url are optional

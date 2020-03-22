@@ -26,4 +26,6 @@ ruma_api! {
         #[ruma_api(body)]
         pub locations: Vec<Location>,
     }
+
+    error: crate::Error
 }

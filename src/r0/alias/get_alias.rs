@@ -25,4 +25,6 @@ ruma_api! {
         /// A list of servers that are aware of this room ID.
         pub servers: Vec<String>,
     }
+
+    error: crate::Error
 }

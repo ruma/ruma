@@ -57,4 +57,6 @@ ruma_api! {
         #[ruma_api(body)]
         pub file: Vec<u8>,
     }
+
+    error: crate::Error
 }

@@ -39,4 +39,6 @@ ruma_api! {
         /// One-time keys for the queried devices.
         pub one_time_keys: HashMap<UserId, HashMap<DeviceId, HashMap<AlgorithmAndDeviceId, OneTimeKey>>>,
     }
+
+    error: crate::Error
 }

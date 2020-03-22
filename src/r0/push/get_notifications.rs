@@ -47,6 +47,8 @@ ruma_api! {
         #[wrap_incoming(Notification)]
         pub notifications: Vec<Notification>,
     }
+
+    error: crate::Error
 }
 
 /// Represents a notification

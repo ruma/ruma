@@ -25,4 +25,6 @@ ruma_api! {
         /// ID of the new room.
         pub replacement_room: RoomId,
     }
+
+    error: crate::Error
 }

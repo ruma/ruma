@@ -56,4 +56,6 @@ ruma_api! {
         #[wrap_incoming(only::StateEvent with EventResult)]
         pub state: Vec<only::StateEvent>,
     }
+
+    error: crate::Error
 }

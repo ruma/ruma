@@ -15,4 +15,6 @@ ruma_api! {
     request {}
 
     response {}
+
+    error: crate::Error
 }

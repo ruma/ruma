@@ -31,4 +31,6 @@ ruma_api! {
         #[ruma_api(body)]
         pub data: Option<Value>,
     }
+
+    error: crate::Error
 }

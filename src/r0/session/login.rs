@@ -53,6 +53,8 @@ ruma_api! {
         /// If present, clients SHOULD use the provided object to reconfigure themselves.
         pub well_known: Option<DiscoveryInfo>,
     }
+
+    error: crate::Error
 }
 
 /// Identification information for the user.

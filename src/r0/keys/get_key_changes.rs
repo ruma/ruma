@@ -33,4 +33,6 @@ ruma_api! {
         /// encrypted rooms they previously shared with the user.
         pub left: Vec<UserId>
     }
+
+    error: crate::Error
 }

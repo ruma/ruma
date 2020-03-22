@@ -19,6 +19,8 @@ ruma_api! {
         /// The homeserver's supported login types.
         pub flows: Vec<LoginType>
     }
+
+    error: crate::Error
 }
 
 /// An authentication mechanism.

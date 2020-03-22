@@ -28,4 +28,6 @@ ruma_api! {
         #[wrap_incoming(with EventResult)]
         pub event: all::RoomEvent,
     }
+
+    error: crate::Error
 }

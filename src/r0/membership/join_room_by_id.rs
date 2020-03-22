@@ -29,4 +29,6 @@ ruma_api! {
         /// The room that the user joined.
         pub room_id: RoomId,
     }
+
+    error: crate::Error
 }

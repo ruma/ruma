@@ -24,4 +24,6 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub avatar_url: Option<String>
     }
+
+    error: crate::Error
 }

@@ -35,6 +35,8 @@ ruma_api! {
         #[wrap_incoming]
         pub search_categories: ResultCategories,
     }
+
+    error: crate::Error
 }
 
 /// Categories of events that can be searched for.

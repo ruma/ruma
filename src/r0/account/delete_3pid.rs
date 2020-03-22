@@ -30,4 +30,6 @@ ruma_api! {
         pub id_server_unbind_result: ThirdPartyIdRemovalStatus,
     }
 
+    error: crate::Error
+
 }

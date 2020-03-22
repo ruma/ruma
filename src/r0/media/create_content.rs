@@ -29,4 +29,6 @@ ruma_api! {
         /// The MXC URI for the uploaded content.
         pub content_uri: String,
     }
+
+    error: crate::Error
 }

@@ -20,4 +20,6 @@ ruma_api! {
         /// the ID of each room in which the user has joined membership.
         pub joined_rooms: Vec<RoomId>,
     }
+
+    error: crate::Error
 }

@@ -21,6 +21,8 @@ ruma_api! {
         /// The capabilities the server supports
         pub capabilities: Capabilities,
     }
+
+    error: crate::Error
 }
 
 /// Contains information about all the capabilities that the server supports.

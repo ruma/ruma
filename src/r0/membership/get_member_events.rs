@@ -25,4 +25,6 @@ ruma_api! {
         #[wrap_incoming(MemberEvent with EventResult)]
         pub chunk: Vec<MemberEvent>
     }
+
+    error: crate::Error
 }

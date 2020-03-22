@@ -20,4 +20,6 @@ ruma_api! {
         #[serde(rename = "m.upload.size")]
         pub upload_size: UInt,
     }
+
+    error: crate::Error
 }

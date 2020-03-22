@@ -27,4 +27,6 @@ ruma_api! {
         /// The username to use.
         pub username: String,
     }
+
+    error: crate::Error
 }

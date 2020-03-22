@@ -32,6 +32,8 @@ ruma_api! {
     }
 
     response {}
+
+    error: crate::Error
 }
 
 /// Distinguishes between invititations by Matrix or third party identifiers.

@@ -25,4 +25,6 @@ ruma_api! {
         #[ruma_api(body)]
         pub protocol: Protocol,
     }
+
+    error: crate::Error
 }

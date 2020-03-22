@@ -31,4 +31,6 @@ ruma_api! {
     }
 
     response {}
+
+    error: crate::Error
 }

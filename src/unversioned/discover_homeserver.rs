@@ -39,4 +39,6 @@ ruma_api! {
         #[serde(rename = "m.identity_server")]
         pub identity_server: Option<IdentityServerInfo>,
     }
+
+    error: crate::Error
 }

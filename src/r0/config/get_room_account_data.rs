@@ -32,4 +32,6 @@ ruma_api! {
         #[wrap_incoming(with EventResult)]
         pub account_data: only::Event,
     }
+
+    error: crate::Error
 }
