@@ -9,6 +9,7 @@ use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
 use crate::{
+    dummy::DummyEventContent,
     forwarded_room_key::ForwardedRoomKeyEventContent,
     key::verification::{
         accept::AcceptEventContent, cancel::CancelEventContent, key::KeyEventContent,
@@ -26,7 +27,8 @@ use crate::{
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[allow(clippy::large_enum_variant)]
 pub enum AnyToDeviceEvent {
-    // TODO this should include a *m.dummy" event.
+    /// To-device version of the "m.dummy" event.
+    Dummy(ToDeviceDummy),
     /// To-device version of the *m.room_key* event.
     RoomKey(ToDeviceRoomKey),
     /// To-device version of the *m.room.encrypted* event.
@@ -57,6 +59,9 @@ pub struct ToDeviceEvent<C> {
     /// Data specific to the event type.
     pub content: C,
 }
+
+/// To-device version of the *m.dummy* event.
+pub type ToDeviceDummy = ToDeviceEvent<DummyEventContent>;
 
 /// To-device version of the *m.room_key* event.
 pub type ToDeviceRoomKey = ToDeviceEvent<RoomKeyEventContent>;
@@ -97,6 +102,7 @@ impl TryFromRaw for AnyToDeviceEvent {
         use raw::AnyToDeviceEvent::*;
 
         match raw {
+            Dummy(c) => conv(AnyToDeviceEvent::Dummy, c),
             RoomKey(c) => conv(AnyToDeviceEvent::RoomKey, c),
             RoomEncrypted(c) => conv(AnyToDeviceEvent::RoomEncrypted, c),
             ForwardedRoomKey(c) => conv(AnyToDeviceEvent::ForwardedRoomKey, c),
@@ -151,6 +157,7 @@ mod raw {
 
     use super::ToDeviceEvent;
     use crate::{
+        dummy::DummyEventContent,
         forwarded_room_key::raw::ForwardedRoomKeyEventContent,
         key::verification::{
             accept::raw::AcceptEventContent, cancel::raw::CancelEventContent,
@@ -163,6 +170,8 @@ mod raw {
         util::get_field,
     };
 
+    /// To-device version of the *m.dummy* event.
+    pub type ToDeviceDummy = ToDeviceEvent<DummyEventContent>;
     /// To-device version of the *m.room_key* event.
     pub type ToDeviceRoomKey = ToDeviceEvent<RoomKeyEventContent>;
     /// To-device version of the *m.room.encrypted* event.
@@ -188,6 +197,8 @@ mod raw {
     #[derive(Clone, Debug)]
     #[allow(clippy::large_enum_variant)]
     pub enum AnyToDeviceEvent {
+        /// To-device version of the "m.dummy" event.
+        Dummy(ToDeviceDummy),
         /// To-device version of the *m.room_key* event.
         RoomKey(ToDeviceRoomKey),
         /// To-device version of the *m.room.encrypted* event.
@@ -224,6 +235,7 @@ mod raw {
             let event_type = get_field(&value, "type")?;
 
             match event_type {
+                Dummy => from_value(value, AnyToDeviceEvent::Dummy),
                 RoomKey => from_value(value, AnyToDeviceEvent::RoomKey),
                 RoomEncrypted => from_value(value, AnyToDeviceEvent::RoomEncrypted),
                 ForwardedRoomKey => from_value(value, AnyToDeviceEvent::ForwardedRoomKey),
@@ -258,7 +270,7 @@ mod tests {
         },
         room::encrypted::EncryptedEventContent,
         room_key_request::Action,
-        Algorithm, EventResult,
+        Algorithm, Empty, EventResult,
     };
 
     macro_rules! deserialize {
@@ -287,6 +299,19 @@ mod tests {
                 ),
             }
         }};
+    }
+
+    #[test]
+    fn dummy() {
+        let dummy = r#"{
+            "content": {},
+            "sender": "@alice:example.org",
+            "type": "m.dummy"
+        }"#;
+
+        let event = deserialize! {dummy, AnyToDeviceEvent::Dummy};
+
+        assert_eq!(event.content, Empty);
     }
 
     #[test]
