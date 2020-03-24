@@ -10,7 +10,7 @@ ruma_event! {
     /// This can be displayed alongside the room information.
     AvatarEvent {
         kind: StateEvent,
-        event_type: RoomAvatar,
+        event_type: "m.room.avatar",
         content: {
             /// Information about the avatar image.
             #[serde(skip_serializing_if = "Option::is_none")]

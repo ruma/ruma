@@ -9,7 +9,7 @@ ruma_event! {
     /// This event is sent by the caller when they wish to establish a call.
     InviteEvent {
         kind: RoomEvent,
-        event_type: CallInvite,
+        event_type: "m.call.invite",
         content: {
             /// A unique identifer for the call.
             pub call_id: String,

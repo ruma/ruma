@@ -10,7 +10,7 @@ ruma_event! {
     /// communicate.
     CandidatesEvent {
         kind: RoomEvent,
-        event_type: CallCandidates,
+        event_type: "m.call.candidates",
         content: {
             /// The ID of the call this event relates to.
             pub call_id: String,

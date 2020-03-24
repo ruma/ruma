@@ -7,7 +7,7 @@ ruma_event! {
     /// A redaction of an event.
     RedactionEvent {
         kind: RoomEvent,
-        event_type: RoomRedaction,
+        event_type: "m.room.redaction",
         fields: {
             /// The ID of the event that was redacted.
             pub redacts: EventId,

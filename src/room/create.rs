@@ -13,7 +13,7 @@ ruma_event! {
     /// events.
     CreateEvent {
         kind: StateEvent,
-        event_type: RoomCreate,
+        event_type: "m.room.create",
         content: {
             /// The `user_id` of the room creator. This is set by the homeserver.
             pub creator: UserId,

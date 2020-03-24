@@ -9,7 +9,7 @@ ruma_event! {
     /// Informs the client of tags on a room.
     TagEvent {
         kind: Event,
-        event_type: Tag,
+        event_type: "m.tag",
         content: {
             /// A map of tag names to tag info.
             pub tags: HashMap<String, TagInfo>,

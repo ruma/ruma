@@ -11,7 +11,7 @@ ruma_event! {
     /// Any user who can present that signature may use this invitation to join the target room.
     ThirdPartyInviteEvent {
         kind: StateEvent,
-        event_type: RoomThirdPartyInvite,
+        event_type: "m.room.third_party_invite",
         content: {
             /// A user-readable string which represents the user who has been invited.
             pub display_name: String,

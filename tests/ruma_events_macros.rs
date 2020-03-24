@@ -14,7 +14,7 @@ mod common_case {
         /// Informs the room about what room aliases it has been given.
         AliasesEvent {
             kind: StateEvent,
-            event_type: RoomAliases,
+            event_type: "m.room.aliases",
             content: {
                 /// A list of room aliases.
                 pub aliases: Vec<ruma_identifiers::RoomAliasId>,
@@ -126,7 +126,7 @@ mod extra_fields {
         /// A redaction of an event.
         RedactionEvent {
             kind: RoomEvent,
-            event_type: RoomRedaction,
+            event_type: "m.room.redaction",
             fields: {
                 /// The ID of the event that was redacted.
                 pub redacts: ruma_identifiers::EventId
@@ -174,7 +174,7 @@ mod type_alias {
         /// Informs the client about the rooms that are considered direct by a user.
         DirectEvent {
             kind: Event,
-            event_type: Direct,
+            event_type: "m.direct",
             content_type_alias: {
                 /// The payload of a `DirectEvent`.
                 ///

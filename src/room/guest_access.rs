@@ -10,7 +10,7 @@ ruma_event! {
     /// servers should act as if it is present and has the value `GuestAccess::Forbidden`.
     GuestAccessEvent {
         kind: StateEvent,
-        event_type: RoomGuestAccess,
+        event_type: "m.room.guest_access",
         content: {
             /// A policy for guest user access to a room.
             pub guest_access: GuestAccess,

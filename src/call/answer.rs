@@ -9,7 +9,7 @@ ruma_event! {
     /// This event is sent by the callee when they wish to answer the call.
     AnswerEvent {
         kind: RoomEvent,
-        event_type: CallAnswer,
+        event_type: "m.call.answer",
         content: {
             /// The VoIP session description object. The session description type must be *answer*.
             pub answer: SessionDescription,

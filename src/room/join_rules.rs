@@ -7,7 +7,7 @@ ruma_event! {
     /// Describes how users are allowed to join the room.
     JoinRulesEvent {
         kind: StateEvent,
-        event_type: RoomJoinRules,
+        event_type: "m.room.join_rules",
         content: {
             /// The type of rules used for users wishing to join this room.
             pub join_rule: JoinRule,

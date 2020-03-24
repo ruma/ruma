@@ -7,7 +7,7 @@ ruma_event! {
     /// Used to "pin" particular events in a room for other participants to review later.
     PinnedEventsEvent {
         kind: StateEvent,
-        event_type: RoomPinnedEvents,
+        event_type: "m.room.pinned_events",
         content: {
             /// An ordered list of event IDs to pin.
             pub pinned: Vec<EventId>,

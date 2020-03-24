@@ -9,7 +9,7 @@ ruma_event! {
     /// Informs the client of a user's presence state change.
     PresenceEvent {
         kind: Event,
-        event_type: Presence,
+        event_type: "m.presence",
         fields: {
             /// The unique identifier for the user associated with this event.
             pub sender: UserId,

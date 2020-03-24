@@ -9,7 +9,7 @@ ruma_event! {
     /// the call has has been established or before to abort the call.
     HangupEvent {
         kind: RoomEvent,
-        event_type: CallHangup,
+        event_type: "m.call.hangup",
         content: {
             /// The ID of the call this event relates to.
             pub call_id: String,

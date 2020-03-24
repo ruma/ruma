@@ -11,7 +11,7 @@ ruma_event! {
     /// not recognize this event.
     FeedbackEvent {
         kind: RoomEvent,
-        event_type: RoomMessageFeedback,
+        event_type: "m.room.message.feedback",
         content: {
             /// The event that this feedback is related to.
             pub target_event_id: EventId,

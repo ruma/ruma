@@ -19,7 +19,7 @@ ruma_event! {
     /// Describes all push rules for a user.
     PushRulesEvent {
         kind: Event,
-        event_type: PushRules,
+        event_type: "m.push_rules",
         content: {
             /// The global ruleset.
             pub global: Ruleset,

@@ -8,7 +8,7 @@ ruma_event! {
     /// from before they joined.
     HistoryVisibilityEvent {
         kind: StateEvent,
-        event_type: RoomHistoryVisibility,
+        event_type: "m.room.history_visibility",
         content: {
             /// Who can see the room history.
             pub history_visibility: HistoryVisibility,

@@ -8,7 +8,7 @@ ruma_event! {
     /// clients should go there.
     TombstoneEvent {
         kind: StateEvent,
-        event_type: RoomTombstone,
+        event_type: "m.room.tombstone",
         content: {
             /// A server-defined message.
             pub body: String,

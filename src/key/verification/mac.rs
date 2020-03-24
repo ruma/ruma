@@ -10,7 +10,7 @@ ruma_event! {
     /// Typically sent as a to-device event.
     MacEvent {
         kind: Event,
-        event_type: KeyVerificationMac,
+        event_type: "m.key.verification.mac",
         content: {
             /// An opaque identifier for the verification process.
             ///

@@ -7,7 +7,7 @@ ruma_event! {
     /// Informs the client of the list of users currently typing.
     TypingEvent {
         kind: Event,
-        event_type: Typing,
+        event_type: "m.typing",
         fields: {
             /// The unique identifier for the room associated with this event.
             ///

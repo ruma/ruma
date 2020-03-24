@@ -14,7 +14,7 @@ ruma_event! {
     /// Typically sent as a to-device event.
     CancelEvent {
         kind: Event,
-        event_type: KeyVerificationCancel,
+        event_type: "m.key.verification.cancel",
         content: {
             /// The opaque identifier for the verification process/request.
             pub transaction_id: String,

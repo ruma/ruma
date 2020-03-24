@@ -9,7 +9,7 @@ ruma_event! {
     /// Defines how messages sent in this room should be encrypted.
     EncryptionEvent {
         kind: StateEvent,
-        event_type: RoomEncryption,
+        event_type: "m.room.encryption",
         content: {
             /// The encryption algorithm to be used to encrypt messages sent in this room.
             ///

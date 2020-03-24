@@ -16,7 +16,7 @@ ruma_event! {
     /// sending client receiving keys over the newly established session.
     DummyEvent {
         kind: Event,
-        event_type: Dummy,
+        event_type: "m.dummy",
         content_type_alias: {
             /// The payload for `DummyEvent`.
             Empty

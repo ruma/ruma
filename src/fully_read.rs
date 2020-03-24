@@ -10,7 +10,7 @@ ruma_event! {
     /// for.
     FullyReadEvent {
         kind: Event,
-        event_type: FullyRead,
+        event_type: "m.fully_read",
         fields: {
             /// The unique identifier for the room associated with this event.
             ///

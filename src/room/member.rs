@@ -34,7 +34,7 @@ ruma_event! {
     /// must be assumed as leave.
     MemberEvent {
         kind: StateEvent,
-        event_type: RoomMember,
+        event_type: "m.room.member",
         content: {
             /// The avatar URL for this user, if any. This is added by the homeserver.
             #[serde(skip_serializing_if = "Option::is_none")]

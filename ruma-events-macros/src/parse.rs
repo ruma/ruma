@@ -1,14 +1,10 @@
 //! Details of parsing input for the `ruma_event` procedural macro.
 
-use proc_macro2::Span;
-
 use syn::{
     braced,
     parse::{self, Parse, ParseStream},
-    punctuated::Punctuated,
     token::Colon,
-    Attribute, Expr, Field, FieldValue, Ident, Member, Path, PathArguments, PathSegment, Token,
-    TypePath,
+    Attribute, Expr, ExprLit, Field, FieldValue, Ident, Lit, LitStr, Member, Token, TypePath,
 };
 
 /// The entire `ruma_event!` macro structure directly as it appears in the source code..
@@ -22,9 +18,11 @@ pub struct RumaEventInput {
     /// The kind of event, determiend by the `kind` field.
     pub kind: EventKind,
 
-    /// The variant of `ruma_events::EventType` for this event, determined by the `event_type`
-    /// field.
-    pub event_type: Path,
+    /// The value for the `type` field in the JSON representation of this event. There needs to be a
+    /// corresponding variant in `ruma_events::EventType` for this event (converted to a valid
+    /// Rust-style type name by stripping `m.`, replacing the remaining dots by underscores and then
+    /// converting from snake_case to CamelCase).
+    pub event_type: LitStr,
 
     /// Additional named struct fields in the top level event struct.
     pub fields: Option<Vec<Field>>,
@@ -98,35 +96,13 @@ impl Parse for RumaEventInput {
 
                         kind = Some(event_kind);
                     } else if ident == "event_type" {
-                        match field_value.expr {
-                            Expr::Path(expr_path) => {
-                                if expr_path.path.segments.len() != 1 {
-                                    panic!("value of field `event_type` is required to be an ident by `ruma_event!`");
-                                }
-
-                                let path = expr_path.path;
-                                let variant = path.segments.first().unwrap();
-
-                                let mut punctuated = Punctuated::new();
-                                punctuated.push(PathSegment {
-                                    ident: Ident::new("ruma_events", Span::call_site()),
-                                    arguments: PathArguments::None,
-                                });
-                                punctuated.push(PathSegment {
-                                    ident: Ident::new("EventType", Span::call_site()),
-                                    arguments: PathArguments::None,
-                                });
-                                punctuated.push(variant.clone());
-
-                                event_type = Some(Path {
-                                    leading_colon: Some(Default::default()),
-                                    segments: punctuated,
-                                });
-                            }
+                        event_type = Some(match field_value.expr {
+                            Expr::Lit(ExprLit { lit: Lit::Str(s), .. }) => s,
+                            // TODO: Span info
                             _ => panic!(
-                                "value of field `event_type` is required to be an ident by `ruma_event!`"
+                                "value of field `event_type` is required to be a string literal by `ruma_event!`"
                             ),
-                        }
+                        })
                     } else {
                         panic!("unexpected field-value pair with field name `{}`", ident);
                     }

@@ -12,7 +12,7 @@ ruma_event! {
     /// It is sent as an unencrypted to-device event.
     RoomKeyRequestEvent {
         kind: Event,
-        event_type: RoomKeyRequest,
+        event_type: "m.room_key_request",
         content: {
             /// Whether this is a new key request or a cancellation of a previous request.
             pub action: Action,

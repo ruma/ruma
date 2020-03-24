@@ -11,7 +11,7 @@ ruma_event! {
     /// Typically it is encrypted as an *m.room.encrypted* event, then sent as a to-device event.
     RoomKeyEvent {
         kind: Event,
-        event_type: RoomKey,
+        event_type: "m.room_key",
         content: {
             /// The encryption algorithm the key in this event is to be used with.
             ///

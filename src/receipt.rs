@@ -11,7 +11,7 @@ ruma_event! {
     /// Informs the client of new receipts.
     ReceiptEvent {
         kind: Event,
-        event_type: Receipt,
+        event_type: "m.receipt",
         fields: {
             /// The unique identifier for the room associated with this event.
             ///

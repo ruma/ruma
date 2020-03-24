@@ -9,7 +9,7 @@ ruma_event! {
     /// Informs the client about the rooms that are considered direct by a user.
     DirectEvent {
         kind: Event,
-        event_type: Direct,
+        event_type: "m.direct",
         content_type_alias: {
             /// The payload for `DirectEvent`.
             ///

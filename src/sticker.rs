@@ -8,7 +8,7 @@ ruma_event! {
     /// A sticker message.
     StickerEvent {
         kind: RoomEvent,
-        event_type: Sticker,
+        event_type: "m.sticker",
         content: {
             /// A textual representation or associated description of the sticker image. This could
             /// be the alt text of the original image, or a message to accompany and further

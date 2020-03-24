@@ -13,7 +13,7 @@ ruma_event! {
     /// Typically sent as a to-device event.
     AcceptEvent {
         kind: Event,
-        event_type: KeyVerificationAccept,
+        event_type: "m.key.verification.accept",
         content: {
             /// An opaque identifier for the verification process.
             ///

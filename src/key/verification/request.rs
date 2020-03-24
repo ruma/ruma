@@ -12,7 +12,7 @@ ruma_event! {
     /// Typically sent as a to-device event.
     RequestEvent {
         kind: Event,
-        event_type: KeyVerificationRequest,
+        event_type: "m.key.verification.request",
         content: {
             /// The device ID which is initiating the request.
             pub from_device: DeviceId,

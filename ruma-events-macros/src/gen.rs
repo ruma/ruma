@@ -1,5 +1,4 @@
 //! Details of generating code for the `ruma_event` procedural macro.
-
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
@@ -7,7 +6,7 @@ use syn::{
     parse_quote,
     punctuated::Punctuated,
     spanned::Spanned,
-    Attribute, Field, Ident, Path, Token, Type,
+    Attribute, Field, Ident, LitStr, Token, Type,
 };
 
 use crate::parse::{Content, EventKind, RumaEventInput};
@@ -25,7 +24,7 @@ pub struct RumaEvent {
 
     /// The variant of `ruma_events::EventType` for this event, determined by the `event_type`
     /// field.
-    event_type: Path,
+    event_type: LitStr,
 
     /// Struct fields of the event.
     fields: Vec<Field>,
@@ -80,10 +79,12 @@ impl ToTokens for RumaEvent {
         let content_name = &self.content_name;
         let event_fields = &self.fields;
 
-        let event_type = {
-            let event_type = &self.event_type;
+        let event_type_variant = {
+            let event_type = to_camel_case(self.event_type.value());
+            let variant = Ident::new(&event_type, event_type.span());
+
             quote! {
-                #event_type
+                ::ruma_events::EventType::#variant
             }
         };
 
@@ -315,7 +316,7 @@ impl ToTokens for RumaEvent {
 
                 /// The type of the event.
                 fn event_type(&self) -> ::ruma_events::EventType {
-                    #event_type
+                    #event_type_variant
                 }
             }
 
@@ -404,6 +405,16 @@ fn is_option(ty: &Type) -> bool {
     } else {
         panic!("struct field had unexpected non-path type");
     }
+}
+
+/// Splits the given `event_type` string on `.` and `_` removing the `m.` then
+/// camel casing to give the `EventType` variant.
+fn to_camel_case(name: String) -> String {
+    assert_eq!(&name[..2], "m.");
+    name[2..]
+        .split(&['.', '_'] as &[char])
+        .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
+        .collect()
 }
 
 /// A wrapper around `syn::Field` that makes it possible to parse `Punctuated<Field, Token![,]>`

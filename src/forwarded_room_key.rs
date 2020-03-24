@@ -11,7 +11,7 @@ ruma_event! {
     /// Typically it is encrypted as an *m.room.encrypted* event, then sent as a to-device event.
     ForwardedRoomKeyEvent {
         kind: Event,
-        event_type: ForwardedRoomKey,
+        event_type: "m.forwarded_room_key",
         content: {
             /// The encryption algorithm the key in this event is to be used with.
             pub algorithm: Algorithm,

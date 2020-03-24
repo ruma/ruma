@@ -7,7 +7,7 @@ ruma_event! {
     /// Informs the room about what room aliases it has been given.
     AliasesEvent {
         kind: StateEvent,
-        event_type: RoomAliases,
+        event_type: "m.room.aliases",
         content: {
             /// A list of room aliases.
             pub aliases: Vec<RoomAliasId>,
