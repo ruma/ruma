@@ -30,6 +30,9 @@ pub struct RumaEvent {
     /// Struct fields of the event.
     fields: Vec<Field>,
 
+    /// Whether or not the event type is `EventType::Custom`.
+    is_custom: bool,
+
     /// The kind of event.
     kind: EventKind,
 
@@ -43,18 +46,24 @@ impl From<RumaEventInput> for RumaEvent {
         let name = input.name;
         let content_name = format_ident!("{}Content", name, span = Span::call_site());
         let event_type = input.event_type;
+        let is_custom = is_custom_event_type(&event_type);
 
         let mut fields = match kind {
-            EventKind::Event => {
-                populate_event_fields(content_name.clone(), input.fields.unwrap_or_else(Vec::new))
-            }
-            EventKind::RoomEvent => populate_room_event_fields(
+            EventKind::Event => populate_event_fields(
+                is_custom,
                 content_name.clone(),
                 input.fields.unwrap_or_else(Vec::new),
             ),
-            EventKind::StateEvent => {
-                populate_state_fields(content_name.clone(), input.fields.unwrap_or_else(Vec::new))
-            }
+            EventKind::RoomEvent => populate_room_event_fields(
+                is_custom,
+                content_name.clone(),
+                input.fields.unwrap_or_else(Vec::new),
+            ),
+            EventKind::StateEvent => populate_state_fields(
+                is_custom,
+                content_name.clone(),
+                input.fields.unwrap_or_else(Vec::new),
+            ),
         };
 
         fields.sort_unstable_by_key(|field| field.ident.clone().unwrap());
@@ -65,6 +74,7 @@ impl From<RumaEventInput> for RumaEvent {
             content_name,
             event_type,
             fields,
+            is_custom,
             kind,
             name,
         }
@@ -80,8 +90,13 @@ impl ToTokens for RumaEvent {
         let content_name = &self.content_name;
         let event_fields = &self.fields;
 
-        let event_type = {
+        let event_type = if self.is_custom {
+            quote! {
+                ::ruma_events::EventType::Custom(self.event_type.clone())
+            }
+        } else {
             let event_type = &self.event_type;
+
             quote! {
                 #event_type
             }
@@ -125,9 +140,9 @@ impl ToTokens for RumaEvent {
             Content::Typedef(_) => TokenStream::new(),
         };
 
-        // Only custom events will already have an event_type field, since we don't handle
-        // custom events we start at one.
-        let mut base_field_count: usize = 1;
+        // Custom events will already have an event_type field. All other events need to account
+        // for this field being manually inserted in `Serialize` impls.
+        let mut base_field_count: usize = if self.is_custom { 0 } else { 1 };
 
         // Keep track of all the optional fields, because we'll need to check at runtime if they
         // are `Some` in order to increase the number of fields we tell serde to serialize.
@@ -165,6 +180,23 @@ impl ToTokens for RumaEvent {
 
             serialize_field_calls.push(serialize_field_call);
         }
+
+        let (manually_serialize_type_field, import_event_in_serialize_impl) = if self.is_custom {
+            (TokenStream::new(), TokenStream::new())
+        } else {
+            let manually_serialize_type_field = quote! {
+                state.serialize_field("type", &self.event_type())?;
+            };
+
+            let import_event_in_serialize_impl = quote! {
+                use ::ruma_events::Event as _;
+            };
+
+            (
+                manually_serialize_type_field,
+                import_event_in_serialize_impl,
+            )
+        };
 
         let increment_struct_len_statements: Vec<TokenStream> = optional_field_idents
             .iter()
@@ -289,7 +321,8 @@ impl ToTokens for RumaEvent {
                     S: serde::Serializer
                 {
                     use serde::ser::SerializeStruct as _;
-                    use ::ruma_events::Event as _;
+
+                    #import_event_in_serialize_impl
 
                     let mut len = #base_field_count;
 
@@ -298,7 +331,7 @@ impl ToTokens for RumaEvent {
                     let mut state = serializer.serialize_struct(#name_str, len)?;
 
                     #(#serialize_field_calls)*
-                    state.serialize_field("type", &self.event_type())?;
+                    #manually_serialize_type_field
 
                     state.end()
                 }
@@ -342,10 +375,25 @@ impl ToTokens for RumaEvent {
 }
 
 /// Fills in the event's struct definition with fields common to all basic events.
-fn populate_event_fields(content_name: Ident, mut fields: Vec<Field>) -> Vec<Field> {
-    let punctuated_fields: Punctuated<ParsableNamedField, Token![,]> = parse_quote! {
-        /// The event's content.
-        pub content: #content_name,
+fn populate_event_fields(
+    is_custom: bool,
+    content_name: Ident,
+    mut fields: Vec<Field>,
+) -> Vec<Field> {
+    let punctuated_fields: Punctuated<ParsableNamedField, Token![,]> = if is_custom {
+        parse_quote! {
+            /// The event's content.
+            pub content: #content_name,
+
+            /// The custom type of the event.
+            #[serde(rename = "type")]
+            pub event_type: String,
+        }
+    } else {
+        parse_quote! {
+            /// The event's content.
+            pub content: #content_name,
+        }
     };
 
     fields.extend(punctuated_fields.into_iter().map(|p| p.field));
@@ -354,8 +402,12 @@ fn populate_event_fields(content_name: Ident, mut fields: Vec<Field>) -> Vec<Fie
 }
 
 /// Fills in the event's struct definition with fields common to all room events.
-fn populate_room_event_fields(content_name: Ident, fields: Vec<Field>) -> Vec<Field> {
-    let mut fields = populate_event_fields(content_name, fields);
+fn populate_room_event_fields(
+    is_custom: bool,
+    content_name: Ident,
+    fields: Vec<Field>,
+) -> Vec<Field> {
+    let mut fields = populate_event_fields(is_custom, content_name, fields);
 
     let punctuated_fields: Punctuated<ParsableNamedField, Token![,]> = parse_quote! {
         /// The unique identifier for the event.
@@ -381,8 +433,8 @@ fn populate_room_event_fields(content_name: Ident, fields: Vec<Field>) -> Vec<Fi
 }
 
 /// Fills in the event's struct definition with fields common to all state events.
-fn populate_state_fields(content_name: Ident, fields: Vec<Field>) -> Vec<Field> {
-    let mut fields = populate_room_event_fields(content_name.clone(), fields);
+fn populate_state_fields(is_custom: bool, content_name: Ident, fields: Vec<Field>) -> Vec<Field> {
+    let mut fields = populate_room_event_fields(is_custom, content_name.clone(), fields);
 
     let punctuated_fields: Punctuated<ParsableNamedField, Token![,]> = parse_quote! {
         /// The previous content for this state key, if any.
@@ -395,6 +447,11 @@ fn populate_state_fields(content_name: Ident, fields: Vec<Field>) -> Vec<Field> 
     fields.extend(punctuated_fields.into_iter().map(|p| p.field));
 
     fields
+}
+
+/// Checks if the given `Path` refers to `EventType::Custom`.
+fn is_custom_event_type(event_type: &Path) -> bool {
+    event_type.segments.last().unwrap().ident == "Custom"
 }
 
 /// Checks if a type is an `Option`.
