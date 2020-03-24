@@ -119,55 +119,6 @@ mod common_case {
     }
 }
 
-mod custom_event_type {
-    use super::*;
-
-    ruma_event! {
-        /// A custom event.
-        CustomEvent {
-            kind: Event,
-            event_type: Custom,
-            content_type_alias: {
-                /// The payload for `CustomEvent`.
-                Value
-            },
-        }
-    }
-
-    #[test]
-    fn value_is_not_null() {
-        // Hint: serde_json::Value with default feature is sort
-        // alphabetically rather than preserve the sequence of json kv
-        // pairs. Check:
-        // + https://github.com/serde-rs/json/pull/80
-        // + https://github.com/serde-rs/json/blob/17d9a5ea9b8e11f01b0fcf13933c4a12d3f8db45/tests/map.rs.
-        let event = CustomEvent {
-            content: { serde_json::from_str::<Value>(r#"{"alice":["foo", "bar"]}"#).unwrap() },
-            event_type: "foo.bar".to_owned(),
-        };
-        let json = json!({
-            "content": {
-                "alice": ["foo", "bar"]
-            },
-            "type": "foo.bar"
-        });
-        serde_json_eq_try_from_raw(event, json);
-    }
-
-    #[test]
-    fn value_is_null() {
-        let event = CustomEvent {
-            content: { Value::Null },
-            event_type: "foo.bar".to_owned(),
-        };
-        let json = json!({
-            "content": null,
-            "type": "foo.bar"
-        });
-        serde_json_eq_try_from_raw(event, json);
-    }
-}
-
 mod extra_fields {
     use super::*;
 
