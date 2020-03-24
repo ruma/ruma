@@ -406,53 +406,265 @@ pub trait StateEvent: RoomEvent {
     fn state_key(&self) -> &str;
 }
 
+/// A basic custom event outside of the Matrix specification.
 mod custom {
-    use ruma_events_macros::ruma_event;
+    use super::{Event, EventType};
+
+    use ruma_events_macros::FromRaw;
+    use serde::{Deserialize, Serialize};
     use serde_json::Value;
 
-    ruma_event! {
-        /// A custom basic event not covered by the Matrix specification.
-        CustomEvent {
-            kind: Event,
-            event_type: Custom,
-            content_type_alias: {
-                /// The payload for `CustomEvent`.
-                Value
-            },
+    /// A custom event not covered by the Matrix specification.
+    #[derive(Clone, Debug, FromRaw, PartialEq, Serialize)]
+    pub struct CustomEvent {
+        /// The event's content.
+        pub content: CustomEventContent,
+        /// The custom type of the event.
+        #[serde(rename = "type")]
+        pub event_type: String,
+    }
+
+    /// The payload for `CustomEvent`.
+    pub type CustomEventContent = Value;
+
+    impl Event for CustomEvent {
+        /// The type of this event's `content` field.
+        type Content = CustomEventContent;
+        /// The event's content.
+        fn content(&self) -> &Self::Content {
+            &self.content
+        }
+        /// The type of the event.
+        fn event_type(&self) -> EventType {
+            EventType::Custom(self.event_type.clone())
+        }
+    }
+
+    /// "Raw" versions of the event and its content which implement `serde::Deserialize`.
+    pub mod raw {
+        use super::*;
+
+        /// A custom event not covered by the Matrix specification.
+        #[derive(Clone, Debug, PartialEq, Deserialize)]
+        pub struct CustomEvent {
+            /// The event's content.
+            pub content: CustomEventContent,
+            /// The custom type of the event.
+            #[serde(rename = "type")]
+            pub event_type: String,
         }
     }
 }
 
 mod custom_room {
-    use ruma_events_macros::ruma_event;
+    use super::{Event, EventType, RoomEvent};
+
+    use ruma_events_macros::FromRaw;
+    use serde::{Deserialize, Serialize};
     use serde_json::Value;
 
-    ruma_event! {
+    /// A custom room event not covered by the Matrix specification.
+    #[derive(Clone, Debug, FromRaw, PartialEq, Serialize)]
+    pub struct CustomRoomEvent {
+        /// The event's content.
+        pub content: CustomRoomEventContent,
+        /// The unique identifier for the event.
+        pub event_id: ruma_identifiers::EventId,
+        /// The custom type of the event.
+        #[serde(rename = "type")]
+        pub event_type: String,
+        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
+        /// event was sent.
+        pub origin_server_ts: js_int::UInt,
+        /// The unique identifier for the room associated with this event.
+        pub room_id: Option<ruma_identifiers::RoomId>,
+        /// The unique identifier for the user who sent this event.
+        pub sender: ruma_identifiers::UserId,
+        /// Additional key-value pairs not signed by the homeserver.
+        pub unsigned: Option<serde_json::Value>,
+    }
+
+    /// The payload for `CustomRoomEvent`.
+    pub type CustomRoomEventContent = Value;
+
+    impl Event for CustomRoomEvent {
+        /// The type of this event's `content` field.
+        type Content = CustomRoomEventContent;
+        /// The event's content.
+        fn content(&self) -> &Self::Content {
+            &self.content
+        }
+        /// The type of the event.
+        fn event_type(&self) -> EventType {
+            EventType::Custom(self.event_type.clone())
+        }
+    }
+
+    impl RoomEvent for CustomRoomEvent {
+        /// The unique identifier for the event.
+        fn event_id(&self) -> &ruma_identifiers::EventId {
+            &self.event_id
+        }
+        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this event was
+        /// sent.
+        fn origin_server_ts(&self) -> js_int::UInt {
+            self.origin_server_ts
+        }
+        /// The unique identifier for the room associated with this event.
+        ///
+        /// This can be `None` if the event came from a context where there is
+        /// no ambiguity which room it belongs to, like a `/sync` response for example.
+        fn room_id(&self) -> Option<&ruma_identifiers::RoomId> {
+            self.room_id.as_ref()
+        }
+        /// The unique identifier for the user who sent this event.
+        fn sender(&self) -> &ruma_identifiers::UserId {
+            &self.sender
+        }
+        /// Additional key-value pairs not signed by the homeserver.
+        fn unsigned(&self) -> Option<&serde_json::Value> {
+            self.unsigned.as_ref()
+        }
+    }
+
+    pub mod raw {
+        use super::*;
+
         /// A custom room event not covered by the Matrix specification.
-        CustomRoomEvent {
-            kind: RoomEvent,
-            event_type: Custom,
-            content_type_alias: {
-                /// The payload for `CustomRoomEvent`.
-                Value
-            },
+        #[derive(Clone, Debug, PartialEq, Deserialize)]
+        pub struct CustomRoomEvent {
+            /// The event's content.
+            pub content: CustomRoomEventContent,
+            /// The unique identifier for the event.
+            pub event_id: ruma_identifiers::EventId,
+            /// The custom type of the event.
+            #[serde(rename = "type")]
+            pub event_type: String,
+            /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
+            /// event was sent.
+            pub origin_server_ts: js_int::UInt,
+            /// The unique identifier for the room associated with this event.
+            pub room_id: Option<ruma_identifiers::RoomId>,
+            /// The unique identifier for the user who sent this event.
+            pub sender: ruma_identifiers::UserId,
+            /// Additional key-value pairs not signed by the homeserver.
+            pub unsigned: Option<serde_json::Value>,
         }
     }
 }
 
 mod custom_state {
-    use ruma_events_macros::ruma_event;
+    use super::{Event, EventType, RoomEvent, StateEvent};
+
+    use ruma_events_macros::FromRaw;
+    use serde::{Deserialize, Serialize};
     use serde_json::Value;
 
-    ruma_event! {
+    /// A custom state event not covered by the Matrix specification.
+    #[derive(Clone, Debug, FromRaw, PartialEq, Serialize)]
+    pub struct CustomStateEvent {
+        /// The event's content.
+        pub content: CustomStateEventContent,
+        /// The unique identifier for the event.
+        pub event_id: ruma_identifiers::EventId,
+        /// The custom type of the event.
+        #[serde(rename = "type")]
+        pub event_type: String,
+        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
+        /// event was sent.
+        pub origin_server_ts: js_int::UInt,
+        /// The previous content for this state key, if any.
+        pub prev_content: Option<CustomStateEventContent>,
+        /// The unique identifier for the room associated with this event.
+        pub room_id: Option<ruma_identifiers::RoomId>,
+        /// The unique identifier for the user who sent this event.
+        pub sender: ruma_identifiers::UserId,
+        /// A key that determines which piece of room state the event represents.
+        pub state_key: String,
+        /// Additional key-value pairs not signed by the homeserver.
+        pub unsigned: Option<serde_json::Value>,
+    }
+
+    /// The payload for `CustomStateEvent`.
+    pub type CustomStateEventContent = Value;
+
+    impl Event for CustomStateEvent {
+        /// The type of this event's `content` field.
+        type Content = CustomStateEventContent;
+        /// The event's content.
+        fn content(&self) -> &Self::Content {
+            &self.content
+        }
+        /// The type of the event.
+        fn event_type(&self) -> EventType {
+            EventType::Custom(self.event_type.clone())
+        }
+    }
+
+    impl RoomEvent for CustomStateEvent {
+        /// The unique identifier for the event.
+        fn event_id(&self) -> &ruma_identifiers::EventId {
+            &self.event_id
+        }
+        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this event was
+        /// sent.
+        fn origin_server_ts(&self) -> js_int::UInt {
+            self.origin_server_ts
+        }
+        /// The unique identifier for the room associated with this event.
+        ///
+        /// This can be `None` if the event came from a context where there is
+        /// no ambiguity which room it belongs to, like a `/sync` response for example.
+        fn room_id(&self) -> Option<&ruma_identifiers::RoomId> {
+            self.room_id.as_ref()
+        }
+        /// The unique identifier for the user who sent this event.
+        fn sender(&self) -> &ruma_identifiers::UserId {
+            &self.sender
+        }
+        /// Additional key-value pairs not signed by the homeserver.
+        fn unsigned(&self) -> Option<&serde_json::Value> {
+            self.unsigned.as_ref()
+        }
+    }
+
+    impl StateEvent for CustomStateEvent {
+        /// The previous content for this state key, if any.
+        fn prev_content(&self) -> Option<&Self::Content> {
+            self.prev_content.as_ref()
+        }
+        /// A key that determines which piece of room state the event represents.
+        fn state_key(&self) -> &str {
+            &self.state_key
+        }
+    }
+
+    pub mod raw {
+        use super::*;
+
         /// A custom state event not covered by the Matrix specification.
-        CustomStateEvent {
-            kind: StateEvent,
-            event_type: Custom,
-            content_type_alias: {
-                /// The payload for `CustomStateEvent`.
-                Value
-            },
+        #[derive(Clone, Debug, PartialEq, Deserialize)]
+        pub struct CustomStateEvent {
+            /// The event's content.
+            pub content: CustomStateEventContent,
+            /// The unique identifier for the event.
+            pub event_id: ruma_identifiers::EventId,
+            /// The custom type of the event.
+            #[serde(rename = "type")]
+            pub event_type: String,
+            /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
+            /// event was sent.
+            pub origin_server_ts: js_int::UInt,
+            /// The previous content for this state key, if any.
+            pub prev_content: Option<CustomStateEventContent>,
+            /// The unique identifier for the room associated with this event.
+            pub room_id: Option<ruma_identifiers::RoomId>,
+            /// The unique identifier for the user who sent this event.
+            pub sender: ruma_identifiers::UserId,
+            /// A key that determines which piece of room state the event represents.
+            pub state_key: String,
+            /// Additional key-value pairs not signed by the homeserver.
+            pub unsigned: Option<serde_json::Value>,
         }
     }
 }
