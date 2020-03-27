@@ -18,9 +18,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::r0::thirdparty::Medium;
 
-// TODO: spec requires a nesting ThirdPartySigned { signed: Signed { mxid: ..., ... } }
-//       for join_room_by_id_or_alias but not for join_room_by_id, inconsistency?
-
 /// A signature of an `m.third_party_invite` token to prove that this user owns a third party
 /// identity which has been invited to the room.
 #[derive(Clone, Debug, Deserialize, Serialize)]
