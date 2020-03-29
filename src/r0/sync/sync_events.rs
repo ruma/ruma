@@ -17,7 +17,10 @@ use ruma_events::{
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
-use crate::r0::{filter::FilterDefinition, keys::KeyAlgorithm};
+use crate::{
+    r0::{filter::FilterDefinition, keys::KeyAlgorithm},
+    serde::is_default,
+};
 
 ruma_api! {
     metadata {
@@ -35,22 +38,22 @@ ruma_api! {
         #[ruma_api(query)]
         pub filter: Option<Filter>,
         /// A point in time to continue a sync from.
+        ///
         /// Should be a token from the `next_batch` field of a previous `/sync`
         /// request.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub since: Option<String>,
         /// Controls whether to include the full state for all rooms the user is a member of.
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(default, skip_serializing_if = "is_default")]
         #[ruma_api(query)]
-        pub full_state: Option<bool>,
+        pub full_state: bool,
         /// Controls whether the client is automatically marked as online by polling this API.
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(default, skip_serializing_if = "is_default")]
         #[ruma_api(query)]
-        pub set_presence: Option<SetPresence>,
+        pub set_presence: SetPresence,
         /// The maximum time to poll in milliseconds before returning this request.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[serde(with = "crate::serde::duration::opt_ms")]
+        #[serde(with = "crate::serde::duration::opt_ms", skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub timeout: Option<Duration>,
     }
@@ -65,23 +68,25 @@ ruma_api! {
         #[wrap_incoming]
         pub presence: Presence,
         /// Messages sent dirrectly between devices.
+        #[serde(default, skip_serializing_if = "ToDevice::is_empty")]
         #[wrap_incoming]
         pub to_device: ToDevice,
         /// Information on E2E device updates.
+        ///
         /// Only present on an incremental sync.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub device_lists: Option<DeviceLists>,
         /// For each key algorithm, the number of unclaimed one-time keys
         /// currently held on the server for a device.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_one_time_keys_count: Option<HashMap<KeyAlgorithm, UInt>>
+        #[serde(skip_serializing_if = "HashMap::is_empty")]
+        pub device_one_time_keys_count: HashMap<KeyAlgorithm, UInt>,
     }
 
     error: crate::Error
 }
 
 /// Whether to set presence or not during sync.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SetPresence {
     /// Do not set the presence of the user calling this API.
@@ -90,6 +95,12 @@ pub enum SetPresence {
     Online,
     /// Mark client as being idle.
     Unavailable,
+}
+
+impl Default for SetPresence {
+    fn default() -> Self {
+        Self::Online
+    }
 }
 
 /// A filter represented either as its full JSON definition or the ID of a saved filter.
@@ -294,15 +305,27 @@ pub struct ToDevice {
     pub events: Vec<AnyToDeviceEvent>,
 }
 
+impl ToDevice {
+    fn is_empty(&self) -> bool {
+        self.events.is_empty()
+    }
+}
+
+impl Default for IncomingToDevice {
+    fn default() -> Self {
+        Self { events: Vec::new() }
+    }
+}
+
 /// Information on E2E device udpates.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct DeviceLists {
     /// List of users who have updated their device identity keys or who now
     /// share an encrypted room with the client since the previous sync
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub changed: Vec<String>,
     /// List of users who no longer share encrypted rooms since the previous sync
     /// response.
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub left: Vec<String>,
 }
