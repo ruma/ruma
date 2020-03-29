@@ -16,6 +16,7 @@ Improvements:
 Breaking changes:
 
 * Update ruma-api to 0.15.0
+* Update ruma-events to 0.18.0
 * Fix `r0::session::get_login_types`
 * Add `allow_remote` parameter to `r0::media::get_content`
 * Add missing parameters for `r0::room::create_room`
