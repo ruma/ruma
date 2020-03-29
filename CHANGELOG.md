@@ -1,5 +1,16 @@
 # [unreleased]
 
+Breaking changes:
+
+* Emit an error on non-UTF8 characters in path segments
+  * Before, they would be replaced by the unknown character codepoint
+* `FromHttpResponseError` now has a generic parameter for the expected type of
+  error the homeserver could return
+
+Improvements:
+
+* Enable deserialization of unsuccessful responses
+
 # 0.14.0
 
 Breaking changes:
