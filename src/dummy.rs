@@ -34,7 +34,7 @@ mod tests {
         let dummy_event = DummyEvent { content: Empty };
 
         let actual = serde_json::to_string(&dummy_event).unwrap();
-        let expected = r#"{"content":{},"type":"m.dummy"}"#;
+        let expected = r#"{"type":"m.dummy","content":{}}"#;
 
         assert_eq!(actual, expected);
     }

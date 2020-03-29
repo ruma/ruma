@@ -249,6 +249,7 @@ mod tests {
             prev_content: None,
         };
         let json = json!({
+            "type": "m.room.member",
             "content": {
                 "membership": "join"
             },
@@ -256,8 +257,7 @@ mod tests {
             "origin_server_ts": 1,
             "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
-            "state_key": "example.com",
-            "type": "m.room.member"
+            "state_key": "example.com"
         });
         serde_json_eq_try_from_raw(event, json);
     }
@@ -287,6 +287,7 @@ mod tests {
             }),
         };
         let json = json!({
+            "type": "m.room.member",
             "content": {
                 "membership": "join"
             },
@@ -297,8 +298,7 @@ mod tests {
             },
             "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
-            "state_key": "example.com",
-            "type": "m.room.member"
+            "state_key": "example.com"
         });
         serde_json_eq_try_from_raw(event, json);
     }
@@ -337,6 +337,7 @@ mod tests {
             prev_content: None,
         };
         let json = json!({
+            "type": "m.room.member",
             "content": {
                 "avatar_url": "mxc://example.org/SEsfnsuifSDFSSEF",
                 "displayname": "Alice Margatroid",
@@ -359,8 +360,7 @@ mod tests {
             "origin_server_ts":233,
             "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
             "sender": "@alice:example.org",
-            "state_key": "@alice:example.org",
-            "type": "m.room.member"
+            "state_key": "@alice:example.org"
         });
         serde_json_eq_try_from_raw(event, json);
     }
@@ -405,6 +405,7 @@ mod tests {
             }),
         };
         let json = json!({
+            "type": "m.room.member",
             "content": {
                 "membership": "join"
             },
@@ -430,8 +431,7 @@ mod tests {
             },
             "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
             "sender": "@alice:example.org",
-            "state_key": "@alice:example.org",
-            "type": "m.room.member"
+            "state_key": "@alice:example.org"
         });
         serde_json_eq_try_from_raw(event, json);
     }

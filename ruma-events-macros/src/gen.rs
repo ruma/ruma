@@ -6,7 +6,7 @@ use syn::{
     parse_quote,
     punctuated::Punctuated,
     spanned::Spanned,
-    Attribute, Field, Ident, LitStr, Token, Type,
+    Attribute, Field, Ident, LitStr, Token,
 };
 
 use crate::parse::{Content, EventKind, RumaEventInput};
@@ -89,7 +89,6 @@ impl ToTokens for RumaEvent {
         };
 
         let name = &self.name;
-        let name_str = format!("{}", name);
         let content_docstring = format!("The payload for `{}`.", name);
 
         let content = match &self.content {
@@ -125,60 +124,6 @@ impl ToTokens for RumaEvent {
             }
             Content::Typedef(_) => TokenStream::new(),
         };
-
-        // Only custom events will already have an event_type field, since we don't handle
-        // custom events we start at one.
-        let mut base_field_count: usize = 1;
-
-        // Keep track of all the optional fields, because we'll need to check at runtime if they
-        // are `Some` in order to increase the number of fields we tell serde to serialize.
-        let mut optional_field_idents = Vec::with_capacity(event_fields.len());
-
-        let mut serialize_field_calls: Vec<TokenStream> = Vec::with_capacity(event_fields.len());
-
-        for field in event_fields {
-            let ident = field.ident.clone().unwrap();
-
-            let ident_str = if ident == "event_type" {
-                "type".to_string()
-            } else {
-                format!("{}", ident)
-            };
-
-            let span = field.span();
-
-            // Does the same thing as #[serde(skip_serializing_if = "Option::is_none")]
-            let serialize_field_call = if is_option(&field.ty) {
-                optional_field_idents.push(ident.clone());
-
-                quote_spanned! {span=>
-                    if self.#ident.is_some() {
-                        state.serialize_field(#ident_str, &self.#ident)?;
-                    }
-                }
-            } else {
-                base_field_count += 1;
-
-                quote_spanned! {span=>
-                    state.serialize_field(#ident_str, &self.#ident)?;
-                }
-            };
-
-            serialize_field_calls.push(serialize_field_call);
-        }
-
-        let increment_struct_len_statements: Vec<TokenStream> = optional_field_idents
-            .iter()
-            .map(|ident| {
-                let span = ident.span();
-
-                quote_spanned! {span=>
-                    if self.#ident.is_some() {
-                        len += 1;
-                    }
-                }
-            })
-            .collect();
 
         let impl_room_event = match self.kind {
             EventKind::RoomEvent | EventKind::StateEvent => {
@@ -269,41 +214,18 @@ impl ToTokens for RumaEvent {
                 TokenStream::new()
             };
 
-        let stripped_fields = event_fields
-            .iter()
-            .map(|event_field| strip_serde_attrs(event_field));
-
+        let event_type_name = self.event_type.value();
         let output = quote!(
             #(#attrs)*
-            #[derive(Clone, PartialEq, Debug, ruma_events_macros::FromRaw)]
+            #[derive(Clone, PartialEq, Debug, serde::Serialize, ruma_events_macros::FromRaw)]
+            #[serde(rename = #event_type_name, tag = "type")]
             pub struct #name {
-                #(#stripped_fields),*
+                #(#event_fields),*
             }
 
             #content
 
             #impl_event_result_compatible_for_content
-
-            impl serde::Serialize for #name {
-                fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-                where
-                    S: serde::Serializer
-                {
-                    use serde::ser::SerializeStruct as _;
-                    use ::ruma_events::Event as _;
-
-                    let mut len = #base_field_count;
-
-                    #(#increment_struct_len_statements)*
-
-                    let mut state = serializer.serialize_struct(#name_str, len)?;
-
-                    #(#serialize_field_calls)*
-                    state.serialize_field("type", &self.event_type())?;
-
-                    state.end()
-                }
-            }
 
             impl ::ruma_events::Event for #name {
                 /// The type of this event's `content` field.
@@ -367,12 +289,14 @@ fn populate_room_event_fields(content_name: Ident, fields: Vec<Field>) -> Vec<Fi
         pub origin_server_ts: js_int::UInt,
 
         /// The unique identifier for the room associated with this event.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub room_id: Option<ruma_identifiers::RoomId>,
 
         /// The unique identifier for the user who sent this event.
         pub sender: ruma_identifiers::UserId,
 
         /// Additional key-value pairs not signed by the homeserver.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub unsigned: Option<serde_json::Value>,
     };
 
@@ -387,6 +311,7 @@ fn populate_state_fields(content_name: Ident, fields: Vec<Field>) -> Vec<Field> 
 
     let punctuated_fields: Punctuated<ParsableNamedField, Token![,]> = parse_quote! {
         /// The previous content for this state key, if any.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub prev_content: Option<#content_name>,
 
         /// A key that determines which piece of room state the event represents.
@@ -396,15 +321,6 @@ fn populate_state_fields(content_name: Ident, fields: Vec<Field>) -> Vec<Field> 
     fields.extend(punctuated_fields.into_iter().map(|p| p.field));
 
     fields
-}
-
-/// Checks if a type is an `Option`.
-fn is_option(ty: &Type) -> bool {
-    if let Type::Path(ref type_path) = ty {
-        type_path.path.segments.first().unwrap().ident == "Option"
-    } else {
-        panic!("struct field had unexpected non-path type");
-    }
 }
 
 /// Splits the given `event_type` string on `.` and `_` removing the `m.` then
@@ -432,11 +348,4 @@ impl Parse for ParsableNamedField {
 
         Ok(Self { field })
     }
-}
-
-/// Removes `serde` attributes from struct fields.
-pub fn strip_serde_attrs(field: &Field) -> Field {
-    let mut field = field.clone();
-    field.attrs.retain(|attr| !attr.path.is_ident("serde"));
-    field
 }

@@ -43,7 +43,7 @@ mod tests {
         assert_eq!(
             to_string(&event).unwrap(),
             format!(
-                r#"{{"content":{{"{}":["{}"]}},"type":"m.direct"}}"#,
+                r#"{{"type":"m.direct","content":{{"{}":["{}"]}}}}"#,
                 alice.to_string(),
                 room[0].to_string()
             )
@@ -60,8 +60,8 @@ mod tests {
 
         let json_data = format!(
             r#"{{
-            "content": {{ "{}": ["{}", "{}"] }},
-            "type": "m.direct"
+            "type": "m.direct",
+            "content": {{ "{}": ["{}", "{}"] }}
         }}"#,
             alice.to_string(),
             rooms[0].to_string(),
