@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.7.0
+
 Improvements:
 
 * Add an `Error` type that represents the well-known errors in the client-server API
