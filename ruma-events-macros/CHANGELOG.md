@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.3.0
+
 Breaking changes:
 
 * Update `event_type` in `ruma_events!` to refer to the serialized form of the

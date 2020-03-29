@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.18.0
+
 Breaking changes:
 
 * Update unsigned field's type from `Option<Value>` to `Map<String, Value>`
