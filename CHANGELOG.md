@@ -2,19 +2,6 @@
 
 # 0.7.0
 
-Improvements:
-
-* Add an `Error` type that represents the well-known errors in the client-server API
-  * the response deserialization code will try to create an instance of this type from http responses that indicate an error
-* Add OpenID token request endpoint.
-* Add `r0::client_exchange::send_event_to_device` (introduced in r0.3.0)
-* Add endpoints to retrieve account_data (introduced in r0.5.0)
-* Add media endpoints: `r0::media::{get_media_config, get_media_preview, get_content_as_filename}`
-* Add `unstable_features` to `unversioned::get_supported_versions` (introduced in r0.5.0)
-* Add request and response parameters for `r0::account::deactivate`
-* Add `r0::session::sso_login` (introduced in r0.5.0)
-* Add `filter` type for `r0::context::get_context`
-
 Breaking changes:
 
 * Update ruma-api to 0.15.0
@@ -39,6 +26,19 @@ Breaking changes:
       voip::get_turn_server_info
   }
   ```
+
+Improvements:
+
+* Add an `Error` type that represents the well-known errors in the client-server API
+  * the response deserialization code will try to create an instance of this type from http responses that indicate an error
+* Add OpenID token request endpoint.
+* Add `r0::client_exchange::send_event_to_device` (introduced in r0.3.0)
+* Add endpoints to retrieve account_data (introduced in r0.5.0)
+* Add media endpoints: `r0::media::{get_media_config, get_media_preview, get_content_as_filename}`
+* Add `unstable_features` to `unversioned::get_supported_versions` (introduced in r0.5.0)
+* Add request and response parameters for `r0::account::deactivate`
+* Add `r0::session::sso_login` (introduced in r0.5.0)
+* Add `filter` type for `r0::context::get_context`
 
 # 0.6.0
 
