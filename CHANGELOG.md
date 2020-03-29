@@ -3,6 +3,7 @@
 Improvements:
 
 * Add a convenience constructor to create a plain-text `TextMessageEventContent`
+* Add `m.dummy` events to the to-device event collection
 
 # 0.17.0
 
