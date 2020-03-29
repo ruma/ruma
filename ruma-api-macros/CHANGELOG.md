@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.12.0
+
 Breaking changes:
 
 * Update code generation to match the changes in ruma-api 0.15.0

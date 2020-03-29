@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.15.0
+
 Breaking changes:
 
 * Emit an error on non-UTF8 characters in path segments
