@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Update unsigned field's type from `Option<Value>` to `Map<String, Value>`
+
 Improvements:
 
 * Add a convenience constructor to create a plain-text `TextMessageEventContent`
