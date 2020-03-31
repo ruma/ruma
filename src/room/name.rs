@@ -197,7 +197,7 @@ mod tests {
 
     use js_int::UInt;
     use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde_json::Map;
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value, Map};
 
     use crate::EventResult;
 
@@ -218,8 +218,17 @@ mod tests {
             unsigned: Map::new(),
         };
 
-        let actual = serde_json::to_string(&name_event).unwrap();
-        let expected = r#"{"content":{"name":"The room name"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#;
+        let actual = to_json_value(&name_event).unwrap();
+        let expected = json!({
+            "content": {
+                "name": "The room name"
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "sender": "@carl:example.com",
+            "state_key": "",
+            "type": "m.room.name"
+        });
 
         assert_eq!(actual, expected);
     }
@@ -238,21 +247,41 @@ mod tests {
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
-            unsigned: serde_json::from_str(r#"{"foo":"bar"}"#).unwrap(),
+            unsigned: serde_json::from_str(r#"{"foo": "bar"}"#).unwrap(),
         };
 
-        let actual = serde_json::to_string(&name_event).unwrap();
-        let expected = r#"{"content":{"name":"The room name"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"prev_content":{"name":"The old name"},"room_id":"!n8f893n9:example.com","sender":"@carl:example.com","state_key":"","type":"m.room.name","unsigned":{"foo":"bar"}}"#;
+        let actual = to_json_value(&name_event).unwrap();
+        let expected = json!({
+            "content": {
+                "name": "The room name"
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "prev_content": {"name": "The old name"},
+            "room_id": "!n8f893n9:example.com",
+            "sender": "@carl:example.com",
+            "state_key": "",
+            "type": "m.room.name",
+            "unsigned": {
+                "foo": "bar"
+            }
+        });
 
         assert_eq!(actual, expected);
     }
 
     #[test]
     fn absent_field_as_none() {
+        let json_data = json!({
+            "content": {},
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "sender": "@carl:example.com",
+            "state_key": "",
+            "type": "m.room.name"
+        });
         assert_eq!(
-            serde_json::from_str::<EventResult<NameEvent>>(
-                r#"{"content":{},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
-            )
+            from_json_value::<EventResult<NameEvent>>(json_data)
                 .unwrap()
                 .into_result()
                 .unwrap()
@@ -300,10 +329,18 @@ mod tests {
 
     #[test]
     fn null_field_as_none() {
+        let json_data = json!({
+            "content": {
+                "name": null
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "sender": "@carl:example.com",
+            "state_key": "",
+            "type": "m.room.name"
+        });
         assert_eq!(
-            serde_json::from_str::<EventResult<NameEvent>>(
-                r#"{"content":{"name":null},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
-            )
+            from_json_value::<EventResult<NameEvent>>(json_data)
                 .unwrap()
                 .into_result()
                 .unwrap()
@@ -315,10 +352,18 @@ mod tests {
 
     #[test]
     fn empty_string_as_none() {
+        let json_data = json!({
+            "content": {
+                "name": ""
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "sender": "@carl:example.com",
+            "state_key": "",
+            "type": "m.room.name"
+        });
         assert_eq!(
-            serde_json::from_str::<EventResult<NameEvent>>(
-                r#"{"content":{"name":""},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
-            )
+            from_json_value::<EventResult<NameEvent>>(json_data)
                 .unwrap()
                 .into_result()
                 .unwrap()
@@ -331,11 +376,19 @@ mod tests {
     #[test]
     fn nonempty_field_as_some() {
         let name = Some("The room name".to_string());
+        let json_data = json!({
+            "content": {
+                "name": "The room name"
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "sender": "@carl:example.com",
+            "state_key": "",
+            "type": "m.room.name"
+        });
 
         assert_eq!(
-            serde_json::from_str::<EventResult<NameEvent>>(
-                r#"{"content":{"name":"The room name"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.name"}"#
-            )
+            from_json_value::<EventResult<NameEvent>>(json_data)
                 .unwrap()
                 .into_result()
                 .unwrap()

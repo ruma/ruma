@@ -312,7 +312,7 @@ mod tests {
 
     use js_int::UInt;
     use ruma_identifiers::UserId;
-    use serde_json::to_string;
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{AnyStrippedStateEvent, StrippedRoomName, StrippedRoomTopic};
     use crate::{
@@ -333,29 +333,35 @@ mod tests {
 
         let event = AnyStrippedStateEvent::RoomTopic(content);
 
-        assert_eq!(
-            to_string(&event).unwrap(),
-            r#"{"content":{"topic":"Testing room"},"type":"m.room.topic","state_key":"","sender":"@example:localhost"}"#
-        );
+        let json_data = json!({
+            "content": {
+                "topic": "Testing room"
+            },
+            "type": "m.room.topic",
+            "state_key": "",
+            "sender": "@example:localhost"
+        });
+
+        assert_eq!(to_json_value(&event).unwrap(), json_data);
     }
 
     #[test]
     fn deserialize_stripped_state_events() {
-        let name_event = r#"{
+        let name_event = json!({
             "type": "m.room.name",
             "state_key": "",
             "sender": "@example:localhost",
             "content": {"name": "Ruma"}
-        }"#;
+        });
 
-        let join_rules_event = r#"{
+        let join_rules_event = json!({
             "type": "m.room.join_rules",
             "state_key": "",
             "sender": "@example:localhost",
             "content": { "join_rule": "public" }
-        }"#;
+        });
 
-        let avatar_event = r#"{
+        let avatar_event = json!({
             "type": "m.room.avatar",
             "state_key": "",
             "sender": "@example:localhost",
@@ -382,9 +388,9 @@ mod tests {
                 "thumbnail_url": "https://example.com/image-thumbnail.jpg",
                 "url": "https://example.com/image.jpg"
             }
-        }"#;
+        });
 
-        match serde_json::from_str::<EventResult<_>>(name_event)
+        match from_json_value::<EventResult<_>>(name_event.clone())
             .unwrap()
             .into_result()
             .unwrap()
@@ -399,14 +405,12 @@ mod tests {
         };
 
         // Ensure `StrippedStateContent` can be parsed, not just `StrippedState`.
-        assert!(
-            serde_json::from_str::<EventResult<StrippedRoomName>>(name_event)
-                .unwrap()
-                .into_result()
-                .is_ok()
-        );
+        assert!(from_json_value::<EventResult<StrippedRoomName>>(name_event)
+            .unwrap()
+            .into_result()
+            .is_ok());
 
-        match serde_json::from_str::<EventResult<_>>(join_rules_event)
+        match from_json_value::<EventResult<_>>(join_rules_event)
             .unwrap()
             .into_result()
             .unwrap()
@@ -420,7 +424,7 @@ mod tests {
             _ => unreachable!(),
         };
 
-        match serde_json::from_str::<EventResult<_>>(avatar_event)
+        match from_json_value::<EventResult<_>>(avatar_event)
             .unwrap()
             .into_result()
             .unwrap()

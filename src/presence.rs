@@ -77,7 +77,7 @@ mod tests {
 
     use js_int::UInt;
     use ruma_identifiers::UserId;
-    use serde_json::to_string;
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{PresenceEvent, PresenceEventContent, PresenceState};
     use crate::EventResult;
@@ -96,9 +96,19 @@ mod tests {
             sender: UserId::try_from("@example:localhost").unwrap(),
         };
 
-        let json = r#"{"type":"m.presence","content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online","status_msg":"Making cupcakes"},"sender":"@example:localhost"}"#;
+        let json = json!({
+            "content": {
+                "avatar_url": "mxc://localhost:wefuiwegh8742w",
+                "currently_active": false,
+                "last_active_ago": 2_478_593,
+                "presence": "online",
+                "status_msg": "Making cupcakes"
+            },
+            "sender": "@example:localhost",
+            "type": "m.presence"
+        });
 
-        assert_eq!(to_string(&event).unwrap(), json);
+        assert_eq!(to_json_value(&event).unwrap(), json);
     }
 
     #[test]
@@ -115,10 +125,20 @@ mod tests {
             sender: UserId::try_from("@example:localhost").unwrap(),
         };
 
-        let json = r#"{"type":"m.presence","content":{"avatar_url":"mxc://localhost:wefuiwegh8742w","currently_active":false,"last_active_ago":2478593,"presence":"online","status_msg":"Making cupcakes"},"sender":"@example:localhost"}"#;
+        let json = json!({
+            "content": {
+                "avatar_url": "mxc://localhost:wefuiwegh8742w",
+                "currently_active": false,
+                "last_active_ago": 2_478_593,
+                "presence": "online",
+                "status_msg": "Making cupcakes"
+            },
+            "sender": "@example:localhost",
+            "type": "m.presence"
+        });
 
         assert_eq!(
-            serde_json::from_str::<EventResult<PresenceEvent>>(json)
+            from_json_value::<EventResult<PresenceEvent>>(json)
                 .unwrap()
                 .into_result()
                 .unwrap(),

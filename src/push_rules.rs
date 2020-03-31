@@ -434,7 +434,7 @@ impl Serialize for SenderNotificationPermissionCondition {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_str, to_string};
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{
         Action, EventMatchCondition, PushCondition, PushRulesEvent, RoomMemberCountCondition,
@@ -444,37 +444,47 @@ mod tests {
 
     #[test]
     fn serialize_string_action() {
-        assert_eq!(to_string(&Action::Notify).unwrap(), r#""notify""#);
+        assert_eq!(to_json_value(&Action::Notify).unwrap(), json!("notify"));
     }
 
     #[test]
     fn serialize_tweak_sound_action() {
         assert_eq!(
-            to_string(&Action::SetTweak(Tweak::Sound {
+            to_json_value(&Action::SetTweak(Tweak::Sound {
                 value: "default".to_string()
             }))
             .unwrap(),
-            r#"{"set_tweak":"sound","value":"default"}"#
+            json!({
+                "set_tweak": "sound",
+                "value": "default"
+            })
         );
     }
 
     #[test]
     fn serialize_tweak_highlight_action() {
         assert_eq!(
-            to_string(&Action::SetTweak(Tweak::Highlight { value: true })).unwrap(),
-            r#"{"set_tweak":"highlight","value":true}"#
+            to_json_value(&Action::SetTweak(Tweak::Highlight { value: true })).unwrap(),
+            json!({"set_tweak": "highlight", "value": true})
         );
     }
 
     #[test]
     fn deserialize_string_action() {
-        assert_eq!(from_str::<Action>(r#""notify""#).unwrap(), Action::Notify);
+        assert_eq!(
+            from_json_value::<Action>(json!("notify")).unwrap(),
+            Action::Notify
+        );
     }
 
     #[test]
     fn deserialize_tweak_sound_action() {
+        let json_data = json!({
+            "set_tweak": "sound",
+            "value": "default"
+        });
         assert_eq!(
-            from_str::<Action>(r#"{"set_tweak":"sound","value":"default"}"#).unwrap(),
+            from_json_value::<Action>(json_data).unwrap(),
             Action::SetTweak(Tweak::Sound {
                 value: "default".to_string()
             })
@@ -483,8 +493,12 @@ mod tests {
 
     #[test]
     fn deserialize_tweak_highlight_action() {
+        let json_data = json!({
+            "set_tweak": "highlight",
+            "value": true
+        });
         assert_eq!(
-            from_str::<Action>(r#"{"set_tweak":"highlight","value":true}"#).unwrap(),
+            from_json_value::<Action>(json_data).unwrap(),
             Action::SetTweak(Tweak::Highlight { value: true })
         );
     }
@@ -492,62 +506,77 @@ mod tests {
     #[test]
     fn deserialize_tweak_highlight_action_with_default_value() {
         assert_eq!(
-            from_str::<Action>(r#"{"set_tweak":"highlight"}"#).unwrap(),
+            from_json_value::<Action>(json!({"set_tweak": "highlight"})).unwrap(),
             Action::SetTweak(Tweak::Highlight { value: true })
         );
     }
 
     #[test]
     fn serialize_event_match_condition() {
+        let json_data = json!({
+            "key": "content.msgtype",
+            "kind": "event_match",
+            "pattern": "m.notice"
+        });
         assert_eq!(
-            to_string(&PushCondition::EventMatch(EventMatchCondition {
+            to_json_value(&PushCondition::EventMatch(EventMatchCondition {
                 key: "content.msgtype".to_string(),
                 pattern: "m.notice".to_string(),
             }))
             .unwrap(),
-            r#"{"key":"content.msgtype","kind":"event_match","pattern":"m.notice"}"#
+            json_data
         );
     }
 
     #[test]
     fn serialize_contains_display_name_condition() {
         assert_eq!(
-            to_string(&PushCondition::ContainsDisplayName).unwrap(),
-            r#"{"kind":"contains_display_name"}"#
+            to_json_value(&PushCondition::ContainsDisplayName).unwrap(),
+            json!({"kind": "contains_display_name"})
         );
     }
 
     #[test]
     fn serialize_room_member_count_condition() {
+        let json_data = json!({
+            "is": "2",
+            "kind": "room_member_count"
+        });
         assert_eq!(
-            to_string(&PushCondition::RoomMemberCount(RoomMemberCountCondition {
+            to_json_value(&PushCondition::RoomMemberCount(RoomMemberCountCondition {
                 is: "2".to_string(),
             }))
             .unwrap(),
-            r#"{"is":"2","kind":"room_member_count"}"#
+            json_data
         );
     }
 
     #[test]
     fn serialize_sender_notification_permission_condition() {
+        let json_data = json!({
+            "key": "room",
+            "kind": "sender_notification_permission"
+        });
         assert_eq!(
-            r#"{"key":"room","kind":"sender_notification_permission"}"#,
-            to_string(&PushCondition::SenderNotificationPermission(
+            json_data,
+            to_json_value(&PushCondition::SenderNotificationPermission(
                 SenderNotificationPermissionCondition {
                     key: "room".to_string(),
                 }
             ))
-            .unwrap(),
+            .unwrap()
         );
     }
 
     #[test]
     fn deserialize_event_match_condition() {
+        let json_data = json!({
+            "key": "content.msgtype",
+            "kind": "event_match",
+            "pattern": "m.notice"
+        });
         assert_eq!(
-            from_str::<PushCondition>(
-                r#"{"key":"content.msgtype","kind":"event_match","pattern":"m.notice"}"#
-            )
-            .unwrap(),
+            from_json_value::<PushCondition>(json_data).unwrap(),
             PushCondition::EventMatch(EventMatchCondition {
                 key: "content.msgtype".to_string(),
                 pattern: "m.notice".to_string(),
@@ -558,15 +587,19 @@ mod tests {
     #[test]
     fn deserialize_contains_display_name_condition() {
         assert_eq!(
-            from_str::<PushCondition>(r#"{"kind":"contains_display_name"}"#).unwrap(),
+            from_json_value::<PushCondition>(json!({"kind": "contains_display_name"})).unwrap(),
             PushCondition::ContainsDisplayName,
         );
     }
 
     #[test]
     fn deserialize_room_member_count_condition() {
+        let json_data = json!({
+            "is": "2",
+            "kind": "room_member_count"
+        });
         assert_eq!(
-            from_str::<PushCondition>(r#"{"is":"2","kind":"room_member_count"}"#).unwrap(),
+            from_json_value::<PushCondition>(json_data).unwrap(),
             PushCondition::RoomMemberCount(RoomMemberCountCondition {
                 is: "2".to_string(),
             })
@@ -575,9 +608,12 @@ mod tests {
 
     #[test]
     fn deserialize_sender_notification_permission_condition() {
+        let json_data = json!({
+            "key": "room",
+            "kind": "sender_notification_permission"
+        });
         assert_eq!(
-            from_str::<PushCondition>(r#"{"key":"room","kind":"sender_notification_permission"}"#)
-                .unwrap(),
+            from_json_value::<PushCondition>(json_data).unwrap(),
             PushCondition::SenderNotificationPermission(SenderNotificationPermissionCondition {
                 key: "room".to_string(),
             })
@@ -587,134 +623,134 @@ mod tests {
     #[test]
     fn sanity_check() {
         // This is a full example of a push rules event from the specification.
-        let json = r#"{
-    "content": {
-        "global": {
-            "content": [
-                {
-                    "actions": [
-                        "notify",
-                        {
-                            "set_tweak": "sound",
-                            "value": "default"
-                        },
-                        {
-                            "set_tweak": "highlight"
-                        }
+        let json_data = json!({
+            "content": {
+                "global": {
+                    "content": [
+                    {
+                        "actions": [
+                            "notify",
+                            {
+                                "set_tweak": "sound",
+                                "value": "default"
+                            },
+                            {
+                                "set_tweak": "highlight"
+                            }
+                        ],
+                        "default": true,
+                        "enabled": true,
+                        "pattern": "alice",
+                        "rule_id": ".m.rule.contains_user_name"
+                    }
                     ],
-                    "default": true,
-                    "enabled": true,
-                    "pattern": "alice",
-                    "rule_id": ".m.rule.contains_user_name"
-                }
-            ],
-            "override": [
-                {
-                    "actions": [
-                        "dont_notify"
-                    ],
-                    "conditions": [],
-                    "default": true,
-                    "enabled": false,
-                    "rule_id": ".m.rule.master"
-                },
-                {
-                    "actions": [
-                        "dont_notify"
-                    ],
-                    "conditions": [
+                    "override": [
+                    {
+                        "actions": [
+                            "dont_notify"
+                        ],
+                        "conditions": [],
+                        "default": true,
+                        "enabled": false,
+                        "rule_id": ".m.rule.master"
+                    },
+                    {
+                        "actions": [
+                            "dont_notify"
+                        ],
+                        "conditions": [
                         {
                             "key": "content.msgtype",
                             "kind": "event_match",
                             "pattern": "m.notice"
                         }
+                        ],
+                        "default": true,
+                        "enabled": true,
+                        "rule_id": ".m.rule.suppress_notices"
+                    }
                     ],
-                    "default": true,
-                    "enabled": true,
-                    "rule_id": ".m.rule.suppress_notices"
-                }
-            ],
-            "room": [],
-            "sender": [],
-            "underride": [
-                {
-                    "actions": [
-                        "notify",
-                        {
-                            "set_tweak": "sound",
-                            "value": "ring"
-                        },
-                        {
-                            "set_tweak": "highlight",
-                            "value": false
-                        }
-                    ],
-                    "conditions": [
+                    "room": [],
+                    "sender": [],
+                    "underride": [
+                    {
+                        "actions": [
+                            "notify",
+                            {
+                                "set_tweak": "sound",
+                                "value": "ring"
+                            },
+                            {
+                                "set_tweak": "highlight",
+                                "value": false
+                            }
+                        ],
+                        "conditions": [
                         {
                             "key": "type",
                             "kind": "event_match",
                             "pattern": "m.call.invite"
                         }
-                    ],
-                    "default": true,
-                    "enabled": true,
-                    "rule_id": ".m.rule.call"
-                },
-                {
-                    "actions": [
-                        "notify",
-                        {
-                            "set_tweak": "sound",
-                            "value": "default"
-                        },
-                        {
-                            "set_tweak": "highlight"
-                        }
-                    ],
-                    "conditions": [
+                        ],
+                        "default": true,
+                        "enabled": true,
+                        "rule_id": ".m.rule.call"
+                    },
+                    {
+                        "actions": [
+                            "notify",
+                            {
+                                "set_tweak": "sound",
+                                "value": "default"
+                            },
+                            {
+                                "set_tweak": "highlight"
+                            }
+                        ],
+                        "conditions": [
                         {
                             "kind": "contains_display_name"
                         }
-                    ],
-                    "default": true,
-                    "enabled": true,
-                    "rule_id": ".m.rule.contains_display_name"
-                },
-                {
-                    "actions": [
-                        "notify",
-                        {
-                            "set_tweak": "sound",
-                            "value": "default"
-                        },
-                        {
-                            "set_tweak": "highlight",
-                            "value": false
-                        }
-                    ],
-                    "conditions": [
+                        ],
+                        "default": true,
+                        "enabled": true,
+                        "rule_id": ".m.rule.contains_display_name"
+                    },
+                    {
+                        "actions": [
+                            "notify",
+                            {
+                                "set_tweak": "sound",
+                                "value": "default"
+                            },
+                            {
+                                "set_tweak": "highlight",
+                                "value": false
+                            }
+                        ],
+                        "conditions": [
                         {
                             "is": "2",
                             "kind": "room_member_count"
                         }
-                    ],
-                    "default": true,
-                    "enabled": true,
-                    "rule_id": ".m.rule.room_one_to_one"
-                },
-                {
-                    "actions": [
-                        "notify",
-                        {
-                            "set_tweak": "sound",
-                            "value": "default"
-                        },
-                        {
-                            "set_tweak": "highlight",
-                            "value": false
-                        }
-                    ],
-                    "conditions": [
+                        ],
+                        "default": true,
+                        "enabled": true,
+                        "rule_id": ".m.rule.room_one_to_one"
+                    },
+                    {
+                        "actions": [
+                            "notify",
+                            {
+                                "set_tweak": "sound",
+                                "value": "default"
+                            },
+                            {
+                                "set_tweak": "highlight",
+                                "value": false
+                            }
+                        ],
+                        "conditions": [
                         {
                             "key": "type",
                             "kind": "event_match",
@@ -730,55 +766,55 @@ mod tests {
                             "kind": "event_match",
                             "pattern": "@alice:example.com"
                         }
-                    ],
-                    "default": true,
-                    "enabled": true,
-                    "rule_id": ".m.rule.invite_for_me"
-                },
-                {
-                    "actions": [
-                        "notify",
-                        {
-                            "set_tweak": "highlight",
-                            "value": false
-                        }
-                    ],
-                    "conditions": [
+                        ],
+                        "default": true,
+                        "enabled": true,
+                        "rule_id": ".m.rule.invite_for_me"
+                    },
+                    {
+                        "actions": [
+                            "notify",
+                            {
+                                "set_tweak": "highlight",
+                                "value": false
+                            }
+                        ],
+                        "conditions": [
                         {
                             "key": "type",
                             "kind": "event_match",
                             "pattern": "m.room.member"
                         }
-                    ],
-                    "default": true,
-                    "enabled": true,
-                    "rule_id": ".m.rule.member_event"
-                },
-                {
-                    "actions": [
-                        "notify",
-                        {
-                            "set_tweak": "highlight",
-                            "value": false
-                        }
-                    ],
-                    "conditions": [
+                        ],
+                        "default": true,
+                        "enabled": true,
+                        "rule_id": ".m.rule.member_event"
+                    },
+                    {
+                        "actions": [
+                            "notify",
+                            {
+                                "set_tweak": "highlight",
+                                "value": false
+                            }
+                        ],
+                        "conditions": [
                         {
                             "key": "type",
                             "kind": "event_match",
                             "pattern": "m.room.message"
                         }
-                    ],
-                    "default": true,
-                    "enabled": true,
-                    "rule_id": ".m.rule.message"
+                        ],
+                        "default": true,
+                        "enabled": true,
+                        "rule_id": ".m.rule.message"
+                    }
+                    ]
                 }
-            ]
-        }
-    },
-    "type": "m.push_rules"
-}"#;
-        assert!(serde_json::from_str::<EventResult<PushRulesEvent>>(json)
+            },
+            "type": "m.push_rules"
+        });
+        assert!(from_json_value::<EventResult<PushRulesEvent>>(json_data)
             .unwrap()
             .into_result()
             .is_ok());

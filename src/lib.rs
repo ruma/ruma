@@ -109,6 +109,7 @@
 //! However, the `ruma_events::collections::only::Event` enum does *not* include *m.room.message*,
 //! because *m.room.message* implements a *more specific* event trait than `Event`.
 
+#![recursion_limit = "1024"]
 #![warn(rust_2018_idioms)]
 #![deny(missing_debug_implementations, missing_docs)]
 // Since we support Rust 1.36.0, we can't apply this suggestion yet

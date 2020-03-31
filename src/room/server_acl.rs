@@ -180,14 +180,24 @@ pub(crate) mod raw {
 
 #[cfg(test)]
 mod tests {
+    use serde_json::{from_value as from_json_value, json};
+
     use super::ServerAclEvent;
     use crate::EventResult;
 
     #[test]
     fn default_values() {
-        let server_acl_event: ServerAclEvent =
-            serde_json::from_str::<EventResult<_>>(r#"{"content":{},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.server_acl"}"#)
-            .unwrap().into_result().unwrap();
+        let json_data = json!({
+            "content": {},
+            "event_id": "$h29iv0s8:example.com","origin_server_ts":1,
+            "sender": "@carl:example.com",
+            "state_key": "",
+            "type": "m.room.server_acl"
+        });
+        let server_acl_event: ServerAclEvent = from_json_value::<EventResult<_>>(json_data)
+            .unwrap()
+            .into_result()
+            .unwrap();
 
         assert_eq!(server_acl_event.content.allow_ip_literals, true);
         assert!(server_acl_event.content.allow.is_empty());

@@ -54,6 +54,7 @@ mod tests {
     use std::convert::TryFrom;
 
     use ruma_identifiers::{RoomVersionId, UserId};
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::CreateEventContent;
     use crate::EventResult;
@@ -67,9 +68,13 @@ mod tests {
             predecessor: None,
         };
 
-        let json = r#"{"creator":"@carl:example.com","m.federate":true,"room_version":"4"}"#;
+        let json = json!({
+            "creator": "@carl:example.com",
+            "m.federate": true,
+            "room_version": "4"
+        });
 
-        assert_eq!(serde_json::to_string(&content).unwrap(), json);
+        assert_eq!(to_json_value(&content).unwrap(), json);
     }
 
     #[test]
@@ -81,10 +86,14 @@ mod tests {
             predecessor: None,
         };
 
-        let json = r#"{"creator":"@carl:example.com","m.federate":true,"room_version":"4"}"#;
+        let json = json!({
+            "creator": "@carl:example.com",
+            "m.federate": true,
+            "room_version": "4"
+        });
 
         assert_eq!(
-            serde_json::from_str::<EventResult<CreateEventContent>>(json)
+            from_json_value::<EventResult<CreateEventContent>>(json)
                 .unwrap()
                 .into_result()
                 .unwrap(),

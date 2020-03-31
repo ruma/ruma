@@ -174,7 +174,7 @@ mod tests {
 
     use js_int::UInt;
     use ruma_identifiers::{EventId, RoomAliasId, UserId};
-    use serde_json::Map;
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value, Map};
 
     use super::{CanonicalAliasEvent, CanonicalAliasEventContent};
     use crate::EventResult;
@@ -194,18 +194,34 @@ mod tests {
             unsigned: Map::new(),
         };
 
-        let actual = serde_json::to_string(&canonical_alias_event).unwrap();
-        let expected = r##"{"content":{"alias":"#somewhere:localhost"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.canonical_alias"}"##;
+        let actual = to_json_value(&canonical_alias_event).unwrap();
+        let expected = json!({
+            "content": {
+                "alias": "#somewhere:localhost"
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "sender": "@carl:example.com",
+            "state_key": "",
+            "type": "m.room.canonical_alias"
+        });
 
         assert_eq!(actual, expected);
     }
 
     #[test]
     fn absent_field_as_none() {
+        let json_data = json!({
+            "content": {},
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "sender": "@carl:example.com",
+            "state_key": "",
+            "type": "m.room.canonical_alias"
+        });
+
         assert_eq!(
-            serde_json::from_str::<EventResult<CanonicalAliasEvent>>(
-                r#"{"content":{},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.canonical_alias"}"#
-            )
+            from_json_value::<EventResult<CanonicalAliasEvent>>(json_data)
                 .unwrap()
                 .into_result()
                 .unwrap()
@@ -217,10 +233,18 @@ mod tests {
 
     #[test]
     fn null_field_as_none() {
+        let json_data = json!({
+            "content": {
+                "alias": null
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "sender": "@carl:example.com",
+            "state_key": "",
+            "type": "m.room.canonical_alias"
+        });
         assert_eq!(
-            serde_json::from_str::<EventResult<CanonicalAliasEvent>>(
-                r#"{"content":{"alias":null},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.canonical_alias"}"#
-            )
+            from_json_value::<EventResult<CanonicalAliasEvent>>(json_data)
                 .unwrap()
                 .into_result()
                 .unwrap()
@@ -232,10 +256,18 @@ mod tests {
 
     #[test]
     fn empty_field_as_none() {
+        let json_data = json!({
+            "content": {
+                "alias": ""
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "sender": "@carl:example.com",
+            "state_key": "",
+            "type": "m.room.canonical_alias"
+        });
         assert_eq!(
-            serde_json::from_str::<EventResult<CanonicalAliasEvent>>(
-                r#"{"content":{"alias":""},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.canonical_alias"}"#
-            )
+            from_json_value::<EventResult<CanonicalAliasEvent>>(json_data)
                 .unwrap()
                 .into_result()
                 .unwrap()
@@ -248,11 +280,18 @@ mod tests {
     #[test]
     fn nonempty_field_as_some() {
         let alias = Some(RoomAliasId::try_from("#somewhere:localhost").unwrap());
-
+        let json_data = json!({
+            "content": {
+                "alias": "#somewhere:localhost"
+            },
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "sender": "@carl:example.com",
+            "state_key": "",
+            "type": "m.room.canonical_alias"
+        });
         assert_eq!(
-            serde_json::from_str::<EventResult<CanonicalAliasEvent>>(
-                r##"{"content":{"alias":"#somewhere:localhost"},"event_id":"$h29iv0s8:example.com","origin_server_ts":1,"sender":"@carl:example.com","state_key":"","type":"m.room.canonical_alias"}"##
-            )
+            from_json_value::<EventResult<CanonicalAliasEvent>>(json_data)
                 .unwrap()
                 .into_result()
                 .unwrap()

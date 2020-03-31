@@ -357,7 +357,7 @@ mod tests {
                 }
             },
             "event_id": "$143273582443PhrSn:example.org",
-            "origin_server_ts":233,
+            "origin_server_ts": 233,
             "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
             "sender": "@alice:example.org",
             "state_key": "@alice:example.org"

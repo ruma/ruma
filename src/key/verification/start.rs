@@ -325,7 +325,7 @@ impl Serialize for MSasV1Content {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::to_string;
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{
         HashAlgorithm, KeyAgreementProtocol, MSasV1Content, MSasV1ContentOptions,
@@ -415,10 +415,20 @@ mod tests {
             content: key_verification_start_content,
         };
 
-        assert_eq!(
-            to_string(&key_verification_start).unwrap(),
-            r#"{"content":{"from_device":"123","transaction_id":"456","method":"m.sas.v1","key_agreement_protocols":["curve25519"],"hashes":["sha256"],"message_authentication_codes":["hkdf-hmac-sha256"],"short_authentication_string":["decimal"]},"type":"m.key.verification.start"}"#
-        );
+        let json_data = json!({
+            "content": {
+                "from_device": "123",
+                "transaction_id": "456",
+                "method": "m.sas.v1",
+                "key_agreement_protocols": ["curve25519"],
+                "hashes": ["sha256"],
+                "message_authentication_codes": ["hkdf-hmac-sha256"],
+                "short_authentication_string": ["decimal"]
+            },
+            "type": "m.key.verification.start"
+        });
+
+        assert_eq!(to_json_value(&key_verification_start).unwrap(), json_data);
     }
 
     #[test]
@@ -435,11 +445,19 @@ mod tests {
             .unwrap(),
         );
 
+        let json_data = json!({
+            "from_device": "123",
+            "transaction_id": "456",
+            "method": "m.sas.v1",
+            "hashes": ["sha256"],
+            "key_agreement_protocols": ["curve25519"],
+            "message_authentication_codes": ["hkdf-hmac-sha256"],
+            "short_authentication_string": ["decimal"]
+        });
+
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_eq!(
-            serde_json::from_str::<EventResult<StartEventContent>>(
-                r#"{"from_device":"123","transaction_id":"456","method":"m.sas.v1","hashes":["sha256"],"key_agreement_protocols":["curve25519"],"message_authentication_codes":["hkdf-hmac-sha256"],"short_authentication_string":["decimal"]}"#
-            )
+            from_json_value::<EventResult<StartEventContent>>(json_data)
                 .unwrap()
                 .into_result()
                 .unwrap(),
@@ -450,10 +468,21 @@ mod tests {
             content: key_verification_start_content,
         };
 
+        let json_data = json!({
+            "content": {
+                "from_device": "123",
+                "transaction_id": "456",
+                "method": "m.sas.v1",
+                "key_agreement_protocols": ["curve25519"],
+                "hashes": ["sha256"],
+                "message_authentication_codes": ["hkdf-hmac-sha256"],
+                "short_authentication_string": ["decimal"]
+            },
+            "type": "m.key.verification.start"
+        });
+
         assert_eq!(
-            serde_json::from_str::<EventResult<StartEvent>>(
-                r#"{"content":{"from_device":"123","transaction_id":"456","method":"m.sas.v1","key_agreement_protocols":["curve25519"],"hashes":["sha256"],"message_authentication_codes":["hkdf-hmac-sha256"],"short_authentication_string":["decimal"]},"type":"m.key.verification.start"}"#
-            )
+            from_json_value::<EventResult<StartEvent>>(json_data)
                 .unwrap()
                 .into_result()
                 .unwrap(),
@@ -471,7 +500,7 @@ mod tests {
     fn deserialization_structure_mismatch() {
         // Missing several required fields.
         let error =
-            serde_json::from_str::<EventResult<StartEventContent>>(r#"{"from_device":"123"}"#)
+            from_json_value::<EventResult<StartEventContent>>(json!({"from_device": "123"}))
                 .unwrap()
                 .into_result()
                 .unwrap_err();
@@ -482,13 +511,20 @@ mod tests {
 
     #[test]
     fn deserialization_validation_missing_required_key_agreement_protocols() {
-        let error =
-            serde_json::from_str::<EventResult<StartEventContent>>(
-                r#"{"from_device":"123","transaction_id":"456","method":"m.sas.v1","key_agreement_protocols":[],"hashes":["sha256"],"message_authentication_codes":["hkdf-hmac-sha256"],"short_authentication_string":["decimal"]}"#
-            )
-                .unwrap()
-                .into_result()
-                .unwrap_err();
+        let json_data = json!({
+            "from_device": "123",
+            "transaction_id": "456",
+            "method": "m.sas.v1",
+            "key_agreement_protocols": [],
+            "hashes": ["sha256"],
+            "message_authentication_codes": ["hkdf-hmac-sha256"],
+            "short_authentication_string": ["decimal"]
+        });
+
+        let error = from_json_value::<EventResult<StartEventContent>>(json_data)
+            .unwrap()
+            .into_result()
+            .unwrap_err();
 
         assert!(error.message().contains("key_agreement_protocols"));
         assert!(error.is_validation());
@@ -496,13 +532,19 @@ mod tests {
 
     #[test]
     fn deserialization_validation_missing_required_hashes() {
-        let error =
-            serde_json::from_str::<EventResult<StartEventContent>>(
-                r#"{"from_device":"123","transaction_id":"456","method":"m.sas.v1","key_agreement_protocols":["curve25519"],"hashes":[],"message_authentication_codes":["hkdf-hmac-sha256"],"short_authentication_string":["decimal"]}"#
-            )
-                .unwrap()
-                .into_result()
-                .unwrap_err();
+        let json_data = json!({
+            "from_device": "123",
+            "transaction_id": "456",
+            "method": "m.sas.v1",
+            "key_agreement_protocols": ["curve25519"],
+            "hashes": [],
+            "message_authentication_codes": ["hkdf-hmac-sha256"],
+            "short_authentication_string": ["decimal"]
+        });
+        let error = from_json_value::<EventResult<StartEventContent>>(json_data)
+            .unwrap()
+            .into_result()
+            .unwrap_err();
 
         assert!(error.message().contains("hashes"));
         assert!(error.is_validation());
@@ -510,13 +552,19 @@ mod tests {
 
     #[test]
     fn deserialization_validation_missing_required_message_authentication_codes() {
-        let error =
-            serde_json::from_str::<EventResult<StartEventContent>>(
-                r#"{"from_device":"123","transaction_id":"456","method":"m.sas.v1","key_agreement_protocols":["curve25519"],"hashes":["sha256"],"message_authentication_codes":[],"short_authentication_string":["decimal"]}"#
-            )
-                .unwrap()
-                .into_result()
-                .unwrap_err();
+        let json_data = json!({
+            "from_device": "123",
+            "transaction_id": "456",
+            "method": "m.sas.v1",
+            "key_agreement_protocols": ["curve25519"],
+            "hashes": ["sha256"],
+            "message_authentication_codes": [],
+            "short_authentication_string": ["decimal"]
+        });
+        let error = from_json_value::<EventResult<StartEventContent>>(json_data)
+            .unwrap()
+            .into_result()
+            .unwrap_err();
 
         assert!(error.message().contains("message_authentication_codes"));
         assert!(error.is_validation());
@@ -524,13 +572,19 @@ mod tests {
 
     #[test]
     fn deserialization_validation_missing_required_short_authentication_string() {
-        let error =
-            serde_json::from_str::<EventResult<StartEventContent>>(
-                r#"{"from_device":"123","transaction_id":"456","method":"m.sas.v1","key_agreement_protocols":["curve25519"],"hashes":["sha256"],"message_authentication_codes":["hkdf-hmac-sha256"],"short_authentication_string":[]}"#
-            )
-                .unwrap()
-                .into_result()
-                .unwrap_err();
+        let json_data = json!({
+            "from_device": "123",
+            "transaction_id": "456",
+            "method": "m.sas.v1",
+            "key_agreement_protocols": ["curve25519"],
+            "hashes": ["sha256"],
+            "message_authentication_codes": ["hkdf-hmac-sha256"],
+            "short_authentication_string": []
+        });
+        let error = from_json_value::<EventResult<StartEventContent>>(json_data)
+            .unwrap()
+            .into_result()
+            .unwrap_err();
 
         assert!(error.message().contains("short_authentication_string"));
         assert!(error.is_validation());
@@ -539,13 +593,22 @@ mod tests {
     #[test]
     fn deserialization_of_event_validates_content() {
         // This JSON is missing the required value of "curve25519" for "key_agreement_protocols".
-        let error =
-            serde_json::from_str::<EventResult<StartEvent>>(
-                r#"{"content":{"from_device":"123","transaction_id":"456","method":"m.sas.v1","key_agreement_protocols":[],"hashes":["sha256"],"message_authentication_codes":["hkdf-hmac-sha256"],"short_authentication_string":["decimal"]},"type":"m.key.verification.start"}"#
-            )
-                .unwrap()
-                .into_result()
-                .unwrap_err();
+        let json_data = json!({
+            "content": {
+                "from_device": "123",
+                "transaction_id": "456",
+                "method": "m.sas.v1",
+                "key_agreement_protocols": [],
+                "hashes": ["sha256"],
+                "message_authentication_codes": ["hkdf-hmac-sha256"],
+                "short_authentication_string": ["decimal"]
+            },
+            "type": "m.key.verification.start"
+        });
+        let error = from_json_value::<EventResult<StartEvent>>(json_data)
+            .unwrap()
+            .into_result()
+            .unwrap_err();
 
         assert!(error.message().contains("key_agreement_protocols"));
         assert!(error.is_validation());

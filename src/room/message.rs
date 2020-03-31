@@ -1047,7 +1047,7 @@ impl Serialize for VideoMessageEventContent {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::to_string;
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{AudioMessageEventContent, MessageEventContent};
     use crate::room::message::{InReplyTo, RelatesTo, TextMessageEventContent};
@@ -1065,8 +1065,12 @@ mod tests {
         });
 
         assert_eq!(
-            to_string(&message_event_content).unwrap(),
-            r#"{"body":"test","msgtype":"m.audio","url":"http://example.com/audio.mp3"}"#
+            to_json_value(&message_event_content).unwrap(),
+            json!({
+                "body": "test",
+                "msgtype": "m.audio",
+                "url": "http://example.com/audio.mp3"
+            })
         );
     }
 
@@ -1077,8 +1081,11 @@ mod tests {
         ));
 
         assert_eq!(
-            to_string(&message_event_content).unwrap(),
-            r#"{"body":"> <@test:example.com> test\n\ntest reply","msgtype":"m.text"}"#
+            to_json_value(&message_event_content).unwrap(),
+            json!({
+                "body": "> <@test:example.com> test\n\ntest reply",
+                "msgtype": "m.text"
+            })
         );
     }
 
@@ -1095,10 +1102,17 @@ mod tests {
             }),
         });
 
-        assert_eq!(
-            to_string(&message_event_content).unwrap(),
-            r#"{"body":"> <@test:example.com> test\n\ntest reply","msgtype":"m.text","m.relates_to":{"m.in_reply_to":{"event_id":"$15827405538098VGFWH:example.com"}}}"#
-        );
+        let json_data = json!({
+            "body": "> <@test:example.com> test\n\ntest reply",
+            "msgtype": "m.text",
+            "m.relates_to": {
+                "m.in_reply_to": {
+                    "event_id": "$15827405538098VGFWH:example.com"
+                }
+            }
+        });
+
+        assert_eq!(to_json_value(&message_event_content).unwrap(), json_data);
     }
 
     #[test]
@@ -1110,24 +1124,32 @@ mod tests {
             file: None,
         });
 
+        let json_data = json!({
+            "body": "test",
+            "msgtype": "m.audio",
+            "url": "http://example.com/audio.mp3"
+        });
+
         assert_eq!(
-            serde_json::from_str::<EventResult<MessageEventContent>>(
-                r#"{"body":"test","msgtype":"m.audio","url":"http://example.com/audio.mp3"}"#
-            )
-            .unwrap()
-            .into_result()
-            .unwrap(),
+            from_json_value::<EventResult<MessageEventContent>>(json_data)
+                .unwrap()
+                .into_result()
+                .unwrap(),
             message_event_content
         );
     }
 
     #[test]
     fn deserialization_failure() {
-        assert!(serde_json::from_str::<EventResult<MessageEventContent>>(
-            r#"{"body":"test","msgtype":"m.location","url":"http://example.com/audio.mp3"}"#
-        )
-        .unwrap()
-        .into_result()
-        .is_err());
+        let json_data = json!({
+            "body": "test","msgtype": "m.location",
+            "url": "http://example.com/audio.mp3"
+        });
+        assert!(
+            from_json_value::<EventResult<MessageEventContent>>(json_data)
+                .unwrap()
+                .into_result()
+                .is_err()
+        );
     }
 }

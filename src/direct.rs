@@ -25,7 +25,7 @@ mod tests {
     use std::collections::HashMap;
 
     use ruma_identifiers::{RoomId, UserId};
-    use serde_json::to_string;
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{DirectEvent, DirectEventContent};
     use crate::EventResult;
@@ -39,15 +39,14 @@ mod tests {
         content.insert(alice.clone(), room.clone());
 
         let event = DirectEvent { content };
+        let json_data = json!({
+            "content": {
+                alice.to_string(): vec![room[0].to_string()],
+            },
+            "type": "m.direct"
+        });
 
-        assert_eq!(
-            to_string(&event).unwrap(),
-            format!(
-                r#"{{"type":"m.direct","content":{{"{}":["{}"]}}}}"#,
-                alice.to_string(),
-                room[0].to_string()
-            )
-        );
+        assert_eq!(to_json_value(&event).unwrap(), json_data);
     }
 
     #[test]
@@ -58,17 +57,14 @@ mod tests {
             RoomId::new("ruma.io").unwrap(),
         ];
 
-        let json_data = format!(
-            r#"{{
-            "type": "m.direct",
-            "content": {{ "{}": ["{}", "{}"] }}
-        }}"#,
-            alice.to_string(),
-            rooms[0].to_string(),
-            rooms[1].to_string()
-        );
+        let json_data = json!({
+            "content": {
+                alice.to_string(): vec![rooms[0].to_string(), rooms[1].to_string()],
+            },
+            "type": "m.direct"
+        });
 
-        let event: DirectEvent = serde_json::from_str::<EventResult<_>>(&json_data)
+        let event: DirectEvent = from_json_value::<EventResult<_>>(json_data)
             .unwrap()
             .into_result()
             .unwrap();

@@ -84,6 +84,7 @@ mod tests {
     use std::convert::TryFrom;
 
     use ruma_identifiers::UserId;
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{IgnoredUserListEvent, IgnoredUserListEventContent};
     use crate::EventResult;
@@ -96,19 +97,30 @@ mod tests {
             },
         };
 
-        let json = serde_json::to_string(&ignored_user_list_event).unwrap();
+        let json_data = json!({
+            "content": {
+                "ignored_users": {
+                    "@carl:example.com": {}
+                }
+            },
+            "type": "m.ignored_user_list"
+        });
 
-        assert_eq!(
-            json,
-            r#"{"content":{"ignored_users":{"@carl:example.com":{}}},"type":"m.ignored_user_list"}"#
-        );
+        assert_eq!(to_json_value(ignored_user_list_event).unwrap(), json_data);
     }
 
     #[test]
     fn deserialization() {
-        let json = r#"{"content":{"ignored_users":{"@carl:example.com":{}}},"type":"m.ignored_user_list"}"#;
+        let json_data = json!({
+            "content": {
+                "ignored_users": {
+                    "@carl:example.com": {}
+                }
+            },
+            "type": "m.ignored_user_list"
+        });
 
-        let actual = serde_json::from_str::<EventResult<IgnoredUserListEvent>>(json)
+        let actual = from_json_value::<EventResult<IgnoredUserListEvent>>(json_data)
             .unwrap()
             .into_result()
             .unwrap();

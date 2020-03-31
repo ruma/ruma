@@ -134,27 +134,27 @@ impl From<CancelCode> for String {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{from_str, to_string};
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::CancelCode;
 
     #[test]
     fn cancel_codes_serialize_to_display_form() {
-        assert_eq!(to_string(&CancelCode::User).unwrap(), r#""m.user""#);
+        assert_eq!(to_json_value(&CancelCode::User).unwrap(), json!("m.user"));
     }
 
     #[test]
     fn custom_cancel_codes_serialize_to_display_form() {
         assert_eq!(
-            to_string(&CancelCode::Custom("io.ruma.test".to_string())).unwrap(),
-            r#""io.ruma.test""#
+            to_json_value(&CancelCode::Custom("io.ruma.test".to_string())).unwrap(),
+            json!("io.ruma.test")
         );
     }
 
     #[test]
     fn cancel_codes_deserialize_from_display_form() {
         assert_eq!(
-            from_str::<CancelCode>(r#""m.user""#).unwrap(),
+            from_json_value::<CancelCode>(json!("m.user")).unwrap(),
             CancelCode::User
         );
     }
@@ -162,7 +162,7 @@ mod tests {
     #[test]
     fn custom_cancel_codes_deserialize_from_display_form() {
         assert_eq!(
-            from_str::<CancelCode>(r#""io.ruma.test""#).unwrap(),
+            from_json_value::<CancelCode>(json!("io.ruma.test")).unwrap(),
             CancelCode::Custom("io.ruma.test".to_string())
         )
     }
