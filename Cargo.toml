@@ -1,5 +1,5 @@
 [package]
-authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
+authors = ["Jonas Platte <jplatte+git@posteo.de>"]
 categories = ["api-bindings", "web-programming"]
 description = "Types for the endpoints in the Matrix server-server API."
 documentation = "https://docs.rs/ruma-federation-api"
@@ -13,3 +13,8 @@ repository = "https://github.com/ruma/ruma-federation-api"
 version = "0.1.0"
 
 [dependencies]
+js_int = "0.1.3"
+ruma-events = "0.18.0"
+ruma-identifiers = "0.14.1"
+serde = { version = "1.0.105", features = ["derive"] }
+serde_json = "1.0.50"
