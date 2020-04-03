@@ -2,10 +2,10 @@
 
 use crate::generate_localpart;
 
-///  A Matrix device ID.
+/// A Matrix device ID.
 ///
-///  Device identifiers in Matrix are completely opaque character sequences. This type alias is
-///  provided simply for its semantic value.
+/// Device identifiers in Matrix are completely opaque character sequences. This type alias is
+/// provided simply for its semantic value.
 pub type DeviceId = String;
 
 /// Generates a random `DeviceId`, suitable for assignment to a new device.
