@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Fix (de)serialization of `sync_events::RoomSummary`
+
 # 0.7.0
 
 Breaking changes:
