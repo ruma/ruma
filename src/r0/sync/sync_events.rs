@@ -328,3 +328,33 @@ pub struct DeviceLists {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub left: Vec<String>,
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{convert::TryInto, time::Duration};
+
+    use super::{Filter, Request, SetPresence};
+
+    #[test]
+    fn serialize_sync_request() {
+        let req: http::Request<Vec<u8>> = Request {
+            filter: Some(Filter::FilterId("66696p746572".into())),
+            since: Some("s72594_4483_1934".into()),
+            full_state: true,
+            set_presence: SetPresence::Offline,
+            timeout: Some(Duration::from_millis(30000)),
+        }
+        .try_into()
+        .unwrap();
+
+        let uri = req.uri();
+        let query = uri.query().unwrap();
+
+        assert_eq!(uri.path(), "/_matrix/client/r0/sync");
+        assert!(query.contains("filter=66696p746572"));
+        assert!(query.contains("since=s72594_4483_1934"));
+        assert!(query.contains("full_state=true"));
+        assert!(query.contains("set_presence=offline"));
+        assert!(query.contains("timeout=30000"))
+    }
+}
