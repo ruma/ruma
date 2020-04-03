@@ -23,8 +23,11 @@ ruma_api! {
     request {
         /// The time (in milliseconds) to wait when downloading keys from remote servers.
         /// 10 seconds is the recommended default.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[serde(default, with = "crate::serde::duration::opt_ms")]
+        #[serde(
+            with = "crate::serde::duration::opt_ms",
+            default,
+            skip_serializing_if = "Option::is_none",
+        )]
         pub timeout: Option<Duration>,
 
         /// The keys to be claimed.

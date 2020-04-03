@@ -44,8 +44,11 @@ mod tests {
 
     #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
     struct DurationTest {
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[serde(default, with = "crate::serde::duration::opt_ms")]
+        #[serde(
+            with = "crate::serde::duration::opt_ms",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
         timeout: Option<Duration>,
     }
 

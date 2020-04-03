@@ -20,8 +20,11 @@ ruma_api! {
         #[ruma_api(path)]
         pub room_id: RoomId,
         /// The length of time in milliseconds to mark this user as typing.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[serde(default, with = "crate::serde::duration::opt_ms")]
+        #[serde(
+            with = "crate::serde::duration::opt_ms",
+            default,
+            skip_serializing_if = "Option::is_none",
+        )]
         pub timeout: Option<Duration>,
         /// Whether the user is typing or not. If `false`, the `timeout` key can be omitted.
         pub typing: bool,
