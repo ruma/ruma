@@ -1,7 +1,8 @@
 # [unreleased]
 
-Improvements:
+Bug fixes:
 
+* Fix deserialization of `sync_events::Request`
 * Fix (de)serialization of `sync_events::RoomSummary`
 
 # 0.7.0
