@@ -34,9 +34,3 @@ script:
   - cargo build --verbose
   - cargo test --verbose
 if: "type != push OR (tag IS blank AND branch = master)"
-notifications:
-  email: false
-  irc:
-    channels:
-      - secure: "eyhVIoItrOoGxIRYXWQp+uqeTlbqn0MW2/+1Gl4raWzHkeZBME8GFezNxBR1bQrse3qlYj+/UXA43vHCDeU2+xBmvYujpBfjWD7f7huj1zIag+dNHP7k9sIQ09fmKSY+D3Vwr6Y9/wj+xrPNzL7xsxXCduL3w37QTZNqFWTcVuFetqqEFasSnNlkSCsM7Gv6QsaLNNBWsLT9q3va7PQdFwYhitisBAtI79tTcGpBoPpH4xegnai02fYu7WNCPetdQF7tyZb+ioRt9b159neqBb/BoftOvLEzEHtpirTMXYizlURdR63am/pYaEk0S7//WSatHLs2UB1JD5qDWjCCldZD7q+Xn2JEdNVwWv0vTtKd4jYfbGNbIYXgEIvOpoBrQoIAkfa4mVd8pOaexydFStdW/Q7P+h8ZSJoituq0Z6tCbeb+zVKi9n5Qx9F+OQcXREV6FKo5YE+L0VQ91QNnoJKPNxj1OMk+R2/xwbu2+qcDsrwzhwC6woaboxw1jLUTD/T3VeMIKB3NvDt4UivkKvWugMN0QR72xD3eU3+3yXaGVbmSZhC+rbaXE8x3ZViukbPlBMKvKtCI6nzuHt9lw7cl5qub/hz3Pt379fj92Z5Q7R1RvlwFwm7dJ7zypAsg2ZCWyKP0q4gvnd8SNxJ972YTK+tHZuq56JzVA7mi2IU="
-    use_notice: true
