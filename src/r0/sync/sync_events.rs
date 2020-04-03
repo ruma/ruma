@@ -359,4 +359,32 @@ mod tests {
         assert!(query.contains("set_presence=offline"));
         assert!(query.contains("timeout=30000"))
     }
+
+    #[test]
+    fn deserialize_sync_request_with_query_params() {
+        let uri = http::Uri::builder()
+            .scheme("https")
+            .authority("matrix.org")
+            .path_and_query("/_matrix/client/r0/sync?filter=myfilter&since=myts&full_state=false&set_presence=offline&timeout=5000")
+            .build()
+            .unwrap();
+
+        let req: Request = http::Request::builder()
+            .uri(uri)
+            .body(Vec::<u8>::new())
+            .unwrap()
+            .try_into()
+            .unwrap();
+
+        match req.filter {
+            Some(Filter::FilterId(id)) if id == "myfilter" => {}
+            _ => {
+                panic!("Not the expected filter ID.");
+            }
+        }
+        assert_eq!(req.since, Some("myts".into()));
+        assert_eq!(req.full_state, false);
+        assert_eq!(req.set_presence, SetPresence::Offline);
+        assert_eq!(req.timeout, Some(Duration::from_millis(5000)));
+    }
 }
