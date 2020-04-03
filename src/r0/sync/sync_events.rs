@@ -53,7 +53,11 @@ ruma_api! {
         #[ruma_api(query)]
         pub set_presence: SetPresence,
         /// The maximum time to poll in milliseconds before returning this request.
-        #[serde(with = "crate::serde::duration::opt_ms", skip_serializing_if = "Option::is_none")]
+        #[serde(
+            with = "crate::serde::duration::opt_ms",
+            default,
+            skip_serializing_if = "Option::is_none",
+        )]
         #[ruma_api(query)]
         pub timeout: Option<Duration>,
     }
@@ -386,5 +390,28 @@ mod tests {
         assert_eq!(req.full_state, false);
         assert_eq!(req.set_presence, SetPresence::Offline);
         assert_eq!(req.timeout, Some(Duration::from_millis(5000)));
+    }
+
+    #[test]
+    fn deserialize_sync_request_without_query_params() {
+        let uri = http::Uri::builder()
+            .scheme("https")
+            .authority("matrix.org")
+            .path_and_query("/_matrix/client/r0/sync")
+            .build()
+            .unwrap();
+
+        let req: Request = http::Request::builder()
+            .uri(uri)
+            .body(Vec::<u8>::new())
+            .unwrap()
+            .try_into()
+            .unwrap();
+
+        assert!(req.filter.is_none());
+        assert!(req.since.is_none());
+        assert_eq!(req.full_state, false);
+        assert_eq!(req.set_presence, SetPresence::Online);
+        assert!(req.timeout.is_none());
     }
 }
