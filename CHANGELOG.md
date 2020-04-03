@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.7.1
+
 Bug fixes:
 
 * Fix deserialization of `sync_events::Request`
