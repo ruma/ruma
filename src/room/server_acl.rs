@@ -2,13 +2,14 @@
 
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-use crate::{util::default_true, Event as _, EventType, FromRaw};
+use crate::{util::default_true, EventType, FromRaw};
 
 /// An event to indicate which servers are permitted to participate in the room.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename = "m.room.server_acl", tag = "type")]
 pub struct ServerAclEvent {
     /// The event's content.
     pub content: ServerAclEventContent,
@@ -21,9 +22,11 @@ pub struct ServerAclEvent {
     pub origin_server_ts: UInt,
 
     /// The previous content for this state key, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub prev_content: Option<ServerAclEventContent>,
 
     /// The unique identifier for the room associated with this event.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub room_id: Option<RoomId>,
 
     /// The unique identifier for the user who sent this event.
@@ -33,6 +36,7 @@ pub struct ServerAclEvent {
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
+    #[serde(skip_serializing_if = "Map::is_empty")]
     pub unsigned: Map<String, Value>,
 }
 
@@ -91,20 +95,6 @@ impl FromRaw for ServerAclEventContent {
             allow: raw.allow,
             deny: raw.deny,
         }
-    }
-}
-
-impl Serialize for ServerAclEvent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("ServerAclEvent", 2)?;
-
-        state.serialize_field("content", &self.content)?;
-        state.serialize_field("type", &self.event_type())?;
-
-        state.end()
     }
 }
 

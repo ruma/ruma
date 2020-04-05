@@ -3,16 +3,17 @@ use std::collections::HashMap;
 
 use js_int::UInt;
 use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
-use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Map, Value};
 
-use crate::{Algorithm, Event, EventType, FromRaw};
+use crate::{Algorithm, EventType, FromRaw};
 
 /// This event type is used when sending encrypted events.
 ///
 /// This type is to be used within a room. For a to-device event, use `EncryptedEventContent`
 /// directly.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename = "m.room.encrypted", tag = "type")]
 pub struct EncryptedEvent {
     /// The event's content.
     pub content: EncryptedEventContent,
@@ -25,12 +26,14 @@ pub struct EncryptedEvent {
     pub origin_server_ts: UInt,
 
     /// The unique identifier for the room associated with this event.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub room_id: Option<RoomId>,
 
     /// The unique identifier for the user who sent this event.
     pub sender: UserId,
 
     /// Additional key-value pairs not signed by the homeserver.
+    #[serde(skip_serializing_if = "Map::is_empty")]
     pub unsigned: Map<String, Value>,
 }
 
@@ -79,42 +82,6 @@ impl FromRaw for EncryptedEventContent {
                 unreachable!("__Nonexhaustive variant should be impossible to obtain.")
             }
         }
-    }
-}
-
-impl Serialize for EncryptedEvent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut len = 6;
-
-        if self.room_id.is_some() {
-            len += 1;
-        }
-
-        if !self.unsigned.is_empty() {
-            len += 1;
-        }
-
-        let mut state = serializer.serialize_struct("EncryptedEvent", len)?;
-
-        state.serialize_field("content", &self.content)?;
-        state.serialize_field("event_id", &self.event_id)?;
-        state.serialize_field("origin_server_ts", &self.origin_server_ts)?;
-
-        if self.room_id.is_some() {
-            state.serialize_field("room_id", &self.room_id)?;
-        }
-
-        state.serialize_field("sender", &self.sender)?;
-        state.serialize_field("type", &self.event_type())?;
-
-        if !self.unsigned.is_empty() {
-            state.serialize_field("unsigned", &self.unsigned)?;
-        }
-
-        state.end()
     }
 }
 

@@ -8,12 +8,13 @@ use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
     VerificationMethod,
 };
-use crate::{Event, EventType, InvalidInput, TryFromRaw};
+use crate::{EventType, InvalidInput, TryFromRaw};
 
 /// Begins an SAS key verification process.
 ///
 /// Typically sent as a to-device event.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename = "m.key.verification.start", tag = "type")]
 pub struct StartEvent {
     /// The event's content.
     pub content: StartEventContent,
@@ -37,20 +38,6 @@ impl TryFromRaw for StartEvent {
 
     fn try_from_raw(raw: raw::StartEvent) -> Result<Self, Self::Err> {
         StartEventContent::try_from_raw(raw.content).map(|content| Self { content })
-    }
-}
-
-impl Serialize for StartEvent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("StartEvent", 2)?;
-
-        state.serialize_field("content", &self.content)?;
-        state.serialize_field("type", &self.event_type())?;
-
-        state.end()
     }
 }
 

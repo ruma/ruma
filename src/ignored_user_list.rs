@@ -1,12 +1,13 @@
 //! Types for the *m.ignored_user_list* event.
 
 use ruma_identifiers::UserId;
-use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
-use crate::{util::vec_as_map_of_empty, Event as _, EventType, FromRaw};
+use crate::{util::vec_as_map_of_empty, EventType, FromRaw};
 
 /// A list of users to ignore.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename = "m.ignored_user_list", tag = "type")]
 pub struct IgnoredUserListEvent {
     /// The event's content.
     pub content: IgnoredUserListEventContent,
@@ -19,20 +20,6 @@ impl FromRaw for IgnoredUserListEvent {
         Self {
             content: FromRaw::from_raw(raw.content),
         }
-    }
-}
-
-impl Serialize for IgnoredUserListEvent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("IgnoredUserListEvent", 2)?;
-
-        state.serialize_field("content", &self.content)?;
-        state.serialize_field("type", &self.event_type())?;
-
-        state.end()
     }
 }
 

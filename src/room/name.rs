@@ -2,13 +2,14 @@
 
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-use crate::{util::empty_string_as_none, Event as _, EventType, InvalidInput, TryFromRaw};
+use crate::{util::empty_string_as_none, EventType, InvalidInput, TryFromRaw};
 
 /// A human-friendly room name designed to be displayed to the end-user.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename = "m.room.name", tag = "type")]
 pub struct NameEvent {
     /// The event's content.
     pub content: NameEventContent,
@@ -21,9 +22,11 @@ pub struct NameEvent {
     pub origin_server_ts: UInt,
 
     /// The previous content for this state key, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub prev_content: Option<NameEventContent>,
 
     /// The unique identifier for the room associated with this event.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub room_id: Option<RoomId>,
 
     /// The unique identifier for the user who sent this event.
@@ -33,6 +36,7 @@ pub struct NameEvent {
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
+    #[serde(skip_serializing_if = "Map::is_empty")]
     pub unsigned: Map<String, Value>,
 }
 
@@ -74,51 +78,6 @@ impl TryFromRaw for NameEventContent {
             None => Ok(NameEventContent { name: None }),
             Some(name) => NameEventContent::new(name),
         }
-    }
-}
-
-impl Serialize for NameEvent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut len = 6;
-
-        if self.prev_content.is_some() {
-            len += 1;
-        }
-
-        if self.room_id.is_some() {
-            len += 1;
-        }
-
-        if !self.unsigned.is_empty() {
-            len += 1;
-        }
-
-        let mut state = serializer.serialize_struct("NameEvent", len)?;
-
-        state.serialize_field("content", &self.content)?;
-        state.serialize_field("event_id", &self.event_id)?;
-        state.serialize_field("origin_server_ts", &self.origin_server_ts)?;
-
-        if self.prev_content.is_some() {
-            state.serialize_field("prev_content", &self.prev_content)?;
-        }
-
-        if self.room_id.is_some() {
-            state.serialize_field("room_id", &self.room_id)?;
-        }
-
-        state.serialize_field("sender", &self.sender)?;
-        state.serialize_field("state_key", &self.state_key)?;
-        state.serialize_field("type", &self.event_type())?;
-
-        if !self.unsigned.is_empty() {
-            state.serialize_field("unsigned", &self.unsigned)?;
-        }
-
-        state.end()
     }
 }
 
