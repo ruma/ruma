@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/join/{roomIdOrAlias}](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-join-roomidoralias)
+//! [POST /_matrix/client/r0/join/{roomIdOrAlias}](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-join-roomidoralias)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, RoomIdOrAliasId};
@@ -19,6 +19,11 @@ ruma_api! {
         /// The room where the user should be invited.
         #[ruma_api(path)]
         pub room_id_or_alias: RoomIdOrAliasId,
+        /// The servers to attempt to join the room through. One of the servers
+        /// must be participating in the room.
+        #[ruma_api(query)]
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub server_name: Vec<String>,
         /// The signature of a `m.third_party_invite` token to prove that this user owns a third
         /// party identity which has been invited to the room.
         #[serde(skip_serializing_if = "Option::is_none")]

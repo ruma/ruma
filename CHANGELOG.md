@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Add `server_name` parameter to `r0::join::join_room_by_id_or_alias` 
+
 # 0.7.2
 
 Bug fixes:
