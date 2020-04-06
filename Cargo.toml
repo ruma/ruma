@@ -18,20 +18,20 @@ version = "0.3.0"
 [dependencies]
 futures-core = "0.3.4"
 futures-util = "0.3.4"
-http = "0.2.0"
-hyper = "0.13.2"
+http = "0.2.1"
+hyper = "0.13.4"
 hyper-tls = { version = "0.4.1", optional = true }
-ruma-api = "0.13.0"
-ruma-client-api = "0.6.0"
-ruma-events = "0.15.1"
+ruma-api = "0.15.0"
+ruma-client-api = "0.7.1"
+ruma-events = "0.18.0"
 ruma-identifiers = "0.14.1"
-serde = { version = "1.0.104", features = ["derive"] }
-serde_json = "1.0.47"
+serde = { version = "1.0.106", features = ["derive"] }
+serde_json = "1.0.51"
 serde_urlencoded = "0.6.1"
 url = "2.1.1"
 
 [dev-dependencies]
-tokio = { version = "0.2.11", features = ["macros"] }
+tokio = { version = "0.2.16", features = ["macros"] }
 
 [features]
 default = ["tls"]

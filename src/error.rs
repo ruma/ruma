@@ -5,6 +5,8 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use ruma_api::error::{FromHttpResponseError, IntoHttpError};
 
+use crate::api;
+
 /// An error that can occur during client operations.
 #[derive(Debug)]
 #[non_exhaustive]
@@ -18,7 +20,7 @@ pub enum Error {
     /// Couldn't obtain an HTTP response (e.g. due to network or DNS issues).
     Response(ResponseError),
     /// Converting the HTTP response to one of ruma's types failed.
-    FromHttpResponse(FromHttpResponseError),
+    FromHttpResponse(FromHttpResponseError<api::Error>),
 }
 
 impl Display for Error {
@@ -30,7 +32,9 @@ impl Display for Error {
             Self::IntoHttp(err) => write!(f, "HTTP request construction failed: {}", err),
             Self::Url(UrlError(err)) => write!(f, "Invalid URL: {}", err),
             Self::Response(ResponseError(err)) => write!(f, "Couldn't obtain a response: {}", err),
-            Self::FromHttpResponse(err) => write!(f, "HTTP response conversion failed: {}", err),
+            // FIXME: ruma-client-api's Error type currently doesn't implement
+            //        `Display`, update this when it does.
+            Self::FromHttpResponse(_) => write!(f, "HTTP response conversion failed"),
         }
     }
 }
@@ -55,8 +59,8 @@ impl From<hyper::Error> for Error {
     }
 }
 
-impl From<FromHttpResponseError> for Error {
-    fn from(err: FromHttpResponseError) -> Self {
+impl From<FromHttpResponseError<api::Error>> for Error {
+    fn from(err: FromHttpResponseError<api::Error>) -> Self {
         Error::FromHttpResponse(err)
     }
 }
