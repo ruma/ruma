@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.7.2
+
+Bug fixes:
+
+* Fix `create_room` requests without an `initial_state` field failing deserialization
+* Fix `sync_events` responses without a `device_one_time_keys_count` field failing deserialization
+
 # 0.7.1
 
 Bug fixes:
