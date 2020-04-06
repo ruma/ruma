@@ -3,6 +3,10 @@
 Breaking changes:
 
 * Add `server_name` parameter to `r0::join::join_room_by_id_or_alias` 
+* Update `r0::account::register` endpoint:
+  * Remove `bind_email` request field (removed in r0.6.0)
+  * Remove `inhibit_login` request field, make `access_token` and `device_id` response fields optional (added in r0.4.0)
+  * Remove deprecated `home_server` response field (removed in r0.4.0)
 
 # 0.7.2
 

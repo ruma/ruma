@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/register](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-register)
+//! [POST /_matrix/client/r0/register](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-register)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{DeviceId, UserId};
@@ -17,10 +17,6 @@ ruma_api! {
     }
 
     request {
-        /// If true, the server binds the email used for authentication
-        /// to the Matrix ID with the ID Server.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub bind_email: Option<bool>,
         /// The desired password for the account.
         ///
         /// Should only be empty for guest accounts.
@@ -53,25 +49,28 @@ ruma_api! {
         pub auth: Option<AuthenticationData>,
         /// Kind of account to register
         ///
-        /// Defaults to `User` if ommited.
+        /// Defaults to `User` if omitted.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub kind: Option<RegistrationKind>,
+        /// If `true`, an `access_token` and `device_id` should not be returned
+        /// from this call, therefore preventing an automatic login.
+        #[serde(default, skip_serializing_if = "crate::serde::is_default")]
+        pub inhibit_login: bool,
     }
 
     response {
         /// An access token for the account.
         ///
         /// This access token can then be used to authorize other requests.
-        pub access_token: String,
-        /// The hostname of the homeserver on which the account has been registered.
-        pub home_server: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub access_token: Option<String>,
         /// The fully-qualified Matrix ID that has been registered.
         pub user_id: UserId,
         /// ID of the registered device.
         ///
         /// Will be the same as the corresponding parameter in the request, if one was specified.
-        pub device_id: DeviceId,
+        pub device_id: Option<DeviceId>,
     }
 
     error: crate::Error
