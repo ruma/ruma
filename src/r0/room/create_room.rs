@@ -27,7 +27,7 @@ ruma_api! {
         ///
         /// Takes precedence over events set by preset, but gets overriden by
         /// name and topic keys.
-        #[serde(skip_serializing_if = "Vec::is_empty")]
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub initial_state: Vec<InitialStateEvent>,
         /// A list of user IDs to invite to the room.
         ///

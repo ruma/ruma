@@ -82,7 +82,7 @@ ruma_api! {
         pub device_lists: Option<DeviceLists>,
         /// For each key algorithm, the number of unclaimed one-time keys
         /// currently held on the server for a device.
-        #[serde(skip_serializing_if = "HashMap::is_empty")]
+        #[serde(default, skip_serializing_if = "HashMap::is_empty")]
         pub device_one_time_keys_count: HashMap<KeyAlgorithm, UInt>,
     }
 
