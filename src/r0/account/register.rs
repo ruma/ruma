@@ -19,8 +19,8 @@ ruma_api! {
     request {
         /// The desired password for the account.
         ///
-        /// Should only be empty for guest accounts.
-        // TODO: the spec says nothing about when it is actually required.
+        /// May be empty for accounts that should not be able to log in again
+        /// with a password, e.g., for guest or application service accounts.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub password: Option<String>,
         /// local part of the desired Matrix ID.
