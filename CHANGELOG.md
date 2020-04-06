@@ -9,6 +9,10 @@ Breaking changes:
   * Remove deprecated `home_server` response field (removed in r0.4.0)
 * Add `auth_parameters` to `r0::account::AuthenticationData` 
 
+Improvements:
+
+* Add types for User-Interactive Authentication API: `r0::account::{UserInteractiveAuthenticationInfo, AuthenticationFlow}`
+
 # 0.7.2
 
 Bug fixes:
