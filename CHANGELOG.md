@@ -7,6 +7,7 @@ Breaking changes:
   * Remove `bind_email` request field (removed in r0.6.0)
   * Remove `inhibit_login` request field, make `access_token` and `device_id` response fields optional (added in r0.4.0)
   * Remove deprecated `home_server` response field (removed in r0.4.0)
+* Add `auth_parameters` to `r0::account::AuthenticationData` 
 
 # 0.7.2
 

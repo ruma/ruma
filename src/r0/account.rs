@@ -17,6 +17,8 @@ pub mod unbind_3pid;
 
 pub mod whoami;
 
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 
 /// Additional authentication information for the user-interactive authentication API.
@@ -27,6 +29,9 @@ pub struct AuthenticationData {
     pub kind: String,
     /// The value of the session key given by the homeserver.
     pub session: Option<String>,
+    /// Parameters submitted for a particular authentication stage.
+    #[serde(flatten)]
+    pub auth_parameters: BTreeMap<String, serde_json::Value>,
 }
 
 /// Additional authentication information for requestToken endpoints.
