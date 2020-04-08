@@ -21,6 +21,8 @@ Breaking changes:
   * `server::get_user_info::ConnectionInfo`
   * `device::Device`
 * Change all usages of `HashMap` to `BTreeMap`
+* Change the messages type that gets sent out using the `r0::client_exchange::send_event_to_device`
+  request.
 
 Improvements:
 
