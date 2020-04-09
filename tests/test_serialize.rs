@@ -81,3 +81,8 @@ struct Unit;
 fn serialize_unit_struct() {
     assert_eq!(serde_urlencoded::to_string(Unit), Ok("".to_owned()));
 }
+
+#[test]
+fn serialize_unit_type() {
+    assert_eq!(serde_urlencoded::to_string(()), Ok("".to_owned()));
+}

@@ -83,3 +83,8 @@ fn deserialize_unit_enum() {
         Ok(result)
     );
 }
+
+#[test]
+fn deserialize_unit_type() {
+    assert_eq!(serde_urlencoded::from_str(""), Ok(()));
+}

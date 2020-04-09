@@ -230,9 +230,9 @@ where
         Err(Error::top_level())
     }
 
-    /// Returns an error.
+    /// Returns `Ok`.
     fn serialize_unit(self) -> Result<Self::Ok, Error> {
-        Err(Error::top_level())
+        Ok(self.urlencoder)
     }
 
     /// Returns `Ok`.
