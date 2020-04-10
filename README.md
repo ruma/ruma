@@ -12,6 +12,6 @@ These types can be shared by client and server code.
 
 ruma-client-api requires Rust 1.39.0 or later.
 
-## Status
+## Contributing
 
-This project is currently experimental and is very likely to change drastically.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
