@@ -13,7 +13,7 @@ license = "MIT"
 name = "ruma-client"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma-client"
-version = "0.3.0"
+version = "0.4.0-beta.1"
 
 [dependencies]
 futures-core = "0.3.4"
@@ -22,7 +22,7 @@ http = "0.2.1"
 hyper = "0.13.4"
 hyper-tls = { version = "0.4.1", optional = true }
 ruma-api = "0.15.0"
-ruma-client-api = "0.7.1"
+ruma-client-api = "0.7.2"
 ruma-events = "0.18.0"
 ruma-identifiers = "0.14.1"
 serde = { version = "1.0.106", features = ["derive"] }
@@ -31,7 +31,7 @@ serde_urlencoded = "0.6.1"
 url = "2.1.1"
 
 [dev-dependencies]
-tokio = { version = "0.2.16", features = ["macros"] }
+tokio = { version = "0.2.18", features = ["macros"] }
 
 [features]
 default = ["tls"]
