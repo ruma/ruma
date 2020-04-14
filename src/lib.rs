@@ -29,12 +29,20 @@
 //! events), use the `Client::sync`:
 //!
 //! ```no_run
+//! use std::time::Duration;
+//!
 //! # use futures_util::stream::{StreamExt as _, TryStreamExt as _};
 //! # use ruma_client::{api::r0::sync::sync_events::SetPresence, Client};
 //! # let homeserver_url = "https://example.com".parse().unwrap();
 //! # let client = Client::https(homeserver_url, None);
+//! # let next_batch_token = String::new();
 //! # async {
-//! let mut sync_stream = Box::pin(client.sync(None, None, SetPresence::Online));
+//! let mut sync_stream = Box::pin(client.sync(
+//!     None,
+//!     Some(next_batch_token),
+//!     SetPresence::Online,
+//!     Some(Duration::from_secs(30)),
+//! ));
 //! while let Some(response) = sync_stream.try_next().await? {
 //!     // Do something with the data in the response...
 //! }
@@ -86,6 +94,7 @@ use std::{
     convert::TryFrom,
     str::FromStr,
     sync::{Arc, Mutex},
+    time::Duration,
 };
 
 use futures_core::{
@@ -298,6 +307,7 @@ where
         filter: Option<api::r0::sync::sync_events::Filter>,
         since: Option<String>,
         set_presence: api::r0::sync::sync_events::SetPresence,
+        timeout: Option<Duration>,
     ) -> impl Stream<Item = Result<api::r0::sync::sync_events::IncomingResponse, Error>>
            + TryStream<Ok = api::r0::sync::sync_events::IncomingResponse, Error = Error> {
         use api::r0::sync::sync_events;
@@ -314,7 +324,7 @@ where
                         since,
                         full_state: false,
                         set_presence,
-                        timeout: None,
+                        timeout,
                     })
                     .await?;
 

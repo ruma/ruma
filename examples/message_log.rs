@@ -1,4 +1,4 @@
-use std::{env, process::exit};
+use std::{env, process::exit, time::Duration};
 
 use futures_util::stream::{StreamExt as _, TryStreamExt as _};
 use ruma_client::{
@@ -21,11 +21,18 @@ async fn log_messages(
 
     client.log_in(username, password, None, None).await?;
 
-    // TODO: This is a horrible way to obtain an initial next_batch token that generates way too
-    //       much server load and network traffic. Fix this!
-
-    //                                               Skip initial sync reponse vvvvvvvv
-    let mut sync_stream = Box::pin(client.sync(None, None, SetPresence::Online).skip(1));
+    let mut sync_stream = Box::pin(
+        client
+            .sync(
+                None,
+                None,
+                SetPresence::Online,
+                Some(Duration::from_secs(30)),
+            )
+            // TODO: This is a horrible way to obtain an initial next_batch token that generates way
+            //       too much server load and network traffic. Fix this!
+            .skip(1),
+    );
 
     while let Some(res) = sync_stream.try_next().await? {
         // Only look at rooms the user hasn't left yet
