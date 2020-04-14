@@ -122,37 +122,11 @@ pub enum Filter {
     // FilterDefinition is the first variant, JSON decoding is attempted first which is almost
     // functionally equivalent to looking at whether the first symbol is a '{' as the spec says.
     // (there are probably some corner cases like leading whitespace)
-    #[serde(with = "filter_def_serde")]
+    #[serde(with = "crate::serde::json_string")]
     /// A complete filter definition serialized to JSON.
     FilterDefinition(FilterDefinition),
     /// The ID of a filter saved on the server.
     FilterId(String),
-}
-
-/// Serialization and deserialization logic for filter definitions.
-mod filter_def_serde {
-    use serde::{de::Error as _, ser::Error as _, Deserialize, Deserializer, Serializer};
-
-    use crate::r0::filter::FilterDefinition;
-
-    /// Serialization logic for filter definitions.
-    pub fn serialize<S>(filter_def: &FilterDefinition, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let string = serde_json::to_string(filter_def).map_err(S::Error::custom)?;
-        serializer.serialize_str(&string)
-    }
-
-    /// Deserialization logic for filter definitions.
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<FilterDefinition, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let filter_str = <&str>::deserialize(deserializer)?;
-
-        serde_json::from_str(filter_str).map_err(D::Error::custom)
-    }
 }
 
 /// Updates to rooms.
