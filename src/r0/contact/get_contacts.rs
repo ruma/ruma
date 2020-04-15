@@ -71,7 +71,7 @@ mod tests {
 
         assert_eq!(
             to_json_value(third_party_id.clone()).unwrap(),
-            third_party_id_serialized.clone()
+            third_party_id_serialized
         );
         assert_eq!(
             third_party_id,
