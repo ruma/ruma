@@ -2,14 +2,15 @@
 
 Breaking changes:
 
-* Add `server_name` parameter to `r0::join::join_room_by_id_or_alias` 
+* Add `server_name` parameter to `r0::join::join_room_by_id_or_alias`
+* Add `auth_parameters` to `r0::account::AuthenticationData`
+* Add `room_network` parameter to `r0::directory::get_public_rooms_filtered` to
+  represent `include_all_networks` and `third_party_instance_id` Matrix fields.
 * Update `r0::account::register` endpoint:
   * Remove `bind_email` request field (removed in r0.6.0)
   * Remove `inhibit_login` request field, make `access_token` and `device_id` response fields optional (added in r0.4.0)
   * Remove deprecated `home_server` response field (removed in r0.4.0)
-* Add `auth_parameters` to `r0::account::AuthenticationData` 
-* Add `room_network` parameter to `r0::directory::get_public_rooms_filtered` to
-  represent `include_all_networks` and `third_party_instance_id` Matrix fields.
+* Update `r0::contact::get_contacts` endpoint to r0.6.0
 
 Improvements:
 
