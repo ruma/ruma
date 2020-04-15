@@ -10,6 +10,7 @@ use serde::{
 };
 
 /// Serialize an Option<Duration>.
+///
 /// Will fail if integer is greater than the maximum integer that can be
 /// unambiguously represented by an f64.
 pub fn serialize<S>(opt_duration: &Option<Duration>, serializer: S) -> Result<S::Ok, S::Error>
@@ -26,6 +27,7 @@ where
 }
 
 /// Deserializes an Option<Duration>.
+///
 /// Will fail if integer is greater than the maximum integer that can be
 /// unambiguously represented by an f64.
 pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<Duration>, D::Error>
@@ -38,17 +40,14 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use serde::{Deserialize, Serialize};
     use serde_json::json;
-    use std::time::Duration;
 
     #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
     struct DurationTest {
-        #[serde(
-            with = "crate::serde::duration::opt_ms",
-            default,
-            skip_serializing_if = "Option::is_none"
-        )]
+        #[serde(with = "super", default, skip_serializing_if = "Option::is_none")]
         timeout: Option<Duration>,
     }
 
