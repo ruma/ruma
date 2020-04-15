@@ -48,7 +48,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_duration_as_seconds() {
+    fn test_deserialize() {
         let json = json!({ "timeout": 3 });
 
         assert_eq!(
@@ -60,7 +60,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_duration_as_seconds() {
+    fn test_serialize() {
         let test = DurationTest {
             timeout: Duration::from_millis(7000),
         };
