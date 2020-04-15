@@ -58,15 +58,15 @@ mod tests {
         let third_party_id = ThirdPartyIdentifier {
             address: "monkey@banana.island".into(),
             medium: Medium::Email,
-            validated_at: UNIX_EPOCH + Duration::from_millis(1535176800000),
-            added_at: UNIX_EPOCH + Duration::from_millis(1535336848756),
+            validated_at: UNIX_EPOCH + Duration::from_millis(1_535_176_800_000),
+            added_at: UNIX_EPOCH + Duration::from_millis(1_535_336_848_756),
         };
 
         let third_party_id_serialized = json!({
             "medium": "email",
             "address": "monkey@banana.island",
-            "validated_at": 1535176800000u64,
-            "added_at": 1535336848756u64
+            "validated_at": 1_535_176_800_000u64,
+            "added_at": 1_535_336_848_756u64
         });
 
         assert_eq!(
