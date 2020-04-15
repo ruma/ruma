@@ -10,6 +10,9 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
+mod unversioned;
+mod v1;
+
 /// A 'persistent data unit' (event) for room versions 3 and beyond.
 #[derive(Deserialize, Serialize)]
 pub struct RoomV3Pdu {
