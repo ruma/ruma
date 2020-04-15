@@ -1,6 +1,7 @@
 //! Endpoints for managing devices.
 
-use js_int::UInt;
+use std::time::SystemTime;
+
 use ruma_identifiers::DeviceId;
 use serde::{Deserialize, Serialize};
 
@@ -20,5 +21,10 @@ pub struct Device {
     /// Most recently seen IP address of the session.
     pub ip: Option<String>,
     /// Unix timestamp that the session was last active.
-    pub last_seen: Option<UInt>,
+    #[serde(
+        with = "crate::serde::time::opt_ms_since_unix_epoch",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub last_seen: Option<SystemTime>,
 }

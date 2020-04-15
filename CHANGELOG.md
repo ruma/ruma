@@ -12,9 +12,10 @@ Breaking changes:
   * Remove deprecated `home_server` response field (removed in r0.4.0)
 * Update `r0::contact::get_contacts` endpoint to r0.6.0
 * Change `UInt` timestamps to `SystemTime` in:
-  * `media::get_media_preview`
-  * `push::get_notifications`
-  * `server::get_user_info`
+  * `media::get_media_preview::Request`
+  * `push::get_notifications::Notification`
+  * `server::get_user_info::ConnectionInfo`
+  * `device::Device`
 
 Improvements:
 
