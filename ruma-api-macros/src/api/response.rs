@@ -100,10 +100,6 @@ impl Response {
             return quote_spanned!(span=> response.#field_name);
         }
 
-        if !self.has_body_fields() && self.newtype_body_field().is_none() {
-            return quote!(Vec::new());
-        }
-
         let body = if let Some(field) = self.newtype_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let span = field.span();
@@ -248,7 +244,7 @@ impl ToTokens for Response {
             quote! { { #(#fields),* } }
         };
 
-        let response_body_struct =
+        let (derive_deserialize, def) =
             if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
                 let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
                 let derive_deserialize = if body_field.has_wrap_incoming_attr() {
@@ -257,7 +253,7 @@ impl ToTokens for Response {
                     quote!(ruma_api::exports::serde::Deserialize)
                 };
 
-                Some((derive_deserialize, quote! { (#field); }))
+                (derive_deserialize, quote! { (#field); })
             } else if self.has_body_fields() {
                 let fields = self.fields.iter().filter(|f| f.is_body());
                 let derive_deserialize = if fields.clone().any(|f| f.has_wrap_incoming_attr()) {
@@ -267,22 +263,21 @@ impl ToTokens for Response {
                 };
                 let fields = fields.map(ResponseField::field);
 
-                Some((derive_deserialize, quote!({ #(#fields),* })))
+                (derive_deserialize, quote!({ #(#fields),* }))
             } else {
-                None
-            }
-            .map(|(derive_deserialize, def)| {
-                quote! {
-                    /// Data in the response body.
-                    #[derive(
-                        Debug,
-                        ruma_api::Outgoing,
-                        ruma_api::exports::serde::Serialize,
-                        #derive_deserialize
-                    )]
-                    struct ResponseBody #def
-                }
-            });
+                (TokenStream::new(), quote!({}))
+            };
+
+        let response_body_struct = quote! {
+            /// Data in the response body.
+            #[derive(
+                Debug,
+                ruma_api::Outgoing,
+                ruma_api::exports::serde::Serialize,
+                #derive_deserialize
+            )]
+            struct ResponseBody #def
+        };
 
         let response = quote! {
             #[derive(Debug, Clone, ruma_api::Outgoing)]
