@@ -67,7 +67,7 @@ pub mod some_endpoint {
 }
 
 pub mod newtype_body_endpoint {
-    use ruma_api_macros::ruma_api;
+    use ruma_api::ruma_api;
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
     pub struct MyCustomType {
@@ -97,7 +97,7 @@ pub mod newtype_body_endpoint {
 }
 
 pub mod newtype_raw_body_endpoint {
-    use ruma_api_macros::ruma_api;
+    use ruma_api::ruma_api;
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
     pub struct MyCustomType {
@@ -127,7 +127,7 @@ pub mod newtype_raw_body_endpoint {
 }
 
 pub mod query_map_endpoint {
-    use ruma_api_macros::ruma_api;
+    use ruma_api::ruma_api;
 
     ruma_api! {
         metadata {
