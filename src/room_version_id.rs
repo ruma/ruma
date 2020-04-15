@@ -1,8 +1,9 @@
 //! Matrix room version identifiers.
 
 use std::{
+    borrow::Cow,
     convert::TryFrom,
-    fmt::{Display, Formatter, Result as FmtResult},
+    fmt::{self, Display, Formatter},
 };
 
 #[cfg(feature = "diesel")]
@@ -22,7 +23,7 @@ const MAX_CODE_POINTS: usize = 32;
 /// ```
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomVersionId;
-/// assert_eq!(RoomVersionId::try_from("1").unwrap().to_string(), "1");
+/// assert_eq!(RoomVersionId::try_from("1").unwrap().as_ref(), "1");
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
@@ -31,7 +32,7 @@ pub struct RoomVersionId(InnerRoomVersionId);
 
 /// Possibile values for room version, distinguishing between official Matrix versions and custom
 /// versions.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum InnerRoomVersionId {
     /// A version 1 room.
     Version1,
@@ -79,8 +80,8 @@ impl RoomVersionId {
     }
 
     /// Creates a custom room version ID from the given string slice.
-    pub fn custom(id: &str) -> Self {
-        Self(InnerRoomVersionId::Custom(id.to_string()))
+    pub fn custom(id: String) -> Self {
+        Self(InnerRoomVersionId::Custom(id))
     }
 
     /// Whether or not this room version is an official one specified by the Matrix protocol.
@@ -122,18 +123,35 @@ impl RoomVersionId {
     }
 }
 
-impl Display for RoomVersionId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let message = match self.0 {
+impl From<RoomVersionId> for String {
+    fn from(id: RoomVersionId) -> Self {
+        match id.0 {
+            InnerRoomVersionId::Version1 => "1".to_owned(),
+            InnerRoomVersionId::Version2 => "2".to_owned(),
+            InnerRoomVersionId::Version3 => "3".to_owned(),
+            InnerRoomVersionId::Version4 => "4".to_owned(),
+            InnerRoomVersionId::Version5 => "5".to_owned(),
+            InnerRoomVersionId::Custom(version) => version,
+        }
+    }
+}
+
+impl AsRef<str> for RoomVersionId {
+    fn as_ref(&self) -> &str {
+        match &self.0 {
             InnerRoomVersionId::Version1 => "1",
             InnerRoomVersionId::Version2 => "2",
             InnerRoomVersionId::Version3 => "3",
             InnerRoomVersionId::Version4 => "4",
             InnerRoomVersionId::Version5 => "5",
-            InnerRoomVersionId::Custom(ref version) => version,
-        };
+            InnerRoomVersionId::Custom(version) => version,
+        }
+    }
+}
 
-        write!(f, "{}", message)
+impl Display for RoomVersionId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_ref())
     }
 }
 
@@ -142,7 +160,7 @@ impl Serialize for RoomVersionId {
     where
         S: Serializer,
     {
-        serializer.serialize_str(&self.to_string())
+        serializer.serialize_str(self.as_ref())
     }
 }
 
@@ -155,12 +173,12 @@ impl<'de> Deserialize<'de> for RoomVersionId {
     }
 }
 
-impl TryFrom<&str> for RoomVersionId {
+impl TryFrom<Cow<'_, str>> for RoomVersionId {
     type Error = Error;
 
     /// Attempts to create a new Matrix room version ID from a string representation.
-    fn try_from(room_version_id: &str) -> Result<Self, Error> {
-        let version = match room_version_id {
+    fn try_from(room_version_id: Cow<'_, str>) -> Result<Self, Error> {
+        let version = match &room_version_id as &str {
             "1" => Self(InnerRoomVersionId::Version1),
             "2" => Self(InnerRoomVersionId::Version2),
             "3" => Self(InnerRoomVersionId::Version3),
@@ -172,12 +190,28 @@ impl TryFrom<&str> for RoomVersionId {
                 } else if custom.chars().count() > MAX_CODE_POINTS {
                     return Err(Error::MaximumLengthExceeded);
                 } else {
-                    Self(InnerRoomVersionId::Custom(custom.to_string()))
+                    Self(InnerRoomVersionId::Custom(room_version_id.into_owned()))
                 }
             }
         };
 
         Ok(version)
+    }
+}
+
+impl TryFrom<&str> for RoomVersionId {
+    type Error = crate::error::Error;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        Self::try_from(Cow::Borrowed(s))
+    }
+}
+
+impl TryFrom<String> for RoomVersionId {
+    type Error = crate::error::Error;
+
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::try_from(Cow::Owned(s))
     }
 }
 
@@ -195,7 +229,7 @@ mod tests {
         assert_eq!(
             RoomVersionId::try_from("1")
                 .expect("Failed to create RoomVersionId.")
-                .to_string(),
+                .as_ref(),
             "1"
         );
     }
@@ -205,7 +239,7 @@ mod tests {
         assert_eq!(
             RoomVersionId::try_from("2")
                 .expect("Failed to create RoomVersionId.")
-                .to_string(),
+                .as_ref(),
             "2"
         );
     }
@@ -215,7 +249,7 @@ mod tests {
         assert_eq!(
             RoomVersionId::try_from("3")
                 .expect("Failed to create RoomVersionId.")
-                .to_string(),
+                .as_ref(),
             "3"
         );
     }
@@ -225,7 +259,7 @@ mod tests {
         assert_eq!(
             RoomVersionId::try_from("4")
                 .expect("Failed to create RoomVersionId.")
-                .to_string(),
+                .as_ref(),
             "4"
         );
     }
@@ -235,7 +269,7 @@ mod tests {
         assert_eq!(
             RoomVersionId::try_from("5")
                 .expect("Failed to create RoomVersionId.")
-                .to_string(),
+                .as_ref(),
             "5"
         );
     }
@@ -245,7 +279,7 @@ mod tests {
         assert_eq!(
             RoomVersionId::try_from("io.ruma.1")
                 .expect("Failed to create RoomVersionId.")
-                .to_string(),
+                .as_ref(),
             "io.ruma.1"
         );
     }
@@ -320,7 +354,7 @@ mod tests {
         assert!(RoomVersionId::version_3().is_version_3());
         assert!(RoomVersionId::version_4().is_version_4());
         assert!(RoomVersionId::version_5().is_version_5());
-        assert!(RoomVersionId::custom("foo").is_custom());
+        assert!(RoomVersionId::custom("foo".into()).is_custom());
     }
 
     #[test]

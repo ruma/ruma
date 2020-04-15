@@ -1,17 +1,11 @@
 //! Matrix identifiers for places where a room ID or room alias ID are used interchangeably.
 
-use std::{
-    convert::TryFrom,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::{borrow::Cow, convert::TryFrom, hint::unreachable_unchecked, num::NonZeroU8};
 
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::{
-    deserialize_id, display, error::Error, room_alias_id::RoomAliasId, room_id::RoomId, validate_id,
-};
+use crate::{error::Error, parse_id};
 
 /// A Matrix room ID or a Matrix room alias ID.
 ///
@@ -23,73 +17,61 @@ use crate::{
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomIdOrAliasId;
 /// assert_eq!(
-///     RoomIdOrAliasId::try_from("#ruma:example.com").unwrap().to_string(),
+///     RoomIdOrAliasId::try_from("#ruma:example.com").unwrap().as_ref(),
 ///     "#ruma:example.com"
 /// );
 ///
 /// assert_eq!(
-///     RoomIdOrAliasId::try_from("!n8f893n9:example.com").unwrap().to_string(),
+///     RoomIdOrAliasId::try_from("!n8f893n9:example.com").unwrap().as_ref(),
 ///     "!n8f893n9:example.com"
 /// );
 /// ```
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
 #[cfg_attr(feature = "diesel", sql_type = "Text")]
-pub enum RoomIdOrAliasId {
-    /// A Matrix room alias ID.
-    RoomAliasId(RoomAliasId),
-    /// A Matrix room ID.
-    RoomId(RoomId),
+pub struct RoomIdOrAliasId {
+    full_id: String,
+    colon_idx: NonZeroU8,
 }
 
-impl Display for RoomIdOrAliasId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        match *self {
-            RoomIdOrAliasId::RoomAliasId(ref room_alias_id) => display(
-                f,
-                '#',
-                room_alias_id.alias(),
-                room_alias_id.hostname(),
-                room_alias_id.port(),
-            ),
-            RoomIdOrAliasId::RoomId(ref room_id) => display(
-                f,
-                '!',
-                room_id.localpart(),
-                room_id.hostname(),
-                room_id.port(),
-            ),
+impl RoomIdOrAliasId {
+    /// Returns the host of the room (alias) ID, containing the server name (including the port) of
+    /// the originating homeserver.
+    pub fn hostname(&self) -> &str {
+        &self.full_id[self.colon_idx.get() as usize + 1..]
+    }
+
+    /// Returns the local part (everything after the `!` or `#` and before the first colon).
+    pub fn localpart(&self) -> &str {
+        &self.full_id[1..self.colon_idx.get() as usize]
+    }
+
+    /// Whether this is a room id (starts with `'!'`)
+    pub fn is_room_id(&self) -> bool {
+        self.variant() == Variant::RoomId
+    }
+
+    /// Whether this is a room alias id (starts with `'#'`)
+    pub fn is_room_alias_id(&self) -> bool {
+        self.variant() == Variant::RoomAliasId
+    }
+
+    fn variant(&self) -> Variant {
+        match self.full_id.bytes().next() {
+            Some(b'!') => Variant::RoomId,
+            Some(b'#') => Variant::RoomAliasId,
+            _ => unsafe { unreachable_unchecked() },
         }
     }
 }
 
-impl Serialize for RoomIdOrAliasId {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match *self {
-            RoomIdOrAliasId::RoomAliasId(ref room_alias_id) => {
-                serializer.serialize_str(&room_alias_id.to_string())
-            }
-            RoomIdOrAliasId::RoomId(ref room_id) => serializer.serialize_str(&room_id.to_string()),
-        }
-    }
+#[derive(PartialEq)]
+enum Variant {
+    RoomId,
+    RoomAliasId,
 }
 
-impl<'de> Deserialize<'de> for RoomIdOrAliasId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserialize_id(
-            deserializer,
-            "a Matrix room ID or room alias ID as a string",
-        )
-    }
-}
-
-impl TryFrom<&str> for RoomIdOrAliasId {
+impl TryFrom<Cow<'_, str>> for RoomIdOrAliasId {
     type Error = Error;
 
     /// Attempts to create a new Matrix room ID or a room alias ID from a string representation.
@@ -97,26 +79,16 @@ impl TryFrom<&str> for RoomIdOrAliasId {
     /// The string must either include the leading ! sigil, the localpart, a literal colon, and a
     /// valid homeserver host or include the leading # sigil, the alias, a literal colon, and a
     /// valid homeserver host.
-    fn try_from(room_id_or_alias_id: &str) -> Result<Self, Error> {
-        validate_id(room_id_or_alias_id)?;
-
-        let mut chars = room_id_or_alias_id.chars();
-
-        let sigil = chars.next().expect("ID missing first character.");
-
-        match sigil {
-            '#' => {
-                let room_alias_id = RoomAliasId::try_from(room_id_or_alias_id)?;
-                Ok(RoomIdOrAliasId::RoomAliasId(room_alias_id))
-            }
-            '!' => {
-                let room_id = RoomId::try_from(room_id_or_alias_id)?;
-                Ok(RoomIdOrAliasId::RoomId(room_id))
-            }
-            _ => Err(Error::MissingSigil),
-        }
+    fn try_from(room_id_or_alias_id: Cow<'_, str>) -> Result<Self, Error> {
+        let colon_idx = parse_id(&room_id_or_alias_id, &['#', '!'])?;
+        Ok(Self {
+            full_id: room_id_or_alias_id.into_owned(),
+            colon_idx,
+        })
     }
 }
+
+common_impls!(RoomIdOrAliasId, "a Matrix room ID or room alias ID");
 
 #[cfg(test)]
 mod tests {
@@ -132,7 +104,7 @@ mod tests {
         assert_eq!(
             RoomIdOrAliasId::try_from("#ruma:example.com")
                 .expect("Failed to create RoomAliasId.")
-                .to_string(),
+                .as_ref(),
             "#ruma:example.com"
         );
     }
@@ -142,7 +114,7 @@ mod tests {
         assert_eq!(
             RoomIdOrAliasId::try_from("!29fhd83h92h0:example.com")
                 .expect("Failed to create RoomId.")
-                .to_string(),
+                .as_ref(),
             "!29fhd83h92h0:example.com"
         );
     }

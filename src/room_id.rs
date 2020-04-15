@@ -1,16 +1,11 @@
 //! Matrix room identifiers.
 
-use std::{
-    convert::TryFrom,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
 
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use url::Host;
 
-use crate::{deserialize_id, display, error::Error, generate_localpart, parse_id};
+use crate::{error::Error, generate_localpart, parse_id};
 
 /// A Matrix room ID.
 ///
@@ -21,20 +16,16 @@ use crate::{deserialize_id, display, error::Error, generate_localpart, parse_id}
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomId;
 /// assert_eq!(
-///     RoomId::try_from("!n8f893n9:example.com").unwrap().to_string(),
+///     RoomId::try_from("!n8f893n9:example.com").unwrap().as_ref(),
 ///     "!n8f893n9:example.com"
 /// );
 /// ```
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
 #[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct RoomId {
-    /// The hostname of the homeserver.
-    hostname: Host,
-    /// The room's unique ID.
-    localpart: String,
-    /// The network port of the homeserver.
-    port: u16,
+    full_id: String,
+    colon_idx: NonZeroU8,
 }
 
 impl RoomId {
@@ -43,76 +34,44 @@ impl RoomId {
     ///
     /// Fails if the given homeserver cannot be parsed as a valid host.
     pub fn new(homeserver_host: &str) -> Result<Self, Error> {
-        let room_id = format!("!{}:{}", generate_localpart(18), homeserver_host);
-        let (localpart, host, port) = parse_id('!', &room_id)?;
+        let full_id = format!("!{}:{}", generate_localpart(18), homeserver_host);
 
         Ok(Self {
-            hostname: host,
-            localpart: localpart.to_string(),
-            port,
+            full_id,
+            colon_idx: NonZeroU8::new(19).unwrap(),
         })
     }
 
-    /// Returns a `Host` for the room ID, containing the server name (minus the port) of the
+    /// Returns the host of the room ID, containing the server name (including the port) of the
     /// originating homeserver.
-    ///
-    /// The host can be either a domain name, an IPv4 address, or an IPv6 address.
-    pub fn hostname(&self) -> &Host {
-        &self.hostname
+    pub fn hostname(&self) -> &str {
+        &self.full_id[self.colon_idx.get() as usize + 1..]
     }
 
     /// Returns the rooms's unique ID.
     pub fn localpart(&self) -> &str {
-        &self.localpart
-    }
-
-    /// Returns the port the originating homeserver can be accessed on.
-    pub fn port(&self) -> u16 {
-        self.port
+        &self.full_id[1..self.colon_idx.get() as usize]
     }
 }
 
-impl Display for RoomId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        display(f, '!', &self.localpart, &self.hostname, self.port)
-    }
-}
-
-impl Serialize for RoomId {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
-    }
-}
-
-impl<'de> Deserialize<'de> for RoomId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserialize_id(deserializer, "a Matrix room ID as a string")
-    }
-}
-
-impl TryFrom<&str> for RoomId {
+impl TryFrom<Cow<'_, str>> for RoomId {
     type Error = Error;
 
     /// Attempts to create a new Matrix room ID from a string representation.
     ///
-    /// The string must include the leading ! sigil, the localpart, a literal colon, and a valid
-    /// server name.
-    fn try_from(room_id: &str) -> Result<Self, Error> {
-        let (localpart, host, port) = parse_id('!', room_id)?;
+    /// The string must include the leading ! sigil, the localpart, a literal colon, and a server
+    /// name.
+    fn try_from(room_id: Cow<'_, str>) -> Result<Self, Error> {
+        let colon_idx = parse_id(&room_id, &['!'])?;
 
         Ok(Self {
-            hostname: host,
-            localpart: localpart.to_owned(),
-            port,
+            full_id: room_id.into_owned(),
+            colon_idx,
         })
     }
 }
+
+common_impls!(RoomId, "a Matrix room ID");
 
 #[cfg(test)]
 mod tests {
@@ -128,25 +87,24 @@ mod tests {
         assert_eq!(
             RoomId::try_from("!29fhd83h92h0:example.com")
                 .expect("Failed to create RoomId.")
-                .to_string(),
+                .as_ref(),
             "!29fhd83h92h0:example.com"
         );
     }
 
     #[test]
     fn generate_random_valid_room_id() {
-        let room_id = RoomId::new("example.com")
-            .expect("Failed to generate RoomId.")
-            .to_string();
+        let room_id = RoomId::new("example.com").expect("Failed to generate RoomId.");
+        let id_str: &str = room_id.as_ref();
 
-        assert!(room_id.to_string().starts_with('!'));
-        assert_eq!(room_id.len(), 31);
+        assert!(id_str.starts_with('!'));
+        assert_eq!(id_str.len(), 31);
     }
 
-    #[test]
+    /*#[test]
     fn generate_random_invalid_room_id() {
         assert!(RoomId::new("").is_err());
-    }
+    }*/
 
     #[test]
     fn serialize_valid_room_id() {
@@ -173,8 +131,8 @@ mod tests {
         assert_eq!(
             RoomId::try_from("!29fhd83h92h0:example.com:443")
                 .expect("Failed to create RoomId.")
-                .to_string(),
-            "!29fhd83h92h0:example.com"
+                .as_ref(),
+            "!29fhd83h92h0:example.com:443"
         );
     }
 
@@ -183,7 +141,7 @@ mod tests {
         assert_eq!(
             RoomId::try_from("!29fhd83h92h0:example.com:5000")
                 .expect("Failed to create RoomId.")
-                .to_string(),
+                .as_ref(),
             "!29fhd83h92h0:example.com:5000"
         );
     }
@@ -204,7 +162,7 @@ mod tests {
         );
     }
 
-    #[test]
+    /*#[test]
     fn invalid_room_id_host() {
         assert_eq!(
             RoomId::try_from("!29fhd83h92h0:/").unwrap_err(),
@@ -218,5 +176,5 @@ mod tests {
             RoomId::try_from("!29fhd83h92h0:example.com:notaport").unwrap_err(),
             Error::InvalidHost
         );
-    }
+    }*/
 }

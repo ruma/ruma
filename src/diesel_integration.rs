@@ -16,7 +16,7 @@ macro_rules! diesel_impl {
             DB: Backend,
         {
             fn to_sql<W: Write>(&self, out: &mut Output<'_, W, DB>) -> SerializeResult {
-                ToSql::<Text, DB>::to_sql(&self.to_string(), out)
+                ToSql::<Text, DB>::to_sql(self.as_ref(), out)
             }
         }
 

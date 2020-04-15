@@ -1,16 +1,11 @@
 //! Matrix room alias identifiers.
 
-use std::{
-    convert::TryFrom,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
 
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use url::Host;
 
-use crate::{deserialize_id, display, error::Error, parse_id};
+use crate::{error::Error, parse_id};
 
 /// A Matrix room alias ID.
 ///
@@ -21,83 +16,48 @@ use crate::{deserialize_id, display, error::Error, parse_id};
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomAliasId;
 /// assert_eq!(
-///     RoomAliasId::try_from("#ruma:example.com").unwrap().to_string(),
+///     RoomAliasId::try_from("#ruma:example.com").unwrap().as_ref(),
 ///     "#ruma:example.com"
 /// );
 /// ```
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
 #[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct RoomAliasId {
-    /// The alias for the room.
-    alias: String,
-    /// The hostname of the homeserver.
-    hostname: Host,
-    /// The network port of the homeserver.
-    port: u16,
+    full_id: String,
+    colon_idx: NonZeroU8,
 }
 
 impl RoomAliasId {
-    /// Returns a `Host` for the room alias ID, containing the server name (minus the port) of
+    /// Returns the host of the room alias ID, containing the server name (including the port) of
     /// the originating homeserver.
-    ///
-    /// The host can be either a domain name, an IPv4 address, or an IPv6 address.
-    pub fn hostname(&self) -> &Host {
-        &self.hostname
+    pub fn hostname(&self) -> &str {
+        &self.full_id[self.colon_idx.get() as usize + 1..]
     }
 
     /// Returns the room's alias.
     pub fn alias(&self) -> &str {
-        &self.alias
-    }
-
-    /// Returns the port the originating homeserver can be accessed on.
-    pub fn port(&self) -> u16 {
-        self.port
+        &self.full_id[1..self.colon_idx.get() as usize]
     }
 }
 
-impl Display for RoomAliasId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        display(f, '#', &self.alias, &self.hostname, self.port)
-    }
-}
-
-impl Serialize for RoomAliasId {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
-    }
-}
-
-impl<'de> Deserialize<'de> for RoomAliasId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserialize_id(deserializer, "a Matrix room alias ID as a string")
-    }
-}
-
-impl TryFrom<&str> for RoomAliasId {
+impl TryFrom<Cow<'_, str>> for RoomAliasId {
     type Error = Error;
 
     /// Attempts to create a new Matrix room alias ID from a string representation.
     ///
-    /// The string must include the leading # sigil, the alias, a literal colon, and a valid
-    /// server name.
-    fn try_from(room_id: &str) -> Result<Self, Error> {
-        let (alias, host, port) = parse_id('#', room_id)?;
+    /// The string must include the leading # sigil, the alias, a literal colon, and a server name.
+    fn try_from(room_id: Cow<'_, str>) -> Result<Self, Error> {
+        let colon_idx = parse_id(&room_id, &['#'])?;
 
         Ok(Self {
-            alias: alias.to_owned(),
-            hostname: host,
-            port,
+            full_id: room_id.into_owned(),
+            colon_idx,
         })
     }
 }
+
+common_impls!(RoomAliasId, "a Matrix room alias ID");
 
 #[cfg(test)]
 mod tests {
@@ -113,7 +73,7 @@ mod tests {
         assert_eq!(
             RoomAliasId::try_from("#ruma:example.com")
                 .expect("Failed to create RoomAliasId.")
-                .to_string(),
+                .as_ref(),
             "#ruma:example.com"
         );
     }
@@ -143,8 +103,8 @@ mod tests {
         assert_eq!(
             RoomAliasId::try_from("#ruma:example.com:443")
                 .expect("Failed to create RoomAliasId.")
-                .to_string(),
-            "#ruma:example.com"
+                .as_ref(),
+            "#ruma:example.com:443"
         );
     }
 
@@ -153,7 +113,7 @@ mod tests {
         assert_eq!(
             RoomAliasId::try_from("#ruma:example.com:5000")
                 .expect("Failed to create RoomAliasId.")
-                .to_string(),
+                .as_ref(),
             "#ruma:example.com:5000"
         );
     }
@@ -163,7 +123,7 @@ mod tests {
         assert_eq!(
             RoomAliasId::try_from("#老虎Â£я:example.com")
                 .expect("Failed to create RoomAliasId.")
-                .to_string(),
+                .as_ref(),
             "#老虎Â£я:example.com"
         );
     }
@@ -184,7 +144,7 @@ mod tests {
         );
     }
 
-    #[test]
+    /*#[test]
     fn invalid_room_alias_id_host() {
         assert_eq!(
             RoomAliasId::try_from("#ruma:/").unwrap_err(),
@@ -198,5 +158,5 @@ mod tests {
             RoomAliasId::try_from("#ruma:example.com:notaport").unwrap_err(),
             Error::InvalidHost
         );
-    }
+    }*/
 }

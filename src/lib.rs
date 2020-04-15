@@ -14,17 +14,10 @@
 #[cfg_attr(feature = "diesel", macro_use)]
 extern crate diesel;
 
-use std::{
-    borrow::Cow,
-    convert::TryFrom,
-    fmt::{Formatter, Result as FmtResult},
-};
+use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
 
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
-use url::Url;
-
-pub use url::Host;
 
 #[doc(inline)]
 pub use crate::device_id::DeviceId;
@@ -32,6 +25,9 @@ pub use crate::{
     error::Error, event_id::EventId, room_alias_id::RoomAliasId, room_id::RoomId,
     room_id_or_room_alias_id::RoomIdOrAliasId, room_version_id::RoomVersionId, user_id::UserId,
 };
+
+#[macro_use]
+mod macros;
 
 pub mod device_id;
 #[cfg(feature = "diesel")]
@@ -51,23 +47,6 @@ const MAX_BYTES: usize = 255;
 /// This is an optimization and not required by the spec. The shortest possible valid ID is a sigil
 /// + a single character local ID + a colon + a single character hostname.
 const MIN_CHARS: usize = 4;
-/// The number of bytes in a valid sigil.
-const SIGIL_BYTES: usize = 1;
-
-/// `Display` implementation shared by identifier types.
-fn display(
-    f: &mut Formatter<'_>,
-    sigil: char,
-    localpart: &str,
-    hostname: &Host,
-    port: u16,
-) -> FmtResult {
-    if port == 443 {
-        write!(f, "{}{}:{}", sigil, localpart, hostname)
-    } else {
-        write!(f, "{}{}:{}:{}", sigil, localpart, hostname, port)
-    }
-}
 
 /// Generates a random identifier localpart.
 fn generate_localpart(length: usize) -> String {
@@ -77,8 +56,8 @@ fn generate_localpart(length: usize) -> String {
         .collect()
 }
 
-/// Checks if an identifier is within the acceptable byte lengths.
-fn validate_id(id: &str) -> Result<(), Error> {
+/// Checks if an identifier is valid.
+fn validate_id(id: &str, valid_sigils: &[char]) -> Result<(), Error> {
     if id.len() > MAX_BYTES {
         return Err(Error::MaximumLengthExceeded);
     }
@@ -87,35 +66,27 @@ fn validate_id(id: &str) -> Result<(), Error> {
         return Err(Error::MinimumLengthNotSatisfied);
     }
 
-    Ok(())
-}
-
-/// Parses the localpart, host, and port from a string identifier.
-fn parse_id(required_sigil: char, id: &str) -> Result<(&str, Host, u16), Error> {
-    validate_id(id)?;
-
-    if !id.starts_with(required_sigil) {
+    if !valid_sigils.contains(&id.chars().next().unwrap()) {
         return Err(Error::MissingSigil);
     }
 
-    let delimiter_index = match id.find(':') {
-        Some(index) => index,
-        None => return Err(Error::MissingDelimiter),
-    };
+    Ok(())
+}
 
-    let localpart = &id[1..delimiter_index];
-    let raw_host = &id[delimiter_index + SIGIL_BYTES..];
-    let url_string = format!("https://{}", raw_host);
-    let url = Url::parse(&url_string)?;
+/// Checks an identifier that contains a localpart and hostname for validity,
+/// and returns the index of the colon that separates the two.
+fn parse_id(id: &str, valid_sigils: &[char]) -> Result<NonZeroU8, Error> {
+    validate_id(id, valid_sigils)?;
 
-    let host = match url.host() {
-        Some(host) => host.to_owned(),
-        None => return Err(Error::InvalidHost),
-    };
+    let colon_idx = id.find(':').ok_or(Error::MissingDelimiter)?;
+    if colon_idx == id.len() - 1 {
+        return Err(Error::InvalidHost);
+    }
 
-    let port = url.port().unwrap_or(443);
-
-    Ok((localpart, host, port))
+    match NonZeroU8::new(colon_idx as u8) {
+        Some(idx) => Ok(idx),
+        None => Err(Error::InvalidLocalPart),
+    }
 }
 
 /// Deserializes any type of id using the provided TryFrom implementation.
