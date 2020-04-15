@@ -1,8 +1,11 @@
-//! [GET /_matrix/client/r0/account/3pid](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-account-3pid)
+//! [GET /_matrix/client/r0/account/3pid](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-account-3pid)
 
-use crate::r0::thirdparty::Medium;
+use std::time::SystemTime;
+
 use ruma_api::ruma_api;
 use serde::{Deserialize, Serialize};
+
+use crate::r0::thirdparty::Medium;
 
 ruma_api! {
     metadata {
@@ -19,6 +22,7 @@ ruma_api! {
     response {
         /// A list of third party identifiers the homeserver has associated with the user's
         /// account.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub threepids: Vec<ThirdPartyIdentifier>,
     }
 
@@ -27,9 +31,51 @@ ruma_api! {
 
 /// An identifier external to Matrix.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(test, derive(PartialEq))]
 pub struct ThirdPartyIdentifier {
     /// The third party identifier address.
     pub address: String,
     /// The medium of third party identifier.
     pub medium: Medium,
+    /// The time when the identifier was validated by the identity server.
+    #[serde(with = "crate::serde::time::ms_since_unix_epoch")]
+    pub validated_at: SystemTime,
+    /// The time when the homeserver associated the third party identifier with the user.
+    #[serde(with = "crate::serde::time::ms_since_unix_epoch")]
+    pub added_at: SystemTime,
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::{Duration, UNIX_EPOCH};
+
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+
+    use super::{Medium, ThirdPartyIdentifier};
+
+    #[test]
+    fn third_party_identifier_serde() {
+        let third_party_id = ThirdPartyIdentifier {
+            address: "monkey@banana.island".into(),
+            medium: Medium::Email,
+            validated_at: UNIX_EPOCH + Duration::from_millis(1535176800000),
+            added_at: UNIX_EPOCH + Duration::from_millis(1535336848756),
+        };
+
+        let third_party_id_serialized = json!({
+            "medium": "email",
+            "address": "monkey@banana.island",
+            "validated_at": 1535176800000u64,
+            "added_at": 1535336848756u64
+        });
+
+        assert_eq!(
+            to_json_value(third_party_id.clone()).unwrap(),
+            third_party_id_serialized.clone()
+        );
+        assert_eq!(
+            third_party_id,
+            from_json_value(third_party_id_serialized).unwrap()
+        );
+    }
 }
