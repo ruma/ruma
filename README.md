@@ -10,7 +10,7 @@ These types can be shared by client and server code for all Matrix APIs.
 
 ## Minimum Rust version
 
-ruma-api requires Rust 1.39.0 or later.
+ruma-api requires Rust 1.40.0 or later.
 
 ## Documentation
 
