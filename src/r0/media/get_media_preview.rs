@@ -1,6 +1,7 @@
 //! [GET /_matrix/media/r0/preview_url](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-media-r0-preview-url)
 
-use js_int::UInt;
+use std::time::SystemTime;
+
 use ruma_api::ruma_api;
 use serde_json::Value;
 
@@ -20,7 +21,8 @@ ruma_api! {
         pub url: String,
         /// Preferred point in time (in milliseconds) to return a preview for.
         #[ruma_api(query)]
-        pub ts: UInt,
+        #[serde(with = "crate::serde::time::ms_since_unix_epoch")]
+        pub ts: SystemTime,
     }
 
     response {

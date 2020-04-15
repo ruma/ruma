@@ -1,5 +1,7 @@
 //! [GET /_matrix/client/r0/notifications](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-notifications)
 
+use std::time::SystemTime;
+
 use js_int::UInt;
 use ruma_api::{ruma_api, Outgoing};
 use ruma_events::{collections::all, EventResult};
@@ -71,6 +73,7 @@ pub struct Notification {
     /// The ID of the room in which the event was posted.
     pub room_id: RoomId,
 
-    /// The unix timestamp at which the event notification was sent, in milliseconds.
-    pub ts: UInt,
+    /// The time at which the event notification was sent, in milliseconds.
+    #[serde(with = "crate::serde::time::ms_since_unix_epoch")]
+    pub ts: SystemTime,
 }

@@ -11,6 +11,10 @@ Breaking changes:
   * Remove `inhibit_login` request field, make `access_token` and `device_id` response fields optional (added in r0.4.0)
   * Remove deprecated `home_server` response field (removed in r0.4.0)
 * Update `r0::contact::get_contacts` endpoint to r0.6.0
+* Change `UInt` timestamps to `SystemTime` in:
+  * `media::get_media_preview`
+  * `push::get_notifications`
+  * `server::get_user_info`
 
 Improvements:
 
