@@ -1,8 +1,25 @@
 # [unreleased]
 
+Breaking changes:
+
+* All identifiers now allocate at maximum one string (localpart and host are no longer stored
+  separately)
+  * Because of this, these traits are now implemented for them and only allocate in the obvious
+    case:
+    * `impl From<…Id> for String`
+    * `impl AsRef<str> for …Id`
+    * `impl TryFrom<Cow<'_, str>> for …Id`
+    * `impl TryFrom<String> for …Id`
+    * `PartialEq` for `String`s and string slices
+  * Additionally, the `Hash` implementations will now yield the same hashes as hashing the string
+    representation
+    * Note that hashes are generally only guaranteed consistent in the lifetime of the program
+      though, so do not persist them!
+  * Methods returning `url::Host` have been removed or updated to return string slices
+
 Improvements:
 
-* Add support for historical uppercase MXIDs 
+* Add support for historical uppercase MXIDs
 
 # 0.14.1
 
