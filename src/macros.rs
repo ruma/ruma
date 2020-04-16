@@ -99,7 +99,7 @@ macro_rules! common_impls {
             }
         }
 
-        impl ::std::cmp::PartialEq<$id> for ::string::String {
+        impl ::std::cmp::PartialEq<$id> for ::std::string::String {
             fn eq(&self, other: &$id) -> bool {
                 self == &other.full_id
             }
