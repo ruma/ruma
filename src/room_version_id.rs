@@ -215,6 +215,30 @@ impl TryFrom<String> for RoomVersionId {
     }
 }
 
+impl PartialEq<str> for RoomVersionId {
+    fn eq(&self, other: &str) -> bool {
+        self.as_ref() == other
+    }
+}
+
+impl PartialEq<RoomVersionId> for str {
+    fn eq(&self, other: &RoomVersionId) -> bool {
+        self == other.as_ref()
+    }
+}
+
+impl PartialEq<String> for RoomVersionId {
+    fn eq(&self, other: &String) -> bool {
+        self.as_ref() == other
+    }
+}
+
+impl PartialEq<RoomVersionId> for String {
+    fn eq(&self, other: &RoomVersionId) -> bool {
+        self == other.as_ref()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::convert::TryFrom;
