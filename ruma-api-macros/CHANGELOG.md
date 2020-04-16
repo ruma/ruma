@@ -1,5 +1,13 @@
 # [unreleased]
 
+# 0.15.1
+
+*ruma-api-macros is now versioned in lockstep with ruma-api*
+
+Bug fixes:
+
+* Write `{}` to the body of responses without body fields
+
 # 0.12.0
 
 Breaking changes:

@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.15.1
+
+Bug fixes:
+
+* Write `{}` to the body of responses without body fields (fix from ruma-api-macros)
+
 # 0.15.0
 
 Breaking changes:
