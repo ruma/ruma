@@ -1,0 +1,20 @@
+[package]
+name = "ruma-serde"
+description = "De-/serialization helpers for other ruma crates"
+documentation = "https://docs.rs/ruma-serde"
+license = "MIT"
+authors = [
+    "Jonas Platte <jplatte@posteo.de>",
+    "Isaiah Inuwa <isaiah.inuwa@gmail.com>",
+]
+version = "0.1.0"
+repository = "https://github.com/ruma/ruma-serde"
+edition = "2018"
+
+[dependencies]
+js_int = { version = "0.1.4", features = ["serde"] }
+serde = "1.0.106"
+serde_json = "1.0.51"
+
+[dev-dependencies]
+serde = { version = "1.0.106", features = ["derive"] }
