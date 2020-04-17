@@ -1,5 +1,6 @@
 //! Matrix device identifiers.
 
+#[cfg(feature = "rand")]
 use crate::generate_localpart;
 
 /// A Matrix device ID.
@@ -9,11 +10,12 @@ use crate::generate_localpart;
 pub type DeviceId = String;
 
 /// Generates a random `DeviceId`, suitable for assignment to a new device.
+#[cfg(feature = "rand")]
 pub fn generate() -> DeviceId {
     generate_localpart(8)
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "rand"))]
 mod tests {
     use super::generate;
 

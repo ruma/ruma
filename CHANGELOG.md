@@ -19,10 +19,14 @@ Breaking changes:
     instead of `&url::Host`
 * `Error::InvalidHost` has been renamed to `Error::InvalidServerName`, because it also covers errors
   in the port, not just the host part section of the server name
+* The random identifier generation functions (`Id::new`) are now only available if the `rand`
+  feature of this crate is enabled
 
 Improvements:
 
 * Add support for historical uppercase MXIDs
+* Made all dependencies optional
+  * `serde` is the only one that is enabled by default
 
 # 0.14.1
 

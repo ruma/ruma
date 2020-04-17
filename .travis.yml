@@ -32,5 +32,6 @@ script:
         cargo clippy --all-targets --all-features -- -D warnings
       fi
   - cargo build --verbose
-  - cargo test --verbose
+  - cargo test --no-default-features --verbose
+  - cargo test --all-features --verbose
 if: "type != push OR (tag IS blank AND branch = master)"

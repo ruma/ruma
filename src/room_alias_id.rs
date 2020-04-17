@@ -62,6 +62,7 @@ common_impls!(RoomAliasId, "a Matrix room alias ID");
 mod tests {
     use std::convert::TryFrom;
 
+    #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
     use super::RoomAliasId;
@@ -77,6 +78,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_valid_room_alias_id() {
         assert_eq!(
@@ -88,6 +90,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_valid_room_alias_id() {
         assert_eq!(

@@ -5,7 +5,7 @@ use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
 
-use crate::{error::Error, generate_localpart, is_valid_server_name, parse_id, validate_id};
+use crate::{error::Error, parse_id, validate_id};
 
 /// A Matrix event ID.
 ///
@@ -55,7 +55,10 @@ impl EventId {
     ///
     /// Does not currently ever fail, but may fail in the future if the homeserver cannot be parsed
     /// parsed as a valid host.
+    #[cfg(feature = "rand")]
     pub fn new(server_name: &str) -> Result<Self, Error> {
+        use crate::{generate_localpart, is_valid_server_name};
+
         if !is_valid_server_name(server_name) {
             return Err(Error::InvalidServerName);
         }
@@ -121,6 +124,7 @@ common_impls!(EventId, "a Matrix event ID");
 mod tests {
     use std::convert::TryFrom;
 
+    #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
     use super::EventId;
@@ -156,6 +160,7 @@ mod tests {
         )
     }
 
+    #[cfg(feature = "rand")]
     #[test]
     fn generate_random_valid_event_id() {
         let event_id = EventId::new("example.com").expect("Failed to generate EventId.");
@@ -165,11 +170,13 @@ mod tests {
         assert_eq!(id_str.len(), 31);
     }
 
+    #[cfg(feature = "rand")]
     #[test]
     fn generate_random_invalid_event_id() {
         assert!(EventId::new("").is_err());
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_valid_original_event_id() {
         assert_eq!(
@@ -181,6 +188,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_valid_base64_event_id() {
         assert_eq!(
@@ -193,6 +201,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_valid_url_safe_base64_event_id() {
         assert_eq!(
@@ -205,6 +214,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_valid_original_event_id() {
         assert_eq!(
@@ -214,6 +224,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_valid_base64_event_id() {
         assert_eq!(
@@ -224,6 +235,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_valid_url_safe_base64_event_id() {
         assert_eq!(

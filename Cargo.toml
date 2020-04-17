@@ -12,10 +12,13 @@ repository = "https://github.com/ruma/ruma-identifiers"
 version = "0.14.1"
 edition = "2018"
 
+[features]
+default = ["serde"]
+
 [dependencies]
 diesel = { version = "1.4.4", optional = true }
-rand = "0.7.3"
-serde = "1.0.106"
+rand = { version = "0.7.3", optional = true }
+serde = { version = "1.0.106", optional = true }
 
 [dev-dependencies]
 serde_json = "1.0.51"

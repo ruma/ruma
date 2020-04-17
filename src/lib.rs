@@ -14,9 +14,9 @@
 #[cfg_attr(feature = "diesel", macro_use)]
 extern crate diesel;
 
-use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
+use std::num::NonZeroU8;
 
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
+#[cfg(feature = "serde")]
 use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
 
 #[doc(inline)]
@@ -51,9 +51,11 @@ const MAX_BYTES: usize = 255;
 const MIN_CHARS: usize = 4;
 
 /// Generates a random identifier localpart.
+#[cfg(feature = "rand")]
 fn generate_localpart(length: usize) -> String {
-    thread_rng()
-        .sample_iter(&Alphanumeric)
+    use rand::Rng as _;
+    rand::thread_rng()
+        .sample_iter(&rand::distributions::Alphanumeric)
         .take(length)
         .collect()
 }
@@ -95,12 +97,13 @@ fn parse_id(id: &str, valid_sigils: &[char]) -> Result<NonZeroU8, Error> {
 /// Deserializes any type of id using the provided TryFrom implementation.
 ///
 /// This is a helper function to reduce the boilerplate of the Deserialize implementations.
+#[cfg(feature = "serde")]
 fn deserialize_id<'de, D, T>(deserializer: D, expected_str: &str) -> Result<T, D::Error>
 where
     D: Deserializer<'de>,
-    T: for<'a> TryFrom<&'a str>,
+    T: for<'a> std::convert::TryFrom<&'a str>,
 {
-    Cow::<'_, str>::deserialize(deserializer).and_then(|v| {
+    std::borrow::Cow::<'_, str>::deserialize(deserializer).and_then(|v| {
         T::try_from(&v).map_err(|_| de::Error::invalid_value(Unexpected::Str(&v), &expected_str))
     })
 }

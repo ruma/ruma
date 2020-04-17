@@ -5,7 +5,7 @@ use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
 
-use crate::{error::Error, generate_localpart, is_valid_server_name, parse_id};
+use crate::{error::Error, parse_id};
 
 /// A Matrix user ID.
 ///
@@ -39,7 +39,10 @@ impl UserId {
     /// 12 random ASCII characters.
     ///
     /// Fails if the given homeserver cannot be parsed as a valid host.
+    #[cfg(feature = "rand")]
     pub fn new(server_name: &str) -> Result<Self, Error> {
+        use crate::{generate_localpart, is_valid_server_name};
+
         if !is_valid_server_name(server_name) {
             return Err(Error::InvalidServerName);
         }
@@ -108,6 +111,7 @@ common_impls!(UserId, "a Matrix user ID");
 mod tests {
     use std::convert::TryFrom;
 
+    #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
     use super::UserId;
@@ -134,6 +138,7 @@ mod tests {
         assert!(user_id.is_historical());
     }
 
+    #[cfg(feature = "rand")]
     #[test]
     fn generate_random_valid_user_id() {
         let user_id = UserId::new("example.com").expect("Failed to generate UserId.");
@@ -146,11 +151,13 @@ mod tests {
         assert_eq!(id_str.len(), 25);
     }
 
+    #[cfg(feature = "rand")]
     #[test]
     fn generate_random_invalid_user_id() {
         assert!(UserId::new("").is_err());
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_valid_user_id() {
         assert_eq!(
@@ -160,6 +167,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_valid_user_id() {
         assert_eq!(

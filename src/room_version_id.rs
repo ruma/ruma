@@ -8,9 +8,10 @@ use std::{
 
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::{deserialize_id, error::Error};
+use crate::error::Error;
 
 /// Room version identifiers cannot be more than 32 code points.
 const MAX_CODE_POINTS: usize = 32;
@@ -155,6 +156,7 @@ impl Display for RoomVersionId {
     }
 }
 
+#[cfg(feature = "serde")]
 impl Serialize for RoomVersionId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -164,12 +166,13 @@ impl Serialize for RoomVersionId {
     }
 }
 
+#[cfg(feature = "serde")]
 impl<'de> Deserialize<'de> for RoomVersionId {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        deserialize_id(deserializer, "a Matrix room version ID as a string")
+        crate::deserialize_id(deserializer, "a Matrix room version ID as a string")
     }
 }
 
@@ -243,6 +246,7 @@ impl PartialEq<RoomVersionId> for String {
 mod tests {
     use std::convert::TryFrom;
 
+    #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
     use super::RoomVersionId;
@@ -324,6 +328,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_official_room_id() {
         assert_eq!(
@@ -333,6 +338,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_official_room_id() {
         let deserialized =
@@ -347,6 +353,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn serialize_custom_room_id() {
         assert_eq!(
@@ -358,6 +365,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "serde")]
     #[test]
     fn deserialize_custom_room_id() {
         let deserialized = from_str::<RoomVersionId>(r#""io.ruma.1""#)

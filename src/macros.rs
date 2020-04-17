@@ -63,6 +63,7 @@ macro_rules! common_impls {
             }
         }
 
+        #[cfg(feature = "serde")]
         impl ::serde::Serialize for $id {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -72,6 +73,7 @@ macro_rules! common_impls {
             }
         }
 
+        #[cfg(feature = "serde")]
         impl<'de> ::serde::Deserialize<'de> for $id {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
