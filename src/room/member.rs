@@ -192,7 +192,7 @@ impl MemberEvent {
             (Invite, Invite) | (Leave, Leave) | (Ban, Ban) => MembershipChange::None,
             (Invite, Join) | (Leave, Join) => MembershipChange::Joined,
             (Invite, Leave) => {
-                if self.sender.to_string() == self.state_key {
+                if self.sender == self.state_key {
                     MembershipChange::InvitationRevoked
                 } else {
                     MembershipChange::InvitationRejected
@@ -202,7 +202,7 @@ impl MemberEvent {
             (Join, Invite) | (Ban, Invite) | (Ban, Join) => MembershipChange::Error,
             (Join, Join) => MembershipChange::ProfileChanged,
             (Join, Leave) => {
-                if self.sender.to_string() == self.state_key {
+                if self.sender == self.state_key {
                     MembershipChange::Left
                 } else {
                     MembershipChange::Kicked
