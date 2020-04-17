@@ -220,7 +220,7 @@ mod tests {
     }
 
     #[test]
-    fn downcase_user_id() {
+    fn uppercase_user_id() {
         let user_id = UserId::try_from("@CARL:example.com").expect("Failed to create UserId.");
         assert_eq!(user_id.as_ref(), "@CARL:example.com");
         assert!(user_id.is_historical());
