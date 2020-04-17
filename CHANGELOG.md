@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.19.0
+
+Breaking changes:
+
+* Update ruma-identifiers to 0.15.1
+* Change timestamps, including `origin_server_rs` from `UInt` to `SystemTime`
+
 # 0.18.0
 
 Breaking changes:
