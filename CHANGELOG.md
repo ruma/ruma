@@ -1,5 +1,15 @@
 # [unreleased]
 
+# 0.16.0
+
+Breaking changes:
+
+* Update ruma-identifiers to 0.15.1
+
+Improvements:
+
+* Remove dependency on the `url` crate
+
 # 0.15.1
 
 Bug fixes:
