@@ -81,14 +81,15 @@ fn parse_id(id: &str, valid_sigils: &[char]) -> Result<NonZeroU8, Error> {
     validate_id(id, valid_sigils)?;
 
     let colon_idx = id.find(':').ok_or(Error::MissingDelimiter)?;
+    if colon_idx < 2 {
+        return Err(Error::InvalidLocalPart);
+    }
+
     if !is_valid_server_name(&id[colon_idx + 1..]) {
         return Err(Error::InvalidServerName);
     }
 
-    match NonZeroU8::new(colon_idx as u8) {
-        Some(idx) => Ok(idx),
-        None => Err(Error::InvalidLocalPart),
-    }
+    Ok(NonZeroU8::new(colon_idx as u8).unwrap())
 }
 
 /// Deserializes any type of id using the provided TryFrom implementation.
