@@ -63,22 +63,23 @@ impl UserId {
     /// user ID or just the localpart. It only supports a valid user ID or a valid user ID
     /// localpart, not the localpart plus the `@` prefix, or the localpart plus server name without
     /// the `@` prefix.
-    pub fn parse_with_server_name<'a>(
-        id: impl Into<Cow<'a, str>>,
+    pub fn parse_with_server_name(
+        id: impl AsRef<str> + Into<String>,
         server_name: &str,
     ) -> Result<Self, Error> {
-        let id = id.into();
-        if id.starts_with('@') {
-            Self::try_from(id)
+        let id_str = id.as_ref();
+
+        if id_str.starts_with('@') {
+            Self::try_from(id.into())
         } else {
-            let is_fully_conforming = localpart_is_fully_comforming(&id)?;
+            let is_fully_conforming = localpart_is_fully_comforming(id_str)?;
             if !is_valid_server_name(server_name) {
                 return Err(Error::InvalidServerName);
             }
 
             Ok(Self {
-                full_id: format!("@{}:{}", id, server_name),
-                colon_idx: NonZeroU8::new(id.len() as u8 + 1).unwrap(),
+                full_id: format!("@{}:{}", id_str, server_name),
+                colon_idx: NonZeroU8::new(id_str.len() as u8 + 1).unwrap(),
                 is_historical: !is_fully_conforming,
             })
         }
