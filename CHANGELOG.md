@@ -27,6 +27,9 @@ Improvements:
 * Add support for historical uppercase MXIDs
 * Made all dependencies optional
   * `serde` is the only one that is enabled by default
+* The `user_id` module is now public and contains `fn localpart_is_fully_conforming`
+  * This function can be used to determine whether a user name (the localpart of a user ID) is valid
+    without actually constructing a full user ID first
 
 # 0.14.1
 

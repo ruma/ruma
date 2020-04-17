@@ -20,10 +20,9 @@ use std::num::NonZeroU8;
 use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
 
 #[doc(inline)]
-pub use crate::device_id::DeviceId;
 pub use crate::{
-    error::Error, event_id::EventId, room_alias_id::RoomAliasId, room_id::RoomId,
-    room_id_or_room_alias_id::RoomIdOrAliasId, room_version_id::RoomVersionId,
+    device_id::DeviceId, error::Error, event_id::EventId, room_alias_id::RoomAliasId,
+    room_id::RoomId, room_id_or_room_alias_id::RoomIdOrAliasId, room_version_id::RoomVersionId,
     server_name::is_valid_server_name, user_id::UserId,
 };
 
@@ -40,7 +39,7 @@ mod room_id;
 mod room_id_or_room_alias_id;
 mod room_version_id;
 mod server_name;
-mod user_id;
+pub mod user_id;
 
 /// All identifiers must be 255 bytes or less.
 const MAX_BYTES: usize = 255;

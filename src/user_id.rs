@@ -84,28 +84,42 @@ impl TryFrom<Cow<'_, str>> for UserId {
         let colon_idx = parse_id(&user_id, &['@'])?;
         let localpart = &user_id[1..colon_idx.get() as usize];
 
-        // See https://matrix.org/docs/spec/appendices#user-identifiers
-        let is_fully_conforming = localpart.bytes().all(|b| match b {
-            b'0'..=b'9' | b'a'..=b'z' | b'-' | b'.' | b'=' | b'_' | b'/' => true,
-            _ => false,
-        });
-
-        // If it's not fully conforming, check if it contains characters that are also disallowed
-        // for historical user IDs. If there are, return an error.
-        // See https://matrix.org/docs/spec/appendices#historical-user-ids
-        if !is_fully_conforming && localpart.bytes().any(|b| b < 0x21 || b == b':' || b > 0x7E) {
-            return Err(Error::InvalidCharacters);
-        }
+        let is_historical = localpart_is_fully_comforming(localpart)?;
 
         Ok(Self {
             full_id: user_id.into_owned(),
             colon_idx,
-            is_historical: !is_fully_conforming,
+            is_historical: !is_historical,
         })
     }
 }
 
 common_impls!(UserId, "a Matrix user ID");
+
+/// Check whether the given user id localpart is valid and fully conforming
+///
+/// Returns an `Err` for invalid user ID localparts, `Ok(false)` for historical user ID localparts
+/// and `Ok(true)` for fully conforming user ID localparts.
+pub fn localpart_is_fully_comforming(localpart: &str) -> Result<bool, Error> {
+    if localpart.is_empty() {
+        return Err(Error::InvalidLocalPart);
+    }
+
+    // See https://matrix.org/docs/spec/appendices#user-identifiers
+    let is_fully_conforming = localpart.bytes().all(|b| match b {
+        b'0'..=b'9' | b'a'..=b'z' | b'-' | b'.' | b'=' | b'_' | b'/' => true,
+        _ => false,
+    });
+
+    // If it's not fully conforming, check if it contains characters that are also disallowed
+    // for historical user IDs. If there are, return an error.
+    // See https://matrix.org/docs/spec/appendices#historical-user-ids
+    if !is_fully_conforming && localpart.bytes().any(|b| b < 0x21 || b == b':' || b > 0x7E) {
+        Err(Error::InvalidCharacters)
+    } else {
+        Ok(is_fully_conforming)
+    }
+}
 
 #[cfg(test)]
 mod tests {
