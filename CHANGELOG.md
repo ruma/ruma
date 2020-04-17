@@ -30,6 +30,7 @@ Improvements:
 * The `user_id` module is now public and contains `fn localpart_is_fully_conforming`
   * This function can be used to determine whether a user name (the localpart of a user ID) is valid
     without actually constructing a full user ID first
+* Add `UserId::parse_with_server_name`
 
 # 0.14.1
 

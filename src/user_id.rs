@@ -5,7 +5,7 @@ use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
 
-use crate::{error::Error, parse_id};
+use crate::{error::Error, is_valid_server_name, parse_id};
 
 /// A Matrix user ID.
 ///
@@ -41,7 +41,7 @@ impl UserId {
     /// Fails if the given homeserver cannot be parsed as a valid host.
     #[cfg(feature = "rand")]
     pub fn new(server_name: &str) -> Result<Self, Error> {
-        use crate::{generate_localpart, is_valid_server_name};
+        use crate::generate_localpart;
 
         if !is_valid_server_name(server_name) {
             return Err(Error::InvalidServerName);
@@ -53,6 +53,34 @@ impl UserId {
             colon_idx: NonZeroU8::new(13).unwrap(),
             is_historical: false,
         })
+    }
+
+    /// Attempts to complete a user ID, by adding the colon + server name and `@` prefix, if not
+    /// present already.
+    ///
+    /// This is a convenience function for the login API, where a user can supply either their full
+    /// user ID or just the localpart. It only supports a valid user ID or a valid user ID
+    /// localpart, not the localpart plus the `@` prefix, or the localpart plus server name without
+    /// the `@` prefix.
+    pub fn parse_with_server_name<'a>(
+        id: impl Into<Cow<'a, str>>,
+        server_name: &str,
+    ) -> Result<Self, Error> {
+        let id = id.into();
+        if id.starts_with('@') {
+            Self::try_from(id)
+        } else {
+            let is_fully_conforming = localpart_is_fully_comforming(&id)?;
+            if !is_valid_server_name(server_name) {
+                return Err(Error::InvalidServerName);
+            }
+
+            Ok(Self {
+                full_id: format!("@{}:{}", id, server_name),
+                colon_idx: NonZeroU8::new(id.len() as u8 + 1).unwrap(),
+                is_historical: !is_fully_conforming,
+            })
+        }
     }
 
     /// Returns the user's localpart.
@@ -132,9 +160,31 @@ mod tests {
     use crate::error::Error;
 
     #[test]
-    fn valid_user_id() {
+    fn valid_user_id_from_str() {
         let user_id = UserId::try_from("@carl:example.com").expect("Failed to create UserId.");
         assert_eq!(user_id.as_ref(), "@carl:example.com");
+        assert_eq!(user_id.localpart(), "carl");
+        assert_eq!(user_id.server_name(), "example.com");
+        assert!(!user_id.is_historical());
+    }
+
+    #[test]
+    fn parse_valid_user_id() {
+        let user_id = UserId::parse_with_server_name("@carl:example.com", "example.com")
+            .expect("Failed to create UserId.");
+        assert_eq!(user_id.as_ref(), "@carl:example.com");
+        assert_eq!(user_id.localpart(), "carl");
+        assert_eq!(user_id.server_name(), "example.com");
+        assert!(!user_id.is_historical());
+    }
+
+    #[test]
+    fn parse_valid_user_id_parts() {
+        let user_id = UserId::parse_with_server_name("carl", "example.com")
+            .expect("Failed to create UserId.");
+        assert_eq!(user_id.as_ref(), "@carl:example.com");
+        assert_eq!(user_id.localpart(), "carl");
+        assert_eq!(user_id.server_name(), "example.com");
         assert!(!user_id.is_historical());
     }
 
@@ -142,6 +192,28 @@ mod tests {
     fn valid_historical_user_id() {
         let user_id = UserId::try_from("@a%b[irc]:example.com").expect("Failed to create UserId.");
         assert_eq!(user_id.as_ref(), "@a%b[irc]:example.com");
+        assert_eq!(user_id.localpart(), "a%b[irc]");
+        assert_eq!(user_id.server_name(), "example.com");
+        assert!(user_id.is_historical());
+    }
+
+    #[test]
+    fn parse_valid_historical_user_id() {
+        let user_id = UserId::parse_with_server_name("@a%b[irc]:example.com", "example.com")
+            .expect("Failed to create UserId.");
+        assert_eq!(user_id.as_ref(), "@a%b[irc]:example.com");
+        assert_eq!(user_id.localpart(), "a%b[irc]");
+        assert_eq!(user_id.server_name(), "example.com");
+        assert!(user_id.is_historical());
+    }
+
+    #[test]
+    fn parse_valid_historical_user_id_parts() {
+        let user_id = UserId::parse_with_server_name("a%b[irc]", "example.com")
+            .expect("Failed to create UserId.");
+        assert_eq!(user_id.as_ref(), "@a%b[irc]:example.com");
+        assert_eq!(user_id.localpart(), "a%b[irc]");
+        assert_eq!(user_id.server_name(), "example.com");
         assert!(user_id.is_historical());
     }
 
