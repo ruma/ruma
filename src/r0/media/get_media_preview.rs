@@ -21,7 +21,7 @@ ruma_api! {
         pub url: String,
         /// Preferred point in time (in milliseconds) to return a preview for.
         #[ruma_api(query)]
-        #[serde(with = "crate::serde::time::ms_since_unix_epoch")]
+        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
         pub ts: SystemTime,
     }
 

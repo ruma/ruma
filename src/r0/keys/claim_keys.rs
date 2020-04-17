@@ -24,7 +24,7 @@ ruma_api! {
         /// The time (in milliseconds) to wait when downloading keys from remote servers.
         /// 10 seconds is the recommended default.
         #[serde(
-            with = "crate::serde::duration::opt_ms",
+            with = "ruma_serde::duration::opt_ms",
             default,
             skip_serializing_if = "Option::is_none",
         )]

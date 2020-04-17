@@ -20,7 +20,7 @@ ruma_api! {
         /// The password to use.
         pub password: String,
         /// The time-to-live in seconds.
-        #[serde(with = "crate::serde::duration::secs")]
+        #[serde(with = "ruma_serde::duration::secs")]
         pub ttl: Duration,
         /// A list of TURN URIs.
         pub uris: Vec<String>,

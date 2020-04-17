@@ -30,7 +30,7 @@ ruma_api! {
         /// Homeserver domain for verification of user's identity.
         pub matrix_server_name: String,
         /// Seconds until token expiration.
-        #[serde(with = "crate::serde::duration::secs")]
+        #[serde(with = "ruma_serde::duration::secs")]
         pub expires_in: Duration,
     }
 

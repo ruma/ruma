@@ -40,7 +40,7 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub filter: Option<Filter>,
         /// Network to fetch the public room lists from.
-        #[serde(flatten, skip_serializing_if = "crate::serde::is_default")]
+        #[serde(flatten, skip_serializing_if = "ruma_serde::is_default")]
         pub room_network: RoomNetwork,
     }
 

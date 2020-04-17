@@ -38,10 +38,10 @@ pub struct ThirdPartyIdentifier {
     /// The medium of third party identifier.
     pub medium: Medium,
     /// The time when the identifier was validated by the identity server.
-    #[serde(with = "crate::serde::time::ms_since_unix_epoch")]
+    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
     pub validated_at: SystemTime,
     /// The time when the homeserver associated the third party identifier with the user.
-    #[serde(with = "crate::serde::time::ms_since_unix_epoch")]
+    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
     pub added_at: SystemTime,
 }
 

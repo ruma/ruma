@@ -38,7 +38,7 @@ pub struct ConnectionInfo {
     /// Most recently seen IP address of the session.
     pub ip: String,
     /// Time when that the session was last active.
-    #[serde(with = "crate::serde::time::ms_since_unix_epoch")]
+    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
     pub last_seen: SystemTime,
     /// User agent string last seen in the session.
     pub user_agent: String,

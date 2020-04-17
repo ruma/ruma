@@ -22,7 +22,7 @@ pub struct Device {
     pub ip: Option<String>,
     /// Unix timestamp that the session was last active.
     #[serde(
-        with = "crate::serde::time::opt_ms_since_unix_epoch",
+        with = "ruma_serde::time::opt_ms_since_unix_epoch",
         default,
         skip_serializing_if = "Option::is_none"
     )]

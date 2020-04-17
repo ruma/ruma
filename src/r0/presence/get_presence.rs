@@ -31,7 +31,7 @@ ruma_api! {
         pub currently_active: Option<bool>,
         /// The length of time in milliseconds since an action was performed by the user.
         #[serde(
-            with = "crate::serde::duration::opt_ms",
+            with = "ruma_serde::duration::opt_ms",
             default,
             skip_serializing_if = "Option::is_none",
         )]

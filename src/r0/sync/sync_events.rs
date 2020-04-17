@@ -17,10 +17,7 @@ use ruma_events::{
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    r0::{filter::FilterDefinition, keys::KeyAlgorithm},
-    serde::is_default,
-};
+use crate::r0::{filter::FilterDefinition, keys::KeyAlgorithm};
 
 ruma_api! {
     metadata {
@@ -45,16 +42,16 @@ ruma_api! {
         #[ruma_api(query)]
         pub since: Option<String>,
         /// Controls whether to include the full state for all rooms the user is a member of.
-        #[serde(default, skip_serializing_if = "is_default")]
+        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
         #[ruma_api(query)]
         pub full_state: bool,
         /// Controls whether the client is automatically marked as online by polling this API.
-        #[serde(default, skip_serializing_if = "is_default")]
+        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
         #[ruma_api(query)]
         pub set_presence: SetPresence,
         /// The maximum time to poll in milliseconds before returning this request.
         #[serde(
-            with = "crate::serde::duration::opt_ms",
+            with = "ruma_serde::duration::opt_ms",
             default,
             skip_serializing_if = "Option::is_none",
         )]
@@ -122,7 +119,7 @@ pub enum Filter {
     // FilterDefinition is the first variant, JSON decoding is attempted first which is almost
     // functionally equivalent to looking at whether the first symbol is a '{' as the spec says.
     // (there are probably some corner cases like leading whitespace)
-    #[serde(with = "crate::serde::json_string")]
+    #[serde(with = "ruma_serde::json_string")]
     /// A complete filter definition serialized to JSON.
     FilterDefinition(FilterDefinition),
     /// The ID of a filter saved on the server.

@@ -74,6 +74,6 @@ pub struct Notification {
     pub room_id: RoomId,
 
     /// The time at which the event notification was sent, in milliseconds.
-    #[serde(with = "crate::serde::time::ms_since_unix_epoch")]
+    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
     pub ts: SystemTime,
 }

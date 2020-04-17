@@ -21,7 +21,7 @@ ruma_api! {
         pub room_id: RoomId,
         /// The length of time in milliseconds to mark this user as typing.
         #[serde(
-            with = "crate::serde::duration::opt_ms",
+            with = "ruma_serde::duration::opt_ms",
             default,
             skip_serializing_if = "Option::is_none",
         )]

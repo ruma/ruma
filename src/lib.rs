@@ -12,6 +12,4 @@ pub mod error;
 pub mod r0;
 pub mod unversioned;
 
-mod serde;
-
 pub use error::Error;

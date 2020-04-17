@@ -55,7 +55,7 @@ ruma_api! {
         pub kind: Option<RegistrationKind>,
         /// If `true`, an `access_token` and `device_id` should not be returned
         /// from this call, therefore preventing an automatic login.
-        #[serde(default, skip_serializing_if = "crate::serde::is_default")]
+        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
         pub inhibit_login: bool,
     }
 
