@@ -298,6 +298,14 @@ mod tests {
     }
 
     #[test]
+    fn missing_localpart() {
+        assert_eq!(
+            UserId::try_from("@:example.com").unwrap_err(),
+            Error::InvalidLocalPart
+        );
+    }
+
+    #[test]
     fn missing_user_id_delimiter() {
         assert_eq!(
             UserId::try_from("@carl").unwrap_err(),
