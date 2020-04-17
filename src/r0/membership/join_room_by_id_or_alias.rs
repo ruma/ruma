@@ -22,8 +22,8 @@ ruma_api! {
         /// The servers to attempt to join the room through. One of the servers
         /// must be participating in the room.
         #[ruma_api(query)]
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub server_name: Vec<String>,
+        #[serde(default)]
+        pub server_name: String, // TODO: Vec<String> once it is supported (#146, ruma-api#48)
         /// The signature of a `m.third_party_invite` token to prove that this user owns a third
         /// party identity which has been invited to the room.
         #[serde(skip_serializing_if = "Option::is_none")]
