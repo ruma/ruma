@@ -20,6 +20,7 @@ Breaking changes:
 Improvements:
 
 * Add types for User-Interactive Authentication API: `r0::account::{UserInteractiveAuthenticationInfo, AuthenticationFlow}`
+* Add missing serde attributes to `get_content_thumbnail` query parameters
 
 # 0.7.2
 

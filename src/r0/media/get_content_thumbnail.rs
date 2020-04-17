@@ -29,6 +29,7 @@ ruma_api! {
         ///
         /// Used to prevent routing loops. Defaults to `true`.
         #[ruma_api(query)]
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub allow_remote: Option<bool>,
         /// The media ID from the mxc:// URI (the path component).
         #[ruma_api(path)]
@@ -42,6 +43,7 @@ ruma_api! {
         pub height: UInt,
         /// The desired resizing method.
         #[ruma_api(query)]
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub method: Option<Method>,
         /// The *desired* width of the thumbnail. The actual thumbnail may not match the size
         /// specified.
