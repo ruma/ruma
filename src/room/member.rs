@@ -178,7 +178,7 @@ pub enum MembershipChange {
 }
 
 impl MemberEvent {
-    /// Helper function for memebership change. Check [the specification][spec] for details.
+    /// Helper function for membership change. Check [the specification][spec] for details.
     ///
     /// [spec]: https://matrix.org/docs/spec/client_server/latest#m-room-member
     pub fn membership_change(&self) -> MembershipChange {
