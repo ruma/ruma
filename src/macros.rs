@@ -53,9 +53,8 @@ macro_rules! impl_room_event {
                 &self.event_id
             }
 
-            /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this event was
-            /// sent.
-            fn origin_server_ts(&self) -> UInt {
+            /// Time on originating homeserver when this event was sent.
+            fn origin_server_ts(&self) -> ::std::time::SystemTime {
                 self.origin_server_ts
             }
 
@@ -63,17 +62,17 @@ macro_rules! impl_room_event {
             ///
             /// This can be `None` if the event came from a context where there is
             /// no ambiguity which room it belongs to, like a `/sync` response for example.
-            fn room_id(&self) -> Option<&RoomId> {
+            fn room_id(&self) -> Option<&::ruma_identifiers::RoomId> {
                 self.room_id.as_ref()
             }
 
             /// The unique identifier for the user who sent this event.
-            fn sender(&self) -> &UserId {
+            fn sender(&self) -> &::ruma_identifiers::UserId {
                 &self.sender
             }
 
             /// Additional key-value pairs not signed by the homeserver.
-            fn unsigned(&self) -> &serde_json::Map<String, serde_json::Value> {
+            fn unsigned(&self) -> &::serde_json::Map<String, ::serde_json::Value> {
                 &self.unsigned
             }
         }
@@ -100,7 +99,7 @@ macro_rules! impl_state_event {
 
 macro_rules! impl_from_for_enum {
     ($self_ty:ident, $inner_ty:ty, $variant:ident) => {
-        impl From<$inner_ty> for $self_ty {
+        impl ::std::convert::From<$inner_ty> for $self_ty {
             fn from(event: $inner_ty) -> Self {
                 $self_ty::$variant(event)
             }

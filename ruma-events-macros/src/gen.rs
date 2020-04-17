@@ -134,9 +134,8 @@ impl ToTokens for RumaEvent {
                             &self.event_id
                         }
 
-                        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this event was
-                        /// sent.
-                        fn origin_server_ts(&self) -> js_int::UInt {
+                        /// Time on originating homeserver when this event was sent.
+                        fn origin_server_ts(&self) -> std::time::SystemTime {
                             self.origin_server_ts
                         }
 
@@ -284,9 +283,9 @@ fn populate_room_event_fields(content_name: Ident, fields: Vec<Field>) -> Vec<Fi
         /// The unique identifier for the event.
         pub event_id: ruma_identifiers::EventId,
 
-        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-        /// event was sent.
-        pub origin_server_ts: js_int::UInt,
+        /// Time on originating homeserver when this event was sent.
+        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+        pub origin_server_ts: std::time::SystemTime,
 
         /// The unique identifier for the room associated with this event.
         #[serde(skip_serializing_if = "Option::is_none")]

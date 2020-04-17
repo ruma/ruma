@@ -1,6 +1,7 @@
 //! Types for the *m.room.name* event.
 
-use js_int::UInt;
+use std::time::SystemTime;
+
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -17,9 +18,9 @@ pub struct NameEvent {
     /// The unique identifier for the event.
     pub event_id: EventId,
 
-    /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-    /// event was sent.
-    pub origin_server_ts: UInt,
+    /// Time on originating homeserver when this event was sent.
+    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+    pub origin_server_ts: SystemTime,
 
     /// The previous content for this state key, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -117,9 +118,9 @@ pub(crate) mod raw {
         /// The unique identifier for the event.
         pub event_id: EventId,
 
-        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-        /// event was sent.
-        pub origin_server_ts: UInt,
+        /// Time on originating homeserver when this event was sent.
+        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+        pub origin_server_ts: SystemTime,
 
         /// The previous content for this state key, if any.
         pub prev_content: Option<NameEventContent>,
@@ -152,9 +153,12 @@ pub(crate) mod raw {
 
 #[cfg(test)]
 mod tests {
-    use std::{convert::TryFrom, iter::FromIterator};
+    use std::{
+        convert::TryFrom,
+        iter::FromIterator,
+        time::{Duration, UNIX_EPOCH},
+    };
 
-    use js_int::UInt;
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value, Map};
 
@@ -169,7 +173,7 @@ mod tests {
                 name: Some("The room name".to_string()),
             },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UInt::try_from(1).unwrap(),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: None,
             room_id: None,
             sender: UserId::try_from("@carl:example.com").unwrap(),
@@ -199,7 +203,7 @@ mod tests {
                 name: Some("The room name".to_string()),
             },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UInt::try_from(1).unwrap(),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: Some(NameEventContent {
                 name: Some("The old name".to_string()),
             }),

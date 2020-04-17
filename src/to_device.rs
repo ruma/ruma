@@ -256,9 +256,10 @@ mod raw {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
-    use js_int::UInt;
+    use std::{
+        convert::TryFrom,
+        time::{Duration, UNIX_EPOCH},
+    };
 
     use ruma_identifiers::{RoomId, UserId};
     use serde_json::{from_value as from_json_value, json};
@@ -647,7 +648,7 @@ mod tests {
         assert_eq!(event.content.methods, &[VerificationMethod::MSasV1]);
         assert_eq!(
             event.content.timestamp,
-            UInt::new(1_559_598_944_869).unwrap()
+            UNIX_EPOCH + Duration::from_millis(1_559_598_944_869)
         );
     }
 }

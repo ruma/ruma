@@ -17,9 +17,8 @@ ruma_event! {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
+    use std::time::{Duration, UNIX_EPOCH};
 
-    use js_int::UInt;
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{to_string, Map};
 
@@ -38,7 +37,7 @@ mod tests {
         let event = PinnedEventsEvent {
             content: content.clone(),
             event_id: EventId::new("example.com").unwrap(),
-            origin_server_ts: UInt::try_from(1_432_804_485_886u64).unwrap(),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1_432_804_485_886u64),
             prev_content: None,
             room_id: Some(RoomId::new("example.com").unwrap()),
             sender: UserId::new("example.com").unwrap(),

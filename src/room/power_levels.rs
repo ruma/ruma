@@ -1,8 +1,8 @@
 //! Types for the *m.room.power_levels* event.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, time::SystemTime};
 
-use js_int::{Int, UInt};
+use js_int::Int;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -19,9 +19,9 @@ pub struct PowerLevelsEvent {
     /// The unique identifier for the event.
     pub event_id: EventId,
 
-    /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-    /// event was sent.
-    pub origin_server_ts: UInt,
+    /// Time on originating homeserver when this event was sent.
+    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+    pub origin_server_ts: SystemTime,
 
     /// The previous content for this state key, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -146,9 +146,9 @@ pub(crate) mod raw {
         /// The unique identifier for the event.
         pub event_id: EventId,
 
-        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-        /// event was sent.
-        pub origin_server_ts: UInt,
+        /// Time on originating homeserver when this event was sent.
+        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+        pub origin_server_ts: SystemTime,
 
         /// The previous content for this state key, if any.
         pub prev_content: Option<PowerLevelsEventContent>,
@@ -262,9 +262,13 @@ fn is_power_level_zero(l: &Int) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::HashMap, convert::TryFrom};
+    use std::{
+        collections::HashMap,
+        convert::TryFrom,
+        time::{Duration, UNIX_EPOCH},
+    };
 
-    use js_int::{Int, UInt};
+    use js_int::Int;
     use maplit::hashmap;
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{json, to_value as to_json_value, Map};
@@ -292,7 +296,7 @@ mod tests {
                 notifications: NotificationPowerLevels::default(),
             },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UInt::from(1u32),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: None,
             room_id: None,
             unsigned: Map::new(),
@@ -336,7 +340,7 @@ mod tests {
                 },
             },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UInt::from(1u32),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: Some(PowerLevelsEventContent {
                 // Make just one field different so we at least know they're two different objects.
                 ban: Int::from(42),

@@ -221,9 +221,11 @@ impl MemberEvent {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
+    use std::{
+        convert::TryFrom,
+        time::{Duration, UNIX_EPOCH},
+    };
 
-    use js_int::UInt;
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{json, Map};
 
@@ -241,7 +243,7 @@ mod tests {
                 third_party_invite: None,
             },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UInt::new(1).unwrap(),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "example.com".to_string(),
@@ -273,7 +275,7 @@ mod tests {
                 third_party_invite: None,
             },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UInt::new(1).unwrap(),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "example.com".to_string(),
@@ -329,7 +331,7 @@ mod tests {
                 }),
             },
             event_id: EventId::try_from("$143273582443PhrSn:example.org").unwrap(),
-            origin_server_ts: UInt::new(233).unwrap(),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(233),
             room_id: Some(RoomId::try_from("!jEsUZKDJdhlrceRyVU:example.org").unwrap()),
             sender: UserId::try_from("@alice:example.org").unwrap(),
             state_key: "@alice:example.org".to_string(),
@@ -384,7 +386,7 @@ mod tests {
                 third_party_invite: None,
             },
             event_id: EventId::try_from("$143273582443PhrSn:example.org").unwrap(),
-            origin_server_ts: UInt::new(233).unwrap(),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(233),
             room_id: Some(RoomId::try_from("!jEsUZKDJdhlrceRyVU:example.org").unwrap()),
             sender: UserId::try_from("@alice:example.org").unwrap(),
             state_key: "@alice:example.org".to_string(),

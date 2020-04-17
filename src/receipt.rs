@@ -1,8 +1,7 @@
 //! Types for the *m.receipt* event.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, time::SystemTime};
 
-use js_int::UInt;
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
@@ -44,8 +43,13 @@ pub struct Receipts {
 pub type UserReceipts = HashMap<UserId, Receipt>;
 
 /// An acknowledgement of an event.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Receipt {
-    /// The timestamp (milliseconds since the Unix epoch) when the receipt was sent.
-    pub ts: Option<UInt>,
+    /// The time when the receipt was sent.
+    #[serde(
+        with = "ruma_serde::time::opt_ms_since_unix_epoch",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub ts: Option<SystemTime>,
 }

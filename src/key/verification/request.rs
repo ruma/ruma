@@ -1,6 +1,7 @@
 //! Types for the *m.key.verification.request* event.
 
-use js_int::UInt;
+use std::time::SystemTime;
+
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::DeviceId;
 
@@ -25,11 +26,12 @@ ruma_event! {
             /// The verification methods supported by the sender.
             pub methods: Vec<VerificationMethod>,
 
-            /// The POSIX timestamp in milliseconds for when the request was made.
+            /// The time in milliseconds for when the request was made.
             ///
             /// If the request is in the future by more than 5 minutes or more than 10 minutes in
             /// the past, the message should be ignored by the receiver.
-            pub timestamp: UInt,
+            #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+            pub timestamp: SystemTime,
         },
     }
 }

@@ -1,8 +1,15 @@
 //! Types for the *m.room.canonical_alias* event.
 
-use js_int::UInt;
+use std::{
+    convert::TryFrom,
+    time::{SystemTime, UNIX_EPOCH},
+};
+
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
-use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
+use serde::{
+    ser::{Error, SerializeStruct},
+    Deserialize, Serialize, Serializer,
+};
 use serde_json::{Map, Value};
 
 use crate::{util::empty_string_as_none, Event, EventType, FromRaw};
@@ -16,9 +23,8 @@ pub struct CanonicalAliasEvent {
     /// The unique identifier for the event.
     pub event_id: EventId,
 
-    /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-    /// event was sent.
-    pub origin_server_ts: UInt,
+    /// Time on originating homeserver when this event was sent.
+    pub origin_server_ts: SystemTime,
 
     /// The previous content for this state key, if any.
     pub prev_content: Option<CanonicalAliasEventContent>,
@@ -93,7 +99,15 @@ impl Serialize for CanonicalAliasEvent {
 
         state.serialize_field("content", &self.content)?;
         state.serialize_field("event_id", &self.event_id)?;
-        state.serialize_field("origin_server_ts", &self.origin_server_ts)?;
+
+        let origin_server_ts = js_int::UInt::try_from(
+            self.origin_server_ts
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_millis(),
+        )
+        .map_err(S::Error::custom)?;
+        state.serialize_field("origin_server_ts", &origin_server_ts)?;
 
         if self.prev_content.is_some() {
             state.serialize_field("prev_content", &self.prev_content)?;
@@ -133,9 +147,9 @@ pub(crate) mod raw {
         /// The unique identifier for the event.
         pub event_id: EventId,
 
-        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-        /// event was sent.
-        pub origin_server_ts: UInt,
+        /// Time on originating homeserver when this event was sent.
+        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+        pub origin_server_ts: SystemTime,
 
         /// The previous content for this state key, if any.
         pub prev_content: Option<CanonicalAliasEventContent>,
@@ -170,9 +184,11 @@ pub(crate) mod raw {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
+    use std::{
+        convert::TryFrom,
+        time::{Duration, UNIX_EPOCH},
+    };
 
-    use js_int::UInt;
     use ruma_identifiers::{EventId, RoomAliasId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value, Map};
 
@@ -186,7 +202,7 @@ mod tests {
                 alias: Some(RoomAliasId::try_from("#somewhere:localhost").unwrap()),
             },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UInt::try_from(1).unwrap(),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: None,
             room_id: None,
             sender: UserId::try_from("@carl:example.com").unwrap(),

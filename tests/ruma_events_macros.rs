@@ -1,6 +1,9 @@
-use std::{collections::HashMap, convert::TryFrom};
+use std::{
+    collections::HashMap,
+    convert::TryFrom,
+    time::{Duration, UNIX_EPOCH},
+};
 
-use js_int::UInt;
 use ruma_events::util::serde_json_eq_try_from_raw;
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
@@ -29,7 +32,7 @@ mod common_case {
                 aliases: Vec::with_capacity(0),
             },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UInt::try_from(1).unwrap(),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: None,
             room_id: None,
             sender: UserId::try_from("@carl:example.com").unwrap(),
@@ -56,7 +59,7 @@ mod common_case {
                 aliases: vec![RoomAliasId::try_from("#room:example.org").unwrap()],
             },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UInt::try_from(1).unwrap(),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: Some(AliasesEventContent {
                 aliases: Vec::with_capacity(0),
             }),
@@ -89,7 +92,7 @@ mod common_case {
                 aliases: vec![RoomAliasId::try_from("#room:example.org").unwrap()],
             },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UInt::try_from(1).unwrap(),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: Some(AliasesEventContent {
                 aliases: Vec::with_capacity(0),
             }),
@@ -144,7 +147,7 @@ mod extra_fields {
             content: RedactionEventContent { reason: None },
             redacts: EventId::try_from("$h29iv0s8:example.com").unwrap(),
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UInt::try_from(1).unwrap(),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             unsigned: serde_json::from_str(r#"{"foo":"bar"}"#).unwrap(),

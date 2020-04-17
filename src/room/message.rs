@@ -1,5 +1,7 @@
 //! Types for the *m.room.message* event.
 
+use std::time::SystemTime;
+
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
@@ -20,9 +22,9 @@ pub struct MessageEvent {
     /// The unique identifier for the event.
     pub event_id: EventId,
 
-    /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-    /// event was sent.
-    pub origin_server_ts: UInt,
+    /// Time on originating homeserver when this event was sent.
+    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+    pub origin_server_ts: SystemTime,
 
     /// The unique identifier for the room associated with this event.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -149,9 +151,9 @@ pub(crate) mod raw {
         /// The unique identifier for the event.
         pub event_id: EventId,
 
-        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-        /// event was sent.
-        pub origin_server_ts: UInt,
+        /// Time on originating homeserver when this event was sent.
+        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+        pub origin_server_ts: SystemTime,
 
         /// The unique identifier for the room associated with this event.
         pub room_id: Option<RoomId>,

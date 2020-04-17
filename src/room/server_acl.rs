@@ -1,6 +1,7 @@
 //! Types for the *m.room.server_acl* event.
 
-use js_int::UInt;
+use std::time::SystemTime;
+
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -17,9 +18,9 @@ pub struct ServerAclEvent {
     /// The unique identifier for the event.
     pub event_id: EventId,
 
-    /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-    /// event was sent.
-    pub origin_server_ts: UInt,
+    /// Time on originating homeserver when this event was sent.
+    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+    pub origin_server_ts: SystemTime,
 
     /// The previous content for this state key, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -116,9 +117,9 @@ pub(crate) mod raw {
         /// The unique identifier for the event.
         pub event_id: EventId,
 
-        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-        /// event was sent.
-        pub origin_server_ts: UInt,
+        /// Time on originating homeserver when this event was sent.
+        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+        pub origin_server_ts: SystemTime,
 
         /// The previous content for this state key, if any.
         pub prev_content: Option<ServerAclEventContent>,

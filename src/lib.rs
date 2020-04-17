@@ -118,9 +118,9 @@
 use std::{
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
+    time::SystemTime,
 };
 
-use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{
     de::{MapAccess, Visitor},
@@ -381,9 +381,8 @@ pub trait RoomEvent: Event {
     /// The unique identifier for the event.
     fn event_id(&self) -> &EventId;
 
-    /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this event was
-    /// sent.
-    fn origin_server_ts(&self) -> UInt;
+    /// Time on originating homeserver when this event was sent.
+    fn origin_server_ts(&self) -> SystemTime;
 
     /// The unique identifier for the room associated with this event.
     ///
@@ -458,6 +457,8 @@ mod custom {
 }
 
 mod custom_room {
+    use std::time::SystemTime;
+
     use super::{Event, EventType, RoomEvent};
 
     use ruma_events_macros::FromRaw;
@@ -474,9 +475,9 @@ mod custom_room {
         /// The custom type of the event.
         #[serde(rename = "type")]
         pub event_type: String,
-        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-        /// event was sent.
-        pub origin_server_ts: js_int::UInt,
+        /// Time on originating homeserver when this event was sent.
+        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+        pub origin_server_ts: SystemTime,
         /// The unique identifier for the room associated with this event.
         pub room_id: Option<ruma_identifiers::RoomId>,
         /// The unique identifier for the user who sent this event.
@@ -507,9 +508,8 @@ mod custom_room {
         fn event_id(&self) -> &ruma_identifiers::EventId {
             &self.event_id
         }
-        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this event was
-        /// sent.
-        fn origin_server_ts(&self) -> js_int::UInt {
+        /// Time on originating homeserver when this event was sent.
+        fn origin_server_ts(&self) -> SystemTime {
             self.origin_server_ts
         }
         /// The unique identifier for the room associated with this event.
@@ -542,9 +542,9 @@ mod custom_room {
             /// The custom type of the event.
             #[serde(rename = "type")]
             pub event_type: String,
-            /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-            /// event was sent.
-            pub origin_server_ts: js_int::UInt,
+            /// Time on originating homeserver when this event was sent.
+            #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+            pub origin_server_ts: SystemTime,
             /// The unique identifier for the room associated with this event.
             pub room_id: Option<ruma_identifiers::RoomId>,
             /// The unique identifier for the user who sent this event.
@@ -557,6 +557,8 @@ mod custom_room {
 }
 
 mod custom_state {
+    use std::time::SystemTime;
+
     use super::{Event, EventType, RoomEvent, StateEvent};
 
     use ruma_events_macros::FromRaw;
@@ -573,9 +575,9 @@ mod custom_state {
         /// The custom type of the event.
         #[serde(rename = "type")]
         pub event_type: String,
-        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-        /// event was sent.
-        pub origin_server_ts: js_int::UInt,
+        /// Time on originating homeserver when this event was sent.
+        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+        pub origin_server_ts: SystemTime,
         /// The previous content for this state key, if any.
         pub prev_content: Option<CustomStateEventContent>,
         /// The unique identifier for the room associated with this event.
@@ -610,9 +612,8 @@ mod custom_state {
         fn event_id(&self) -> &ruma_identifiers::EventId {
             &self.event_id
         }
-        /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this event was
-        /// sent.
-        fn origin_server_ts(&self) -> js_int::UInt {
+        /// Time on originating homeserver when this event was sent.
+        fn origin_server_ts(&self) -> SystemTime {
             self.origin_server_ts
         }
         /// The unique identifier for the room associated with this event.
@@ -656,9 +657,9 @@ mod custom_state {
             /// The custom type of the event.
             #[serde(rename = "type")]
             pub event_type: String,
-            /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver when this
-            /// event was sent.
-            pub origin_server_ts: js_int::UInt,
+            /// Time on originating homeserver when this event was sent.
+            #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+            pub origin_server_ts: SystemTime,
             /// The previous content for this state key, if any.
             pub prev_content: Option<CustomStateEventContent>,
             /// The unique identifier for the room associated with this event.
