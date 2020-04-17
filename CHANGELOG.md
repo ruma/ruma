@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.15.0
+
 Breaking changes:
 
 * All identifiers now allocate at maximum one string (localpart and host are no longer stored
