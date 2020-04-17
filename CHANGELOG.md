@@ -15,7 +15,7 @@ Breaking changes:
     representation
     * Note that hashes are generally only guaranteed consistent in the lifetime of the program
       though, so do not persist them!
-  * Methods returning `url::Host` have been removed or updated to return string slices
+  * The `hostname` methods have been updated to return string slices instead of `&url::Host`
 
 Improvements:
 
