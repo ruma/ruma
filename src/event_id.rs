@@ -5,7 +5,7 @@ use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
 
-use crate::{error::Error, generate_localpart, parse_id, validate_id};
+use crate::{error::Error, generate_localpart, is_valid_server_name, parse_id, validate_id};
 
 /// A Matrix event ID.
 ///
@@ -55,21 +55,16 @@ impl EventId {
     ///
     /// Does not currently ever fail, but may fail in the future if the homeserver cannot be parsed
     /// parsed as a valid host.
-    pub fn new(homeserver_host: &str) -> Result<Self, Error> {
-        let full_id = format!("${}:{}", generate_localpart(18), homeserver_host);
+    pub fn new(server_name: &str) -> Result<Self, Error> {
+        if !is_valid_server_name(server_name) {
+            return Err(Error::InvalidServerName);
+        }
+        let full_id = format!("${}:{}", generate_localpart(18), server_name);
 
         Ok(Self {
             full_id,
             colon_idx: NonZeroU8::new(19),
         })
-    }
-
-    /// Returns the host of the event ID, containing the server name (including the port) of the
-    /// originating homeserver. Only applicable to events in the original format as used by Matrix
-    /// room versions 1 and 2.
-    pub fn hostname(&self) -> Option<&str> {
-        self.colon_idx
-            .map(|idx| &self.full_id[idx.get() as usize + 1..])
     }
 
     /// Returns the event's unique ID. For the original event format as used by Matrix room
@@ -82,6 +77,14 @@ impl EventId {
         };
 
         &self.full_id[1..idx]
+    }
+
+    /// Returns the server name of the event ID.
+    ///
+    /// Only applicable to events in the original format as used by Matrix room versions 1 and 2.
+    pub fn server_name(&self) -> Option<&str> {
+        self.colon_idx
+            .map(|idx| &self.full_id[idx.get() as usize + 1..])
     }
 }
 

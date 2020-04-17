@@ -4,6 +4,10 @@
 pub fn is_valid_server_name(name: &str) -> bool {
     use std::net::Ipv6Addr;
 
+    if name.is_empty() {
+        return false;
+    }
+
     let end_of_host = if name.starts_with('[') {
         let end_of_ipv6 = match name.find(']') {
             Some(idx) => idx,
@@ -71,6 +75,11 @@ mod tests {
     #[test]
     fn dns_name_with_port() {
         assert!(is_valid_server_name("ruma.io:8080"));
+    }
+
+    #[test]
+    fn empty_string() {
+        assert!(!is_valid_server_name(""));
     }
 
     #[test]

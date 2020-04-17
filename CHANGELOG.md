@@ -15,7 +15,8 @@ Breaking changes:
     representation
     * Note that hashes are generally only guaranteed consistent in the lifetime of the program
       though, so do not persist them!
-  * The `hostname` methods have been updated to return string slices instead of `&url::Host`
+  * The `hostname` methods have been rename to `server_name` and updated to return string slices
+    instead of `&url::Host`
 * `Error::InvalidHost` has been renamed to `Error::InvalidServerName`, because it also covers errors
   in the port, not just the host part section of the server name
 

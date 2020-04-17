@@ -29,15 +29,14 @@ pub struct RoomAliasId {
 }
 
 impl RoomAliasId {
-    /// Returns the host of the room alias ID, containing the server name (including the port) of
-    /// the originating homeserver.
-    pub fn hostname(&self) -> &str {
-        &self.full_id[self.colon_idx.get() as usize + 1..]
-    }
-
     /// Returns the room's alias.
     pub fn alias(&self) -> &str {
         &self.full_id[1..self.colon_idx.get() as usize]
+    }
+
+    /// Returns the server name of the room alias ID.
+    pub fn server_name(&self) -> &str {
+        &self.full_id[self.colon_idx.get() as usize + 1..]
     }
 }
 

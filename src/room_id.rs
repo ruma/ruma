@@ -5,7 +5,7 @@ use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
 
-use crate::{error::Error, generate_localpart, parse_id};
+use crate::{error::Error, generate_localpart, is_valid_server_name, parse_id};
 
 /// A Matrix room ID.
 ///
@@ -33,8 +33,11 @@ impl RoomId {
     /// 18 random ASCII characters.
     ///
     /// Fails if the given homeserver cannot be parsed as a valid host.
-    pub fn new(homeserver_host: &str) -> Result<Self, Error> {
-        let full_id = format!("!{}:{}", generate_localpart(18), homeserver_host);
+    pub fn new(server_name: &str) -> Result<Self, Error> {
+        if !is_valid_server_name(server_name) {
+            return Err(Error::InvalidServerName);
+        }
+        let full_id = format!("!{}:{}", generate_localpart(18), server_name);
 
         Ok(Self {
             full_id,
@@ -42,15 +45,14 @@ impl RoomId {
         })
     }
 
-    /// Returns the host of the room ID, containing the server name (including the port) of the
-    /// originating homeserver.
-    pub fn hostname(&self) -> &str {
-        &self.full_id[self.colon_idx.get() as usize + 1..]
-    }
-
     /// Returns the rooms's unique ID.
     pub fn localpart(&self) -> &str {
         &self.full_id[1..self.colon_idx.get() as usize]
+    }
+
+    /// Returns the server name of the room ID.
+    pub fn server_name(&self) -> &str {
+        &self.full_id[self.colon_idx.get() as usize + 1..]
     }
 }
 

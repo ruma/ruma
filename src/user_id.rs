@@ -5,7 +5,7 @@ use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
 
-use crate::{error::Error, generate_localpart, parse_id};
+use crate::{error::Error, generate_localpart, is_valid_server_name, parse_id};
 
 /// A Matrix user ID.
 ///
@@ -39,30 +39,27 @@ impl UserId {
     /// 12 random ASCII characters.
     ///
     /// Fails if the given homeserver cannot be parsed as a valid host.
-    pub fn new(homeserver_host: &str) -> Result<Self, Error> {
-        let full_id = format!(
-            "@{}:{}",
-            generate_localpart(12).to_lowercase(),
-            homeserver_host
-        );
-        let colon_idx = parse_id(&full_id, &['@'])?;
+    pub fn new(server_name: &str) -> Result<Self, Error> {
+        if !is_valid_server_name(server_name) {
+            return Err(Error::InvalidServerName);
+        }
+        let full_id = format!("@{}:{}", generate_localpart(12).to_lowercase(), server_name);
 
         Ok(Self {
             full_id,
-            colon_idx,
+            colon_idx: NonZeroU8::new(13).unwrap(),
             is_historical: false,
         })
-    }
-
-    /// Returns the host of the user ID, containing the server name (including the port) of the
-    /// originating homeserver.
-    pub fn hostname(&self) -> &str {
-        &self.full_id[self.colon_idx.get() as usize + 1..]
     }
 
     /// Returns the user's localpart.
     pub fn localpart(&self) -> &str {
         &self.full_id[1..self.colon_idx.get() as usize]
+    }
+
+    /// Returns the server name of the user ID.
+    pub fn server_name(&self) -> &str {
+        &self.full_id[self.colon_idx.get() as usize + 1..]
     }
 
     /// Whether this user ID is a historical one, i.e. one that doesn't conform to the latest
@@ -140,6 +137,9 @@ mod tests {
     #[test]
     fn generate_random_valid_user_id() {
         let user_id = UserId::new("example.com").expect("Failed to generate UserId.");
+        assert_eq!(user_id.localpart().len(), 12);
+        assert_eq!(user_id.server_name(), "example.com");
+
         let id_str: &str = user_id.as_ref();
 
         assert!(id_str.starts_with('@'));
