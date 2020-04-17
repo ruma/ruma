@@ -209,16 +209,19 @@ mod tests {
         );
     }
 
-    /*#[test]
+    #[test]
     fn invalid_user_id_host() {
-        assert_eq!(UserId::try_from("@carl:/").unwrap_err(), Error::InvalidHost);
+        assert_eq!(
+            UserId::try_from("@carl:/").unwrap_err(),
+            Error::InvalidServerName
+        );
     }
 
     #[test]
     fn invalid_user_id_port() {
         assert_eq!(
             UserId::try_from("@carl:example.com:notaport").unwrap_err(),
-            Error::InvalidHost
+            Error::InvalidServerName
         );
-    }*/
+    }
 }

@@ -11,8 +11,8 @@ pub enum Error {
     InvalidCharacters,
     /// The localpart of the ID string is not valid (because it is empty).
     InvalidLocalPart,
-    /// The domain part of the the ID string is not a valid IP address or DNS name.
-    InvalidHost,
+    /// The server name part of the the ID string is not a valid server name.
+    InvalidServerName,
     /// The ID exceeds 255 bytes (or 32 codepoints for a room version ID.)
     MaximumLengthExceeded,
     /// The ID is less than 4 characters (or is an empty room version ID.)
@@ -28,7 +28,7 @@ impl Display for Error {
         let message = match self {
             Error::InvalidCharacters => "localpart contains invalid characters",
             Error::InvalidLocalPart => "localpart is empty",
-            Error::InvalidHost => "server name is not a valid IP address or domain name",
+            Error::InvalidServerName => "server name is not a valid IP address or domain name",
             Error::MaximumLengthExceeded => "ID exceeds 255 bytes",
             Error::MinimumLengthNotSatisfied => "ID must be at least 4 characters",
             Error::MissingDelimiter => "colon is required between localpart and server name",

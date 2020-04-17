@@ -23,7 +23,8 @@ use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
 pub use crate::device_id::DeviceId;
 pub use crate::{
     error::Error, event_id::EventId, room_alias_id::RoomAliasId, room_id::RoomId,
-    room_id_or_room_alias_id::RoomIdOrAliasId, room_version_id::RoomVersionId, user_id::UserId,
+    room_id_or_room_alias_id::RoomIdOrAliasId, room_version_id::RoomVersionId,
+    server_name::is_valid_server_name, user_id::UserId,
 };
 
 #[macro_use]
@@ -38,6 +39,7 @@ mod room_alias_id;
 mod room_id;
 mod room_id_or_room_alias_id;
 mod room_version_id;
+mod server_name;
 mod user_id;
 
 /// All identifiers must be 255 bytes or less.
@@ -79,8 +81,8 @@ fn parse_id(id: &str, valid_sigils: &[char]) -> Result<NonZeroU8, Error> {
     validate_id(id, valid_sigils)?;
 
     let colon_idx = id.find(':').ok_or(Error::MissingDelimiter)?;
-    if colon_idx == id.len() - 1 {
-        return Err(Error::InvalidHost);
+    if !is_valid_server_name(&id[colon_idx + 1..]) {
+        return Err(Error::InvalidServerName);
     }
 
     match NonZeroU8::new(colon_idx as u8) {

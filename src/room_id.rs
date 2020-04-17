@@ -101,10 +101,10 @@ mod tests {
         assert_eq!(id_str.len(), 31);
     }
 
-    /*#[test]
+    #[test]
     fn generate_random_invalid_room_id() {
         assert!(RoomId::new("").is_err());
-    }*/
+    }
 
     #[test]
     fn serialize_valid_room_id() {
@@ -162,11 +162,11 @@ mod tests {
         );
     }
 
-    /*#[test]
+    #[test]
     fn invalid_room_id_host() {
         assert_eq!(
             RoomId::try_from("!29fhd83h92h0:/").unwrap_err(),
-            Error::InvalidHost
+            Error::InvalidServerName
         );
     }
 
@@ -174,7 +174,7 @@ mod tests {
     fn invalid_room_id_port() {
         assert_eq!(
             RoomId::try_from("!29fhd83h92h0:example.com:notaport").unwrap_err(),
-            Error::InvalidHost
+            Error::InvalidServerName
         );
-    }*/
+    }
 }

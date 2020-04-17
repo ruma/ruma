@@ -162,10 +162,10 @@ mod tests {
         assert_eq!(id_str.len(), 31);
     }
 
-    /*#[test]
+    #[test]
     fn generate_random_invalid_event_id() {
         assert!(EventId::new("").is_err());
-    }*/
+    }
 
     #[test]
     fn serialize_valid_original_event_id() {
@@ -275,11 +275,11 @@ mod tests {
         );
     }
 
-    /*#[test]
+    #[test]
     fn invalid_event_id_host() {
         assert_eq!(
             EventId::try_from("$39hvsi03hlne:/").unwrap_err(),
-            Error::InvalidHost
+            Error::InvalidServerName
         );
     }
 
@@ -287,7 +287,7 @@ mod tests {
     fn invalid_event_id_port() {
         assert_eq!(
             EventId::try_from("$39hvsi03hlne:example.com:notaport").unwrap_err(),
-            Error::InvalidHost
+            Error::InvalidServerName
         );
-    }*/
+    }
 }

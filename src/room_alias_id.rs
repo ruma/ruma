@@ -144,11 +144,11 @@ mod tests {
         );
     }
 
-    /*#[test]
+    #[test]
     fn invalid_room_alias_id_host() {
         assert_eq!(
             RoomAliasId::try_from("#ruma:/").unwrap_err(),
-            Error::InvalidHost
+            Error::InvalidServerName
         );
     }
 
@@ -156,7 +156,7 @@ mod tests {
     fn invalid_room_alias_id_port() {
         assert_eq!(
             RoomAliasId::try_from("#ruma:example.com:notaport").unwrap_err(),
-            Error::InvalidHost
+            Error::InvalidServerName
         );
-    }*/
+    }
 }
