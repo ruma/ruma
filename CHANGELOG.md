@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.15.1
+
+Bug fixes:
+
+* Fix docs.rs build
+
 # 0.15.0
 
 Breaking changes:
