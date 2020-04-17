@@ -113,40 +113,52 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let (url_set_path, parse_request_path) = if self.request.has_path_fields() {
-            let path_str = path.value();
+        let (request_path_string, parse_request_path) = if self.request.has_path_fields() {
+            let path_string = path.value();
 
-            assert!(path_str.starts_with('/'), "path needs to start with '/'");
+            assert!(path_string.starts_with('/'), "path needs to start with '/'");
             assert!(
-                path_str.chars().filter(|c| *c == ':').count() == self.request.path_field_count(),
+                path_string.chars().filter(|c| *c == ':').count()
+                    == self.request.path_field_count(),
                 "number of declared path parameters needs to match amount of placeholders in path"
             );
 
-            let path_segments = path_str[1..].split('/');
-            let path_segment_push = path_segments.clone().map(|segment| {
-                let arg = if segment.starts_with(':') {
-                    let path_var = &segment[1..];
-                    let path_var_ident = Ident::new(path_var, Span::call_site());
-                    quote!(&request.#path_var_ident.to_string())
-                } else {
-                    quote!(#segment)
-                };
+            let format_call = {
+                let mut format_string = path_string.clone();
+                let mut format_args = Vec::new();
+
+                while let Some(start_of_segment) = format_string.find(':') {
+                    // ':' should only ever appear at the start of a segment
+                    assert_eq!(&format_string[start_of_segment - 1..start_of_segment], "/");
+
+                    let end_of_segment = match format_string[start_of_segment..].find('/') {
+                        Some(rel_pos) => start_of_segment + rel_pos,
+                        None => format_string.len(),
+                    };
+
+                    let path_var = Ident::new(
+                        &format_string[start_of_segment + 1..end_of_segment],
+                        Span::call_site(),
+                    );
+                    format_args.push(quote! {
+                        ruma_api::exports::percent_encoding::utf8_percent_encode(
+                            &request.#path_var.to_string(),
+                            ruma_api::exports::percent_encoding::NON_ALPHANUMERIC,
+                        )
+                    });
+                    format_string.replace_range(start_of_segment..end_of_segment, "{}");
+                }
 
                 quote! {
-                    path_segments.push(#arg);
+                    format!(#format_string, #(#format_args),*)
                 }
-            });
-
-            let set_tokens = quote! {
-                // This `unwrap()` can only fail when the url is a
-                // cannot-be-base url like `mailto:` or `data:`, which is not
-                // the case for our placeholder url.
-                let mut path_segments = url.path_segments_mut().unwrap();
-                #(#path_segment_push)*
             };
 
-            let path_fields = path_segments.enumerate().filter(|(_, s)| s.starts_with(':')).map(
-                |(i, segment)| {
+            let path_fields = path_string[1..]
+                .split('/')
+                .enumerate()
+                .filter(|(_, s)| s.starts_with(':'))
+                .map(|(i, segment)| {
                     let path_var = &segment[1..];
                     let path_var_ident = Ident::new(path_var, Span::call_site());
 
@@ -176,27 +188,18 @@ impl ToTokens for Api {
                             }
                         }
                     }
-                },
-            );
+                });
 
-            let parse_tokens = quote! {
-                #(#path_fields,)*
-            };
-
-            (set_tokens, parse_tokens)
+            (format_call, quote! { #(#path_fields,)* })
         } else {
-            let set_tokens = quote! {
-                url.set_path(metadata.path);
-            };
-            let parse_tokens = TokenStream::new();
-            (set_tokens, parse_tokens)
+            (quote! { metadata.path.to_owned() }, TokenStream::new())
         };
 
-        let url_set_querystring = if let Some(field) = self.request.query_map_field() {
+        let request_query_string = if let Some(field) = self.request.query_map_field() {
             let field_name = field.ident.as_ref().expect("expected field to have identifier");
             let field_type = &field.ty;
 
-            quote! {
+            quote!({
                 // This function exists so that the compiler will throw an
                 // error when the type of the field with the query_map
                 // attribute doesn't implement IntoIterator<Item = (String, String)>
@@ -214,32 +217,22 @@ impl ToTokens for Api {
                 assert_trait_impl::<#field_type>();
 
                 let request_query = RequestQuery(request.#field_name);
-                let query_str = ruma_api::exports::serde_urlencoded::to_string(
-                    request_query,
-                )?;
-
-                let query_opt: Option<&str> = if query_str.is_empty() {
-                    None
-                } else {
-                    Some(&query_str)
-                };
-
-                url.set_query(query_opt);
-            }
+                format!("?{}", ruma_api::exports::serde_urlencoded::to_string(request_query)?)
+            })
         } else if self.request.has_query_fields() {
             let request_query_init_fields = self.request.request_query_init_fields();
 
-            quote! {
+            quote!({
                 let request_query = RequestQuery {
                     #request_query_init_fields
                 };
 
-                url.set_query(Some(&ruma_api::exports::serde_urlencoded::to_string(
-                    request_query,
-                )?));
-            }
+                format!("?{}", ruma_api::exports::serde_urlencoded::to_string(request_query)?)
+            })
         } else {
-            TokenStream::new()
+            quote! {
+                String::new()
+            }
         };
 
         let extract_request_query = if self.request.query_map_field().is_some() {
@@ -440,21 +433,14 @@ impl ToTokens for Api {
                 #[allow(unused_mut, unused_variables)]
                 fn try_from(request: Request) -> Result<Self, Self::Error> {
                     let metadata = Request::METADATA;
-
-                    // Use dummy homeserver url which has to be overwritten in
-                    // the calling code. Previously (with http::Uri) this was
-                    // not required, but Url::parse only accepts absolute urls.
-                    let mut url =
-                        ruma_api::exports::url::Url::parse("http://invalid-host-please-change/")
-                            .unwrap();
-
-                    { #url_set_path }
-                    { #url_set_querystring }
-
+                    let path_and_query = #request_path_string + &#request_query_string;
                     let mut http_request = ruma_api::exports::http::Request::new(#request_body);
 
                     *http_request.method_mut() = ruma_api::exports::http::Method::#method;
-                    *http_request.uri_mut() = url.into_string().parse().unwrap();
+                    *http_request.uri_mut() = ruma_api::exports::http::uri::Builder::new()
+                        .path_and_query(path_and_query.as_str())
+                        .build()
+                        .unwrap();
 
                     { #add_headers_to_request }
 

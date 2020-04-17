@@ -215,7 +215,6 @@ pub mod exports {
     pub use serde;
     pub use serde_json;
     pub use serde_urlencoded;
-    pub use url;
 }
 
 use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};

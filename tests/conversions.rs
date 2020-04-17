@@ -43,7 +43,7 @@ fn request_serde() -> Result<(), Box<dyn std::error::Error + 'static>> {
         world: "test".to_owned(),
         q1: "query_param_special_chars %/&@!".to_owned(),
         q2: 55,
-        bar: "bar".to_owned(),
+        bar: "barVal".to_owned(),
         baz: UserId::try_from("@bazme:ruma.io")?,
     };
 
