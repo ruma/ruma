@@ -11,6 +11,7 @@ pub type DeviceId = String;
 
 /// Generates a random `DeviceId`, suitable for assignment to a new device.
 #[cfg(feature = "rand")]
+#[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
 pub fn generate() -> DeviceId {
     generate_localpart(8)
 }

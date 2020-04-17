@@ -40,6 +40,7 @@ impl UserId {
     ///
     /// Fails if the given homeserver cannot be parsed as a valid host.
     #[cfg(feature = "rand")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
     pub fn new(server_name: &str) -> Result<Self, Error> {
         use crate::generate_localpart;
 

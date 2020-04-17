@@ -9,6 +9,7 @@
 )]
 // Since we support Rust 1.36.0, we can't apply this suggestion yet
 #![allow(clippy::use_self)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[cfg(feature = "diesel")]
 #[cfg_attr(feature = "diesel", macro_use)]
@@ -31,6 +32,7 @@ mod macros;
 
 pub mod device_id;
 #[cfg(feature = "diesel")]
+#[cfg_attr(docsrs, doc(cfg(feature = "diesel")))]
 mod diesel_integration;
 mod error;
 mod event_id;

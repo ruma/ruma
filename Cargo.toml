@@ -12,6 +12,10 @@ repository = "https://github.com/ruma/ruma-identifiers"
 version = "0.14.1"
 edition = "2018"
 
+[package.metadata.docs.rs]
+features = ["all"]
+rustdoc-args = ["--cfg", "docsrs"]
+
 [features]
 default = ["serde"]
 
