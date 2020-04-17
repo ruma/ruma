@@ -1,0 +1,37 @@
+language: "rust"
+cache: "cargo"
+rust:
+  - 1.36.0
+  - stable
+  - beta
+  - nightly
+jobs:
+  allow_failures:
+    - rust: nightly
+  fast_finish: true
+
+before_script:
+  - rustup component add rustfmt
+  - |
+      if [ "$TRAVIS_RUST_VERSION" != "1.36.0" ]; then
+        rustup component add clippy
+      fi
+  - |
+      if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
+        cargo install --force cargo-audit
+      fi
+  - cargo generate-lockfile
+script:
+  - |
+      if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
+        cargo audit
+      fi
+  - cargo fmt -- --check
+  - |
+      if [ "$TRAVIS_RUST_VERSION" != "1.36.0" ]; then
+        cargo clippy --all-targets --all-features -- -D warnings
+      fi
+  - cargo build --verbose
+  - cargo test --no-default-features --verbose
+  - cargo test --all-features --verbose
+if: "type != push OR (tag IS blank AND branch = master)"
