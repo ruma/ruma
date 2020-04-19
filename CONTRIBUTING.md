@@ -49,6 +49,20 @@ help you on your way:
 
 ## Coding Style
 
+### Common types
+
+When writing endpoint definitions, use the following mapping from request /
+response field types listed in the specification to Rust types:
+
+Specification type | Rust type
+-------------------|---------------------------------------------------------------------------------------------------------------------
+`boolean`          | `bool`
+`integer`          | `js_int::UInt` (unless denoted as signed, then `js_int::Int`)
+`string`           | If for an identifier (e.g. user ID, room ID), use one of the types from `ruma-identifiers`. Otherwise, use `String`.
+`object`           | `serde_json::Value`
+`[…]`              | `Vec<…>`
+`{string: …}`      | `BTreeMap<String, …>` (or `BTreeMap<SomeId, …>`)
+
 ### Import Formatting
 
 Organize your imports into three groups separated by blank lines:
