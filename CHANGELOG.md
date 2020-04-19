@@ -20,6 +20,7 @@ Breaking changes:
   * `push::get_notifications::Notification`
   * `server::get_user_info::ConnectionInfo`
   * `device::Device`
+* Change all usages of `HashMap` to `BTreeMap`
 
 Improvements:
 
