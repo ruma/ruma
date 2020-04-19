@@ -2,7 +2,7 @@
 
 #![warn(missing_docs)]
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_events::EventType;
@@ -54,7 +54,7 @@ pub struct RoomV3Pdu {
     /// Content hashes of the PDU.
     pub hashes: EventHash,
     /// Signatures for the PDU.
-    pub signatures: HashMap<String, HashMap<String, String>>,
+    pub signatures: BTreeMap<String, BTreeMap<String, String>>,
 }
 
 /// Content hashes of a PDU.
