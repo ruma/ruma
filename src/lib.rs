@@ -23,7 +23,20 @@
 //! ```
 //!
 //! You can also pass an existing session to the `Client` constructor to restore a previous session
-//! rather than calling `log_in`.
+//! rather than calling `log_in`. This can also be used to create a session for an application service
+//! that does not need to log in, but uses the access_token directly:
+//!
+//! ```no_run
+//! use ruma_client::{Client, Session};
+//!
+//! let work = async {
+//!     let homeserver_url = "https://example.com".parse().unwrap();
+//!     let session = Session{access_token: "as_access_token".to_string(), identification: None};
+//!     let client = Client::https(homeserver_url, Some(session));
+//!
+//!     // make calls to the API
+//! };
+//! ```
 //!
 //! For the standard use case of synchronizing with the homeserver (i.e. getting all the latest
 //! events), use the `Client::sync`:
@@ -121,7 +134,7 @@ pub use ruma_identifiers as identifiers;
 mod error;
 mod session;
 
-pub use self::{error::Error, session::Session};
+pub use self::{error::Error, session::Identification, session::Session};
 
 /// A client for the Matrix client-server API.
 #[derive(Debug)]
@@ -225,8 +238,10 @@ where
 
         let session = Session {
             access_token: response.access_token,
-            device_id: response.device_id,
-            user_id: response.user_id,
+            identification: Some(Identification {
+                device_id: response.device_id,
+                user_id: response.user_id,
+            }),
         };
         *self.0.session.lock().unwrap() = Some(session.clone());
 
@@ -253,8 +268,10 @@ where
 
         let session = Session {
             access_token: response.access_token,
-            device_id: response.device_id,
-            user_id: response.user_id,
+            identification: Some(Identification {
+                device_id: response.device_id,
+                user_id: response.user_id,
+            }),
         };
         *self.0.session.lock().unwrap() = Some(session.clone());
 
@@ -290,8 +307,10 @@ where
 
         let session = Session {
             access_token: response.access_token,
-            device_id: response.device_id,
-            user_id: response.user_id,
+            identification: Some(Identification {
+                device_id: response.device_id,
+                user_id: response.user_id,
+            }),
         };
         *self.0.session.lock().unwrap() = Some(session.clone());
 

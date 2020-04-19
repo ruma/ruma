@@ -7,6 +7,14 @@ use ruma_identifiers::UserId;
 pub struct Session {
     /// The access token used for this session.
     pub access_token: String,
+    /// Identification information for a user
+    pub identification: Option<Identification>,
+}
+
+/// The identification information about the associated user account if the session is associated with
+/// a single user account.
+#[derive(Clone, Debug, serde::Deserialize, Eq, Hash, PartialEq, serde::Serialize)]
+pub struct Identification {
     /// The user the access token was issued for.
     pub user_id: UserId,
     /// The ID of the client device
@@ -19,8 +27,7 @@ impl Session {
     pub fn new(access_token: String, user_id: UserId, device_id: String) -> Self {
         Self {
             access_token,
-            user_id,
-            device_id,
+            identification: Some(Identification { user_id, device_id }),
         }
     }
 
@@ -32,13 +39,19 @@ impl Session {
 
     /// Get the ID of the user the session belongs to.
     #[deprecated]
-    pub fn user_id(&self) -> &UserId {
-        &self.user_id
+    pub fn user_id(&self) -> Option<&UserId> {
+        if let Some(identification) = &self.identification {
+            return Some(&identification.user_id);
+        }
+        None
     }
 
     /// Get ID of the device the session belongs to.
     #[deprecated]
-    pub fn device_id(&self) -> &str {
-        &self.device_id
+    pub fn device_id(&self) -> Option<&str> {
+        if let Some(identification) = &self.identification {
+            return Some(&identification.device_id);
+        }
+        None
     }
 }
