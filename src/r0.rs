@@ -30,5 +30,6 @@ pub mod sync;
 pub mod tag;
 pub mod thirdparty;
 pub mod typing;
+pub mod uiaa;
 pub mod user_directory;
 pub mod voip;

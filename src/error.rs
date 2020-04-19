@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 /// An enum for the error kind. Items may contain additional information.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(tag = "errcode")]
+#[cfg_attr(test, derive(PartialEq))]
 pub enum ErrorKind {
     /// M_FORBIDDEN
     #[serde(rename = "M_FORBIDDEN")]
@@ -98,6 +99,7 @@ pub enum ErrorKind {
 
 /// A Matrix Error without a status code
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(test, derive(PartialEq))]
 pub struct ErrorBody {
     /// A value which can be used to handle an error message
     #[serde(flatten)]

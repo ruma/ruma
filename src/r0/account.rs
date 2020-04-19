@@ -17,47 +17,7 @@ pub mod unbind_3pid;
 
 pub mod whoami;
 
-use std::collections::BTreeMap;
-
 use serde::{Deserialize, Serialize};
-
-/// Additional authentication information for the user-interactive authentication API.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct AuthenticationData {
-    /// The login type that the client is attempting to complete.
-    #[serde(rename = "type")]
-    pub kind: String,
-    /// The value of the session key given by the homeserver.
-    pub session: Option<String>,
-    /// Parameters submitted for a particular authentication stage.
-    #[serde(flatten)]
-    pub auth_parameters: BTreeMap<String, serde_json::Value>,
-}
-
-/// Information about available authentication flows and status for
-/// User-Interactive Authenticiation API.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct UserInteractiveAuthenticationInfo {
-    /// List of authentication flows available for this endpoint.
-    pub flows: Vec<AuthenticationFlow>,
-    /// List of stages in the current flow completed by the client.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub completed: Vec<String>,
-    /// Authentication parameters required for the client to complete authentication.
-    pub params: serde_json::Value,
-    /// Session key for client to use to complete authentication.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub session: Option<String>,
-}
-
-/// Description of steps required to authenticate via the User-Interactive
-/// Authentication API.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct AuthenticationFlow {
-    /// Ordered list of stages required to complete authentication.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub stages: Vec<String>,
-}
 
 /// Additional authentication information for requestToken endpoints.
 #[derive(Clone, Debug, Deserialize, Serialize)]

@@ -2,7 +2,7 @@
 
 use ruma_api::ruma_api;
 
-use super::AuthenticationData;
+use crate::r0::uiaa::{AuthData, UiaaResponse};
 
 ruma_api! {
     metadata {
@@ -18,10 +18,10 @@ ruma_api! {
         /// The new password for the account.
         pub new_password: String,
         /// Additional authentication information for the user-interactive authentication API.
-        pub auth: Option<AuthenticationData>,
+        pub auth: Option<AuthData>,
     }
 
     response {}
 
-    error: crate::Error
+    error: UiaaResponse
 }

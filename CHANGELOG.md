@@ -3,9 +3,13 @@
 Breaking changes:
 
 * Add `server_name` parameter to `r0::join::join_room_by_id_or_alias`
-* Add `auth_parameters` to `r0::account::AuthenticationData`
+* Modify `r0::account::AuthenticationData`:
+  - Rename to `AuthData`
+  - Change to an enum to facilitate fallback auth acknowledgements
+  - Add `auth_parameters` field
+  - Move to `r0::uiaa` module
 * Add `room_network` parameter to `r0::directory::get_public_rooms_filtered` to
-  represent `include_all_networks` and `third_party_instance_id` Matrix fields.
+  represent `include_all_networks` and `third_party_instance_id` Matrix fields
 * Update `r0::account::register` endpoint:
   * Remove `bind_email` request field (removed in r0.6.0)
   * Remove `inhibit_login` request field, make `access_token` and `device_id` response fields optional (added in r0.4.0)
@@ -19,7 +23,7 @@ Breaking changes:
 
 Improvements:
 
-* Add types for User-Interactive Authentication API: `r0::account::{UserInteractiveAuthenticationInfo, AuthenticationFlow}`
+* Add types for User-Interactive Authentication API: `r0::uiaa::{AuthFlow, UiaaInfo, UiaaResponse}`
 * Add missing serde attributes to `get_content_thumbnail` query parameters
 
 # 0.7.2

@@ -1,8 +1,9 @@
 //! [DELETE /_matrix/client/r0/devices/{deviceId}](https://matrix.org/docs/spec/client_server/r0.6.0#delete-matrix-client-r0-devices-deviceid)
 
-use crate::r0::account::AuthenticationData;
 use ruma_api::ruma_api;
 use ruma_identifiers::DeviceId;
+
+use crate::r0::uiaa::{AuthData, UiaaResponse};
 
 ruma_api! {
     metadata {
@@ -20,10 +21,10 @@ ruma_api! {
         pub device_id: DeviceId,
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub auth: Option<AuthenticationData>,
+        pub auth: Option<AuthData>,
     }
 
     response {}
 
-    error: crate::Error
+    error: UiaaResponse
 }

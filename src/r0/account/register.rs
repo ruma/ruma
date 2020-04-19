@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{DeviceId, UserId};
 use serde::{Deserialize, Serialize};
 
-use super::AuthenticationData;
+use crate::r0::uiaa::{AuthData, UiaaResponse};
 
 ruma_api! {
     metadata {
@@ -46,7 +46,7 @@ ruma_api! {
         /// It should be left empty, or omitted, unless an earlier call returned an response
         /// with status code 401.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub auth: Option<AuthenticationData>,
+        pub auth: Option<AuthData>,
         /// Kind of account to register
         ///
         /// Defaults to `User` if omitted.
@@ -73,7 +73,7 @@ ruma_api! {
         pub device_id: Option<DeviceId>,
     }
 
-    error: crate::Error
+    error: UiaaResponse
 }
 
 /// The kind of account being registered.
