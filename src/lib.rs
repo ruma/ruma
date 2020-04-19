@@ -111,6 +111,7 @@ use ruma_api::{
     Endpoint, Outgoing,
 };
 use ruma_identifiers::DeviceId;
+use std::collections::BTreeMap;
 use url::Url;
 
 pub use ruma_client_api as api;
@@ -346,6 +347,22 @@ where
         <Request::Response as Outgoing>::Incoming:
             TryFrom<http::Response<Vec<u8>>, Error = FromHttpResponseError<api::Error>>,
     {
+        self.request_with_url_params(request, None)
+    }
+
+    /// Makes a request to a Matrix API endpoint including additional URL parameters.
+    pub fn request_with_url_params<Request: Endpoint<ResponseError = api::Error>>(
+        &self,
+        request: Request,
+        params: Option<BTreeMap<String, String>>,
+    ) -> impl Future<Output = Result<<Request::Response as Outgoing>::Incoming, Error>>
+    // We need to duplicate Endpoint's where clauses because the compiler is not smart enough yet.
+    // See https://github.com/rust-lang/rust/issues/54149
+    where
+        Request::Incoming: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>,
+        <Request::Response as Outgoing>::Incoming:
+            TryFrom<http::Response<Vec<u8>>, Error = FromHttpResponseError<api::Error>>,
+    {
         let client = self.0.clone();
 
         let mut url = client.homeserver_url.clone();
@@ -358,6 +375,12 @@ where
 
                 url.set_path(uri.path());
                 url.set_query(uri.query());
+
+                if let Some(params) = params {
+                    for (key, value) in params {
+                        url.query_pairs_mut().append_pair(&key, &value);
+                    }
+                }
 
                 if Request::METADATA.requires_authentication {
                     if let Some(ref session) = *client.session.lock().unwrap() {
