@@ -1,6 +1,6 @@
 //! [POST /_matrix/client/r0/search](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-search)
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_api::{ruma_api, Outgoing};
@@ -102,7 +102,7 @@ pub struct EventContextResult {
     /// The historic profile information of the users that sent the events returned.
     // TODO: Not sure this is right. https://github.com/matrix-org/matrix-doc/issues/773
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub profile_info: Option<HashMap<UserId, UserProfile>>,
+    pub profile_info: Option<BTreeMap<UserId, UserProfile>>,
     /// Pagination token for the start of the chunk.
     pub start: String,
 }
@@ -115,7 +115,7 @@ pub struct Grouping {
 }
 
 /// The key within events to use for this grouping.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum GroupingKey {
     /// `room_id`
@@ -172,7 +172,7 @@ pub struct RoomEventResults {
     pub count: UInt,
     /// Any groups that were requested.
     // TODO: Not sure this is right. https://github.com/matrix-org/matrix-doc/issues/773
-    pub groups: HashMap<GroupingKey, HashMap<RoomId, ResultGroup>>,
+    pub groups: BTreeMap<GroupingKey, BTreeMap<RoomId, ResultGroup>>,
     /// Token that can be used to get the next batch of results, by passing as the `next_batch`
     /// parameter to the next call. If this field is absent, there are no more results.
     #[serde(skip_serializing_if = "Option::is_none")]

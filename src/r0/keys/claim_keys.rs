@@ -1,6 +1,6 @@
 //! [POST /_matrix/client/r0/keys/claim](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-keys-claim)
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use std::time::Duration;
 
@@ -31,16 +31,16 @@ ruma_api! {
         pub timeout: Option<Duration>,
 
         /// The keys to be claimed.
-        pub one_time_keys: HashMap<UserId, HashMap<DeviceId, KeyAlgorithm>>,
+        pub one_time_keys: BTreeMap<UserId, BTreeMap<DeviceId, KeyAlgorithm>>,
     }
 
     response {
         /// If any remote homeservers could not be reached, they are recorded here.
         /// The names of the properties are the names of the unreachable servers.
-        pub failures: HashMap<String, Value>,
+        pub failures: BTreeMap<String, Value>,
 
         /// One-time keys for the queried devices.
-        pub one_time_keys: HashMap<UserId, HashMap<DeviceId, HashMap<AlgorithmAndDeviceId, OneTimeKey>>>,
+        pub one_time_keys: BTreeMap<UserId, BTreeMap<DeviceId, BTreeMap<AlgorithmAndDeviceId, OneTimeKey>>>,
     }
 
     error: crate::Error

@@ -60,7 +60,7 @@ Organize your imports into three groups separated by blank lines:
 For example,
 
 ```rust
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
 
@@ -71,7 +71,7 @@ Also, group imports by module. For example, do this:
 
 ```rust
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     convert::TryFrom,
     fmt::{Debug, Display, Error as FmtError, Formatter},
 };
@@ -80,7 +80,7 @@ use std::{
 as opposed to:
 
 ```rust
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::convert::TryFrom;
 use std::fmt::{Debug, Display, Error as FmtError, Formatter};
 ```

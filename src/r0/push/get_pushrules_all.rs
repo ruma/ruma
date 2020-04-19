@@ -1,6 +1,6 @@
 //! [GET /_matrix/client/r0/pushrules/](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-pushrules)
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
 
@@ -20,7 +20,7 @@ ruma_api! {
 
     response {
         /// The global ruleset
-        pub global: HashMap<RuleKind, Vec<PushRule>>
+        pub global: BTreeMap<RuleKind, Vec<PushRule>>
     }
 
     error: crate::Error

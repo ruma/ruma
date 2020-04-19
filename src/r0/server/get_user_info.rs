@@ -1,6 +1,6 @@
 //! [GET /_matrix/client/r0/admin/whois/{userId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-admin-whois-userid)
 
-use std::{collections::HashMap, time::SystemTime};
+use std::{collections::BTreeMap, time::SystemTime};
 
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
@@ -26,7 +26,7 @@ ruma_api! {
         /// The Matrix user ID of the user.
         pub user_id: UserId,
         /// A map of the user's device identifiers to information about that device.
-        pub devices: HashMap<String, DeviceInfo>,
+        pub devices: BTreeMap<String, DeviceInfo>,
     }
 
     error: crate::Error

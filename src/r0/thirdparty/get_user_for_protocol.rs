@@ -1,6 +1,6 @@
 //! [GET /_matrix/client/r0/thirdparty/user/{protocol}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-thirdparty-user-protocol)
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
 
@@ -23,7 +23,7 @@ ruma_api! {
         /// One or more custom fields that are passed to the AS to help identify the user.
         // The specification is incorrect for this parameter. See matrix-org/matrix-doc#2352.
         #[ruma_api(query_map)]
-        pub fields: HashMap<String, String>,
+        pub fields: BTreeMap<String, String>,
     }
 
     response {

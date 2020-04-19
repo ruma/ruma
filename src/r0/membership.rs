@@ -12,7 +12,7 @@ pub mod kick_user;
 pub mod leave_room;
 pub mod unban_user;
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
@@ -27,7 +27,7 @@ pub struct ThirdPartySigned {
     /// The Matrix ID of the user who issued the invite.
     pub sender: String,
     /// A signatures object containing a signature of the entire signed object.
-    pub signatures: HashMap<String, HashMap<String, String>>,
+    pub signatures: BTreeMap<String, BTreeMap<String, String>>,
     /// The state key of the m.third_party_invite event.
     pub token: String,
 }

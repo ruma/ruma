@@ -1,6 +1,6 @@
 //! [PUT /_matrix/client/r0/sendToDevice/{eventType}/{txnId}](https://matrix.org/docs/spec/client_server/r0.6.0#put-matrix-client-r0-sendtodevice-eventtype-txnid)
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
 use ruma_events::{collections::all, EventResult};
@@ -29,7 +29,7 @@ ruma_api! {
         /// device. Individual message events can be sent to devices, but all
         /// events must be of the same type.
         #[wrap_incoming(all::Event with EventResult)]
-        pub messages: HashMap<UserId, HashMap<DeviceIdOrAllDevices, all::Event>>
+        pub messages: BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, all::Event>>
     }
 
     response {}

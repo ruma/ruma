@@ -3,7 +3,7 @@
 use ruma_api::ruma_api;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 ruma_api! {
     metadata {
@@ -39,7 +39,7 @@ pub struct Capabilities {
     /// Any other custom capabilities that the server supports outside of the specification,
     /// labeled using the Java package naming convention and stored as arbitrary JSON values.
     #[serde(flatten)]
-    pub custom_capabilities: HashMap<String, Value>,
+    pub custom_capabilities: BTreeMap<String, Value>,
 }
 
 /// Information about the m.change_password capability
@@ -56,7 +56,7 @@ pub struct RoomVersionsCapability {
     pub default: String,
 
     /// A detailed description of the room versions the server supports.
-    pub available: HashMap<String, RoomVersionStability>,
+    pub available: BTreeMap<String, RoomVersionStability>,
 }
 
 /// The stability of a room version

@@ -1,6 +1,6 @@
 //! [GET /_matrix/client/r0/sync](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-sync)
 
-use std::{collections::HashMap, time::Duration};
+use std::{collections::BTreeMap, time::Duration};
 
 use js_int::UInt;
 use ruma_api::{ruma_api, Outgoing};
@@ -79,8 +79,8 @@ ruma_api! {
         pub device_lists: Option<DeviceLists>,
         /// For each key algorithm, the number of unclaimed one-time keys
         /// currently held on the server for a device.
-        #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-        pub device_one_time_keys_count: HashMap<KeyAlgorithm, UInt>,
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        pub device_one_time_keys_count: BTreeMap<KeyAlgorithm, UInt>,
     }
 
     error: crate::Error
@@ -131,13 +131,13 @@ pub enum Filter {
 pub struct Rooms {
     /// The rooms that the user has left or been banned from.
     #[wrap_incoming(LeftRoom)]
-    pub leave: HashMap<RoomId, LeftRoom>,
+    pub leave: BTreeMap<RoomId, LeftRoom>,
     /// The rooms that the user has joined.
     #[wrap_incoming(JoinedRoom)]
-    pub join: HashMap<RoomId, JoinedRoom>,
+    pub join: BTreeMap<RoomId, JoinedRoom>,
     /// The rooms that the user has been invited to.
     #[wrap_incoming(InvitedRoom)]
-    pub invite: HashMap<RoomId, InvitedRoom>,
+    pub invite: BTreeMap<RoomId, InvitedRoom>,
 }
 
 /// Historical updates to left rooms.

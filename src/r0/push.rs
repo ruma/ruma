@@ -27,7 +27,9 @@ pub mod set_pushrule_actions;
 pub mod set_pushrule_enabled;
 
 /// The kinds of push rules that are available
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Display, EnumString)]
+#[derive(
+    Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Display, EnumString,
+)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum RuleKind {

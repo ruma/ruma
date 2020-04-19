@@ -1,6 +1,6 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/joined_members](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-rooms-roomid-joined-members)
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, UserId};
@@ -25,7 +25,7 @@ ruma_api! {
     response {
         /// A list of the rooms the user is in, i.e.
         /// the ID of each room in which the user has joined membership.
-        pub joined: HashMap<UserId, RoomMember>,
+        pub joined: BTreeMap<UserId, RoomMember>,
     }
 
     error: crate::Error

@@ -1,6 +1,6 @@
 //! [POST /_matrix/client/r0/keys/upload](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-keys-upload)
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_api::ruma_api;
@@ -24,13 +24,13 @@ ruma_api! {
 
         /// One-time public keys for "pre-key" messages.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub one_time_keys: Option<HashMap<AlgorithmAndDeviceId, OneTimeKey>>,
+        pub one_time_keys: Option<BTreeMap<AlgorithmAndDeviceId, OneTimeKey>>,
     }
 
     response {
         /// For each key algorithm, the number of unclaimed one-time keys of that
         /// type currently held on the server for this device.
-        pub one_time_key_counts: HashMap<KeyAlgorithm, UInt>
+        pub one_time_key_counts: BTreeMap<KeyAlgorithm, UInt>
     }
 
     error: crate::Error

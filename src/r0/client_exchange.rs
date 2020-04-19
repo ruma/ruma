@@ -12,8 +12,9 @@ use serde::{
 };
 
 pub mod send_event_to_device;
+
 /// Represents one or all of a user's devices.
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum DeviceIdOrAllDevices {
     /// Represents a device Id for one of a user's devices.
     DeviceId(DeviceId),

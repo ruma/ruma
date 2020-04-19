@@ -1,6 +1,6 @@
 //! [GET /_matrix/client/r0/thirdparty/protocols](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-thirdparty-protocols)
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
 
@@ -21,7 +21,7 @@ ruma_api! {
     response {
         /// Metadata about protocols supported by the homeserver.
         #[ruma_api(body)]
-        pub protocols: HashMap<String, Protocol>,
+        pub protocols: BTreeMap<String, Protocol>,
     }
 
     error: crate::Error

@@ -1,7 +1,7 @@
 //! Endpoints for key management
 
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     convert::TryFrom,
     fmt::{Debug, Display, Error as FmtError, Formatter},
 };
@@ -19,7 +19,7 @@ pub mod get_keys;
 pub mod upload_keys;
 
 /// The basic key algorithms in the specification
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum KeyAlgorithm {
     /// The Ed25519 signature algorithm.
     #[serde(rename = "ed25519")]
@@ -59,7 +59,7 @@ impl TryFrom<&'_ str> for KeyAlgorithm {
 }
 
 /// A key algorithm and a device id, combined with a ':'
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct AlgorithmAndDeviceId(pub KeyAlgorithm, pub DeviceId);
 
 impl Serialize for AlgorithmAndDeviceId {
@@ -116,9 +116,9 @@ pub struct DeviceKeys {
     /// The encryption algorithms supported by this device.
     pub algorithms: Vec<Algorithm>,
     /// Public identity keys.
-    pub keys: HashMap<AlgorithmAndDeviceId, String>,
+    pub keys: BTreeMap<AlgorithmAndDeviceId, String>,
     /// Signatures for the device key object.
-    pub signatures: HashMap<UserId, HashMap<AlgorithmAndDeviceId, String>>,
+    pub signatures: BTreeMap<UserId, BTreeMap<AlgorithmAndDeviceId, String>>,
     /// Additional data added to the device key information by intermediate servers, and
     /// not covered by the signatures.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -138,7 +138,7 @@ pub struct SignedKey {
     /// Base64-encoded 32-byte Curve25519 public key.
     pub key: String,
     /// Signatures for the key object.
-    pub signatures: HashMap<UserId, HashMap<AlgorithmAndDeviceId, String>>,
+    pub signatures: BTreeMap<UserId, BTreeMap<AlgorithmAndDeviceId, String>>,
 }
 
 /// A one-time public key for "pre-key" messages.
