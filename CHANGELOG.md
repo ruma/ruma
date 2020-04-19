@@ -6,6 +6,7 @@ Breaking changes:
 
 * Update ruma-identifiers to 0.15.1
 * Change timestamps, including `origin_server_rs` from `UInt` to `SystemTime`
+* Change all usages of `HashMap` to `BTreeMap`
 
 # 0.18.0
 
