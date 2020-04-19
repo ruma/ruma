@@ -5,7 +5,7 @@ use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
 };
 
-use ring::signature::Ed25519KeyPair as RingEd25519KeyPair;
+use ring::signature::{Ed25519KeyPair as RingEd25519KeyPair, KeyPair as _};
 
 use crate::{signatures::Signature, Algorithm, Error};
 
@@ -20,13 +20,9 @@ pub trait KeyPair: Sized {
 }
 
 /// An Ed25519 key pair.
-#[derive(Clone, PartialEq)]
 pub struct Ed25519KeyPair {
-    /// The public key.
-    public_key: Vec<u8>,
-
-    /// The private key.
-    private_key: Vec<u8>,
+    /// Ring's Keypair type
+    keypair: RingEd25519KeyPair,
 
     /// The version of the key pair.
     version: String,
@@ -37,8 +33,7 @@ impl Ed25519KeyPair {
     ///
     /// # Parameters
     ///
-    /// * public_key: The public key of the key pair.
-    /// * private_key: The private key of the key pair.
+    /// * document: PKCS8-formatted bytes containing the private & public keys.
     /// * version: The "version" of the key used for this signature.
     ///   Versions are used as an identifier to distinguish signatures generated from different keys
     ///   but using the same algorithm on the same homeserver.
@@ -47,29 +42,35 @@ impl Ed25519KeyPair {
     ///
     /// Returns an error if the public and private keys provided are invalid for the implementing
     /// algorithm.
-    pub fn new(public_key: &[u8], private_key: &[u8], version: String) -> Result<Self, Error> {
-        if let Err(error) = RingEd25519KeyPair::from_seed_and_public_key(private_key, public_key) {
-            return Err(Error::new(error.to_string()));
-        }
+    pub fn new(document: &[u8], version: String) -> Result<Self, Error> {
+        let keypair = RingEd25519KeyPair::from_pkcs8(document)
+            .map_err(|error| Error::new(error.to_string()))?;
 
-        Ok(Self {
-            public_key: public_key.to_owned(),
-            private_key: private_key.to_owned(),
-            version,
-        })
+        Ok(Self { keypair, version })
+    }
+
+    /// Generates a new key pair.
+    ///
+    /// # Returns
+    ///
+    /// Returns a Vec<u8> representing a pkcs8-encoded private/public keypair
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the generation failed.
+    pub fn generate() -> Result<Vec<u8>, Error> {
+        let document = RingEd25519KeyPair::generate_pkcs8(&ring::rand::SystemRandom::new())
+            .map_err(|e| Error::new(e.to_string()))?;
+
+        Ok(document.as_ref().to_vec())
     }
 }
 
 impl KeyPair for Ed25519KeyPair {
     fn sign(&self, message: &[u8]) -> Signature {
-        // Okay to unwrap because we verified the input in `new`.
-        let ring_key_pair =
-            RingEd25519KeyPair::from_seed_and_public_key(&self.private_key, &self.public_key)
-                .unwrap();
-
         Signature {
             algorithm: Algorithm::Ed25519,
-            signature: ring_key_pair.sign(message).as_ref().to_vec(),
+            signature: self.keypair.sign(message).as_ref().to_vec(),
             version: self.version.clone(),
         }
     }
@@ -79,7 +80,7 @@ impl Debug for Ed25519KeyPair {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         formatter
             .debug_struct("Ed25519KeyPair")
-            .field("public_key", &self.public_key)
+            .field("public_key", &self.keypair.public_key())
             .field("version", &self.version)
             .finish()
     }
@@ -94,3 +95,13 @@ pub type PublicKeyMap = HashMap<String, PublicKeySet>;
 ///
 /// This is represented as a map from key ID to Base64-encoded signature.
 pub type PublicKeySet = HashMap<String, String>;
+
+#[cfg(test)]
+mod tests {
+    use super::Ed25519KeyPair;
+
+    #[test]
+    fn generate_key() {
+        Ed25519KeyPair::generate().unwrap();
+    }
+}

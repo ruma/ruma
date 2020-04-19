@@ -181,14 +181,26 @@ mod test {
     use std::collections::HashMap;
 
     use base64::{decode_config, STANDARD_NO_PAD};
+    use ring::signature::{Ed25519KeyPair as RingEd25519KeyPair, KeyPair as _};
     use serde_json::{from_str, json, to_string, to_value, Value};
 
     use super::{
         canonical_json, hash_and_sign_event, sign_json, verify_event, verify_json, Ed25519KeyPair,
     };
 
-    const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
-    const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
+    const PKCS8: &str = "MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ";
+
+    /// Convenience method for getting the public key as a string
+    fn public_key_string() -> String {
+        base64::encode_config(
+            &RingEd25519KeyPair::from_pkcs8(
+                &base64::decode_config(PKCS8, STANDARD_NO_PAD).unwrap(),
+            )
+            .unwrap()
+            .public_key(),
+            STANDARD_NO_PAD,
+        )
+    }
 
     /// Convenience for converting a string of JSON into its canonical form.
     fn test_canonical_json(input: &str) -> String {
@@ -292,12 +304,7 @@ mod test {
     #[test]
     fn sign_empty_json() {
         let key_pair = Ed25519KeyPair::new(
-            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
-            decode_config(&PRIVATE_KEY, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
+            decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
             "1".to_string(),
         )
         .unwrap();
@@ -308,16 +315,16 @@ mod test {
 
         assert_eq!(
             to_string(&value).unwrap(),
-            r#"{"signatures":{"domain":{"ed25519:1":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}}"#
+            r#"{"signatures":{"domain":{"ed25519:1":"lXjsnvhVlz8t3etR+6AEJ0IT70WujeHC1CFjDDsVx0xSig1Bx7lvoi1x3j/2/GPNjQM4a2gD34UqsXFluaQEBA"}}}"#
         );
     }
 
     #[test]
     fn verify_empty_json() {
-        let value = from_str(r#"{"signatures":{"domain":{"ed25519:1":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}}"#).unwrap();
+        let value = from_str(r#"{"signatures":{"domain":{"ed25519:1":"lXjsnvhVlz8t3etR+6AEJ0IT70WujeHC1CFjDDsVx0xSig1Bx7lvoi1x3j/2/GPNjQM4a2gD34UqsXFluaQEBA"}}}"#).unwrap();
 
         let mut signature_set = HashMap::new();
-        signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
+        signature_set.insert("ed25519:1".to_string(), public_key_string());
 
         let mut public_key_map = HashMap::new();
         public_key_map.insert("domain".to_string(), signature_set);
@@ -328,12 +335,7 @@ mod test {
     #[test]
     fn sign_minimal_json() {
         let key_pair = Ed25519KeyPair::new(
-            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
-            decode_config(&PRIVATE_KEY, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
+            decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
             "1".to_string(),
         )
         .unwrap();
@@ -353,7 +355,7 @@ mod test {
 
         assert_eq!(
             to_string(&alpha_value).unwrap(),
-            r#"{"one":1,"signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
+            r#"{"one":1,"signatures":{"domain":{"ed25519:1":"t6Ehmh6XTDz7qNWI0QI5tNPSliWLPQP/+Fzz3LpdCS7q1k2G2/5b5Embs2j4uG3ZeivejrzqSVoBcdocRpa+AQ"}},"two":"Two"}"#
         );
 
         let mut reverse_alpha_value =
@@ -362,18 +364,18 @@ mod test {
 
         assert_eq!(
             to_string(&reverse_alpha_value).unwrap(),
-            r#"{"one":1,"signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
+            r#"{"one":1,"signatures":{"domain":{"ed25519:1":"t6Ehmh6XTDz7qNWI0QI5tNPSliWLPQP/+Fzz3LpdCS7q1k2G2/5b5Embs2j4uG3ZeivejrzqSVoBcdocRpa+AQ"}},"two":"Two"}"#
         );
     }
 
     #[test]
     fn verify_minimal_json() {
         let value = from_str(
-            r#"{"one":1,"signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"two":"Two"}"#
+            r#"{"one":1,"signatures":{"domain":{"ed25519:1":"t6Ehmh6XTDz7qNWI0QI5tNPSliWLPQP/+Fzz3LpdCS7q1k2G2/5b5Embs2j4uG3ZeivejrzqSVoBcdocRpa+AQ"}},"two":"Two"}"#
         ).unwrap();
 
         let mut signature_set = HashMap::new();
-        signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
+        signature_set.insert("ed25519:1".to_string(), public_key_string());
 
         let mut public_key_map = HashMap::new();
         public_key_map.insert("domain".to_string(), signature_set);
@@ -381,7 +383,7 @@ mod test {
         assert!(verify_json(&public_key_map, &value).is_ok());
 
         let reverse_value = from_str(
-            r#"{"two":"Two","signatures":{"domain":{"ed25519:1":"KqmLSbO39/Bzb0QIYE82zqLwsA+PDzYIpIRA2sRQ4sL53+sN6/fpNSoqE7BP7vBZhG6kYdD13EIMJpvhJI+6Bw"}},"one":1}"#
+            r#"{"two":"Two","signatures":{"domain":{"ed25519:1":"t6Ehmh6XTDz7qNWI0QI5tNPSliWLPQP/+Fzz3LpdCS7q1k2G2/5b5Embs2j4uG3ZeivejrzqSVoBcdocRpa+AQ"}},"one":1}"#
         ).unwrap();
 
         assert!(verify_json(&public_key_map, &reverse_value).is_ok());
@@ -389,10 +391,10 @@ mod test {
 
     #[test]
     fn fail_verify_json() {
-        let value = from_str(r#"{"not":"empty","signatures":{"domain":"K8280/U9SSy9IVtjBuVeLr+HpOB4BQFWbg+UZaADMtTdGYI7Geitb76LTrr5QV/7Xg4ahLwYGYZzuHGZKM5ZAQ"}}"#).unwrap();
+        let value = from_str(r#"{"not":"empty","signatures":{"domain":"lXjsnvhVlz8t3etR+6AEJ0IT70WujeHC1CFjDDsVx0xSig1Bx7lvoi1x3j/2/GPNjQM4a2gD34UqsXFluaQEBA"}}"#).unwrap();
 
         let mut signature_set = HashMap::new();
-        signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
+        signature_set.insert("ed25519:1".to_string(), public_key_string());
 
         let mut public_key_map = HashMap::new();
         public_key_map.insert("domain".to_string(), signature_set);
@@ -403,12 +405,7 @@ mod test {
     #[test]
     fn sign_minimal_event() {
         let key_pair = Ed25519KeyPair::new(
-            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
-            decode_config(&PRIVATE_KEY, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
+            decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
             "1".to_string(),
         )
         .unwrap();
@@ -435,19 +432,14 @@ mod test {
 
         assert_eq!(
             to_string(&value).unwrap(),
-            r#"{"auth_events":[],"content":{},"depth":3,"hashes":{"sha256":"5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"},"origin":"domain","origin_server_ts":1000000,"prev_events":[],"room_id":"!x:domain","sender":"@a:domain","signatures":{"domain":{"ed25519:1":"KxwGjPSDEtvnFgU00fwFz+l6d2pJM6XBIaMEn81SXPTRl16AqLAYqfIReFGZlHi5KLjAWbOoMszkwsQma+lYAg"}},"type":"X","unsigned":{"age_ts":1000000}}"#
+            r#"{"auth_events":[],"content":{},"depth":3,"hashes":{"sha256":"5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"},"origin":"domain","origin_server_ts":1000000,"prev_events":[],"room_id":"!x:domain","sender":"@a:domain","signatures":{"domain":{"ed25519:1":"PxOFMn6ORll8PFSQp0IRF6037MEZt3Mfzu/ROiT/gb/ccs1G+f6Ddoswez4KntLPBI3GKCGIkhctiK37JOy2Aw"}},"type":"X","unsigned":{"age_ts":1000000}}"#
         );
     }
 
     #[test]
     fn sign_redacted_event() {
         let key_pair = Ed25519KeyPair::new(
-            decode_config(&PUBLIC_KEY, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
-            decode_config(&PRIVATE_KEY, STANDARD_NO_PAD)
-                .unwrap()
-                .as_slice(),
+            decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
             "1".to_string(),
         )
         .unwrap();
@@ -473,14 +465,14 @@ mod test {
 
         assert_eq!(
             to_string(&value).unwrap(),
-            r#"{"content":{"body":"Here is the message content"},"event_id":"$0:domain","hashes":{"sha256":"onLKD1bGljeBWQhWZ1kaP9SorVmRQNdN5aM2JYU2n/g"},"origin":"domain","origin_server_ts":1000000,"room_id":"!r:domain","sender":"@u:domain","signatures":{"domain":{"ed25519:1":"Wm+VzmOUOz08Ds+0NTWb1d4CZrVsJSikkeRxh6aCcUwu6pNC78FunoD7KNWzqFn241eYHYMGCA5McEiVPdhzBA"}},"type":"m.room.message","unsigned":{"age_ts":1000000}}"#
+            r#"{"content":{"body":"Here is the message content"},"event_id":"$0:domain","hashes":{"sha256":"onLKD1bGljeBWQhWZ1kaP9SorVmRQNdN5aM2JYU2n/g"},"origin":"domain","origin_server_ts":1000000,"room_id":"!r:domain","sender":"@u:domain","signatures":{"domain":{"ed25519:1":"D2V+qWBJssVuK/pEUJtwaYMdww2q1fP4PRCo226ChlLz8u8AWmQdLKes19NMjs/X0Hv0HIjU0c1TDKFMtGuoCA"}},"type":"m.room.message","unsigned":{"age_ts":1000000}}"#
         );
     }
 
     #[test]
     fn verify_minimal_event() {
         let mut signature_set = HashMap::new();
-        signature_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
+        signature_set.insert("ed25519:1".to_string(), public_key_string());
 
         let mut public_key_map = HashMap::new();
         public_key_map.insert("domain".to_string(), signature_set);
@@ -500,7 +492,7 @@ mod test {
                 "sender": "@a:domain",
                 "signatures": {
                     "domain": {
-                        "ed25519:1": "KxwGjPSDEtvnFgU00fwFz+l6d2pJM6XBIaMEn81SXPTRl16AqLAYqfIReFGZlHi5KLjAWbOoMszkwsQma+lYAg"
+                        "ed25519:1": "PxOFMn6ORll8PFSQp0IRF6037MEZt3Mfzu/ROiT/gb/ccs1G+f6Ddoswez4KntLPBI3GKCGIkhctiK37JOy2Aw"
                     }
                 },
                 "type": "X",

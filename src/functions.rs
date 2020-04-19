@@ -78,16 +78,13 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 /// A homeserver signs JSON with a key pair:
 ///
 /// ```rust
-/// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
-/// const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
+/// const PKCS8: &str = "MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ";
 ///
-/// let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
-/// let private_key = base64::decode_config(&PRIVATE_KEY, base64::STANDARD_NO_PAD).unwrap();
+/// let document = base64::decode_config(&PKCS8, base64::STANDARD_NO_PAD).unwrap();
 ///
 /// // Create an Ed25519 key pair.
 /// let key_pair = ruma_signatures::Ed25519KeyPair::new(
-///     &public_key,
-///     &private_key,
+///     &document,
 ///     "1".to_string(), // The "version" of the key.
 /// ).unwrap();
 ///
@@ -404,16 +401,13 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 /// # Examples
 ///
 /// ```rust
-/// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
-/// const PRIVATE_KEY: &str = "YJDBA9Xnr2sVqXD9Vj7XVUnmFZcZrlw8Md7kMW+3XA0";
+/// const PKCS8: &str = "MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ";
 ///
-/// let public_key = base64::decode_config(&PUBLIC_KEY, base64::STANDARD_NO_PAD).unwrap();
-/// let private_key = base64::decode_config(&PRIVATE_KEY, base64::STANDARD_NO_PAD).unwrap();
+/// let document = base64::decode_config(&PKCS8, base64::STANDARD_NO_PAD).unwrap();
 ///
 /// // Create an Ed25519 key pair.
 /// let key_pair = ruma_signatures::Ed25519KeyPair::new(
-///     &public_key,
-///     &private_key,
+///     &document,
 ///     "1".to_string(), // The "version" of the key.
 /// ).unwrap();
 ///
