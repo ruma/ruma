@@ -1,11 +1,11 @@
 //! Types for the *m.room.message* event.
 
-use std::time::SystemTime;
+use std::{collections::BTreeMap, time::SystemTime};
 
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
-use serde_json::{from_value, Map, Value};
+use serde_json::{from_value, Value};
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
 use crate::{EventType, FromRaw};
@@ -34,8 +34,8 @@ pub struct MessageEvent {
     pub sender: UserId,
 
     /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if = "Map::is_empty")]
-    pub unsigned: Map<String, Value>,
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub unsigned: BTreeMap<String, Value>,
 }
 
 /// The payload for `MessageEvent`.
@@ -163,7 +163,7 @@ pub(crate) mod raw {
 
         /// Additional key-value pairs not signed by the homeserver.
         #[serde(default)]
-        pub unsigned: Map<String, Value>,
+        pub unsigned: BTreeMap<String, Value>,
     }
 
     /// The payload for `MessageEvent`.

@@ -1,6 +1,6 @@
 //! Types for the *m.room.member* event.
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::UserId;
@@ -123,7 +123,7 @@ pub struct SignedContent {
 
     /// A single signature from the verifying server, in the format specified by the Signing Events
     /// section of the server-server API.
-    pub signatures: HashMap<String, HashMap<String, String>>,
+    pub signatures: BTreeMap<String, BTreeMap<String, String>>,
 
     /// The token property of the containing third_party_invite object.
     pub token: String,
@@ -227,7 +227,7 @@ mod tests {
     };
 
     use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde_json::{json, Map};
+    use serde_json::json;
 
     use super::*;
     use crate::util::serde_json_eq_try_from_raw;
@@ -247,7 +247,7 @@ mod tests {
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "example.com".to_string(),
-            unsigned: Map::new(),
+            unsigned: BTreeMap::new(),
             prev_content: None,
         };
         let json = json!({
@@ -279,7 +279,7 @@ mod tests {
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "example.com".to_string(),
-            unsigned: Map::new(),
+            unsigned: BTreeMap::new(),
             prev_content: Some(MemberEventContent {
                 avatar_url: None,
                 displayname: None,
@@ -335,7 +335,7 @@ mod tests {
             room_id: Some(RoomId::try_from("!jEsUZKDJdhlrceRyVU:example.org").unwrap()),
             sender: UserId::try_from("@alice:example.org").unwrap(),
             state_key: "@alice:example.org".to_string(),
-            unsigned: Map::new(),
+            unsigned: BTreeMap::new(),
             prev_content: None,
         };
         let json = json!({
@@ -390,7 +390,7 @@ mod tests {
             room_id: Some(RoomId::try_from("!jEsUZKDJdhlrceRyVU:example.org").unwrap()),
             sender: UserId::try_from("@alice:example.org").unwrap(),
             state_key: "@alice:example.org".to_string(),
-            unsigned: Map::new(),
+            unsigned: BTreeMap::new(),
             prev_content: Some(MemberEventContent {
                 avatar_url: Some("mxc://example.org/SEsfnsuifSDFSSEF".to_owned()),
                 displayname: Some("Alice Margatroid".to_owned()),

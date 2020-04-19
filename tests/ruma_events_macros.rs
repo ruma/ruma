@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     convert::TryFrom,
     time::{Duration, UNIX_EPOCH},
 };
@@ -37,7 +37,7 @@ mod common_case {
             room_id: None,
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "example.com".to_string(),
-            unsigned: serde_json::Map::new(),
+            unsigned: std::collections::BTreeMap::new(),
         };
         let json = json!({
             "content": {
@@ -66,7 +66,7 @@ mod common_case {
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "example.com".to_string(),
-            unsigned: serde_json::Map::new(),
+            unsigned: std::collections::BTreeMap::new(),
         };
         let json = json!({
             "content": {
@@ -183,7 +183,7 @@ mod type_alias {
                 ///
                 /// A mapping of `UserId`'s to a collection of `RoomId`'s which are considered
                 /// *direct* for that particular user.
-                HashMap<ruma_identifiers::UserId, Vec<ruma_identifiers::RoomId>>
+                BTreeMap<ruma_identifiers::UserId, Vec<ruma_identifiers::RoomId>>
             }
         }
     }

@@ -1,6 +1,7 @@
 //! Types for the *m.room.canonical_alias* event.
 
 use std::{
+    collections::BTreeMap,
     convert::TryFrom,
     time::{SystemTime, UNIX_EPOCH},
 };
@@ -10,7 +11,7 @@ use serde::{
     ser::{Error, SerializeStruct},
     Deserialize, Serialize, Serializer,
 };
-use serde_json::{Map, Value};
+use serde_json::Value;
 
 use crate::{util::empty_string_as_none, Event, EventType, FromRaw};
 
@@ -39,7 +40,7 @@ pub struct CanonicalAliasEvent {
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Map<String, Value>,
+    pub unsigned: BTreeMap<String, Value>,
 }
 
 /// The payload for `CanonicalAliasEvent`.
@@ -165,7 +166,7 @@ pub(crate) mod raw {
 
         /// Additional key-value pairs not signed by the homeserver.
         #[serde(default)]
-        pub unsigned: Map<String, Value>,
+        pub unsigned: BTreeMap<String, Value>,
     }
 
     /// The payload of a `CanonicalAliasEvent`.
@@ -185,12 +186,13 @@ pub(crate) mod raw {
 #[cfg(test)]
 mod tests {
     use std::{
+        collections::BTreeMap,
         convert::TryFrom,
         time::{Duration, UNIX_EPOCH},
     };
 
     use ruma_identifiers::{EventId, RoomAliasId, UserId};
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value, Map};
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{CanonicalAliasEvent, CanonicalAliasEventContent};
     use crate::EventResult;
@@ -207,7 +209,7 @@ mod tests {
             room_id: None,
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
-            unsigned: Map::new(),
+            unsigned: BTreeMap::new(),
         };
 
         let actual = to_json_value(&canonical_alias_event).unwrap();

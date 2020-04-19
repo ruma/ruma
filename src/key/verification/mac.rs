@@ -1,6 +1,6 @@
 //! Types for the *m.key.verification.mac* event.
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use ruma_events_macros::ruma_event;
 
@@ -20,7 +20,7 @@ ruma_event! {
             /// A map of the key ID to the MAC of the key, using the algorithm in the verification process.
             ///
             /// The MAC is encoded as unpadded Base64.
-            pub mac: HashMap<String, String>,
+            pub mac: BTreeMap<String, String>,
 
             /// The MAC of the comma-separated, sorted, list of key IDs given in the `mac` property, encoded
             /// as unpadded Base64.

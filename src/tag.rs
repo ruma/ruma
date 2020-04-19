@@ -1,6 +1,6 @@
 //! Types for the *m.tag* event.
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use ruma_events_macros::ruma_event;
 use serde::{Deserialize, Serialize};
@@ -12,7 +12,7 @@ ruma_event! {
         event_type: "m.tag",
         content: {
             /// A map of tag names to tag info.
-            pub tags: HashMap<String, TagInfo>,
+            pub tags: BTreeMap<String, TagInfo>,
         },
     }
 }

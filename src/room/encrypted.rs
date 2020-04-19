@@ -1,11 +1,11 @@
 //! Types for the *m.room.encrypted* event.
 
-use std::{collections::HashMap, time::SystemTime};
+use std::{collections::BTreeMap, time::SystemTime};
 
 use js_int::UInt;
 use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde_json::{from_value, Map, Value};
+use serde_json::{from_value, Value};
 
 use crate::{Algorithm, EventType, FromRaw};
 
@@ -34,8 +34,8 @@ pub struct EncryptedEvent {
     pub sender: UserId,
 
     /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if = "Map::is_empty")]
-    pub unsigned: Map<String, Value>,
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub unsigned: BTreeMap<String, Value>,
 }
 
 /// The payload for `EncryptedEvent`.
@@ -134,7 +134,7 @@ pub(crate) mod raw {
 
         /// Additional key-value pairs not signed by the homeserver.
         #[serde(default)]
-        pub unsigned: Map<String, Value>,
+        pub unsigned: BTreeMap<String, Value>,
     }
 
     /// The payload for `EncryptedEvent`.
@@ -206,7 +206,7 @@ pub struct OlmV1Curve25519AesSha2Content {
     pub algorithm: Algorithm,
 
     /// A map from the recipient Curve25519 identity key to ciphertext information.
-    pub ciphertext: HashMap<String, CiphertextInfo>,
+    pub ciphertext: BTreeMap<String, CiphertextInfo>,
 
     /// The Curve25519 key of the sender.
     pub sender_key: String,

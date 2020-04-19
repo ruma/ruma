@@ -1,11 +1,11 @@
 //! Types for the *m.room.power_levels* event.
 
-use std::{collections::HashMap, time::SystemTime};
+use std::{collections::BTreeMap, time::SystemTime};
 
 use js_int::Int;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
+use serde_json::Value;
 
 use crate::{EventType, FromRaw};
 
@@ -32,8 +32,8 @@ pub struct PowerLevelsEvent {
     pub room_id: Option<RoomId>,
 
     /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if = "Map::is_empty")]
-    pub unsigned: Map<String, Value>,
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub unsigned: BTreeMap<String, Value>,
 
     /// The unique identifier for the user who sent this event.
     pub sender: UserId,
@@ -52,8 +52,8 @@ pub struct PowerLevelsEventContent {
     /// The level required to send specific event types.
     ///
     /// This is a mapping from event type to power level required.
-    #[serde(skip_serializing_if = "HashMap::is_empty")]
-    pub events: HashMap<EventType, Int>,
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub events: BTreeMap<EventType, Int>,
 
     /// The default level required to send message events.
     #[serde(skip_serializing_if = "is_power_level_zero")]
@@ -78,8 +78,8 @@ pub struct PowerLevelsEventContent {
     /// The power levels for specific users.
     ///
     /// This is a mapping from `user_id` to power level for that user.
-    #[serde(skip_serializing_if = "HashMap::is_empty")]
-    pub users: HashMap<UserId, Int>,
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub users: BTreeMap<UserId, Int>,
 
     /// The default power level for every user in the room.
     #[serde(skip_serializing_if = "is_power_level_zero")]
@@ -158,7 +158,7 @@ pub(crate) mod raw {
 
         /// Additional key-value pairs not signed by the homeserver.
         #[serde(default)]
-        pub unsigned: Map<String, Value>,
+        pub unsigned: BTreeMap<String, Value>,
 
         /// The unique identifier for the user who sent this event.
         pub sender: UserId,
@@ -178,7 +178,7 @@ pub(crate) mod raw {
         ///
         /// This is a mapping from event type to power level required.
         #[serde(default)]
-        pub events: HashMap<EventType, Int>,
+        pub events: BTreeMap<EventType, Int>,
 
         /// The default level required to send message events.
         #[serde(default)]
@@ -204,7 +204,7 @@ pub(crate) mod raw {
         ///
         /// This is a mapping from `user_id` to power level for that user.
         #[serde(default)]
-        pub users: HashMap<UserId, Int>,
+        pub users: BTreeMap<UserId, Int>,
 
         /// The default power level for every user in the room.
         #[serde(default)]
@@ -263,15 +263,15 @@ fn is_power_level_zero(l: &Int) -> bool {
 #[cfg(test)]
 mod tests {
     use std::{
-        collections::HashMap,
+        collections::BTreeMap,
         convert::TryFrom,
         time::{Duration, UNIX_EPOCH},
     };
 
     use js_int::Int;
-    use maplit::hashmap;
+    use maplit::btreemap;
     use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde_json::{json, to_value as to_json_value, Map};
+    use serde_json::{json, to_value as to_json_value};
 
     use super::{
         default_power_level, NotificationPowerLevels, PowerLevelsEvent, PowerLevelsEventContent,
@@ -285,13 +285,13 @@ mod tests {
         let power_levels_event = PowerLevelsEvent {
             content: PowerLevelsEventContent {
                 ban: default,
-                events: HashMap::new(),
+                events: BTreeMap::new(),
                 events_default: Int::from(0),
                 invite: default,
                 kick: default,
                 redact: default,
                 state_default: default,
-                users: HashMap::new(),
+                users: BTreeMap::new(),
                 users_default: Int::from(0),
                 notifications: NotificationPowerLevels::default(),
             },
@@ -299,7 +299,7 @@ mod tests {
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: None,
             room_id: None,
-            unsigned: Map::new(),
+            unsigned: BTreeMap::new(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
         };
@@ -323,7 +323,7 @@ mod tests {
         let power_levels_event = PowerLevelsEvent {
             content: PowerLevelsEventContent {
                 ban: Int::from(23),
-                events: hashmap! {
+                events: btreemap! {
                     EventType::Dummy => Int::from(23)
                 },
                 events_default: Int::from(23),
@@ -331,7 +331,7 @@ mod tests {
                 kick: Int::from(23),
                 redact: Int::from(23),
                 state_default: Int::from(23),
-                users: hashmap! {
+                users: btreemap! {
                     user.clone() => Int::from(23)
                 },
                 users_default: Int::from(23),
@@ -344,7 +344,7 @@ mod tests {
             prev_content: Some(PowerLevelsEventContent {
                 // Make just one field different so we at least know they're two different objects.
                 ban: Int::from(42),
-                events: hashmap! {
+                events: btreemap! {
                     EventType::Dummy => Int::from(42)
                 },
                 events_default: Int::from(42),
@@ -352,7 +352,7 @@ mod tests {
                 kick: Int::from(42),
                 redact: Int::from(42),
                 state_default: Int::from(42),
-                users: hashmap! {
+                users: btreemap! {
                     user.clone() => Int::from(42)
                 },
                 users_default: Int::from(42),

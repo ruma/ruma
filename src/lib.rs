@@ -44,7 +44,7 @@
 //!     They have at least the following additional keys:
 //!     *   `state_key`, a string which serves as a sort of "sub-type."
 //!         The state key allows a room to persist multiple state events of the same type.
-//!         You can think of a room's state events as being a `HashMap` where the keys are the tuple
+//!         You can think of a room's state events as being a `BTreeMap` where the keys are the tuple
 //!         `(event_type, state_key)`.
 //!     *   Optionally, `prev_content`, a JSON object containing the `content` object from the
 //!     previous event of the given `(event_type, state_key)` tuple in the given room.
@@ -116,6 +116,7 @@
 #![allow(clippy::use_self)]
 
 use std::{
+    collections::BTreeMap,
     error::Error,
     fmt::{Debug, Display, Formatter, Result as FmtResult},
     time::SystemTime,
@@ -127,7 +128,7 @@ use serde::{
     ser::SerializeMap,
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use serde_json::{Map, Value};
+use serde_json::Value;
 
 pub use self::{custom::CustomEvent, custom_room::CustomRoomEvent, custom_state::CustomStateEvent};
 
@@ -317,7 +318,7 @@ impl Error for FromStrError {}
 /// A meaningless value that serializes to an empty JSON object.
 ///
 /// This type is used in a few places where the Matrix specification requires an empty JSON object,
-/// but it's wasteful to represent it as a `HashMap` in Rust code.
+/// but it's wasteful to represent it as a `BTreeMap` in Rust code.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Empty;
 
@@ -394,7 +395,7 @@ pub trait RoomEvent: Event {
     fn sender(&self) -> &UserId;
 
     /// Additional key-value pairs not signed by the homeserver.
-    fn unsigned(&self) -> &Map<String, Value>;
+    fn unsigned(&self) -> &BTreeMap<String, Value>;
 }
 
 /// An event that describes persistent state about a room.
@@ -459,13 +460,13 @@ mod custom {
 }
 
 mod custom_room {
-    use std::time::SystemTime;
+    use std::{collections::BTreeMap, time::SystemTime};
 
     use super::{Event, EventType, RoomEvent};
 
     use ruma_events_macros::FromRaw;
     use serde::{Deserialize, Serialize};
-    use serde_json::{Map, Value};
+    use serde_json::Value;
 
     /// A custom room event not covered by the Matrix specification.
     #[derive(Clone, Debug, FromRaw, PartialEq, Serialize)]
@@ -485,8 +486,8 @@ mod custom_room {
         /// The unique identifier for the user who sent this event.
         pub sender: ruma_identifiers::UserId,
         /// Additional key-value pairs not signed by the homeserver.
-        #[serde(skip_serializing_if = "serde_json::Map::is_empty")]
-        pub unsigned: Map<String, Value>,
+        #[serde(skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+        pub unsigned: BTreeMap<String, Value>,
     }
 
     /// The payload for `CustomRoomEvent`.
@@ -532,7 +533,7 @@ mod custom_room {
         }
 
         /// Additional key-value pairs not signed by the homeserver.
-        fn unsigned(&self) -> &Map<String, Value> {
+        fn unsigned(&self) -> &BTreeMap<String, Value> {
             &self.unsigned
         }
     }
@@ -559,19 +560,19 @@ mod custom_room {
             pub sender: ruma_identifiers::UserId,
             /// Additional key-value pairs not signed by the homeserver.
             #[serde(default)]
-            pub unsigned: Map<String, Value>,
+            pub unsigned: BTreeMap<String, Value>,
         }
     }
 }
 
 mod custom_state {
-    use std::time::SystemTime;
+    use std::{collections::BTreeMap, time::SystemTime};
 
     use super::{Event, EventType, RoomEvent, StateEvent};
 
     use ruma_events_macros::FromRaw;
     use serde::{Deserialize, Serialize};
-    use serde_json::{Map, Value};
+    use serde_json::Value;
 
     /// A custom state event not covered by the Matrix specification.
     #[derive(Clone, Debug, FromRaw, PartialEq, Serialize)]
@@ -595,8 +596,8 @@ mod custom_state {
         /// A key that determines which piece of room state the event represents.
         pub state_key: String,
         /// Additional key-value pairs not signed by the homeserver.
-        #[serde(skip_serializing_if = "serde_json::Map::is_empty")]
-        pub unsigned: Map<String, Value>,
+        #[serde(skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+        pub unsigned: BTreeMap<String, Value>,
     }
 
     /// The payload for `CustomStateEvent`.
@@ -642,7 +643,7 @@ mod custom_state {
         }
 
         /// Additional key-value pairs not signed by the homeserver.
-        fn unsigned(&self) -> &Map<String, Value> {
+        fn unsigned(&self) -> &BTreeMap<String, Value> {
             &self.unsigned
         }
     }
@@ -685,7 +686,7 @@ mod custom_state {
             pub state_key: String,
             /// Additional key-value pairs not signed by the homeserver.
             #[serde(default)]
-            pub unsigned: Map<String, Value>,
+            pub unsigned: BTreeMap<String, Value>,
         }
     }
 }

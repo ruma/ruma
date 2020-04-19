@@ -1,10 +1,10 @@
 //! Types for the *m.room.name* event.
 
-use std::time::SystemTime;
+use std::{collections::BTreeMap, time::SystemTime};
 
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
+use serde_json::Value;
 
 use crate::{util::empty_string_as_none, EventType, InvalidInput, TryFromRaw};
 
@@ -37,8 +37,8 @@ pub struct NameEvent {
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if = "Map::is_empty")]
-    pub unsigned: Map<String, Value>,
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub unsigned: BTreeMap<String, Value>,
 }
 
 /// The payload for `NameEvent`.
@@ -136,7 +136,7 @@ pub(crate) mod raw {
 
         /// Additional key-value pairs not signed by the homeserver.
         #[serde(default)]
-        pub unsigned: Map<String, Value>,
+        pub unsigned: BTreeMap<String, Value>,
     }
 
     /// The payload of a `NameEvent`.
@@ -154,13 +154,14 @@ pub(crate) mod raw {
 #[cfg(test)]
 mod tests {
     use std::{
+        collections::BTreeMap,
         convert::TryFrom,
         iter::FromIterator,
         time::{Duration, UNIX_EPOCH},
     };
 
     use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value, Map};
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use crate::EventResult;
 
@@ -178,7 +179,7 @@ mod tests {
             room_id: None,
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
-            unsigned: Map::new(),
+            unsigned: BTreeMap::new(),
         };
 
         let actual = to_json_value(&name_event).unwrap();

@@ -6,7 +6,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 /// The type of an event.
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 // Cow<str> because deserialization sometimes needs to copy to unescape things
 #[serde(from = "Cow<'_, str>", into = "String")]
 pub enum EventType {

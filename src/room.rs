@@ -2,7 +2,7 @@
 //!
 //! This module also contains types shared by events in its child namespaces.
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use js_int::UInt;
 use serde::{Deserialize, Serialize};
@@ -97,7 +97,7 @@ pub struct EncryptedFile {
 
     /// A map from an algorithm name to a hash of the ciphertext, encoded as unpadded base64.
     /// Clients should support the SHA-256 hash, which uses the key sha256.
-    pub hashes: HashMap<String, String>,
+    pub hashes: BTreeMap<String, String>,
 
     /// Version of the encrypted attachments protocol. Must be `v2`.
     pub v: String,

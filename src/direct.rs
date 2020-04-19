@@ -1,6 +1,6 @@
 //! Types for the *m.direct* event.
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::{RoomId, UserId};
@@ -15,14 +15,14 @@ ruma_event! {
             ///
             /// A mapping of `UserId`s to a list of `RoomId`s which are considered *direct* for that
             /// particular user.
-            HashMap<UserId, Vec<RoomId>>
+            BTreeMap<UserId, Vec<RoomId>>
         },
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
 
     use ruma_identifiers::{RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -32,7 +32,7 @@ mod tests {
 
     #[test]
     fn serialization() {
-        let mut content: DirectEventContent = HashMap::new();
+        let mut content: DirectEventContent = BTreeMap::new();
         let alice = UserId::new("ruma.io").unwrap();
         let room = vec![RoomId::new("ruma.io").unwrap()];
 

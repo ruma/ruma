@@ -1,4 +1,4 @@
-use std::{collections::HashMap, convert::Infallible, fmt::Display};
+use std::{collections::BTreeMap, convert::Infallible, fmt::Display};
 
 use serde::de::DeserializeOwned;
 
@@ -35,7 +35,7 @@ impl FromRaw for serde_json::Value {
     }
 }
 
-impl<K, V, S> FromRaw for HashMap<K, V, S>
+impl<K, V> FromRaw for BTreeMap<K, V>
 where
     Self: DeserializeOwned,
 {

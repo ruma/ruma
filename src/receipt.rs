@@ -1,6 +1,6 @@
 //! Types for the *m.receipt* event.
 
-use std::{collections::HashMap, time::SystemTime};
+use std::{collections::BTreeMap, time::SystemTime};
 
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::{EventId, RoomId, UserId};
@@ -23,7 +23,7 @@ ruma_event! {
             ///
             /// A mapping of event ID to a collection of receipts for this event ID. The event ID is the ID of
             /// the event being acknowledged and *not* an ID for the receipt itself.
-            HashMap<EventId, Receipts>
+            BTreeMap<EventId, Receipts>
         },
     }
 }
@@ -40,7 +40,7 @@ pub struct Receipts {
 /// A mapping of user ID to receipt.
 ///
 /// The user ID is the entity who sent this receipt.
-pub type UserReceipts = HashMap<UserId, Receipt>;
+pub type UserReceipts = BTreeMap<UserId, Receipt>;
 
 /// An acknowledgement of an event.
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
