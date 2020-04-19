@@ -257,8 +257,8 @@ where
         let response = self
             .request(register::Request {
                 auth: None,
-                bind_email: None,
                 device_id: None,
+                inhibit_login: false,
                 initial_device_display_name: None,
                 kind: Some(register::RegistrationKind::Guest),
                 password: None,
@@ -267,9 +267,12 @@ where
             .await?;
 
         let session = Session {
-            access_token: response.access_token,
+            // since we supply inhibit_login: false above, the access token needs to be there
+            // TODO: maybe unwrap is not the best solution though
+            access_token: response.access_token.unwrap(),
             identification: Some(Identification {
-                device_id: response.device_id,
+                // same as access_token
+                device_id: response.device_id.unwrap(),
                 user_id: response.user_id,
             }),
         };
@@ -296,8 +299,8 @@ where
         let response = self
             .request(register::Request {
                 auth: None,
-                bind_email: None,
                 device_id: None,
+                inhibit_login: false,
                 initial_device_display_name: None,
                 kind: Some(register::RegistrationKind::User),
                 password: Some(password),
@@ -306,9 +309,12 @@ where
             .await?;
 
         let session = Session {
-            access_token: response.access_token,
+            // since we supply inhibit_login: false above, the access token needs to be there
+            // TODO: maybe unwrap is not the best solution though
+            access_token: response.access_token.unwrap(),
             identification: Some(Identification {
-                device_id: response.device_id,
+                // same as access_token
+                device_id: response.device_id.unwrap(),
                 user_id: response.user_id,
             }),
         };
