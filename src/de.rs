@@ -1,7 +1,12 @@
 //! Deserialization support for the `application/x-www-form-urlencoded` format.
+
 use std::{borrow::Cow, io::Read};
 
-use serde::de::{self, value::MapDeserializer, Error as de_Error, IntoDeserializer};
+use serde::de::{
+    self,
+    value::{MapDeserializer, SeqDeserializer},
+    Error as de_Error, IntoDeserializer,
+};
 use url::form_urlencoded::{parse, Parse as UrlEncodedParse};
 
 #[doc(inline)]
@@ -65,9 +70,9 @@ where
     from_bytes(&buf)
 }
 
-/// A deserializer for the `application/x-www-form-urlencoded` format.
+/// A deserializer for the Matrix query string format.
 ///
-/// * Supported top-level outputs are structs, maps and sequences of pairs,
+/// * Supported top-level outputs are structs, maps and sequences,
 ///   with or without a given length.
 ///
 /// * Main `deserialize` methods defers to `deserialize_map`.
@@ -75,15 +80,12 @@ where
 /// * Everything else but `deserialize_seq` and `deserialize_seq_fixed_size`
 ///   defers to `deserialize`.
 pub struct Deserializer<'de> {
-    inner: MapDeserializer<'de, PartIterator<'de>, Error>,
+    parser: UrlEncodedParse<'de>,
 }
 
 impl<'de> Deserializer<'de> {
-    /// Returns a new `Deserializer`.
     pub fn new(parser: UrlEncodedParse<'de>) -> Self {
-        Deserializer {
-            inner: MapDeserializer::new(PartIterator(parser)),
-        }
+        Self { parser }
     }
 }
 
@@ -101,21 +103,53 @@ impl<'de> de::Deserializer<'de> for Deserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_map(self.inner)
+        visitor.visit_map(MapDeserializer::new(PartIterator(self.parser)))
     }
 
     fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_seq(self.inner)
+        visitor.visit_seq(MapDeserializer::new(PartIterator(self.parser)))
+    }
+
+    fn deserialize_struct<V>(
+        self,
+        _name: &'static str,
+        fields: &'static [&'static str],
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
+    where
+        V: de::Visitor<'de>,
+    {
+        let pairs = self.parser.collect::<Vec<_>>();
+        let mut map = std::collections::VecDeque::new();
+        for field in fields {
+            let values = pairs
+                .iter()
+                .filter(|(f, _)| f == field)
+                .map(|(_f, v)| v.clone())
+                .collect::<Vec<_>>();
+            map.push_back((*field, values));
+        }
+        let parts = fields
+            .into_iter()
+            .map(|f| Part(Cow::Borrowed(f), None))
+            .zip(PartIterator(self.parser).into_iter().map(|(_, mut v)| {
+                if let Some((_, val)) = map.pop_front() {
+                    v.1 = Some(val);
+                }
+                v
+            }))
+            .map(|(field, value)| (field, value));
+        visitor.visit_map(MapDeserializer::new(parts))
     }
 
     fn deserialize_unit<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        self.inner.end()?;
+        MapDeserializer::new(PartIterator(self.parser)).end()?;
         visitor.visit_unit()
     }
 
@@ -140,7 +174,6 @@ impl<'de> de::Deserializer<'de> for Deserializer<'de> {
         unit_struct
         newtype_struct
         tuple_struct
-        struct
         identifier
         tuple
         enum
@@ -154,11 +187,11 @@ impl<'de> Iterator for PartIterator<'de> {
     type Item = (Part<'de>, Part<'de>);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|(k, v)| (Part(k), Part(v)))
+        self.0.next().map(|(k, v)| (Part(k, None), Part(v, None)))
     }
 }
 
-struct Part<'de>(Cow<'de, str>);
+struct Part<'de>(Cow<'de, str>, Option<Vec<Cow<'de, str>>>);
 
 impl<'de> IntoDeserializer<'de> for Part<'de> {
     type Deserializer = Self;
@@ -226,6 +259,16 @@ impl<'de> de::Deserializer<'de> for Part<'de> {
         visitor.visit_newtype_struct(self)
     }
 
+    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    where
+        V: de::Visitor<'de>,
+    {
+        let iter = self.1.ok_or(Error::custom("expected sequence"))?;
+        visitor.visit_seq(SeqDeserializer::new(
+            iter.into_iter().map(|v| Part(v, None)),
+        ))
+    }
+
     serde::forward_to_deserialize_any! {
         char
         str
@@ -239,7 +282,6 @@ impl<'de> de::Deserializer<'de> for Part<'de> {
         identifier
         tuple
         ignored_any
-        seq
         map
     }
 

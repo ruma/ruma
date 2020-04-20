@@ -1,9 +1,14 @@
 use std::str;
 
 use serde::Serialize;
-use url::form_urlencoded::{Serializer as UrlEncodedSerializer, Target as UrlEncodedTarget};
+use url::form_urlencoded::{
+    Serializer as UrlEncodedSerializer, Target as UrlEncodedTarget,
+};
 
-use crate::ser::{part::{PartSerializer, Sink}, Error};
+use crate::{
+    error::Error,
+    ser::part::{PartSerializer, Sink},
+};
 
 pub struct ValueSink<'input, 'key, 'target, Target>
 where
@@ -21,14 +26,12 @@ where
         urlencoder: &'target mut UrlEncodedSerializer<'input, Target>,
         key: &'key str,
     ) -> Self {
-        ValueSink {
-            urlencoder: urlencoder,
-            key: key,
-        }
+        ValueSink { urlencoder, key }
     }
 }
 
-impl<'input, 'key, 'target, Target> Sink for ValueSink<'input, 'key, 'target, Target>
+impl<'input, 'key, 'target, Target> Sink
+    for ValueSink<'input, 'key, 'target, Target>
 where
     Target: 'target + UrlEncodedTarget,
 {

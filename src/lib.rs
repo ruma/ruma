@@ -1,6 +1,7 @@
 //! `x-www-form-urlencoded` meets Serde
 
 pub mod de;
+pub mod error;
 pub mod ser;
 
 #[doc(inline)]
