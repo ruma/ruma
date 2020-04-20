@@ -13,6 +13,8 @@ Improvements:
   * `impl From<RoomAliasId> for RoomIdOrAliasId`
   * `impl TryFrom<RoomIdOrAliasId> for RoomId`
   * `impl TryFrom<RoomIdOrAliasId> for RoomAliasId`
+  * `RoomIdOrAliasId::into_either` (if the optional dependency `either` is activated with the
+    identically named feature)
 
 # 0.15.1
 

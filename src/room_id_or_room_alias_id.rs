@@ -55,6 +55,22 @@ impl RoomIdOrAliasId {
         self.variant() == Variant::RoomAliasId
     }
 
+    /// Turn this `RoomIdOrAliasId` into `Either<RoomId, RoomAliasId>`
+    #[cfg(feature = "either")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "either")))]
+    pub fn into_either(self) -> either::Either<RoomId, RoomAliasId> {
+        match self.variant() {
+            Variant::RoomId => either::Either::Left(RoomId {
+                full_id: self.full_id,
+                colon_idx: self.colon_idx,
+            }),
+            Variant::RoomAliasId => either::Either::Right(RoomAliasId {
+                full_id: self.full_id,
+                colon_idx: self.colon_idx,
+            }),
+        }
+    }
+
     fn variant(&self) -> Variant {
         match self.full_id.bytes().next() {
             Some(b'!') => Variant::RoomId,

@@ -21,6 +21,7 @@ default = ["serde"]
 
 [dependencies]
 diesel = { version = "1.4.4", optional = true }
+either = { version = "1.5.3", optional = true }
 rand = { version = "0.7.3", optional = true }
 serde = { version = "1.0.106", optional = true }
 
