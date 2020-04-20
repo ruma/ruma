@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.20.0
+
+Improvements:
+
+* Update ruma-identifiers to 0.16.0
+
 # 0.19.0
 
 Breaking changes:
