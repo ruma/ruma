@@ -1,13 +1,10 @@
-use ser::key::KeySink;
-use ser::part::PartSerializer;
-use ser::value::ValueSink;
-use ser::Error;
 use serde::ser;
 use std::borrow::Cow;
 use std::mem;
 use url::form_urlencoded::Serializer as UrlEncodedSerializer;
 use url::form_urlencoded::Target as UrlEncodedTarget;
 
+use crate::ser::{Error, part::PartSerializer, key::KeySink, value::ValueSink};
 pub struct PairSerializer<'input, 'target, Target: 'target + UrlEncodedTarget> {
     urlencoder: &'target mut UrlEncodedSerializer<'input, Target>,
     state: PairState,

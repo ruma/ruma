@@ -1,9 +1,18 @@
-extern crate serde_urlencoded;
-#[macro_use]
-extern crate serde_derive;
+use serde::Serialize;
 
 #[derive(Serialize)]
 struct NewType<T>(T);
+
+#[derive(Serialize)]
+struct NewStruct {
+    list: Vec<String>,
+}
+
+#[test]
+fn serialize_newstruct() {
+    let s = NewStruct { list: vec![ "hello".into() ] };
+    println!("{:?}", serde_urlencoded::to_string(s));
+}
 
 #[test]
 fn serialize_newtype_i32() {

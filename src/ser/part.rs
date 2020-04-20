@@ -1,9 +1,10 @@
-use dtoa;
-use itoa;
-use ser::Error;
-use serde::ser;
 use std::str;
 
+use dtoa;
+use itoa;
+use serde::ser;
+
+use crate::ser::Error;
 pub struct PartSerializer<S> {
     sink: S,
 }

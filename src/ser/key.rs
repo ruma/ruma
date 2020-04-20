@@ -1,9 +1,8 @@
-use ser::part::Sink;
-use ser::Error;
-use serde::Serialize;
-use std::borrow::Cow;
-use std::ops::Deref;
+use std::{borrow::Cow, ops::Deref};
 
+use serde::Serialize;
+
+use crate::ser::{part::Sink, Error};
 pub enum Key<'key> {
     Static(&'static str),
     Dynamic(Cow<'key, str>),
