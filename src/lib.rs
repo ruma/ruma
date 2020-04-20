@@ -18,7 +18,7 @@
 //!
 //!     // You're now logged in! Write the session to a file if you want to restore it later.
 //!     // Then start using the API!
-//! # Result::<(), ruma_client::Error>::Ok(())
+//! # Result::<(), ruma_client::Error<_>>::Ok(())
 //! };
 //! ```
 //!
@@ -59,7 +59,7 @@
 //! while let Some(response) = sync_stream.try_next().await? {
 //!     // Do something with the data in the response...
 //! }
-//! # Result::<(), ruma_client::Error>::Ok(())
+//! # Result::<(), ruma_client::Error<_>>::Ok(())
 //! # };
 //! ```
 //!
@@ -91,7 +91,7 @@
 //!         .await?;
 //!
 //!     assert_eq!(response.room_id, RoomId::try_from("!n8f893n9:example.com").unwrap());
-//! #   Result::<(), ruma_client::Error>::Ok(())
+//! #   Result::<(), ruma_client::Error<_>>::Ok(())
 //! }
 //! # ;
 //! ```
@@ -224,7 +224,7 @@ where
         password: String,
         device_id: Option<DeviceId>,
         initial_device_display_name: Option<String>,
-    ) -> Result<Session, Error> {
+    ) -> Result<Session, Error<api::Error>> {
         use api::r0::session::login;
 
         let response = self
@@ -251,7 +251,7 @@ where
     /// Register as a guest. In contrast to `api::r0::account::register::call()`,
     /// this method stores the session data returned by the endpoint in this
     /// client, instead of returning it.
-    pub async fn register_guest(&self) -> Result<Session, Error> {
+    pub async fn register_guest(&self) -> Result<Session, Error<api::Error>> {
         use api::r0::account::register;
 
         let response = self
@@ -293,7 +293,7 @@ where
         &self,
         username: Option<String>,
         password: String,
-    ) -> Result<Session, Error> {
+    ) -> Result<Session, Error<api::Error>> {
         use api::r0::account::register;
 
         let response = self
@@ -334,8 +334,9 @@ where
         since: Option<String>,
         set_presence: api::r0::sync::sync_events::SetPresence,
         timeout: Option<Duration>,
-    ) -> impl Stream<Item = Result<api::r0::sync::sync_events::IncomingResponse, Error>>
-           + TryStream<Ok = api::r0::sync::sync_events::IncomingResponse, Error = Error> {
+    ) -> impl Stream<Item = Result<api::r0::sync::sync_events::IncomingResponse, Error<api::Error>>>
+           + TryStream<Ok = api::r0::sync::sync_events::IncomingResponse, Error = Error<api::Error>>
+    {
         use api::r0::sync::sync_events;
 
         let client = self.clone();
@@ -361,32 +362,32 @@ where
     }
 
     /// Makes a request to a Matrix API endpoint.
-    pub fn request<Request: Endpoint<ResponseError = api::Error>>(
+    pub fn request<Request: Endpoint>(
         &self,
         request: Request,
-    ) -> impl Future<Output = Result<<Request::Response as Outgoing>::Incoming, Error>>
+    ) -> impl Future<Output = Result<<Request::Response as Outgoing>::Incoming, Error<Request::ResponseError>>>
     // We need to duplicate Endpoint's where clauses because the compiler is not smart enough yet.
     // See https://github.com/rust-lang/rust/issues/54149
     where
         Request::Incoming: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>,
         <Request::Response as Outgoing>::Incoming:
-            TryFrom<http::Response<Vec<u8>>, Error = FromHttpResponseError<api::Error>>,
+            TryFrom<http::Response<Vec<u8>>, Error = FromHttpResponseError<Request::ResponseError>>,
     {
         self.request_with_url_params(request, None)
     }
 
     /// Makes a request to a Matrix API endpoint including additional URL parameters.
-    pub fn request_with_url_params<Request: Endpoint<ResponseError = api::Error>>(
+    pub fn request_with_url_params<Request: Endpoint>(
         &self,
         request: Request,
         params: Option<BTreeMap<String, String>>,
-    ) -> impl Future<Output = Result<<Request::Response as Outgoing>::Incoming, Error>>
+    ) -> impl Future<Output = Result<<Request::Response as Outgoing>::Incoming, Error<Request::ResponseError>>>
     // We need to duplicate Endpoint's where clauses because the compiler is not smart enough yet.
     // See https://github.com/rust-lang/rust/issues/54149
     where
         Request::Incoming: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>,
         <Request::Response as Outgoing>::Incoming:
-            TryFrom<http::Response<Vec<u8>>, Error = FromHttpResponseError<api::Error>>,
+            TryFrom<http::Response<Vec<u8>>, Error = FromHttpResponseError<Request::ResponseError>>,
     {
         let client = self.0.clone();
 

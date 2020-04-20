@@ -16,7 +16,7 @@ async fn log_messages(
     homeserver_url: Url,
     username: String,
     password: String,
-) -> Result<(), ruma_client::Error> {
+) -> anyhow::Result<()> {
     let client = HttpClient::new(homeserver_url, None);
 
     client.log_in(username, password, None, None).await?;
@@ -61,7 +61,7 @@ async fn log_messages(
 }
 
 #[tokio::main]
-async fn main() -> Result<(), ruma_client::Error> {
+async fn main() -> anyhow::Result<()> {
     let (homeserver_url, username, password) =
         match (env::args().nth(1), env::args().nth(2), env::args().nth(3)) {
             (Some(a), Some(b), Some(c)) => (a, b, c),

@@ -12,7 +12,7 @@ use ruma_client::{
 };
 use url::Url;
 
-async fn hello_world(homeserver_url: Url, room: String) -> Result<(), ruma_client::Error> {
+async fn hello_world(homeserver_url: Url, room: String) -> anyhow::Result<()> {
     let client = Client::new(homeserver_url, None);
 
     client.register_guest().await?;
@@ -49,7 +49,7 @@ async fn hello_world(homeserver_url: Url, room: String) -> Result<(), ruma_clien
 }
 
 #[tokio::main]
-async fn main() -> Result<(), ruma_client::Error> {
+async fn main() -> anyhow::Result<()> {
     let (homeserver_url, room) = match (env::args().nth(1), env::args().nth(2)) {
         (Some(a), Some(b)) => (a, b),
         _ => {

@@ -1,16 +1,13 @@
 //! Error conditions.
 
-use std::error::Error as StdError;
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::fmt::{self, Debug, Display, Formatter};
 
 use ruma_api::error::{FromHttpResponseError, IntoHttpError};
-
-use crate::api;
 
 /// An error that can occur during client operations.
 #[derive(Debug)]
 #[non_exhaustive]
-pub enum Error {
+pub enum Error<E> {
     /// Queried endpoint requires authentication but was called on an anonymous client.
     AuthenticationRequired,
     /// Construction of the HTTP request failed (this should never happen).
@@ -20,11 +17,11 @@ pub enum Error {
     /// Couldn't obtain an HTTP response (e.g. due to network or DNS issues).
     Response(ResponseError),
     /// Converting the HTTP response to one of ruma's types failed.
-    FromHttpResponse(FromHttpResponseError<api::Error>),
+    FromHttpResponse(FromHttpResponseError<E>),
 }
 
-impl Display for Error {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+impl<E> Display for Error<E> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::AuthenticationRequired => {
                 write!(f, "The queried endpoint requires authentication but was called with an anonymous client.")
@@ -39,33 +36,33 @@ impl Display for Error {
     }
 }
 
-impl From<IntoHttpError> for Error {
+impl<E> From<IntoHttpError> for Error<E> {
     fn from(err: IntoHttpError) -> Self {
         Error::IntoHttp(err)
     }
 }
 
 #[doc(hidden)]
-impl From<http::uri::InvalidUri> for Error {
+impl<E> From<http::uri::InvalidUri> for Error<E> {
     fn from(err: http::uri::InvalidUri) -> Self {
         Error::Url(UrlError(err))
     }
 }
 
 #[doc(hidden)]
-impl From<hyper::Error> for Error {
+impl<E> From<hyper::Error> for Error<E> {
     fn from(err: hyper::Error) -> Self {
         Error::Response(ResponseError(err))
     }
 }
 
-impl From<FromHttpResponseError<api::Error>> for Error {
-    fn from(err: FromHttpResponseError<api::Error>) -> Self {
+impl<E> From<FromHttpResponseError<E>> for Error<E> {
+    fn from(err: FromHttpResponseError<E>) -> Self {
         Error::FromHttpResponse(err)
     }
 }
 
-impl StdError for Error {}
+impl<E: Debug> std::error::Error for Error<E> {}
 
 #[derive(Debug)]
 pub struct UrlError(http::uri::InvalidUri);
