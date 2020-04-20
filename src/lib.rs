@@ -251,7 +251,7 @@ where
     /// Register as a guest. In contrast to `api::r0::account::register::call()`,
     /// this method stores the session data returned by the endpoint in this
     /// client, instead of returning it.
-    pub async fn register_guest(&self) -> Result<Session, Error<api::Error>> {
+    pub async fn register_guest(&self) -> Result<Session, Error<api::r0::uiaa::UiaaResponse>> {
         use api::r0::account::register;
 
         let response = self
@@ -293,7 +293,7 @@ where
         &self,
         username: Option<String>,
         password: String,
-    ) -> Result<Session, Error<api::Error>> {
+    ) -> Result<Session, Error<api::r0::uiaa::UiaaResponse>> {
         use api::r0::account::register;
 
         let response = self
@@ -365,7 +365,9 @@ where
     pub fn request<Request: Endpoint>(
         &self,
         request: Request,
-    ) -> impl Future<Output = Result<<Request::Response as Outgoing>::Incoming, Error<Request::ResponseError>>>
+    ) -> impl Future<
+        Output = Result<<Request::Response as Outgoing>::Incoming, Error<Request::ResponseError>>,
+    >
     // We need to duplicate Endpoint's where clauses because the compiler is not smart enough yet.
     // See https://github.com/rust-lang/rust/issues/54149
     where
@@ -381,7 +383,9 @@ where
         &self,
         request: Request,
         params: Option<BTreeMap<String, String>>,
-    ) -> impl Future<Output = Result<<Request::Response as Outgoing>::Incoming, Error<Request::ResponseError>>>
+    ) -> impl Future<
+        Output = Result<<Request::Response as Outgoing>::Incoming, Error<Request::ResponseError>>,
+    >
     // We need to duplicate Endpoint's where clauses because the compiler is not smart enough yet.
     // See https://github.com/rust-lang/rust/issues/54149
     where
