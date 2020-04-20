@@ -5,7 +5,7 @@ use std::{borrow::Cow, convert::TryFrom, hint::unreachable_unchecked, num::NonZe
 #[cfg(feature = "diesel")]
 use diesel::sql_types::Text;
 
-use crate::{error::Error, parse_id};
+use crate::{error::Error, parse_id, RoomAliasId, RoomId};
 
 /// A Matrix room ID or a Matrix room alias ID.
 ///
@@ -88,6 +88,52 @@ impl TryFrom<Cow<'_, str>> for RoomIdOrAliasId {
 }
 
 common_impls!(RoomIdOrAliasId, "a Matrix room ID or room alias ID");
+
+impl From<RoomId> for RoomIdOrAliasId {
+    fn from(RoomId { full_id, colon_idx }: RoomId) -> Self {
+        Self { full_id, colon_idx }
+    }
+}
+
+impl From<RoomAliasId> for RoomIdOrAliasId {
+    fn from(RoomAliasId { full_id, colon_idx }: RoomAliasId) -> Self {
+        Self { full_id, colon_idx }
+    }
+}
+
+impl TryFrom<RoomIdOrAliasId> for RoomId {
+    type Error = RoomAliasId;
+
+    fn try_from(id: RoomIdOrAliasId) -> Result<RoomId, RoomAliasId> {
+        match id.variant() {
+            Variant::RoomId => Ok(RoomId {
+                full_id: id.full_id,
+                colon_idx: id.colon_idx,
+            }),
+            Variant::RoomAliasId => Err(RoomAliasId {
+                full_id: id.full_id,
+                colon_idx: id.colon_idx,
+            }),
+        }
+    }
+}
+
+impl TryFrom<RoomIdOrAliasId> for RoomAliasId {
+    type Error = RoomId;
+
+    fn try_from(id: RoomIdOrAliasId) -> Result<RoomAliasId, RoomId> {
+        match id.variant() {
+            Variant::RoomAliasId => Ok(RoomAliasId {
+                full_id: id.full_id,
+                colon_idx: id.colon_idx,
+            }),
+            Variant::RoomId => Err(RoomId {
+                full_id: id.full_id,
+                colon_idx: id.colon_idx,
+            }),
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

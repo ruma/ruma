@@ -1,5 +1,19 @@
 # [unreleased]
 
+Breaking changes:
+
+* Update `RoomId::parse_with_server_name`s bounds from `Into<Cow<'_, str>>` to
+  `AsRef<str> + Into<String>`. While this is a breaking change, it is not expected to actually
+  require code changes.
+
+Improvements:
+
+* Add conversion functions for `RoomIdOrAliasId`
+  * `impl From<RoomId> for RoomIdOrAliasId`
+  * `impl From<RoomAliasId> for RoomIdOrAliasId`
+  * `impl TryFrom<RoomIdOrAliasId> for RoomId`
+  * `impl TryFrom<RoomIdOrAliasId> for RoomAliasId`
+
 # 0.15.1
 
 Bug fixes:

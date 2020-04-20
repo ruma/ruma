@@ -24,8 +24,8 @@ use crate::{error::Error, parse_id};
 #[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
 #[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct RoomId {
-    full_id: String,
-    colon_idx: NonZeroU8,
+    pub(crate) full_id: String,
+    pub(crate) colon_idx: NonZeroU8,
 }
 
 impl RoomId {
