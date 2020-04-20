@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.16.0
+
 Breaking changes:
 
 * Update `RoomId::parse_with_server_name`s bounds from `Into<Cow<'_, str>>` to
