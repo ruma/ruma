@@ -117,7 +117,7 @@
 use std::{
     collections::BTreeMap,
     error::Error,
-    fmt::{Debug, Display, Formatter, Result as FmtResult},
+    fmt::{self, Debug, Display, Formatter},
     time::SystemTime,
 };
 
@@ -221,7 +221,7 @@ impl InvalidEvent {
 }
 
 impl Display for InvalidEvent {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.message())
     }
 }
@@ -236,7 +236,7 @@ impl Error for InvalidEvent {}
 pub struct InvalidInput(String);
 
 impl Display for InvalidInput {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
@@ -307,7 +307,7 @@ where
 pub struct FromStrError;
 
 impl Display for FromStrError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "failed to parse type from string")
     }
 }
@@ -340,7 +340,7 @@ impl<'de> Deserialize<'de> for Empty {
         impl<'de> Visitor<'de> for EmptyMapVisitor {
             type Value = Empty;
 
-            fn expecting(&self, f: &mut Formatter<'_>) -> FmtResult {
+            fn expecting(&self, f: &mut Formatter<'_>) -> fmt::Result {
                 write!(f, "an object/map")
             }
 
