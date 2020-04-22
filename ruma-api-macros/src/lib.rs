@@ -5,7 +5,6 @@
 //! re-exports in ruma-api. Also note that for technical reasons, the
 //! `ruma_api!` macro is only documented in ruma-api, not here.
 
-#![deny(missing_copy_implementations, missing_debug_implementations)]
 #![allow(clippy::cognitive_complexity)]
 #![recursion_limit = "256"]
 
