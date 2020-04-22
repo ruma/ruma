@@ -68,7 +68,7 @@ Improvements:
   * For any event or event content type `T` inside a larger type that should support deserialization you can use `EventResult<T>` instead
   * Conceptually, it is the same as `Result<T, InvalidEvent>`
   * `InvalidEvent` can represent either a deserialization error (the event's structure did not match) or a validation error (some additional constraints defined in the matrix spec were violated)
-    * It also contians the original value that was attempted to be deserialized into `T` in `serde_json::Value` form
+    * It also contains the original value that was attempted to be deserialized into `T` in `serde_json::Value` form
 
 Breaking changes:
 
