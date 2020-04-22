@@ -9,7 +9,7 @@ license = "MIT"
 name = "ruma-client-api"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma-client-api"
-version = "0.8.0-rc.4"
+version = "0.8.0-rc.5"
 edition = "2018"
 
 [dependencies]
