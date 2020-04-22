@@ -310,34 +310,21 @@ impl ToTokens for Request {
         let request_body_struct =
             if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
                 let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
-                let derive_deserialize = if body_field.has_wrap_incoming_attr() {
-                    TokenStream::new()
-                } else {
-                    quote!(ruma_api::exports::serde::Deserialize)
-                };
-
-                Some((derive_deserialize, quote! { (#field); }))
+                Some(quote! { (#field); })
             } else if self.has_body_fields() {
                 let fields = self.fields.iter().filter(|f| f.is_body());
-                let derive_deserialize = if fields.clone().any(|f| f.has_wrap_incoming_attr()) {
-                    TokenStream::new()
-                } else {
-                    quote!(ruma_api::exports::serde::Deserialize)
-                };
                 let fields = fields.map(RequestField::field);
-
-                Some((derive_deserialize, quote! { { #(#fields),* } }))
+                Some(quote! { { #(#fields),* } })
             } else {
                 None
             }
-            .map(|(derive_deserialize, def)| {
+            .map(|def| {
                 quote! {
                     /// Data in the request body.
                     #[derive(
                         Debug,
-                        ruma_api::Outgoing,
+                        ruma_api::exports::serde::Deserialize,
                         ruma_api::exports::serde::Serialize,
-                        #derive_deserialize
                     )]
                     struct RequestBody #def
                 }
@@ -374,8 +361,7 @@ impl ToTokens for Request {
         };
 
         let request = quote! {
-            #[derive(Debug, Clone, ruma_api::Outgoing)]
-            #[incoming_no_deserialize]
+            #[derive(Debug, Clone)]
             pub struct Request #request_def
 
             #request_body_struct

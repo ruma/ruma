@@ -298,7 +298,7 @@ impl ToTokens for Api {
         let extract_request_body =
             if self.request.has_body_fields() || self.request.newtype_body_field().is_some() {
                 quote! {
-                    let request_body: <RequestBody as ruma_api::Outgoing>::Incoming =
+                    let request_body: RequestBody =
                         match ruma_api::exports::serde_json::from_slice(request.body().as_slice()) {
                             Ok(body) => body,
                             Err(err) => {
@@ -368,7 +368,7 @@ impl ToTokens for Api {
             || self.response.newtype_body_field().is_some()
         {
             quote! {
-                let response_body: <ResponseBody as ruma_api::Outgoing>::Incoming =
+                let response_body: ResponseBody =
                     match ruma_api::exports::serde_json::from_slice(response.body().as_slice()) {
                         Ok(body) => body,
                         Err(err) => {
