@@ -3,7 +3,7 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use js_int::UInt;
-use ruma_api::{ruma_api, Outgoing};
+use ruma_api::ruma_api;
 use ruma_events::{
     collections::{
         all::{RoomEvent, StateEvent},
@@ -12,7 +12,7 @@ use ruma_events::{
     presence::PresenceEvent,
     stripped::AnyStrippedStateEvent,
     to_device::AnyToDeviceEvent,
-    EventResult,
+    EventJson,
 };
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
@@ -63,14 +63,11 @@ ruma_api! {
         /// The batch token to supply in the `since` param of the next `/sync` request.
         pub next_batch: String,
         /// Updates to rooms.
-        #[wrap_incoming]
         pub rooms: Rooms,
         /// Updates to the presence status of other users.
-        #[wrap_incoming]
         pub presence: Presence,
         /// Messages sent dirrectly between devices.
         #[serde(default, skip_serializing_if = "ToDevice::is_empty")]
-        #[wrap_incoming]
         pub to_device: ToDevice,
         /// Information on E2E device updates.
         ///
@@ -127,36 +124,30 @@ pub enum Filter {
 }
 
 /// Updates to rooms.
-#[derive(Clone, Debug, Serialize, Outgoing)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Rooms {
     /// The rooms that the user has left or been banned from.
-    #[wrap_incoming(LeftRoom)]
     pub leave: BTreeMap<RoomId, LeftRoom>,
     /// The rooms that the user has joined.
-    #[wrap_incoming(JoinedRoom)]
     pub join: BTreeMap<RoomId, JoinedRoom>,
     /// The rooms that the user has been invited to.
-    #[wrap_incoming(InvitedRoom)]
     pub invite: BTreeMap<RoomId, InvitedRoom>,
 }
 
 /// Historical updates to left rooms.
-#[derive(Clone, Debug, Serialize, Outgoing)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct LeftRoom {
     /// The timeline of messages and state changes in the room up to the point when the user
     /// left.
-    #[wrap_incoming]
     pub timeline: Timeline,
     /// The state updates for the room up to the start of the timeline.
-    #[wrap_incoming]
     pub state: State,
     /// The private data that this user has attached to this room.
-    #[wrap_incoming]
     pub account_data: AccountData,
 }
 
 /// Updates to joined rooms.
-#[derive(Clone, Debug, Serialize, Outgoing)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct JoinedRoom {
     /// Information about the room which clients may need to correctly render it
     /// to users.
@@ -164,19 +155,15 @@ pub struct JoinedRoom {
     /// Counts of unread notifications for this room.
     pub unread_notifications: UnreadNotificationsCount,
     /// The timeline of messages and state changes in the room.
-    #[wrap_incoming]
     pub timeline: Timeline,
     /// Updates to the state, between the time indicated by the `since` parameter, and the start
     /// of the `timeline` (or all state up to the start of the `timeline`, if `since` is not
     /// given, or `full_state` is true).
-    #[wrap_incoming]
     pub state: State,
     /// The private data that this user has attached to this room.
-    #[wrap_incoming]
     pub account_data: AccountData,
     /// The ephemeral events in the room that aren't recorded in the timeline or state of the
     /// room. e.g. typing.
-    #[wrap_incoming]
     pub ephemeral: Ephemeral,
 }
 
@@ -192,7 +179,7 @@ pub struct UnreadNotificationsCount {
 }
 
 /// Events in the room.
-#[derive(Clone, Debug, Serialize, Outgoing)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Timeline {
     /// True if the number of events returned was limited by the `limit` on the filter.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -202,32 +189,28 @@ pub struct Timeline {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prev_batch: Option<String>,
     /// A list of events.
-    #[wrap_incoming(RoomEvent with EventResult)]
-    pub events: Vec<RoomEvent>,
+    pub events: Vec<EventJson<RoomEvent>>,
 }
 
 /// State events in the room.
-#[derive(Clone, Debug, Serialize, Outgoing)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct State {
     /// A list of state events.
-    #[wrap_incoming(StateEvent with EventResult)]
-    pub events: Vec<StateEvent>,
+    pub events: Vec<EventJson<StateEvent>>,
 }
 
 /// The private data that this user has attached to this room.
-#[derive(Clone, Debug, Serialize, Outgoing)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AccountData {
     /// A list of events.
-    #[wrap_incoming(NonRoomEvent with EventResult)]
-    pub events: Vec<NonRoomEvent>,
+    pub events: Vec<EventJson<NonRoomEvent>>,
 }
 
 /// Ephemeral events not recorded in the timeline or state of the room.
-#[derive(Clone, Debug, Serialize, Outgoing)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Ephemeral {
     /// A list of events.
-    #[wrap_incoming(NonRoomEvent with EventResult)]
-    pub events: Vec<NonRoomEvent>,
+    pub events: Vec<EventJson<NonRoomEvent>>,
 }
 
 /// Information about room for rendering to clients.
@@ -250,35 +233,31 @@ pub struct RoomSummary {
 }
 
 /// Updates to the rooms that the user has been invited to.
-#[derive(Clone, Debug, Serialize, Outgoing)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct InvitedRoom {
     /// The state of a room that the user has been invited to.
-    #[wrap_incoming]
     pub invite_state: InviteState,
 }
 
 /// The state of a room that the user has been invited to.
-#[derive(Clone, Debug, Serialize, Outgoing)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct InviteState {
     /// A list of state events.
-    #[wrap_incoming(AnyStrippedStateEvent with EventResult)]
-    pub events: Vec<AnyStrippedStateEvent>,
+    pub events: Vec<EventJson<AnyStrippedStateEvent>>,
 }
 
 /// Updates to the presence status of other users.
-#[derive(Clone, Debug, Serialize, Outgoing)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Presence {
     /// A list of events.
-    #[wrap_incoming(PresenceEvent with EventResult)]
-    pub events: Vec<PresenceEvent>,
+    pub events: Vec<EventJson<PresenceEvent>>,
 }
 
 /// Messages sent dirrectly between devices.
-#[derive(Clone, Debug, Serialize, Outgoing)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ToDevice {
     /// A list of to-device events.
-    #[wrap_incoming(AnyToDeviceEvent with EventResult)]
-    pub events: Vec<AnyToDeviceEvent>,
+    pub events: Vec<EventJson<AnyToDeviceEvent>>,
 }
 
 impl ToDevice {
@@ -287,7 +266,7 @@ impl ToDevice {
     }
 }
 
-impl Default for IncomingToDevice {
+impl Default for ToDevice {
     fn default() -> Self {
         Self { events: Vec::new() }
     }

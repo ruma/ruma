@@ -1,7 +1,7 @@
 //! [GET /_matrix/client/r0/user/{userId}/rooms/{roomId}/account_data/{type}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-user-userid-rooms-roomid-account-data-type)
 
 use ruma_api::ruma_api;
-use ruma_events::{collections::only, EventResult};
+use ruma_events::{collections::only, EventJson};
 use ruma_identifiers::{RoomId, UserId};
 
 ruma_api! {
@@ -29,8 +29,7 @@ ruma_api! {
     response {
         /// Account data content for the given type.
         #[ruma_api(body)]
-        #[wrap_incoming(with EventResult)]
-        pub account_data: only::Event,
+        pub account_data: EventJson<only::Event>,
     }
 
     error: crate::Error

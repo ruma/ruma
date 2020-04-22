@@ -1,7 +1,7 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/event/{eventId}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-rooms-roomid-event-eventid)
 
 use ruma_api::ruma_api;
-use ruma_events::{collections::all, EventResult};
+use ruma_events::{collections::all, EventJson};
 use ruma_identifiers::{EventId, RoomId};
 
 ruma_api! {
@@ -25,8 +25,7 @@ ruma_api! {
 
     response {
         /// Arbitrary JSON of the event body. Returns both room and state events.
-        #[wrap_incoming(with EventResult)]
-        pub event: all::RoomEvent,
+        pub event: EventJson<all::RoomEvent>,
     }
 
     error: crate::Error

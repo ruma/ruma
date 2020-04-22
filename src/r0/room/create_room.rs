@@ -1,7 +1,7 @@
 //! [POST /_matrix/client/r0/createRoom](https://matrix.org/docs/spec/client_server/r0.6.0.html#post-matrix-client-r0-createroom)
 
 use ruma_api::ruma_api;
-use ruma_events::{room::power_levels::PowerLevelsEventContent, EventResult};
+use ruma_events::{room::power_levels::PowerLevelsEventContent, EventJson};
 use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -46,8 +46,7 @@ ruma_api! {
         pub name: Option<String>,
         /// Power level content to override in the default power level event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        #[wrap_incoming(PowerLevelsEventContent with EventResult)]
-        pub power_level_content_override: Option<PowerLevelsEventContent>,
+        pub power_level_content_override: Option<EventJson<PowerLevelsEventContent>>,
         /// Convenience parameter for setting various default state events based on a preset.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub preset: Option<RoomPreset>,

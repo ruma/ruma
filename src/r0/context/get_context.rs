@@ -2,7 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_events::{collections::only, EventResult};
+use ruma_events::{collections::only, EventJson};
 use ruma_identifiers::{EventId, RoomId};
 
 use crate::r0::filter::RoomEventFilter;
@@ -40,21 +40,20 @@ ruma_api! {
         /// A token that can be used to paginate forwards with.
         pub end: String,
         /// Details of the requested event.
-        #[wrap_incoming(with EventResult)]
-        pub event: only::RoomEvent,
+        pub event: EventJson<only::RoomEvent>,
         /// A list of room events that happened just after the requested event, in chronological
         /// order.
-        #[wrap_incoming(only::RoomEvent with EventResult)]
-        pub events_after: Vec<only::RoomEvent>,
+
+        pub events_after: Vec<EventJson<only::RoomEvent>>,
         /// A list of room events that happened just before the requested event, in
         /// reverse-chronological order.
-        #[wrap_incoming(only::RoomEvent with EventResult)]
-        pub events_before: Vec<only::RoomEvent>,
+
+        pub events_before: Vec<EventJson<only::RoomEvent>>,
         /// A token that can be used to paginate backwards with.
         pub start: String,
         /// The state of the room at the last event returned.
-        #[wrap_incoming(only::StateEvent with EventResult)]
-        pub state: Vec<only::StateEvent>,
+
+        pub state: Vec<EventJson<only::StateEvent>>,
     }
 
     error: crate::Error

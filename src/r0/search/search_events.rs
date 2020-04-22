@@ -3,8 +3,8 @@
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_api::{ruma_api, Outgoing};
-use ruma_events::{collections::all::Event, EventResult};
+use ruma_api::ruma_api;
+use ruma_events::{collections::all::Event, EventJson};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
@@ -32,7 +32,6 @@ ruma_api! {
 
     response {
         /// A grouping of search results by category.
-        #[wrap_incoming]
         pub search_categories: ResultCategories,
     }
 
@@ -87,18 +86,16 @@ pub struct EventContext {
 }
 
 /// Context for search results, if requested.
-#[derive(Clone, Debug, Serialize, Outgoing)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct EventContextResult {
     /// Pagination token for the end of the chunk.
     pub end: String,
     /// Events just after the result.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[wrap_incoming(Event with EventResult)]
-    pub events_after: Option<Vec<Event>>,
+    pub events_after: Option<Vec<EventJson<Event>>>,
     /// Events just before the result.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[wrap_incoming(Event with EventResult)]
-    pub events_before: Option<Vec<Event>>,
+    pub events_before: Option<Vec<EventJson<Event>>>,
     /// The historic profile information of the users that sent the events returned.
     // TODO: Not sure this is right. https://github.com/matrix-org/matrix-doc/issues/773
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -157,17 +154,16 @@ pub enum OrderBy {
 }
 
 /// Categories of events that can be searched for.
-#[derive(Clone, Debug, Serialize, Outgoing)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ResultCategories {
     /// Room event results.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[wrap_incoming(RoomEventResults)]
-    pub room_events: Option<RoomEventResults>,
+    pub room_events: Option<RoomEventJsons>,
 }
 
 /// Categories of events that can be searched for.
-#[derive(Clone, Debug, Serialize, Outgoing)]
-pub struct RoomEventResults {
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct RoomEventJsons {
     /// An approximate count of the total number of results found.
     pub count: UInt,
     /// Any groups that were requested.
@@ -178,7 +174,6 @@ pub struct RoomEventResults {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub next_batch: Option<String>,
     /// List of results in the requested order.
-    #[wrap_incoming(SearchResult)]
     pub results: Vec<SearchResult>,
     /// The current state for every room in the results. This is included if the request had the
     /// `include_state` key set with a value of `true`.
@@ -202,17 +197,15 @@ pub struct ResultGroup {
 }
 
 /// A search result.
-#[derive(Clone, Debug, Serialize, Outgoing)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SearchResult {
     /// Context for result, if requested.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[wrap_incoming(EventContextResult)]
     pub context: Option<EventContextResult>,
     /// A number that describes how closely this result matches the search. Higher is closer.
     pub rank: f64,
     /// The event that matched.
-    #[wrap_incoming(with EventResult)]
-    pub result: Event,
+    pub result: EventJson<Event>,
 }
 
 /// A user profile.

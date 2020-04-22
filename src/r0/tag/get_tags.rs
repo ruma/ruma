@@ -1,7 +1,7 @@
 //! [GET /_matrix/client/r0/user/{userId}/rooms/{roomId}/tags](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-user-userid-rooms-roomid-tags)
 
 use ruma_api::ruma_api;
-use ruma_events::{tag::TagEventContent, EventResult};
+use ruma_events::{tag::TagEventContent, EventJson};
 use ruma_identifiers::{RoomId, UserId};
 
 ruma_api! {
@@ -25,8 +25,7 @@ ruma_api! {
 
     response {
         /// The user's tags for the room.
-        #[wrap_incoming(with EventResult)]
-        pub tags: TagEventContent,
+        pub tags: EventJson<TagEventContent>,
     }
 
     error: crate::Error
