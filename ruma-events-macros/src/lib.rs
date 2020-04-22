@@ -125,7 +125,7 @@ mod parse;
 /// The event type and content type will have copies generated inside a private `raw` module. These
 /// "raw" versions are the same, except they implement `serde::Deserialize`. An implementation of
 /// `FromRaw` will be provided, which will allow the user to deserialize the event type as
-/// `EventResult<EventType>`.
+/// `EventJson<EventType>`.
 #[proc_macro]
 pub fn ruma_event(input: TokenStream) -> TokenStream {
     let ruma_event_input = syn::parse_macro_input!(input as RumaEventInput);

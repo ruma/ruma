@@ -73,16 +73,16 @@
 //! # Serialization and deserialization
 //!
 //! All concrete event types in ruma-events can be serialized via the `Serialize` trait from
-//! [serde](https://serde.rs/) and can be deserialized from as `EventResult<EventType>`. In order to
+//! [serde](https://serde.rs/) and can be deserialized from as `EventJson<EventType>`. In order to
 //! handle incoming data that may not conform to `ruma-events`' strict definitions of event
-//! structures, deserialization will return `EventResult::Err` on error. This error covers both
+//! structures, deserialization will return `EventJson::Err` on error. This error covers both
 //! structurally invalid JSON data as well as structurally valid JSON that doesn't fulfill
 //! additional constraints the matrix specification defines for some event types. The error exposes
 //! the deserialized `serde_json::Value` so that developers can still work with the received
 //! event data. This makes it possible to deserialize a collection of events without the entire
 //! collection failing to deserialize due to a single invalid event. The "content" type for each
 //! event also implements `Serialize` and either `TryFromRaw` (enabling usage as
-//! `EventResult<ContentType>` for dedicated content types) or `Deserialize` (when the content is a
+//! `EventJson<ContentType>` for dedicated content types) or `Deserialize` (when the content is a
 //! type alias), allowing content to be converted to and from JSON indepedently of the surrounding
 //! event structure, if needed.
 //!
@@ -136,6 +136,7 @@ mod macros;
 mod algorithm;
 mod event_type;
 mod from_raw;
+mod json;
 #[doc(hidden)] // only public for external tests
 pub mod util;
 
@@ -176,19 +177,18 @@ pub use self::{
     algorithm::Algorithm,
     event_type::EventType,
     from_raw::{FromRaw, TryFromRaw},
+    json::EventJson,
 };
 
 /// An event that is malformed or otherwise invalid.
 ///
-/// When attempting to deserialize an [`EventResult`](enum.EventResult.html), an error in the input
+/// When attempting to deserialize an [`EventJson`](enum.EventJson.html), an error in the input
 /// data may cause deserialization to fail, or the JSON structure may be correct, but additional
 /// constraints defined in the matrix specification are not upheld. This type provides an error
-/// message and a `serde_json::Value` representation of the invalid event, as well as a flag for
-/// which type of error was encountered.
+/// message and a flag for which type of error was encountered.
 #[derive(Clone, Debug)]
 pub struct InvalidEvent {
     message: String,
-    json: Value,
     kind: InvalidEventKind,
 }
 
@@ -202,11 +202,6 @@ impl InvalidEvent {
     /// A message describing why the event is invalid.
     pub fn message(&self) -> String {
         self.message.clone()
-    }
-
-    /// The `serde_json::Value` representation of the invalid event.
-    pub fn json(&self) -> &Value {
-        &self.json
     }
 
     /// Returns whether this is a deserialization error.
@@ -242,65 +237,6 @@ impl Display for InvalidInput {
 }
 
 impl Error for InvalidInput {}
-
-/// The result of deserializing an event, which may or may not be valid.
-///
-/// When data is successfully deserialized and validated, this structure will contain the
-/// deserialized value `T`. When deserialization succeeds, but the event is invalid for any reason,
-/// this structure will contain an [`InvalidEvent`](struct.InvalidEvent.html). See the documentation
-/// for [`InvalidEvent`](struct.InvalidEvent.html) for more details.
-#[derive(Clone, Debug)]
-pub enum EventResult<T: TryFromRaw> {
-    /// `T` deserialized and validated successfully.
-    Ok(T),
-
-    /// `T` failed either deserialization or validation.
-    ///
-    /// [`InvalidEvent`](struct.InvalidEvent.html) contains the error message and the raw data.
-    Err(InvalidEvent),
-}
-
-impl<T: TryFromRaw> EventResult<T> {
-    /// Convert `EventResult<T>` into the equivalent `std::result::Result<T, InvalidEvent>`.
-    pub fn into_result(self) -> Result<T, InvalidEvent> {
-        match self {
-            EventResult::Ok(t) => Ok(t),
-            EventResult::Err(invalid_event) => Err(invalid_event),
-        }
-    }
-}
-
-impl<'de, T> Deserialize<'de> for EventResult<T>
-where
-    T: TryFromRaw,
-{
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let json = serde_json::Value::deserialize(deserializer)?;
-
-        let raw_data: T::Raw = match serde_json::from_value(json.clone()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Ok(EventResult::Err(InvalidEvent {
-                    json,
-                    message: error.to_string(),
-                    kind: InvalidEventKind::Deserialization,
-                }));
-            }
-        };
-
-        match T::try_from_raw(raw_data) {
-            Ok(value) => Ok(EventResult::Ok(value)),
-            Err(err) => Ok(EventResult::Err(InvalidEvent {
-                message: err.to_string(),
-                json,
-                kind: InvalidEventKind::Validation,
-            })),
-        }
-    }
-}
 
 /// An error when attempting to create a value from a string via the `FromStr` trait.
 #[derive(Clone, Copy, Eq, Debug, Hash, PartialEq)]

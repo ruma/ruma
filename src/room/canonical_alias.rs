@@ -195,7 +195,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{CanonicalAliasEvent, CanonicalAliasEventContent};
-    use crate::EventResult;
+    use crate::EventJson;
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -239,9 +239,9 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<EventResult<CanonicalAliasEvent>>(json_data)
+            from_json_value::<EventJson<CanonicalAliasEvent>>(json_data)
                 .unwrap()
-                .into_result()
+                .deserialize()
                 .unwrap()
                 .content
                 .alias,
@@ -262,9 +262,9 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<EventResult<CanonicalAliasEvent>>(json_data)
+            from_json_value::<EventJson<CanonicalAliasEvent>>(json_data)
                 .unwrap()
-                .into_result()
+                .deserialize()
                 .unwrap()
                 .content
                 .alias,
@@ -285,9 +285,9 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<EventResult<CanonicalAliasEvent>>(json_data)
+            from_json_value::<EventJson<CanonicalAliasEvent>>(json_data)
                 .unwrap()
-                .into_result()
+                .deserialize()
                 .unwrap()
                 .content
                 .alias,
@@ -309,9 +309,9 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<EventResult<CanonicalAliasEvent>>(json_data)
+            from_json_value::<EventJson<CanonicalAliasEvent>>(json_data)
                 .unwrap()
-                .into_result()
+                .deserialize()
                 .unwrap()
                 .content
                 .alias,

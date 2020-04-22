@@ -27,7 +27,7 @@ ruma_event! {
 #[cfg(test)]
 mod tests {
     use super::{DummyEvent, Empty};
-    use crate::EventResult;
+    use crate::EventJson;
 
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -51,9 +51,9 @@ mod tests {
             "type": "m.dummy"
         });
 
-        assert!(from_json_value::<EventResult<DummyEvent>>(json)
+        assert!(from_json_value::<EventJson<DummyEvent>>(json)
             .unwrap()
-            .into_result()
+            .deserialize()
             .is_ok());
     }
 }

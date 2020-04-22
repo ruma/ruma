@@ -317,7 +317,7 @@ mod tests {
     use super::{AnyStrippedStateEvent, StrippedRoomName, StrippedRoomTopic};
     use crate::{
         room::{join_rules::JoinRule, topic::TopicEventContent},
-        EventResult, EventType,
+        EventJson, EventType,
     };
 
     #[test]
@@ -390,9 +390,9 @@ mod tests {
             }
         });
 
-        match from_json_value::<EventResult<_>>(name_event.clone())
+        match from_json_value::<EventJson<_>>(name_event.clone())
             .unwrap()
-            .into_result()
+            .deserialize()
             .unwrap()
         {
             AnyStrippedStateEvent::RoomName(event) => {
@@ -405,14 +405,14 @@ mod tests {
         };
 
         // Ensure `StrippedStateContent` can be parsed, not just `StrippedState`.
-        assert!(from_json_value::<EventResult<StrippedRoomName>>(name_event)
+        assert!(from_json_value::<EventJson<StrippedRoomName>>(name_event)
             .unwrap()
-            .into_result()
+            .deserialize()
             .is_ok());
 
-        match from_json_value::<EventResult<_>>(join_rules_event)
+        match from_json_value::<EventJson<_>>(join_rules_event)
             .unwrap()
-            .into_result()
+            .deserialize()
             .unwrap()
         {
             AnyStrippedStateEvent::RoomJoinRules(event) => {
@@ -424,9 +424,9 @@ mod tests {
             _ => unreachable!(),
         };
 
-        match from_json_value::<EventResult<_>>(avatar_event)
+        match from_json_value::<EventJson<_>>(avatar_event)
             .unwrap()
-            .into_result()
+            .deserialize()
             .unwrap()
         {
             AnyStrippedStateEvent::RoomAvatar(event) => {

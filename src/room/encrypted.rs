@@ -249,7 +249,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{Algorithm, EncryptedEventContent, MegolmV1AesSha2Content};
-    use crate::EventResult;
+    use crate::EventJson;
 
     #[test]
     fn serializtion() {
@@ -296,9 +296,9 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<EventResult<EncryptedEventContent>>(json_data)
+            from_json_value::<EventJson<EncryptedEventContent>>(json_data)
                 .unwrap()
-                .into_result()
+                .deserialize()
                 .unwrap(),
             key_verification_start_content
         );
@@ -316,9 +316,9 @@ mod tests {
             },
             "algorithm": "m.olm.v1.curve25519-aes-sha2"
         });
-        let content = from_json_value::<EventResult<EncryptedEventContent>>(json_data)
+        let content = from_json_value::<EventJson<EncryptedEventContent>>(json_data)
             .unwrap()
-            .into_result()
+            .deserialize()
             .unwrap();
 
         match content {
@@ -335,11 +335,11 @@ mod tests {
 
     #[test]
     fn deserialization_failure() {
-        assert!(from_json_value::<EventResult<EncryptedEventContent>>(
+        assert!(from_json_value::<EventJson<EncryptedEventContent>>(
             json!({"algorithm": "m.megolm.v1.aes-sha2"})
         )
         .unwrap()
-        .into_result()
+        .deserialize()
         .is_err());
     }
 }

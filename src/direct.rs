@@ -28,7 +28,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{DirectEvent, DirectEventContent};
-    use crate::EventResult;
+    use crate::EventJson;
 
     #[test]
     fn serialization() {
@@ -64,9 +64,9 @@ mod tests {
             "type": "m.direct"
         });
 
-        let event: DirectEvent = from_json_value::<EventResult<_>>(json_data)
+        let event: DirectEvent = from_json_value::<EventJson<_>>(json_data)
             .unwrap()
-            .into_result()
+            .deserialize()
             .unwrap();
         let direct_rooms = event.content.get(&alice).unwrap();
 

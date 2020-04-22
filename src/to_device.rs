@@ -272,19 +272,19 @@ mod tests {
         },
         room::encrypted::EncryptedEventContent,
         room_key_request::Action,
-        Algorithm, Empty, EventResult,
+        Algorithm, Empty, EventJson,
     };
 
     macro_rules! deserialize {
         ($source:ident, $($target:tt)*) => {{
-            let event = from_json_value::<EventResult<AnyToDeviceEvent>>($source)
+            let event = from_json_value::<EventJson<AnyToDeviceEvent>>($source)
                 .expect(&format!(
                     "Can't deserialize to-device event: {} from source {}",
                     stringify!($($target)*), stringify!($source)
                 ));
 
             let event = event
-                .into_result()
+                .deserialize()
                 .expect("To-device event {} deserialized into a invalid event");
 
             match event {

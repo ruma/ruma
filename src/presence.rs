@@ -80,7 +80,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{PresenceEvent, PresenceEventContent, PresenceState};
-    use crate::EventResult;
+    use crate::EventJson;
 
     #[test]
     fn serialization() {
@@ -138,9 +138,9 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<EventResult<PresenceEvent>>(json)
+            from_json_value::<EventJson<PresenceEvent>>(json)
                 .unwrap()
-                .into_result()
+                .deserialize()
                 .unwrap(),
             event
         );

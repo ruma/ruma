@@ -1028,7 +1028,7 @@ mod tests {
 
     use super::{AudioMessageEventContent, MessageEventContent};
     use crate::room::message::{InReplyTo, RelatesTo, TextMessageEventContent};
-    use crate::EventResult;
+    use crate::EventJson;
     use ruma_identifiers::EventId;
     use std::convert::TryFrom;
 
@@ -1108,9 +1108,9 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<EventResult<MessageEventContent>>(json_data)
+            from_json_value::<EventJson<MessageEventContent>>(json_data)
                 .unwrap()
-                .into_result()
+                .deserialize()
                 .unwrap(),
             message_event_content
         );
@@ -1122,11 +1122,9 @@ mod tests {
             "body": "test","msgtype": "m.location",
             "url": "http://example.com/audio.mp3"
         });
-        assert!(
-            from_json_value::<EventResult<MessageEventContent>>(json_data)
-                .unwrap()
-                .into_result()
-                .is_err()
-        );
+        assert!(from_json_value::<EventJson<MessageEventContent>>(json_data)
+            .unwrap()
+            .deserialize()
+            .is_err());
     }
 }

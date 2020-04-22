@@ -174,7 +174,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::ServerAclEvent;
-    use crate::EventResult;
+    use crate::EventJson;
 
     #[test]
     fn default_values() {
@@ -185,9 +185,9 @@ mod tests {
             "state_key": "",
             "type": "m.room.server_acl"
         });
-        let server_acl_event: ServerAclEvent = from_json_value::<EventResult<_>>(json_data)
+        let server_acl_event: ServerAclEvent = from_json_value::<EventJson<_>>(json_data)
             .unwrap()
-            .into_result()
+            .deserialize()
             .unwrap();
 
         assert_eq!(server_acl_event.content.allow_ip_literals, true);

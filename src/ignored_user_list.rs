@@ -74,7 +74,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{IgnoredUserListEvent, IgnoredUserListEventContent};
-    use crate::EventResult;
+    use crate::EventJson;
 
     #[test]
     fn serialization() {
@@ -107,9 +107,9 @@ mod tests {
             "type": "m.ignored_user_list"
         });
 
-        let actual = from_json_value::<EventResult<IgnoredUserListEvent>>(json_data)
+        let actual = from_json_value::<EventJson<IgnoredUserListEvent>>(json_data)
             .unwrap()
-            .into_result()
+            .deserialize()
             .unwrap();
 
         let expected = IgnoredUserListEvent {

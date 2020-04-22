@@ -27,7 +27,7 @@ mod tests {
 
     use crate::{
         room::pinned_events::{PinnedEventsEvent, PinnedEventsEventContent},
-        Event, EventResult, RoomEvent, StateEvent,
+        Event, EventJson, RoomEvent, StateEvent,
     };
 
     #[test]
@@ -50,9 +50,9 @@ mod tests {
 
         let serialized_event = to_string(&event).unwrap();
         let parsed_event: PinnedEventsEvent =
-            serde_json::from_str::<EventResult<_>>(&serialized_event)
+            serde_json::from_str::<EventJson<_>>(&serialized_event)
                 .unwrap()
-                .into_result()
+                .deserialize()
                 .unwrap();
 
         assert_eq!(parsed_event.event_id(), event.event_id());

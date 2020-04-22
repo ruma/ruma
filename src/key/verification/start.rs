@@ -318,7 +318,7 @@ mod tests {
         HashAlgorithm, KeyAgreementProtocol, MSasV1Content, MSasV1ContentOptions,
         MessageAuthenticationCode, ShortAuthenticationString, StartEvent, StartEventContent,
     };
-    use crate::EventResult;
+    use crate::EventJson;
 
     #[test]
     fn invalid_m_sas_v1_content_missing_required_key_agreement_protocols() {
@@ -444,9 +444,9 @@ mod tests {
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_eq!(
-            from_json_value::<EventResult<StartEventContent>>(json_data)
+            from_json_value::<EventJson<StartEventContent>>(json_data)
                 .unwrap()
-                .into_result()
+                .deserialize()
                 .unwrap(),
             key_verification_start_content
         );
@@ -469,9 +469,9 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<EventResult<StartEvent>>(json_data)
+            from_json_value::<EventJson<StartEvent>>(json_data)
                 .unwrap()
-                .into_result()
+                .deserialize()
                 .unwrap(),
             key_verification_start
         )
@@ -480,17 +480,16 @@ mod tests {
     #[test]
     fn deserialization_failure() {
         // Ensure that invalid JSON  creates a `serde_json::Error` and not `InvalidEvent`
-        assert!(serde_json::from_str::<EventResult<StartEventContent>>("{").is_err());
+        assert!(serde_json::from_str::<EventJson<StartEventContent>>("{").is_err());
     }
 
     #[test]
     fn deserialization_structure_mismatch() {
         // Missing several required fields.
-        let error =
-            from_json_value::<EventResult<StartEventContent>>(json!({"from_device": "123"}))
-                .unwrap()
-                .into_result()
-                .unwrap_err();
+        let error = from_json_value::<EventJson<StartEventContent>>(json!({"from_device": "123"}))
+            .unwrap()
+            .deserialize()
+            .unwrap_err();
 
         assert!(error.message().contains("missing field"));
         assert!(error.is_deserialization());
@@ -508,9 +507,9 @@ mod tests {
             "short_authentication_string": ["decimal"]
         });
 
-        let error = from_json_value::<EventResult<StartEventContent>>(json_data)
+        let error = from_json_value::<EventJson<StartEventContent>>(json_data)
             .unwrap()
-            .into_result()
+            .deserialize()
             .unwrap_err();
 
         assert!(error.message().contains("key_agreement_protocols"));
@@ -528,9 +527,9 @@ mod tests {
             "message_authentication_codes": ["hkdf-hmac-sha256"],
             "short_authentication_string": ["decimal"]
         });
-        let error = from_json_value::<EventResult<StartEventContent>>(json_data)
+        let error = from_json_value::<EventJson<StartEventContent>>(json_data)
             .unwrap()
-            .into_result()
+            .deserialize()
             .unwrap_err();
 
         assert!(error.message().contains("hashes"));
@@ -548,9 +547,9 @@ mod tests {
             "message_authentication_codes": [],
             "short_authentication_string": ["decimal"]
         });
-        let error = from_json_value::<EventResult<StartEventContent>>(json_data)
+        let error = from_json_value::<EventJson<StartEventContent>>(json_data)
             .unwrap()
-            .into_result()
+            .deserialize()
             .unwrap_err();
 
         assert!(error.message().contains("message_authentication_codes"));
@@ -568,9 +567,9 @@ mod tests {
             "message_authentication_codes": ["hkdf-hmac-sha256"],
             "short_authentication_string": []
         });
-        let error = from_json_value::<EventResult<StartEventContent>>(json_data)
+        let error = from_json_value::<EventJson<StartEventContent>>(json_data)
             .unwrap()
-            .into_result()
+            .deserialize()
             .unwrap_err();
 
         assert!(error.message().contains("short_authentication_string"));
@@ -592,9 +591,9 @@ mod tests {
             },
             "type": "m.key.verification.start"
         });
-        let error = from_json_value::<EventResult<StartEvent>>(json_data)
+        let error = from_json_value::<EventJson<StartEvent>>(json_data)
             .unwrap()
-            .into_result()
+            .deserialize()
             .unwrap_err();
 
         assert!(error.message().contains("key_agreement_protocols"));

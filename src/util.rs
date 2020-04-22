@@ -6,7 +6,7 @@ use serde::{
 };
 use serde_json::Value;
 
-use crate::{EventResult, TryFromRaw};
+use crate::{EventJson, TryFromRaw};
 
 pub fn try_convert_variant<Enum: TryFromRaw, Content: TryFromRaw>(
     variant: fn(Content) -> Enum,
@@ -130,9 +130,9 @@ where
     assert_eq!(se, serde_json::to_value(de.clone()).unwrap());
     assert_eq!(
         de,
-        serde_json::from_value::<EventResult<_>>(se)
+        serde_json::from_value::<EventJson<_>>(se)
             .unwrap()
-            .into_result()
+            .deserialize()
             .unwrap()
     );
 }
