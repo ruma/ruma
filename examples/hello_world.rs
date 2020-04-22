@@ -41,7 +41,8 @@ async fn hello_world(homeserver_url: Url, room: String) -> anyhow::Result<()> {
                 format: None,
                 formatted_body: None,
                 relates_to: None,
-            }),
+            })
+            .into(),
         })
         .await?;
 

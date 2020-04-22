@@ -41,7 +41,7 @@ async fn log_messages(
                 .timeline
                 .events
                 .into_iter()
-                .flat_map(|r| r.into_result())
+                .flat_map(|r| r.deserialize())
             {
                 // Filter out the text messages
                 if let RoomEvent::RoomMessage(MessageEvent {

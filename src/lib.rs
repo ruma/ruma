@@ -119,10 +119,7 @@ use http::Response as HttpResponse;
 use hyper::{client::HttpConnector, Client as HyperClient, Uri};
 #[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
-use ruma_api::{
-    error::{FromHttpRequestError, FromHttpResponseError},
-    Endpoint, Outgoing,
-};
+use ruma_api::Endpoint;
 use ruma_identifiers::DeviceId;
 use std::collections::BTreeMap;
 use url::Url;
@@ -334,9 +331,8 @@ where
         since: Option<String>,
         set_presence: api::r0::sync::sync_events::SetPresence,
         timeout: Option<Duration>,
-    ) -> impl Stream<Item = Result<api::r0::sync::sync_events::IncomingResponse, Error<api::Error>>>
-           + TryStream<Ok = api::r0::sync::sync_events::IncomingResponse, Error = Error<api::Error>>
-    {
+    ) -> impl Stream<Item = Result<api::r0::sync::sync_events::Response, Error<api::Error>>>
+           + TryStream<Ok = api::r0::sync::sync_events::Response, Error = Error<api::Error>> {
         use api::r0::sync::sync_events;
 
         let client = self.clone();
@@ -365,16 +361,7 @@ where
     pub fn request<Request: Endpoint>(
         &self,
         request: Request,
-    ) -> impl Future<
-        Output = Result<<Request::Response as Outgoing>::Incoming, Error<Request::ResponseError>>,
-    >
-    // We need to duplicate Endpoint's where clauses because the compiler is not smart enough yet.
-    // See https://github.com/rust-lang/rust/issues/54149
-    where
-        Request::Incoming: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>,
-        <Request::Response as Outgoing>::Incoming:
-            TryFrom<http::Response<Vec<u8>>, Error = FromHttpResponseError<Request::ResponseError>>,
-    {
+    ) -> impl Future<Output = Result<Request::Response, Error<Request::ResponseError>>> {
         self.request_with_url_params(request, None)
     }
 
@@ -383,16 +370,7 @@ where
         &self,
         request: Request,
         params: Option<BTreeMap<String, String>>,
-    ) -> impl Future<
-        Output = Result<<Request::Response as Outgoing>::Incoming, Error<Request::ResponseError>>,
-    >
-    // We need to duplicate Endpoint's where clauses because the compiler is not smart enough yet.
-    // See https://github.com/rust-lang/rust/issues/54149
-    where
-        Request::Incoming: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>,
-        <Request::Response as Outgoing>::Incoming:
-            TryFrom<http::Response<Vec<u8>>, Error = FromHttpResponseError<Request::ResponseError>>,
-    {
+    ) -> impl Future<Output = Result<Request::Response, Error<Request::ResponseError>>> {
         let client = self.0.clone();
 
         let mut url = client.homeserver_url.clone();
@@ -432,9 +410,7 @@ where
             let full_body = hyper::body::to_bytes(body).await?;
             let full_response = HttpResponse::from_parts(head, full_body.as_ref().to_owned());
 
-            Ok(<Request::Response as Outgoing>::Incoming::try_from(
-                full_response,
-            )?)
+            Ok(Request::Response::try_from(full_response)?)
         }
     }
 }
