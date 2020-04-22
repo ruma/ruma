@@ -7,7 +7,7 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
-use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
+use super::{encrypted::EncryptedEventContent, EncryptedFile, ImageInfo, ThumbnailInfo};
 use crate::{EventType, FromRaw};
 
 pub mod feedback;
@@ -69,6 +69,9 @@ pub enum MessageEventContent {
     /// A video message.
     Video(VideoMessageEventContent),
 
+    /// A encrypted message.
+    Encrypted(EncryptedEventContent),
+
     /// Additional variants may be added in the future and will not be considered breaking changes
     /// to ruma-events.
     #[doc(hidden)]
@@ -106,6 +109,7 @@ impl FromRaw for MessageEventContent {
             ServerNotice(content) => MessageEventContent::ServerNotice(content),
             Text(content) => MessageEventContent::Text(content),
             Video(content) => MessageEventContent::Video(content),
+            Encrypted(content) => MessageEventContent::Encrypted(content),
             __Nonexhaustive => {
                 unreachable!("It should be impossible to obtain a __Nonexhaustive variant.")
             }
@@ -132,6 +136,7 @@ impl Serialize for MessageEventContent {
             MessageEventContent::ServerNotice(ref content) => content.serialize(serializer),
             MessageEventContent::Text(ref content) => content.serialize(serializer),
             MessageEventContent::Video(ref content) => content.serialize(serializer),
+            MessageEventContent::Encrypted(ref content) => content.serialize(serializer),
             MessageEventContent::__Nonexhaustive => Err(S::Error::custom(
                 "Attempted to deserialize __Nonexhaustive variant.",
             )),
@@ -196,6 +201,9 @@ pub(crate) mod raw {
 
         /// A video message.
         Video(VideoMessageEventContent),
+
+        /// A video message.
+        Encrypted(EncryptedEventContent),
 
         /// Additional variants may be added in the future and will not be considered breaking changes
         /// to ruma-events.

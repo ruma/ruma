@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add a encrypted variant to the room `MessageEventContent` enum.
+
 # 0.20.0
 
 Improvements:
