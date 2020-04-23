@@ -64,6 +64,16 @@ impl Ed25519KeyPair {
 
         Ok(document.as_ref().to_vec())
     }
+
+    /// Returns the version string for this keypair.
+    pub fn version(&self) -> &str {
+        &self.version
+    }
+
+    /// Returns the public key.
+    pub fn public_key(&self) -> &[u8] {
+        self.keypair.public_key().as_ref()
+    }
 }
 
 impl KeyPair for Ed25519KeyPair {
