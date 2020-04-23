@@ -51,6 +51,10 @@ pub enum ErrorKind {
     #[serde(rename = "M_UNAUTHORIZED")]
     #[strum(to_string = "M_UNAUTHORIZED")]
     Unauthorized,
+    /// M_USER_DEACTIVATED
+    #[serde(rename = "M_USER_DEACTIVATED")]
+    #[strum(to_string = "M_USER_DEACTIVATED")]
+    UserDeactivated,
     /// M_USER_IN_USE
     #[serde(rename = "M_USER_IN_USE")]
     #[strum(to_string = "M_USER_IN_USE")]
