@@ -1,8 +1,11 @@
-//! [GET /_matrix/client/r0/rooms/{roomId}/messages](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-rooms-roomid-messages)
+//! [GET /_matrix/client/r0/rooms/{roomId}/messages](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-rooms-roomid-messages)
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_events::{collections::all::RoomEvent, EventJson};
+use ruma_events::{
+    collections::all::{RoomEvent, StateEvent},
+    EventJson,
+};
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
@@ -60,9 +63,13 @@ ruma_api! {
         /// The token the pagination starts from.
         pub start: String,
         /// A list of room events.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub chunk: Vec<EventJson<RoomEvent>>,
         /// The token the pagination ends at.
         pub end: String,
+        /// A list of state events relevant to showing the `chunk`.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub state: Vec<EventJson<StateEvent>>,
     }
 
     error: crate::Error

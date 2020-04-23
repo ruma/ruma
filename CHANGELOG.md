@@ -29,6 +29,7 @@ Improvements:
 
 * Add types for User-Interactive Authentication API: `r0::uiaa::{AuthFlow, UiaaInfo, UiaaResponse}`
 * Add missing serde attributes to `get_content_thumbnail` query parameters
+* Add missing `state` response field to `r0::message::get_message_events`
 
 # 0.7.2
 
