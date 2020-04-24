@@ -1,3 +1,4 @@
+use ruma_serde::urlencoded;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -7,31 +8,28 @@ struct NewType<T>(T);
 fn deserialize_newtype_i32() {
     let result = vec![("field".to_owned(), NewType(11))];
 
-    assert_eq!(serde_urlencoded::from_str("field=11"), Ok(result));
+    assert_eq!(urlencoded::from_str("field=11"), Ok(result));
 }
 
 #[test]
 fn deserialize_bytes() {
     let result = vec![("first".to_owned(), 23), ("last".to_owned(), 42)];
 
-    assert_eq!(
-        serde_urlencoded::from_bytes(b"first=23&last=42"),
-        Ok(result)
-    );
+    assert_eq!(urlencoded::from_bytes(b"first=23&last=42"), Ok(result));
 }
 
 #[test]
 fn deserialize_str() {
     let result = vec![("first".to_owned(), 23), ("last".to_owned(), 42)];
 
-    assert_eq!(serde_urlencoded::from_str("first=23&last=42"), Ok(result));
+    assert_eq!(urlencoded::from_str("first=23&last=42"), Ok(result));
 }
 
 #[test]
 fn deserialize_borrowed_str() {
     let result = vec![("first", 23), ("last", 42)];
 
-    assert_eq!(serde_urlencoded::from_str("first=23&last=42"), Ok(result));
+    assert_eq!(urlencoded::from_str("first=23&last=42"), Ok(result));
 }
 
 #[test]
@@ -39,7 +37,7 @@ fn deserialize_reader() {
     let result = vec![("first".to_owned(), 23), ("last".to_owned(), 42)];
 
     assert_eq!(
-        serde_urlencoded::from_reader(b"first=23&last=42" as &[_]),
+        urlencoded::from_reader(b"first=23&last=42" as &[_]),
         Ok(result)
     );
 }
@@ -50,15 +48,15 @@ fn deserialize_option() {
         ("first".to_owned(), Some(23)),
         ("last".to_owned(), Some(42)),
     ];
-    assert_eq!(serde_urlencoded::from_str("first=23&last=42"), Ok(result));
+    assert_eq!(urlencoded::from_str("first=23&last=42"), Ok(result));
 }
 
 #[test]
 fn deserialize_unit() {
-    assert_eq!(serde_urlencoded::from_str(""), Ok(()));
-    assert_eq!(serde_urlencoded::from_str("&"), Ok(()));
-    assert_eq!(serde_urlencoded::from_str("&&"), Ok(()));
-    assert!(serde_urlencoded::from_str::<()>("first=23").is_err());
+    assert_eq!(urlencoded::from_str(""), Ok(()));
+    assert_eq!(urlencoded::from_str("&"), Ok(()));
+    assert_eq!(urlencoded::from_str("&&"), Ok(()));
+    assert!(urlencoded::from_str::<()>("first=23").is_err());
 }
 
 #[derive(Deserialize, Debug, PartialEq, Eq)]
@@ -76,15 +74,12 @@ fn deserialize_unit_enum() {
         ("three".to_owned(), X::C),
     ];
 
-    assert_eq!(
-        serde_urlencoded::from_str("one=A&two=B&three=C"),
-        Ok(result)
-    );
+    assert_eq!(urlencoded::from_str("one=A&two=B&three=C"), Ok(result));
 }
 
 #[test]
 fn deserialize_unit_type() {
-    assert_eq!(serde_urlencoded::from_str(""), Ok(()));
+    assert_eq!(urlencoded::from_str(""), Ok(()));
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -128,7 +123,7 @@ fn deserialize_mapstruct() {
     };
     assert_eq!(
         de,
-        serde_urlencoded::from_str::<MapStruct>("a=10&b=Hello").unwrap()
+        urlencoded::from_str::<MapStruct>("a=10&b=Hello").unwrap()
     );
 }
 
@@ -139,8 +134,7 @@ fn deserialize_newstruct() {
     };
     assert_eq!(
         de,
-        serde_urlencoded::from_str::<NewStruct>("list=hello&list=world")
-            .unwrap()
+        urlencoded::from_str::<NewStruct>("list=hello&list=world").unwrap()
     );
 }
 
@@ -151,8 +145,7 @@ fn deserialize_numlist() {
     };
     assert_eq!(
         de,
-        serde_urlencoded::from_str::<NumList>("list=1&list=2&list=3&list=4")
-            .unwrap()
+        urlencoded::from_str::<NumList>("list=1&list=2&list=3&list=4").unwrap()
     );
 }
 
@@ -162,10 +155,8 @@ fn deserialize_vec_bool() {
         Wrapper {
             item: vec![true, false, false]
         },
-        serde_urlencoded::from_str::<Wrapper<_>>(
-            "item=true&item=false&item=false"
-        )
-        .unwrap()
+        urlencoded::from_str::<Wrapper<_>>("item=true&item=false&item=false")
+            .unwrap()
     );
 }
 
@@ -179,10 +170,8 @@ fn deserialize_vec_string() {
                 "hello".to_string()
             ],
         },
-        serde_urlencoded::from_str::<Wrapper<_>>(
-            "item=hello&item=matrix&item=hello"
-        )
-        .unwrap()
+        urlencoded::from_str::<Wrapper<_>>("item=hello&item=matrix&item=hello")
+            .unwrap()
     );
 }
 
@@ -192,8 +181,5 @@ fn deserialize_struct_unit_enum() {
         item: vec![X::A, X::B, X::C],
     };
 
-    assert_eq!(
-        serde_urlencoded::from_str("item=A&item=B&item=C"),
-        Ok(result)
-    );
+    assert_eq!(urlencoded::from_str("item=A&item=B&item=C"), Ok(result));
 }

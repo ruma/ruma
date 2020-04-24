@@ -1,3 +1,4 @@
+use ruma_serde::urlencoded;
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -6,10 +7,7 @@ struct NewType<T>(T);
 #[test]
 fn serialize_newtype_i32() {
     let params = &[("field", Some(NewType(11)))];
-    assert_eq!(
-        serde_urlencoded::to_string(params),
-        Ok("field=11".to_owned())
-    );
+    assert_eq!(urlencoded::to_string(params), Ok("field=11".to_owned()));
 }
 
 #[test]
@@ -17,7 +15,7 @@ fn serialize_option_map_int() {
     let params = &[("first", Some(23)), ("middle", None), ("last", Some(42))];
 
     assert_eq!(
-        serde_urlencoded::to_string(params),
+        urlencoded::to_string(params),
         Ok("first=23&last=42".to_owned())
     );
 }
@@ -31,7 +29,7 @@ fn serialize_option_map_string() {
     ];
 
     assert_eq!(
-        serde_urlencoded::to_string(params),
+        urlencoded::to_string(params),
         Ok("first=hello&last=world".to_owned())
     );
 }
@@ -41,7 +39,7 @@ fn serialize_option_map_bool() {
     let params = &[("one", Some(true)), ("two", Some(false))];
 
     assert_eq!(
-        serde_urlencoded::to_string(params),
+        urlencoded::to_string(params),
         Ok("one=true&two=false".to_owned())
     );
 }
@@ -51,7 +49,7 @@ fn serialize_map_bool() {
     let params = &[("one", true), ("two", false)];
 
     assert_eq!(
-        serde_urlencoded::to_string(params),
+        urlencoded::to_string(params),
         Ok("one=true&two=false".to_owned())
     );
 }
@@ -67,7 +65,7 @@ enum X {
 fn serialize_unit_enum() {
     let params = &[("one", X::A), ("two", X::B), ("three", X::C)];
     assert_eq!(
-        serde_urlencoded::to_string(params),
+        urlencoded::to_string(params),
         Ok("one=A&two=B&three=C".to_owned())
     );
 }
@@ -77,12 +75,12 @@ struct Unit;
 
 #[test]
 fn serialize_unit_struct() {
-    assert_eq!(serde_urlencoded::to_string(Unit), Ok("".to_owned()));
+    assert_eq!(urlencoded::to_string(Unit), Ok("".to_owned()));
 }
 
 #[test]
 fn serialize_unit_type() {
-    assert_eq!(serde_urlencoded::to_string(()), Ok("".to_owned()));
+    assert_eq!(urlencoded::to_string(()), Ok("".to_owned()));
 }
 
 #[derive(Serialize)]
@@ -112,7 +110,7 @@ fn serialize_newstruct() {
     };
     assert_eq!(
         "list=hello&list=world".to_string(),
-        serde_urlencoded::to_string(s).unwrap()
+        urlencoded::to_string(s).unwrap()
     );
 }
 
@@ -122,7 +120,7 @@ fn serialize_vec_bool() {
         item: vec![true, false, false],
     };
     assert_eq!(
-        serde_urlencoded::to_string(params).unwrap(),
+        urlencoded::to_string(params).unwrap(),
         "item=true&item=false&item=false".to_owned()
     );
 }
@@ -133,7 +131,7 @@ fn serialize_vec_num() {
         item: vec![0, 1, 2],
     };
     assert_eq!(
-        serde_urlencoded::to_string(params).unwrap(),
+        urlencoded::to_string(params).unwrap(),
         "item=0&item=1&item=2".to_owned()
     );
 }
@@ -144,7 +142,7 @@ fn serialize_vec_str() {
         item: vec!["hello", "world", "hello"],
     };
     assert_eq!(
-        serde_urlencoded::to_string(params).unwrap(),
+        urlencoded::to_string(params).unwrap(),
         "item=hello&item=world&item=hello".to_owned()
     );
 }
@@ -156,7 +154,7 @@ fn serialize_struct_opt() {
     };
     assert_eq!(
         "list=hello&list=world".to_string(),
-        serde_urlencoded::to_string(s).unwrap()
+        urlencoded::to_string(s).unwrap()
     );
 }
 
@@ -167,7 +165,7 @@ fn serialize_struct_newtype() {
     };
     assert_eq!(
         "list=0&list=1".to_string(),
-        serde_urlencoded::to_string(s).unwrap()
+        urlencoded::to_string(s).unwrap()
     );
 }
 
@@ -177,7 +175,7 @@ fn serialize_struct_unit_enum() {
         item: vec![X::A, X::B, X::C],
     };
     assert_eq!(
-        serde_urlencoded::to_string(params),
+        urlencoded::to_string(params),
         Ok("item=A&item=B&item=C".to_owned())
     );
 }
@@ -189,6 +187,6 @@ fn serialize_map() {
     s.insert("seri", "alize");
     s.insert("matrix", "ruma");
 
-    let encoded = serde_urlencoded::to_string(s).unwrap();
+    let encoded = urlencoded::to_string(s).unwrap();
     assert_eq!("hello=world&matrix=ruma&seri=alize", encoded);
 }

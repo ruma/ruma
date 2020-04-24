@@ -12,7 +12,7 @@ use url::form_urlencoded::{
     Serializer as UrlEncodedSerializer, Target as UrlEncodedTarget,
 };
 
-use crate::error::{Error, Result};
+use crate::urlencoded::error::{Error, Result};
 
 /// Serializes a value into a `application/x-www-form-urlencoded` `String` buffer.
 ///
@@ -25,7 +25,7 @@ use crate::error::{Error, Result};
 /// ];
 ///
 /// assert_eq!(
-///     serde_urlencoded::to_string(meal),
+///     ruma_serde::urlencoded::to_string(meal),
 ///     Ok("bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter".to_owned()));
 /// ```
 pub fn to_string<T: ser::Serialize>(input: T) -> Result<String> {

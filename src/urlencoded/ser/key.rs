@@ -2,7 +2,7 @@ use std::{borrow::Cow, ops::Deref};
 
 use serde::Serialize;
 
-use crate::ser::{part::Sink, Error};
+use super::{part::Sink, Error};
 
 pub enum Key<'key> {
     Static(&'static str),

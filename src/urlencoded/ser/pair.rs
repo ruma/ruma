@@ -7,7 +7,7 @@ use url::form_urlencoded::{
     Serializer as UrlEncodedSerializer, Target as UrlEncodedTarget,
 };
 
-use crate::{
+use crate::urlencoded::{
     error::{Error, Result},
     ser::{key::KeySink, part::PartSerializer, value::ValueSink},
 };

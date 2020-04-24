@@ -4,7 +4,7 @@ use dtoa;
 use itoa;
 use serde::ser;
 
-use crate::error::Error;
+use crate::urlencoded::error::Error;
 pub struct PartSerializer<S> {
     sink: S,
 }
