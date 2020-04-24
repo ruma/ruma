@@ -2,7 +2,7 @@ image: archlinux
 packages:
   - rustup
 sources:
-  - https://github.com/ruma/ruma-client-api
+  - https://github.com/ruma/ruma-events
 tasks:
   - rustup: |
       rustup toolchain install nightly --profile minimal
@@ -13,7 +13,7 @@ tasks:
       rustup component add rustfmt || true
       rustup component add clippy || true
   - test: |
-      cd ruma-client-api
+      cd ruma-events
 
       # We don't want the build to stop on individual failure of independent
       # tools, so capture tool exit codes and set the task exit code manually
