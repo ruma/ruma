@@ -1,7 +1,5 @@
 # ruma-appservice-api
 
-[![Build Status](https://travis-ci.org/ruma/ruma-appservice-api.svg?branch=master)](https://travis-ci.org/ruma/ruma-appservice-api)
-
 **ruma-appservice-api** contains serializable types for the requests and responses for each endpoint in the [Matrix](https://matrix.org/) application service API specification.
 These types can be shared by application service and server code.
 
