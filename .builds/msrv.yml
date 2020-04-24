@@ -23,4 +23,4 @@ tasks:
       cargo build --all-features --verbose
       build2_exit=$?
 
-      exit $(( $fmt_exit || $build1_exit || $build2_exit ))
+      exit $(( $build1_exit || $build2_exit ))

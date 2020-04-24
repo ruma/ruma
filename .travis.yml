@@ -16,16 +16,8 @@ before_script:
       if [ "$TRAVIS_RUST_VERSION" != "1.36.0" ]; then
         rustup component add clippy
       fi
-  - |
-      if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
-        cargo install --force cargo-audit
-      fi
   - cargo generate-lockfile
 script:
-  - |
-      if [ "$TRAVIS_RUST_VERSION" == "stable" ]; then
-        cargo audit
-      fi
   - cargo fmt -- --check
   - |
       if [ "$TRAVIS_RUST_VERSION" != "1.36.0" ]; then
