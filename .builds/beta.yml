@@ -1,0 +1,27 @@
+image: archlinux
+packages:
+  - rustup
+sources:
+  - https://github.com/ruma/ruma-client
+tasks:
+  - rustup: |
+      # We specify --profile minimal because we'd otherwise download docs
+      rustup toolchain install beta --profile minimal -c rustfmt -c clippy
+      rustup default beta
+  - test: |
+      cd ruma-client
+
+      # We don't want the build to stop on individual failure of independent
+      # tools, so capture tool exit codes and set the task exit code manually
+      set +e
+
+      cargo fmt -- --check
+      fmt_exit=$?
+
+      cargo clippy --all-targets --all-features -- -D warnings
+      clippy_exit=$?
+
+      cargo test --verbose
+      test_exit=$?
+
+      exit $(( $fmt_exit || $clippy_exit || $test_exit ))
