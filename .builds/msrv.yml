@@ -11,16 +11,4 @@ tasks:
   - test: |
       cd ruma-serde
 
-      # We don't want the build to stop on individual failure of independent
-      # tools, so capture tool exit codes and set the task exit code manually
-      set +e
-
-      # Only make sure the code builds with the MSRV. Tests can require later
-      # Rust versions, don't compile or run them.
-      cargo build --no-default-features --verbose
-      build1_exit=$?
-
-      cargo build --all-features --verbose
-      build2_exit=$?
-
-      exit $(( $build1_exit || $build2_exit ))
+      cargo build --verbose
