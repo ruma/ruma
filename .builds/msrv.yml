@@ -1,0 +1,16 @@
+image: archlinux
+packages:
+  - rustup
+sources:
+  - https://github.com/ruma/ruma-events
+tasks:
+  - rustup: |
+      # We specify --profile minimal because we'd otherwise download docs
+      rustup toolchain install 1.38.0 --profile minimal
+      rustup default 1.38.0
+  - test: |
+      cd ruma-events
+
+      # Only make sure the code builds with the MSRV. Tests can require later
+      # Rust versions, don't compile or run them.
+      cargo build --verbose
