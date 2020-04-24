@@ -1,6 +1,8 @@
 image: archlinux
 packages:
   - rustup
+sources:
+  - https://github.com/ruma/ruma-serde
 tasks:
   - rustup: |
       rustup toolchain install nightly --profile minimal
