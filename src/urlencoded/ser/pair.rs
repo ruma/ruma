@@ -1,8 +1,6 @@
-use std::borrow::Cow;
-use std::mem;
+use std::{borrow::Cow, mem};
 
 use serde::ser;
-
 use url::form_urlencoded::{
     Serializer as UrlEncodedSerializer, Target as UrlEncodedTarget,
 };
