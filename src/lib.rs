@@ -191,13 +191,11 @@ use http::Method;
 ///     }
 /// }
 /// ```
-#[cfg(feature = "with-ruma-api-macros")]
 pub use ruma_api_macros::ruma_api;
 
 pub mod error;
 /// This module is used to support the generated code from ruma-api-macros.
 /// It is not considered part of ruma-api's public API.
-#[cfg(feature = "with-ruma-api-macros")]
 #[doc(hidden)]
 pub mod exports {
     pub use http;
