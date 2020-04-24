@@ -2,7 +2,6 @@
 
 [![crates.io page](https://img.shields.io/crates/v/ruma-api.svg)](https://crates.io/crates/ruma-api)
 [![docs.rs page](https://docs.rs/ruma-api/badge.svg)](https://docs.rs/ruma-api/)
-[![build status](https://travis-ci.org/ruma/ruma-api.svg?branch=master)](https://travis-ci.org/ruma/ruma-api)
 ![license: MIT](https://img.shields.io/crates/l/ruma-api.svg)
 
 **ruma-api** contains core types used to define the requests and responses for each endpoint in the various [Matrix](https://matrix.org/) API specifications.
