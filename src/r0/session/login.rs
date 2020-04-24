@@ -2,7 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{DeviceId, UserId};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
 use crate::r0::thirdparty::Medium;
 
@@ -58,7 +58,8 @@ ruma_api! {
 }
 
 /// Identification information for the user.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(from = "user_serde::UserInfo", into = "user_serde::UserInfo")]
 pub enum UserInfo {
     /// Either a fully qualified Matrix user ID, or just the localpart (as part of the 'identifier'
     /// field).
@@ -124,24 +125,6 @@ pub struct IdentityServerInfo {
 }
 
 mod user_serde;
-
-impl Serialize for UserInfo {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        user_serde::UserInfo::from(self).serialize(serializer)
-    }
-}
-
-impl<'de> Deserialize<'de> for UserInfo {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        user_serde::UserInfo::deserialize(deserializer).map(Into::into)
-    }
-}
 
 #[cfg(test)]
 mod tests {

@@ -8,35 +8,31 @@ use super::Medium;
 // The following three structs could just be used in place of the one in the parent module, but
 // that one is arguably much easier to deal with.
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
-pub(crate) struct UserInfo<'a> {
-    #[serde(borrow)]
-    pub identifier: UserIdentifier<'a>,
+pub(crate) struct UserInfo {
+    pub identifier: UserIdentifier,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(tag = "type")]
-pub(crate) enum UserIdentifier<'a> {
+pub(crate) enum UserIdentifier {
     #[serde(rename = "m.id.user")]
-    MatrixId { user: &'a str },
+    MatrixId { user: String },
     #[serde(rename = "m.id.thirdparty")]
-    ThirdPartyId { medium: Medium, address: &'a str },
+    ThirdPartyId { medium: Medium, address: String },
     #[serde(rename = "m.id.phone")]
-    PhoneNumber { country: &'a str, phone: &'a str },
+    PhoneNumber { country: String, phone: String },
 }
 
-impl<'a> From<&'a super::UserInfo> for UserInfo<'a> {
-    fn from(su: &'a super::UserInfo) -> Self {
+impl From<super::UserInfo> for UserInfo {
+    fn from(info: super::UserInfo) -> Self {
         use super::UserInfo::*;
 
-        match su {
+        match info {
             MatrixId(user) => UserInfo {
                 identifier: UserIdentifier::MatrixId { user },
             },
             ThirdPartyId { address, medium } => UserInfo {
-                identifier: UserIdentifier::ThirdPartyId {
-                    address,
-                    medium: *medium,
-                },
+                identifier: UserIdentifier::ThirdPartyId { address, medium },
             },
             PhoneNumber { country, phone } => UserInfo {
                 identifier: UserIdentifier::PhoneNumber { country, phone },
@@ -45,20 +41,14 @@ impl<'a> From<&'a super::UserInfo> for UserInfo<'a> {
     }
 }
 
-impl Into<super::UserInfo> for UserInfo<'_> {
-    fn into(self) -> super::UserInfo {
+impl From<UserInfo> for super::UserInfo {
+    fn from(info: UserInfo) -> super::UserInfo {
         use super::UserInfo::*;
 
-        match self.identifier {
-            UserIdentifier::MatrixId { user } => MatrixId(user.to_owned()),
-            UserIdentifier::ThirdPartyId { address, medium } => ThirdPartyId {
-                address: address.to_owned(),
-                medium: medium.to_owned(),
-            },
-            UserIdentifier::PhoneNumber { country, phone } => PhoneNumber {
-                country: country.to_owned(),
-                phone: phone.to_owned(),
-            },
+        match info.identifier {
+            UserIdentifier::MatrixId { user } => MatrixId(user),
+            UserIdentifier::ThirdPartyId { address, medium } => ThirdPartyId { address, medium },
+            UserIdentifier::PhoneNumber { country, phone } => PhoneNumber { country, phone },
         }
     }
 }
