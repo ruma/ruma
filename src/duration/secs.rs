@@ -13,7 +13,10 @@ use serde::{
 ///
 /// Will fail if integer is greater than the maximum integer that can be
 /// unambiguously represented by an f64.
-pub fn serialize<S>(duration: &Duration, serializer: S) -> Result<S::Ok, S::Error>
+pub fn serialize<S>(
+    duration: &Duration,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -64,6 +67,9 @@ mod tests {
         let test = DurationTest {
             timeout: Duration::from_millis(7000),
         };
-        assert_eq!(serde_json::to_value(test).unwrap(), json!({ "timeout": 7 }),);
+        assert_eq!(
+            serde_json::to_value(test).unwrap(),
+            json!({ "timeout": 7 }),
+        );
     }
 }

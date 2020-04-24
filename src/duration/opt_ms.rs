@@ -13,7 +13,10 @@ use serde::{
 ///
 /// Will fail if integer is greater than the maximum integer that can be
 /// unambiguously represented by an f64.
-pub fn serialize<S>(opt_duration: &Option<Duration>, serializer: S) -> Result<S::Ok, S::Error>
+pub fn serialize<S>(
+    opt_duration: &Option<Duration>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -30,7 +33,9 @@ where
 ///
 /// Will fail if integer is greater than the maximum integer that can be
 /// unambiguously represented by an f64.
-pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<Duration>, D::Error>
+pub fn deserialize<'de, D>(
+    deserializer: D,
+) -> Result<Option<Duration>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -47,7 +52,11 @@ mod tests {
 
     #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
     struct DurationTest {
-        #[serde(with = "super", default, skip_serializing_if = "Option::is_none")]
+        #[serde(
+            with = "super",
+            default,
+            skip_serializing_if = "Option::is_none"
+        )]
         timeout: Option<Duration>,
     }
 
