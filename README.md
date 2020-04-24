@@ -10,7 +10,7 @@ These types can be shared by client and server code.
 
 ## Minimum Rust version
 
-ruma-client-api requires Rust 1.39.0 or later.
+ruma-client-api requires Rust 1.40.0 or later.
 
 ## Contributing
 
