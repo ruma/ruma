@@ -133,9 +133,9 @@ impl<'de> de::Deserializer<'de> for Deserializer<'de> {
             map.push_back((*field, values));
         }
         let parts = fields
-            .into_iter()
+            .iter()
             .map(|f| Part(Cow::Borrowed(f), None))
-            .zip(PartIterator(self.parser).into_iter().map(|(_, mut v)| {
+            .zip(PartIterator(self.parser).map(|(_, mut v)| {
                 if let Some((_, val)) = map.pop_front() {
                     v.1 = Some(val);
                 }
@@ -263,7 +263,7 @@ impl<'de> de::Deserializer<'de> for Part<'de> {
     where
         V: de::Visitor<'de>,
     {
-        let iter = self.1.ok_or(Error::custom("expected sequence"))?;
+        let iter = self.1.ok_or_else(|| Error::custom("expected sequence"))?;
         visitor.visit_seq(SeqDeserializer::new(
             iter.into_iter().map(|v| Part(v, None)),
         ))

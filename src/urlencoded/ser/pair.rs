@@ -251,7 +251,7 @@ where
                 if result.is_ok() {
                     self.state = PairState::Done;
                 } else {
-                    self.state = PairState::WaitingForValue { key: key };
+                    self.state = PairState::WaitingForValue { key };
                 }
                 result
             },

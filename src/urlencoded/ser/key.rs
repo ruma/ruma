@@ -38,7 +38,7 @@ where
     End: for<'key> FnOnce(Key<'key>) -> Result<Ok, Error>,
 {
     pub fn new(end: End) -> Self {
-        KeySink { end: end }
+        KeySink { end }
     }
 }
 
