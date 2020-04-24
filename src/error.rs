@@ -4,6 +4,7 @@ use std::fmt::{self, Display, Formatter};
 
 use ruma_api::{error::ResponseDeserializationError, EndpointError};
 use serde::{Deserialize, Serialize};
+use serde_json::{from_slice as from_json_slice, to_vec as to_json_vec};
 use strum::{AsRefStr, Display, EnumString};
 
 /// An enum for the error kind. Items may contain additional information.
@@ -160,7 +161,7 @@ impl EndpointError for Error {
     fn try_from_response(
         response: http::Response<Vec<u8>>,
     ) -> Result<Self, ResponseDeserializationError> {
-        match serde_json::from_slice::<ErrorBody>(response.body()) {
+        match from_json_slice::<ErrorBody>(response.body()) {
             Ok(error_body) => Ok(error_body.into_error(response.status())),
             Err(de_error) => Err(ResponseDeserializationError::new(de_error, response)),
         }
@@ -206,7 +207,7 @@ impl From<Error> for http::Response<Vec<u8>> {
         http::Response::builder()
             .header(http::header::CONTENT_TYPE, "application/json")
             .status(error.status_code)
-            .body(serde_json::to_vec(&ErrorBody::from(error)).unwrap())
+            .body(to_json_vec(&ErrorBody::from(error)).unwrap())
             .unwrap()
     }
 }

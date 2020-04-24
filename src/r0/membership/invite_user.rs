@@ -51,14 +51,17 @@ pub enum InvitationRecipient {
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
+    use ruma_identifiers::UserId;
+    use serde_json::{from_value as from_json_value, json};
+
     use super::InvitationRecipient;
     use crate::r0::{membership::Invite3pid, thirdparty::Medium};
-    use ruma_identifiers::UserId;
-    use std::convert::TryFrom;
     #[test]
     fn deserialize_invite_by_user_id() {
         let incoming =
-            serde_json::from_str::<InvitationRecipient>(r#" { "user_id": "@carl:example.org" } "#)
+            from_json_value::<InvitationRecipient>(json!({ "user_id": "@carl:example.org" }))
                 .unwrap();
         let user_id = UserId::try_from("@carl:example.org").unwrap();
         let recipient = InvitationRecipient::UserId { user_id };
@@ -67,16 +70,12 @@ mod tests {
 
     #[test]
     fn deserialize_invite_by_3pid() {
-        let incoming = serde_json::from_str::<InvitationRecipient>(
-            r#"
-                {
-                    "id_server": "example.org",
-                    "id_access_token": "abcdefghijklmnop",
-                    "medium": "email",
-                    "address": "carl@example.org"
-                }
-                "#,
-        )
+        let incoming = from_json_value::<InvitationRecipient>(json!({
+            "id_server": "example.org",
+            "id_access_token": "abcdefghijklmnop",
+            "medium": "email",
+            "address": "carl@example.org"
+        }))
         .unwrap();
         let recipient = InvitationRecipient::ThirdPartyId(Invite3pid {
             id_server: "example.org".to_string(),

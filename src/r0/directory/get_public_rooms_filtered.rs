@@ -9,7 +9,8 @@ use serde::{
     ser::SerializeStruct,
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use serde_json::Value;
+
+use serde_json::Value as JsonValue;
 
 use super::PublicRoomsChunk;
 
@@ -130,7 +131,7 @@ impl<'de> Visitor<'de> for RoomNetworkVisitor {
     {
         let mut include_all_networks = false;
         let mut third_party_instance_id = None;
-        while let Some((key, value)) = access.next_entry::<String, Value>()? {
+        while let Some((key, value)) = access.next_entry::<String, JsonValue>()? {
             match key.as_str() {
                 "include_all_networks" => {
                     include_all_networks = match value.as_bool() {

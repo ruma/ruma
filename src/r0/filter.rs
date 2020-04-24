@@ -305,14 +305,14 @@ impl<'de> Deserialize<'de> for LazyLoadOptions {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::json;
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::LazyLoadOptions;
 
     #[test]
     fn test_serializing_disabled_lazy_load() {
         let lazy_load_options = LazyLoadOptions::Disabled;
-        assert_eq!(serde_json::to_value(lazy_load_options).unwrap(), json!({}));
+        assert_eq!(to_json_value(lazy_load_options).unwrap(), json!({}));
     }
 
     #[test]
@@ -321,7 +321,7 @@ mod tests {
             include_redundant_members: false,
         };
         assert_eq!(
-            serde_json::to_value(lazy_load_options).unwrap(),
+            to_json_value(lazy_load_options).unwrap(),
             json!({ "lazy_load_members": true })
         );
     }
@@ -332,7 +332,7 @@ mod tests {
             include_redundant_members: true,
         };
         assert_eq!(
-            serde_json::to_value(lazy_load_options).unwrap(),
+            to_json_value(lazy_load_options).unwrap(),
             json!({ "lazy_load_members": true, "include_redundant_members": true })
         );
     }
@@ -341,7 +341,7 @@ mod tests {
     fn test_deserializing_no_lazy_load() {
         let json = json!({});
         assert_eq!(
-            serde_json::from_value::<LazyLoadOptions>(json).unwrap(),
+            from_json_value::<LazyLoadOptions>(json).unwrap(),
             LazyLoadOptions::Disabled,
         );
     }
@@ -350,7 +350,7 @@ mod tests {
     fn test_deserializing_ignore_redundant_members_when_no_lazy_load() {
         let json = json!({ "include_redundant_members": true });
         assert_eq!(
-            serde_json::from_value::<LazyLoadOptions>(json).unwrap(),
+            from_json_value::<LazyLoadOptions>(json).unwrap(),
             LazyLoadOptions::Disabled,
         );
     }

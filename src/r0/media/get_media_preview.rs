@@ -3,7 +3,7 @@
 use std::time::SystemTime;
 
 use ruma_api::ruma_api;
-use serde_json::Value;
+use serde_json::Value as JsonValue;
 
 ruma_api! {
     metadata {
@@ -31,7 +31,7 @@ ruma_api! {
         /// Differences from OpenGraph: the image size in bytes is added to the `matrix:image:size`
         /// field, and `og:image` returns the MXC URI to the image, if any.
         #[ruma_api(body)]
-        pub data: Option<Value>,
+        pub data: Option<JsonValue>,
     }
 
     error: crate::Error

@@ -4,7 +4,7 @@ use std::{collections::BTreeMap, time::Duration};
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{DeviceId, UserId};
-use serde_json::Value;
+use serde_json::Value as JsonValue;
 
 use super::DeviceKeys;
 
@@ -41,7 +41,7 @@ ruma_api! {
     response {
         /// If any remote homeservers could not be reached, they are recorded here.
         /// The names of the properties are the names of the unreachable servers.
-        pub failures: BTreeMap<String, Value>,
+        pub failures: BTreeMap<String, JsonValue>,
 
         /// Information on the queried devices.
         pub device_keys: BTreeMap<UserId, BTreeMap<DeviceId, DeviceKeys>>,

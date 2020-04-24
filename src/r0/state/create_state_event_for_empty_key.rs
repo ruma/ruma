@@ -3,7 +3,7 @@
 use ruma_api::ruma_api;
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomId};
-use serde_json::Value;
+use serde_json::Value as JsonValue;
 
 ruma_api! {
     metadata {
@@ -24,7 +24,7 @@ ruma_api! {
         pub event_type: EventType,
         /// The event's content.
         #[ruma_api(body)]
-        pub data: Value,
+        pub data: JsonValue,
     }
 
     response {

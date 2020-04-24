@@ -2,7 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, UserId};
-use serde_json::Value;
+use serde_json::Value as JsonValue;
 
 ruma_api! {
     metadata {
@@ -17,7 +17,7 @@ ruma_api! {
     request {
         /// Arbitrary JSON to store as config data.
         #[ruma_api(body)]
-        pub data: Value,
+        pub data: JsonValue,
         /// The event type of the account_data to set.
         ///
         /// Custom types should be namespaced to avoid clashes.

@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use ruma_api::{error::ResponseDeserializationError, EndpointError};
 use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
+use serde_json::{from_slice as from_json_slice, to_vec as to_json_vec, Value as JsonValue};
 
 use crate::error::{Error as MatrixError, ErrorBody};
 
@@ -85,7 +85,7 @@ impl EndpointError for UiaaResponse {
         response: http::Response<Vec<u8>>,
     ) -> Result<Self, ResponseDeserializationError> {
         if response.status() == http::StatusCode::UNAUTHORIZED {
-            if let Ok(authentication_info) = serde_json::from_slice::<UiaaInfo>(response.body()) {
+            if let Ok(authentication_info) = from_json_slice::<UiaaInfo>(response.body()) {
                 return Ok(UiaaResponse::AuthResponse(authentication_info));
             }
         }
@@ -100,7 +100,7 @@ impl From<UiaaResponse> for http::Response<Vec<u8>> {
             UiaaResponse::AuthResponse(authentication_info) => http::Response::builder()
                 .header(http::header::CONTENT_TYPE, "application/json")
                 .status(&http::StatusCode::UNAUTHORIZED)
-                .body(serde_json::to_vec(&authentication_info).unwrap())
+                .body(to_json_vec(&authentication_info).unwrap())
                 .unwrap(),
             UiaaResponse::MatrixError(error) => http::Response::from(error),
         }
@@ -113,7 +113,8 @@ mod tests {
 
     use ruma_api::EndpointError;
     use serde_json::{
-        from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+        from_slice as from_json_slice, from_value as from_json_value, json,
+        to_value as to_json_value, Value as JsonValue,
     };
 
     use super::{AuthData, AuthFlow, UiaaInfo, UiaaResponse};
@@ -286,7 +287,7 @@ mod tests {
             UiaaResponse::AuthResponse(uiaa_info.clone()).into();
 
         assert_eq!(
-            serde_json::from_slice::<UiaaInfo>(uiaa_response.body()).unwrap(),
+            from_json_slice::<UiaaInfo>(uiaa_response.body()).unwrap(),
             uiaa_info,
         );
         assert_eq!(

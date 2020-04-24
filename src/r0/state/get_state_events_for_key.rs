@@ -3,7 +3,7 @@
 use ruma_api::ruma_api;
 use ruma_events::EventType;
 use ruma_identifiers::RoomId;
-use serde_json::Value;
+use serde_json::Value as JsonValue;
 
 ruma_api! {
     metadata {
@@ -30,7 +30,7 @@ ruma_api! {
     response {
         /// The content of the state event.
         #[ruma_api(body)]
-        pub content: Value,
+        pub content: JsonValue,
     }
 
     error: crate::Error

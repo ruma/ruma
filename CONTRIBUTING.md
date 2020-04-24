@@ -99,6 +99,23 @@ use std::convert::TryFrom;
 use std::fmt::{Debug, Display, Error as FmtError, Formatter};
 ```
 
+### Serde Imports
+
+When importing methods and types from `serde_json`, methods should be such as
+`serde_json::{from,to}_{slice,string,value,vec}` should be imported as
+`{from,to}_json_{slice,string,value,vec}`.
+
+For example:
+
+```rust
+use serde_json::{
+  from_value as from_json_value,
+  to_str as to_json_str,
+};
+```
+
+Also, `serde_json::Value` should be imported as `JsonValue`.
+
 ### Code Formatting and Linting
 
 Use `rustfmt` to format your code and `clippy` to lint your code. Before

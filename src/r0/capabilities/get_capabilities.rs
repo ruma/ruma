@@ -2,7 +2,7 @@
 
 use ruma_api::ruma_api;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::Value as JsonValue;
 use std::collections::BTreeMap;
 
 ruma_api! {
@@ -39,7 +39,7 @@ pub struct Capabilities {
     /// Any other custom capabilities that the server supports outside of the specification,
     /// labeled using the Java package naming convention and stored as arbitrary JSON values.
     #[serde(flatten)]
-    pub custom_capabilities: BTreeMap<String, Value>,
+    pub custom_capabilities: BTreeMap<String, JsonValue>,
 }
 
 /// Information about the m.change_password capability

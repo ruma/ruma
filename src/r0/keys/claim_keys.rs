@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{DeviceId, UserId};
-use serde_json::Value;
+use serde_json::Value as JsonValue;
 
 use super::{AlgorithmAndDeviceId, KeyAlgorithm, OneTimeKey};
 
@@ -37,7 +37,7 @@ ruma_api! {
     response {
         /// If any remote homeservers could not be reached, they are recorded here.
         /// The names of the properties are the names of the unreachable servers.
-        pub failures: BTreeMap<String, Value>,
+        pub failures: BTreeMap<String, JsonValue>,
 
         /// One-time keys for the queried devices.
         pub one_time_keys: BTreeMap<UserId, BTreeMap<DeviceId, BTreeMap<AlgorithmAndDeviceId, OneTimeKey>>>,

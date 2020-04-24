@@ -130,21 +130,17 @@ mod user_serde;
 mod tests {
     use std::convert::TryInto;
 
-    use serde_json::json;
+    use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 
     use super::{LoginInfo, Medium, Request, UserInfo};
 
     #[test]
     fn deserialize_login_type() {
         assert_eq!(
-            serde_json::from_str::<LoginInfo>(
-                r#"
-                {
-                    "type": "m.login.password",
-                    "password": "ilovebananas"
-                }
-                "#,
-            )
+            from_json_value::<LoginInfo>(json!({
+                "type": "m.login.password",
+                "password": "ilovebananas"
+            }),)
             .unwrap(),
             LoginInfo::Password {
                 password: "ilovebananas".into()
@@ -152,14 +148,10 @@ mod tests {
         );
 
         assert_eq!(
-            serde_json::from_str::<LoginInfo>(
-                r#"
-                {
-                    "type": "m.login.token",
-                    "token": "1234567890abcdef"
-                }
-                "#,
-            )
+            from_json_value::<LoginInfo>(json!({
+                "type": "m.login.token",
+                "token": "1234567890abcdef"
+            }),)
             .unwrap(),
             LoginInfo::Token {
                 token: "1234567890abcdef".into()
@@ -170,16 +162,12 @@ mod tests {
     #[test]
     fn deserialize_user() {
         assert_eq!(
-            serde_json::from_str::<UserInfo>(
-                r#"
-                {
-                    "identifier": {
-                        "type": "m.id.user",
-                        "user": "cheeky_monkey"
-                    }
+            from_json_value::<UserInfo>(json!({
+                "identifier": {
+                    "type": "m.id.user",
+                    "user": "cheeky_monkey"
                 }
-                "#,
-            )
+            }))
             .unwrap(),
             UserInfo::MatrixId("cheeky_monkey".into())
         );
@@ -201,7 +189,7 @@ mod tests {
         .try_into()
         .unwrap();
 
-        let req_body_value: serde_json::Value = serde_json::from_slice(req.body()).unwrap();
+        let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();
         assert_eq!(
             req_body_value,
             json!({

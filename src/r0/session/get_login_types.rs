@@ -37,12 +37,14 @@ pub enum LoginType {
 
 #[cfg(test)]
 mod tests {
+    use serde_json::{from_value as from_json_value, json};
+
     use super::LoginType;
 
     #[test]
     fn deserialize_login_type() {
         assert_eq!(
-            serde_json::from_str::<LoginType>(r#" {"type": "m.login.password"} "#).unwrap(),
+            from_json_value::<LoginType>(json!({ "type": "m.login.password" })).unwrap(),
             LoginType::Password,
         );
     }
