@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/rooms/{roomId}/joined_members](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-rooms-roomid-joined-members)
+//! [GET /_matrix/client/r0/rooms/{roomId}/joined_members](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-rooms-roomid-joined-members)
 
 use std::collections::BTreeMap;
 
@@ -31,12 +31,13 @@ ruma_api! {
     error: crate::Error
 }
 
-// TODO: Find out whether display_name and avatar_url are optional
 /// Information about a room member.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RoomMember {
     /// The display name of the user.
-    pub display_name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
     /// The mxc avatar url of the user.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar_url: Option<String>,
 }

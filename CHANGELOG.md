@@ -24,6 +24,7 @@ Breaking changes:
 * Change the messages type that gets sent out using the `r0::client_exchange::send_event_to_device`
   request.
 * Add `M_USER_DEACTIVATED` to `error::ErrorKind`
+* Make `display_name` field of `r0::membership::joined_events::RoomMember` optional
 
 Improvements:
 
