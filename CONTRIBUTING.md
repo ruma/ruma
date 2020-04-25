@@ -87,7 +87,7 @@ Also, group imports by module. For example, do this:
 use std::{
     collections::BTreeMap,
     convert::TryFrom,
-    fmt::{Debug, Display, Error as FmtError, Formatter},
+    fmt::{self, Debug, Display, Formatter},
 };
 ```
 
@@ -96,7 +96,7 @@ as opposed to:
 ```rust
 use std::collections::BTreeMap;
 use std::convert::TryFrom;
-use std::fmt::{Debug, Display, Error as FmtError, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 ```
 
 ### Serde Imports
