@@ -4,7 +4,10 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_events::{collections::all::Event, EventJson};
+use ruma_events::{
+    collections::all::{Event, StateEvent},
+    EventJson,
+};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
@@ -53,8 +56,6 @@ pub struct Criteria {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event_context: Option<EventContext>,
     /// A `Filter` to apply to the search.
-    // TODO: "timeline" key might need to be included.
-    // See https://github.com/matrix-org/matrix-doc/issues/598.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filter: Option<RoomEventFilter>,
     /// Requests that the server partitions the result set based on the provided list of keys.
@@ -77,9 +78,11 @@ pub struct Criteria {
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct EventContext {
     /// How many events after the result are returned.
-    pub after_limit: UInt,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub after_limit: Option<UInt>,
     /// How many events before the result are returned.
-    pub before_limit: UInt,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub before_limit: Option<UInt>,
     /// Requests that the server returns the historic profile information for the users that
     /// sent the events that were returned.
     pub include_profile: bool,
@@ -89,26 +92,27 @@ pub struct EventContext {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct EventContextResult {
     /// Pagination token for the end of the chunk.
-    pub end: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end: Option<String>,
     /// Events just after the result.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub events_after: Option<Vec<EventJson<Event>>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub events_after: Vec<EventJson<Event>>,
     /// Events just before the result.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub events_before: Option<Vec<EventJson<Event>>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub events_before: Vec<EventJson<Event>>,
     /// The historic profile information of the users that sent the events returned.
-    // TODO: Not sure this is right. https://github.com/matrix-org/matrix-doc/issues/773
     #[serde(skip_serializing_if = "Option::is_none")]
     pub profile_info: Option<BTreeMap<UserId, UserProfile>>,
     /// Pagination token for the start of the chunk.
-    pub start: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start: Option<String>,
 }
 
 /// A grouping for partioning the result set.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct Grouping {
     /// The key within events to use for this grouping.
-    pub key: GroupingKey,
+    pub key: Option<GroupingKey>,
 }
 
 /// The key within events to use for this grouping.
@@ -125,6 +129,7 @@ pub enum GroupingKey {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Groupings {
     /// List of groups to request.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub group_by: Vec<Grouping>,
 }
 
@@ -167,8 +172,7 @@ pub struct RoomEventJsons {
     /// An approximate count of the total number of results found.
     pub count: UInt,
     /// Any groups that were requested.
-    // TODO: Not sure this is right. https://github.com/matrix-org/matrix-doc/issues/773
-    pub groups: BTreeMap<GroupingKey, BTreeMap<RoomId, ResultGroup>>,
+    pub groups: BTreeMap<GroupingKey, BTreeMap<RoomIdOrUserId, ResultGroup>>,
     /// Token that can be used to get the next batch of results, by passing as the `next_batch`
     /// parameter to the next call. If this field is absent, there are no more results.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -177,9 +181,12 @@ pub struct RoomEventJsons {
     pub results: Vec<SearchResult>,
     /// The current state for every room in the results. This is included if the request had the
     /// `include_state` key set with a value of `true`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    // TODO: Major WTF here. https://github.com/matrix-org/matrix-doc/issues/773
-    pub state: Option<()>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub state: BTreeMap<RoomId, Vec<EventJson<StateEvent>>>,
+    /// List of words which should be highlighted, useful for stemming which may
+    /// change the query terms.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub highlights: Vec<String>,
 }
 
 /// A grouping of results, if requested.
@@ -203,9 +210,11 @@ pub struct SearchResult {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<EventContextResult>,
     /// A number that describes how closely this result matches the search. Higher is closer.
-    pub rank: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rank: Option<UInt>,
     /// The event that matched.
-    pub result: EventJson<Event>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub result: Option<EventJson<Event>>,
 }
 
 /// A user profile.
@@ -217,4 +226,13 @@ pub struct UserProfile {
     /// The user's display name, if set.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub displayname: Option<String>,
+}
+
+/// Represents either a room or user ID for returning grouped search results.
+#[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+pub enum RoomIdOrUserId {
+    /// Represents a room ID.
+    RoomId(RoomId),
+    /// Represents a user ID.
+    UserId(UserId),
 }

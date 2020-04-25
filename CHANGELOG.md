@@ -25,6 +25,7 @@ Breaking changes:
   request.
 * Add `M_USER_DEACTIVATED` to `error::ErrorKind`
 * Make `display_name` field of `r0::membership::joined_events::RoomMember` optional
+* Update `r0::search::search_events` to r0.6.0
 
 Improvements:
 
