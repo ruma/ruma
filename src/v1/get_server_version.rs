@@ -1,3 +1,5 @@
+//! [GET /_matrix/federation/v1/version](https://matrix.org/docs/spec/server_server/r0.1.3#get-matrix-federation-v1-version)
+
 use ruma_api::ruma_api;
 use serde::{Deserialize, Serialize};
 
@@ -15,14 +17,18 @@ ruma_api! {
 
     response {
         /// Information about the homeserver implementation
-        server: Server,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub server: Option<Server>,
     }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+/// Arbitrary values that identify this implementation.
 pub struct Server {
-    /// Arbitrary name that identify this implementation.
-    name: Option<String>,
+    /// Arbitrary name that identifies this implementation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
     /// Version of this implementation. The version format depends on the implementation.
-    version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
 }

@@ -12,6 +12,7 @@ use serde_json::Value as JsonValue;
 
 pub mod unversioned;
 pub mod v1;
+pub mod v2;
 
 /// A 'persistent data unit' (event) for room versions 3 and beyond.
 #[derive(Deserialize, Serialize)]
