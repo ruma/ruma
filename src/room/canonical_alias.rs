@@ -175,8 +175,7 @@ pub(crate) mod raw {
         /// Rooms with `alias: None` should be treated the same as a room with no canonical alias.
         // The spec says "A room with an m.room.canonical_alias event with an absent, null, or empty
         // alias field should be treated the same as a room with no m.room.canonical_alias event."
-        #[serde(default)]
-        #[serde(deserialize_with = "empty_string_as_none")]
+        #[serde(default, deserialize_with = "empty_string_as_none")]
         pub alias: Option<RoomAliasId>,
     }
 }
