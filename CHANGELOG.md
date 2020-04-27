@@ -2,6 +2,14 @@
 
 Breaking changes:
 
+* Replace `EventResult` with a new construct, `EventJson`
+  * Instead of only capturing the json value if deserialization failed, we now
+    now always capture it. To improve deserialization performance at the same
+    time, we no longer use `serde_json::Value` internally and instead
+    deserialize events as `Box<serde_json::value::RawValue>`. `EventJson` is
+    simply a wrapper around that owned value type that additionally holds a
+    generic argument: the type as which clients will usually want to deserialize
+    the raw value.
 * Add `struct UnsignedData` and update all `unsigned` fields types from
   `BTreeMap<String, Value>` to this new type.
   * To access any additional fields of the `unsigned` property of an event,
