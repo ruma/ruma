@@ -232,14 +232,14 @@ pub struct UnsignedData {
     /// local time on at least one of the two servers is out of sync, which can
     /// cause the age to either be negative or greater than it actually is.
     #[serde(skip_serializing_if = "Option::is_none")]
-    age: Option<Int>,
+    pub age: Option<Int>,
     /// The event that redacted this event, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    redacted_because: Option<EventJson<RedactionEvent>>,
+    pub redacted_because: Option<EventJson<RedactionEvent>>,
     /// The client-supplied transaction ID, if the client being given the event
     /// is the same one which sent it.
     #[serde(skip_serializing_if = "Option::is_none")]
-    transaction_id: Option<String>,
+    pub transaction_id: Option<String>,
 }
 
 impl UnsignedData {
