@@ -1,12 +1,11 @@
 //! Types for the *m.room.server_acl* event.
 
-use std::{collections::BTreeMap, time::SystemTime};
+use std::time::SystemTime;
 
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
-use crate::{util::default_true, EventType, FromRaw};
+use crate::{util::default_true, EventType, FromRaw, UnsignedData};
 
 /// An event to indicate which servers are permitted to participate in the room.
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -37,8 +36,8 @@ pub struct ServerAclEvent {
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-    pub unsigned: BTreeMap<String, Value>,
+    #[serde(skip_serializing_if = "UnsignedData::is_empty")]
+    pub unsigned: UnsignedData,
 }
 
 /// The payload for `ServerAclEvent`.
@@ -129,7 +128,7 @@ pub(crate) mod raw {
 
         /// Additional key-value pairs not signed by the homeserver.
         #[serde(default)]
-        pub unsigned: BTreeMap<String, Value>,
+        pub unsigned: UnsignedData,
 
         /// The unique identifier for the user who sent this event.
         pub sender: UserId,

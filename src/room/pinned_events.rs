@@ -17,17 +17,14 @@ ruma_event! {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        collections::BTreeMap,
-        time::{Duration, UNIX_EPOCH},
-    };
+    use std::time::{Duration, UNIX_EPOCH};
 
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::to_string;
 
     use crate::{
         room::pinned_events::{PinnedEventsEvent, PinnedEventsEventContent},
-        Event, EventJson, RoomEvent, StateEvent,
+        Event, EventJson, RoomEvent, StateEvent, UnsignedData,
     };
 
     #[test]
@@ -45,7 +42,7 @@ mod tests {
             room_id: Some(RoomId::new("example.com").unwrap()),
             sender: UserId::new("example.com").unwrap(),
             state_key: "".to_string(),
-            unsigned: BTreeMap::new(),
+            unsigned: UnsignedData::default(),
         };
 
         let serialized_event = to_string(&event).unwrap();

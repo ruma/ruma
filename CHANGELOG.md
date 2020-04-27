@@ -1,5 +1,13 @@
 # [unreleased]
 
+Breaking changes:
+
+* Add `struct UnsignedData` and update all `unsigned` fields types from
+  `BTreeMap<String, Value>` to this new type.
+  * To access any additional fields of the `unsigned` property of an event,
+    deserialize the `EventJson` to another type that captures the field(s) you
+    are interested in.
+
 Improvements:
 
 * Add a encrypted variant to the room `MessageEventContent` enum.

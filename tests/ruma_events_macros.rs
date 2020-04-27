@@ -5,6 +5,7 @@ use std::{
 };
 
 use ruma_events::util::serde_json_eq_try_from_raw;
+use ruma_events::UnsignedData;
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde_json::json;
@@ -37,7 +38,7 @@ mod common_case {
             room_id: None,
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "example.com".to_string(),
-            unsigned: std::collections::BTreeMap::new(),
+            unsigned: UnsignedData::default(),
         };
         let json = json!({
             "content": {
@@ -66,7 +67,7 @@ mod common_case {
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "example.com".to_string(),
-            unsigned: std::collections::BTreeMap::new(),
+            unsigned: UnsignedData::default(),
         };
         let json = json!({
             "content": {

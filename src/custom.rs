@@ -1,8 +1,8 @@
 //! Types for custom events outside of the Matrix specification.
 
-use std::{collections::BTreeMap, time::SystemTime};
+use std::time::SystemTime;
 
-use crate::{Event, EventType, RoomEvent, StateEvent};
+use crate::{Event, EventType, RoomEvent, StateEvent, UnsignedData};
 
 use ruma_events_macros::FromRaw;
 use ruma_identifiers::{EventId, RoomId, UserId};
@@ -55,8 +55,8 @@ pub struct CustomRoomEvent {
     /// The unique identifier for the user who sent this event.
     pub sender: UserId,
     /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if = "std::collections::BTreeMap::is_empty")]
-    pub unsigned: BTreeMap<String, JsonValue>,
+    #[serde(skip_serializing_if = "UnsignedData::is_empty")]
+    pub unsigned: UnsignedData,
 }
 
 /// The payload for `CustomRoomEvent`.
@@ -102,7 +102,7 @@ impl RoomEvent for CustomRoomEvent {
     }
 
     /// Additional key-value pairs not signed by the homeserver.
-    fn unsigned(&self) -> &BTreeMap<String, JsonValue> {
+    fn unsigned(&self) -> &UnsignedData {
         &self.unsigned
     }
 }
@@ -129,8 +129,8 @@ pub struct CustomStateEvent {
     /// A key that determines which piece of room state the event represents.
     pub state_key: String,
     /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if = "std::collections::BTreeMap::is_empty")]
-    pub unsigned: BTreeMap<String, JsonValue>,
+    #[serde(skip_serializing_if = "UnsignedData::is_empty")]
+    pub unsigned: UnsignedData,
 }
 
 /// The payload for `CustomStateEvent`.
@@ -176,7 +176,7 @@ impl RoomEvent for CustomStateEvent {
     }
 
     /// Additional key-value pairs not signed by the homeserver.
-    fn unsigned(&self) -> &BTreeMap<String, JsonValue> {
+    fn unsigned(&self) -> &UnsignedData {
         &self.unsigned
     }
 }
@@ -194,13 +194,14 @@ impl StateEvent for CustomStateEvent {
 }
 
 pub(crate) mod raw {
-    use std::{collections::BTreeMap, time::SystemTime};
+    use std::time::SystemTime;
 
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde::Deserialize;
-    use serde_json::Value as JsonValue;
 
-    use super::{CustomEventContent, CustomRoomEventContent, CustomStateEventContent};
+    use super::{
+        CustomEventContent, CustomRoomEventContent, CustomStateEventContent, UnsignedData,
+    };
 
     /// A custom event not covered by the Matrix specification.
     #[derive(Clone, Debug, PartialEq, Deserialize)]
@@ -231,7 +232,7 @@ pub(crate) mod raw {
         pub sender: UserId,
         /// Additional key-value pairs not signed by the homeserver.
         #[serde(default)]
-        pub unsigned: BTreeMap<String, JsonValue>,
+        pub unsigned: UnsignedData,
     }
 
     /// A custom state event not covered by the Matrix specification.
@@ -257,6 +258,6 @@ pub(crate) mod raw {
         pub state_key: String,
         /// Additional key-value pairs not signed by the homeserver.
         #[serde(default)]
-        pub unsigned: BTreeMap<String, JsonValue>,
+        pub unsigned: UnsignedData,
     }
 }

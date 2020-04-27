@@ -1,12 +1,11 @@
 //! Types for the *m.room.name* event.
 
-use std::{collections::BTreeMap, time::SystemTime};
+use std::time::SystemTime;
 
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
-use crate::{util::empty_string_as_none, EventType, InvalidInput, TryFromRaw};
+use crate::{util::empty_string_as_none, EventType, InvalidInput, TryFromRaw, UnsignedData};
 
 /// A human-friendly room name designed to be displayed to the end-user.
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -37,8 +36,8 @@ pub struct NameEvent {
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-    pub unsigned: BTreeMap<String, Value>,
+    #[serde(skip_serializing_if = "ruma_serde::is_default")]
+    pub unsigned: UnsignedData,
 }
 
 /// The payload for `NameEvent`.
@@ -136,7 +135,7 @@ pub(crate) mod raw {
 
         /// Additional key-value pairs not signed by the homeserver.
         #[serde(default)]
-        pub unsigned: BTreeMap<String, Value>,
+        pub unsigned: UnsignedData,
     }
 
     /// The payload of a `NameEvent`.
@@ -154,7 +153,6 @@ pub(crate) mod raw {
 #[cfg(test)]
 mod tests {
     use std::{
-        collections::BTreeMap,
         convert::TryFrom,
         iter::FromIterator,
         time::{Duration, UNIX_EPOCH},
@@ -163,7 +161,7 @@ mod tests {
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use crate::EventJson;
+    use crate::{EventJson, UnsignedData};
 
     use super::{NameEvent, NameEventContent};
 
@@ -179,7 +177,7 @@ mod tests {
             room_id: None,
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
-            unsigned: BTreeMap::new(),
+            unsigned: UnsignedData::default(),
         };
 
         let actual = to_json_value(&name_event).unwrap();

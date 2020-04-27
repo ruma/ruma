@@ -7,7 +7,7 @@ use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{from_value, Value};
 
-use crate::{Algorithm, EventType, FromRaw};
+use crate::{Algorithm, EventType, FromRaw, UnsignedData};
 
 /// This event type is used when sending encrypted events.
 ///
@@ -34,8 +34,8 @@ pub struct EncryptedEvent {
     pub sender: UserId,
 
     /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-    pub unsigned: BTreeMap<String, Value>,
+    #[serde(skip_serializing_if = "ruma_serde::is_default")]
+    pub unsigned: UnsignedData,
 }
 
 /// The payload for `EncryptedEvent`.
@@ -134,7 +134,7 @@ pub(crate) mod raw {
 
         /// Additional key-value pairs not signed by the homeserver.
         #[serde(default)]
-        pub unsigned: BTreeMap<String, Value>,
+        pub unsigned: UnsignedData,
     }
 
     /// The payload for `EncryptedEvent`.

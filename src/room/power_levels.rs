@@ -5,9 +5,8 @@ use std::{collections::BTreeMap, time::SystemTime};
 use js_int::Int;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
-use crate::{EventType, FromRaw};
+use crate::{EventType, FromRaw, UnsignedData};
 
 /// Defines the power levels (privileges) of users in the room.
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -32,8 +31,8 @@ pub struct PowerLevelsEvent {
     pub room_id: Option<RoomId>,
 
     /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-    pub unsigned: BTreeMap<String, Value>,
+    #[serde(skip_serializing_if = "ruma_serde::is_default")]
+    pub unsigned: UnsignedData,
 
     /// The unique identifier for the user who sent this event.
     pub sender: UserId,
@@ -158,7 +157,7 @@ pub(crate) mod raw {
 
         /// Additional key-value pairs not signed by the homeserver.
         #[serde(default)]
-        pub unsigned: BTreeMap<String, Value>,
+        pub unsigned: UnsignedData,
 
         /// The unique identifier for the user who sent this event.
         pub sender: UserId,
@@ -276,7 +275,7 @@ mod tests {
     use super::{
         default_power_level, NotificationPowerLevels, PowerLevelsEvent, PowerLevelsEventContent,
     };
-    use crate::EventType;
+    use crate::{EventType,UnsignedData};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -299,7 +298,7 @@ mod tests {
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: None,
             room_id: None,
-            unsigned: BTreeMap::new(),
+            unsigned: UnsignedData::default(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
         };

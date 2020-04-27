@@ -1,7 +1,6 @@
 //! Types for the *m.room.canonical_alias* event.
 
 use std::{
-    collections::BTreeMap,
     convert::TryFrom,
     time::{SystemTime, UNIX_EPOCH},
 };
@@ -11,9 +10,8 @@ use serde::{
     ser::{Error, SerializeStruct},
     Deserialize, Serialize, Serializer,
 };
-use serde_json::Value;
 
-use crate::{util::empty_string_as_none, Event, EventType, FromRaw};
+use crate::{util::empty_string_as_none, Event, EventType, FromRaw, UnsignedData};
 
 /// Informs the room as to which alias is the canonical one.
 #[derive(Clone, Debug, PartialEq)]
@@ -40,7 +38,7 @@ pub struct CanonicalAliasEvent {
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: BTreeMap<String, Value>,
+    pub unsigned: UnsignedData,
 }
 
 /// The payload for `CanonicalAliasEvent`.
@@ -122,7 +120,7 @@ impl Serialize for CanonicalAliasEvent {
         state.serialize_field("state_key", &self.state_key)?;
         state.serialize_field("type", &self.event_type())?;
 
-        if !self.unsigned.is_empty() {
+        if self.unsigned != UnsignedData::default() {
             state.serialize_field("unsigned", &self.unsigned)?;
         }
 
@@ -166,7 +164,7 @@ pub(crate) mod raw {
 
         /// Additional key-value pairs not signed by the homeserver.
         #[serde(default)]
-        pub unsigned: BTreeMap<String, Value>,
+        pub unsigned: UnsignedData,
     }
 
     /// The payload of a `CanonicalAliasEvent`.
@@ -186,7 +184,6 @@ pub(crate) mod raw {
 #[cfg(test)]
 mod tests {
     use std::{
-        collections::BTreeMap,
         convert::TryFrom,
         time::{Duration, UNIX_EPOCH},
     };
@@ -195,7 +192,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{CanonicalAliasEvent, CanonicalAliasEventContent};
-    use crate::EventJson;
+    use crate::{EventJson, UnsignedData};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -209,7 +206,7 @@ mod tests {
             room_id: None,
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
-            unsigned: BTreeMap::new(),
+            unsigned: UnsignedData::default(),
         };
 
         let actual = to_json_value(&canonical_alias_event).unwrap();

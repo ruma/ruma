@@ -72,7 +72,7 @@ macro_rules! impl_room_event {
             }
 
             /// Additional key-value pairs not signed by the homeserver.
-            fn unsigned(&self) -> &::std::collections::BTreeMap<String, ::serde_json::Value> {
+            fn unsigned(&self) -> &::ruma_events::UnsignedData {
                 &self.unsigned
             }
         }

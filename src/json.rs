@@ -96,6 +96,12 @@ impl<T> Debug for EventJson<T> {
     }
 }
 
+impl<T> PartialEq for EventJson<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.json.get() == other.json.get()
+    }
+}
+
 impl<'de, T> Deserialize<'de> for EventJson<T> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
