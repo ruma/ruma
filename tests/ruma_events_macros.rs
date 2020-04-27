@@ -4,6 +4,7 @@ use std::{
     time::{Duration, UNIX_EPOCH},
 };
 
+use js_int::Int;
 use ruma_events::util::serde_json_eq_try_from_raw;
 use ruma_events::UnsignedData;
 use ruma_events_macros::ruma_event;
@@ -100,7 +101,10 @@ mod common_case {
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "example.com".to_string(),
-            unsigned: serde_json::from_str(r#"{"foo":"bar"}"#).unwrap(),
+            unsigned: UnsignedData {
+                age: Some(Int::from(100)),
+                ..UnsignedData::default()
+            },
         };
         let json = json!({
             "content": {
@@ -115,7 +119,7 @@ mod common_case {
             "sender": "@carl:example.com",
             "state_key": "example.com",
             "unsigned": {
-                "foo": "bar"
+                "age": 100
             },
             "type": "m.room.aliases"
         });
@@ -151,7 +155,10 @@ mod extra_fields {
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
-            unsigned: serde_json::from_str(r#"{"foo":"bar"}"#).unwrap(),
+            unsigned: UnsignedData {
+                age: Some(Int::from(100)),
+                ..UnsignedData::default()
+            },
         };
         let json = json!({
             "content": {
@@ -163,7 +170,7 @@ mod extra_fields {
             "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
             "unsigned": {
-                "foo": "bar"
+                "age": 100
             },
             "type": "m.room.redaction"
         });

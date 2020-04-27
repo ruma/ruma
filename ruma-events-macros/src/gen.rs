@@ -295,7 +295,7 @@ fn populate_room_event_fields(content_name: Ident, fields: Vec<Field>) -> Vec<Fi
         pub sender: ruma_identifiers::UserId,
 
         /// Additional key-value pairs not signed by the homeserver.
-        #[serde(skip_serializing_if = "ruma_events::UnsignedData::is_empty")]
+        #[serde(default, skip_serializing_if = "ruma_events::UnsignedData::is_empty")]
         pub unsigned: ruma_events::UnsignedData,
     };
 

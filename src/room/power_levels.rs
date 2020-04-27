@@ -275,7 +275,7 @@ mod tests {
     use super::{
         default_power_level, NotificationPowerLevels, PowerLevelsEvent, PowerLevelsEventContent,
     };
-    use crate::{EventType,UnsignedData};
+    use crate::{EventType, UnsignedData};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -360,7 +360,10 @@ mod tests {
                 },
             }),
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
-            unsigned: serde_json::from_str(r#"{"foo": "bar"}"#).unwrap(),
+            unsigned: UnsignedData {
+                age: Some(Int::from(100)),
+                ..UnsignedData::default()
+            },
             sender: user,
             state_key: "".to_string(),
         };
@@ -410,7 +413,7 @@ mod tests {
             "state_key": "",
             "type": "m.room.power_levels",
             "unsigned": {
-                "foo": "bar"
+                "age": 100
             }
         });
 

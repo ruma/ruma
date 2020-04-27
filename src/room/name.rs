@@ -158,6 +158,7 @@ mod tests {
         time::{Duration, UNIX_EPOCH},
     };
 
+    use js_int::Int;
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -209,7 +210,10 @@ mod tests {
             room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
-            unsigned: serde_json::from_str(r#"{"foo": "bar"}"#).unwrap(),
+            unsigned: UnsignedData {
+                age: Some(Int::from(100)),
+                ..UnsignedData::default()
+            },
         };
 
         let actual = to_json_value(&name_event).unwrap();
@@ -225,7 +229,7 @@ mod tests {
             "state_key": "",
             "type": "m.room.name",
             "unsigned": {
-                "foo": "bar"
+                "age": 100
             }
         });
 
