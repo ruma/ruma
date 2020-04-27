@@ -10,7 +10,10 @@ use serde::{
 };
 use serde_json::value::RawValue;
 
-use crate::{InvalidEvent, InvalidEventKind, TryFromRaw};
+use crate::{
+    error::{InvalidEvent, InvalidEventKind},
+    TryFromRaw,
+};
 
 /// A wrapper around `Box<RawValue>`, to be used in place of event [content] [collection] types in
 /// Matrix endpoint definition to allow request and response types to contain unknown events in
