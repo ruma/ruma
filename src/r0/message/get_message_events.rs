@@ -61,12 +61,14 @@ ruma_api! {
 
     response {
         /// The token the pagination starts from.
-        pub start: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub start: Option<String>,
+        /// The token the pagination ends at.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub end: Option<String>,
         /// A list of room events.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub chunk: Vec<EventJson<RoomEvent>>,
-        /// The token the pagination ends at.
-        pub end: String,
         /// A list of state events relevant to showing the `chunk`.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub state: Vec<EventJson<StateEvent>>,
