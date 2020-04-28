@@ -13,12 +13,12 @@ version = "0.21.0-beta.1"
 edition = "2018"
 
 [dependencies]
-js_int = { version = "0.1.4", features = ["serde"] }
+js_int = { version = "0.1.5", features = ["serde"] }
 ruma-events-macros = { path = "ruma-events-macros", version = "=0.21.0-beta.1" }
 ruma-identifiers = "0.16.0"
 ruma-serde = "0.1.0"
 serde = { version = "1.0.106", features = ["derive"] }
-serde_json = { version = "1.0.51", features = ["raw_value"] }
+serde_json = { version = "1.0.52", features = ["raw_value"] }
 
 [dev-dependencies]
 maplit = "1.0.2"

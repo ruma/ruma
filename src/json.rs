@@ -62,8 +62,7 @@ impl<T: TryFromRaw> EventJson<T> {
 
 impl<T: Serialize> From<&T> for EventJson<T> {
     fn from(val: &T) -> Self {
-        let json_string = serde_json::to_string(&val).unwrap();
-        Self::new(RawValue::from_string(json_string).unwrap())
+        Self::new(serde_json::value::to_raw_value(val).unwrap())
     }
 }
 
