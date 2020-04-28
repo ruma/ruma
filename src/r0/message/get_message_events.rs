@@ -94,6 +94,7 @@ mod tests {
 
     use std::convert::{TryFrom, TryInto};
 
+    use js_int::UInt;
     use ruma_identifiers::RoomId;
 
     use crate::r0::filter::{LazyLoadOptions, RoomEventFilter};
@@ -115,7 +116,7 @@ mod tests {
             from: "token".into(),
             to: Some("token2".into()),
             dir: Direction::Backward,
-            limit: Some(js_int::UInt::min_value()),
+            limit: Some(UInt::from(0u32)),
             filter: Some(filter),
         };
 
@@ -134,7 +135,7 @@ mod tests {
             from: "token".into(),
             to: Some("token2".into()),
             dir: Direction::Backward,
-            limit: Some(js_int::UInt::min_value()),
+            limit: Some(UInt::from(0u32)),
             filter: None,
         };
 
@@ -153,7 +154,7 @@ mod tests {
             from: "token".into(),
             to: Some("token2".into()),
             dir: Direction::Backward,
-            limit: Some(js_int::UInt::min_value()),
+            limit: Some(UInt::from(0u32)),
             filter: Some(RoomEventFilter::default()),
         };
 
