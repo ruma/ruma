@@ -28,7 +28,7 @@ ruma_event! {
 /// This should not be provided when the user naturally ends or rejects the call. When there was an
 /// error in the call negotiation, this should be `ice_failed` for when ICE negotiation fails or
 /// `invite_timeout` for when the other party did not answer in time.
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub enum Reason {
     /// ICE negotiation failure.
     #[serde(rename = "ice_failed")]

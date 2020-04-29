@@ -103,7 +103,7 @@ pub(crate) mod raw {
     /// Begins an SAS key verification process.
     ///
     /// Typically sent as a to-device event.
-    #[derive(Clone, Debug, Deserialize, PartialEq)]
+    #[derive(Clone, Debug, PartialEq, Deserialize)]
     pub struct StartEvent {
         /// The event's content.
         pub content: StartEventContent,

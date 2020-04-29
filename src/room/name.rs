@@ -109,7 +109,7 @@ pub(crate) mod raw {
     use super::*;
 
     /// A human-friendly room name designed to be displayed to the end-user.
-    #[derive(Clone, Debug, Deserialize, PartialEq)]
+    #[derive(Clone, Debug, PartialEq, Deserialize)]
     pub struct NameEvent {
         /// The event's content.
         pub content: NameEventContent,
@@ -139,7 +139,7 @@ pub(crate) mod raw {
     }
 
     /// The payload of a `NameEvent`.
-    #[derive(Clone, Debug, Deserialize, PartialEq)]
+    #[derive(Clone, Debug, PartialEq, Deserialize)]
     pub struct NameEventContent {
         /// The name of the room. This MUST NOT exceed 255 bytes.
         // The spec says "A room with an m.room.name event with an absent, null, or empty name field

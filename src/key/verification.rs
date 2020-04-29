@@ -97,7 +97,7 @@ impl_enum! {
 }
 
 /// A Short Authentication String (SAS) verification method.
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub enum VerificationMethod {
     /// The *m.sas.v1* verification method.
     #[serde(rename = "m.sas.v1")]

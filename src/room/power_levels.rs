@@ -137,7 +137,7 @@ pub(crate) mod raw {
     use super::*;
 
     /// Defines the power levels (privileges) of users in the room.
-    #[derive(Clone, Debug, Deserialize, PartialEq)]
+    #[derive(Clone, Debug, PartialEq, Deserialize)]
     pub struct PowerLevelsEvent {
         /// The event's content.
         pub content: PowerLevelsEventContent,
@@ -167,7 +167,7 @@ pub(crate) mod raw {
     }
 
     /// The payload for `PowerLevelsEvent`.
-    #[derive(Clone, Debug, Deserialize, PartialEq)]
+    #[derive(Clone, Debug, PartialEq, Deserialize)]
     pub struct PowerLevelsEventContent {
         /// The level required to ban a user.
         #[serde(default = "default_power_level")]
@@ -218,7 +218,7 @@ pub(crate) mod raw {
 }
 
 /// The power level requirements for specific notification types.
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub struct NotificationPowerLevels {
     /// The level required to trigger an `@room` notification.
     #[serde(default = "default_power_level")]

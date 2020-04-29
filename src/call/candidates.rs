@@ -25,7 +25,7 @@ ruma_event! {
 }
 
 /// An ICE (Interactive Connectivity Establishment) candidate.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Candidate {
     /// The SDP "a" line of the candidate.
     pub candidate: String,

@@ -31,7 +31,7 @@ ruma_event! {
 ///
 /// For example, some rules may only be applied for messages from a particular sender, a particular
 /// room, or by default. The push ruleset contains the entire set of scopes and rules.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Ruleset {
     /// These rules configure behaviour for (unencrypted) messages that match certain patterns.
     pub content: Vec<PatternedPushRule>,
@@ -56,7 +56,7 @@ pub struct Ruleset {
 ///
 /// These rules are stored on the user's homeserver. They are manually configured by the user, who
 /// can create and view them via the Client/Server API.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct PushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -74,7 +74,7 @@ pub struct PushRule {
 /// Like `PushRule`, but with an additional `conditions` field.
 ///
 /// Only applicable to underride and override rules.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct ConditionalPushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -97,7 +97,7 @@ pub struct ConditionalPushRule {
 /// Like `PushRule`, but with an additional `pattern` field.
 ///
 /// Only applicable to content rules.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct PatternedPushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -229,7 +229,7 @@ impl<'de> Deserialize<'de> for Action {
 }
 
 /// Values for the `set_tweak` action.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "set_tweak")]
 pub enum Tweak {
     /// A string representing the sound to be played when this notification arrives.

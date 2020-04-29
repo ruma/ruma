@@ -29,7 +29,7 @@ ruma_event! {
 }
 
 /// A collection of receipts.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Receipts {
     /// A collection of users who have sent *m.read* receipts for this event.
     #[serde(rename = "m.read")]

@@ -10,7 +10,7 @@ pub mod hangup;
 pub mod invite;
 
 /// A VoIP session description.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct SessionDescription {
     /// The type of session description.
     #[serde(rename = "type")]
@@ -21,7 +21,7 @@ pub struct SessionDescription {
 }
 
 /// The type of VoIP session description.
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub enum SessionDescriptionType {
     /// An answer.
     #[serde(rename = "answer")]

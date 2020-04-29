@@ -17,7 +17,7 @@ ruma_event! {
 }
 
 /// Who can see a room's history.
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub enum HistoryVisibility {
     /// Previous events are accessible to newly joined members from the point they were invited
     /// onwards. Events stop being accessible when the member's state changes to something other

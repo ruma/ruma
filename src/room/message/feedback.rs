@@ -24,7 +24,7 @@ ruma_event! {
 }
 
 /// A type of feedback.
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub enum FeedbackType {
     /// Sent when a message is received.
     #[serde(rename = "delivered")]

@@ -19,7 +19,7 @@ ruma_event! {
 }
 
 /// A policy for guest user access to a room.
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub enum GuestAccess {
     /// Guests are allowed to join the room.
     #[serde(rename = "can_join")]

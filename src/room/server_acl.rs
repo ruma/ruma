@@ -108,7 +108,7 @@ pub(crate) mod raw {
     use super::*;
 
     /// An event to indicate which servers are permitted to participate in the room.
-    #[derive(Clone, Debug, Deserialize, PartialEq)]
+    #[derive(Clone, Debug, PartialEq, Deserialize)]
     pub struct ServerAclEvent {
         /// The event's content.
         pub content: ServerAclEventContent,

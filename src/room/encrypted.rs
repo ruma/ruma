@@ -106,7 +106,7 @@ pub(crate) mod raw {
     ///
     /// This type is to be used within a room. For a to-device event, use `EncryptedEventContent`
     /// directly.
-    #[derive(Clone, Debug, Deserialize, PartialEq)]
+    #[derive(Clone, Debug, PartialEq, Deserialize)]
     pub struct EncryptedEvent {
         /// The event's content.
         pub content: EncryptedEventContent,
@@ -207,7 +207,7 @@ pub struct OlmV1Curve25519AesSha2Content {
 /// Ciphertext information holding the ciphertext and message type.
 ///
 /// Used for messages encrypted with the *m.olm.v1.curve25519-aes-sha2* algorithm.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct CiphertextInfo {
     /// The encrypted payload.
     pub body: String,

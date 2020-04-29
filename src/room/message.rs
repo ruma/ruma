@@ -135,7 +135,7 @@ pub(crate) mod raw {
     use crate::UnsignedData;
 
     /// A message sent to a room.
-    #[derive(Clone, Debug, Deserialize, PartialEq)]
+    #[derive(Clone, Debug, PartialEq, Deserialize)]
     pub struct MessageEvent {
         /// The event's content.
         pub content: MessageEventContent,
@@ -249,7 +249,7 @@ pub(crate) mod raw {
 }
 
 /// The message type of message event, e.g. `m.image` or `m.text`.
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub enum MessageType {
     /// An audio message.
     #[serde(rename = "m.audio")]
@@ -295,7 +295,7 @@ pub enum MessageType {
 }
 
 /// The payload for an audio message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "msgtype", rename = "m.audio")]
 pub struct AudioMessageEventContent {
     /// The textual representation of this message.
@@ -316,7 +316,7 @@ pub struct AudioMessageEventContent {
 }
 
 /// Metadata about an audio clip.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct AudioInfo {
     /// The duration of the audio in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -332,7 +332,7 @@ pub struct AudioInfo {
 }
 
 /// The payload for an emote message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "msgtype", rename = "m.emote")]
 pub struct EmoteMessageEventContent {
     /// The emote action to perform.
@@ -349,7 +349,7 @@ pub struct EmoteMessageEventContent {
 }
 
 /// The payload for a file message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "msgtype", rename = "m.file")]
 pub struct FileMessageEventContent {
     /// A human-readable description of the file. This is recommended to be the filename of the
@@ -375,7 +375,7 @@ pub struct FileMessageEventContent {
 }
 
 /// Metadata about a file.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct FileInfo {
     /// The mimetype of the file, e.g. "application/msword."
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -399,7 +399,7 @@ pub struct FileInfo {
 }
 
 /// The payload for an image message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "msgtype", rename = "m.image")]
 pub struct ImageMessageEventContent {
     /// A textual representation of the image. This could be the alt text of the image, the filename
@@ -421,7 +421,7 @@ pub struct ImageMessageEventContent {
 }
 
 /// The payload for a location message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "msgtype", rename = "m.location")]
 pub struct LocationMessageEventContent {
     /// A description of the location e.g. "Big Ben, London, UK,"or some kind of content description
@@ -437,7 +437,7 @@ pub struct LocationMessageEventContent {
 }
 
 /// Thumbnail info associated with a location.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct LocationInfo {
     /// Metadata about the image referred to in `thumbnail_url` or `thumbnail_file`.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -455,7 +455,7 @@ pub struct LocationInfo {
 }
 
 /// The payload for a notice message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "msgtype", rename = "m.notice")]
 pub struct NoticeMessageEventContent {
     /// The notice text to send.
@@ -468,7 +468,7 @@ pub struct NoticeMessageEventContent {
 }
 
 /// The payload for a server notice message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "msgtype", rename = "m.server_notice")]
 pub struct ServerNoticeMessageEventContent {
     /// A human-readable description of the notice.
@@ -491,7 +491,7 @@ pub struct ServerNoticeMessageEventContent {
 }
 
 /// Types of server notices.
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub enum ServerNoticeType {
     /// The server has exceeded some limit which requires the server administrator to intervene.
     #[serde(rename = "m.server_notice.usage_limit_reached")]
@@ -505,7 +505,7 @@ pub enum ServerNoticeType {
 }
 
 /// Types of usage limits.
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub enum LimitType {
     /// The server's number of active users in the last 30 days has exceeded the maximum.
     ///
@@ -522,7 +522,7 @@ pub enum LimitType {
 }
 
 /// The payload for a text message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "msgtype", rename = "m.text")]
 pub struct TextMessageEventContent {
     /// The body of the message.
@@ -544,7 +544,7 @@ pub struct TextMessageEventContent {
 }
 
 /// The payload for a video message.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "msgtype", rename = "m.video")]
 pub struct VideoMessageEventContent {
     /// A description of the video, e.g. "Gangnam Style," or some kind of content description for
@@ -566,7 +566,7 @@ pub struct VideoMessageEventContent {
 }
 
 /// Metadata about a video.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct VideoInfo {
     /// The duration of the video in milliseconds.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -606,7 +606,7 @@ pub struct VideoInfo {
 
 /// Information about related messages for
 /// [rich replies](https://matrix.org/docs/spec/client_server/r0.5.0#rich-replies).
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct RelatesTo {
     /// Information about another message being replied to.
     #[serde(rename = "m.in_reply_to")]
@@ -614,7 +614,7 @@ pub struct RelatesTo {
 }
 
 /// Information about the event a "rich reply" is replying to.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct InReplyTo {
     /// The event being replied to.
     pub event_id: EventId,

@@ -42,7 +42,7 @@ ruma_event! {
 }
 
 /// A description of a user's connectivity and availability for chat.
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub enum PresenceState {
     /// Disconnected from the service.
     #[serde(rename = "offline")]

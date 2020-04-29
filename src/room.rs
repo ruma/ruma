@@ -28,7 +28,7 @@ pub mod tombstone;
 pub mod topic;
 
 /// Metadata about an image.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct ImageInfo {
     /// The height of the image in pixels.
     #[serde(rename = "h")]
@@ -62,7 +62,7 @@ pub struct ImageInfo {
 }
 
 /// Metadata about a thumbnail.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct ThumbnailInfo {
     /// The height of the thumbnail in pixels.
     #[serde(rename = "h")]
@@ -84,7 +84,7 @@ pub struct ThumbnailInfo {
 }
 
 /// A file sent to a room with end-to-end encryption enabled.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct EncryptedFile {
     /// The URL to the file.
     pub url: String,
@@ -104,7 +104,7 @@ pub struct EncryptedFile {
 }
 
 /// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct JsonWebKey {
     /// Key type. Must be `oct`.
     pub kty: String,
