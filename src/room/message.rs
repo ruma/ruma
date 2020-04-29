@@ -4,8 +4,7 @@ use std::time::SystemTime;
 
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{Deserialize, Deserializer, Serialize};
-use serde_json::{from_value, Value};
+use serde::{Deserialize, Serialize};
 
 use super::{encrypted::EncryptedEventContent, EncryptedFile, ImageInfo, ThumbnailInfo};
 use crate::{EventType, FromRaw, UnsignedData};
@@ -121,7 +120,19 @@ impl FromRaw for MessageEventContent {
 impl_room_event!(MessageEvent, MessageEventContent, EventType::RoomMessage);
 
 pub(crate) mod raw {
-    use super::*;
+    use std::time::SystemTime;
+
+    use ruma_identifiers::{EventId, RoomId, UserId};
+    use serde::{de::DeserializeOwned, Deserialize, Deserializer};
+    use serde_json::{from_value as from_json_value, Value as JsonValue};
+
+    use super::{
+        AudioMessageEventContent, EmoteMessageEventContent, EncryptedEventContent,
+        FileMessageEventContent, ImageMessageEventContent, LocationMessageEventContent,
+        MessageType, NoticeMessageEventContent, ServerNoticeMessageEventContent,
+        TextMessageEventContent, VideoMessageEventContent,
+    };
+    use crate::UnsignedData;
 
     /// A message sent to a room.
     #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -194,95 +205,45 @@ pub(crate) mod raw {
         {
             use serde::de::Error as _;
 
-            let value: Value = Deserialize::deserialize(deserializer)?;
+            fn deserialize_content<T>(
+                c: JsonValue,
+                v: fn(T) -> MessageEventContent,
+            ) -> Result<MessageEventContent, serde_json::Error>
+            where
+                T: DeserializeOwned,
+            {
+                from_json_value::<T>(c).map(v)
+            }
 
-            let message_type_value = match value.get("msgtype") {
+            let content: JsonValue = Deserialize::deserialize(deserializer)?;
+
+            let message_type_value = match content.get("msgtype") {
                 Some(value) => value.clone(),
                 None => return Err(D::Error::missing_field("msgtype")),
             };
 
-            let message_type = match from_value::<MessageType>(message_type_value) {
+            let message_type = match from_json_value::<MessageType>(message_type_value) {
                 Ok(message_type) => message_type,
-                Err(error) => return Err(D::Error::custom(error.to_string())),
+                Err(error) => return Err(D::Error::custom(error)),
             };
 
             match message_type {
-                MessageType::Audio => {
-                    let content = match from_value::<AudioMessageEventContent>(value) {
-                        Ok(content) => content,
-                        Err(error) => return Err(D::Error::custom(error.to_string())),
-                    };
-
-                    Ok(MessageEventContent::Audio(content))
+                MessageType::Audio => deserialize_content(content, Self::Audio),
+                MessageType::Emote => deserialize_content(content, Self::Emote),
+                MessageType::File => deserialize_content(content, Self::File),
+                MessageType::Image => deserialize_content(content, Self::Image),
+                MessageType::Location => deserialize_content(content, Self::Location),
+                MessageType::Notice => deserialize_content(content, Self::Notice),
+                MessageType::ServerNotice => deserialize_content(content, Self::ServerNotice),
+                MessageType::Text => deserialize_content(content, Self::Text),
+                MessageType::Video => deserialize_content(content, Self::Video),
+                MessageType::__Nonexhaustive => {
+                    return Err(D::Error::custom(
+                        "Attempted to deserialize __Nonexhaustive variant.",
+                    ))
                 }
-                MessageType::Emote => {
-                    let content = match from_value::<EmoteMessageEventContent>(value) {
-                        Ok(content) => content,
-                        Err(error) => return Err(D::Error::custom(error.to_string())),
-                    };
-
-                    Ok(MessageEventContent::Emote(content))
-                }
-                MessageType::File => {
-                    let content = match from_value::<FileMessageEventContent>(value) {
-                        Ok(content) => content,
-                        Err(error) => return Err(D::Error::custom(error.to_string())),
-                    };
-
-                    Ok(MessageEventContent::File(content))
-                }
-                MessageType::Image => {
-                    let content = match from_value::<ImageMessageEventContent>(value) {
-                        Ok(content) => content,
-                        Err(error) => return Err(D::Error::custom(error.to_string())),
-                    };
-
-                    Ok(MessageEventContent::Image(content))
-                }
-                MessageType::Location => {
-                    let content = match from_value::<LocationMessageEventContent>(value) {
-                        Ok(content) => content,
-                        Err(error) => return Err(D::Error::custom(error.to_string())),
-                    };
-
-                    Ok(MessageEventContent::Location(content))
-                }
-                MessageType::Notice => {
-                    let content = match from_value::<NoticeMessageEventContent>(value) {
-                        Ok(content) => content,
-                        Err(error) => return Err(D::Error::custom(error.to_string())),
-                    };
-
-                    Ok(MessageEventContent::Notice(content))
-                }
-                MessageType::ServerNotice => {
-                    let content = match from_value::<ServerNoticeMessageEventContent>(value) {
-                        Ok(content) => content,
-                        Err(error) => return Err(D::Error::custom(error.to_string())),
-                    };
-
-                    Ok(MessageEventContent::ServerNotice(content))
-                }
-                MessageType::Text => {
-                    let content = match from_value::<TextMessageEventContent>(value) {
-                        Ok(content) => content,
-                        Err(error) => return Err(D::Error::custom(error.to_string())),
-                    };
-
-                    Ok(MessageEventContent::Text(content))
-                }
-                MessageType::Video => {
-                    let content = match from_value::<VideoMessageEventContent>(value) {
-                        Ok(content) => content,
-                        Err(error) => return Err(D::Error::custom(error.to_string())),
-                    };
-
-                    Ok(MessageEventContent::Video(content))
-                }
-                MessageType::__Nonexhaustive => Err(D::Error::custom(
-                    "Attempted to deserialize __Nonexhaustive variant.",
-                )),
             }
+            .map_err(D::Error::custom)
         }
     }
 }
