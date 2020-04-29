@@ -1,182 +1,26 @@
 //! Types for the *m.room.canonical_alias* event.
 
-use std::{
-    convert::TryFrom,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use ruma_events_macros::ruma_event;
+use ruma_identifiers::RoomAliasId;
 
-use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
-use serde::{
-    ser::{Error, SerializeStruct},
-    Deserialize, Serialize, Serializer,
-};
+use crate::util::empty_string_as_none;
 
-use crate::{util::empty_string_as_none, Event, EventType, FromRaw, UnsignedData};
-
-/// Informs the room as to which alias is the canonical one.
-#[derive(Clone, Debug, PartialEq)]
-pub struct CanonicalAliasEvent {
-    /// The event's content.
-    pub content: CanonicalAliasEventContent,
-
-    /// The unique identifier for the event.
-    pub event_id: EventId,
-
-    /// Time on originating homeserver when this event was sent.
-    pub origin_server_ts: SystemTime,
-
-    /// The previous content for this state key, if any.
-    pub prev_content: Option<CanonicalAliasEventContent>,
-
-    /// The unique identifier for the room associated with this event.
-    pub room_id: Option<RoomId>,
-
-    /// The unique identifier for the user who sent this event.
-    pub sender: UserId,
-
-    /// A key that determines which piece of room state the event represents.
-    pub state_key: String,
-
-    /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: UnsignedData,
-}
-
-/// The payload for `CanonicalAliasEvent`.
-#[derive(Clone, Debug, PartialEq, Serialize)]
-pub struct CanonicalAliasEventContent {
-    /// The canonical alias.
-    ///
-    /// Rooms with `alias: None` should be treated the same as a room with no canonical alias.
-    pub alias: Option<RoomAliasId>,
-}
-
-impl FromRaw for CanonicalAliasEvent {
-    type Raw = raw::CanonicalAliasEvent;
-
-    fn from_raw(raw: raw::CanonicalAliasEvent) -> Self {
-        Self {
-            content: FromRaw::from_raw(raw.content),
-            event_id: raw.event_id,
-            origin_server_ts: raw.origin_server_ts,
-            prev_content: raw.prev_content.map(FromRaw::from_raw),
-            room_id: raw.room_id,
-            sender: raw.sender,
-            state_key: raw.state_key,
-            unsigned: raw.unsigned,
-        }
-    }
-}
-
-impl FromRaw for CanonicalAliasEventContent {
-    type Raw = raw::CanonicalAliasEventContent;
-
-    fn from_raw(raw: raw::CanonicalAliasEventContent) -> Self {
-        Self { alias: raw.alias }
-    }
-}
-
-impl Serialize for CanonicalAliasEvent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut len = 6;
-
-        if self.prev_content.is_some() {
-            len += 1;
-        }
-
-        if self.room_id.is_some() {
-            len += 1;
-        }
-
-        if !self.unsigned.is_empty() {
-            len += 1;
-        }
-
-        let mut state = serializer.serialize_struct("CanonicalAliasEvent", len)?;
-
-        state.serialize_field("content", &self.content)?;
-        state.serialize_field("event_id", &self.event_id)?;
-
-        let origin_server_ts = js_int::UInt::try_from(
-            self.origin_server_ts
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_millis(),
-        )
-        .map_err(S::Error::custom)?;
-        state.serialize_field("origin_server_ts", &origin_server_ts)?;
-
-        if self.prev_content.is_some() {
-            state.serialize_field("prev_content", &self.prev_content)?;
-        }
-
-        if self.room_id.is_some() {
-            state.serialize_field("room_id", &self.room_id)?;
-        }
-
-        state.serialize_field("sender", &self.sender)?;
-        state.serialize_field("state_key", &self.state_key)?;
-        state.serialize_field("type", &self.event_type())?;
-
-        if self.unsigned != UnsignedData::default() {
-            state.serialize_field("unsigned", &self.unsigned)?;
-        }
-
-        state.end()
-    }
-}
-
-impl_state_event!(
-    CanonicalAliasEvent,
-    CanonicalAliasEventContent,
-    EventType::RoomCanonicalAlias
-);
-
-pub(crate) mod raw {
-    use super::*;
-
+ruma_event! {
     /// Informs the room as to which alias is the canonical one.
-    #[derive(Clone, Debug, Deserialize, PartialEq)]
-    pub struct CanonicalAliasEvent {
-        /// The event's content.
-        pub content: CanonicalAliasEventContent,
-
-        /// The unique identifier for the event.
-        pub event_id: EventId,
-
-        /// Time on originating homeserver when this event was sent.
-        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-        pub origin_server_ts: SystemTime,
-
-        /// The previous content for this state key, if any.
-        pub prev_content: Option<CanonicalAliasEventContent>,
-
-        /// The unique identifier for the room associated with this event.
-        pub room_id: Option<RoomId>,
-
-        /// The unique identifier for the user who sent this event.
-        pub sender: UserId,
-
-        /// A key that determines which piece of room state the event represents.
-        pub state_key: String,
-
-        /// Additional key-value pairs not signed by the homeserver.
-        #[serde(default)]
-        pub unsigned: UnsignedData,
-    }
-
-    /// The payload of a `CanonicalAliasEvent`.
-    #[derive(Clone, Debug, Deserialize, PartialEq)]
-    pub struct CanonicalAliasEventContent {
-        /// The canonical alias.
-        ///
-        /// Rooms with `alias: None` should be treated the same as a room with no canonical alias.
-        // The spec says "A room with an m.room.canonical_alias event with an absent, null, or empty
-        // alias field should be treated the same as a room with no m.room.canonical_alias event."
-        #[serde(default, deserialize_with = "empty_string_as_none")]
-        pub alias: Option<RoomAliasId>,
+    CanonicalAliasEvent {
+        kind: StateEvent,
+        event_type: "m.room.canonical_alias",
+        content: {
+            /// The canonical alias.
+            ///
+            /// Rooms with `alias: None` should be treated the same as a room
+            /// with no canonical alias.
+            #[serde(
+                default, deserialize_with = "empty_string_as_none",
+                skip_serializing_if = "Option::is_none"
+            )]
+            pub alias: Option<RoomAliasId>,
+        },
     }
 }
 
