@@ -233,7 +233,11 @@ impl<'de> de::Deserializer<'de> for Part<'de> {
     where
         V: de::Visitor<'de>,
     {
-        visitor.visit_some(self)
+        if self.0 == "null" {
+            visitor.visit_none()
+        } else {
+            visitor.visit_some(self)
+        }
     }
 
     fn deserialize_enum<V>(
@@ -269,6 +273,29 @@ impl<'de> de::Deserializer<'de> for Part<'de> {
         ))
     }
 
+    fn deserialize_struct<V>(
+        self,
+        name: &'static str,
+        fields: &'static [&'static str],
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
+    where
+        V: de::Visitor<'de>,
+    {
+        let pairs = self
+            .1
+            .ok_or_else(|| Error::custom("percent decoding may have failed"))?;
+
+        let raw_json = pairs
+            .get(0)
+            .ok_or_else(|| Error::custom("no value found for nested struct"))?;
+
+        let mut de =
+            serde_json::de::Deserializer::from_reader(raw_json.as_bytes());
+        de.deserialize_struct(name, fields, visitor)
+            .map_err(|e| Error::custom(e.to_string()))
+    }
+
     serde::forward_to_deserialize_any! {
         char
         str
@@ -278,7 +305,6 @@ impl<'de> de::Deserializer<'de> for Part<'de> {
         byte_buf
         unit_struct
         tuple_struct
-        struct
         identifier
         tuple
         ignored_any

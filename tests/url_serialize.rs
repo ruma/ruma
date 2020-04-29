@@ -1,5 +1,6 @@
 use ruma_serde::urlencoded;
 use serde::Serialize;
+use url::form_urlencoded::Serializer as Encoder;
 
 #[derive(Serialize)]
 struct NewType<T>(T);
@@ -189,4 +190,72 @@ fn serialize_map() {
 
     let encoded = urlencoded::to_string(s).unwrap();
     assert_eq!("hello=world&matrix=ruma&seri=alize", encoded);
+}
+
+#[derive(Serialize)]
+struct Nested<T> {
+    item: T,
+}
+
+#[derive(Serialize)]
+struct Inner {
+    c: String,
+    a: usize,
+    b: String,
+}
+
+#[derive(Debug, Serialize, PartialEq)]
+struct InnerList<T> {
+    list: Vec<T>,
+}
+
+#[test]
+fn serialize_nested() {
+    let mut encoder = Encoder::new(String::new());
+
+    let s = Nested {
+        item: Inner {
+            c: "hello".into(),
+            a: 10,
+            b: "bye".into(),
+        },
+    };
+    assert_eq!(
+        encoder
+            .append_pair("item", r#"{"c":"hello","a":10,"b":"bye"}"#)
+            .finish(),
+        urlencoded::to_string(s).unwrap()
+    );
+}
+
+#[test]
+fn serialize_nested_list() {
+    let mut encoder = Encoder::new(String::new());
+
+    let s = Nested {
+        item: InnerList {
+            list: vec![1, 2, 3],
+        },
+    };
+    assert_eq!(
+        encoder.append_pair("item", r#"{"list":[1,2,3]}"#).finish(),
+        urlencoded::to_string(s).unwrap()
+    );
+}
+
+#[test]
+fn serialize_nested_list_option() {
+    let mut encoder = Encoder::new(String::new());
+
+    let s = Nested {
+        item: InnerList {
+            list: vec![Some(1), Some(2), None],
+        },
+    };
+    assert_eq!(
+        encoder
+            .append_pair("item", r#"{"list":[1,2,null]}"#)
+            .finish(),
+        urlencoded::to_string(s).unwrap()
+    );
 }

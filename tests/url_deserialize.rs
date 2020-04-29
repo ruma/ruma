@@ -1,5 +1,6 @@
 use ruma_serde::urlencoded;
 use serde::Deserialize;
+use url::form_urlencoded::Serializer as Encoder;
 
 #[derive(Deserialize, Debug, PartialEq)]
 struct NewType<T>(T);
@@ -182,4 +183,82 @@ fn deserialize_struct_unit_enum() {
     };
 
     assert_eq!(urlencoded::from_str("item=A&item=B&item=C"), Ok(result));
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+struct Nested<T> {
+    item: T,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+struct Inner {
+    c: String,
+    a: usize,
+    b: String,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+struct InnerList<T> {
+    list: Vec<T>,
+}
+
+#[test]
+fn deserialize_nested() {
+    let mut encoder = Encoder::new(String::new());
+
+    let nested = Nested {
+        item: Inner {
+            c: "hello".into(),
+            a: 10,
+            b: "bye".into(),
+        },
+    };
+    assert_eq!(
+        nested,
+        urlencoded::from_str::<Nested<Inner>>(
+            &encoder
+                .append_pair("item", r#"{"c":"hello","a":10,"b":"bye"}"#)
+                .finish(),
+        )
+        .unwrap()
+    );
+}
+
+#[test]
+fn deserialize_nested_list() {
+    let mut encoder = Encoder::new(String::new());
+
+    let nested = Nested {
+        item: InnerList {
+            list: vec![1, 2, 3],
+        },
+    };
+
+    assert_eq!(
+        nested,
+        urlencoded::from_str::<Nested<InnerList<u8>>>(
+            &encoder.append_pair("item", r#"{"list":[1,2,3]}"#).finish(),
+        )
+        .unwrap()
+    );
+}
+
+#[test]
+fn deserialize_nested_list_option() {
+    let mut encoder = Encoder::new(String::new());
+
+    let nested = Nested {
+        item: InnerList {
+            list: vec![Some(1), Some(2), None],
+        },
+    };
+    assert_eq!(
+        nested,
+        urlencoded::from_str::<Nested<InnerList<Option<u8>>>>(
+            &encoder
+                .append_pair("item", r#"{"list":[1,2,null]}"#)
+                .finish(),
+        )
+        .unwrap()
+    );
 }

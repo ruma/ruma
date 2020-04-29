@@ -32,6 +32,8 @@ pub struct PairSerializer<'input, 'target, Target: 'target + UrlEncodedTarget> {
     state: PairState,
     key: Option<&'target Cow<'target, str>>,
     count: &'target mut usize,
+    len: usize,
+    json_buf: String,
 }
 
 impl<'input, 'target, Target> PairSerializer<'input, 'target, Target>
@@ -48,6 +50,8 @@ where
             state: PairState::WaitingForKey,
             key,
             count,
+            len: 0,
+            json_buf: String::new(),
         }
     }
 }
@@ -64,7 +68,7 @@ where
     type SerializeTupleStruct = ser::Impossible<(), Error>;
     type SerializeTupleVariant = ser::Impossible<(), Error>;
     type SerializeMap = ser::Impossible<(), Error>;
-    type SerializeStruct = ser::Impossible<(), Error>;
+    type SerializeStruct = Self;
     type SerializeStructVariant = ser::Impossible<(), Error>;
 
     serialize_pair! {
@@ -177,11 +181,12 @@ where
     }
 
     fn serialize_struct(
-        self,
+        mut self,
         _name: &'static str,
-        _len: usize,
+        len: usize,
     ) -> Result<Self::SerializeStruct> {
-        Err(Error::unsupported_pair())
+        self.len = len;
+        Ok(self)
     }
 
     fn serialize_struct_variant(
@@ -192,6 +197,51 @@ where
         _len: usize,
     ) -> Result<Self::SerializeStructVariant> {
         Err(Error::unsupported_pair())
+    }
+}
+
+impl<'input, 'target, Target> ser::SerializeStruct
+    for PairSerializer<'input, 'target, Target>
+where
+    Target: 'target + UrlEncodedTarget,
+{
+    type Ok = ();
+    type Error = Error;
+
+    fn serialize_field<T: ?Sized>(
+        &mut self,
+        key: &'static str,
+        value: &T,
+    ) -> Result<()>
+    where
+        T: ser::Serialize,
+    {
+        *self.count += 1;
+        if self.json_buf.is_empty() {
+            self.json_buf.push_str("{");
+        }
+        let json_blob = serde_json::to_string(value)
+            .map_err(|e| Error::Custom(e.to_string().into()))?;
+
+        if *self.count == self.len {
+            self.json_buf
+                .push_str(&format!("\"{}\":{}", key, json_blob));
+        } else {
+            self.json_buf
+                .push_str(&format!("\"{}\":{},", key, json_blob));
+        }
+        Ok(())
+    }
+
+    fn end(mut self) -> Result<Self::Ok> {
+        use serde::ser::Serialize;
+
+        self.json_buf.push_str("}");
+        self.json_buf.serialize(PairSerializer::new(
+            self.urlencoder,
+            self.key,
+            &mut self.count,
+        ))
     }
 }
 
