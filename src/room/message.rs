@@ -4,7 +4,7 @@ use std::time::SystemTime;
 
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::{from_value, Value};
 
 use super::{encrypted::EncryptedEventContent, EncryptedFile, ImageInfo, ThumbnailInfo};
@@ -40,7 +40,8 @@ pub struct MessageEvent {
 
 /// The payload for `MessageEvent`.
 #[allow(clippy::large_enum_variant)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum MessageEventContent {
     /// An audio message.
     Audio(AudioMessageEventContent),
@@ -118,31 +119,6 @@ impl FromRaw for MessageEventContent {
 }
 
 impl_room_event!(MessageEvent, MessageEventContent, EventType::RoomMessage);
-
-impl Serialize for MessageEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        use serde::ser::Error as _;
-
-        match *self {
-            MessageEventContent::Audio(ref content) => content.serialize(serializer),
-            MessageEventContent::Emote(ref content) => content.serialize(serializer),
-            MessageEventContent::File(ref content) => content.serialize(serializer),
-            MessageEventContent::Image(ref content) => content.serialize(serializer),
-            MessageEventContent::Location(ref content) => content.serialize(serializer),
-            MessageEventContent::Notice(ref content) => content.serialize(serializer),
-            MessageEventContent::ServerNotice(ref content) => content.serialize(serializer),
-            MessageEventContent::Text(ref content) => content.serialize(serializer),
-            MessageEventContent::Video(ref content) => content.serialize(serializer),
-            MessageEventContent::Encrypted(ref content) => content.serialize(serializer),
-            MessageEventContent::__Nonexhaustive => Err(S::Error::custom(
-                "Attempted to deserialize __Nonexhaustive variant.",
-            )),
-        }
-    }
-}
 
 pub(crate) mod raw {
     use super::*;
@@ -358,7 +334,8 @@ pub enum MessageType {
 }
 
 /// The payload for an audio message.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(tag = "msgtype", rename = "m.audio")]
 pub struct AudioMessageEventContent {
     /// The textual representation of this message.
     pub body: String,
@@ -394,7 +371,8 @@ pub struct AudioInfo {
 }
 
 /// The payload for an emote message.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(tag = "msgtype", rename = "m.emote")]
 pub struct EmoteMessageEventContent {
     /// The emote action to perform.
     pub body: String,
@@ -410,7 +388,8 @@ pub struct EmoteMessageEventContent {
 }
 
 /// The payload for a file message.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(tag = "msgtype", rename = "m.file")]
 pub struct FileMessageEventContent {
     /// A human-readable description of the file. This is recommended to be the filename of the
     /// original upload.
@@ -438,9 +417,11 @@ pub struct FileMessageEventContent {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct FileInfo {
     /// The mimetype of the file, e.g. "application/msword."
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub mimetype: Option<String>,
 
     /// The size of the file in bytes.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<UInt>,
 
     /// Metadata about the image referred to in `thumbnail_url`.
@@ -457,7 +438,8 @@ pub struct FileInfo {
 }
 
 /// The payload for an image message.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(tag = "msgtype", rename = "m.image")]
 pub struct ImageMessageEventContent {
     /// A textual representation of the image. This could be the alt text of the image, the filename
     /// of the image, or some kind of content description for accessibility e.g. "image attachment."
@@ -467,8 +449,9 @@ pub struct ImageMessageEventContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<ImageInfo>,
 
-    /// The URL to the image.  Required if the file is unencrypted. The URL (typically
+    /// The URL to the image. Required if the file is unencrypted. The URL (typically
     /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to the image.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 
     /// Required if image is encrypted. Information on the encrypted image.
@@ -477,7 +460,8 @@ pub struct ImageMessageEventContent {
 }
 
 /// The payload for a location message.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(tag = "msgtype", rename = "m.location")]
 pub struct LocationMessageEventContent {
     /// A description of the location e.g. "Big Ben, London, UK,"or some kind of content description
     /// for accessibility, e.g. "location attachment."
@@ -510,20 +494,21 @@ pub struct LocationInfo {
 }
 
 /// The payload for a notice message.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(tag = "msgtype", rename = "m.notice")]
 pub struct NoticeMessageEventContent {
     /// The notice text to send.
     pub body: String,
 
     /// Information about related messages for
     /// [rich replies](https://matrix.org/docs/spec/client_server/r0.5.0#rich-replies).
-    #[serde(rename = "m.relates_to")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<RelatesTo>,
 }
 
 /// The payload for a server notice message.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(tag = "msgtype", rename = "m.server_notice")]
 pub struct ServerNoticeMessageEventContent {
     /// A human-readable description of the notice.
     pub body: String,
@@ -534,11 +519,13 @@ pub struct ServerNoticeMessageEventContent {
     /// A URI giving a contact method for the server administrator.
     ///
     /// Required if the notice type is `m.server_notice.usage_limit_reached`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub admin_contact: Option<String>,
 
     /// The kind of usage limit the server has exceeded.
     ///
     /// Required if the notice type is `m.server_notice.usage_limit_reached`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit_type: Option<LimitType>,
 }
 
@@ -574,7 +561,8 @@ pub enum LimitType {
 }
 
 /// The payload for a text message.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(tag = "msgtype", rename = "m.text")]
 pub struct TextMessageEventContent {
     /// The body of the message.
     pub body: String,
@@ -590,13 +578,13 @@ pub struct TextMessageEventContent {
 
     /// Information about related messages for
     /// [rich replies](https://matrix.org/docs/spec/client_server/r0.5.0#rich-replies).
-    #[serde(rename = "m.relates_to")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<RelatesTo>,
 }
 
 /// The payload for a video message.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(tag = "msgtype", rename = "m.video")]
 pub struct VideoMessageEventContent {
     /// A description of the video, e.g. "Gangnam Style," or some kind of content description for
     /// accessibility, e.g. "video attachment."
@@ -608,6 +596,7 @@ pub struct VideoMessageEventContent {
 
     /// The URL to the video clip.  Required if the file is unencrypted. The URL (typically
     /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to the video clip.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 
     /// Required if video clip is encrypted. Information on the encrypted video clip.
@@ -693,332 +682,6 @@ impl TextMessageEventContent {
             formatted_body: None,
             relates_to: None,
         }
-    }
-}
-
-impl Serialize for AudioMessageEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut len = 2;
-
-        if self.info.is_some() {
-            len += 1;
-        }
-
-        if self.url.is_some() {
-            len += 1;
-        }
-
-        if self.file.is_some() {
-            len += 1;
-        }
-
-        let mut state = serializer.serialize_struct("AudioMessageEventContent", len)?;
-
-        state.serialize_field("body", &self.body)?;
-
-        if self.info.is_some() {
-            state.serialize_field("info", &self.info)?;
-        }
-
-        state.serialize_field("msgtype", "m.audio")?;
-
-        if self.url.is_some() {
-            state.serialize_field("url", &self.url)?;
-        }
-
-        if self.file.is_some() {
-            state.serialize_field("file", &self.file)?;
-        }
-
-        state.end()
-    }
-}
-
-impl Serialize for EmoteMessageEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut len = 2;
-
-        if self.format.is_some() {
-            len += 1;
-        }
-
-        if self.formatted_body.is_some() {
-            len += 1;
-        }
-
-        let mut state = serializer.serialize_struct("EmoteMessageEventContent", len)?;
-
-        state.serialize_field("body", &self.body)?;
-
-        if self.format.is_some() {
-            state.serialize_field("format", &self.format)?;
-        }
-
-        if self.formatted_body.is_some() {
-            state.serialize_field("formatted_body", &self.formatted_body)?;
-        }
-
-        state.serialize_field("msgtype", "m.emote")?;
-
-        state.end()
-    }
-}
-
-impl Serialize for FileMessageEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut len = 2;
-
-        if self.filename.is_some() {
-            len += 1;
-        }
-
-        if self.info.is_some() {
-            len += 1;
-        }
-
-        if self.url.is_some() {
-            len += 1;
-        }
-
-        if self.file.is_some() {
-            len += 1;
-        }
-
-        let mut state = serializer.serialize_struct("FileMessageEventContent", len)?;
-
-        state.serialize_field("body", &self.body)?;
-
-        if self.filename.is_some() {
-            state.serialize_field("filename", &self.filename)?;
-        }
-
-        state.serialize_field("msgtype", "m.file")?;
-
-        if self.info.is_some() {
-            state.serialize_field("info", &self.info)?;
-        }
-
-        if self.url.is_some() {
-            state.serialize_field("url", &self.url)?;
-        }
-
-        if self.file.is_some() {
-            state.serialize_field("file", &self.file)?;
-        }
-
-        state.end()
-    }
-}
-
-impl Serialize for ImageMessageEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut len = 2;
-
-        if self.info.is_some() {
-            len += 1;
-        }
-
-        if self.url.is_some() {
-            len += 1;
-        }
-
-        if self.file.is_some() {
-            len += 1;
-        }
-
-        let mut state = serializer.serialize_struct("ImageMessageEventContent", len)?;
-
-        state.serialize_field("body", &self.body)?;
-        state.serialize_field("msgtype", "m.image")?;
-
-        if self.info.is_some() {
-            state.serialize_field("info", &self.info)?;
-        }
-
-        if self.url.is_some() {
-            state.serialize_field("url", &self.url)?;
-        }
-
-        if self.file.is_some() {
-            state.serialize_field("file", &self.file)?;
-        }
-
-        state.end()
-    }
-}
-
-impl Serialize for LocationMessageEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut len = 3;
-
-        if self.info.is_some() {
-            len += 1;
-        }
-
-        let mut state = serializer.serialize_struct("LocationMessageEventContent", len)?;
-
-        state.serialize_field("body", &self.body)?;
-        state.serialize_field("geo_uri", &self.geo_uri)?;
-        state.serialize_field("msgtype", "m.location")?;
-
-        if self.info.is_some() {
-            state.serialize_field("info", &self.info)?;
-        }
-
-        state.end()
-    }
-}
-
-impl Serialize for NoticeMessageEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut len = 2;
-
-        if self.relates_to.is_some() {
-            len += 1;
-        }
-
-        let mut state = serializer.serialize_struct("NoticeMessageEventContent", len)?;
-
-        state.serialize_field("body", &self.body)?;
-        state.serialize_field("msgtype", "m.notice")?;
-
-        if self.relates_to.is_some() {
-            state.serialize_field("m.relates_to", &self.relates_to)?;
-        }
-
-        state.end()
-    }
-}
-
-impl Serialize for ServerNoticeMessageEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut len = 3;
-
-        if self.admin_contact.is_some() {
-            len += 1;
-        }
-
-        if self.limit_type.is_some() {
-            len += 1;
-        }
-
-        let mut state = serializer.serialize_struct("ServerNoticeMessageEventContent", len)?;
-
-        state.serialize_field("body", &self.body)?;
-        state.serialize_field("msgtype", "m.server_notice")?;
-        state.serialize_field("server_notice_type", &self.server_notice_type)?;
-
-        if self.admin_contact.is_some() {
-            state.serialize_field("admin_contact", &self.admin_contact)?;
-        }
-
-        if self.limit_type.is_some() {
-            state.serialize_field("limit_type", &self.limit_type)?;
-        }
-
-        state.end()
-    }
-}
-
-impl Serialize for TextMessageEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut len = 2;
-
-        if self.format.is_some() {
-            len += 1;
-        }
-
-        if self.formatted_body.is_some() {
-            len += 1;
-        }
-
-        if self.relates_to.is_some() {
-            len += 1;
-        }
-
-        let mut state = serializer.serialize_struct("TextMessageEventContent", len)?;
-
-        state.serialize_field("body", &self.body)?;
-
-        if self.format.is_some() {
-            state.serialize_field("format", &self.format)?;
-        }
-
-        if self.formatted_body.is_some() {
-            state.serialize_field("formatted_body", &self.formatted_body)?;
-        }
-
-        state.serialize_field("msgtype", "m.text")?;
-
-        if self.relates_to.is_some() {
-            state.serialize_field("m.relates_to", &self.relates_to)?;
-        }
-
-        state.end()
-    }
-}
-
-impl Serialize for VideoMessageEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut len = 2;
-
-        if self.info.is_some() {
-            len += 1;
-        }
-
-        if self.url.is_some() {
-            len += 1;
-        }
-
-        if self.file.is_some() {
-            len += 1;
-        }
-
-        let mut state = serializer.serialize_struct("VideoMessageEventContent", len)?;
-
-        state.serialize_field("body", &self.body)?;
-        state.serialize_field("msgtype", "m.video")?;
-
-        if self.info.is_some() {
-            state.serialize_field("info", &self.info)?;
-        }
-
-        if self.url.is_some() {
-            state.serialize_field("url", &self.url)?;
-        }
-
-        if self.file.is_some() {
-            state.serialize_field("file", &self.file)?;
-        }
-
-        state.end()
     }
 }
 
