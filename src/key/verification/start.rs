@@ -1,8 +1,7 @@
 //! Types for the *m.key.verification.start* event.
 
 use ruma_identifiers::DeviceId;
-use serde::{ser::SerializeStruct, Deserialize, Deserializer, Serialize, Serializer};
-use serde_json::{from_value, Value};
+use serde::{Deserialize, Serialize};
 
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
@@ -14,14 +13,15 @@ use crate::{EventType, InvalidInput, TryFromRaw};
 ///
 /// Typically sent as a to-device event.
 #[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(rename = "m.key.verification.start", tag = "type")]
+#[serde(tag = "type", rename = "m.key.verification.start")]
 pub struct StartEvent {
     /// The event's content.
     pub content: StartEventContent,
 }
 
 /// The payload of an *m.key.verification.start* event.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum StartEventContent {
     /// The *m.sas.v1* verification method.
     MSasV1(MSasV1Content),
@@ -94,20 +94,11 @@ impl TryFromRaw for StartEventContent {
     }
 }
 
-impl Serialize for StartEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match *self {
-            StartEventContent::MSasV1(ref content) => content.serialize(serializer),
-            _ => panic!("Attempted to serialize __Nonexhaustive variant."),
-        }
-    }
-}
-
 pub(crate) mod raw {
-    use super::*;
+    use serde::{Deserialize, Deserializer};
+    use serde_json::{from_value as from_json_value, Value as JsonValue};
+
+    use super::{MSasV1Content, VerificationMethod};
 
     /// Begins an SAS key verification process.
     ///
@@ -137,21 +128,21 @@ pub(crate) mod raw {
         {
             use serde::de::Error as _;
 
-            let value: Value = Deserialize::deserialize(deserializer)?;
+            let value: JsonValue = Deserialize::deserialize(deserializer)?;
 
             let method_value = match value.get("method") {
                 Some(value) => value.clone(),
                 None => return Err(D::Error::missing_field("method")),
             };
 
-            let method = match from_value::<VerificationMethod>(method_value) {
+            let method = match from_json_value::<VerificationMethod>(method_value) {
                 Ok(method) => method,
                 Err(error) => return Err(D::Error::custom(error.to_string())),
             };
 
             match method {
                 VerificationMethod::MSasV1 => {
-                    let content = match from_value::<MSasV1Content>(value) {
+                    let content = match from_json_value::<MSasV1Content>(value) {
                         Ok(content) => content,
                         Err(error) => return Err(D::Error::custom(error.to_string())),
                     };
@@ -167,7 +158,8 @@ pub(crate) mod raw {
 }
 
 /// The payload of an *m.key.verification.start* event using the *m.sas.v1* method.
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(tag = "method", rename = "m.sas.v1")]
 pub struct MSasV1Content {
     /// The device ID which is initiating the process.
     pub(crate) from_device: DeviceId,
@@ -282,31 +274,6 @@ impl MSasV1Content {
             message_authentication_codes: options.message_authentication_codes,
             short_authentication_string: options.short_authentication_string,
         })
-    }
-}
-
-impl Serialize for MSasV1Content {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("MSasV1Content", 2)?;
-
-        state.serialize_field("from_device", &self.from_device)?;
-        state.serialize_field("transaction_id", &self.transaction_id)?;
-        state.serialize_field("method", "m.sas.v1")?;
-        state.serialize_field("key_agreement_protocols", &self.key_agreement_protocols)?;
-        state.serialize_field("hashes", &self.hashes)?;
-        state.serialize_field(
-            "message_authentication_codes",
-            &self.message_authentication_codes,
-        )?;
-        state.serialize_field(
-            "short_authentication_string",
-            &self.short_authentication_string,
-        )?;
-
-        state.end()
     }
 }
 
