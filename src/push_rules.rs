@@ -355,8 +355,10 @@ impl<'de> Deserialize<'de> for PushCondition {
         }
     }
 }
+
 /// A push condition that matches a glob pattern match on a field of the event.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(tag = "kind", rename = "event_match")]
 pub struct EventMatchCondition {
     /// The dot-separated field of the event to match.
     pub key: String,
@@ -368,23 +370,9 @@ pub struct EventMatchCondition {
     pub pattern: String,
 }
 
-impl Serialize for EventMatchCondition {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("EventMatchCondition", 3)?;
-
-        state.serialize_field("key", &self.key)?;
-        state.serialize_field("kind", "event_match")?;
-        state.serialize_field("pattern", &self.pattern)?;
-
-        state.end()
-    }
-}
-
 /// A push condition that matches the current number of members in the room.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(tag = "kind", rename = "room_member_count")]
 pub struct RoomMemberCountCondition {
     /// A decimal integer optionally prefixed by one of `==`, `<`, `>`, `>=` or `<=`.
     ///
@@ -393,43 +381,16 @@ pub struct RoomMemberCountCondition {
     pub is: String,
 }
 
-impl Serialize for RoomMemberCountCondition {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("RoomMemberCountCondition", 2)?;
-
-        state.serialize_field("is", &self.is)?;
-        state.serialize_field("kind", "room_member_count")?;
-
-        state.end()
-    }
-}
-
 /// A push condition that takes into account the current power levels in the room, ensuring the
 /// sender of the event has high enough power to trigger the notification.
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(tag = "kind", rename = "sender_notification_permission")]
 pub struct SenderNotificationPermissionCondition {
     /// The field in the power level event the user needs a minimum power level for.
     ///
     /// Fields must be specified under the `notifications` property in the power level event's
     /// `content`.
     pub key: String,
-}
-
-impl Serialize for SenderNotificationPermissionCondition {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut state = serializer.serialize_struct("SenderNotificationPermissionCondition", 2)?;
-
-        state.serialize_field("key", &self.key)?;
-        state.serialize_field("kind", "sender_notification_permission")?;
-
-        state.end()
-    }
 }
 
 #[cfg(test)]
