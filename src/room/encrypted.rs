@@ -4,8 +4,7 @@ use std::{collections::BTreeMap, time::SystemTime};
 
 use js_int::UInt;
 use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde_json::{from_value, Value};
+use serde::{Deserialize, Serialize};
 
 use crate::{Algorithm, EventType, FromRaw, UnsignedData};
 
@@ -14,7 +13,7 @@ use crate::{Algorithm, EventType, FromRaw, UnsignedData};
 /// This type is to be used within a room. For a to-device event, use `EncryptedEventContent`
 /// directly.
 #[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(rename = "m.room.encrypted", tag = "type")]
+#[serde(tag = "type", rename = "m.room.encrypted")]
 pub struct EncryptedEvent {
     /// The event's content.
     pub content: EncryptedEventContent,
@@ -39,7 +38,8 @@ pub struct EncryptedEvent {
 }
 
 /// The payload for `EncryptedEvent`.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(untagged)]
 pub enum EncryptedEventContent {
     /// An event encrypted with *m.olm.v1.curve25519-aes-sha2*.
     OlmV1Curve25519AesSha2(OlmV1Curve25519AesSha2Content),
@@ -92,23 +92,15 @@ impl_room_event!(
     EventType::RoomEncrypted
 );
 
-impl Serialize for EncryptedEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match *self {
-            EncryptedEventContent::OlmV1Curve25519AesSha2(ref content) => {
-                content.serialize(serializer)
-            }
-            EncryptedEventContent::MegolmV1AesSha2(ref content) => content.serialize(serializer),
-            _ => panic!("Attempted to serialize __Nonexhaustive variant."),
-        }
-    }
-}
-
 pub(crate) mod raw {
-    use super::*;
+    use std::time::SystemTime;
+
+    use ruma_identifiers::{EventId, RoomId, UserId};
+    use serde::{Deserialize, Deserializer};
+    use serde_json::{from_value as from_json_value, Value as JsonValue};
+
+    use super::{MegolmV1AesSha2Content, OlmV1Curve25519AesSha2Content};
+    use crate::{Algorithm, UnsignedData};
 
     /// This event type is used when sending encrypted events.
     ///
@@ -159,21 +151,21 @@ pub(crate) mod raw {
         {
             use serde::de::Error as _;
 
-            let value: Value = Deserialize::deserialize(deserializer)?;
+            let value: JsonValue = Deserialize::deserialize(deserializer)?;
 
             let method_value = match value.get("algorithm") {
                 Some(value) => value.clone(),
                 None => return Err(D::Error::missing_field("algorithm")),
             };
 
-            let method = match from_value::<Algorithm>(method_value) {
+            let method = match from_json_value::<Algorithm>(method_value) {
                 Ok(method) => method,
                 Err(error) => return Err(D::Error::custom(error.to_string())),
             };
 
             match method {
                 Algorithm::OlmV1Curve25519AesSha2 => {
-                    let content = match from_value::<OlmV1Curve25519AesSha2Content>(value) {
+                    let content = match from_json_value::<OlmV1Curve25519AesSha2Content>(value) {
                         Ok(content) => content,
                         Err(error) => return Err(D::Error::custom(error.to_string())),
                     };
@@ -181,7 +173,7 @@ pub(crate) mod raw {
                     Ok(EncryptedEventContent::OlmV1Curve25519AesSha2(content))
                 }
                 Algorithm::MegolmV1AesSha2 => {
-                    let content = match from_value::<MegolmV1AesSha2Content>(value) {
+                    let content = match from_json_value::<MegolmV1AesSha2Content>(value) {
                         Ok(content) => content,
                         Err(error) => return Err(D::Error::custom(error.to_string())),
                     };
