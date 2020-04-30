@@ -17,22 +17,19 @@ ruma_event! {
 
 /// The rule used for users wishing to join this room.
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum JoinRule {
     /// A user who wishes to join the room must first receive an invite to the room from someone
     /// already inside of the room.
-    #[serde(rename = "invite")]
     Invite,
 
     /// Reserved but not yet implemented by the Matrix specification.
-    #[serde(rename = "knock")]
     Knock,
 
     /// Reserved but not yet implemented by the Matrix specification.
-    #[serde(rename = "private")]
     Private,
 
     /// Anyone can join the room without any prior action.
-    #[serde(rename = "public")]
     Public,
 
     /// Additional variants may be added in the future and will not be considered breaking changes

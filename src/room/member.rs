@@ -56,6 +56,8 @@ ruma_event! {
             /// contain information about that invitation.
             #[serde(skip_serializing_if = "Option::is_none")]
             pub third_party_invite: Option<ThirdPartyInvite>,
+
+            // FIXME: spec says there is an unsigned field in content, which seems like an error.
         },
     }
 }
