@@ -4,10 +4,10 @@ Breaking changes:
 
 * Add `server_name` parameter to `r0::join::join_room_by_id_or_alias`
 * Modify `r0::account::AuthenticationData`:
-  - Rename to `AuthData`
-  - Change to an enum to facilitate fallback auth acknowledgements
-  - Add `auth_parameters` field
-  - Move to `r0::uiaa` module
+  * Rename to `AuthData`
+  * Change to an enum to facilitate fallback auth acknowledgements
+  * Add `auth_parameters` field
+  * Move to `r0::uiaa` module
 * Add `room_network` parameter to `r0::directory::get_public_rooms_filtered` to
   represent `include_all_networks` and `third_party_instance_id` Matrix fields
 * Update `r0::account::register` endpoint:
