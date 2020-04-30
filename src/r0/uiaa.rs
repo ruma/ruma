@@ -1,6 +1,9 @@
 //! Module for User-Interactive Authentication API types.
 
-use std::collections::BTreeMap;
+use std::{
+    collections::BTreeMap,
+    fmt::{self, Display, Formatter},
+};
 
 use ruma_api::{error::ResponseDeserializationError, EndpointError};
 use serde::{Deserialize, Serialize};
@@ -72,6 +75,15 @@ pub enum UiaaResponse {
     AuthResponse(UiaaInfo),
     /// Matrix error response
     MatrixError(MatrixError),
+}
+
+impl Display for UiaaResponse {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::AuthResponse(_) => write!(f, "User-Interactive Authentication required."),
+            Self::MatrixError(err) => write!(f, "{}", err),
+        }
+    }
 }
 
 impl From<MatrixError> for UiaaResponse {
