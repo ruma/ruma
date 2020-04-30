@@ -5,6 +5,7 @@ use serde::de::{Deserialize, IntoDeserializer};
 pub mod duration;
 pub mod empty;
 pub mod json_string;
+pub mod test;
 pub mod time;
 pub mod urlencoded;
 
@@ -47,19 +48,4 @@ where
         // TODO: optimize that somehow?
         Some(s) => T::deserialize(s.into_deserializer()).map(Some),
     }
-}
-
-#[cfg(test)]
-use std::fmt::Debug;
-
-#[cfg(test)]
-use serde::{de::DeserializeOwned, Serialize};
-
-#[cfg(test)]
-pub fn serde_json_eq<T>(de: T, se: serde_json::Value)
-where
-    T: Clone + Debug + PartialEq + Serialize + DeserializeOwned,
-{
-    assert_eq!(se, serde_json::to_value(de.clone()).unwrap());
-    assert_eq!(de, serde_json::from_value(se).unwrap());
 }
