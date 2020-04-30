@@ -50,8 +50,8 @@ pub struct RoomV3Pdu {
     pub redacts: Option<EventId>,
     /// Additional data added by the origin server but not covered by the
     /// signatures.
-    #[serde(default, skip_serializing_if = "serde_json::Map::is_empty")]
-    pub unsigned: serde_json::Map<String, JsonValue>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub unsigned: BTreeMap<String, JsonValue>,
     /// Content hashes of the PDU.
     pub hashes: EventHash,
     /// Signatures for the PDU.
