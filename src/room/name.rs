@@ -5,7 +5,7 @@ use std::time::SystemTime;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::{util::empty_string_as_none, EventType, InvalidInput, TryFromRaw, UnsignedData};
+use crate::{EventType, InvalidInput, TryFromRaw, UnsignedData};
 
 /// A human-friendly room name designed to be displayed to the end-user.
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -144,8 +144,7 @@ pub(crate) mod raw {
         /// The name of the room. This MUST NOT exceed 255 bytes.
         // The spec says "A room with an m.room.name event with an absent, null, or empty name field
         // should be treated the same as a room with no m.room.name event."
-        #[serde(default)]
-        #[serde(deserialize_with = "empty_string_as_none")]
+        #[serde(default, deserialize_with = "ruma_serde::empty_string_as_none")]
         pub(crate) name: Option<String>,
     }
 }

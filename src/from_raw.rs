@@ -27,6 +27,14 @@ pub trait TryFromRaw: Sized {
     fn try_from_raw(_: Self::Raw) -> Result<Self, Self::Err>;
 }
 
+impl FromRaw for ruma_serde::empty::Empty {
+    type Raw = Self;
+
+    fn from_raw(raw: Self) -> Self {
+        raw
+    }
+}
+
 impl FromRaw for serde_json::Value {
     type Raw = Self;
 

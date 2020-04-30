@@ -269,10 +269,10 @@ impl From<EventType> for String {
 
 #[cfg(test)]
 mod tests {
+    use ruma_serde::test::serde_json_eq;
     use serde_json::json;
 
     use super::*;
-    use crate::util::serde_json_eq;
 
     #[allow(clippy::cognitive_complexity)]
     #[test]

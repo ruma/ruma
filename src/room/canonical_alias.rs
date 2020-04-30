@@ -3,8 +3,6 @@
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::RoomAliasId;
 
-use crate::util::empty_string_as_none;
-
 ruma_event! {
     /// Informs the room as to which alias is the canonical one.
     CanonicalAliasEvent {
@@ -16,7 +14,7 @@ ruma_event! {
             /// Rooms with `alias: None` should be treated the same as a room
             /// with no canonical alias.
             #[serde(
-                default, deserialize_with = "empty_string_as_none",
+                default, deserialize_with = "ruma_serde::empty_string_as_none",
                 skip_serializing_if = "Option::is_none"
             )]
             pub alias: Option<RoomAliasId>,

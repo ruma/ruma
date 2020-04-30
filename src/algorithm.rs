@@ -64,10 +64,10 @@ impl From<Algorithm> for String {
 
 #[cfg(test)]
 mod tests {
+    use ruma_serde::test::serde_json_eq;
     use serde_json::json;
 
     use super::*;
-    use crate::util::serde_json_eq;
 
     #[test]
     fn serialize_and_deserialize_from_display_form() {

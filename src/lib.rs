@@ -122,16 +122,15 @@ use serde::{Deserialize, Serialize};
 
 use self::room::redaction::RedactionEvent;
 
-pub use self::{
-    custom::{CustomEvent, CustomRoomEvent, CustomStateEvent},
-    empty::Empty,
-};
+pub use self::custom::{CustomEvent, CustomRoomEvent, CustomStateEvent};
+
+#[deprecated = "Use ruma_serde::empty::Empty directly instead."]
+pub use ruma_serde::empty::Empty;
 
 #[macro_use]
 mod macros;
 
 mod algorithm;
-mod empty;
 mod error;
 mod event_type;
 mod from_raw;

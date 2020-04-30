@@ -13,7 +13,7 @@ use serde::{
 };
 use serde_json::{from_value, Value};
 
-use crate::{util::default_true, FromStrError};
+use crate::FromStrError;
 
 ruma_event! {
     /// Describes all push rules for a user.
@@ -230,13 +230,12 @@ impl<'de> Deserialize<'de> for Action {
 
 /// Values for the `set_tweak` action.
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
-#[serde(tag = "set_tweak")]
+#[serde(tag = "set_tweak", rename_all = "lowercase")]
 pub enum Tweak {
     /// A string representing the sound to be played when this notification arrives.
     ///
     /// A value of "default" means to play a default sound. A device may choose to alert the user by
     /// some other means if appropriate, eg. vibration.
-    #[serde(rename = "sound")]
     Sound {
         /// The sound to be played.
         value: String,
@@ -249,10 +248,9 @@ pub enum Tweak {
     /// event occurred. If a `highlight` tweak is given with no value, its value is defined to be
     /// `true`. If no highlight tweak is given at all then the value of `highlight` is defined to be
     /// `false`.
-    #[serde(rename = "highlight")]
     Highlight {
         /// Whether or not the message should be highlighted.
-        #[serde(default = "default_true")]
+        #[serde(default = "ruma_serde::default_true")]
         value: bool,
     },
 }

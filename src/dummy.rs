@@ -1,8 +1,7 @@
 //! Types for the *m.dummy* event.
 
 use ruma_events_macros::ruma_event;
-
-use crate::Empty;
+use ruma_serde::empty::Empty;
 
 ruma_event! {
     /// This event type is used to indicate new Olm sessions for end-to-end encryption.

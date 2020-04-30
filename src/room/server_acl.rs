@@ -5,7 +5,7 @@ use std::time::SystemTime;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::{util::default_true, EventType, FromRaw, UnsignedData};
+use crate::{EventType, FromRaw, UnsignedData};
 
 /// An event to indicate which servers are permitted to participate in the room.
 #[derive(Clone, Debug, PartialEq, Serialize)]
@@ -49,7 +49,7 @@ pub struct ServerAclEventContent {
     /// This is strongly recommended to be set to false as servers running with IP literal names are
     /// strongly discouraged in order to require legitimate homeservers to be backed by a valid
     /// registered domain name.
-    #[serde(default = "default_true")]
+    #[serde(default = "ruma_serde::default_true")]
     pub allow_ip_literals: bool,
 
     /// The server names to allow in the room, excluding any port information. Wildcards may be used
@@ -146,7 +146,7 @@ pub(crate) mod raw {
         /// This is strongly recommended to be set to false as servers running with IP literal names
         /// are strongly discouraged in order to require legitimate homeservers to be backed by a
         /// valid registered domain name.
-        #[serde(default = "default_true")]
+        #[serde(default = "ruma_serde::default_true")]
         pub allow_ip_literals: bool,
 
         /// The server names to allow in the room, excluding any port information. Wildcards may be

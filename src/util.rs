@@ -1,9 +1,6 @@
 use std::fmt::Debug;
 
-use serde::{
-    de::{Deserialize, DeserializeOwned, IntoDeserializer},
-    Serialize,
-};
+use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
 
 use crate::{EventJson, TryFromRaw};
@@ -43,83 +40,6 @@ where
             .ok_or_else(|| E::missing_field(field))?,
     )
     .map_err(serde_json_error_to_generic_de_error)
-}
-
-/// Serde deserialization decorator to map empty Strings to None,
-/// and forward non-empty Strings to the Deserialize implementation for T.
-/// Useful for the typical
-/// "A room with an X event with an absent, null, or empty Y field
-/// should be treated the same as a room with no such event."
-/// formulation in the spec.
-///
-/// To be used like this:
-/// `#[serde(deserialize_with = "empty_string_as_none"]`
-/// Relevant serde issue: https://github.com/serde-rs/serde/issues/1425
-pub fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
-where
-    D: serde::Deserializer<'de>,
-    T: serde::Deserialize<'de>,
-{
-    let opt = Option::<String>::deserialize(de)?;
-    // TODO: Switch to and remove this attribute `opt.as_deref()` once MSRV is >= 1.40
-    #[allow(clippy::option_as_ref_deref, clippy::unknown_clippy_lints)]
-    let opt = opt.as_ref().map(String::as_str);
-    match opt {
-        None | Some("") => Ok(None),
-        // If T = String, like in m.room.name, the second deserialize is actually superfluous.
-        // TODO: optimize that somehow?
-        Some(s) => T::deserialize(s.into_deserializer()).map(Some),
-    }
-}
-
-/// Serde serialization and deserialization functions that map a `Vec<T>` to a `BTreeMap<T, Empty>`.
-///
-/// The Matrix spec sometimes specifies lists as hash maps so the list entries can be expanded with
-/// attributes without breaking compatibility. As that would be a breaking change for ruma's event
-/// types anyway, we convert them to `Vec`s for simplicity, using this module.
-///
-/// To be used as `#[serde(with = "vec_as_map_of_empty")]`.
-pub mod vec_as_map_of_empty {
-    use std::collections::BTreeMap;
-
-    use serde::{Deserialize, Deserializer, Serialize, Serializer};
-
-    use crate::Empty;
-
-    #[allow(clippy::ptr_arg)]
-    pub fn serialize<S, T>(vec: &Vec<T>, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-        T: Serialize + Eq + Ord,
-    {
-        vec.iter()
-            .map(|v| (v, Empty))
-            .collect::<BTreeMap<_, _>>()
-            .serialize(serializer)
-    }
-
-    pub fn deserialize<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
-    where
-        D: Deserializer<'de>,
-        T: Deserialize<'de> + Eq + Ord,
-    {
-        BTreeMap::<T, Empty>::deserialize(deserializer)
-            .map(|hashmap| hashmap.into_iter().map(|(k, _)| k).collect())
-    }
-}
-
-/// Used to default the `bool` fields to `true` during deserialization.
-pub fn default_true() -> bool {
-    true
-}
-
-#[cfg(test)]
-pub fn serde_json_eq<T>(de: T, se: serde_json::Value)
-where
-    T: Clone + Debug + PartialEq + Serialize + DeserializeOwned,
-{
-    assert_eq!(se, serde_json::to_value(de.clone()).unwrap());
-    assert_eq!(de, serde_json::from_value(se).unwrap());
 }
 
 // This would be #[cfg(test)] if it wasn't used from external tests

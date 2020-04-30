@@ -6,8 +6,6 @@ use ruma_events_macros::ruma_event;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::util::default_true;
-
 ruma_event! {
     /// This is the first event in a room and cannot be changed. It acts as the root of all other
     /// events.
@@ -19,8 +17,7 @@ ruma_event! {
             pub creator: UserId,
 
             /// Whether or not this room's data should be transferred to other homeservers.
-            #[serde(rename = "m.federate")]
-            #[serde(default = "default_true")]
+            #[serde(rename = "m.federate", default = "ruma_serde::default_true")]
             pub federate: bool,
 
             /// The version of the room. Defaults to "1" if the key does not exist.
