@@ -1,222 +1,83 @@
 //! Types for the *m.room.power_levels* event.
 
-use std::{collections::BTreeMap, time::SystemTime};
+use std::collections::BTreeMap;
 
 use js_int::Int;
-use ruma_identifiers::{EventId, RoomId, UserId};
+use ruma_events_macros::ruma_event;
+use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
-use crate::{EventType, FromRaw, UnsignedData};
+use crate::EventType;
 
-/// Defines the power levels (privileges) of users in the room.
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(rename = "m.room.power_levels", tag = "type")]
-pub struct PowerLevelsEvent {
-    /// The event's content.
-    pub content: PowerLevelsEventContent,
-
-    /// The unique identifier for the event.
-    pub event_id: EventId,
-
-    /// Time on originating homeserver when this event was sent.
-    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-    pub origin_server_ts: SystemTime,
-
-    /// The previous content for this state key, if any.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub prev_content: Option<PowerLevelsEventContent>,
-
-    /// The unique identifier for the room associated with this event.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub room_id: Option<RoomId>,
-
-    /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if = "ruma_serde::is_default")]
-    pub unsigned: UnsignedData,
-
-    /// The unique identifier for the user who sent this event.
-    pub sender: UserId,
-
-    /// A key that determines which piece of room state the event represents.
-    pub state_key: String,
-}
-
-/// The payload for `PowerLevelsEvent`.
-#[derive(Clone, Debug, PartialEq, Serialize)]
-pub struct PowerLevelsEventContent {
-    /// The level required to ban a user.
-    #[serde(skip_serializing_if = "is_default_power_level")]
-    pub ban: Int,
-
-    /// The level required to send specific event types.
-    ///
-    /// This is a mapping from event type to power level required.
-    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-    pub events: BTreeMap<EventType, Int>,
-
-    /// The default level required to send message events.
-    #[serde(skip_serializing_if = "is_power_level_zero")]
-    pub events_default: Int,
-
-    /// The level required to invite a user.
-    #[serde(skip_serializing_if = "is_default_power_level")]
-    pub invite: Int,
-
-    /// The level required to kick a user.
-    #[serde(skip_serializing_if = "is_default_power_level")]
-    pub kick: Int,
-
-    /// The level required to redact an event.
-    #[serde(skip_serializing_if = "is_default_power_level")]
-    pub redact: Int,
-
-    /// The default level required to send state events.
-    #[serde(skip_serializing_if = "is_default_power_level")]
-    pub state_default: Int,
-
-    /// The power levels for specific users.
-    ///
-    /// This is a mapping from `user_id` to power level for that user.
-    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
-    pub users: BTreeMap<UserId, Int>,
-
-    /// The default power level for every user in the room.
-    #[serde(skip_serializing_if = "is_power_level_zero")]
-    pub users_default: Int,
-
-    /// The power level requirements for specific notification types.
-    ///
-    /// This is a mapping from `key` to power level for that notifications key.
-    #[serde(skip_serializing_if = "NotificationPowerLevels::is_default")]
-    pub notifications: NotificationPowerLevels,
-}
-
-impl FromRaw for PowerLevelsEvent {
-    type Raw = raw::PowerLevelsEvent;
-
-    fn from_raw(raw: raw::PowerLevelsEvent) -> Self {
-        Self {
-            content: FromRaw::from_raw(raw.content),
-            event_id: raw.event_id,
-            origin_server_ts: raw.origin_server_ts,
-            prev_content: raw.prev_content.map(FromRaw::from_raw),
-            room_id: raw.room_id,
-            unsigned: raw.unsigned,
-            sender: raw.sender,
-            state_key: raw.state_key,
-        }
-    }
-}
-
-impl FromRaw for PowerLevelsEventContent {
-    type Raw = raw::PowerLevelsEventContent;
-
-    fn from_raw(raw: raw::PowerLevelsEventContent) -> Self {
-        Self {
-            ban: raw.ban,
-            events: raw.events,
-            events_default: raw.events_default,
-            invite: raw.invite,
-            kick: raw.kick,
-            redact: raw.redact,
-            state_default: raw.state_default,
-            users: raw.users,
-            users_default: raw.users_default,
-            notifications: raw.notifications,
-        }
-    }
-}
-
-impl_state_event!(
-    PowerLevelsEvent,
-    PowerLevelsEventContent,
-    EventType::RoomPowerLevels
-);
-
-pub(crate) mod raw {
-    use super::*;
-
+ruma_event! {
     /// Defines the power levels (privileges) of users in the room.
-    #[derive(Clone, Debug, PartialEq, Deserialize)]
-    pub struct PowerLevelsEvent {
-        /// The event's content.
-        pub content: PowerLevelsEventContent,
+    PowerLevelsEvent {
+        kind: StateEvent,
+        event_type: "m.room.power_levels",
+        content: {
+            /// The level required to ban a user.
+            #[serde(
+                default = "default_power_level",
+                skip_serializing_if = "is_default_power_level"
+            )]
+            pub ban: Int,
 
-        /// The unique identifier for the event.
-        pub event_id: EventId,
+            /// The level required to send specific event types.
+            ///
+            /// This is a mapping from event type to power level required.
+            #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+            pub events: BTreeMap<EventType, Int>,
 
-        /// Time on originating homeserver when this event was sent.
-        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-        pub origin_server_ts: SystemTime,
+            /// The default level required to send message events.
+            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            pub events_default: Int,
 
-        /// The previous content for this state key, if any.
-        pub prev_content: Option<PowerLevelsEventContent>,
+            /// The level required to invite a user.
+            #[serde(
+                default = "default_power_level",
+                skip_serializing_if = "is_default_power_level"
+            )]
+            pub invite: Int,
 
-        /// The unique identifier for the room associated with this event.
-        pub room_id: Option<RoomId>,
+            /// The level required to kick a user.
+            #[serde(
+                default = "default_power_level",
+                skip_serializing_if = "is_default_power_level"
+            )]
+            pub kick: Int,
 
-        /// Additional key-value pairs not signed by the homeserver.
-        #[serde(default)]
-        pub unsigned: UnsignedData,
+            /// The level required to redact an event.
+            #[serde(
+                default = "default_power_level",
+                skip_serializing_if = "is_default_power_level"
+            )]
+            pub redact: Int,
 
-        /// The unique identifier for the user who sent this event.
-        pub sender: UserId,
+            /// The default level required to send state events.
+            #[serde(
+                default = "default_power_level",
+                skip_serializing_if = "is_default_power_level"
+            )]
+            pub state_default: Int,
 
-        /// A key that determines which piece of room state the event represents.
-        pub state_key: String,
-    }
+            /// The power levels for specific users.
+            ///
+            /// This is a mapping from `user_id` to power level for that user.
+            #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+            pub users: BTreeMap<UserId, Int>,
 
-    /// The payload for `PowerLevelsEvent`.
-    #[derive(Clone, Debug, PartialEq, Deserialize)]
-    pub struct PowerLevelsEventContent {
-        /// The level required to ban a user.
-        #[serde(default = "default_power_level")]
-        pub ban: Int,
+            /// The default power level for every user in the room.
+            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+            pub users_default: Int,
 
-        /// The level required to send specific event types.
-        ///
-        /// This is a mapping from event type to power level required.
-        #[serde(default)]
-        pub events: BTreeMap<EventType, Int>,
-
-        /// The default level required to send message events.
-        #[serde(default)]
-        pub events_default: Int,
-
-        /// The level required to invite a user.
-        #[serde(default = "default_power_level")]
-        pub invite: Int,
-
-        /// The level required to kick a user.
-        #[serde(default = "default_power_level")]
-        pub kick: Int,
-
-        /// The level required to redact an event.
-        #[serde(default = "default_power_level")]
-        pub redact: Int,
-
-        /// The default level required to send state events.
-        #[serde(default = "default_power_level")]
-        pub state_default: Int,
-
-        /// The power levels for specific users.
-        ///
-        /// This is a mapping from `user_id` to power level for that user.
-        #[serde(default)]
-        pub users: BTreeMap<UserId, Int>,
-
-        /// The default power level for every user in the room.
-        #[serde(default)]
-        pub users_default: Int,
-
-        /// The power level requirements for specific notification types.
-        ///
-        /// This is a mapping from `key` to power level for that notifications key.
-        #[serde(default)]
-        pub notifications: NotificationPowerLevels,
+            /// The power level requirements for specific notification types.
+            ///
+            /// This is a mapping from `key` to power level for that notifications key.
+            #[serde(default, skip_serializing_if = "NotificationPowerLevels::is_default")]
+            pub notifications: NotificationPowerLevels,
+        },
     }
 }
-
 /// The power level requirements for specific notification types.
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub struct NotificationPowerLevels {
@@ -251,12 +112,6 @@ fn default_power_level() -> Int {
 #[allow(clippy::trivially_copy_pass_by_ref)]
 fn is_default_power_level(l: &Int) -> bool {
     *l == Int::from(50)
-}
-
-/// Used with #[serde(skip_serializing_if)] to omit default power levels.
-#[allow(clippy::trivially_copy_pass_by_ref)]
-fn is_power_level_zero(l: &Int) -> bool {
-    *l == Int::from(0)
 }
 
 #[cfg(test)]
