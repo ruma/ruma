@@ -22,13 +22,12 @@ pub struct SessionDescription {
 
 /// The type of VoIP session description.
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum SessionDescriptionType {
     /// An answer.
-    #[serde(rename = "answer")]
     Answer,
 
     /// An offer.
-    #[serde(rename = "offer")]
     Offer,
 
     /// Additional variants may be added in the future and will not be considered breaking changes
