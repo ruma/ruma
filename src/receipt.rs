@@ -32,8 +32,7 @@ ruma_event! {
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Receipts {
     /// A collection of users who have sent *m.read* receipts for this event.
-    #[serde(rename = "m.read")]
-    #[serde(default)]
+    #[serde(default, rename = "m.read")]
     pub read: Option<UserReceipts>,
 }
 
