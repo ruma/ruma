@@ -25,13 +25,12 @@ ruma_event! {
 
 /// A type of feedback.
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum FeedbackType {
     /// Sent when a message is received.
-    #[serde(rename = "delivered")]
     Delivered,
 
     /// Sent when a message has been observed by the end user.
-    #[serde(rename = "read")]
     Read,
 
     /// Additional variants may be added in the future and will not be considered breaking changes
