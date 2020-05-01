@@ -55,7 +55,6 @@ mod tests {
         assert_eq!(parsed_event.event_id(), event.event_id());
         assert_eq!(parsed_event.room_id(), event.room_id());
         assert_eq!(parsed_event.sender(), event.sender());
-        assert_eq!(parsed_event.unsigned(), event.unsigned());
         assert_eq!(parsed_event.state_key(), event.state_key());
         assert_eq!(parsed_event.origin_server_ts(), event.origin_server_ts());
 

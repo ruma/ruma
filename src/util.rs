@@ -1,9 +1,7 @@
-use std::fmt::Debug;
-
-use serde::{de::DeserializeOwned, Serialize};
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 
-use crate::{EventJson, TryFromRaw};
+use crate::TryFromRaw;
 
 pub fn try_convert_variant<Enum: TryFromRaw, Content: TryFromRaw>(
     variant: fn(Content) -> Enum,
@@ -40,19 +38,4 @@ where
             .ok_or_else(|| E::missing_field(field))?,
     )
     .map_err(serde_json_error_to_generic_de_error)
-}
-
-// This would be #[cfg(test)] if it wasn't used from external tests
-pub fn serde_json_eq_try_from_raw<T>(de: T, se: serde_json::Value)
-where
-    T: Clone + Debug + PartialEq + Serialize + TryFromRaw,
-{
-    assert_eq!(se, serde_json::to_value(de.clone()).unwrap());
-    assert_eq!(
-        de,
-        serde_json::from_value::<EventJson<_>>(se)
-            .unwrap()
-            .deserialize()
-            .unwrap()
-    );
 }

@@ -219,35 +219,19 @@ impl MemberEvent {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        convert::TryFrom,
-        time::{Duration, UNIX_EPOCH},
+    use std::time::{Duration, UNIX_EPOCH};
+
+    use maplit::btreemap;
+    use matches::assert_matches;
+    use serde_json::{from_value as from_json_value, json};
+
+    use super::{
+        MemberEvent, MemberEventContent, MembershipState, SignedContent, ThirdPartyInvite,
     };
-
-    use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde_json::json;
-
-    use super::*;
-    use crate::{util::serde_json_eq_try_from_raw, UnsignedData};
+    use crate::EventJson;
 
     #[test]
     fn serde_with_no_prev_content() {
-        let event = MemberEvent {
-            content: MemberEventContent {
-                avatar_url: None,
-                displayname: None,
-                is_direct: None,
-                membership: MembershipState::Join,
-                third_party_invite: None,
-            },
-            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
-            room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
-            sender: UserId::try_from("@carl:example.com").unwrap(),
-            state_key: "example.com".to_string(),
-            unsigned: UnsignedData::default(),
-            prev_content: None,
-        };
         let json = json!({
             "type": "m.room.member",
             "content": {
@@ -259,33 +243,38 @@ mod tests {
             "sender": "@carl:example.com",
             "state_key": "example.com"
         });
-        serde_json_eq_try_from_raw(event, json);
+
+        assert_matches!(
+            from_json_value::<EventJson<MemberEvent>>(json)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
+            MemberEvent {
+                content: MemberEventContent {
+                    avatar_url: None,
+                    displayname: None,
+                    is_direct: None,
+                    membership: MembershipState::Join,
+                    third_party_invite: None,
+                },
+                event_id,
+                origin_server_ts,
+                room_id: Some(room_id),
+                sender,
+                state_key,
+                unsigned,
+                prev_content: None,
+            } if event_id == "$h29iv0s8:example.com"
+                && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+                && room_id == "!n8f893n9:example.com"
+                && sender == "@carl:example.com"
+                && state_key == "example.com"
+                && unsigned.is_empty()
+        );
     }
 
     #[test]
     fn serde_with_prev_content() {
-        let event = MemberEvent {
-            content: MemberEventContent {
-                avatar_url: None,
-                displayname: None,
-                is_direct: None,
-                membership: MembershipState::Join,
-                third_party_invite: None,
-            },
-            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
-            room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
-            sender: UserId::try_from("@carl:example.com").unwrap(),
-            state_key: "example.com".to_string(),
-            unsigned: UnsignedData::default(),
-            prev_content: Some(MemberEventContent {
-                avatar_url: None,
-                displayname: None,
-                is_direct: None,
-                membership: MembershipState::Join,
-                third_party_invite: None,
-            }),
-        };
         let json = json!({
             "type": "m.room.member",
             "content": {
@@ -300,42 +289,44 @@ mod tests {
             "sender": "@carl:example.com",
             "state_key": "example.com"
         });
-        serde_json_eq_try_from_raw(event, json);
+
+        assert_matches!(
+            from_json_value::<EventJson<MemberEvent>>(json)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
+            MemberEvent {
+                content: MemberEventContent {
+                    avatar_url: None,
+                    displayname: None,
+                    is_direct: None,
+                    membership: MembershipState::Join,
+                    third_party_invite: None,
+                },
+                event_id,
+                origin_server_ts,
+                room_id: Some(room_id),
+                sender,
+                state_key,
+                unsigned,
+                prev_content: Some(MemberEventContent {
+                    avatar_url: None,
+                    displayname: None,
+                    is_direct: None,
+                    membership: MembershipState::Join,
+                    third_party_invite: None,
+                }),
+            } if event_id == "$h29iv0s8:example.com"
+                && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+                && room_id == "!n8f893n9:example.com"
+                && sender == "@carl:example.com"
+                && state_key == "example.com"
+                && unsigned.is_empty()
+        );
     }
 
     #[test]
     fn serde_with_content_full() {
-        let signatures = vec![(
-            "magic.forest".to_owned(),
-            vec![("ed25519:3".to_owned(), "foobar".to_owned())]
-                .into_iter()
-                .collect(),
-        )]
-        .into_iter()
-        .collect();
-        let event = MemberEvent {
-            content: MemberEventContent {
-                avatar_url: Some("mxc://example.org/SEsfnsuifSDFSSEF".to_owned()),
-                displayname: Some("Alice Margatroid".to_owned()),
-                is_direct: Some(true),
-                membership: MembershipState::Invite,
-                third_party_invite: Some(ThirdPartyInvite {
-                    display_name: "alice".to_owned(),
-                    signed: SignedContent {
-                        mxid: UserId::try_from("@alice:example.org").unwrap(),
-                        signatures,
-                        token: "abc123".to_owned(),
-                    },
-                }),
-            },
-            event_id: EventId::try_from("$143273582443PhrSn:example.org").unwrap(),
-            origin_server_ts: UNIX_EPOCH + Duration::from_millis(233),
-            room_id: Some(RoomId::try_from("!jEsUZKDJdhlrceRyVU:example.org").unwrap()),
-            sender: UserId::try_from("@alice:example.org").unwrap(),
-            state_key: "@alice:example.org".to_string(),
-            unsigned: UnsignedData::default(),
-            prev_content: None,
-        };
         let json = json!({
             "type": "m.room.member",
             "content": {
@@ -362,48 +353,51 @@ mod tests {
             "sender": "@alice:example.org",
             "state_key": "@alice:example.org"
         });
-        serde_json_eq_try_from_raw(event, json);
+
+        assert_matches!(
+            from_json_value::<EventJson<MemberEvent>>(json)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
+            MemberEvent {
+                content: MemberEventContent {
+                    avatar_url: Some(avatar_url),
+                    displayname: Some(displayname),
+                    is_direct: Some(true),
+                    membership: MembershipState::Invite,
+                    third_party_invite: Some(ThirdPartyInvite {
+                        display_name: third_party_displayname,
+                        signed: SignedContent { mxid, signatures, token },
+                    }),
+                },
+                event_id,
+                origin_server_ts,
+                room_id: Some(room_id),
+                sender,
+                state_key,
+                unsigned,
+                prev_content: None,
+            } if avatar_url == "mxc://example.org/SEsfnsuifSDFSSEF"
+                && displayname == "Alice Margatroid"
+                && third_party_displayname == "alice"
+                && mxid == "@alice:example.org"
+                && signatures == btreemap! {
+                    "magic.forest".to_owned() => btreemap! {
+                        "ed25519:3".to_owned() => "foobar".to_owned()
+                    }
+                }
+                && token == "abc123"
+                && event_id == "$143273582443PhrSn:example.org"
+                && origin_server_ts == UNIX_EPOCH + Duration::from_millis(233)
+                && room_id == "!jEsUZKDJdhlrceRyVU:example.org"
+                && sender == "@alice:example.org"
+                && state_key == "@alice:example.org"
+                && unsigned.is_empty()
+        )
     }
 
     #[test]
     fn serde_with_prev_content_full() {
-        let signatures = vec![(
-            "magic.forest".to_owned(),
-            vec![("ed25519:3".to_owned(), "foobar".to_owned())]
-                .into_iter()
-                .collect(),
-        )]
-        .into_iter()
-        .collect();
-        let event = MemberEvent {
-            content: MemberEventContent {
-                avatar_url: None,
-                displayname: None,
-                is_direct: None,
-                membership: MembershipState::Join,
-                third_party_invite: None,
-            },
-            event_id: EventId::try_from("$143273582443PhrSn:example.org").unwrap(),
-            origin_server_ts: UNIX_EPOCH + Duration::from_millis(233),
-            room_id: Some(RoomId::try_from("!jEsUZKDJdhlrceRyVU:example.org").unwrap()),
-            sender: UserId::try_from("@alice:example.org").unwrap(),
-            state_key: "@alice:example.org".to_string(),
-            unsigned: UnsignedData::default(),
-            prev_content: Some(MemberEventContent {
-                avatar_url: Some("mxc://example.org/SEsfnsuifSDFSSEF".to_owned()),
-                displayname: Some("Alice Margatroid".to_owned()),
-                is_direct: Some(true),
-                membership: MembershipState::Invite,
-                third_party_invite: Some(ThirdPartyInvite {
-                    display_name: "alice".to_owned(),
-                    signed: SignedContent {
-                        mxid: UserId::try_from("@alice:example.org").unwrap(),
-                        signatures,
-                        token: "abc123".to_owned(),
-                    },
-                }),
-            }),
-        };
         let json = json!({
             "type": "m.room.member",
             "content": {
@@ -433,6 +427,52 @@ mod tests {
             "sender": "@alice:example.org",
             "state_key": "@alice:example.org"
         });
-        serde_json_eq_try_from_raw(event, json);
+
+        assert_matches!(
+            from_json_value::<EventJson<MemberEvent>>(json)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
+            MemberEvent {
+                content: MemberEventContent {
+                    avatar_url: None,
+                    displayname: None,
+                    is_direct: None,
+                    membership: MembershipState::Join,
+                    third_party_invite: None,
+                },
+                event_id,
+                origin_server_ts,
+                room_id: Some(room_id),
+                sender,
+                state_key,
+                unsigned,
+                prev_content: Some(MemberEventContent {
+                    avatar_url: Some(avatar_url),
+                    displayname: Some(displayname),
+                    is_direct: Some(true),
+                    membership: MembershipState::Invite,
+                    third_party_invite: Some(ThirdPartyInvite {
+                        display_name: third_party_displayname,
+                        signed: SignedContent { mxid, signatures, token },
+                    }),
+                }),
+            } if event_id == "$143273582443PhrSn:example.org"
+                && origin_server_ts == UNIX_EPOCH + Duration::from_millis(233)
+                && room_id == "!jEsUZKDJdhlrceRyVU:example.org"
+                && sender == "@alice:example.org"
+                && state_key == "@alice:example.org"
+                && unsigned.is_empty()
+                && avatar_url == "mxc://example.org/SEsfnsuifSDFSSEF"
+                && displayname == "Alice Margatroid"
+                && third_party_displayname == "alice"
+                && mxid == "@alice:example.org"
+                && signatures == btreemap! {
+                    "magic.forest".to_owned() => btreemap! {
+                        "ed25519:3".to_owned() => "foobar".to_owned()
+                    }
+                }
+                && token == "abc123"
+        );
     }
 }

@@ -15,14 +15,15 @@ edition = "2018"
 [dependencies]
 js_int = { version = "0.1.5", features = ["serde"] }
 ruma-events-macros = { path = "ruma-events-macros", version = "=0.21.0-beta.1" }
-ruma-identifiers = "0.16.0"
+ruma-identifiers = "0.16.1"
 ruma-serde = "0.1.2"
 serde = { version = "1.0.106", features = ["derive"] }
 serde_json = { version = "1.0.52", features = ["raw_value"] }
 
 [dev-dependencies]
 maplit = "1.0.2"
-ruma-identifiers = { version = "0.16.0", features = ["rand"] }
+matches = "0.1.8"
+ruma-identifiers = { version = "0.16.1", features = ["rand"] }
 
 [workspace]
 members = [

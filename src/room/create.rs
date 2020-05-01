@@ -50,6 +50,7 @@ fn default_room_version_id() -> RoomVersionId {
 mod tests {
     use std::convert::TryFrom;
 
+    use matches::assert_matches;
     use ruma_identifiers::{RoomVersionId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -76,25 +77,24 @@ mod tests {
 
     #[test]
     fn deserialization() {
-        let content = CreateEventContent {
-            creator: UserId::try_from("@carl:example.com").unwrap(),
-            federate: true,
-            room_version: RoomVersionId::version_4(),
-            predecessor: None,
-        };
-
         let json = json!({
             "creator": "@carl:example.com",
             "m.federate": true,
             "room_version": "4"
         });
 
-        assert_eq!(
+        assert_matches!(
             from_json_value::<EventJson<CreateEventContent>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            content
+            CreateEventContent {
+                creator,
+                federate: true,
+                room_version,
+                predecessor: None,
+            } if creator == "@carl:example.com"
+                && room_version == RoomVersionId::version_4()
         );
     }
 }

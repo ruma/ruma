@@ -5,11 +5,12 @@ use std::{
 };
 
 use js_int::Int;
-use ruma_events::util::serde_json_eq_try_from_raw;
-use ruma_events::UnsignedData;
+use maplit::btreemap;
+use matches::assert_matches;
+use ruma_events::{EventJson, UnsignedData};
 use ruma_events_macros::ruma_event;
-use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
-use serde_json::json;
+use ruma_identifiers::{RoomAliasId, RoomId, UserId};
+use serde_json::{from_value as from_json_value, json};
 
 // See note about wrapping macro expansion in a module from `src/lib.rs`
 mod common_case {
@@ -29,18 +30,6 @@ mod common_case {
 
     #[test]
     fn optional_fields_as_none() {
-        let event = AliasesEvent {
-            content: AliasesEventContent {
-                aliases: Vec::with_capacity(0),
-            },
-            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
-            prev_content: None,
-            room_id: None,
-            sender: UserId::try_from("@carl:example.com").unwrap(),
-            state_key: "example.com".to_string(),
-            unsigned: UnsignedData::default(),
-        };
         let json = json!({
             "content": {
                 "aliases": []
@@ -51,25 +40,32 @@ mod common_case {
             "state_key": "example.com",
             "type": "m.room.aliases"
         });
-        serde_json_eq_try_from_raw(event, json);
+
+        assert_matches!(
+            from_json_value::<EventJson<AliasesEvent>>(json)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
+            AliasesEvent {
+                content: AliasesEventContent { aliases },
+                event_id,
+                origin_server_ts,
+                prev_content: None,
+                room_id: None,
+                sender,
+                state_key,
+                unsigned,
+            } if aliases.is_empty()
+                && event_id == "$h29iv0s8:example.com"
+                && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+                && sender == "@carl:example.com"
+                && state_key == "example.com"
+                && unsigned.is_empty()
+        )
     }
 
     #[test]
     fn some_optional_fields_as_some() {
-        let event = AliasesEvent {
-            content: AliasesEventContent {
-                aliases: vec![RoomAliasId::try_from("#room:example.org").unwrap()],
-            },
-            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
-            prev_content: Some(AliasesEventContent {
-                aliases: Vec::with_capacity(0),
-            }),
-            room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
-            sender: UserId::try_from("@carl:example.com").unwrap(),
-            state_key: "example.com".to_string(),
-            unsigned: UnsignedData::default(),
-        };
         let json = json!({
             "content": {
                 "aliases": ["#room:example.org"]
@@ -84,28 +80,34 @@ mod common_case {
             "state_key": "example.com",
             "type": "m.room.aliases"
         });
-        serde_json_eq_try_from_raw(event, json);
+
+        assert_matches!(
+            from_json_value::<EventJson<AliasesEvent>>(json)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
+            AliasesEvent {
+                content: AliasesEventContent { aliases, },
+                event_id,
+                origin_server_ts,
+                prev_content: Some(AliasesEventContent { aliases: prev_aliases }),
+                room_id: Some(room_id),
+                sender,
+                state_key,
+                unsigned,
+            } if aliases == vec![RoomAliasId::try_from("#room:example.org").unwrap()]
+                && event_id == "$h29iv0s8:example.com"
+                && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+                && prev_aliases.is_empty()
+                && room_id == "!n8f893n9:example.com"
+                && sender == "@carl:example.com"
+                && state_key == "example.com"
+                && unsigned.is_empty()
+        );
     }
 
     #[test]
     fn all_optional_fields_as_some() {
-        let event = AliasesEvent {
-            content: AliasesEventContent {
-                aliases: vec![RoomAliasId::try_from("#room:example.org").unwrap()],
-            },
-            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
-            prev_content: Some(AliasesEventContent {
-                aliases: Vec::with_capacity(0),
-            }),
-            room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
-            sender: UserId::try_from("@carl:example.com").unwrap(),
-            state_key: "example.com".to_string(),
-            unsigned: UnsignedData {
-                age: Some(Int::from(100)),
-                ..UnsignedData::default()
-            },
-        };
         let json = json!({
             "content": {
                 "aliases": ["#room:example.org"]
@@ -123,7 +125,34 @@ mod common_case {
             },
             "type": "m.room.aliases"
         });
-        serde_json_eq_try_from_raw(event, json);
+
+        assert_matches!(
+            from_json_value::<EventJson<AliasesEvent>>(json)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
+            AliasesEvent {
+                content: AliasesEventContent { aliases },
+                event_id,
+                origin_server_ts,
+                prev_content: Some(AliasesEventContent { aliases: prev_aliases }),
+                room_id: Some(room_id),
+                sender,
+                state_key,
+                unsigned: UnsignedData {
+                    age: Some(age),
+                    redacted_because: None,
+                    transaction_id: None,
+                },
+            } if aliases == vec![RoomAliasId::try_from("#room:example.org").unwrap()]
+                && event_id == "$h29iv0s8:example.com"
+                && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+                && prev_aliases.is_empty()
+                && room_id == "!n8f893n9:example.com"
+                && sender == "@carl:example.com"
+                && state_key == "example.com"
+                && age == Int::from(100)
+        );
     }
 }
 
@@ -148,18 +177,6 @@ mod extra_fields {
 
     #[test]
     fn field_serialization_deserialization() {
-        let event = RedactionEvent {
-            content: RedactionEventContent { reason: None },
-            redacts: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
-            room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
-            sender: UserId::try_from("@carl:example.com").unwrap(),
-            unsigned: UnsignedData {
-                age: Some(Int::from(100)),
-                ..UnsignedData::default()
-            },
-        };
         let json = json!({
             "content": {
                 "reason": null
@@ -174,7 +191,31 @@ mod extra_fields {
             },
             "type": "m.room.redaction"
         });
-        serde_json_eq_try_from_raw(event, json);
+
+        assert_matches!(
+            from_json_value::<EventJson<RedactionEvent>>(json)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
+            RedactionEvent {
+                content: RedactionEventContent { reason: None },
+                redacts,
+                event_id,
+                origin_server_ts,
+                room_id: Some(room_id),
+                sender,
+                unsigned: UnsignedData {
+                    age: Some(age),
+                    redacted_because: None,
+                    transaction_id: None,
+                },
+            } if redacts == "$h29iv0s8:example.com"
+                && event_id == "$h29iv0s8:example.com"
+                && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+                && room_id == "!n8f893n9:example.com"
+                && sender == "@carl:example.com"
+                && age == Int::from(100)
+        );
     }
 }
 
@@ -198,31 +239,38 @@ mod type_alias {
 
     #[test]
     fn alias_is_not_empty() {
-        let content = vec![(
-            UserId::try_from("@bob:example.com").unwrap(),
-            vec![RoomId::try_from("!n8f893n9:example.com").unwrap()],
-        )]
-        .into_iter()
-        .collect();
-
-        let event = DirectEvent { content };
         let json = json!({
             "content": {
                 "@bob:example.com": ["!n8f893n9:example.com"]
             },
             "type": "m.direct"
         });
-        serde_json_eq_try_from_raw(event, json);
+
+        let event = from_json_value::<EventJson<DirectEvent>>(json)
+            .unwrap()
+            .deserialize()
+            .unwrap();
+
+        assert_eq!(
+            event.content,
+            btreemap! {
+                UserId::try_from("@bob:example.com").unwrap() => vec![
+                    RoomId::try_from("!n8f893n9:example.com").unwrap()
+                ]
+            }
+        );
     }
 
     #[test]
     fn alias_empty() {
-        let content = Default::default();
-        let event = DirectEvent { content };
         let json = json!({
             "content": {},
             "type": "m.direct"
         });
-        serde_json_eq_try_from_raw(event, json);
+
+        let _ = from_json_value::<EventJson<DirectEvent>>(json)
+            .unwrap()
+            .deserialize()
+            .unwrap();
     }
 }

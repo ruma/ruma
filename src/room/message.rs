@@ -657,6 +657,7 @@ impl TextMessageEventContent {
 
 #[cfg(test)]
 mod tests {
+    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{AudioMessageEventContent, MessageEventContent};
@@ -727,25 +728,23 @@ mod tests {
 
     #[test]
     fn deserialization() {
-        let message_event_content = MessageEventContent::Audio(AudioMessageEventContent {
-            body: "test".to_string(),
-            info: None,
-            url: Some("http://example.com/audio.mp3".to_string()),
-            file: None,
-        });
-
         let json_data = json!({
             "body": "test",
             "msgtype": "m.audio",
             "url": "http://example.com/audio.mp3"
         });
 
-        assert_eq!(
+        assert_matches!(
             from_json_value::<EventJson<MessageEventContent>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            message_event_content
+            MessageEventContent::Audio(AudioMessageEventContent {
+                body,
+                info: None,
+                url: Some(url),
+                file: None,
+            }) if body == "test" && url == "http://example.com/audio.mp3"
         );
     }
 

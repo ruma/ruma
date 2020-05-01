@@ -238,13 +238,14 @@ pub struct MegolmV1AesSha2Content {
 
 #[cfg(test)]
 mod tests {
+    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{Algorithm, EncryptedEventContent, MegolmV1AesSha2Content};
     use crate::EventJson;
 
     #[test]
-    fn serializtion() {
+    fn serialization() {
         let key_verification_start_content =
             EncryptedEventContent::MegolmV1AesSha2(MegolmV1AesSha2Content {
                 algorithm: Algorithm::MegolmV1AesSha2,
@@ -270,15 +271,6 @@ mod tests {
 
     #[test]
     fn deserialization() {
-        let key_verification_start_content =
-            EncryptedEventContent::MegolmV1AesSha2(MegolmV1AesSha2Content {
-                algorithm: Algorithm::MegolmV1AesSha2,
-                ciphertext: "ciphertext".to_string(),
-                sender_key: "sender_key".to_string(),
-                device_id: "device_id".to_string(),
-                session_id: "session_id".to_string(),
-            });
-
         let json_data = json!({
             "algorithm": "m.megolm.v1.aes-sha2",
             "ciphertext": "ciphertext",
@@ -287,12 +279,21 @@ mod tests {
             "session_id": "session_id"
         });
 
-        assert_eq!(
+        assert_matches!(
             from_json_value::<EventJson<EncryptedEventContent>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            key_verification_start_content
+            EncryptedEventContent::MegolmV1AesSha2(MegolmV1AesSha2Content {
+                algorithm: Algorithm::MegolmV1AesSha2,
+                ciphertext,
+                sender_key,
+                device_id,
+                session_id,
+            }) if ciphertext == "ciphertext"
+                && sender_key == "sender_key"
+                && device_id == "device_id"
+                && session_id == "session_id"
         );
     }
 

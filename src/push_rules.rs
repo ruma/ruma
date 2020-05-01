@@ -393,6 +393,7 @@ pub struct SenderNotificationPermissionCondition {
 
 #[cfg(test)]
 mod tests {
+    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{
@@ -410,13 +411,10 @@ mod tests {
     fn serialize_tweak_sound_action() {
         assert_eq!(
             to_json_value(&Action::SetTweak(Tweak::Sound {
-                value: "default".to_string()
+                value: "default".into()
             }))
             .unwrap(),
-            json!({
-                "set_tweak": "sound",
-                "value": "default"
-            })
+            json!({ "set_tweak": "sound", "value": "default" })
         );
     }
 
@@ -424,13 +422,13 @@ mod tests {
     fn serialize_tweak_highlight_action() {
         assert_eq!(
             to_json_value(&Action::SetTweak(Tweak::Highlight { value: true })).unwrap(),
-            json!({"set_tweak": "highlight", "value": true})
+            json!({ "set_tweak": "highlight", "value": true })
         );
     }
 
     #[test]
     fn deserialize_string_action() {
-        assert_eq!(
+        assert_matches!(
             from_json_value::<Action>(json!("notify")).unwrap(),
             Action::Notify
         );
@@ -442,11 +440,9 @@ mod tests {
             "set_tweak": "sound",
             "value": "default"
         });
-        assert_eq!(
-            from_json_value::<Action>(json_data).unwrap(),
-            Action::SetTweak(Tweak::Sound {
-                value: "default".to_string()
-            })
+        assert_matches!(
+            &from_json_value::<Action>(json_data).unwrap(),
+            Action::SetTweak(Tweak::Sound { value }) if value == "default"
         );
     }
 
@@ -456,7 +452,7 @@ mod tests {
             "set_tweak": "highlight",
             "value": true
         });
-        assert_eq!(
+        assert_matches!(
             from_json_value::<Action>(json_data).unwrap(),
             Action::SetTweak(Tweak::Highlight { value: true })
         );
@@ -464,8 +460,8 @@ mod tests {
 
     #[test]
     fn deserialize_tweak_highlight_action_with_default_value() {
-        assert_eq!(
-            from_json_value::<Action>(json!({"set_tweak": "highlight"})).unwrap(),
+        assert_matches!(
+            from_json_value::<Action>(json!({ "set_tweak": "highlight" })).unwrap(),
             Action::SetTweak(Tweak::Highlight { value: true })
         );
     }
@@ -534,20 +530,18 @@ mod tests {
             "kind": "event_match",
             "pattern": "m.notice"
         });
-        assert_eq!(
+        assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::EventMatch(EventMatchCondition {
-                key: "content.msgtype".to_string(),
-                pattern: "m.notice".to_string(),
-            })
+            PushCondition::EventMatch(EventMatchCondition { key, pattern })
+            if key == "content.msgtype" && pattern == "m.notice"
         );
     }
 
     #[test]
     fn deserialize_contains_display_name_condition() {
-        assert_eq!(
+        assert_matches!(
             from_json_value::<PushCondition>(json!({"kind": "contains_display_name"})).unwrap(),
-            PushCondition::ContainsDisplayName,
+            PushCondition::ContainsDisplayName
         );
     }
 
@@ -557,11 +551,10 @@ mod tests {
             "is": "2",
             "kind": "room_member_count"
         });
-        assert_eq!(
+        assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::RoomMemberCount(RoomMemberCountCondition {
-                is: "2".to_string(),
-            })
+            PushCondition::RoomMemberCount(RoomMemberCountCondition { is })
+            if is == "2"
         );
     }
 
@@ -571,11 +564,11 @@ mod tests {
             "key": "room",
             "kind": "sender_notification_permission"
         });
-        assert_eq!(
+        assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
             PushCondition::SenderNotificationPermission(SenderNotificationPermissionCondition {
-                key: "room".to_string(),
-            })
+                key
+            }) if key == "room"
         );
     }
 
@@ -586,196 +579,197 @@ mod tests {
             "content": {
                 "global": {
                     "content": [
-                    {
-                        "actions": [
-                            "notify",
-                            {
-                                "set_tweak": "sound",
-                                "value": "default"
-                            },
-                            {
-                                "set_tweak": "highlight"
-                            }
-                        ],
-                        "default": true,
-                        "enabled": true,
-                        "pattern": "alice",
-                        "rule_id": ".m.rule.contains_user_name"
-                    }
+                        {
+                            "actions": [
+                                "notify",
+                                {
+                                    "set_tweak": "sound",
+                                    "value": "default"
+                                },
+                                {
+                                    "set_tweak": "highlight"
+                                }
+                            ],
+                            "default": true,
+                            "enabled": true,
+                            "pattern": "alice",
+                            "rule_id": ".m.rule.contains_user_name"
+                        }
                     ],
                     "override": [
-                    {
-                        "actions": [
-                            "dont_notify"
-                        ],
-                        "conditions": [],
-                        "default": true,
-                        "enabled": false,
-                        "rule_id": ".m.rule.master"
-                    },
-                    {
-                        "actions": [
-                            "dont_notify"
-                        ],
-                        "conditions": [
                         {
-                            "key": "content.msgtype",
-                            "kind": "event_match",
-                            "pattern": "m.notice"
+                            "actions": [
+                                "dont_notify"
+                            ],
+                            "conditions": [],
+                            "default": true,
+                            "enabled": false,
+                            "rule_id": ".m.rule.master"
+                        },
+                        {
+                            "actions": [
+                                "dont_notify"
+                            ],
+                            "conditions": [
+                            {
+                                "key": "content.msgtype",
+                                "kind": "event_match",
+                                "pattern": "m.notice"
+                            }
+                            ],
+                            "default": true,
+                            "enabled": true,
+                            "rule_id": ".m.rule.suppress_notices"
                         }
-                        ],
-                        "default": true,
-                        "enabled": true,
-                        "rule_id": ".m.rule.suppress_notices"
-                    }
                     ],
                     "room": [],
                     "sender": [],
                     "underride": [
-                    {
-                        "actions": [
-                            "notify",
-                            {
-                                "set_tweak": "sound",
-                                "value": "ring"
-                            },
-                            {
-                                "set_tweak": "highlight",
-                                "value": false
-                            }
-                        ],
-                        "conditions": [
                         {
-                            "key": "type",
-                            "kind": "event_match",
-                            "pattern": "m.call.invite"
-                        }
-                        ],
-                        "default": true,
-                        "enabled": true,
-                        "rule_id": ".m.rule.call"
-                    },
-                    {
-                        "actions": [
-                            "notify",
+                            "actions": [
+                                "notify",
+                                {
+                                    "set_tweak": "sound",
+                                    "value": "ring"
+                                },
+                                {
+                                    "set_tweak": "highlight",
+                                    "value": false
+                                }
+                            ],
+                            "conditions": [
                             {
-                                "set_tweak": "sound",
-                                "value": "default"
-                            },
-                            {
-                                "set_tweak": "highlight"
+                                "key": "type",
+                                "kind": "event_match",
+                                "pattern": "m.call.invite"
                             }
-                        ],
-                        "conditions": [
-                        {
-                            "kind": "contains_display_name"
-                        }
-                        ],
-                        "default": true,
-                        "enabled": true,
-                        "rule_id": ".m.rule.contains_display_name"
-                    },
-                    {
-                        "actions": [
-                            "notify",
-                            {
-                                "set_tweak": "sound",
-                                "value": "default"
-                            },
-                            {
-                                "set_tweak": "highlight",
-                                "value": false
-                            }
-                        ],
-                        "conditions": [
-                        {
-                            "is": "2",
-                            "kind": "room_member_count"
-                        }
-                        ],
-                        "default": true,
-                        "enabled": true,
-                        "rule_id": ".m.rule.room_one_to_one"
-                    },
-                    {
-                        "actions": [
-                            "notify",
-                            {
-                                "set_tweak": "sound",
-                                "value": "default"
-                            },
-                            {
-                                "set_tweak": "highlight",
-                                "value": false
-                            }
-                        ],
-                        "conditions": [
-                        {
-                            "key": "type",
-                            "kind": "event_match",
-                            "pattern": "m.room.member"
+                            ],
+                            "default": true,
+                            "enabled": true,
+                            "rule_id": ".m.rule.call"
                         },
                         {
-                            "key": "content.membership",
-                            "kind": "event_match",
-                            "pattern": "invite"
+                            "actions": [
+                                "notify",
+                                {
+                                    "set_tweak": "sound",
+                                    "value": "default"
+                                },
+                                {
+                                    "set_tweak": "highlight"
+                                }
+                            ],
+                            "conditions": [
+                                {
+                                    "kind": "contains_display_name"
+                                }
+                            ],
+                            "default": true,
+                            "enabled": true,
+                            "rule_id": ".m.rule.contains_display_name"
                         },
                         {
-                            "key": "state_key",
-                            "kind": "event_match",
-                            "pattern": "@alice:example.com"
-                        }
-                        ],
-                        "default": true,
-                        "enabled": true,
-                        "rule_id": ".m.rule.invite_for_me"
-                    },
-                    {
-                        "actions": [
-                            "notify",
+                            "actions": [
+                                "notify",
+                                {
+                                    "set_tweak": "sound",
+                                    "value": "default"
+                                },
+                                {
+                                    "set_tweak": "highlight",
+                                    "value": false
+                                }
+                            ],
+                            "conditions": [
                             {
-                                "set_tweak": "highlight",
-                                "value": false
+                                "is": "2",
+                                "kind": "room_member_count"
                             }
-                        ],
-                        "conditions": [
+                            ],
+                            "default": true,
+                            "enabled": true,
+                            "rule_id": ".m.rule.room_one_to_one"
+                        },
                         {
-                            "key": "type",
-                            "kind": "event_match",
-                            "pattern": "m.room.member"
-                        }
-                        ],
-                        "default": true,
-                        "enabled": true,
-                        "rule_id": ".m.rule.member_event"
-                    },
-                    {
-                        "actions": [
-                            "notify",
+                            "actions": [
+                                "notify",
+                                {
+                                    "set_tweak": "sound",
+                                    "value": "default"
+                                },
+                                {
+                                    "set_tweak": "highlight",
+                                    "value": false
+                                }
+                            ],
+                            "conditions": [
                             {
-                                "set_tweak": "highlight",
-                                "value": false
+                                "key": "type",
+                                "kind": "event_match",
+                                "pattern": "m.room.member"
+                            },
+                            {
+                                "key": "content.membership",
+                                "kind": "event_match",
+                                "pattern": "invite"
+                            },
+                            {
+                                "key": "state_key",
+                                "kind": "event_match",
+                                "pattern": "@alice:example.com"
                             }
-                        ],
-                        "conditions": [
+                            ],
+                            "default": true,
+                            "enabled": true,
+                            "rule_id": ".m.rule.invite_for_me"
+                        },
                         {
-                            "key": "type",
-                            "kind": "event_match",
-                            "pattern": "m.room.message"
+                            "actions": [
+                                "notify",
+                                {
+                                    "set_tweak": "highlight",
+                                    "value": false
+                                }
+                            ],
+                            "conditions": [
+                            {
+                                "key": "type",
+                                "kind": "event_match",
+                                "pattern": "m.room.member"
+                            }
+                            ],
+                            "default": true,
+                            "enabled": true,
+                            "rule_id": ".m.rule.member_event"
+                        },
+                        {
+                            "actions": [
+                                "notify",
+                                {
+                                    "set_tweak": "highlight",
+                                    "value": false
+                                }
+                            ],
+                            "conditions": [
+                                {
+                                    "key": "type",
+                                    "kind": "event_match",
+                                    "pattern": "m.room.message"
+                                }
+                            ],
+                            "default": true,
+                            "enabled": true,
+                            "rule_id": ".m.rule.message"
                         }
-                        ],
-                        "default": true,
-                        "enabled": true,
-                        "rule_id": ".m.rule.message"
-                    }
                     ]
                 }
             },
             "type": "m.push_rules"
         });
-        assert!(from_json_value::<EventJson<PushRulesEvent>>(json_data)
+
+        let _ = from_json_value::<EventJson<PushRulesEvent>>(json_data)
             .unwrap()
             .deserialize()
-            .is_ok());
+            .unwrap();
     }
 }
