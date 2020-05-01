@@ -145,7 +145,8 @@ pub struct LeftRoom {
     /// The state updates for the room up to the start of the timeline.
     pub state: State,
     /// The private data that this user has attached to this room.
-    pub account_data: AccountData,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub account_data: Option<AccountData>,
 }
 
 /// Updates to joined rooms.
@@ -163,7 +164,8 @@ pub struct JoinedRoom {
     /// given, or `full_state` is true).
     pub state: State,
     /// The private data that this user has attached to this room.
-    pub account_data: AccountData,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub account_data: Option<AccountData>,
     /// The ephemeral events in the room that aren't recorded in the timeline or state of the
     /// room. e.g. typing.
     pub ephemeral: Ephemeral,
