@@ -64,25 +64,21 @@ ruma_event! {
 
 /// The membership state of a user.
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum MembershipState {
     /// The user is banned.
-    #[serde(rename = "ban")]
     Ban,
 
     /// The user has been invited.
-    #[serde(rename = "invite")]
     Invite,
 
     /// The user has joined.
-    #[serde(rename = "join")]
     Join,
 
     /// The user has requested to join.
-    #[serde(rename = "knock")]
     Knock,
 
     /// The user has left.
-    #[serde(rename = "leave")]
     Leave,
 
     /// Additional variants may be added in the future and will not be considered breaking changes
