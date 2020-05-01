@@ -8,7 +8,7 @@ authors = [
     "Isaiah Inuwa <isaiah.inuwa@gmail.com>",
     "Anthony Ramine <n.oxyde@gmail.com>",
 ]
-version = "0.1.2"
+version = "0.1.3"
 repository = "https://github.com/ruma/ruma-serde"
 edition = "2018"
 

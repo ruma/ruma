@@ -23,6 +23,13 @@ pub fn default_true() -> bool {
     true
 }
 
+/// Simplfy dereferences the given bool.
+///
+/// Useful for `#[serde(skip_serializing_if = ...)]`
+pub fn is_true(b: &bool) -> bool {
+    *b
+}
+
 /// Serde deserialization decorator to map empty Strings to None,
 /// and forward non-empty Strings to the Deserialize implementation for T.
 /// Useful for the typical
