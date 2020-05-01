@@ -26,6 +26,7 @@ Breaking changes:
 * Add `M_USER_DEACTIVATED` to `error::ErrorKind`
 * Make `display_name` field of `r0::membership::joined_events::RoomMember` optional
 * Update `r0::search::search_events` to r0.6.0
+* Add `account_data` field to `r0::sync::sync_events`
 
 Improvements:
 

@@ -66,6 +66,8 @@ ruma_api! {
         pub rooms: Rooms,
         /// Updates to the presence status of other users.
         pub presence: Presence,
+        /// The global private data created by this user.
+        pub account_data: AccountData,
         /// Messages sent dirrectly between devices.
         #[serde(default, skip_serializing_if = "ToDevice::is_empty")]
         pub to_device: ToDevice,
@@ -223,12 +225,18 @@ pub struct RoomSummary {
     /// Number of users whose membership status is `join`.
     /// Required if field has changed since last sync; otherwise, it may be
     /// omitted.
-    #[serde(rename = "m.joined_member_count")]
+    #[serde(
+        rename = "m.joined_member_count",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub joined_member_count: Option<UInt>,
     /// Number of users whose membership status is `invite`.
     /// Required if field has changed since last sync; otherwise, it may be
     /// omitted.
-    #[serde(rename = "m.invited_member_count")]
+    #[serde(
+        rename = "m.invited_member_count",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub invited_member_count: Option<UInt>,
 }
 
