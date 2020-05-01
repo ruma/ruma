@@ -1,0 +1,16 @@
+[package]
+name = "ruma-common"
+version = "0.1.0"
+authors = ["Jonas Platte <jplatte@posteo.de>"]
+description = "Common types for other ruma crates."
+homepage = "https://github.com/ruma/ruma-common"
+keywords = ["matrix", "chat", "messaging", "ruma"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/ruma/ruma-client-api"
+edition = "2018"
+
+[dependencies]
+ruma-serde = "0.1.2"
+serde = { version = "1.0.106", features = ["derive"] }
+serde_json = { version = "1.0.52", features = ["raw_value"] }
