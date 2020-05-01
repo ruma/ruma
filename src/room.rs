@@ -31,13 +31,11 @@ pub mod topic;
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct ImageInfo {
     /// The height of the image in pixels.
-    #[serde(rename = "h")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "h", skip_serializing_if = "Option::is_none")]
     pub height: Option<UInt>,
 
     /// The width of the image in pixels.
-    #[serde(rename = "w")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "w", skip_serializing_if = "Option::is_none")]
     pub width: Option<UInt>,
 
     /// The MIME type of the image, e.g. "image/png."
@@ -65,13 +63,11 @@ pub struct ImageInfo {
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct ThumbnailInfo {
     /// The height of the thumbnail in pixels.
-    #[serde(rename = "h")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "h", skip_serializing_if = "Option::is_none")]
     pub height: Option<UInt>,
 
     /// The width of the thumbnail in pixels.
-    #[serde(rename = "w")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "w", skip_serializing_if = "Option::is_none")]
     pub width: Option<UInt>,
 
     /// The MIME type of the thumbnail, e.g. "image/png."
