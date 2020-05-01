@@ -18,6 +18,7 @@ ruma_event! {
             pub version: UInt,
 
             /// Optional error reason for the hangup.
+            #[serde(skip_serializing_if = "Option::is_none")]
             pub reason: Option<Reason>,
         },
     }
@@ -29,13 +30,12 @@ ruma_event! {
 /// error in the call negotiation, this should be `ice_failed` for when ICE negotiation fails or
 /// `invite_timeout` for when the other party did not answer in time.
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Reason {
     /// ICE negotiation failure.
-    #[serde(rename = "ice_failed")]
     IceFailed,
 
     /// Party did not answer in time.
-    #[serde(rename = "invite_timeout")]
     InviteTimeout,
 
     /// Additional variants may be added in the future and will not be considered breaking changes
