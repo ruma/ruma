@@ -1,5 +1,13 @@
 # [unreleased]
 
+# 0.16.1
+
+Bug fixes:
+
+* Change `PartialEq` implementations to compare IDs with string literals from `str` to `&str`
+  * This is technically a breaking change, but the previous implementations were extremely
+    unlikely to actually be used
+
 # 0.16.0
 
 Breaking changes:

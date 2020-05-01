@@ -218,15 +218,15 @@ impl TryFrom<String> for RoomVersionId {
     }
 }
 
-impl PartialEq<str> for RoomVersionId {
-    fn eq(&self, other: &str) -> bool {
-        self.as_ref() == other
+impl PartialEq<&str> for RoomVersionId {
+    fn eq(&self, other: &&str) -> bool {
+        self.as_ref() == *other
     }
 }
 
-impl PartialEq<RoomVersionId> for str {
+impl PartialEq<RoomVersionId> for &str {
     fn eq(&self, other: &RoomVersionId) -> bool {
-        self == other.as_ref()
+        *self == other.as_ref()
     }
 }
 
