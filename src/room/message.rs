@@ -461,6 +461,15 @@ pub struct NoticeMessageEventContent {
     /// The notice text to send.
     pub body: String,
 
+    /// The format used in the `formatted_body`. Currently only `org.matrix.custom.html` is
+    /// supported.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub format: Option<String>,
+
+    /// The formatted version of the `body`. This is required if `format` is specified.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub formatted_body: Option<String>,
+
     /// Information about related messages for
     /// [rich replies](https://matrix.org/docs/spec/client_server/r0.5.0#rich-replies).
     #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
