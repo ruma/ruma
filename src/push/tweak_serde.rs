@@ -23,6 +23,10 @@ pub struct SoundTweak {
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "set_tweak", rename = "highlight")]
 pub struct HighlightTweak {
+    #[serde(
+        default = "ruma_serde::default_true",
+        skip_serializing_if = "ruma_serde::is_true"
+    )]
     value: bool,
 }
 
