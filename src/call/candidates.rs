@@ -26,15 +26,14 @@ ruma_event! {
 
 /// An ICE (Interactive Connectivity Establishment) candidate.
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Candidate {
     /// The SDP "a" line of the candidate.
     pub candidate: String,
 
     /// The SDP media type this candidate is intended for.
-    #[serde(rename = "sdpMid")]
     pub sdp_mid: String,
 
     /// The index of the SDP "m" line this candidate is intended for.
-    #[serde(rename = "sdpMLineIndex")]
     pub sdp_m_line_index: UInt,
 }
