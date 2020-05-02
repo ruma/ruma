@@ -70,6 +70,7 @@ pub(crate) mod raw {
 mod tests {
     use std::convert::TryFrom;
 
+    use matches::assert_matches;
     use ruma_identifiers::UserId;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -84,7 +85,7 @@ mod tests {
             },
         };
 
-        let json_data = json!({
+        let json = json!({
             "content": {
                 "ignored_users": {
                     "@carl:example.com": {}
@@ -93,12 +94,12 @@ mod tests {
             "type": "m.ignored_user_list"
         });
 
-        assert_eq!(to_json_value(ignored_user_list_event).unwrap(), json_data);
+        assert_eq!(to_json_value(ignored_user_list_event).unwrap(), json);
     }
 
     #[test]
     fn deserialization() {
-        let json_data = json!({
+        let json = json!({
             "content": {
                 "ignored_users": {
                     "@carl:example.com": {}
@@ -107,17 +108,14 @@ mod tests {
             "type": "m.ignored_user_list"
         });
 
-        let actual = from_json_value::<EventJson<IgnoredUserListEvent>>(json_data)
+        assert_matches!(
+            from_json_value::<EventJson<IgnoredUserListEvent>>(json)
             .unwrap()
             .deserialize()
-            .unwrap();
-
-        let expected = IgnoredUserListEvent {
-            content: IgnoredUserListEventContent {
-                ignored_users: vec![UserId::try_from("@carl:example.com").unwrap()],
-            },
-        };
-
-        assert_eq!(actual, expected);
+                .unwrap(),
+            IgnoredUserListEvent {
+                content: IgnoredUserListEventContent { ignored_users, },
+            } if ignored_users == vec![UserId::try_from("@carl:example.com").unwrap()]
+        );
     }
 }
