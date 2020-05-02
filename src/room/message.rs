@@ -515,12 +515,12 @@ pub enum ServerNoticeType {
 
 /// Types of usage limits.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum LimitType {
     /// The server's number of active users in the last 30 days has exceeded the maximum.
     ///
     /// New connections are being refused by the server. What defines "active" is left as an
     /// implementation detail, however servers are encouraged to treat syncing users as "active".
-    #[serde(rename = "monthly_active_user")]
     MonthlyActiveUser,
 
     /// Additional variants may be added in the future and will not be considered breaking changes
