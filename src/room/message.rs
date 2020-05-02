@@ -6,7 +6,7 @@ use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use super::{encrypted::EncryptedEventContent, EncryptedFile, ImageInfo, ThumbnailInfo};
+use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
 use crate::{EventType, FromRaw, UnsignedData};
 
 pub mod feedback;
@@ -68,9 +68,6 @@ pub enum MessageEventContent {
 
     /// A video message.
     Video(VideoMessageEventContent),
-
-    /// A encrypted message.
-    Encrypted(EncryptedEventContent),
 }
 
 impl FromRaw for MessageEvent {
@@ -104,7 +101,6 @@ impl FromRaw for MessageEventContent {
             ServerNotice(content) => MessageEventContent::ServerNotice(content),
             Text(content) => MessageEventContent::Text(content),
             Video(content) => MessageEventContent::Video(content),
-            Encrypted(content) => MessageEventContent::Encrypted(content),
         }
     }
 }
@@ -119,10 +115,10 @@ pub(crate) mod raw {
     use serde_json::{from_value as from_json_value, Value as JsonValue};
 
     use super::{
-        AudioMessageEventContent, EmoteMessageEventContent, EncryptedEventContent,
-        FileMessageEventContent, ImageMessageEventContent, LocationMessageEventContent,
-        MessageType, NoticeMessageEventContent, ServerNoticeMessageEventContent,
-        TextMessageEventContent, VideoMessageEventContent,
+        AudioMessageEventContent, EmoteMessageEventContent, FileMessageEventContent,
+        ImageMessageEventContent, LocationMessageEventContent, MessageType,
+        NoticeMessageEventContent, ServerNoticeMessageEventContent, TextMessageEventContent,
+        VideoMessageEventContent,
     };
     use crate::UnsignedData;
 
@@ -180,9 +176,6 @@ pub(crate) mod raw {
 
         /// A video message.
         Video(VideoMessageEventContent),
-
-        /// A video message.
-        Encrypted(EncryptedEventContent),
     }
 
     impl<'de> Deserialize<'de> for MessageEventContent {
