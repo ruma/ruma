@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.21.0
+
 Breaking changes:
 
 * Replace `EventResult` with a new construct, `EventJson`
