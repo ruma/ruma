@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
-    VerificationMethod,
 };
 use crate::{EventType, InvalidInput, TryFromRaw};
 
@@ -21,15 +20,11 @@ pub struct StartEvent {
 
 /// The payload of an *m.key.verification.start* event.
 #[derive(Clone, Debug, Serialize)]
-#[serde(untagged)]
+#[serde(tag = "method")]
 pub enum StartEventContent {
     /// The *m.sas.v1* verification method.
+    #[serde(rename = "m.sas.v1")]
     MSasV1(MSasV1Content),
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 impl TryFromRaw for StartEvent {
@@ -87,18 +82,14 @@ impl TryFromRaw for StartEventContent {
 
                 Ok(StartEventContent::MSasV1(content))
             }
-            raw::StartEventContent::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.");
-            }
         }
     }
 }
 
 pub(crate) mod raw {
-    use serde::{Deserialize, Deserializer};
-    use serde_json::{from_value as from_json_value, Value as JsonValue};
+    use serde::Deserialize;
 
-    use super::{MSasV1Content, VerificationMethod};
+    use super::MSasV1Content;
 
     /// Begins an SAS key verification process.
     ///
@@ -110,56 +101,17 @@ pub(crate) mod raw {
     }
 
     /// The payload of an *m.key.verification.start* event.
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, Deserialize)]
+    #[serde(tag = "method")]
     pub enum StartEventContent {
         /// The *m.sas.v1* verification method.
+        #[serde(rename = "m.sas.v1")]
         MSasV1(MSasV1Content),
-
-        /// Additional variants may be added in the future and will not be considered breaking changes
-        /// to ruma-events.
-        #[doc(hidden)]
-        __Nonexhaustive,
-    }
-
-    impl<'de> Deserialize<'de> for StartEventContent {
-        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
-        {
-            use serde::de::Error as _;
-
-            let value: JsonValue = Deserialize::deserialize(deserializer)?;
-
-            let method_value = match value.get("method") {
-                Some(value) => value.clone(),
-                None => return Err(D::Error::missing_field("method")),
-            };
-
-            let method = match from_json_value::<VerificationMethod>(method_value) {
-                Ok(method) => method,
-                Err(error) => return Err(D::Error::custom(error.to_string())),
-            };
-
-            match method {
-                VerificationMethod::MSasV1 => {
-                    let content = match from_json_value::<MSasV1Content>(value) {
-                        Ok(content) => content,
-                        Err(error) => return Err(D::Error::custom(error.to_string())),
-                    };
-
-                    Ok(StartEventContent::MSasV1(content))
-                }
-                VerificationMethod::__Nonexhaustive => Err(D::Error::custom(
-                    "Attempted to deserialize __Nonexhaustive variant.",
-                )),
-            }
-        }
     }
 }
 
 /// The payload of an *m.key.verification.start* event using the *m.sas.v1* method.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "method", rename = "m.sas.v1")]
 pub struct MSasV1Content {
     /// The device ID which is initiating the process.
     pub(crate) from_device: DeviceId,
