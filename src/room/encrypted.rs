@@ -6,7 +6,7 @@ use js_int::UInt;
 use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::{Algorithm, EventType, FromRaw, UnsignedData};
+use crate::{EventType, FromRaw, UnsignedData};
 
 /// This event type is used when sending encrypted events.
 ///
@@ -40,12 +40,14 @@ pub struct EncryptedEvent {
 /// The payload for `EncryptedEvent`.
 #[derive(Clone, Debug, Serialize)]
 #[non_exhaustive]
-#[serde(untagged)]
+#[serde(tag = "algorithm")]
 pub enum EncryptedEventContent {
     /// An event encrypted with *m.olm.v1.curve25519-aes-sha2*.
+    #[serde(rename = "m.olm.v1.curve25519-aes-sha2")]
     OlmV1Curve25519AesSha2(OlmV1Curve25519AesSha2Content),
 
     /// An event encrypted with *m.megolm.v1.aes-sha2*.
+    #[serde(rename = "m.megolm.v1.aes-sha2")]
     MegolmV1AesSha2(MegolmV1AesSha2Content),
 }
 
@@ -89,11 +91,10 @@ pub(crate) mod raw {
     use std::time::SystemTime;
 
     use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde::{Deserialize, Deserializer};
-    use serde_json::{from_value as from_json_value, Value as JsonValue};
+    use serde::Deserialize;
 
     use super::{MegolmV1AesSha2Content, OlmV1Curve25519AesSha2Content};
-    use crate::{Algorithm, UnsignedData};
+    use crate::UnsignedData;
 
     /// This event type is used when sending encrypted events.
     ///
@@ -123,65 +124,22 @@ pub(crate) mod raw {
     }
 
     /// The payload for `EncryptedEvent`.
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, Deserialize)]
+    #[serde(tag = "algorithm")]
     pub enum EncryptedEventContent {
         /// An event encrypted with *m.olm.v1.curve25519-aes-sha2*.
+        #[serde(rename = "m.olm.v1.curve25519-aes-sha2")]
         OlmV1Curve25519AesSha2(OlmV1Curve25519AesSha2Content),
 
         /// An event encrypted with *m.megolm.v1.aes-sha2*.
+        #[serde(rename = "m.megolm.v1.aes-sha2")]
         MegolmV1AesSha2(MegolmV1AesSha2Content),
-    }
-
-    impl<'de> Deserialize<'de> for EncryptedEventContent {
-        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
-        {
-            use serde::de::Error as _;
-
-            let value: JsonValue = Deserialize::deserialize(deserializer)?;
-
-            let method_value = match value.get("algorithm") {
-                Some(value) => value.clone(),
-                None => return Err(D::Error::missing_field("algorithm")),
-            };
-
-            let method = match from_json_value::<Algorithm>(method_value) {
-                Ok(method) => method,
-                Err(error) => return Err(D::Error::custom(error.to_string())),
-            };
-
-            match method {
-                Algorithm::OlmV1Curve25519AesSha2 => {
-                    let content = match from_json_value::<OlmV1Curve25519AesSha2Content>(value) {
-                        Ok(content) => content,
-                        Err(error) => return Err(D::Error::custom(error.to_string())),
-                    };
-
-                    Ok(EncryptedEventContent::OlmV1Curve25519AesSha2(content))
-                }
-                Algorithm::MegolmV1AesSha2 => {
-                    let content = match from_json_value::<MegolmV1AesSha2Content>(value) {
-                        Ok(content) => content,
-                        Err(error) => return Err(D::Error::custom(error.to_string())),
-                    };
-
-                    Ok(EncryptedEventContent::MegolmV1AesSha2(content))
-                }
-                Algorithm::Custom(_) => Err(D::Error::custom(
-                    "Custom algorithms are not supported by `EncryptedEventContent`.",
-                )),
-            }
-        }
     }
 }
 
 /// The payload for `EncryptedEvent` using the *m.olm.v1.curve25519-aes-sha2* algorithm.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct OlmV1Curve25519AesSha2Content {
-    /// The encryption algorithm used to encrypt this event.
-    pub algorithm: Algorithm,
-
     /// A map from the recipient Curve25519 identity key to ciphertext information.
     pub ciphertext: BTreeMap<String, CiphertextInfo>,
 
@@ -205,9 +163,6 @@ pub struct CiphertextInfo {
 /// The payload for `EncryptedEvent` using the *m.megolm.v1.aes-sha2* algorithm.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MegolmV1AesSha2Content {
-    /// The encryption algorithm used to encrypt this event.
-    pub algorithm: Algorithm,
-
     /// The encrypted content of the event.
     pub ciphertext: String,
 
@@ -226,14 +181,13 @@ mod tests {
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{Algorithm, EncryptedEventContent, MegolmV1AesSha2Content};
+    use super::{EncryptedEventContent, MegolmV1AesSha2Content};
     use crate::EventJson;
 
     #[test]
     fn serialization() {
         let key_verification_start_content =
             EncryptedEventContent::MegolmV1AesSha2(MegolmV1AesSha2Content {
-                algorithm: Algorithm::MegolmV1AesSha2,
                 ciphertext: "ciphertext".to_string(),
                 sender_key: "sender_key".to_string(),
                 device_id: "device_id".to_string(),
@@ -270,7 +224,6 @@ mod tests {
                 .deserialize()
                 .unwrap(),
             EncryptedEventContent::MegolmV1AesSha2(MegolmV1AesSha2Content {
-                algorithm: Algorithm::MegolmV1AesSha2,
                 ciphertext,
                 sender_key,
                 device_id,
@@ -301,7 +254,6 @@ mod tests {
 
         match content {
             EncryptedEventContent::OlmV1Curve25519AesSha2(c) => {
-                assert_eq!(c.algorithm, Algorithm::OlmV1Curve25519AesSha2);
                 assert_eq!(c.sender_key, "test_key");
                 assert_eq!(c.ciphertext.len(), 1);
                 assert_eq!(c.ciphertext["test_curve_key"].body, "encrypted_body");

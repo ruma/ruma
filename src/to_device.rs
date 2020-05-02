@@ -368,7 +368,6 @@ mod tests {
             _ => panic!("Wrong content type, expected a OlmV1 content"),
         };
 
-        assert_eq!(content.algorithm, Algorithm::OlmV1Curve25519AesSha2);
         assert_eq!(content.sender_key, "test_sender_key");
         assert_eq!(content.ciphertext.len(), 2);
         assert_eq!(content.ciphertext["sender_key_0"].body, "ciphertext0");
