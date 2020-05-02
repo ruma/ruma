@@ -1,16 +1,8 @@
 //! Endpoints for push notifications.
 
-use std::{
-    convert::TryFrom,
-    fmt::{Formatter, Result as FmtResult},
-};
+use std::convert::TryFrom;
 
-use serde::{
-    de::{Error as SerdeError, MapAccess, Unexpected, Visitor},
-    ser::SerializeStruct,
-    Deserialize, Deserializer, Serialize, Serializer,
-};
-use serde_json::Value as JsonValue;
+use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
 pub mod delete_pushrule;
@@ -25,6 +17,8 @@ pub mod set_pusher;
 pub mod set_pushrule;
 pub mod set_pushrule_actions;
 pub mod set_pushrule_enabled;
+
+pub use ruma_common::push::Action;
 
 /// The kinds of push rules that are available
 #[derive(
@@ -174,156 +168,4 @@ pub struct PusherData {
 pub enum PushFormat {
     /// Require the homeserver to only send a reduced set of fields in the push.
     EventIdOnly,
-}
-
-/// This represents the different actions that should be taken when a rule is matched, and
-/// controls how notifications are delivered to the client.
-// See https://matrix.org/docs/spec/client_server/r0.6.0#actions for details.
-#[derive(Clone, Debug)]
-pub enum Action {
-    /// Causes matching events to generate a notification.
-    Notify,
-
-    /// Prevents matching events from generating a notification.
-    DontNotify,
-
-    /// Behaves like notify but homeservers may choose to coalesce multiple events
-    /// into a single notification.
-    Coalesce,
-
-    /// Sets an entry in the 'tweaks' dictionary sent to the push gateway.
-    SetTweak {
-        /// The kind of this tweak
-        kind: TweakKind,
-
-        /// The value of the tweak, if any
-        value: Option<JsonValue>,
-    },
-}
-
-/// The different kinds of tweaks available
-#[derive(Clone, Debug)]
-pub enum TweakKind {
-    /// The "sound" tweak.
-    Sound,
-
-    /// The "highlight" tweak.
-    Highlight,
-
-    /// A name for a custom client-defined tweak.
-    Custom(String),
-}
-
-impl Serialize for Action {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match self {
-            Action::Notify => serializer.serialize_unit_variant("Action", 0, "notify"),
-            Action::DontNotify => serializer.serialize_unit_variant("Action", 1, "dont_notify"),
-            Action::Coalesce => serializer.serialize_unit_variant("Action", 2, "coalesce"),
-            Action::SetTweak { kind, value } => {
-                let kind_name = match &kind {
-                    TweakKind::Sound => "sound",
-                    TweakKind::Highlight => "highlight",
-                    TweakKind::Custom(name) => name,
-                };
-                let num_fields = match value {
-                    Some(_) => 2,
-                    None => 1,
-                };
-                let mut s = serializer.serialize_struct("Action", num_fields)?;
-                s.serialize_field("set_tweak", kind_name)?;
-
-                match &value {
-                    Some(value) => {
-                        s.serialize_field("value", value)?;
-                    }
-                    None => {}
-                };
-                s.end()
-            }
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for Action {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct ActionVisitor;
-        impl<'de> Visitor<'de> for ActionVisitor {
-            type Value = Action;
-
-            fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
-                write!(formatter, "a valid action object")
-            }
-
-            /// Match a simple action type
-            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-            where
-                E: SerdeError,
-            {
-                match v {
-                    "notify" => Ok(Action::Notify),
-                    "dont_notify" => Ok(Action::DontNotify),
-                    "coalesce" => Ok(Action::Coalesce),
-                    s => Err(E::unknown_variant(
-                        &s,
-                        &["notify", "dont_notify", "coalesce"],
-                    )),
-                }
-            }
-
-            /// Match the more complex set_tweaks action object as a key-value map
-            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-            where
-                A: MapAccess<'de>,
-            {
-                let mut tweak_kind: Option<TweakKind> = None;
-                let mut tweak_value: Option<JsonValue> = None;
-
-                // We loop over all entries in the map to find one with a "set_tweak" key to find
-                // which type of tweak is being set.
-                // Then we also try to find one with the "value" key if it exists.
-                while let Some((key, value)) = map.next_entry::<&str, JsonValue>()? {
-                    match key {
-                        "set_tweak" => {
-                            let kind = match value.as_str() {
-                                Some("sound") => TweakKind::Sound,
-                                Some("highlight") => TweakKind::Highlight,
-                                Some(s) => TweakKind::Custom(s.to_string()),
-                                None => {
-                                    return Err(A::Error::invalid_type(
-                                        Unexpected::Other("non-string object"),
-                                        &"string",
-                                    ))
-                                }
-                            };
-                            tweak_kind = Some(kind);
-                        }
-                        "value" => {
-                            tweak_value = Some(value);
-                        }
-                        _ => {}
-                    }
-                }
-
-                match tweak_kind {
-                    Some(kind) => Ok(Action::SetTweak {
-                        kind,
-                        value: tweak_value,
-                    }),
-                    None => Err(A::Error::invalid_type(
-                        Unexpected::Other("object without \"set_tweak\" key"),
-                        &"valid \"set_tweak\" action object",
-                    )),
-                }
-            }
-        }
-
-        deserializer.deserialize_any(ActionVisitor)
-    }
 }
