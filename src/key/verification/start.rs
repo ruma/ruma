@@ -279,6 +279,7 @@ impl MSasV1Content {
 
 #[cfg(test)]
 mod tests {
+    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{
@@ -387,19 +388,7 @@ mod tests {
 
     #[test]
     fn deserialization() {
-        let key_verification_start_content = StartEventContent::MSasV1(
-            MSasV1Content::new(MSasV1ContentOptions {
-                from_device: "123".to_string(),
-                transaction_id: "456".to_string(),
-                hashes: vec![HashAlgorithm::Sha256],
-                key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
-                message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
-                short_authentication_string: vec![ShortAuthenticationString::Decimal],
-            })
-            .unwrap(),
-        );
-
-        let json_data = json!({
+        let json = json!({
             "from_device": "123",
             "transaction_id": "456",
             "method": "m.sas.v1",
@@ -410,19 +399,27 @@ mod tests {
         });
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
-        assert_eq!(
-            from_json_value::<EventJson<StartEventContent>>(json_data)
+        assert_matches!(
+            from_json_value::<EventJson<StartEventContent>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            key_verification_start_content
+            StartEventContent::MSasV1(MSasV1Content {
+                from_device,
+                transaction_id,
+                hashes,
+                key_agreement_protocols,
+                message_authentication_codes,
+                short_authentication_string,
+            }) if from_device == "123"
+                && transaction_id == "456"
+                && hashes == vec![HashAlgorithm::Sha256]
+                && key_agreement_protocols == vec![KeyAgreementProtocol::Curve25519]
+                && message_authentication_codes == vec![MessageAuthenticationCode::HkdfHmacSha256]
+                && short_authentication_string == vec![ShortAuthenticationString::Decimal]
         );
 
-        let key_verification_start = StartEvent {
-            content: key_verification_start_content,
-        };
-
-        let json_data = json!({
+        let json = json!({
             "content": {
                 "from_device": "123",
                 "transaction_id": "456",
@@ -435,12 +432,26 @@ mod tests {
             "type": "m.key.verification.start"
         });
 
-        assert_eq!(
-            from_json_value::<EventJson<StartEvent>>(json_data)
+        assert_matches!(
+            from_json_value::<EventJson<StartEvent>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            key_verification_start
+            StartEvent {
+                content: StartEventContent::MSasV1(MSasV1Content {
+                    from_device,
+                    transaction_id,
+                    hashes,
+                    key_agreement_protocols,
+                    message_authentication_codes,
+                    short_authentication_string,
+                })
+            } if from_device == "123"
+                && transaction_id == "456"
+                && hashes == vec![HashAlgorithm::Sha256]
+                && key_agreement_protocols == vec![KeyAgreementProtocol::Curve25519]
+                && message_authentication_codes == vec![MessageAuthenticationCode::HkdfHmacSha256]
+                && short_authentication_string == vec![ShortAuthenticationString::Decimal]
         )
     }
 
