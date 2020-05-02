@@ -494,9 +494,7 @@ mod tests {
 
         let event = deserialize! {source, AnyToDeviceEvent::KeyVerificationStart};
 
-        let content = match &event.content {
-            StartEventContent::MSasV1(c) => c,
-        };
+        let StartEventContent::MSasV1(content) = event.content;
 
         assert_eq!(content.from_device, "AliceDevice1");
         assert_eq!(content.hashes, &[HashAlgorithm::Sha256]);
