@@ -32,8 +32,6 @@ pub enum FeedbackType {
 
     /// Sent when a message has been observed by the end user.
     Read,
-
-
 }
 
 impl_enum! {

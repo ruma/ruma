@@ -31,8 +31,6 @@ pub enum JoinRule {
 
     /// Anyone can join the room without any prior action.
     Public,
-
-
 }
 
 impl_enum! {

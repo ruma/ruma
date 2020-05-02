@@ -44,8 +44,6 @@ pub enum Action {
     /// Cancel a request for a key.
     #[serde(rename = "request_cancellation")]
     CancelRequest,
-
-
 }
 
 impl_enum! {
