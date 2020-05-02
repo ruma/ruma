@@ -15,6 +15,8 @@ Breaking changes:
   * To access any additional fields of the `unsigned` property of an event,
     deserialize the `EventJson` to another type that captures the field(s) you
     are interested in.
+* Remove `room::message::MessageType`
+* Remove `room::message::MessageEventContent::Encrypted` (which only existed by mistake)
 
 Improvements:
 

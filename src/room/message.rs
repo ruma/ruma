@@ -13,7 +13,6 @@ pub mod feedback;
 
 /// A message sent to a room.
 #[derive(Clone, Debug, Serialize)]
-#[serde(rename = "m.room.message", tag = "type")]
 pub struct MessageEvent {
     /// The event's content.
     pub content: MessageEventContent,
@@ -40,33 +39,42 @@ pub struct MessageEvent {
 /// The payload for `MessageEvent`.
 #[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Serialize)]
-#[serde(untagged)]
+#[serde(tag = "msgtype")]
 pub enum MessageEventContent {
     /// An audio message.
+    #[serde(rename = "m.audio")]
     Audio(AudioMessageEventContent),
 
     /// An emote message.
+    #[serde(rename = "m.emote")]
     Emote(EmoteMessageEventContent),
 
     /// A file message.
+    #[serde(rename = "m.file")]
     File(FileMessageEventContent),
 
     /// An image message.
+    #[serde(rename = "m.image")]
     Image(ImageMessageEventContent),
 
     /// A location message.
+    #[serde(rename = "m.location")]
     Location(LocationMessageEventContent),
 
     /// A notice message.
+    #[serde(rename = "m.notice")]
     Notice(NoticeMessageEventContent),
 
     /// A server notice message.
+    #[serde(rename = "m.server_notice")]
     ServerNotice(ServerNoticeMessageEventContent),
 
     /// A text message.
+    #[serde(rename = "m.text")]
     Text(TextMessageEventContent),
 
     /// A video message.
+    #[serde(rename = "m.video")]
     Video(VideoMessageEventContent),
 }
 
@@ -111,14 +119,12 @@ pub(crate) mod raw {
     use std::time::SystemTime;
 
     use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde::{de::DeserializeOwned, Deserialize, Deserializer};
-    use serde_json::{from_value as from_json_value, Value as JsonValue};
+    use serde::Deserialize;
 
     use super::{
         AudioMessageEventContent, EmoteMessageEventContent, FileMessageEventContent,
-        ImageMessageEventContent, LocationMessageEventContent, MessageType,
-        NoticeMessageEventContent, ServerNoticeMessageEventContent, TextMessageEventContent,
-        VideoMessageEventContent,
+        ImageMessageEventContent, LocationMessageEventContent, NoticeMessageEventContent,
+        ServerNoticeMessageEventContent, TextMessageEventContent, VideoMessageEventContent,
     };
     use crate::UnsignedData;
 
@@ -148,119 +154,45 @@ pub(crate) mod raw {
 
     /// The payload for `MessageEvent`.
     #[allow(clippy::large_enum_variant)]
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, Deserialize)]
+    #[serde(tag = "msgtype")]
     pub enum MessageEventContent {
         /// An audio message.
+        #[serde(rename = "m.audio")]
         Audio(AudioMessageEventContent),
 
         /// An emote message.
+        #[serde(rename = "m.emote")]
         Emote(EmoteMessageEventContent),
 
         /// A file message.
+        #[serde(rename = "m.file")]
         File(FileMessageEventContent),
 
         /// An image message.
+        #[serde(rename = "m.image")]
         Image(ImageMessageEventContent),
 
         /// A location message.
+        #[serde(rename = "m.location")]
         Location(LocationMessageEventContent),
 
         /// A notice message.
+        #[serde(rename = "m.notice")]
         Notice(NoticeMessageEventContent),
 
         /// A server notice message.
+        #[serde(rename = "m.server_notice")]
         ServerNotice(ServerNoticeMessageEventContent),
 
         /// An text message.
+        #[serde(rename = "m.text")]
         Text(TextMessageEventContent),
 
         /// A video message.
+        #[serde(rename = "m.video")]
         Video(VideoMessageEventContent),
     }
-
-    impl<'de> Deserialize<'de> for MessageEventContent {
-        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
-        {
-            use serde::de::Error as _;
-
-            fn deserialize_content<T>(
-                c: JsonValue,
-                v: fn(T) -> MessageEventContent,
-            ) -> Result<MessageEventContent, serde_json::Error>
-            where
-                T: DeserializeOwned,
-            {
-                from_json_value::<T>(c).map(v)
-            }
-
-            let content: JsonValue = Deserialize::deserialize(deserializer)?;
-
-            let message_type_value = match content.get("msgtype") {
-                Some(value) => value.clone(),
-                None => return Err(D::Error::missing_field("msgtype")),
-            };
-
-            let message_type = match from_json_value::<MessageType>(message_type_value) {
-                Ok(message_type) => message_type,
-                Err(error) => return Err(D::Error::custom(error)),
-            };
-
-            match message_type {
-                MessageType::Audio => deserialize_content(content, Self::Audio),
-                MessageType::Emote => deserialize_content(content, Self::Emote),
-                MessageType::File => deserialize_content(content, Self::File),
-                MessageType::Image => deserialize_content(content, Self::Image),
-                MessageType::Location => deserialize_content(content, Self::Location),
-                MessageType::Notice => deserialize_content(content, Self::Notice),
-                MessageType::ServerNotice => deserialize_content(content, Self::ServerNotice),
-                MessageType::Text => deserialize_content(content, Self::Text),
-                MessageType::Video => deserialize_content(content, Self::Video),
-            }
-            .map_err(D::Error::custom)
-        }
-    }
-}
-
-/// The message type of message event, e.g. `m.image` or `m.text`.
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
-pub enum MessageType {
-    /// An audio message.
-    #[serde(rename = "m.audio")]
-    Audio,
-
-    /// An emote message.
-    #[serde(rename = "m.emote")]
-    Emote,
-
-    /// A file message.
-    #[serde(rename = "m.file")]
-    File,
-
-    /// An image message.
-    #[serde(rename = "m.image")]
-    Image,
-
-    /// A location message.
-    #[serde(rename = "m.location")]
-    Location,
-
-    /// A notice message.
-    #[serde(rename = "m.notice")]
-    Notice,
-
-    /// A server notice.
-    #[serde(rename = "m.server_notice")]
-    ServerNotice,
-
-    /// A text message.
-    #[serde(rename = "m.text")]
-    Text,
-
-    /// A video message.
-    #[serde(rename = "m.video")]
-    Video,
 }
 
 /// The payload for an audio message.
@@ -302,7 +234,6 @@ pub struct AudioInfo {
 
 /// The payload for an emote message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "msgtype", rename = "m.emote")]
 pub struct EmoteMessageEventContent {
     /// The emote action to perform.
     pub body: String,
@@ -584,20 +515,6 @@ pub struct RelatesTo {
 pub struct InReplyTo {
     /// The event being replied to.
     pub event_id: EventId,
-}
-
-impl_enum! {
-    MessageType {
-        Audio => "m.audio",
-        Emote => "m.emote",
-        File => "m.file",
-        Image => "m.image",
-        Location => "m.location",
-        Notice => "m.notice",
-        ServerNotice => "m.server_notice",
-        Text => "m.text",
-        Video => "m.video",
-    }
 }
 
 impl TextMessageEventContent {
