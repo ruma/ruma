@@ -73,7 +73,7 @@ ruma_event! {
             /// The power level requirements for specific notification types.
             ///
             /// This is a mapping from `key` to power level for that notifications key.
-            #[serde(default, skip_serializing_if = "NotificationPowerLevels::is_default")]
+            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
             pub notifications: NotificationPowerLevels,
         },
     }
@@ -84,15 +84,6 @@ pub struct NotificationPowerLevels {
     /// The level required to trigger an `@room` notification.
     #[serde(default = "default_power_level")]
     pub room: Int,
-}
-
-impl NotificationPowerLevels {
-    // TODO: Make public under this name?
-    // pass-by-ref required for #[serde(skip_serializing_if)]
-    #[allow(clippy::trivially_copy_pass_by_ref)]
-    fn is_default(&self) -> bool {
-        *self == Self::default()
-    }
 }
 
 impl Default for NotificationPowerLevels {
