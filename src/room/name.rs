@@ -158,6 +158,7 @@ mod tests {
     };
 
     use js_int::Int;
+    use matches::assert_matches;
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -262,11 +263,8 @@ mod tests {
         let long_string: String = String::from_iter(std::iter::repeat('X').take(256));
         assert_eq!(long_string.len(), 256);
 
-        let long_content_json_string: String =
-            serde_json::json!({ "name": &long_string }).to_string();
-
-        let from_raw: EventJson<NameEventContent> =
-            serde_json::from_str(&long_content_json_string).unwrap();
+        let long_content_json = json!({ "name": &long_string });
+        let from_raw: EventJson<NameEventContent> = from_json_value(long_content_json).unwrap();
 
         let result = from_raw.deserialize();
         assert!(result.is_err(), "Result should be invalid: {:?}", result);
@@ -274,11 +272,9 @@ mod tests {
 
     #[test]
     fn json_with_empty_name_creates_content_as_none() {
-        let long_content_json_string: String = serde_json::json!({ "name": "" }).to_string();
-
-        let from_raw: EventJson<NameEventContent> =
-            serde_json::from_str(&long_content_json_string).unwrap();
-        assert_eq!(
+        let long_content_json = json!({ "name": "" });
+        let from_raw: EventJson<NameEventContent> = from_json_value(long_content_json).unwrap();
+        assert_matches!(
             from_raw.deserialize().unwrap(),
             NameEventContent { name: None }
         );
@@ -286,7 +282,7 @@ mod tests {
 
     #[test]
     fn new_with_empty_name_creates_content_as_none() {
-        assert_eq!(
+        assert_matches!(
             NameEventContent::new(String::new()).unwrap(),
             NameEventContent { name: None }
         );
