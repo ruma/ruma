@@ -7,7 +7,7 @@
 
 use ruma_identifiers::UserId;
 use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
-use serde_json::Value;
+use serde_json::Value as JsonValue;
 
 use crate::{
     room::{
@@ -169,7 +169,7 @@ where
         D: Deserializer<'de>,
     {
         // TODO: Optimize
-        let value = Value::deserialize(deserializer)?;
+        let value = JsonValue::deserialize(deserializer)?;
 
         Ok(Self {
             content: get_field(&value, "content")?,
@@ -182,7 +182,7 @@ where
 
 mod raw {
     use serde::{Deserialize, Deserializer};
-    use serde_json::Value;
+    use serde_json::Value as JsonValue;
 
     use super::StrippedStateEvent;
     use crate::{
@@ -284,7 +284,7 @@ mod raw {
             use serde::de::Error as _;
 
             // TODO: Optimize
-            let value = Value::deserialize(deserializer)?;
+            let value = JsonValue::deserialize(deserializer)?;
             let event_type = get_field(&value, "type")?;
 
             match event_type {

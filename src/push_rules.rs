@@ -4,7 +4,7 @@ use ruma_events_macros::ruma_event;
 use serde::{
     de::Error, ser::SerializeStruct as _, Deserialize, Deserializer, Serialize, Serializer,
 };
-use serde_json::{from_value, Value};
+use serde_json::{from_value, Value as JsonValue};
 
 ruma_event! {
     /// Describes all push rules for a user.
@@ -148,12 +148,13 @@ impl Serialize for PushCondition {
     }
 }
 
+// TODO: Derive
 impl<'de> Deserialize<'de> for PushCondition {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        let value: Value = Deserialize::deserialize(deserializer)?;
+        let value: JsonValue = Deserialize::deserialize(deserializer)?;
 
         let kind_value = match value.get("kind") {
             Some(value) => value.clone(),

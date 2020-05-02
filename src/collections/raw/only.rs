@@ -2,7 +2,7 @@
 //! most" the trait of the same name.
 
 use serde::{de::Error as _, Deserialize, Deserializer};
-use serde_json::Value;
+use serde_json::Value as JsonValue;
 
 pub use super::all::StateEvent;
 use crate::{
@@ -142,7 +142,7 @@ impl<'de> Deserialize<'de> for Event {
         use crate::util::try_variant_from_value as from_value;
         use EventType::*;
 
-        let value = Value::deserialize(deserializer)?;
+        let value = JsonValue::deserialize(deserializer)?;
         let event_type = get_field(&value, "type")?;
 
         match event_type {
@@ -202,7 +202,7 @@ impl<'de> Deserialize<'de> for RoomEvent {
         use crate::util::try_variant_from_value as from_value;
         use EventType::*;
 
-        let value = Value::deserialize(deserializer)?;
+        let value = JsonValue::deserialize(deserializer)?;
         let event_type = get_field(&value, "type")?;
 
         match event_type {

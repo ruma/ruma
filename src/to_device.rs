@@ -6,7 +6,7 @@
 
 use ruma_identifiers::UserId;
 use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
-use serde_json::Value;
+use serde_json::Value as JsonValue;
 
 use crate::{
     dummy::DummyEventContent,
@@ -142,7 +142,7 @@ where
     {
         // TODO: Optimize, what should be optimized here? Can we expand this
         // comment?
-        let value = Value::deserialize(deserializer)?;
+        let value = JsonValue::deserialize(deserializer)?;
 
         Ok(Self {
             content: get_field(&value, "content")?,
@@ -153,7 +153,7 @@ where
 
 mod raw {
     use serde::{Deserialize, Deserializer};
-    use serde_json::Value;
+    use serde_json::Value as JsonValue;
 
     use super::ToDeviceEvent;
     use crate::{
@@ -231,7 +231,7 @@ mod raw {
 
             // TODO: Optimize, what should be optimized here? Can we expand this
             // comment?
-            let value = Value::deserialize(deserializer)?;
+            let value = JsonValue::deserialize(deserializer)?;
             let event_type = get_field(&value, "type")?;
 
             match event_type {

@@ -1,5 +1,5 @@
 use serde::de::DeserializeOwned;
-use serde_json::Value;
+use serde_json::Value as JsonValue;
 
 use crate::TryFromRaw;
 
@@ -12,7 +12,7 @@ pub fn try_convert_variant<Enum: TryFromRaw, Content: TryFromRaw>(
         .map_err(|err| err.to_string())
 }
 
-pub fn try_variant_from_value<T, U, E>(value: Value, variant: fn(T) -> U) -> Result<U, E>
+pub fn try_variant_from_value<T, U, E>(value: JsonValue, variant: fn(T) -> U) -> Result<U, E>
 where
     T: DeserializeOwned,
     E: serde::de::Error,
@@ -26,7 +26,7 @@ pub fn serde_json_error_to_generic_de_error<E: serde::de::Error>(error: serde_js
     E::custom(error.to_string())
 }
 
-pub fn get_field<T, E>(value: &Value, field: &'static str) -> Result<T, E>
+pub fn get_field<T, E>(value: &JsonValue, field: &'static str) -> Result<T, E>
 where
     T: DeserializeOwned,
     E: serde::de::Error,
