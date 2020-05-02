@@ -15,12 +15,13 @@ Breaking changes:
   * To access any additional fields of the `unsigned` property of an event,
     deserialize the `EventJson` to another type that captures the field(s) you
     are interested in.
+* Add fields `format` and `formatted_body` to `room::message::NoticeMessageEventContent`
 * Remove `room::message::MessageType`
-* Remove `room::message::MessageEventContent::Encrypted` (which only existed by mistake)
-
-Improvements:
-
-* Add a encrypted variant to the room `MessageEventContent` enum.
+* Remove useless `algorithm` fields from encrypted event content structs
+* Remove `PartialEq` implementations for most types
+  * Since we're now using `serde_json::value::RawValue`, deriving no longer works
+* Update the representation of `push_rules::Tweak`
+* Raise minimum supported Rust version to 1.40.0
 
 # 0.20.0
 
