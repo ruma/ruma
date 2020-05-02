@@ -70,11 +70,6 @@ pub enum CancelCode {
 
     /// Any code that is not part of the specification.
     Custom(String),
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 impl Display for CancelCode {
@@ -90,9 +85,6 @@ impl Display for CancelCode {
             CancelCode::InvalidMessage => "m.invalid_message",
             CancelCode::Accepted => "m.accepted",
             CancelCode::Custom(ref cancel_code) => cancel_code,
-            CancelCode::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.")
-            }
         };
 
         write!(f, "{}", cancel_code_str)

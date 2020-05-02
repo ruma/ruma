@@ -405,9 +405,6 @@ impl<'de> Deserialize<'de> for Event {
                     from_value(value, Event::Custom)
                 }
             }
-            __Nonexhaustive => {
-                unreachable!("__Nonexhaustive variant should be impossible to obtain.")
-            }
         }
     }
 }
@@ -474,9 +471,6 @@ impl<'de> Deserialize<'de> for RoomEvent {
             | RoomKeyRequest
             | Tag
             | Typing => Err(D::Error::custom("invalid event type")),
-            __Nonexhaustive => {
-                unreachable!("__Nonexhaustive variant should be impossible to obtain.")
-            }
         }
     }
 }
@@ -537,9 +531,6 @@ impl<'de> Deserialize<'de> for StateEvent {
             | Sticker
             | Tag
             | Typing => Err(D::Error::custom("invalid event type")),
-            __Nonexhaustive => {
-                unreachable!("__Nonexhaustive variant should be impossible to obtain.")
-            }
         }
     }
 }

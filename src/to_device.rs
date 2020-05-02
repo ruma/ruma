@@ -496,7 +496,6 @@ mod tests {
 
         let content = match &event.content {
             StartEventContent::MSasV1(c) => c,
-            _ => panic!("Key verification content deserialized into the wrong content type"),
         };
 
         assert_eq!(content.from_device, "AliceDevice1");

@@ -22,6 +22,7 @@ pub struct SessionDescription {
 
 /// The type of VoIP session description.
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[non_exhaustive]
 #[serde(rename_all = "lowercase")]
 pub enum SessionDescriptionType {
     /// An answer.
@@ -29,12 +30,6 @@ pub enum SessionDescriptionType {
 
     /// An offer.
     Offer,
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    #[serde(skip)]
-    __Nonexhaustive,
 }
 
 impl_enum! {

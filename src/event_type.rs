@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 /// The type of an event.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[non_exhaustive]
 #[serde(from = "String", into = "String")]
 pub enum EventType {
     /// m.call.answer
@@ -137,11 +138,6 @@ pub enum EventType {
 
     /// Any event that is not part of the specification.
     Custom(String),
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 impl Display for EventType {
@@ -191,9 +187,6 @@ impl Display for EventType {
             EventType::Tag => "m.tag",
             EventType::Typing => "m.typing",
             EventType::Custom(ref event_type) => event_type,
-            EventType::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.")
-            }
         };
 
         write!(f, "{}", event_type_str)

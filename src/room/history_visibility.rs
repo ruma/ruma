@@ -37,12 +37,6 @@ pub enum HistoryVisibility {
     /// All events while this is the `HistoryVisibility` value may be shared by any
     /// participating homeserver with anyone, regardless of whether they have ever joined the room.
     WorldReadable,
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    #[serde(skip)]
-    __Nonexhaustive,
 }
 
 impl_enum! {

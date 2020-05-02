@@ -20,6 +20,7 @@ ruma_event! {
 
 /// A policy for guest user access to a room.
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 pub enum GuestAccess {
     /// Guests are allowed to join the room.
@@ -27,12 +28,6 @@ pub enum GuestAccess {
 
     /// Guests are not allowed to join the room.
     Forbidden,
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    #[serde(skip)]
-    __Nonexhaustive,
 }
 
 impl_enum! {

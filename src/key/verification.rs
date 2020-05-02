@@ -17,12 +17,6 @@ pub enum HashAlgorithm {
     /// The SHA256 hash algorithm.
     #[serde(rename = "sha256")]
     Sha256,
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    #[serde(skip)]
-    __Nonexhaustive,
 }
 
 impl_enum! {
@@ -37,12 +31,6 @@ pub enum KeyAgreementProtocol {
     /// The [Curve25519](https://cr.yp.to/ecdh.html) key agreement protocol.
     #[serde(rename = "curve25519")]
     Curve25519,
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    #[serde(skip)]
-    __Nonexhaustive,
 }
 
 impl_enum! {
@@ -57,12 +45,6 @@ pub enum MessageAuthenticationCode {
     /// The HKDF-HMAC-SHA256 MAC.
     #[serde(rename = "hkdf-hmac-sha256")]
     HkdfHmacSha256,
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    #[serde(skip)]
-    __Nonexhaustive,
 }
 
 impl_enum! {
@@ -81,12 +63,6 @@ pub enum ShortAuthenticationString {
     /// The emoji method.
     #[serde(rename = "emoji")]
     Emoji,
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    #[serde(skip)]
-    __Nonexhaustive,
 }
 
 impl_enum! {
@@ -102,12 +78,6 @@ pub enum VerificationMethod {
     /// The *m.sas.v1* verification method.
     #[serde(rename = "m.sas.v1")]
     MSasV1,
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    #[serde(skip)]
-    __Nonexhaustive,
 }
 
 impl_enum! {

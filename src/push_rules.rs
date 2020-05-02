@@ -124,11 +124,6 @@ pub enum PushCondition {
     /// This takes into account the current power levels in the room, ensuring the sender of the
     /// event has high enough power to trigger the notification.
     SenderNotificationPermission(SenderNotificationPermissionCondition),
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 impl Serialize for PushCondition {
@@ -148,9 +143,6 @@ impl Serialize for PushCondition {
             PushCondition::RoomMemberCount(ref condition) => condition.serialize(serializer),
             PushCondition::SenderNotificationPermission(ref condition) => {
                 condition.serialize(serializer)
-            }
-            PushCondition::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.");
             }
         }
     }

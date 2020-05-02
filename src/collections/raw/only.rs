@@ -190,9 +190,6 @@ impl<'de> Deserialize<'de> for Event {
             | RoomTopic
             | RoomRedaction
             | Sticker => Err(D::Error::custom("invalid event type")),
-            __Nonexhaustive => {
-                unreachable!("__Nonexhaustive variant should be impossible to obtain.")
-            }
         }
     }
 }
@@ -253,9 +250,6 @@ impl<'de> Deserialize<'de> for RoomEvent {
             | RoomTopic
             | Tag
             | Typing => Err(D::Error::custom("invalid event type")),
-            __Nonexhaustive => {
-                unreachable!("__Nonexhaustive variant should be impossible to obtain.")
-            }
         }
     }
 }

@@ -80,12 +80,6 @@ pub enum MembershipState {
 
     /// The user has left.
     Leave,
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    #[serde(skip)]
-    __Nonexhaustive,
 }
 
 impl_enum! {
@@ -168,11 +162,6 @@ pub enum MembershipChange {
 
     /// Not implemented.
     NotImplemented,
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 impl MemberEvent {
@@ -210,9 +199,6 @@ impl MemberEvent {
             (Leave, Invite) => MembershipChange::Invited,
             (Ban, Leave) => MembershipChange::Unbanned,
             (Knock, _) | (_, Knock) => MembershipChange::NotImplemented,
-            (__Nonexhaustive, _) | (_, __Nonexhaustive) => {
-                panic!("__Nonexhaustive enum variant is not intended for use.")
-            }
         }
     }
 }

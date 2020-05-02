@@ -39,6 +39,7 @@ pub struct EncryptedEvent {
 
 /// The payload for `EncryptedEvent`.
 #[derive(Clone, Debug, Serialize)]
+#[non_exhaustive]
 #[serde(untagged)]
 pub enum EncryptedEventContent {
     /// An event encrypted with *m.olm.v1.curve25519-aes-sha2*.
@@ -46,11 +47,6 @@ pub enum EncryptedEventContent {
 
     /// An event encrypted with *m.megolm.v1.aes-sha2*.
     MegolmV1AesSha2(MegolmV1AesSha2Content),
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 impl FromRaw for EncryptedEvent {
@@ -79,9 +75,6 @@ impl FromRaw for EncryptedEventContent {
                 EncryptedEventContent::OlmV1Curve25519AesSha2(content)
             }
             MegolmV1AesSha2(content) => EncryptedEventContent::MegolmV1AesSha2(content),
-            __Nonexhaustive => {
-                unreachable!("__Nonexhaustive variant should be impossible to obtain.")
-            }
         }
     }
 }
@@ -137,11 +130,6 @@ pub(crate) mod raw {
 
         /// An event encrypted with *m.megolm.v1.aes-sha2*.
         MegolmV1AesSha2(MegolmV1AesSha2Content),
-
-        /// Additional variants may be added in the future and will not be considered breaking
-        /// changes to ruma-events.
-        #[doc(hidden)]
-        __Nonexhaustive,
     }
 
     impl<'de> Deserialize<'de> for EncryptedEventContent {
@@ -182,9 +170,6 @@ pub(crate) mod raw {
                 }
                 Algorithm::Custom(_) => Err(D::Error::custom(
                     "Custom algorithms are not supported by `EncryptedEventContent`.",
-                )),
-                Algorithm::__Nonexhaustive => Err(D::Error::custom(
-                    "Attempted to deserialize __Nonexhaustive variant.",
                 )),
             }
         }

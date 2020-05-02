@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 /// An encryption algorithm to be used to encrypt messages sent to a room.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 #[serde(from = "String", into = "String")]
 pub enum Algorithm {
     /// Olm version 1 using Curve25519, AES-256, and SHA-256.
@@ -14,11 +15,6 @@ pub enum Algorithm {
 
     /// Any algorithm that is not part of the specification.
     Custom(String),
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to `ruma-events`.
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 impl Display for Algorithm {
@@ -27,9 +23,6 @@ impl Display for Algorithm {
             Algorithm::OlmV1Curve25519AesSha2 => "m.olm.v1.curve25519-aes-sha2",
             Algorithm::MegolmV1AesSha2 => "m.megolm.v1.aes-sha2",
             Algorithm::Custom(ref algorithm) => algorithm,
-            Algorithm::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.")
-            }
         };
 
         write!(f, "{}", algorithm_str)

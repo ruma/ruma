@@ -6,8 +6,8 @@ sources:
 tasks:
   - rustup: |
       # We specify --profile minimal because we'd otherwise download docs
-      rustup toolchain install 1.38.0 --profile minimal
-      rustup default 1.38.0
+      rustup toolchain install 1.40.0 --profile minimal
+      rustup default 1.40.0
   - test: |
       cd ruma-events
 

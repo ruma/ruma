@@ -71,11 +71,6 @@ pub enum MessageEventContent {
 
     /// A encrypted message.
     Encrypted(EncryptedEventContent),
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    __Nonexhaustive,
 }
 
 impl FromRaw for MessageEvent {
@@ -110,9 +105,6 @@ impl FromRaw for MessageEventContent {
             Text(content) => MessageEventContent::Text(content),
             Video(content) => MessageEventContent::Video(content),
             Encrypted(content) => MessageEventContent::Encrypted(content),
-            __Nonexhaustive => {
-                unreachable!("It should be impossible to obtain a __Nonexhaustive variant.")
-            }
         }
     }
 }
@@ -191,11 +183,6 @@ pub(crate) mod raw {
 
         /// A video message.
         Encrypted(EncryptedEventContent),
-
-        /// Additional variants may be added in the future and will not be considered breaking changes
-        /// to ruma-events.
-        #[doc(hidden)]
-        __Nonexhaustive,
     }
 
     impl<'de> Deserialize<'de> for MessageEventContent {
@@ -237,11 +224,6 @@ pub(crate) mod raw {
                 MessageType::ServerNotice => deserialize_content(content, Self::ServerNotice),
                 MessageType::Text => deserialize_content(content, Self::Text),
                 MessageType::Video => deserialize_content(content, Self::Video),
-                MessageType::__Nonexhaustive => {
-                    return Err(D::Error::custom(
-                        "Attempted to deserialize __Nonexhaustive variant.",
-                    ))
-                }
             }
             .map_err(D::Error::custom)
         }
@@ -286,12 +268,6 @@ pub enum MessageType {
     /// A video message.
     #[serde(rename = "m.video")]
     Video,
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    #[serde(skip)]
-    __Nonexhaustive,
 }
 
 /// The payload for an audio message.
@@ -505,12 +481,6 @@ pub enum ServerNoticeType {
     /// The server has exceeded some limit which requires the server administrator to intervene.
     #[serde(rename = "m.server_notice.usage_limit_reached")]
     UsageLimitReached,
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    #[serde(skip)]
-    __Nonexhaustive,
 }
 
 /// Types of usage limits.
@@ -522,12 +492,6 @@ pub enum LimitType {
     /// New connections are being refused by the server. What defines "active" is left as an
     /// implementation detail, however servers are encouraged to treat syncing users as "active".
     MonthlyActiveUser,
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    #[serde(skip)]
-    __Nonexhaustive,
 }
 
 /// The payload for a text message.
