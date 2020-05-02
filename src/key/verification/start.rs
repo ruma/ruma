@@ -12,7 +12,7 @@ use crate::{EventType, InvalidInput, TryFromRaw};
 /// Begins an SAS key verification process.
 ///
 /// Typically sent as a to-device event.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(tag = "type", rename = "m.key.verification.start")]
 pub struct StartEvent {
     /// The event's content.
@@ -20,7 +20,7 @@ pub struct StartEvent {
 }
 
 /// The payload of an *m.key.verification.start* event.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
 pub enum StartEventContent {
     /// The *m.sas.v1* verification method.
@@ -103,14 +103,14 @@ pub(crate) mod raw {
     /// Begins an SAS key verification process.
     ///
     /// Typically sent as a to-device event.
-    #[derive(Clone, Debug, PartialEq, Deserialize)]
+    #[derive(Clone, Debug, Deserialize)]
     pub struct StartEvent {
         /// The event's content.
         pub content: StartEventContent,
     }
 
     /// The payload of an *m.key.verification.start* event.
-    #[derive(Clone, Debug, PartialEq)]
+    #[derive(Clone, Debug)]
     pub enum StartEventContent {
         /// The *m.sas.v1* verification method.
         MSasV1(MSasV1Content),
@@ -158,7 +158,7 @@ pub(crate) mod raw {
 }
 
 /// The payload of an *m.key.verification.start* event using the *m.sas.v1* method.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "method", rename = "m.sas.v1")]
 pub struct MSasV1Content {
     /// The device ID which is initiating the process.
@@ -193,7 +193,7 @@ pub struct MSasV1Content {
 }
 
 /// Options for creating an `MSasV1Content` with `MSasV1Content::new`.
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct MSasV1ContentOptions {
     /// The device ID which is initiating the process.
     pub from_device: DeviceId,

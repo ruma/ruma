@@ -95,7 +95,7 @@ impl ToTokens for RumaEvent {
             Content::Struct(fields) => {
                 quote! {
                     #[doc = #content_docstring]
-                    #[derive(Clone, Debug, PartialEq, serde::Serialize)]
+                    #[derive(Clone, Debug, serde::Serialize)]
                     pub struct #content_name {
                         #(#fields),*
                     }
@@ -116,7 +116,7 @@ impl ToTokens for RumaEvent {
             Content::Struct(fields) => {
                 quote! {
                     #[doc = #content_docstring]
-                    #[derive(Clone, Debug, PartialEq, serde::Deserialize)]
+                    #[derive(Clone, Debug, serde::Deserialize)]
                     pub struct #content_name {
                         #(#fields),*
                     }
@@ -216,7 +216,7 @@ impl ToTokens for RumaEvent {
         let event_type_name = self.event_type.value();
         let output = quote!(
             #(#attrs)*
-            #[derive(Clone, PartialEq, Debug, serde::Serialize, ruma_events_macros::FromRaw)]
+            #[derive(Clone, Debug, serde::Serialize, ruma_events_macros::FromRaw)]
             #[serde(rename = #event_type_name, tag = "type")]
             pub struct #name {
                 #(#event_fields),*
@@ -250,7 +250,7 @@ impl ToTokens for RumaEvent {
                 use super::*;
 
                 #(#attrs)*
-                #[derive(Clone, Debug, PartialEq, serde::Deserialize)]
+                #[derive(Clone, Debug, serde::Deserialize)]
                 pub struct #name {
                     #(#event_fields),*
                 }

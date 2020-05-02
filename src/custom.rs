@@ -10,7 +10,7 @@ use serde::Serialize;
 use serde_json::Value as JsonValue;
 
 /// A custom event not covered by the Matrix specification.
-#[derive(Clone, Debug, FromRaw, PartialEq, Serialize)]
+#[derive(Clone, Debug, FromRaw, Serialize)]
 pub struct CustomEvent {
     /// The event's content.
     pub content: CustomEventContent,
@@ -38,7 +38,7 @@ impl Event for CustomEvent {
 }
 
 /// A custom room event not covered by the Matrix specification.
-#[derive(Clone, Debug, FromRaw, PartialEq, Serialize)]
+#[derive(Clone, Debug, FromRaw, Serialize)]
 pub struct CustomRoomEvent {
     /// The event's content.
     pub content: CustomRoomEventContent,
@@ -108,7 +108,7 @@ impl RoomEvent for CustomRoomEvent {
 }
 
 /// A custom state event not covered by the Matrix specification.
-#[derive(Clone, Debug, FromRaw, PartialEq, Serialize)]
+#[derive(Clone, Debug, FromRaw, Serialize)]
 pub struct CustomStateEvent {
     /// The event's content.
     pub content: CustomStateEventContent,
@@ -204,7 +204,7 @@ pub(crate) mod raw {
     };
 
     /// A custom event not covered by the Matrix specification.
-    #[derive(Clone, Debug, PartialEq, Deserialize)]
+    #[derive(Clone, Debug, Deserialize)]
     pub struct CustomEvent {
         /// The event's content.
         pub content: CustomEventContent,
@@ -214,7 +214,7 @@ pub(crate) mod raw {
     }
 
     /// A custom room event not covered by the Matrix specification.
-    #[derive(Clone, Debug, PartialEq, Deserialize)]
+    #[derive(Clone, Debug, Deserialize)]
     pub struct CustomRoomEvent {
         /// The event's content.
         pub content: CustomRoomEventContent,
@@ -236,7 +236,7 @@ pub(crate) mod raw {
     }
 
     /// A custom state event not covered by the Matrix specification.
-    #[derive(Clone, Debug, PartialEq, Deserialize)]
+    #[derive(Clone, Debug, Deserialize)]
     pub struct CustomStateEvent {
         /// The event's content.
         pub content: CustomStateEventContent,

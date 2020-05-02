@@ -24,7 +24,7 @@ use crate::{
 
 /// To-device versions of events that will appear in the to-device part of a
 /// sync response.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[allow(clippy::large_enum_variant)]
 pub enum AnyToDeviceEvent {
     /// To-device version of the "m.dummy" event.
@@ -51,7 +51,7 @@ pub enum AnyToDeviceEvent {
     KeyVerificationRequest(ToDeviceVerificationRequest),
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 /// To-device event.
 pub struct ToDeviceEvent<C> {
     /// The unique identifier for the user who sent this event.

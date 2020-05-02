@@ -65,7 +65,7 @@ pub enum AnyStrippedStateEvent {
 }
 
 /// A "stripped-down" version of a core state event.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct StrippedStateEvent<C> {
     /// Data specific to the event type.
     pub content: C,

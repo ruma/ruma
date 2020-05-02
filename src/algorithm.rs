@@ -1,14 +1,10 @@
-use std::{
-    borrow::Cow,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use serde::{Deserialize, Serialize};
 
 /// An encryption algorithm to be used to encrypt messages sent to a room.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-// Cow<str> because deserialization sometimes needs to copy to unescape things
-#[serde(from = "Cow<'_, str>", into = "String")]
+#[serde(from = "String", into = "String")]
 pub enum Algorithm {
     /// Olm version 1 using Curve25519, AES-256, and SHA-256.
     OlmV1Curve25519AesSha2,
@@ -40,19 +36,16 @@ impl Display for Algorithm {
     }
 }
 
-impl From<Cow<'_, str>> for Algorithm {
-    fn from(s: Cow<'_, str>) -> Algorithm {
-        match &s as &str {
+impl<T> From<T> for Algorithm
+where
+    T: Into<String> + AsRef<str>,
+{
+    fn from(s: T) -> Algorithm {
+        match s.as_ref() {
             "m.olm.v1.curve25519-aes-sha2" => Algorithm::OlmV1Curve25519AesSha2,
             "m.megolm.v1.aes-sha2" => Algorithm::MegolmV1AesSha2,
-            _ => Algorithm::Custom(s.into_owned()),
+            _ => Algorithm::Custom(s.into()),
         }
-    }
-}
-
-impl From<&str> for Algorithm {
-    fn from(s: &str) -> Algorithm {
-        Algorithm::from(Cow::Borrowed(s))
     }
 }
 

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{EventType, FromRaw};
 
 /// A list of users to ignore.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(rename = "m.ignored_user_list", tag = "type")]
 pub struct IgnoredUserListEvent {
     /// The event's content.
@@ -24,7 +24,7 @@ impl FromRaw for IgnoredUserListEvent {
 }
 
 /// The payload for `IgnoredUserListEvent`.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct IgnoredUserListEventContent {
     /// A list of users to ignore.
     #[serde(with = "ruma_serde::vec_as_map_of_empty")]
@@ -110,8 +110,8 @@ mod tests {
 
         assert_matches!(
             from_json_value::<EventJson<IgnoredUserListEvent>>(json)
-            .unwrap()
-            .deserialize()
+                .unwrap()
+                .deserialize()
                 .unwrap(),
             IgnoredUserListEvent {
                 content: IgnoredUserListEventContent { ignored_users, },

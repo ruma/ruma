@@ -60,7 +60,7 @@ impl_enum! {
 }
 
 /// Information about a requested key.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RequestedKeyInfo {
     /// The encryption algorithm the requested key in this event is to be used with.
     pub algorithm: Algorithm,

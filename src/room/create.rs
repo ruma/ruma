@@ -32,7 +32,7 @@ ruma_event! {
 }
 
 /// A reference to an old room replaced during a room version upgrade.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PreviousRoom {
     /// The ID of the old room.
     pub room_id: RoomId,

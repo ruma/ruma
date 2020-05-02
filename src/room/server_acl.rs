@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::{EventType, FromRaw, UnsignedData};
 
 /// An event to indicate which servers are permitted to participate in the room.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(rename = "m.room.server_acl", tag = "type")]
 pub struct ServerAclEvent {
     /// The event's content.
@@ -41,7 +41,7 @@ pub struct ServerAclEvent {
 }
 
 /// The payload for `ServerAclEvent`.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ServerAclEventContent {
     /// True to allow server names that are IP address literals. False to deny. Defaults to true if
     /// missing or otherwise not a boolean.
@@ -108,7 +108,7 @@ pub(crate) mod raw {
     use super::*;
 
     /// An event to indicate which servers are permitted to participate in the room.
-    #[derive(Clone, Debug, PartialEq, Deserialize)]
+    #[derive(Clone, Debug, Deserialize)]
     pub struct ServerAclEvent {
         /// The event's content.
         pub content: ServerAclEventContent,
@@ -138,7 +138,7 @@ pub(crate) mod raw {
     }
 
     /// The payload for `ServerAclEvent`.
-    #[derive(Clone, Debug, PartialEq, Deserialize)]
+    #[derive(Clone, Debug, Deserialize)]
     pub struct ServerAclEventContent {
         /// True to allow server names that are IP address literals. False to deny. Defaults to true
         /// if missing or otherwise not a boolean.

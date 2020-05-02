@@ -1,14 +1,10 @@
-use std::{
-    borrow::Cow,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use serde::{Deserialize, Serialize};
 
 /// The type of an event.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-// Cow<str> because deserialization sometimes needs to copy to unescape things
-#[serde(from = "Cow<'_, str>", into = "String")]
+#[serde(from = "String", into = "String")]
 pub enum EventType {
     /// m.call.answer
     CallAnswer,
@@ -204,9 +200,12 @@ impl Display for EventType {
     }
 }
 
-impl From<Cow<'_, str>> for EventType {
-    fn from(s: Cow<'_, str>) -> EventType {
-        match &s as &str {
+impl<T> From<T> for EventType
+where
+    T: Into<String> + AsRef<str>,
+{
+    fn from(s: T) -> EventType {
+        match s.as_ref() {
             "m.call.answer" => EventType::CallAnswer,
             "m.call.candidates" => EventType::CallCandidates,
             "m.call.hangup" => EventType::CallHangup,
@@ -250,14 +249,8 @@ impl From<Cow<'_, str>> for EventType {
             "m.sticker" => EventType::Sticker,
             "m.tag" => EventType::Tag,
             "m.typing" => EventType::Typing,
-            _ => EventType::Custom(s.into_owned()),
+            _ => EventType::Custom(s.into()),
         }
-    }
-}
-
-impl<'a> From<&str> for EventType {
-    fn from(s: &str) -> EventType {
-        EventType::from(Cow::Borrowed(s))
     }
 }
 

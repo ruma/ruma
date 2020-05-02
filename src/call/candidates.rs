@@ -25,7 +25,7 @@ ruma_event! {
 }
 
 /// An ICE (Interactive Connectivity Establishment) candidate.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Candidate {
     /// The SDP "a" line of the candidate.

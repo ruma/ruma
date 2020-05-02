@@ -12,7 +12,7 @@ use crate::{Algorithm, EventType, FromRaw, UnsignedData};
 ///
 /// This type is to be used within a room. For a to-device event, use `EncryptedEventContent`
 /// directly.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(tag = "type", rename = "m.room.encrypted")]
 pub struct EncryptedEvent {
     /// The event's content.
@@ -33,12 +33,12 @@ pub struct EncryptedEvent {
     pub sender: UserId,
 
     /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(skip_serializing_if = "UnsignedData::is_empty")]
     pub unsigned: UnsignedData,
 }
 
 /// The payload for `EncryptedEvent`.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
 pub enum EncryptedEventContent {
     /// An event encrypted with *m.olm.v1.curve25519-aes-sha2*.
@@ -106,7 +106,7 @@ pub(crate) mod raw {
     ///
     /// This type is to be used within a room. For a to-device event, use `EncryptedEventContent`
     /// directly.
-    #[derive(Clone, Debug, PartialEq, Deserialize)]
+    #[derive(Clone, Debug, Deserialize)]
     pub struct EncryptedEvent {
         /// The event's content.
         pub content: EncryptedEventContent,
@@ -130,7 +130,7 @@ pub(crate) mod raw {
     }
 
     /// The payload for `EncryptedEvent`.
-    #[derive(Clone, Debug, PartialEq)]
+    #[derive(Clone, Debug)]
     pub enum EncryptedEventContent {
         /// An event encrypted with *m.olm.v1.curve25519-aes-sha2*.
         OlmV1Curve25519AesSha2(OlmV1Curve25519AesSha2Content),
@@ -192,7 +192,7 @@ pub(crate) mod raw {
 }
 
 /// The payload for `EncryptedEvent` using the *m.olm.v1.curve25519-aes-sha2* algorithm.
-#[derive(Clone, Debug, Serialize, PartialEq, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct OlmV1Curve25519AesSha2Content {
     /// The encryption algorithm used to encrypt this event.
     pub algorithm: Algorithm,
@@ -207,7 +207,7 @@ pub struct OlmV1Curve25519AesSha2Content {
 /// Ciphertext information holding the ciphertext and message type.
 ///
 /// Used for messages encrypted with the *m.olm.v1.curve25519-aes-sha2* algorithm.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CiphertextInfo {
     /// The encrypted payload.
     pub body: String,
@@ -218,7 +218,7 @@ pub struct CiphertextInfo {
 }
 
 /// The payload for `EncryptedEvent` using the *m.megolm.v1.aes-sha2* algorithm.
-#[derive(Clone, Debug, Serialize, PartialEq, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MegolmV1AesSha2Content {
     /// The encryption algorithm used to encrypt this event.
     pub algorithm: Algorithm,

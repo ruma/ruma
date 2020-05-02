@@ -30,7 +30,7 @@ ruma_event! {
 }
 
 /// A public key for signing a third party invite token.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PublicKey {
     /// An optional URL which can be fetched to validate whether the key has been revoked.
     ///

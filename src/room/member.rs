@@ -99,7 +99,7 @@ impl_enum! {
 }
 
 /// Information about a third party invitation.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ThirdPartyInvite {
     /// A name which can be displayed to represent the user instead of their third party
     /// identifier.
@@ -112,7 +112,7 @@ pub struct ThirdPartyInvite {
 
 /// A block of content which has been signed, which servers can use to verify a third party
 /// invitation.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SignedContent {
     /// The invited Matrix user ID.
     ///
@@ -128,7 +128,7 @@ pub struct SignedContent {
 }
 
 /// Translation of the membership change in `m.room.member` event.
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub enum MembershipChange {
     /// No change.
     None,

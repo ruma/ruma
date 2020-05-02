@@ -29,7 +29,7 @@ ruma_event! {
 }
 
 /// A collection of receipts.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Receipts {
     /// A collection of users who have sent *m.read* receipts for this event.
     #[serde(default, rename = "m.read")]
@@ -42,7 +42,7 @@ pub struct Receipts {
 pub type UserReceipts = BTreeMap<UserId, Receipt>;
 
 /// An acknowledgement of an event.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Receipt {
     /// The time when the receipt was sent.
     #[serde(

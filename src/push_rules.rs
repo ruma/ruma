@@ -31,7 +31,7 @@ ruma_event! {
 ///
 /// For example, some rules may only be applied for messages from a particular sender, a particular
 /// room, or by default. The push ruleset contains the entire set of scopes and rules.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Ruleset {
     /// These rules configure behaviour for (unencrypted) messages that match certain patterns.
     pub content: Vec<PatternedPushRule>,
@@ -56,7 +56,7 @@ pub struct Ruleset {
 ///
 /// These rules are stored on the user's homeserver. They are manually configured by the user, who
 /// can create and view them via the Client/Server API.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -74,7 +74,7 @@ pub struct PushRule {
 /// Like `PushRule`, but with an additional `conditions` field.
 ///
 /// Only applicable to underride and override rules.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ConditionalPushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -97,7 +97,7 @@ pub struct ConditionalPushRule {
 /// Like `PushRule`, but with an additional `pattern` field.
 ///
 /// Only applicable to content rules.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PatternedPushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -116,7 +116,7 @@ pub struct PatternedPushRule {
 }
 
 /// An action affects if and how a notification is delivered for a matching event.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum Action {
     /// This causes each matching event to generate a notification.
     Notify,
@@ -229,7 +229,7 @@ impl<'de> Deserialize<'de> for Action {
 }
 
 /// Values for the `set_tweak` action.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "set_tweak", rename_all = "lowercase")]
 pub enum Tweak {
     /// A string representing the sound to be played when this notification arrives.
@@ -256,7 +256,7 @@ pub enum Tweak {
 }
 
 /// A condition that must apply for an associated push rule's action to be taken.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum PushCondition {
     /// This is a glob pattern match on a field of the event.
     EventMatch(EventMatchCondition),
@@ -355,7 +355,7 @@ impl<'de> Deserialize<'de> for PushCondition {
 }
 
 /// A push condition that matches a glob pattern match on a field of the event.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "kind", rename = "event_match")]
 pub struct EventMatchCondition {
     /// The dot-separated field of the event to match.
@@ -369,7 +369,7 @@ pub struct EventMatchCondition {
 }
 
 /// A push condition that matches the current number of members in the room.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "kind", rename = "room_member_count")]
 pub struct RoomMemberCountCondition {
     /// A decimal integer optionally prefixed by one of `==`, `<`, `>`, `>=` or `<=`.
@@ -381,7 +381,7 @@ pub struct RoomMemberCountCondition {
 
 /// A push condition that takes into account the current power levels in the room, ensuring the
 /// sender of the event has high enough power to trigger the notification.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "kind", rename = "sender_notification_permission")]
 pub struct SenderNotificationPermissionCondition {
     /// The field in the power level event the user needs a minimum power level for.

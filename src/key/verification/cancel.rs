@@ -1,9 +1,6 @@
 //! Types for the *m.key.verification.cancel* event.
 
-use std::{
-    borrow::Cow,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use ruma_events_macros::ruma_event;
 use serde::{Deserialize, Serialize};
@@ -34,8 +31,7 @@ ruma_event! {
 ///
 /// Custom error codes should use the Java package naming convention.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-// Cow<str> because deserialization sometimes needs to copy to unescape things
-#[serde(from = "Cow<'_, str>", into = "String")]
+#[serde(from = "String", into = "String")]
 pub enum CancelCode {
     /// The user cancelled the verification.
     User,
@@ -103,9 +99,12 @@ impl Display for CancelCode {
     }
 }
 
-impl From<Cow<'_, str>> for CancelCode {
-    fn from(s: Cow<'_, str>) -> CancelCode {
-        match &s as &str {
+impl<T> From<T> for CancelCode
+where
+    T: Into<String> + AsRef<str>,
+{
+    fn from(s: T) -> CancelCode {
+        match s.as_ref() {
             "m.user" => CancelCode::User,
             "m.timeout" => CancelCode::Timeout,
             "m.unknown_transaction" => CancelCode::UnknownTransaction,
@@ -115,14 +114,8 @@ impl From<Cow<'_, str>> for CancelCode {
             "m.user_mismatch" => CancelCode::UserMismatch,
             "m.invalid_message" => CancelCode::InvalidMessage,
             "m.accepted" => CancelCode::Accepted,
-            _ => CancelCode::Custom(s.into_owned()),
+            _ => CancelCode::Custom(s.into()),
         }
-    }
-}
-
-impl From<&str> for CancelCode {
-    fn from(s: &str) -> CancelCode {
-        CancelCode::from(Cow::Borrowed(s))
     }
 }
 
