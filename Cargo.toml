@@ -14,9 +14,10 @@ edition = "2018"
 
 [dependencies]
 js_int = { version = "0.1.5", features = ["serde"] }
+ruma-common = "0.1.1"
 ruma-events-macros = { path = "ruma-events-macros", version = "=0.21.0-beta.1" }
 ruma-identifiers = "0.16.1"
-ruma-serde = "0.1.2"
+ruma-serde = "0.1.3"
 serde = { version = "1.0.106", features = ["derive"] }
 serde_json = { version = "1.0.52", features = ["raw_value"] }
 

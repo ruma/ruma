@@ -1,19 +1,10 @@
 //! Types for the the *m.push_rules* event.
 
-use std::{
-    fmt::{Display, Formatter, Result as FmtResult},
-    str::FromStr,
-};
-
 use ruma_events_macros::ruma_event;
 use serde::{
-    de::{Error, Visitor},
-    ser::SerializeStruct as _,
-    Deserialize, Deserializer, Serialize, Serializer,
+    de::Error, ser::SerializeStruct as _, Deserialize, Deserializer, Serialize, Serializer,
 };
 use serde_json::{from_value, Value};
-
-use crate::FromStrError;
 
 ruma_event! {
     /// Describes all push rules for a user.
@@ -26,6 +17,8 @@ ruma_event! {
         },
     }
 }
+
+pub use ruma_common::push::Action;
 
 /// A push ruleset scopes a set of rules according to some criteria.
 ///
@@ -113,146 +106,6 @@ pub struct PatternedPushRule {
 
     /// The glob-style pattern to match against.
     pub pattern: String,
-}
-
-/// An action affects if and how a notification is delivered for a matching event.
-#[derive(Clone, Debug)]
-pub enum Action {
-    /// This causes each matching event to generate a notification.
-    Notify,
-
-    /// This prevents each matching event from generating a notification.
-    DontNotify,
-
-    /// This enables notifications for matching events but activates homeserver specific behaviour
-    /// to intelligently coalesce multiple events into a single notification.
-    ///
-    /// Not all homeservers may support this. Those that do not support it should treat it as the
-    /// `notify` action.
-    Coalesce,
-
-    /// Sets an entry in the `tweaks` dictionary key that is sent in the notification request to the
-    /// Push Gateway. This takes the form of a dictionary with a `set_tweak` key whose value is the
-    /// name of the tweak to set. It may also have a `value` key which is the value to which it
-    /// should be set.
-    SetTweak(Tweak),
-
-    /// Additional variants may be added in the future and will not be considered breaking changes
-    /// to ruma-events.
-    #[doc(hidden)]
-    __Nonexhaustive,
-}
-
-impl Display for Action {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let variant = match *self {
-            Action::Notify => "notify",
-            Action::DontNotify => "dont_notify",
-            Action::Coalesce => "coalesce",
-            Action::SetTweak(_) => "set_tweak",
-            Action::__Nonexhaustive => {
-                panic!("__Nonexhaustive enum variant is not intended for use.")
-            }
-        };
-
-        write!(f, "{}", variant)
-    }
-}
-
-impl FromStr for Action {
-    type Err = FromStrError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let action = match s {
-            "notify" => Action::Notify,
-            "dont_notify" => Action::DontNotify,
-            "coalesce" => Action::Coalesce,
-            _ => return Err(FromStrError),
-        };
-
-        Ok(action)
-    }
-}
-
-impl Serialize for Action {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match *self {
-            Action::Notify => serializer.serialize_str("notify"),
-            Action::DontNotify => serializer.serialize_str("dont_notify"),
-            Action::Coalesce => serializer.serialize_str("coalesce"),
-            Action::SetTweak(ref tweak) => tweak.serialize(serializer),
-            _ => panic!("Attempted to serialize __Nonexhaustive variant."),
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for Action {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct StringOrStruct;
-
-        impl<'de> Visitor<'de> for StringOrStruct {
-            type Value = Action;
-
-            fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
-                formatter.write_str("action as string or map")
-            }
-
-            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-            {
-                match FromStr::from_str(value) {
-                    Ok(action) => Ok(action),
-                    Err(_) => Err(serde::de::Error::custom("not a string action")),
-                }
-            }
-
-            fn visit_map<M>(self, map: M) -> Result<Self::Value, M::Error>
-            where
-                M: serde::de::MapAccess<'de>,
-            {
-                match Tweak::deserialize(serde::de::value::MapAccessDeserializer::new(map)) {
-                    Ok(tweak) => Ok(Action::SetTweak(tweak)),
-                    Err(_) => Err(serde::de::Error::custom("unknown action")),
-                }
-            }
-        }
-
-        deserializer.deserialize_any(StringOrStruct)
-    }
-}
-
-/// Values for the `set_tweak` action.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "set_tweak", rename_all = "lowercase")]
-pub enum Tweak {
-    /// A string representing the sound to be played when this notification arrives.
-    ///
-    /// A value of "default" means to play a default sound. A device may choose to alert the user by
-    /// some other means if appropriate, eg. vibration.
-    Sound {
-        /// The sound to be played.
-        value: String,
-    },
-
-    /// A boolean representing whether or not this message should be highlighted in the UI.
-    ///
-    /// This will normally take the form of presenting the message in a different color and/or
-    /// style. The UI might also be adjusted to draw particular attention to the room in which the
-    /// event occurred. If a `highlight` tweak is given with no value, its value is defined to be
-    /// `true`. If no highlight tweak is given at all then the value of `highlight` is defined to be
-    /// `false`.
-    Highlight {
-        /// Whether or not the message should be highlighted.
-        #[serde(default = "ruma_serde::default_true")]
-        value: bool,
-    },
 }
 
 /// A condition that must apply for an associated push rule's action to be taken.
@@ -394,11 +247,12 @@ pub struct SenderNotificationPermissionCondition {
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;
+    use ruma_common::push::{Action, Tweak};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{
-        Action, EventMatchCondition, PushCondition, PushRulesEvent, RoomMemberCountCondition,
-        SenderNotificationPermissionCondition, Tweak,
+        EventMatchCondition, PushCondition, PushRulesEvent, RoomMemberCountCondition,
+        SenderNotificationPermissionCondition,
     };
     use crate::EventJson;
 
@@ -410,10 +264,7 @@ mod tests {
     #[test]
     fn serialize_tweak_sound_action() {
         assert_eq!(
-            to_json_value(&Action::SetTweak(Tweak::Sound {
-                value: "default".into()
-            }))
-            .unwrap(),
+            to_json_value(&Action::SetTweak(Tweak::Sound("default".into()))).unwrap(),
             json!({ "set_tweak": "sound", "value": "default" })
         );
     }
@@ -421,8 +272,13 @@ mod tests {
     #[test]
     fn serialize_tweak_highlight_action() {
         assert_eq!(
-            to_json_value(&Action::SetTweak(Tweak::Highlight { value: true })).unwrap(),
-            json!({ "set_tweak": "highlight", "value": true })
+            to_json_value(&Action::SetTweak(Tweak::Highlight(true))).unwrap(),
+            json!({ "set_tweak": "highlight" })
+        );
+
+        assert_eq!(
+            to_json_value(&Action::SetTweak(Tweak::Highlight(false))).unwrap(),
+            json!({ "set_tweak": "highlight", "value": false })
         );
     }
 
@@ -442,7 +298,7 @@ mod tests {
         });
         assert_matches!(
             &from_json_value::<Action>(json_data).unwrap(),
-            Action::SetTweak(Tweak::Sound { value }) if value == "default"
+            Action::SetTweak(Tweak::Sound(value)) if value == "default"
         );
     }
 
@@ -454,7 +310,7 @@ mod tests {
         });
         assert_matches!(
             from_json_value::<Action>(json_data).unwrap(),
-            Action::SetTweak(Tweak::Highlight { value: true })
+            Action::SetTweak(Tweak::Highlight(true))
         );
     }
 
@@ -462,7 +318,7 @@ mod tests {
     fn deserialize_tweak_highlight_action_with_default_value() {
         assert_matches!(
             from_json_value::<Action>(json!({ "set_tweak": "highlight" })).unwrap(),
-            Action::SetTweak(Tweak::Highlight { value: true })
+            Action::SetTweak(Tweak::Highlight(true))
         );
     }
 
