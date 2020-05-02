@@ -222,7 +222,7 @@ mod tests {
             },
             "event_id": "$h29iv0s8:example.com",
             "origin_server_ts": 1,
-            "prev_content": {"name": "The old name"},
+            "prev_content": { "name": "The old name" },
             "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
             "state_key": "",

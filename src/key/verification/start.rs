@@ -453,10 +453,11 @@ mod tests {
     #[test]
     fn deserialization_structure_mismatch() {
         // Missing several required fields.
-        let error = from_json_value::<EventJson<StartEventContent>>(json!({"from_device": "123"}))
-            .unwrap()
-            .deserialize()
-            .unwrap_err();
+        let error =
+            from_json_value::<EventJson<StartEventContent>>(json!({ "from_device": "123" }))
+                .unwrap()
+                .deserialize()
+                .unwrap_err();
 
         assert!(error.message().contains("missing field"));
         assert!(error.is_deserialization());

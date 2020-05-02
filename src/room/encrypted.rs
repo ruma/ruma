@@ -329,7 +329,7 @@ mod tests {
     #[test]
     fn deserialization_failure() {
         assert!(from_json_value::<EventJson<EncryptedEventContent>>(
-            json!({"algorithm": "m.megolm.v1.aes-sha2"})
+            json!({ "algorithm": "m.megolm.v1.aes-sha2" })
         )
         .unwrap()
         .deserialize()

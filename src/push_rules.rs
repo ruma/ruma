@@ -487,7 +487,7 @@ mod tests {
     fn serialize_contains_display_name_condition() {
         assert_eq!(
             to_json_value(&PushCondition::ContainsDisplayName).unwrap(),
-            json!({"kind": "contains_display_name"})
+            json!({ "kind": "contains_display_name" })
         );
     }
 
@@ -540,7 +540,7 @@ mod tests {
     #[test]
     fn deserialize_contains_display_name_condition() {
         assert_matches!(
-            from_json_value::<PushCondition>(json!({"kind": "contains_display_name"})).unwrap(),
+            from_json_value::<PushCondition>(json!({ "kind": "contains_display_name" })).unwrap(),
             PushCondition::ContainsDisplayName
         );
     }

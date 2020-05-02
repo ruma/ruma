@@ -351,7 +351,7 @@ mod tests {
             "type": "m.room.name",
             "state_key": "",
             "sender": "@example:localhost",
-            "content": {"name": "Ruma"}
+            "content": { "name": "Ruma" }
         });
 
         let join_rules_event = json!({
