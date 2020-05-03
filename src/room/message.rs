@@ -197,7 +197,6 @@ pub(crate) mod raw {
 
 /// The payload for an audio message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "msgtype", rename = "m.audio")]
 pub struct AudioMessageEventContent {
     /// The textual representation of this message.
     pub body: String,
@@ -250,7 +249,6 @@ pub struct EmoteMessageEventContent {
 
 /// The payload for a file message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "msgtype", rename = "m.file")]
 pub struct FileMessageEventContent {
     /// A human-readable description of the file. This is recommended to be the filename of the
     /// original upload.
@@ -300,7 +298,6 @@ pub struct FileInfo {
 
 /// The payload for an image message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "msgtype", rename = "m.image")]
 pub struct ImageMessageEventContent {
     /// A textual representation of the image. This could be the alt text of the image, the filename
     /// of the image, or some kind of content description for accessibility e.g. "image attachment."
@@ -322,7 +319,6 @@ pub struct ImageMessageEventContent {
 
 /// The payload for a location message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "msgtype", rename = "m.location")]
 pub struct LocationMessageEventContent {
     /// A description of the location e.g. "Big Ben, London, UK,"or some kind of content description
     /// for accessibility, e.g. "location attachment."
@@ -356,7 +352,6 @@ pub struct LocationInfo {
 
 /// The payload for a notice message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "msgtype", rename = "m.notice")]
 pub struct NoticeMessageEventContent {
     /// The notice text to send.
     pub body: String,
@@ -378,7 +373,6 @@ pub struct NoticeMessageEventContent {
 
 /// The payload for a server notice message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "msgtype", rename = "m.server_notice")]
 pub struct ServerNoticeMessageEventContent {
     /// A human-readable description of the notice.
     pub body: String,
@@ -420,7 +414,6 @@ pub enum LimitType {
 
 /// The payload for a text message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "msgtype", rename = "m.text")]
 pub struct TextMessageEventContent {
     /// The body of the message.
     pub body: String,
@@ -442,7 +435,6 @@ pub struct TextMessageEventContent {
 
 /// The payload for a video message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "msgtype", rename = "m.video")]
 pub struct VideoMessageEventContent {
     /// A description of the video, e.g. "Gangnam Style," or some kind of content description for
     /// accessibility, e.g. "video attachment."
