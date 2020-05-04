@@ -25,6 +25,7 @@ ruma_api! {
         /// The room to get events from.
         #[ruma_api(path)]
         pub room_id: RoomId,
+
         /// The token to start returning events from.
         ///
         /// This token can be obtained from a
@@ -32,6 +33,7 @@ ruma_api! {
         /// returned by a previous request to this endpoint.
         #[ruma_api(query)]
         pub from: String,
+
         /// The token to stop returning events at.
         ///
         /// This token can be obtained from a prev_batch
@@ -40,15 +42,18 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub to: Option<String>,
+
         /// The direction to return events from.
         #[ruma_api(query)]
         pub dir: Direction,
+
         /// The maximum number of events to return.
         ///
         /// Default: 10.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub limit: Option<UInt>,
+
         /// A RoomEventFilter to filter returned events with.
         #[ruma_api(query)]
         #[serde(
@@ -63,12 +68,15 @@ ruma_api! {
         /// The token the pagination starts from.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub start: Option<String>,
+
         /// The token the pagination ends at.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub end: Option<String>,
+
         /// A list of room events.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub chunk: Vec<EventJson<RoomEvent>>,
+
         /// A list of state events relevant to showing the `chunk`.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub state: Vec<EventJson<StateEvent>>,
@@ -83,6 +91,7 @@ pub enum Direction {
     /// Return events backwards in time from the requested `from` token.
     #[serde(rename = "b")]
     Backward,
+
     /// Return events forwards in time from the requested `from` token.
     #[serde(rename = "f")]
     Forward,

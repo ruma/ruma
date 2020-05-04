@@ -18,9 +18,11 @@ ruma_api! {
         /// User ID of user for whom to retrieve data.
         #[ruma_api(path)]
         pub user_id: UserId,
+
         /// Room ID for which to retrieve data.
         #[ruma_api(path)]
         pub room_id: RoomId,
+
         /// Type of data to retrieve.
         #[ruma_api(path)]
         pub event_type: String,

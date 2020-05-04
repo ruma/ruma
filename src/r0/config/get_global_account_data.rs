@@ -18,6 +18,7 @@ ruma_api! {
         /// User ID of user for whom to retrieve data.
         #[ruma_api(path)]
         pub user_id: UserId,
+
         /// Type of data to retrieve.
         #[ruma_api(path)]
         pub event_type: String,

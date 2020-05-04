@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 pub enum Method {
     /// Crop the original to produce the requested image dimensions.
     Crop,
+
     /// Maintain the original aspect ratio of the source image.
     Scale,
 }
@@ -31,20 +32,25 @@ ruma_api! {
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub allow_remote: Option<bool>,
+
         /// The media ID from the mxc:// URI (the path component).
         #[ruma_api(path)]
         pub media_id: String,
+
         /// The server name from the mxc:// URI (the authoritory component).
         #[ruma_api(path)]
         pub server_name: String,
+
         /// The *desired* height of the thumbnail. The actual thumbnail may not match the size
         /// specified.
         #[ruma_api(query)]
         pub height: UInt,
+
         /// The desired resizing method.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub method: Option<Method>,
+
         /// The *desired* width of the thumbnail. The actual thumbnail may not match the size
         /// specified.
         #[ruma_api(query)]
@@ -55,6 +61,7 @@ ruma_api! {
         /// The content type of the thumbnail.
         #[ruma_api(header = CONTENT_TYPE)]
         pub content_type: String,
+
         /// A thumbnail of the requested content.
         #[ruma_api(body)]
         pub file: Vec<u8>,

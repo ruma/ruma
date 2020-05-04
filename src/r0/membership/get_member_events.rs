@@ -54,10 +54,13 @@ ruma_api! {
 pub enum MembershipEventFilter {
     /// The user has joined.
     Join,
+
     /// The user has been invited.
     Invite,
+
     /// The user has left.
     Leave,
+
     /// The user has been banned.
     Ban,
 }

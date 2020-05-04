@@ -16,10 +16,13 @@ pub mod update_device;
 pub struct Device {
     /// Device ID
     pub device_id: DeviceId,
+
     /// Public display name of the device.
     pub display_name: Option<String>,
+
     /// Most recently seen IP address of the session.
     pub ip: Option<String>,
+
     /// Unix timestamp that the session was last active.
     #[serde(
         with = "ruma_serde::time::opt_ms_since_unix_epoch",

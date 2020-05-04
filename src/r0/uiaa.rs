@@ -22,13 +22,16 @@ pub enum AuthData {
         /// The login type that the client is attempting to complete.
         #[serde(rename = "type")]
         kind: String,
+
         /// The value of the session key given by the homeserver.
         #[serde(skip_serializing_if = "Option::is_none")]
         session: Option<String>,
+
         /// Parameters submitted for a particular authentication stage.
         #[serde(flatten)]
         auth_parameters: BTreeMap<String, JsonValue>,
     },
+
     /// Used by the client to acknowledge that the user has completed a UIAA
     /// stage through the fallback method.
     FallbackAcknowledgement {
@@ -44,14 +47,18 @@ pub enum AuthData {
 pub struct UiaaInfo {
     /// List of authentication flows available for this endpoint.
     pub flows: Vec<AuthFlow>,
+
     /// List of stages in the current flow completed by the client.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub completed: Vec<String>,
+
     /// Authentication parameters required for the client to complete authentication.
     pub params: JsonValue,
+
     /// Session key for client to use to complete authentication.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub session: Option<String>,
+
     /// Authentication-related errors for previous request returned by homeserver.
     #[serde(flatten, skip_serializing_if = "Option::is_none")]
     pub auth_error: Option<ErrorBody>,
@@ -73,6 +80,7 @@ pub struct AuthFlow {
 pub enum UiaaResponse {
     /// User-Interactive Authentication API response
     AuthResponse(UiaaInfo),
+
     /// Matrix error response
     MatrixError(MatrixError),
 }

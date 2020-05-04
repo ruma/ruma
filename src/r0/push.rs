@@ -84,6 +84,7 @@ pub enum PushCondition {
     EventMatch {
         /// The dot-separated field of the event to match, e.g. `content.body`
         key: String,
+
         /// The glob-style pattern to match against.
         pattern: String,
     },

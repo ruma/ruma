@@ -111,14 +111,19 @@ impl<'de> Deserialize<'de> for AlgorithmAndDeviceId {
 pub struct DeviceKeys {
     /// The ID of the user the device belongs to. Must match the user ID used when logging in.
     pub user_id: UserId,
+
     /// The ID of the device these keys belong to. Must match the device ID used when logging in.
     pub device_id: DeviceId,
+
     /// The encryption algorithms supported by this device.
     pub algorithms: Vec<Algorithm>,
+
     /// Public identity keys.
     pub keys: BTreeMap<AlgorithmAndDeviceId, String>,
+
     /// Signatures for the device key object.
     pub signatures: BTreeMap<UserId, BTreeMap<AlgorithmAndDeviceId, String>>,
+
     /// Additional data added to the device key information by intermediate servers, and
     /// not covered by the signatures.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -137,6 +142,7 @@ pub struct UnsignedDeviceInfo {
 pub struct SignedKey {
     /// Base64-encoded 32-byte Curve25519 public key.
     pub key: String,
+
     /// Signatures for the key object.
     pub signatures: BTreeMap<UserId, BTreeMap<AlgorithmAndDeviceId, String>>,
 }
@@ -147,6 +153,7 @@ pub struct SignedKey {
 pub enum OneTimeKey {
     /// A key containing signatures, for the SignedCurve25519 algorithm.
     SignedKey(SignedKey),
+
     /// A string-valued key, for the Ed25519 and Curve25519 algorithms.
     Key(String),
 }

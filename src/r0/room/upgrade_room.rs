@@ -17,6 +17,7 @@ ruma_api! {
         /// ID of the room to be upgraded.
         #[ruma_api(path)]
         pub room_id: RoomId,
+
         /// New version for the room.
         pub new_version: String,
     }

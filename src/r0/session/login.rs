@@ -20,12 +20,15 @@ ruma_api! {
         /// Identification information for the user.
         #[serde(flatten)]
         pub user: UserInfo,
+
         /// The authentication mechanism.
         #[serde(flatten)]
         pub login_info: LoginInfo,
+
         /// ID of the client device
         #[serde(skip_serializing_if = "Option::is_none")]
         pub device_id: Option<DeviceId>,
+
         /// A display name to assign to the newly-created device. Ignored if device_id corresponds
         /// to a known device.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -35,19 +38,23 @@ ruma_api! {
     response {
         /// The fully-qualified Matrix ID that has been registered.
         pub user_id: UserId,
+
         /// An access token for the account.
         pub access_token: String,
+
         /// The hostname of the homeserver on which the account has been registered.
         ///
         /// Deprecated: Clients should extract the server_name from user_id (by splitting at the
         /// first colon) if they require it.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub home_server: Option<String>,
+
         /// ID of the logged-in device.
         ///
         /// Will be the same as the corresponging parameter in the request, if one was
         /// specified.
         pub device_id: String,
+
         /// Client configuration provided by the server.
         ///
         /// If present, clients SHOULD use the provided object to reconfigure themselves.
@@ -64,18 +71,22 @@ pub enum UserInfo {
     /// Either a fully qualified Matrix user ID, or just the localpart (as part of the 'identifier'
     /// field).
     MatrixId(String),
+
     /// Third party identifier (as part of the 'identifier' field).
     ThirdPartyId {
         /// Third party identifier for the user.
         address: String,
+
         /// The medium of the identifier.
         medium: Medium,
     },
+
     /// Same as third-party identification with medium == msisdn, but with a non-canonicalised
     /// phone number.
     PhoneNumber {
         /// The country that the phone number is from.
         country: String,
+
         /// The phone number.
         phone: String,
     },
@@ -91,6 +102,7 @@ pub enum LoginInfo {
         /// The password.
         password: String,
     },
+
     /// Token-based login.
     #[serde(rename = "m.login.token")]
     Token {
@@ -105,6 +117,7 @@ pub struct DiscoveryInfo {
     /// Information about the homeserver to connect to.
     #[serde(rename = "m.homeserver")]
     pub homeserver: HomeserverInfo,
+
     /// Information about the identity server to connect to.
     #[serde(rename = "m.identity_server")]
     pub identity_server: Option<IdentityServerInfo>,

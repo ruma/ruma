@@ -22,9 +22,11 @@ ruma_api! {
         /// Type of event being sent to each device.
         #[ruma_api(path)]
         pub event_type: EventType,
+
         /// A request identifier unique to the access token used to send the request.
         #[ruma_api(path)]
         pub txn_id: String,
+
         /// A map of users to devices to a message event to be sent to the user's
         /// device. Individual message events can be sent to devices, but all
         /// events must be of the same type.

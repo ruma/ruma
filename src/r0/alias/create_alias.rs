@@ -17,6 +17,7 @@ ruma_api! {
         /// The room alias to set.
         #[ruma_api(path)]
         pub room_alias: RoomAliasId,
+
         /// The room ID to set.
         pub room_id: RoomId,
     }

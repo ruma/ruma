@@ -17,6 +17,7 @@ ruma_api! {
     request {
         /// The new password for the account.
         pub new_password: String,
+
         /// Additional authentication information for the user-interactive authentication API.
         pub auth: Option<AuthData>,
     }

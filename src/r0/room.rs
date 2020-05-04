@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 pub enum Visibility {
     /// Indicates that the room will be shown in the published room list.
     Public,
+
     /// Indicates that the room will not be shown in the published room list.
     Private,
 }

@@ -18,8 +18,10 @@ ruma_api! {
         /// Additional information for the User-Interactive Authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub auth: Option<AuthData>,
+
         /// Client-generated secret string used to protect this session.
         pub client_secret: String,
+
         /// The session identifier given by the identity server.
         pub sid: String,
     }
@@ -28,4 +30,3 @@ ruma_api! {
 
     error: UiaaResponse
 }
-

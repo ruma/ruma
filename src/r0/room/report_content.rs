@@ -18,11 +18,14 @@ ruma_api! {
         /// Room in which the event to be reported is located.
         #[ruma_api(path)]
         pub room_id: RoomId,
+
         /// Event to report.
         #[ruma_api(path)]
         pub event_id: EventId,
+
         /// Integer between -100 and 0 rating offensivness.
         pub score: Int,
+
         /// Reason to report content. May be blank.
         pub reason: String,
     }

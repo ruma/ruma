@@ -20,6 +20,7 @@ ruma_api! {
         /// The protocol used to communicate to the third party network.
         #[ruma_api(path)]
         pub protocol: String,
+
         /// One or more custom fields to help identify the third party location.
         // The specification is incorrect for this parameter. See matrix-org/matrix-doc#2352.
         #[ruma_api(query_map)]

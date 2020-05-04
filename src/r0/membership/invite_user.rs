@@ -26,6 +26,7 @@ ruma_api! {
         /// The room where the user should be invited.
         #[ruma_api(path)]
         pub room_id: RoomId,
+
         /// The user to invite.
         #[ruma_api(body)]
         pub recipient: InvitationRecipient,
@@ -45,6 +46,7 @@ pub enum InvitationRecipient {
         /// Matrix identifier of user.
         user_id: UserId,
     },
+
     /// Used to invite user by a third party identifer.
     ThirdPartyId(Invite3pid),
 }

@@ -30,6 +30,7 @@ pub enum LoginType {
     /// A password is supplied to authenticate.
     #[serde(rename = "m.login.password")]
     Password,
+
     /// Token-based login.
     #[serde(rename = "m.login.token")]
     Token,

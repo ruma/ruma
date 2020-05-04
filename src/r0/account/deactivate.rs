@@ -20,6 +20,7 @@ ruma_api! {
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub auth: Option<AuthData>,
+
         /// Identity server from which to unbind the user's third party
         /// identifier.
         #[serde(skip_serializing_if = "Option::is_none")]

@@ -20,10 +20,12 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub limit: Option<UInt>,
+
         /// Pagination token from a previous request.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub since: Option<String>,
+
         /// The server to fetch the public room lists from.
         ///
         /// `None` means the server this request is sent to.
@@ -35,10 +37,13 @@ ruma_api! {
     response {
         /// A paginated chunk of public rooms.
         pub chunk: Vec<PublicRoomsChunk>,
+
         /// A pagination token for the response.
         pub next_batch: Option<String>,
+
         /// A pagination token that allows fetching previous results.
         pub prev_batch: Option<String>,
+
         /// An estimate on the total number of public rooms, if the server has an estimate.
         pub total_room_count_estimate: Option<UInt>,
     }

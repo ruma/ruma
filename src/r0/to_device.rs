@@ -18,6 +18,7 @@ pub mod send_event_to_device;
 pub enum DeviceIdOrAllDevices {
     /// Represents a device Id for one of a user's devices.
     DeviceId(DeviceId),
+
     /// Represents all devices for a user.
     AllDevices,
 }

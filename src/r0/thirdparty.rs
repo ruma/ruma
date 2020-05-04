@@ -18,12 +18,16 @@ use serde::{Deserialize, Serialize};
 pub struct Protocol {
     /// Fields which may be used to identify a third party user.
     pub user_fields: Vec<String>,
+
     /// Fields which may be used to identify a third party location.
     pub location_fields: Vec<String>,
+
     /// A content URI representing an icon for the third party protocol.
     pub icon: String,
+
     /// The type definitions for the fields defined in `user_fields` and `location_fields`.
     pub field_types: BTreeMap<String, FieldType>,
+
     /// A list of objects representing independent instances of configuration.
     pub instances: Vec<ProtocolInstance>,
 }
@@ -33,11 +37,14 @@ pub struct Protocol {
 pub struct ProtocolInstance {
     /// A human-readable description for the protocol, such as the name.
     pub desc: String,
+
     /// An optional content URI representing the protocol.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon: Option<String>,
+
     /// Preset values for `fields` the client may use to search by.
     pub fields: BTreeMap<String, String>,
+
     /// A unique identifier across all instances.
     pub network_id: String,
 }
@@ -47,6 +54,7 @@ pub struct ProtocolInstance {
 pub struct FieldType {
     /// A regular expression for validation of a field's value.
     pub regexp: String,
+
     /// A placeholder serving as a valid example of the field value.
     pub placeholder: String,
 }
@@ -56,8 +64,10 @@ pub struct FieldType {
 pub struct Location {
     /// An alias for a matrix room.
     pub alias: RoomAliasId,
+
     /// The protocol ID that the third party location is a part of.
     pub protocol: String,
+
     /// Information used to identify this third party location.
     pub fields: BTreeMap<String, String>,
 }
@@ -67,8 +77,10 @@ pub struct Location {
 pub struct User {
     /// A matrix user ID representing a third party user.
     pub userid: UserId,
+
     /// The protocol ID that the third party user is a part of.
     pub protocol: String,
+
     /// Information used to identify this third party user.
     pub fields: BTreeMap<String, String>,
 }
@@ -79,6 +91,7 @@ pub struct User {
 pub enum Medium {
     /// Email address identifier
     Email,
+
     /// Phone number identifier
     MSISDN,
 }

@@ -17,10 +17,12 @@ ruma_api! {
     request {
         /// Client-generated secret string used to protect this session.
         pub client_secret: String,
+
         /// The ID server to send the onward request to as a hostname with an
         /// appended colon and port number if the port is not the default.
         #[serde(flatten)]
         pub identity_server_info: IdentityServerInfo,
+
         /// The session identifier given by the identity server.
         pub sid: String,
     }

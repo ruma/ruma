@@ -19,9 +19,11 @@ ruma_api! {
         /// The protocol (network) ID to update the room list for.
         #[ruma_api(path)]
         pub network_id: String,
+
         /// The room ID to add to the directory.
         #[ruma_api(path)]
         pub room_id: RoomId,
+
         /// Whether the room should be visible (public) in the directory or not (private).
         pub visibility: Visibility,
     }

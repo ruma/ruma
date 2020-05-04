@@ -23,22 +23,26 @@ ruma_api! {
         /// with a password, e.g., for guest or application service accounts.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub password: Option<String>,
+
         /// local part of the desired Matrix ID.
         ///
         /// If omitted, the homeserver MUST generate a Matrix ID local part.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub username: Option<String>,
+
         /// ID of the client device.
         ///
         /// If this does not correspond to a known client device, a new device will be created.
         /// The server will auto-generate a device_id if this is not specified.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub device_id: Option<DeviceId>,
+
         /// A display name to assign to the newly-created device.
         ///
         /// Ignored if `device_id` corresponds to a known device.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub initial_device_display_name: Option<String>,
+
         /// Additional authentication information for the user-interactive authentication API.
         ///
         /// Note that this information is not used to define how the registered user should be
@@ -47,12 +51,14 @@ ruma_api! {
         /// with status code 401.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub auth: Option<AuthData>,
+
         /// Kind of account to register
         ///
         /// Defaults to `User` if omitted.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub kind: Option<RegistrationKind>,
+
         /// If `true`, an `access_token` and `device_id` should not be returned
         /// from this call, therefore preventing an automatic login.
         #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
@@ -65,8 +71,10 @@ ruma_api! {
         /// This access token can then be used to authorize other requests.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub access_token: Option<String>,
+
         /// The fully-qualified Matrix ID that has been registered.
         pub user_id: UserId,
+
         /// ID of the registered device.
         ///
         /// Will be the same as the corresponding parameter in the request, if one was specified.
@@ -84,6 +92,7 @@ pub enum RegistrationKind {
     ///
     /// These accounts may have limited permissions and may not be supported by all servers.
     Guest,
+
     /// A regular user account
     User,
 }

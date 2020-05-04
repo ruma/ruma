@@ -23,43 +23,54 @@ ruma_api! {
         /// Extra keys to be added to the content of the `m.room.create`.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub creation_content: Option<CreationContent>,
+
         /// List of state events to send to the new room.
         ///
         /// Takes precedence over events set by preset, but gets overriden by
         /// name and topic keys.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub initial_state: Vec<InitialStateEvent>,
+
         /// A list of user IDs to invite to the room.
         ///
         /// This will tell the server to invite everyone in the list to the newly created room.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub invite: Vec<UserId>,
+
         /// List of third party IDs of users to invite.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub invite_3pid: Vec<Invite3pid>,
+
         /// If set, this sets the `is_direct` flag on room invites.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub is_direct: Option<bool>,
+
         /// If this is included, an `m.room.name` event will be sent into the room to indicate
         /// the name of the room.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub name: Option<String>,
+
         /// Power level content to override in the default power level event.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub power_level_content_override: Option<EventJson<PowerLevelsEventContent>>,
+
         /// Convenience parameter for setting various default state events based on a preset.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub preset: Option<RoomPreset>,
+
         /// The desired room alias local part.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub room_alias_name: Option<String>,
+
         /// Room version to set for the room. Defaults to homeserver's default if not specified.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub room_version: Option<String>,
+
         /// If this is included, an `m.room.topic` event will be sent into the room to indicate
         /// the topic for the room.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub topic: Option<String>,
+
         /// A public visibility indicates that the room will be shown in the published room
         /// list. A private visibility will hide the room from the published room list. Rooms
         /// default to private visibility if this key is not included.
@@ -91,8 +102,10 @@ pub struct CreationContent {
 pub enum RoomPreset {
     /// `join_rules` is set to `invite` and `history_visibility` is set to `shared`.
     PrivateChat,
+
     /// `join_rules` is set to `public` and `history_visibility` is set to `shared`.
     PublicChat,
+
     /// Same as `PrivateChat`, but all initial invitees get the same power level as the creator.
     TrustedPrivateChat,
 }
@@ -103,8 +116,10 @@ pub struct InitialStateEvent {
     /// State event type.
     #[serde(rename = "type")]
     pub event_type: String,
+
     /// `state_key` of the event to be sent.
     pub state_key: Option<String>,
+
     /// JSON content of the state event.
     pub content: JsonValue,
 }

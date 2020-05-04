@@ -18,6 +18,7 @@ ruma_api! {
         /// The ID of the room the event is in.
         #[ruma_api(path)]
         pub room_id: RoomId,
+
         /// The ID of the event.
         #[ruma_api(path)]
         pub event_id: EventId,

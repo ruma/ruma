@@ -19,6 +19,7 @@ ruma_api! {
         /// URL to get a preview of.
         #[ruma_api(query)]
         pub url: String,
+
         /// Preferred point in time (in milliseconds) to return a preview for.
         #[ruma_api(query)]
         #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]

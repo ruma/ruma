@@ -25,10 +25,13 @@ ruma_api! {
     response {
         /// Access token for verifying user's identity.
         pub access_token: String,
+
         /// Access token type.
         pub token_type: TokenType,
+
         /// Homeserver domain for verification of user's identity.
         pub matrix_server_name: String,
+
         /// Seconds until token expiration.
         #[serde(with = "ruma_serde::duration::secs")]
         pub expires_in: Duration,

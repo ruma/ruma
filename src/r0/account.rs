@@ -25,6 +25,7 @@ pub struct IdentityServerInfo {
     /// The ID server to send the onward request to as a hostname with an
     /// appended colon and port number if the port is not the default.
     pub id_server: String,
+
     /// Access token previously registered with identity server.
     pub id_access_token: String,
 }
@@ -36,6 +37,7 @@ pub enum ThirdPartyIdRemovalStatus {
     /// Either the homeserver couldn't determine the right identity server to contact, or the
     /// identity server refused the operation.
     NoSupport,
+
     /// Success.
     Success,
 }

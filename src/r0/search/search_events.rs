@@ -204,18 +204,23 @@ pub struct ResultCategories {
 pub struct RoomEventJsons {
     /// An approximate count of the total number of results found.
     pub count: UInt,
+
     /// Any groups that were requested.
     pub groups: BTreeMap<GroupingKey, BTreeMap<RoomIdOrUserId, ResultGroup>>,
+
     /// Token that can be used to get the next batch of results, by passing as the `next_batch`
     /// parameter to the next call. If this field is absent, there are no more results.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub next_batch: Option<String>,
+
     /// List of results in the requested order.
     pub results: Vec<SearchResult>,
+
     /// The current state for every room in the results. This is included if the request had the
     /// `include_state` key set with a value of `true`.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub state: BTreeMap<RoomId, Vec<EventJson<StateEvent>>>,
+
     /// List of words which should be highlighted, useful for stemming which may
     /// change the query terms.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -230,8 +235,10 @@ pub struct ResultGroup {
     /// results in this group.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub next_batch: Option<String>,
+
     /// Key that can be used to order different groups.
     pub order: UInt,
+
     /// Which results are in this group.
     pub results: Vec<EventId>,
 }
@@ -242,9 +249,11 @@ pub struct SearchResult {
     /// Context for result, if requested.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub context: Option<EventContextResult>,
+
     /// A number that describes how closely this result matches the search. Higher is closer.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rank: Option<UInt>,
+
     /// The event that matched.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<EventJson<Event>>,
@@ -256,6 +265,7 @@ pub struct UserProfile {
     /// The user's avatar URL, if set.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar_url: Option<String>,
+
     /// The user's display name, if set.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub displayname: Option<String>,
@@ -266,6 +276,7 @@ pub struct UserProfile {
 pub enum RoomIdOrUserId {
     /// Represents a room ID.
     RoomId(RoomId),
+
     /// Represents a user ID.
     UserId(UserId),
 }

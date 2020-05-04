@@ -20,6 +20,7 @@ ruma_api! {
         /// The protocol used to communicate to the third party network.
         #[ruma_api(path)]
         pub protocol: String,
+
         /// One or more custom fields that are passed to the AS to help identify the user.
         // The specification is incorrect for this parameter. See matrix-org/matrix-doc#2352.
         #[ruma_api(query_map)]

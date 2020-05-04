@@ -35,11 +35,14 @@ ruma_api! {
 pub struct ThirdPartyIdentifier {
     /// The third party identifier address.
     pub address: String,
+
     /// The medium of third party identifier.
     pub medium: Medium,
+
     /// The time when the identifier was validated by the identity server.
     #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
     pub validated_at: SystemTime,
+
     /// The time when the homeserver associated the third party identifier with the user.
     #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
     pub added_at: SystemTime,

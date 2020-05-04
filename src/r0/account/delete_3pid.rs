@@ -19,8 +19,10 @@ ruma_api! {
         /// Identity server to delete from.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub id_server: Option<String>,
+
         /// Medium of the 3PID to be removed.
         pub medium: Medium,
+
         /// Third-party address being removed.
         pub address: String,
     }

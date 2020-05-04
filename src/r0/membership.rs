@@ -40,10 +40,13 @@ pub struct ThirdPartySigned {
 pub struct Invite3pid {
     /// Hostname and port of identity server to be used for account lookups.
     pub id_server: String,
+
     /// An access token registered with the identity server.
     pub id_access_token: String,
+
     /// Type of third party ID.
     pub medium: Medium,
+
     /// Third party identifier.
     pub address: String,
 }

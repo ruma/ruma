@@ -34,6 +34,7 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub filter: Option<Filter>,
+
         /// A point in time to continue a sync from.
         ///
         /// Should be a token from the `next_batch` field of a previous `/sync`
@@ -41,14 +42,17 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
         pub since: Option<String>,
+
         /// Controls whether to include the full state for all rooms the user is a member of.
         #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
         #[ruma_api(query)]
         pub full_state: bool,
+
         /// Controls whether the client is automatically marked as online by polling this API.
         #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
         #[ruma_api(query)]
         pub set_presence: SetPresence,
+
         /// The maximum time to poll in milliseconds before returning this request.
         #[serde(
             with = "ruma_serde::duration::opt_ms",
@@ -62,20 +66,26 @@ ruma_api! {
     response {
         /// The batch token to supply in the `since` param of the next `/sync` request.
         pub next_batch: String,
+
         /// Updates to rooms.
         pub rooms: Rooms,
+
         /// Updates to the presence status of other users.
         pub presence: Presence,
+
         /// The global private data created by this user.
         pub account_data: AccountData,
+
         /// Messages sent dirrectly between devices.
         #[serde(default, skip_serializing_if = "ToDevice::is_empty")]
         pub to_device: ToDevice,
+
         /// Information on E2E device updates.
         ///
         /// Only present on an incremental sync.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub device_lists: Option<DeviceLists>,
+
         /// For each key algorithm, the number of unclaimed one-time keys
         /// currently held on the server for a device.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -91,8 +101,10 @@ ruma_api! {
 pub enum SetPresence {
     /// Do not set the presence of the user calling this API.
     Offline,
+
     /// Mark client as online explicitly. Assumed by default.
     Online,
+
     /// Mark client as being idle.
     Unavailable,
 }
@@ -121,6 +133,7 @@ pub enum Filter {
     #[serde(with = "ruma_serde::json_string")]
     /// A complete filter definition serialized to JSON.
     FilterDefinition(FilterDefinition),
+
     /// The ID of a filter saved on the server.
     FilterId(String),
 }
@@ -130,8 +143,10 @@ pub enum Filter {
 pub struct Rooms {
     /// The rooms that the user has left or been banned from.
     pub leave: BTreeMap<RoomId, LeftRoom>,
+
     /// The rooms that the user has joined.
     pub join: BTreeMap<RoomId, JoinedRoom>,
+
     /// The rooms that the user has been invited to.
     pub invite: BTreeMap<RoomId, InvitedRoom>,
 }
@@ -142,8 +157,10 @@ pub struct LeftRoom {
     /// The timeline of messages and state changes in the room up to the point when the user
     /// left.
     pub timeline: Timeline,
+
     /// The state updates for the room up to the start of the timeline.
     pub state: State,
+
     /// The private data that this user has attached to this room.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub account_data: Option<AccountData>,
@@ -155,17 +172,22 @@ pub struct JoinedRoom {
     /// Information about the room which clients may need to correctly render it
     /// to users.
     pub summary: RoomSummary,
+
     /// Counts of unread notifications for this room.
     pub unread_notifications: UnreadNotificationsCount,
+
     /// The timeline of messages and state changes in the room.
     pub timeline: Timeline,
+
     /// Updates to the state, between the time indicated by the `since` parameter, and the start
     /// of the `timeline` (or all state up to the start of the `timeline`, if `since` is not
     /// given, or `full_state` is true).
     pub state: State,
+
     /// The private data that this user has attached to this room.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub account_data: Option<AccountData>,
+
     /// The ephemeral events in the room that aren't recorded in the timeline or state of the
     /// room. e.g. typing.
     pub ephemeral: Ephemeral,
@@ -177,6 +199,7 @@ pub struct UnreadNotificationsCount {
     /// The number of unread notifications for this room with the highlight flag set.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub highlight_count: Option<UInt>,
+
     /// The total number of unread notifications for this room.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub notification_count: Option<UInt>,
@@ -188,10 +211,12 @@ pub struct Timeline {
     /// True if the number of events returned was limited by the `limit` on the filter.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limited: Option<bool>,
+
     /// A token that can be supplied to to the `from` parameter of the
     /// `/rooms/{roomId}/messages` endpoint.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prev_batch: Option<String>,
+
     /// A list of events.
     pub events: Vec<EventJson<RoomEvent>>,
 }
@@ -224,6 +249,7 @@ pub struct RoomSummary {
     /// one. Required if room name or canonical aliases are not set or empty.
     #[serde(rename = "m.heroes", default, skip_serializing_if = "Vec::is_empty")]
     pub heroes: Vec<String>,
+
     /// Number of users whose membership status is `join`.
     /// Required if field has changed since last sync; otherwise, it may be
     /// omitted.
@@ -232,6 +258,7 @@ pub struct RoomSummary {
         skip_serializing_if = "Option::is_none"
     )]
     pub joined_member_count: Option<UInt>,
+
     /// Number of users whose membership status is `invite`.
     /// Required if field has changed since last sync; otherwise, it may be
     /// omitted.
@@ -289,6 +316,7 @@ pub struct DeviceLists {
     /// share an encrypted room with the client since the previous sync
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub changed: Vec<String>,
+
     /// List of users who no longer share encrypted rooms since the previous sync
     /// response.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

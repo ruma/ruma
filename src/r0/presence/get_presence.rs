@@ -26,9 +26,11 @@ ruma_api! {
         /// The state message for this user if one was set.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub status_msg: Option<String>,
+
         /// Whether or not the user is currently active.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub currently_active: Option<bool>,
+
         /// The length of time in milliseconds since an action was performed by the user.
         #[serde(
             with = "ruma_serde::duration::opt_ms",
@@ -36,6 +38,7 @@ ruma_api! {
             skip_serializing_if = "Option::is_none",
         )]
         pub last_active_ago: Option<Duration>,
+
         /// The user's presence state.
         pub presence: PresenceState,
     }

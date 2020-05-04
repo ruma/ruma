@@ -19,6 +19,7 @@ use serde::{
 pub enum EventFormat {
     /// Client format, as described in the Client API.
     Client,
+
     /// Raw events from federation.
     Federation,
 }
@@ -33,43 +34,51 @@ pub struct RoomEventFilter {
     /// sequence of characters.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub not_types: Vec<String>,
+
     /// A list of room IDs to exclude.
     ///
     /// If this list is absent then no rooms are excluded. A matching room will be excluded even if
     /// it is listed in the 'rooms' filter.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub not_rooms: Vec<String>,
+
     /// The maximum number of events to return.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<UInt>,
+
     /// A list of room IDs to include.
     ///
     /// If this list is absent then all rooms are included.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rooms: Option<Vec<RoomId>>,
+
     /// A list of sender IDs to exclude.
     ///
     /// If this list is absent then no senders are excluded. A matching sender will be excluded even
     /// if it is listed in the 'senders' filter.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub not_senders: Vec<UserId>,
+
     /// A list of senders IDs to include.
     ///
     /// If this list is absent then all senders are included.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub senders: Option<Vec<UserId>>,
+
     /// A list of event types to include.
     ///
     /// If this list is absent then all event types are included. A '*' can be used as a wildcard to
     /// match any sequence of characters.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub types: Option<Vec<String>>,
+
     /// If `true` include only events with a URL key in their content.
     /// If `false`, exclude such events.
     ///
     /// If this item is absent then all event types are included.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub contains_url: Option<bool>,
+
     /// Options to control lazy-loading of membership events.
     #[serde(flatten)]
     pub lazy_load_options: LazyLoadOptions,
@@ -93,19 +102,24 @@ pub struct RoomFilter {
     /// Defaults to false if not included.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_leave: Option<bool>,
+
     /// The per user account data to include for rooms.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub account_data: Option<RoomEventFilter>,
+
     /// The message and state update events to include for rooms.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeline: Option<RoomEventFilter>,
+
     /// The events that aren't recorded in the room history, e.g. typing and receipts, to include
     /// for rooms.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ephemeral: Option<RoomEventFilter>,
+
     /// The state events to include for rooms.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub state: Option<RoomEventFilter>,
+
     /// A list of room IDs to exclude.
     ///
     /// If this list is absent then no rooms are excluded. A matching room will be excluded even if
@@ -113,6 +127,7 @@ pub struct RoomFilter {
     /// `ephemeral`, `state`, `timeline` or `account_data`.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub not_rooms: Vec<RoomId>,
+
     /// A list of room IDs to include.
     ///
     /// If this list is absent then all rooms are included. This filter is applied before the
@@ -141,20 +156,24 @@ pub struct Filter {
     /// sequence of characters.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub not_types: Vec<String>,
+
     /// The maximum number of events to return.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<UInt>,
+
     /// A list of senders IDs to include.
     ///
     /// If this list is absent then all senders are included.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub senders: Option<Vec<UserId>>,
+
     /// A list of event types to include.
     ///
     /// If this list is absent then all event types are included. A '*' can be used as a wildcard to
     /// match any sequence of characters.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub types: Option<Vec<String>>,
+
     /// A list of sender IDs to exclude.
     ///
     /// If this list is absent then no senders are excluded. A matching sender will be excluded even
@@ -225,6 +244,7 @@ impl FilterDefinition {
 pub enum LazyLoadOptions {
     /// Disables lazy-loading of membership events.
     Disabled,
+
     /// Enables lazy-loading of events.
     Enabled {
         /// If `true`, sends all membership events for all events, even if they have
