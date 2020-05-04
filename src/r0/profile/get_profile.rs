@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/profile/{userId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-profile-userid)
+//! [GET /_matrix/client/r0/profile/{userId}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-profile-userid)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
@@ -23,6 +23,7 @@ ruma_api! {
         /// The user's avatar URL, if set.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub avatar_url: Option<String>,
+
         /// The user's display name, if set.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub displayname: Option<String>,

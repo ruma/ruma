@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/directory/room/{roomAlias}](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-directory-room-roomalias)
+//! [GET /_matrix/client/r0/directory/room/{roomAlias}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-directory-room-roomalias)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomAliasId, RoomId};

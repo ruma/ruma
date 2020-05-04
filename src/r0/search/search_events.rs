@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/search](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-search)
+//! [POST /_matrix/client/r0/search](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-search)
 
 use std::collections::BTreeMap;
 
@@ -29,6 +29,7 @@ ruma_api! {
         /// If given, this should be a `next_batch` result from a previous call to this endpoint.
         #[ruma_api(query)]
         pub next_batch: Option<String>,
+
         /// Describes which categories to search in and their criteria.
         pub search_categories: Categories,
     }
@@ -52,40 +53,64 @@ pub struct Categories {
 /// Criteria for searching a category of events.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Criteria {
-    /// Configures whether any context for the events returned are included in the response.
+    /// The string to search events for.
+    pub search_term: String,
+
+    /// The keys to search for. Defaults to all keys.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub event_context: Option<EventContext>,
+    pub keys: Option<Vec<SearchKeys>>,
+
     /// A `Filter` to apply to the search.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filter: Option<RoomEventFilter>,
-    /// Requests that the server partitions the result set based on the provided list of keys.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub groupings: Option<Groupings>,
-    /// Requests the server return the current state for each room returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub include_state: Option<bool>,
-    /// The keys to search for. Defaults to all keys.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub keys: Vec<SearchKeys>,
+
     /// The order in which to search for results.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub order_by: Option<OrderBy>,
-    /// The string to search events for.
-    pub search_term: String,
+
+    /// Configures whether any context for the events returned are included in the response.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub event_context: Option<EventContext>,
+
+    /// Requests the server return the current state for each room returned.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_state: Option<bool>,
+
+    /// Requests that the server partitions the result set based on the provided list of keys.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub groupings: Option<Groupings>,
 }
 
 /// Configures whether any context for the events returned are included in the response.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct EventContext {
-    /// How many events after the result are returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub after_limit: Option<UInt>,
     /// How many events before the result are returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub before_limit: Option<UInt>,
+    #[serde(
+        default = "default_event_context_limit",
+        skip_serializing_if = "is_default_event_context_limit"
+    )]
+    pub before_limit: UInt,
+
+    /// How many events after the result are returned.
+    #[serde(
+        default = "default_event_context_limit",
+        skip_serializing_if = "is_default_event_context_limit"
+    )]
+    pub after_limit: UInt,
+
     /// Requests that the server returns the historic profile information for the users that
     /// sent the events that were returned.
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     pub include_profile: bool,
+}
+
+fn default_event_context_limit() -> UInt {
+    UInt::from(5u32)
+}
+
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn is_default_event_context_limit(val: &UInt) -> bool {
+    *val == default_event_context_limit()
 }
 
 /// Context for search results, if requested.
@@ -94,15 +119,19 @@ pub struct EventContextResult {
     /// Pagination token for the end of the chunk.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub end: Option<String>,
+
     /// Events just after the result.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events_after: Vec<EventJson<Event>>,
+
     /// Events just before the result.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events_before: Vec<EventJson<Event>>,
+
     /// The historic profile information of the users that sent the events returned.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub profile_info: Option<BTreeMap<UserId, UserProfile>>,
+
     /// Pagination token for the start of the chunk.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub start: Option<String>,
@@ -121,6 +150,7 @@ pub struct Grouping {
 pub enum GroupingKey {
     /// `room_id`
     RoomId,
+
     /// `sender`
     Sender,
 }
@@ -139,9 +169,11 @@ pub enum SearchKeys {
     /// content.body
     #[serde(rename = "content.body")]
     ContentBody,
+
     /// content.name
     #[serde(rename = "content.name")]
     ContentName,
+
     /// content.topic
     #[serde(rename = "content.topic")]
     ContentTopic,
@@ -151,11 +183,12 @@ pub enum SearchKeys {
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum OrderBy {
+    /// Prioritize recent events.
+    Recent,
+
     /// Prioritize events by a numerical ranking of how closely they matched the search
     /// criteria.
     Rank,
-    /// Prioritize recent events.
-    Recent,
 }
 
 /// Categories of events that can be searched for.

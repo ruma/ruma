@@ -1,4 +1,4 @@
-//! [PUT /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.4.0.html#put-matrix-client-r0-presence-userid-status)
+//! [PUT /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.6.0#put-matrix-client-r0-presence-userid-status)
 
 use ruma_api::ruma_api;
 use ruma_events::presence::PresenceState;
@@ -15,14 +15,16 @@ ruma_api! {
     }
 
     request {
-        /// The new presence state.
-        pub presence: PresenceState,
-        /// The status message to attach to this state.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub status_msg: Option<String>,
         /// The user whose presence state will be updated.
         #[ruma_api(path)]
         pub user_id: UserId,
+
+        /// The new presence state.
+        pub presence: PresenceState,
+
+        /// The status message to attach to this state.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub status_msg: Option<String>,
     }
 
     response {}

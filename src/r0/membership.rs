@@ -22,14 +22,17 @@ use crate::r0::thirdparty::Medium;
 /// identity which has been invited to the room.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ThirdPartySigned {
-    /// The Matrix ID of the invitee.
-    pub mxid: String,
     /// The Matrix ID of the user who issued the invite.
     pub sender: String,
-    /// A signatures object containing a signature of the entire signed object.
-    pub signatures: BTreeMap<String, BTreeMap<String, String>>,
+
+    /// The Matrix ID of the invitee.
+    pub mxid: String,
+
     /// The state key of the m.third_party_invite event.
     pub token: String,
+
+    /// A signatures object containing a signature of the entire signed object.
+    pub signatures: BTreeMap<String, BTreeMap<String, String>>,
 }
 
 /// Represents third party IDs to invite to the room.

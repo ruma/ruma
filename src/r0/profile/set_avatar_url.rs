@@ -1,4 +1,4 @@
-//! [PUT /_matrix/client/r0/profile/{userId}/avatar_url](https://matrix.org/docs/spec/client_server/r0.4.0.html#put-matrix-client-r0-profile-userid-avatar-url)
+//! [PUT /_matrix/client/r0/profile/{userId}/avatar_url](https://matrix.org/docs/spec/client_server/r0.6.0#put-matrix-client-r0-profile-userid-avatar-url)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
@@ -14,11 +14,12 @@ ruma_api! {
     }
 
     request {
-        /// The new avatar URL for the user.
-        pub avatar_url: String,
         /// The user whose avatar URL will be set.
         #[ruma_api(path)]
-        pub user_id: UserId
+        pub user_id: UserId,
+
+        /// The new avatar URL for the user.
+        pub avatar_url: String,
     }
 
     response {}

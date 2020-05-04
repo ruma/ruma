@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/joined_rooms](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-joined-rooms)
+//! [GET /_matrix/client/r0/joined_rooms](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-joined-rooms)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
@@ -16,8 +16,8 @@ ruma_api! {
     request {}
 
     response {
-        /// A list of the rooms the user is in, i.e.
-        /// the ID of each room in which the user has joined membership.
+        /// A list of the rooms the user is in, i.e. the ID of each room in
+        /// which the user has joined membership.
         pub joined_rooms: Vec<RoomId>,
     }
 

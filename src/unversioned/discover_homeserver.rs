@@ -1,22 +1,8 @@
-//! [GET /.well-known/matrix/client](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-well-known-matrix-client)
+//! [GET /.well-known/matrix/client](https://matrix.org/docs/spec/client_server/r0.6.0#get-well-known-matrix-client)
 
 use ruma_api::ruma_api;
 use serde::{Deserialize, Serialize};
 use url::Url;
-
-/// Information about a discovered homeserver.
-#[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
-pub struct HomeserverInfo {
-    /// The base URL for the homeserver for client-server connections.
-    pub base_url: Url,
-}
-
-/// Information about a discovered identity server.
-#[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
-pub struct IdentityServerInfo {
-    /// The base URL for the identity server for client-server connections.
-    pub base_url: Url,
-}
 
 ruma_api! {
     metadata {
@@ -41,4 +27,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+/// Information about a discovered homeserver.
+#[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
+pub struct HomeserverInfo {
+    /// The base URL for the homeserver for client-server connections.
+    pub base_url: Url,
+}
+
+/// Information about a discovered identity server.
+#[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
+pub struct IdentityServerInfo {
+    /// The base URL for the identity server for client-server connections.
+    pub base_url: Url,
 }

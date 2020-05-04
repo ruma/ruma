@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/user/{userId}/filter](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-user-userid-filter)
+//! [POST /_matrix/client/r0/user/{userId}/filter](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-user-userid-filter)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
@@ -16,14 +16,15 @@ ruma_api! {
     }
 
     request {
-        /// The filter definition.
-        #[ruma_api(body)]
-        pub filter: FilterDefinition,
         /// The ID of the user uploading the filter.
         ///
         /// The access token must be authorized to make requests for this user ID.
         #[ruma_api(path)]
         pub user_id: UserId,
+
+        /// The filter definition.
+        #[ruma_api(body)]
+        pub filter: FilterDefinition,
     }
 
     response {

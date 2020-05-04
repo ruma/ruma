@@ -184,21 +184,25 @@ pub struct FilterDefinition {
     /// include more fields than were requested.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub event_fields: Option<Vec<String>>,
+
     /// The format to use for events.
     ///
     /// 'client' will return the events in a format suitable for clients. 'federation' will return
     /// the raw event as received over federation. The default is 'client'.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event_format: Option<EventFormat>,
-    /// The user account data that isn't associated with rooms to include.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub account_data: Option<Filter>,
-    /// Filters to be applied to room data.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub room: Option<RoomFilter>,
+
     /// The presence updates to include.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub presence: Option<Filter>,
+
+    /// The user account data that isn't associated with rooms to include.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub account_data: Option<Filter>,
+
+    /// Filters to be applied to room data.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub room: Option<RoomFilter>,
 }
 
 impl FilterDefinition {

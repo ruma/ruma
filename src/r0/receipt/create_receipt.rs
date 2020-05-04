@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/rooms/{roomId}/receipt/{receiptType}/{eventId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-rooms-roomid-receipt-receipttype-eventid)
+//! [POST /_matrix/client/r0/rooms/{roomId}/receipt/{receiptType}/{eventId}](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-rooms-roomid-receipt-receipttype-eventid)
 
 use std::convert::TryFrom;
 
@@ -17,15 +17,17 @@ ruma_api! {
     }
 
     request {
-        /// The event ID to acknowledge up to.
-        #[ruma_api(path)]
-        pub event_id: EventId,
-        /// The type of receipt to send.
-        #[ruma_api(path)]
-        pub receipt_type: ReceiptType,
         /// The room in which to send the event.
         #[ruma_api(path)]
         pub room_id: RoomId,
+
+        /// The type of receipt to send.
+        #[ruma_api(path)]
+        pub receipt_type: ReceiptType,
+
+        /// The event ID to acknowledge up to.
+        #[ruma_api(path)]
+        pub event_id: EventId,
     }
 
     response {}

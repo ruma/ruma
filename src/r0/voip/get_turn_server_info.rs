@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/voip/turnServer](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-voip-turnserver)
+//! [GET /_matrix/client/r0/voip/turnServer](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-voip-turnserver)
 
 use std::time::Duration;
 
@@ -17,15 +17,18 @@ ruma_api! {
     request {}
 
     response {
+        /// The username to use.
+        pub username: String,
+
         /// The password to use.
         pub password: String,
+
+        /// A list of TURN URIs.
+        pub uris: Vec<String>,
+
         /// The time-to-live in seconds.
         #[serde(with = "ruma_serde::duration::secs")]
         pub ttl: Duration,
-        /// A list of TURN URIs.
-        pub uris: Vec<String>,
-        /// The username to use.
-        pub username: String,
     }
 
     error: crate::Error

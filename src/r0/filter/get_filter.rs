@@ -1,4 +1,4 @@
-//! [GET /_matrix/client/r0/user/{userId}/filter/{filterId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#get-matrix-client-r0-user-userid-filter-filterid)
+//! [GET /_matrix/client/r0/user/{userId}/filter/{filterId}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-user-userid-filter-filterid)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
@@ -16,12 +16,13 @@ ruma_api! {
     }
 
     request {
-        /// The ID of the filter to download.
-        #[ruma_api(path)]
-        pub filter_id: String,
         /// The user ID to download a filter for.
         #[ruma_api(path)]
         pub user_id: UserId,
+
+        /// The ID of the filter to download.
+        #[ruma_api(path)]
+        pub filter_id: String,
     }
 
     response {
