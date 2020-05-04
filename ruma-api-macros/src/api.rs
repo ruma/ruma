@@ -440,6 +440,8 @@ impl ToTokens for Api {
                     *http_request.uri_mut() = ruma_api::exports::http::uri::Builder::new()
                         .path_and_query(path_and_query.as_str())
                         .build()
+                        // The only way this can fail is if the path given in the API definition is
+                        // invalid. It is okay to panic in that case.
                         .unwrap();
 
                     { #add_headers_to_request }
@@ -460,6 +462,8 @@ impl ToTokens for Api {
                         .header(ruma_api::exports::http::header::CONTENT_TYPE, "application/json")
                         #serialize_response_headers
                         .body(#body)
+                        // Since we require header names to come from the `http::header` module,
+                        // this cannot fail.
                         .unwrap();
                     Ok(response)
                 }

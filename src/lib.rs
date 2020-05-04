@@ -315,7 +315,9 @@ mod tests {
                     .method(metadata.method)
                     .uri(path)
                     .body(serde_json::to_vec(&request_body)?)
-                    .expect("http request building to succeed");
+                    // this cannot fail because we don't give user-supplied data to any of the
+                    // builder methods
+                    .unwrap();
 
                 Ok(http_request)
             }
