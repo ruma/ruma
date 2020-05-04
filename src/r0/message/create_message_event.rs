@@ -1,8 +1,9 @@
-//! [PUT /_matrix/client/r0/rooms/{roomId}/send/{eventType}/{txnId}](https://matrix.org/docs/spec/client_server/r0.4.0.html#put-matrix-client-r0-rooms-roomid-send-eventtype-txnid)
+//! [PUT /_matrix/client/r0/rooms/{roomId}/send/{eventType}/{txnId}](https://matrix.org/docs/spec/client_server/r0.6.0#put-matrix-client-r0-rooms-roomid-send-eventtype-txnid)
 
 use ruma_api::ruma_api;
-use ruma_events::{room::message::MessageEventContent, EventJson, EventType};
+use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomId};
+use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
     metadata {
@@ -18,9 +19,11 @@ ruma_api! {
         /// The room to send the event to.
         #[ruma_api(path)]
         pub room_id: RoomId,
+
         /// The type of event to send.
         #[ruma_api(path)]
         pub event_type: EventType,
+
         /// The transaction ID for this event.
         ///
         /// Clients should generate an ID unique across requests with the
@@ -28,14 +31,17 @@ ruma_api! {
         /// idempotency of requests.
         #[ruma_api(path)]
         pub txn_id: String,
-        /// The event's content.
+
+        /// The event's content. The type for this field will be updated in a
+        /// future release, until then you can create a value using
+        /// `serde_json::value::to_raw_value`.
         #[ruma_api(body)]
-        pub data: EventJson<MessageEventContent>,
+        pub data: Box<RawJsonValue>,
     }
 
     response {
         /// A unique identifier for the event.
-        pub event_id: EventId,
+        pub event_id: Option<EventId>,
     }
 
     error: crate::Error
