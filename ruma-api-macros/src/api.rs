@@ -204,7 +204,7 @@ impl ToTokens for Api {
                 // error when the type of the field with the query_map
                 // attribute doesn't implement IntoIterator<Item = (String, String)>
                 //
-                // This is necessary because the serde_urlencoded::to_string
+                // This is necessary because the ruma_serde::urlencoded::to_string
                 // call will result in a runtime error when the type cannot be
                 // encoded as a list key-value pairs (?key1=value1&key2=value2)
                 //
@@ -217,7 +217,7 @@ impl ToTokens for Api {
                 assert_trait_impl::<#field_type>();
 
                 let request_query = RequestQuery(request.#field_name);
-                format!("?{}", ruma_api::exports::serde_urlencoded::to_string(request_query)?)
+                format!("?{}", ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?)
             })
         } else if self.request.has_query_fields() {
             let request_query_init_fields = self.request.request_query_init_fields();
@@ -227,7 +227,7 @@ impl ToTokens for Api {
                     #request_query_init_fields
                 };
 
-                format!("?{}", ruma_api::exports::serde_urlencoded::to_string(request_query)?)
+                format!("?{}", ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?)
             })
         } else {
             quote! {
@@ -237,7 +237,7 @@ impl ToTokens for Api {
 
         let extract_request_query = if self.request.query_map_field().is_some() {
             quote! {
-                let request_query = match ruma_api::exports::serde_urlencoded::from_str(
+                let request_query = match ruma_api::exports::ruma_serde::urlencoded::from_str(
                     &request.uri().query().unwrap_or("")
                 ) {
                     Ok(query) => query,
@@ -251,7 +251,7 @@ impl ToTokens for Api {
         } else if self.request.has_query_fields() {
             quote! {
                 let request_query: RequestQuery =
-                    match ruma_api::exports::serde_urlencoded::from_str(
+                    match ruma_api::exports::ruma_serde::urlencoded::from_str(
                         &request.uri().query().unwrap_or("")
                     ) {
                         Ok(query) => query,

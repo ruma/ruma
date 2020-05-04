@@ -200,9 +200,9 @@ pub mod error;
 pub mod exports {
     pub use http;
     pub use percent_encoding;
+    pub use ruma_serde;
     pub use serde;
     pub use serde_json;
-    pub use serde_urlencoded;
 }
 
 use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};

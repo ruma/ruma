@@ -29,8 +29,8 @@ impl From<serde_json::Error> for IntoHttpError {
 }
 
 #[doc(hidden)]
-impl From<serde_urlencoded::ser::Error> for IntoHttpError {
-    fn from(err: serde_urlencoded::ser::Error) -> Self {
+impl From<ruma_serde::urlencoded::error::Error> for IntoHttpError {
+    fn from(err: ruma_serde::urlencoded::error::Error) -> Self {
         Self(SerializationError::Query(err))
     }
 }
@@ -195,7 +195,7 @@ impl<E: std::error::Error> std::error::Error for ServerError<E> {}
 #[derive(Debug)]
 enum SerializationError {
     Json(serde_json::Error),
-    Query(serde_urlencoded::ser::Error),
+    Query(ruma_serde::urlencoded::error::Error),
 }
 
 /// This type is public so it is accessible from `ruma_api!` generated code.
@@ -205,7 +205,7 @@ enum SerializationError {
 pub enum DeserializationError {
     Utf8(std::str::Utf8Error),
     Json(serde_json::Error),
-    Query(serde_urlencoded::de::Error),
+    Query(ruma_serde::urlencoded::de::Error),
     Ident(ruma_identifiers::Error),
     // String <> Enum conversion failed. This can currently only happen in path
     // segment deserialization
@@ -239,8 +239,8 @@ impl From<serde_json::Error> for DeserializationError {
 }
 
 #[doc(hidden)]
-impl From<serde_urlencoded::de::Error> for DeserializationError {
-    fn from(err: serde_urlencoded::de::Error) -> Self {
+impl From<ruma_serde::urlencoded::de::Error> for DeserializationError {
+    fn from(err: ruma_serde::urlencoded::de::Error) -> Self {
         Self::Query(err)
     }
 }
