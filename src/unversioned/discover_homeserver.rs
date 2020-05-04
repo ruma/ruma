@@ -2,7 +2,6 @@
 
 use ruma_api::ruma_api;
 use serde::{Deserialize, Serialize};
-use url::Url;
 
 ruma_api! {
     metadata {
@@ -33,12 +32,12 @@ ruma_api! {
 #[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct HomeserverInfo {
     /// The base URL for the homeserver for client-server connections.
-    pub base_url: Url,
+    pub base_url: String,
 }
 
 /// Information about a discovered identity server.
 #[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
 pub struct IdentityServerInfo {
     /// The base URL for the identity server for client-server connections.
-    pub base_url: Url,
+    pub base_url: String,
 }
