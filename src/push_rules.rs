@@ -240,7 +240,6 @@ pub struct SenderNotificationPermissionCondition {
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;
-    use ruma_common::push::{Action, Tweak};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{
@@ -248,72 +247,6 @@ mod tests {
         SenderNotificationPermissionCondition,
     };
     use crate::EventJson;
-
-    #[test]
-    fn serialize_string_action() {
-        assert_eq!(to_json_value(&Action::Notify).unwrap(), json!("notify"));
-    }
-
-    #[test]
-    fn serialize_tweak_sound_action() {
-        assert_eq!(
-            to_json_value(&Action::SetTweak(Tweak::Sound("default".into()))).unwrap(),
-            json!({ "set_tweak": "sound", "value": "default" })
-        );
-    }
-
-    #[test]
-    fn serialize_tweak_highlight_action() {
-        assert_eq!(
-            to_json_value(&Action::SetTweak(Tweak::Highlight(true))).unwrap(),
-            json!({ "set_tweak": "highlight" })
-        );
-
-        assert_eq!(
-            to_json_value(&Action::SetTweak(Tweak::Highlight(false))).unwrap(),
-            json!({ "set_tweak": "highlight", "value": false })
-        );
-    }
-
-    #[test]
-    fn deserialize_string_action() {
-        assert_matches!(
-            from_json_value::<Action>(json!("notify")).unwrap(),
-            Action::Notify
-        );
-    }
-
-    #[test]
-    fn deserialize_tweak_sound_action() {
-        let json_data = json!({
-            "set_tweak": "sound",
-            "value": "default"
-        });
-        assert_matches!(
-            &from_json_value::<Action>(json_data).unwrap(),
-            Action::SetTweak(Tweak::Sound(value)) if value == "default"
-        );
-    }
-
-    #[test]
-    fn deserialize_tweak_highlight_action() {
-        let json_data = json!({
-            "set_tweak": "highlight",
-            "value": true
-        });
-        assert_matches!(
-            from_json_value::<Action>(json_data).unwrap(),
-            Action::SetTweak(Tweak::Highlight(true))
-        );
-    }
-
-    #[test]
-    fn deserialize_tweak_highlight_action_with_default_value() {
-        assert_matches!(
-            from_json_value::<Action>(json!({ "set_tweak": "highlight" })).unwrap(),
-            Action::SetTweak(Tweak::Highlight(true))
-        );
-    }
 
     #[test]
     fn serialize_event_match_condition() {
