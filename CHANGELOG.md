@@ -2,6 +2,10 @@
 
 Breaking changes:
 
+* Update all endpoints to r0.6.0
+  * Some of the changes from that might not be listed below, but it should be
+    easy to figure out what changed from the documentation and compiler errors
+    if you are using any of the affected endpoints.
 * Add `server_name` parameter to `r0::join::join_room_by_id_or_alias`
 * Modify `r0::account::AuthenticationData`:
   * Rename to `AuthData`
@@ -35,6 +39,7 @@ Improvements:
 * Add missing serde attributes to `get_content_thumbnail` query parameters
 * Add missing `state` response field to `r0::message::get_message_events`
 * Normalize `serde_json` imports
+* Remove dependeny on the `url` crate
 
 # 0.7.2
 
