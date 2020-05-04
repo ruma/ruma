@@ -5,6 +5,7 @@
 Breaking changes:
 
 * Update ruma-identifiers to 0.16.1
+* Remove the `Outgoing` trait and update the `Endpoint` trait and code generation accordingly
 
 Improvements:
 
