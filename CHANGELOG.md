@@ -4,7 +4,7 @@
 
 Breaking changes:
 
-* Update ruma-identifiers to 0.15.1
+* Update ruma-identifiers to 0.16.1
 
 Improvements:
 
