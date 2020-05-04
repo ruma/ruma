@@ -19,11 +19,13 @@ ruma_api! {
         /// The room where the user should be invited.
         #[ruma_api(path)]
         pub room_id_or_alias: RoomIdOrAliasId,
+
         /// The servers to attempt to join the room through. One of the servers
         /// must be participating in the room.
         #[ruma_api(query)]
         #[serde(default)]
-        pub server_name: String, // TODO: Vec<String> once it is supported (#146, ruma-api#48)
+        pub server_name: Vec<String>,
+
         /// The signature of a `m.third_party_invite` token to prove that this user owns a third
         /// party identity which has been invited to the room.
         #[serde(skip_serializing_if = "Option::is_none")]
