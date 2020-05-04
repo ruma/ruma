@@ -26,6 +26,7 @@ pub fn default_true() -> bool {
 /// Simplfy dereferences the given bool.
 ///
 /// Useful for `#[serde(skip_serializing_if = ...)]`
+#[allow(clippy::trivially_copy_pass_by_ref)]
 pub fn is_true(b: &bool) -> bool {
     *b
 }
