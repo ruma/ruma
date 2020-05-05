@@ -4,7 +4,7 @@
 //! [by their Matrix identifier][invite-by-user-id], and one to invite a user
 //! [by their third party identifier][invite-by-3pid].
 //!
-//! [invite-by-user-id]: https://matrix.org/docs/spec/client_server/r0.6.0.html#post-matrix-client-r0-rooms-roomid-invite
+//! [invite-by-user-id]: https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-rooms-roomid-invite
 //! [invite-by-3pid]: https://matrix.org/docs/spec/client_server/r0.6.0#id101
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, UserId};

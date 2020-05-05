@@ -1,4 +1,4 @@
-//! [GET /_matrix/media/r0/download/{serverName}/{mediaId}](https://matrix.org/docs/spec/client_server/r0.6.0.html#get-matrix-media-r0-download-servername-mediaid)
+//! [GET /_matrix/media/r0/download/{serverName}/{mediaId}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-media-r0-download-servername-mediaid)
 
 use ruma_api::ruma_api;
 

@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/account/password/msisdn/requestToken](https://matrix.org/docs/spec/client_server/r0.6.0.html#post-matrix-client-r0-account-password-msisdn-requesttoken)
+//! [POST /_matrix/client/r0/account/password/msisdn/requestToken](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-account-password-msisdn-requesttoken)
 
 use js_int::UInt;
 use ruma_api::ruma_api;
