@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.8.0
+
 Breaking changes:
 
 * Update all endpoints to r0.6.0
