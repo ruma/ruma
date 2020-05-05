@@ -2,7 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
-use serde_json::Value as JsonValue;
+use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
     metadata {
@@ -16,8 +16,10 @@ ruma_api! {
 
     request {
         /// Arbitrary JSON to store as config data.
+        ///
+        /// To create a `Box<RawJsonValue>`, use `serde_json::value::to_raw_value`.
         #[ruma_api(body)]
-        pub data: JsonValue,
+        pub data: Box<RawJsonValue>,
 
         /// The event type of the account_data to set.
         ///

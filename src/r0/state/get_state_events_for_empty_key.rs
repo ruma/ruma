@@ -3,7 +3,7 @@
 use ruma_api::ruma_api;
 use ruma_events::EventType;
 use ruma_identifiers::RoomId;
-use serde_json::Value as JsonValue;
+use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
     metadata {
@@ -27,8 +27,10 @@ ruma_api! {
 
     response {
         /// The content of the state event.
+        ///
+        /// To create a `Box<RawJsonValue>`, use `serde_json::value::to_raw_value`.
         #[ruma_api(body)]
-        pub content: JsonValue,
+        pub content: Box<RawJsonValue>,
     }
 
     error: crate::Error

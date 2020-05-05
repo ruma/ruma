@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_events::{room::power_levels::PowerLevelsEventContent, EventJson};
 use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
+use serde_json::value::RawValue as RawJsonValue;
 
 use super::Visibility;
 use crate::r0::membership::Invite3pid;
@@ -121,5 +121,7 @@ pub struct InitialStateEvent {
     pub state_key: Option<String>,
 
     /// JSON content of the state event.
-    pub content: JsonValue,
+    ///
+    /// To create a `Box<RawJsonValue>`, use `serde_json::value::to_raw_value`.
+    pub content: Box<RawJsonValue>,
 }
