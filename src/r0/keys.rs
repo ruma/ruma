@@ -134,7 +134,7 @@ pub struct DeviceKeys {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnsignedDeviceInfo {
     /// The display name which the user set on the device.
-    pub device_display_name: String,
+    pub device_display_name: Option<String>,
 }
 
 /// A key for the SignedCurve25519 algorithm
