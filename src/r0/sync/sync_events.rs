@@ -68,12 +68,15 @@ ruma_api! {
         pub next_batch: String,
 
         /// Updates to rooms.
+        #[serde(default, skip_serializing_if = "Rooms::is_empty")]
         pub rooms: Rooms,
 
         /// Updates to the presence status of other users.
+        #[serde(default, skip_serializing_if = "Presence::is_empty")]
         pub presence: Presence,
 
         /// The global private data created by this user.
+        #[serde(default, skip_serializing_if = "AccountData::is_empty")]
         pub account_data: AccountData,
 
         /// Messages sent dirrectly between devices.
@@ -139,7 +142,7 @@ pub enum Filter {
 }
 
 /// Updates to rooms.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Rooms {
     /// The rooms that the user has left or been banned from.
     pub leave: BTreeMap<RoomId, LeftRoom>,
@@ -149,6 +152,12 @@ pub struct Rooms {
 
     /// The rooms that the user has been invited to.
     pub invite: BTreeMap<RoomId, InvitedRoom>,
+}
+
+impl Rooms {
+    fn is_empty(&self) -> bool {
+        self.leave.is_empty() && self.join.is_empty() && self.invite.is_empty()
+    }
 }
 
 /// Historical updates to left rooms.
@@ -229,10 +238,16 @@ pub struct State {
 }
 
 /// The private data that this user has attached to this room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct AccountData {
     /// A list of events.
     pub events: Vec<EventJson<NonRoomEvent>>,
+}
+
+impl AccountData {
+    fn is_empty(&self) -> bool {
+        self.events.is_empty()
+    }
 }
 
 /// Ephemeral events not recorded in the timeline or state of the room.
@@ -284,14 +299,20 @@ pub struct InviteState {
 }
 
 /// Updates to the presence status of other users.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Presence {
     /// A list of events.
     pub events: Vec<EventJson<PresenceEvent>>,
 }
 
+impl Presence {
+    fn is_empty(&self) -> bool {
+        self.events.is_empty()
+    }
+}
+
 /// Messages sent dirrectly between devices.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct ToDevice {
     /// A list of to-device events.
     pub events: Vec<EventJson<AnyToDeviceEvent>>,
@@ -300,12 +321,6 @@ pub struct ToDevice {
 impl ToDevice {
     fn is_empty(&self) -> bool {
         self.events.is_empty()
-    }
-}
-
-impl Default for ToDevice {
-    fn default() -> Self {
-        Self { events: Vec::new() }
     }
 }
 
