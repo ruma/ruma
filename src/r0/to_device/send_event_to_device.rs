@@ -3,8 +3,9 @@
 use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
-use ruma_events::{room::message::MessageEventContent, EventJson, EventType};
+use ruma_events::EventType;
 use ruma_identifiers::UserId;
+use serde_json::value::RawValue as RawJsonValue;
 
 use super::DeviceIdOrAllDevices;
 
@@ -27,10 +28,13 @@ ruma_api! {
         #[ruma_api(path)]
         pub txn_id: String,
 
-        /// A map of users to devices to a message event to be sent to the user's
-        /// device. Individual message events can be sent to devices, but all
-        /// events must be of the same type.
-        pub messages: BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, EventJson<MessageEventContent>>>
+        /// A map of users to devices to a content for a message event to be
+        /// sent to the user's device. Individual message events can be sent
+        /// to devices, but all events must be of the same type.
+        /// The content's type for this field will be updated in a future
+        /// release, until then you can create a value using
+        /// `serde_json::value::to_raw_value`.
+        pub messages: BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Box<RawJsonValue>>>
     }
 
     response {}
