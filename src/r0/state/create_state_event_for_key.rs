@@ -37,6 +37,8 @@ ruma_api! {
 
     response {
         /// A unique identifier for the event.
+        // This is not declared required in r0.6.0, but that was a bug that has now been fixed:
+        // https://github.com/matrix-org/matrix-doc/pull/2525
         pub event_id: EventId,
     }
 
