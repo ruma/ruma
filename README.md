@@ -5,7 +5,7 @@ These types can be shared by application service and server code.
 
 ## Minimum Rust version
 
-ruma-appservice-api requires Rust 1.36.0 or later.
+ruma-appservice-api requires Rust 1.39.0 or later.
 
 ## Status
 
