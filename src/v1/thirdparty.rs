@@ -6,7 +6,7 @@ pub mod get_protocol;
 pub mod get_user_for_protocol;
 pub mod get_user_for_user_id;
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use ruma_identifiers::{RoomAliasId, UserId};
 
@@ -22,7 +22,7 @@ pub struct Protocol {
     /// A content URI representing an icon for the third party protocol.
     pub icon: String,
     /// The type definitions for the fields defined in `user_fields` and `location_fields`.
-    pub field_types: HashMap<String, FieldType>,
+    pub field_types: BTreeMap<String, FieldType>,
     /// A list of objects representing independent instances of configuration.
     pub instances: Vec<ProtocolInstance>,
 }
@@ -36,7 +36,7 @@ pub struct ProtocolInstance {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon: Option<String>,
     /// Preset values for `fields` the client may use to search by.
-    pub fields: HashMap<String, String>,
+    pub fields: BTreeMap<String, String>,
     /// A unique identifier across all instances.
     pub network_id: String,
 }
@@ -58,7 +58,7 @@ pub struct Location {
     /// The protocol ID that the third party location is a part of.
     pub protocol: String,
     /// Information used to identify this third party location.
-    pub fields: HashMap<String, String>,
+    pub fields: BTreeMap<String, String>,
 }
 
 /// A third party network user.
@@ -69,5 +69,5 @@ pub struct User {
     /// The protocol ID that the third party user is a part of.
     pub protocol: String,
     /// Information used to identify this third party user.
-    pub fields: HashMap<String, String>,
+    pub fields: BTreeMap<String, String>,
 }
