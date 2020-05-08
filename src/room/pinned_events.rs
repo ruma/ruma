@@ -24,7 +24,7 @@ mod tests {
 
     use crate::{
         room::pinned_events::{PinnedEventsEvent, PinnedEventsEventContent},
-        Event, EventJson, RoomEvent, StateEvent, UnsignedData,
+        EventJson, UnsignedData,
     };
 
     #[test]
@@ -52,14 +52,14 @@ mod tests {
                 .deserialize()
                 .unwrap();
 
-        assert_eq!(parsed_event.event_id(), event.event_id());
-        assert_eq!(parsed_event.room_id(), event.room_id());
-        assert_eq!(parsed_event.sender(), event.sender());
-        assert_eq!(parsed_event.state_key(), event.state_key());
-        assert_eq!(parsed_event.origin_server_ts(), event.origin_server_ts());
+        assert_eq!(parsed_event.event_id, event.event_id);
+        assert_eq!(parsed_event.room_id, event.room_id);
+        assert_eq!(parsed_event.sender, event.sender);
+        assert_eq!(parsed_event.state_key, event.state_key);
+        assert_eq!(parsed_event.origin_server_ts, event.origin_server_ts);
 
-        assert_eq!(parsed_event.content().pinned, event.content.pinned);
-        assert_eq!(parsed_event.content().pinned[0], content.pinned[0]);
-        assert_eq!(parsed_event.content().pinned[1], content.pinned[1]);
+        assert_eq!(parsed_event.content.pinned, event.content.pinned);
+        assert_eq!(parsed_event.content.pinned[0], content.pinned[0]);
+        assert_eq!(parsed_event.content.pinned[1], content.pinned[1]);
     }
 }

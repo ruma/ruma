@@ -1,4 +1,7 @@
 //! Details of generating code for the `ruma_event` procedural macro.
+
+#![allow(dead_code)]
+
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, quote_spanned, ToTokens};
 use syn::{
@@ -75,18 +78,9 @@ impl ToTokens for RumaEvent {
     // allowance.
     #[allow(clippy::cognitive_complexity)]
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let attrs = &self.attrs;
+        // let attrs = &self.attrs;
         let content_name = &self.content_name;
-        let event_fields = &self.fields;
-
-        let event_type_variant = {
-            let event_type = to_camel_case(self.event_type.value());
-            let variant = Ident::new(&event_type, event_type.span());
-
-            quote! {
-                ::ruma_events::EventType::#variant
-            }
-        };
+        // let event_fields = &self.fields;
 
         let name = &self.name;
         let content_docstring = format!("The payload for `{}`.", name);
@@ -125,61 +119,6 @@ impl ToTokens for RumaEvent {
             Content::Typedef(_) => TokenStream::new(),
         };
 
-        let impl_room_event = match self.kind {
-            EventKind::RoomEvent | EventKind::StateEvent => {
-                quote! {
-                    impl ::ruma_events::RoomEvent for #name {
-                        /// The unique identifier for the event.
-                        fn event_id(&self) -> &ruma_identifiers::EventId {
-                            &self.event_id
-                        }
-
-                        /// Time on originating homeserver when this event was sent.
-                        fn origin_server_ts(&self) -> std::time::SystemTime {
-                            self.origin_server_ts
-                        }
-
-                        /// The unique identifier for the room associated with this event.
-                        ///
-                        /// This can be `None` if the event came from a context where there is
-                        /// no ambiguity which room it belongs to, like a `/sync` response for example.
-                        fn room_id(&self) -> Option<&ruma_identifiers::RoomId> {
-                            self.room_id.as_ref()
-                        }
-
-                        /// The unique identifier for the user who sent this event.
-                        fn sender(&self) -> &ruma_identifiers::UserId {
-                            &self.sender
-                        }
-
-                        /// Additional key-value pairs not signed by the homeserver.
-                        fn unsigned(&self) -> &ruma_events::UnsignedData {
-                            &self.unsigned
-                        }
-                    }
-                }
-            }
-            _ => TokenStream::new(),
-        };
-
-        let impl_state_event = if self.kind == EventKind::StateEvent {
-            quote! {
-                impl ::ruma_events::StateEvent for #name {
-                    /// The previous content for this state key, if any.
-                    fn prev_content(&self) -> Option<&Self::Content> {
-                        self.prev_content.as_ref()
-                    }
-
-                    /// A key that determines which piece of room state the event represents.
-                    fn state_key(&self) -> &str {
-                        &self.state_key
-                    }
-                }
-            }
-        } else {
-            TokenStream::new()
-        };
-
         let impl_event_result_compatible_for_content =
             if let Content::Struct(content_fields) = &self.content {
                 let mut content_field_values: Vec<TokenStream> =
@@ -213,47 +152,15 @@ impl ToTokens for RumaEvent {
                 TokenStream::new()
             };
 
-        let event_type_name = self.event_type.value();
+        // let event_type_name = self.event_type.value();
         let output = quote!(
-            #(#attrs)*
-            #[derive(Clone, Debug, serde::Serialize, ruma_events_macros::FromRaw)]
-            #[serde(rename = #event_type_name, tag = "type")]
-            pub struct #name {
-                #(#event_fields),*
-            }
-
             #content
 
             #impl_event_result_compatible_for_content
 
-            impl ::ruma_events::Event for #name {
-                /// The type of this event's `content` field.
-                type Content = #content_name;
-
-                /// The event's content.
-                fn content(&self) -> &Self::Content {
-                    &self.content
-                }
-
-                /// The type of the event.
-                fn event_type(&self) -> ::ruma_events::EventType {
-                    #event_type_variant
-                }
-            }
-
-            #impl_room_event
-
-            #impl_state_event
-
             /// "Raw" versions of the event and its content which implement `serde::Deserialize`.
             pub(crate) mod raw {
                 use super::*;
-
-                #(#attrs)*
-                #[derive(Clone, Debug, serde::Deserialize)]
-                pub struct #name {
-                    #(#event_fields),*
-                }
 
                 #raw_content
             }

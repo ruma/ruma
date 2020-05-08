@@ -2,7 +2,7 @@
 
 use std::time::SystemTime;
 
-use crate::{Event, EventType, RoomEvent, StateEvent, UnsignedData};
+use crate::{EventType, UnsignedData};
 
 use ruma_events_macros::FromRaw;
 use ruma_identifiers::{EventId, RoomId, UserId};
@@ -21,21 +21,6 @@ pub struct CustomEvent {
 
 /// The payload for `CustomEvent`.
 pub type CustomEventContent = JsonValue;
-
-impl Event for CustomEvent {
-    /// The type of this event's `content` field.
-    type Content = CustomEventContent;
-
-    /// The event's content.
-    fn content(&self) -> &Self::Content {
-        &self.content
-    }
-
-    /// The type of the event.
-    fn event_type(&self) -> EventType {
-        EventType::Custom(self.event_type.clone())
-    }
-}
 
 /// A custom room event not covered by the Matrix specification.
 #[derive(Clone, Debug, FromRaw, Serialize)]
@@ -61,51 +46,6 @@ pub struct CustomRoomEvent {
 
 /// The payload for `CustomRoomEvent`.
 pub type CustomRoomEventContent = JsonValue;
-
-impl Event for CustomRoomEvent {
-    /// The type of this event's `content` field.
-    type Content = CustomRoomEventContent;
-
-    /// The event's content.
-    fn content(&self) -> &Self::Content {
-        &self.content
-    }
-
-    /// The type of the event.
-    fn event_type(&self) -> EventType {
-        EventType::Custom(self.event_type.clone())
-    }
-}
-
-impl RoomEvent for CustomRoomEvent {
-    /// The unique identifier for the event.
-    fn event_id(&self) -> &EventId {
-        &self.event_id
-    }
-
-    /// Time on originating homeserver when this event was sent.
-    fn origin_server_ts(&self) -> SystemTime {
-        self.origin_server_ts
-    }
-
-    /// The unique identifier for the room associated with this event.
-    ///
-    /// This can be `None` if the event came from a context where there is
-    /// no ambiguity which room it belongs to, like a `/sync` response for example.
-    fn room_id(&self) -> Option<&RoomId> {
-        self.room_id.as_ref()
-    }
-
-    /// The unique identifier for the user who sent this event.
-    fn sender(&self) -> &UserId {
-        &self.sender
-    }
-
-    /// Additional key-value pairs not signed by the homeserver.
-    fn unsigned(&self) -> &UnsignedData {
-        &self.unsigned
-    }
-}
 
 /// A custom state event not covered by the Matrix specification.
 #[derive(Clone, Debug, FromRaw, Serialize)]
@@ -135,63 +75,6 @@ pub struct CustomStateEvent {
 
 /// The payload for `CustomStateEvent`.
 pub type CustomStateEventContent = JsonValue;
-
-impl Event for CustomStateEvent {
-    /// The type of this event's `content` field.
-    type Content = CustomStateEventContent;
-
-    /// The event's content.
-    fn content(&self) -> &Self::Content {
-        &self.content
-    }
-
-    /// The type of the event.
-    fn event_type(&self) -> EventType {
-        EventType::Custom(self.event_type.clone())
-    }
-}
-
-impl RoomEvent for CustomStateEvent {
-    /// The unique identifier for the event.
-    fn event_id(&self) -> &EventId {
-        &self.event_id
-    }
-
-    /// Time on originating homeserver when this event was sent.
-    fn origin_server_ts(&self) -> SystemTime {
-        self.origin_server_ts
-    }
-
-    /// The unique identifier for the room associated with this event.
-    ///
-    /// This can be `None` if the event came from a context where there is
-    /// no ambiguity which room it belongs to, like a `/sync` response for example.
-    fn room_id(&self) -> Option<&RoomId> {
-        self.room_id.as_ref()
-    }
-
-    /// The unique identifier for the user who sent this event.
-    fn sender(&self) -> &UserId {
-        &self.sender
-    }
-
-    /// Additional key-value pairs not signed by the homeserver.
-    fn unsigned(&self) -> &UnsignedData {
-        &self.unsigned
-    }
-}
-
-impl StateEvent for CustomStateEvent {
-    /// The previous content for this state key, if any.
-    fn prev_content(&self) -> Option<&Self::Content> {
-        self.prev_content.as_ref()
-    }
-
-    /// A key that determines which piece of room state the event represents.
-    fn state_key(&self) -> &str {
-        &self.state_key
-    }
-}
 
 pub(crate) mod raw {
     use std::time::SystemTime;

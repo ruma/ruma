@@ -153,7 +153,7 @@ mod tests {
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{PushCondition, PushRulesEvent};
+    use super::PushCondition;
     use crate::EventJson;
 
     #[test]

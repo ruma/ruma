@@ -113,22 +113,21 @@
 #![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
 // Since we support Rust 1.36.0, we can't apply this suggestion yet
 #![allow(clippy::use_self)]
+#![allow(dead_code)]
+#![allow(unused_imports)]
 
-use std::{fmt::Debug, time::SystemTime};
+use std::fmt::Debug;
 
 use js_int::Int;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use self::room::redaction::RedactionEvent;
+// use self::room::redaction::RedactionEvent;
 
 pub use self::custom::{CustomEvent, CustomRoomEvent, CustomStateEvent};
 
 #[deprecated = "Use ruma_serde::empty::Empty directly instead."]
 pub use ruma_serde::empty::Empty;
-
-#[macro_use]
-mod macros;
 
 mod algorithm;
 mod error;
@@ -145,31 +144,31 @@ extern crate self as ruma_events;
 pub mod call;
 pub mod custom;
 /// Enums for heterogeneous collections of events.
-pub mod collections {
-    pub mod all;
-    pub mod only;
+// pub mod collections {
+//     pub mod all;
+//     pub mod only;
 
-    mod raw {
-        pub mod all;
-        pub mod only;
-    }
-}
-pub mod direct;
-pub mod dummy;
+//     mod raw {
+//         pub mod all;
+//         pub mod only;
+//     }
+// }
+// pub mod direct;
+// pub mod dummy;
 pub mod forwarded_room_key;
 pub mod fully_read;
-pub mod ignored_user_list;
+// pub mod ignored_user_list;
 pub mod key;
-pub mod presence;
-pub mod push_rules;
+// pub mod presence;
+// pub mod push_rules;
 pub mod receipt;
 pub mod room;
-pub mod room_key;
+// pub mod room_key;
 pub mod room_key_request;
 pub mod sticker;
-pub mod stripped;
+// pub mod stripped;
 pub mod tag;
-pub mod to_device;
+// pub mod to_device;
 pub mod typing;
 
 pub use self::{
@@ -179,48 +178,6 @@ pub use self::{
     from_raw::{FromRaw, TryFromRaw},
     json::EventJson,
 };
-
-/// A basic event.
-pub trait Event: Debug + Serialize + Sized + TryFromRaw {
-    /// The type of this event's `content` field.
-    type Content: Debug + Serialize;
-
-    /// The event's content.
-    fn content(&self) -> &Self::Content;
-
-    /// The type of the event.
-    fn event_type(&self) -> EventType;
-}
-
-/// An event within the context of a room.
-pub trait RoomEvent: Event {
-    /// The unique identifier for the event.
-    fn event_id(&self) -> &EventId;
-
-    /// Time on originating homeserver when this event was sent.
-    fn origin_server_ts(&self) -> SystemTime;
-
-    /// The unique identifier for the room associated with this event.
-    ///
-    /// This can be `None` if the event came from a context where there is
-    /// no ambiguity which room it belongs to, like a `/sync` response for example.
-    fn room_id(&self) -> Option<&RoomId>;
-
-    /// The unique identifier for the user who sent this event.
-    fn sender(&self) -> &UserId;
-
-    /// Additional key-value pairs not signed by the homeserver.
-    fn unsigned(&self) -> &UnsignedData;
-}
-
-/// An event that describes persistent state about a room.
-pub trait StateEvent: RoomEvent {
-    /// The previous content for this state key, if any.
-    fn prev_content(&self) -> Option<&Self::Content>;
-
-    /// A key that determines which piece of room state the event represents.
-    fn state_key(&self) -> &str;
-}
 
 /// Extra information about an event that is not incorporated into the event's
 /// hash.
@@ -233,10 +190,9 @@ pub struct UnsignedData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub age: Option<Int>,
 
-    /// The event that redacted this event, if any.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub redacted_because: Option<EventJson<RedactionEvent>>,
-
+    // /// The event that redacted this event, if any.
+    // #[serde(skip_serializing_if = "Option::is_none")]
+    // pub redacted_because: Option<EventJson<RedactionEvent>>,
     /// The client-supplied transaction ID, if the client being given the event
     /// is the same one which sent it.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -251,6 +207,7 @@ impl UnsignedData {
     /// an incoming `unsigned` field was present - it could still have been
     /// present but contained none of the known fields.
     pub fn is_empty(&self) -> bool {
-        self.age.is_none() && self.redacted_because.is_none() && self.transaction_id.is_none()
+        self.age.is_none() && self.transaction_id.is_none()
+        //   && self.redacted_because.is_none()
     }
 }

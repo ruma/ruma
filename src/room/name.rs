@@ -5,67 +5,13 @@ use std::time::SystemTime;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::{EventType, InvalidInput, TryFromRaw, UnsignedData};
-
-/// A human-friendly room name designed to be displayed to the end-user.
-#[derive(Clone, Debug, Serialize)]
-#[serde(rename = "m.room.name", tag = "type")]
-pub struct NameEvent {
-    /// The event's content.
-    pub content: NameEventContent,
-
-    /// The unique identifier for the event.
-    pub event_id: EventId,
-
-    /// Time on originating homeserver when this event was sent.
-    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-    pub origin_server_ts: SystemTime,
-
-    /// The previous content for this state key, if any.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub prev_content: Option<NameEventContent>,
-
-    /// The unique identifier for the room associated with this event.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub room_id: Option<RoomId>,
-
-    /// The unique identifier for the user who sent this event.
-    pub sender: UserId,
-
-    /// A key that determines which piece of room state the event represents.
-    pub state_key: String,
-
-    /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if = "UnsignedData::is_empty")]
-    pub unsigned: UnsignedData,
-}
+use crate::{InvalidInput, TryFromRaw, UnsignedData};
 
 /// The payload for `NameEvent`.
 #[derive(Clone, Debug, Serialize)]
 pub struct NameEventContent {
     /// The name of the room. This MUST NOT exceed 255 bytes.
     pub(crate) name: Option<String>,
-}
-
-impl TryFromRaw for NameEvent {
-    type Raw = raw::NameEvent;
-    type Err = InvalidInput;
-
-    fn try_from_raw(raw: Self::Raw) -> Result<Self, Self::Err> {
-        let content = TryFromRaw::try_from_raw(raw.content)?;
-        let prev_content = raw.prev_content.map(TryFromRaw::try_from_raw).transpose()?;
-
-        Ok(NameEvent {
-            content,
-            event_id: raw.event_id,
-            origin_server_ts: raw.origin_server_ts,
-            prev_content,
-            room_id: raw.room_id,
-            sender: raw.sender,
-            state_key: raw.state_key,
-            unsigned: raw.unsigned,
-        })
-    }
 }
 
 impl TryFromRaw for NameEventContent {
@@ -80,8 +26,6 @@ impl TryFromRaw for NameEventContent {
         }
     }
 }
-
-impl_state_event!(NameEvent, NameEventContent, EventType::RoomName);
 
 impl NameEventContent {
     /// Create a new `NameEventContent` with the given name.
@@ -107,36 +51,6 @@ impl NameEventContent {
 
 pub(crate) mod raw {
     use super::*;
-
-    /// A human-friendly room name designed to be displayed to the end-user.
-    #[derive(Clone, Debug, Deserialize)]
-    pub struct NameEvent {
-        /// The event's content.
-        pub content: NameEventContent,
-
-        /// The unique identifier for the event.
-        pub event_id: EventId,
-
-        /// Time on originating homeserver when this event was sent.
-        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-        pub origin_server_ts: SystemTime,
-
-        /// The previous content for this state key, if any.
-        pub prev_content: Option<NameEventContent>,
-
-        /// The unique identifier for the room associated with this event.
-        pub room_id: Option<RoomId>,
-
-        /// The unique identifier for the user who sent this event.
-        pub sender: UserId,
-
-        /// A key that determines which piece of room state the event represents.
-        pub state_key: String,
-
-        /// Additional key-value pairs not signed by the homeserver.
-        #[serde(default)]
-        pub unsigned: UnsignedData,
-    }
 
     /// The payload of a `NameEvent`.
     #[derive(Clone, Debug, Deserialize)]
@@ -164,7 +78,7 @@ mod tests {
 
     use crate::{EventJson, UnsignedData};
 
-    use super::{NameEvent, NameEventContent};
+    use super::NameEventContent;
 
     #[test]
     fn serialization_with_optional_fields_as_none() {

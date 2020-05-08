@@ -6,36 +6,7 @@ use js_int::UInt;
 use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::{EventType, FromRaw, UnsignedData};
-
-/// This event type is used when sending encrypted events.
-///
-/// This type is to be used within a room. For a to-device event, use `EncryptedEventContent`
-/// directly.
-#[derive(Clone, Debug, Serialize)]
-#[serde(tag = "type", rename = "m.room.encrypted")]
-pub struct EncryptedEvent {
-    /// The event's content.
-    pub content: EncryptedEventContent,
-
-    /// The unique identifier for the event.
-    pub event_id: EventId,
-
-    /// Time on originating homeserver when this event was sent.
-    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-    pub origin_server_ts: SystemTime,
-
-    /// The unique identifier for the room associated with this event.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub room_id: Option<RoomId>,
-
-    /// The unique identifier for the user who sent this event.
-    pub sender: UserId,
-
-    /// Additional key-value pairs not signed by the homeserver.
-    #[serde(skip_serializing_if = "UnsignedData::is_empty")]
-    pub unsigned: UnsignedData,
-}
+use crate::{FromRaw, UnsignedData};
 
 /// The payload for `EncryptedEvent`.
 #[derive(Clone, Debug, Serialize)]
@@ -49,21 +20,6 @@ pub enum EncryptedEventContent {
     /// An event encrypted with *m.megolm.v1.aes-sha2*.
     #[serde(rename = "m.megolm.v1.aes-sha2")]
     MegolmV1AesSha2(MegolmV1AesSha2Content),
-}
-
-impl FromRaw for EncryptedEvent {
-    type Raw = raw::EncryptedEvent;
-
-    fn from_raw(raw: raw::EncryptedEvent) -> Self {
-        Self {
-            content: FromRaw::from_raw(raw.content),
-            event_id: raw.event_id,
-            origin_server_ts: raw.origin_server_ts,
-            room_id: raw.room_id,
-            sender: raw.sender,
-            unsigned: raw.unsigned,
-        }
-    }
 }
 
 impl FromRaw for EncryptedEventContent {
@@ -81,12 +37,6 @@ impl FromRaw for EncryptedEventContent {
     }
 }
 
-impl_room_event!(
-    EncryptedEvent,
-    EncryptedEventContent,
-    EventType::RoomEncrypted
-);
-
 pub(crate) mod raw {
     use std::time::SystemTime;
 
@@ -95,33 +45,6 @@ pub(crate) mod raw {
 
     use super::{MegolmV1AesSha2Content, OlmV1Curve25519AesSha2Content};
     use crate::UnsignedData;
-
-    /// This event type is used when sending encrypted events.
-    ///
-    /// This type is to be used within a room. For a to-device event, use `EncryptedEventContent`
-    /// directly.
-    #[derive(Clone, Debug, Deserialize)]
-    pub struct EncryptedEvent {
-        /// The event's content.
-        pub content: EncryptedEventContent,
-
-        /// The unique identifier for the event.
-        pub event_id: EventId,
-
-        /// Time on originating homeserver when this event was sent.
-        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-        pub origin_server_ts: SystemTime,
-
-        /// The unique identifier for the room associated with this event.
-        pub room_id: Option<RoomId>,
-
-        /// The unique identifier for the user who sent this event.
-        pub sender: UserId,
-
-        /// Additional key-value pairs not signed by the homeserver.
-        #[serde(default)]
-        pub unsigned: UnsignedData,
-    }
 
     /// The payload for `EncryptedEvent`.
     #[derive(Clone, Debug, Deserialize)]

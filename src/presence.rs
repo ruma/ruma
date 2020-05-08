@@ -51,7 +51,7 @@ mod tests {
     use ruma_identifiers::UserId;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{PresenceEvent, PresenceEventContent, PresenceState};
+    use super::{PresenceEventContent, PresenceState};
     use crate::EventJson;
 
     #[test]

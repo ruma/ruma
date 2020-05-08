@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
 };
-use crate::{EventType, InvalidInput, TryFromRaw};
+use crate::{InvalidInput, TryFromRaw};
 
 /// Begins an SAS key verification process.
 ///
@@ -35,12 +35,6 @@ impl TryFromRaw for StartEvent {
         StartEventContent::try_from_raw(raw.content).map(|content| Self { content })
     }
 }
-
-impl_event!(
-    StartEvent,
-    StartEventContent,
-    EventType::KeyVerificationStart
-);
 
 impl TryFromRaw for StartEventContent {
     type Raw = raw::StartEventContent;
