@@ -31,9 +31,14 @@ impl<T> EventJson<T> {
         }
     }
 
-    /// Access the underlying `RawValue`.
+    /// Access the underlying json value.
     pub fn json(&self) -> &RawValue {
         &self.json
+    }
+
+    /// Convert `self` into the underlying json value.
+    pub fn into_json(self) -> Box<RawValue> {
+        self.json
     }
 }
 

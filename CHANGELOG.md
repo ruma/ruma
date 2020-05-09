@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.21.1
+
+Improvements:
+
+* Add `EventJson::into_json`
+
 # 0.21.0
 
 Breaking changes:
