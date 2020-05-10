@@ -342,10 +342,12 @@ pub struct DeviceLists {
 mod tests {
     use std::{convert::TryInto, time::Duration};
 
+    use matches::assert_matches;
+
     use super::{Filter, Request, SetPresence};
 
     #[test]
-    fn serialize_sync_request() {
+    fn serialize_all_params() {
         let req: http::Request<Vec<u8>> = Request {
             filter: Some(Filter::FilterId("66696p746572".into())),
             since: Some("s72594_4483_1934".into()),
@@ -368,11 +370,18 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_sync_request_with_query_params() {
+    fn deserialize_all_query_params() {
         let uri = http::Uri::builder()
             .scheme("https")
             .authority("matrix.org")
-            .path_and_query("/_matrix/client/r0/sync?filter=myfilter&since=myts&full_state=false&set_presence=offline&timeout=5000")
+            .path_and_query(
+                "/_matrix/client/r0/sync\
+                 ?filter=myfilter\
+                 &since=myts\
+                 &full_state=false\
+                 &set_presence=offline\
+                 &timeout=5000",
+            )
             .build()
             .unwrap();
 
@@ -383,12 +392,7 @@ mod tests {
             .try_into()
             .unwrap();
 
-        match req.filter {
-            Some(Filter::FilterId(id)) if id == "myfilter" => {}
-            _ => {
-                panic!("Not the expected filter ID.");
-            }
-        }
+        assert_matches!(req.filter, Some(Filter::FilterId(id)) if id == "myfilter");
         assert_eq!(req.since, Some("myts".into()));
         assert_eq!(req.full_state, false);
         assert_eq!(req.set_presence, SetPresence::Offline);
@@ -396,7 +400,7 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_sync_request_without_query_params() {
+    fn deserialize_no_query_params() {
         let uri = http::Uri::builder()
             .scheme("https")
             .authority("matrix.org")
@@ -411,10 +415,10 @@ mod tests {
             .try_into()
             .unwrap();
 
-        assert!(req.filter.is_none());
-        assert!(req.since.is_none());
+        assert_matches!(req.filter, None);
+        assert_eq!(req.since, None);
         assert_eq!(req.full_state, false);
         assert_eq!(req.set_presence, SetPresence::Online);
-        assert!(req.timeout.is_none());
+        assert_eq!(req.timeout, None);
     }
 }
