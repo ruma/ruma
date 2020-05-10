@@ -421,4 +421,31 @@ mod tests {
         assert_eq!(req.set_presence, SetPresence::Online);
         assert_eq!(req.timeout, None);
     }
+
+    #[test]
+    fn deserialize_some_query_params() {
+        let uri = http::Uri::builder()
+            .scheme("https")
+            .authority("matrix.org")
+            .path_and_query(
+                "/_matrix/client/r0/sync\
+                 ?filter=EOKFFmdZYF\
+                 &timeout=0",
+            )
+            .build()
+            .unwrap();
+
+        let req: Request = http::Request::builder()
+            .uri(uri)
+            .body(Vec::<u8>::new())
+            .unwrap()
+            .try_into()
+            .unwrap();
+
+        assert_matches!(req.filter, Some(Filter::FilterId(id)) if id == "EOKFFmdZYF");
+        assert_eq!(req.since, None);
+        assert_eq!(req.full_state, false);
+        assert_eq!(req.set_presence, SetPresence::Online);
+        assert_eq!(req.timeout, Some(Duration::from_millis(0)));
+    }
 }
