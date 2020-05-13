@@ -87,9 +87,10 @@ impl ToTokens for RumaEvent {
 
         let content = match &self.content {
             Content::Struct(fields) => {
+                // TODO remove serde::Deserialize when this macro actually generates generic events
                 quote! {
                     #[doc = #content_docstring]
-                    #[derive(Clone, Debug, serde::Serialize)]
+                    #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
                     pub struct #content_name {
                         #(#fields),*
                     }

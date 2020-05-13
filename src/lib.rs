@@ -119,7 +119,6 @@
 use std::fmt::Debug;
 
 use js_int::Int;
-use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
 // use self::room::redaction::RedactionEvent;
@@ -165,6 +164,7 @@ pub mod receipt;
 pub mod room;
 // pub mod room_key;
 pub mod room_key_request;
+pub mod state;
 pub mod sticker;
 // pub mod stripped;
 pub mod tag;
@@ -211,3 +211,23 @@ impl UnsignedData {
         //   && self.redacted_because.is_none()
     }
 }
+
+/// The base trait that all event content types implement.
+///
+/// Implementing this trait allows content types to be serialized as well as deserialized.
+pub trait EventContent: Sized + Serialize {
+    /// Constructs the given event content.
+    fn from_parts(
+        event_type: &str,
+        content: &serde_json::value::RawValue,
+    ) -> Result<Self, InvalidEvent>;
+
+    /// A matrix event identifier, like `m.room.message`.
+    fn event_type(&self) -> &str;
+}
+
+/// Marker trait for room events.
+pub trait RoomEventContent: EventContent {}
+
+/// Marker trait for state events.
+pub trait StateEventContent: RoomEventContent {}

@@ -2,6 +2,12 @@
 
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::RoomAliasId;
+use serde_json::value::RawValue as RawJsonValue;
+
+use crate::{
+    error::{InvalidEvent, InvalidEventKind},
+    EventContent, RoomEventContent, StateEventContent,
+};
 
 ruma_event! {
     /// Informs the room about what room aliases it has been given.
@@ -14,3 +20,26 @@ ruma_event! {
         },
     }
 }
+
+impl EventContent for AliasesEventContent {
+    fn event_type(&self) -> &str {
+        "m.room.aliases"
+    }
+
+    fn from_parts(event_type: &str, content: &RawJsonValue) -> Result<Self, InvalidEvent> {
+        if event_type != "m.room.aliases" {
+            return Err(InvalidEvent {
+                kind: InvalidEventKind::Deserialization,
+                message: format!("expected `m.room.aliases` found {}", event_type),
+            });
+        }
+        serde_json::from_str::<AliasesEventContent>(content.get()).map_err(|e| InvalidEvent {
+            kind: InvalidEventKind::Deserialization,
+            message: e.to_string(),
+        })
+    }
+}
+
+impl RoomEventContent for AliasesEventContent {}
+
+impl StateEventContent for AliasesEventContent {}
