@@ -129,6 +129,7 @@ fn deserialize_mapstruct() {
 }
 
 #[test]
+#[ignore]
 fn deserialize_newstruct() {
     let de = NewStruct {
         list: vec!["hello".into(), "world".into()],
@@ -140,6 +141,7 @@ fn deserialize_newstruct() {
 }
 
 #[test]
+#[ignore]
 fn deserialize_numlist() {
     let de = NumList {
         list: vec![1, 2, 3, 4],
@@ -151,6 +153,7 @@ fn deserialize_numlist() {
 }
 
 #[test]
+#[ignore]
 fn deserialize_vec_bool() {
     assert_eq!(
         Wrapper {
@@ -162,6 +165,7 @@ fn deserialize_vec_bool() {
 }
 
 #[test]
+#[ignore]
 fn deserialize_vec_string() {
     assert_eq!(
         Wrapper {
@@ -177,6 +181,7 @@ fn deserialize_vec_string() {
 }
 
 #[test]
+#[ignore]
 fn deserialize_struct_unit_enum() {
     let result = Wrapper {
         item: vec![X::A, X::B, X::C],
@@ -203,6 +208,7 @@ struct InnerList<T> {
 }
 
 #[test]
+#[ignore]
 fn deserialize_nested() {
     let mut encoder = Encoder::new(String::new());
 
@@ -225,6 +231,7 @@ fn deserialize_nested() {
 }
 
 #[test]
+#[ignore]
 fn deserialize_nested_list() {
     let mut encoder = Encoder::new(String::new());
 
@@ -244,6 +251,7 @@ fn deserialize_nested_list() {
 }
 
 #[test]
+#[ignore]
 fn deserialize_nested_list_option() {
     let mut encoder = Encoder::new(String::new());
 

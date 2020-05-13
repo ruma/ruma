@@ -5,14 +5,13 @@ mod pair;
 mod part;
 mod value;
 
-use std::{borrow::Cow, str};
-
 use serde::ser;
-use url::form_urlencoded::{
-    Serializer as UrlEncodedSerializer, Target as UrlEncodedTarget,
-};
-
-use crate::urlencoded::error::{Error, Result};
+use std::borrow::Cow;
+use std::error;
+use std::fmt;
+use std::str;
+use url::form_urlencoded::Serializer as UrlEncodedSerializer;
+use url::form_urlencoded::Target as UrlEncodedTarget;
 
 /// Serializes a value into a `application/x-www-form-urlencoded` `String` buffer.
 ///
@@ -28,7 +27,7 @@ use crate::urlencoded::error::{Error, Result};
 ///     ruma_serde::urlencoded::to_string(meal),
 ///     Ok("bread=baguette&cheese=comt%C3%A9&meat=ham&fat=butter".to_owned()));
 /// ```
-pub fn to_string<T: ser::Serialize>(input: T) -> Result<String> {
+pub fn to_string<T: ser::Serialize>(input: T) -> Result<String, Error> {
     let mut urlencoder = UrlEncodedSerializer::new("".to_owned());
     input.serialize(Serializer::new(&mut urlencoder))?;
     Ok(urlencoder.finish())
@@ -58,11 +57,49 @@ impl<'input, 'output, Target: 'output + UrlEncodedTarget>
     }
 }
 
+/// Errors returned during serializing to `application/x-www-form-urlencoded`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Error {
+    Custom(Cow<'static, str>),
+    Utf8(str::Utf8Error),
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Error::Custom(ref msg) => msg.fmt(f),
+            Error::Utf8(ref err) => write!(f, "invalid UTF-8: {}", err),
+        }
+    }
+}
+
+impl error::Error for Error {
+    /// The lower-level cause of this error, in the case of a `Utf8` error.
+    fn cause(&self) -> Option<&dyn error::Error> {
+        match *self {
+            Error::Custom(_) => None,
+            Error::Utf8(ref err) => Some(err),
+        }
+    }
+
+    /// The lower-level source of this error, in the case of a `Utf8` error.
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match *self {
+            Error::Custom(_) => None,
+            Error::Utf8(ref err) => Some(err),
+        }
+    }
+}
+
+impl ser::Error for Error {
+    fn custom<T: fmt::Display>(msg: T) -> Self {
+        Error::Custom(format!("{}", msg).into())
+    }
+}
+
 /// Sequence serializer.
 pub struct SeqSerializer<'input, 'output, Target: 'output + UrlEncodedTarget> {
     urlencoder: &'output mut UrlEncodedSerializer<'input, Target>,
-    key: Option<Cow<'input, str>>,
-    count: usize,
 }
 
 /// Tuple serializer.
@@ -133,82 +170,85 @@ where
         StructVariantSerializer<'input, 'output, Target>;
 
     /// Returns an error.
-    fn serialize_bool(self, _v: bool) -> Result<Self::Ok> {
+    fn serialize_bool(self, _v: bool) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns an error.
-    fn serialize_i8(self, _v: i8) -> Result<Self::Ok> {
+    fn serialize_i8(self, _v: i8) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns an error.
-    fn serialize_i16(self, _v: i16) -> Result<Self::Ok> {
+    fn serialize_i16(self, _v: i16) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns an error.
-    fn serialize_i32(self, _v: i32) -> Result<Self::Ok> {
+    fn serialize_i32(self, _v: i32) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns an error.
-    fn serialize_i64(self, _v: i64) -> Result<Self::Ok> {
+    fn serialize_i64(self, _v: i64) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns an error.
-    fn serialize_u8(self, _v: u8) -> Result<Self::Ok> {
+    fn serialize_u8(self, _v: u8) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns an error.
-    fn serialize_u16(self, _v: u16) -> Result<Self::Ok> {
+    fn serialize_u16(self, _v: u16) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns an error.
-    fn serialize_u32(self, _v: u32) -> Result<Self::Ok> {
+    fn serialize_u32(self, _v: u32) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns an error.
-    fn serialize_u64(self, _v: u64) -> Result<Self::Ok> {
+    fn serialize_u64(self, _v: u64) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns an error.
-    fn serialize_f32(self, _v: f32) -> Result<Self::Ok> {
+    fn serialize_f32(self, _v: f32) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns an error.
-    fn serialize_f64(self, _v: f64) -> Result<Self::Ok> {
+    fn serialize_f64(self, _v: f64) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns an error.
-    fn serialize_char(self, _v: char) -> Result<Self::Ok> {
+    fn serialize_char(self, _v: char) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns an error.
-    fn serialize_str(self, _value: &str) -> Result<Self::Ok> {
+    fn serialize_str(self, _value: &str) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns an error.
-    fn serialize_bytes(self, _value: &[u8]) -> Result<Self::Ok> {
+    fn serialize_bytes(self, _value: &[u8]) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns `Ok`.
-    fn serialize_unit(self) -> Result<Self::Ok> {
+    fn serialize_unit(self) -> Result<Self::Ok, Error> {
         Ok(self.urlencoder)
     }
 
     /// Returns `Ok`.
-    fn serialize_unit_struct(self, _name: &'static str) -> Result<Self::Ok> {
+    fn serialize_unit_struct(
+        self,
+        _name: &'static str,
+    ) -> Result<Self::Ok, Error> {
         Ok(self.urlencoder)
     }
 
@@ -218,7 +258,7 @@ where
         _name: &'static str,
         _variant_index: u32,
         _variant: &'static str,
-    ) -> Result<Self::Ok> {
+    ) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
@@ -227,7 +267,7 @@ where
         self,
         _name: &'static str,
         value: &T,
-    ) -> Result<Self::Ok> {
+    ) -> Result<Self::Ok, Error> {
         value.serialize(self)
     }
 
@@ -238,12 +278,12 @@ where
         _variant_index: u32,
         _variant: &'static str,
         _value: &T,
-    ) -> Result<Self::Ok> {
+    ) -> Result<Self::Ok, Error> {
         Err(Error::top_level())
     }
 
     /// Returns `Ok`.
-    fn serialize_none(self) -> Result<Self::Ok> {
+    fn serialize_none(self) -> Result<Self::Ok, Error> {
         Ok(self.urlencoder)
     }
 
@@ -251,21 +291,25 @@ where
     fn serialize_some<T: ?Sized + ser::Serialize>(
         self,
         value: &T,
-    ) -> Result<Self::Ok> {
+    ) -> Result<Self::Ok, Error> {
         value.serialize(self)
     }
 
     /// Serialize a sequence, given length (if any) is ignored.
-    fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq> {
+    fn serialize_seq(
+        self,
+        _len: Option<usize>,
+    ) -> Result<Self::SerializeSeq, Error> {
         Ok(SeqSerializer {
             urlencoder: self.urlencoder,
-            key: None,
-            count: 0,
         })
     }
 
     /// Returns an error.
-    fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple> {
+    fn serialize_tuple(
+        self,
+        _len: usize,
+    ) -> Result<Self::SerializeTuple, Error> {
         Ok(TupleSerializer {
             urlencoder: self.urlencoder,
         })
@@ -276,7 +320,7 @@ where
         self,
         _name: &'static str,
         _len: usize,
-    ) -> Result<Self::SerializeTupleStruct> {
+    ) -> Result<Self::SerializeTupleStruct, Error> {
         Err(Error::top_level())
     }
 
@@ -287,12 +331,15 @@ where
         _variant_index: u32,
         _variant: &'static str,
         _len: usize,
-    ) -> Result<Self::SerializeTupleVariant> {
+    ) -> Result<Self::SerializeTupleVariant, Error> {
         Err(Error::top_level())
     }
 
     /// Serializes a map, given length is ignored.
-    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap> {
+    fn serialize_map(
+        self,
+        _len: Option<usize>,
+    ) -> Result<Self::SerializeMap, Error> {
         Ok(MapSerializer {
             urlencoder: self.urlencoder,
             key: None,
@@ -304,7 +351,7 @@ where
         self,
         _name: &'static str,
         _len: usize,
-    ) -> Result<Self::SerializeStruct> {
+    ) -> Result<Self::SerializeStruct, Error> {
         Ok(StructSerializer {
             urlencoder: self.urlencoder,
         })
@@ -317,7 +364,7 @@ where
         _variant_index: u32,
         _variant: &'static str,
         _len: usize,
-    ) -> Result<Self::SerializeStructVariant> {
+    ) -> Result<Self::SerializeStructVariant, Error> {
         Err(Error::top_level())
     }
 }
@@ -333,15 +380,11 @@ where
     fn serialize_element<T: ?Sized + ser::Serialize>(
         &mut self,
         value: &T,
-    ) -> Result<()> {
-        value.serialize(pair::PairSerializer::new(
-            self.urlencoder,
-            self.key.as_ref(),
-            &mut self.count,
-        ))
+    ) -> Result<(), Error> {
+        value.serialize(pair::PairSerializer::new(self.urlencoder))
     }
 
-    fn end(self) -> Result<Self::Ok> {
+    fn end(self) -> Result<Self::Ok, Error> {
         Ok(self.urlencoder)
     }
 }
@@ -357,15 +400,11 @@ where
     fn serialize_element<T: ?Sized + ser::Serialize>(
         &mut self,
         value: &T,
-    ) -> Result<()> {
-        value.serialize(pair::PairSerializer::new(
-            self.urlencoder,
-            None,
-            &mut 0,
-        ))
+    ) -> Result<(), Error> {
+        value.serialize(pair::PairSerializer::new(self.urlencoder))
     }
 
-    fn end(self) -> Result<Self::Ok> {
+    fn end(self) -> Result<Self::Ok, Error> {
         Ok(self.urlencoder)
     }
 }
@@ -381,11 +420,11 @@ where
     fn serialize_field<T: ?Sized + ser::Serialize>(
         &mut self,
         value: &T,
-    ) -> Result<()> {
+    ) -> Result<(), Error> {
         self.inner.serialize_field(value)
     }
 
-    fn end(self) -> Result<Self::Ok> {
+    fn end(self) -> Result<Self::Ok, Error> {
         self.inner.end()
     }
 }
@@ -401,11 +440,11 @@ where
     fn serialize_field<T: ?Sized + ser::Serialize>(
         &mut self,
         value: &T,
-    ) -> Result<()> {
+    ) -> Result<(), Error> {
         self.inner.serialize_field(value)
     }
 
-    fn end(self) -> Result<Self::Ok> {
+    fn end(self) -> Result<Self::Ok, Error> {
         self.inner.end()
     }
 }
@@ -425,7 +464,7 @@ where
         &mut self,
         key: &K,
         value: &V,
-    ) -> Result<()> {
+    ) -> Result<(), Error> {
         let key_sink = key::KeySink::new(|key| {
             let value_sink = value::ValueSink::new(self.urlencoder, &key);
             value.serialize(part::PartSerializer::new(value_sink))?;
@@ -439,7 +478,7 @@ where
     fn serialize_key<T: ?Sized + ser::Serialize>(
         &mut self,
         key: &T,
-    ) -> Result<()> {
+    ) -> Result<(), Error> {
         let key_sink = key::KeySink::new(|key| Ok(key.into()));
         let key_serializer = part::PartSerializer::new(key_sink);
         self.key = Some(key.serialize(key_serializer)?);
@@ -449,7 +488,7 @@ where
     fn serialize_value<T: ?Sized + ser::Serialize>(
         &mut self,
         value: &T,
-    ) -> Result<()> {
+    ) -> Result<(), Error> {
         {
             let key = self.key.as_ref().ok_or_else(Error::no_key)?;
             let value_sink = value::ValueSink::new(self.urlencoder, &key);
@@ -459,7 +498,7 @@ where
         Ok(())
     }
 
-    fn end(self) -> Result<Self::Ok> {
+    fn end(self) -> Result<Self::Ok, Error> {
         Ok(self.urlencoder)
     }
 }
@@ -476,16 +515,12 @@ where
         &mut self,
         key: &'static str,
         value: &T,
-    ) -> Result<()> {
-        let key = Cow::Borrowed(key);
-        let mut count = 0;
-        let value_sink =
-            pair::PairSerializer::new(self.urlencoder, Some(&key), &mut count);
-        value.serialize(value_sink)?;
-        Ok(())
+    ) -> Result<(), Error> {
+        let value_sink = value::ValueSink::new(self.urlencoder, key);
+        value.serialize(part::PartSerializer::new(value_sink))
     }
 
-    fn end(self) -> Result<Self::Ok> {
+    fn end(self) -> Result<Self::Ok, Error> {
         Ok(self.urlencoder)
     }
 }
@@ -502,11 +537,23 @@ where
         &mut self,
         key: &'static str,
         value: &T,
-    ) -> Result<()> {
+    ) -> Result<(), Error> {
         self.inner.serialize_field(key, value)
     }
 
-    fn end(self) -> Result<Self::Ok> {
+    fn end(self) -> Result<Self::Ok, Error> {
         self.inner.end()
+    }
+}
+
+impl Error {
+    fn top_level() -> Self {
+        let msg = "top-level serializer supports only maps and structs";
+        Error::Custom(msg.into())
+    }
+
+    fn no_key() -> Self {
+        let msg = "tried to serialize a value before serializing key";
+        Error::Custom(msg.into())
     }
 }

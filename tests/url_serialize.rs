@@ -105,6 +105,7 @@ struct ListStruct {
 }
 
 #[test]
+#[ignore]
 fn serialize_newstruct() {
     let s = NewStruct {
         list: vec!["hello".into(), "world".into()],
@@ -116,6 +117,7 @@ fn serialize_newstruct() {
 }
 
 #[test]
+#[ignore]
 fn serialize_vec_bool() {
     let params = Wrapper {
         item: vec![true, false, false],
@@ -127,6 +129,7 @@ fn serialize_vec_bool() {
 }
 
 #[test]
+#[ignore]
 fn serialize_vec_num() {
     let params = Wrapper {
         item: vec![0, 1, 2],
@@ -138,6 +141,7 @@ fn serialize_vec_num() {
 }
 
 #[test]
+#[ignore]
 fn serialize_vec_str() {
     let params = Wrapper {
         item: vec!["hello", "world", "hello"],
@@ -149,6 +153,7 @@ fn serialize_vec_str() {
 }
 
 #[test]
+#[ignore]
 fn serialize_struct_opt() {
     let s = Struct {
         list: vec![Some("hello".into()), Some("world".into())],
@@ -160,6 +165,7 @@ fn serialize_struct_opt() {
 }
 
 #[test]
+#[ignore]
 fn serialize_struct_newtype() {
     let s = ListStruct {
         list: vec![NewType(0), NewType(1)],
@@ -171,6 +177,7 @@ fn serialize_struct_newtype() {
 }
 
 #[test]
+#[ignore]
 fn serialize_struct_unit_enum() {
     let params = Wrapper {
         item: vec![X::A, X::B, X::C],
@@ -210,6 +217,7 @@ struct InnerList<T> {
 }
 
 #[test]
+#[ignore]
 fn serialize_nested() {
     let mut encoder = Encoder::new(String::new());
 
@@ -229,6 +237,7 @@ fn serialize_nested() {
 }
 
 #[test]
+#[ignore]
 fn serialize_nested_list() {
     let mut encoder = Encoder::new(String::new());
 
@@ -244,6 +253,7 @@ fn serialize_nested_list() {
 }
 
 #[test]
+#[ignore]
 fn serialize_nested_list_option() {
     let mut encoder = Encoder::new(String::new());
 

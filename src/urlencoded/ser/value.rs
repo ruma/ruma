@@ -1,13 +1,13 @@
 use std::str;
 
-use serde::Serialize;
+use serde::ser::Serialize;
 use url::form_urlencoded::{
     Serializer as UrlEncodedSerializer, Target as UrlEncodedTarget,
 };
 
-use crate::urlencoded::{
-    error::Error,
-    ser::part::{PartSerializer, Sink},
+use super::{
+    part::{PartSerializer, Sink},
+    Error,
 };
 
 pub struct ValueSink<'input, 'key, 'target, Target>

@@ -2,7 +2,7 @@ use std::str;
 
 use serde::ser;
 
-use crate::urlencoded::error::Error;
+use super::Error;
 
 pub struct PartSerializer<S> {
     sink: S,

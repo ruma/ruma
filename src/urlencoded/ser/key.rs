@@ -1,8 +1,7 @@
-use std::{borrow::Cow, ops::Deref};
-
-use serde::Serialize;
-
 use super::{part::Sink, Error};
+use serde::Serialize;
+use std::borrow::Cow;
+use std::ops::Deref;
 
 pub enum Key<'key> {
     Static(&'static str),

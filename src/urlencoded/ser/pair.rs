@@ -1,39 +1,16 @@
-use std::{borrow::Cow, mem};
-
+use super::key::KeySink;
+use super::part::PartSerializer;
+use super::value::ValueSink;
+use super::Error;
 use serde::ser;
-use url::form_urlencoded::{
-    Serializer as UrlEncodedSerializer, Target as UrlEncodedTarget,
-};
-
-use crate::urlencoded::{
-    error::{Error, Result},
-    ser::{key::KeySink, part::PartSerializer, value::ValueSink},
-};
-
-macro_rules! serialize_pair {
-    ($($ty:ty => $name:ident,)*) => {
-        $(
-            fn $name(self, value: $ty) -> Result<()> {
-                let key = if let Some(key) = self.key {
-                    key.clone()
-                } else {
-                    return Err(Error::no_key());
-                };
-                let value_sink = ValueSink::new(self.urlencoder, &key);
-                let value_serializer = PartSerializer::new(value_sink);
-                value_serializer.$name(value)
-            }
-        )*
-    };
-}
+use std::borrow::Cow;
+use std::mem;
+use url::form_urlencoded::Serializer as UrlEncodedSerializer;
+use url::form_urlencoded::Target as UrlEncodedTarget;
 
 pub struct PairSerializer<'input, 'target, Target: 'target + UrlEncodedTarget> {
     urlencoder: &'target mut UrlEncodedSerializer<'input, Target>,
     state: PairState,
-    key: Option<&'target Cow<'target, str>>,
-    count: &'target mut usize,
-    len: usize,
-    json_buf: String,
 }
 
 impl<'input, 'target, Target> PairSerializer<'input, 'target, Target>
@@ -42,16 +19,10 @@ where
 {
     pub fn new(
         urlencoder: &'target mut UrlEncodedSerializer<'input, Target>,
-        key: Option<&'target Cow<'target, str>>,
-        count: &'target mut usize,
     ) -> Self {
         PairSerializer {
             urlencoder,
             state: PairState::WaitingForKey,
-            key,
-            count,
-            len: 0,
-            json_buf: String::new(),
         }
     }
 }
@@ -63,39 +34,75 @@ where
 {
     type Ok = ();
     type Error = Error;
-    type SerializeSeq = Self;
+    type SerializeSeq = ser::Impossible<(), Error>;
     type SerializeTuple = Self;
     type SerializeTupleStruct = ser::Impossible<(), Error>;
     type SerializeTupleVariant = ser::Impossible<(), Error>;
     type SerializeMap = ser::Impossible<(), Error>;
-    type SerializeStruct = Self;
+    type SerializeStruct = ser::Impossible<(), Error>;
     type SerializeStructVariant = ser::Impossible<(), Error>;
 
-    serialize_pair! {
-        bool => serialize_bool,
-        u8  => serialize_u8,
-        u16 => serialize_u16,
-        u32 => serialize_u32,
-        u64 => serialize_u64,
-        i8  => serialize_i8,
-        i16 => serialize_i16,
-        i32 => serialize_i32,
-        i64 => serialize_i64,
-        f32 => serialize_f32,
-        f64 => serialize_f64,
-        char => serialize_char,
-        &str => serialize_str,
-    }
-
-    fn serialize_bytes(self, _value: &[u8]) -> Result<()> {
+    fn serialize_bool(self, _v: bool) -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_unit(self) -> Result<()> {
+    fn serialize_i8(self, _v: i8) -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_unit_struct(self, _name: &'static str) -> Result<()> {
+    fn serialize_i16(self, _v: i16) -> Result<(), Error> {
+        Err(Error::unsupported_pair())
+    }
+
+    fn serialize_i32(self, _v: i32) -> Result<(), Error> {
+        Err(Error::unsupported_pair())
+    }
+
+    fn serialize_i64(self, _v: i64) -> Result<(), Error> {
+        Err(Error::unsupported_pair())
+    }
+
+    fn serialize_u8(self, _v: u8) -> Result<(), Error> {
+        Err(Error::unsupported_pair())
+    }
+
+    fn serialize_u16(self, _v: u16) -> Result<(), Error> {
+        Err(Error::unsupported_pair())
+    }
+
+    fn serialize_u32(self, _v: u32) -> Result<(), Error> {
+        Err(Error::unsupported_pair())
+    }
+
+    fn serialize_u64(self, _v: u64) -> Result<(), Error> {
+        Err(Error::unsupported_pair())
+    }
+
+    fn serialize_f32(self, _v: f32) -> Result<(), Error> {
+        Err(Error::unsupported_pair())
+    }
+
+    fn serialize_f64(self, _v: f64) -> Result<(), Error> {
+        Err(Error::unsupported_pair())
+    }
+
+    fn serialize_char(self, _v: char) -> Result<(), Error> {
+        Err(Error::unsupported_pair())
+    }
+
+    fn serialize_str(self, _value: &str) -> Result<(), Error> {
+        Err(Error::unsupported_pair())
+    }
+
+    fn serialize_bytes(self, _value: &[u8]) -> Result<(), Error> {
+        Err(Error::unsupported_pair())
+    }
+
+    fn serialize_unit(self) -> Result<(), Error> {
+        Err(Error::unsupported_pair())
+    }
+
+    fn serialize_unit_struct(self, _name: &'static str) -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 
@@ -103,25 +110,16 @@ where
         self,
         _name: &'static str,
         _variant_index: u32,
-        variant: &'static str,
-    ) -> Result<()> {
-        let key = if let Some(key) = self.key {
-            key.clone()
-        } else {
-            let key = Cow::Owned(self.count.to_string());
-            *self.count += 1;
-            key
-        };
-        let value_sink = ValueSink::new(self.urlencoder, &key);
-        let value_serializer = PartSerializer::new(value_sink);
-        value_serializer.serialize_str(variant)
+        _variant: &'static str,
+    ) -> Result<(), Error> {
+        Err(Error::unsupported_pair())
     }
 
     fn serialize_newtype_struct<T: ?Sized + ser::Serialize>(
         self,
         _name: &'static str,
         value: &T,
-    ) -> Result<()> {
+    ) -> Result<(), Error> {
         value.serialize(self)
     }
 
@@ -131,26 +129,29 @@ where
         _variant_index: u32,
         _variant: &'static str,
         _value: &T,
-    ) -> Result<()> {
+    ) -> Result<(), Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_none(self) -> Result<()> {
+    fn serialize_none(self) -> Result<(), Error> {
         Ok(())
     }
 
     fn serialize_some<T: ?Sized + ser::Serialize>(
         self,
         value: &T,
-    ) -> Result<()> {
+    ) -> Result<(), Error> {
         value.serialize(self)
     }
 
-    fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq> {
-        Ok(self)
+    fn serialize_seq(
+        self,
+        _len: Option<usize>,
+    ) -> Result<Self::SerializeSeq, Error> {
+        Err(Error::unsupported_pair())
     }
 
-    fn serialize_tuple(self, len: usize) -> Result<Self> {
+    fn serialize_tuple(self, len: usize) -> Result<Self, Error> {
         if len == 2 {
             Ok(self)
         } else {
@@ -162,7 +163,7 @@ where
         self,
         _name: &'static str,
         _len: usize,
-    ) -> Result<Self::SerializeTupleStruct> {
+    ) -> Result<Self::SerializeTupleStruct, Error> {
         Err(Error::unsupported_pair())
     }
 
@@ -172,21 +173,23 @@ where
         _variant_index: u32,
         _variant: &'static str,
         _len: usize,
-    ) -> Result<Self::SerializeTupleVariant> {
+    ) -> Result<Self::SerializeTupleVariant, Error> {
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap> {
+    fn serialize_map(
+        self,
+        _len: Option<usize>,
+    ) -> Result<Self::SerializeMap, Error> {
         Err(Error::unsupported_pair())
     }
 
     fn serialize_struct(
-        mut self,
+        self,
         _name: &'static str,
-        len: usize,
-    ) -> Result<Self::SerializeStruct> {
-        self.len = len;
-        Ok(self)
+        _len: usize,
+    ) -> Result<Self::SerializeStruct, Error> {
+        Err(Error::unsupported_pair())
     }
 
     fn serialize_struct_variant(
@@ -195,77 +198,8 @@ where
         _variant_index: u32,
         _variant: &'static str,
         _len: usize,
-    ) -> Result<Self::SerializeStructVariant> {
+    ) -> Result<Self::SerializeStructVariant, Error> {
         Err(Error::unsupported_pair())
-    }
-}
-
-impl<'input, 'target, Target> ser::SerializeStruct
-    for PairSerializer<'input, 'target, Target>
-where
-    Target: 'target + UrlEncodedTarget,
-{
-    type Ok = ();
-    type Error = Error;
-
-    fn serialize_field<T: ?Sized>(
-        &mut self,
-        key: &'static str,
-        value: &T,
-    ) -> Result<()>
-    where
-        T: ser::Serialize,
-    {
-        *self.count += 1;
-        if self.json_buf.is_empty() {
-            self.json_buf.push_str("{");
-        }
-        let json_blob = serde_json::to_string(value)
-            .map_err(|e| Error::Custom(e.to_string().into()))?;
-
-        if *self.count == self.len {
-            self.json_buf
-                .push_str(&format!("\"{}\":{}", key, json_blob));
-        } else {
-            self.json_buf
-                .push_str(&format!("\"{}\":{},", key, json_blob));
-        }
-        Ok(())
-    }
-
-    fn end(mut self) -> Result<Self::Ok> {
-        use serde::ser::Serialize;
-
-        self.json_buf.push_str("}");
-        self.json_buf.serialize(PairSerializer::new(
-            self.urlencoder,
-            self.key,
-            &mut self.count,
-        ))
-    }
-}
-
-impl<'input, 'target, Target> ser::SerializeSeq
-    for PairSerializer<'input, 'target, Target>
-where
-    Target: 'target + UrlEncodedTarget,
-{
-    type Ok = ();
-    type Error = Error;
-
-    fn serialize_element<T: ?Sized + ser::Serialize>(
-        &mut self,
-        value: &T,
-    ) -> Result<()> {
-        value.serialize(PairSerializer::new(
-            self.urlencoder,
-            self.key,
-            &mut self.count,
-        ))
-    }
-
-    fn end(self) -> Result<Self::Ok> {
-        Ok(())
     }
 }
 
@@ -280,7 +214,7 @@ where
     fn serialize_element<T: ?Sized + ser::Serialize>(
         &mut self,
         value: &T,
-    ) -> Result<()> {
+    ) -> Result<(), Error> {
         match mem::replace(&mut self.state, PairState::Done) {
             PairState::WaitingForKey => {
                 let key_sink = KeySink::new(|key| Ok(key.into()));
@@ -307,7 +241,7 @@ where
         }
     }
 
-    fn end(self) -> Result<()> {
+    fn end(self) -> Result<(), Error> {
         if let PairState::Done = self.state {
             Ok(())
         } else {
@@ -320,4 +254,18 @@ enum PairState {
     WaitingForKey,
     WaitingForValue { key: Cow<'static, str> },
     Done,
+}
+
+impl Error {
+    fn done() -> Self {
+        Error::Custom("this pair has already been serialized".into())
+    }
+
+    fn not_done() -> Self {
+        Error::Custom("this pair has not yet been serialized".into())
+    }
+
+    fn unsupported_pair() -> Self {
+        Error::Custom("unsupported pair".into())
+    }
 }
