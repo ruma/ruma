@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.16.1
+
+Bug fixes:
+
+* Update ruma-serde to 0.2.0, fixing some issues with query string deserialization (some issues
+  still remain but will be fixed in a semver-compatible version)
+
 # 0.16.0
 
 Breaking changes:

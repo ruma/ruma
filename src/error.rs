@@ -29,8 +29,8 @@ impl From<serde_json::Error> for IntoHttpError {
 }
 
 #[doc(hidden)]
-impl From<ruma_serde::urlencoded::error::Error> for IntoHttpError {
-    fn from(err: ruma_serde::urlencoded::error::Error) -> Self {
+impl From<ruma_serde::urlencoded::ser::Error> for IntoHttpError {
+    fn from(err: ruma_serde::urlencoded::ser::Error) -> Self {
         Self(SerializationError::Query(err))
     }
 }
@@ -195,7 +195,7 @@ impl<E: std::error::Error> std::error::Error for ServerError<E> {}
 #[derive(Debug)]
 enum SerializationError {
     Json(serde_json::Error),
-    Query(ruma_serde::urlencoded::error::Error),
+    Query(ruma_serde::urlencoded::ser::Error),
 }
 
 /// This type is public so it is accessible from `ruma_api!` generated code.
