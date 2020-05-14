@@ -1,4 +1,5 @@
-use ruma_serde::urlencoded;
+use matches::assert_matches;
+use ruma_serde::urlencoded::{self, ser::Error};
 use serde::Serialize;
 use url::form_urlencoded::Serializer as Encoder;
 
@@ -86,10 +87,10 @@ fn serialize_unit_type() {
 
 #[test]
 fn serialize_list_of_str() {
-    let s = &[("list", vec!["hello", "world"])];
+    let params = &[("list", vec!["hello", "world"])];
 
     assert_eq!(
-        urlencoded::to_string(s),
+        urlencoded::to_string(params),
         Ok("list=hello&list=world".to_owned())
     );
 }
@@ -114,43 +115,32 @@ fn serialize_multiple_lists() {
 }
 
 #[test]
-fn serialize_vec_num() {
-    let params = [("item", vec![0, 1, 2])];
+#[ignore]
+fn serialize_nested_list() {
+    let params = &[("list", vec![vec![0u8]])];
+    assert_matches!(
+        urlencoded::to_string(params),
+        Err(Error::Custom(s)) if s.contains("Unsupported")
+    )
+}
+
+#[test]
+fn serialize_list_of_option() {
+    let params = &[("list", vec![Some(10), Some(100)])];
     assert_eq!(
         urlencoded::to_string(params),
-        Ok("item=0&item=1&item=2".to_owned())
+        Ok("list=10&list=100".to_owned())
     );
 }
 
 #[test]
-fn serialize_vec_str() {
-    let params = &[("item", vec!["hello", "world", "hello"])];
-    assert_eq!(
-        urlencoded::to_string(params),
-        Ok("item=hello&item=world&item=hello".to_owned())
-    );
+fn serialize_list_of_newtype() {
+    let params = &[("list", vec![NewType("test".to_owned())])];
+    assert_eq!(urlencoded::to_string(params), Ok("list=test".to_owned()));
 }
 
 #[test]
-fn serialize_struct_opt() {
-    let s = &[("list", vec![Some("hello"), Some("world")])];
-    assert_eq!(
-        urlencoded::to_string(s),
-        Ok("list=hello&list=world".to_string())
-    );
-}
-
-#[test]
-fn serialize_struct_newtype() {
-    let s = &[("list", vec![NewType(0), NewType(1)])];
-    assert_eq!(
-        "list=0&list=1".to_string(),
-        urlencoded::to_string(s).unwrap()
-    );
-}
-
-#[test]
-fn serialize_struct_unit_enum() {
+fn serialize_list_of_enum() {
     let params = &[("item", vec![X::A, X::B, X::C])];
     assert_eq!(
         urlencoded::to_string(params),
@@ -208,7 +198,7 @@ fn serialize_nested() {
 
 #[test]
 #[ignore]
-fn serialize_nested_list() {
+fn serialize_nested_object_with_list() {
     let mut encoder = Encoder::new(String::new());
 
     let s = Nested {
@@ -218,24 +208,6 @@ fn serialize_nested_list() {
     };
     assert_eq!(
         encoder.append_pair("item", r#"{"list":[1,2,3]}"#).finish(),
-        urlencoded::to_string(s).unwrap()
-    );
-}
-
-#[test]
-#[ignore]
-fn serialize_nested_list_option() {
-    let mut encoder = Encoder::new(String::new());
-
-    let s = Nested {
-        item: InnerList {
-            list: vec![Some(1), Some(2), None],
-        },
-    };
-    assert_eq!(
-        encoder
-            .append_pair("item", r#"{"list":[1,2,null]}"#)
-            .finish(),
         urlencoded::to_string(s).unwrap()
     );
 }
