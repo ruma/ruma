@@ -225,8 +225,8 @@ where
             }
             PairState::WaitingForValue { key } => {
                 let result = {
-                    let value_sink = ValueSink::new(self.urlencoder, &key);
-                    let value_serializer = PartSerializer::new(value_sink);
+                    let mut value_sink = ValueSink::new(self.urlencoder, &key);
+                    let value_serializer = PartSerializer::new(&mut value_sink);
                     value.serialize(value_serializer)
                 };
                 if result.is_ok() {

@@ -30,8 +30,8 @@ where
     }
 }
 
-impl<'input, 'key, 'target, Target> Sink
-    for ValueSink<'input, 'key, 'target, Target>
+impl<'a, 'input, 'key, 'target, Target> Sink
+    for &'a mut ValueSink<'input, 'key, 'target, Target>
 where
     Target: 'target + UrlEncodedTarget,
 {

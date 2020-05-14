@@ -465,8 +465,8 @@ where
         value: &V,
     ) -> Result<(), Error> {
         let key_sink = key::KeySink::new(|key| {
-            let value_sink = value::ValueSink::new(self.urlencoder, &key);
-            value.serialize(part::PartSerializer::new(value_sink))?;
+            let mut value_sink = value::ValueSink::new(self.urlencoder, &key);
+            value.serialize(part::PartSerializer::new(&mut value_sink))?;
             self.key = None;
             Ok(())
         });
@@ -490,8 +490,8 @@ where
     ) -> Result<(), Error> {
         {
             let key = self.key.as_ref().ok_or_else(Error::no_key)?;
-            let value_sink = value::ValueSink::new(self.urlencoder, &key);
-            value.serialize(part::PartSerializer::new(value_sink))?;
+            let mut value_sink = value::ValueSink::new(self.urlencoder, &key);
+            value.serialize(part::PartSerializer::new(&mut value_sink))?;
         }
         self.key = None;
         Ok(())
@@ -515,8 +515,8 @@ where
         key: &'static str,
         value: &T,
     ) -> Result<(), Error> {
-        let value_sink = value::ValueSink::new(self.urlencoder, key);
-        value.serialize(part::PartSerializer::new(value_sink))
+        let mut value_sink = value::ValueSink::new(self.urlencoder, key);
+        value.serialize(part::PartSerializer::new(&mut value_sink))
     }
 
     fn end(self) -> Result<Self::Ok, Error> {
