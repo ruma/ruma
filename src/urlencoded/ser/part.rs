@@ -16,6 +16,7 @@ impl<S: Sink> PartSerializer<S> {
 
 pub trait Sink: Sized {
     type Ok;
+    type SerializeSeq: ser::SerializeSeq<Ok = Self::Ok, Error = Error>;
 
     fn serialize_static_str(
         self,
@@ -31,13 +32,15 @@ pub trait Sink: Sized {
         value: &T,
     ) -> Result<Self::Ok, Error>;
 
+    fn serialize_seq(self) -> Result<Self::SerializeSeq, Error>;
+
     fn unsupported(self) -> Error;
 }
 
 impl<S: Sink> ser::Serializer for PartSerializer<S> {
     type Ok = S::Ok;
     type Error = Error;
-    type SerializeSeq = ser::Impossible<S::Ok, Error>;
+    type SerializeSeq = S::SerializeSeq;
     type SerializeTuple = ser::Impossible<S::Ok, Error>;
     type SerializeTupleStruct = ser::Impossible<S::Ok, Error>;
     type SerializeTupleVariant = ser::Impossible<S::Ok, Error>;
@@ -155,7 +158,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         self,
         _len: Option<usize>,
     ) -> Result<Self::SerializeSeq, Error> {
-        Err(self.sink.unsupported())
+        self.sink.serialize_seq()
     }
 
     fn serialize_tuple(

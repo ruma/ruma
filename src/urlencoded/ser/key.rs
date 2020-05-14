@@ -1,6 +1,6 @@
 use std::{borrow::Cow, ops::Deref};
 
-use serde::Serialize;
+use serde::ser;
 
 use super::{part::Sink, Error};
 
@@ -47,6 +47,7 @@ where
     End: for<'key> FnOnce(Key<'key>) -> Result<Ok, Error>,
 {
     type Ok = Ok;
+    type SerializeSeq = ser::Impossible<Self::Ok, Error>;
 
     fn serialize_static_str(self, value: &'static str) -> Result<Ok, Error> {
         (self.end)(Key::Static(value))
@@ -64,10 +65,14 @@ where
         Err(self.unsupported())
     }
 
-    fn serialize_some<T: ?Sized + Serialize>(
+    fn serialize_some<T: ?Sized + ser::Serialize>(
         self,
         _value: &T,
     ) -> Result<Ok, Error> {
+        Err(self.unsupported())
+    }
+
+    fn serialize_seq(self) -> Result<Self::SerializeSeq, Error> {
         Err(self.unsupported())
     }
 
