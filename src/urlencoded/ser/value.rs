@@ -16,6 +16,7 @@ where
 {
     urlencoder: &'target mut UrlEncodedSerializer<'input, Target>,
     key: &'key str,
+    nested: bool,
 }
 
 impl<'input, 'key, 'target, Target> ValueSink<'input, 'key, 'target, Target>
@@ -26,7 +27,11 @@ where
         urlencoder: &'target mut UrlEncodedSerializer<'input, Target>,
         key: &'key str,
     ) -> Self {
-        ValueSink { urlencoder, key }
+        ValueSink {
+            urlencoder,
+            key,
+            nested: false,
+        }
     }
 }
 
@@ -63,7 +68,11 @@ where
     }
 
     fn serialize_seq(self) -> Result<Self, Error> {
-        Ok(self)
+        if self.nested {
+            Err(self.unsupported())
+        } else {
+            Ok(self)
+        }
     }
 
     fn unsupported(self) -> Error {
@@ -89,6 +98,7 @@ where
         value.serialize(PartSerializer::new(ValueSink {
             urlencoder: self.urlencoder,
             key: self.key,
+            nested: true,
         }))
     }
 
