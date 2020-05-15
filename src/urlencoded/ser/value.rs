@@ -30,8 +30,8 @@ where
     }
 }
 
-impl<'a, 'input, 'key, 'target, Target> Sink
-    for &'a mut ValueSink<'input, 'key, 'target, Target>
+impl<'input, 'key, 'target, Target> Sink
+    for ValueSink<'input, 'key, 'target, Target>
 where
     Target: 'target + UrlEncodedTarget,
 {
@@ -71,8 +71,8 @@ where
     }
 }
 
-impl<'a, 'input, 'key, 'target, Target> ser::SerializeSeq
-    for &'a mut ValueSink<'input, 'key, 'target, Target>
+impl<'input, 'key, 'target, Target> ser::SerializeSeq
+    for ValueSink<'input, 'key, 'target, Target>
 where
     Target: 'target + UrlEncodedTarget,
 {
@@ -86,7 +86,10 @@ where
     where
         T: ser::Serialize,
     {
-        value.serialize(PartSerializer::new(&mut **self))
+        value.serialize(PartSerializer::new(ValueSink {
+            urlencoder: self.urlencoder,
+            key: self.key,
+        }))
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
