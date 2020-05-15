@@ -177,7 +177,7 @@ struct InnerList<T> {
 
 #[test]
 #[ignore]
-fn serialize_nested() {
+fn serialize_nested_struct() {
     let mut encoder = Encoder::new(String::new());
 
     let s = Nested {
@@ -197,7 +197,7 @@ fn serialize_nested() {
 
 #[test]
 #[ignore]
-fn serialize_nested_object_with_list() {
+fn serialize_nested_struct_with_list() {
     let mut encoder = Encoder::new(String::new());
 
     let s = Nested {
