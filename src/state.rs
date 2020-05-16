@@ -115,10 +115,10 @@ impl EventContent for AnyStateEventContent {
         }
     }
 
-    fn from_parts(event_type: &str, content: &RawJsonValue) -> Result<Self, InvalidEvent> {
+    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, InvalidEvent> {
         fn deserialize_variant<T: StateEventContent>(
             ev_type: &str,
-            input: &RawJsonValue,
+            input: Box<RawJsonValue>,
             variant: fn(T) -> AnyStateEventContent,
         ) -> Result<AnyStateEventContent, InvalidEvent> {
             let content = T::from_parts(ev_type, input)?;
@@ -278,7 +278,7 @@ impl<'de, C: StateEventContent> Visitor<'de> for StateEventVisitor<C> {
         let event_type = event_type.ok_or_else(|| de::Error::missing_field("type"))?;
 
         let raw = content.ok_or_else(|| de::Error::missing_field("content"))?;
-        let content = C::from_parts(&event_type, &raw).map_err(A::Error::custom)?;
+        let content = C::from_parts(&event_type, raw).map_err(A::Error::custom)?;
 
         let event_id = event_id.ok_or_else(|| de::Error::missing_field("event_id"))?;
         let sender = sender.ok_or_else(|| de::Error::missing_field("sender"))?;
@@ -291,7 +291,7 @@ impl<'de, C: StateEventContent> Visitor<'de> for StateEventVisitor<C> {
         let state_key = state_key.ok_or_else(|| de::Error::missing_field("state_key"))?;
 
         let prev_content = if let Some(raw) = prev_content {
-            Some(C::from_parts(&event_type, &raw).map_err(A::Error::custom)?)
+            Some(C::from_parts(&event_type, raw).map_err(A::Error::custom)?)
         } else {
             None
         };

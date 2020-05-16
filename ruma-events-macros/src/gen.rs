@@ -3,12 +3,11 @@
 #![allow(dead_code)]
 
 use proc_macro2::{Span, TokenStream};
-use quote::{format_ident, quote, quote_spanned, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 use syn::{
     parse::{self, Parse, ParseStream},
     parse_quote,
     punctuated::Punctuated,
-    spanned::Spanned,
     Attribute, Field, Ident, LitStr, Token,
 };
 
@@ -87,10 +86,9 @@ impl ToTokens for RumaEvent {
 
         let content = match &self.content {
             Content::Struct(fields) => {
-                // TODO remove serde::Deserialize when this macro actually generates generic events
                 quote! {
                     #[doc = #content_docstring]
-                    #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+                    #[derive(Clone, Debug, serde::Serialize, ::ruma_events_macros::FromRaw)]
                     pub struct #content_name {
                         #(#fields),*
                     }
@@ -107,67 +105,9 @@ impl ToTokens for RumaEvent {
             }
         };
 
-        let raw_content = match &self.content {
-            Content::Struct(fields) => {
-                quote! {
-                    #[doc = #content_docstring]
-                    #[derive(Clone, Debug, serde::Deserialize)]
-                    pub struct #content_name {
-                        #(#fields),*
-                    }
-                }
-            }
-            Content::Typedef(_) => TokenStream::new(),
-        };
-
-        let impl_event_result_compatible_for_content =
-            if let Content::Struct(content_fields) = &self.content {
-                let mut content_field_values: Vec<TokenStream> =
-                    Vec::with_capacity(content_fields.len());
-
-                for content_field in content_fields {
-                    let content_field_ident = content_field.ident.clone().unwrap();
-                    let span = content_field.span();
-
-                    let token_stream = quote_spanned! {span=>
-                        #content_field_ident: raw.#content_field_ident,
-                    };
-
-                    content_field_values.push(token_stream);
-                }
-
-                quote! {
-                    impl ::ruma_events::FromRaw for #content_name {
-                        type Raw = raw::#content_name;
-
-                        fn from_raw(
-                            raw: raw::#content_name
-                        ) -> Self {
-                            Self {
-                                #(#content_field_values)*
-                            }
-                        }
-                    }
-                }
-            } else {
-                TokenStream::new()
-            };
-
         // let event_type_name = self.event_type.value();
-        let output = quote!(
-            #content
 
-            #impl_event_result_compatible_for_content
-
-            /// "Raw" versions of the event and its content which implement `serde::Deserialize`.
-            pub(crate) mod raw {
-                use super::*;
-
-                #raw_content
-            }
-        );
-
-        output.to_tokens(tokens);
+        content.to_tokens(tokens);
     }
 }
 

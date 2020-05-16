@@ -6,7 +6,7 @@ use serde_json::value::RawValue as RawJsonValue;
 use super::ImageInfo;
 use crate::{
     error::{InvalidEvent, InvalidEventKind},
-    EventContent, RoomEventContent, StateEventContent,
+    EventContent, EventJson, RoomEventContent, StateEventContent,
 };
 
 ruma_event! {
@@ -33,17 +33,16 @@ impl EventContent for AvatarEventContent {
         "m.room.avatar"
     }
 
-    fn from_parts(event_type: &str, content: &RawJsonValue) -> Result<Self, InvalidEvent> {
+    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, InvalidEvent> {
         if event_type != "m.room.avatar" {
             return Err(InvalidEvent {
                 kind: InvalidEventKind::Deserialization,
                 message: format!("expected `m.room.avatar` found {}", event_type),
             });
         }
-        serde_json::from_str::<AvatarEventContent>(content.get()).map_err(|e| InvalidEvent {
-            kind: InvalidEventKind::Deserialization,
-            message: e.to_string(),
-        })
+
+        let ev_json = EventJson::from(content);
+        ev_json.deserialize()
     }
 }
 

@@ -6,7 +6,7 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
     error::{InvalidEvent, InvalidEventKind},
-    EventContent, RoomEventContent, StateEventContent,
+    EventContent, EventJson, RoomEventContent, StateEventContent,
 };
 
 ruma_event! {
@@ -26,17 +26,16 @@ impl EventContent for AliasesEventContent {
         "m.room.aliases"
     }
 
-    fn from_parts(event_type: &str, content: &RawJsonValue) -> Result<Self, InvalidEvent> {
+    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, InvalidEvent> {
         if event_type != "m.room.aliases" {
             return Err(InvalidEvent {
                 kind: InvalidEventKind::Deserialization,
                 message: format!("expected `m.room.aliases` found {}", event_type),
             });
         }
-        serde_json::from_str::<AliasesEventContent>(content.get()).map_err(|e| InvalidEvent {
-            kind: InvalidEventKind::Deserialization,
-            message: e.to_string(),
-        })
+
+        let ev_json = EventJson::from(content);
+        ev_json.deserialize()
     }
 }
 

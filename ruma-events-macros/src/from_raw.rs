@@ -15,6 +15,16 @@ pub fn expand_from_raw(input: DeriveInput) -> syn::Result<TokenStream> {
     };
     let ident = &input.ident;
 
+    let raw_content = {
+        let fields = fields.iter();
+        quote! {
+            #[derive(Clone, Debug, serde::Deserialize)]
+            pub struct #ident {
+                #(#fields),*
+            }
+        }
+    };
+
     let init_list = fields.iter().map(|field| {
         let field_ident = field.ident.as_ref().unwrap();
         let field_span = field.span();
@@ -43,6 +53,12 @@ pub fn expand_from_raw(input: DeriveInput) -> syn::Result<TokenStream> {
                     #(#init_list)*
                 }
             }
+        }
+
+        pub(crate) mod raw {
+            use super::*;
+
+            #raw_content
         }
     })
 }

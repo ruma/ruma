@@ -120,10 +120,11 @@ use std::fmt::Debug;
 
 use js_int::Int;
 use serde::{Deserialize, Serialize};
+use serde_json::value::RawValue as RawJsonValue;
 
 // use self::room::redaction::RedactionEvent;
 
-pub use self::custom::{CustomEvent, CustomRoomEvent, CustomStateEvent};
+// pub use self::custom::{CustomEvent, CustomRoomEvent, CustomStateEvent};
 
 #[deprecated = "Use ruma_serde::empty::Empty directly instead."]
 pub use ruma_serde::empty::Empty;
@@ -141,7 +142,7 @@ pub mod util;
 extern crate self as ruma_events;
 
 pub mod call;
-pub mod custom;
+// pub mod custom;
 /// Enums for heterogeneous collections of events.
 // pub mod collections {
 //     pub mod all;
@@ -217,10 +218,7 @@ impl UnsignedData {
 /// Implementing this trait allows content types to be serialized as well as deserialized.
 pub trait EventContent: Sized + Serialize {
     /// Constructs the given event content.
-    fn from_parts(
-        event_type: &str,
-        content: &serde_json::value::RawValue,
-    ) -> Result<Self, InvalidEvent>;
+    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, InvalidEvent>;
 
     /// A matrix event identifier, like `m.room.message`.
     fn event_type(&self) -> &str;
