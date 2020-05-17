@@ -83,19 +83,39 @@ fn deserialize_unit_type() {
     assert_eq!(urlencoded::from_str(""), Ok(()));
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize)]
+struct Params<'a> {
+    a: usize,
+    b: &'a str,
+    c: Option<u8>,
+}
+
+#[test]
+fn deserialize_struct() {
+    let de = Params {
+        a: 10,
+        b: "Hello",
+        c: None,
+    };
+    assert_eq!(Ok(de), urlencoded::from_str("a=10&b=Hello"));
+    assert_eq!(Ok(de), urlencoded::from_str("b=Hello&a=10"));
+}
+
 #[derive(Debug, Deserialize, PartialEq)]
 struct Wrapper<T> {
     item: T,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
-struct NewStruct {
-    list: Vec<String>,
+struct NewStruct<'a> {
+    #[serde(borrow)]
+    list: Vec<&'a str>,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
-struct Struct {
-    list: Vec<Option<String>>,
+struct Struct<'a> {
+    #[serde(borrow)]
+    list: Vec<Option<&'a str>>,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -108,36 +128,13 @@ struct ListStruct {
     list: Vec<NewType<usize>>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
-struct MapStruct {
-    a: usize,
-    b: String,
-    c: Option<u8>,
-}
-
-#[test]
-fn deserialize_mapstruct() {
-    let de = MapStruct {
-        a: 10,
-        b: "Hello".into(),
-        c: None,
-    };
-    assert_eq!(
-        de,
-        urlencoded::from_str::<MapStruct>("a=10&b=Hello").unwrap()
-    );
-}
-
 #[test]
 #[ignore]
 fn deserialize_newstruct() {
     let de = NewStruct {
-        list: vec!["hello".into(), "world".into()],
+        list: vec!["hello", "world"],
     };
-    assert_eq!(
-        de,
-        urlencoded::from_str::<NewStruct>("list=hello&list=world").unwrap()
-    );
+    assert_eq!(urlencoded::from_str("list=hello&list=world"), Ok(de));
 }
 
 #[test]
@@ -146,21 +143,17 @@ fn deserialize_numlist() {
     let de = NumList {
         list: vec![1, 2, 3, 4],
     };
-    assert_eq!(
-        de,
-        urlencoded::from_str::<NumList>("list=1&list=2&list=3&list=4").unwrap()
-    );
+    assert_eq!(urlencoded::from_str("list=1&list=2&list=3&list=4"), Ok(de));
 }
 
 #[test]
 #[ignore]
 fn deserialize_vec_bool() {
     assert_eq!(
-        Wrapper {
+        urlencoded::from_str("item=true&item=false&item=false"),
+        Ok(Wrapper {
             item: vec![true, false, false]
-        },
-        urlencoded::from_str::<Wrapper<_>>("item=true&item=false&item=false")
-            .unwrap()
+        })
     );
 }
 
@@ -168,15 +161,14 @@ fn deserialize_vec_bool() {
 #[ignore]
 fn deserialize_vec_string() {
     assert_eq!(
-        Wrapper {
+        urlencoded::from_str("item=hello&item=matrix&item=hello"),
+        Ok(Wrapper {
             item: vec![
                 "hello".to_string(),
                 "matrix".to_string(),
                 "hello".to_string()
             ],
-        },
-        urlencoded::from_str::<Wrapper<_>>("item=hello&item=matrix&item=hello")
-            .unwrap()
+        })
     );
 }
 
@@ -196,10 +188,10 @@ struct Nested<T> {
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
-struct Inner {
-    c: String,
+struct Inner<'a> {
+    c: &'a str,
     a: usize,
-    b: String,
+    b: &'a str,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -214,19 +206,18 @@ fn deserialize_nested() {
 
     let nested = Nested {
         item: Inner {
-            c: "hello".into(),
+            c: "hello",
             a: 10,
-            b: "bye".into(),
+            b: "bye",
         },
     };
     assert_eq!(
-        nested,
-        urlencoded::from_str::<Nested<Inner>>(
+        urlencoded::from_str(
             &encoder
                 .append_pair("item", r#"{"c":"hello","a":10,"b":"bye"}"#)
                 .finish(),
-        )
-        .unwrap()
+        ),
+        Ok(nested)
     );
 }
 
@@ -242,11 +233,10 @@ fn deserialize_nested_list() {
     };
 
     assert_eq!(
-        nested,
-        urlencoded::from_str::<Nested<InnerList<u8>>>(
+        urlencoded::from_str(
             &encoder.append_pair("item", r#"{"list":[1,2,3]}"#).finish(),
-        )
-        .unwrap()
+        ),
+        Ok(nested)
     );
 }
 
@@ -261,12 +251,11 @@ fn deserialize_nested_list_option() {
         },
     };
     assert_eq!(
-        nested,
-        urlencoded::from_str::<Nested<InnerList<Option<u8>>>>(
+        urlencoded::from_str(
             &encoder
                 .append_pair("item", r#"{"list":[1,2,null]}"#)
                 .finish(),
-        )
-        .unwrap()
+        ),
+        Ok(nested)
     );
 }
