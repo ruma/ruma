@@ -5,6 +5,10 @@ Breaking changes:
 * The `event_id` in the response for the message and state sending endpoints is now required
   * r0.6.0 doesn't say they are required, but this has been fixed for the next version of the spec
 
+Improvements:
+
+* `r0::keys::AlgorithmAndDeviceId` now implements `Display`
+
 # 0.8.0
 
 Breaking changes:

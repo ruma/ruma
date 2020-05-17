@@ -3,7 +3,7 @@
 use std::{
     collections::BTreeMap,
     convert::TryFrom,
-    fmt::{Debug, Display, Error as FmtError, Formatter},
+    fmt::{self, Debug, Display, Formatter},
 };
 
 use ruma_events::Algorithm;
@@ -35,7 +35,7 @@ pub enum KeyAlgorithm {
 }
 
 impl Display for KeyAlgorithm {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let algorithm_str = match *self {
             KeyAlgorithm::Ed25519 => "ed25519",
             KeyAlgorithm::Curve25519 => "curve25519",
@@ -62,13 +62,18 @@ impl TryFrom<&'_ str> for KeyAlgorithm {
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct AlgorithmAndDeviceId(pub KeyAlgorithm, pub DeviceId);
 
+impl Display for AlgorithmAndDeviceId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}:{}", self.0, self.1)
+    }
+}
+
 impl Serialize for AlgorithmAndDeviceId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        let s = format!("{}:{}", self.0, self.1);
-        serializer.serialize_str(&s)
+        serializer.serialize_str(&self.to_string())
     }
 }
 
