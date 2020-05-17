@@ -1,6 +1,10 @@
 //! Deserialization support for the `application/x-www-form-urlencoded` format.
 
-use std::{borrow::Cow, io::Read};
+use std::{
+    borrow::Cow,
+    collections::btree_map::{self, BTreeMap},
+    io::Read,
+};
 
 use serde::{
     de::{self, value::MapDeserializer, Error as de_Error, IntoDeserializer},
@@ -11,14 +15,18 @@ use url::form_urlencoded::{parse, Parse as UrlEncodedParse};
 #[doc(inline)]
 pub use serde::de::value::Error;
 
+mod val_or_vec;
+
+use val_or_vec::ValOrVec;
+
 /// Deserializes a `application/x-www-form-urlencoded` value from a `&[u8]`.
 ///
 /// ```
 /// let meal = vec![
 ///     ("bread".to_owned(), "baguette".to_owned()),
 ///     ("cheese".to_owned(), "comté".to_owned()),
-///     ("meat".to_owned(), "ham".to_owned()),
 ///     ("fat".to_owned(), "butter".to_owned()),
+///     ("meat".to_owned(), "ham".to_owned()),
 /// ];
 ///
 /// assert_eq!(
@@ -39,8 +47,8 @@ where
 /// let meal = vec![
 ///     ("bread".to_owned(), "baguette".to_owned()),
 ///     ("cheese".to_owned(), "comté".to_owned()),
-///     ("meat".to_owned(), "ham".to_owned()),
 ///     ("fat".to_owned(), "butter".to_owned()),
+///     ("meat".to_owned(), "ham".to_owned()),
 /// ];
 ///
 /// assert_eq!(
@@ -79,14 +87,14 @@ where
 /// * Everything else but `deserialize_seq` and `deserialize_seq_fixed_size`
 ///   defers to `deserialize`.
 pub struct Deserializer<'de> {
-    inner: MapDeserializer<'de, PartIterator<'de>, Error>,
+    inner: MapDeserializer<'de, EntryIterator<'de>, Error>,
 }
 
 impl<'de> Deserializer<'de> {
     /// Returns a new `Deserializer`.
-    pub fn new(parser: UrlEncodedParse<'de>) -> Self {
+    pub fn new(parse: UrlEncodedParse<'de>) -> Self {
         Deserializer {
-            inner: MapDeserializer::new(PartIterator(parser)),
+            inner: MapDeserializer::new(group_entries(parse).into_iter()),
         }
     }
 }
@@ -152,16 +160,53 @@ impl<'de> de::Deserializer<'de> for Deserializer<'de> {
     }
 }
 
-struct PartIterator<'de>(UrlEncodedParse<'de>);
+fn group_entries<'de>(
+    parse: UrlEncodedParse<'de>,
+) -> BTreeMap<Part<'de>, ValOrVec<Part<'de>>> {
+    use btree_map::Entry::*;
 
-impl<'de> Iterator for PartIterator<'de> {
-    type Item = (Part<'de>, Part<'de>);
+    let mut res = BTreeMap::new();
 
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|(k, v)| (Part(k), Part(v)))
+    for (key, value) in parse {
+        match res.entry(Part(key)) {
+            Vacant(v) => {
+                v.insert(ValOrVec::Val(Part(value)));
+            }
+            Occupied(mut o) => {
+                o.get_mut().push(Part(value));
+            }
+        }
     }
+
+    res
 }
 
+/*
+input: a=b&c=d&a=c
+
+vvvvv
+
+next(): a => Wrapper([b, c])
+next(): c => Wrapper([d])
+
+struct Foo {
+    a: Vec<String>,
+    c: Vec<String>,
+}
+
+struct Bar {
+    a: Vec<String>,
+    c: String,
+}
+
+struct Baz {
+    a: String,
+}
+*/
+
+type EntryIterator<'de> = btree_map::IntoIter<Part<'de>, ValOrVec<Part<'de>>>;
+
+#[derive(PartialEq, PartialOrd, Eq, Ord)]
 struct Part<'de>(Cow<'de, str>);
 
 impl<'de> IntoDeserializer<'de> for Part<'de> {

@@ -69,13 +69,13 @@ enum X {
 
 #[test]
 fn deserialize_unit_enum() {
-    let result = vec![
-        ("one".to_owned(), X::A),
-        ("two".to_owned(), X::B),
-        ("three".to_owned(), X::C),
-    ];
+    let result: Vec<(String, X)> =
+        urlencoded::from_str("one=A&two=B&three=C").unwrap();
 
-    assert_eq!(urlencoded::from_str("one=A&two=B&three=C"), Ok(result));
+    assert_eq!(result.len(), 3);
+    assert!(result.contains(&("one".to_owned(), X::A)));
+    assert!(result.contains(&("two".to_owned(), X::B)));
+    assert!(result.contains(&("three".to_owned(), X::C)));
 }
 
 #[test]
@@ -129,7 +129,6 @@ struct ListStruct {
 }
 
 #[test]
-#[ignore]
 fn deserialize_newstruct() {
     let de = NewStruct {
         list: vec!["hello", "world"],
@@ -138,7 +137,6 @@ fn deserialize_newstruct() {
 }
 
 #[test]
-#[ignore]
 fn deserialize_numlist() {
     let de = NumList {
         list: vec![1, 2, 3, 4],
@@ -147,7 +145,6 @@ fn deserialize_numlist() {
 }
 
 #[test]
-#[ignore]
 fn deserialize_vec_bool() {
     assert_eq!(
         urlencoded::from_str("item=true&item=false&item=false"),
@@ -158,7 +155,6 @@ fn deserialize_vec_bool() {
 }
 
 #[test]
-#[ignore]
 fn deserialize_vec_string() {
     assert_eq!(
         urlencoded::from_str("item=hello&item=matrix&item=hello"),
@@ -173,7 +169,6 @@ fn deserialize_vec_string() {
 }
 
 #[test]
-#[ignore]
 fn deserialize_struct_unit_enum() {
     let result = Wrapper {
         item: vec![X::A, X::B, X::C],
