@@ -15,7 +15,7 @@ pub enum ValOrVec<T> {
 impl<T> ValOrVec<T> {
     pub fn push(&mut self, new_val: T) {
         match self {
-            Self::Val(val) => {
+            ValOrVec::Val(val) => {
                 let mut vec = Vec::with_capacity(2);
                 // Safety:
                 //
@@ -25,10 +25,10 @@ impl<T> ValOrVec<T> {
                     let existing_val = ptr::read(val);
                     vec.push(existing_val);
                     vec.push(new_val);
-                    ptr::write(self, Self::Vec(vec))
+                    ptr::write(self, ValOrVec::Vec(vec))
                 }
             }
-            Self::Vec(vec) => vec.push(new_val),
+            ValOrVec::Vec(vec) => vec.push(new_val),
         }
     }
 }
@@ -50,8 +50,8 @@ pub enum IntoIter<T> {
 impl<T> IntoIter<T> {
     fn new(vv: ValOrVec<T>) -> Self {
         match vv {
-            ValOrVec::Val(val) => Self::Val(iter::once(val)),
-            ValOrVec::Vec(vec) => Self::Vec(vec.into_iter()),
+            ValOrVec::Val(val) => IntoIter::Val(iter::once(val)),
+            ValOrVec::Vec(vec) => IntoIter::Vec(vec.into_iter()),
         }
     }
 }
@@ -61,8 +61,8 @@ impl<T> Iterator for IntoIter<T> {
 
     fn next(&mut self) -> Option<Self::Item> {
         match self {
-            Self::Val(iter) => iter.next(),
-            Self::Vec(iter) => iter.next(),
+            IntoIter::Val(iter) => iter.next(),
+            IntoIter::Vec(iter) => iter.next(),
         }
     }
 }
@@ -85,8 +85,8 @@ macro_rules! forward_to_part {
                 where V: de::Visitor<'de>
             {
                 match self {
-                    Self::Val(val) => val.$method(visitor),
-                    Self::Vec(_) => Err(de::Error::custom("TODO: Error message")),
+                    ValOrVec::Val(val) => val.$method(visitor),
+                    ValOrVec::Vec(_) => Err(de::Error::custom("TODO: Error message")),
                 }
             }
         )*
@@ -104,8 +104,8 @@ where
         V: de::Visitor<'de>,
     {
         match self {
-            Self::Val(val) => val.deserialize_any(visitor),
-            Self::Vec(_) => self.deserialize_seq(visitor),
+            ValOrVec::Val(val) => val.deserialize_any(visitor),
+            ValOrVec::Vec(_) => self.deserialize_seq(visitor),
         }
     }
 
@@ -126,8 +126,8 @@ where
         V: de::Visitor<'de>,
     {
         match self {
-            Self::Val(val) => val.deserialize_enum(name, variants, visitor),
-            Self::Vec(_) => Err(de::Error::custom("TODO: Error message")),
+            ValOrVec::Val(val) => val.deserialize_enum(name, variants, visitor),
+            ValOrVec::Vec(_) => Err(de::Error::custom("TODO: Error message")),
         }
     }
 
@@ -140,8 +140,8 @@ where
         V: de::Visitor<'de>,
     {
         match self {
-            Self::Val(val) => val.deserialize_tuple(len, visitor),
-            Self::Vec(_) => Err(de::Error::custom("TODO: Error message")),
+            ValOrVec::Val(val) => val.deserialize_tuple(len, visitor),
+            ValOrVec::Vec(_) => Err(de::Error::custom("TODO: Error message")),
         }
     }
 
@@ -155,8 +155,8 @@ where
         V: de::Visitor<'de>,
     {
         match self {
-            Self::Val(val) => val.deserialize_struct(name, fields, visitor),
-            Self::Vec(_) => Err(de::Error::custom("TODO: Error message")),
+            ValOrVec::Val(val) => val.deserialize_struct(name, fields, visitor),
+            ValOrVec::Vec(_) => Err(de::Error::custom("TODO: Error message")),
         }
     }
 
@@ -169,8 +169,8 @@ where
         V: de::Visitor<'de>,
     {
         match self {
-            Self::Val(val) => val.deserialize_unit_struct(name, visitor),
-            Self::Vec(_) => Err(de::Error::custom("TODO: Error message")),
+            ValOrVec::Val(val) => val.deserialize_unit_struct(name, visitor),
+            ValOrVec::Vec(_) => Err(de::Error::custom("TODO: Error message")),
         }
     }
 
@@ -184,8 +184,10 @@ where
         V: de::Visitor<'de>,
     {
         match self {
-            Self::Val(val) => val.deserialize_tuple_struct(name, len, visitor),
-            Self::Vec(_) => Err(de::Error::custom("TODO: Error message")),
+            ValOrVec::Val(val) => {
+                val.deserialize_tuple_struct(name, len, visitor)
+            }
+            ValOrVec::Vec(_) => Err(de::Error::custom("TODO: Error message")),
         }
     }
 
@@ -198,8 +200,8 @@ where
         V: de::Visitor<'de>,
     {
         match self {
-            Self::Val(val) => val.deserialize_newtype_struct(name, visitor),
-            Self::Vec(_) => Err(de::Error::custom("TODO: Error message")),
+            ValOrVec::Val(val) => val.deserialize_newtype_struct(name, visitor),
+            ValOrVec::Vec(_) => Err(de::Error::custom("TODO: Error message")),
         }
     }
 
