@@ -63,7 +63,7 @@ ruma_api! {
         pub content_type: String,
 
         /// A thumbnail of the requested content.
-        #[ruma_api(body)]
+        #[ruma_api(raw_body)]
         pub file: Vec<u8>,
     }
 
