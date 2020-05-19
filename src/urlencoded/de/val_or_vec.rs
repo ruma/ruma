@@ -15,12 +15,17 @@ pub enum ValOrVec<T> {
 impl<T> ValOrVec<T> {
     pub fn push(&mut self, new_val: T) {
         match self {
+            // To transform a Self::Val into a Self::Vec, we take the existing
+            // value out via ptr::read and add it to a vector, together with the
+            // new value. Since setting self to `ValOrVec::Vec` normally would
+            // cause T's Drop implementation to run if it has one (which would
+            // free resources that will now be owned by the first vec element),
+            // we instead use ptr::write to set self to Self::Vec.
             ValOrVec::Val(val) => {
                 let mut vec = Vec::with_capacity(2);
-                // Safety:
-                //
-                // since the vec is pre-allocated, push can't panic, so there
-                // is no opportunity for a panic in the unsafe code.
+                // Safety: since the vec is pre-allocated, push can't panic, so
+                //   there is no opportunity for outside code to observe an
+                //   invalid state of self.
                 unsafe {
                     let existing_val = ptr::read(val);
                     vec.push(existing_val);
