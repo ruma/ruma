@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.21.2
+
+Improvements
+
+* Update dependencies
+
 # 0.21.1
 
 Improvements:
