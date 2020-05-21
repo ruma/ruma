@@ -224,8 +224,11 @@ pub trait EventContent: Sized + Serialize {
     fn event_type(&self) -> &str;
 }
 
-/// Marker trait for room events.
+/// Marker trait for the content of a room event.
 pub trait RoomEventContent: EventContent {}
 
-/// Marker trait for state events.
+/// Marker trait for the content of a message event.
+pub trait MessageEventContent: RoomEventContent {}
+
+/// Marker trait for the content of a state event.
 pub trait StateEventContent: RoomEventContent {}
