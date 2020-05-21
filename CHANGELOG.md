@@ -8,6 +8,7 @@ Breaking changes:
 
 * The `event_id` in the response for the message and state sending endpoints is now required
   * r0.6.0 doesn't say they are required, but this has been fixed for the next version of the spec
+* Updated the type of `r0::sync::sync_events::DeviceLists` fields
 
 Improvements:
 
