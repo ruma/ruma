@@ -143,16 +143,6 @@ extern crate self as ruma_events;
 
 pub mod call;
 // pub mod custom;
-/// Enums for heterogeneous collections of events.
-// pub mod collections {
-//     pub mod all;
-//     pub mod only;
-
-//     mod raw {
-//         pub mod all;
-//         pub mod only;
-//     }
-// }
 // pub mod direct;
 // pub mod dummy;
 pub mod forwarded_room_key;
