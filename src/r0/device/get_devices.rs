@@ -16,7 +16,7 @@ ruma_api! {
     request {}
 
     response {
-        devices: Vec<Device>,
+        pub devices: Vec<Device>,
     }
 
     error: crate::Error

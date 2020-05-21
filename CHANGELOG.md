@@ -1,5 +1,9 @@
 # [unreleased]
 
+Bug fixes:
+
+* Make `r0::device::get_devices::Response::devices` public
+
 Breaking changes:
 
 * The `event_id` in the response for the message and state sending endpoints is now required
