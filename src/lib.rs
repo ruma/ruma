@@ -1,4 +1,4 @@
-//! (De)serializable types for the matrix server-server protocol.
+//! (De)serializable types for the Matrix Federation API.
 
 #![warn(missing_docs)]
 
@@ -11,9 +11,10 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::Value as JsonValue;
 
 mod serde;
-pub mod unversioned;
-pub mod v1;
-pub mod v2;
+
+pub mod directory;
+pub mod discovery;
+pub mod membership;
 
 /// A 'persistent data unit' (event) for room versions 3 and beyond.
 #[derive(Deserialize, Serialize)]

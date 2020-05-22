@@ -4,11 +4,11 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_events::{EventJson, EventType};
+use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
+use super::RoomState;
 use crate::{EventHash, RoomV3Pdu};
 
 ruma_api! {
@@ -60,8 +60,8 @@ ruma_api! {
         pub redacts: Option<EventId>,
         /// Additional data added by the origin server but not covered by the
         /// signatures.
-        #[serde(default, skip_serializing_if = "serde_json::Map::is_empty")]
-        pub unsigned: serde_json::Map<String, JsonValue>,
+        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        pub unsigned: BTreeMap<String, JsonValue>,
         /// Content hashes of the PDU.
         pub hashes: EventHash,
         /// Signatures for the PDU.
@@ -100,16 +100,4 @@ impl Request {
             },
         )
     }
-}
-
-/// Full state of the room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct RoomState {
-    /// The resident server's DNS name.
-    pub origin: String,
-    /// The full set of authorization events that make up the state of the room,
-    /// and their authorization events, recursively.
-    pub auth_chain: Vec<EventJson<RoomV3Pdu>>,
-    /// The room state.
-    pub state: Vec<EventJson<RoomV3Pdu>>,
 }

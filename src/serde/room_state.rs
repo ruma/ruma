@@ -10,7 +10,7 @@ use serde::{
     ser::{SerializeSeq, Serializer},
 };
 
-use crate::v1::join::create_join_event::RoomState;
+use crate::membership::create_join_event::RoomState;
 
 pub fn serialize<S>(room_state: &RoomState, serializer: S) -> Result<S::Ok, S::Error>
 where
