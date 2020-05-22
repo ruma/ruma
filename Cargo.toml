@@ -14,6 +14,7 @@ version = "0.0.1"
 
 [dependencies]
 js_int = "0.1.4"
+matches = "0.1.8"
 ruma-api = "0.16.0-rc.3"
 ruma-events = "0.21.0-beta.1"
 ruma-identifiers = "0.16.0"

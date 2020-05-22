@@ -2,3 +2,4 @@
 
 pub mod get_public_rooms;
 pub mod get_server_version;
+pub mod join;

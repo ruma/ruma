@@ -4,12 +4,13 @@
 
 use std::collections::BTreeMap;
 
+use ::serde::{Deserialize, Serialize};
 use js_int::UInt;
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
+mod serde;
 pub mod unversioned;
 pub mod v1;
 pub mod v2;
@@ -59,7 +60,7 @@ pub struct RoomV3Pdu {
 }
 
 /// Content hashes of a PDU.
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct EventHash {
     /// The SHA-256 hash.
     pub sha256: String,
