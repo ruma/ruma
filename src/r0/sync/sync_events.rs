@@ -14,7 +14,7 @@ use ruma_events::{
     to_device::AnyToDeviceEvent,
     EventJson,
 };
-use ruma_identifiers::RoomId;
+use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
 use crate::r0::{filter::FilterDefinition, keys::KeyAlgorithm};

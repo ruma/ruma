@@ -16,6 +16,7 @@ ruma_api! {
     request {}
 
     response {
+        /// A list of all registered devices for this user
         pub devices: Vec<Device>,
     }
 
