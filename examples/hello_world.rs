@@ -10,6 +10,7 @@ use ruma_client::{
     identifiers::RoomAliasId,
     Client,
 };
+use serde_json::value::to_raw_value as to_raw_json_value;
 use url::Url;
 
 async fn hello_world(homeserver_url: Url, room: String) -> anyhow::Result<()> {
@@ -36,13 +37,12 @@ async fn hello_world(homeserver_url: Url, room: String) -> anyhow::Result<()> {
             room_id,
             event_type: EventType::RoomMessage,
             txn_id: "1".to_owned(),
-            data: MessageEventContent::Text(TextMessageEventContent {
+            data: to_raw_json_value(&MessageEventContent::Text(TextMessageEventContent {
                 body: "Hello World!".to_owned(),
                 format: None,
                 formatted_body: None,
                 relates_to: None,
-            })
-            .into(),
+            }))?,
         })
         .await?;
 
