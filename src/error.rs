@@ -20,7 +20,7 @@ pub enum Error<E> {
     FromHttpResponse(FromHttpResponseError<E>),
 }
 
-impl<E> Display for Error<E> {
+impl<E: Display> Display for Error<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::AuthenticationRequired => {
@@ -29,9 +29,7 @@ impl<E> Display for Error<E> {
             Self::IntoHttp(err) => write!(f, "HTTP request construction failed: {}", err),
             Self::Url(UrlError(err)) => write!(f, "Invalid URL: {}", err),
             Self::Response(ResponseError(err)) => write!(f, "Couldn't obtain a response: {}", err),
-            // FIXME: ruma-client-api's Error type currently doesn't implement
-            //        `Display`, update this when it does.
-            Self::FromHttpResponse(_) => write!(f, "HTTP response conversion failed"),
+            Self::FromHttpResponse(err) => write!(f, "HTTP response conversion failed: {}", err),
         }
     }
 }
@@ -62,7 +60,7 @@ impl<E> From<FromHttpResponseError<E>> for Error<E> {
     }
 }
 
-impl<E: Debug> std::error::Error for Error<E> {}
+impl<E: Debug + Display> std::error::Error for Error<E> {}
 
 #[derive(Debug)]
 pub struct UrlError(http::uri::InvalidUri);
