@@ -21,7 +21,7 @@ pub struct Device {
     pub display_name: Option<String>,
 
     /// Most recently seen IP address of the session.
-    pub ip: Option<String>,
+    pub last_seen_ip: Option<String>,
 
     /// Unix timestamp that the session was last active.
     #[serde(
@@ -29,5 +29,5 @@ pub struct Device {
         default,
         skip_serializing_if = "Option::is_none"
     )]
-    pub last_seen: Option<SystemTime>,
+    pub last_seen_ts: Option<SystemTime>,
 }
