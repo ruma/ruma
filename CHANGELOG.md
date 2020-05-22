@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Make `r0::device::get_devices::Response::devices` public
+* Change `r0::device::Device` fields according to the spec
 
 Breaking changes:
 
