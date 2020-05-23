@@ -2,7 +2,7 @@
 
 #![warn(missing_docs)]
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, time::SystemTime};
 
 use ::serde::{Deserialize, Serialize};
 use js_int::UInt;
@@ -27,7 +27,8 @@ pub struct RoomV3Pdu {
     pub origin: String,
     /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver
     /// of when this event was created.
-    pub origin_server_ts: UInt,
+    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+    pub origin_server_ts: SystemTime,
 
     // TODO: Replace with event content collection from ruma-events once that exists
     /// The event's type.

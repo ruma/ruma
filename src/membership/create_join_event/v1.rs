@@ -1,6 +1,6 @@
 //! [PUT /_matrix/federation/v1/send_join/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.3#put-matrix-federation-v1-send-join-roomid-eventid)
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, time::SystemTime};
 
 use js_int::UInt;
 use ruma_api::ruma_api;
@@ -35,7 +35,8 @@ ruma_api! {
         pub origin: String,
         /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver
         /// of when this event was created.
-        pub origin_server_ts: UInt,
+        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+        pub origin_server_ts: SystemTime,
 
         // TODO: Replace with event content collection from ruma-events once that exists
         /// The event's type.
