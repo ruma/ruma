@@ -91,7 +91,7 @@ macro_rules! forward_to_part {
             {
                 match self {
                     ValOrVec::Val(val) => val.$method(visitor),
-                    ValOrVec::Vec(_) => Err(de::Error::custom("TODO: Error message")),
+                    ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
                 }
             }
         )*
@@ -132,7 +132,7 @@ where
     {
         match self {
             ValOrVec::Val(val) => val.deserialize_enum(name, variants, visitor),
-            ValOrVec::Vec(_) => Err(de::Error::custom("TODO: Error message")),
+            ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
         }
     }
 
@@ -146,7 +146,7 @@ where
     {
         match self {
             ValOrVec::Val(val) => val.deserialize_tuple(len, visitor),
-            ValOrVec::Vec(_) => Err(de::Error::custom("TODO: Error message")),
+            ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
         }
     }
 
@@ -161,7 +161,7 @@ where
     {
         match self {
             ValOrVec::Val(val) => val.deserialize_struct(name, fields, visitor),
-            ValOrVec::Vec(_) => Err(de::Error::custom("TODO: Error message")),
+            ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
         }
     }
 
@@ -175,7 +175,7 @@ where
     {
         match self {
             ValOrVec::Val(val) => val.deserialize_unit_struct(name, visitor),
-            ValOrVec::Vec(_) => Err(de::Error::custom("TODO: Error message")),
+            ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
         }
     }
 
@@ -192,7 +192,7 @@ where
             ValOrVec::Val(val) => {
                 val.deserialize_tuple_struct(name, len, visitor)
             }
-            ValOrVec::Vec(_) => Err(de::Error::custom("TODO: Error message")),
+            ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
         }
     }
 
@@ -206,7 +206,7 @@ where
     {
         match self {
             ValOrVec::Val(val) => val.deserialize_newtype_struct(name, visitor),
-            ValOrVec::Vec(_) => Err(de::Error::custom("TODO: Error message")),
+            ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
         }
     }
 
