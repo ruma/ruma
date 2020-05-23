@@ -1,22 +1,18 @@
 //! Types for the *m.room.guest_access* event.
 
-use ruma_events_macros::ruma_event;
+use ruma_events_macros::{FromRaw, StateEventContent};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-ruma_event! {
-    /// Controls whether guest users are allowed to join rooms.
-    ///
-    /// This event controls whether guest users are allowed to join rooms. If this event is absent,
-    /// servers should act as if it is present and has the value `GuestAccess::Forbidden`.
-    GuestAccessEvent {
-        kind: StateEvent,
-        event_type: "m.room.guest_access",
-        content: {
-            /// A policy for guest user access to a room.
-            pub guest_access: GuestAccess,
-        },
-    }
+/// Controls whether guest users are allowed to join rooms.
+///
+/// This event controls whether guest users are allowed to join rooms. If this event is absent,
+/// servers should act as if it is present and has the value `GuestAccess::Forbidden`.
+#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[ruma_event(type = "m.room.guest_access")]
+pub struct GuestAccessEventContent {
+    /// A policy for guest user access to a room.
+    pub guest_access: GuestAccess,
 }
 
 /// A policy for guest user access to a room.

@@ -1,20 +1,16 @@
 //! Types for the *m.room.history_visibility* event.
 
-use ruma_events_macros::ruma_event;
+use ruma_events_macros::{FromRaw, StateEventContent};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-ruma_event! {
-    /// This event controls whether a member of a room can see the events that happened in a room
-    /// from before they joined.
-    HistoryVisibilityEvent {
-        kind: StateEvent,
-        event_type: "m.room.history_visibility",
-        content: {
-            /// Who can see the room history.
-            pub history_visibility: HistoryVisibility,
-        },
-    }
+/// This event controls whether a member of a room can see the events that happened in a room
+/// from before they joined.
+#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[ruma_event(type = "m.room.history_visibility")]
+pub struct HistoryVisibilityEventContent {
+    /// Who can see the room history.
+    pub history_visibility: HistoryVisibility,
 }
 
 /// Who can see a room's history.

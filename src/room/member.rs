@@ -2,63 +2,59 @@
 
 use std::collections::BTreeMap;
 
-use ruma_events_macros::ruma_event;
+use ruma_events_macros::{FromRaw, StateEventContent};
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-ruma_event! {
-    /// The current membership state of a user in the room.
-    ///
-    /// Adjusts the membership state for a user in a room. It is preferable to use the membership
-    /// APIs (`/rooms/<room id>/invite` etc) when performing membership actions rather than
-    /// adjusting the state directly as there are a restricted set of valid transformations. For
-    /// example, user A cannot force user B to join a room, and trying to force this state change
-    /// directly will fail.
-    ///
-    /// The `third_party_invite` property will be set if this invite is an *invite* event and is the
-    /// successor of an *m.room.third_party_invite* event, and absent otherwise.
-    ///
-    /// This event may also include an `invite_room_state` key inside the event's unsigned data. If
-    /// present, this contains an array of `StrippedState` events. These events provide information
-    /// on a subset of state events such as the room name. Note that ruma-events treats unsigned
-    /// data on events as arbitrary JSON values, and the ruma-events types for this event don't
-    /// provide direct access to `invite_room_state`. If you need this data, you must extract and
-    /// convert it from a `serde_json::Value` yourself.
-    ///
-    /// The user for which a membership applies is represented by the `state_key`. Under some
-    /// conditions, the `sender` and `state_key` may not match - this may be interpreted as the
-    /// `sender` affecting the membership state of the `state_key` user.
-    ///
-    /// The membership for a given user can change over time. Previous membership can be retrieved
-    /// from the `prev_content` object on an event. If not present, the user's previous membership
-    /// must be assumed as leave.
-    MemberEvent {
-        kind: StateEvent,
-        event_type: "m.room.member",
-        content: {
-            /// The avatar URL for this user, if any. This is added by the homeserver.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub avatar_url: Option<String>,
+/// The current membership state of a user in the room.
+///
+/// Adjusts the membership state for a user in a room. It is preferable to use the membership
+/// APIs (`/rooms/<room id>/invite` etc) when performing membership actions rather than
+/// adjusting the state directly as there are a restricted set of valid transformations. For
+/// example, user A cannot force user B to join a room, and trying to force this state change
+/// directly will fail.
+///
+/// The `third_party_invite` property will be set if this invite is an *invite* event and is the
+/// successor of an *m.room.third_party_invite* event, and absent otherwise.
+///
+/// This event may also include an `invite_room_state` key inside the event's unsigned data. If
+/// present, this contains an array of `StrippedState` events. These events provide information
+/// on a subset of state events such as the room name. Note that ruma-events treats unsigned
+/// data on events as arbitrary JSON values, and the ruma-events types for this event don't
+/// provide direct access to `invite_room_state`. If you need this data, you must extract and
+/// convert it from a `serde_json::Value` yourself.
+///
+/// The user for which a membership applies is represented by the `state_key`. Under some
+/// conditions, the `sender` and `state_key` may not match - this may be interpreted as the
+/// `sender` affecting the membership state of the `state_key` user.
+///
+/// The membership for a given user can change over time. Previous membership can be retrieved
+/// from the `prev_content` object on an event. If not present, the user's previous membership
+/// must be assumed as leave.
+#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[ruma_event(type = "m.room.member")]
+pub struct MemberEventContent {
+    /// The avatar URL for this user, if any. This is added by the homeserver.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar_url: Option<String>,
 
-            /// The display name for this user, if any. This is added by the homeserver.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub displayname: Option<String>,
+    /// The display name for this user, if any. This is added by the homeserver.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub displayname: Option<String>,
 
-            /// Flag indicating if the room containing this event was created
-            /// with the intention of being a direct chat.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub is_direct: Option<bool>,
+    /// Flag indicating if the room containing this event was created
+    /// with the intention of being a direct chat.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_direct: Option<bool>,
 
-            /// The membership state of this user.
-            pub membership: MembershipState,
+    /// The membership state of this user.
+    pub membership: MembershipState,
 
-            /// If this member event is the successor to a third party invitation, this field will
-            /// contain information about that invitation.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub third_party_invite: Option<ThirdPartyInvite>,
-        },
-    }
+    /// If this member event is the successor to a third party invitation, this field will
+    /// contain information about that invitation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub third_party_invite: Option<ThirdPartyInvite>,
 }
 
 /// The membership state of a user.
