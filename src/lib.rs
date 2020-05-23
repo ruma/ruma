@@ -236,6 +236,11 @@ pub trait Endpoint:
     const METADATA: Metadata;
 }
 
+/// A Matrix API endpoint that doesn't require authentication.
+///
+/// This marker trait is to indicate that a type implementing `Endpoint` doesn't require any authentication.
+pub trait NonAuthEndpoint: Endpoint {}
+
 /// Metadata about an API endpoint.
 #[derive(Clone, Debug)]
 pub struct Metadata {

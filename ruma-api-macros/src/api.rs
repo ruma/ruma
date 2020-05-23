@@ -90,6 +90,14 @@ impl ToTokens for Api {
         let rate_limited = &self.metadata.rate_limited;
         let requires_authentication = &self.metadata.requires_authentication;
 
+        let non_auth_endpoint_impl = if requires_authentication.value {
+            quote! {
+                impl ruma_api::NonAuthEndpoint for Request {}
+            }
+        } else {
+            TokenStream::new()
+        };
+
         let request_type = &self.request;
         let response_type = &self.response;
 
@@ -507,6 +515,8 @@ impl ToTokens for Api {
                     requires_authentication: #requires_authentication,
                 };
             }
+
+            #non_auth_endpoint_impl
         };
 
         api.to_tokens(tokens);
