@@ -2,37 +2,33 @@
 
 use std::convert::TryFrom;
 
-use ruma_events_macros::ruma_event;
+use ruma_events_macros::{FromRaw, StateEventContent};
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde::{Deserialize, Serialize};
 
-ruma_event! {
-    /// This is the first event in a room and cannot be changed. It acts as the root of all other
-    /// events.
-    CreateEvent {
-        kind: StateEvent,
-        event_type: "m.room.create",
-        content: {
-            /// The `user_id` of the room creator. This is set by the homeserver.
-            pub creator: UserId,
+/// This is the first event in a room and cannot be changed. It acts as the root of all other
+/// events.
+#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[ruma_event(type = "m.room.create")]
+pub struct CreateEventContent {
+    /// The `user_id` of the room creator. This is set by the homeserver.
+    pub creator: UserId,
 
-            /// Whether or not this room's data should be transferred to other homeservers.
-            #[serde(
-                rename = "m.federate",
-                default = "ruma_serde::default_true",
-                skip_serializing_if = "ruma_serde::is_true"
-            )]
-            pub federate: bool,
+    /// Whether or not this room's data should be transferred to other homeservers.
+    #[serde(
+        rename = "m.federate",
+        default = "ruma_serde::default_true",
+        skip_serializing_if = "ruma_serde::is_true"
+    )]
+    pub federate: bool,
 
-            /// The version of the room. Defaults to "1" if the key does not exist.
-            #[serde(default = "default_room_version_id")]
-            pub room_version: RoomVersionId,
+    /// The version of the room. Defaults to "1" if the key does not exist.
+    #[serde(default = "default_room_version_id")]
+    pub room_version: RoomVersionId,
 
-            /// A reference to the room this room replaces, if the previous room was upgraded.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub predecessor: Option<PreviousRoom>,
-        },
-    }
+    /// A reference to the room this room replaces, if the previous room was upgraded.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub predecessor: Option<PreviousRoom>,
 }
 
 /// A reference to an old room replaced during a room version upgrade.

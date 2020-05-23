@@ -456,20 +456,7 @@ mod tests {
             from_json_value::<StateEvent<AnyStateEventContent>>(json_data).unwrap(),
             StateEvent {
                 content: AnyStateEventContent::RoomAvatar(AvatarEventContent {
-                    info: Some(ImageInfo {
-                        height,
-                        width,
-                        mimetype: Some(mimetype),
-                        size,
-                        thumbnail_info: Some(ThumbnailInfo {
-                            width: thumb_width,
-                            height: thumb_height,
-                            mimetype: thumb_mimetype,
-                            size: thumb_size,
-                        }),
-                        thumbnail_url: Some(thumbnail_url),
-                        thumbnail_file: None,
-                    }),
+                    info: Some(info),
                     url,
                 }),
                 event_id,
@@ -483,15 +470,34 @@ mod tests {
                 && room_id == RoomId::try_from("!roomid:room.com").unwrap()
                 && sender == UserId::try_from("@carl:example.com").unwrap()
                 && state_key == ""
-                && height == UInt::new(423)
-                && width == UInt::new(1011)
-                && mimetype == "image/png"
-                && size == UInt::new(84242)
-                && thumb_width == UInt::new(800)
-                && thumb_height == UInt::new(334)
-                && thumb_mimetype == Some("image/png".to_string())
-                && thumb_size == UInt::new(82595)
-                && thumbnail_url == "mxc://matrix.org"
+                && matches!(
+                    info.as_ref(),
+                    ImageInfo {
+                        height,
+                        width,
+                        mimetype: Some(mimetype),
+                        size,
+                        thumbnail_info: Some(thumbnail_info),
+                        thumbnail_url: Some(thumbnail_url),
+                        thumbnail_file: None,
+                    } if *height == UInt::new(423)
+                        && *width == UInt::new(1011)
+                        && *mimetype == "image/png"
+                        && *size == UInt::new(84242)
+                        && matches!(
+                            thumbnail_info.as_ref(),
+                            ThumbnailInfo {
+                                width: thumb_width,
+                                height: thumb_height,
+                                mimetype: thumb_mimetype,
+                                size: thumb_size,
+                            } if *thumb_width == UInt::new(800)
+                                && *thumb_height == UInt::new(334)
+                                && *thumb_mimetype == Some("image/png".to_string())
+                                && *thumb_size == UInt::new(82595)
+                                && *thumbnail_url == "mxc://matrix.org"
+                        )
+                )
                 && url == "http://www.matrix.org"
         );
     }

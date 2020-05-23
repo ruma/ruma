@@ -1,31 +1,27 @@
 //! Types for the *m.room.canonical_alias* event.
 
-use ruma_events_macros::ruma_event;
+use ruma_events_macros::{FromRaw, StateEventContent};
 use ruma_identifiers::RoomAliasId;
+use serde::Serialize;
 
-ruma_event! {
-    /// Informs the room as to which alias is the canonical one.
-    CanonicalAliasEvent {
-        kind: StateEvent,
-        event_type: "m.room.canonical_alias",
-        content: {
-            /// The canonical alias.
-            ///
-            /// Rooms with `alias: None` should be treated the same as a room
-            /// with no canonical alias.
-            #[serde(
-                default, deserialize_with = "ruma_serde::empty_string_as_none",
-                skip_serializing_if = "Option::is_none"
-            )]
-            pub alias: Option<RoomAliasId>,
-            /// List of alternative aliases to the room.
-            #[serde(
-                default,
-                skip_serializing_if = "Vec::is_empty"
-            )]
-            pub alt_aliases: Vec<RoomAliasId>,
-        },
-    }
+/// Informs the room as to which alias is the canonical one.
+#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[ruma_event(type = "m.room.canonical_alias")]
+pub struct CanonicalAliasEventContent {
+    /// The canonical alias.
+    ///
+    /// Rooms with `alias: None` should be treated the same as a room
+    /// with no canonical alias.
+    #[serde(
+        default,
+        deserialize_with = "ruma_serde::empty_string_as_none",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub alias: Option<RoomAliasId>,
+
+    /// List of alternative aliases to the room.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub alt_aliases: Vec<RoomAliasId>,
 }
 
 #[cfg(test)]

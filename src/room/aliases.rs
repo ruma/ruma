@@ -1,7 +1,8 @@
 //! Types for the *m.room.aliases* event.
 
-use ruma_events_macros::ruma_event;
+use ruma_events_macros::{FromRaw, StateEventContent};
 use ruma_identifiers::RoomAliasId;
+use serde::Serialize;
 use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
@@ -9,14 +10,10 @@ use crate::{
     EventContent, EventJson, RoomEventContent, StateEventContent,
 };
 
-ruma_event! {
-    /// Informs the room about what room aliases it has been given.
-    AliasesEvent {
-        kind: StateEvent,
-        event_type: "m.room.aliases",
-        content: {
-            /// A list of room aliases.
-            pub aliases: Vec<RoomAliasId>,
-        },
-    }
+/// Informs the room about what room aliases it has been given.
+#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[ruma_event(type = "m.room.aliases")]
+pub struct AliasesEventContent {
+    /// A list of room aliases.
+    pub aliases: Vec<RoomAliasId>,
 }
