@@ -20,7 +20,7 @@ use serde_json::value::RawValue as RawJsonValue;
 use crate::{
     error::{InvalidEvent, InvalidEventKind},
     room::{aliases::AliasesEventContent, avatar::AvatarEventContent},
-    EventContent, RoomEventContent, StateEventContent,
+    EventContent, RoomEventContent, StateEventContent, TryFromRaw, UnsignedData,
 };
 
 /// A state event.
@@ -79,7 +79,7 @@ pub enum AnyStateEventContent {
     // CustomState(StateEvent<CustomEventContent>),
 }
 
-/// To-device event.
+/// State event.
 #[derive(Clone, Debug)]
 pub struct StateEvent<C: StateEventContent> {
     /// Data specific to the event type.
@@ -105,6 +105,9 @@ pub struct StateEvent<C: StateEventContent> {
 
     /// Optional previous content for this event.
     pub prev_content: Option<C>,
+
+    /// Additional key-value pairs not signed by the homeserver.
+    pub unsigned: UnsignedData,
 }
 
 impl EventContent for AnyStateEventContent {
@@ -196,6 +199,7 @@ enum Field {
     RoomId,
     StateKey,
     PrevContent,
+    Unsigned,
 }
 
 /// Visits the fields of a StateEvent<C> to handle deserialization of
@@ -221,6 +225,7 @@ impl<'de, C: StateEventContent> Visitor<'de> for StateEventVisitor<C> {
         let mut room_id: Option<RoomId> = None;
         let mut state_key: Option<String> = None;
         let mut prev_content: Option<Box<RawJsonValue>> = None;
+        let mut unsigned: Option<UnsignedData> = None;
 
         while let Some(key) = map.next_key()? {
             match key {
@@ -272,6 +277,12 @@ impl<'de, C: StateEventContent> Visitor<'de> for StateEventVisitor<C> {
                     }
                     event_type = Some(map.next_value()?);
                 }
+                Field::Unsigned => {
+                    if unsigned.is_some() {
+                        return Err(de::Error::duplicate_field("unsigned"));
+                    }
+                    unsigned = Some(map.next_value()?);
+                }
             }
         }
 
@@ -296,6 +307,8 @@ impl<'de, C: StateEventContent> Visitor<'de> for StateEventVisitor<C> {
             None
         };
 
+        let unsigned = unsigned.unwrap_or_default();
+
         Ok(StateEvent {
             content,
             event_id,
@@ -304,6 +317,7 @@ impl<'de, C: StateEventContent> Visitor<'de> for StateEventVisitor<C> {
             room_id,
             state_key,
             prev_content,
+            unsigned,
         })
     }
 }
@@ -321,7 +335,10 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{AliasesEventContent, AnyStateEventContent, AvatarEventContent, StateEvent};
-    use crate::room::{ImageInfo, ThumbnailInfo};
+    use crate::{
+        room::{ImageInfo, ThumbnailInfo},
+        UnsignedData,
+    };
 
     #[test]
     fn serialize_aliases_with_prev_content() {
@@ -337,6 +354,7 @@ mod tests {
             room_id: RoomId::try_from("!roomid:room.com").unwrap(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
+            unsigned: UnsignedData::default(),
         };
 
         let actual = to_json_value(&aliases_event).unwrap();
@@ -370,6 +388,7 @@ mod tests {
             room_id: RoomId::try_from("!roomid:room.com").unwrap(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
+            unsigned: UnsignedData::default(),
         };
 
         let actual = to_json_value(&aliases_event).unwrap();
@@ -415,6 +434,7 @@ mod tests {
                 room_id,
                 sender,
                 state_key,
+                unsigned,
             } if content.aliases == vec![RoomAliasId::try_from("#somewhere:localhost").unwrap()]
                 && event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
                 && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
@@ -422,6 +442,7 @@ mod tests {
                 && room_id == RoomId::try_from("!roomid:room.com").unwrap()
                 && sender == UserId::try_from("@carl:example.com").unwrap()
                 && state_key == ""
+                && unsigned.is_empty()
         );
     }
 
@@ -465,6 +486,7 @@ mod tests {
                 room_id,
                 sender,
                 state_key,
+                unsigned
             } if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
                 && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
                 && room_id == RoomId::try_from("!roomid:room.com").unwrap()
@@ -499,6 +521,7 @@ mod tests {
                         )
                 )
                 && url == "http://www.matrix.org"
+                && unsigned.is_empty()
         );
     }
 }
