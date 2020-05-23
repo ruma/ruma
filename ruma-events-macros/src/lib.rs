@@ -36,11 +36,14 @@ use proc_macro::TokenStream;
 use quote::ToTokens;
 use syn::{parse_macro_input, DeriveInput};
 
-use self::{from_raw::expand_from_raw, gen::RumaEvent, parse::RumaEventInput};
+use self::{
+    from_raw::expand_from_raw, gen::RumaEvent, parse::RumaEventInput, state::expand_state_event,
+};
 
 mod from_raw;
 mod gen;
 mod parse;
+mod state;
 
 // A note about the `example` modules that appears in doctests:
 //
@@ -142,6 +145,15 @@ pub fn ruma_event(input: TokenStream) -> TokenStream {
 pub fn derive_from_raw(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     expand_from_raw(input)
+        .unwrap_or_else(|err| err.to_compile_error())
+        .into()
+}
+
+/// Generates an implementation of `ruma_events::StateEventContent` and it's super traits.
+#[proc_macro_derive(StateEventContent, attributes(ruma_event))]
+pub fn derive_state_event_content(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_state_event(input)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }

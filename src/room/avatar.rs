@@ -27,25 +27,3 @@ ruma_event! {
         },
     }
 }
-
-impl EventContent for AvatarEventContent {
-    fn event_type(&self) -> &str {
-        "m.room.avatar"
-    }
-
-    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, InvalidEvent> {
-        if event_type != "m.room.avatar" {
-            return Err(InvalidEvent {
-                kind: InvalidEventKind::Deserialization,
-                message: format!("expected `m.room.avatar` found {}", event_type),
-            });
-        }
-
-        let ev_json = EventJson::from(content);
-        ev_json.deserialize()
-    }
-}
-
-impl RoomEventContent for AvatarEventContent {}
-
-impl StateEventContent for AvatarEventContent {}

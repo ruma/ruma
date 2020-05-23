@@ -15,7 +15,7 @@ pub struct RumaEventInput {
     /// The name of the event.
     pub name: Ident,
 
-    /// The kind of event, determiend by the `kind` field.
+    /// The kind of event, determined by the `kind` field.
     pub kind: EventKind,
 
     /// The value for the `type` field in the JSON representation of this event. There needs to be a

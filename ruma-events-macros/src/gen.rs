@@ -80,15 +80,25 @@ impl ToTokens for RumaEvent {
         // let attrs = &self.attrs;
         let content_name = &self.content_name;
         // let event_fields = &self.fields;
+        let event_type = &self.event_type;
 
         let name = &self.name;
         let content_docstring = format!("The payload for `{}`.", name);
 
         let content = match &self.content {
             Content::Struct(fields) => {
+                // TODO this will all be removed so this is only temp
+                let event_content_derive = match self.kind {
+                    EventKind::StateEvent => quote! {
+                        #[derive(::ruma_events_macros::StateEventContent)]
+                        #[ruma_event(type = #event_type)]
+                    },
+                    EventKind::RoomEvent | EventKind::Event => TokenStream::new(),
+                };
                 quote! {
                     #[doc = #content_docstring]
-                    #[derive(Clone, Debug, serde::Serialize, ::ruma_events_macros::FromRaw)]
+                    #[derive(Clone, Debug, ::serde::Serialize, ::ruma_events_macros::FromRaw)]
+                    #event_content_derive
                     pub struct #content_name {
                         #(#fields),*
                     }
@@ -104,8 +114,6 @@ impl ToTokens for RumaEvent {
                 }
             }
         };
-
-        // let event_type_name = self.event_type.value();
 
         content.to_tokens(tokens);
     }
