@@ -1,3 +1,4 @@
+use matches::assert_matches;
 use ruma_serde::urlencoded;
 use serde::Deserialize;
 use url::form_urlencoded::Serializer as Encoder;
@@ -97,8 +98,76 @@ fn deserialize_struct() {
         b: "Hello",
         c: None,
     };
-    assert_eq!(Ok(de), urlencoded::from_str("a=10&b=Hello"));
-    assert_eq!(Ok(de), urlencoded::from_str("b=Hello&a=10"));
+    assert_eq!(urlencoded::from_str("a=10&b=Hello"), Ok(de));
+    assert_eq!(urlencoded::from_str("b=Hello&a=10"), Ok(de));
+}
+
+#[test]
+fn deserialize_list_of_str() {
+    // TODO: It would make sense to support this.
+    assert_matches!(
+        urlencoded::from_str::<Vec<(&str, &str)>>("a=a&a=b"),
+        Err(error) if error.to_string().contains("unsupported")
+    );
+
+    assert_eq!(
+        urlencoded::from_str("a=a&a=b"),
+        Ok(vec![("a", vec!["a", "b"])])
+    )
+}
+
+#[test]
+fn deserialize_multiple_lists() {
+    #[derive(Debug, PartialEq, Deserialize)]
+    struct Lists {
+        xs: Vec<bool>,
+        ys: Vec<u32>,
+    }
+
+    assert_eq!(
+        urlencoded::from_str("xs=true&xs=false&ys=3&ys=2&ys=1"),
+        Ok(Lists {
+            xs: vec![true, false],
+            ys: vec![3, 2, 1],
+        })
+    );
+
+    assert_eq!(
+        urlencoded::from_str("ys=3&xs=true&ys=2&xs=false&ys=1"),
+        Ok(Lists {
+            xs: vec![true, false],
+            ys: vec![3, 2, 1],
+        })
+    );
+}
+
+#[test]
+fn deserialize_nested_list() {
+    assert!(urlencoded::from_str::<Vec<(&str, Vec<Vec<bool>>)>>("a=b").is_err());
+}
+
+#[test]
+fn deserialize_list_of_option() {
+    assert_eq!(
+        urlencoded::from_str("list=10&list=100"),
+        Ok(vec![("list", vec![Some(10), Some(100)])])
+    );
+}
+
+#[test]
+fn deserialize_list_of_newtype() {
+    assert_eq!(
+        urlencoded::from_str("list=test"),
+        Ok(vec![("list", vec![NewType("test")])])
+    );
+}
+
+#[test]
+fn deserialize_list_of_enum() {
+    assert_eq!(
+        urlencoded::from_str("item=A&item=B&item=C"),
+        Ok(vec![("item", vec![X::A, X::B, X::C])])
+    );
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -144,39 +213,6 @@ fn deserialize_numlist() {
     assert_eq!(urlencoded::from_str("list=1&list=2&list=3&list=4"), Ok(de));
 }
 
-#[test]
-fn deserialize_vec_bool() {
-    assert_eq!(
-        urlencoded::from_str("item=true&item=false&item=false"),
-        Ok(Wrapper {
-            item: vec![true, false, false]
-        })
-    );
-}
-
-#[test]
-fn deserialize_vec_string() {
-    assert_eq!(
-        urlencoded::from_str("item=hello&item=matrix&item=hello"),
-        Ok(Wrapper {
-            item: vec![
-                "hello".to_string(),
-                "matrix".to_string(),
-                "hello".to_string()
-            ],
-        })
-    );
-}
-
-#[test]
-fn deserialize_struct_unit_enum() {
-    let result = Wrapper {
-        item: vec![X::A, X::B, X::C],
-    };
-
-    assert_eq!(urlencoded::from_str("item=A&item=B&item=C"), Ok(result));
-}
-
 #[derive(Debug, Deserialize, PartialEq)]
 struct Nested<T> {
     item: T,
@@ -196,7 +232,7 @@ struct InnerList<T> {
 
 #[test]
 #[ignore]
-fn deserialize_nested() {
+fn deserialize_nested_struct() {
     let mut encoder = Encoder::new(String::new());
 
     let nested = Nested {
@@ -218,7 +254,7 @@ fn deserialize_nested() {
 
 #[test]
 #[ignore]
-fn deserialize_nested_list() {
+fn deserialize_nested_struct_with_list() {
     let mut encoder = Encoder::new(String::new());
 
     let nested = Nested {
