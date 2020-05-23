@@ -43,7 +43,6 @@ impl Parse for RumaEventInput {
         let mut fields = None;
         let mut content = None;
 
-        #[allow(clippy::identity_conversion)]
         for field_value_inline_struct in
             body.parse_terminated::<RumaEventField, Token![,]>(RumaEventField::parse)?
         {
