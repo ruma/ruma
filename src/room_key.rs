@@ -29,3 +29,39 @@ ruma_event! {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::convert::TryFrom;
+
+    use ruma_identifiers::RoomId;
+    use serde_json::{json, to_value as to_json_value};
+
+    use super::{RoomKeyEvent, RoomKeyEventContent};
+    use crate::Algorithm;
+
+    #[test]
+    fn serialization() {
+        let ev = RoomKeyEvent {
+            content: RoomKeyEventContent {
+                algorithm: Algorithm::MegolmV1AesSha2,
+                room_id: RoomId::try_from("!testroomid:exmaple.org").unwrap(),
+                session_id: "SessId".into(),
+                session_key: "SessKey".into(),
+            },
+        };
+
+        assert_eq!(
+            to_json_value(ev).unwrap(),
+            json!({
+                "type": "m.room_key",
+                "content": {
+                    "algorithm": "m.megolm.v1.aes-sha2",
+                    "room_id": "!testroomid:exmaple.org",
+                    "session_id": "SessId",
+                    "session_key": "SessKey",
+                },
+            })
+        );
+    }
+}
