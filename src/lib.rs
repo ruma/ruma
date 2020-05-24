@@ -134,6 +134,7 @@ mod error;
 mod event_type;
 mod from_raw;
 mod json;
+mod state;
 #[doc(hidden)] // only public for external tests
 pub mod util;
 
@@ -155,7 +156,6 @@ pub mod receipt;
 pub mod room;
 // pub mod room_key;
 pub mod room_key_request;
-pub mod state;
 pub mod sticker;
 // pub mod stripped;
 pub mod tag;
@@ -168,6 +168,7 @@ pub use self::{
     event_type::EventType,
     from_raw::{FromRaw, TryFromRaw},
     json::EventJson,
+    state::{AnyStateEventContent, StateEvent},
 };
 
 /// Extra information about an event that is not incorporated into the event's
