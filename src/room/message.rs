@@ -533,7 +533,7 @@ mod tests {
     use std::convert::TryFrom;
 
     #[test]
-    fn serialization() {
+    fn content_serialization() {
         let message_event_content = MessageEventContent::Audio(AudioMessageEventContent {
             body: "test".to_string(),
             info: None,
@@ -552,7 +552,7 @@ mod tests {
     }
 
     #[test]
-    fn plain_text() {
+    fn plain_text_content_serialization() {
         let message_event_content = MessageEventContent::Text(TextMessageEventContent::new_plain(
             "> <@test:example.com> test\n\ntest reply",
         ));
@@ -567,7 +567,7 @@ mod tests {
     }
 
     #[test]
-    fn relates_to_serialization() {
+    fn relates_to_content_serialization() {
         let message_event_content = MessageEventContent::Text(TextMessageEventContent {
             body: "> <@test:example.com> test\n\ntest reply".to_owned(),
             format: None,
@@ -593,7 +593,7 @@ mod tests {
     }
 
     #[test]
-    fn deserialization() {
+    fn content_deserialization() {
         let json_data = json!({
             "body": "test",
             "msgtype": "m.audio",
@@ -615,7 +615,7 @@ mod tests {
     }
 
     #[test]
-    fn deserialization_failure() {
+    fn content_deserialization_failure() {
         let json_data = json!({
             "body": "test","msgtype": "m.location",
             "url": "http://example.com/audio.mp3"
