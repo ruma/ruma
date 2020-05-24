@@ -13,6 +13,7 @@ pub mod feedback;
 
 /// A message sent to a room.
 #[derive(Clone, Debug, Serialize)]
+#[serde(rename = "m.room.message", tag = "type")]
 pub struct MessageEvent {
     /// The event's content.
     pub content: MessageEventContent,
@@ -523,14 +524,51 @@ impl TextMessageEventContent {
 
 #[cfg(test)]
 mod tests {
+    use std::{
+        convert::TryFrom,
+        time::{Duration, UNIX_EPOCH},
+    };
+
     use matches::assert_matches;
+    use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{AudioMessageEventContent, MessageEventContent};
+    use super::{AudioMessageEventContent, MessageEvent, MessageEventContent};
     use crate::room::message::{InReplyTo, RelatesTo, TextMessageEventContent};
-    use crate::EventJson;
-    use ruma_identifiers::EventId;
-    use std::convert::TryFrom;
+    use crate::{EventJson, UnsignedData};
+
+    #[test]
+    fn serialization() {
+        let ev = MessageEvent {
+            content: MessageEventContent::Audio(AudioMessageEventContent {
+                body: "test".to_string(),
+                info: None,
+                url: Some("http://example.com/audio.mp3".to_string()),
+                file: None,
+            }),
+            event_id: EventId::try_from("$143273582443PhrSn:example.org").unwrap(),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(10_000),
+            room_id: Some(RoomId::try_from("!testroomid:example.org").unwrap()),
+            sender: UserId::try_from("@user:example.org").unwrap(),
+            unsigned: UnsignedData::default(),
+        };
+
+        assert_eq!(
+            to_json_value(ev).unwrap(),
+            json!({
+                "type": "m.room.message",
+                "event_id": "$143273582443PhrSn:example.org",
+                "origin_server_ts": 10_000,
+                "room_id": "!testroomid:example.org",
+                "sender": "@user:example.org",
+                "content": {
+                    "body": "test",
+                    "msgtype": "m.audio",
+                    "url": "http://example.com/audio.mp3",
+                }
+            })
+        );
+    }
 
     #[test]
     fn content_serialization() {
