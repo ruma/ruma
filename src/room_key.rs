@@ -45,7 +45,7 @@ mod tests {
         let ev = RoomKeyEvent {
             content: RoomKeyEventContent {
                 algorithm: Algorithm::MegolmV1AesSha2,
-                room_id: RoomId::try_from("!testroomid:exmaple.org").unwrap(),
+                room_id: RoomId::try_from("!testroomid:example.org").unwrap(),
                 session_id: "SessId".into(),
                 session_key: "SessKey".into(),
             },
@@ -57,7 +57,7 @@ mod tests {
                 "type": "m.room_key",
                 "content": {
                     "algorithm": "m.megolm.v1.aes-sha2",
-                    "room_id": "!testroomid:exmaple.org",
+                    "room_id": "!testroomid:example.org",
                     "session_id": "SessId",
                     "session_key": "SessKey",
                 },
