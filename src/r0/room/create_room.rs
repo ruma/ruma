@@ -1,7 +1,7 @@
 //! [POST /_matrix/client/r0/createRoom](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-createroom)
 
 use ruma_api::ruma_api;
-use ruma_events::{room::power_levels::PowerLevelsEventContent, EventJson};
+use ruma_events::{room::power_levels::PowerLevelsEventContent, EventJson, EventType};
 use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
@@ -114,8 +114,9 @@ pub enum RoomPreset {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct InitialStateEvent {
     /// State event type.
+    // FIXME: This should really only be a subset of the EventType enum.
     #[serde(rename = "type")]
-    pub event_type: String,
+    pub event_type: EventType,
 
     /// `state_key` of the event to be sent.
     pub state_key: Option<String>,
