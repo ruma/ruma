@@ -1,18 +1,22 @@
 # [unreleased]
 
+Breaking changes:
+
+* Make `avatar_url` in `r0::profile::set_avatar_url::Request` an `Option`
+
 # 0.9.0
 
 Bug fixes:
 
 * Fix (de)serialization for `r0::media::get_content_thumnail::Response`
 * Make `r0::device::get_devices::Response::devices` public
-* Change `r0::device::Device` fields according to the spec
 
 Breaking changes:
 
 * The `event_id` in the response for the message and state sending endpoints is now required
   * r0.6.0 doesn't say they are required, but this has been fixed for the next version of the spec
 * Updated the type of `r0::sync::sync_events::DeviceLists` fields
+* Change `r0::device::Device` fields according to the spec
 
 Improvements:
 

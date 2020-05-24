@@ -19,7 +19,9 @@ ruma_api! {
         pub user_id: UserId,
 
         /// The new avatar URL for the user.
-        pub avatar_url: String,
+        ///
+        /// `None` is used to unset the avatar.
+        pub avatar_url: Option<String>,
     }
 
     response {}
