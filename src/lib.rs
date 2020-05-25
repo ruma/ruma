@@ -15,6 +15,7 @@ mod serde;
 pub mod directory;
 pub mod discovery;
 pub mod membership;
+pub mod query;
 
 /// A 'persistent data unit' (event) for room versions 3 and beyond.
 #[derive(Deserialize, Serialize)]

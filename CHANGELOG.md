@@ -14,6 +14,7 @@ Improvements:
         create_join_event::v1,
         create_join_event_template::v1
     },
+    query::get_room_information::v1,
     version::get_server_version::v1
   ```
 
