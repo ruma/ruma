@@ -16,9 +16,10 @@ pub mod directory;
 pub mod discovery;
 pub mod membership;
 pub mod query;
+pub mod transactions;
 
 /// A 'persistent data unit' (event) for room versions 3 and beyond.
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RoomV3Pdu {
     /// The room this event belongs to.
     pub room_id: RoomId,
