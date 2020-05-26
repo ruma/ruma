@@ -1,8 +1,13 @@
 # [unreleased]
 
+Improvements:
+
+* Skip serialization of `federate` field in `room::CreateEventContent` if it is
+  `true` (the default value)
+
 # 0.21.2
 
-Improvements
+Improvements:
 
 * Update dependencies
 
