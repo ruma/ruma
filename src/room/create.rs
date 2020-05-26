@@ -65,14 +65,14 @@ mod tests {
     fn serialization() {
         let content = CreateEventContent {
             creator: UserId::try_from("@carl:example.com").unwrap(),
-            federate: true,
+            federate: false,
             room_version: RoomVersionId::version_4(),
             predecessor: None,
         };
 
         let json = json!({
             "creator": "@carl:example.com",
-            "m.federate": true,
+            "m.federate": false,
             "room_version": "4"
         });
 
