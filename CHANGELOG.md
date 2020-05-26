@@ -5,6 +5,13 @@ Breaking changes:
 * Make `avatar_url` in `r0::profile::set_avatar_url::Request` an `Option`
 * Update type of `canonical_alias` in `r0::directory::PublicRoomsChunk` from
   `Option<String>` to `Option<RoomAliasId>`
+* Update `r0::room::create_room::CreationContent`
+  * Change `federated`s type from `Option<bool>` to `bool`
+  * Add `predecessor` field
+
+Improvements:
+
+* Add method `into_event_content` for `r0::room::create_room::CreationContent`
 
 # 0.9.0
 

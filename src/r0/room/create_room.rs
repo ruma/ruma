@@ -1,8 +1,14 @@
 //! [POST /_matrix/client/r0/createRoom](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-createroom)
 
 use ruma_api::ruma_api;
-use ruma_events::{room::power_levels::PowerLevelsEventContent, EventJson, EventType};
-use ruma_identifiers::{RoomId, UserId};
+use ruma_events::{
+    room::{
+        create::{CreateEventContent, PreviousRoom},
+        power_levels::PowerLevelsEventContent,
+    },
+    EventJson, EventType,
+};
+use ruma_identifiers::{RoomId, RoomVersionId, UserId};
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -87,13 +93,43 @@ ruma_api! {
 }
 
 /// Extra options to be added to the `m.room.create` event.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+///
+/// This is the same as the event content struct for `m.room.create`, but without some fields that
+/// servers are supposed to ignore.
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CreationContent {
     /// Whether users on other servers can join this room.
     ///
     /// Defaults to `true` if key does not exist.
-    #[serde(rename = "m.federate", skip_serializing_if = "Option::is_none")]
-    pub federate: Option<bool>,
+    #[serde(
+        rename = "m.federate",
+        default = "ruma_serde::default_true",
+        skip_serializing_if = "ruma_serde::is_true"
+    )]
+    pub federate: bool,
+    /// A reference to the room this room replaces, if the previous room was upgraded.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub predecessor: Option<PreviousRoom>,
+}
+
+impl CreationContent {
+    /// Given a `CreationContent` and the other fields that a homeserver has to fill, construct
+    /// a `CreateEventContent`.
+    pub fn into_event_content(
+        Self {
+            federate,
+            predecessor,
+        }: Self,
+        creator: UserId,
+        room_version: RoomVersionId,
+    ) -> CreateEventContent {
+        CreateEventContent {
+            creator,
+            federate,
+            room_version,
+            predecessor,
+        }
+    }
 }
 
 /// A convenience parameter for setting a few default state events.
