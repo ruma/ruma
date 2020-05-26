@@ -13,9 +13,9 @@ repository = "https://github.com/ruma/ruma-api-macros"
 version = "0.21.2"
 
 [dependencies]
-syn = { version = "1.0.22", features = ["full"] }
+syn = { version = "1.0.25", features = ["full"] }
 quote = "1.0.6"
-proc-macro2 = "1.0.13"
+proc-macro2 = "1.0.17"
 
 [lib]
 proc-macro = true
