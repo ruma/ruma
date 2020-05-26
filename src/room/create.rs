@@ -17,7 +17,11 @@ ruma_event! {
             pub creator: UserId,
 
             /// Whether or not this room's data should be transferred to other homeservers.
-            #[serde(rename = "m.federate", default = "ruma_serde::default_true")]
+            #[serde(
+                rename = "m.federate",
+                default = "ruma_serde::default_true",
+                skip_serializing_if = "ruma_serde::is_true"
+            )]
             pub federate: bool,
 
             /// The version of the room. Defaults to "1" if the key does not exist.
