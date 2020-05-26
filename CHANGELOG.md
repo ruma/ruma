@@ -2,8 +2,9 @@
 
 Improvements:
 
-* Skip serialization of `federate` field in `room::CreateEventContent` if it is
-  `true` (the default value)
+* Skip serialization of `federate` field in `room::create::CreateEventContent`
+  if it is `true` (the default value)
+* `room::power_levels::PowerLevelsEventContent` now implements `Default`
 
 # 0.21.2
 
