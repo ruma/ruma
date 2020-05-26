@@ -3,6 +3,8 @@
 Breaking changes:
 
 * Make `avatar_url` in `r0::profile::set_avatar_url::Request` an `Option`
+* Update type of `canonical_alias` in `r0::directory::PublicRoomsChunk` from
+  `Option<String>` to `Option<RoomAliasId>`
 
 # 0.9.0
 

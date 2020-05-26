@@ -16,7 +16,7 @@ pub struct PublicRoomsChunk {
 
     /// The canonical alias of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub canonical_alias: Option<String>,
+    pub canonical_alias: Option<RoomAliasId>,
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
