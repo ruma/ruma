@@ -10,7 +10,7 @@ license = "MIT"
 name = "ruma-events-macros"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma-api-macros"
-version = "0.21.2"
+version = "0.21.3"
 
 [dependencies]
 syn = { version = "1.0.25", features = ["full"] }

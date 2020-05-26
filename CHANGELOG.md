@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.21.3
+
+Bug fixes:
+
+* Fix `m.room.message` event serialization
+
 Improvements:
 
 * Skip serialization of `federate` field in `room::create::CreateEventContent`
