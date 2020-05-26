@@ -1,4 +1,4 @@
-//! Implementation of the `StateEventContent` derive macro
+//! Implementations of the MessageEventContent and StateEventContent derive macro.
 
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
@@ -11,7 +11,7 @@ use syn::{
 ///
 /// `#[ruma_event(type = "m.room.alias")]`
 enum EventMeta {
-    /// Variant holds the "m.room.whatever" event type.
+    /// Variant holds the "m.whatever" event type.
     Type(LitStr),
 }
 
@@ -23,8 +23,10 @@ impl Parse for EventMeta {
     }
 }
 
-/// Create a `StateEventContent` implementation for a struct
-pub fn expand_state_event(input: DeriveInput) -> syn::Result<TokenStream> {
+/// Create a `RoomEventContent` implementation for a struct.
+///
+/// This is used internally for code sharing as `RoomEventContent` is not derivable.
+fn expand_room_event(input: DeriveInput) -> syn::Result<TokenStream> {
     let ident = &input.ident;
 
     let event_type_attr = input
@@ -72,6 +74,28 @@ pub fn expand_state_event(input: DeriveInput) -> syn::Result<TokenStream> {
         #event_content_impl
 
         impl ::ruma_events::RoomEventContent for #ident { }
+    })
+}
+
+/// Create a `MessageEventContent` implementation for a struct
+pub fn expand_message_event(input: DeriveInput) -> syn::Result<TokenStream> {
+    let ident = input.ident.clone();
+    let room_ev_content = expand_room_event(input)?;
+
+    Ok(quote! {
+        #room_ev_content
+
+        impl ::ruma_events::MessageEventContent for #ident { }
+    })
+}
+
+/// Create a `MessageEventContent` implementation for a struct
+pub fn expand_state_event(input: DeriveInput) -> syn::Result<TokenStream> {
+    let ident = input.ident.clone();
+    let room_ev_content = expand_room_event(input)?;
+
+    Ok(quote! {
+        #room_ev_content
 
         impl ::ruma_events::StateEventContent for #ident { }
     })
