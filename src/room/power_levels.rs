@@ -78,6 +78,26 @@ ruma_event! {
         },
     }
 }
+
+impl Default for PowerLevelsEventContent {
+    fn default() -> Self {
+        // events_default and users_default having a default of 0 while the others have a default
+        // of 50 is not an oversight, these defaults are from the Matrix specification.
+        Self {
+            ban: default_power_level(),
+            events: BTreeMap::new(),
+            events_default: Int::default(),
+            invite: default_power_level(),
+            kick: default_power_level(),
+            redact: default_power_level(),
+            state_default: default_power_level(),
+            users: BTreeMap::new(),
+            users_default: Int::default(),
+            notifications: NotificationPowerLevels::default(),
+        }
+    }
+}
+
 /// The power level requirements for specific notification types.
 #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
 pub struct NotificationPowerLevels {
