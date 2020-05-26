@@ -12,6 +12,7 @@ Breaking changes:
 Improvements:
 
 * Add method `into_event_content` for `r0::room::create_room::CreationContent`
+* Add room visibility endpoints: `r0::directory::{get_room_visibility, set_room_visibility}`. 
 
 # 0.9.0
 
