@@ -26,6 +26,7 @@ strum = { version = "0.18.0", features = ["derive"] }
 maplit = "1.0.2"
 matches = "0.1.8"
 ruma-identifiers = { version = "0.16.2", features = ["rand"] }
+trybuild = "1.0.27"
 
 [workspace]
 members = [

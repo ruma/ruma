@@ -1,0 +1,19 @@
+error: expected `type`
+  --> $DIR/03-invalid-event-type.rs:11:14
+   |
+11 | #[ruma_event(event = "m.macro.test")]
+   |              ^^^^^
+
+error: no event type attribute found, add `#[ruma_events(type = "any.room.event")]` below the event content derive
+ --> $DIR/03-invalid-event-type.rs:4:44
+  |
+4 | #[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+  |                                            ^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: cannot find attribute `not_ruma_event` in this scope
+ --> $DIR/03-invalid-event-type.rs:5:3
+  |
+5 | #[not_ruma_event(type = "m.macro.test")]
+  |   ^^^^^^^^^^^^^^ help: a derive helper attribute with a similar name exists: `ruma_event`

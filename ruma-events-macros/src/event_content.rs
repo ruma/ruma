@@ -58,10 +58,9 @@ fn expand_room_event(input: DeriveInput) -> syn::Result<TokenStream> {
                 content: Box<::serde_json::value::RawValue>
             ) -> Result<Self, ::ruma_events::InvalidEvent> {
                 if ev_type != #event_type {
-                    return Err(::ruma_events::InvalidEvent {
-                        kind: ::ruma_events::error::InvalidEventKind::Deserialization,
-                        message: format!("expected `{}` found {}", #event_type, ev_type),
-                    });
+                    return Err(
+                        ::ruma_events::InvalidEvent::wrong_event_type(#event_type, ev_type)
+                    );
                 }
 
                 let ev_json = ::ruma_events::EventJson::from(content);

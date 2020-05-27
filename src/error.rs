@@ -11,17 +11,32 @@ use std::{
 /// message and a flag for which type of error was encountered.
 #[derive(Clone, Debug)]
 pub struct InvalidEvent {
+    /// A description of the error that occurred.
     pub(crate) message: String,
+    /// The kind of error that occurred.
     pub(crate) kind: InvalidEventKind,
 }
 
+/// The kind of error that occurred.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum InvalidEventKind {
+pub(crate) enum InvalidEventKind {
+    /// A deserialization error from malformed input.
     Deserialization,
+    /// An error occurred validating input according the the matrix spec.
     Validation,
 }
 
 impl InvalidEvent {
+    /// Constructor used in the event content macros.
+    ///
+    /// This has to be public to allow the macros to be used outside of ruma-events.
+    #[doc(hidden)]
+    pub fn wrong_event_type(expected: &str, found: &str) -> Self {
+        Self {
+            message: format!("expected `{}` found {}", expected, found),
+            kind: InvalidEventKind::Deserialization,
+        }
+    }
     /// A message describing why the event is invalid.
     pub fn message(&self) -> String {
         self.message.clone()
