@@ -5,7 +5,7 @@ use ruma_api::ruma_api;
 use ruma_events::EventJson;
 use ruma_identifiers::{RoomId, UserId};
 
-use crate::RoomV3Pdu;
+use crate::pdu::Pdu;
 
 ruma_api! {
     metadata {
@@ -34,6 +34,6 @@ ruma_api! {
         /// The version of the room where the server is trying to join.
         pub room_version: Option<UInt>,
         /// An unsigned template event.
-        pub event: EventJson<RoomV3Pdu>,
+        pub event: EventJson<Pdu>,
     }
 }

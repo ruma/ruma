@@ -7,7 +7,7 @@ use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-use crate::RoomV3Pdu;
+use crate::pdu::Pdu;
 
 ruma_api! {
     metadata {
@@ -31,7 +31,7 @@ ruma_api! {
         /// List of persistent updates to rooms.
         ///
         /// Must not be more than 50 items.
-        pub pdus: Vec<RoomV3Pdu>,
+        pub pdus: Vec<Pdu>,
         /// List of ephemeral messages.
         ///
         /// Must not be more than 100 items.
