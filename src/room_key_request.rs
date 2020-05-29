@@ -37,10 +37,10 @@ ruma_event! {
 
 /// A new key request or a cancellation of a previous request.
 #[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum Action {
     /// Request a key.
-    #[serde(rename = "request")]
-    #[strum(serialize = "request")]
     Request,
 
     /// Cancel a request for a key.

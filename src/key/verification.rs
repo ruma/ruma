@@ -14,42 +14,40 @@ pub mod start;
 
 /// A hash algorithm.
 #[derive(Clone, Copy, Debug, Display, EnumString, Serialize, PartialEq, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum HashAlgorithm {
     /// The SHA256 hash algorithm.
-    #[serde(rename = "sha256")]
-    #[strum(serialize = "sha256")]
     Sha256,
 }
 
 /// A key agreement protocol.
 #[derive(Clone, Copy, Debug, Display, EnumString, Serialize, PartialEq, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum KeyAgreementProtocol {
     /// The [Curve25519](https://cr.yp.to/ecdh.html) key agreement protocol.
-    #[serde(rename = "curve25519")]
-    #[strum(serialize = "curve25519")]
     Curve25519,
 }
 
 /// A message authentication code algorithm.
 #[derive(Clone, Copy, Debug, Display, EnumString, Serialize, PartialEq, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "kebab-case")]
 pub enum MessageAuthenticationCode {
     /// The HKDF-HMAC-SHA256 MAC.
-    #[serde(rename = "hkdf-hmac-sha256")]
-    #[strum(serialize = "hkdf-hmac-sha256")]
     HkdfHmacSha256,
 }
 
 /// A Short Authentication String method.
 #[derive(Clone, Copy, Debug, Display, EnumString, Serialize, PartialEq, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum ShortAuthenticationString {
     /// The decimal method.
-    #[serde(rename = "decimal")]
-    #[strum(serialize = "decimal")]
     Decimal,
 
     /// The emoji method.
-    #[serde(rename = "emoji")]
-    #[strum(serialize = "emoji")]
     Emoji,
 }
 

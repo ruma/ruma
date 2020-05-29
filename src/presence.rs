@@ -44,20 +44,16 @@ ruma_event! {
 
 /// A description of a user's connectivity and availability for chat.
 #[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum PresenceState {
     /// Disconnected from the service.
-    #[serde(rename = "offline")]
-    #[strum(serialize = "offline")]
     Offline,
 
     /// Connected to the service.
-    #[serde(rename = "online")]
-    #[strum(serialize = "online")]
     Online,
 
     /// Connected to the service but not available for chat.
-    #[serde(rename = "unavailable")]
-    #[strum(serialize = "unavailable")]
     Unavailable,
 }
 

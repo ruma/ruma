@@ -24,8 +24,8 @@ pub struct SessionDescription {
 /// The type of VoIP session description.
 #[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
 #[non_exhaustive]
-#[serde(rename_all = "lowercase")]
-#[strum(serialize_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum SessionDescriptionType {
     /// An answer.
     Answer,

@@ -26,8 +26,8 @@ ruma_event! {
 
 /// A type of feedback.
 #[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
-#[serde(rename_all = "lowercase")]
-#[strum(serialize_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum FeedbackType {
     /// Sent when a message is received.
     Delivered,
