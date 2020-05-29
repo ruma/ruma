@@ -3,6 +3,7 @@
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString};
 
 ruma_event! {
     /// An acknowledgement of a message.
@@ -24,19 +25,13 @@ ruma_event! {
 }
 
 /// A type of feedback.
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
 pub enum FeedbackType {
     /// Sent when a message is received.
     Delivered,
 
     /// Sent when a message has been observed by the end user.
     Read,
-}
-
-impl_enum! {
-    FeedbackType {
-        Delivered => "delivered",
-        Read => "read",
-    }
 }

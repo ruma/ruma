@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString};
 
 ruma_event! {
     /// The current membership state of a user in the room.
@@ -63,8 +64,9 @@ ruma_event! {
 }
 
 /// The membership state of a user.
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
 pub enum MembershipState {
     /// The user is banned.
     Ban,
@@ -80,16 +82,6 @@ pub enum MembershipState {
 
     /// The user has left.
     Leave,
-}
-
-impl_enum! {
-    MembershipState {
-        Ban => "ban",
-        Invite => "invite",
-        Join => "join",
-        Knock => "knock",
-        Leave => "leave",
-    }
 }
 
 /// Information about a third party invitation.

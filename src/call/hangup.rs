@@ -3,6 +3,7 @@
 use js_int::UInt;
 use ruma_events_macros::ruma_event;
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString};
 
 ruma_event! {
     /// Sent by either party to signal their termination of the call. This can be sent either once
@@ -29,19 +30,13 @@ ruma_event! {
 /// This should not be provided when the user naturally ends or rejects the call. When there was an
 /// error in the call negotiation, this should be `ice_failed` for when ICE negotiation fails or
 /// `invite_timeout` for when the other party did not answer in time.
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 pub enum Reason {
     /// ICE negotiation failure.
     IceFailed,
 
     /// Party did not answer in time.
     InviteTimeout,
-}
-
-impl_enum! {
-    Reason {
-        IceFailed => "ice_failed",
-        InviteTimeout => "invite_timeout",
-    }
 }

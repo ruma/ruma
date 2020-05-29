@@ -3,6 +3,7 @@
 //! This module also contains types shared by events in its child namespaces.
 
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString};
 
 pub mod answer;
 pub mod candidates;
@@ -21,20 +22,14 @@ pub struct SessionDescription {
 }
 
 /// The type of VoIP session description.
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
 pub enum SessionDescriptionType {
     /// An answer.
     Answer,
 
     /// An offer.
     Offer,
-}
-
-impl_enum! {
-    SessionDescriptionType {
-        Answer => "answer",
-        Offer => "offer",
-    }
 }

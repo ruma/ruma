@@ -2,6 +2,7 @@
 
 use ruma_events_macros::ruma_event;
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString};
 
 ruma_event! {
     /// Describes how users are allowed to join the room.
@@ -16,8 +17,9 @@ ruma_event! {
 }
 
 /// The rule used for users wishing to join this room.
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
 pub enum JoinRule {
     /// A user who wishes to join the room must first receive an invite to the room from someone
     /// already inside of the room.
@@ -31,13 +33,4 @@ pub enum JoinRule {
 
     /// Anyone can join the room without any prior action.
     Public,
-}
-
-impl_enum! {
-    JoinRule {
-        Invite => "invite",
-        Knock => "knock",
-        Private => "private",
-        Public => "public",
-    }
 }

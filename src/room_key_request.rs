@@ -3,6 +3,7 @@
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::{DeviceId, RoomId};
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString};
 
 use super::Algorithm;
 
@@ -35,22 +36,17 @@ ruma_event! {
 }
 
 /// A new key request or a cancellation of a previous request.
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
 pub enum Action {
     /// Request a key.
     #[serde(rename = "request")]
+    #[strum(serialize = "request")]
     Request,
 
     /// Cancel a request for a key.
     #[serde(rename = "request_cancellation")]
+    #[strum(serialize = "request_cancellation")]
     CancelRequest,
-}
-
-impl_enum! {
-    Action {
-        Request => "request",
-        CancelRequest => "cancel_request",
-    }
 }
 
 /// Information about a requested key.
