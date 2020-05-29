@@ -37,12 +37,14 @@ use quote::ToTokens;
 use syn::{parse_macro_input, DeriveInput};
 
 use self::{
+    collection::{expand_collection, parse::RumaCollectionInput},
     event_content::{expand_message_event, expand_state_event},
     from_raw::expand_from_raw,
     gen::RumaEvent,
     parse::RumaEventInput,
 };
 
+mod collection;
 mod event_content;
 mod from_raw;
 mod gen;
@@ -139,6 +141,18 @@ pub fn ruma_event(input: TokenStream) -> TokenStream {
     let ruma_event = RumaEvent::from(ruma_event_input);
 
     ruma_event.into_token_stream().into()
+}
+
+/// Generates a collection type to represent the various Matrix event types.
+///
+/// This macro also implements the necessary traits for the type to serialize and deserialize itself.
+// TODO more docs/example
+#[proc_macro]
+pub fn event_content_collection(input: TokenStream) -> TokenStream {
+    let ruma_collection_input = syn::parse_macro_input!(input as RumaCollectionInput);
+    expand_collection(ruma_collection_input)
+        .unwrap_or_else(|err| err.to_compile_error())
+        .into()
 }
 
 /// Generates an implementation of `ruma_events::FromRaw`. Only usable inside of `ruma_events`.

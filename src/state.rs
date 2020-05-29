@@ -22,61 +22,12 @@ use crate::{
     room::{aliases::AliasesEventContent, avatar::AvatarEventContent},
     EventContent, RoomEventContent, StateEventContent, TryFromRaw, UnsignedData,
 };
+use ruma_events_macros::event_content_collection;
 
-/// A state event.
-#[derive(Clone, Debug, Serialize)]
-#[serde(untagged)]
-#[allow(clippy::large_enum_variant)]
-pub enum AnyStateEventContent {
-    /// m.room.aliases
-    RoomAliases(AliasesEventContent),
-
-    /// m.room.avatar
-    RoomAvatar(AvatarEventContent),
-    // /// m.room.canonical_alias
-    // RoomCanonicalAlias(StateEvent<CanonicalAliasEventContent>),
-
-    // /// m.room.create
-    // RoomCreate(StateEvent<CreateEventContent>),
-
-    // /// m.room.encryption
-    // RoomEncryption(StateEvent<EncryptionEventContent>),
-
-    // /// m.room.guest_access
-    // RoomGuestAccess(StateEvent<GuestAccessEventContent>),
-
-    // /// m.room.history_visibility
-    // RoomHistoryVisibility(StateEvent<HistoryVisibilityEventContent>),
-
-    // /// m.room.join_rules
-    // RoomJoinRules(StateEvent<JoinRulesEventContent>),
-
-    // /// m.room.member
-    // RoomMember(StateEvent<MemberEventContent>),
-
-    // /// m.room.name
-    // RoomName(StateEvent<NameEventContent>),
-
-    // /// m.room.pinned_events
-    // RoomPinnedEvents(StateEvent<PinnedEventsEventContent>),
-
-    // /// m.room.power_levels
-    // RoomPowerLevels(StateEvent<PinnedEventsEventContent>),
-
-    // /// m.room.server_acl
-    // RoomServerAcl(StateEvent<ServerAclEventContent>),
-
-    // /// m.room.third_party_invite
-    // RoomThirdPartyInvite(StateEvent<ThirdPartyInviteEventContent>),
-
-    // /// m.room.tombstone
-    // RoomTombstone(StateEvent<TombstoneEventContent>),
-
-    // /// m.room.topic
-    // RoomTopic(StateEvent<TopicEventContent>),
-
-    // /// Any state event that is not part of the specification.
-    // CustomState(StateEvent<CustomEventContent>),
+event_content_collection! {
+    /// A state event.
+    name: AnyStateEventContent,
+    events: ["m.room.aliases", "m.room.avatar"]
 }
 
 /// State event.

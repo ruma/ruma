@@ -178,16 +178,6 @@ fn populate_state_fields(content_name: Ident, fields: Vec<Field>) -> Vec<Field> 
     fields
 }
 
-/// Splits the given `event_type` string on `.` and `_` removing the `m.` then
-/// camel casing to give the `EventType` variant.
-fn to_camel_case(name: String) -> String {
-    assert_eq!(&name[..2], "m.");
-    name[2..]
-        .split(&['.', '_'] as &[char])
-        .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
-        .collect()
-}
-
 /// A wrapper around `syn::Field` that makes it possible to parse `Punctuated<Field, Token![,]>`
 /// from a `TokenStream`.
 ///
