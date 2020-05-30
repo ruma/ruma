@@ -5,7 +5,7 @@
 #![deny(
     missing_copy_implementations,
     missing_debug_implementations,
-    missing_docs
+    //missing_docs
 )]
 // Since we support Rust 1.36.0, we can't apply this suggestion yet
 #![allow(clippy::use_self)]
@@ -17,24 +17,51 @@ use std::num::NonZeroU8;
 use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
 
 #[doc(inline)]
-pub use crate::{
-    device_id::DeviceId, error::Error, event_id::EventId, room_alias_id::RoomAliasId,
-    room_id::RoomId, room_id_or_room_alias_id::RoomIdOrAliasId, room_version_id::RoomVersionId,
-    server_name::is_valid_server_name, user_id::UserId,
-};
+pub use crate::{error::Error, server_name::is_valid_server_name};
 
 #[macro_use]
 mod macros;
 
-pub mod device_id;
 mod error;
-mod event_id;
-mod room_alias_id;
-mod room_id;
-mod room_id_or_room_alias_id;
-mod room_version_id;
 mod server_name;
+
+pub mod device_id;
+pub mod event_id;
+pub mod room_alias_id;
+pub mod room_id;
+pub mod room_id_or_room_alias_id;
+pub mod room_version_id;
 pub mod user_id;
+
+/// An owned event ID.
+pub type EventId = event_id::EventId<Box<str>>;
+/// A reference to an event ID.
+pub type EventIdRef<'a> = event_id::EventId<&'a str>;
+
+/// An owned room alias ID.
+pub type RoomAliasId = room_alias_id::RoomAliasId<Box<str>>;
+/// A reference to a room alias ID.
+pub type RoomAliasIdRef<'a> = room_alias_id::RoomAliasId<&'a str>;
+
+/// An owned room ID.
+pub type RoomId = room_id::RoomId<Box<str>>;
+/// A reference to a room ID.
+pub type RoomIdRef<'a> = room_id::RoomId<&'a str>;
+
+/// An owned room alias ID or room ID.
+pub type RoomIdOrAliasId = room_id_or_room_alias_id::RoomIdOrAliasId<Box<str>>;
+/// A reference to a room alias ID or room ID.
+pub type RoomIdOrAliasIdRef<'a> = room_id_or_room_alias_id::RoomIdOrAliasId<&'a str>;
+
+/// An owned room version ID.
+pub type RoomVersionId = room_version_id::RoomVersionId<Box<str>>;
+/// A reference to a room version ID.
+pub type RoomVersionIdRef<'a> = room_version_id::RoomVersionId<&'a str>;
+
+/// An owned user ID.
+pub type UserId = user_id::UserId<Box<str>>;
+/// A reference to a user ID.
+pub type UserIdRef<'a> = user_id::UserId<&'a str>;
 
 /// All identifiers must be 255 bytes or less.
 const MAX_BYTES: usize = 255;

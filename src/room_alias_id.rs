@@ -17,30 +17,30 @@ use crate::{error::Error, parse_id};
 ///     "#ruma:example.com"
 /// );
 /// ```
-#[derive(Clone, Debug)]
-pub struct RoomAliasId {
-    pub(crate) full_id: Box<str>,
+#[derive(Clone, Copy, Debug)]
+pub struct RoomAliasId<T> {
+    pub(crate) full_id: T,
     pub(crate) colon_idx: NonZeroU8,
 }
 
-impl RoomAliasId {
+impl<T: AsRef<str>> RoomAliasId<T> {
     /// Returns the room's alias.
     pub fn alias(&self) -> &str {
-        &self.full_id[1..self.colon_idx.get() as usize]
+        &self.full_id.as_ref()[1..self.colon_idx.get() as usize]
     }
 
     /// Returns the server name of the room alias ID.
     pub fn server_name(&self) -> &str {
-        &self.full_id[self.colon_idx.get() as usize + 1..]
+        &self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]
     }
 }
 
 /// Attempts to create a new Matrix room alias ID from a string representation.
 ///
 /// The string must include the leading # sigil, the alias, a literal colon, and a server name.
-fn try_from<S>(room_id: S) -> Result<RoomAliasId, Error>
+fn try_from<S, T>(room_id: S) -> Result<RoomAliasId<T>, Error>
 where
-    S: AsRef<str> + Into<Box<str>>,
+    S: AsRef<str> + Into<T>,
 {
     let colon_idx = parse_id(room_id.as_ref(), &['#'])?;
 
@@ -59,8 +59,9 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
-    use super::RoomAliasId;
     use crate::error::Error;
+
+    type RoomAliasId = super::RoomAliasId<Box<str>>;
 
     #[test]
     fn valid_room_alias_id() {

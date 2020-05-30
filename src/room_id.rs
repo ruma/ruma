@@ -17,20 +17,23 @@ use crate::{error::Error, parse_id};
 ///     "!n8f893n9:example.com"
 /// );
 /// ```
-#[derive(Clone, Debug)]
-pub struct RoomId {
-    pub(crate) full_id: Box<str>,
+#[derive(Clone, Copy, Debug)]
+pub struct RoomId<T> {
+    pub(crate) full_id: T,
     pub(crate) colon_idx: NonZeroU8,
 }
 
-impl RoomId {
+impl<T> RoomId<T> {
     /// Attempts to generate a `RoomId` for the given origin server with a localpart consisting of
     /// 18 random ASCII characters.
     ///
     /// Fails if the given homeserver cannot be parsed as a valid host.
     #[cfg(feature = "rand")]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
-    pub fn new(server_name: &str) -> Result<Self, Error> {
+    pub fn new(server_name: &str) -> Result<Self, Error>
+    where
+        String: Into<T>,
+    {
         use crate::{generate_localpart, is_valid_server_name};
 
         if !is_valid_server_name(server_name) {
@@ -45,22 +48,28 @@ impl RoomId {
     }
 
     /// Returns the rooms's unique ID.
-    pub fn localpart(&self) -> &str {
-        &self.full_id[1..self.colon_idx.get() as usize]
+    pub fn localpart(&self) -> &str
+    where
+        T: AsRef<str>,
+    {
+        &self.full_id.as_ref()[1..self.colon_idx.get() as usize]
     }
 
     /// Returns the server name of the room ID.
-    pub fn server_name(&self) -> &str {
-        &self.full_id[self.colon_idx.get() as usize + 1..]
+    pub fn server_name(&self) -> &str
+    where
+        T: AsRef<str>,
+    {
+        &self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]
     }
 }
 
 /// Attempts to create a new Matrix room ID from a string representation.
 ///
 /// The string must include the leading ! sigil, the localpart, a literal colon, and a server name.
-fn try_from<S>(room_id: S) -> Result<RoomId, Error>
+fn try_from<S, T>(room_id: S) -> Result<RoomId<T>, Error>
 where
-    S: AsRef<str> + Into<Box<str>>,
+    S: AsRef<str> + Into<T>,
 {
     let colon_idx = parse_id(room_id.as_ref(), &['!'])?;
 
@@ -79,8 +88,9 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
-    use super::RoomId;
     use crate::error::Error;
+
+    type RoomId = super::RoomId<Box<str>>;
 
     #[test]
     fn valid_room_id() {

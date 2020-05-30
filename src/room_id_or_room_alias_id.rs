@@ -2,7 +2,7 @@
 
 use std::{convert::TryFrom, hint::unreachable_unchecked, num::NonZeroU8};
 
-use crate::{error::Error, parse_id, RoomAliasId, RoomId};
+use crate::{error::Error, parse_id, room_alias_id::RoomAliasId, room_id::RoomId};
 
 /// A Matrix room ID or a Matrix room alias ID.
 ///
@@ -23,21 +23,21 @@ use crate::{error::Error, parse_id, RoomAliasId, RoomId};
 ///     "!n8f893n9:example.com"
 /// );
 /// ```
-#[derive(Clone, Debug)]
-pub struct RoomIdOrAliasId {
-    full_id: Box<str>,
+#[derive(Clone, Copy, Debug)]
+pub struct RoomIdOrAliasId<T> {
+    full_id: T,
     colon_idx: NonZeroU8,
 }
 
-impl RoomIdOrAliasId {
+impl<T: AsRef<str>> RoomIdOrAliasId<T> {
     /// Returns the local part (everything after the `!` or `#` and before the first colon).
     pub fn localpart(&self) -> &str {
-        &self.full_id[1..self.colon_idx.get() as usize]
+        &self.full_id.as_ref()[1..self.colon_idx.get() as usize]
     }
 
     /// Returns the server name of the room (alias) ID.
     pub fn server_name(&self) -> &str {
-        &self.full_id[self.colon_idx.get() as usize + 1..]
+        &self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]
     }
 
     /// Whether this is a room id (starts with `'!'`)
@@ -53,7 +53,7 @@ impl RoomIdOrAliasId {
     /// Turn this `RoomIdOrAliasId` into `Either<RoomId, RoomAliasId>`
     #[cfg(feature = "either")]
     #[cfg_attr(docsrs, doc(cfg(feature = "either")))]
-    pub fn into_either(self) -> either::Either<RoomId, RoomAliasId> {
+    pub fn into_either(self) -> either::Either<RoomId<T>, RoomAliasId<T>> {
         match self.variant() {
             Variant::RoomId => either::Either::Left(RoomId {
                 full_id: self.full_id,
@@ -67,7 +67,7 @@ impl RoomIdOrAliasId {
     }
 
     fn variant(&self) -> Variant {
-        match self.full_id.bytes().next() {
+        match self.full_id.as_ref().bytes().next() {
             Some(b'!') => Variant::RoomId,
             Some(b'#') => Variant::RoomAliasId,
             _ => unsafe { unreachable_unchecked() },
@@ -86,9 +86,9 @@ enum Variant {
 /// The string must either include the leading ! sigil, the localpart, a literal colon, and a
 /// valid homeserver host or include the leading # sigil, the alias, a literal colon, and a
 /// valid homeserver host.
-fn try_from<S>(room_id_or_alias_id: S) -> Result<RoomIdOrAliasId, Error>
+fn try_from<S, T>(room_id_or_alias_id: S) -> Result<RoomIdOrAliasId<T>, Error>
 where
-    S: AsRef<str> + Into<Box<str>>,
+    S: AsRef<str> + Into<T>,
 {
     let colon_idx = parse_id(room_id_or_alias_id.as_ref(), &['#', '!'])?;
     Ok(RoomIdOrAliasId {
@@ -103,22 +103,22 @@ common_impls!(
     "a Matrix room ID or room alias ID"
 );
 
-impl From<RoomId> for RoomIdOrAliasId {
-    fn from(RoomId { full_id, colon_idx }: RoomId) -> Self {
+impl<T> From<RoomId<T>> for RoomIdOrAliasId<T> {
+    fn from(RoomId { full_id, colon_idx }: RoomId<T>) -> Self {
         Self { full_id, colon_idx }
     }
 }
 
-impl From<RoomAliasId> for RoomIdOrAliasId {
-    fn from(RoomAliasId { full_id, colon_idx }: RoomAliasId) -> Self {
+impl<T> From<RoomAliasId<T>> for RoomIdOrAliasId<T> {
+    fn from(RoomAliasId { full_id, colon_idx }: RoomAliasId<T>) -> Self {
         Self { full_id, colon_idx }
     }
 }
 
-impl TryFrom<RoomIdOrAliasId> for RoomId {
-    type Error = RoomAliasId;
+impl<T: AsRef<str>> TryFrom<RoomIdOrAliasId<T>> for RoomId<T> {
+    type Error = RoomAliasId<T>;
 
-    fn try_from(id: RoomIdOrAliasId) -> Result<RoomId, RoomAliasId> {
+    fn try_from(id: RoomIdOrAliasId<T>) -> Result<RoomId<T>, RoomAliasId<T>> {
         match id.variant() {
             Variant::RoomId => Ok(RoomId {
                 full_id: id.full_id,
@@ -132,10 +132,10 @@ impl TryFrom<RoomIdOrAliasId> for RoomId {
     }
 }
 
-impl TryFrom<RoomIdOrAliasId> for RoomAliasId {
-    type Error = RoomId;
+impl<T: AsRef<str>> TryFrom<RoomIdOrAliasId<T>> for RoomAliasId<T> {
+    type Error = RoomId<T>;
 
-    fn try_from(id: RoomIdOrAliasId) -> Result<RoomAliasId, RoomId> {
+    fn try_from(id: RoomIdOrAliasId<T>) -> Result<RoomAliasId<T>, RoomId<T>> {
         match id.variant() {
             Variant::RoomAliasId => Ok(RoomAliasId {
                 full_id: id.full_id,
@@ -156,8 +156,9 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
-    use super::RoomIdOrAliasId;
     use crate::error::Error;
+
+    type RoomIdOrAliasId = super::RoomIdOrAliasId<Box<str>>;
 
     #[test]
     fn valid_room_id_or_alias_id_with_a_room_alias_id() {

@@ -17,9 +17,9 @@ use crate::{error::Error, is_valid_server_name, parse_id};
 ///     "@carl:example.com"
 /// );
 /// ```
-#[derive(Clone, Debug)]
-pub struct UserId {
-    full_id: Box<str>,
+#[derive(Clone, Copy, Debug)]
+pub struct UserId<T> {
+    full_id: T,
     colon_idx: NonZeroU8,
     /// Whether this user id is a historical one.
     ///
@@ -29,14 +29,17 @@ pub struct UserId {
     is_historical: bool,
 }
 
-impl UserId {
+impl<T> UserId<T> {
     /// Attempts to generate a `UserId` for the given origin server with a localpart consisting of
     /// 12 random ASCII characters.
     ///
     /// Fails if the given homeserver cannot be parsed as a valid host.
     #[cfg(feature = "rand")]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
-    pub fn new(server_name: &str) -> Result<Self, Error> {
+    pub fn new(server_name: &str) -> Result<Self, Error>
+    where
+        String: Into<T>,
+    {
         use crate::generate_localpart;
 
         if !is_valid_server_name(server_name) {
@@ -59,13 +62,16 @@ impl UserId {
     /// localpart, not the localpart plus the `@` prefix, or the localpart plus server name without
     /// the `@` prefix.
     pub fn parse_with_server_name(
-        id: impl AsRef<str> + Into<Box<str>>,
+        id: impl AsRef<str> + Into<T>,
         server_name: &str,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, Error>
+    where
+        String: Into<T>,
+    {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
-            try_from(id.into())
+            try_from(id)
         } else {
             let is_fully_conforming = localpart_is_fully_comforming(id_str)?;
             if !is_valid_server_name(server_name) {
@@ -81,13 +87,19 @@ impl UserId {
     }
 
     /// Returns the user's localpart.
-    pub fn localpart(&self) -> &str {
-        &self.full_id[1..self.colon_idx.get() as usize]
+    pub fn localpart(&self) -> &str
+    where
+        T: AsRef<str>,
+    {
+        &self.full_id.as_ref()[1..self.colon_idx.get() as usize]
     }
 
     /// Returns the server name of the user ID.
-    pub fn server_name(&self) -> &str {
-        &self.full_id[self.colon_idx.get() as usize + 1..]
+    pub fn server_name(&self) -> &str
+    where
+        T: AsRef<str>,
+    {
+        &self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]
     }
 
     /// Whether this user ID is a historical one, i.e. one that doesn't conform to the latest
@@ -101,9 +113,9 @@ impl UserId {
 /// Attempts to create a new Matrix user ID from a string representation.
 ///
 /// The string must include the leading @ sigil, the localpart, a literal colon, and a server name.
-fn try_from<S>(user_id: S) -> Result<UserId, Error>
+fn try_from<S, T>(user_id: S) -> Result<UserId<T>, Error>
 where
-    S: AsRef<str> + Into<Box<str>>,
+    S: AsRef<str> + Into<T>,
 {
     let colon_idx = parse_id(user_id.as_ref(), &['@'])?;
     let localpart = &user_id.as_ref()[1..colon_idx.get() as usize];
@@ -151,8 +163,9 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
-    use super::UserId;
     use crate::error::Error;
+
+    type UserId = super::UserId<Box<str>>;
 
     #[test]
     fn valid_user_id_from_str() {

@@ -37,13 +37,13 @@ use crate::{error::Error, parse_id, validate_id};
 ///     "$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg"
 /// );
 /// ```
-#[derive(Clone, Debug)]
-pub struct EventId {
-    full_id: Box<str>,
+#[derive(Clone, Copy, Debug)]
+pub struct EventId<T> {
+    full_id: T,
     colon_idx: Option<NonZeroU8>,
 }
 
-impl EventId {
+impl<T> EventId<T> {
     /// Attempts to generate an `EventId` for the given origin server with a localpart consisting
     /// of 18 random ASCII characters. This should only be used for events in the original format
     /// as used by Matrix room versions 1 and 2.
@@ -52,7 +52,10 @@ impl EventId {
     /// parsed as a valid host.
     #[cfg(feature = "rand")]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
-    pub fn new(server_name: &str) -> Result<Self, Error> {
+    pub fn new(server_name: &str) -> Result<Self, Error>
+    where
+        String: Into<T>,
+    {
         use crate::{generate_localpart, is_valid_server_name};
 
         if !is_valid_server_name(server_name) {
@@ -69,21 +72,27 @@ impl EventId {
     /// Returns the event's unique ID. For the original event format as used by Matrix room
     /// versions 1 and 2, this is the "localpart" that precedes the homeserver. For later formats,
     /// this is the entire ID without the leading $ sigil.
-    pub fn localpart(&self) -> &str {
+    pub fn localpart(&self) -> &str
+    where
+        T: AsRef<str>,
+    {
         let idx = match self.colon_idx {
             Some(idx) => idx.get() as usize,
-            None => self.full_id.len(),
+            None => self.full_id.as_ref().len(),
         };
 
-        &self.full_id[1..idx]
+        &self.full_id.as_ref()[1..idx]
     }
 
     /// Returns the server name of the event ID.
     ///
     /// Only applicable to events in the original format as used by Matrix room versions 1 and 2.
-    pub fn server_name(&self) -> Option<&str> {
+    pub fn server_name(&self) -> Option<&str>
+    where
+        T: AsRef<str>,
+    {
         self.colon_idx
-            .map(|idx| &self.full_id[idx.get() as usize + 1..])
+            .map(|idx| &self.full_id.as_ref()[idx.get() as usize + 1..])
     }
 }
 
@@ -91,9 +100,9 @@ impl EventId {
 ///
 /// If using the original event format as used by Matrix room versions 1 and 2, the string must
 /// include the leading $ sigil, the localpart, a literal colon, and a valid homeserver hostname.
-fn try_from<S>(event_id: S) -> Result<EventId, Error>
+fn try_from<S, T>(event_id: S) -> Result<EventId<T>, Error>
 where
-    S: AsRef<str> + Into<Box<str>>,
+    S: AsRef<str> + Into<T>,
 {
     if event_id.as_ref().contains(':') {
         let colon_idx = parse_id(event_id.as_ref(), &['$'])?;
@@ -121,8 +130,9 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
-    use super::EventId;
     use crate::error::Error;
+
+    type EventId = super::EventId<Box<str>>;
 
     #[test]
     fn valid_original_event_id() {
