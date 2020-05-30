@@ -24,7 +24,7 @@ use crate::{error::Error, parse_id};
 #[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
 #[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct RoomAliasId {
-    pub(crate) full_id: String,
+    pub(crate) full_id: Box<str>,
     pub(crate) colon_idx: NonZeroU8,
 }
 
@@ -50,7 +50,7 @@ impl TryFrom<Cow<'_, str>> for RoomAliasId {
         let colon_idx = parse_id(&room_id, &['#'])?;
 
         Ok(Self {
-            full_id: room_id.into_owned(),
+            full_id: room_id.into_owned().into(),
             colon_idx,
         })
     }

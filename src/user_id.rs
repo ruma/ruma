@@ -24,7 +24,7 @@ use crate::{error::Error, is_valid_server_name, parse_id};
 #[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
 #[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct UserId {
-    full_id: String,
+    full_id: Box<str>,
     colon_idx: NonZeroU8,
     /// Whether this user id is a historical one.
     ///
@@ -47,7 +47,7 @@ impl UserId {
         if !is_valid_server_name(server_name) {
             return Err(Error::InvalidServerName);
         }
-        let full_id = format!("@{}:{}", generate_localpart(12).to_lowercase(), server_name);
+        let full_id = format!("@{}:{}", generate_localpart(12).to_lowercase(), server_name).into();
 
         Ok(Self {
             full_id,
@@ -78,7 +78,7 @@ impl UserId {
             }
 
             Ok(Self {
-                full_id: format!("@{}:{}", id_str, server_name),
+                full_id: format!("@{}:{}", id_str, server_name).into(),
                 colon_idx: NonZeroU8::new(id_str.len() as u8 + 1).unwrap(),
                 is_historical: !is_fully_conforming,
             })
@@ -117,7 +117,7 @@ impl TryFrom<Cow<'_, str>> for UserId {
         let is_historical = localpart_is_fully_comforming(localpart)?;
 
         Ok(Self {
-            full_id: user_id.into_owned(),
+            full_id: user_id.into_owned().into(),
             colon_idx,
             is_historical: !is_historical,
         })

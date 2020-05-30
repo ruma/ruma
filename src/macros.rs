@@ -2,7 +2,7 @@ macro_rules! common_impls {
     ($id:ident, $desc:literal) => {
         impl ::std::convert::From<$id> for ::std::string::String {
             fn from(id: $id) -> Self {
-                id.full_id
+                id.full_id.into()
             }
         }
 
@@ -44,16 +44,13 @@ macro_rules! common_impls {
 
         impl ::std::cmp::PartialOrd for $id {
             fn partial_cmp(&self, other: &Self) -> Option<::std::cmp::Ordering> {
-                <::std::string::String as ::std::cmp::PartialOrd>::partial_cmp(
-                    &self.full_id,
-                    &other.full_id,
-                )
+                ::std::cmp::PartialOrd::partial_cmp(&self.full_id, &other.full_id)
             }
         }
 
         impl ::std::cmp::Ord for $id {
             fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
-                <::std::string::String as ::std::cmp::Ord>::cmp(&self.full_id, &other.full_id)
+                ::std::cmp::Ord::cmp(&self.full_id, &other.full_id)
             }
         }
 
@@ -85,25 +82,25 @@ macro_rules! common_impls {
 
         impl ::std::cmp::PartialEq<&str> for $id {
             fn eq(&self, other: &&str) -> bool {
-                self.full_id == *other
+                &self.full_id[..] == *other
             }
         }
 
         impl ::std::cmp::PartialEq<$id> for &str {
             fn eq(&self, other: &$id) -> bool {
-                *self == other.full_id
+                *self == &other.full_id[..]
             }
         }
 
         impl ::std::cmp::PartialEq<::std::string::String> for $id {
             fn eq(&self, other: &::std::string::String) -> bool {
-                &self.full_id == other
+                &self.full_id[..] == &other[..]
             }
         }
 
         impl ::std::cmp::PartialEq<$id> for ::std::string::String {
             fn eq(&self, other: &$id) -> bool {
-                self == &other.full_id
+                &self[..] == &other.full_id[..]
             }
         }
     };

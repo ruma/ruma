@@ -30,7 +30,7 @@ use crate::{error::Error, parse_id, RoomAliasId, RoomId};
 #[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
 #[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct RoomIdOrAliasId {
-    full_id: String,
+    full_id: Box<str>,
     colon_idx: NonZeroU8,
 }
 
@@ -97,7 +97,7 @@ impl TryFrom<Cow<'_, str>> for RoomIdOrAliasId {
     fn try_from(room_id_or_alias_id: Cow<'_, str>) -> Result<Self, Error> {
         let colon_idx = parse_id(&room_id_or_alias_id, &['#', '!'])?;
         Ok(Self {
-            full_id: room_id_or_alias_id.into_owned(),
+            full_id: room_id_or_alias_id.into_owned().into(),
             colon_idx,
         })
     }

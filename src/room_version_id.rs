@@ -51,7 +51,7 @@ enum InnerRoomVersionId {
     Version5,
 
     /// A custom room version.
-    Custom(String),
+    Custom(Box<str>),
 }
 
 impl RoomVersionId {
@@ -82,7 +82,7 @@ impl RoomVersionId {
 
     /// Creates a custom room version ID from the given string slice.
     pub fn custom(id: String) -> Self {
-        Self(InnerRoomVersionId::Custom(id))
+        Self(InnerRoomVersionId::Custom(id.into()))
     }
 
     /// Whether or not this room version is an official one specified by the Matrix protocol.
@@ -132,7 +132,7 @@ impl From<RoomVersionId> for String {
             InnerRoomVersionId::Version3 => "3".to_owned(),
             InnerRoomVersionId::Version4 => "4".to_owned(),
             InnerRoomVersionId::Version5 => "5".to_owned(),
-            InnerRoomVersionId::Custom(version) => version,
+            InnerRoomVersionId::Custom(version) => version.into(),
         }
     }
 }
@@ -193,7 +193,9 @@ impl TryFrom<Cow<'_, str>> for RoomVersionId {
                 } else if custom.chars().count() > MAX_CODE_POINTS {
                     return Err(Error::MaximumLengthExceeded);
                 } else {
-                    Self(InnerRoomVersionId::Custom(room_version_id.into_owned()))
+                    Self(InnerRoomVersionId::Custom(
+                        room_version_id.into_owned().into(),
+                    ))
                 }
             }
         };
