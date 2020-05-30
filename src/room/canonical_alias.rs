@@ -18,6 +18,12 @@ ruma_event! {
                 skip_serializing_if = "Option::is_none"
             )]
             pub alias: Option<RoomAliasId>,
+            /// List of alternative aliases to the room.
+            #[serde(
+                default,
+                skip_serializing_if = "Vec::is_empty"
+            )]
+            pub alt_aliases: Vec<RoomAliasId>,
         },
     }
 }
@@ -40,6 +46,7 @@ mod tests {
         let canonical_alias_event = CanonicalAliasEvent {
             content: CanonicalAliasEventContent {
                 alias: Some(RoomAliasId::try_from("#somewhere:localhost").unwrap()),
+                alt_aliases: Vec::new(),
             },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),

@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Add `alt_aliases` to `CanonicalAliasEventContent`
+
 # 0.21.3
 
 Bug fixes:
