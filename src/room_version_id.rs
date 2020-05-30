@@ -46,6 +46,9 @@ enum InnerRoomVersionId {
     /// A version 5 room.
     Version5,
 
+    /// A version 6 room.
+    Version6,
+
     /// A custom room version.
     Custom(Box<str>),
 }
@@ -74,6 +77,11 @@ impl RoomVersionId {
     /// Creates a version 5 room ID.
     pub fn version_5() -> Self {
         Self(InnerRoomVersionId::Version5)
+    }
+
+    /// Creates a version 6 room ID.
+    pub fn version_6() -> Self {
+        Self(InnerRoomVersionId::Version6)
     }
 
     /// Creates a custom room version ID from the given string slice.
@@ -118,6 +126,11 @@ impl RoomVersionId {
     pub fn is_version_5(&self) -> bool {
         self.0 == InnerRoomVersionId::Version5
     }
+
+    /// Whether or not this is a version 6 room.
+    pub fn is_version_6(&self) -> bool {
+        self.0 == InnerRoomVersionId::Version5
+    }
 }
 
 impl From<RoomVersionId> for String {
@@ -128,6 +141,7 @@ impl From<RoomVersionId> for String {
             InnerRoomVersionId::Version3 => "3".to_owned(),
             InnerRoomVersionId::Version4 => "4".to_owned(),
             InnerRoomVersionId::Version5 => "5".to_owned(),
+            InnerRoomVersionId::Version6 => "6".to_owned(),
             InnerRoomVersionId::Custom(version) => version.into(),
         }
     }
@@ -141,6 +155,7 @@ impl AsRef<str> for RoomVersionId {
             InnerRoomVersionId::Version3 => "3",
             InnerRoomVersionId::Version4 => "4",
             InnerRoomVersionId::Version5 => "5",
+            InnerRoomVersionId::Version6 => "6",
             InnerRoomVersionId::Custom(version) => version,
         }
     }
