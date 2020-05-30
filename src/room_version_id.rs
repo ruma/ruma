@@ -1,7 +1,6 @@
 //! Matrix room version identifiers.
 
 use std::{
-    borrow::Cow,
     convert::TryFrom,
     fmt::{self, Display, Formatter},
 };
@@ -187,47 +186,44 @@ impl<'de> Deserialize<'de> for RoomVersionId {
     }
 }
 
-impl TryFrom<Cow<'_, str>> for RoomVersionId {
-    type Error = Error;
-
-    /// Attempts to create a new Matrix room version ID from a string representation.
-    fn try_from(room_version_id: Cow<'_, str>) -> Result<Self, Error> {
-        let version = match &room_version_id as &str {
-            "1" => Self(InnerRoomVersionId::Version1),
-            "2" => Self(InnerRoomVersionId::Version2),
-            "3" => Self(InnerRoomVersionId::Version3),
-            "4" => Self(InnerRoomVersionId::Version4),
-            "5" => Self(InnerRoomVersionId::Version5),
-            custom => {
-                if custom.is_empty() {
-                    return Err(Error::MinimumLengthNotSatisfied);
-                } else if custom.chars().count() > MAX_CODE_POINTS {
-                    return Err(Error::MaximumLengthExceeded);
-                } else {
-                    Self(InnerRoomVersionId::Custom(
-                        room_version_id.into_owned().into(),
-                    ))
-                }
+/// Attempts to create a new Matrix room version ID from a string representation.
+fn try_from<S>(room_version_id: S) -> Result<RoomVersionId, Error>
+where
+    S: AsRef<str> + Into<Box<str>>,
+{
+    let version = match room_version_id.as_ref() {
+        "1" => RoomVersionId(InnerRoomVersionId::Version1),
+        "2" => RoomVersionId(InnerRoomVersionId::Version2),
+        "3" => RoomVersionId(InnerRoomVersionId::Version3),
+        "4" => RoomVersionId(InnerRoomVersionId::Version4),
+        "5" => RoomVersionId(InnerRoomVersionId::Version5),
+        custom => {
+            if custom.is_empty() {
+                return Err(Error::MinimumLengthNotSatisfied);
+            } else if custom.chars().count() > MAX_CODE_POINTS {
+                return Err(Error::MaximumLengthExceeded);
+            } else {
+                RoomVersionId(InnerRoomVersionId::Custom(room_version_id.into()))
             }
-        };
+        }
+    };
 
-        Ok(version)
-    }
+    Ok(version)
 }
 
 impl TryFrom<&str> for RoomVersionId {
     type Error = crate::error::Error;
 
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        Self::try_from(Cow::Borrowed(s))
+    fn try_from(s: &str) -> Result<Self, Error> {
+        try_from(s)
     }
 }
 
 impl TryFrom<String> for RoomVersionId {
     type Error = crate::error::Error;
 
-    fn try_from(s: String) -> Result<Self, Self::Error> {
-        Self::try_from(Cow::Owned(s))
+    fn try_from(s: String) -> Result<Self, Error> {
+        try_from(s)
     }
 }
 
