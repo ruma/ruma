@@ -1,6 +1,6 @@
 //! Matrix event identifiers.
 
-use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
+use std::num::NonZeroU8;
 
 use crate::{error::Error, parse_id, validate_id};
 
@@ -87,34 +87,32 @@ impl EventId {
     }
 }
 
-impl TryFrom<Cow<'_, str>> for EventId {
-    type Error = Error;
+/// Attempts to create a new Matrix event ID from a string representation.
+///
+/// If using the original event format as used by Matrix room versions 1 and 2, the string must
+/// include the leading $ sigil, the localpart, a literal colon, and a valid homeserver hostname.
+fn try_from<S>(event_id: S) -> Result<EventId, Error>
+where
+    S: AsRef<str> + Into<Box<str>>,
+{
+    if event_id.as_ref().contains(':') {
+        let colon_idx = parse_id(event_id.as_ref(), &['$'])?;
 
-    /// Attempts to create a new Matrix event ID from a string representation.
-    ///
-    /// If using the original event format as used by Matrix room versions 1 and 2, the string must
-    /// include the leading $ sigil, the localpart, a literal colon, and a valid homeserver
-    /// hostname.
-    fn try_from(event_id: Cow<'_, str>) -> Result<Self, Self::Error> {
-        if event_id.contains(':') {
-            let colon_idx = parse_id(&event_id, &['$'])?;
+        Ok(EventId {
+            full_id: event_id.into(),
+            colon_idx: Some(colon_idx),
+        })
+    } else {
+        validate_id(event_id.as_ref(), &['$'])?;
 
-            Ok(Self {
-                full_id: event_id.into_owned().into(),
-                colon_idx: Some(colon_idx),
-            })
-        } else {
-            validate_id(&event_id, &['$'])?;
-
-            Ok(Self {
-                full_id: event_id.into_owned().into(),
-                colon_idx: None,
-            })
-        }
+        Ok(EventId {
+            full_id: event_id.into(),
+            colon_idx: None,
+        })
     }
 }
 
-common_impls!(EventId, "a Matrix event ID");
+common_impls!(EventId, try_from, "a Matrix event ID");
 
 #[cfg(test)]
 mod tests {

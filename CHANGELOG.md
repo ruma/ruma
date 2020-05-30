@@ -4,6 +4,10 @@ Breaking changes
 
 * Removed diesel integration. If you were using it, please comment on the corresponding issue:
   https://github.com/ruma/ruma-identifiers/issues/22
+* Remove `TryFrom<Cow<'_, str>>` implementations for identifier types
+* Update `parse_with_server_name`s signature (instead of `Into<String>` it now requires
+  `Into<Box<str>>` of the id type). This is technically a breaking change, but extremely unlikely
+  to affect any existing code.
 
 # 0.16.1
 

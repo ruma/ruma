@@ -1,6 +1,6 @@
 //! Matrix user identifiers.
 
-use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
+use std::num::NonZeroU8;
 
 use crate::{error::Error, is_valid_server_name, parse_id};
 
@@ -59,13 +59,13 @@ impl UserId {
     /// localpart, not the localpart plus the `@` prefix, or the localpart plus server name without
     /// the `@` prefix.
     pub fn parse_with_server_name(
-        id: impl AsRef<str> + Into<String>,
+        id: impl AsRef<str> + Into<Box<str>>,
         server_name: &str,
     ) -> Result<Self, Error> {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
-            Self::try_from(id.into())
+            try_from(id.into())
         } else {
             let is_fully_conforming = localpart_is_fully_comforming(id_str)?;
             if !is_valid_server_name(server_name) {
@@ -98,28 +98,26 @@ impl UserId {
     }
 }
 
-impl TryFrom<Cow<'_, str>> for UserId {
-    type Error = Error;
+/// Attempts to create a new Matrix user ID from a string representation.
+///
+/// The string must include the leading @ sigil, the localpart, a literal colon, and a server name.
+fn try_from<S>(user_id: S) -> Result<UserId, Error>
+where
+    S: AsRef<str> + Into<Box<str>>,
+{
+    let colon_idx = parse_id(user_id.as_ref(), &['@'])?;
+    let localpart = &user_id.as_ref()[1..colon_idx.get() as usize];
 
-    /// Attempts to create a new Matrix user ID from a string representation.
-    ///
-    /// The string must include the leading @ sigil, the localpart, a literal colon, and a server
-    /// name.
-    fn try_from(user_id: Cow<'_, str>) -> Result<Self, Error> {
-        let colon_idx = parse_id(&user_id, &['@'])?;
-        let localpart = &user_id[1..colon_idx.get() as usize];
+    let is_historical = localpart_is_fully_comforming(localpart)?;
 
-        let is_historical = localpart_is_fully_comforming(localpart)?;
-
-        Ok(Self {
-            full_id: user_id.into_owned().into(),
-            colon_idx,
-            is_historical: !is_historical,
-        })
-    }
+    Ok(UserId {
+        full_id: user_id.into(),
+        colon_idx,
+        is_historical: !is_historical,
+    })
 }
 
-common_impls!(UserId, "a Matrix user ID");
+common_impls!(UserId, try_from, "a Matrix user ID");
 
 /// Check whether the given user id localpart is valid and fully conforming
 ///

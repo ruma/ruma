@@ -1,5 +1,5 @@
 macro_rules! common_impls {
-    ($id:ident, $desc:literal) => {
+    ($id:ident, $try_from:ident, $desc:literal) => {
         impl ::std::convert::From<$id> for ::std::string::String {
             fn from(id: $id) -> Self {
                 id.full_id.into()
@@ -10,7 +10,7 @@ macro_rules! common_impls {
             type Error = crate::error::Error;
 
             fn try_from(s: &str) -> Result<Self, Self::Error> {
-                Self::try_from(::std::borrow::Cow::Borrowed(s))
+                $try_from(s)
             }
         }
 
@@ -18,7 +18,7 @@ macro_rules! common_impls {
             type Error = crate::error::Error;
 
             fn try_from(s: String) -> Result<Self, Self::Error> {
-                Self::try_from(::std::borrow::Cow::Owned(s))
+                $try_from(s)
             }
         }
 

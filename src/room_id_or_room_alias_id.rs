@@ -1,6 +1,6 @@
 //! Matrix identifiers for places where a room ID or room alias ID are used interchangeably.
 
-use std::{borrow::Cow, convert::TryFrom, hint::unreachable_unchecked, num::NonZeroU8};
+use std::{convert::TryFrom, hint::unreachable_unchecked, num::NonZeroU8};
 
 use crate::{error::Error, parse_id, RoomAliasId, RoomId};
 
@@ -81,24 +81,27 @@ enum Variant {
     RoomAliasId,
 }
 
-impl TryFrom<Cow<'_, str>> for RoomIdOrAliasId {
-    type Error = Error;
-
-    /// Attempts to create a new Matrix room ID or a room alias ID from a string representation.
-    ///
-    /// The string must either include the leading ! sigil, the localpart, a literal colon, and a
-    /// valid homeserver host or include the leading # sigil, the alias, a literal colon, and a
-    /// valid homeserver host.
-    fn try_from(room_id_or_alias_id: Cow<'_, str>) -> Result<Self, Error> {
-        let colon_idx = parse_id(&room_id_or_alias_id, &['#', '!'])?;
-        Ok(Self {
-            full_id: room_id_or_alias_id.into_owned().into(),
-            colon_idx,
-        })
-    }
+/// Attempts to create a new Matrix room ID or a room alias ID from a string representation.
+///
+/// The string must either include the leading ! sigil, the localpart, a literal colon, and a
+/// valid homeserver host or include the leading # sigil, the alias, a literal colon, and a
+/// valid homeserver host.
+fn try_from<S>(room_id_or_alias_id: S) -> Result<RoomIdOrAliasId, Error>
+where
+    S: AsRef<str> + Into<Box<str>>,
+{
+    let colon_idx = parse_id(room_id_or_alias_id.as_ref(), &['#', '!'])?;
+    Ok(RoomIdOrAliasId {
+        full_id: room_id_or_alias_id.into(),
+        colon_idx,
+    })
 }
 
-common_impls!(RoomIdOrAliasId, "a Matrix room ID or room alias ID");
+common_impls!(
+    RoomIdOrAliasId,
+    try_from,
+    "a Matrix room ID or room alias ID"
+);
 
 impl From<RoomId> for RoomIdOrAliasId {
     fn from(RoomId { full_id, colon_idx }: RoomId) -> Self {

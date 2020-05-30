@@ -1,6 +1,6 @@
 //! Matrix room identifiers.
 
-use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
+use std::num::NonZeroU8;
 
 use crate::{error::Error, parse_id};
 
@@ -55,24 +55,22 @@ impl RoomId {
     }
 }
 
-impl TryFrom<Cow<'_, str>> for RoomId {
-    type Error = Error;
+/// Attempts to create a new Matrix room ID from a string representation.
+///
+/// The string must include the leading ! sigil, the localpart, a literal colon, and a server name.
+fn try_from<S>(room_id: S) -> Result<RoomId, Error>
+where
+    S: AsRef<str> + Into<Box<str>>,
+{
+    let colon_idx = parse_id(room_id.as_ref(), &['!'])?;
 
-    /// Attempts to create a new Matrix room ID from a string representation.
-    ///
-    /// The string must include the leading ! sigil, the localpart, a literal colon, and a server
-    /// name.
-    fn try_from(room_id: Cow<'_, str>) -> Result<Self, Error> {
-        let colon_idx = parse_id(&room_id, &['!'])?;
-
-        Ok(Self {
-            full_id: room_id.into_owned().into(),
-            colon_idx,
-        })
-    }
+    Ok(RoomId {
+        full_id: room_id.into(),
+        colon_idx,
+    })
 }
 
-common_impls!(RoomId, "a Matrix room ID");
+common_impls!(RoomId, try_from, "a Matrix room ID");
 
 #[cfg(test)]
 mod tests {
