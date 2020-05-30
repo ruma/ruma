@@ -2,9 +2,6 @@
 
 use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
 
-#[cfg(feature = "diesel")]
-use diesel::sql_types::Text;
-
 use crate::{error::Error, parse_id};
 
 /// A Matrix room alias ID.
@@ -21,8 +18,6 @@ use crate::{error::Error, parse_id};
 /// );
 /// ```
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
-#[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct RoomAliasId {
     pub(crate) full_id: Box<str>,
     pub(crate) colon_idx: NonZeroU8,

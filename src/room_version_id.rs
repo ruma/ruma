@@ -6,8 +6,6 @@ use std::{
     fmt::{self, Display, Formatter},
 };
 
-#[cfg(feature = "diesel")]
-use diesel::sql_types::Text;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -27,8 +25,6 @@ const MAX_CODE_POINTS: usize = 32;
 /// assert_eq!(RoomVersionId::try_from("1").unwrap().as_ref(), "1");
 /// ```
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-#[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
-#[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct RoomVersionId(InnerRoomVersionId);
 
 /// Possibile values for room version, distinguishing between official Matrix versions and custom

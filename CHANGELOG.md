@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes
+
+* Removed diesel integration. If you were using it, please comment on the corresponding issue:
+  https://github.com/ruma/ruma-identifiers/issues/22
+
 # 0.16.1
 
 Bug fixes:

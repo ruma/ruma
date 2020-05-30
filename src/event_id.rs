@@ -2,9 +2,6 @@
 
 use std::{borrow::Cow, convert::TryFrom, num::NonZeroU8};
 
-#[cfg(feature = "diesel")]
-use diesel::sql_types::Text;
-
 use crate::{error::Error, parse_id, validate_id};
 
 /// A Matrix event ID.
@@ -41,8 +38,6 @@ use crate::{error::Error, parse_id, validate_id};
 /// );
 /// ```
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "diesel", derive(FromSqlRow, QueryId, AsExpression, SqlType))]
-#[cfg_attr(feature = "diesel", sql_type = "Text")]
 pub struct EventId {
     full_id: Box<str>,
     colon_idx: Option<NonZeroU8>,

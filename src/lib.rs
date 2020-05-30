@@ -11,10 +11,6 @@
 #![allow(clippy::use_self)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-#[cfg(feature = "diesel")]
-#[cfg_attr(feature = "diesel", macro_use)]
-extern crate diesel;
-
 use std::num::NonZeroU8;
 
 #[cfg(feature = "serde")]
@@ -31,9 +27,6 @@ pub use crate::{
 mod macros;
 
 pub mod device_id;
-#[cfg(feature = "diesel")]
-#[cfg_attr(docsrs, doc(cfg(feature = "diesel")))]
-mod diesel_integration;
 mod error;
 mod event_id;
 mod room_alias_id;
