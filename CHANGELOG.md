@@ -9,6 +9,8 @@ Breaking changes:
   `Into<Box<str>>` of the id type). This is technically a breaking change, but extremely unlikely
   to affect any existing code.
 
+# 0.16.2
+
 Improvements:
 
 * Update the internal representation of identifiers to be more compact
