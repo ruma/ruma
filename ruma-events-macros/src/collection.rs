@@ -28,8 +28,8 @@ pub fn expand_collection(input: RumaCollectionInput) -> syn::Result<TokenStream>
 
     let collection = quote! {
         #( #attrs )*
-        #[derive(Clone, Debug, Serialize)]
-        #[serde(untagged)]
+        #[derive(Clone, Debug, /*Serialize*/)]
+        //#[serde(untagged)]
         #[allow(clippy::large_enum_variant)]
         pub enum #ident {
             #( #variants ),*

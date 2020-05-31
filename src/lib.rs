@@ -168,7 +168,7 @@ pub use self::{
     event_type::EventType,
     from_raw::{FromRaw, TryFromRaw},
     json::EventJson,
-    state::{AnyStateEventContent, StateEvent},
+    state::StateEvent,
 };
 
 /// Extra information about an event that is not incorporated into the event's
@@ -207,19 +207,37 @@ impl UnsignedData {
 /// The base trait that all event content types implement.
 ///
 /// Implementing this trait allows content types to be serialized as well as deserialized.
-pub trait EventContent: Sized + Serialize {
-    /// Constructs the given event content.
-    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, InvalidEvent>;
-
+pub trait EventContent: TryFromRaw + Serialize
+where
+    Self::Raw: RawEventContent,
+{
     /// A matrix event identifier, like `m.room.message`.
     fn event_type(&self) -> &str;
 }
 
+#[doc(hidden)]
+pub trait RawEventContent: Sized {
+    /// Constructs the given event content.
+    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, String>;
+}
+
 /// Marker trait for the content of a room event.
-pub trait RoomEventContent: EventContent {}
+pub trait RoomEventContent: EventContent
+where
+    Self::Raw: RawEventContent,
+{
+}
 
 /// Marker trait for the content of a message event.
-pub trait MessageEventContent: RoomEventContent {}
+pub trait MessageEventContent: RoomEventContent
+where
+    Self::Raw: RawEventContent,
+{
+}
 
 /// Marker trait for the content of a state event.
-pub trait StateEventContent: RoomEventContent {}
+pub trait StateEventContent: RoomEventContent
+where
+    Self::Raw: RawEventContent,
+{
+}

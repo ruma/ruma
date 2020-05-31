@@ -7,6 +7,8 @@ use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
+use crate::StateEvent;
+
 /// The current membership state of a user in the room.
 ///
 /// Adjusts the membership state for a user in a room. It is preferable to use the membership
@@ -150,44 +152,44 @@ pub enum MembershipChange {
     NotImplemented,
 }
 
-// impl MemberEvent {
-//     /// Helper function for membership change. Check [the specification][spec] for details.
-//     ///
-//     /// [spec]: https://matrix.org/docs/spec/client_server/latest#m-room-member
-//     pub fn membership_change(&self) -> MembershipChange {
-//         use MembershipState::*;
-//         let prev_membership = if let Some(prev_content) = &self.prev_content {
-//             prev_content.membership
-//         } else {
-//             Leave
-//         };
-//         match (prev_membership, &self.content.membership) {
-//             (Invite, Invite) | (Leave, Leave) | (Ban, Ban) => MembershipChange::None,
-//             (Invite, Join) | (Leave, Join) => MembershipChange::Joined,
-//             (Invite, Leave) => {
-//                 if self.sender == self.state_key {
-//                     MembershipChange::InvitationRevoked
-//                 } else {
-//                     MembershipChange::InvitationRejected
-//                 }
-//             }
-//             (Invite, Ban) | (Leave, Ban) => MembershipChange::Banned,
-//             (Join, Invite) | (Ban, Invite) | (Ban, Join) => MembershipChange::Error,
-//             (Join, Join) => MembershipChange::ProfileChanged,
-//             (Join, Leave) => {
-//                 if self.sender == self.state_key {
-//                     MembershipChange::Left
-//                 } else {
-//                     MembershipChange::Kicked
-//                 }
-//             }
-//             (Join, Ban) => MembershipChange::KickedAndBanned,
-//             (Leave, Invite) => MembershipChange::Invited,
-//             (Ban, Leave) => MembershipChange::Unbanned,
-//             (Knock, _) | (_, Knock) => MembershipChange::NotImplemented,
-//         }
-//     }
-// }
+impl StateEvent<MemberEventContent> {
+    /// Helper function for membership change. Check [the specification][spec] for details.
+    ///
+    /// [spec]: https://matrix.org/docs/spec/client_server/latest#m-room-member
+    pub fn membership_change(&self) -> MembershipChange {
+        use MembershipState::*;
+        let prev_membership = if let Some(prev_content) = &self.prev_content {
+            prev_content.membership
+        } else {
+            Leave
+        };
+        match (prev_membership, &self.content.membership) {
+            (Invite, Invite) | (Leave, Leave) | (Ban, Ban) => MembershipChange::None,
+            (Invite, Join) | (Leave, Join) => MembershipChange::Joined,
+            (Invite, Leave) => {
+                if self.sender == self.state_key {
+                    MembershipChange::InvitationRevoked
+                } else {
+                    MembershipChange::InvitationRejected
+                }
+            }
+            (Invite, Ban) | (Leave, Ban) => MembershipChange::Banned,
+            (Join, Invite) | (Ban, Invite) | (Ban, Join) => MembershipChange::Error,
+            (Join, Join) => MembershipChange::ProfileChanged,
+            (Join, Leave) => {
+                if self.sender == self.state_key {
+                    MembershipChange::Left
+                } else {
+                    MembershipChange::Kicked
+                }
+            }
+            (Join, Ban) => MembershipChange::KickedAndBanned,
+            (Leave, Invite) => MembershipChange::Invited,
+            (Ban, Leave) => MembershipChange::Unbanned,
+            (Knock, _) | (_, Knock) => MembershipChange::NotImplemented,
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -197,10 +199,8 @@ mod tests {
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{
-        MemberEvent, MemberEventContent, MembershipState, SignedContent, ThirdPartyInvite,
-    };
-    use crate::EventJson;
+    use super::{MemberEventContent, MembershipState, SignedContent, ThirdPartyInvite};
+    use crate::{EventJson, StateEvent};
 
     #[test]
     fn serde_with_no_prev_content() {
@@ -217,11 +217,11 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<EventJson<MemberEvent>>(json)
+            from_json_value::<EventJson<StateEvent<MemberEventContent>>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            MemberEvent {
+            StateEvent::<MemberEventContent> {
                 content: MemberEventContent {
                     avatar_url: None,
                     displayname: None,
@@ -231,7 +231,7 @@ mod tests {
                 },
                 event_id,
                 origin_server_ts,
-                room_id: Some(room_id),
+                room_id,
                 sender,
                 state_key,
                 unsigned,
@@ -263,11 +263,11 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<EventJson<MemberEvent>>(json)
+            from_json_value::<EventJson<StateEvent<MemberEventContent>>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            MemberEvent {
+            StateEvent::<MemberEventContent> {
                 content: MemberEventContent {
                     avatar_url: None,
                     displayname: None,
@@ -277,7 +277,7 @@ mod tests {
                 },
                 event_id,
                 origin_server_ts,
-                room_id: Some(room_id),
+                room_id,
                 sender,
                 state_key,
                 unsigned,
@@ -327,11 +327,11 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<EventJson<MemberEvent>>(json)
+            from_json_value::<EventJson<StateEvent<MemberEventContent>>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            MemberEvent {
+            StateEvent::<MemberEventContent> {
                 content: MemberEventContent {
                     avatar_url: Some(avatar_url),
                     displayname: Some(displayname),
@@ -344,7 +344,7 @@ mod tests {
                 },
                 event_id,
                 origin_server_ts,
-                room_id: Some(room_id),
+                room_id,
                 sender,
                 state_key,
                 unsigned,
@@ -401,11 +401,11 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<EventJson<MemberEvent>>(json)
+            from_json_value::<EventJson<StateEvent<MemberEventContent>>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            MemberEvent {
+            StateEvent::<MemberEventContent> {
                 content: MemberEventContent {
                     avatar_url: None,
                     displayname: None,
@@ -415,7 +415,7 @@ mod tests {
                 },
                 event_id,
                 origin_server_ts,
-                room_id: Some(room_id),
+                room_id,
                 sender,
                 state_key,
                 unsigned,

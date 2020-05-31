@@ -20,7 +20,8 @@ use serde_json::value::RawValue as RawJsonValue;
 use crate::{
     error::{InvalidEvent, InvalidEventKind},
     room::{aliases::AliasesEventContent, avatar::AvatarEventContent},
-    EventContent, RoomEventContent, StateEventContent, TryFromRaw, UnsignedData,
+    EventContent, FromRaw, RawEventContent, RoomEventContent, StateEventContent, TryFromRaw,
+    UnsignedData,
 };
 use ruma_events_macros::event_content_collection;
 
@@ -32,7 +33,10 @@ event_content_collection! {
 
 /// State event.
 #[derive(Clone, Debug)]
-pub struct StateEvent<C: StateEventContent> {
+pub struct StateEvent<C: StateEventContent>
+where
+    C::Raw: RawEventContent,
+{
     /// Data specific to the event type.
     pub content: C,
 
@@ -61,39 +65,36 @@ pub struct StateEvent<C: StateEventContent> {
     pub unsigned: UnsignedData,
 }
 
+impl FromRaw for AnyStateEventContent {
+    type Raw = raw::AnyStateEventContent;
+
+    fn from_raw(raw: Self::Raw) -> Self {
+        use raw::AnyStateEventContent::*;
+
+        match raw {
+            RoomAliases(c) => Self::RoomAliases(FromRaw::from_raw(c)),
+            RoomAvatar(c) => Self::RoomAvatar(FromRaw::from_raw(c)),
+        }
+    }
+}
+
+impl Serialize for AnyStateEventContent {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            AnyStateEventContent::RoomAliases(content) => content.serialize(serializer),
+            AnyStateEventContent::RoomAvatar(content) => content.serialize(serializer),
+        }
+    }
+}
+
 impl EventContent for AnyStateEventContent {
     fn event_type(&self) -> &str {
         match self {
             AnyStateEventContent::RoomAliases(content) => content.event_type(),
             AnyStateEventContent::RoomAvatar(content) => content.event_type(),
-        }
-    }
-
-    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, InvalidEvent> {
-        fn deserialize_variant<T: StateEventContent>(
-            ev_type: &str,
-            input: Box<RawJsonValue>,
-            variant: fn(T) -> AnyStateEventContent,
-        ) -> Result<AnyStateEventContent, InvalidEvent> {
-            let content = T::from_parts(ev_type, input)?;
-            Ok(variant(content))
-        }
-
-        match event_type {
-            "m.room.avatar" => deserialize_variant::<AvatarEventContent>(
-                event_type,
-                content,
-                AnyStateEventContent::RoomAvatar,
-            ),
-            "m.room.aliases" => deserialize_variant::<AliasesEventContent>(
-                event_type,
-                content,
-                AnyStateEventContent::RoomAliases,
-            ),
-            ev => Err(InvalidEvent {
-                kind: InvalidEventKind::Deserialization,
-                message: format!("event not supported {}", ev),
-            }),
         }
     }
 }
@@ -102,7 +103,32 @@ impl RoomEventContent for AnyStateEventContent {}
 
 impl StateEventContent for AnyStateEventContent {}
 
-impl<C: StateEventContent> Serialize for StateEvent<C> {
+impl<C> TryFromRaw for StateEvent<C>
+where
+    C: StateEventContent + TryFromRaw,
+    C::Raw: RawEventContent,
+{
+    type Raw = raw::StateEvent<C::Raw>;
+    type Err = C::Err;
+
+    fn try_from_raw(raw: Self::Raw) -> Result<Self, Self::Err> {
+        Ok(Self {
+            content: C::try_from_raw(raw.content)?,
+            event_id: raw.event_id,
+            sender: raw.sender,
+            origin_server_ts: raw.origin_server_ts,
+            room_id: raw.room_id,
+            state_key: raw.state_key,
+            prev_content: raw.prev_content.map(C::try_from_raw).transpose()?,
+            unsigned: raw.unsigned,
+        })
+    }
+}
+
+impl<C: StateEventContent> Serialize for StateEvent<C>
+where
+    C::Raw: RawEventContent,
+{
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -130,146 +156,238 @@ impl<C: StateEventContent> Serialize for StateEvent<C> {
     }
 }
 
-impl<'de, C: StateEventContent> Deserialize<'de> for StateEvent<C> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_map(StateEventVisitor(std::marker::PhantomData))
-    }
-}
+mod raw {
+    use std::{
+        fmt,
+        marker::PhantomData,
+        time::{Duration, SystemTime, UNIX_EPOCH},
+    };
 
-#[derive(serde::Deserialize)]
-#[serde(field_identifier, rename_all = "snake_case")]
-enum Field {
-    Type,
-    Content,
-    EventId,
-    Sender,
-    OriginServerTs,
-    RoomId,
-    StateKey,
-    PrevContent,
-    Unsigned,
-}
+    use js_int::UInt;
+    use ruma_events_macros::event_content_collection;
+    use ruma_identifiers::{EventId, RoomId, UserId};
+    use serde::{
+        de::{self, Deserialize, Deserializer, Error as _, MapAccess, Visitor},
+        Serialize,
+    };
+    use serde_json::value::RawValue as RawJsonValue;
 
-/// Visits the fields of a StateEvent<C> to handle deserialization of
-/// the `content` and `prev_content` fields.
-struct StateEventVisitor<C: StateEventContent>(PhantomData<C>);
+    use crate::{
+        room::{aliases::raw::AliasesEventContent, avatar::raw::AvatarEventContent},
+        RawEventContent, UnsignedData,
+    };
 
-impl<'de, C: StateEventContent> Visitor<'de> for StateEventVisitor<C> {
-    type Value = StateEvent<C>;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "struct implementing StateEventContent")
+    event_content_collection! {
+        /// A state event.
+        name: AnyStateEventContent,
+        events: ["m.room.aliases", "m.room.avatar"]
     }
 
-    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-    where
-        A: MapAccess<'de>,
-    {
-        let mut content: Option<Box<RawJsonValue>> = None;
-        let mut event_type: Option<String> = None;
-        let mut event_id: Option<EventId> = None;
-        let mut sender: Option<UserId> = None;
-        let mut origin_server_ts: Option<UInt> = None;
-        let mut room_id: Option<RoomId> = None;
-        let mut state_key: Option<String> = None;
-        let mut prev_content: Option<Box<RawJsonValue>> = None;
-        let mut unsigned: Option<UnsignedData> = None;
+    impl RawEventContent for AnyStateEventContent {
+        fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, String> {
+            fn deserialize_variant<T: RawEventContent>(
+                ev_type: &str,
+                input: Box<RawJsonValue>,
+                variant: fn(T) -> AnyStateEventContent,
+            ) -> Result<AnyStateEventContent, String> {
+                let content = T::from_parts(ev_type, input)?;
+                Ok(variant(content))
+            }
 
-        while let Some(key) = map.next_key()? {
-            match key {
-                Field::Content => {
-                    if content.is_some() {
-                        return Err(de::Error::duplicate_field("content"));
-                    }
-                    content = Some(map.next_value()?);
-                }
-                Field::EventId => {
-                    if event_id.is_some() {
-                        return Err(de::Error::duplicate_field("event_id"));
-                    }
-                    event_id = Some(map.next_value()?);
-                }
-                Field::Sender => {
-                    if sender.is_some() {
-                        return Err(de::Error::duplicate_field("sender"));
-                    }
-                    sender = Some(map.next_value()?);
-                }
-                Field::OriginServerTs => {
-                    if origin_server_ts.is_some() {
-                        return Err(de::Error::duplicate_field("origin_server_ts"));
-                    }
-                    origin_server_ts = Some(map.next_value()?);
-                }
-                Field::RoomId => {
-                    if room_id.is_some() {
-                        return Err(de::Error::duplicate_field("room_id"));
-                    }
-                    room_id = Some(map.next_value()?);
-                }
-                Field::StateKey => {
-                    if state_key.is_some() {
-                        return Err(de::Error::duplicate_field("state_key"));
-                    }
-                    state_key = Some(map.next_value()?);
-                }
-                Field::PrevContent => {
-                    if prev_content.is_some() {
-                        return Err(de::Error::duplicate_field("prev_content"));
-                    }
-                    prev_content = Some(map.next_value()?);
-                }
-                Field::Type => {
-                    if event_type.is_some() {
-                        return Err(de::Error::duplicate_field("type"));
-                    }
-                    event_type = Some(map.next_value()?);
-                }
-                Field::Unsigned => {
-                    if unsigned.is_some() {
-                        return Err(de::Error::duplicate_field("unsigned"));
-                    }
-                    unsigned = Some(map.next_value()?);
-                }
+            match event_type {
+                "m.room.avatar" => deserialize_variant::<AvatarEventContent>(
+                    event_type,
+                    content,
+                    AnyStateEventContent::RoomAvatar,
+                ),
+                "m.room.aliases" => deserialize_variant::<AliasesEventContent>(
+                    event_type,
+                    content,
+                    AnyStateEventContent::RoomAliases,
+                ),
+                ev => Err(format!("event not supported {}", ev)),
             }
         }
+    }
 
-        let event_type = event_type.ok_or_else(|| de::Error::missing_field("type"))?;
+    /// State event.
+    #[derive(Clone, Debug)]
+    pub struct StateEvent<C> {
+        /// Data specific to the event type.
+        pub content: C,
 
-        let raw = content.ok_or_else(|| de::Error::missing_field("content"))?;
-        let content = C::from_parts(&event_type, raw).map_err(A::Error::custom)?;
+        /// The globally unique event identifier for the user who sent the event.
+        pub event_id: EventId,
 
-        let event_id = event_id.ok_or_else(|| de::Error::missing_field("event_id"))?;
-        let sender = sender.ok_or_else(|| de::Error::missing_field("sender"))?;
+        /// Contains the fully-qualified ID of the user who sent this event.
+        pub sender: UserId,
 
-        let origin_server_ts = origin_server_ts
-            .map(|time| UNIX_EPOCH + Duration::from_millis(time.into()))
-            .ok_or_else(|| de::Error::missing_field("origin_server_ts"))?;
+        /// Timestamp in milliseconds on originating homeserver when this event was sent.
+        pub origin_server_ts: SystemTime,
 
-        let room_id = room_id.ok_or_else(|| de::Error::missing_field("room_id"))?;
-        let state_key = state_key.ok_or_else(|| de::Error::missing_field("state_key"))?;
+        /// The ID of the room associated with this event.
+        pub room_id: RoomId,
 
-        let prev_content = if let Some(raw) = prev_content {
-            Some(C::from_parts(&event_type, raw).map_err(A::Error::custom)?)
-        } else {
-            None
-        };
+        /// A unique key which defines the overwriting semantics for this piece of room state.
+        ///
+        /// This is often an empty string, but some events send a `UserId` to show
+        /// which user the event affects.
+        pub state_key: String,
 
-        let unsigned = unsigned.unwrap_or_default();
+        /// Optional previous content for this event.
+        pub prev_content: Option<C>,
 
-        Ok(StateEvent {
-            content,
-            event_id,
-            sender,
-            origin_server_ts,
-            room_id,
-            state_key,
-            prev_content,
-            unsigned,
-        })
+        /// Additional key-value pairs not signed by the homeserver.
+        pub unsigned: UnsignedData,
+    }
+
+    impl<'de, C> Deserialize<'de> for StateEvent<C>
+    where
+        C: RawEventContent,
+    {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            deserializer.deserialize_map(StateEventVisitor(std::marker::PhantomData))
+        }
+    }
+
+    #[derive(serde::Deserialize)]
+    #[serde(field_identifier, rename_all = "snake_case")]
+    enum Field {
+        Type,
+        Content,
+        EventId,
+        Sender,
+        OriginServerTs,
+        RoomId,
+        StateKey,
+        PrevContent,
+        Unsigned,
+    }
+
+    /// Visits the fields of a StateEvent<C> to handle deserialization of
+    /// the `content` and `prev_content` fields.
+    struct StateEventVisitor<C>(PhantomData<C>);
+
+    impl<'de, C> Visitor<'de> for StateEventVisitor<C>
+    where
+        C: RawEventContent,
+    {
+        type Value = StateEvent<C>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(formatter, "struct implementing StateEventContent")
+        }
+
+        fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+        where
+            A: MapAccess<'de>,
+        {
+            let mut content: Option<Box<RawJsonValue>> = None;
+            let mut event_type: Option<String> = None;
+            let mut event_id: Option<EventId> = None;
+            let mut sender: Option<UserId> = None;
+            let mut origin_server_ts: Option<UInt> = None;
+            let mut room_id: Option<RoomId> = None;
+            let mut state_key: Option<String> = None;
+            let mut prev_content: Option<Box<RawJsonValue>> = None;
+            let mut unsigned: Option<UnsignedData> = None;
+
+            while let Some(key) = map.next_key()? {
+                match key {
+                    Field::Content => {
+                        if content.is_some() {
+                            return Err(de::Error::duplicate_field("content"));
+                        }
+                        content = Some(map.next_value()?);
+                    }
+                    Field::EventId => {
+                        if event_id.is_some() {
+                            return Err(de::Error::duplicate_field("event_id"));
+                        }
+                        event_id = Some(map.next_value()?);
+                    }
+                    Field::Sender => {
+                        if sender.is_some() {
+                            return Err(de::Error::duplicate_field("sender"));
+                        }
+                        sender = Some(map.next_value()?);
+                    }
+                    Field::OriginServerTs => {
+                        if origin_server_ts.is_some() {
+                            return Err(de::Error::duplicate_field("origin_server_ts"));
+                        }
+                        origin_server_ts = Some(map.next_value()?);
+                    }
+                    Field::RoomId => {
+                        if room_id.is_some() {
+                            return Err(de::Error::duplicate_field("room_id"));
+                        }
+                        room_id = Some(map.next_value()?);
+                    }
+                    Field::StateKey => {
+                        if state_key.is_some() {
+                            return Err(de::Error::duplicate_field("state_key"));
+                        }
+                        state_key = Some(map.next_value()?);
+                    }
+                    Field::PrevContent => {
+                        if prev_content.is_some() {
+                            return Err(de::Error::duplicate_field("prev_content"));
+                        }
+                        prev_content = Some(map.next_value()?);
+                    }
+                    Field::Type => {
+                        if event_type.is_some() {
+                            return Err(de::Error::duplicate_field("type"));
+                        }
+                        event_type = Some(map.next_value()?);
+                    }
+                    Field::Unsigned => {
+                        if unsigned.is_some() {
+                            return Err(de::Error::duplicate_field("unsigned"));
+                        }
+                        unsigned = Some(map.next_value()?);
+                    }
+                }
+            }
+
+            let event_type = event_type.ok_or_else(|| de::Error::missing_field("type"))?;
+
+            let raw = content.ok_or_else(|| de::Error::missing_field("content"))?;
+            let content = C::from_parts(&event_type, raw).map_err(A::Error::custom)?;
+
+            let event_id = event_id.ok_or_else(|| de::Error::missing_field("event_id"))?;
+            let sender = sender.ok_or_else(|| de::Error::missing_field("sender"))?;
+
+            let origin_server_ts = origin_server_ts
+                .map(|time| UNIX_EPOCH + Duration::from_millis(time.into()))
+                .ok_or_else(|| de::Error::missing_field("origin_server_ts"))?;
+
+            let room_id = room_id.ok_or_else(|| de::Error::missing_field("room_id"))?;
+            let state_key = state_key.ok_or_else(|| de::Error::missing_field("state_key"))?;
+
+            let prev_content = if let Some(raw) = prev_content {
+                Some(C::from_parts(&event_type, raw).map_err(A::Error::custom)?)
+            } else {
+                None
+            };
+
+            let unsigned = unsigned.unwrap_or_default();
+
+            Ok(StateEvent {
+                content,
+                event_id,
+                sender,
+                origin_server_ts,
+                room_id,
+                state_key,
+                prev_content,
+                unsigned,
+            })
+        }
     }
 }
 
@@ -288,7 +406,7 @@ mod tests {
     use super::{AliasesEventContent, AnyStateEventContent, AvatarEventContent, StateEvent};
     use crate::{
         room::{ImageInfo, ThumbnailInfo},
-        UnsignedData,
+        EventJson, UnsignedData,
     };
 
     #[test]
@@ -359,6 +477,22 @@ mod tests {
     }
 
     #[test]
+    fn deserialize_aliases_content() {
+        let json_data = json!({
+            "aliases": [ "#somewhere:localhost" ]
+        });
+
+        assert_matches!(
+            from_json_value::<EventJson<AnyStateEventContent>>(json_data)
+                .unwrap()
+                .deserialize_content("m.room.aliases")
+                .unwrap(),
+            AnyStateEventContent::RoomAliases(content)
+            if content.aliases == vec![RoomAliasId::try_from("#somewhere:localhost").unwrap()]
+        );
+    }
+
+    #[test]
     fn deserialize_aliases_with_prev_content() {
         let json_data = json!({
             "content": {
@@ -376,7 +510,10 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<StateEvent<AnyStateEventContent>>(json_data).unwrap(),
+            from_json_value::<EventJson<StateEvent<AnyStateEventContent>>>(json_data)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
             StateEvent {
                 content: AnyStateEventContent::RoomAliases(content),
                 event_id,
@@ -425,7 +562,10 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<StateEvent<AnyStateEventContent>>(json_data).unwrap(),
+            from_json_value::<EventJson<StateEvent<AnyStateEventContent>>>(json_data)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
             StateEvent {
                 content: AnyStateEventContent::RoomAvatar(AvatarEventContent {
                     info: Some(info),

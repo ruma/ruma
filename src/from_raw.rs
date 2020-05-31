@@ -9,7 +9,7 @@ use serde::de::DeserializeOwned;
 /// [try]: trait.TryFromRaw.html
 pub trait FromRaw: Sized {
     /// The raw type.
-    type Raw: DeserializeOwned;
+    type Raw;
 
     /// Converts the raw type to `Self`.
     fn from_raw(_: Self::Raw) -> Self;
@@ -19,7 +19,7 @@ pub trait FromRaw: Sized {
 /// corresponding 'raw' type, a potentially invalid representation that can be converted to `Self`.
 pub trait TryFromRaw: Sized {
     /// The raw type.
-    type Raw: DeserializeOwned;
+    type Raw;
     /// The error type returned if conversion fails.
     type Err: Display;
 

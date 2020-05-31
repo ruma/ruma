@@ -5,14 +5,14 @@ use std::{
 };
 
 use serde::{
-    de::{Deserialize, Deserializer},
+    de::{Deserialize, DeserializeOwned, Deserializer},
     ser::{Serialize, Serializer},
 };
 use serde_json::value::RawValue;
 
 use crate::{
     error::{InvalidEvent, InvalidEventKind},
-    TryFromRaw,
+    EventContent, RawEventContent, TryFromRaw,
 };
 
 /// A wrapper around `Box<RawValue>`, to be used in place of event [content] [collection] types in
@@ -42,7 +42,10 @@ impl<T> EventJson<T> {
     }
 }
 
-impl<T: TryFromRaw> EventJson<T> {
+impl<T: TryFromRaw> EventJson<T>
+where
+    T::Raw: DeserializeOwned,
+{
     /// Try to deserialize the JSON into the expected event type.
     pub fn deserialize(&self) -> Result<T, InvalidEvent> {
         let raw_ev: T::Raw = match serde_json::from_str(self.json.get()) {
@@ -56,6 +59,32 @@ impl<T: TryFromRaw> EventJson<T> {
         };
 
         match T::try_from_raw(raw_ev) {
+            Ok(value) => Ok(value),
+            Err(err) => Err(InvalidEvent {
+                message: err.to_string(),
+                kind: InvalidEventKind::Validation,
+            }),
+        }
+    }
+}
+
+impl<T: EventContent> EventJson<T>
+where
+    T::Raw: RawEventContent,
+{
+    /// Try to deserialize the JSON as event content
+    pub fn deserialize_content(self, event_type: &str) -> Result<T, InvalidEvent> {
+        let raw_content = match T::Raw::from_parts(event_type, self.json) {
+            Ok(raw) => raw,
+            Err(message) => {
+                return Err(InvalidEvent {
+                    message,
+                    kind: InvalidEventKind::Deserialization,
+                });
+            }
+        };
+
+        match T::try_from_raw(raw_content) {
             Ok(value) => Ok(value),
             Err(err) => Err(InvalidEvent {
                 message: err.to_string(),
