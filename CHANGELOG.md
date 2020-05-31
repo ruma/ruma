@@ -11,6 +11,7 @@ Breaking changes:
 
 Improvements:
 
+* Update the internal representation of identifiers to be more compact
 * Add `RoomVersionId::version_6` and `RoomVersionId::is_version_6`
 
 # 0.16.1
