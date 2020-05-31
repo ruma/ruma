@@ -18,9 +18,9 @@ js_int = { version = "0.1.5", features = ["serde"] }
 ruma-api = "0.16.1"
 ruma-common = "0.1.2"
 ruma-events = { git = "https://github.com/ruma/ruma-events", rev = "7395f94" }
-ruma-identifiers = "0.16.1"
-ruma-serde = "0.2.1"
-serde = { version = "1.0.110", features = ["derive"] }
+ruma-identifiers = "0.16.2"
+ruma-serde = "0.2.2"
+serde = { version = "1.0.111", features = ["derive"] }
 serde_json = "1.0.53"
 strum = { version = "0.18.0", features = ["derive"] }
 
