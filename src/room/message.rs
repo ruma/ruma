@@ -207,7 +207,7 @@ pub struct AudioMessageEventContent {
     pub info: Option<AudioInfo>,
 
     /// The URL to the audio clip. Required if the file is unencrypted. The URL (typically
-    /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to the audio clip.
+    /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri)) to the audio clip.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 
@@ -264,7 +264,7 @@ pub struct FileMessageEventContent {
     pub info: Option<FileInfo>,
 
     /// The URL to the file. Required if the file is unencrypted. The URL (typically
-    /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to the file.
+    /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri)) to the file.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 
@@ -309,7 +309,7 @@ pub struct ImageMessageEventContent {
     pub info: Option<ImageInfo>,
 
     /// The URL to the image. Required if the file is unencrypted. The URL (typically
-    /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to the image.
+    /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri)) to the image.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 
@@ -367,7 +367,7 @@ pub struct NoticeMessageEventContent {
     pub formatted_body: Option<String>,
 
     /// Information about related messages for
-    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.5.0#rich-replies).
+    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
     #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<RelatesTo>,
 }
@@ -429,7 +429,7 @@ pub struct TextMessageEventContent {
     pub formatted_body: Option<String>,
 
     /// Information about related messages for
-    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.5.0#rich-replies).
+    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
     #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<RelatesTo>,
 }
@@ -446,7 +446,7 @@ pub struct VideoMessageEventContent {
     pub info: Option<VideoInfo>,
 
     /// The URL to the video clip.  Required if the file is unencrypted. The URL (typically
-    /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to the video clip.
+    /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri)) to the video clip.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
 
@@ -484,7 +484,7 @@ pub struct VideoInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_info: Option<ThumbnailInfo>,
 
-    /// The URL (typically [MXC URI](https://matrix.org/docs/spec/client_server/r0.5.0#mxc-uri)) to
+    /// The URL (typically [MXC URI](https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri)) to
     /// an image thumbnail of the video clip. Only present if the thumbnail is unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_url: Option<String>,
@@ -495,7 +495,7 @@ pub struct VideoInfo {
 }
 
 /// Information about related messages for
-/// [rich replies](https://matrix.org/docs/spec/client_server/r0.5.0#rich-replies).
+/// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RelatesTo {
     /// Information about another message being replied to.
