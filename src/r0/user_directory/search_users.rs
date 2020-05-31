@@ -1,4 +1,4 @@
-//! [POST /_matrix/client/r0/user_directory/search](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-user-directory-search)
+//! [POST /_matrix/client/r0/user_directory/search](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-user-directory-search)
 
 use js_int::UInt;
 use ruma_api::ruma_api;
@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 ruma_api! {
     metadata {
-        description: "Performs a search for users on the homeserver.",
+        description: "Performs a search for users.",
         method: POST,
         name: "search_users",
         path: "/_matrix/client/r0/user_directory/search",
