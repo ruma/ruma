@@ -8,6 +8,8 @@ Breaking changes:
 * Update `r0::room::create_room::CreationContent`
   * Change `federated`s type from `Option<bool>` to `bool`
   * Add `predecessor` field
+* Update `r0::push::get_pushrules_all` and `r0::push::get_pushrules_global_scope` to use the
+  `Ruleset` type from `ruma_events`
 
 Improvements:
 
