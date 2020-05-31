@@ -423,6 +423,7 @@ pub struct FormattedBody {
     pub format: MessageFormat,
 
     /// The formatted version of the `body`.
+    #[serde(rename = "formatted_body")]
     pub body: String,
 }
 
