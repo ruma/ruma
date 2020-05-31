@@ -5,6 +5,11 @@ Breaking changes:
 * Add `alt_aliases` to `CanonicalAliasEventContent`
 * Replace `format` and `formatted_body` fields in `TextMessagEventContent`,
   `NoticeMessageEventContent` and `EmoteMessageEventContent` with `formatted: FormattedBody`
+* Rename `override_rules` in `push_rules::Ruleset` to `override_`
+* Change `push_rules::PushCondition` variants from newtype variants with separate inner types to
+  struct variants
+  * This change removes the types `EventMatchCondition`, `RoomMemberCountCondition` and
+    `SenderNotificationPermissionCondition`
 
 Improvements:
 

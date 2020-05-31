@@ -1,10 +1,7 @@
 //! Types for the the *m.push_rules* event.
 
 use ruma_events_macros::ruma_event;
-use serde::{
-    de::Error, ser::SerializeStruct as _, Deserialize, Deserializer, Serialize, Serializer,
-};
-use serde_json::{from_value, Value as JsonValue};
+use serde::{Deserialize, Serialize};
 
 ruma_event! {
     /// Describes all push rules for a user.
@@ -30,8 +27,11 @@ pub struct Ruleset {
     pub content: Vec<PatternedPushRule>,
 
     /// These user-configured rules are given the highest priority.
+    ///
+    /// This field is named `override_` instead of `override` because the latter is a reserved
+    /// keyword in Rust.
     #[serde(rename = "override")]
-    pub override_rules: Vec<ConditionalPushRule>,
+    pub override_: Vec<ConditionalPushRule>,
 
     /// These rules change the behaviour of all messages for a given room.
     pub room: Vec<PushRule>,
@@ -109,132 +109,43 @@ pub struct PatternedPushRule {
 }
 
 /// A condition that must apply for an associated push rule's action to be taken.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
 pub enum PushCondition {
     /// This is a glob pattern match on a field of the event.
-    EventMatch(EventMatchCondition),
+    EventMatch {
+        /// The dot-separated field of the event to match.
+        key: String,
+
+        /// The glob-style pattern to match against.
+        ///
+        /// Patterns with no special glob characters should be treated as having asterisks prepended
+        /// and appended when testing the condition.
+        pattern: String,
+    },
 
     /// This matches unencrypted messages where `content.body` contains the owner's display name in
     /// that room.
     ContainsDisplayName,
 
     /// This matches the current number of members in the room.
-    RoomMemberCount(RoomMemberCountCondition),
+    RoomMemberCount {
+        /// A decimal integer optionally prefixed by one of `==`, `<`, `>`, `>=` or `<=`.
+        ///
+        /// A prefix of `<` matches rooms where the member count is strictly less than the given
+        /// number and so forth. If no prefix is present, this parameter defaults to `==`.
+        is: String,
+    },
 
     /// This takes into account the current power levels in the room, ensuring the sender of the
     /// event has high enough power to trigger the notification.
-    SenderNotificationPermission(SenderNotificationPermissionCondition),
-}
-
-impl Serialize for PushCondition {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match *self {
-            PushCondition::EventMatch(ref condition) => condition.serialize(serializer),
-            PushCondition::ContainsDisplayName => {
-                let mut state = serializer.serialize_struct("ContainsDisplayNameCondition", 1)?;
-
-                state.serialize_field("kind", "contains_display_name")?;
-
-                state.end()
-            }
-            PushCondition::RoomMemberCount(ref condition) => condition.serialize(serializer),
-            PushCondition::SenderNotificationPermission(ref condition) => {
-                condition.serialize(serializer)
-            }
-        }
-    }
-}
-
-// TODO: Derive
-impl<'de> Deserialize<'de> for PushCondition {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let value: JsonValue = Deserialize::deserialize(deserializer)?;
-
-        let kind_value = match value.get("kind") {
-            Some(value) => value.clone(),
-            None => return Err(D::Error::missing_field("kind")),
-        };
-
-        let kind = match kind_value.as_str() {
-            Some(kind) => kind,
-            None => return Err(D::Error::custom("field `kind` must be a string")),
-        };
-
-        match kind {
-            "event_match" => {
-                let condition = match from_value::<EventMatchCondition>(value) {
-                    Ok(condition) => condition,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(PushCondition::EventMatch(condition))
-            }
-            "contains_display_name" => Ok(PushCondition::ContainsDisplayName),
-            "room_member_count" => {
-                let condition = match from_value::<RoomMemberCountCondition>(value) {
-                    Ok(condition) => condition,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(PushCondition::RoomMemberCount(condition))
-            }
-            "sender_notification_permission" => {
-                let condition = match from_value::<SenderNotificationPermissionCondition>(value) {
-                    Ok(condition) => condition,
-                    Err(error) => return Err(D::Error::custom(error.to_string())),
-                };
-
-                Ok(PushCondition::SenderNotificationPermission(condition))
-            }
-            unknown_kind => Err(D::Error::custom(&format!(
-                "unknown condition kind `{}`",
-                unknown_kind
-            ))),
-        }
-    }
-}
-
-/// A push condition that matches a glob pattern match on a field of the event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "kind", rename = "event_match")]
-pub struct EventMatchCondition {
-    /// The dot-separated field of the event to match.
-    pub key: String,
-
-    /// The glob-style pattern to match against.
-    ///
-    /// Patterns with no special glob characters should be treated as having asterisks prepended and
-    /// appended when testing the condition.
-    pub pattern: String,
-}
-
-/// A push condition that matches the current number of members in the room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "kind", rename = "room_member_count")]
-pub struct RoomMemberCountCondition {
-    /// A decimal integer optionally prefixed by one of `==`, `<`, `>`, `>=` or `<=`.
-    ///
-    /// A prefix of `<` matches rooms where the member count is strictly less than the given number
-    /// and so forth. If no prefix is present, this parameter defaults to `==`.
-    pub is: String,
-}
-
-/// A push condition that takes into account the current power levels in the room, ensuring the
-/// sender of the event has high enough power to trigger the notification.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "kind", rename = "sender_notification_permission")]
-pub struct SenderNotificationPermissionCondition {
-    /// The field in the power level event the user needs a minimum power level for.
-    ///
-    /// Fields must be specified under the `notifications` property in the power level event's
-    /// `content`.
-    pub key: String,
+    SenderNotificationPermission {
+        /// The field in the power level event the user needs a minimum power level for.
+        ///
+        /// Fields must be specified under the `notifications` property in the power level event's
+        /// `content`.
+        key: String,
+    },
 }
 
 #[cfg(test)]
@@ -242,10 +153,7 @@ mod tests {
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{
-        EventMatchCondition, PushCondition, PushRulesEvent, RoomMemberCountCondition,
-        SenderNotificationPermissionCondition,
-    };
+    use super::{PushCondition, PushRulesEvent};
     use crate::EventJson;
 
     #[test]
@@ -256,10 +164,10 @@ mod tests {
             "pattern": "m.notice"
         });
         assert_eq!(
-            to_json_value(&PushCondition::EventMatch(EventMatchCondition {
+            to_json_value(&PushCondition::EventMatch {
                 key: "content.msgtype".to_string(),
                 pattern: "m.notice".to_string(),
-            }))
+            })
             .unwrap(),
             json_data
         );
@@ -280,9 +188,9 @@ mod tests {
             "kind": "room_member_count"
         });
         assert_eq!(
-            to_json_value(&PushCondition::RoomMemberCount(RoomMemberCountCondition {
+            to_json_value(&PushCondition::RoomMemberCount {
                 is: "2".to_string(),
-            }))
+            })
             .unwrap(),
             json_data
         );
@@ -296,11 +204,9 @@ mod tests {
         });
         assert_eq!(
             json_data,
-            to_json_value(&PushCondition::SenderNotificationPermission(
-                SenderNotificationPermissionCondition {
-                    key: "room".to_string(),
-                }
-            ))
+            to_json_value(&PushCondition::SenderNotificationPermission {
+                key: "room".to_string(),
+            })
             .unwrap()
         );
     }
@@ -314,7 +220,7 @@ mod tests {
         });
         assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::EventMatch(EventMatchCondition { key, pattern })
+            PushCondition::EventMatch { key, pattern }
             if key == "content.msgtype" && pattern == "m.notice"
         );
     }
@@ -335,7 +241,7 @@ mod tests {
         });
         assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::RoomMemberCount(RoomMemberCountCondition { is })
+            PushCondition::RoomMemberCount { is }
             if is == "2"
         );
     }
@@ -348,9 +254,9 @@ mod tests {
         });
         assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
-            PushCondition::SenderNotificationPermission(SenderNotificationPermissionCondition {
+            PushCondition::SenderNotificationPermission {
                 key
-            }) if key == "room"
+            } if key == "room"
         );
     }
 
@@ -393,11 +299,11 @@ mod tests {
                                 "dont_notify"
                             ],
                             "conditions": [
-                            {
-                                "key": "content.msgtype",
-                                "kind": "event_match",
-                                "pattern": "m.notice"
-                            }
+                                {
+                                    "key": "content.msgtype",
+                                    "kind": "event_match",
+                                    "pattern": "m.notice"
+                                }
                             ],
                             "default": true,
                             "enabled": true,
@@ -420,11 +326,11 @@ mod tests {
                                 }
                             ],
                             "conditions": [
-                            {
-                                "key": "type",
-                                "kind": "event_match",
-                                "pattern": "m.call.invite"
-                            }
+                                {
+                                    "key": "type",
+                                    "kind": "event_match",
+                                    "pattern": "m.call.invite"
+                                }
                             ],
                             "default": true,
                             "enabled": true,
@@ -463,10 +369,10 @@ mod tests {
                                 }
                             ],
                             "conditions": [
-                            {
-                                "is": "2",
-                                "kind": "room_member_count"
-                            }
+                                {
+                                    "is": "2",
+                                    "kind": "room_member_count"
+                                }
                             ],
                             "default": true,
                             "enabled": true,
@@ -485,21 +391,21 @@ mod tests {
                                 }
                             ],
                             "conditions": [
-                            {
-                                "key": "type",
-                                "kind": "event_match",
-                                "pattern": "m.room.member"
-                            },
-                            {
-                                "key": "content.membership",
-                                "kind": "event_match",
-                                "pattern": "invite"
-                            },
-                            {
-                                "key": "state_key",
-                                "kind": "event_match",
-                                "pattern": "@alice:example.com"
-                            }
+                                {
+                                    "key": "type",
+                                    "kind": "event_match",
+                                    "pattern": "m.room.member"
+                                },
+                                {
+                                    "key": "content.membership",
+                                    "kind": "event_match",
+                                    "pattern": "invite"
+                                },
+                                {
+                                    "key": "state_key",
+                                    "kind": "event_match",
+                                    "pattern": "@alice:example.com"
+                                }
                             ],
                             "default": true,
                             "enabled": true,
@@ -514,11 +420,11 @@ mod tests {
                                 }
                             ],
                             "conditions": [
-                            {
-                                "key": "type",
-                                "kind": "event_match",
-                                "pattern": "m.room.member"
-                            }
+                                {
+                                    "key": "type",
+                                    "kind": "event_match",
+                                    "pattern": "m.room.member"
+                                }
                             ],
                             "default": true,
                             "enabled": true,
