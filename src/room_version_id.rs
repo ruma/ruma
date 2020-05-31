@@ -1,6 +1,7 @@
 //! Matrix room version identifiers.
 
 use std::{
+    cmp::Ordering,
     convert::TryFrom,
     fmt::{self, Display, Formatter},
 };
@@ -23,7 +24,7 @@ const MAX_CODE_POINTS: usize = 32;
 /// # use ruma_identifiers::RoomVersionId;
 /// assert_eq!(RoomVersionId::try_from("1").unwrap().as_ref(), "1");
 /// ```
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct RoomVersionId(InnerRoomVersionId);
 
 /// Possibile values for room version, distinguishing between official Matrix versions and custom
@@ -163,6 +164,18 @@ impl AsRef<str> for RoomVersionId {
 impl Display for RoomVersionId {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.as_ref())
+    }
+}
+
+impl PartialOrd for RoomVersionId {
+    fn partial_cmp(&self, other: &RoomVersionId) -> Option<Ordering> {
+        self.as_ref().partial_cmp(other.as_ref())
+    }
+}
+
+impl Ord for RoomVersionId {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.as_ref().cmp(other.as_ref())
     }
 }
 
