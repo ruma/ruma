@@ -19,6 +19,7 @@ pub mod set_pushrule_actions;
 pub mod set_pushrule_enabled;
 
 pub use ruma_common::push::Action;
+pub use ruma_events::push_rules::PushCondition;
 
 /// The kinds of push rules that are available
 #[derive(
@@ -74,39 +75,6 @@ pub struct PushRule {
     /// The glob-style pattern to match against. Only applicable to content rules.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pattern: Option<String>,
-}
-
-/// A condition for a push rule
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")] // Using internally tagged enum representation to match the spec
-pub enum PushCondition {
-    /// This is a glob pattern match on a field of the event.
-    EventMatch {
-        /// The dot-separated field of the event to match, e.g. `content.body`
-        key: String,
-
-        /// The glob-style pattern to match against.
-        pattern: String,
-    },
-
-    /// This matches unencrypted messages where `content.body` contains
-    /// the owner's display name in that room.
-    ContainsDisplayName,
-
-    /// This matches the current number of members in the room.
-    RoomMemberCount {
-        /// A decimal integer optionally prefixed by one of, ==, <, >, >= or <=.
-        /// Default prefix is ==.
-        is: String,
-    },
-
-    /// This takes into account the current power levels in the room, ensuring the
-    /// sender of the event has high enough power to trigger the notification.
-    SenderNotificationPermission {
-        /// A string that determines the power level the sender must have to
-        /// trigger notifications of a given type, such as `room`.
-        key: String,
-    },
 }
 
 /// Defines a pusher
