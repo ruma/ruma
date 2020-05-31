@@ -1,6 +1,7 @@
-//! [GET /_matrix/client/r0/capabilities](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-capabilities)
+//! [GET /_matrix/client/r0/capabilities](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-capabilities)
 
 use ruma_api::ruma_api;
+use ruma_identifiers::RoomVersionId;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use std::collections::BTreeMap;
@@ -56,17 +57,17 @@ pub struct RoomVersionsCapability {
     pub default: String,
 
     /// A detailed description of the room versions the server supports.
-    pub available: BTreeMap<String, RoomVersionStability>,
+    pub available: BTreeMap<RoomVersionId, RoomVersionStability>,
 }
 
 /// The stability of a room version
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum RoomVersionStability {
-    /// An unstable room version
+    /// Support for the given version is stable.
     #[serde(rename = "stable")]
     Stable,
 
-    /// A stable room version
+    /// Support for the given version is unstable.
     #[serde(rename = "unstable")]
     Unstable,
 }
