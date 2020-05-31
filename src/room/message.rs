@@ -238,14 +238,9 @@ pub struct EmoteMessageEventContent {
     /// The emote action to perform.
     pub body: String,
 
-    /// The format used in the `formatted_body`. Currently only `org.matrix.custom.html` is
-    /// supported.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub format: Option<String>,
-
-    /// The formatted version of the `body`. This is required if `format` is specified.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub formatted_body: Option<String>,
+    /// Formatted form of the message `body`.
+    #[serde(flatten)]
+    pub formatted: Option<FormattedBody>,
 }
 
 /// The payload for a file message.
@@ -357,14 +352,9 @@ pub struct NoticeMessageEventContent {
     /// The notice text to send.
     pub body: String,
 
-    /// The format used in the `formatted_body`. Currently only `org.matrix.custom.html` is
-    /// supported.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub format: Option<String>,
-
-    /// The formatted version of the `body`. This is required if `format` is specified.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub formatted_body: Option<String>,
+    /// Formatted form of the message `body`.
+    #[serde(flatten)]
+    pub formatted: Option<FormattedBody>,
 
     /// Information about related messages for
     /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
@@ -413,20 +403,38 @@ pub enum LimitType {
     MonthlyActiveUser,
 }
 
+/// The format for the formatted representation of a message body.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
+pub enum MessageFormat {
+    /// HTML.
+    #[serde(rename = "org.matrix.custom.html")]
+    Html,
+
+    /// A custom message format.
+    Custom(String),
+}
+
+/// Common message event content fields for message types that have separate plain-text and
+/// formatted representations.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct FormattedBody {
+    /// The format used in the `formatted_body`.
+    pub format: MessageFormat,
+
+    /// The formatted version of the `body`.
+    pub body: String,
+}
+
 /// The payload for a text message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct TextMessageEventContent {
     /// The body of the message.
     pub body: String,
 
-    /// The format used in the `formatted_body`. Currently only `org.matrix.custom.html` is
-    /// supported.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub format: Option<String>,
-
-    /// The formatted version of the `body`. This is required if `format` is specified.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub formatted_body: Option<String>,
+    /// Formatted form of the message `body`.
+    #[serde(flatten)]
+    pub formatted: Option<FormattedBody>,
 
     /// Information about related messages for
     /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
@@ -515,8 +523,7 @@ impl TextMessageEventContent {
     pub fn new_plain(body: impl Into<String>) -> TextMessageEventContent {
         TextMessageEventContent {
             body: body.into(),
-            format: None,
-            formatted_body: None,
+            formatted: None,
             relates_to: None,
         }
     }
@@ -533,7 +540,9 @@ mod tests {
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{AudioMessageEventContent, MessageEvent, MessageEventContent};
+    use super::{
+        AudioMessageEventContent, FormattedBody, MessageEvent, MessageEventContent, MessageFormat,
+    };
     use crate::room::message::{InReplyTo, RelatesTo, TextMessageEventContent};
     use crate::{EventJson, UnsignedData};
 
@@ -590,6 +599,28 @@ mod tests {
     }
 
     #[test]
+    fn formatted_body_serialization() {
+        let message_event_content = MessageEventContent::Text(TextMessageEventContent {
+            body: "Hello, World!".into(),
+            formatted: Some(FormattedBody {
+                format: MessageFormat::Html,
+                body: "Hello, <em>World</em>!".into(),
+            }),
+            relates_to: None,
+        });
+
+        assert_eq!(
+            to_json_value(&message_event_content).unwrap(),
+            json!({
+                "body": "Hello, World!",
+                "msgtype": "m.text",
+                "format": "org.matrix.custom.html",
+                "formatted_body": "Hello, <em>World</em>!",
+            })
+        );
+    }
+
+    #[test]
     fn plain_text_content_serialization() {
         let message_event_content = MessageEventContent::Text(TextMessageEventContent::new_plain(
             "> <@test:example.com> test\n\ntest reply",
@@ -608,8 +639,7 @@ mod tests {
     fn relates_to_content_serialization() {
         let message_event_content = MessageEventContent::Text(TextMessageEventContent {
             body: "> <@test:example.com> test\n\ntest reply".to_owned(),
-            format: None,
-            formatted_body: None,
+            formatted: None,
             relates_to: Some(RelatesTo {
                 in_reply_to: InReplyTo {
                     event_id: EventId::try_from("$15827405538098VGFWH:example.com").unwrap(),

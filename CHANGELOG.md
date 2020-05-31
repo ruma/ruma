@@ -3,6 +3,12 @@
 Breaking changes:
 
 * Add `alt_aliases` to `CanonicalAliasEventContent`
+* Replace `format` and `formatted_body` fields in `TextMessagEventContent`,
+  `NoticeMessageEventContent` and `EmoteMessageEventContent` with `formatted: FormattedBody`
+
+Improvements:
+
+* Add `room::MessageFormat` and `room::FormattedBody`
 
 # 0.21.3
 
