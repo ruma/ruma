@@ -10,52 +10,169 @@ use parse::RumaCollectionInput;
 pub fn expand_collection(input: RumaCollectionInput) -> syn::Result<TokenStream> {
     let attrs = &input.attrs;
     let ident = &input.name;
+    let event_type_str = &input.events;
 
-    let variants = input
+    let variants = input.events.iter().map(to_camel_case).collect::<Vec<_>>();
+    let content = input
         .events
         .iter()
-        .map(|lit| {
-            let content_docstring = lit;
-            let var = to_camel_case(lit);
-            let content = to_event_content(lit);
-
-            quote! {
-                #[doc = #content_docstring]
-                #var(#content)
-            }
-        })
+        .map(to_event_content_path)
         .collect::<Vec<_>>();
 
     let collection = quote! {
         #( #attrs )*
-        #[derive(Clone, Debug, /*Serialize*/)]
-        //#[serde(untagged)]
+        #[derive(Clone, Debug, ::serde::Serialize)]
+        #[serde(untagged)]
         #[allow(clippy::large_enum_variant)]
         pub enum #ident {
-            #( #variants ),*
+            #(
+                #[doc = #event_type_str]
+                #variants(#content)
+            ),*
         }
     };
 
-    Ok(collection)
+    let event_content_impl = quote! {
+        impl ::ruma_events::EventContent for #ident {
+            fn event_type(&self) -> &str {
+                match self {
+                    #( Self::#variants(content) => content.event_type()),*
+                }
+            }
+        }
+    };
+
+    let try_from_raw_impl = quote! {
+        impl ::ruma_events::TryFromRaw for #ident {
+            type Raw = raw::#ident;
+            type Err = String;
+
+            fn try_from_raw(raw: Self::Raw) -> Result<Self, Self::Err> {
+                use raw::#ident::*;
+
+                match raw {
+                    #( #variants(c) => {
+                            let content = ::ruma_events::TryFromRaw::try_from_raw(c)
+                                .map_err(|e: <#content as ::ruma_events::TryFromRaw>::Err| e.to_string())?;
+                                // without this ^^^^^^^^^^^ the compiler fails to infer the type
+                            Ok(Self::#variants(content))
+                        }
+                    ),*
+                }
+            }
+        }
+    };
+
+    let raw_mod = expand_raw_content_event(&input, &variants)?;
+
+    Ok(quote! {
+        #collection
+
+        #try_from_raw_impl
+
+        #event_content_impl
+
+        impl RoomEventContent for AnyStateEventContent {}
+
+        impl StateEventContent for AnyStateEventContent {}
+
+        #raw_mod
+    })
 }
 
-/// Splits the given `event_type` string on `.` and `_` removing the `m.` then
-/// using only the event name append "EventContent".
-fn to_event_content(name: &LitStr) -> Ident {
+fn expand_raw_content_event(
+    input: &RumaCollectionInput,
+    variants: &[Ident],
+) -> syn::Result<TokenStream> {
+    let ident = &input.name;
+    let event_type_str = &input.events;
+
+    let raw_docs = format!("The raw version of {}, allows for deserialization.", ident);
+    let raw_content = input
+        .events
+        .iter()
+        .map(to_raw_event_content_path)
+        .collect::<Vec<_>>();
+
+    let raw_collection = quote! {
+        #[doc = #raw_docs]
+        #[derive(Clone, Debug)]
+        #[allow(clippy::large_enum_variant)]
+        pub enum #ident {
+            #(
+                #[doc = #event_type_str]
+                #variants(#raw_content)
+            ),*
+        }
+    };
+
+    let raw_event_content_impl = quote! {
+        impl ::ruma_events::RawEventContent for #ident {
+            fn from_parts(event_type: &str, input: Box<::serde_json::value::RawValue>) -> Result<Self, String> {
+                match event_type {
+                    #(
+                        #event_type_str => {
+                            let content = #raw_content::from_parts(event_type, input)?;
+                            Ok(#ident::#variants(content))
+                        },
+                    )*
+                    ev => Err(format!("event not supported {}", ev)),
+                }
+            }
+        }
+    };
+
+    Ok(quote! {
+        mod raw {
+            #raw_collection
+
+            #raw_event_content_impl
+        }
+    })
+}
+
+fn to_event_content_path(
+    name: &LitStr,
+) -> syn::punctuated::Punctuated<syn::Token![::], syn::PathSegment> {
     let span = name.span();
     let name = name.value();
 
     assert_eq!(&name[..2], "m.");
 
-    let event = name[2..].split('.').last().unwrap();
+    let event_str = name[2..].split('.').last().unwrap();
 
-    let event = event
+    let event = event_str
         .split('_')
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
         .collect::<String>();
 
-    let content_str = format!("{}EventContent", event);
-    Ident::new(&content_str, span)
+    let module = Ident::new(event_str, span);
+    let content_str = Ident::new(&format!("{}EventContent", event), span);
+    syn::parse_quote! {
+        ::ruma_events::room::#module::#content_str
+    }
+}
+
+fn to_raw_event_content_path(
+    name: &LitStr,
+) -> syn::punctuated::Punctuated<syn::Token![::], syn::PathSegment> {
+    let span = name.span();
+    let name = name.value();
+
+    assert_eq!(&name[..2], "m.");
+
+    let event_str = name[2..].split('.').last().unwrap();
+
+    let event = event_str
+        .split('_')
+        .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
+        .collect::<String>();
+
+    let module = Ident::new(event_str, span);
+    let content_str = Ident::new(&format!("{}EventContent", event), span);
+    syn::parse_quote! {
+        ::ruma_events::room::#module::raw::#content_str
+    }
 }
 
 /// Splits the given `event_type` string on `.` and `_` removing the `m.room.` then

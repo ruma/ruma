@@ -2,13 +2,8 @@
 
 use ruma_events_macros::{FromRaw, StateEventContent};
 use serde::Serialize;
-use serde_json::value::RawValue as RawJsonValue;
 
 use super::ImageInfo;
-use crate::{
-    error::{InvalidEvent, InvalidEventKind},
-    EventContent, EventJson, RoomEventContent, StateEventContent,
-};
 
 /// A picture that is associated with the room.
 ///

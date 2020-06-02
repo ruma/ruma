@@ -14,7 +14,6 @@
     clippy::items_after_statements,
     clippy::match_same_arms,
     clippy::mem_forget,
-    clippy::missing_docs_in_private_items,
     clippy::multiple_inherent_impl,
     clippy::mut_mut,
     clippy::needless_borrow,

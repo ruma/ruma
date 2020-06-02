@@ -3,26 +3,17 @@
 
 use std::{
     convert::TryFrom,
-    fmt,
-    marker::PhantomData,
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::{SystemTime, UNIX_EPOCH},
 };
 
 use js_int::UInt;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{
-    de::{self, Deserialize, Deserializer, Error as _, MapAccess, Visitor},
     ser::{Error, SerializeStruct},
     Serialize, Serializer,
 };
-use serde_json::value::RawValue as RawJsonValue;
 
-use crate::{
-    error::{InvalidEvent, InvalidEventKind},
-    room::{aliases::AliasesEventContent, avatar::AvatarEventContent},
-    EventContent, FromRaw, RawEventContent, RoomEventContent, StateEventContent, TryFromRaw,
-    UnsignedData,
-};
+use crate::{RawEventContent, RoomEventContent, StateEventContent, TryFromRaw, UnsignedData};
 use ruma_events_macros::event_content_collection;
 
 event_content_collection! {
@@ -65,50 +56,12 @@ where
     pub unsigned: UnsignedData,
 }
 
-impl FromRaw for AnyStateEventContent {
-    type Raw = raw::AnyStateEventContent;
-
-    fn from_raw(raw: Self::Raw) -> Self {
-        use raw::AnyStateEventContent::*;
-
-        match raw {
-            RoomAliases(c) => Self::RoomAliases(FromRaw::from_raw(c)),
-            RoomAvatar(c) => Self::RoomAvatar(FromRaw::from_raw(c)),
-        }
-    }
-}
-
-impl Serialize for AnyStateEventContent {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match self {
-            AnyStateEventContent::RoomAliases(content) => content.serialize(serializer),
-            AnyStateEventContent::RoomAvatar(content) => content.serialize(serializer),
-        }
-    }
-}
-
-impl EventContent for AnyStateEventContent {
-    fn event_type(&self) -> &str {
-        match self {
-            AnyStateEventContent::RoomAliases(content) => content.event_type(),
-            AnyStateEventContent::RoomAvatar(content) => content.event_type(),
-        }
-    }
-}
-
-impl RoomEventContent for AnyStateEventContent {}
-
-impl StateEventContent for AnyStateEventContent {}
-
 impl<C> TryFromRaw for StateEvent<C>
 where
     C: StateEventContent + TryFromRaw,
     C::Raw: RawEventContent,
 {
-    type Raw = raw::StateEvent<C::Raw>;
+    type Raw = raw_state_event::StateEvent<C::Raw>;
     type Err = C::Err;
 
     fn try_from_raw(raw: Self::Raw) -> Result<Self, Self::Err> {
@@ -156,7 +109,7 @@ where
     }
 }
 
-mod raw {
+mod raw_state_event {
     use std::{
         fmt,
         marker::PhantomData,
@@ -164,51 +117,11 @@ mod raw {
     };
 
     use js_int::UInt;
-    use ruma_events_macros::event_content_collection;
     use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde::{
-        de::{self, Deserialize, Deserializer, Error as _, MapAccess, Visitor},
-        Serialize,
-    };
+    use serde::de::{self, Deserialize, Deserializer, Error as _, MapAccess, Visitor};
     use serde_json::value::RawValue as RawJsonValue;
 
-    use crate::{
-        room::{aliases::raw::AliasesEventContent, avatar::raw::AvatarEventContent},
-        RawEventContent, UnsignedData,
-    };
-
-    event_content_collection! {
-        /// A state event.
-        name: AnyStateEventContent,
-        events: ["m.room.aliases", "m.room.avatar"]
-    }
-
-    impl RawEventContent for AnyStateEventContent {
-        fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, String> {
-            fn deserialize_variant<T: RawEventContent>(
-                ev_type: &str,
-                input: Box<RawJsonValue>,
-                variant: fn(T) -> AnyStateEventContent,
-            ) -> Result<AnyStateEventContent, String> {
-                let content = T::from_parts(ev_type, input)?;
-                Ok(variant(content))
-            }
-
-            match event_type {
-                "m.room.avatar" => deserialize_variant::<AvatarEventContent>(
-                    event_type,
-                    content,
-                    AnyStateEventContent::RoomAvatar,
-                ),
-                "m.room.aliases" => deserialize_variant::<AliasesEventContent>(
-                    event_type,
-                    content,
-                    AnyStateEventContent::RoomAliases,
-                ),
-                ev => Err(format!("event not supported {}", ev)),
-            }
-        }
-    }
+    use crate::{RawEventContent, UnsignedData};
 
     /// State event.
     #[derive(Clone, Debug)]
@@ -403,9 +316,11 @@ mod tests {
     use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{AliasesEventContent, AnyStateEventContent, AvatarEventContent, StateEvent};
+    use super::{AnyStateEventContent, StateEvent};
     use crate::{
-        room::{ImageInfo, ThumbnailInfo},
+        room::{
+            aliases::AliasesEventContent, avatar::AvatarEventContent, ImageInfo, ThumbnailInfo,
+        },
         EventJson, UnsignedData,
     };
 
