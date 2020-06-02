@@ -1,29 +1,26 @@
 //! Types for the *m.call.invite* event.
 
 use js_int::UInt;
-use ruma_events_macros::ruma_event;
+use ruma_events_macros::{FromRaw, MessageEventContent};
+use serde::Serialize;
 
 use super::SessionDescription;
 
-ruma_event! {
-    /// This event is sent by the caller when they wish to establish a call.
-    InviteEvent {
-        kind: RoomEvent,
-        event_type: "m.call.invite",
-        content: {
-            /// A unique identifer for the call.
-            pub call_id: String,
+/// This event is sent by the caller when they wish to establish a call.
+#[derive(Clone, Debug, Serialize, FromRaw, MessageEventContent)]
+#[ruma_event(type = "m.call.invite")]
+pub struct InviteEventContent {
+    /// A unique identifer for the call.
+    pub call_id: String,
 
-            /// The time in milliseconds that the invite is valid for. Once the invite age exceeds this
-            /// value, clients should discard it. They should also no longer show the call as awaiting an
-            /// answer in the UI.
-            pub lifetime: UInt,
+    /// The time in milliseconds that the invite is valid for. Once the invite age exceeds this
+    /// value, clients should discard it. They should also no longer show the call as awaiting an
+    /// answer in the UI.
+    pub lifetime: UInt,
 
-            /// The session description object. The session description type must be *offer*.
-            pub offer: SessionDescription,
+    /// The session description object. The session description type must be *offer*.
+    pub offer: SessionDescription,
 
-            /// The version of the VoIP specification this messages adheres to.
-            pub version: UInt,
-        },
-    }
+    /// The version of the VoIP specification this messages adheres to.
+    pub version: UInt,
 }

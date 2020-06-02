@@ -1,28 +1,24 @@
 //! Types for the *m.call.hangup* event.
 
 use js_int::UInt;
-use ruma_events_macros::ruma_event;
+use ruma_events_macros::{FromRaw, MessageEventContent};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-ruma_event! {
-    /// Sent by either party to signal their termination of the call. This can be sent either once
-    /// the call has has been established or before to abort the call.
-    HangupEvent {
-        kind: RoomEvent,
-        event_type: "m.call.hangup",
-        content: {
-            /// The ID of the call this event relates to.
-            pub call_id: String,
+/// Sent by either party to signal their termination of the call. This can be sent either once the
+/// call has has been established or before to abort the call.
+#[derive(Clone, Debug, Serialize, FromRaw, MessageEventContent)]
+#[ruma_event(type = "m.call.hangup")]
+pub struct HangupEventContent {
+    /// The ID of the call this event relates to.
+    pub call_id: String,
 
-            /// The version of the VoIP specification this messages adheres to.
-            pub version: UInt,
+    /// The version of the VoIP specification this messages adheres to.
+    pub version: UInt,
 
-            /// Optional error reason for the hangup.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub reason: Option<Reason>,
-        },
-    }
+    /// Optional error reason for the hangup.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<Reason>,
 }
 
 /// A reason for a hangup.
