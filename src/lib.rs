@@ -134,6 +134,7 @@ mod error;
 mod event_type;
 mod from_raw;
 mod json;
+mod message;
 mod state;
 #[doc(hidden)] // only public for external tests
 pub mod util;

@@ -6,6 +6,20 @@ use syn::{Ident, LitStr};
 
 use parse::RumaCollectionInput;
 
+fn marker_traits(ident: &Ident) -> TokenStream {
+    match ident.to_string().as_str() {
+        "AnyStateEventContent" => quote! {
+            impl ::ruma_events::RoomEventContent for #ident {}
+            impl ::ruma_events::StateEventContent for #ident {}
+        },
+        "AnyMessageEventContent" => quote! {
+            impl ::ruma_events::RoomEventContent for #ident {}
+            impl ::ruma_events::MessageEventContent for #ident {}
+        },
+        _ => TokenStream::new(),
+    }
+}
+
 /// Create a collection from `RumaCollectionInput.
 pub fn expand_collection(input: RumaCollectionInput) -> syn::Result<TokenStream> {
     let attrs = &input.attrs;
@@ -36,7 +50,7 @@ pub fn expand_collection(input: RumaCollectionInput) -> syn::Result<TokenStream>
         impl ::ruma_events::EventContent for #ident {
             fn event_type(&self) -> &str {
                 match self {
-                    #( Self::#variants(content) => content.event_type()),*
+                    #( Self::#variants(content) => content.event_type() ),*
                 }
             }
         }
@@ -63,6 +77,8 @@ pub fn expand_collection(input: RumaCollectionInput) -> syn::Result<TokenStream>
         }
     };
 
+    let marker_trait_impls = marker_traits(ident);
+
     let raw_mod = expand_raw_content_event(&input, &variants)?;
 
     Ok(quote! {
@@ -72,9 +88,7 @@ pub fn expand_collection(input: RumaCollectionInput) -> syn::Result<TokenStream>
 
         #event_content_impl
 
-        impl RoomEventContent for AnyStateEventContent {}
-
-        impl StateEventContent for AnyStateEventContent {}
+        #marker_trait_impls
 
         #raw_mod
     })
@@ -139,17 +153,18 @@ fn to_event_content_path(
 
     assert_eq!(&name[..2], "m.");
 
-    let event_str = name[2..].split('.').last().unwrap();
+    let path = name[2..].split('.').collect::<Vec<_>>();
 
+    let event_str = path.last().unwrap();
     let event = event_str
         .split('_')
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
         .collect::<String>();
 
-    let module = Ident::new(event_str, span);
     let content_str = Ident::new(&format!("{}EventContent", event), span);
+    let path = path.iter().map(|s| Ident::new(s, span));
     syn::parse_quote! {
-        ::ruma_events::room::#module::#content_str
+        ::ruma_events::#( #path )::*::#content_str
     }
 }
 
@@ -161,17 +176,18 @@ fn to_raw_event_content_path(
 
     assert_eq!(&name[..2], "m.");
 
-    let event_str = name[2..].split('.').last().unwrap();
+    let path = name[2..].split('.').collect::<Vec<_>>();
 
+    let event_str = path.last().unwrap();
     let event = event_str
         .split('_')
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
         .collect::<String>();
 
-    let module = Ident::new(event_str, span);
     let content_str = Ident::new(&format!("{}EventContent", event), span);
+    let path = path.iter().map(|s| Ident::new(s, span));
     syn::parse_quote! {
-        ::ruma_events::room::#module::raw::#content_str
+        ::ruma_events::#( #path )::*::raw::#content_str
     }
 }
 

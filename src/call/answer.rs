@@ -9,7 +9,7 @@ use super::SessionDescription;
 /// This event is sent by the callee when they wish to answer the call.
 #[derive(Clone, Debug, Serialize, FromRaw, MessageEventContent)]
 #[ruma_event(type = "m.call.answer")]
-pub struct AnswerEventContenet {
+pub struct AnswerEventContent {
     /// The VoIP session description object. The session description type must be *answer*.
     pub answer: SessionDescription,
 
