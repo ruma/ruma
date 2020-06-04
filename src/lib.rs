@@ -169,6 +169,7 @@ pub use self::{
     event_type::EventType,
     from_raw::{FromRaw, TryFromRaw},
     json::EventJson,
+    message::MessageEvent,
     state::StateEvent,
 };
 
