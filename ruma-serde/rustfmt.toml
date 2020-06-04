@@ -1,0 +1,4 @@
+max_width = 80
+newline_style = "Unix"
+reorder_imports = true
+use_try_shorthand = true
