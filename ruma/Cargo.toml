@@ -18,7 +18,7 @@ client-api = ["ruma-api", "ruma-client-api", "ruma-events"]
 federation-api = ["ruma-api", "ruma-federation-api", "ruma-signatures"]
 
 [dependencies]
-ruma-common = "0.1.3"
+ruma-common = { version = "0.1.3", path = "../ruma-common" }
 ruma-identifiers = "0.16.2"
 
 ruma-events = { version = "0.21.3", optional = true }
