@@ -10,6 +10,9 @@ use crate::{error::Error, parse_id, room_alias_id::RoomAliasId, room_id::RoomId}
 /// from a string slice, and can be converted back into a string as needed. When converted from a
 /// string slice, the variant is determined by the leading sigil character.
 ///
+/// It is discouraged to use this type directly – instead use one of the aliases
+/// (`RoomIdOrRoomAliasId` and `RoomIdOrRoomAliasIdRef`) in the crate root.
+///
 /// ```
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomIdOrAliasId;

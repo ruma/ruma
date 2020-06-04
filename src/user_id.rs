@@ -9,6 +9,9 @@ use crate::{error::Error, is_valid_server_name, parse_id};
 /// A `UserId` is generated randomly or converted from a string slice, and can be converted back
 /// into a string as needed.
 ///
+/// It is discouraged to use this type directly – instead use one of the aliases (`UserId` and
+/// `UserIdRef`) in the crate root.
+///
 /// ```
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::UserId;

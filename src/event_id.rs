@@ -9,6 +9,9 @@ use crate::{error::Error, parse_id, validate_id};
 /// An `EventId` is generated randomly or converted from a string slice, and can be converted back
 /// into a string as needed.
 ///
+/// It is discouraged to use this type directly – instead use one of the aliases (`EventId` and
+/// `EventIdRef`) in the crate root.
+///
 /// # Room versions
 ///
 /// Matrix specifies multiple [room versions](https://matrix.org/docs/spec/#room-versions) and the

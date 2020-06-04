@@ -34,33 +34,71 @@ pub mod room_version_id;
 pub mod user_id;
 
 /// An owned event ID.
+///
+/// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
+/// `TryFrom<&str>`, implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
 pub type EventId = event_id::EventId<Box<str>>;
+
 /// A reference to an event ID.
+///
+/// Can be created via `TryFrom<&str>`, implements `Serialize` if the `serde` feature is enabled.
 pub type EventIdRef<'a> = event_id::EventId<&'a str>;
 
 /// An owned room alias ID.
+///
+/// Can be created via `TryFrom<String>` and `TryFrom<&str>`, implements `Serialize` and
+/// `Deserialize` if the `serde` feature is enabled.
 pub type RoomAliasId = room_alias_id::RoomAliasId<Box<str>>;
+
 /// A reference to a room alias ID.
+///
+/// Can be created via `TryFrom<&str>`, implements `Serialize` if the `serde` feature is enabled.
 pub type RoomAliasIdRef<'a> = room_alias_id::RoomAliasId<&'a str>;
 
 /// An owned room ID.
+///
+/// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
+/// `TryFrom<&str>`, implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
 pub type RoomId = room_id::RoomId<Box<str>>;
+
 /// A reference to a room ID.
+///
+/// Can be created via `TryFrom<&str>`, implements `Serialize` if the `serde` feature is enabled.
 pub type RoomIdRef<'a> = room_id::RoomId<&'a str>;
 
 /// An owned room alias ID or room ID.
+///
+/// Can be created via `TryFrom<String>`, `TryFrom<&str>`, `From<RoomId>` and `From<RoomAliasId>`;
+/// implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
 pub type RoomIdOrAliasId = room_id_or_room_alias_id::RoomIdOrAliasId<Box<str>>;
+
 /// A reference to a room alias ID or room ID.
+///
+/// Can be created via `TryFrom<&str>`, `From<RoomIdRef>` and `From<RoomAliasIdRef>`; implements
+/// `Serialize` if the `serde` feature is enabled.
 pub type RoomIdOrAliasIdRef<'a> = room_id_or_room_alias_id::RoomIdOrAliasId<&'a str>;
 
 /// An owned room version ID.
+///
+/// Can be created using the `version_N` constructor functions, `TryFrom<String>` and
+/// `TryFrom<&str>`; implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
 pub type RoomVersionId = room_version_id::RoomVersionId<Box<str>>;
+
 /// A reference to a room version ID.
+///
+/// Can be created using the `version_N` constructor functions and via `TryFrom<&str>`, implements
+/// `Serialize` if the `serde` feature is enabled.
 pub type RoomVersionIdRef<'a> = room_version_id::RoomVersionId<&'a str>;
 
 /// An owned user ID.
+///
+/// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
+/// `TryFrom<&str>`, implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
 pub type UserId = user_id::UserId<Box<str>>;
+
 /// A reference to a user ID.
+///
+/// Can be created via `TryFrom<&str>`, implements `Serialize` if the `serde` feature is enabled.
 pub type UserIdRef<'a> = user_id::UserId<&'a str>;
 
 /// All identifiers must be 255 bytes or less.

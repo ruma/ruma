@@ -19,6 +19,9 @@ const MAX_CODE_POINTS: usize = 32;
 /// A `RoomVersionId` can be or converted or deserialized from a string slice, and can be converted
 /// or serialized back into a string as needed.
 ///
+/// It is discouraged to use this type directly – instead use one of the aliases (`RoomVersionId`
+/// and `RoomVersionIdRef`) in the crate root.
+///
 /// ```
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomVersionId;

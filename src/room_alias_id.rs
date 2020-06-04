@@ -6,6 +6,9 @@ use crate::{error::Error, parse_id};
 
 /// A Matrix room alias ID.
 ///
+/// It is discouraged to use this type directly – instead use one of the aliases (`RoomAliasId` and
+/// `RoomAliasIdRef`) in the crate root.
+///
 /// A `RoomAliasId` is converted from a string slice, and can be converted back into a string as
 /// needed.
 ///
