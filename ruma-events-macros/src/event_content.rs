@@ -35,7 +35,7 @@ fn expand_room_event(input: DeriveInput) -> syn::Result<TokenStream> {
         .find(|attr| attr.path.is_ident("ruma_event"))
         .ok_or_else(|| {
             let msg = "no event type attribute found, \
-            add `#[ruma_events(type = \"any.room.event\")]` \
+            add `#[ruma_event(type = \"any.room.event\")]` \
             below the event content derive";
 
             syn::Error::new(Span::call_site(), msg)
