@@ -14,7 +14,7 @@ use serde::{
 };
 
 use crate::{MessageEventContent, RawEventContent, RoomEventContent, TryFromRaw, UnsignedData};
-use ruma_events_macros::event_content_collection;
+use ruma_events_macros::{event_content_collection, Event};
 
 event_content_collection! {
     /// A message event.
@@ -29,7 +29,7 @@ event_content_collection! {
 }
 
 /// Message event.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Event)]
 pub struct MessageEvent<C: MessageEventContent>
 where
     C::Raw: RawEventContent,
@@ -53,220 +53,6 @@ where
     pub unsigned: UnsignedData,
 }
 
-impl<C> TryFromRaw for MessageEvent<C>
-where
-    C: MessageEventContent + TryFromRaw,
-    C::Raw: RawEventContent,
-{
-    type Raw = raw_message_event::MessageEvent<C::Raw>;
-    type Err = C::Err;
-
-    fn try_from_raw(raw: Self::Raw) -> Result<Self, Self::Err> {
-        Ok(Self {
-            content: C::try_from_raw(raw.content)?,
-            event_id: raw.event_id,
-            sender: raw.sender,
-            origin_server_ts: raw.origin_server_ts,
-            room_id: raw.room_id,
-            unsigned: raw.unsigned,
-        })
-    }
-}
-
-impl<C: MessageEventContent> Serialize for MessageEvent<C>
-where
-    C::Raw: RawEventContent,
-{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let event_type = self.content.event_type();
-
-        let time_since_epoch = self.origin_server_ts.duration_since(UNIX_EPOCH).unwrap();
-        let timestamp = match UInt::try_from(time_since_epoch.as_millis()) {
-            Ok(uint) => uint,
-            Err(err) => return Err(S::Error::custom(err)),
-        };
-
-        let mut message = serializer.serialize_struct("MessageEvent", 7)?;
-
-        message.serialize_field("type", event_type)?;
-        message.serialize_field("content", &self.content)?;
-        message.serialize_field("event_id", &self.event_id)?;
-        message.serialize_field("sender", &self.sender)?;
-        message.serialize_field("origin_server_ts", &timestamp)?;
-        message.serialize_field("room_id", &self.room_id)?;
-
-        if !self.unsigned.is_empty() {
-            message.serialize_field("unsigned", &self.unsigned)?;
-        }
-
-        message.end()
-    }
-}
-
-mod raw_message_event {
-    use std::{
-        fmt,
-        marker::PhantomData,
-        time::{Duration, SystemTime, UNIX_EPOCH},
-    };
-
-    use js_int::UInt;
-    use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde::de::{self, Deserialize, Deserializer, Error as _, MapAccess, Visitor};
-    use serde_json::value::RawValue as RawJsonValue;
-
-    use crate::{RawEventContent, UnsignedData};
-
-    /// The raw half of a message event.
-    #[derive(Clone, Debug)]
-    pub struct MessageEvent<C> {
-        /// Data specific to the event type.
-        pub content: C,
-
-        /// The globally unique event identifier for the user who sent the event.
-        pub event_id: EventId,
-
-        /// Contains the fully-qualified ID of the user who sent this event.
-        pub sender: UserId,
-
-        /// Timestamp in milliseconds on originating homeserver when this event was sent.
-        pub origin_server_ts: SystemTime,
-
-        /// The ID of the room associated with this event.
-        pub room_id: RoomId,
-
-        /// Additional key-value pairs not signed by the homeserver.
-        pub unsigned: UnsignedData,
-    }
-
-    impl<'de, C> Deserialize<'de> for MessageEvent<C>
-    where
-        C: RawEventContent,
-    {
-        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
-        {
-            deserializer.deserialize_map(MessageEventVisitor(std::marker::PhantomData))
-        }
-    }
-
-    #[derive(serde::Deserialize)]
-    #[serde(field_identifier, rename_all = "snake_case")]
-    enum Field {
-        Type,
-        Content,
-        EventId,
-        Sender,
-        OriginServerTs,
-        RoomId,
-        Unsigned,
-    }
-
-    /// Visits the fields of a MessageEvent<C> to handle deserialization of
-    /// the `content` and `prev_content` fields.
-    struct MessageEventVisitor<C>(PhantomData<C>);
-
-    impl<'de, C> Visitor<'de> for MessageEventVisitor<C>
-    where
-        C: RawEventContent,
-    {
-        type Value = MessageEvent<C>;
-
-        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(formatter, "struct implementing MessageEventContent")
-        }
-
-        fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-        where
-            A: MapAccess<'de>,
-        {
-            let mut content: Option<Box<RawJsonValue>> = None;
-            let mut event_type: Option<String> = None;
-            let mut event_id: Option<EventId> = None;
-            let mut sender: Option<UserId> = None;
-            let mut origin_server_ts: Option<UInt> = None;
-            let mut room_id: Option<RoomId> = None;
-            let mut unsigned: Option<UnsignedData> = None;
-
-            while let Some(key) = map.next_key()? {
-                match key {
-                    Field::Content => {
-                        if content.is_some() {
-                            return Err(de::Error::duplicate_field("content"));
-                        }
-                        content = Some(map.next_value()?);
-                    }
-                    Field::EventId => {
-                        if event_id.is_some() {
-                            return Err(de::Error::duplicate_field("event_id"));
-                        }
-                        event_id = Some(map.next_value()?);
-                    }
-                    Field::Sender => {
-                        if sender.is_some() {
-                            return Err(de::Error::duplicate_field("sender"));
-                        }
-                        sender = Some(map.next_value()?);
-                    }
-                    Field::OriginServerTs => {
-                        if origin_server_ts.is_some() {
-                            return Err(de::Error::duplicate_field("origin_server_ts"));
-                        }
-                        origin_server_ts = Some(map.next_value()?);
-                    }
-                    Field::RoomId => {
-                        if room_id.is_some() {
-                            return Err(de::Error::duplicate_field("room_id"));
-                        }
-                        room_id = Some(map.next_value()?);
-                    }
-                    Field::Type => {
-                        if event_type.is_some() {
-                            return Err(de::Error::duplicate_field("type"));
-                        }
-                        event_type = Some(map.next_value()?);
-                    }
-                    Field::Unsigned => {
-                        if unsigned.is_some() {
-                            return Err(de::Error::duplicate_field("unsigned"));
-                        }
-                        unsigned = Some(map.next_value()?);
-                    }
-                }
-            }
-
-            let event_type = event_type.ok_or_else(|| de::Error::missing_field("type"))?;
-
-            let raw = content.ok_or_else(|| de::Error::missing_field("content"))?;
-            let content = C::from_parts(&event_type, raw).map_err(A::Error::custom)?;
-
-            let event_id = event_id.ok_or_else(|| de::Error::missing_field("event_id"))?;
-            let sender = sender.ok_or_else(|| de::Error::missing_field("sender"))?;
-
-            let origin_server_ts = origin_server_ts
-                .map(|time| UNIX_EPOCH + Duration::from_millis(time.into()))
-                .ok_or_else(|| de::Error::missing_field("origin_server_ts"))?;
-
-            let room_id = room_id.ok_or_else(|| de::Error::missing_field("room_id"))?;
-
-            let unsigned = unsigned.unwrap_or_default();
-
-            Ok(MessageEvent {
-                content,
-                event_id,
-                sender,
-                origin_server_ts,
-                room_id,
-                unsigned,
-            })
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::{
@@ -288,7 +74,7 @@ mod tests {
     };
 
     #[test]
-    fn message_serialize_aliases() {
+    fn message_serialize_sticker() {
         let aliases_event = MessageEvent {
             content: AnyMessageEventContent::Sticker(StickerEventContent {
                 body: "Hello".into(),
@@ -345,7 +131,7 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_message_aliases_content() {
+    fn deserialize_message_call_answer_content() {
         let json_data = json!({
             "answer": {
                 "type": "answer",
@@ -372,7 +158,7 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_message_aliases() {
+    fn deserialize_message_call_answer() {
         let json_data = json!({
             "content": {
                 "answer": {
@@ -418,7 +204,7 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_message_avatar() {
+    fn deserialize_message_sticker() {
         let json_data = json!({
             "content": {
                 "body": "Hello",

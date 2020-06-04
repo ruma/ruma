@@ -26,7 +26,7 @@ impl Parse for EventMeta {
 /// Create a `RoomEventContent` implementation for a struct.
 ///
 /// This is used internally for code sharing as `RoomEventContent` is not derivable.
-fn expand_room_event(input: DeriveInput) -> syn::Result<TokenStream> {
+fn expand_room_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
     let ident = &input.ident;
 
     let event_type_attr = input
@@ -76,9 +76,9 @@ fn expand_room_event(input: DeriveInput) -> syn::Result<TokenStream> {
 }
 
 /// Create a `MessageEventContent` implementation for a struct
-pub fn expand_message_event(input: DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_message_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let room_ev_content = expand_room_event(input)?;
+    let room_ev_content = expand_room_event_content(input)?;
 
     Ok(quote! {
         #room_ev_content
@@ -88,9 +88,9 @@ pub fn expand_message_event(input: DeriveInput) -> syn::Result<TokenStream> {
 }
 
 /// Create a `MessageEventContent` implementation for a struct
-pub fn expand_state_event(input: DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_state_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let room_ev_content = expand_room_event(input)?;
+    let room_ev_content = expand_room_event_content(input)?;
 
     Ok(quote! {
         #room_ev_content

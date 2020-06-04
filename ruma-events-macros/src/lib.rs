@@ -16,13 +16,15 @@ use syn::{parse_macro_input, DeriveInput};
 
 use self::{
     collection::{expand_collection, parse::RumaCollectionInput},
-    event_content::{expand_message_event, expand_state_event},
+    event::expand_event,
+    event_content::{expand_message_event_content, expand_state_event_content},
     from_raw::expand_from_raw,
     gen::RumaEvent,
     parse::RumaEventInput,
 };
 
 mod collection;
+mod event;
 mod event_content;
 mod from_raw;
 mod gen;
@@ -148,7 +150,7 @@ pub fn derive_from_raw(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(MessageEventContent, attributes(ruma_event))]
 pub fn derive_message_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_message_event(input)
+    expand_message_event_content(input)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }
@@ -157,7 +159,16 @@ pub fn derive_message_event_content(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(StateEventContent, attributes(ruma_event))]
 pub fn derive_state_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_state_event(input)
+    expand_state_event_content(input)
+        .unwrap_or_else(|err| err.to_compile_error())
+        .into()
+}
+
+/// Generates implementations needed to serialize and deserialize Matrix events.
+#[proc_macro_derive(Event, attributes(ruma_event))]
+pub fn derive_state_event(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_event(input)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }
