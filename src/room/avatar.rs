@@ -14,7 +14,7 @@ ruma_event! {
         content: {
             /// Information about the avatar image.
             #[serde(skip_serializing_if = "Option::is_none")]
-            pub info: Option<ImageInfo>,
+            pub info: Option<Box<ImageInfo>>,
 
             /// Information about the avatar thumbnail image.
             /// URL of the avatar image.

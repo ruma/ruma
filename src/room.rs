@@ -48,7 +48,7 @@ pub struct ImageInfo {
 
     /// Metadata about the image referred to in `thumbnail_url`.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_info: Option<ThumbnailInfo>,
+    pub thumbnail_info: Option<Box<ThumbnailInfo>>,
 
     /// The URL to the thumbnail of the image. Only present if the thumbnail is unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -56,7 +56,7 @@ pub struct ImageInfo {
 
     /// Information on the encrypted thumbnail image. Only present if the thumbnail is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_file: Option<EncryptedFile>,
+    pub thumbnail_file: Option<Box<EncryptedFile>>,
 }
 
 /// Metadata about a thumbnail.
