@@ -13,7 +13,7 @@ pub mod request;
 pub mod start;
 
 /// A hash algorithm.
-#[derive(Clone, Copy, Debug, Display, EnumString, Serialize, PartialEq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum HashAlgorithm {
@@ -22,7 +22,7 @@ pub enum HashAlgorithm {
 }
 
 /// A key agreement protocol.
-#[derive(Clone, Copy, Debug, Display, EnumString, Serialize, PartialEq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum KeyAgreementProtocol {
@@ -31,7 +31,7 @@ pub enum KeyAgreementProtocol {
 }
 
 /// A message authentication code algorithm.
-#[derive(Clone, Copy, Debug, Display, EnumString, Serialize, PartialEq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
 pub enum MessageAuthenticationCode {
@@ -40,7 +40,7 @@ pub enum MessageAuthenticationCode {
 }
 
 /// A Short Authentication String method.
-#[derive(Clone, Copy, Debug, Display, EnumString, Serialize, PartialEq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum ShortAuthenticationString {
@@ -52,7 +52,7 @@ pub enum ShortAuthenticationString {
 }
 
 /// A Short Authentication String (SAS) verification method.
-#[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
 pub enum VerificationMethod {
     /// The *m.sas.v1* verification method.
     #[serde(rename = "m.sas.v1")]

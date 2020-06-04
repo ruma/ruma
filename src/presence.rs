@@ -43,7 +43,7 @@ ruma_event! {
 }
 
 /// A description of a user's connectivity and availability for chat.
-#[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum PresenceState {

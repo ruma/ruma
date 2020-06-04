@@ -25,7 +25,7 @@ ruma_event! {
 }
 
 /// A type of feedback.
-#[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum FeedbackType {

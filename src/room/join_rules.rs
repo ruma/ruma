@@ -17,7 +17,7 @@ ruma_event! {
 }
 
 /// The rule used for users wishing to join this room.
-#[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum JoinRule {

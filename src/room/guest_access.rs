@@ -20,7 +20,7 @@ ruma_event! {
 }
 
 /// A policy for guest user access to a room.
-#[derive(Clone, Copy, Debug, Display, EnumString, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
 #[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
