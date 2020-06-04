@@ -15,7 +15,12 @@ Breaking changes:
 Improvements:
 
 * Add method `into_event_content` for `r0::room::create_room::CreationContent`
-* Add room visibility endpoints: `r0::directory::{get_room_visibility, set_room_visibility}`. 
+* Add room visibility endpoints: `r0::directory::{get_room_visibility, set_room_visibility}`.
+
+Deprecations:
+
+* `r0::sync::sync_events::SetPresence` has been renamed to `PresenceState`. It is still available
+  under its previous name, but only for one release.
 
 # 0.9.0
 

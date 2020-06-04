@@ -16,7 +16,7 @@ edition = "2018"
 http = "0.2.1"
 js_int = { version = "0.1.5", features = ["serde"] }
 ruma-api = "0.16.1"
-ruma-common = "0.1.2"
+ruma-common = "0.1.3"
 ruma-events = { git = "https://github.com/ruma/ruma-events", rev = "7395f94" }
 ruma-identifiers = "0.16.2"
 ruma-serde = "0.2.2"

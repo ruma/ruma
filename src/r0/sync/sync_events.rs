@@ -51,7 +51,7 @@ ruma_api! {
         /// Controls whether the client is automatically marked as online by polling this API.
         #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
         #[ruma_api(query)]
-        pub set_presence: SetPresence,
+        pub set_presence: PresenceState,
 
         /// The maximum time to poll in milliseconds before returning this request.
         #[serde(
@@ -98,25 +98,10 @@ ruma_api! {
     error: crate::Error
 }
 
-/// Whether to set presence or not during sync.
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
-#[serde(rename_all = "lowercase")]
-pub enum SetPresence {
-    /// Do not set the presence of the user calling this API.
-    Offline,
+pub use ruma_common::presence::PresenceState;
 
-    /// Mark client as online explicitly. Assumed by default.
-    Online,
-
-    /// Mark client as being idle.
-    Unavailable,
-}
-
-impl Default for SetPresence {
-    fn default() -> Self {
-        Self::Online
-    }
-}
+#[deprecated = "use `PresenceState` instead"]
+pub use self::PresenceState as SetPresence;
 
 /// A filter represented either as its full JSON definition or the ID of a saved filter.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -344,7 +329,7 @@ mod tests {
 
     use matches::assert_matches;
 
-    use super::{Filter, Request, SetPresence};
+    use super::{Filter, PresenceState, Request};
 
     #[test]
     fn serialize_all_params() {
@@ -352,7 +337,7 @@ mod tests {
             filter: Some(Filter::FilterId("66696p746572".into())),
             since: Some("s72594_4483_1934".into()),
             full_state: true,
-            set_presence: SetPresence::Offline,
+            set_presence: PresenceState::Offline,
             timeout: Some(Duration::from_millis(30000)),
         }
         .try_into()
@@ -395,7 +380,7 @@ mod tests {
         assert_matches!(req.filter, Some(Filter::FilterId(id)) if id == "myfilter");
         assert_eq!(req.since, Some("myts".into()));
         assert_eq!(req.full_state, false);
-        assert_eq!(req.set_presence, SetPresence::Offline);
+        assert_eq!(req.set_presence, PresenceState::Offline);
         assert_eq!(req.timeout, Some(Duration::from_millis(5000)));
     }
 
@@ -418,7 +403,7 @@ mod tests {
         assert_matches!(req.filter, None);
         assert_eq!(req.since, None);
         assert_eq!(req.full_state, false);
-        assert_eq!(req.set_presence, SetPresence::Online);
+        assert_eq!(req.set_presence, PresenceState::Online);
         assert_eq!(req.timeout, None);
     }
 
@@ -445,7 +430,7 @@ mod tests {
         assert_matches!(req.filter, Some(Filter::FilterId(id)) if id == "EOKFFmdZYF");
         assert_eq!(req.since, None);
         assert_eq!(req.full_state, false);
-        assert_eq!(req.set_presence, SetPresence::Online);
+        assert_eq!(req.set_presence, PresenceState::Online);
         assert_eq!(req.timeout, Some(Duration::from_millis(0)));
     }
 }
