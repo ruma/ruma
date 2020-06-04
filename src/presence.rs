@@ -1,3 +1,7 @@
+//! Common types for the [presence module][presence]
+//!
+//! [presence]: https://matrix.org/docs/spec/client_server/r0.6.1#id62
+
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
