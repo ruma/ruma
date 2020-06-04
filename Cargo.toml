@@ -12,6 +12,7 @@ edition = "2018"
 
 [dependencies]
 matches = "0.1.8"
-ruma-serde = "0.2.1"
-serde = { version = "1.0.110", features = ["derive"] }
+ruma-serde = "0.2.2"
+serde = { version = "1.0.111", features = ["derive"] }
 serde_json = { version = "1.0.53", features = ["raw_value"] }
+strum = { version = "0.18.0", features = ["derive"] }
