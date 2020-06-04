@@ -10,6 +10,7 @@ Breaking changes:
   * Add `predecessor` field
 * Update `r0::push::get_pushrules_all` and `r0::push::get_pushrules_global_scope` to use the
   `Ruleset` type from `ruma_events`
+* Fix event types in `r0::context::get_context`
 
 Improvements:
 
