@@ -2,26 +2,28 @@ image: archlinux
 packages:
   - rustup
 sources:
-  - https://github.com/ruma/ruma-appservice-api
+  - https://github.com/ruma/ruma
 tasks:
   - rustup: |
       # We specify --profile minimal because we'd otherwise download docs
-      rustup toolchain install beta --profile minimal -c rustfmt -c clippy
-      rustup default beta
+      rustup toolchain install stable --profile minimal -c rustfmt -c clippy
+      rustup default stable
   - test: |
-      cd ruma-appservice-api
+      cd ruma
 
       # We don't want the build to stop on individual failure of independent
       # tools, so capture tool exit codes and set the task exit code manually
       set +e
 
-      cargo fmt -- --check
+      cargo fmt --all -- --check
       fmt_exit=$?
 
-      cargo clippy --all-targets --all-features -- -D warnings
+      cargo clippy --all --all-targets --all-features -- -D warnings
       clippy_exit=$?
 
-      cargo test --verbose
+      cargo test --all --verbose
       test_exit=$?
 
       exit $(( $fmt_exit || $clippy_exit || $test_exit ))
+  # TODO: Add audit task once cargo-audit binary releases are available.
+  #       See https://github.com/RustSec/cargo-audit/issues/66

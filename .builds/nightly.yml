@@ -2,7 +2,7 @@ image: archlinux
 packages:
   - rustup
 sources:
-  - https://github.com/ruma/ruma-appservice-api
+  - https://github.com/ruma/ruma
 tasks:
   - rustup: |
       rustup toolchain install nightly --profile minimal
@@ -13,19 +13,19 @@ tasks:
       rustup component add rustfmt || true
       rustup component add clippy || true
   - test: |
-      cd ruma-appservice-api
+      cd ruma
 
       # We don't want the build to stop on individual failure of independent
       # tools, so capture tool exit codes and set the task exit code manually
       set +e
 
       if ( rustup component list | grep -q rustfmt ); then
-        cargo fmt -- --check
+        cargo fmt --all -- --check
       fi
       fmt_exit=$?
 
       if ( rustup component list | grep -q clippy ); then
-        cargo clippy --all-targets --all-features -- -D warnings
+        cargo clippy --all --all-targets --all-features -- -D warnings
       fi
       clippy_exit=$?
 
