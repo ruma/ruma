@@ -3,8 +3,6 @@
 use js_int::UInt;
 use ruma_events_macros::ruma_event;
 use ruma_identifiers::UserId;
-use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
 
 ruma_event! {
     /// Informs the client of a user's presence state change.
@@ -42,20 +40,7 @@ ruma_event! {
     }
 }
 
-/// A description of a user's connectivity and availability for chat.
-#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
-pub enum PresenceState {
-    /// Disconnected from the service.
-    Offline,
-
-    /// Connected to the service.
-    Online,
-
-    /// Connected to the service but not available for chat.
-    Unavailable,
-}
+pub use ruma_common::presence::PresenceState;
 
 #[cfg(test)]
 mod tests {
