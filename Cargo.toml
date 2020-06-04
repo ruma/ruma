@@ -1,0 +1,30 @@
+[package]
+name = "ruma"
+authors = ["Jonas Platte <jplatte@posteo.de>"]
+categories = ["api-bindings", "web-programming"]
+keywords = ["matrix", "chat", "messaging", "ruma"]
+description = "Types and traits for working with the Matrix protocol."
+documentation = "https://docs.rs/ruma-client-api"
+homepage = "https://www.ruma.io/"
+repository = "https://github.com/ruma/ruma"
+readme = "README.md"
+license = "MIT"
+version = "0.1.0"
+edition = "2018"
+
+[features]
+appservice-api = ["ruma-api", "ruma-appservice-api", "ruma-events"]
+client-api = ["ruma-api", "ruma-client-api", "ruma-events"]
+federation-api = ["ruma-api", "ruma-federation-api", "ruma-signatures"]
+
+[dependencies]
+ruma-common = "0.1.3"
+ruma-identifiers = "0.16.2"
+
+ruma-events = { version = "0.21.3", optional = true }
+ruma-signatures = { version = "0.5.0", optional = true }
+
+ruma-api = { version = "0.16.1", optional = true }
+ruma-appservice-api = { version = "0.1.0", optional = true }
+ruma-client-api = { version = "0.9.0", optional = true }
+ruma-federation-api = { version = "0.0.2", optional = true }
