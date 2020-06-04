@@ -82,10 +82,8 @@ impl Parse for RumaEventInput {
                                     EventKind::Event
                                 } else if expr_path.path.is_ident("RoomEvent") {
                                     EventKind::RoomEvent
-                                } else if expr_path.path.is_ident("StateEvent") {
-                                    EventKind::StateEvent
                                 } else {
-                                    panic!("value of field `kind` must be one of `Event`, `RoomEvent`, or `StateEvent`");
+                                    panic!("value of field `kind` must be one of `Event` or `RoomEvent`");
                                 }
                             }
                             _ => panic!(
@@ -140,9 +138,6 @@ pub enum EventKind {
 
     /// A room event.
     RoomEvent,
-
-    /// A state event.
-    StateEvent,
 }
 
 /// Information for generating the type used for the event's `content` field.

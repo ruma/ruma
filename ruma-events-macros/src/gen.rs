@@ -53,9 +53,6 @@ impl From<RumaEventInput> for RumaEvent {
                 content_name.clone(),
                 input.fields.unwrap_or_else(Vec::new),
             ),
-            EventKind::StateEvent => {
-                populate_state_fields(content_name.clone(), input.fields.unwrap_or_else(Vec::new))
-            }
         };
 
         fields.sort_unstable_by_key(|field| field.ident.clone().unwrap());
@@ -73,32 +70,20 @@ impl From<RumaEventInput> for RumaEvent {
 }
 
 impl ToTokens for RumaEvent {
-    // TODO: Maybe break this off into functions so it's not so large. Then remove the clippy
-    // allowance.
-    #[allow(clippy::cognitive_complexity)]
     fn to_tokens(&self, tokens: &mut TokenStream) {
         // let attrs = &self.attrs;
         let content_name = &self.content_name;
         // let event_fields = &self.fields;
-        let event_type = &self.event_type;
+        // let event_type = &self.event_type;
 
         let name = &self.name;
         let content_docstring = format!("The payload for `{}`.", name);
 
         let content = match &self.content {
             Content::Struct(fields) => {
-                // TODO this will all be removed so this is only temp
-                let event_content_derive = match self.kind {
-                    EventKind::StateEvent => quote! {
-                        #[derive(::ruma_events_macros::StateEventContent)]
-                        #[ruma_event(type = #event_type)]
-                    },
-                    EventKind::RoomEvent | EventKind::Event => TokenStream::new(),
-                };
                 quote! {
                     #[doc = #content_docstring]
                     #[derive(Clone, Debug, ::serde::Serialize, ::ruma_events_macros::FromRaw)]
-                    #event_content_derive
                     pub struct #content_name {
                         #(#fields),*
                     }
@@ -153,24 +138,6 @@ fn populate_room_event_fields(content_name: Ident, fields: Vec<Field>) -> Vec<Fi
         /// Additional key-value pairs not signed by the homeserver.
         #[serde(default, skip_serializing_if = "ruma_events::UnsignedData::is_empty")]
         pub unsigned: ruma_events::UnsignedData,
-    };
-
-    fields.extend(punctuated_fields.into_iter().map(|p| p.field));
-
-    fields
-}
-
-/// Fills in the event's struct definition with fields common to all state events.
-fn populate_state_fields(content_name: Ident, fields: Vec<Field>) -> Vec<Field> {
-    let mut fields = populate_room_event_fields(content_name.clone(), fields);
-
-    let punctuated_fields: Punctuated<ParsableNamedField, Token![,]> = parse_quote! {
-        /// The previous content for this state key, if any.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub prev_content: Option<#content_name>,
-
-        /// A key that determines which piece of room state the event represents.
-        pub state_key: String,
     };
 
     fields.extend(punctuated_fields.into_iter().map(|p| p.field));
