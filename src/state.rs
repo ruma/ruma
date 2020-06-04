@@ -95,16 +95,23 @@ where
         };
 
         let mut state = serializer.serialize_struct("StateEvent", 7)?;
+
+        state.serialize_field("type", event_type)?;
         state.serialize_field("content", &self.content)?;
         state.serialize_field("event_id", &self.event_id)?;
         state.serialize_field("sender", &self.sender)?;
         state.serialize_field("origin_server_ts", &timestamp)?;
         state.serialize_field("room_id", &self.room_id)?;
         state.serialize_field("state_key", &self.state_key)?;
+
         if let Some(content) = self.prev_content.as_ref() {
             state.serialize_field("prev_content", content)?;
         }
-        state.serialize_field("type", event_type)?;
+
+        if !self.unsigned.is_empty() {
+            state.serialize_field("unsigned", &self.unsigned)?;
+        }
+
         state.end()
     }
 }

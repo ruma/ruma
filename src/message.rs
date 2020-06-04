@@ -90,12 +90,18 @@ where
         };
 
         let mut message = serializer.serialize_struct("MessageEvent", 7)?;
+
+        message.serialize_field("type", event_type)?;
         message.serialize_field("content", &self.content)?;
         message.serialize_field("event_id", &self.event_id)?;
         message.serialize_field("sender", &self.sender)?;
         message.serialize_field("origin_server_ts", &timestamp)?;
         message.serialize_field("room_id", &self.room_id)?;
-        message.serialize_field("type", event_type)?;
+
+        if !self.unsigned.is_empty() {
+            message.serialize_field("unsigned", &self.unsigned)?;
+        }
+
         message.end()
     }
 }
