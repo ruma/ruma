@@ -43,22 +43,26 @@ ruma_event! {
 mod tests {
     use serde_json::{from_value as from_json_value, json};
 
-    use super::ServerAclEvent;
-    use crate::EventJson;
+    use super::ServerAclEventContent;
+    use crate::{EventJson, StateEvent};
 
     #[test]
     fn default_values() {
         let json_data = json!({
             "content": {},
-            "event_id": "$h29iv0s8:example.com","origin_server_ts":1,
+            "event_id": "$h29iv0s8:example.com",
+            "origin_server_ts": 1,
+            "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
             "state_key": "",
             "type": "m.room.server_acl"
         });
-        let server_acl_event: ServerAclEvent = from_json_value::<EventJson<_>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap();
+
+        let server_acl_event =
+            from_json_value::<EventJson<StateEvent<ServerAclEventContent>>>(json_data)
+                .unwrap()
+                .deserialize()
+                .unwrap();
 
         assert_eq!(server_acl_event.content.allow_ip_literals, true);
         assert!(server_acl_event.content.allow.is_empty());

@@ -3,6 +3,7 @@
 use std::time::SystemTime;
 
 use js_int::UInt;
+use ruma_events_macros::MessageEventContent;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
@@ -12,7 +13,8 @@ use crate::{FromRaw, UnsignedData};
 pub mod feedback;
 
 /// The payload for `MessageEvent`.
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, MessageEventContent)]
+#[ruma_event(type = "m.room.message")]
 #[serde(tag = "msgtype")]
 pub enum MessageEventContent {
     /// An audio message.
@@ -473,11 +475,11 @@ mod tests {
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{
-        AudioMessageEventContent, FormattedBody, MessageEvent, MessageEventContent, MessageFormat,
+    use super::{AudioMessageEventContent, FormattedBody, MessageEventContent, MessageFormat};
+    use crate::{
+        room::message::{InReplyTo, RelatesTo, TextMessageEventContent},
+        EventJson, MessageEvent, UnsignedData,
     };
-    use crate::room::message::{InReplyTo, RelatesTo, TextMessageEventContent};
-    use crate::{EventJson, UnsignedData};
 
     #[test]
     fn serialization() {
@@ -490,7 +492,7 @@ mod tests {
             }),
             event_id: EventId::try_from("$143273582443PhrSn:example.org").unwrap(),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(10_000),
-            room_id: Some(RoomId::try_from("!testroomid:example.org").unwrap()),
+            room_id: RoomId::try_from("!testroomid:example.org").unwrap(),
             sender: UserId::try_from("@user:example.org").unwrap(),
             unsigned: UnsignedData::default(),
         };

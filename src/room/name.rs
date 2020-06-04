@@ -2,13 +2,15 @@
 
 use std::time::SystemTime;
 
+use ruma_events_macros::StateEventContent;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
 use crate::{InvalidInput, TryFromRaw, UnsignedData};
 
 /// The payload for `NameEvent`.
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, StateEventContent)]
+#[ruma_event(type = "m.room.name")]
 pub struct NameEventContent {
     /// The name of the room. This MUST NOT exceed 255 bytes.
     pub(crate) name: Option<String>,
@@ -76,20 +78,20 @@ mod tests {
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use crate::{EventJson, UnsignedData};
+    use crate::{EventJson, StateEvent, UnsignedData};
 
     use super::NameEventContent;
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
-        let name_event = NameEvent {
+        let name_event = StateEvent {
             content: NameEventContent {
                 name: Some("The room name".to_string()),
             },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: None,
-            room_id: None,
+            room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
             unsigned: UnsignedData::default(),
@@ -102,6 +104,7 @@ mod tests {
             },
             "event_id": "$h29iv0s8:example.com",
             "origin_server_ts": 1,
+            "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
             "state_key": "",
             "type": "m.room.name"
@@ -112,7 +115,7 @@ mod tests {
 
     #[test]
     fn serialization_with_all_fields() {
-        let name_event = NameEvent {
+        let name_event = StateEvent {
             content: NameEventContent {
                 name: Some("The room name".to_string()),
             },
@@ -121,7 +124,7 @@ mod tests {
             prev_content: Some(NameEventContent {
                 name: Some("The old name".to_string()),
             }),
-            room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
+            room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
             unsigned: UnsignedData {
@@ -156,12 +159,13 @@ mod tests {
             "content": {},
             "event_id": "$h29iv0s8:example.com",
             "origin_server_ts": 1,
+            "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
             "state_key": "",
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<EventJson<NameEvent>>(json_data)
+            from_json_value::<EventJson<StateEvent<NameEventContent>>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap()
@@ -210,12 +214,13 @@ mod tests {
             },
             "event_id": "$h29iv0s8:example.com",
             "origin_server_ts": 1,
+            "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
             "state_key": "",
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<EventJson<NameEvent>>(json_data)
+            from_json_value::<EventJson<StateEvent<NameEventContent>>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap()
@@ -233,12 +238,13 @@ mod tests {
             },
             "event_id": "$h29iv0s8:example.com",
             "origin_server_ts": 1,
+            "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
             "state_key": "",
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<EventJson<NameEvent>>(json_data)
+            from_json_value::<EventJson<StateEvent<NameEventContent>>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap()
@@ -257,13 +263,14 @@ mod tests {
             },
             "event_id": "$h29iv0s8:example.com",
             "origin_server_ts": 1,
+            "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
             "state_key": "",
             "type": "m.room.name"
         });
 
         assert_eq!(
-            from_json_value::<EventJson<NameEvent>>(json_data)
+            from_json_value::<EventJson<StateEvent<NameEventContent>>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap()

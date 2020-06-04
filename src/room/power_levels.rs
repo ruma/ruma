@@ -138,16 +138,14 @@ mod tests {
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{json, to_value as to_json_value};
 
-    use super::{
-        default_power_level, NotificationPowerLevels, PowerLevelsEvent, PowerLevelsEventContent,
-    };
-    use crate::{EventType, UnsignedData};
+    use super::{default_power_level, NotificationPowerLevels, PowerLevelsEventContent};
+    use crate::{EventType, StateEvent, UnsignedData};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
         let default = default_power_level();
 
-        let power_levels_event = PowerLevelsEvent {
+        let power_levels_event = StateEvent {
             content: PowerLevelsEventContent {
                 ban: default,
                 events: BTreeMap::new(),
@@ -163,7 +161,7 @@ mod tests {
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: None,
-            room_id: None,
+            room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
             unsigned: UnsignedData::default(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
@@ -174,6 +172,7 @@ mod tests {
             "content": {},
             "event_id": "$h29iv0s8:example.com",
             "origin_server_ts": 1,
+            "room_id": "!n8f893n9:example.com",
             "sender": "@carl:example.com",
             "state_key": "",
             "type": "m.room.power_levels"
@@ -185,7 +184,7 @@ mod tests {
     #[test]
     fn serialization_with_all_fields() {
         let user = UserId::try_from("@carl:example.com").unwrap();
-        let power_levels_event = PowerLevelsEvent {
+        let power_levels_event = StateEvent {
             content: PowerLevelsEventContent {
                 ban: Int::from(23),
                 events: btreemap! {
@@ -225,7 +224,7 @@ mod tests {
                     room: Int::from(42),
                 },
             }),
-            room_id: Some(RoomId::try_from("!n8f893n9:example.com").unwrap()),
+            room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
             unsigned: UnsignedData {
                 age: Some(Int::from(100)),
                 ..UnsignedData::default()
