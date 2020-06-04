@@ -3,80 +3,76 @@
 use std::collections::BTreeMap;
 
 use js_int::Int;
-use ruma_events_macros::ruma_event;
+use ruma_events_macros::{FromRaw, StateEventContent};
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
 use crate::EventType;
 
-ruma_event! {
-    /// Defines the power levels (privileges) of users in the room.
-    PowerLevelsEvent {
-        kind: StateEvent,
-        event_type: "m.room.power_levels",
-        content: {
-            /// The level required to ban a user.
-            #[serde(
-                default = "default_power_level",
-                skip_serializing_if = "is_default_power_level"
-            )]
-            pub ban: Int,
+/// Defines the power levels (privileges) of users in the room.
+#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[ruma_event(type = "m.room.power_levels")]
+pub struct PowerLevelsEventContent {
+    /// The level required to ban a user.
+    #[serde(
+        default = "default_power_level",
+        skip_serializing_if = "is_default_power_level"
+    )]
+    pub ban: Int,
 
-            /// The level required to send specific event types.
-            ///
-            /// This is a mapping from event type to power level required.
-            #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-            pub events: BTreeMap<EventType, Int>,
+    /// The level required to send specific event types.
+    ///
+    /// This is a mapping from event type to power level required.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub events: BTreeMap<EventType, Int>,
 
-            /// The default level required to send message events.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
-            pub events_default: Int,
+    /// The default level required to send message events.
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    pub events_default: Int,
 
-            /// The level required to invite a user.
-            #[serde(
-                default = "default_power_level",
-                skip_serializing_if = "is_default_power_level"
-            )]
-            pub invite: Int,
+    /// The level required to invite a user.
+    #[serde(
+        default = "default_power_level",
+        skip_serializing_if = "is_default_power_level"
+    )]
+    pub invite: Int,
 
-            /// The level required to kick a user.
-            #[serde(
-                default = "default_power_level",
-                skip_serializing_if = "is_default_power_level"
-            )]
-            pub kick: Int,
+    /// The level required to kick a user.
+    #[serde(
+        default = "default_power_level",
+        skip_serializing_if = "is_default_power_level"
+    )]
+    pub kick: Int,
 
-            /// The level required to redact an event.
-            #[serde(
-                default = "default_power_level",
-                skip_serializing_if = "is_default_power_level"
-            )]
-            pub redact: Int,
+    /// The level required to redact an event.
+    #[serde(
+        default = "default_power_level",
+        skip_serializing_if = "is_default_power_level"
+    )]
+    pub redact: Int,
 
-            /// The default level required to send state events.
-            #[serde(
-                default = "default_power_level",
-                skip_serializing_if = "is_default_power_level"
-            )]
-            pub state_default: Int,
+    /// The default level required to send state events.
+    #[serde(
+        default = "default_power_level",
+        skip_serializing_if = "is_default_power_level"
+    )]
+    pub state_default: Int,
 
-            /// The power levels for specific users.
-            ///
-            /// This is a mapping from `user_id` to power level for that user.
-            #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-            pub users: BTreeMap<UserId, Int>,
+    /// The power levels for specific users.
+    ///
+    /// This is a mapping from `user_id` to power level for that user.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub users: BTreeMap<UserId, Int>,
 
-            /// The default power level for every user in the room.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
-            pub users_default: Int,
+    /// The default power level for every user in the room.
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    pub users_default: Int,
 
-            /// The power level requirements for specific notification types.
-            ///
-            /// This is a mapping from `key` to power level for that notifications key.
-            #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
-            pub notifications: NotificationPowerLevels,
-        },
-    }
+    /// The power level requirements for specific notification types.
+    ///
+    /// This is a mapping from `key` to power level for that notifications key.
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    pub notifications: NotificationPowerLevels,
 }
 
 impl Default for PowerLevelsEventContent {
