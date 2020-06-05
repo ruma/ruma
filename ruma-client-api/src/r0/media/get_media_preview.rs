@@ -51,15 +51,9 @@ mod tests {
     fn raw_json_deserialize() {
         type OptRawJson = Option<Box<RawJsonValue>>;
 
-        assert!(from_json_value::<OptRawJson>(json!(null))
-            .unwrap()
-            .is_none());
-        assert!(from_json_value::<OptRawJson>(json!("test"))
-            .unwrap()
-            .is_some());
-        assert!(from_json_value::<OptRawJson>(json!({ "a": "b" }))
-            .unwrap()
-            .is_some());
+        assert!(from_json_value::<OptRawJson>(json!(null)).unwrap().is_none());
+        assert!(from_json_value::<OptRawJson>(json!("test")).unwrap().is_some());
+        assert!(from_json_value::<OptRawJson>(json!({ "a": "b" })).unwrap().is_some());
     }
 
     // For completeness sake, make sure serialization works too

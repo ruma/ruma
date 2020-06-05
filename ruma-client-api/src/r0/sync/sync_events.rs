@@ -253,19 +253,13 @@ pub struct RoomSummary {
     /// Number of users whose membership status is `join`.
     /// Required if field has changed since last sync; otherwise, it may be
     /// omitted.
-    #[serde(
-        rename = "m.joined_member_count",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "m.joined_member_count", skip_serializing_if = "Option::is_none")]
     pub joined_member_count: Option<UInt>,
 
     /// Number of users whose membership status is `invite`.
     /// Required if field has changed since last sync; otherwise, it may be
     /// omitted.
-    #[serde(
-        rename = "m.invited_member_count",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename = "m.invited_member_count", skip_serializing_if = "Option::is_none")]
     pub invited_member_count: Option<UInt>,
 }
 
@@ -370,12 +364,8 @@ mod tests {
             .build()
             .unwrap();
 
-        let req: Request = http::Request::builder()
-            .uri(uri)
-            .body(Vec::<u8>::new())
-            .unwrap()
-            .try_into()
-            .unwrap();
+        let req: Request =
+            http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap().try_into().unwrap();
 
         assert_matches!(req.filter, Some(Filter::FilterId(id)) if id == "myfilter");
         assert_eq!(req.since, Some("myts".into()));
@@ -393,12 +383,8 @@ mod tests {
             .build()
             .unwrap();
 
-        let req: Request = http::Request::builder()
-            .uri(uri)
-            .body(Vec::<u8>::new())
-            .unwrap()
-            .try_into()
-            .unwrap();
+        let req: Request =
+            http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap().try_into().unwrap();
 
         assert_matches!(req.filter, None);
         assert_eq!(req.since, None);
@@ -420,12 +406,8 @@ mod tests {
             .build()
             .unwrap();
 
-        let req: Request = http::Request::builder()
-            .uri(uri)
-            .body(Vec::<u8>::new())
-            .unwrap()
-            .try_into()
-            .unwrap();
+        let req: Request =
+            http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap().try_into().unwrap();
 
         assert_matches!(req.filter, Some(Filter::FilterId(id)) if id == "EOKFFmdZYF");
         assert_eq!(req.since, None);

@@ -112,9 +112,7 @@ mod tests {
     fn test_serialize_some_room_event_filter() {
         let room_id = RoomId::try_from("!roomid:example.org").unwrap();
         let filter = RoomEventFilter {
-            lazy_load_options: LazyLoadOptions::Enabled {
-                include_redundant_members: true,
-            },
+            lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: true },
             rooms: Some(vec![room_id.clone()]),
             not_rooms: vec!["room".into(), "room2".into(), "room3".into()],
             not_types: vec!["type".into()],
@@ -149,10 +147,7 @@ mod tests {
         };
 
         let request: http::Request<Vec<u8>> = req.try_into().unwrap();
-        assert_eq!(
-            "from=token&to=token2&dir=b&limit=0",
-            request.uri().query().unwrap(),
-        );
+        assert_eq!("from=token&to=token2&dir=b&limit=0", request.uri().query().unwrap(),);
     }
 
     #[test]

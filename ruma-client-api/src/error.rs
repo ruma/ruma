@@ -202,13 +202,7 @@ impl EndpointError for Error {
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(
-            f,
-            "[{} / {}] {}",
-            self.status_code.as_u16(),
-            self.kind,
-            self.message
-        )
+        write!(f, "[{} / {}] {}", self.status_code.as_u16(), self.kind, self.message)
     }
 }
 
@@ -216,21 +210,14 @@ impl std::error::Error for Error {}
 
 impl From<Error> for ErrorBody {
     fn from(error: Error) -> Self {
-        Self {
-            kind: error.kind,
-            message: error.message,
-        }
+        Self { kind: error.kind, message: error.message }
     }
 }
 
 impl ErrorBody {
     /// Convert the ErrorBody into an Error by adding the http status code.
     pub fn into_error(self, status_code: http::StatusCode) -> Error {
-        Error {
-            kind: self.kind,
-            message: self.message,
-            status_code,
-        }
+        Error { kind: self.kind, message: self.message, status_code }
     }
 }
 

@@ -187,14 +187,10 @@ mod tests {
 
     #[test]
     fn test_serialize_authentication_data_fallback() {
-        let authentication_data = AuthData::FallbackAcknowledgement {
-            session: "ZXY000".to_string(),
-        };
+        let authentication_data =
+            AuthData::FallbackAcknowledgement { session: "ZXY000".to_string() };
 
-        assert_eq!(
-            json!({ "session": "ZXY000" }),
-            to_json_value(authentication_data).unwrap()
-        );
+        assert_eq!(json!({ "session": "ZXY000" }), to_json_value(authentication_data).unwrap());
     }
 
     #[test]
@@ -331,10 +327,7 @@ mod tests {
                     }
                 })
         );
-        assert_eq!(
-            uiaa_response.status(),
-            http::status::StatusCode::UNAUTHORIZED
-        );
+        assert_eq!(uiaa_response.status(), http::status::StatusCode::UNAUTHORIZED);
     }
 
     #[test]

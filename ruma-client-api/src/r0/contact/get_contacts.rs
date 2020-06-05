@@ -72,13 +72,7 @@ mod tests {
             "added_at": 1_535_336_848_756u64
         });
 
-        assert_eq!(
-            to_json_value(third_party_id.clone()).unwrap(),
-            third_party_id_serialized
-        );
-        assert_eq!(
-            third_party_id,
-            from_json_value(third_party_id_serialized).unwrap()
-        );
+        assert_eq!(to_json_value(third_party_id.clone()).unwrap(), third_party_id_serialized);
+        assert_eq!(third_party_id, from_json_value(third_party_id_serialized).unwrap());
     }
 }

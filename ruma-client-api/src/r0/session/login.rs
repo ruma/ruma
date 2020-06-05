@@ -155,9 +155,7 @@ mod tests {
                 "password": "ilovebananas"
             }),)
             .unwrap(),
-            LoginInfo::Password {
-                password: "ilovebananas".into()
-            }
+            LoginInfo::Password { password: "ilovebananas".into() }
         );
 
         assert_eq!(
@@ -166,9 +164,7 @@ mod tests {
                 "token": "1234567890abcdef"
             }),)
             .unwrap(),
-            LoginInfo::Token {
-                token: "1234567890abcdef".into()
-            }
+            LoginInfo::Token { token: "1234567890abcdef".into() }
         );
     }
 
@@ -193,9 +189,7 @@ mod tests {
                 address: "hello@example.com".to_owned(),
                 medium: Medium::Email,
             },
-            login_info: LoginInfo::Token {
-                token: "0xdeadbeef".to_owned(),
-            },
+            login_info: LoginInfo::Token { token: "0xdeadbeef".to_owned() },
             device_id: None,
             initial_device_display_name: Some("test".to_string()),
         }

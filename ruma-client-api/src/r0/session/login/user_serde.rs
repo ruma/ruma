@@ -28,15 +28,13 @@ impl From<super::UserInfo> for UserInfo {
         use super::UserInfo::*;
 
         match info {
-            MatrixId(user) => UserInfo {
-                identifier: UserIdentifier::MatrixId { user },
-            },
-            ThirdPartyId { address, medium } => UserInfo {
-                identifier: UserIdentifier::ThirdPartyId { address, medium },
-            },
-            PhoneNumber { country, phone } => UserInfo {
-                identifier: UserIdentifier::PhoneNumber { country, phone },
-            },
+            MatrixId(user) => UserInfo { identifier: UserIdentifier::MatrixId { user } },
+            ThirdPartyId { address, medium } => {
+                UserInfo { identifier: UserIdentifier::ThirdPartyId { address, medium } }
+            }
+            PhoneNumber { country, phone } => {
+                UserInfo { identifier: UserIdentifier::PhoneNumber { country, phone } }
+            }
         }
     }
 }

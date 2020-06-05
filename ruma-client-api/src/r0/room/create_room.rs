@@ -116,19 +116,11 @@ impl CreationContent {
     /// Given a `CreationContent` and the other fields that a homeserver has to fill, construct
     /// a `CreateEventContent`.
     pub fn into_event_content(
-        Self {
-            federate,
-            predecessor,
-        }: Self,
+        Self { federate, predecessor }: Self,
         creator: UserId,
         room_version: RoomVersionId,
     ) -> CreateEventContent {
-        CreateEventContent {
-            creator,
-            federate,
-            room_version,
-            predecessor,
-        }
+        CreateEventContent { creator, federate, room_version, predecessor }
     }
 }
 

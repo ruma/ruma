@@ -187,10 +187,7 @@ mod tests {
     #[test]
     fn test_deserialize_matrix_network_only() {
         let json = json!({ "include_all_networks": false });
-        assert_eq!(
-            from_json_value::<RoomNetwork>(json).unwrap(),
-            RoomNetwork::Matrix
-        );
+        assert_eq!(from_json_value::<RoomNetwork>(json).unwrap(), RoomNetwork::Matrix);
     }
 
     #[test]
@@ -202,10 +199,7 @@ mod tests {
     #[test]
     fn test_deserialize_empty_network_is_default() {
         let json = json!({});
-        assert_eq!(
-            from_json_value::<RoomNetwork>(json).unwrap(),
-            RoomNetwork::default()
-        );
+        assert_eq!(from_json_value::<RoomNetwork>(json).unwrap(), RoomNetwork::default());
     }
 
     #[test]
@@ -217,19 +211,13 @@ mod tests {
     #[test]
     fn test_deserialize_include_all_networks() {
         let json = json!({ "include_all_networks": true });
-        assert_eq!(
-            from_json_value::<RoomNetwork>(json).unwrap(),
-            RoomNetwork::All
-        );
+        assert_eq!(from_json_value::<RoomNetwork>(json).unwrap(), RoomNetwork::All);
     }
 
     #[test]
     fn test_serialize_third_party_network() {
         let json = json!({ "third_party_instance_id": "freenode" });
-        assert_eq!(
-            to_json_value(RoomNetwork::ThirdParty("freenode".to_string())).unwrap(),
-            json
-        );
+        assert_eq!(to_json_value(RoomNetwork::ThirdParty("freenode".to_string())).unwrap(), json);
     }
 
     #[test]
@@ -245,10 +233,7 @@ mod tests {
     fn test_deserialize_include_all_networks_and_third_party_exclusivity() {
         let json = json!({ "include_all_networks": true, "third_party_instance_id": "freenode" });
         assert_eq!(
-            from_json_value::<RoomNetwork>(json)
-                .unwrap_err()
-                .to_string()
-                .as_str(),
+            from_json_value::<RoomNetwork>(json).unwrap_err().to_string().as_str(),
             "`include_all_networks = true` and `third_party_instance_id` are mutually exclusive."
         );
     }

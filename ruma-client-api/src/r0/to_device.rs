@@ -40,9 +40,7 @@ impl TryFrom<&str> for DeviceIdOrAllDevices {
         } else if "*" == device_id_or_all_devices {
             Ok(DeviceIdOrAllDevices::AllDevices)
         } else {
-            Ok(DeviceIdOrAllDevices::DeviceId(
-                device_id_or_all_devices.to_string(),
-            ))
+            Ok(DeviceIdOrAllDevices::DeviceId(device_id_or_all_devices.to_string()))
         }
     }
 }

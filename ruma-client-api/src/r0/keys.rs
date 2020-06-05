@@ -103,10 +103,9 @@ impl<'de> Deserialize<'de> for AlgorithmAndDeviceId {
         let algorithm_result = KeyAlgorithm::try_from(parts[0]);
         match algorithm_result {
             Ok(algorithm) => Ok(AlgorithmAndDeviceId(algorithm, parts[1].to_string())),
-            Err(_) => Err(de::Error::invalid_value(
-                Unexpected::Str(parts[0]),
-                &"valid key algorithm",
-            )),
+            Err(_) => {
+                Err(de::Error::invalid_value(Unexpected::Str(parts[0]), &"valid key algorithm"))
+            }
         }
     }
 }
