@@ -1,0 +1,19 @@
+[package]
+authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
+categories = ["api-bindings", "cryptography"]
+description = "Digital signatures according to the Matrix specification."
+documentation = "https://docs.rs/ruma-signatures"
+edition = "2018"
+homepage = "https://github.com/ruma/ruma-signatures"
+keywords = ["matrix", "chat", "messaging", "ruma", "cryptography"]
+license = "MIT"
+name = "ruma-signatures"
+readme = "README.md"
+repository = "https://github.com/ruma/ruma-signatures"
+version = "0.6.0-dev.1"
+
+[dependencies]
+base64 = "0.12.0"
+ring = "0.16.12"
+serde_json = "1.0.50"
+untrusted = "0.7.0"
