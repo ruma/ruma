@@ -52,11 +52,7 @@ impl Signature {
             }
         })?;
 
-        Ok(Self {
-            algorithm,
-            signature: bytes.to_vec(),
-            version,
-        })
+        Ok(Self { algorithm, signature: bytes.to_vec(), version })
     }
 
     /// The algorithm used to generate the signature.

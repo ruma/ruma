@@ -34,11 +34,7 @@ impl Verifier for Ed25519Verifier {
         message: &[u8],
     ) -> Result<(), Error> {
         ED25519
-            .verify(
-                Input::from(public_key),
-                Input::from(message),
-                Input::from(signature),
-            )
+            .verify(Input::from(public_key), Input::from(message), Input::from(signature))
             .map_err(|_| Error::new("signature verification failed"))
     }
 }

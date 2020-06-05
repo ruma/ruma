@@ -139,9 +139,8 @@ where
     let signature = key_pair.sign(json.as_bytes());
 
     // Insert the new signature in the map we pulled out (or created) previously.
-    let signature_set = signature_map
-        .entry(entity_id.to_string())
-        .or_insert_with(|| HashMap::with_capacity(1));
+    let signature_set =
+        signature_map.entry(entity_id.to_string()).or_insert_with(|| HashMap::with_capacity(1));
 
     signature_set.insert(signature.id(), signature.base64());
 
@@ -247,10 +246,7 @@ pub fn verify_json(public_key_map: &PublicKeyMap, value: &Value) -> Result<(), E
         let signature_set = match signature_map.get(entity_id) {
             Some(set) => set,
             None => {
-                return Err(Error::new(format!(
-                    "no signatures found for entity `{}`",
-                    entity_id
-                )))
+                return Err(Error::new(format!("no signatures found for entity `{}`", entity_id)))
             }
         };
 
@@ -275,18 +271,14 @@ pub fn verify_json(public_key_map: &PublicKeyMap, value: &Value) -> Result<(), E
         let signature = match maybe_signature {
             Some(signature) => signature,
             None => {
-                return Err(Error::new(
-                    "event is not signed with any of the given public keys",
-                ))
+                return Err(Error::new("event is not signed with any of the given public keys"))
             }
         };
 
         let public_key = match maybe_public_key {
             Some(public_key) => public_key,
             None => {
-                return Err(Error::new(
-                    "event is not signed with any of the given public keys",
-                ))
+                return Err(Error::new("event is not signed with any of the given public keys"))
             }
         };
 
@@ -476,9 +468,8 @@ where
             _ => return Err(Error::new("JSON value must be a JSON object")),
         };
 
-        let hashes_value = map
-            .entry("hashes")
-            .or_insert_with(|| Value::Object(Map::with_capacity(1)));
+        let hashes_value =
+            map.entry("hashes").or_insert_with(|| Value::Object(Map::with_capacity(1)));
 
         match hashes_value.as_object_mut() {
             Some(hashes) => hashes.insert("sha256".to_string(), Value::String(hash)),
@@ -593,10 +584,7 @@ pub fn verify_event(public_key_map: &PublicKeyMap, value: &Value) -> Result<Veri
         let signature_set = match signature_map.get(entity_id) {
             Some(set) => set,
             None => {
-                return Err(Error::new(format!(
-                    "no signatures found for entity `{}`",
-                    entity_id
-                )))
+                return Err(Error::new(format!("no signatures found for entity `{}`", entity_id)))
             }
         };
 
@@ -621,18 +609,14 @@ pub fn verify_event(public_key_map: &PublicKeyMap, value: &Value) -> Result<Veri
         let signature = match maybe_signature {
             Some(signature) => signature,
             None => {
-                return Err(Error::new(
-                    "event is not signed with any of the given public keys",
-                ))
+                return Err(Error::new("event is not signed with any of the given public keys"))
             }
         };
 
         let public_key = match maybe_public_key {
             Some(public_key) => public_key,
             None => {
-                return Err(Error::new(
-                    "event is not signed with any of the given public keys",
-                ))
+                return Err(Error::new("event is not signed with any of the given public keys"))
             }
         };
 
@@ -642,12 +626,7 @@ pub fn verify_event(public_key_map: &PublicKeyMap, value: &Value) -> Result<Veri
 
         let public_key_bytes = decode_config(&public_key, STANDARD_NO_PAD)?;
 
-        verify_json_with(
-            &Ed25519Verifier,
-            &public_key_bytes,
-            &signature_bytes,
-            &canonical_json,
-        )?;
+        verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, &canonical_json)?;
     }
 
     let calculated_hash = content_hash(value)?;
@@ -669,9 +648,7 @@ fn canonical_json_with_fields_to_remove(value: &Value, fields: &[&str]) -> Resul
     let mut owned_value = value.clone();
 
     {
-        let object = owned_value
-            .as_object_mut()
-            .expect("safe since we checked above");
+        let object = owned_value.as_object_mut().expect("safe since we checked above");
 
         for field in fields {
             object.remove(*field);
@@ -711,9 +688,7 @@ pub fn redact(value: &Value) -> Result<Value, Error> {
 
     let mut owned_value = value.clone();
 
-    let event = owned_value
-        .as_object_mut()
-        .expect("safe since we checked above");
+    let event = owned_value.as_object_mut().expect("safe since we checked above");
 
     let event_type_value = match event.get("type") {
         Some(event_type_value) => event_type_value,
@@ -722,21 +697,13 @@ pub fn redact(value: &Value) -> Result<Value, Error> {
 
     let event_type = match event_type_value.as_str() {
         Some(event_type) => event_type.to_string(),
-        None => {
-            return Err(Error::new(
-                "field `type` in JSON value must be a JSON string",
-            ))
-        }
+        None => return Err(Error::new("field `type` in JSON value must be a JSON string")),
     };
 
     if let Some(content_value) = event.get_mut("content") {
         let map = match content_value {
             Value::Object(ref mut map) => map,
-            _ => {
-                return Err(Error::new(
-                    "field `content` in JSON value must be a JSON object",
-                ))
-            }
+            _ => return Err(Error::new("field `content` in JSON value must be a JSON object")),
         };
 
         for key in map.clone().keys() {

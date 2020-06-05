@@ -42,11 +42,7 @@
 //! these respective functions for more details and full examples of use.
 
 #![warn(rust_2018_idioms)]
-#![deny(
-    missing_copy_implementations,
-    missing_debug_implementations,
-    missing_docs
-)]
+#![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
 
 use std::{
     error::Error as StdError,
@@ -82,9 +78,7 @@ impl Error {
     where
         T: Into<String>,
     {
-        Self {
-            message: message.into(),
-        }
+        Self { message: message.into() }
     }
 }
 
@@ -233,10 +227,7 @@ mod test {
             r#"{"a":"1","b":"2"}"#
         );
 
-        assert_eq!(
-            &test_canonical_json(r#"{"b":"2","a":"1"}"#),
-            r#"{"a":"1","b":"2"}"#
-        );
+        assert_eq!(&test_canonical_json(r#"{"b":"2","a":"1"}"#), r#"{"a":"1","b":"2"}"#);
 
         assert_eq!(
             &test_canonical_json(
