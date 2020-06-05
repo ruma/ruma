@@ -3,11 +3,11 @@ name = "ruma-common"
 version = "0.1.3"
 authors = ["Jonas Platte <jplatte@posteo.de>"]
 description = "Common types for other ruma crates."
-homepage = "https://github.com/ruma/ruma-common"
+homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/ruma/ruma-client-api"
+repository = "https://github.com/ruma/ruma"
 edition = "2018"
 
 [dependencies]

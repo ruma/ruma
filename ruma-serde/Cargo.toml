@@ -8,8 +8,9 @@ authors = [
     "Isaiah Inuwa <isaiah.inuwa@gmail.com>",
     "Anthony Ramine <n.oxyde@gmail.com>",
 ]
+homepage = "https://www.ruma.io/"
+repository = "https://github.com/ruma/ruma"
 version = "0.2.2"
-repository = "https://github.com/ruma/ruma-serde"
 edition = "2018"
 
 [dependencies]
