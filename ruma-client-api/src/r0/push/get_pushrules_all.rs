@@ -1,0 +1,24 @@
+//! [GET /_matrix/client/r0/pushrules/](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-pushrules)
+
+use ruma_api::ruma_api;
+use ruma_events::push_rules::Ruleset;
+
+ruma_api! {
+    metadata {
+        description: "Retrieve all push rulesets for this user.",
+        method: GET,
+        name: "get_pushrules_all",
+        path: "/_matrix/client/r0/pushrules/",
+        rate_limited: false,
+        requires_authentication: true,
+    }
+
+    request {}
+
+    response {
+        /// The global ruleset
+        pub global: Ruleset,
+    }
+
+    error: crate::Error
+}
