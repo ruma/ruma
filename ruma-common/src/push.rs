@@ -83,10 +83,7 @@ impl<'de> Deserialize<'de> for Action {
                     "notify" => Ok(Action::Notify),
                     "dont_notify" => Ok(Action::DontNotify),
                     "coalesce" => Ok(Action::Coalesce),
-                    s => Err(E::unknown_variant(
-                        &s,
-                        &["notify", "dont_notify", "coalesce"],
-                    )),
+                    s => Err(E::unknown_variant(&s, &["notify", "dont_notify", "coalesce"])),
                 }
             }
 
@@ -153,10 +150,7 @@ mod tests {
 
     #[test]
     fn deserialize_string_action() {
-        assert_matches!(
-            from_json_value::<Action>(json!("notify")).unwrap(),
-            Action::Notify
-        );
+        assert_matches!(from_json_value::<Action>(json!("notify")).unwrap(), Action::Notify);
     }
 
     #[test]

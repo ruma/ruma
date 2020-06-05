@@ -65,10 +65,7 @@ where
         Err(self.unsupported())
     }
 
-    fn serialize_some<T: ?Sized + ser::Serialize>(
-        self,
-        _value: &T,
-    ) -> Result<Ok, Error> {
+    fn serialize_some<T: ?Sized + ser::Serialize>(self, _value: &T) -> Result<Ok, Error> {
         Err(self.unsupported())
     }
 

@@ -1,9 +1,7 @@
 use std::{borrow::Cow, mem};
 
 use serde::ser;
-use url::form_urlencoded::{
-    Serializer as UrlEncodedSerializer, Target as UrlEncodedTarget,
-};
+use url::form_urlencoded::{Serializer as UrlEncodedSerializer, Target as UrlEncodedTarget};
 
 use super::{key::KeySink, part::PartSerializer, value::ValueSink, Error};
 
@@ -16,18 +14,12 @@ impl<'input, 'target, Target> PairSerializer<'input, 'target, Target>
 where
     Target: 'target + UrlEncodedTarget,
 {
-    pub fn new(
-        urlencoder: &'target mut UrlEncodedSerializer<'input, Target>,
-    ) -> Self {
-        PairSerializer {
-            urlencoder,
-            state: PairState::WaitingForKey,
-        }
+    pub fn new(urlencoder: &'target mut UrlEncodedSerializer<'input, Target>) -> Self {
+        PairSerializer { urlencoder, state: PairState::WaitingForKey }
     }
 }
 
-impl<'input, 'target, Target> ser::Serializer
-    for PairSerializer<'input, 'target, Target>
+impl<'input, 'target, Target> ser::Serializer for PairSerializer<'input, 'target, Target>
 where
     Target: 'target + UrlEncodedTarget,
 {
@@ -136,17 +128,11 @@ where
         Ok(())
     }
 
-    fn serialize_some<T: ?Sized + ser::Serialize>(
-        self,
-        value: &T,
-    ) -> Result<(), Error> {
+    fn serialize_some<T: ?Sized + ser::Serialize>(self, value: &T) -> Result<(), Error> {
         value.serialize(self)
     }
 
-    fn serialize_seq(
-        self,
-        _len: Option<usize>,
-    ) -> Result<Self::SerializeSeq, Error> {
+    fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq, Error> {
         Err(Error::unsupported_pair())
     }
 
@@ -176,10 +162,7 @@ where
         Err(Error::unsupported_pair())
     }
 
-    fn serialize_map(
-        self,
-        _len: Option<usize>,
-    ) -> Result<Self::SerializeMap, Error> {
+    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Error> {
         Err(Error::unsupported_pair())
     }
 
@@ -202,25 +185,19 @@ where
     }
 }
 
-impl<'input, 'target, Target> ser::SerializeTuple
-    for PairSerializer<'input, 'target, Target>
+impl<'input, 'target, Target> ser::SerializeTuple for PairSerializer<'input, 'target, Target>
 where
     Target: 'target + UrlEncodedTarget,
 {
     type Ok = ();
     type Error = Error;
 
-    fn serialize_element<T: ?Sized + ser::Serialize>(
-        &mut self,
-        value: &T,
-    ) -> Result<(), Error> {
+    fn serialize_element<T: ?Sized + ser::Serialize>(&mut self, value: &T) -> Result<(), Error> {
         match mem::replace(&mut self.state, PairState::Done) {
             PairState::WaitingForKey => {
                 let key_sink = KeySink::new(|key| Ok(key.into()));
                 let key_serializer = PartSerializer::new(key_sink);
-                self.state = PairState::WaitingForValue {
-                    key: value.serialize(key_serializer)?,
-                };
+                self.state = PairState::WaitingForValue { key: value.serialize(key_serializer)? };
                 Ok(())
             }
             PairState::WaitingForValue { key } => {

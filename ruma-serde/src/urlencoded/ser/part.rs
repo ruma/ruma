@@ -18,19 +18,13 @@ pub trait Sink: Sized {
     type Ok;
     type SerializeSeq: ser::SerializeSeq<Ok = Self::Ok, Error = Error>;
 
-    fn serialize_static_str(
-        self,
-        value: &'static str,
-    ) -> Result<Self::Ok, Error>;
+    fn serialize_static_str(self, value: &'static str) -> Result<Self::Ok, Error>;
 
     fn serialize_str(self, value: &str) -> Result<Self::Ok, Error>;
     fn serialize_string(self, value: String) -> Result<Self::Ok, Error>;
     fn serialize_none(self) -> Result<Self::Ok, Error>;
 
-    fn serialize_some<T: ?Sized + ser::Serialize>(
-        self,
-        value: &T,
-    ) -> Result<Self::Ok, Error>;
+    fn serialize_some<T: ?Sized + ser::Serialize>(self, value: &T) -> Result<Self::Ok, Error>;
 
     fn serialize_seq(self) -> Result<Self::SerializeSeq, Error>;
 
@@ -49,8 +43,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
     type SerializeStructVariant = ser::Impossible<S::Ok, Error>;
 
     fn serialize_bool(self, v: bool) -> Result<S::Ok, Error> {
-        self.sink
-            .serialize_static_str(if v { "true" } else { "false" })
+        self.sink.serialize_static_str(if v { "true" } else { "false" })
     }
 
     fn serialize_i8(self, v: i8) -> Result<S::Ok, Error> {
@@ -147,24 +140,15 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         self.sink.serialize_none()
     }
 
-    fn serialize_some<T: ?Sized + ser::Serialize>(
-        self,
-        value: &T,
-    ) -> Result<S::Ok, Error> {
+    fn serialize_some<T: ?Sized + ser::Serialize>(self, value: &T) -> Result<S::Ok, Error> {
         self.sink.serialize_some(value)
     }
 
-    fn serialize_seq(
-        self,
-        _len: Option<usize>,
-    ) -> Result<Self::SerializeSeq, Error> {
+    fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq, Error> {
         self.sink.serialize_seq()
     }
 
-    fn serialize_tuple(
-        self,
-        _len: usize,
-    ) -> Result<Self::SerializeTuple, Error> {
+    fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple, Error> {
         Err(self.sink.unsupported())
     }
 
@@ -186,10 +170,7 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         Err(self.sink.unsupported())
     }
 
-    fn serialize_map(
-        self,
-        _len: Option<usize>,
-    ) -> Result<Self::SerializeMap, Error> {
+    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Error> {
         Err(self.sink.unsupported())
     }
 

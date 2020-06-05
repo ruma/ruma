@@ -136,11 +136,7 @@ where
         }
     }
 
-    fn deserialize_tuple<V>(
-        self,
-        len: usize,
-        visitor: V,
-    ) -> Result<V::Value, Self::Error>
+    fn deserialize_tuple<V>(self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
@@ -189,9 +185,7 @@ where
         V: de::Visitor<'de>,
     {
         match self {
-            ValOrVec::Val(val) => {
-                val.deserialize_tuple_struct(name, len, visitor)
-            }
+            ValOrVec::Val(val) => val.deserialize_tuple_struct(name, len, visitor),
             ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
         }
     }

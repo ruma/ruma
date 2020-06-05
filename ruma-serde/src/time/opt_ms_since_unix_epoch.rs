@@ -14,10 +14,7 @@ use serde::{
 ///
 /// Will fail if integer is greater than the maximum integer that can be unambiguously represented
 /// by an f64.
-pub fn serialize<S>(
-    opt_time: &Option<SystemTime>,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
+pub fn serialize<S>(opt_time: &Option<SystemTime>, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -31,9 +28,7 @@ where
 ///
 /// Will fail if integer is greater than the maximum integer that can be unambiguously represented
 /// by an f64.
-pub fn deserialize<'de, D>(
-    deserializer: D,
-) -> Result<Option<SystemTime>, D::Error>
+pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<SystemTime>, D::Error>
 where
     D: Deserializer<'de>,
 {
@@ -50,11 +45,7 @@ mod tests {
 
     #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
     struct SystemTimeTest {
-        #[serde(
-            with = "super",
-            default,
-            skip_serializing_if = "Option::is_none"
-        )]
+        #[serde(with = "super", default, skip_serializing_if = "Option::is_none")]
         timestamp: Option<SystemTime>,
     }
 
@@ -64,9 +55,7 @@ mod tests {
 
         assert_eq!(
             serde_json::from_value::<SystemTimeTest>(json).unwrap(),
-            SystemTimeTest {
-                timestamp: Some(UNIX_EPOCH + Duration::from_millis(3000))
-            },
+            SystemTimeTest { timestamp: Some(UNIX_EPOCH + Duration::from_millis(3000)) },
         );
     }
 
@@ -92,13 +81,8 @@ mod tests {
 
     #[test]
     fn test_serialize_some() {
-        let request = SystemTimeTest {
-            timestamp: Some(UNIX_EPOCH + Duration::new(2, 0)),
-        };
-        assert_eq!(
-            serde_json::to_value(&request).unwrap(),
-            json!({ "timestamp": 2000 })
-        );
+        let request = SystemTimeTest { timestamp: Some(UNIX_EPOCH + Duration::new(2, 0)) };
+        assert_eq!(serde_json::to_value(&request).unwrap(), json!({ "timestamp": 2000 }));
     }
 
     #[test]

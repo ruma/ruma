@@ -64,18 +64,12 @@ pub mod vec_as_map_of_empty {
     use super::Empty;
 
     #[allow(clippy::ptr_arg)]
-    pub fn serialize<S, T>(
-        vec: &Vec<T>,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error>
+    pub fn serialize<S, T>(vec: &Vec<T>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
         T: Serialize + Eq + Ord,
     {
-        vec.iter()
-            .map(|v| (v, Empty))
-            .collect::<BTreeMap<_, _>>()
-            .serialize(serializer)
+        vec.iter().map(|v| (v, Empty)).collect::<BTreeMap<_, _>>().serialize(serializer)
     }
 
     pub fn deserialize<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
