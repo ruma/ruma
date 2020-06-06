@@ -2,9 +2,7 @@
 
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{
-    Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, GenericParam, Ident, TypeParam,
-};
+use syn::{Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, Ident};
 
 /// Derive `Event` macro code generation.
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
@@ -33,36 +31,6 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     };
 
     let content_trait = Ident::new(&format!("{}Content", ident), input.ident.span());
-    let try_from_raw_fields = fields
-        .iter()
-        .map(|field| {
-            let name = field.ident.as_ref().unwrap();
-            if name == "content" {
-                quote! { content: C::try_from_raw(raw.content)? }
-            } else if name == "prev_content" {
-                quote! { prev_content: raw.prev_content.map(C::try_from_raw).transpose()? }
-            } else {
-                quote! { #name: raw.#name }
-            }
-        })
-        .collect::<Vec<_>>();
-
-    let try_from_raw_impl = quote! {
-        impl<C> ::ruma_events::TryFromRaw for #ident<C>
-        where
-            C: ::ruma_events::#content_trait + ::ruma_events::TryFromRaw,
-            C::Raw: ::ruma_events::RawEventContent,
-        {
-            type Raw = raw_event::#ident<C::Raw>;
-            type Err = C::Err;
-
-            fn try_from_raw(raw: Self::Raw) -> Result<Self, Self::Err> {
-                Ok(Self {
-                    #( #try_from_raw_fields ),*
-                })
-            }
-        }
-    };
 
     let serialize_fields = fields
         .iter()
@@ -99,9 +67,9 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         .collect::<Vec<_>>();
 
     let serialize_impl = quote! {
-        impl<C: #content_trait> ::serde::ser::Serialize for #ident<C>
+        impl<C> ::serde::ser::Serialize for #ident<C>
         where
-            C::Raw: ::ruma_events::RawEventContent,
+            C: ::ruma_events::#content_trait,
         {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -120,31 +88,18 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         }
     };
 
-    let raw_mod = expand_raw_state_event(&input, fields)?;
+    let deserialize_impl = expand_deserialize_event(&input, fields)?;
 
     Ok(quote! {
-        #try_from_raw_impl
-
         #serialize_impl
 
-        #raw_mod
+        #deserialize_impl
     })
 }
 
-fn expand_raw_state_event(input: &DeriveInput, fields: Vec<Field>) -> syn::Result<TokenStream> {
+fn expand_deserialize_event(input: &DeriveInput, fields: Vec<Field>) -> syn::Result<TokenStream> {
     let ident = &input.ident;
     let content_ident = Ident::new(&format!("{}Content", ident), input.ident.span());
-
-    // the raw version has no bounds on its type param
-    let generics = {
-        let mut gen = input.generics.clone();
-        for p in &mut gen.params {
-            if let GenericParam::Type(TypeParam { bounds, .. }) = p {
-                bounds.clear();
-            }
-        }
-        gen
-    };
 
     let enum_variants = fields
         .iter()
@@ -175,13 +130,13 @@ fn expand_raw_state_event(input: &DeriveInput, fields: Vec<Field>) -> syn::Resul
             let name = field.ident.as_ref().unwrap();
             if name == "content" {
                 quote! {
-                    let raw = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;
-                    let content = C::from_parts(&event_type, raw).map_err(A::Error::custom)?;
+                    let json = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;
+                    let content = C::from_parts(&event_type, json).map_err(A::Error::custom)?;
                 }
             } else if name == "prev_content" {
                 quote! {
-                    let prev_content = if let Some(raw) = prev_content {
-                        Some(C::from_parts(&event_type, raw).map_err(A::Error::custom)?)
+                    let prev_content = if let Some(json) = prev_content {
+                        Some(C::from_parts(&event_type, json).map_err(A::Error::custom)?)
                     } else {
                         None
                     };
@@ -209,10 +164,10 @@ fn expand_raw_state_event(input: &DeriveInput, fields: Vec<Field>) -> syn::Resul
 
     let field_names = fields.iter().flat_map(|f| &f.ident).collect::<Vec<_>>();
 
-    let deserialize_impl = quote! {
+    Ok(quote! {
         impl<'de, C> ::serde::de::Deserialize<'de> for #ident<C>
         where
-            C: ::ruma_events::RawEventContent,
+            C: ::ruma_events::#content_ident,
         {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -232,7 +187,7 @@ fn expand_raw_state_event(input: &DeriveInput, fields: Vec<Field>) -> syn::Resul
 
                 impl<'de, C> ::serde::de::Visitor<'de> for EventVisitor<C>
                 where
-                    C: ::ruma_events::RawEventContent,
+                    C: ::ruma_events::#content_ident,
                 {
                     type Value = #ident<C>;
 
@@ -279,21 +234,6 @@ fn expand_raw_state_event(input: &DeriveInput, fields: Vec<Field>) -> syn::Resul
 
                 deserializer.deserialize_map(EventVisitor(::std::marker::PhantomData))
             }
-        }
-    };
-
-    let raw_docs = format!("The raw version of {}, allows for deserialization.", ident);
-    Ok(quote! {
-        #[doc = #raw_docs]
-        mod raw_event {
-            use super::*;
-
-            #[derive(Clone, Debug)]
-            pub struct #ident #generics {
-                #( #fields ),*
-            }
-
-            #deserialize_impl
         }
     })
 }

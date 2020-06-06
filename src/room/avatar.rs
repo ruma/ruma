@@ -1,14 +1,14 @@
 //! Types for the *m.room.avatar* event.
 
-use ruma_events_macros::{FromRaw, StateEventContent};
-use serde::Serialize;
+use ruma_events_macros::StateEventContent;
+use serde::{Deserialize, Serialize};
 
 use super::ImageInfo;
 
 /// A picture that is associated with the room.
 ///
 /// This can be displayed alongside the room information.
-#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.avatar")]
 pub struct AvatarEventContent {
     /// Information about the avatar image.

@@ -1,32 +1,21 @@
 //! Types for the *m.room.name* event.
 
+use std::ops::Deref;
 use std::time::SystemTime;
 
 use ruma_events_macros::StateEventContent;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::{InvalidInput, TryFromRaw, UnsignedData};
+use crate::{InvalidInput, UnsignedData};
 
 /// The payload for `NameEvent`.
-#[derive(Clone, Debug, Serialize, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.name")]
 pub struct NameEventContent {
     /// The name of the room. This MUST NOT exceed 255 bytes.
+    #[serde(default, deserialize_with = "room_name")]
     pub(crate) name: Option<String>,
-}
-
-impl TryFromRaw for NameEventContent {
-    type Raw = raw::NameEventContent;
-
-    type Err = InvalidInput;
-
-    fn try_from_raw(raw: raw::NameEventContent) -> Result<Self, Self::Err> {
-        match raw.name {
-            None => Ok(NameEventContent { name: None }),
-            Some(name) => NameEventContent::new(name),
-        }
-    }
 }
 
 impl NameEventContent {
@@ -47,21 +36,26 @@ impl NameEventContent {
 
     /// The name of the room, if any.
     pub fn name(&self) -> Option<&str> {
-        self.name.as_ref().map(String::as_ref)
+        self.name.as_deref()
     }
 }
 
-pub(crate) mod raw {
-    use super::*;
+fn room_name<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    use serde::de::Error;
 
-    /// The payload of a `NameEvent`.
-    #[derive(Clone, Debug, Deserialize)]
-    pub struct NameEventContent {
-        /// The name of the room. This MUST NOT exceed 255 bytes.
-        // The spec says "A room with an m.room.name event with an absent, null, or empty name field
-        // should be treated the same as a room with no m.room.name event."
-        #[serde(default, deserialize_with = "ruma_serde::empty_string_as_none")]
-        pub(crate) name: Option<String>,
+    // this handles the null case and the empty string or nothing case
+    match Option::<String>::deserialize(deserializer)? {
+        Some(name) => match name.len() {
+            0 => Ok(None),
+            1..=255 => Ok(Some(name)),
+            _ => Err(D::Error::custom(
+                "a room name cannot be more than 255 bytes",
+            )),
+        },
+        None => Ok(None),
     }
 }
 

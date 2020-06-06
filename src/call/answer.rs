@@ -1,13 +1,13 @@
 //! Types for the *m.call.answer* event.
 
 use js_int::UInt;
-use ruma_events_macros::{FromRaw, MessageEventContent};
-use serde::Serialize;
+use ruma_events_macros::MessageEventContent;
+use serde::{Deserialize, Serialize};
 
 use super::SessionDescription;
 
 /// This event is sent by the callee when they wish to answer the call.
-#[derive(Clone, Debug, Serialize, FromRaw, MessageEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.call.answer")]
 pub struct AnswerEventContent {
     /// The VoIP session description object. The session description type must be *answer*.

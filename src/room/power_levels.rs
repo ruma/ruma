@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::EventType;
 
 /// Defines the power levels (privileges) of users in the room.
-#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.power_levels")]
 pub struct PowerLevelsEventContent {
     /// The level required to ban a user.

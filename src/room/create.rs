@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 /// This is the first event in a room and cannot be changed. It acts as the root of all other
 /// events.
-#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.create")]
 pub struct CreateEventContent {
     /// The `user_id` of the room creator. This is set by the homeserver.

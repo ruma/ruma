@@ -13,7 +13,7 @@ use crate::{FromRaw, UnsignedData};
 pub mod feedback;
 
 /// The payload for `MessageEvent`.
-#[derive(Clone, Debug, Serialize, MessageEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.room.message")]
 #[serde(tag = "msgtype")]
 pub enum MessageEventContent {

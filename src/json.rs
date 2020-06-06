@@ -12,7 +12,7 @@ use serde_json::value::RawValue;
 
 use crate::{
     error::{InvalidEvent, InvalidEventKind},
-    EventContent, RawEventContent, TryFromRaw,
+    EventContent,
 };
 
 /// A wrapper around `Box<RawValue>`, to be used in place of event [content] [collection] types in
@@ -31,6 +31,11 @@ impl<T> EventJson<T> {
         }
     }
 
+    /// Create an `EventJson` from a boxed `RawValue`.
+    pub fn from_json(raw: Box<RawValue>) -> Self {
+        Self::new(raw)
+    }
+
     /// Access the underlying json value.
     pub fn json(&self) -> &RawValue {
         &self.json
@@ -42,23 +47,13 @@ impl<T> EventJson<T> {
     }
 }
 
-impl<T: TryFromRaw> EventJson<T>
+impl<T> EventJson<T>
 where
-    T::Raw: DeserializeOwned,
+    T: DeserializeOwned,
 {
     /// Try to deserialize the JSON into the expected event type.
     pub fn deserialize(&self) -> Result<T, InvalidEvent> {
-        let raw_ev: T::Raw = match serde_json::from_str(self.json.get()) {
-            Ok(raw) => raw,
-            Err(error) => {
-                return Err(InvalidEvent {
-                    message: error.to_string(),
-                    kind: InvalidEventKind::Deserialization,
-                });
-            }
-        };
-
-        match T::try_from_raw(raw_ev) {
+        match serde_json::from_str(self.json.get()) {
             Ok(value) => Ok(value),
             Err(err) => Err(InvalidEvent {
                 message: err.to_string(),
@@ -70,27 +65,14 @@ where
 
 impl<T: EventContent> EventJson<T>
 where
-    T::Raw: RawEventContent,
+    T: EventContent,
 {
     /// Try to deserialize the JSON as event content
     pub fn deserialize_content(self, event_type: &str) -> Result<T, InvalidEvent> {
-        let raw_content = match T::Raw::from_parts(event_type, self.json) {
-            Ok(raw) => raw,
-            Err(message) => {
-                return Err(InvalidEvent {
-                    message,
-                    kind: InvalidEventKind::Deserialization,
-                });
-            }
-        };
-
-        match T::try_from_raw(raw_content) {
-            Ok(value) => Ok(value),
-            Err(err) => Err(InvalidEvent {
-                message: err.to_string(),
-                kind: InvalidEventKind::Validation,
-            }),
-        }
+        T::from_parts(event_type, self.json).map_err(|err| InvalidEvent {
+            message: err,
+            kind: InvalidEventKind::Deserialization,
+        })
     }
 }
 
@@ -100,17 +82,11 @@ impl<T: Serialize> From<&T> for EventJson<T> {
     }
 }
 
-// Without the `TryFromRaw` bound, this would conflict with the next impl below
-// We could remove the `TryFromRaw` bound once specialization is stabilized.
-impl<T: Serialize + TryFromRaw> From<T> for EventJson<T> {
+// With specialization a fast path from impl for `impl<T> From<Box<RawValue...`
+// could be used. Until then there is a special constructor `from_json` for this.
+impl<T: Serialize> From<T> for EventJson<T> {
     fn from(val: T) -> Self {
         Self::from(&val)
-    }
-}
-
-impl<T> From<Box<RawValue>> for EventJson<T> {
-    fn from(json: Box<RawValue>) -> Self {
-        Self::new(json)
     }
 }
 

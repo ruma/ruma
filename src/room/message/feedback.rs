@@ -9,7 +9,7 @@ use strum::{Display, EnumString};
 ///
 /// N.B.: Usage of this event is discouraged in favor of the receipts module. Most clients will
 /// not recognize this event.
-#[derive(Clone, Debug, Serialize, FromRaw, MessageEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.room.message.feedback")]
 pub struct FeedbackEventContent {
     /// The event that this feedback is related to.

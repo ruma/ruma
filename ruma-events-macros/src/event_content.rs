@@ -52,9 +52,7 @@ fn expand_room_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
             fn event_type(&self) -> &str {
                 #event_type
             }
-        }
 
-        impl ::ruma_events::RawEventContent for raw::#ident {
             fn from_parts(
                 ev_type: &str,
                 content: Box<::serde_json::value::RawValue>

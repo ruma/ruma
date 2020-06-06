@@ -1,13 +1,13 @@
 //! Types for the *m.call.invite* event.
 
 use js_int::UInt;
-use ruma_events_macros::{FromRaw, MessageEventContent};
-use serde::Serialize;
+use ruma_events_macros::MessageEventContent;
+use serde::{Deserialize, Serialize};
 
 use super::SessionDescription;
 
 /// This event is sent by the caller when they wish to establish a call.
-#[derive(Clone, Debug, Serialize, FromRaw, MessageEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.call.invite")]
 pub struct InviteEventContent {
     /// A unique identifer for the call.

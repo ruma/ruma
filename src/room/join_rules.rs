@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
 /// Describes how users are allowed to join the room.
-#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.join_rules")]
 pub struct JoinRulesEventContent {
     /// The type of rules used for users wishing to join this room.

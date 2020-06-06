@@ -1,12 +1,12 @@
 //! Types for the *m.sticker* event.
 
-use ruma_events_macros::{FromRaw, MessageEventContent};
-use serde::Serialize;
+use ruma_events_macros::MessageEventContent;
+use serde::{Deserialize, Serialize};
 
 use crate::room::ImageInfo;
 
 /// A sticker message.
-#[derive(Clone, Debug, Serialize, FromRaw, MessageEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.sticker")]
 pub struct StickerEventContent {
     /// A textual representation or associated description of the sticker image. This could

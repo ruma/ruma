@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 /// This event is sent by callers after sending an invite and by the callee after answering. Its
 /// purpose is to give the other party additional ICE candidates to try using to communicate.
-#[derive(Clone, Debug, Serialize, FromRaw, MessageEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.call.candidates")]
 pub struct CandidatesEventContent {
     /// The ID of the call this event relates to.

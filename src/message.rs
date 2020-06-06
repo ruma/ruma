@@ -13,7 +13,7 @@ use serde::{
     Serialize, Serializer,
 };
 
-use crate::{MessageEventContent, RawEventContent, RoomEventContent, TryFromRaw, UnsignedData};
+use crate::{MessageEventContent, RoomEventContent, UnsignedData};
 use ruma_events_macros::{event_content_collection, Event};
 
 event_content_collection! {
@@ -30,10 +30,7 @@ event_content_collection! {
 
 /// Message event.
 #[derive(Clone, Debug, Event)]
-pub struct MessageEvent<C: MessageEventContent>
-where
-    C::Raw: RawEventContent,
-{
+pub struct MessageEvent<C: MessageEventContent> {
     /// Data specific to the event type.
     pub content: C,
 

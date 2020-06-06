@@ -6,7 +6,7 @@ use strum::{Display, EnumString};
 
 /// This event controls whether a member of a room can see the events that happened in a room
 /// from before they joined.
-#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.history_visibility")]
 pub struct HistoryVisibilityEventContent {
     /// Who can see the room history.

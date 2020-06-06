@@ -13,7 +13,7 @@ use serde::{
     Serialize, Serializer,
 };
 
-use crate::{RawEventContent, RoomEventContent, StateEventContent, TryFromRaw, UnsignedData};
+use crate::{RoomEventContent, StateEventContent, TryFromRaw, UnsignedData};
 use ruma_events_macros::{event_content_collection, Event};
 
 event_content_collection! {
@@ -24,10 +24,7 @@ event_content_collection! {
 
 /// State event.
 #[derive(Clone, Debug, Event)]
-pub struct StateEvent<C: StateEventContent>
-where
-    C::Raw: RawEventContent,
-{
+pub struct StateEvent<C: StateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 

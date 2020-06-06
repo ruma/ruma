@@ -2,12 +2,12 @@
 
 use js_int::UInt;
 use ruma_events_macros::{FromRaw, StateEventContent};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::Algorithm;
 
 /// Defines how messages sent in this room should be encrypted.
-#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.encryption")]
 pub struct EncryptionEventContent {
     /// The encryption algorithm to be used to encrypt messages sent in this room.

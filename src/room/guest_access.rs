@@ -8,7 +8,7 @@ use strum::{Display, EnumString};
 ///
 /// This event controls whether guest users are allowed to join rooms. If this event is absent,
 /// servers should act as if it is present and has the value `GuestAccess::Forbidden`.
-#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.guest_access")]
 pub struct GuestAccessEventContent {
     /// A policy for guest user access to a room.

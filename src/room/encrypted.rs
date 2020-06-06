@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::{FromRaw, UnsignedData};
 
 /// The payload for `EncryptedEvent`.
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[non_exhaustive]
 #[serde(tag = "algorithm")]
 pub enum EncryptedEventContent {
@@ -20,44 +20,6 @@ pub enum EncryptedEventContent {
     /// An event encrypted with *m.megolm.v1.aes-sha2*.
     #[serde(rename = "m.megolm.v1.aes-sha2")]
     MegolmV1AesSha2(MegolmV1AesSha2Content),
-}
-
-impl FromRaw for EncryptedEventContent {
-    type Raw = raw::EncryptedEventContent;
-
-    fn from_raw(raw: raw::EncryptedEventContent) -> Self {
-        use raw::EncryptedEventContent::*;
-
-        match raw {
-            OlmV1Curve25519AesSha2(content) => {
-                EncryptedEventContent::OlmV1Curve25519AesSha2(content)
-            }
-            MegolmV1AesSha2(content) => EncryptedEventContent::MegolmV1AesSha2(content),
-        }
-    }
-}
-
-pub(crate) mod raw {
-    use std::time::SystemTime;
-
-    use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde::Deserialize;
-
-    use super::{MegolmV1AesSha2Content, OlmV1Curve25519AesSha2Content};
-    use crate::UnsignedData;
-
-    /// The payload for `EncryptedEvent`.
-    #[derive(Clone, Debug, Deserialize)]
-    #[serde(tag = "algorithm")]
-    pub enum EncryptedEventContent {
-        /// An event encrypted with *m.olm.v1.curve25519-aes-sha2*.
-        #[serde(rename = "m.olm.v1.curve25519-aes-sha2")]
-        OlmV1Curve25519AesSha2(OlmV1Curve25519AesSha2Content),
-
-        /// An event encrypted with *m.megolm.v1.aes-sha2*.
-        #[serde(rename = "m.megolm.v1.aes-sha2")]
-        MegolmV1AesSha2(MegolmV1AesSha2Content),
-    }
 }
 
 /// The payload for `EncryptedEvent` using the *m.olm.v1.curve25519-aes-sha2* algorithm.

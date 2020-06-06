@@ -53,80 +53,12 @@ pub fn expand_collection(input: RumaCollectionInput) -> syn::Result<TokenStream>
                     #( Self::#variants(content) => content.event_type() ),*
                 }
             }
-        }
-    };
 
-    let try_from_raw_impl = quote! {
-        impl ::ruma_events::TryFromRaw for #ident {
-            type Raw = raw::#ident;
-            type Err = String;
-
-            fn try_from_raw(raw: Self::Raw) -> Result<Self, Self::Err> {
-                use raw::#ident::*;
-
-                match raw {
-                    #( #variants(c) => {
-                            let content = ::ruma_events::TryFromRaw::try_from_raw(c)
-                                .map_err(|e: <#content as ::ruma_events::TryFromRaw>::Err| e.to_string())?;
-                                // without this ^^^^^^^^^^^ the compiler fails to infer the type
-                            Ok(Self::#variants(content))
-                        }
-                    ),*
-                }
-            }
-        }
-    };
-
-    let marker_trait_impls = marker_traits(ident);
-
-    let raw_mod = expand_raw_content_event(&input, &variants)?;
-
-    Ok(quote! {
-        #collection
-
-        #try_from_raw_impl
-
-        #event_content_impl
-
-        #marker_trait_impls
-
-        #raw_mod
-    })
-}
-
-fn expand_raw_content_event(
-    input: &RumaCollectionInput,
-    variants: &[Ident],
-) -> syn::Result<TokenStream> {
-    let ident = &input.name;
-    let event_type_str = &input.events;
-
-    let raw_docs = format!("The raw version of {}, allows for deserialization.", ident);
-    let raw_content = input
-        .events
-        .iter()
-        .map(to_raw_event_content_path)
-        .collect::<Vec<_>>();
-
-    let raw_collection = quote! {
-        #[doc = #raw_docs]
-        #[derive(Clone, Debug)]
-        #[allow(clippy::large_enum_variant)]
-        pub enum #ident {
-            #(
-                #[doc = #event_type_str]
-                #variants(#raw_content)
-            ),*
-        }
-    };
-
-    let raw_event_content_impl = quote! {
-        impl ::ruma_events::RawEventContent for #ident {
             fn from_parts(event_type: &str, input: Box<::serde_json::value::RawValue>) -> Result<Self, String> {
                 match event_type {
                     #(
                         #event_type_str => {
-                            let content = #raw_content::from_parts(event_type, input)?;
+                            let content = #content::from_parts(event_type, input)?;
                             Ok(#ident::#variants(content))
                         },
                     )*
@@ -136,12 +68,14 @@ fn expand_raw_content_event(
         }
     };
 
-    Ok(quote! {
-        mod raw {
-            #raw_collection
+    let marker_trait_impls = marker_traits(ident);
 
-            #raw_event_content_impl
-        }
+    Ok(quote! {
+        #collection
+
+        #event_content_impl
+
+        #marker_trait_impls
     })
 }
 
@@ -165,29 +99,6 @@ fn to_event_content_path(
     let path = path.iter().map(|s| Ident::new(s, span));
     syn::parse_quote! {
         ::ruma_events::#( #path )::*::#content_str
-    }
-}
-
-fn to_raw_event_content_path(
-    name: &LitStr,
-) -> syn::punctuated::Punctuated<syn::Token![::], syn::PathSegment> {
-    let span = name.span();
-    let name = name.value();
-
-    assert_eq!(&name[..2], "m.");
-
-    let path = name[2..].split('.').collect::<Vec<_>>();
-
-    let event_str = path.last().unwrap();
-    let event = event_str
-        .split('_')
-        .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
-        .collect::<String>();
-
-    let content_str = Ident::new(&format!("{}EventContent", event), span);
-    let path = path.iter().map(|s| Ident::new(s, span));
-    syn::parse_quote! {
-        ::ruma_events::#( #path )::*::raw::#content_str
     }
 }
 

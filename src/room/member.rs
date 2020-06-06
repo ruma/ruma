@@ -34,7 +34,7 @@ use crate::StateEvent;
 /// The membership for a given user can change over time. Previous membership can be retrieved
 /// from the `prev_content` object on an event. If not present, the user's previous membership
 /// must be assumed as leave.
-#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.member")]
 pub struct MemberEventContent {
     /// The avatar URL for this user, if any. This is added by the homeserver.

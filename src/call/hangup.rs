@@ -7,7 +7,7 @@ use strum::{Display, EnumString};
 
 /// Sent by either party to signal their termination of the call. This can be sent either once the
 /// call has has been established or before to abort the call.
-#[derive(Clone, Debug, Serialize, FromRaw, MessageEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.call.hangup")]
 pub struct HangupEventContent {
     /// The ID of the call this event relates to.

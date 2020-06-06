@@ -1,11 +1,11 @@
 //! Types for the *m.room.canonical_alias* event.
 
-use ruma_events_macros::{FromRaw, StateEventContent};
+use ruma_events_macros::StateEventContent;
 use ruma_identifiers::RoomAliasId;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Informs the room as to which alias is the canonical one.
-#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.canonical_alias")]
 pub struct CanonicalAliasEventContent {
     /// The canonical alias.

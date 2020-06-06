@@ -1,11 +1,11 @@
 //! Types for the *m.room.pinned_events* event.
 
-use ruma_events_macros::{FromRaw, StateEventContent};
+use ruma_events_macros::StateEventContent;
 use ruma_identifiers::EventId;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Used to "pin" particular events in a room for other participants to review later.
-#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.pinned_events")]
 pub struct PinnedEventsEventContent {
     /// An ordered list of event IDs to pin.

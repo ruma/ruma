@@ -1,10 +1,10 @@
 //! Types for the *m.room.server_acl* event.
 
-use ruma_events_macros::{FromRaw, StateEventContent};
-use serde::Serialize;
+use ruma_events_macros::StateEventContent;
+use serde::{Deserialize, Serialize};
 
 /// An event to indicate which servers are permitted to participate in the room.
-#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.server_acl")]
 pub struct ServerAclEventContent {
     /// True to allow server names that are IP address literals. False to deny.

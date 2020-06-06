@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// Acts as an *m.room.member* invite event, where there isn't a target user_id to invite. This
 /// event contains a token and a public key whose private key must be used to sign the token.
 /// Any user who can present that signature may use this invitation to join the target room.
-#[derive(Clone, Debug, Serialize, FromRaw, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.third_party_invite")]
 pub struct ThirdPartyInviteEventContent {
     /// A user-readable string which represents the user who has been invited.
