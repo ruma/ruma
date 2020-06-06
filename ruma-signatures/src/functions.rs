@@ -729,3 +729,37 @@ pub fn redact(value: &Value) -> Result<Value, Error> {
 
     Ok(owned_value)
 }
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::canonical_json;
+
+    #[test]
+    fn canonical_json_complex() {
+        let data = json!({
+            "auth": {
+                "success": true,
+                "mxid": "@john.doe:example.com",
+                "profile": {
+                    "display_name": "John Doe",
+                    "three_pids": [
+                        {
+                            "medium": "email",
+                            "address": "john.doe@example.org"
+                        },
+                        {
+                            "medium": "msisdn",
+                            "address": "123456789"
+                        }
+                    ]
+                }
+            }
+        });
+
+        let canonical = r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#;
+
+        assert_eq!(canonical_json(&data).unwrap(), canonical);
+    }
+}
