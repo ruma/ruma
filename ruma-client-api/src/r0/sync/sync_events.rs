@@ -86,7 +86,7 @@ ruma_api! {
         /// Information on E2E device updates.
         ///
         /// Only present on an incremental sync.
-        #[serde(skip_serializing_if = "DeviceLists::is_empty")]
+        #[serde(default, skip_serializing_if = "DeviceLists::is_empty")]
         pub device_lists: DeviceLists,
 
         /// For each key algorithm, the number of unclaimed one-time keys
@@ -130,15 +130,15 @@ pub enum Filter {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Rooms {
     /// The rooms that the user has left or been banned from.
-    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub leave: BTreeMap<RoomId, LeftRoom>,
 
     /// The rooms that the user has joined.
-    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub join: BTreeMap<RoomId, JoinedRoom>,
 
     /// The rooms that the user has been invited to.
-    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub invite: BTreeMap<RoomId, InvitedRoom>,
 }
 
@@ -154,15 +154,15 @@ impl Rooms {
 pub struct LeftRoom {
     /// The timeline of messages and state changes in the room up to the point when the user
     /// left.
-    #[serde(skip_serializing_if = "Timeline::is_empty")]
+    #[serde(default, skip_serializing_if = "Timeline::is_empty")]
     pub timeline: Timeline,
 
     /// The state updates for the room up to the start of the timeline.
-    #[serde(skip_serializing_if = "State::is_empty")]
+    #[serde(default, skip_serializing_if = "State::is_empty")]
     pub state: State,
 
     /// The private data that this user has attached to this room.
-    #[serde(skip_serializing_if = "AccountData::is_empty")]
+    #[serde(default, skip_serializing_if = "AccountData::is_empty")]
     pub account_data: AccountData,
 }
 
@@ -178,30 +178,30 @@ impl LeftRoom {
 pub struct JoinedRoom {
     /// Information about the room which clients may need to correctly render it
     /// to users.
-    #[serde(skip_serializing_if = "RoomSummary::is_empty")]
+    #[serde(default, skip_serializing_if = "RoomSummary::is_empty")]
     pub summary: RoomSummary,
 
     /// Counts of unread notifications for this room.
-    #[serde(skip_serializing_if = "UnreadNotificationsCount::is_empty")]
+    #[serde(default, skip_serializing_if = "UnreadNotificationsCount::is_empty")]
     pub unread_notifications: UnreadNotificationsCount,
 
     /// The timeline of messages and state changes in the room.
-    #[serde(skip_serializing_if = "Timeline::is_empty")]
+    #[serde(default, skip_serializing_if = "Timeline::is_empty")]
     pub timeline: Timeline,
 
     /// Updates to the state, between the time indicated by the `since` parameter, and the start
     /// of the `timeline` (or all state up to the start of the `timeline`, if `since` is not
     /// given, or `full_state` is true).
-    #[serde(skip_serializing_if = "State::is_empty")]
+    #[serde(default, skip_serializing_if = "State::is_empty")]
     pub state: State,
 
     /// The private data that this user has attached to this room.
-    #[serde(skip_serializing_if = "AccountData::is_empty")]
+    #[serde(default, skip_serializing_if = "AccountData::is_empty")]
     pub account_data: AccountData,
 
     /// The ephemeral events in the room that aren't recorded in the timeline or state of the
     /// room. e.g. typing.
-    #[serde(skip_serializing_if = "Ephemeral::is_empty")]
+    #[serde(default, skip_serializing_if = "Ephemeral::is_empty")]
     pub ephemeral: Ephemeral,
 }
 
@@ -218,7 +218,7 @@ impl JoinedRoom {
 }
 
 /// unread notifications count
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
 pub struct UnreadNotificationsCount {
     /// The number of unread notifications for this room with the highlight flag set.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -237,7 +237,7 @@ impl UnreadNotificationsCount {
 }
 
 /// Events in the room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Timeline {
     /// True if the number of events returned was limited by the `limit` on the filter.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -260,7 +260,7 @@ impl Timeline {
 }
 
 /// State events in the room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct State {
     /// A list of state events.
     pub events: Vec<EventJson<StateEvent>>,
@@ -288,7 +288,7 @@ impl AccountData {
 }
 
 /// Ephemeral events not recorded in the timeline or state of the room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Ephemeral {
     /// A list of events.
     pub events: Vec<EventJson<NonRoomEvent>>,
@@ -302,7 +302,7 @@ impl Ephemeral {
 }
 
 /// Information about room for rendering to clients.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct RoomSummary {
     /// Users which can be used to generate a room name if the room does not have
     /// one. Required if room name or canonical aliases are not set or empty.
@@ -335,7 +335,7 @@ impl RoomSummary {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct InvitedRoom {
     /// The state of a room that the user has been invited to.
-    #[serde(skip_serializing_if = "InviteState::is_empty")]
+    #[serde(default, skip_serializing_if = "InviteState::is_empty")]
     pub invite_state: InviteState,
 }
 
@@ -347,7 +347,7 @@ impl InvitedRoom {
 }
 
 /// The state of a room that the user has been invited to.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct InviteState {
     /// A list of state events.
     pub events: Vec<EventJson<AnyStrippedStateEvent>>,
@@ -389,7 +389,7 @@ impl ToDevice {
 }
 
 /// Information on E2E device udpates.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct DeviceLists {
     /// List of users who have updated their device identity keys or who now
     /// share an encrypted room with the client since the previous sync
