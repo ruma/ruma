@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use base64::{decode_config, encode_config, STANDARD_NO_PAD};
 use ring::digest::{digest, SHA256};
-use serde_json::{from_str, from_value, map::Map, to_string, to_value, Value};
+use serde_json::{from_str, from_value, map::Map, to_value, Value};
 
 use crate::{
     keys::{KeyPair, PublicKeyMap},
@@ -133,7 +133,7 @@ where
     }
 
     // Get the canonical JSON.
-    let json = to_string(&value)?;
+    let json = canonical_json(&value)?;
 
     // Sign the canonical JSON.
     let signature = key_pair.sign(json.as_bytes());
@@ -655,7 +655,7 @@ fn canonical_json_with_fields_to_remove(value: &Value, fields: &[&str]) -> Resul
         }
     }
 
-    to_string(&owned_value).map_err(Error::from)
+    cjson::to_string(&owned_value).map_err(|_| Error::new("cannot write canonical JSON"))
 }
 
 /// Redacts the JSON representation of an event using the rules specified in the Matrix

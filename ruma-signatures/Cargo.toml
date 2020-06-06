@@ -14,6 +14,7 @@ version = "0.6.0-dev.1"
 
 [dependencies]
 base64 = "0.12.0"
+cjson = { git = "https://github.com/engineerd/cjson", rev = "e98e5e664dd0043985eaa26ba46722fecaabd5de" }
 ring = "0.16.12"
 serde_json = "1.0.50"
 untrusted = "0.7.0"
