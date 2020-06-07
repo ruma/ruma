@@ -47,10 +47,7 @@ where
 {
     let colon_idx = parse_id(room_id.as_ref(), &['#'])?;
 
-    Ok(RoomAliasId {
-        full_id: room_id.into(),
-        colon_idx,
-    })
+    Ok(RoomAliasId { full_id: room_id.into(), colon_idx })
 }
 
 common_impls!(RoomAliasId, try_from, "a Matrix room alias ID");
@@ -138,26 +135,17 @@ mod tests {
 
     #[test]
     fn missing_localpart() {
-        assert_eq!(
-            RoomAliasId::try_from("#:example.com").unwrap_err(),
-            Error::InvalidLocalPart
-        );
+        assert_eq!(RoomAliasId::try_from("#:example.com").unwrap_err(), Error::InvalidLocalPart);
     }
 
     #[test]
     fn missing_room_alias_id_delimiter() {
-        assert_eq!(
-            RoomAliasId::try_from("#ruma").unwrap_err(),
-            Error::MissingDelimiter
-        );
+        assert_eq!(RoomAliasId::try_from("#ruma").unwrap_err(), Error::MissingDelimiter);
     }
 
     #[test]
     fn invalid_room_alias_id_host() {
-        assert_eq!(
-            RoomAliasId::try_from("#ruma:/").unwrap_err(),
-            Error::InvalidServerName
-        );
+        assert_eq!(RoomAliasId::try_from("#ruma:/").unwrap_err(), Error::InvalidServerName);
     }
 
     #[test]

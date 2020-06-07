@@ -1,8 +1,7 @@
 //! Identifiers for device keys for end-to-end encryption.
 
 use crate::{device_id::DeviceId, error::Error, key_algorithms::DeviceKeyAlgorithm};
-use std::num::NonZeroU8;
-use std::str::FromStr;
+use std::{num::NonZeroU8, str::FromStr};
 
 /// A key algorithm and a device id, combined with a ':'
 #[derive(Clone, Debug)]
@@ -42,17 +41,10 @@ where
     DeviceKeyAlgorithm::from_str(&key_str[0..colon_idx.get() as usize])
         .map_err(|_| Error::UnknownKeyAlgorithm)?;
 
-    Ok(DeviceKeyId {
-        full_id: key_id.into(),
-        colon_idx,
-    })
+    Ok(DeviceKeyId { full_id: key_id.into(), colon_idx })
 }
 
-common_impls!(
-    DeviceKeyId,
-    try_from,
-    "Device key ID with algorithm and device ID"
-);
+common_impls!(DeviceKeyId, try_from, "Device key ID with algorithm and device ID");
 
 #[cfg(test)]
 mod test {

@@ -50,11 +50,7 @@ impl<T> UserId<T> {
         }
         let full_id = format!("@{}:{}", generate_localpart(12).to_lowercase(), server_name).into();
 
-        Ok(Self {
-            full_id,
-            colon_idx: NonZeroU8::new(13).unwrap(),
-            is_historical: false,
-        })
+        Ok(Self { full_id, colon_idx: NonZeroU8::new(13).unwrap(), is_historical: false })
     }
 
     /// Attempts to complete a user ID, by adding the colon + server name and `@` prefix, if not
@@ -125,11 +121,7 @@ where
 
     let is_historical = localpart_is_fully_comforming(localpart)?;
 
-    Ok(UserId {
-        full_id: user_id.into(),
-        colon_idx,
-        is_historical: !is_historical,
-    })
+    Ok(UserId { full_id: user_id.into(), colon_idx, is_historical: !is_historical })
 }
 
 common_impls!(UserId, try_from, "a Matrix user ID");
@@ -276,9 +268,7 @@ mod tests {
     #[test]
     fn valid_user_id_with_explicit_standard_port() {
         assert_eq!(
-            UserId::try_from("@carl:example.com:443")
-                .expect("Failed to create UserId.")
-                .as_ref(),
+            UserId::try_from("@carl:example.com:443").expect("Failed to create UserId.").as_ref(),
             "@carl:example.com:443"
         );
     }
@@ -292,42 +282,27 @@ mod tests {
 
     #[test]
     fn invalid_characters_in_user_id_localpart() {
-        assert_eq!(
-            UserId::try_from("@te\nst:example.com").unwrap_err(),
-            Error::InvalidCharacters
-        );
+        assert_eq!(UserId::try_from("@te\nst:example.com").unwrap_err(), Error::InvalidCharacters);
     }
 
     #[test]
     fn missing_user_id_sigil() {
-        assert_eq!(
-            UserId::try_from("carl:example.com").unwrap_err(),
-            Error::MissingSigil
-        );
+        assert_eq!(UserId::try_from("carl:example.com").unwrap_err(), Error::MissingSigil);
     }
 
     #[test]
     fn missing_localpart() {
-        assert_eq!(
-            UserId::try_from("@:example.com").unwrap_err(),
-            Error::InvalidLocalPart
-        );
+        assert_eq!(UserId::try_from("@:example.com").unwrap_err(), Error::InvalidLocalPart);
     }
 
     #[test]
     fn missing_user_id_delimiter() {
-        assert_eq!(
-            UserId::try_from("@carl").unwrap_err(),
-            Error::MissingDelimiter
-        );
+        assert_eq!(UserId::try_from("@carl").unwrap_err(), Error::MissingDelimiter);
     }
 
     #[test]
     fn invalid_user_id_host() {
-        assert_eq!(
-            UserId::try_from("@carl:/").unwrap_err(),
-            Error::InvalidServerName
-        );
+        assert_eq!(UserId::try_from("@carl:/").unwrap_err(), Error::InvalidServerName);
     }
 
     #[test]

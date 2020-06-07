@@ -43,10 +43,7 @@ where
 
     validate_version(&key_str[colon_idx.get() as usize + 1..])?;
 
-    Ok(ServerKeyId {
-        full_id: key_id.into(),
-        colon_idx,
-    })
+    Ok(ServerKeyId { full_id: key_id.into(), colon_idx })
 }
 
 common_impls!(ServerKeyId, try_from, "Key ID with algorithm and version");
@@ -93,10 +90,7 @@ mod tests {
     #[test]
     fn serialize_id() {
         let server_key_id: ServerKeyId<&str> = ServerKeyId::try_from("ed25519:abc123").unwrap();
-        assert_eq!(
-            to_json_value(&server_key_id).unwrap(),
-            json!("ed25519:abc123")
-        );
+        assert_eq!(to_json_value(&server_key_id).unwrap(), json!("ed25519:abc123"));
     }
 
     #[test]

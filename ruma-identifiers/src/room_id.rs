@@ -44,10 +44,7 @@ impl<T> RoomId<T> {
         }
         let full_id = format!("!{}:{}", generate_localpart(18), server_name).into();
 
-        Ok(Self {
-            full_id,
-            colon_idx: NonZeroU8::new(19).unwrap(),
-        })
+        Ok(Self { full_id, colon_idx: NonZeroU8::new(19).unwrap() })
     }
 
     /// Returns the rooms's unique ID.
@@ -76,10 +73,7 @@ where
 {
     let colon_idx = parse_id(room_id.as_ref(), &['!'])?;
 
-    Ok(RoomId {
-        full_id: room_id.into(),
-        colon_idx,
-    })
+    Ok(RoomId { full_id: room_id.into(), colon_idx })
 }
 
 common_impls!(RoomId, try_from, "a Matrix room ID");
@@ -165,26 +159,17 @@ mod tests {
 
     #[test]
     fn missing_room_id_sigil() {
-        assert_eq!(
-            RoomId::try_from("carl:example.com").unwrap_err(),
-            Error::MissingSigil
-        );
+        assert_eq!(RoomId::try_from("carl:example.com").unwrap_err(), Error::MissingSigil);
     }
 
     #[test]
     fn missing_room_id_delimiter() {
-        assert_eq!(
-            RoomId::try_from("!29fhd83h92h0").unwrap_err(),
-            Error::MissingDelimiter
-        );
+        assert_eq!(RoomId::try_from("!29fhd83h92h0").unwrap_err(), Error::MissingDelimiter);
     }
 
     #[test]
     fn invalid_room_id_host() {
-        assert_eq!(
-            RoomId::try_from("!29fhd83h92h0:/").unwrap_err(),
-            Error::InvalidServerName
-        );
+        assert_eq!(RoomId::try_from("!29fhd83h92h0:/").unwrap_err(), Error::InvalidServerName);
     }
 
     #[test]

@@ -116,10 +116,7 @@ const MIN_CHARS: usize = 4;
 #[cfg(feature = "rand")]
 fn generate_localpart(length: usize) -> String {
     use rand::Rng as _;
-    rand::thread_rng()
-        .sample_iter(&rand::distributions::Alphanumeric)
-        .take(length)
-        .collect()
+    rand::thread_rng().sample_iter(&rand::distributions::Alphanumeric).take(length).collect()
 }
 
 /// Checks if an identifier is valid.

@@ -292,9 +292,7 @@ mod tests {
     #[test]
     fn valid_version_1_room_version_id() {
         assert_eq!(
-            RoomVersionId::try_from("1")
-                .expect("Failed to create RoomVersionId.")
-                .as_ref(),
+            RoomVersionId::try_from("1").expect("Failed to create RoomVersionId.").as_ref(),
             "1"
         );
     }
@@ -302,9 +300,7 @@ mod tests {
     #[test]
     fn valid_version_2_room_version_id() {
         assert_eq!(
-            RoomVersionId::try_from("2")
-                .expect("Failed to create RoomVersionId.")
-                .as_ref(),
+            RoomVersionId::try_from("2").expect("Failed to create RoomVersionId.").as_ref(),
             "2"
         );
     }
@@ -312,9 +308,7 @@ mod tests {
     #[test]
     fn valid_version_3_room_version_id() {
         assert_eq!(
-            RoomVersionId::try_from("3")
-                .expect("Failed to create RoomVersionId.")
-                .as_ref(),
+            RoomVersionId::try_from("3").expect("Failed to create RoomVersionId.").as_ref(),
             "3"
         );
     }
@@ -322,9 +316,7 @@ mod tests {
     #[test]
     fn valid_version_4_room_version_id() {
         assert_eq!(
-            RoomVersionId::try_from("4")
-                .expect("Failed to create RoomVersionId.")
-                .as_ref(),
+            RoomVersionId::try_from("4").expect("Failed to create RoomVersionId.").as_ref(),
             "4"
         );
     }
@@ -332,9 +324,7 @@ mod tests {
     #[test]
     fn valid_version_5_room_version_id() {
         assert_eq!(
-            RoomVersionId::try_from("5")
-                .expect("Failed to create RoomVersionId.")
-                .as_ref(),
+            RoomVersionId::try_from("5").expect("Failed to create RoomVersionId.").as_ref(),
             "5"
         );
     }
@@ -342,19 +332,14 @@ mod tests {
     #[test]
     fn valid_custom_room_version_id() {
         assert_eq!(
-            RoomVersionId::try_from("io.ruma.1")
-                .expect("Failed to create RoomVersionId.")
-                .as_ref(),
+            RoomVersionId::try_from("io.ruma.1").expect("Failed to create RoomVersionId.").as_ref(),
             "io.ruma.1"
         );
     }
 
     #[test]
     fn empty_room_version_id() {
-        assert_eq!(
-            RoomVersionId::try_from(""),
-            Err(Error::MinimumLengthNotSatisfied)
-        );
+        assert_eq!(RoomVersionId::try_from(""), Err(Error::MinimumLengthNotSatisfied));
     }
 
     #[test]

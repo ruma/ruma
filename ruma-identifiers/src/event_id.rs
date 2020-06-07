@@ -66,10 +66,7 @@ impl<T> EventId<T> {
         }
         let full_id = format!("${}:{}", generate_localpart(18), server_name).into();
 
-        Ok(Self {
-            full_id,
-            colon_idx: NonZeroU8::new(19),
-        })
+        Ok(Self { full_id, colon_idx: NonZeroU8::new(19) })
     }
 
     /// Returns the event's unique ID. For the original event format as used by Matrix room
@@ -94,8 +91,7 @@ impl<T> EventId<T> {
     where
         T: AsRef<str>,
     {
-        self.colon_idx
-            .map(|idx| &self.full_id.as_ref()[idx.get() as usize + 1..])
+        self.colon_idx.map(|idx| &self.full_id.as_ref()[idx.get() as usize + 1..])
     }
 }
 
@@ -110,17 +106,11 @@ where
     if event_id.as_ref().contains(':') {
         let colon_idx = parse_id(event_id.as_ref(), &['$'])?;
 
-        Ok(EventId {
-            full_id: event_id.into(),
-            colon_idx: Some(colon_idx),
-        })
+        Ok(EventId { full_id: event_id.into(), colon_idx: Some(colon_idx) })
     } else {
         validate_id(event_id.as_ref(), &['$'])?;
 
-        Ok(EventId {
-            full_id: event_id.into(),
-            colon_idx: None,
-        })
+        Ok(EventId { full_id: event_id.into(), colon_idx: None })
     }
 }
 
@@ -275,10 +265,7 @@ mod tests {
 
     #[test]
     fn missing_original_event_id_sigil() {
-        assert_eq!(
-            EventId::try_from("39hvsi03hlne:example.com").unwrap_err(),
-            Error::MissingSigil
-        );
+        assert_eq!(EventId::try_from("39hvsi03hlne:example.com").unwrap_err(), Error::MissingSigil);
     }
 
     #[test]
@@ -299,10 +286,7 @@ mod tests {
 
     #[test]
     fn invalid_event_id_host() {
-        assert_eq!(
-            EventId::try_from("$39hvsi03hlne:/").unwrap_err(),
-            Error::InvalidServerName
-        );
+        assert_eq!(EventId::try_from("$39hvsi03hlne:/").unwrap_err(), Error::InvalidServerName);
     }
 
     #[test]

@@ -58,10 +58,9 @@ impl<T: AsRef<str>> RoomIdOrAliasId<T> {
     #[cfg_attr(docsrs, doc(cfg(feature = "either")))]
     pub fn into_either(self) -> either::Either<RoomId<T>, RoomAliasId<T>> {
         match self.variant() {
-            Variant::RoomId => either::Either::Left(RoomId {
-                full_id: self.full_id,
-                colon_idx: self.colon_idx,
-            }),
+            Variant::RoomId => {
+                either::Either::Left(RoomId { full_id: self.full_id, colon_idx: self.colon_idx })
+            }
             Variant::RoomAliasId => either::Either::Right(RoomAliasId {
                 full_id: self.full_id,
                 colon_idx: self.colon_idx,
@@ -94,17 +93,10 @@ where
     S: AsRef<str> + Into<T>,
 {
     let colon_idx = parse_id(room_id_or_alias_id.as_ref(), &['#', '!'])?;
-    Ok(RoomIdOrAliasId {
-        full_id: room_id_or_alias_id.into(),
-        colon_idx,
-    })
+    Ok(RoomIdOrAliasId { full_id: room_id_or_alias_id.into(), colon_idx })
 }
 
-common_impls!(
-    RoomIdOrAliasId,
-    try_from,
-    "a Matrix room ID or room alias ID"
-);
+common_impls!(RoomIdOrAliasId, try_from, "a Matrix room ID or room alias ID");
 
 impl<T> From<RoomId<T>> for RoomIdOrAliasId<T> {
     fn from(RoomId { full_id, colon_idx }: RoomId<T>) -> Self {
@@ -123,14 +115,10 @@ impl<T: AsRef<str>> TryFrom<RoomIdOrAliasId<T>> for RoomId<T> {
 
     fn try_from(id: RoomIdOrAliasId<T>) -> Result<RoomId<T>, RoomAliasId<T>> {
         match id.variant() {
-            Variant::RoomId => Ok(RoomId {
-                full_id: id.full_id,
-                colon_idx: id.colon_idx,
-            }),
-            Variant::RoomAliasId => Err(RoomAliasId {
-                full_id: id.full_id,
-                colon_idx: id.colon_idx,
-            }),
+            Variant::RoomId => Ok(RoomId { full_id: id.full_id, colon_idx: id.colon_idx }),
+            Variant::RoomAliasId => {
+                Err(RoomAliasId { full_id: id.full_id, colon_idx: id.colon_idx })
+            }
         }
     }
 }
@@ -140,14 +128,10 @@ impl<T: AsRef<str>> TryFrom<RoomIdOrAliasId<T>> for RoomAliasId<T> {
 
     fn try_from(id: RoomIdOrAliasId<T>) -> Result<RoomAliasId<T>, RoomId<T>> {
         match id.variant() {
-            Variant::RoomAliasId => Ok(RoomAliasId {
-                full_id: id.full_id,
-                colon_idx: id.colon_idx,
-            }),
-            Variant::RoomId => Err(RoomId {
-                full_id: id.full_id,
-                colon_idx: id.colon_idx,
-            }),
+            Variant::RoomAliasId => {
+                Ok(RoomAliasId { full_id: id.full_id, colon_idx: id.colon_idx })
+            }
+            Variant::RoomId => Err(RoomId { full_id: id.full_id, colon_idx: id.colon_idx }),
         }
     }
 }
@@ -185,10 +169,7 @@ mod tests {
 
     #[test]
     fn missing_sigil_for_room_id_or_alias_id() {
-        assert_eq!(
-            RoomIdOrAliasId::try_from("ruma:example.com").unwrap_err(),
-            Error::MissingSigil
-        );
+        assert_eq!(RoomIdOrAliasId::try_from("ruma:example.com").unwrap_err(), Error::MissingSigil);
     }
 
     #[cfg(feature = "serde")]
