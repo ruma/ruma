@@ -1,18 +1,11 @@
-use std::{
-    convert::TryFrom,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::{convert::TryFrom, time::SystemTime};
 
-use js_int::UInt;
 use ruma_events_macros::Event;
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{
-    ser::{Error, SerializeStruct},
-    Serialize, Serializer,
-};
+use serde::ser::Error;
 
 use crate::{
-    BasicEventContent, MessageEventContent, RoomEventContent, StateEventContent,
+    BasicEventContent, EphemeralRoomEventContent, MessageEventContent, StateEventContent,
     ToDeviceEventContent, UnsignedData,
 };
 
@@ -20,6 +13,16 @@ use crate::{
 #[derive(Clone, Debug, Event)]
 pub struct BasicEvent<C: BasicEventContent> {
     pub content: C,
+}
+
+/// Ephemeral room event.
+#[derive(Clone, Debug, Event)]
+pub struct EphemeralRoomEvent<C: EphemeralRoomEventContent> {
+    /// Data specific to the event type.
+    pub content: C,
+
+    /// The ID of the room associated with this event.
+    pub room_id: RoomId,
 }
 
 /// Message event.

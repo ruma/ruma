@@ -17,7 +17,10 @@ use syn::{parse_macro_input, DeriveInput};
 use self::{
     content_enum::{expand_content_enum, parse::ContentEnumInput},
     event::expand_event,
-    event_content::{expand_message_event_content, expand_state_event_content},
+    event_content::{
+        expand_ephemeral_event_content, expand_message_event_content,
+        expand_presence_event_content, expand_state_event_content,
+    },
     gen::RumaEvent,
     parse::RumaEventInput,
 };
@@ -148,6 +151,24 @@ pub fn derive_message_event_content(input: TokenStream) -> TokenStream {
 pub fn derive_state_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     expand_state_event_content(input)
+        .unwrap_or_else(|err| err.to_compile_error())
+        .into()
+}
+
+/// Generates an implementation of `ruma_events::PresenceEventContent` and it's super traits.
+#[proc_macro_derive(PresenceEventContent, attributes(ruma_event))]
+pub fn derive_presence_event_content(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_presence_event_content(input)
+        .unwrap_or_else(|err| err.to_compile_error())
+        .into()
+}
+
+/// Generates an implementation of `ruma_events::EphemeralRoomEventContent` and it's super traits.
+#[proc_macro_derive(EphemeralRoomEventContent, attributes(ruma_event))]
+pub fn derive_ephemeral_event_content(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_ephemeral_event_content(input)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }

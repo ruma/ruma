@@ -151,7 +151,7 @@ pub mod forwarded_room_key;
 pub mod fully_read;
 // pub mod ignored_user_list;
 pub mod key;
-// pub mod presence;
+pub mod presence;
 // pub mod push_rules;
 pub mod receipt;
 pub mod room;
@@ -165,10 +165,10 @@ pub mod typing;
 
 pub use self::{
     algorithm::Algorithm,
-    content_enums::{AnyMessageEventContent, AnyStateEventContent},
+    content_enums::{AnyEphemeralRoomEventContent, AnyMessageEventContent, AnyStateEventContent},
     error::{FromStrError, InvalidEvent, InvalidInput},
     event_enums::AnyStateEvent,
-    event_kinds::{MessageEvent, StateEvent},
+    event_kinds::{EphemeralRoomEvent, MessageEvent, StateEvent},
     event_type::EventType,
     json::EventJson,
 };
@@ -216,6 +216,9 @@ pub trait EventContent: Sized + Serialize {
     /// Constructs the given event content.
     fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, String>;
 }
+
+/// Marker trait for the content of an ephemeral room event.
+pub trait EphemeralRoomEventContent: EventContent {}
 
 /// Marker trait for the content of a basic event.
 pub trait BasicEventContent: EventContent {}

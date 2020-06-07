@@ -34,3 +34,9 @@ event_content_enum! {
         "m.room.topic",
     ]
 }
+
+event_content_enum! {
+    /// An ephemeral room event.
+    name: AnyEphemeralRoomEventContent,
+    events: [ "m.typing", "m.receipt" ]
+}

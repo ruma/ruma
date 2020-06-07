@@ -23,10 +23,7 @@ impl Parse for EventMeta {
     }
 }
 
-/// Create a `RoomEventContent` implementation for a struct.
-///
-/// This is used internally for code sharing as `RoomEventContent` is not derivable.
-fn expand_room_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
+fn expand_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
     let ident = &input.ident;
 
     let event_type_attr = input
@@ -47,7 +44,7 @@ fn expand_room_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
         lit
     };
 
-    let event_content_impl = quote! {
+    Ok(quote! {
         impl ::ruma_events::EventContent for #ident {
             fn event_type(&self) -> &str {
                 #event_type
@@ -64,7 +61,15 @@ fn expand_room_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
                 ::serde_json::from_str(content.get()).map_err(|e| e.to_string())
             }
         }
-    };
+    })
+}
+
+/// Create a `RoomEventContent` implementation for a struct.
+///
+/// This is used internally for code sharing as `RoomEventContent` is not derivable.
+fn expand_room_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
+    let ident = input.ident.clone();
+    let event_content_impl = expand_event_content(input)?;
 
     Ok(quote! {
         #event_content_impl
@@ -85,7 +90,7 @@ pub fn expand_message_event_content(input: DeriveInput) -> syn::Result<TokenStre
     })
 }
 
-/// Create a `MessageEventContent` implementation for a struct
+/// Create a `StateEventContent` implementation for a struct
 pub fn expand_state_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
     let room_ev_content = expand_room_event_content(input)?;
@@ -94,5 +99,29 @@ pub fn expand_state_event_content(input: DeriveInput) -> syn::Result<TokenStream
         #room_ev_content
 
         impl ::ruma_events::StateEventContent for #ident { }
+    })
+}
+
+/// Create a `PresenceEventContent` implementation for a struct
+pub fn expand_presence_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
+    let ident = input.ident.clone();
+    let event_content_impl = expand_event_content(input)?;
+
+    Ok(quote! {
+        #event_content_impl
+
+        impl ::ruma_events::PresenceEventContent for #ident { }
+    })
+}
+
+/// Create a `EphemeralRoomEventContent` implementation for a struct
+pub fn expand_ephemeral_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
+    let ident = input.ident.clone();
+    let event_content_impl = expand_event_content(input)?;
+
+    Ok(quote! {
+        #event_content_impl
+
+        impl ::ruma_events::EphemeralRoomEventContent for #ident { }
     })
 }

@@ -7,6 +7,9 @@ use syn::{Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, Ident};
 /// Derive `Event` macro code generation.
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     let ident = &input.ident;
+    let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
+    let is_presence_event = ident == "PresenceEvent";
+
     let fields = if let Data::Struct(DataStruct { fields, .. }) = input.data.clone() {
         if let Fields::Named(FieldsNamed { named, .. }) = fields {
             if !named.iter().any(|f| f.ident.as_ref().unwrap() == "content") {
@@ -29,8 +32,6 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
             "the `Event` derive only supports structs with named fields",
         ));
     };
-
-    let content_trait = Ident::new(&format!("{}Content", ident), input.ident.span());
 
     let serialize_fields = fields
         .iter()
@@ -66,20 +67,25 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         })
         .collect::<Vec<_>>();
 
+    let event_ty = if is_presence_event {
+        quote! {
+            "m.presence";
+        }
+    } else {
+        quote! { self.content.event_type(); }
+    };
+
     let serialize_impl = quote! {
-        impl<C> ::serde::ser::Serialize for #ident<C>
-        where
-            C: ::ruma_events::#content_trait,
-        {
+        impl #impl_gen ::serde::ser::Serialize for #ident #ty_gen #where_clause {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
                 S: ::serde::ser::Serializer,
             {
                 use ::serde::ser::SerializeStruct as _;
 
-                let event_type = self.content.event_type();
+                let event_type = #event_ty;
 
-                let mut state = serializer.serialize_struct("StateEvent", 7)?;
+                let mut state = serializer.serialize_struct(stringify!(#ident), 7)?;
 
                 state.serialize_field("type", event_type)?;
                 #( #serialize_fields )*
@@ -88,7 +94,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         }
     };
 
-    let deserialize_impl = expand_deserialize_event(&input, fields)?;
+    let deserialize_impl = expand_deserialize_event(is_presence_event, input, fields)?;
 
     Ok(quote! {
         #serialize_impl
@@ -97,9 +103,14 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     })
 }
 
-fn expand_deserialize_event(input: &DeriveInput, fields: Vec<Field>) -> syn::Result<TokenStream> {
+fn expand_deserialize_event(
+    is_presence_event: bool,
+    input: DeriveInput,
+    fields: Vec<Field>,
+) -> syn::Result<TokenStream> {
     let ident = &input.ident;
     let content_ident = Ident::new(&format!("{}Content", ident), input.ident.span());
+    let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
 
     let enum_variants = fields
         .iter()
@@ -115,7 +126,11 @@ fn expand_deserialize_event(input: &DeriveInput, fields: Vec<Field>) -> syn::Res
             let name = field.ident.as_ref().unwrap();
             let ty = &field.ty;
             if name == "content" || name == "prev_content" {
-                quote! { Box<::serde_json::value::RawValue> }
+                if is_presence_event {
+                    quote! { #content_ident }
+                } else {
+                    quote! { Box<::serde_json::value::RawValue> }
+                }
             } else if name == "origin_server_ts" {
                 quote! { ::js_int::UInt }
             } else {
@@ -125,50 +140,65 @@ fn expand_deserialize_event(input: &DeriveInput, fields: Vec<Field>) -> syn::Res
         .collect::<Vec<_>>();
 
     let ok_or_else_fields = fields
-        .iter()
-        .map(|field| {
-            let name = field.ident.as_ref().unwrap();
-            if name == "content" {
+    .iter()
+    .map(|field| {
+        let name = field.ident.as_ref().unwrap();
+        if name == "content" {
+            if is_presence_event {
+                quote! {
+                    let content = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;
+                }
+            } else {
                 quote! {
                     let json = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;
                     let content = C::from_parts(&event_type, json).map_err(A::Error::custom)?;
                 }
-            } else if name == "prev_content" {
-                quote! {
-                    let prev_content = if let Some(json) = prev_content {
-                        Some(C::from_parts(&event_type, json).map_err(A::Error::custom)?)
-                    } else {
-                        None
-                    };
-                }
-            } else if name == "origin_server_ts" {
-                quote! {
-                    let origin_server_ts = origin_server_ts
-                        .map(|time| {
-                            let t = time.into();
-                            ::std::time::UNIX_EPOCH + ::std::time::Duration::from_millis(t)
-                        })
-                        .ok_or_else(|| ::serde::de::Error::missing_field("origin_server_ts"))?;
-                }
-            } else if name == "unsigned" {
-                quote! { let unsigned = unsigned.unwrap_or_default(); }
-            } else {
-                quote! {
-                    let #name = #name.ok_or_else(|| {
-                        ::serde::de::Error::missing_field(stringify!(#name))
-                    })?;
-                }
             }
-        })
-        .collect::<Vec<_>>();
+        } else if name == "prev_content" {
+            quote! {
+                let prev_content = if let Some(json) = prev_content {
+                    Some(C::from_parts(&event_type, json).map_err(A::Error::custom)?)
+                } else {
+                    None
+                };
+            }
+        } else if name == "origin_server_ts" {
+            quote! {
+                let origin_server_ts = origin_server_ts
+                    .map(|time| {
+                        let t = time.into();
+                        ::std::time::UNIX_EPOCH + ::std::time::Duration::from_millis(t)
+                    })
+                    .ok_or_else(|| ::serde::de::Error::missing_field("origin_server_ts"))?;
+            }
+        } else if name == "unsigned" {
+            quote! { let unsigned = unsigned.unwrap_or_default(); }
+        } else {
+            quote! {
+                let #name = #name.ok_or_else(|| {
+                    ::serde::de::Error::missing_field(stringify!(#name))
+                })?;
+            }
+        }
+    })
+    .collect::<Vec<_>>();
 
     let field_names = fields.iter().flat_map(|f| &f.ident).collect::<Vec<_>>();
 
+    let deserialize_impl_gen = if is_presence_event {
+        quote! { <'de> }
+    } else {
+        let gen = &input.generics.params;
+        quote! { <'de, #gen> }
+    };
+    let deserialize_phantom_type = if is_presence_event {
+        quote! {}
+    } else {
+        quote! { ::std::marker::PhantomData }
+    };
+
     Ok(quote! {
-        impl<'de, C> ::serde::de::Deserialize<'de> for #ident<C>
-        where
-            C: ::ruma_events::#content_ident,
-        {
+        impl #deserialize_impl_gen ::serde::de::Deserialize<'de> for #ident #ty_gen #where_clause {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
                 D: ::serde::de::Deserializer<'de>,
@@ -183,13 +213,10 @@ fn expand_deserialize_event(input: &DeriveInput, fields: Vec<Field>) -> syn::Res
 
                 /// Visits the fields of an event struct to handle deserialization of
                 /// the `content` and `prev_content` fields.
-                struct EventVisitor<C>(::std::marker::PhantomData<C>);
+                struct EventVisitor #impl_generics (#deserialize_phantom_type #ty_gen);
 
-                impl<'de, C> ::serde::de::Visitor<'de> for EventVisitor<C>
-                where
-                    C: ::ruma_events::#content_ident,
-                {
-                    type Value = #ident<C>;
+                impl #deserialize_impl_gen ::serde::de::Visitor<'de> for EventVisitor #ty_gen #where_clause {
+                    type Value = #ident #ty_gen;
 
                     fn expecting(&self, formatter: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
                         write!(formatter, "struct implementing {}", stringify!(#content_ident))
@@ -232,7 +259,7 @@ fn expand_deserialize_event(input: &DeriveInput, fields: Vec<Field>) -> syn::Res
                     }
                 }
 
-                deserializer.deserialize_map(EventVisitor(::std::marker::PhantomData))
+                deserializer.deserialize_map(EventVisitor(#deserialize_phantom_type))
             }
         }
     })

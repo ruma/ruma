@@ -1,46 +1,53 @@
-//! Types for the *m.presence* event.
+//! A presence event is represented by a parameterized struct.
+//!
+//! There is only one type that will satisfy the bounds of `PresenceEventContent`
+//! as this event has only one possible content value according to Matrix spec.
 
 use js_int::UInt;
-use ruma_events_macros::ruma_event;
+pub use ruma_common::presence::PresenceState;
+use ruma_events_macros::Event;
 use ruma_identifiers::UserId;
+use serde::{Deserialize, Serialize};
 
-ruma_event! {
-    /// Informs the client of a user's presence state change.
-    PresenceEvent {
-        kind: Event,
-        event_type: "m.presence",
-        fields: {
-            /// The unique identifier for the user associated with this event.
-            pub sender: UserId,
-        },
-        content: {
-            /// The current avatar URL for this user.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub avatar_url: Option<String>,
+/// Presence event.
+#[derive(Clone, Debug, Event)]
+pub struct PresenceEvent {
+    /// Data specific to the event type.
+    pub content: PresenceEventContent,
 
-            /// Whether or not the user is currently active.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub currently_active: Option<bool>,
-
-            /// The current display name for this user.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub displayname: Option<String>,
-
-            /// The last time since this user performed some action, in milliseconds.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub last_active_ago: Option<UInt>,
-
-            /// The presence state for this user.
-            pub presence: PresenceState,
-
-            /// An optional description to accompany the presence.
-            #[serde(skip_serializing_if = "Option::is_none")]
-            pub status_msg: Option<String>,
-        },
-    }
+    /// Contains the fully-qualified ID of the user who sent this event.
+    pub sender: UserId,
 }
 
-pub use ruma_common::presence::PresenceState;
+/// Informs the room of members presence.
+///
+/// This is the only event content a `PresenceEvent` can contain as it's
+/// `content` field.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct PresenceEventContent {
+    /// The current avatar URL for this user.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar_url: Option<String>,
+
+    /// Whether or not the user is currently active.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub currently_active: Option<bool>,
+
+    /// The current display name for this user.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub displayname: Option<String>,
+
+    /// The last time since this user performed some action, in milliseconds.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_active_ago: Option<UInt>,
+
+    /// The presence state for this user.
+    pub presence: PresenceState,
+
+    /// An optional description to accompany the presence.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status_msg: Option<String>,
+}
 
 #[cfg(test)]
 mod tests {
@@ -51,7 +58,7 @@ mod tests {
     use ruma_identifiers::UserId;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{PresenceEventContent, PresenceState};
+    use super::{PresenceEvent, PresenceEventContent, PresenceState};
     use crate::EventJson;
 
     #[test]
