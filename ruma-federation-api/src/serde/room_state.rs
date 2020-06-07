@@ -46,9 +46,8 @@ impl<'de> Visitor<'de> for RoomStateVisitor {
             return Err(A::Error::invalid_length(0, &expected));
         }
 
-        let room_state = seq
-            .next_element()?
-            .ok_or_else(|| A::Error::invalid_length(1, &expected))?;
+        let room_state =
+            seq.next_element()?.ok_or_else(|| A::Error::invalid_length(1, &expected))?;
 
         while let Some(IgnoredAny) = seq.next_element()? {
             // ignore extra elements
