@@ -11,7 +11,7 @@ Breaking changes:
 
 Improvements:
 
-* Add `DeviceKeyId`, `KeyAlgorithm`, and `ServerKeyId`
+* Add `DeviceKeyId`, `DeviceKeyAlgorithm`, `ServerKeyId`, and `ServerKeyAlgorithm`
 
 # 0.16.2
 

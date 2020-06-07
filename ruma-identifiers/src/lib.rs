@@ -36,6 +36,21 @@ pub mod room_version_id;
 pub mod server_key_id;
 pub mod user_id;
 
+/// Allowed algorithms for homeserver signing keys.
+pub type DeviceKeyAlgorithm = key_algorithms::DeviceKeyAlgorithm;
+
+/// An owned device key identifier containing a key algorithm and device ID.
+/// 
+/// Can be created via `TryFrom<String>` and `TryFrom<&str>`; implements `Serialize`
+/// and `Deserialize` if the `serde` feature is enabled.
+pub type DeviceKeyId = device_key_id::DeviceKeyId<Box<str>>;
+
+/// A reference to a device key identifier containing a key algorithm and device ID.
+/// 
+/// Can be created via `TryFrom<&str>`; implements `Serialize` and `Deserialize`
+/// if the `serde` feature is enabled.
+pub type DeviceKeyIdRef<'a> = device_key_id::DeviceKeyId<&'a str>;
+
 /// An owned device ID.
 ///
 /// While this is currently just a `String`, that will likely change in the future.
@@ -102,6 +117,22 @@ pub type RoomVersionId = room_version_id::RoomVersionId<Box<str>>;
 /// Can be created using the `version_N` constructor functions and via `TryFrom<&str>`, implements
 /// `Serialize` if the `serde` feature is enabled.
 pub type RoomVersionIdRef<'a> = room_version_id::RoomVersionId<&'a str>;
+
+/// Allowed algorithms for homeserver signing keys.
+pub type ServerKeyAlgorithm = key_algorithms::ServerKeyAlgorithm;
+
+/// An owned homeserver signing key identifier containing a key algorithm and version.
+/// 
+/// Can be created via `TryFrom<String>` and `TryFrom<&str>`; implements `Serialize`
+/// and `Deserialize` if the `serde` feature is enabled.
+pub type ServerKeyId = server_key_id::ServerKeyId<Box<str>>;
+
+/// An reference to a homeserver signing key identifier containing a key
+/// algorithm and version.
+/// 
+/// Can be created via `TryFrom<&str>`; implements `Serialize`
+/// and `Deserialize` if the `serde` feature is enabled.
+pub type ServerKeyIdRef<'a> = server_key_id::ServerKeyId<&'a str>;
 
 /// An owned user ID.
 ///
