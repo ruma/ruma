@@ -13,7 +13,7 @@ event_content_enum! {
 }
 
 event_content_enum! {
-    /// Amy state event's content.
+    /// Any state event's content.
     name: AnyStateEventContent,
     events: [
         "m.room.aliases",
