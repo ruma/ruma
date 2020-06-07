@@ -130,12 +130,12 @@ use serde_json::value::RawValue as RawJsonValue;
 pub use ruma_serde::empty::Empty;
 
 mod algorithm;
+mod content_enums;
 mod error;
+mod event_kinds;
 mod event_type;
 mod from_raw;
 mod json;
-mod message;
-mod state;
 #[doc(hidden)] // only public for external tests
 pub mod util;
 
@@ -165,12 +165,12 @@ pub mod typing;
 
 pub use self::{
     algorithm::Algorithm,
+    content_enums::{AnyMessageEventContent, AnyStateEventContent},
     error::{FromStrError, InvalidEvent, InvalidInput},
+    event_kinds::{MessageEvent, StateEvent},
     event_type::EventType,
     from_raw::{FromRaw, TryFromRaw},
     json::EventJson,
-    message::{AnyMessageEventContent, MessageEvent},
-    state::{AnyStateEventContent, StateEvent},
 };
 
 /// Extra information about an event that is not incorporated into the event's

@@ -1,42 +1,38 @@
-//! An enum that represents any state event. A state event is represented by
-//! a parameterized struct allowing more flexibility in whats being sent.
-
 use std::{
     convert::TryFrom,
     time::{SystemTime, UNIX_EPOCH},
 };
 
 use js_int::UInt;
+use ruma_events_macros::Event;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{
     ser::{Error, SerializeStruct},
     Serialize, Serializer,
 };
 
-use crate::{RoomEventContent, StateEventContent, TryFromRaw, UnsignedData};
-use ruma_events_macros::{event_content_enum, Event};
+use crate::{MessageEventContent, RoomEventContent, StateEventContent, TryFromRaw, UnsignedData};
 
-event_content_enum! {
-    /// A state event.
-    name: AnyStateEventContent,
-    events: [
-        "m.room.aliases",
-        "m.room.avatar",
-        "m.room.canonical_alias",
-        "m.room.create",
-        "m.room.encryption",
-        "m.room.guest_access",
-        "m.room.history_visibility",
-        "m.room.join_rules",
-        "m.room.member",
-        "m.room.name",
-        "m.room.pinned_events",
-        "m.room.power_levels",
-        "m.room.server_acl",
-        "m.room.third_party_invite",
-        "m.room.tombstone",
-        "m.room.topic",
-    ]
+/// Message event.
+#[derive(Clone, Debug, Event)]
+pub struct MessageEvent<C: MessageEventContent> {
+    /// Data specific to the event type.
+    pub content: C,
+
+    /// The globally unique event identifier for the user who sent the event.
+    pub event_id: EventId,
+
+    /// Contains the fully-qualified ID of the user who sent this event.
+    pub sender: UserId,
+
+    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    pub origin_server_ts: SystemTime,
+
+    /// The ID of the room associated with this event.
+    pub room_id: RoomId,
+
+    /// Additional key-value pairs not signed by the homeserver.
+    pub unsigned: UnsignedData,
 }
 
 /// State event.
