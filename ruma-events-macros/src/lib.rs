@@ -15,7 +15,7 @@ use quote::ToTokens;
 use syn::{parse_macro_input, DeriveInput};
 
 use self::{
-    collection::{expand_collection, parse::RumaCollectionInput},
+    content_enum::{expand_content_enum, parse::ContentEnumInput},
     event::expand_event,
     event_content::{expand_message_event_content, expand_state_event_content},
     from_raw::expand_from_raw,
@@ -23,7 +23,7 @@ use self::{
     parse::RumaEventInput,
 };
 
-mod collection;
+mod content_enum;
 mod event;
 mod event_content;
 mod from_raw;
@@ -123,14 +123,15 @@ pub fn ruma_event(input: TokenStream) -> TokenStream {
     ruma_event.into_token_stream().into()
 }
 
-/// Generates a collection type to represent the various Matrix event types.
+/// Generates a content enum to represent the various Matrix event types.
 ///
-/// This macro also implements the necessary traits for the type to serialize and deserialize itself.
+/// This macro also implements the necessary traits for the type to serialize and deserialize
+/// itself.
 // TODO more docs/example
 #[proc_macro]
-pub fn event_content_collection(input: TokenStream) -> TokenStream {
-    let ruma_collection_input = syn::parse_macro_input!(input as RumaCollectionInput);
-    expand_collection(ruma_collection_input)
+pub fn event_content_enum(input: TokenStream) -> TokenStream {
+    let content_enum_input = syn::parse_macro_input!(input as ContentEnumInput);
+    expand_content_enum(content_enum_input)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }

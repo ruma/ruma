@@ -14,9 +14,9 @@ use serde::{
 };
 
 use crate::{RoomEventContent, StateEventContent, TryFromRaw, UnsignedData};
-use ruma_events_macros::{event_content_collection, Event};
+use ruma_events_macros::{event_content_enum, Event};
 
-event_content_collection! {
+event_content_enum! {
     /// A state event.
     name: AnyStateEventContent,
     events: [

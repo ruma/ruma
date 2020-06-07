@@ -1,10 +1,10 @@
-//! Implementation of the collection type macro.
+//! Implementation of the content_enum type macro.
 
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{Ident, LitStr};
 
-use parse::RumaCollectionInput;
+use parse::ContentEnumInput;
 
 fn marker_traits(ident: &Ident) -> TokenStream {
     match ident.to_string().as_str() {
@@ -20,8 +20,8 @@ fn marker_traits(ident: &Ident) -> TokenStream {
     }
 }
 
-/// Create a collection from `RumaCollectionInput.
-pub fn expand_collection(input: RumaCollectionInput) -> syn::Result<TokenStream> {
+/// Create a content enum from `ContentEnumInput`.
+pub fn expand_content_enum(input: ContentEnumInput) -> syn::Result<TokenStream> {
     let attrs = &input.attrs;
     let ident = &input.name;
     let event_type_str = &input.events;
@@ -33,7 +33,7 @@ pub fn expand_collection(input: RumaCollectionInput) -> syn::Result<TokenStream>
         .map(to_event_content_path)
         .collect::<Vec<_>>();
 
-    let collection = quote! {
+    let content_enum = quote! {
         #( #attrs )*
         #[derive(Clone, Debug, ::serde::Serialize)]
         #[serde(untagged)]
@@ -71,7 +71,7 @@ pub fn expand_collection(input: RumaCollectionInput) -> syn::Result<TokenStream>
     let marker_trait_impls = marker_traits(ident);
 
     Ok(quote! {
-        #collection
+        #content_enum
 
         #event_content_impl
 
@@ -115,21 +115,21 @@ pub(crate) fn to_camel_case(name: &LitStr) -> Ident {
     Ident::new(&s, span)
 }
 
-/// Details of parsing input for the `event_content_collection` procedural macro.
+/// Details of parsing input for the `event_content_content_enum` procedural macro.
 pub mod parse {
     use syn::{
         parse::{self, Parse, ParseStream},
         Attribute, Expr, ExprLit, Ident, Lit, LitStr, Token,
     };
 
-    /// Custom keywords for the `event_content_collection!` macro
+    /// Custom keywords for the `event_content_content_enum!` macro
     mod kw {
         syn::custom_keyword!(name);
         syn::custom_keyword!(events);
     }
 
-    /// The entire `event_content_collection!` macro structure directly as it appears in the source code..
-    pub struct RumaCollectionInput {
+    /// The entire `event_content_content_enum!` macro structure directly as it appears in the source code..
+    pub struct ContentEnumInput {
         /// Outer attributes on the field, such as a docstring.
         pub attrs: Vec<Attribute>,
 
@@ -143,13 +143,13 @@ pub mod parse {
         pub events: Vec<LitStr>,
     }
 
-    impl Parse for RumaCollectionInput {
+    impl Parse for ContentEnumInput {
         fn parse(input: ParseStream<'_>) -> parse::Result<Self> {
             let attrs = input.call(Attribute::parse_outer)?;
             // name field
             input.parse::<kw::name>()?;
             input.parse::<Token![:]>()?;
-            // the name of our collection enum
+            // the name of our content_enum enum
             let name: Ident = input.parse()?;
             input.parse::<Token![,]>()?;
 
