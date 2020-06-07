@@ -13,7 +13,7 @@ use serde::{
 
 use crate::{
     BasicEventContent, MessageEventContent, RoomEventContent, StateEventContent,
-    ToDeviceEventContent, TryFromRaw, UnsignedData,
+    ToDeviceEventContent, UnsignedData,
 };
 
 /// A basic event – one that consists only of it's type and the `content` object.

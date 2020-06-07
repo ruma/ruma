@@ -18,7 +18,6 @@ use self::{
     content_enum::{expand_content_enum, parse::ContentEnumInput},
     event::expand_event,
     event_content::{expand_message_event_content, expand_state_event_content},
-    from_raw::expand_from_raw,
     gen::RumaEvent,
     parse::RumaEventInput,
 };
@@ -26,7 +25,6 @@ use self::{
 mod content_enum;
 mod event;
 mod event_content;
-mod from_raw;
 mod gen;
 mod parse;
 
@@ -132,17 +130,6 @@ pub fn ruma_event(input: TokenStream) -> TokenStream {
 pub fn event_content_enum(input: TokenStream) -> TokenStream {
     let content_enum_input = syn::parse_macro_input!(input as ContentEnumInput);
     expand_content_enum(content_enum_input)
-        .unwrap_or_else(|err| err.to_compile_error())
-        .into()
-}
-
-/// Generates an implementation of `ruma_events::FromRaw`. Only usable inside of `ruma_events`.
-/// Requires there to be a `raw` module in the same scope, with a type with the same name and fields
-/// as the one that this macro is used on.
-#[proc_macro_derive(FromRaw)]
-pub fn derive_from_raw(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-    expand_from_raw(input)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }

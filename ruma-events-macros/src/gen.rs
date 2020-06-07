@@ -83,7 +83,7 @@ impl ToTokens for RumaEvent {
             Content::Struct(fields) => {
                 quote! {
                     #[doc = #content_docstring]
-                    #[derive(Clone, Debug, ::serde::Serialize, ::ruma_events_macros::FromRaw)]
+                    #[derive(Clone, Debug, ::serde::Serialize, ::serde::Deserialize)]
                     pub struct #content_name {
                         #(#fields),*
                     }

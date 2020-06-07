@@ -8,7 +8,7 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
-use crate::{FromRaw, UnsignedData};
+use crate::UnsignedData;
 
 pub mod feedback;
 
@@ -52,82 +52,6 @@ pub enum MessageEventContent {
     /// A video message.
     #[serde(rename = "m.video")]
     Video(VideoMessageEventContent),
-}
-
-impl FromRaw for MessageEventContent {
-    type Raw = raw::MessageEventContent;
-
-    fn from_raw(raw: raw::MessageEventContent) -> Self {
-        use raw::MessageEventContent::*;
-
-        match raw {
-            Audio(content) => MessageEventContent::Audio(content),
-            Emote(content) => MessageEventContent::Emote(content),
-            File(content) => MessageEventContent::File(content),
-            Image(content) => MessageEventContent::Image(content),
-            Location(content) => MessageEventContent::Location(content),
-            Notice(content) => MessageEventContent::Notice(content),
-            ServerNotice(content) => MessageEventContent::ServerNotice(content),
-            Text(content) => MessageEventContent::Text(content),
-            Video(content) => MessageEventContent::Video(content),
-        }
-    }
-}
-
-pub(crate) mod raw {
-    use std::time::SystemTime;
-
-    use ruma_identifiers::{EventId, RoomId, UserId};
-    use serde::Deserialize;
-
-    use super::{
-        AudioMessageEventContent, EmoteMessageEventContent, FileMessageEventContent,
-        ImageMessageEventContent, LocationMessageEventContent, NoticeMessageEventContent,
-        ServerNoticeMessageEventContent, TextMessageEventContent, VideoMessageEventContent,
-    };
-    use crate::UnsignedData;
-
-    /// The payload for `MessageEvent`.
-    #[allow(clippy::large_enum_variant)]
-    #[derive(Clone, Debug, Deserialize)]
-    #[serde(tag = "msgtype")]
-    pub enum MessageEventContent {
-        /// An audio message.
-        #[serde(rename = "m.audio")]
-        Audio(AudioMessageEventContent),
-
-        /// An emote message.
-        #[serde(rename = "m.emote")]
-        Emote(EmoteMessageEventContent),
-
-        /// A file message.
-        #[serde(rename = "m.file")]
-        File(FileMessageEventContent),
-
-        /// An image message.
-        #[serde(rename = "m.image")]
-        Image(ImageMessageEventContent),
-
-        /// A location message.
-        #[serde(rename = "m.location")]
-        Location(LocationMessageEventContent),
-
-        /// A notice message.
-        #[serde(rename = "m.notice")]
-        Notice(NoticeMessageEventContent),
-
-        /// A server notice message.
-        #[serde(rename = "m.server_notice")]
-        ServerNotice(ServerNoticeMessageEventContent),
-
-        /// An text message.
-        #[serde(rename = "m.text")]
-        Text(TextMessageEventContent),
-
-        /// A video message.
-        #[serde(rename = "m.video")]
-        Video(VideoMessageEventContent),
-    }
 }
 
 /// The payload for an audio message.

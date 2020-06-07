@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
 };
-use crate::{InvalidInput, TryFromRaw};
+use crate::InvalidInput;
 
 /// Begins an SAS key verification process.
 ///
@@ -25,83 +25,6 @@ pub enum StartEventContent {
     /// The *m.sas.v1* verification method.
     #[serde(rename = "m.sas.v1")]
     MSasV1(MSasV1Content),
-}
-
-impl TryFromRaw for StartEvent {
-    type Raw = raw::StartEvent;
-    type Err = &'static str;
-
-    fn try_from_raw(raw: raw::StartEvent) -> Result<Self, Self::Err> {
-        StartEventContent::try_from_raw(raw.content).map(|content| Self { content })
-    }
-}
-
-impl TryFromRaw for StartEventContent {
-    type Raw = raw::StartEventContent;
-    type Err = &'static str;
-
-    fn try_from_raw(raw: raw::StartEventContent) -> Result<Self, Self::Err> {
-        match raw {
-            raw::StartEventContent::MSasV1(content) => {
-                if !content
-                    .key_agreement_protocols
-                    .contains(&KeyAgreementProtocol::Curve25519)
-                {
-                    return Err(
-                        "`key_agreement_protocols` must contain at least `KeyAgreementProtocol::Curve25519`"
-                    );
-                }
-
-                if !content.hashes.contains(&HashAlgorithm::Sha256) {
-                    return Err("`hashes` must contain at least `HashAlgorithm::Sha256`");
-                }
-
-                if !content
-                    .message_authentication_codes
-                    .contains(&MessageAuthenticationCode::HkdfHmacSha256)
-                {
-                    return Err(
-                        "`message_authentication_codes` must contain at least `MessageAuthenticationCode::HkdfHmacSha256`"
-                    );
-                }
-
-                if !content
-                    .short_authentication_string
-                    .contains(&ShortAuthenticationString::Decimal)
-                {
-                    return Err(
-                        "`short_authentication_string` must contain at least `ShortAuthenticationString::Decimal`",
-                    );
-                }
-
-                Ok(StartEventContent::MSasV1(content))
-            }
-        }
-    }
-}
-
-pub(crate) mod raw {
-    use serde::Deserialize;
-
-    use super::MSasV1Content;
-
-    /// Begins an SAS key verification process.
-    ///
-    /// Typically sent as a to-device event.
-    #[derive(Clone, Debug, Deserialize)]
-    pub struct StartEvent {
-        /// The event's content.
-        pub content: StartEventContent,
-    }
-
-    /// The payload of an *m.key.verification.start* event.
-    #[derive(Clone, Debug, Deserialize)]
-    #[serde(tag = "method")]
-    pub enum StartEventContent {
-        /// The *m.sas.v1* verification method.
-        #[serde(rename = "m.sas.v1")]
-        MSasV1(MSasV1Content),
-    }
 }
 
 /// The payload of an *m.key.verification.start* event using the *m.sas.v1* method.

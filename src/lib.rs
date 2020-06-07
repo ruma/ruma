@@ -135,7 +135,6 @@ mod error;
 mod event_enums;
 mod event_kinds;
 mod event_type;
-mod from_raw;
 mod json;
 #[doc(hidden)] // only public for external tests
 pub mod util;
@@ -171,7 +170,6 @@ pub use self::{
     event_enums::AnyStateEvent,
     event_kinds::{MessageEvent, StateEvent},
     event_type::EventType,
-    from_raw::{FromRaw, TryFromRaw},
     json::EventJson,
 };
 

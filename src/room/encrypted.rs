@@ -6,7 +6,7 @@ use js_int::UInt;
 use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::{FromRaw, UnsignedData};
+use crate::UnsignedData;
 
 /// The payload for `EncryptedEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize)]

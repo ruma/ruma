@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_events_macros::{FromRaw, StateEventContent};
+use ruma_events_macros::StateEventContent;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};

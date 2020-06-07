@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use js_int::Int;
-use ruma_events_macros::{FromRaw, StateEventContent};
+use ruma_events_macros::StateEventContent;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 

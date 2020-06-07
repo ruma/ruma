@@ -1,6 +1,6 @@
 //! Types for the *m.room.join_rules* event.
 
-use ruma_events_macros::{FromRaw, StateEventContent};
+use ruma_events_macros::StateEventContent;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 

@@ -2,7 +2,7 @@
 
 use std::convert::TryFrom;
 
-use ruma_events_macros::{FromRaw, StateEventContent};
+use ruma_events_macros::StateEventContent;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde::{Deserialize, Serialize};
 

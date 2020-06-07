@@ -1,6 +1,6 @@
 //! Types for the *m.room.third_party_invite* event.
 
-use ruma_events_macros::{FromRaw, StateEventContent};
+use ruma_events_macros::StateEventContent;
 use serde::{Deserialize, Serialize};
 
 /// An invitation to a room issued to a third party identifier, rather than a matrix user ID.

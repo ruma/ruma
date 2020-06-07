@@ -1,6 +1,6 @@
 //! Types for the *m.room.message.feedback* event.
 
-use ruma_events_macros::{FromRaw, MessageEventContent};
+use ruma_events_macros::MessageEventContent;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};

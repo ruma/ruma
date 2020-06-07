@@ -1,7 +1,7 @@
 //! Types for the *m.call.candidates* event.
 
 use js_int::UInt;
-use ruma_events_macros::{FromRaw, MessageEventContent};
+use ruma_events_macros::MessageEventContent;
 use serde::{Deserialize, Serialize};
 
 /// This event is sent by callers after sending an invite and by the callee after answering. Its
