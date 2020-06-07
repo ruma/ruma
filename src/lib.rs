@@ -169,8 +169,8 @@ pub use self::{
     event_type::EventType,
     from_raw::{FromRaw, TryFromRaw},
     json::EventJson,
-    message::MessageEvent,
-    state::StateEvent,
+    message::{AnyMessageEventContent, MessageEvent},
+    state::{AnyStateEventContent, StateEvent},
 };
 
 /// Extra information about an event that is not incorporated into the event's
