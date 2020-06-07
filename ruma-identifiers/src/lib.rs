@@ -36,6 +36,16 @@ pub mod room_version_id;
 pub mod server_key_id;
 pub mod user_id;
 
+/// An owned device ID.
+///
+/// While this is currently just a `String`, that will likely change in the future.
+pub use device_id::DeviceId;
+
+/// A reference to a device ID.
+///
+/// While this is currently just a string slice, that will likely change in the future.
+pub type DeviceIdRef<'a> = &'a str;
+
 /// An owned event ID.
 ///
 /// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
