@@ -132,6 +132,7 @@ pub use ruma_serde::empty::Empty;
 mod algorithm;
 mod content_enums;
 mod error;
+mod event_enums;
 mod event_kinds;
 mod event_type;
 mod from_raw;
@@ -167,6 +168,7 @@ pub use self::{
     algorithm::Algorithm,
     content_enums::{AnyMessageEventContent, AnyStateEventContent},
     error::{FromStrError, InvalidEvent, InvalidInput},
+    event_enums::AnyStateEvent,
     event_kinds::{MessageEvent, StateEvent},
     event_type::EventType,
     from_raw::{FromRaw, TryFromRaw},
