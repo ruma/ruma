@@ -20,7 +20,7 @@ js_int = "0.1.5"
 matches = "0.1.8"
 ruma-api = { version = "0.16.1", path = "../ruma-api" }
 ruma-events = { git = "https://github.com/ruma/ruma-events", rev = "c1ee72d" }
-ruma-identifiers = "0.16.2"
+ruma-identifiers = { version = "0.16.2", path = "../ruma-identifiers" }
 ruma-serde = "0.2.2"
 serde = { version = "1.0.111", features = ["derive"] }
 serde_json = "1.0.53"

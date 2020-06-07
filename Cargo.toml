@@ -1,2 +1,8 @@
 [workspace]
 members = ["ruma", "ruma-*"]
+
+# Required until ruma-events becomes part of the workspace
+[patch.crates-io]
+ruma-common = { path = "ruma-common" }
+ruma-identifiers = { path = "ruma-identifiers" }
+ruma-serde = { path = "ruma-serde" }

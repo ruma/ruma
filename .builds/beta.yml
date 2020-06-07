@@ -24,4 +24,14 @@ tasks:
       cargo test --all --verbose
       test_exit=$?
 
-      exit $(( $fmt_exit || $clippy_exit || $test_exit ))
+      # ruma-identifiers has a bunch of features. Make sure it works both with
+      # all of them and none of them being enabled.
+      cd ruma-identifiers
+
+      cargo test --no-default-features --verbose
+      id_test_1_exit=$?
+
+      cargo test --all-features --verbose
+      id_test_2_exit=$?
+
+      exit $(( $fmt_exit || $clippy_exit || $test_exit || $id_test_1_exit || $id_test_2_exit ))
