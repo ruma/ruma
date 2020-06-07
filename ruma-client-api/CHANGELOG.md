@@ -1,5 +1,9 @@
 # [unreleased]
 
+Bug fixes:
+
+* More missing fields in `r0::sync::sync_events::Response` can be deserialized
+
 Breaking changes:
 
 * Make `avatar_url` in `r0::profile::set_avatar_url::Request` an `Option`
@@ -11,11 +15,13 @@ Breaking changes:
 * Update `r0::push::get_pushrules_all` and `r0::push::get_pushrules_global_scope` to use the
   `Ruleset` type from `ruma_events`
 * Fix event types in `r0::context::get_context`
+* Fix event types in `r0::sync::sync_events`
 
 Improvements:
 
 * Add method `into_event_content` for `r0::room::create_room::CreationContent`
 * Add room visibility endpoints: `r0::directory::{get_room_visibility, set_room_visibility}`.
+* Add is_empty helpers for structs in `r0::sync::sync_events`
 
 Deprecations:
 

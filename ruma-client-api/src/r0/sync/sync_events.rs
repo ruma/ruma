@@ -86,8 +86,8 @@ ruma_api! {
         /// Information on E2E device updates.
         ///
         /// Only present on an incremental sync.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_lists: Option<DeviceLists>,
+        #[serde(default, skip_serializing_if = "DeviceLists::is_empty")]
+        pub device_lists: DeviceLists,
 
         /// For each key algorithm, the number of unclaimed one-time keys
         /// currently held on the server for a device.
@@ -130,17 +130,21 @@ pub enum Filter {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Rooms {
     /// The rooms that the user has left or been banned from.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub leave: BTreeMap<RoomId, LeftRoom>,
 
     /// The rooms that the user has joined.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub join: BTreeMap<RoomId, JoinedRoom>,
 
     /// The rooms that the user has been invited to.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub invite: BTreeMap<RoomId, InvitedRoom>,
 }
 
 impl Rooms {
-    fn is_empty(&self) -> bool {
+    /// Returns true if there is no update in any room.
+    pub fn is_empty(&self) -> bool {
         self.leave.is_empty() && self.join.is_empty() && self.invite.is_empty()
     }
 }
@@ -150,14 +154,23 @@ impl Rooms {
 pub struct LeftRoom {
     /// The timeline of messages and state changes in the room up to the point when the user
     /// left.
+    #[serde(default, skip_serializing_if = "Timeline::is_empty")]
     pub timeline: Timeline,
 
     /// The state updates for the room up to the start of the timeline.
+    #[serde(default, skip_serializing_if = "State::is_empty")]
     pub state: State,
 
     /// The private data that this user has attached to this room.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub account_data: Option<AccountData>,
+    #[serde(default, skip_serializing_if = "AccountData::is_empty")]
+    pub account_data: AccountData,
+}
+
+impl LeftRoom {
+    /// Returns true if there are updates in the room.
+    pub fn is_empty(&self) -> bool {
+        self.timeline.is_empty() && self.state.is_empty() && self.account_data.is_empty()
+    }
 }
 
 /// Updates to joined rooms.
@@ -165,30 +178,47 @@ pub struct LeftRoom {
 pub struct JoinedRoom {
     /// Information about the room which clients may need to correctly render it
     /// to users.
+    #[serde(default, skip_serializing_if = "RoomSummary::is_empty")]
     pub summary: RoomSummary,
 
     /// Counts of unread notifications for this room.
+    #[serde(default, skip_serializing_if = "UnreadNotificationsCount::is_empty")]
     pub unread_notifications: UnreadNotificationsCount,
 
     /// The timeline of messages and state changes in the room.
+    #[serde(default, skip_serializing_if = "Timeline::is_empty")]
     pub timeline: Timeline,
 
     /// Updates to the state, between the time indicated by the `since` parameter, and the start
     /// of the `timeline` (or all state up to the start of the `timeline`, if `since` is not
     /// given, or `full_state` is true).
+    #[serde(default, skip_serializing_if = "State::is_empty")]
     pub state: State,
 
     /// The private data that this user has attached to this room.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub account_data: Option<AccountData>,
+    #[serde(default, skip_serializing_if = "AccountData::is_empty")]
+    pub account_data: AccountData,
 
     /// The ephemeral events in the room that aren't recorded in the timeline or state of the
     /// room. e.g. typing.
+    #[serde(default, skip_serializing_if = "Ephemeral::is_empty")]
     pub ephemeral: Ephemeral,
 }
 
+impl JoinedRoom {
+    /// Returns true if there are no updates in the room.
+    pub fn is_empty(&self) -> bool {
+        self.summary.is_empty()
+            && self.unread_notifications.is_empty()
+            && self.timeline.is_empty()
+            && self.state.is_empty()
+            && self.account_data.is_empty()
+            && self.ephemeral.is_empty()
+    }
+}
+
 /// unread notifications count
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
 pub struct UnreadNotificationsCount {
     /// The number of unread notifications for this room with the highlight flag set.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -199,8 +229,15 @@ pub struct UnreadNotificationsCount {
     pub notification_count: Option<UInt>,
 }
 
+impl UnreadNotificationsCount {
+    /// Returns true if there are no notification count updates.
+    pub fn is_empty(&self) -> bool {
+        self.highlight_count.is_none() && self.notification_count.is_none()
+    }
+}
+
 /// Events in the room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Timeline {
     /// True if the number of events returned was limited by the `limit` on the filter.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -215,11 +252,25 @@ pub struct Timeline {
     pub events: Vec<EventJson<RoomEvent>>,
 }
 
+impl Timeline {
+    /// Returns true if there are no timeline updates.
+    pub fn is_empty(&self) -> bool {
+        self.events.is_empty()
+    }
+}
+
 /// State events in the room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct State {
     /// A list of state events.
     pub events: Vec<EventJson<StateEvent>>,
+}
+
+impl State {
+    /// Returns true if there are no state updates.
+    pub fn is_empty(&self) -> bool {
+        self.events.is_empty()
+    }
 }
 
 /// The private data that this user has attached to this room.
@@ -230,20 +281,28 @@ pub struct AccountData {
 }
 
 impl AccountData {
-    fn is_empty(&self) -> bool {
+    /// Returns true if there are no account data updates.
+    pub fn is_empty(&self) -> bool {
         self.events.is_empty()
     }
 }
 
 /// Ephemeral events not recorded in the timeline or state of the room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Ephemeral {
     /// A list of events.
     pub events: Vec<EventJson<NonRoomEvent>>,
 }
 
+impl Ephemeral {
+    /// Returns true if there are no ephemeral event updates.
+    pub fn is_empty(&self) -> bool {
+        self.events.is_empty()
+    }
+}
+
 /// Information about room for rendering to clients.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct RoomSummary {
     /// Users which can be used to generate a room name if the room does not have
     /// one. Required if room name or canonical aliases are not set or empty.
@@ -263,18 +322,42 @@ pub struct RoomSummary {
     pub invited_member_count: Option<UInt>,
 }
 
+impl RoomSummary {
+    /// Returns true if there are no room summary updates.
+    pub fn is_empty(&self) -> bool {
+        self.heroes.is_empty()
+            && self.joined_member_count.is_none()
+            && self.invited_member_count.is_none()
+    }
+}
+
 /// Updates to the rooms that the user has been invited to.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct InvitedRoom {
     /// The state of a room that the user has been invited to.
+    #[serde(default, skip_serializing_if = "InviteState::is_empty")]
     pub invite_state: InviteState,
 }
 
+impl InvitedRoom {
+    /// Returns true if there are no updates to this room.
+    pub fn is_empty(&self) -> bool {
+        self.invite_state.is_empty()
+    }
+}
+
 /// The state of a room that the user has been invited to.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct InviteState {
     /// A list of state events.
     pub events: Vec<EventJson<AnyStrippedStateEvent>>,
+}
+
+impl InviteState {
+    /// Returns true if there are no state updates.
+    pub fn is_empty(&self) -> bool {
+        self.events.is_empty()
+    }
 }
 
 /// Updates to the presence status of other users.
@@ -285,7 +368,8 @@ pub struct Presence {
 }
 
 impl Presence {
-    fn is_empty(&self) -> bool {
+    /// Returns true if there are no presence updates.
+    pub fn is_empty(&self) -> bool {
         self.events.is_empty()
     }
 }
@@ -298,13 +382,14 @@ pub struct ToDevice {
 }
 
 impl ToDevice {
+    /// Returns true if there are no to-device events.
     fn is_empty(&self) -> bool {
         self.events.is_empty()
     }
 }
 
 /// Information on E2E device udpates.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct DeviceLists {
     /// List of users who have updated their device identity keys or who now
     /// share an encrypted room with the client since the previous sync
@@ -315,6 +400,13 @@ pub struct DeviceLists {
     /// response.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub left: Vec<UserId>,
+}
+
+impl DeviceLists {
+    /// Returns true if there are no device list updates.
+    fn is_empty(&self) -> bool {
+        self.changed.is_empty() && self.left.is_empty()
+    }
 }
 
 #[cfg(test)]
