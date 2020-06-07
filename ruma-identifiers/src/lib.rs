@@ -1,0 +1,171 @@
+//! Crate **ruma_identifiers** contains types for [Matrix](https://matrix.org/) identifiers
+//! for events, rooms, room aliases, room versions, and users.
+
+#![warn(rust_2018_idioms)]
+#![deny(
+    missing_copy_implementations,
+    missing_debug_implementations,
+    //missing_docs
+)]
+// Since we support Rust 1.36.0, we can't apply this suggestion yet
+#![allow(clippy::use_self)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
+use std::num::NonZeroU8;
+
+#[cfg(feature = "serde")]
+use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
+
+#[doc(inline)]
+pub use crate::{error::Error, server_name::is_valid_server_name};
+
+#[macro_use]
+mod macros;
+
+mod error;
+mod server_name;
+
+pub mod device_id;
+pub mod device_key_id;
+pub mod event_id;
+pub mod key_algorithms;
+pub mod room_alias_id;
+pub mod room_id;
+pub mod room_id_or_room_alias_id;
+pub mod room_version_id;
+pub mod server_key_id;
+pub mod user_id;
+
+/// An owned event ID.
+///
+/// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
+/// `TryFrom<&str>`, implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
+pub type EventId = event_id::EventId<Box<str>>;
+
+/// A reference to an event ID.
+///
+/// Can be created via `TryFrom<&str>`, implements `Serialize` if the `serde` feature is enabled.
+pub type EventIdRef<'a> = event_id::EventId<&'a str>;
+
+/// An owned room alias ID.
+///
+/// Can be created via `TryFrom<String>` and `TryFrom<&str>`, implements `Serialize` and
+/// `Deserialize` if the `serde` feature is enabled.
+pub type RoomAliasId = room_alias_id::RoomAliasId<Box<str>>;
+
+/// A reference to a room alias ID.
+///
+/// Can be created via `TryFrom<&str>`, implements `Serialize` if the `serde` feature is enabled.
+pub type RoomAliasIdRef<'a> = room_alias_id::RoomAliasId<&'a str>;
+
+/// An owned room ID.
+///
+/// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
+/// `TryFrom<&str>`, implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
+pub type RoomId = room_id::RoomId<Box<str>>;
+
+/// A reference to a room ID.
+///
+/// Can be created via `TryFrom<&str>`, implements `Serialize` if the `serde` feature is enabled.
+pub type RoomIdRef<'a> = room_id::RoomId<&'a str>;
+
+/// An owned room alias ID or room ID.
+///
+/// Can be created via `TryFrom<String>`, `TryFrom<&str>`, `From<RoomId>` and `From<RoomAliasId>`;
+/// implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
+pub type RoomIdOrAliasId = room_id_or_room_alias_id::RoomIdOrAliasId<Box<str>>;
+
+/// A reference to a room alias ID or room ID.
+///
+/// Can be created via `TryFrom<&str>`, `From<RoomIdRef>` and `From<RoomAliasIdRef>`; implements
+/// `Serialize` if the `serde` feature is enabled.
+pub type RoomIdOrAliasIdRef<'a> = room_id_or_room_alias_id::RoomIdOrAliasId<&'a str>;
+
+/// An owned room version ID.
+///
+/// Can be created using the `version_N` constructor functions, `TryFrom<String>` and
+/// `TryFrom<&str>`; implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
+pub type RoomVersionId = room_version_id::RoomVersionId<Box<str>>;
+
+/// A reference to a room version ID.
+///
+/// Can be created using the `version_N` constructor functions and via `TryFrom<&str>`, implements
+/// `Serialize` if the `serde` feature is enabled.
+pub type RoomVersionIdRef<'a> = room_version_id::RoomVersionId<&'a str>;
+
+/// An owned user ID.
+///
+/// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
+/// `TryFrom<&str>`, implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
+pub type UserId = user_id::UserId<Box<str>>;
+
+/// A reference to a user ID.
+///
+/// Can be created via `TryFrom<&str>`, implements `Serialize` if the `serde` feature is enabled.
+pub type UserIdRef<'a> = user_id::UserId<&'a str>;
+
+/// All identifiers must be 255 bytes or less.
+const MAX_BYTES: usize = 255;
+/// The minimum number of characters an ID can be.
+///
+/// This is an optimization and not required by the spec. The shortest possible valid ID is a sigil
+/// + a single character local ID + a colon + a single character hostname.
+const MIN_CHARS: usize = 4;
+
+/// Generates a random identifier localpart.
+#[cfg(feature = "rand")]
+fn generate_localpart(length: usize) -> String {
+    use rand::Rng as _;
+    rand::thread_rng()
+        .sample_iter(&rand::distributions::Alphanumeric)
+        .take(length)
+        .collect()
+}
+
+/// Checks if an identifier is valid.
+fn validate_id(id: &str, valid_sigils: &[char]) -> Result<(), Error> {
+    if id.len() > MAX_BYTES {
+        return Err(Error::MaximumLengthExceeded);
+    }
+
+    if id.len() < MIN_CHARS {
+        return Err(Error::MinimumLengthNotSatisfied);
+    }
+
+    if !valid_sigils.contains(&id.chars().next().unwrap()) {
+        return Err(Error::MissingSigil);
+    }
+
+    Ok(())
+}
+
+/// Checks an identifier that contains a localpart and hostname for validity,
+/// and returns the index of the colon that separates the two.
+fn parse_id(id: &str, valid_sigils: &[char]) -> Result<NonZeroU8, Error> {
+    validate_id(id, valid_sigils)?;
+
+    let colon_idx = id.find(':').ok_or(Error::MissingDelimiter)?;
+    if colon_idx < 2 {
+        return Err(Error::InvalidLocalPart);
+    }
+
+    if !is_valid_server_name(&id[colon_idx + 1..]) {
+        return Err(Error::InvalidServerName);
+    }
+
+    Ok(NonZeroU8::new(colon_idx as u8).unwrap())
+}
+
+/// Deserializes any type of id using the provided TryFrom implementation.
+///
+/// This is a helper function to reduce the boilerplate of the Deserialize implementations.
+#[cfg(feature = "serde")]
+fn deserialize_id<'de, D, T>(deserializer: D, expected_str: &str) -> Result<T, D::Error>
+where
+    D: Deserializer<'de>,
+    T: for<'a> std::convert::TryFrom<&'a str>,
+{
+    std::borrow::Cow::<'_, str>::deserialize(deserializer).and_then(|v| {
+        T::try_from(&v).map_err(|_| de::Error::invalid_value(Unexpected::Str(&v), &expected_str))
+    })
+}
