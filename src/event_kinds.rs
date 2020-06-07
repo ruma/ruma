@@ -11,7 +11,16 @@ use serde::{
     Serialize, Serializer,
 };
 
-use crate::{MessageEventContent, RoomEventContent, StateEventContent, TryFromRaw, UnsignedData};
+use crate::{
+    BasicEventContent, MessageEventContent, RoomEventContent, StateEventContent,
+    ToDeviceEventContent, TryFromRaw, UnsignedData,
+};
+
+/// A basic event – one that consists only of it's type and the `content` object.
+#[derive(Clone, Debug, Event)]
+pub struct BasicEvent<C: BasicEventContent> {
+    pub content: C,
+}
 
 /// Message event.
 #[derive(Clone, Debug, Event)]
@@ -22,7 +31,7 @@ pub struct MessageEvent<C: MessageEventContent> {
     /// The globally unique event identifier for the user who sent the event.
     pub event_id: EventId,
 
-    /// Contains the fully-qualified ID of the user who sent this event.
+    /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
@@ -44,7 +53,7 @@ pub struct StateEvent<C: StateEventContent> {
     /// The globally unique event identifier for the user who sent the event.
     pub event_id: EventId,
 
-    /// Contains the fully-qualified ID of the user who sent this event.
+    /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,
 
     /// Timestamp in milliseconds on originating homeserver when this event was sent.
@@ -64,4 +73,13 @@ pub struct StateEvent<C: StateEventContent> {
 
     /// Additional key-value pairs not signed by the homeserver.
     pub unsigned: UnsignedData,
+}
+
+#[derive(Clone, Debug, Event)]
+pub struct ToDeviceEvent<C: ToDeviceEventContent> {
+    /// Data specific to the event type.
+    pub content: C,
+
+    /// The fully-qualified ID of the user who sent this event.
+    pub sender: UserId,
 }
