@@ -144,7 +144,7 @@ pub mod util;
 extern crate self as ruma_events;
 
 pub mod call;
-// pub mod custom;
+pub mod custom;
 // pub mod direct;
 // pub mod dummy;
 pub mod forwarded_room_key;
