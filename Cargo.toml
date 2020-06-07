@@ -22,7 +22,8 @@ default = ["serde"]
 [dependencies]
 either = { version = "1.5.3", optional = true }
 rand = { version = "0.7.3", optional = true }
-serde = { version = "1.0.106", optional = true }
+serde = { version = "1.0.106", optional = true, features = ["derive"] }
+strum = { version = "0.18.0", features = ["derive"] }
 
 [dev-dependencies]
 serde_json = "1.0.51"

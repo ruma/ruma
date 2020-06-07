@@ -9,6 +9,10 @@ Breaking changes:
   `Into<Box<str>>` of the id type). This is technically a breaking change, but extremely unlikely
   to affect any existing code.
 
+Improvements:
+
+* Add `DeviceKeyId`, `KeyAlgorithm`, and `ServerKeyId`
+
 # 0.16.2
 
 Improvements:
