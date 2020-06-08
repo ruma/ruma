@@ -77,7 +77,7 @@ pub fn expand_basic_event_content(input: DeriveInput) -> syn::Result<TokenStream
 }
 
 /// Create a `EphemeralRoomEventContent` implementation for a struct
-pub fn expand_ephemeral_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_ephemeral_room_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
     let event_content_impl = expand_event_content(input)?;
 

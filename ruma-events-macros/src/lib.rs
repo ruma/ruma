@@ -18,8 +18,8 @@ use self::{
     content_enum::{expand_content_enum, parse::ContentEnumInput},
     event::expand_event,
     event_content::{
-        expand_basic_event_content, expand_ephemeral_event_content, expand_message_event_content,
-        expand_state_event_content,
+        expand_basic_event_content, expand_ephemeral_room_event_content,
+        expand_message_event_content, expand_state_event_content,
     },
     gen::RumaEvent,
     parse::RumaEventInput,
@@ -166,9 +166,9 @@ pub fn derive_state_event_content(input: TokenStream) -> TokenStream {
 
 /// Generates an implementation of `ruma_events::EphemeralRoomEventContent` and it's super traits.
 #[proc_macro_derive(EphemeralRoomEventContent, attributes(ruma_event))]
-pub fn derive_ephemeral_event_content(input: TokenStream) -> TokenStream {
+pub fn derive_ephemeral_room_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_ephemeral_event_content(input)
+    expand_ephemeral_room_event_content(input)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }
