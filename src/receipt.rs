@@ -10,6 +10,11 @@ use ruma_events_macros::EphemeralRoomEventContent;
 use ruma_identifiers::{EventId, UserId};
 use serde::{Deserialize, Serialize};
 
+use crate::EphemeralRoomEvent;
+
+/// Informs the client who has read a message specified by it's event id.
+pub type ReceiptEvent = EphemeralRoomEvent<ReceiptEventContent>;
+
 /// The payload for `ReceiptEvent`.
 ///
 /// A mapping of event ID to a collection of receipts for this event ID. The event ID is the ID of

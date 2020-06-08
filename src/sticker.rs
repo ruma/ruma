@@ -3,9 +3,12 @@
 use ruma_events_macros::MessageEventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::room::ImageInfo;
+use crate::{room::ImageInfo, MessageEvent};
 
 /// A sticker message.
+pub type StickerEvent = MessageEvent<StickerEventContent>;
+
+/// The payload for `StickerEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.sticker")]
 pub struct StickerEventContent {

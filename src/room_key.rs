@@ -1,13 +1,18 @@
 //! Types for the *m.room_key* event.
 
-use super::Algorithm;
 use ruma_events_macros::BasicEventContent;
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
+use super::Algorithm;
+use crate::BasicEvent;
+
 /// This event type is used to exchange keys for end-to-end encryption.
 ///
 /// Typically it is encrypted as an *m.room.encrypted* event, then sent as a to-device event.
+pub type RoomKeyEvent = BasicEvent<RoomKeyEventContent>;
+
+/// The payload for `RoomKeyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.room_key")]
 pub struct RoomKeyEventContent {
