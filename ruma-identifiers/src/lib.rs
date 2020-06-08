@@ -40,13 +40,13 @@ pub mod user_id;
 pub type DeviceKeyAlgorithm = key_algorithms::DeviceKeyAlgorithm;
 
 /// An owned device key identifier containing a key algorithm and device ID.
-/// 
+///
 /// Can be created via `TryFrom<String>` and `TryFrom<&str>`; implements `Serialize`
 /// and `Deserialize` if the `serde` feature is enabled.
 pub type DeviceKeyId = device_key_id::DeviceKeyId<Box<str>>;
 
 /// A reference to a device key identifier containing a key algorithm and device ID.
-/// 
+///
 /// Can be created via `TryFrom<&str>`; implements `Serialize` and `Deserialize`
 /// if the `serde` feature is enabled.
 pub type DeviceKeyIdRef<'a> = device_key_id::DeviceKeyId<&'a str>;
@@ -122,14 +122,14 @@ pub type RoomVersionIdRef<'a> = room_version_id::RoomVersionId<&'a str>;
 pub type ServerKeyAlgorithm = key_algorithms::ServerKeyAlgorithm;
 
 /// An owned homeserver signing key identifier containing a key algorithm and version.
-/// 
+///
 /// Can be created via `TryFrom<String>` and `TryFrom<&str>`; implements `Serialize`
 /// and `Deserialize` if the `serde` feature is enabled.
 pub type ServerKeyId = server_key_id::ServerKeyId<Box<str>>;
 
 /// An reference to a homeserver signing key identifier containing a key
 /// algorithm and version.
-/// 
+///
 /// Can be created via `TryFrom<&str>`; implements `Serialize`
 /// and `Deserialize` if the `serde` feature is enabled.
 pub type ServerKeyIdRef<'a> = server_key_id::ServerKeyId<&'a str>;
