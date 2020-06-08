@@ -40,3 +40,9 @@ event_content_enum! {
     name: AnyEphemeralRoomEventContent,
     events: [ "m.typing", "m.receipt" ]
 }
+
+event_content_enum! {
+    /// A basic event.
+    name: AnyBasicEventContent,
+    events: [ "m.ignored_user_list", "m.room_key" ]
+}

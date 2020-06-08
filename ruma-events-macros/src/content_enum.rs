@@ -19,6 +19,9 @@ fn marker_traits(ident: &Ident) -> TokenStream {
         "AnyEphemeralRoomEventContent" => quote! {
             impl ::ruma_events::EphemeralRoomEventContent for #ident {}
         },
+        "AnyBasicEventContent" => quote! {
+            impl ::ruma_events::BasicEventContent for #ident {}
+        },
         _ => TokenStream::new(),
     }
 }

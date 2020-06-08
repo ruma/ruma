@@ -11,6 +11,7 @@ use crate::{
 /// A basic event – one that consists only of it's type and the `content` object.
 #[derive(Clone, Debug, Event)]
 pub struct BasicEvent<C: BasicEventContent> {
+    /// Data specific to the event type.
     pub content: C,
 }
 

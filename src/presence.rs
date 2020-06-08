@@ -1,7 +1,6 @@
-//! A presence event is represented by a parameterized struct.
+//! A presence event is represented by a struct with a set content field.
 //!
-//! There is only one type that will satisfy the bounds of `PresenceEventContent`
-//! as this event has only one possible content value according to Matrix spec.
+//! The only content valid for this event is `PresenceEventContent.
 
 use js_int::UInt;
 pub use ruma_common::presence::PresenceState;

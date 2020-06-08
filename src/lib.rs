@@ -149,13 +149,13 @@ pub mod custom;
 // pub mod dummy;
 pub mod forwarded_room_key;
 pub mod fully_read;
-// pub mod ignored_user_list;
+pub mod ignored_user_list;
 pub mod key;
 pub mod presence;
 // pub mod push_rules;
 pub mod receipt;
 pub mod room;
-// pub mod room_key;
+pub mod room_key;
 pub mod room_key_request;
 pub mod sticker;
 // pub mod stripped;
@@ -165,10 +165,13 @@ pub mod typing;
 
 pub use self::{
     algorithm::Algorithm,
-    content_enums::{AnyEphemeralRoomEventContent, AnyMessageEventContent, AnyStateEventContent},
+    content_enums::{
+        AnyBasicEventContent, AnyEphemeralRoomEventContent, AnyMessageEventContent,
+        AnyStateEventContent,
+    },
     error::{FromStrError, InvalidEvent, InvalidInput},
     event_enums::AnyStateEvent,
-    event_kinds::{EphemeralRoomEvent, MessageEvent, StateEvent},
+    event_kinds::{BasicEvent, EphemeralRoomEvent, MessageEvent, StateEvent},
     event_type::EventType,
     json::EventJson,
 };

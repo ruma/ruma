@@ -1,19 +1,16 @@
 //! Types for the *m.ignored_user_list* event.
 
-use ruma_events_macros::ruma_event;
+use ruma_events_macros::BasicEventContent;
 use ruma_identifiers::UserId;
+use serde::{Deserialize, Serialize};
 
-ruma_event! {
+/// A list of users to ignore.
+#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[ruma_event(type = "m.ignored_user_list")]
+pub struct IgnoredUserListEventContent {
     /// A list of users to ignore.
-    IgnoredUserListEvent {
-        kind: Event,
-        event_type: "m.ignored_user_list",
-        content: {
-            /// A list of users to ignore.
-            #[serde(with = "ruma_serde::vec_as_map_of_empty")]
-            pub ignored_users: Vec<UserId>,
-        },
-    }
+    #[serde(with = "ruma_serde::vec_as_map_of_empty")]
+    pub ignored_users: Vec<UserId>,
 }
 
 #[cfg(test)]
@@ -24,12 +21,12 @@ mod tests {
     use ruma_identifiers::UserId;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{IgnoredUserListEvent, IgnoredUserListEventContent};
-    use crate::EventJson;
+    use super::IgnoredUserListEventContent;
+    use crate::{AnyBasicEventContent, BasicEvent, EventJson};
 
     #[test]
     fn serialization() {
-        let ignored_user_list_event = IgnoredUserListEvent {
+        let ignored_user_list_event = BasicEvent {
             content: IgnoredUserListEventContent {
                 ignored_users: vec![UserId::try_from("@carl:example.com").unwrap()],
             },
@@ -59,12 +56,12 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<EventJson<IgnoredUserListEvent>>(json)
+            from_json_value::<EventJson<BasicEvent<AnyBasicEventContent>>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            IgnoredUserListEvent {
-                content: IgnoredUserListEventContent { ignored_users, },
+            BasicEvent {
+                content: AnyBasicEventContent::IgnoredUserList(IgnoredUserListEventContent { ignored_users, }),
             } if ignored_users == vec![UserId::try_from("@carl:example.com").unwrap()]
         );
     }
