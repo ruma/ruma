@@ -1,18 +1,19 @@
 //! Types for the the *m.push_rules* event.
 
-use ruma_events_macros::ruma_event;
+use ruma_events_macros::BasicEventContent;
 use serde::{Deserialize, Serialize};
 
-ruma_event! {
-    /// Describes all push rules for a user.
-    PushRulesEvent {
-        kind: Event,
-        event_type: "m.push_rules",
-        content: {
-            /// The global ruleset.
-            pub global: Ruleset,
-        },
-    }
+use crate::BasicEvent;
+
+/// Describes all push rules for a user.
+pub type PushRulesEvent = BasicEvent<PushRulesEventContent>;
+
+/// The payload for `PushRulesEvent`.
+#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[ruma_event(type = "m.push_rules")]
+pub struct PushRulesEventContent {
+    /// The global ruleset.
+    pub global: Ruleset,
 }
 
 pub use ruma_common::push::Action;
@@ -153,7 +154,7 @@ mod tests {
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::PushCondition;
+    use super::{PushCondition, PushRulesEvent};
     use crate::EventJson;
 
     #[test]

@@ -145,14 +145,14 @@ extern crate self as ruma_events;
 
 pub mod call;
 pub mod custom;
-// pub mod direct;
-// pub mod dummy;
+pub mod direct;
+pub mod dummy;
 pub mod forwarded_room_key;
 pub mod fully_read;
 pub mod ignored_user_list;
 pub mod key;
 pub mod presence;
-// pub mod push_rules;
+pub mod push_rules;
 pub mod receipt;
 pub mod room;
 pub mod room_key;

@@ -1,6 +1,18 @@
 use ruma_events_macros::event_content_enum;
 
 event_content_enum! {
+    /// A basic event.
+    name: AnyBasicEventContent,
+    events: [
+        "m.direct",
+        "m.dummy",
+        "m.ignored_user_list",
+        "m.push_rules",
+        "m.room_key",
+    ]
+}
+
+event_content_enum! {
     /// Any message event's content.
     name: AnyMessageEventContent,
     events: [
@@ -39,10 +51,4 @@ event_content_enum! {
     /// An ephemeral room event.
     name: AnyEphemeralRoomEventContent,
     events: [ "m.typing", "m.receipt" ]
-}
-
-event_content_enum! {
-    /// A basic event.
-    name: AnyBasicEventContent,
-    events: [ "m.ignored_user_list", "m.room_key" ]
 }
