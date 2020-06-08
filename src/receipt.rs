@@ -1,21 +1,35 @@
 //! Types for the *m.receipt* event.
 
-use std::{collections::BTreeMap, time::SystemTime};
+use std::{
+    collections::BTreeMap,
+    ops::{Deref, DerefMut},
+    time::SystemTime,
+};
 
 use ruma_events_macros::EphemeralRoomEventContent;
 use ruma_identifiers::{EventId, UserId};
 use serde::{Deserialize, Serialize};
 
-/// Informs the client who has read a message specified by it's event id.
+/// The payload for `ReceiptEvent`.
+///
+/// A mapping of event ID to a collection of receipts for this event ID. The event ID is the ID of
+/// the event being acknowledged and *not* an ID for the receipt itself.
 #[derive(Clone, Debug, Deserialize, Serialize, EphemeralRoomEventContent)]
 #[ruma_event(type = "m.receipt")]
-#[serde(transparent)]
-pub struct ReceiptEventContent {
-    /// The payload for `ReceiptEvent`.
-    ///
-    /// A mapping of event ID to a collection of receipts for this event ID. The event ID is the ID of
-    /// the event being acknowledged and *not* an ID for the receipt itself.
-    pub receipts: BTreeMap<EventId, Receipts>,
+pub struct ReceiptEventContent(pub BTreeMap<EventId, Receipts>);
+
+impl Deref for ReceiptEventContent {
+    type Target = BTreeMap<EventId, Receipts>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for ReceiptEventContent {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
 }
 
 /// A collection of receipts.
