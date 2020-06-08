@@ -66,15 +66,13 @@ fn ephemeral_serialize_receipt() {
     let user_id = UserId::try_from("@carl:example.com").unwrap();
 
     let aliases_event = EphemeralRoomEvent {
-        content: AnyEphemeralRoomEventContent::Receipt(ReceiptEventContent {
-            receipts: btreemap! {
-                event_id => Receipts {
-                    read: Some(btreemap! {
-                        user_id => Receipt { ts: Some(UNIX_EPOCH + Duration::from_millis(1)) },
-                    }),
-                },
+        content: AnyEphemeralRoomEventContent::Receipt(ReceiptEventContent(btreemap! {
+            event_id => Receipts {
+                read: Some(btreemap! {
+                    user_id => Receipt { ts: Some(UNIX_EPOCH + Duration::from_millis(1)) },
+                }),
             },
-        }),
+        })),
         room_id: RoomId::try_from("!roomid:room.com").unwrap(),
     };
 
@@ -117,9 +115,7 @@ fn deserialize_ephemeral_receipt() {
             .deserialize()
             .unwrap(),
         EphemeralRoomEvent {
-            content: AnyEphemeralRoomEventContent::Receipt(ReceiptEventContent {
-                receipts,
-            }),
+            content: AnyEphemeralRoomEventContent::Receipt(ReceiptEventContent(receipts)),
             room_id,
         } if !receipts.is_empty() && receipts.contains_key(&event_id)
             && room_id == RoomId::try_from("!roomid:room.com").unwrap()
