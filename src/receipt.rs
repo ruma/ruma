@@ -3,7 +3,7 @@
 use std::{collections::BTreeMap, time::SystemTime};
 
 use ruma_events_macros::EphemeralRoomEventContent;
-use ruma_identifiers::{EventId, RoomId, UserId};
+use ruma_identifiers::{EventId, UserId};
 use serde::{Deserialize, Serialize};
 
 /// Informs the client who has read a message specified by it's event id.

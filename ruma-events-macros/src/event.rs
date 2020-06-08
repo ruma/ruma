@@ -48,7 +48,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
                     let time_since_epoch =
                         self.origin_server_ts.duration_since(::std::time::UNIX_EPOCH).unwrap();
 
-                    let timestamp = ::js_int::UInt::try_from(time_since_epoch.as_millis())
+                    let timestamp = <::js_int::UInt as ::std::convert::TryFrom<_>>::try_from(time_since_epoch.as_millis())
                         .map_err(S::Error::custom)?;
 
                     state.serialize_field("origin_server_ts", &timestamp)?;
@@ -81,7 +81,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
             where
                 S: ::serde::ser::Serializer,
             {
-                use ::serde::ser::SerializeStruct as _;
+                use ::serde::ser::{SerializeStruct as _, Error as _};
 
                 let event_type = #event_ty;
 

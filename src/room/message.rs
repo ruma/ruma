@@ -1,14 +1,11 @@
 //! Types for the *m.room.message* event.
 
-use std::time::SystemTime;
-
 use js_int::UInt;
 use ruma_events_macros::MessageEventContent;
-use ruma_identifiers::{EventId, RoomId, UserId};
+use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 
 use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
-use crate::UnsignedData;
 
 pub mod feedback;
 

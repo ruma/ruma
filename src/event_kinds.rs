@@ -1,8 +1,7 @@
-use std::{convert::TryFrom, time::SystemTime};
+use std::time::SystemTime;
 
 use ruma_events_macros::Event;
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::ser::Error;
 
 use crate::{
     BasicEventContent, EphemeralRoomEventContent, MessageEventContent, StateEventContent,

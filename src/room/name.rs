@@ -1,13 +1,9 @@
 //! Types for the *m.room.name* event.
 
-use std::ops::Deref;
-use std::time::SystemTime;
-
 use ruma_events_macros::StateEventContent;
-use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::{InvalidInput, UnsignedData};
+use crate::InvalidInput;
 
 /// The payload for `NameEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]

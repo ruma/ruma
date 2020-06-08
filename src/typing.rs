@@ -1,7 +1,7 @@
 //! Types for the *m.typing* event.
 
 use ruma_events_macros::EphemeralRoomEventContent;
-use ruma_identifiers::{RoomId, UserId};
+use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
 /// Informs the client who is currently typing in a given room.
