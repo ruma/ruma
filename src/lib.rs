@@ -234,6 +234,3 @@ pub trait MessageEventContent: RoomEventContent {}
 
 /// Marker trait for the content of a state event.
 pub trait StateEventContent: RoomEventContent {}
-
-/// Marker trait for event content types that are commonly sent using to-device messaging.
-pub trait ToDeviceEventContent: EventContent {}

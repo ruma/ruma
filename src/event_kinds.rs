@@ -4,8 +4,8 @@ use ruma_events_macros::Event;
 use ruma_identifiers::{EventId, RoomId, UserId};
 
 use crate::{
-    BasicEventContent, EphemeralRoomEventContent, MessageEventContent, StateEventContent,
-    ToDeviceEventContent, UnsignedData,
+    BasicEventContent, EphemeralRoomEventContent, EventContent, MessageEventContent,
+    StateEventContent, UnsignedData,
 };
 
 /// A basic event – one that consists only of it's type and the `content` object.
@@ -79,7 +79,7 @@ pub struct StateEvent<C: StateEventContent> {
 }
 
 #[derive(Clone, Debug, Event)]
-pub struct ToDeviceEvent<C: ToDeviceEventContent> {
+pub struct ToDeviceEvent<C: EventContent> {
     /// Data specific to the event type.
     pub content: C,
 
