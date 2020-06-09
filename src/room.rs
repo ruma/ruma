@@ -88,7 +88,7 @@ pub struct EncryptedFile {
     /// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
     pub key: JsonWebKey,
 
-    /// The initialization vector used by AES-CTR, encoded as unpadded base64.
+    /// The 128-bit unique counter block used by AES-CTR, encoded as unpadded base64.
     pub iv: String,
 
     /// A map from an algorithm name to a hash of the ciphertext, encoded as unpadded base64.
