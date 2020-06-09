@@ -45,15 +45,8 @@ impl From<RumaEventInput> for RumaEvent {
         let content_name = format_ident!("{}Content", name, span = Span::call_site());
         let event_type = input.event_type;
 
-        let mut fields = match kind {
-            EventKind::Event => {
-                populate_event_fields(content_name.clone(), input.fields.unwrap_or_else(Vec::new))
-            }
-            EventKind::RoomEvent => populate_room_event_fields(
-                content_name.clone(),
-                input.fields.unwrap_or_else(Vec::new),
-            ),
-        };
+        let mut fields =
+            populate_event_fields(content_name.clone(), input.fields.unwrap_or_else(Vec::new));
 
         fields.sort_unstable_by_key(|field| field.ident.clone().unwrap());
 
@@ -109,35 +102,6 @@ fn populate_event_fields(content_name: Ident, mut fields: Vec<Field>) -> Vec<Fie
     let punctuated_fields: Punctuated<ParsableNamedField, Token![,]> = parse_quote! {
         /// The event's content.
         pub content: #content_name,
-    };
-
-    fields.extend(punctuated_fields.into_iter().map(|p| p.field));
-
-    fields
-}
-
-/// Fills in the event's struct definition with fields common to all room events.
-fn populate_room_event_fields(content_name: Ident, fields: Vec<Field>) -> Vec<Field> {
-    let mut fields = populate_event_fields(content_name, fields);
-
-    let punctuated_fields: Punctuated<ParsableNamedField, Token![,]> = parse_quote! {
-        /// The unique identifier for the event.
-        pub event_id: ruma_identifiers::EventId,
-
-        /// Time on originating homeserver when this event was sent.
-        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-        pub origin_server_ts: std::time::SystemTime,
-
-        /// The unique identifier for the room associated with this event.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub room_id: Option<ruma_identifiers::RoomId>,
-
-        /// The unique identifier for the user who sent this event.
-        pub sender: ruma_identifiers::UserId,
-
-        /// Additional key-value pairs not signed by the homeserver.
-        #[serde(default, skip_serializing_if = "ruma_events::UnsignedData::is_empty")]
-        pub unsigned: ruma_events::UnsignedData,
     };
 
     fields.extend(punctuated_fields.into_iter().map(|p| p.field));
