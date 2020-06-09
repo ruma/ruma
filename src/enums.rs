@@ -9,6 +9,7 @@ event_enum! {
         "m.ignored_user_list",
         "m.push_rules",
         "m.room_key",
+        "m.tag",
     ]
 }
 

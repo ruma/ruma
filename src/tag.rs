@@ -2,19 +2,19 @@
 
 use std::collections::BTreeMap;
 
-use ruma_events_macros::ruma_event;
+use crate::BasicEvent;
+use ruma_events_macros::BasicEventContent;
 use serde::{Deserialize, Serialize};
 
-ruma_event! {
-    /// Informs the client of tags on a room.
-    TagEvent {
-        kind: Event,
-        event_type: "m.tag",
-        content: {
-            /// A map of tag names to tag info.
-            pub tags: BTreeMap<String, TagInfo>,
-        },
-    }
+/// Informs the client of tags on a room.
+pub type TagEvent = BasicEvent<TagEventContent>;
+
+/// The payload for `TagEvent`.
+#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[ruma_event(type = "m.tag")]
+pub struct TagEventContent {
+    /// A map of tag names to tag info.
+    pub tags: BTreeMap<String, TagInfo>,
 }
 
 /// Information about a tag.
