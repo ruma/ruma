@@ -4,7 +4,7 @@
 
 use js_int::UInt;
 pub use ruma_common::presence::PresenceState;
-use ruma_events_macros::Event;
+use ruma_events_macros::{Event, EventContent};
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
@@ -22,7 +22,8 @@ pub struct PresenceEvent {
 ///
 /// This is the only event content a `PresenceEvent` can contain as it's
 /// `content` field.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.presence")]
 pub struct PresenceEventContent {
     /// The current avatar URL for this user.
     #[serde(skip_serializing_if = "Option::is_none")]

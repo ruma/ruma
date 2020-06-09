@@ -8,7 +8,7 @@ use syn::{Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, Ident};
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     let ident = &input.ident;
     let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
-    let is_presence_event = ident == "PresenceEvent";
+    let is_generic = !input.generics.params.is_empty();
 
     let fields = if let Data::Struct(DataStruct { fields, .. }) = input.data.clone() {
         if let Fields::Named(FieldsNamed { named, .. }) = fields {
@@ -67,14 +67,6 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         })
         .collect::<Vec<_>>();
 
-    let event_ty = if is_presence_event {
-        quote! {
-            "m.presence";
-        }
-    } else {
-        quote! { self.content.event_type(); }
-    };
-
     let serialize_impl = quote! {
         impl #impl_gen ::serde::ser::Serialize for #ident #ty_gen #where_clause {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -83,7 +75,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
             {
                 use ::serde::ser::{SerializeStruct as _, Error as _};
 
-                let event_type = #event_ty;
+                let event_type = ::ruma_events::EventContent::event_type(&self.content);
 
                 let mut state = serializer.serialize_struct(stringify!(#ident), 7)?;
 
@@ -94,7 +86,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         }
     };
 
-    let deserialize_impl = expand_deserialize_event(is_presence_event, input, fields)?;
+    let deserialize_impl = expand_deserialize_event(is_generic, input, fields)?;
 
     Ok(quote! {
         #serialize_impl
@@ -104,7 +96,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
 }
 
 fn expand_deserialize_event(
-    is_presence_event: bool,
+    is_generic: bool,
     input: DeriveInput,
     fields: Vec<Field>,
 ) -> syn::Result<TokenStream> {
@@ -126,10 +118,10 @@ fn expand_deserialize_event(
             let name = field.ident.as_ref().unwrap();
             let ty = &field.ty;
             if name == "content" || name == "prev_content" {
-                if is_presence_event {
-                    quote! { #content_ident }
-                } else {
+                if is_generic {
                     quote! { Box<::serde_json::value::RawValue> }
+                } else {
+                    quote! { #content_ident }
                 }
             } else if name == "origin_server_ts" {
                 quote! { ::js_int::UInt }
@@ -144,23 +136,33 @@ fn expand_deserialize_event(
     .map(|field| {
         let name = field.ident.as_ref().unwrap();
         if name == "content" {
-            if is_presence_event {
-                quote! {
-                    let content = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;
-                }
-            } else {
+            if is_generic {
                 quote! {
                     let json = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;
                     let content = C::from_parts(&event_type, json).map_err(A::Error::custom)?;
                 }
+            } else {
+                quote! {
+                    let content = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;
+                }
             }
         } else if name == "prev_content" {
-            quote! {
-                let prev_content = if let Some(json) = prev_content {
-                    Some(C::from_parts(&event_type, json).map_err(A::Error::custom)?)
-                } else {
-                    None
-                };
+            if is_generic {
+                quote! {
+                    let prev_content = if let Some(json) = prev_content {
+                        Some(C::from_parts(&event_type, json).map_err(A::Error::custom)?)
+                    } else {
+                        None
+                    };
+                }
+            } else {
+                quote! {
+                    let prev_content = if let Some(content) = prev_content {
+                        Some(content)
+                    } else {
+                        None
+                    };
+                }
             }
         } else if name == "origin_server_ts" {
             quote! {
@@ -185,16 +187,16 @@ fn expand_deserialize_event(
 
     let field_names = fields.iter().flat_map(|f| &f.ident).collect::<Vec<_>>();
 
-    let deserialize_impl_gen = if is_presence_event {
-        quote! { <'de> }
-    } else {
+    let deserialize_impl_gen = if is_generic {
         let gen = &input.generics.params;
         quote! { <'de, #gen> }
-    };
-    let deserialize_phantom_type = if is_presence_event {
-        quote! {}
     } else {
+        quote! { <'de> }
+    };
+    let deserialize_phantom_type = if is_generic {
         quote! { ::std::marker::PhantomData }
+    } else {
+        quote! {}
     };
 
     Ok(quote! {
