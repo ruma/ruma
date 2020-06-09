@@ -167,7 +167,10 @@ pub use self::{
     },
     custom::{CustomBasicEvent, CustomMessageEvent, CustomStateEvent},
     error::{FromStrError, InvalidEvent, InvalidInput},
-    event_kinds::{BasicEvent, EphemeralRoomEvent, MessageEvent, StateEvent},
+    event_kinds::{
+        BasicEvent, EphemeralRoomEvent, MessageEvent, MessageEventStub, StateEvent, StateEventStub,
+        StrippedStateEventStub, ToDeviceEvent,
+    },
     event_type::EventType,
     json::EventJson,
 };

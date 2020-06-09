@@ -47,6 +47,25 @@ pub struct MessageEvent<C: MessageEventContent> {
     pub unsigned: UnsignedData,
 }
 
+/// A message event without a `room_id`.
+#[derive(Clone, Debug, Event)]
+pub struct MessageEventStub<C: MessageEventContent> {
+    /// Data specific to the event type.
+    pub content: C,
+
+    /// The globally unique event identifier for the user who sent the event.
+    pub event_id: EventId,
+
+    /// The fully-qualified ID of the user who sent this event.
+    pub sender: UserId,
+
+    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    pub origin_server_ts: SystemTime,
+
+    /// Additional key-value pairs not signed by the homeserver.
+    pub unsigned: UnsignedData,
+}
+
 /// State event.
 #[derive(Clone, Debug, Event)]
 pub struct StateEvent<C: StateEventContent> {
@@ -78,6 +97,52 @@ pub struct StateEvent<C: StateEventContent> {
     pub unsigned: UnsignedData,
 }
 
+/// A state event without a `room_id`.
+#[derive(Clone, Debug, Event)]
+pub struct StateEventStub<C: StateEventContent> {
+    /// Data specific to the event type.
+    pub content: C,
+
+    /// The globally unique event identifier for the user who sent the event.
+    pub event_id: EventId,
+
+    /// The fully-qualified ID of the user who sent this event.
+    pub sender: UserId,
+
+    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    pub origin_server_ts: SystemTime,
+
+    /// A unique key which defines the overwriting semantics for this piece of room state.
+    ///
+    /// This is often an empty string, but some events send a `UserId` to show
+    /// which user the event affects.
+    pub state_key: String,
+
+    /// Optional previous content for this event.
+    pub prev_content: Option<C>,
+
+    /// Additional key-value pairs not signed by the homeserver.
+    pub unsigned: UnsignedData,
+}
+
+/// A stripped-down state event, used for previews of rooms the user has been
+/// invited to.
+#[derive(Clone, Debug, Event)]
+pub struct StrippedStateEventStub<C: StateEventContent> {
+    /// Data specific to the event type.
+    pub content: C,
+
+    /// The fully-qualified ID of the user who sent this event.
+    pub sender: UserId,
+
+    /// A unique key which defines the overwriting semantics for this piece of room state.
+    ///
+    /// This is often an empty string, but some events send a `UserId` to show
+    /// which user the event affects.
+    pub state_key: String,
+}
+
+/// An event sent using send-to-device messaging.
 #[derive(Clone, Debug, Event)]
 pub struct ToDeviceEvent<C: EventContent> {
     /// Data specific to the event type.
