@@ -124,8 +124,6 @@ use serde_json::value::RawValue as RawJsonValue;
 
 // use self::room::redaction::RedactionEvent;
 
-// pub use self::custom::{CustomEvent, CustomRoomEvent, CustomStateEvent};
-
 #[deprecated = "Use ruma_serde::empty::Empty directly instead."]
 pub use ruma_serde::empty::Empty;
 
@@ -167,6 +165,7 @@ pub use self::{
         AnyBasicEventContent, AnyEphemeralRoomEventContent, AnyMessageEventContent,
         AnyStateEventContent, AnyToDeviceEventContent,
     },
+    custom::{CustomBasicEvent, CustomMessageEvent, CustomStateEvent},
     error::{FromStrError, InvalidEvent, InvalidInput},
     event_kinds::{BasicEvent, EphemeralRoomEvent, MessageEvent, StateEvent},
     event_type::EventType,
