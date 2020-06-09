@@ -20,6 +20,8 @@ event_content_enum! {
         "m.call.invite",
         "m.call.hangup",
         "m.call.candidates",
+        "m.room.message",
+        "m.room.message.feedback",
         "m.sticker",
     ]
 }
