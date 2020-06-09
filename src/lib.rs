@@ -132,7 +132,6 @@ pub use ruma_serde::empty::Empty;
 mod algorithm;
 mod content_enums;
 mod error;
-mod event_enums;
 mod event_kinds;
 mod event_type;
 mod json;
@@ -170,7 +169,6 @@ pub use self::{
         AnyStateEventContent,
     },
     error::{FromStrError, InvalidEvent, InvalidInput},
-    event_enums::AnyStateEvent,
     event_kinds::{BasicEvent, EphemeralRoomEvent, MessageEvent, StateEvent},
     event_type::EventType,
     json::EventJson,
