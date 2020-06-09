@@ -159,14 +159,13 @@ pub mod room_key_request;
 pub mod sticker;
 // pub mod stripped;
 pub mod tag;
-// pub mod to_device;
 pub mod typing;
 
 pub use self::{
     algorithm::Algorithm,
     content_enums::{
         AnyBasicEventContent, AnyEphemeralRoomEventContent, AnyMessageEventContent,
-        AnyStateEventContent,
+        AnyStateEventContent, AnyToDeviceEventContent,
     },
     error::{FromStrError, InvalidEvent, InvalidInput},
     event_kinds::{BasicEvent, EphemeralRoomEvent, MessageEvent, StateEvent},

@@ -1,7 +1,7 @@
 use ruma_events_macros::event_content_enum;
 
 event_content_enum! {
-    /// A basic event.
+    /// Any basic event's content.
     name: AnyBasicEventContent,
     events: [
         "m.direct",
@@ -10,6 +10,12 @@ event_content_enum! {
         "m.push_rules",
         "m.room_key",
     ]
+}
+
+event_content_enum! {
+    /// Any ephemeral room event.
+    name: AnyEphemeralRoomEventContent,
+    events: [ "m.typing", "m.receipt" ]
 }
 
 event_content_enum! {
@@ -50,7 +56,19 @@ event_content_enum! {
 }
 
 event_content_enum! {
-    /// An ephemeral room event.
-    name: AnyEphemeralRoomEventContent,
-    events: [ "m.typing", "m.receipt" ]
+    /// Any to-device event's content.
+    name: AnyToDeviceEventContent,
+    events: [
+        "m.dummy",
+        "m.room_key",
+        //"m.room_key_request",
+        //"m.forwarded_room_key",
+        //"m.key.verification.request",
+        "m.key.verification.start",
+        //"m.key.verification.cancel",
+        //"m.key.verification.accept",
+        //"m.key.verification.key",
+        //"m.key.verification.mac",
+        //"m.room.encrypted",
+    ]
 }
