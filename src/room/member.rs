@@ -34,6 +34,9 @@ use crate::StateEvent;
 /// The membership for a given user can change over time. Previous membership can be retrieved
 /// from the `prev_content` object on an event. If not present, the user's previous membership
 /// must be assumed as leave.
+pub type MemberEvent = StateEvent<MemberEventContent>;
+
+/// The payload for `MemberEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.member")]
 pub struct MemberEventContent {
@@ -152,7 +155,7 @@ pub enum MembershipChange {
     NotImplemented,
 }
 
-impl StateEvent<MemberEventContent> {
+impl MemberEvent {
     /// Helper function for membership change. Check [the specification][spec] for details.
     ///
     /// [spec]: https://matrix.org/docs/spec/client_server/latest#m-room-member

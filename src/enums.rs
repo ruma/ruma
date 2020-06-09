@@ -44,7 +44,7 @@ event_enum! {
         // "m.room.guest_access",
         // "m.room.history_visibility",
         // "m.room.join_rules",
-        // "m.room.member",
+        "m.room.member",
         // "m.room.name",
         // "m.room.pinned_events",
         // "m.room.power_levels",
