@@ -122,7 +122,7 @@ use js_int::Int;
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-// use self::room::redaction::RedactionEvent;
+use self::room::redaction::RedactionEvent;
 
 #[deprecated = "Use ruma_serde::empty::Empty directly instead."]
 pub use ruma_serde::empty::Empty;
@@ -185,9 +185,10 @@ pub struct UnsignedData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub age: Option<Int>,
 
-    // /// The event that redacted this event, if any.
-    // #[serde(skip_serializing_if = "Option::is_none")]
-    // pub redacted_because: Option<EventJson<RedactionEvent>>,
+    /// The event that redacted this event, if any.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub redacted_because: Option<EventJson<RedactionEvent>>,
+
     /// The client-supplied transaction ID, if the client being given the event
     /// is the same one which sent it.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -202,8 +203,7 @@ impl UnsignedData {
     /// an incoming `unsigned` field was present - it could still have been
     /// present but contained none of the known fields.
     pub fn is_empty(&self) -> bool {
-        self.age.is_none() && self.transaction_id.is_none()
-        //   && self.redacted_because.is_none()
+        self.age.is_none() && self.transaction_id.is_none() && self.redacted_because.is_none()
     }
 }
 
