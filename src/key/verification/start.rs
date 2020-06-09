@@ -1,25 +1,22 @@
 //! Types for the *m.key.verification.start* event.
 
+use ruma_events_macros::BasicEventContent;
 use ruma_identifiers::DeviceId;
 use serde::{Deserialize, Serialize};
 
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
 };
-use crate::InvalidInput;
+use crate::{BasicEvent, InvalidInput};
 
 /// Begins an SAS key verification process.
 ///
 /// Typically sent as a to-device event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(tag = "type", rename = "m.key.verification.start")]
-pub struct StartEvent {
-    /// The event's content.
-    pub content: StartEventContent,
-}
+pub type StartEvent = BasicEvent<StartEventContent>;
 
 /// The payload of an *m.key.verification.start* event.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[ruma_event(type = "m.key.verification.start")]
 #[serde(tag = "method")]
 pub enum StartEventContent {
     /// The *m.sas.v1* verification method.
