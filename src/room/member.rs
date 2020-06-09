@@ -149,7 +149,12 @@ pub enum MembershipChange {
     InvitationRevoked,
 
     /// `displayname` or `avatar_url` changed.
-    ProfileChanged,
+    ProfileChanged {
+        /// Whether the `displayname` changed.
+        displayname_changed: bool,
+        /// Whether the `avatar_url` changed.
+        avatar_url_changed: bool,
+    },
 
     /// Not implemented.
     NotImplemented,
@@ -161,12 +166,19 @@ impl MemberEvent {
     /// [spec]: https://matrix.org/docs/spec/client_server/latest#m-room-member
     pub fn membership_change(&self) -> MembershipChange {
         use MembershipState::*;
-        let prev_membership = if let Some(prev_content) = &self.prev_content {
-            prev_content.membership
+        let prev_content = if let Some(prev_content) = &self.prev_content {
+            prev_content
         } else {
-            Leave
+            &MemberEventContent {
+                avatar_url: None,
+                displayname: None,
+                is_direct: None,
+                membership: Leave,
+                third_party_invite: None,
+            }
         };
-        match (prev_membership, &self.content.membership) {
+
+        match (prev_content.membership, &self.content.membership) {
             (Invite, Invite) | (Leave, Leave) | (Ban, Ban) => MembershipChange::None,
             (Invite, Join) | (Leave, Join) => MembershipChange::Joined,
             (Invite, Leave) => {
@@ -178,7 +190,10 @@ impl MemberEvent {
             }
             (Invite, Ban) | (Leave, Ban) => MembershipChange::Banned,
             (Join, Invite) | (Ban, Invite) | (Ban, Join) => MembershipChange::Error,
-            (Join, Join) => MembershipChange::ProfileChanged,
+            (Join, Join) => MembershipChange::ProfileChanged {
+                displayname_changed: prev_content.displayname != self.content.displayname,
+                avatar_url_changed: prev_content.avatar_url != self.content.avatar_url,
+            },
             (Join, Leave) => {
                 if self.sender == self.state_key {
                     MembershipChange::Left
