@@ -155,7 +155,6 @@ pub mod room;
 pub mod room_key;
 pub mod room_key_request;
 pub mod sticker;
-// pub mod stripped;
 pub mod tag;
 pub mod typing;
 
