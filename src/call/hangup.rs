@@ -5,8 +5,13 @@ use ruma_events_macros::MessageEventContent;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
+use crate::MessageEvent;
+
 /// Sent by either party to signal their termination of the call. This can be sent either once the
 /// call has has been established or before to abort the call.
+pub type HangupEvent = MessageEvent<HangupEventContent>;
+
+/// The payload for `HangupEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.call.hangup")]
 pub struct HangupEventContent {

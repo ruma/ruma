@@ -4,7 +4,12 @@ use ruma_events_macros::BasicEventContent;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
+use crate::BasicEvent;
+
 /// A list of users to ignore.
+pub type IgnoredUserListEvent = BasicEvent<IgnoredUserListEventContent>;
+
+/// The payload for `IgnoredUserListEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.ignored_user_list")]
 pub struct IgnoredUserListEventContent {

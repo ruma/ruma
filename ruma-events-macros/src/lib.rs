@@ -21,6 +21,7 @@ use self::{
         expand_basic_event_content, expand_ephemeral_room_event_content, expand_event_content,
         expand_message_event_content, expand_room_event_content, expand_state_event_content,
     },
+    event_enum::{expand_event_enum, EventEnumInput},
     gen::RumaEvent,
     parse::RumaEventInput,
 };
@@ -28,6 +29,7 @@ use self::{
 mod content_enum;
 mod event;
 mod event_content;
+mod event_enum;
 mod gen;
 mod parse;
 
@@ -122,6 +124,19 @@ pub fn ruma_event(input: TokenStream) -> TokenStream {
     let ruma_event = RumaEvent::from(ruma_event_input);
 
     ruma_event.into_token_stream().into()
+}
+
+/// Generates an enum to represent the various Matrix event types.
+///
+/// This macro also implements the necessary traits for the type to serialize and deserialize
+/// itself.
+// TODO more docs/example
+#[proc_macro]
+pub fn event_enum(input: TokenStream) -> TokenStream {
+    let event_enum_input = syn::parse_macro_input!(input as EventEnumInput);
+    expand_event_enum(event_enum_input)
+        .unwrap_or_else(|err| err.to_compile_error())
+        .into()
 }
 
 /// Generates a content enum to represent the various Matrix event types.

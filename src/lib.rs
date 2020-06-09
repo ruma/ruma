@@ -128,7 +128,7 @@ use self::room::redaction::RedactionEvent;
 pub use ruma_serde::empty::Empty;
 
 mod algorithm;
-mod content_enums;
+mod enums;
 mod error;
 mod event_kinds;
 mod event_type;
@@ -160,11 +160,12 @@ pub mod typing;
 
 pub use self::{
     algorithm::Algorithm,
-    content_enums::{
-        AnyBasicEventContent, AnyEphemeralRoomEventContent, AnyMessageEventContent,
-        AnyStateEventContent, AnyToDeviceEventContent,
-    },
     custom::{CustomBasicEvent, CustomMessageEvent, CustomStateEvent},
+    enums::{
+        AnyBasicEvent, AnyBasicEventContent, AnyEphemeralRoomEvent, AnyEphemeralRoomEventContent,
+        AnyMessageEvent, AnyMessageEventContent, AnyStateEvent, AnyStateEventContent,
+        AnyToDeviceEvent, AnyToDeviceEventContent,
+    },
     error::{FromStrError, InvalidEvent, InvalidInput},
     event_kinds::{
         BasicEvent, EphemeralRoomEvent, MessageEvent, MessageEventStub, StateEvent, StateEventStub,

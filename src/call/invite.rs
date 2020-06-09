@@ -5,8 +5,12 @@ use ruma_events_macros::MessageEventContent;
 use serde::{Deserialize, Serialize};
 
 use super::SessionDescription;
+use crate::MessageEvent;
 
 /// This event is sent by the caller when they wish to establish a call.
+pub type InviteEvent = MessageEvent<InviteEventContent>;
+
+/// The payload for `InviteEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.call.invite")]
 pub struct InviteEventContent {

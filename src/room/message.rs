@@ -9,6 +9,13 @@ use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
 
 pub mod feedback;
 
+use crate::MessageEvent as OuterMessageEvent;
+
+/// This event is used when sending messages in a room.
+///
+/// Messages are not limited to be text.
+pub type MessageEvent = OuterMessageEvent<MessageEventContent>;
+
 /// The payload for `MessageEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.room.message")]

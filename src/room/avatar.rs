@@ -4,10 +4,14 @@ use ruma_events_macros::StateEventContent;
 use serde::{Deserialize, Serialize};
 
 use super::ImageInfo;
+use crate::StateEvent;
 
 /// A picture that is associated with the room.
 ///
 /// This can be displayed alongside the room information.
+pub type AvatarEvent = StateEvent<AvatarEventContent>;
+
+/// The payload for `AvatarEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.avatar")]
 pub struct AvatarEventContent {
