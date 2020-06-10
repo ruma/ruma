@@ -1,4 +1,14 @@
 use ruma_events_macros::event_content_enum;
+use serde::{Deserialize, Serialize};
+
+use crate::{
+    event_kinds::{
+        BasicEvent, EphemeralRoomEvent, MessageEvent, MessageEventStub, StateEvent, StateEventStub,
+        StrippedStateEventStub,
+    },
+    presence::PresenceEvent,
+    room::redaction::{RedactionEvent, RedactionEventStub},
+};
 
 event_content_enum! {
     /// Any basic event.
@@ -77,4 +87,68 @@ event_content_enum! {
         "m.key.verification.mac",
         "m.room.encrypted",
     ]
+}
+
+/// Any basic event, one that has no (well-known) fields outside of `content`.
+pub type AnyBasicEvent = BasicEvent<AnyBasicEventContent>;
+
+/// Any ephemeral room event.
+pub type AnyEphemeralRoomEvent = EphemeralRoomEvent<AnyEphemeralRoomEventContent>;
+
+/// Any message event.
+pub type AnyMessageEvent = MessageEvent<AnyMessageEventContent>;
+
+/// Any message event stub (message event without a `room_id`, as returned in `/sync` responses)
+pub type AnyMessageEventStub = MessageEventStub<AnyMessageEventContent>;
+
+/// Any state event.
+pub type AnyStateEvent = StateEvent<AnyStateEventContent>;
+
+/// Any state event stub (state event without a `room_id`, as returned in `/sync` responses)
+pub type AnyStateEventStub = StateEventStub<AnyStateEventContent>;
+
+/// Any stripped state event stub (stripped-down state event, as returned for rooms the user has
+/// been invited to in `/sync` responses)
+pub type AnyStrippedStateEventStub = StrippedStateEventStub<AnyStateEventContent>;
+
+/// Any event.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(untagged)]
+pub enum AnyEvent {
+    /// Any basic event.
+    Basic(AnyBasicEvent),
+    /// `"m.presence"`, the only non-room event with a `sender` field.
+    Presence(PresenceEvent),
+    /// Any ephemeral room event.
+    Ephemeral(AnyEphemeralRoomEvent),
+    /// Any message event.
+    Message(AnyMessageEvent),
+    /// `"m.room.redaction"`, the only room event with a `redacts` field.
+    Redaction(RedactionEvent),
+    /// Any state event.
+    State(AnyStateEvent),
+}
+
+/// Any room event.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(untagged)]
+pub enum AnyRoomEvent {
+    /// Any message event.
+    Message(AnyMessageEvent),
+    /// `"m.room.redaction"`, the only room event with a `redacts` field.
+    Redaction(RedactionEvent),
+    /// Any state event.
+    State(AnyStateEvent),
+}
+
+/// Any room event stub (room event without a `room_id`, as returned in `/sync` responses)
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(untagged)]
+pub enum AnyRoomEventStub {
+    /// Any message event stub
+    Message(AnyMessageEventStub),
+    /// `"m.room.redaction"` stub
+    Redaction(RedactionEventStub),
+    /// Any state event stub
+    StateEvent(AnyStateEventStub),
 }

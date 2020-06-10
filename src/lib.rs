@@ -160,8 +160,10 @@ pub use self::{
     algorithm::Algorithm,
     custom::{CustomBasicEvent, CustomMessageEvent, CustomStateEvent},
     enums::{
-        AnyBasicEventContent, AnyEphemeralRoomEventContent, AnyMessageEventContent,
-        AnyStateEventContent, AnyToDeviceEventContent,
+        AnyBasicEvent, AnyBasicEventContent, AnyEphemeralRoomEvent, AnyEphemeralRoomEventContent,
+        AnyEvent, AnyMessageEvent, AnyMessageEventContent, AnyMessageEventStub, AnyRoomEvent,
+        AnyRoomEventStub, AnyStateEvent, AnyStateEventContent, AnyStateEventStub,
+        AnyStrippedStateEventStub, AnyToDeviceEventContent,
     },
     error::{FromStrError, InvalidEvent, InvalidInput},
     event_kinds::{

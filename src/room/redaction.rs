@@ -33,6 +33,28 @@ pub struct RedactionEvent {
     pub unsigned: UnsignedData,
 }
 
+/// Redaction event without a `room_id`.
+#[derive(Clone, Debug, Event)]
+pub struct RedactionEventStub {
+    /// Data specific to the event type.
+    pub content: RedactionEventContent,
+
+    /// The ID of the event that was redacted.
+    pub redacts: EventId,
+
+    /// The globally unique event identifier for the user who sent the event.
+    pub event_id: EventId,
+
+    /// The fully-qualified ID of the user who sent this event.
+    pub sender: UserId,
+
+    /// Timestamp in milliseconds on originating homeserver when this event was sent.
+    pub origin_server_ts: SystemTime,
+
+    /// Additional key-value pairs not signed by the homeserver.
+    pub unsigned: UnsignedData,
+}
+
 /// A redaction of an event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.room.redaction")]
