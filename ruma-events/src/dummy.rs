@@ -47,9 +47,7 @@ mod tests {
 
     #[test]
     fn serialization() {
-        let dummy_event = DummyEvent {
-            content: DummyEventContent(Empty),
-        };
+        let dummy_event = DummyEvent { content: DummyEventContent(Empty) };
         let actual = to_json_value(dummy_event).unwrap();
 
         let expected = json!({
@@ -67,9 +65,6 @@ mod tests {
             "type": "m.dummy"
         });
 
-        assert!(from_json_value::<EventJson<DummyEvent>>(json)
-            .unwrap()
-            .deserialize()
-            .is_ok());
+        assert!(from_json_value::<EventJson<DummyEvent>>(json).unwrap().deserialize().is_ok());
     }
 }

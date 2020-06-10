@@ -105,10 +105,7 @@ impl MSasV1Content {
     /// `MessageAuthenticationCode::HkdfHmacSha256`.
     /// * `short_authentication_string` does not include `ShortAuthenticationString::Decimal`.
     pub fn new(options: MSasV1ContentOptions) -> Result<Self, InvalidInput> {
-        if !options
-            .key_agreement_protocols
-            .contains(&KeyAgreementProtocol::Curve25519)
-        {
+        if !options.key_agreement_protocols.contains(&KeyAgreementProtocol::Curve25519) {
             return Err(InvalidInput("`key_agreement_protocols` must contain at least `KeyAgreementProtocol::Curve25519`".to_string()));
         }
 
@@ -125,10 +122,7 @@ impl MSasV1Content {
             return Err(InvalidInput("`message_authentication_codes` must contain at least `MessageAuthenticationCode::HkdfHmacSha256`".to_string()));
         }
 
-        if !options
-            .short_authentication_string
-            .contains(&ShortAuthenticationString::Decimal)
-        {
+        if !options.short_authentication_string.contains(&ShortAuthenticationString::Decimal) {
             return Err(InvalidInput("`short_authentication_string` must contain at least `ShortAuthenticationString::Decimal`".to_string()));
         }
 
@@ -232,9 +226,7 @@ mod tests {
             .unwrap(),
         );
 
-        let key_verification_start = StartEvent {
-            content: key_verification_start_content,
-        };
+        let key_verification_start = StartEvent { content: key_verification_start_content };
 
         let json_data = json!({
             "content": {

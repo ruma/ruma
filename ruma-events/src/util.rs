@@ -6,9 +6,7 @@ where
     T: DeserializeOwned,
     E: serde::de::Error,
 {
-    serde_json::from_value(value)
-        .map(variant)
-        .map_err(serde_json_error_to_generic_de_error)
+    serde_json::from_value(value).map(variant).map_err(serde_json_error_to_generic_de_error)
 }
 
 pub fn serde_json_error_to_generic_de_error<E: serde::de::Error>(error: serde_json::Error) -> E {
@@ -20,11 +18,6 @@ where
     T: DeserializeOwned,
     E: serde::de::Error,
 {
-    serde_json::from_value(
-        value
-            .get(field)
-            .cloned()
-            .ok_or_else(|| E::missing_field(field))?,
-    )
-    .map_err(serde_json_error_to_generic_de_error)
+    serde_json::from_value(value.get(field).cloned().ok_or_else(|| E::missing_field(field))?)
+        .map_err(serde_json_error_to_generic_de_error)
 }

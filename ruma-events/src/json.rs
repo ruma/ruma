@@ -25,10 +25,7 @@ pub struct EventJson<T> {
 
 impl<T> EventJson<T> {
     fn new(json: Box<RawValue>) -> Self {
-        Self {
-            json,
-            _ev: PhantomData,
-        }
+        Self { json, _ev: PhantomData }
     }
 
     /// Create an `EventJson` from a boxed `RawValue`.
@@ -55,10 +52,9 @@ where
     pub fn deserialize(&self) -> Result<T, InvalidEvent> {
         match serde_json::from_str(self.json.get()) {
             Ok(value) => Ok(value),
-            Err(err) => Err(InvalidEvent {
-                message: err.to_string(),
-                kind: InvalidEventKind::Validation,
-            }),
+            Err(err) => {
+                Err(InvalidEvent { message: err.to_string(), kind: InvalidEventKind::Validation })
+            }
         }
     }
 }
@@ -69,10 +65,8 @@ where
 {
     /// Try to deserialize the JSON as event content
     pub fn deserialize_content(self, event_type: &str) -> Result<T, InvalidEvent> {
-        T::from_parts(event_type, self.json).map_err(|err| InvalidEvent {
-            message: err,
-            kind: InvalidEventKind::Deserialization,
-        })
+        T::from_parts(event_type, self.json)
+            .map_err(|err| InvalidEvent { message: err, kind: InvalidEventKind::Deserialization })
     }
 }
 

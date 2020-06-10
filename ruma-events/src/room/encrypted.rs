@@ -92,10 +92,7 @@ mod tests {
             "session_id": "session_id"
         });
 
-        assert_eq!(
-            to_json_value(&key_verification_start_content).unwrap(),
-            json_data
-        );
+        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
     }
 
     #[test]

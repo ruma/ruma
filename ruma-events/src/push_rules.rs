@@ -189,10 +189,7 @@ mod tests {
             "kind": "room_member_count"
         });
         assert_eq!(
-            to_json_value(&PushCondition::RoomMemberCount {
-                is: "2".to_string(),
-            })
-            .unwrap(),
+            to_json_value(&PushCondition::RoomMemberCount { is: "2".to_string() }).unwrap(),
             json_data
         );
     }
@@ -205,10 +202,8 @@ mod tests {
         });
         assert_eq!(
             json_data,
-            to_json_value(&PushCondition::SenderNotificationPermission {
-                key: "room".to_string(),
-            })
-            .unwrap()
+            to_json_value(&PushCondition::SenderNotificationPermission { key: "room".to_string() })
+                .unwrap()
         );
     }
 
@@ -456,9 +451,7 @@ mod tests {
             "type": "m.push_rules"
         });
 
-        let _ = from_json_value::<EventJson<PushRulesEvent>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap();
+        let _ =
+            from_json_value::<EventJson<PushRulesEvent>>(json_data).unwrap().deserialize().unwrap();
     }
 }

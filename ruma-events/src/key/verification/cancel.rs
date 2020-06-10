@@ -139,10 +139,7 @@ mod tests {
 
     #[test]
     fn cancel_codes_deserialize_from_display_form() {
-        assert_eq!(
-            from_json_value::<CancelCode>(json!("m.user")).unwrap(),
-            CancelCode::User
-        );
+        assert_eq!(from_json_value::<CancelCode>(json!("m.user")).unwrap(), CancelCode::User);
     }
 
     #[test]

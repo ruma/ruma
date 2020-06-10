@@ -27,9 +27,7 @@ impl NameEventContent {
         match name.len() {
             0 => Ok(Self { name: None }),
             1..=255 => Ok(Self { name: Some(name) }),
-            _ => Err(InvalidInput(
-                "a room name cannot be more than 255 bytes".to_string(),
-            )),
+            _ => Err(InvalidInput("a room name cannot be more than 255 bytes".to_string())),
         }
     }
 
@@ -50,9 +48,7 @@ where
         Some(name) => match name.len() {
             0 => Ok(None),
             1..=255 => Ok(Some(name)),
-            _ => Err(D::Error::custom(
-                "a room name cannot be more than 255 bytes",
-            )),
+            _ => Err(D::Error::custom("a room name cannot be more than 255 bytes")),
         },
         None => Ok(None),
     }
@@ -78,9 +74,7 @@ mod tests {
     #[test]
     fn serialization_with_optional_fields_as_none() {
         let name_event = StateEvent {
-            content: NameEventContent {
-                name: Some("The room name".to_string()),
-            },
+            content: NameEventContent { name: Some("The room name".to_string()) },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: None,
@@ -109,21 +103,14 @@ mod tests {
     #[test]
     fn serialization_with_all_fields() {
         let name_event = StateEvent {
-            content: NameEventContent {
-                name: Some("The room name".to_string()),
-            },
+            content: NameEventContent { name: Some("The room name".to_string()) },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
-            prev_content: Some(NameEventContent {
-                name: Some("The old name".to_string()),
-            }),
+            prev_content: Some(NameEventContent { name: Some("The old name".to_string()) }),
             room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".to_string(),
-            unsigned: UnsignedData {
-                age: Some(Int::from(100)),
-                ..UnsignedData::default()
-            },
+            unsigned: UnsignedData { age: Some(Int::from(100)), ..UnsignedData::default() },
         };
 
         let actual = to_json_value(&name_event).unwrap();
@@ -185,10 +172,7 @@ mod tests {
     fn json_with_empty_name_creates_content_as_none() {
         let long_content_json = json!({ "name": "" });
         let from_raw: EventJson<NameEventContent> = from_json_value(long_content_json).unwrap();
-        assert_matches!(
-            from_raw.deserialize().unwrap(),
-            NameEventContent { name: None }
-        );
+        assert_matches!(from_raw.deserialize().unwrap(), NameEventContent { name: None });
     }
 
     #[test]

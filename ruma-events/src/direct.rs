@@ -66,10 +66,7 @@ mod tests {
     #[test]
     fn deserialization() {
         let alice = UserId::new("ruma.io").unwrap();
-        let rooms = vec![
-            RoomId::new("ruma.io").unwrap(),
-            RoomId::new("ruma.io").unwrap(),
-        ];
+        let rooms = vec![RoomId::new("ruma.io").unwrap(), RoomId::new("ruma.io").unwrap()];
 
         let json_data = json!({
             "content": {
@@ -78,10 +75,8 @@ mod tests {
             "type": "m.direct"
         });
 
-        let event: DirectEvent = from_json_value::<EventJson<_>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap();
+        let event: DirectEvent =
+            from_json_value::<EventJson<_>>(json_data).unwrap().deserialize().unwrap();
         let direct_rooms = event.content.get(&alice).unwrap();
 
         assert!(direct_rooms.contains(&rooms[0]));

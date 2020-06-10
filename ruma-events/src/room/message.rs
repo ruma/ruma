@@ -384,11 +384,7 @@ pub struct InReplyTo {
 impl TextMessageEventContent {
     /// A convenience constructor to create a plain text message
     pub fn new_plain(body: impl Into<String>) -> TextMessageEventContent {
-        TextMessageEventContent {
-            body: body.into(),
-            formatted: None,
-            relates_to: None,
-        }
+        TextMessageEventContent { body: body.into(), formatted: None, relates_to: None }
     }
 }
 

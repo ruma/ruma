@@ -17,10 +17,7 @@ pub struct ServerAclEventContent {
     /// This is strongly recommended to be set to false as servers running with IP literal
     /// names are strongly discouraged in order to require legitimate homeservers to be
     /// backed by a valid registered domain name.
-    #[serde(
-        default = "ruma_serde::default_true",
-        skip_serializing_if = "ruma_serde::is_true"
-    )]
+    #[serde(default = "ruma_serde::default_true", skip_serializing_if = "ruma_serde::is_true")]
     pub allow_ip_literals: bool,
 
     /// The server names to allow in the room, excluding any port information. Wildcards may

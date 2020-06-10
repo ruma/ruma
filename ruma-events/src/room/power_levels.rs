@@ -17,10 +17,7 @@ pub type PowerLevelsEvent = StateEvent<PowerLevelsEventContent>;
 #[ruma_event(type = "m.room.power_levels")]
 pub struct PowerLevelsEventContent {
     /// The level required to ban a user.
-    #[serde(
-        default = "default_power_level",
-        skip_serializing_if = "is_default_power_level"
-    )]
+    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     pub ban: Int,
 
     /// The level required to send specific event types.
@@ -34,31 +31,19 @@ pub struct PowerLevelsEventContent {
     pub events_default: Int,
 
     /// The level required to invite a user.
-    #[serde(
-        default = "default_power_level",
-        skip_serializing_if = "is_default_power_level"
-    )]
+    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     pub invite: Int,
 
     /// The level required to kick a user.
-    #[serde(
-        default = "default_power_level",
-        skip_serializing_if = "is_default_power_level"
-    )]
+    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     pub kick: Int,
 
     /// The level required to redact an event.
-    #[serde(
-        default = "default_power_level",
-        skip_serializing_if = "is_default_power_level"
-    )]
+    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     pub redact: Int,
 
     /// The default level required to send state events.
-    #[serde(
-        default = "default_power_level",
-        skip_serializing_if = "is_default_power_level"
-    )]
+    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     pub state_default: Int,
 
     /// The power levels for specific users.
@@ -107,9 +92,7 @@ pub struct NotificationPowerLevels {
 
 impl Default for NotificationPowerLevels {
     fn default() -> Self {
-        Self {
-            room: default_power_level(),
-        }
+        Self { room: default_power_level() }
     }
 }
 
@@ -198,9 +181,7 @@ mod tests {
                     user.clone() => Int::from(23)
                 },
                 users_default: Int::from(23),
-                notifications: NotificationPowerLevels {
-                    room: Int::from(23),
-                },
+                notifications: NotificationPowerLevels { room: Int::from(23) },
             },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
@@ -219,15 +200,10 @@ mod tests {
                     user.clone() => Int::from(42)
                 },
                 users_default: Int::from(42),
-                notifications: NotificationPowerLevels {
-                    room: Int::from(42),
-                },
+                notifications: NotificationPowerLevels { room: Int::from(42) },
             }),
             room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
-            unsigned: UnsignedData {
-                age: Some(Int::from(100)),
-                ..UnsignedData::default()
-            },
+            unsigned: UnsignedData { age: Some(Int::from(100)), ..UnsignedData::default() },
             sender: user,
             state_key: "".to_string(),
         };
