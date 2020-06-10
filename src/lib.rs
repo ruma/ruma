@@ -168,8 +168,8 @@ pub use self::{
     },
     error::{FromStrError, InvalidEvent, InvalidInput},
     event_kinds::{
-        BasicEvent, EphemeralRoomEvent, MessageEvent, MessageEventStub, StateEvent, StateEventStub,
-        StrippedStateEventStub, ToDeviceEvent,
+        BasicEvent, EphemeralRoomEvent, EphemeralRoomEventStub, MessageEvent, MessageEventStub,
+        StateEvent, StateEventStub, StrippedStateEventStub, ToDeviceEvent,
     },
     event_type::EventType,
     json::EventJson,

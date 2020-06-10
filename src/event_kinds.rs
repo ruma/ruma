@@ -25,6 +25,13 @@ pub struct EphemeralRoomEvent<C: EphemeralRoomEventContent> {
     pub room_id: RoomId,
 }
 
+/// An ephemeral room event without a `room_id`.
+#[derive(Clone, Debug, Event)]
+pub struct EphemeralRoomEventStub<C: EphemeralRoomEventContent> {
+    /// Data specific to the event type.
+    pub content: C,
+}
+
 /// Message event.
 #[derive(Clone, Debug, Event)]
 pub struct MessageEvent<C: MessageEventContent> {
