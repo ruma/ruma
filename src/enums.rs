@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     event_kinds::{
         BasicEvent, EphemeralRoomEvent, MessageEvent, MessageEventStub, StateEvent, StateEventStub,
-        StrippedStateEventStub,
+        StrippedStateEventStub, ToDeviceEvent,
     },
     presence::PresenceEvent,
     room::redaction::{RedactionEvent, RedactionEventStub},
@@ -110,6 +110,9 @@ pub type AnyStateEventStub = StateEventStub<AnyStateEventContent>;
 /// Any stripped state event stub (stripped-down state event, as returned for rooms the user has
 /// been invited to in `/sync` responses)
 pub type AnyStrippedStateEventStub = StrippedStateEventStub<AnyStateEventContent>;
+
+/// Any to-device event.
+pub type AnyToDeviceEvent = ToDeviceEvent<AnyToDeviceEventContent>;
 
 /// Any event.
 #[derive(Clone, Debug, Deserialize, Serialize)]

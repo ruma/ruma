@@ -163,7 +163,7 @@ pub use self::{
         AnyBasicEvent, AnyBasicEventContent, AnyEphemeralRoomEvent, AnyEphemeralRoomEventContent,
         AnyEvent, AnyMessageEvent, AnyMessageEventContent, AnyMessageEventStub, AnyRoomEvent,
         AnyRoomEventStub, AnyStateEvent, AnyStateEventContent, AnyStateEventStub,
-        AnyStrippedStateEventStub, AnyToDeviceEventContent,
+        AnyStrippedStateEventStub, AnyToDeviceEvent, AnyToDeviceEventContent,
     },
     error::{FromStrError, InvalidEvent, InvalidInput},
     event_kinds::{
