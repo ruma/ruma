@@ -1,8 +1,8 @@
-use ruma_events_macros::event_enum;
+use ruma_events_macros::event_content_enum;
 
-event_enum! {
+event_content_enum! {
     /// Any basic event.
-    name: AnyBasicEvent,
+    name: AnyBasicEventContent,
     events: [
         "m.direct",
         "m.dummy",
@@ -13,9 +13,9 @@ event_enum! {
     ]
 }
 
-event_enum! {
+event_content_enum! {
     /// Any ephemeral room event.
-    name: AnyEphemeralRoomEvent,
+    name: AnyEphemeralRoomEventContent,
     events: [
         "m.fully_read",
         "m.receipt",
@@ -23,9 +23,9 @@ event_enum! {
     ]
 }
 
-event_enum! {
+event_content_enum! {
     /// Any message event.
-    name: AnyMessageEvent,
+    name: AnyMessageEventContent,
     events: [
         "m.call.answer",
         "m.call.invite",
@@ -37,9 +37,9 @@ event_enum! {
     ]
 }
 
-event_enum! {
+event_content_enum! {
     /// Any state event.
-    name: AnyStateEvent,
+    name: AnyStateEventContent,
     events: [
         "m.room.aliases",
         "m.room.avatar",
@@ -61,9 +61,9 @@ event_enum! {
     ]
 }
 
-event_enum! {
+event_content_enum! {
     /// Any to-device event.
-    name: AnyToDeviceEvent,
+    name: AnyToDeviceEventContent,
     events: [
         "m.dummy",
         "m.room_key",

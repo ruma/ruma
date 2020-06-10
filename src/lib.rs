@@ -113,8 +113,6 @@
 #![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
 // Since we support Rust 1.36.0, we can't apply this suggestion yet
 #![allow(clippy::use_self)]
-#![allow(dead_code)]
-#![allow(unused_imports)]
 
 use std::fmt::Debug;
 
@@ -162,9 +160,8 @@ pub use self::{
     algorithm::Algorithm,
     custom::{CustomBasicEvent, CustomMessageEvent, CustomStateEvent},
     enums::{
-        AnyBasicEvent, AnyBasicEventContent, AnyEphemeralRoomEvent, AnyEphemeralRoomEventContent,
-        AnyMessageEvent, AnyMessageEventContent, AnyStateEvent, AnyStateEventContent,
-        AnyToDeviceEvent, AnyToDeviceEventContent,
+        AnyBasicEventContent, AnyEphemeralRoomEventContent, AnyMessageEventContent,
+        AnyStateEventContent, AnyToDeviceEventContent,
     },
     error::{FromStrError, InvalidEvent, InvalidInput},
     event_kinds::{

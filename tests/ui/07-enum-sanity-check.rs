@@ -1,8 +1,8 @@
-use ruma_events_macros::event_enum;
+use ruma_events_macros::event_content_enum;
 
-event_enum! {
+event_content_enum! {
     /// Any basic event.
-    name: AnyBasicEvent,
+    name: AnyBasicEventContent,
     events: [
         "m.direct",
         "m.dummy",

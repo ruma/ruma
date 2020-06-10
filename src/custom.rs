@@ -3,10 +3,10 @@
 use std::time::SystemTime;
 
 use ruma_identifiers::{EventId, RoomId, UserId};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use serde_json::Value as JsonValue;
 
-use crate::{EventType, UnsignedData};
+use crate::UnsignedData;
 
 // TODO: (De)serialization
 
