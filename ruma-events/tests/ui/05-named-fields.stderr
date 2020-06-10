@@ -1,0 +1,5 @@
+error: the `Event` derive only supports named fields
+ --> $DIR/05-named-fields.rs:6:44
+  |
+6 | pub struct StateEvent<C: StateEventContent>(C);
+  |                                            ^^^

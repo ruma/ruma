@@ -1,0 +1,18 @@
+error: proc macro panicked
+  --> $DIR/08-enum-invalid-path.rs:10:1
+   |
+10 | / event_content_enum! {
+11 | |     name: InvalidEvent,
+12 | |     events: [
+13 | |         "not.a.path",
+14 | |     ]
+15 | | }
+   | |_^
+   |
+   = help: message: well-known matrix events have to start with `m.` found `not.a.path`
+
+error[E0433]: failed to resolve: could not find `not` in `ruma_events`
+ --> $DIR/08-enum-invalid-path.rs:6:9
+  |
+6 |         "m.not.a.path",
+  |         ^^^^^^^^^^^^^^ could not find `not` in `ruma_events`
