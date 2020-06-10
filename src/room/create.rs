@@ -6,8 +6,13 @@ use ruma_events_macros::StateEventContent;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde::{Deserialize, Serialize};
 
+use crate::StateEvent;
+
 /// This is the first event in a room and cannot be changed. It acts as the root of all other
 /// events.
+pub type CreateEvent = StateEvent<CreateEventContent>;
+
+/// The payload for `CreateEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.create")]
 pub struct CreateEventContent {

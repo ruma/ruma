@@ -4,7 +4,12 @@ use ruma_events_macros::StateEventContent;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
+use crate::StateEvent;
+
 /// Describes how users are allowed to join the room.
+pub type JoinRulesEvent = StateEvent<JoinRulesEventContent>;
+
+/// The payload for `JoinRulesEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.join_rules")]
 pub struct JoinRulesEventContent {

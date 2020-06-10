@@ -4,10 +4,15 @@ use ruma_events_macros::StateEventContent;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
+use crate::StateEvent;
+
 /// Controls whether guest users are allowed to join rooms.
 ///
 /// This event controls whether guest users are allowed to join rooms. If this event is absent,
 /// servers should act as if it is present and has the value `GuestAccess::Forbidden`.
+pub type GuestAccessEvent = StateEvent<GuestAccessEventContent>;
+
+/// The payload for `GuestAccessEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.guest_access")]
 pub struct GuestAccessEventContent {

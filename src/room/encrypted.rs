@@ -1,16 +1,21 @@
 //! Types for the *m.room.encrypted* event.
 
-use std::{collections::BTreeMap, time::SystemTime};
+use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_identifiers::{DeviceId, EventId, RoomId, UserId};
+use ruma_events_macros::StateEventContent;
+use ruma_identifiers::DeviceId;
 use serde::{Deserialize, Serialize};
 
-use crate::UnsignedData;
+use crate::StateEvent;
+
+/// An event that defines how messages sent in this room should be encrypted.
+pub type EncryptedEvent = StateEvent<EncryptedEventContent>;
 
 /// The payload for `EncryptedEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[non_exhaustive]
+#[ruma_event(type = "m.room.encrypted")]
 #[serde(tag = "algorithm")]
 pub enum EncryptedEventContent {
     /// An event encrypted with *m.olm.v1.curve25519-aes-sha2*.

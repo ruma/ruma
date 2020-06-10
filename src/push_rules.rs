@@ -24,7 +24,7 @@ pub use ruma_common::push::Action;
 /// room, or by default. The push ruleset contains the entire set of scopes and rules.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Ruleset {
-    /// These rules configure behaviour for (unencrypted) messages that match certain patterns.
+    /// These rules configure behavior for (unencrypted) messages that match certain patterns.
     pub content: Vec<PatternedPushRule>,
 
     /// These user-configured rules are given the highest priority.
@@ -34,10 +34,10 @@ pub struct Ruleset {
     #[serde(rename = "override")]
     pub override_: Vec<ConditionalPushRule>,
 
-    /// These rules change the behaviour of all messages for a given room.
+    /// These rules change the behavior of all messages for a given room.
     pub room: Vec<PushRule>,
 
-    /// These rules configure notification behaviour for messages from a specific Matrix user ID.
+    /// These rules configure notification behavior for messages from a specific Matrix user ID.
     pub sender: Vec<PushRule>,
 
     /// These rules are identical to override rules, but have a lower priority than `content`,

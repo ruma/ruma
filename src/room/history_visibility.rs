@@ -4,8 +4,13 @@ use ruma_events_macros::StateEventContent;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
+use crate::StateEvent;
+
 /// This event controls whether a member of a room can see the events that happened in a room
 /// from before they joined.
+pub type HistoryVisibilityEvent = StateEvent<HistoryVisibilityEventContent>;
+
+/// The payload for `HistoryVisibilityEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.history_visibility")]
 pub struct HistoryVisibilityEventContent {

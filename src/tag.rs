@@ -2,9 +2,10 @@
 
 use std::collections::BTreeMap;
 
-use crate::BasicEvent;
 use ruma_events_macros::BasicEventContent;
 use serde::{Deserialize, Serialize};
+
+use crate::BasicEvent;
 
 /// Informs the client of tags on a room.
 pub type TagEvent = BasicEvent<TagEventContent>;

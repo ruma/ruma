@@ -3,7 +3,10 @@
 use ruma_events_macros::StateEventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::InvalidInput;
+use crate::{InvalidInput, StateEvent};
+
+/// The room name is a human-friendly string designed to be displayed to the end-user.
+pub type NameEvent = StateEvent<NameEventContent>;
 
 /// The payload for `NameEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]

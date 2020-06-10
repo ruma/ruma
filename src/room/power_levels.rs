@@ -7,9 +7,12 @@ use ruma_events_macros::StateEventContent;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
-use crate::EventType;
+use crate::{EventType, StateEvent};
 
 /// Defines the power levels (privileges) of users in the room.
+pub type PowerLevelsEvent = StateEvent<PowerLevelsEventContent>;
+
+/// The payload for `PowerLevelsEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.power_levels")]
 pub struct PowerLevelsEventContent {
