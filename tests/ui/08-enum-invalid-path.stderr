@@ -1,0 +1,20 @@
+error: proc macro panicked
+  --> $DIR/08-enum-invalid-path.rs:10:1
+   |
+10 | / event_enum! {
+11 | |     name: InvalidEvent,
+12 | |     events: [
+13 | |         "not.a.path",
+14 | |     ]
+15 | | }
+   | |_^
+   |
+   = help: message: assertion failed: `(left == right)`
+             left: `"no"`,
+            right: `"m."`
+
+error[E0433]: failed to resolve: could not find `not` in `ruma_events`
+ --> $DIR/08-enum-invalid-path.rs:6:9
+  |
+6 |         "m.not.a.path",
+  |         ^^^^^^^^^^^^^^ could not find `not` in `ruma_events`

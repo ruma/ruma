@@ -214,7 +214,7 @@ pub struct EventEnumInput {
     /// The name of the event.
     pub name: Ident,
 
-    /// An array of valid matrix event types. This will generate the variants of the event content type "name".
+    /// An array of valid matrix event types. This will generate the variants of the event type "name".
     /// There needs to be a corresponding variant in `ruma_events::EventType` for
     /// this event (converted to a valid Rust-style type name by stripping `m.`, replacing the
     /// remaining dots by underscores and then converting from snake_case to CamelCase).
