@@ -11,7 +11,7 @@ error: proc macro panicked
    |
    = help: message: assertion failed: `(left == right)`
              left: `"no"`,
-            right: `"m."`
+            right: `"m."`: well-known matrix events have to start with `m.`
 
 error[E0433]: failed to resolve: could not find `not` in `ruma_events`
  --> $DIR/08-enum-invalid-path.rs:6:9

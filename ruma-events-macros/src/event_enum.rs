@@ -192,11 +192,18 @@ fn to_event_content_path(name: &LitStr) -> TokenStream {
 pub(crate) fn to_camel_case(name: &LitStr) -> Ident {
     let span = name.span();
     let name = name.value();
-    assert_eq!(&name[..2], "m.");
+
+    assert_eq!(
+        &name[..2],
+        "m.",
+        "well-known matrix events have to start with `m.`"
+    );
+
     let s = name[2..]
         .split(&['.', '_'] as &[char])
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
         .collect::<String>();
+
     Ident::new(&s, span)
 }
 
