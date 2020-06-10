@@ -4,10 +4,7 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_events::{
-    collections::all::{Event, StateEvent},
-    EventJson,
-};
+use ruma_events::{AnyEvent, AnyStateEvent, EventJson};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
@@ -122,11 +119,11 @@ pub struct EventContextResult {
 
     /// Events just after the result.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub events_after: Vec<EventJson<Event>>,
+    pub events_after: Vec<EventJson<AnyEvent>>,
 
     /// Events just before the result.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub events_before: Vec<EventJson<Event>>,
+    pub events_before: Vec<EventJson<AnyEvent>>,
 
     /// The historic profile information of the users that sent the events returned.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -219,7 +216,7 @@ pub struct RoomEventJsons {
     /// The current state for every room in the results. This is included if the request had the
     /// `include_state` key set with a value of `true`.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub state: BTreeMap<RoomId, Vec<EventJson<StateEvent>>>,
+    pub state: BTreeMap<RoomId, Vec<EventJson<AnyStateEvent>>>,
 
     /// List of words which should be highlighted, useful for stemming which may
     /// change the query terms.
@@ -256,7 +253,7 @@ pub struct SearchResult {
 
     /// The event that matched.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub result: Option<EventJson<Event>>,
+    pub result: Option<EventJson<AnyEvent>>,
 }
 
 /// A user profile.

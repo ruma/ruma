@@ -1,6 +1,6 @@
 pub mod some_endpoint {
     use ruma_api::ruma_api;
-    use ruma_events::{collections::all, tag::TagEvent, EventJson};
+    use ruma_events::{tag::TagEvent, AnyRoomEvent, EventJson};
 
     ruma_api! {
         metadata {
@@ -46,7 +46,7 @@ pub mod some_endpoint {
             pub event: EventJson<TagEvent>,
 
             // ... and to allow unknown events when the endpoint deals with event collections.
-            pub list_of_events: Vec<EventJson<all::RoomEvent>>,
+            pub list_of_events: Vec<EventJson<AnyRoomEvent>>,
         }
     }
 }

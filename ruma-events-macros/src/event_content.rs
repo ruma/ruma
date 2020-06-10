@@ -27,11 +27,8 @@ impl Parse for EventMeta {
 pub fn expand_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
     let ident = &input.ident;
 
-    let event_type_attr = input
-        .attrs
-        .iter()
-        .find(|attr| attr.path.is_ident("ruma_event"))
-        .ok_or_else(|| {
+    let event_type_attr =
+        input.attrs.iter().find(|attr| attr.path.is_ident("ruma_event")).ok_or_else(|| {
             let msg = "no event type attribute found, \
             add `#[ruma_event(type = \"any.room.event\")]` \
             below the event content derive";

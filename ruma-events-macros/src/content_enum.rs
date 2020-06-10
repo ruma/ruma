@@ -14,11 +14,7 @@ pub fn expand_content_enum(input: ContentEnumInput) -> syn::Result<TokenStream> 
     let event_type_str = &input.events;
 
     let variants = input.events.iter().map(to_camel_case).collect::<Vec<_>>();
-    let content = input
-        .events
-        .iter()
-        .map(to_event_content_path)
-        .collect::<Vec<_>>();
+    let content = input.events.iter().map(to_event_content_path).collect::<Vec<_>>();
 
     let content_enum = quote! {
         #( #attrs )*
@@ -116,10 +112,7 @@ pub(crate) fn to_camel_case(name: &LitStr) -> Ident {
     let name = name.value();
 
     if &name[..2] != "m." {
-        panic!(
-            "well-known matrix events have to start with `m.` found `{}`",
-            name,
-        )
+        panic!("well-known matrix events have to start with `m.` found `{}`", name,)
     }
 
     let s = name[2..]
@@ -170,11 +163,7 @@ impl Parse for ContentEnumInput {
             .elems
             .into_iter()
             .map(|item| {
-                if let Expr::Lit(ExprLit {
-                    lit: Lit::Str(lit_str),
-                    ..
-                }) = item
-                {
+                if let Expr::Lit(ExprLit { lit: Lit::Str(lit_str), .. }) = item {
                     Ok(lit_str)
                 } else {
                     let msg = "values of field `events` are required to be a string literal";
@@ -183,10 +172,6 @@ impl Parse for ContentEnumInput {
             })
             .collect::<syn::Result<_>>()?;
 
-        Ok(Self {
-            attrs,
-            name,
-            events,
-        })
+        Ok(Self { attrs, name, events })
     }
 }

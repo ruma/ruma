@@ -21,7 +21,7 @@ proc-macro2 = "1.0.17"
 proc-macro = true
 
 [dev-dependencies]
-ruma-identifiers = "0.16.1"
+ruma-identifiers = { version = "0.16.1", path = "../ruma-identifiers" }
 serde_json = "1.0.53"
 js_int = { version = "0.1.5", features = ["serde"] }
 serde = { version = "1.0.110", features = ["derive"] }

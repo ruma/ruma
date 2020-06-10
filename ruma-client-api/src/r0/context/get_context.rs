@@ -2,7 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_events::{collections::all, EventJson};
+use ruma_events::{AnyRoomEvent, AnyStateEvent, EventJson};
 use ruma_identifiers::{EventId, RoomId};
 
 use crate::r0::filter::RoomEventFilter;
@@ -55,20 +55,20 @@ ruma_api! {
         /// A list of room events that happened just before the requested event,
         /// in reverse-chronological order.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub events_before: Vec<EventJson<all::RoomEvent>>,
+        pub events_before: Vec<EventJson<AnyRoomEvent>>,
 
         /// Details of the requested event.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub event: Option<EventJson<all::RoomEvent>>,
+        pub event: Option<EventJson<AnyRoomEvent>>,
 
         /// A list of room events that happened just after the requested event,
         /// in chronological order.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub events_after: Vec<EventJson<all::RoomEvent>>,
+        pub events_after: Vec<EventJson<AnyRoomEvent>>,
 
         /// The state of the room at the last event returned.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub state: Vec<EventJson<all::StateEvent>>,
+        pub state: Vec<EventJson<AnyStateEvent>>,
     }
 
     error: crate::Error
