@@ -3,17 +3,17 @@
 use std::collections::BTreeMap;
 
 use js_int::UInt;
-use ruma_events_macros::StateEventContent;
+use ruma_events_macros::MessageEventContent;
 use ruma_identifiers::DeviceId;
 use serde::{Deserialize, Serialize};
 
-use crate::StateEvent;
+use crate::MessageEvent;
 
 /// An event that defines how messages sent in this room should be encrypted.
-pub type EncryptedEvent = StateEvent<EncryptedEventContent>;
+pub type EncryptedEvent = MessageEvent<EncryptedEventContent>;
 
 /// The payload for `EncryptedEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[non_exhaustive]
 #[ruma_event(type = "m.room.encrypted")]
 #[serde(tag = "algorithm")]
