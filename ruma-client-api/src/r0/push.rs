@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
 pub mod delete_pushrule;
-//pub mod get_notifications;
+pub mod get_notifications;
 pub mod get_pushers;
 pub mod get_pushrule;
 pub mod get_pushrule_actions;

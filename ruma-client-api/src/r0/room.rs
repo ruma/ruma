@@ -1,7 +1,7 @@
 //! Endpoints for room management.
 
 pub mod create_room;
-//pub mod get_room_event;
+pub mod get_room_event;
 pub mod report_content;
 pub mod upgrade_room;
 
