@@ -59,7 +59,6 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{PresenceEvent, PresenceEventContent, PresenceState};
-    use crate::EventJson;
 
     #[test]
     fn serialization() {
@@ -105,10 +104,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<EventJson<PresenceEvent>>(json)
-                .unwrap()
-                .deserialize()
-                .unwrap(),
+            from_json_value::<PresenceEvent>(json).unwrap(),
             PresenceEvent {
                 content: PresenceEventContent {
                     avatar_url: Some(avatar_url),
