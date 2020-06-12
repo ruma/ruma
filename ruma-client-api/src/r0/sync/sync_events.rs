@@ -5,8 +5,8 @@ use std::{collections::BTreeMap, time::Duration};
 use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_events::{
-    presence::PresenceEvent, AnyBasicEvent, AnyEphemeralRoomEvent, AnyRoomEvent, AnyStateEventStub,
-    AnyStrippedStateEventStub, AnyToDeviceEvent, EventJson,
+    presence::PresenceEvent, AnyBasicEvent, AnyEphemeralRoomEvent, AnyRoomEventStub,
+    AnyStateEventStub, AnyStrippedStateEventStub, AnyToDeviceEvent, EventJson,
 };
 use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
@@ -243,7 +243,7 @@ pub struct Timeline {
     pub prev_batch: Option<String>,
 
     /// A list of events.
-    pub events: Vec<EventJson<AnyRoomEvent>>,
+    pub events: Vec<EventJson<AnyRoomEventStub>>,
 }
 
 impl Timeline {
