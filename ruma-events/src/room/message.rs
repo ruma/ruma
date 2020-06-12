@@ -18,6 +18,7 @@ pub type MessageEvent = OuterMessageEvent<MessageEventContent>;
 
 /// The payload for `MessageEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
+#[non_exhaustive]
 #[ruma_event(type = "m.room.message")]
 #[serde(tag = "msgtype")]
 pub enum MessageEventContent {
@@ -248,6 +249,7 @@ pub struct ServerNoticeMessageEventContent {
 
 /// Types of server notices.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub enum ServerNoticeType {
     /// The server has exceeded some limit which requires the server administrator to intervene.
     #[serde(rename = "m.server_notice.usage_limit_reached")]
@@ -256,6 +258,7 @@ pub enum ServerNoticeType {
 
 /// Types of usage limits.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 pub enum LimitType {
     /// The server's number of active users in the last 30 days has exceeded the maximum.

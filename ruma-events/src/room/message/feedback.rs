@@ -27,6 +27,7 @@ pub struct FeedbackEventContent {
 
 /// A type of feedback.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
+#[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum FeedbackType {

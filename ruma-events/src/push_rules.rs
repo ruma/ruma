@@ -111,6 +111,7 @@ pub struct PatternedPushRule {
 
 /// A condition that must apply for an associated push rule's action to be taken.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum PushCondition {
     /// This is a glob pattern match on a field of the event.

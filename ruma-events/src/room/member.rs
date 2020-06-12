@@ -64,6 +64,7 @@ pub struct MemberEventContent {
 
 /// The membership state of a user.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
+#[non_exhaustive]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum MembershipState {
@@ -114,6 +115,7 @@ pub struct SignedContent {
 
 /// Translation of the membership change in `m.room.member` event.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub enum MembershipChange {
     /// No change.
     None,

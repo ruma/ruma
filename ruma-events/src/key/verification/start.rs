@@ -16,6 +16,7 @@ pub type StartEvent = BasicEvent<StartEventContent>;
 
 /// The payload of an *m.key.verification.start* event.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[non_exhaustive]
 #[ruma_event(type = "m.key.verification.start")]
 #[serde(tag = "method")]
 pub enum StartEventContent {

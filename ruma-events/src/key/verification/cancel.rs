@@ -32,6 +32,7 @@ pub struct CancelEventContent {
 ///
 /// Custom error codes should use the Java package naming convention.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 #[serde(from = "String", into = "String")]
 pub enum CancelCode {
     /// The user cancelled the verification.

@@ -37,6 +37,7 @@ pub struct RoomKeyRequestEventContent {
 
 /// A new key request or a cancellation of a previous request.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
+#[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum Action {

@@ -20,6 +20,7 @@ pub struct HistoryVisibilityEventContent {
 
 /// Who can see a room's history.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
+#[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum HistoryVisibility {
