@@ -3,11 +3,11 @@
 use std::{collections::BTreeMap, time::SystemTime};
 
 use ruma_api::ruma_api;
+use ruma_events::pdu::Pdu;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-use crate::pdu::Pdu;
 
 ruma_api! {
     metadata {

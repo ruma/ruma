@@ -10,6 +10,7 @@ Breaking changes:
   struct variants
   * This change removes the types `EventMatchCondition`, `RoomMemberCountCondition` and
     `SenderNotificationPermissionCondition`
+* Add PDU types: `pdu::{Pdu, PduStub}`
 
 Improvements:
 

@@ -2,10 +2,8 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_events::EventJson;
+use ruma_events::{EventJson, pdu::Pdu};
 use ruma_identifiers::{RoomId, UserId};
-
-use crate::pdu::Pdu;
 
 ruma_api! {
     metadata {

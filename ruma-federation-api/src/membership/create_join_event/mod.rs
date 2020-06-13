@@ -2,10 +2,8 @@
 
 pub mod v1;
 
-use ruma_events::EventJson;
+use ruma_events::{EventJson, pdu::Pdu};
 use serde::{Deserialize, Serialize};
-
-use crate::pdu::Pdu;
 
 /// Full state of the room.
 #[derive(Clone, Debug, Deserialize, Serialize)]
