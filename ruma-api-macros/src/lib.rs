@@ -6,6 +6,9 @@
 //! `ruma_api!` macro is only documented in ruma-api, not here.
 
 #![allow(clippy::cognitive_complexity)]
+// Remove this once https://github.com/rust-lang/rust/issues/54883 becomes stable
+#![allow(clippy::unnested_or_patterns)]
+#![allow(clippy::unknown_clippy_lints)]
 #![recursion_limit = "256"]
 
 extern crate proc_macro;

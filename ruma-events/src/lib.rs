@@ -113,6 +113,9 @@
 #![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
 // Since we support Rust 1.36.0, we can't apply this suggestion yet
 #![allow(clippy::use_self)]
+// Remove this once https://github.com/rust-lang/rust/issues/54883 becomes stable
+#![allow(clippy::unnested_or_patterns)]
+#![allow(clippy::unknown_clippy_lints)]
 
 use std::fmt::Debug;
 

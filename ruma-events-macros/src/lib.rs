@@ -2,6 +2,7 @@
 //! [ruma-events](https://github.com/ruma/ruma-events) events.
 //!
 //! See the documentation for the individual macros for usage details.
+
 #![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
 
 extern crate proc_macro;
