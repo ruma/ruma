@@ -75,7 +75,7 @@ fn deserialize_stripped_state_events() {
         }
     });
 
-    let event = from_json_value::<AnyStrippedStateEventStub>(name_event.clone()).unwrap();
+    let event = from_json_value::<AnyStrippedStateEventStub>(name_event).unwrap();
     match event.content {
         AnyStateEventContent::RoomName(content) => {
             assert_eq!(content.name(), Some("Ruma"));
@@ -85,7 +85,7 @@ fn deserialize_stripped_state_events() {
         _ => unreachable!(),
     }
 
-    let event = from_json_value::<AnyStrippedStateEventStub>(join_rules_event.clone()).unwrap();
+    let event = from_json_value::<AnyStrippedStateEventStub>(join_rules_event).unwrap();
     match event.content {
         AnyStateEventContent::RoomJoinRules(content) => {
             assert_eq!(content.join_rule, JoinRule::Public);
@@ -95,7 +95,7 @@ fn deserialize_stripped_state_events() {
         _ => unreachable!(),
     }
 
-    let event = from_json_value::<AnyStrippedStateEventStub>(avatar_event.clone()).unwrap();
+    let event = from_json_value::<AnyStrippedStateEventStub>(avatar_event).unwrap();
     match event.content {
         AnyStateEventContent::RoomAvatar(content) => {
             let image_info = content.info.unwrap();
