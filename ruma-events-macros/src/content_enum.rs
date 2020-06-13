@@ -1,6 +1,6 @@
 //! Implementation of the content_enum type macro.
 
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
     parse::{self, Parse, ParseStream},
@@ -8,9 +8,19 @@ use syn::{
 };
 
 /// Create a content enum from `ContentEnumInput`.
+///
+/// The is the internals of the `event_content_enum!` macro.
 pub fn expand_content_enum(input: ContentEnumInput) -> syn::Result<TokenStream> {
     let attrs = &input.attrs;
     let ident = &input.name;
+
+    let ident_chars = ident.to_string().chars().collect::<Vec<_>>();
+    let event_enum = match ident_chars.as_slice() {
+        ['A', 'n', 'y', event @ .., 'C', 'o', 'n', 't', 'e', 'n', 't'] => event,
+        _ => return Err(syn::Error::new(Span::call_site(), "failure")),
+    };
+
+    let event_enum_ident = Ident::new(&event_enum.iter().collect::<String>(), ident.span());
     let event_type_str = &input.events;
 
     let variants = input.events.iter().map(to_camel_case).collect::<Vec<_>>();
@@ -51,15 +61,47 @@ pub fn expand_content_enum(input: ContentEnumInput) -> syn::Result<TokenStream> 
         }
     };
 
+    let any_event_variant_impl = if let Some(variant) = any_enum_variant(ident) {
+        quote! {
+            impl #ident {
+                fn any_event_variant(&self) -> fn(#event_enum_ident<Self>) -> ::ruma_events::AnyEvent {
+                    ::ruma_events::AnyEvent::#variant
+                }
+            }
+        }
+    } else {
+        TokenStream::new()
+    };
+
     let marker_trait_impls = marker_traits(ident);
 
     Ok(quote! {
         #content_enum
 
+        #any_event_variant_impl
+
         #event_content_impl
 
         #marker_trait_impls
     })
+}
+
+fn any_enum_variant(ident: &Ident) -> Option<TokenStream> {
+    match ident.to_string().as_str() {
+        "AnyStateEventContent" => Some(quote! {
+            State
+        }),
+        "AnyMessageEventContent" => Some(quote! {
+            Message
+        }),
+        "AnyEphemeralRoomEventContent" => Some(quote! {
+            Ephemeral
+        }),
+        "AnyBasicEventContent" => Some(quote! {
+            Basic
+        }),
+        _ => None,
+    }
 }
 
 fn marker_traits(ident: &Ident) -> TokenStream {

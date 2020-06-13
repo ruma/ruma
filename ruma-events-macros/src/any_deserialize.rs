@@ -19,7 +19,11 @@ pub fn expand_any_event_deserialize(input: DeriveInput) -> syn::Result<TokenStre
         ));
     };
 
-    let match_block = variant_idents.iter().map(match_event_type).collect::<Vec<_>>();
+    let match_block =
+        variant_idents.iter().map(match_event_type).collect::<syn::Result<Vec<_>>>()?;
+
+    let content_type =
+        variant_idents.iter().map(any_enum_variant).collect::<syn::Result<Vec<_>>>()?;
 
     let deserialize_impl = quote! {
         impl<'de> ::serde::de::Deserialize<'de> for #ident {
@@ -45,13 +49,43 @@ pub fn expand_any_event_deserialize(input: DeriveInput) -> syn::Result<TokenStre
     })
 }
 
+fn any_enum_variant(variant: &Ident) -> syn::Result<TokenStream> {
+    let tkns = match variant.to_string().as_str() {
+        "Basic" => quote! {
+            AnyBasicEventContent
+        },
+        "Presence" => quote! {
+            PresenceEventContent
+        },
+        "Redaction" => quote! {
+            RedactionEventContent
+        },
+        "Ephemeral" => quote! {
+            AnyEphemeralRoomEventContent
+        },
+        "Message" => quote! {
+            AnyMessageEventContent
+        },
+        "State" => quote! {
+            AnyStateEventContent
+        },
+        _ => {
+            return Err(syn::Error::new(
+                Span::call_site(),
+                format!("found unrecognized enum variant `{}`", variant),
+            ))
+        }
+    };
+    Ok(tkns)
+}
+
 /// Match the variant name with the grouping of events and return the deserialized event
 /// wrapped in the correct variant.
-fn match_event_type(variant: &Ident) -> TokenStream {
+fn match_event_type(variant: &Ident) -> syn::Result<TokenStream> {
     let deserialize_event = quote! {
         Ok(Self::#variant(::serde_json::from_value(json).map_err(D::Error::custom)?))
     };
-    match variant.to_string().as_str() {
+    let tkns = match variant.to_string().as_str() {
         "Basic" => quote! {
             "m.direct"
             | "m.dummy"
@@ -85,7 +119,7 @@ fn match_event_type(variant: &Ident) -> TokenStream {
                 #deserialize_event
             }
         },
-        "State" | "StateEvent" => quote! {
+        "State" => quote! {
             "m.room.aliases"
             | "m.room.avatar"
             | "m.room.canonical_alias"
@@ -106,6 +140,13 @@ fn match_event_type(variant: &Ident) -> TokenStream {
                 #deserialize_event
             }
         },
-        _ => TokenStream::new(),
-    }
+        _ => {
+            return Err(syn::Error::new(
+                Span::call_site(),
+                format!("found unrecognized enum variant `{}`", variant),
+            ))
+        }
+    };
+
+    Ok(tkns)
 }

@@ -84,7 +84,7 @@ pub fn derive_state_event(input: TokenStream) -> TokenStream {
     expand_event(input).unwrap_or_else(|err| err.to_compile_error()).into()
 }
 
-/// Generates implementations needed to serialize and deserialize Matrix events.
+/// Generates custom `Deserialize implementation for the any event enums.
 #[proc_macro_derive(AnyEventDeserialize)]
 pub fn derive_any_event_deserialize(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
