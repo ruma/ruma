@@ -64,3 +64,39 @@ pub enum MembershipEventFilter {
     /// The user has been banned.
     Ban,
 }
+
+#[cfg(test)]
+mod tests {
+    use std::convert::TryInto;
+
+    use matches::assert_matches;
+
+    use super::{MembershipEventFilter, Request};
+
+    #[test]
+    fn deserialization() {
+        let uri = http::Uri::builder()
+            .scheme("https")
+            .authority("example.org")
+            .path_and_query(
+                "/_matrix/client/r0/rooms/!dummy%3Aexample.org/members\
+                 ?not_membership=leave\
+                 &at=1026",
+            )
+            .build()
+            .unwrap();
+
+        let req: Result<Request, _> =
+            http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap().try_into();
+
+        assert_matches!(
+            req,
+            Ok(Request {
+                room_id,
+                at: Some(at),
+                membership: None,
+                not_membership: Some(MembershipEventFilter::Leave),
+            }) if room_id == "!dummy:example.org" && at == "1026"
+        );
+    }
+}
