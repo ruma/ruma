@@ -1,8 +1,16 @@
 //! Types for persistent data unit schemas
+//! 
+//! The differences between the `RoomV1Pdu` schema and the `RoomV3Pdu` schema are
+//! that the `RoomV1Pdu` takes an `event_id` field (`RoomV3Pdu` does not), and
+//! `auth_events` and `prev_events` take `Vec<(EventId, EventHash)> rather than
+//! `Vec<EventId>` in `RoomV3Pdu`.
+//!
+//! The stubbed versions of each PDU type remove the `event_id` field (if any)
+//! and the `room_id` field for use in PDU templates.
 
 use std::{collections::BTreeMap, time::SystemTime};
 
-use ::serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use js_int::UInt;
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomId, UserId};
@@ -77,6 +85,7 @@ pub struct RoomV1Pdu {
     /// Signatures for the PDU.
     pub signatures: BTreeMap<String, BTreeMap<String, String>>,
 }
+
 /// A 'persistent data unit' (event) for room versions 3 and beyond.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RoomV3Pdu {
@@ -133,13 +142,6 @@ pub struct RoomV3Pdu {
     pub signatures: BTreeMap<String, BTreeMap<String, String>>,
 }
 
-/// Content hashes of a PDU.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct EventHash {
-    /// The SHA-256 hash.
-    pub sha256: String,
-}
-
 /// PDU type without event and room IDs.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(untagged)]
@@ -152,43 +154,11 @@ pub enum PduStub {
 }
 
 impl PduStub {
-    /// Helper method to get event ID and PDU (with room ID) from the request
-    /// parameters.
+    /// Helper method to get PDU from a PDU stub. 
     pub fn into_pdu(self, room_id: RoomId, event_id: EventId) -> Pdu {
         match self {
-            PduStub::RoomV1PduStub(v1_stub) => Pdu::RoomV1Pdu(RoomV1Pdu {
-                event_id,
-                room_id,
-                sender: v1_stub.sender,
-                origin: v1_stub.origin,
-                origin_server_ts: v1_stub.origin_server_ts,
-                kind: v1_stub.kind,
-                content: v1_stub.content,
-                state_key: v1_stub.state_key,
-                prev_events: v1_stub.prev_events,
-                depth: v1_stub.depth,
-                auth_events: v1_stub.auth_events,
-                redacts: v1_stub.redacts,
-                unsigned: v1_stub.unsigned,
-                hashes: v1_stub.hashes,
-                signatures: v1_stub.signatures,
-            }),
-            PduStub::RoomV3PduStub(v3_stub) => Pdu::RoomV3Pdu(RoomV3Pdu {
-                room_id,
-                sender: v3_stub.sender,
-                origin: v3_stub.origin,
-                origin_server_ts: v3_stub.origin_server_ts,
-                kind: v3_stub.kind,
-                content: v3_stub.content,
-                state_key: v3_stub.state_key,
-                prev_events: v3_stub.prev_events,
-                depth: v3_stub.depth,
-                auth_events: v3_stub.auth_events,
-                redacts: v3_stub.redacts,
-                unsigned: v3_stub.unsigned,
-                hashes: v3_stub.hashes,
-                signatures: v3_stub.signatures,
-            }),
+            PduStub::RoomV1PduStub(v1_stub) => Pdu::RoomV1Pdu(v1_stub.into_v1_pdu(room_id, event_id)),
+            PduStub::RoomV3PduStub(v3_stub) => Pdu::RoomV3Pdu(v3_stub.into_v3_pdu(room_id)),
         }
     }
 }
@@ -246,6 +216,29 @@ pub struct RoomV1PduStub {
     pub signatures: BTreeMap<String, BTreeMap<String, String>>,
 }
 
+impl RoomV1PduStub {
+    /// Converts a V1 PDU stub into a full V1 PDU.
+    pub fn into_v1_pdu(self, room_id: RoomId, event_id: EventId) -> RoomV1Pdu {
+        RoomV1Pdu {
+            event_id,
+            room_id,
+            sender: self.sender,
+            origin: self.origin,
+            origin_server_ts: self.origin_server_ts,
+            kind: self.kind,
+            content: self.content,
+            state_key: self.state_key,
+            prev_events: self.prev_events,
+            depth: self.depth,
+            auth_events: self.auth_events,
+            redacts: self.redacts,
+            unsigned: self.unsigned,
+            hashes: self.hashes,
+            signatures: self.signatures,
+        }
+    }
+}
+
 /// Stub for PDUs of room versions 3 and above.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RoomV3PduStub {
@@ -299,14 +292,44 @@ pub struct RoomV3PduStub {
     pub signatures: BTreeMap<String, BTreeMap<String, String>>,
 }
 
+impl RoomV3PduStub {
+    /// Converts a V3 PDU stub into a full V3 PDU.
+    pub fn into_v3_pdu(self, room_id: RoomId) -> RoomV3Pdu {
+        RoomV3Pdu {
+            room_id,
+            sender: self.sender,
+            origin: self.origin,
+            origin_server_ts: self.origin_server_ts,
+            kind: self.kind,
+            content: self.content,
+            state_key: self.state_key,
+            prev_events: self.prev_events,
+            depth: self.depth,
+            auth_events: self.auth_events,
+            redacts: self.redacts,
+            unsigned: self.unsigned,
+            hashes: self.hashes,
+            signatures: self.signatures,
+        }
+    }
+}
+
+/// Content hashes of a PDU.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct EventHash {
+    /// The SHA-256 hash.
+    pub sha256: String,
+}
+
+
 #[cfg(test)]
 mod tests {
-
     use std::{convert::TryFrom, time::SystemTime};
 
     use serde_json::{from_value as from_json_value, json};
 
     use super::*;
+
     #[test]
     fn test_serialize_pdu_stub() {
 
@@ -417,7 +440,7 @@ mod tests {
     fn test_deserialize_v3_stub() {
         let json = json!({
             "auth_events": [
-                    "$abc123:matrix.org"
+                "$abc123:matrix.org"
             ],
             "content": {
                 "key": "value"
