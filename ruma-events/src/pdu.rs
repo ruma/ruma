@@ -10,7 +10,7 @@
 
 use std::{
     collections::BTreeMap,
-    time::{Duration, SystemTime},
+    time::SystemTime,
 };
 
 use js_int::UInt;
@@ -329,11 +329,17 @@ pub struct EventHash {
 
 #[cfg(test)]
 mod tests {
-    use std::{convert::TryFrom, time::SystemTime};
+    use std::{
+        collections::BTreeMap,
+        convert::TryFrom,
+        time::{Duration, SystemTime}
+    };
 
+    use ruma_events::EventType;
+    use ruma_identifiers::{EventId, UserId, RoomId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::*;
+    use super::{EventHash, Pdu, PduStub, RoomV1Pdu, RoomV1PduStub, RoomV3Pdu, RoomV3PduStub};
 
     #[test]
     fn serialize_stub_as_v1() {
@@ -351,7 +357,7 @@ mod tests {
         let v1_stub = RoomV1PduStub {
             sender: UserId::try_from("@sender:example.com").unwrap(),
             origin: "matrix.org".to_string(),
-            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1592050773658),
+            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
             kind: EventType::RoomPowerLevels,
             content: json!({"testing": 123}),
             state_key: Some("state".to_string()),
@@ -373,7 +379,7 @@ mod tests {
         let json = json!({
             "sender": "@sender:example.com",
             "origin": "matrix.org",
-            "origin_server_ts": 1592050773658 as usize,
+            "origin_server_ts": 1_592_050_773_658 as usize,
             "type": "m.room.power_levels",
             "content": {
                 "testing": 123
@@ -414,7 +420,7 @@ mod tests {
         let v3_stub = RoomV3PduStub {
             sender: UserId::try_from("@sender:example.com").unwrap(),
             origin: "matrix.org".to_string(),
-            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1592050773658),
+            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
             kind: EventType::RoomPowerLevels,
             content: json!({"testing": 123}),
             state_key: Some("state".to_string()),
@@ -430,7 +436,7 @@ mod tests {
         let json = json!({
             "sender": "@sender:example.com",
             "origin": "matrix.org",
-            "origin_server_ts": 1592050773658 as usize,
+            "origin_server_ts": 1_592_050_773_658 as usize,
             "type": "m.room.power_levels",
             "content": {
                 "testing": 123
@@ -575,7 +581,7 @@ mod tests {
             event_id: EventId::try_from("$somejoinevent:matrix.org").unwrap(),
             sender: UserId::try_from("@sender:example.com").unwrap(),
             origin: "matrix.org".to_string(),
-            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1592050773658),
+            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
             kind: EventType::RoomPowerLevels,
             content: json!({"testing": 123}),
             state_key: Some("state".to_string()),
@@ -599,7 +605,7 @@ mod tests {
             "event_id": "$somejoinevent:matrix.org",
             "sender": "@sender:example.com",
             "origin": "matrix.org",
-            "origin_server_ts": 1592050773658 as usize,
+            "origin_server_ts": 1_592_050_773_658 as usize,
             "type": "m.room.power_levels",
             "content": {
                 "testing": 123
@@ -641,7 +647,7 @@ mod tests {
             room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
             sender: UserId::try_from("@sender:example.com").unwrap(),
             origin: "matrix.org".to_string(),
-            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1592050773658),
+            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
             kind: EventType::RoomPowerLevels,
             content: json!({"testing": 123}),
             state_key: Some("state".to_string()),
@@ -658,7 +664,7 @@ mod tests {
             "room_id": "!n8f893n9:example.com",
             "sender": "@sender:example.com",
             "origin": "matrix.org",
-            "origin_server_ts": 1592050773658 as usize,
+            "origin_server_ts": 1_592_050_773_658 as usize,
             "type": "m.room.power_levels",
             "content": {
                 "testing": 123
@@ -804,7 +810,7 @@ mod tests {
         let v1_stub = RoomV1PduStub {
             sender: UserId::try_from("@sender:example.com").unwrap(),
             origin: "matrix.org".to_string(),
-            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1592050773658),
+            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
             kind: EventType::RoomPowerLevels,
             content: json!({"testing": 123}),
             state_key: Some("state".to_string()),
@@ -828,7 +834,7 @@ mod tests {
             event_id: EventId::try_from("$somejoinevent:matrix.org").unwrap(),
             sender: UserId::try_from("@sender:example.com").unwrap(),
             origin: "matrix.org".to_string(),
-            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1592050773658),
+            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
             kind: EventType::RoomPowerLevels,
             content: json!({"testing": 123}),
             state_key: Some("state".to_string()),
@@ -874,7 +880,7 @@ mod tests {
         let v3_stub = RoomV3PduStub {
             sender: UserId::try_from("@sender:example.com").unwrap(),
             origin: "matrix.org".to_string(),
-            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1592050773658),
+            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
             kind: EventType::RoomPowerLevels,
             content: json!({"testing": 123}),
             state_key: Some("state".to_string()),
@@ -891,7 +897,7 @@ mod tests {
             room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
             sender: UserId::try_from("@sender:example.com").unwrap(),
             origin: "matrix.org".to_string(),
-            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1592050773658),
+            origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
             kind: EventType::RoomPowerLevels,
             content: json!({"testing": 123}),
             state_key: Some("state".to_string()),

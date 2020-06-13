@@ -2,7 +2,7 @@
 
 pub mod v1;
 
-use ruma_events::{EventJson, pdu::Pdu};
+use ruma_events::{pdu::Pdu, EventJson};
 use serde::{Deserialize, Serialize};
 
 /// Full state of the room.

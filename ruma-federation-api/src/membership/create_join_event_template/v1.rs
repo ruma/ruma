@@ -2,7 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_events::{EventJson, pdu::Pdu};
+use ruma_events::{pdu::Pdu, EventJson};
 use ruma_identifiers::{RoomId, UserId};
 
 ruma_api! {

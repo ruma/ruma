@@ -8,7 +8,6 @@ use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-
 ruma_api! {
     metadata {
         description: "Send transaction messages to another server",
@@ -41,7 +40,8 @@ ruma_api! {
 
     response {
         /// Map of event IDs and response for each PDU given in the request.
-        pub pdus: BTreeMap<EventId, PduProcessResponse>,
+        #[serde(with = "crate::serde::pdu_process_response")]
+        pub pdus: BTreeMap<EventId, Result<(), String>>,
     }
 }
 
