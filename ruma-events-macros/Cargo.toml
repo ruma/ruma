@@ -13,7 +13,7 @@ repository = "https://github.com/ruma/ruma-api-macros"
 version = "0.21.3"
 
 [dependencies]
-syn = { version = "1.0.25", features = ["full"] }
+syn = { version = "1.0.25", features = ["full", "extra-traits"] }
 quote = "1.0.6"
 proc-macro2 = "1.0.17"
 
