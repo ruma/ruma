@@ -8,7 +8,7 @@ use serde::{
 };
 
 pub fn serialize<S>(
-    response: BTreeMap<EventId, Result<(), String>>,
+    response: &BTreeMap<EventId, Result<(), String>>,
     serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
@@ -19,7 +19,7 @@ where
         let wrapped_error = WrappedError {
             error: match value {
                 Ok(_) => None,
-                Err(error) => Some(error),
+                Err(error) => Some(error.clone()),
             },
         };
         map.serialize_entry(&key, &wrapped_error)?;
