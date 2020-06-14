@@ -53,11 +53,3 @@ pub struct Edu {
     /// Content of ephemeral message
     pub content: JsonValue,
 }
-
-/// Error messages (if any) for a given PDU proccessing result.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct PduProcessResponse {
-    /// PDU processing error message.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<String>,
-}
