@@ -126,12 +126,12 @@ pub type AnyToDeviceEvent = ToDeviceEvent<AnyToDeviceEventContent>;
 pub enum AnyEvent {
     /// Any basic event.
     Basic(AnyBasicEvent),
+    /// `"m.presence"`, the only non-room event with a `sender` field.
+    Presence(PresenceEvent),
     /// Any ephemeral room event.
     Ephemeral(AnyEphemeralRoomEvent),
     /// Any message event.
     Message(AnyMessageEvent),
-    /// `"m.presence"`, the only non-room event with a `sender` field.
-    Presence(PresenceEvent),
     /// `"m.room.redaction"`, the only room event with a `redacts` field.
     Redaction(RedactionEvent),
     /// Any state event.
@@ -163,7 +163,7 @@ pub enum AnyRoomEventStub {
 }
 
 // FIXME `#[serde(untagged)]` deserialization fails for these enums which
-// is odd as
+// is odd as we are doing basically the same thing here, investigate?
 impl<'de> de::Deserialize<'de> for AnyEvent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

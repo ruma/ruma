@@ -9,7 +9,7 @@ use syn::{
 
 /// Create a content enum from `ContentEnumInput`.
 ///
-/// The is the internals of the `event_content_enum!` macro.
+/// This is the internals of the `event_content_enum!` macro.
 pub fn expand_content_enum(input: ContentEnumInput) -> syn::Result<TokenStream> {
     let attrs = &input.attrs;
     let ident = &input.name;

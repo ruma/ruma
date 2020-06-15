@@ -2,7 +2,7 @@ use std::convert::TryFrom;
 
 use matches::assert_matches;
 use ruma_identifiers::RoomAliasId;
-use serde_json::{from_value as from_json_value, json};
+use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 
 use ruma_events::{
     room::{
@@ -11,8 +11,78 @@ use ruma_events::{
         power_levels::PowerLevelsEventContent,
     },
     AnyEvent, AnyMessageEventContent, AnyRoomEvent, AnyRoomEventStub, AnyStateEventContent,
-    EventJson, MessageEvent, MessageEventStub, StateEvent, StateEventStub,
+    MessageEvent, MessageEventStub, StateEvent, StateEventStub,
 };
+
+fn message_event() -> JsonValue {
+    json!({
+        "content": {
+            "body": "baba",
+            "format": "org.matrix.custom.html",
+            "formatted_body": "<strong>baba</strong>",
+            "msgtype": "m.text"
+        },
+        "event_id": "$152037280074GZeOm:localhost",
+        "origin_server_ts": 1,
+        "sender": "@example:localhost",
+        "room_id": "!room:room.com",
+        "type": "m.room.message",
+        "unsigned": {
+            "age": 1
+        }
+    })
+}
+
+fn message_event_stub() -> JsonValue {
+    json!({
+        "content": {
+            "body": "baba",
+            "format": "org.matrix.custom.html",
+            "formatted_body": "<strong>baba</strong>",
+            "msgtype": "m.text"
+        },
+        "event_id": "$152037280074GZeOm:localhost",
+        "origin_server_ts": 1,
+        "sender": "@example:localhost",
+        "type": "m.room.message",
+        "unsigned": {
+            "age": 1
+        }
+    })
+}
+
+fn aliases_event() -> JsonValue {
+    json!({
+        "content": {
+            "aliases": ["#somewhere:localhost"]
+        },
+        "event_id": "$152037280074GZeOm:localhost",
+        "origin_server_ts": 1,
+        "sender": "@example:localhost",
+        "state_key": "",
+        "room_id": "!room:room.com",
+        "type": "m.room.aliases",
+        "unsigned": {
+            "age": 1
+        }
+    })
+}
+
+fn aliases_event_stub() -> JsonValue {
+    json!({
+        "content": {
+            "aliases": ["#somewhere:localhost"]
+        },
+        "event_id": "$152037280074GZeOm:localhost",
+        "origin_server_ts": 1,
+        "sender": "@example:localhost",
+        "state_key": "",
+        "type": "m.room.aliases",
+        "unsigned": {
+            "age": 1
+        }
+    })
+}
 
 #[test]
 fn power_event_stub_deserialization() {
@@ -47,46 +117,26 @@ fn power_event_stub_deserialization() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<AnyRoomEventStub>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        AnyRoomEventStub::State(
+        from_json_value::<AnyRoomEventStub>(json_data),
+        Ok(AnyRoomEventStub::State(
             StateEventStub {
                 content: AnyStateEventContent::RoomPowerLevels(PowerLevelsEventContent {
                     ban, ..
                 }),
                 ..
             }
-        )
+        ))
         if ban == js_int::Int::new(50).unwrap()
     );
 }
 
 #[test]
 fn message_event_stub_deserialization() {
-    let json_data = json!({
-        "content": {
-            "body": "baba",
-            "format": "org.matrix.custom.html",
-            "formatted_body": "<strong>baba</strong>",
-            "msgtype": "m.text"
-        },
-        "event_id": "$152037280074GZeOm:localhost",
-        "origin_server_ts": 1,
-        "sender": "@example:localhost",
-        "type": "m.room.message",
-        "unsigned": {
-            "age": 1
-        }
-    });
+    let json_data = message_event_stub();
 
     assert_matches!(
-        from_json_value::<EventJson<AnyRoomEventStub>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        AnyRoomEventStub::Message(
+        from_json_value::<AnyRoomEventStub>(json_data),
+        Ok(AnyRoomEventStub::Message(
             MessageEventStub {
                 content: AnyMessageEventContent::RoomMessage(MessageEventContent::Text(TextMessageEventContent {
                     body,
@@ -95,69 +145,36 @@ fn message_event_stub_deserialization() {
                 })),
                 ..
             }
-        )
+        ))
         if body == "baba" && formatted.body == "<strong>baba</strong>"
     );
 }
 
 #[test]
 fn aliases_event_stub_deserialization() {
-    let json_data = json!({
-        "content": {
-            "aliases": [ RoomAliasId::try_from("#somewhere:localhost").unwrap() ]
-        },
-        "event_id": "$152037280074GZeOm:localhost",
-        "origin_server_ts": 1,
-        "sender": "@example:localhost",
-        "state_key": "",
-        "type": "m.room.aliases",
-        "unsigned": {
-            "age": 1
-        }
-    });
+    let json_data = aliases_event_stub();
 
     assert_matches!(
-        from_json_value::<EventJson<AnyRoomEventStub>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        AnyRoomEventStub::State(
+        from_json_value::<AnyRoomEventStub>(json_data),
+        Ok(AnyRoomEventStub::State(
             StateEventStub {
                 content: AnyStateEventContent::RoomAliases(AliasesEventContent {
                     aliases,
                 }),
                 ..
             }
-        )
+        ))
         if aliases == vec![ RoomAliasId::try_from("#somewhere:localhost").unwrap() ]
     );
 }
 
 #[test]
 fn message_room_event_deserialization() {
-    let json_data = json!({
-        "content": {
-            "body": "baba",
-            "format": "org.matrix.custom.html",
-            "formatted_body": "<strong>baba</strong>",
-            "msgtype": "m.text"
-        },
-        "event_id": "$152037280074GZeOm:localhost",
-        "origin_server_ts": 1,
-        "sender": "@example:localhost",
-        "room_id": "!room:room.com",
-        "type": "m.room.message",
-        "unsigned": {
-            "age": 1
-        }
-    });
+    let json_data = message_event();
 
     assert_matches!(
-        from_json_value::<EventJson<AnyRoomEvent>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        AnyRoomEvent::Message(
+        from_json_value::<AnyRoomEvent>(json_data),
+        Ok(AnyRoomEvent::Message(
             MessageEvent {
                 content: AnyMessageEventContent::RoomMessage(MessageEventContent::Text(TextMessageEventContent {
                     body,
@@ -166,70 +183,36 @@ fn message_room_event_deserialization() {
                 })),
                 ..
             }
-        )
+        ))
         if body == "baba" && formatted.body == "<strong>baba</strong>"
     );
 }
 
 #[test]
 fn alias_room_event_deserialization() {
-    let json_data = json!({
-        "content": {
-            "aliases": [ "#somewhere:localhost" ]
-        },
-        "event_id": "$152037280074GZeOm:localhost",
-        "origin_server_ts": 1,
-        "sender": "@example:localhost",
-        "state_key": "",
-        "room_id": "!room:room.com",
-        "type": "m.room.aliases",
-        "unsigned": {
-            "age": 1
-        }
-    });
+    let json_data = aliases_event();
 
     assert_matches!(
-        from_json_value::<EventJson<AnyRoomEvent>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        AnyRoomEvent::State(
+        from_json_value::<AnyRoomEvent>(json_data),
+        Ok(AnyRoomEvent::State(
             StateEvent {
                 content: AnyStateEventContent::RoomAliases(AliasesEventContent {
                     aliases,
                 }),
                 ..
             }
-        )
+        ))
         if aliases == vec![ RoomAliasId::try_from("#somewhere:localhost").unwrap() ]
     );
 }
 
 #[test]
 fn message_event_deserialization() {
-    let json_data = json!({
-        "content": {
-            "body": "baba",
-            "format": "org.matrix.custom.html",
-            "formatted_body": "<strong>baba</strong>",
-            "msgtype": "m.text"
-        },
-        "event_id": "$152037280074GZeOm:localhost",
-        "origin_server_ts": 1,
-        "sender": "@example:localhost",
-        "room_id": "!room:room.com",
-        "type": "m.room.message",
-        "unsigned": {
-            "age": 1
-        }
-    });
+    let json_data = message_event();
 
     assert_matches!(
-        from_json_value::<EventJson<AnyEvent>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        AnyEvent::Message(
+        from_json_value::<AnyEvent>(json_data),
+        Ok(AnyEvent::Message(
             MessageEvent {
                 content: AnyMessageEventContent::RoomMessage(MessageEventContent::Text(TextMessageEventContent {
                     body,
@@ -238,41 +221,25 @@ fn message_event_deserialization() {
                 })),
                 ..
             }
-        )
+        ))
         if body == "baba" && formatted.body == "<strong>baba</strong>"
     );
 }
 
 #[test]
 fn alias_event_deserialization() {
-    let json_data = json!({
-        "content": {
-            "aliases": [ "#somewhere:localhost" ]
-        },
-        "event_id": "$152037280074GZeOm:localhost",
-        "origin_server_ts": 1,
-        "sender": "@example:localhost",
-        "state_key": "",
-        "room_id": "!room:room.com",
-        "type": "m.room.aliases",
-        "unsigned": {
-            "age": 1
-        }
-    });
+    let json_data = aliases_event();
 
     assert_matches!(
-        from_json_value::<EventJson<AnyEvent>>(json_data)
-            .unwrap()
-            .deserialize()
-            .unwrap(),
-        AnyEvent::State(
+        from_json_value::<AnyEvent>(json_data),
+        Ok(AnyEvent::State(
             StateEvent {
                 content: AnyStateEventContent::RoomAliases(AliasesEventContent {
                     aliases,
                 }),
                 ..
             }
-        )
+        ))
         if aliases == vec![ RoomAliasId::try_from("#somewhere:localhost").unwrap() ]
     );
 }
