@@ -212,12 +212,14 @@ fn expand_deserialize_event(
             where
                 D: ::serde::de::Deserializer<'de>,
             {
-                #[derive(serde::Deserialize)]
+                #[derive(::serde::Deserialize)]
                 #[serde(field_identifier, rename_all = "snake_case")]
                 enum Field {
                     // since this is represented as an enum we have to add it so the JSON picks it up
                     Type,
-                    #( #enum_variants ),*
+                    #( #enum_variants, )*
+                    #[serde(other)]
+                    Unknown,
                 }
 
                 /// Visits the fields of an event struct to handle deserialization of
@@ -242,6 +244,7 @@ fn expand_deserialize_event(
 
                         while let Some(key) = map.next_key()? {
                             match key {
+                                Field::Unknown => continue,
                                 Field::Type => {
                                     if event_type.is_some() {
                                         return Err(::serde::de::Error::duplicate_field("type"));
