@@ -13,7 +13,7 @@ Breaking changes:
   * Change `federated`s type from `Option<bool>` to `bool`
   * Add `predecessor` field
 * Update `r0::push::get_pushrules_all` and `r0::push::get_pushrules_global_scope` to use the
-  `Ruleset` type from `ruma_events`
+  `Ruleset` type from `ruma_common::push` (also available as `ruma::push`)
 * Fix event types in `r0::context::get_context`
 * Fix event types in `r0::sync::sync_events`
 
@@ -25,8 +25,9 @@ Improvements:
 
 Deprecations:
 
-* `r0::sync::sync_events::SetPresence` has been renamed to `PresenceState`. It is still available
-  under its previous name, but only for one release.
+* `r0::sync::sync_events::SetPresence` has been moved and renamed. Use `presence::PresenceState`
+  from `ruma` or `ruma-common`.
+* `r0::push::Action` has been moved. Import it from `ruma` or `ruma-common`.
 
 # 0.9.0
 

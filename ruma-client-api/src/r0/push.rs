@@ -2,7 +2,7 @@
 
 use std::convert::TryFrom;
 
-use ruma_common::push::{Action, PushCondition};
+use ruma_common::push::PushCondition;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
@@ -18,6 +18,9 @@ pub mod set_pusher;
 pub mod set_pushrule;
 pub mod set_pushrule_actions;
 pub mod set_pushrule_enabled;
+
+#[deprecated = "use `push::Action` from `ruma` or `ruma-common` instead"]
+pub use ruma_common::push::Action;
 
 /// The kinds of push rules that are available
 #[derive(
