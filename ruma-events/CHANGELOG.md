@@ -15,6 +15,10 @@ Improvements:
 
 * Add `room::MessageFormat` and `room::FormattedBody`
 
+Deprecations:
+
+* `presence::PresenceState` has been moved. Import it from `ruma` or `ruma-common`.
+
 # 0.21.3
 
 Bug fixes:

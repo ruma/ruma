@@ -4,6 +4,7 @@ use std::{collections::BTreeMap, time::Duration};
 
 use js_int::UInt;
 use ruma_api::ruma_api;
+use ruma_common::presence::PresenceState;
 use ruma_events::{
     presence::PresenceEvent, AnyBasicEvent, AnyEphemeralRoomEvent, AnyRoomEventStub,
     AnyStateEventStub, AnyStrippedStateEventStub, AnyToDeviceEvent, EventJson,
@@ -92,10 +93,8 @@ ruma_api! {
     error: crate::Error
 }
 
-pub use ruma_common::presence::PresenceState;
-
-#[deprecated = "use `PresenceState` instead"]
-pub use self::PresenceState as SetPresence;
+#[deprecated = "use `presence::PresenceState` from `ruma` or `ruma-common` instead"]
+pub use ruma_common::presence::PresenceState as SetPresence;
 
 /// A filter represented either as its full JSON definition or the ID of a saved filter.
 #[derive(Clone, Debug, Deserialize, Serialize)]
