@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Remove `TryFromRaw`, `FromRaw` and `InvalidEvent`
+
 # 0.3.0
 
 Breaking changes:

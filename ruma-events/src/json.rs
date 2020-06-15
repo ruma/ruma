@@ -10,10 +10,7 @@ use serde::{
 };
 use serde_json::value::RawValue;
 
-use crate::{
-    error::{InvalidEvent, InvalidEventKind},
-    EventContent,
-};
+use crate::EventContent;
 
 /// A wrapper around `Box<RawValue>`, to be used in place of event [content] [collection] types in
 /// Matrix endpoint definition to allow request and response types to contain unknown events in
@@ -49,13 +46,8 @@ where
     T: DeserializeOwned,
 {
     /// Try to deserialize the JSON into the expected event type.
-    pub fn deserialize(&self) -> Result<T, InvalidEvent> {
-        match serde_json::from_str(self.json.get()) {
-            Ok(value) => Ok(value),
-            Err(err) => {
-                Err(InvalidEvent { message: err.to_string(), kind: InvalidEventKind::Validation })
-            }
-        }
+    pub fn deserialize(&self) -> Result<T, serde_json::Error> {
+        serde_json::from_str(self.json.get())
     }
 }
 
@@ -64,9 +56,8 @@ where
     T: EventContent,
 {
     /// Try to deserialize the JSON as event content
-    pub fn deserialize_content(self, event_type: &str) -> Result<T, InvalidEvent> {
+    pub fn deserialize_content(self, event_type: &str) -> Result<T, serde_json::Error> {
         T::from_parts(event_type, self.json)
-            .map_err(|err| InvalidEvent { message: err, kind: InvalidEventKind::Deserialization })
     }
 }
 

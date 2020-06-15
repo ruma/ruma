@@ -51,12 +51,14 @@ pub fn expand_event_content(input: DeriveInput) -> syn::Result<TokenStream> {
             fn from_parts(
                 ev_type: &str,
                 content: Box<::serde_json::value::RawValue>
-            ) -> Result<Self, String> {
+            ) -> Result<Self, ::serde_json::Error> {
                 if ev_type != #event_type {
-                    return Err(format!("expected `{}` found {}", #event_type, ev_type));
+                    return Err(::serde::de::Error::custom(
+                        format!("expected event type `{}`, found `{}`", #event_type, ev_type)
+                    ));
                 }
 
-                ::serde_json::from_str(content.get()).map_err(|e| e.to_string())
+                ::serde_json::from_str(content.get())
             }
         }
     })

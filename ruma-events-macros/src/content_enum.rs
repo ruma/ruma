@@ -37,7 +37,10 @@ pub fn expand_content_enum(input: ContentEnumInput) -> syn::Result<TokenStream> 
                 }
             }
 
-            fn from_parts(event_type: &str, input: Box<::serde_json::value::RawValue>) -> Result<Self, String> {
+            fn from_parts(
+                event_type: &str,
+                input: Box<::serde_json::value::RawValue>,
+            ) -> Result<Self, ::serde_json::Error> {
                 match event_type {
                     #(
                         #event_type_str => {
@@ -45,7 +48,7 @@ pub fn expand_content_enum(input: ContentEnumInput) -> syn::Result<TokenStream> 
                             Ok(#ident::#variants(content))
                         },
                     )*
-                    ev => Err(format!("event not supported {}", ev)),
+                    ev => Err(::serde::de::Error::custom(format!("event not supported {}", ev))),
                 }
             }
         }

@@ -168,7 +168,7 @@ pub use self::{
         AnyRoomEventStub, AnyStateEvent, AnyStateEventContent, AnyStateEventStub,
         AnyStrippedStateEventStub, AnyToDeviceEvent, AnyToDeviceEventContent,
     },
-    error::{FromStrError, InvalidEvent, InvalidInput},
+    error::{FromStrError, InvalidInput},
     event_kinds::{
         BasicEvent, EphemeralRoomEvent, EphemeralRoomEventStub, MessageEvent, MessageEventStub,
         StateEvent, StateEventStub, StrippedStateEventStub, ToDeviceEvent,
@@ -218,7 +218,7 @@ pub trait EventContent: Sized + Serialize {
     fn event_type(&self) -> &str;
 
     /// Constructs the given event content.
-    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, String>;
+    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, serde_json::Error>;
 }
 
 /// Marker trait for the content of an ephemeral room event.
