@@ -1,7 +1,0 @@
-error: found unrecognized enum variant `NotAnEvent`
- --> $DIR/10-invalid-variant.rs:3:24
-  |
-3 | #[derive(Clone, Debug, AnyEventDeserialize)]
-  |                        ^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)

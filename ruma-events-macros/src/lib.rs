@@ -11,7 +11,6 @@ use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};
 
 use self::{
-    any_deserialize::expand_any_event_deserialize,
     content_enum::{expand_content_enum, ContentEnumInput},
     event::expand_event,
     event_content::{
@@ -20,7 +19,6 @@ use self::{
     },
 };
 
-mod any_deserialize;
 mod content_enum;
 mod event;
 mod event_content;
@@ -82,11 +80,4 @@ pub fn derive_ephemeral_room_event_content(input: TokenStream) -> TokenStream {
 pub fn derive_state_event(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     expand_event(input).unwrap_or_else(|err| err.to_compile_error()).into()
-}
-
-/// Generates custom `Deserialize implementation for the any event enums.
-#[proc_macro_derive(AnyEventDeserialize)]
-pub fn derive_any_event_deserialize(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-    expand_any_event_deserialize(input).unwrap_or_else(|err| err.to_compile_error()).into()
 }
