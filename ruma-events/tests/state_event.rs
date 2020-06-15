@@ -131,38 +131,11 @@ fn deserialize_aliases_with_prev_content() {
 }
 
 #[test]
-fn deserialize_aliases_stub_with_room_id_non_event_json() {
+fn deserialize_aliases_stub_with_room_id() {
     let json_data = aliases_event_with_prev_content();
 
     assert_matches!(
         from_json_value::<StateEventStub<AnyStateEventContent>>(json_data)
-            .unwrap(),
-        StateEventStub {
-            content: AnyStateEventContent::RoomAliases(content),
-            event_id,
-            origin_server_ts,
-            prev_content: Some(AnyStateEventContent::RoomAliases(prev_content)),
-            sender,
-            state_key,
-            unsigned,
-        } if content.aliases == vec![RoomAliasId::try_from("#somewhere:localhost").unwrap()]
-            && event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
-            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
-            && prev_content.aliases == vec![RoomAliasId::try_from("#inner:localhost").unwrap()]
-            && sender == UserId::try_from("@carl:example.com").unwrap()
-            && state_key == ""
-            && unsigned.is_empty()
-    );
-}
-
-#[test]
-fn deserialize_aliases_stub_with_room_id_event_json() {
-    let json_data = aliases_event_with_prev_content();
-
-    assert_matches!(
-        from_json_value::<EventJson<StateEventStub<AnyStateEventContent>>>(json_data)
-            .unwrap()
-            .deserialize()
             .unwrap(),
         StateEventStub {
             content: AnyStateEventContent::RoomAliases(content),
