@@ -3,23 +3,20 @@ use std::convert::TryFrom;
 use js_int::UInt;
 use ruma_events::{
     room::{join_rules::JoinRule, topic::TopicEventContent},
-    AnyStrippedStateEvent, EventJson, EventType,
+    AnyStateEventContent, AnyStrippedStateEventStub,
 };
 use ruma_identifiers::UserId;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]
 fn serialize_stripped_state_event() {
-    let content = StrippedRoomTopic {
-        content: TopicEventContent {
+    let event = AnyStrippedStateEventStub {
+        content: AnyStateEventContent::RoomTopic(TopicEventContent {
             topic: "Testing room".to_string(),
-        },
+        }),
         state_key: "".to_string(),
-        event_type: EventType::RoomTopic,
         sender: UserId::try_from("@example:localhost").unwrap(),
     };
-
-    let event = AnyStrippedStateEvent::RoomTopic(content);
 
     let json_data = json!({
         "content": {
@@ -78,47 +75,30 @@ fn deserialize_stripped_state_events() {
         }
     });
 
-    match from_json_value::<EventJson<_>>(name_event.clone())
-        .unwrap()
-        .deserialize()
-        .unwrap()
-    {
-        AnyStrippedStateEvent::RoomName(event) => {
-            assert_eq!(event.content.name, Some("Ruma".to_string()));
-            assert_eq!(event.event_type, EventType::RoomName);
+    let event = from_json_value::<AnyStrippedStateEventStub>(name_event).unwrap();
+    match event.content {
+        AnyStateEventContent::RoomName(content) => {
+            assert_eq!(content.name(), Some("Ruma"));
             assert_eq!(event.state_key, "");
             assert_eq!(event.sender.to_string(), "@example:localhost");
         }
         _ => unreachable!(),
-    };
+    }
 
-    // Ensure `StrippedStateContent` can be parsed, not just `StrippedState`.
-    assert!(from_json_value::<EventJson<StrippedRoomName>>(name_event)
-        .unwrap()
-        .deserialize()
-        .is_ok());
-
-    match from_json_value::<EventJson<_>>(join_rules_event)
-        .unwrap()
-        .deserialize()
-        .unwrap()
-    {
-        AnyStrippedStateEvent::RoomJoinRules(event) => {
-            assert_eq!(event.content.join_rule, JoinRule::Public);
-            assert_eq!(event.event_type, EventType::RoomJoinRules);
+    let event = from_json_value::<AnyStrippedStateEventStub>(join_rules_event).unwrap();
+    match event.content {
+        AnyStateEventContent::RoomJoinRules(content) => {
+            assert_eq!(content.join_rule, JoinRule::Public);
             assert_eq!(event.state_key, "");
             assert_eq!(event.sender.to_string(), "@example:localhost");
         }
         _ => unreachable!(),
-    };
+    }
 
-    match from_json_value::<EventJson<_>>(avatar_event)
-        .unwrap()
-        .deserialize()
-        .unwrap()
-    {
-        AnyStrippedStateEvent::RoomAvatar(event) => {
-            let image_info = event.content.info.unwrap();
+    let event = from_json_value::<AnyStrippedStateEventStub>(avatar_event).unwrap();
+    match event.content {
+        AnyStateEventContent::RoomAvatar(content) => {
+            let image_info = content.info.unwrap();
 
             assert_eq!(image_info.height.unwrap(), UInt::try_from(128).unwrap());
             assert_eq!(image_info.width.unwrap(), UInt::try_from(128).unwrap());
@@ -128,11 +108,10 @@ fn deserialize_stripped_state_events() {
                 image_info.thumbnail_info.unwrap().size.unwrap(),
                 UInt::try_from(32).unwrap()
             );
-            assert_eq!(event.content.url, "https://example.com/image.jpg");
-            assert_eq!(event.event_type, EventType::RoomAvatar);
+            assert_eq!(content.url, "https://example.com/image.jpg");
             assert_eq!(event.state_key, "");
             assert_eq!(event.sender.to_string(), "@example:localhost");
         }
         _ => unreachable!(),
-    };
+    }
 }
