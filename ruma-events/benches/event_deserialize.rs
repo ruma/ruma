@@ -1,8 +1,8 @@
-// `cargo bench` works but if you use `cargo bench -- --save-baseline <name>`
-// or pass any other args to it it fails with the error
+// `cargo bench` works, but if you use `cargo bench -- --save-baseline <name>`
+// or pass any other args to it, it fails with the error
 // `cargo bench unknown option --save-baseline`.
-// To pass args to criterion use this form
-// `cargo bench --bench <name of the bench> -- --save-baseline <name>`
+// To pass args to criterion, use this form
+// `cargo bench --bench <name of the bench> -- --save-baseline <name>`.
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use ruma_events::{
