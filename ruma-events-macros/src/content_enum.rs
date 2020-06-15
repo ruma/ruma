@@ -8,9 +8,12 @@ use syn::{
 };
 
 /// Create a content enum from `ContentEnumInput`.
+///
+/// This is the internals of the `event_content_enum!` macro.
 pub fn expand_content_enum(input: ContentEnumInput) -> syn::Result<TokenStream> {
     let attrs = &input.attrs;
     let ident = &input.name;
+
     let event_type_str = &input.events;
 
     let variants = input.events.iter().map(to_camel_case).collect::<Vec<_>>();
@@ -54,10 +57,23 @@ pub fn expand_content_enum(input: ContentEnumInput) -> syn::Result<TokenStream> 
         }
     };
 
+    let any_event_variant_impl = quote! {
+        impl #ident {
+            fn is_compatible(event_type: &str) -> bool {
+                match event_type {
+                    #( #event_type_str => true, )*
+                    _ => false,
+                }
+            }
+        }
+    };
+
     let marker_trait_impls = marker_traits(ident);
 
     Ok(quote! {
         #content_enum
+
+        #any_event_variant_impl
 
         #event_content_impl
 
