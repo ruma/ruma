@@ -182,23 +182,23 @@ impl<'de> de::Deserialize<'de> for AnyEvent {
     where
         D: de::Deserializer<'de>,
     {
-        let json = <&RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { ev_type } = from_raw_json_value(json)?;
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+        let EventDeHelper { ev_type } = from_raw_json_value(&json)?;
 
         match ev_type.as_str() {
-            "m.room.redaction" => Ok(AnyEvent::Redaction(from_raw_json_value(json)?)),
-            "m.presence" => Ok(AnyEvent::Presence(from_raw_json_value(json)?)),
+            "m.room.redaction" => Ok(AnyEvent::Redaction(from_raw_json_value(&json)?)),
+            "m.presence" => Ok(AnyEvent::Presence(from_raw_json_value(&json)?)),
             ev_type if AnyBasicEventContent::is_compatible(ev_type) => {
-                Ok(AnyEvent::Basic(from_raw_json_value(json)?))
+                Ok(AnyEvent::Basic(from_raw_json_value(&json)?))
             }
             ev_type if AnyEphemeralRoomEventContent::is_compatible(ev_type) => {
-                Ok(AnyEvent::Ephemeral(from_raw_json_value(json)?))
+                Ok(AnyEvent::Ephemeral(from_raw_json_value(&json)?))
             }
             ev_type if AnyMessageEventContent::is_compatible(ev_type) => {
-                Ok(AnyEvent::Message(from_raw_json_value(json)?))
+                Ok(AnyEvent::Message(from_raw_json_value(&json)?))
             }
             ev_type if AnyStateEventContent::is_compatible(ev_type) => {
-                Ok(AnyEvent::State(from_raw_json_value(json)?))
+                Ok(AnyEvent::State(from_raw_json_value(&json)?))
             }
             _ => Err(D::Error::custom(format!("event type `{}` is not a valid event", ev_type))),
         }
@@ -210,16 +210,16 @@ impl<'de> de::Deserialize<'de> for AnyRoomEvent {
     where
         D: de::Deserializer<'de>,
     {
-        let json = <&RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { ev_type } = from_raw_json_value(json)?;
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+        let EventDeHelper { ev_type } = from_raw_json_value(&json)?;
 
         match ev_type.as_str() {
-            "m.room.redaction" => Ok(AnyRoomEvent::Redaction(from_raw_json_value(json)?)),
+            "m.room.redaction" => Ok(AnyRoomEvent::Redaction(from_raw_json_value(&json)?)),
             ev_type if AnyMessageEventContent::is_compatible(ev_type) => {
-                Ok(AnyRoomEvent::Message(from_raw_json_value(json)?))
+                Ok(AnyRoomEvent::Message(from_raw_json_value(&json)?))
             }
             ev_type if AnyStateEventContent::is_compatible(ev_type) => {
-                Ok(AnyRoomEvent::State(from_raw_json_value(json)?))
+                Ok(AnyRoomEvent::State(from_raw_json_value(&json)?))
             }
             _ => Err(D::Error::custom(format!("event type `{}` is not a valid event", ev_type))),
         }
@@ -231,16 +231,16 @@ impl<'de> de::Deserialize<'de> for AnyRoomEventStub {
     where
         D: de::Deserializer<'de>,
     {
-        let json = <&RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { ev_type } = from_raw_json_value(json)?;
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+        let EventDeHelper { ev_type } = from_raw_json_value(&json)?;
 
         match ev_type.as_str() {
-            "m.room.redaction" => Ok(AnyRoomEventStub::Redaction(from_raw_json_value(json)?)),
+            "m.room.redaction" => Ok(AnyRoomEventStub::Redaction(from_raw_json_value(&json)?)),
             ev_type if AnyMessageEventContent::is_compatible(ev_type) => {
-                Ok(AnyRoomEventStub::Message(from_raw_json_value(json)?))
+                Ok(AnyRoomEventStub::Message(from_raw_json_value(&json)?))
             }
             ev_type if AnyStateEventContent::is_compatible(ev_type) => {
-                Ok(AnyRoomEventStub::State(from_raw_json_value(json)?))
+                Ok(AnyRoomEventStub::State(from_raw_json_value(&json)?))
             }
             _ => Err(D::Error::custom(format!("event type `{}` is not a valid event", ev_type))),
         }
