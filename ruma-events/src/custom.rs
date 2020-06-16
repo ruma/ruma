@@ -4,11 +4,9 @@ use std::time::SystemTime;
 
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::Serialize;
-use serde_json::Value as JsonValue;
+use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
-use crate::UnsignedData;
-
-// TODO: (De)serialization
+use crate::{EventContent, UnsignedData};
 
 /// A custom event's type and `content` JSON object.
 #[derive(Clone, Debug, Serialize)]
@@ -18,7 +16,19 @@ pub struct CustomEventContent {
     pub event_type: String,
 
     /// The actual `content` JSON object.
+    #[serde(flatten)]
     pub json: JsonValue,
+}
+
+impl EventContent for CustomEventContent {
+    fn event_type(&self) -> &str {
+        &self.event_type
+    }
+
+    fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, serde_json::Error> {
+        let json = serde_json::from_str(content.get())?;
+        Ok(Self { event_type: event_type.to_string(), json })
+    }
 }
 
 /// A custom event not covered by the Matrix specification.

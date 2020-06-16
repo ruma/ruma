@@ -27,8 +27,10 @@ pub fn expand_content_enum(input: ContentEnumInput) -> syn::Result<TokenStream> 
         pub enum #ident {
             #(
                 #[doc = #event_type_str]
-                #variants(#content)
-            ),*
+                #variants(#content),
+            )*
+            #[doc = "Represents any event not defined in the Matrix spec."]
+            Custom(::ruma_events::custom::CustomEventContent)
         }
     };
 
@@ -36,7 +38,8 @@ pub fn expand_content_enum(input: ContentEnumInput) -> syn::Result<TokenStream> 
         impl ::ruma_events::EventContent for #ident {
             fn event_type(&self) -> &str {
                 match self {
-                    #( Self::#variants(content) => content.event_type() ),*
+                    #( Self::#variants(content) => content.event_type(), )*
+                    #ident::Custom(content) => content.event_type(),
                 }
             }
 
@@ -51,7 +54,10 @@ pub fn expand_content_enum(input: ContentEnumInput) -> syn::Result<TokenStream> 
                             Ok(#ident::#variants(content))
                         },
                     )*
-                    ev => Err(::serde::de::Error::custom(format!("event not supported {}", ev))),
+                    ev_type => {
+                        let content = ::ruma_events::custom::CustomEventContent::from_parts(ev_type, input)?;
+                        Ok(#ident::Custom(content))
+                    },
                 }
             }
         }
