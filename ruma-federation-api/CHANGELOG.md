@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking Changes:
+
+* Replace `RoomV3Pdu` with `ruma_events::pdu::{Pdu, PduStub}`.
+
 Improvements:
 
 * Add endpoints:
@@ -15,6 +19,7 @@ Improvements:
         create_join_event_template::v1
     },
     query::get_room_information::v1,
+    transactions::send_transaction_message::v1,
     version::get_server_version::v1
   ```
 
