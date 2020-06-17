@@ -2,7 +2,7 @@
 
 use std::{convert::TryFrom, num::NonZeroU8};
 
-use crate::{error::Error, parse_id, server_name::ServerName};
+use crate::{error::Error, parse_id, ServerNameRef};
 
 /// A Matrix room ID.
 ///
@@ -33,7 +33,7 @@ impl<T> RoomId<T> {
     /// Fails if the given homeserver cannot be parsed as a valid host.
     #[cfg(feature = "rand")]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
-    pub fn new(server_name: &ServerName<&str>) -> Self
+    pub fn new(server_name: ServerNameRef<'_>) -> Self
     where
         String: Into<T>,
     {
@@ -53,11 +53,12 @@ impl<T> RoomId<T> {
     }
 
     /// Returns the server name of the room ID.
-    pub fn server_name(&self) -> ServerName<&str>
+    pub fn server_name(&self) -> ServerNameRef<'_>
     where
         T: AsRef<str>,
     {
-        ServerName::try_from(&self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]).unwrap()
+        ServerNameRef::try_from(&self.full_id.as_ref()[self.colon_idx.get() as usize + 1..])
+            .unwrap()
     }
 }
 
@@ -82,7 +83,7 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
-    use crate::{error::Error, server_name::ServerName};
+    use crate::{error::Error, ServerNameRef};
 
     type RoomId = super::RoomId<Box<str>>;
 
@@ -99,8 +100,9 @@ mod tests {
     #[cfg(feature = "rand")]
     #[test]
     fn generate_random_valid_room_id() {
-        let server_name = ServerName::try_from("example.com").expect("Failed to parse ServerName");
-        let room_id = RoomId::new(&server_name);
+        let server_name =
+            ServerNameRef::try_from("example.com").expect("Failed to parse ServerName");
+        let room_id = RoomId::new(server_name);
         let id_str: &str = room_id.as_ref();
 
         assert!(id_str.starts_with('!'));

@@ -16,7 +16,7 @@ Breaking changes:
     ```
     to
     ```rust
-    fn new(&ServerName<&str>) -> Self
+    fn new(ServerNameRef<'_>) -> Self
     ```
 
   * Change signature of `server_name()` for `EventId`, `RoomAliasId`, `RoomId`, `RoomIdOrAliasId`, `UserId` from

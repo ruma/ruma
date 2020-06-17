@@ -48,8 +48,8 @@ mod tests {
     fn serialization() {
         let mut content = DirectEventContent(BTreeMap::new());
         let server_name = ServerNameRef::try_from("ruma.io").unwrap();
-        let alice = UserId::new(&server_name);
-        let room = vec![RoomId::new(&server_name)];
+        let alice = UserId::new(server_name);
+        let room = vec![RoomId::new(server_name)];
 
         content.insert(alice.clone(), room.clone());
 
@@ -67,8 +67,8 @@ mod tests {
     #[test]
     fn deserialization() {
         let server_name = ServerNameRef::try_from("ruma.io").unwrap();
-        let alice = UserId::new(&server_name);
-        let rooms = vec![RoomId::new(&server_name), RoomId::new(&server_name)];
+        let alice = UserId::new(server_name);
+        let rooms = vec![RoomId::new(server_name), RoomId::new(server_name)];
 
         let json_data = json!({
             "content": {

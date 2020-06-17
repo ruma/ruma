@@ -127,20 +127,20 @@ pub type ServerKeyAlgorithm = key_algorithms::ServerKeyAlgorithm;
 /// and `Deserialize` if the `serde` feature is enabled.
 pub type ServerKeyId = server_key_id::ServerKeyId<Box<str>>;
 
-/// An reference to a homeserver signing key identifier containing a key
+/// A reference to a homeserver signing key identifier containing a key
 /// algorithm and version.
 ///
 /// Can be created via `TryFrom<&str>`; implements `Serialize`
 /// and `Deserialize` if the `serde` feature is enabled.
 pub type ServerKeyIdRef<'a> = server_key_id::ServerKeyId<&'a str>;
 
-/// An homeserver IP address or hostname.
+/// An owned homeserver IP address or hostname.
 ///
 /// Can be created via `TryFrom<String>` and `TryFrom<&str>`; implements `Serialize`
 /// and `Deserialize` if the `serde` feature is enabled.
 pub type ServerName = server_name::ServerName<Box<str>>;
 
-/// An homeserver IP address or hostname.
+/// A reference to a homeserver IP address or hostname.
 ///
 /// Can be created via `TryFrom<&str>`; implements `Serialize`
 /// and `Deserialize` if the `serde` feature is enabled.

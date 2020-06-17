@@ -2,7 +2,7 @@
 
 use std::{convert::TryFrom, num::NonZeroU8};
 
-use crate::{error::Error, parse_id, server_name::ServerName, validate_id};
+use crate::{error::Error, parse_id, validate_id, ServerNameRef};
 
 /// A Matrix event ID.
 ///
@@ -55,7 +55,7 @@ impl<T> EventId<T> {
     /// parsed as a valid host.
     #[cfg(feature = "rand")]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
-    pub fn new(server_name: &ServerName<&str>) -> Self
+    pub fn new(server_name: ServerNameRef<'_>) -> Self
     where
         String: Into<T>,
     {
@@ -84,12 +84,12 @@ impl<T> EventId<T> {
     /// Returns the server name of the event ID.
     ///
     /// Only applicable to events in the original format as used by Matrix room versions 1 and 2.
-    pub fn server_name(&self) -> Option<ServerName<&str>>
+    pub fn server_name(&self) -> Option<ServerNameRef<'_>>
     where
         T: AsRef<str>,
     {
         self.colon_idx.map(|idx| {
-            ServerName::try_from(&self.full_id.as_ref()[idx.get() as usize + 1..]).unwrap()
+            ServerNameRef::try_from(&self.full_id.as_ref()[idx.get() as usize + 1..]).unwrap()
         })
     }
 }
@@ -161,7 +161,7 @@ mod tests {
     fn generate_random_valid_event_id() {
         let server_name =
             ServerNameRef::try_from("example.com").expect("Failed to parse ServerName");
-        let event_id = EventId::new(&server_name);
+        let event_id = EventId::new(server_name);
         let id_str: &str = event_id.as_ref();
 
         assert!(id_str.starts_with('$'));

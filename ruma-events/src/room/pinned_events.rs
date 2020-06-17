@@ -35,16 +35,16 @@ mod tests {
         let mut content: PinnedEventsEventContent = PinnedEventsEventContent { pinned: Vec::new() };
         let server_name = ServerNameRef::try_from("example.com").unwrap();
 
-        content.pinned.push(EventId::new(&server_name));
-        content.pinned.push(EventId::new(&server_name));
+        content.pinned.push(EventId::new(server_name));
+        content.pinned.push(EventId::new(server_name));
 
         let event = StateEvent {
             content: content.clone(),
-            event_id: EventId::new(&server_name),
+            event_id: EventId::new(server_name),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1_432_804_485_886u64),
             prev_content: None,
-            room_id: RoomId::new(&server_name),
-            sender: UserId::new(&server_name),
+            room_id: RoomId::new(server_name),
+            sender: UserId::new(server_name),
             state_key: "".to_string(),
             unsigned: UnsignedData::default(),
         };
