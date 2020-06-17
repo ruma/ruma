@@ -1,6 +1,6 @@
 //! Identifiers for device keys for end-to-end encryption.
 
-use crate::{device_id::DeviceId, error::Error, key_algorithms::DeviceKeyAlgorithm};
+use crate::{error::Error, key_algorithms::DeviceKeyAlgorithm, DeviceIdRef};
 use std::{num::NonZeroU8, str::FromStr};
 
 /// A key algorithm and a device id, combined with a ':'
@@ -21,11 +21,11 @@ impl<T> DeviceKeyId<T> {
     }
 
     /// Returns device ID of the device key ID.
-    pub fn device_id(&self) -> DeviceId
+    pub fn device_id(&self) -> DeviceIdRef<'_>
     where
         T: AsRef<str>,
     {
-        DeviceId::from(&self.full_id.as_ref()[self.colon_idx.get() as usize + 1..])
+        &self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]
     }
 }
 
