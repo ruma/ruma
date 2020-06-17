@@ -22,15 +22,19 @@ ruma_api! {
         /// A transaction ID unique between sending and receiving homeservers.
         #[ruma_api(path)]
         pub transaction_id: String,
+
         /// The server_name of the homeserver sending this transaction.
         pub origin: String,
-        /// POSIX timestamp in milliseconds on originating homeserver when this transaction started.
+
+        /// POSIX timestamp in milliseconds on the originating homeserver when this transaction started.
         #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
         pub origin_server_ts: SystemTime,
+
         /// List of persistent updates to rooms.
         ///
         /// Must not be more than 50 items.
         pub pdus: Vec<Pdu>,
+
         /// List of ephemeral messages.
         ///
         /// Must not be more than 100 items.

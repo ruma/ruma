@@ -25,7 +25,7 @@ ruma_api! {
         pub event_id: EventId,
 
         /// PDU type without event and room IDs.
-        #[serde(flatten)]
+        #[ruma_api(body)]
         pub pdu_stub: PduStub,
     }
 
