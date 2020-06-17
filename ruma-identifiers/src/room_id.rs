@@ -1,8 +1,8 @@
 //! Matrix room identifiers.
 
-use std::num::NonZeroU8;
+use std::{convert::TryFrom, num::NonZeroU8};
 
-use crate::{error::Error, parse_id};
+use crate::{error::Error, parse_id, server_name::ServerName};
 
 /// A Matrix room ID.
 ///
@@ -33,18 +33,15 @@ impl<T> RoomId<T> {
     /// Fails if the given homeserver cannot be parsed as a valid host.
     #[cfg(feature = "rand")]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
-    pub fn new(server_name: &str) -> Result<Self, Error>
+    pub fn new(server_name: &ServerName<&str>) -> Self
     where
         String: Into<T>,
     {
-        use crate::{generate_localpart, is_valid_server_name};
+        use crate::generate_localpart;
 
-        if !is_valid_server_name(server_name) {
-            return Err(Error::InvalidServerName);
-        }
         let full_id = format!("!{}:{}", generate_localpart(18), server_name).into();
 
-        Ok(Self { full_id, colon_idx: NonZeroU8::new(19).unwrap() })
+        Self { full_id, colon_idx: NonZeroU8::new(19).unwrap() }
     }
 
     /// Returns the rooms's unique ID.
@@ -56,11 +53,11 @@ impl<T> RoomId<T> {
     }
 
     /// Returns the server name of the room ID.
-    pub fn server_name(&self) -> &str
+    pub fn server_name(&self) -> ServerName<&str>
     where
         T: AsRef<str>,
     {
-        &self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]
+        ServerName::try_from(&self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]).unwrap()
     }
 }
 
@@ -85,7 +82,7 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
-    use crate::error::Error;
+    use crate::{error::Error, server_name::ServerName};
 
     type RoomId = super::RoomId<Box<str>>;
 
@@ -102,17 +99,12 @@ mod tests {
     #[cfg(feature = "rand")]
     #[test]
     fn generate_random_valid_room_id() {
-        let room_id = RoomId::new("example.com").expect("Failed to generate RoomId.");
+        let server_name = ServerName::try_from("example.com").expect("Failed to parse ServerName");
+        let room_id = RoomId::new(&server_name);
         let id_str: &str = room_id.as_ref();
 
         assert!(id_str.starts_with('!'));
         assert_eq!(id_str.len(), 31);
-    }
-
-    #[cfg(feature = "rand")]
-    #[test]
-    fn generate_random_invalid_room_id() {
-        assert!(RoomId::new("").is_err());
     }
 
     #[cfg(feature = "serde")]

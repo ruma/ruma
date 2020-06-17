@@ -8,10 +8,30 @@ Breaking changes:
 * Update `parse_with_server_name`s signature (instead of `Into<String>` it now requires
   `Into<Box<str>>` of the id type). This is technically a breaking change, but extremely unlikely
   to affect any existing code.
+* Modify identifier types to use the new `ServerName` type:
+  * Change signature of `new()` methods of `EventId`, `RoomId`, and `UserId` from
+  ```rust
+  fn new(&str) -> Result<Self, Error>
+  //...
+  ```
+  to
+  ```rust
+  fn new(&ServerName<&str>) -> Self
+  ```
+  * Change signature of `server_name()` for `EventId`, `RoomAliasId`, `RoomId`, `RoomIdOrAliasId`, `UserId` from
+  ```rust
+  fn server_name() -> &str
+  ```
+  to
+  ```rust
+  fn server_name() -> ServerName<&str>
+  ```
+
 
 Improvements:
 
 * Add `DeviceKeyId`, `DeviceKeyAlgorithm`, `ServerKeyId`, and `ServerKeyAlgorithm`
+* Add `ServerName` and `ServerNameRef` types
 
 # 0.16.2
 

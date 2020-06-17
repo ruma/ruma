@@ -11,13 +11,13 @@
 #![allow(clippy::use_self)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-use std::num::NonZeroU8;
+use std::{convert::TryFrom, num::NonZeroU8};
 
 #[cfg(feature = "serde")]
 use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
 
 #[doc(inline)]
-pub use crate::{error::Error, server_name::is_valid_server_name};
+pub use crate::error::Error;
 
 #[macro_use]
 mod macros;
@@ -134,6 +134,17 @@ pub type ServerKeyId = server_key_id::ServerKeyId<Box<str>>;
 /// and `Deserialize` if the `serde` feature is enabled.
 pub type ServerKeyIdRef<'a> = server_key_id::ServerKeyId<&'a str>;
 
+/// An homeserver IP address or hostname.
+///
+/// Can be created via `TryFrom<String>` and `TryFrom<&str>`; implements `Serialize`
+/// and `Deserialize` if the `serde` feature is enabled.
+pub type ServerName = server_name::ServerName<Box<str>>;
+
+/// An homeserver IP address or hostname.
+///
+/// Can be created via `TryFrom<&str>`; implements `Serialize`
+/// and `Deserialize` if the `serde` feature is enabled.
+pub type ServerNameRef<'a> = server_name::ServerName<&'a str>;
 /// An owned user ID.
 ///
 /// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
@@ -187,9 +198,7 @@ fn parse_id(id: &str, valid_sigils: &[char]) -> Result<NonZeroU8, Error> {
         return Err(Error::InvalidLocalPart);
     }
 
-    if !is_valid_server_name(&id[colon_idx + 1..]) {
-        return Err(Error::InvalidServerName);
-    }
+    server_name::ServerName::<&str>::try_from(&id[colon_idx + 1..])?;
 
     Ok(NonZeroU8::new(colon_idx as u8).unwrap())
 }

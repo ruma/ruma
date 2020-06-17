@@ -19,9 +19,12 @@ pub struct PinnedEventsEventContent {
 
 #[cfg(test)]
 mod tests {
-    use std::time::{Duration, UNIX_EPOCH};
+    use std::{
+        convert::TryFrom,
+        time::{Duration, UNIX_EPOCH},
+    };
 
-    use ruma_identifiers::{EventId, RoomId, UserId};
+    use ruma_identifiers::{EventId, RoomId, ServerNameRef, UserId};
     use serde_json::to_string;
 
     use super::PinnedEventsEventContent;
@@ -30,17 +33,18 @@ mod tests {
     #[test]
     fn serialization_deserialization() {
         let mut content: PinnedEventsEventContent = PinnedEventsEventContent { pinned: Vec::new() };
+        let server_name = ServerNameRef::try_from("example.com").unwrap();
 
-        content.pinned.push(EventId::new("example.com").unwrap());
-        content.pinned.push(EventId::new("example.com").unwrap());
+        content.pinned.push(EventId::new(&server_name));
+        content.pinned.push(EventId::new(&server_name));
 
         let event = StateEvent {
             content: content.clone(),
-            event_id: EventId::new("example.com").unwrap(),
+            event_id: EventId::new(&server_name),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1_432_804_485_886u64),
             prev_content: None,
-            room_id: RoomId::new("example.com").unwrap(),
-            sender: UserId::new("example.com").unwrap(),
+            room_id: RoomId::new(&server_name),
+            sender: UserId::new(&server_name),
             state_key: "".to_string(),
             unsigned: UnsignedData::default(),
         };

@@ -1,8 +1,8 @@
 //! Matrix room alias identifiers.
 
-use std::num::NonZeroU8;
+use std::{convert::TryFrom, num::NonZeroU8};
 
-use crate::{error::Error, parse_id};
+use crate::{error::Error, parse_id, server_name::ServerName};
 
 /// A Matrix room alias ID.
 ///
@@ -33,8 +33,8 @@ impl<T: AsRef<str>> RoomAliasId<T> {
     }
 
     /// Returns the server name of the room alias ID.
-    pub fn server_name(&self) -> &str {
-        &self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]
+    pub fn server_name(&self) -> ServerName<&str> {
+        ServerName::try_from(&self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]).unwrap()
     }
 }
 

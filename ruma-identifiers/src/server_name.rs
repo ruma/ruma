@@ -1,7 +1,26 @@
 /// Check whether a given string is a valid server name according to [the specification][].
 ///
 /// [the specification]: https://matrix.org/docs/spec/appendices#server-name
-pub fn is_valid_server_name(name: &str) -> bool {
+use crate::error::Error;
+
+#[derive(Clone, Copy, Debug)]
+pub struct ServerName<T> {
+    full_id: T,
+}
+
+fn try_from<S, T>(server_name: S) -> Result<ServerName<T>, Error>
+where
+    S: AsRef<str> + Into<T>,
+{
+    if !is_valid_server_name(server_name.as_ref()) {
+        return Err(Error::InvalidServerName);
+    }
+    Ok(ServerName { full_id: server_name.into() })
+}
+
+common_impls!(ServerName, try_from, "An IP address or hostname");
+
+fn is_valid_server_name(name: &str) -> bool {
     use std::net::Ipv6Addr;
 
     if name.is_empty() {
