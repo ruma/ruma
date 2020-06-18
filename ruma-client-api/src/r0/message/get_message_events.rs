@@ -47,9 +47,9 @@ ruma_api! {
         /// The maximum number of events to return.
         ///
         /// Default: 10.
-        #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub limit: Option<UInt>,
+        #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
+        pub limit: UInt,
 
         /// A RoomEventFilter to filter returned events with.
         #[ruma_api(query)]
@@ -80,6 +80,15 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+fn default_limit() -> UInt {
+    UInt::from(10u32)
+}
+
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn is_default_limit(val: &UInt) -> bool {
+    *val == default_limit()
 }
 
 /// The direction to return events from.
@@ -120,7 +129,7 @@ mod tests {
             from: "token".into(),
             to: Some("token2".into()),
             dir: Direction::Backward,
-            limit: Some(UInt::from(0u32)),
+            limit: UInt::from(0u32),
             filter: Some(filter),
         };
 
@@ -139,7 +148,7 @@ mod tests {
             from: "token".into(),
             to: Some("token2".into()),
             dir: Direction::Backward,
-            limit: Some(UInt::from(0u32)),
+            limit: UInt::from(0u32),
             filter: None,
         };
 
@@ -155,7 +164,7 @@ mod tests {
             from: "token".into(),
             to: Some("token2".into()),
             dir: Direction::Backward,
-            limit: Some(UInt::from(0u32)),
+            limit: UInt::from(0u32),
             filter: Some(RoomEventFilter::default()),
         };
 
