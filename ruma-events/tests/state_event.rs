@@ -236,3 +236,48 @@ fn deserialize_avatar_without_prev_content() {
             && unsigned.is_empty()
     );
 }
+
+#[test]
+fn deserialize_member_event_membership_hoist_unsigned_prev_content() {
+    let json_data = json!({
+        "content": {
+            "avatar_url": null,
+            "displayname": "example",
+            "membership": "join"
+        },
+        "event_id": "$h29iv0s8:example.com",
+        "membership": "join",
+        "room_id": "!room:localhost",
+        "origin_server_ts": 1,
+        "sender": "@example:localhost",
+        "state_key": "@example:localhost",
+        "type": "m.room.member",
+        "unsigned": {
+            "age": 1,
+            "replaces_state": "$151800111315tsynI:localhost",
+            "prev_content": {
+                "avatar_url": null,
+                "displayname": "example",
+                "membership": "invite"
+            }
+        }
+    });
+
+    assert_matches!(
+        from_json_value::<ruma_events::AnyRoomEvent>(json_data)
+            .unwrap(),
+        ruma_events::AnyRoomEvent::State(
+            ruma_events::AnyStateEvent::RoomMember(StateEvent {
+                content,
+                event_id,
+                origin_server_ts,
+                prev_content: None,
+                sender,
+                ..
+            }
+        )) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
+            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && sender == UserId::try_from("@example:localhost").unwrap()
+            && content.displayname == Some("example".to_string())
+    );
+}

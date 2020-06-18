@@ -244,7 +244,9 @@ fn expand_deserialize_event(
 
                         while let Some(key) = map.next_key()? {
                             match key {
-                                Field::Unknown => continue,
+                                Field::Unknown => {
+                                    let _: Box<::serde_json::value::RawValue> = map.next_value()?;
+                                },
                                 Field::Type => {
                                     if event_type.is_some() {
                                         return Err(::serde::de::Error::duplicate_field("type"));
