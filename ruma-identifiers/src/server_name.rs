@@ -1,8 +1,8 @@
-/// Check whether a given string is a valid server name according to [the specification][].
-///
-/// [the specification]: https://matrix.org/docs/spec/appendices#server-name
+//! Matrix-spec compliant server names.
+
 use crate::error::Error;
 
+/// A Matrix-spec compliant server name.
 #[derive(Clone, Copy, Debug)]
 pub struct ServerName<T> {
     full_id: T,
@@ -20,7 +20,14 @@ where
 
 common_impls!(ServerName, try_from, "An IP address or hostname");
 
-fn is_valid_server_name(name: &str) -> bool {
+/// Check whether a given string is a valid server name according to [the specification][].
+///
+/// Deprecated. Use the `try_from()` method of [`ServerName`](server_name/struct.ServerName.html) to construct
+/// a server name instead.
+///
+/// [the specification]: https://matrix.org/docs/spec/appendices#server-name
+#[deprecated]
+pub fn is_valid_server_name(name: &str) -> bool {
     use std::net::Ipv6Addr;
 
     if name.is_empty() {

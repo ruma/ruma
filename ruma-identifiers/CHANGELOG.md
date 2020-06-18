@@ -28,6 +28,10 @@ Breaking changes:
     fn server_name() -> ServerName<&str>
     ```
 
+Deprecations:
+
+* Mark `server_name::is_valid_server_name` as deprecated in favor of `ServerName::try_from()`
+
 
 Improvements:
 

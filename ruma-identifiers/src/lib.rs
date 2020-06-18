@@ -17,13 +17,13 @@ use std::{convert::TryFrom, num::NonZeroU8};
 use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
 
 #[doc(inline)]
-pub use crate::error::Error;
+#[allow(deprecated)]
+pub use crate::{error::Error, server_name::is_valid_server_name};
 
 #[macro_use]
 mod macros;
 
 mod error;
-mod server_name;
 
 pub mod device_id;
 pub mod device_key_id;
@@ -34,6 +34,8 @@ pub mod room_id;
 pub mod room_id_or_room_alias_id;
 pub mod room_version_id;
 pub mod server_key_id;
+#[allow(deprecated)]
+pub mod server_name;
 pub mod user_id;
 
 /// Allowed algorithms for homeserver signing keys.
