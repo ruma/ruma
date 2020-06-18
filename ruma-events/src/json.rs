@@ -12,8 +12,8 @@ use serde_json::value::RawValue;
 
 use crate::EventContent;
 
-/// A wrapper around `Box<RawValue>`, to be used in place of event [content] [collection] types in
-/// Matrix endpoint definition to allow request and response types to contain unknown events in
+/// A wrapper around `Box<RawValue>`, to be used in place of event \[content\] \[collection\] types
+/// in Matrix endpoint definition to allow request and response types to contain unknown events in
 /// addition to the known event(s) represented by the generic argument `Ev`.
 pub struct EventJson<T> {
     json: Box<RawValue>,

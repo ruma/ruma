@@ -23,7 +23,7 @@ ruma_api! {
         #[ruma_api(path)]
         pub user_id: UserId,
         #[ruma_api(query)]
-        /// The room versions the sending server has support for. Defaults to [1].
+        /// The room versions the sending server has support for. Defaults to 1.
         #[serde(skip_serializing_if = "Vec::is_empty")]
         pub ver: Vec<UInt>,
     }
