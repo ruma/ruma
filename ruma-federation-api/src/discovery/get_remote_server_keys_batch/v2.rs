@@ -1,4 +1,4 @@
-//! [GET /_matrix/key/v2/query/{serverName}/{keyId}](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-key-v2-query-servername-keyid)
+//! [POST /_matrix/key/v2/query](https://matrix.org/docs/spec/server_server/r0.1.4#post-matrix-key-v2-query)
 
 use std::{collections::BTreeMap, time::SystemTime};
 
