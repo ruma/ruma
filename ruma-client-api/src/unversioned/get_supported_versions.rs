@@ -27,3 +27,17 @@ ruma_api! {
 
     error: crate::Error
 }
+
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a `Response` with the given `versions`.
+    pub fn new(versions: Vec<String>) -> Self {
+        Self { versions, unstable_features: BTreeMap::new() }
+    }
+}

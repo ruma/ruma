@@ -28,16 +28,46 @@ ruma_api! {
     error: crate::Error
 }
 
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a `Response` with the given `HomeserverInfo`.
+    pub fn new(homeserver: HomeserverInfo) -> Self {
+        Self { homeserver, identity_server: None }
+    }
+}
+
 /// Information about a discovered homeserver.
 #[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
+#[non_exhaustive]
 pub struct HomeserverInfo {
     /// The base URL for the homeserver for client-server connections.
     pub base_url: String,
 }
 
+impl HomeserverInfo {
+    /// Creates a `HomeserverInfo` with the given `base_url`.
+    pub fn new(base_url: String) -> Self {
+        Self { base_url }
+    }
+}
+
 /// Information about a discovered identity server.
 #[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
+#[non_exhaustive]
 pub struct IdentityServerInfo {
     /// The base URL for the identity server for client-server connections.
     pub base_url: String,
+}
+
+impl IdentityServerInfo {
+    /// Creates an `IdentityServerInfo` with the given `base_url`.
+    pub fn new(base_url: String) -> Self {
+        Self { base_url }
+    }
 }
