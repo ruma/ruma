@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use strum::{AsRefStr, Display, EnumString};
 
-/// The basic key algorithms in the specification
+/// The basic key algorithms in the specification.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, Display, EnumString)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]
@@ -23,6 +23,7 @@ pub enum DeviceKeyAlgorithm {
     SignedCurve25519,
 }
 
+/// The server key algorithms defined in the Matrix spec.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, Display, EnumString)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[non_exhaustive]

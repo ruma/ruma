@@ -1,5 +1,27 @@
+/// Declares an item with a doc attribute computed by some macro expression.
+/// This allows documentation to be dynamically generated based on input.
+/// Necessary to work around https://github.com/rust-lang/rust/issues/52607.
+macro_rules! doc_concat {
+    ( $( #[doc = $doc:expr] $thing:item )* ) => ( $( #[doc = $doc] $thing )* );
+}
+
 macro_rules! common_impls {
     ($id:ident, $try_from:ident, $desc:literal) => {
+        impl<T: ::std::convert::AsRef<str>> $id<T> {
+            doc_concat! {
+                #[doc = concat!("Creates a string slice from this `", stringify!($id), "`")]
+                pub fn as_str(&self) -> &str {
+                    self.full_id.as_ref()
+                }
+            }
+        }
+
+        impl<'a> ::std::convert::From<&'a $id<Box<str>>> for $id<&'a str> {
+            fn from(id: &'a $id<Box<str>>) -> Self {
+                id.as_ref()
+            }
+        }
+
         impl ::std::convert::From<$id<Box<str>>> for ::std::string::String {
             fn from(id: $id<Box<str>>) -> Self {
                 id.full_id.into()

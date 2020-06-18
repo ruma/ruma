@@ -11,21 +11,23 @@ pub struct ServerKeyId<T> {
     colon_idx: NonZeroU8,
 }
 
-impl<T> ServerKeyId<T> {
+impl<T> ServerKeyId<T>
+where
+    T: AsRef<str>,
+{
+    /// Creates a reference to this `ServerKeyId`.
+    pub fn as_ref(&self) -> ServerKeyId<&str> {
+        ServerKeyId { full_id: self.full_id.as_ref(), colon_idx: self.colon_idx }
+    }
+
     /// Returns key algorithm of the server key ID.
-    pub fn algorithm(&self) -> ServerKeyAlgorithm
-    where
-        T: AsRef<str>,
-    {
+    pub fn algorithm(&self) -> ServerKeyAlgorithm {
         ServerKeyAlgorithm::from_str(&self.full_id.as_ref()[..self.colon_idx.get() as usize])
             .unwrap()
     }
 
     /// Returns the version of the server key ID.
-    pub fn version(&self) -> &str
-    where
-        T: AsRef<str>,
-    {
+    pub fn version(&self) -> &str {
         &self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]
     }
 }

@@ -26,7 +26,15 @@ pub struct RoomAliasId<T> {
     pub(crate) colon_idx: NonZeroU8,
 }
 
-impl<T: AsRef<str>> RoomAliasId<T> {
+impl<T> RoomAliasId<T>
+where
+    T: AsRef<str>,
+{
+    /// Creates a reference to this `RoomAliasId`.
+    pub fn as_ref(&self) -> RoomAliasId<&str> {
+        RoomAliasId { full_id: self.full_id.as_ref(), colon_idx: self.colon_idx }
+    }
+
     /// Returns the room's alias.
     pub fn alias(&self) -> &str {
         &self.full_id.as_ref()[1..self.colon_idx.get() as usize]

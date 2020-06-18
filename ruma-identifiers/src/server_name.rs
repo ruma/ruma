@@ -11,6 +11,16 @@ pub struct ServerName<T> {
     full_id: T,
 }
 
+impl<T> ServerName<T>
+where
+    T: AsRef<str>,
+{
+    /// Creates a reference to this `ServerName`.
+    pub fn as_ref(&self) -> ServerName<&str> {
+        ServerName { full_id: self.full_id.as_ref() }
+    }
+}
+
 fn try_from<S, T>(server_name: S) -> Result<ServerName<T>, Error>
 where
     S: AsRef<str> + Into<T>,

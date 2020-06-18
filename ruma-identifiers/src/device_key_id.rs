@@ -10,21 +10,23 @@ pub struct DeviceKeyId<T> {
     colon_idx: NonZeroU8,
 }
 
-impl<T> DeviceKeyId<T> {
+impl<T> DeviceKeyId<T>
+where
+    T: AsRef<str>,
+{
+    /// Creates a reference to this `DeviceKeyId`.
+    pub fn as_ref(&self) -> DeviceKeyId<&str> {
+        DeviceKeyId { full_id: self.full_id.as_ref(), colon_idx: self.colon_idx }
+    }
+
     /// Returns key algorithm of the device key ID.
-    pub fn algorithm(&self) -> DeviceKeyAlgorithm
-    where
-        T: AsRef<str>,
-    {
+    pub fn algorithm(&self) -> DeviceKeyAlgorithm {
         DeviceKeyAlgorithm::from_str(&self.full_id.as_ref()[..self.colon_idx.get() as usize])
             .unwrap()
     }
 
     /// Returns device ID of the device key ID.
-    pub fn device_id(&self) -> DeviceIdRef<'_>
-    where
-        T: AsRef<str>,
-    {
+    pub fn device_id(&self) -> DeviceIdRef<'_> {
         &self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]
     }
 }

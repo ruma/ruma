@@ -46,7 +46,10 @@ pub struct EventId<T> {
     colon_idx: Option<NonZeroU8>,
 }
 
-impl<T> EventId<T> {
+impl<T> EventId<T>
+where
+    String: Into<T>,
+{
     /// Attempts to generate an `EventId` for the given origin server with a localpart consisting
     /// of 18 random ASCII characters. This should only be used for events in the original format
     /// as used by Matrix room versions 1 and 2.
@@ -55,24 +58,28 @@ impl<T> EventId<T> {
     /// parsed as a valid host.
     #[cfg(feature = "rand")]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
-    pub fn new(server_name: ServerNameRef<'_>) -> Self
-    where
-        String: Into<T>,
-    {
+    pub fn new(server_name: ServerNameRef<'_>) -> Self {
         use crate::generate_localpart;
 
         let full_id = format!("${}:{}", generate_localpart(18), server_name).into();
 
         Self { full_id, colon_idx: NonZeroU8::new(19) }
     }
+}
+
+impl<T> EventId<T>
+where
+    T: AsRef<str>,
+{
+    /// Creates a reference to this `EventId`.
+    pub fn as_ref(&self) -> EventId<&str> {
+        EventId { full_id: self.full_id.as_ref(), colon_idx: self.colon_idx }
+    }
 
     /// Returns the event's unique ID. For the original event format as used by Matrix room
     /// versions 1 and 2, this is the "localpart" that precedes the homeserver. For later formats,
     /// this is the entire ID without the leading $ sigil.
-    pub fn localpart(&self) -> &str
-    where
-        T: AsRef<str>,
-    {
+    pub fn localpart(&self) -> &str {
         let idx = match self.colon_idx {
             Some(idx) => idx.get() as usize,
             None => self.full_id.as_ref().len(),
@@ -84,10 +91,7 @@ impl<T> EventId<T> {
     /// Returns the server name of the event ID.
     ///
     /// Only applicable to events in the original format as used by Matrix room versions 1 and 2.
-    pub fn server_name(&self) -> Option<ServerNameRef<'_>>
-    where
-        T: AsRef<str>,
-    {
+    pub fn server_name(&self) -> Option<ServerNameRef<'_>> {
         self.colon_idx.map(|idx| {
             ServerNameRef::try_from(&self.full_id.as_ref()[idx.get() as usize + 1..]).unwrap()
         })
@@ -162,7 +166,7 @@ mod tests {
         let server_name =
             ServerNameRef::try_from("example.com").expect("Failed to parse ServerName");
         let event_id = EventId::new(server_name);
-        let id_str: &str = event_id.as_ref();
+        let id_str = event_id.as_str();
 
         assert!(id_str.starts_with('$'));
         assert_eq!(id_str.len(), 31);

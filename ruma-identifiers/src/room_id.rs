@@ -26,37 +26,41 @@ pub struct RoomId<T> {
     pub(crate) colon_idx: NonZeroU8,
 }
 
-impl<T> RoomId<T> {
+impl<T> RoomId<T>
+where
+    String: Into<T>,
+{
     /// Attempts to generate a `RoomId` for the given origin server with a localpart consisting of
     /// 18 random ASCII characters.
     ///
     /// Fails if the given homeserver cannot be parsed as a valid host.
     #[cfg(feature = "rand")]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
-    pub fn new(server_name: ServerNameRef<'_>) -> Self
-    where
-        String: Into<T>,
-    {
+    pub fn new(server_name: ServerNameRef<'_>) -> Self {
         use crate::generate_localpart;
 
         let full_id = format!("!{}:{}", generate_localpart(18), server_name).into();
 
         Self { full_id, colon_idx: NonZeroU8::new(19).unwrap() }
     }
+}
+
+impl<T> RoomId<T>
+where
+    T: AsRef<str>,
+{
+    /// Creates a reference to this `RoomId`.
+    pub fn as_ref(&self) -> RoomId<&str> {
+        RoomId { full_id: self.full_id.as_ref(), colon_idx: self.colon_idx }
+    }
 
     /// Returns the rooms's unique ID.
-    pub fn localpart(&self) -> &str
-    where
-        T: AsRef<str>,
-    {
+    pub fn localpart(&self) -> &str {
         &self.full_id.as_ref()[1..self.colon_idx.get() as usize]
     }
 
     /// Returns the server name of the room ID.
-    pub fn server_name(&self) -> ServerNameRef<'_>
-    where
-        T: AsRef<str>,
-    {
+    pub fn server_name(&self) -> ServerNameRef<'_> {
         ServerNameRef::try_from(&self.full_id.as_ref()[self.colon_idx.get() as usize + 1..])
             .unwrap()
     }
@@ -103,7 +107,7 @@ mod tests {
         let server_name =
             ServerNameRef::try_from("example.com").expect("Failed to parse ServerName");
         let room_id = RoomId::new(server_name);
-        let id_str: &str = room_id.as_ref();
+        let id_str = room_id.as_str();
 
         assert!(id_str.starts_with('!'));
         assert_eq!(id_str.len(), 31);

@@ -32,15 +32,15 @@ pub struct UserId<T> {
     is_historical: bool,
 }
 
-impl<T> UserId<T> {
+impl<T> UserId<T>
+where
+    String: Into<T>,
+{
     /// Attempts to generate a `UserId` for the given origin server with a localpart consisting of
     /// 12 random ASCII characters.
     #[cfg(feature = "rand")]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
-    pub fn new(server_name: ServerNameRef<'_>) -> Self
-    where
-        String: Into<T>,
-    {
+    pub fn new(server_name: ServerNameRef<'_>) -> Self {
         use crate::generate_localpart;
 
         let full_id = format!("@{}:{}", generate_localpart(12).to_lowercase(), server_name).into();
@@ -58,10 +58,7 @@ impl<T> UserId<T> {
     pub fn parse_with_server_name(
         id: impl AsRef<str> + Into<T>,
         server_name: ServerNameRef<'_>,
-    ) -> Result<Self, Error>
-    where
-        String: Into<T>,
-    {
+    ) -> Result<Self, Error> {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
@@ -76,24 +73,34 @@ impl<T> UserId<T> {
             })
         }
     }
+}
+
+impl<T> UserId<T>
+where
+    T: AsRef<str>,
+{
+    /// Creates a reference to this `UserId`.
+    pub fn as_ref(&self) -> UserId<&str> {
+        UserId {
+            full_id: self.full_id.as_ref(),
+            colon_idx: self.colon_idx,
+            is_historical: self.is_historical,
+        }
+    }
 
     /// Returns the user's localpart.
-    pub fn localpart(&self) -> &str
-    where
-        T: AsRef<str>,
-    {
+    pub fn localpart(&self) -> &str {
         &self.full_id.as_ref()[1..self.colon_idx.get() as usize]
     }
 
     /// Returns the server name of the user ID.
-    pub fn server_name(&self) -> ServerNameRef<'_>
-    where
-        T: AsRef<str>,
-    {
+    pub fn server_name(&self) -> ServerNameRef<'_> {
         ServerNameRef::try_from(&self.full_id.as_ref()[self.colon_idx.get() as usize + 1..])
             .unwrap()
     }
+}
 
+impl<T> UserId<T> {
     /// Whether this user ID is a historical one, i.e. one that doesn't conform to the latest
     /// specification of the user ID grammar but is still accepted because it was previously
     /// allowed.
@@ -232,7 +239,7 @@ mod tests {
         assert_eq!(user_id.localpart().len(), 12);
         assert_eq!(user_id.server_name(), "example.com");
 
-        let id_str: &str = user_id.as_ref();
+        let id_str = user_id.as_str();
 
         assert!(id_str.starts_with('@'));
         assert_eq!(id_str.len(), 25);

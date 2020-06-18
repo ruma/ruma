@@ -34,7 +34,15 @@ pub struct RoomIdOrAliasId<T> {
     colon_idx: NonZeroU8,
 }
 
-impl<T: AsRef<str>> RoomIdOrAliasId<T> {
+impl<T> RoomIdOrAliasId<T>
+where
+    T: AsRef<str>,
+{
+    /// Creates a reference to this `RoomIdOrAliasId`.
+    pub fn as_ref(&self) -> RoomIdOrAliasId<&str> {
+        RoomIdOrAliasId { full_id: self.full_id.as_ref(), colon_idx: self.colon_idx }
+    }
+
     /// Returns the local part (everything after the `!` or `#` and before the first colon).
     pub fn localpart(&self) -> &str {
         &self.full_id.as_ref()[1..self.colon_idx.get() as usize]
