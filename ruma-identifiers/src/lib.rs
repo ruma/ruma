@@ -11,19 +11,19 @@
 #![allow(clippy::use_self)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-use std::num::NonZeroU8;
+use std::{convert::TryFrom, num::NonZeroU8};
 
 #[cfg(feature = "serde")]
 use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
 
 #[doc(inline)]
+#[allow(deprecated)]
 pub use crate::{error::Error, server_name::is_valid_server_name};
 
 #[macro_use]
 mod macros;
 
 mod error;
-mod server_name;
 
 pub mod device_id;
 pub mod device_key_id;
@@ -34,6 +34,8 @@ pub mod room_id;
 pub mod room_id_or_room_alias_id;
 pub mod room_version_id;
 pub mod server_key_id;
+#[allow(deprecated)]
+pub mod server_name;
 pub mod user_id;
 
 /// Allowed algorithms for homeserver signing keys.
@@ -127,13 +129,24 @@ pub type ServerKeyAlgorithm = key_algorithms::ServerKeyAlgorithm;
 /// and `Deserialize` if the `serde` feature is enabled.
 pub type ServerKeyId = server_key_id::ServerKeyId<Box<str>>;
 
-/// An reference to a homeserver signing key identifier containing a key
+/// A reference to a homeserver signing key identifier containing a key
 /// algorithm and version.
 ///
 /// Can be created via `TryFrom<&str>`; implements `Serialize`
 /// and `Deserialize` if the `serde` feature is enabled.
 pub type ServerKeyIdRef<'a> = server_key_id::ServerKeyId<&'a str>;
 
+/// An owned homeserver IP address or hostname.
+///
+/// Can be created via `TryFrom<String>` and `TryFrom<&str>`; implements `Serialize`
+/// and `Deserialize` if the `serde` feature is enabled.
+pub type ServerName = server_name::ServerName<Box<str>>;
+
+/// A reference to a homeserver IP address or hostname.
+///
+/// Can be created via `TryFrom<&str>`; implements `Serialize`
+/// and `Deserialize` if the `serde` feature is enabled.
+pub type ServerNameRef<'a> = server_name::ServerName<&'a str>;
 /// An owned user ID.
 ///
 /// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
@@ -187,9 +200,7 @@ fn parse_id(id: &str, valid_sigils: &[char]) -> Result<NonZeroU8, Error> {
         return Err(Error::InvalidLocalPart);
     }
 
-    if !is_valid_server_name(&id[colon_idx + 1..]) {
-        return Err(Error::InvalidServerName);
-    }
+    server_name::ServerName::<&str>::try_from(&id[colon_idx + 1..])?;
 
     Ok(NonZeroU8::new(colon_idx as u8).unwrap())
 }

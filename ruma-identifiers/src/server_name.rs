@@ -1,6 +1,35 @@
+//! Matrix-spec compliant server names.
+
+use crate::error::Error;
+
+/// A Matrix-spec compliant server name.
+///
+/// It is discouraged to use this type directly – instead use one of the aliases ([`ServerName`](../type.ServerName.html) and
+/// [`ServerNameRef`](../type.ServerNameRef.html)) in the crate root.
+#[derive(Clone, Copy, Debug)]
+pub struct ServerName<T> {
+    full_id: T,
+}
+
+fn try_from<S, T>(server_name: S) -> Result<ServerName<T>, Error>
+where
+    S: AsRef<str> + Into<T>,
+{
+    if !is_valid_server_name(server_name.as_ref()) {
+        return Err(Error::InvalidServerName);
+    }
+    Ok(ServerName { full_id: server_name.into() })
+}
+
+common_impls!(ServerName, try_from, "An IP address or hostname");
+
 /// Check whether a given string is a valid server name according to [the specification][].
 ///
+/// Deprecated. Use the `try_from()` method of [`ServerName`](server_name/struct.ServerName.html) to construct
+/// a server name instead.
+///
 /// [the specification]: https://matrix.org/docs/spec/appendices#server-name
+#[deprecated]
 pub fn is_valid_server_name(name: &str) -> bool {
     use std::net::Ipv6Addr;
 

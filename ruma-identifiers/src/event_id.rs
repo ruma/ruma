@@ -1,8 +1,8 @@
 //! Matrix event identifiers.
 
-use std::num::NonZeroU8;
+use std::{convert::TryFrom, num::NonZeroU8};
 
-use crate::{error::Error, parse_id, validate_id};
+use crate::{error::Error, parse_id, validate_id, ServerNameRef};
 
 /// A Matrix event ID.
 ///
@@ -55,18 +55,15 @@ impl<T> EventId<T> {
     /// parsed as a valid host.
     #[cfg(feature = "rand")]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
-    pub fn new(server_name: &str) -> Result<Self, Error>
+    pub fn new(server_name: ServerNameRef<'_>) -> Self
     where
         String: Into<T>,
     {
-        use crate::{generate_localpart, is_valid_server_name};
+        use crate::generate_localpart;
 
-        if !is_valid_server_name(server_name) {
-            return Err(Error::InvalidServerName);
-        }
         let full_id = format!("${}:{}", generate_localpart(18), server_name).into();
 
-        Ok(Self { full_id, colon_idx: NonZeroU8::new(19) })
+        Self { full_id, colon_idx: NonZeroU8::new(19) }
     }
 
     /// Returns the event's unique ID. For the original event format as used by Matrix room
@@ -87,11 +84,13 @@ impl<T> EventId<T> {
     /// Returns the server name of the event ID.
     ///
     /// Only applicable to events in the original format as used by Matrix room versions 1 and 2.
-    pub fn server_name(&self) -> Option<&str>
+    pub fn server_name(&self) -> Option<ServerNameRef<'_>>
     where
         T: AsRef<str>,
     {
-        self.colon_idx.map(|idx| &self.full_id.as_ref()[idx.get() as usize + 1..])
+        self.colon_idx.map(|idx| {
+            ServerNameRef::try_from(&self.full_id.as_ref()[idx.get() as usize + 1..]).unwrap()
+        })
     }
 }
 
@@ -123,7 +122,7 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
-    use crate::error::Error;
+    use crate::{error::Error, ServerNameRef};
 
     type EventId = super::EventId<Box<str>>;
 
@@ -160,17 +159,13 @@ mod tests {
     #[cfg(feature = "rand")]
     #[test]
     fn generate_random_valid_event_id() {
-        let event_id = EventId::new("example.com").expect("Failed to generate EventId.");
+        let server_name =
+            ServerNameRef::try_from("example.com").expect("Failed to parse ServerName");
+        let event_id = EventId::new(server_name);
         let id_str: &str = event_id.as_ref();
 
         assert!(id_str.starts_with('$'));
         assert_eq!(id_str.len(), 31);
-    }
-
-    #[cfg(feature = "rand")]
-    #[test]
-    fn generate_random_invalid_event_id() {
-        assert!(EventId::new("").is_err());
     }
 
     #[cfg(feature = "serde")]
