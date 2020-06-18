@@ -3,6 +3,9 @@
 use crate::error::Error;
 
 /// A Matrix-spec compliant server name.
+///
+/// It is discouraged to use this type directly – instead use one of the aliases ([`ServerName`](../type.ServerName.html) and
+/// [`ServerNameRef`](../type.ServerNameRef.html)) in the crate root.
 #[derive(Clone, Copy, Debug)]
 pub struct ServerName<T> {
     full_id: T,
