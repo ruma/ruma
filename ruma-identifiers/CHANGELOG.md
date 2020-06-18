@@ -25,7 +25,7 @@ Breaking changes:
     ```
     to
     ```rust
-    fn server_name() -> ServerName<&str>
+    fn server_name() -> ServerNameRef<'_>
     ```
 
 Deprecations:
