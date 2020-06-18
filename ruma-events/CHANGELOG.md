@@ -2,6 +2,7 @@
 
 Breaking changes:
 
+* Change `get_message_events` limit field type from `Option<UInt>` to `UInt`
 * Add `alt_aliases` to `CanonicalAliasEventContent`
 * Replace `format` and `formatted_body` fields in `TextMessagEventContent`,
   `NoticeMessageEventContent` and `EmoteMessageEventContent` with `formatted: FormattedBody`
