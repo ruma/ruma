@@ -13,7 +13,7 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
     let ident = &input.name;
     let event_type_str = &input.events;
 
-    let variants = input.events.iter().map(to_camel_case).collect::<Vec<_>>();
+    let variants = input.events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
     let content = input.events.iter().map(to_event_path).collect::<Vec<_>>();
 
     let event_enum = quote! {
@@ -24,8 +24,8 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
         pub enum #ident {
             #(
                 #[doc = #event_type_str]
-                #variants(#content)
-            ),*
+                #variants(#content),
+            )*
         }
     };
 
@@ -37,12 +37,12 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
             {
                 use ::serde::de::Error as _;
 
-                let json = ::serde_json::Value::deserialize(deserializer)?;
-                let ev_type: String = ::ruma_events::util::get_field(&json, "type")?;
+                let json = Box::<::serde_json::value::RawValue>::deserialize(deserializer)?;
+                let ::ruma_events::EventDeHelper { ev_type } = ::ruma_events::from_raw_json_value(&json)?;
                 match ev_type.as_str() {
                     #(
                         #event_type_str => {
-                            let event = ::serde_json::from_value::<#content>(json).map_err(D::Error::custom)?;
+                            let event = ::serde_json::from_str::<#content>(json.get()).map_err(D::Error::custom)?;
                             Ok(#ident::#variants(event))
                         },
                     )*
@@ -66,18 +66,11 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
 /// Create a content enum from `EventEnumInput`.
 pub fn expand_content_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
     let attrs = &input.attrs;
-    let ident = Ident::new(
-        &format!("{}Content", input.name.to_string()),
-        input.name.span(),
-    );
+    let ident = Ident::new(&format!("{}Content", input.name.to_string()), input.name.span());
     let event_type_str = &input.events;
 
-    let variants = input.events.iter().map(to_camel_case).collect::<Vec<_>>();
-    let content = input
-        .events
-        .iter()
-        .map(to_event_content_path)
-        .collect::<Vec<_>>();
+    let variants = input.events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
+    let content = input.events.iter().map(to_event_content_path).collect::<Vec<_>>();
 
     let content_enum = quote! {
         #( #attrs )*
@@ -87,8 +80,10 @@ pub fn expand_content_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
         pub enum #ident {
             #(
                 #[doc = #event_type_str]
-                #variants(#content)
-            ),*
+                #variants(#content),
+            )*
+            /// Any custom event.
+            Custom(::ruma_events::custom::CustomEventContent),
         }
     };
 
@@ -96,11 +91,12 @@ pub fn expand_content_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
         impl ::ruma_events::EventContent for #ident {
             fn event_type(&self) -> &str {
                 match self {
-                    #( Self::#variants(content) => content.event_type() ),*
+                    #( Self::#variants(content) => content.event_type(), )*
+                    Self::Custom(content) => content.event_type(),
                 }
             }
 
-            fn from_parts(event_type: &str, input: Box<::serde_json::value::RawValue>) -> Result<Self, String> {
+            fn from_parts(event_type: &str, input: Box<::serde_json::value::RawValue>) -> Result<Self, ::serde_json::Error> {
                 match event_type {
                     #(
                         #event_type_str => {
@@ -108,7 +104,21 @@ pub fn expand_content_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
                             Ok(#ident::#variants(content))
                         },
                     )*
-                    ev => Err(format!("event not supported {}", ev)),
+                    ev_type => {
+                        let content = ::ruma_events::custom::CustomEventContent::from_parts(ev_type, input)?;
+                        Ok(#ident::Custom(content))
+                    },
+                }
+            }
+        }
+    };
+
+    let any_event_variant_impl = quote! {
+        impl #ident {
+            fn is_compatible(event_type: &str) -> bool {
+                match event_type {
+                    #( #event_type_str => true, )*
+                    _ => false,
                 }
             }
         }
@@ -118,6 +128,8 @@ pub fn expand_content_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
 
     Ok(quote! {
         #content_enum
+
+        #any_event_variant_impl
 
         #event_content_impl
 
@@ -189,22 +201,23 @@ fn to_event_content_path(name: &LitStr) -> TokenStream {
 
 /// Splits the given `event_type` string on `.` and `_` removing the `m.room.` then
 /// camel casing to give the `Event` struct name.
-pub(crate) fn to_camel_case(name: &LitStr) -> Ident {
+pub(crate) fn to_camel_case(name: &LitStr) -> syn::Result<Ident> {
     let span = name.span();
     let name = name.value();
 
-    assert_eq!(
-        &name[..2],
-        "m.",
-        "well-known matrix events have to start with `m.`"
-    );
+    if &name[..2] != "m." {
+        return Err(syn::Error::new(
+            span,
+            format!("well-known matrix events have to start with `m.` found `{}`", name),
+        ));
+    }
 
     let s = name[2..]
         .split(&['.', '_'] as &[char])
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
         .collect::<String>();
 
-    Ident::new(&s, span)
+    Ok(Ident::new(&s, span))
 }
 
 /// Custom keywords for the `event_enum!` macro
@@ -248,11 +261,7 @@ impl Parse for EventEnumInput {
             .elems
             .into_iter()
             .map(|item| {
-                if let Expr::Lit(ExprLit {
-                    lit: Lit::Str(lit_str),
-                    ..
-                }) = item
-                {
+                if let Expr::Lit(ExprLit { lit: Lit::Str(lit_str), .. }) = item {
                     Ok(lit_str)
                 } else {
                     let msg = "values of field `events` are required to be a string literal";
@@ -261,10 +270,6 @@ impl Parse for EventEnumInput {
             })
             .collect::<syn::Result<_>>()?;
 
-        Ok(Self {
-            attrs,
-            name,
-            events,
-        })
+        Ok(Self { attrs, name, events })
     }
 }
