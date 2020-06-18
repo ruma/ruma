@@ -2,10 +2,29 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{
-    parse::{self, Parse, ParseStream},
-    Attribute, Expr, ExprLit, Ident, Lit, LitStr, Token,
-};
+use syn::{Ident, LitStr};
+
+use parse::ContentEnumInput;
+
+fn marker_traits(ident: &Ident) -> TokenStream {
+    match ident.to_string().as_str() {
+        "AnyStateEventContent" => quote! {
+            impl ::ruma_events::RoomEventContent for #ident {}
+            impl ::ruma_events::StateEventContent for #ident {}
+        },
+        "AnyMessageEventContent" => quote! {
+            impl ::ruma_events::RoomEventContent for #ident {}
+            impl ::ruma_events::MessageEventContent for #ident {}
+        },
+        "AnyEphemeralRoomEventContent" => quote! {
+            impl ::ruma_events::EphemeralRoomEventContent for #ident {}
+        },
+        "AnyBasicEventContent" => quote! {
+            impl ::ruma_events::BasicEventContent for #ident {}
+        },
+        _ => TokenStream::new(),
+    }
+}
 
 /// Create a content enum from `ContentEnumInput`.
 ///
@@ -87,26 +106,6 @@ pub fn expand_content_enum(input: ContentEnumInput) -> syn::Result<TokenStream> 
     })
 }
 
-fn marker_traits(ident: &Ident) -> TokenStream {
-    match ident.to_string().as_str() {
-        "AnyStateEventContent" => quote! {
-            impl ::ruma_events::RoomEventContent for #ident {}
-            impl ::ruma_events::StateEventContent for #ident {}
-        },
-        "AnyMessageEventContent" => quote! {
-            impl ::ruma_events::RoomEventContent for #ident {}
-            impl ::ruma_events::MessageEventContent for #ident {}
-        },
-        "AnyEphemeralRoomEventContent" => quote! {
-            impl ::ruma_events::EphemeralRoomEventContent for #ident {}
-        },
-        "AnyBasicEventContent" => quote! {
-            impl ::ruma_events::BasicEventContent for #ident {}
-        },
-        _ => TokenStream::new(),
-    }
-}
-
 fn to_event_content_path(
     name: &LitStr,
 ) -> syn::punctuated::Punctuated<syn::Token![::], syn::PathSegment> {
@@ -147,56 +146,64 @@ pub(crate) fn to_camel_case(name: &LitStr) -> Ident {
     Ident::new(&s, span)
 }
 
-/// Custom keywords for the `event_content_content_enum!` macro
-mod kw {
-    syn::custom_keyword!(name);
-    syn::custom_keyword!(events);
-}
+/// Details of parsing input for the `event_content_content_enum` procedural macro.
+pub mod parse {
+    use syn::{
+        parse::{self, Parse, ParseStream},
+        Attribute, Expr, ExprLit, Ident, Lit, LitStr, Token,
+    };
 
-/// The entire `event_content_content_enum!` macro structure directly as it appears in the source code..
-pub struct ContentEnumInput {
-    /// Outer attributes on the field, such as a docstring.
-    pub attrs: Vec<Attribute>,
+    /// Custom keywords for the `event_content_content_enum!` macro
+    mod kw {
+        syn::custom_keyword!(name);
+        syn::custom_keyword!(events);
+    }
 
-    /// The name of the event.
-    pub name: Ident,
+    /// The entire `event_content_content_enum!` macro structure directly as it appears in the source code..
+    pub struct ContentEnumInput {
+        /// Outer attributes on the field, such as a docstring.
+        pub attrs: Vec<Attribute>,
 
-    /// An array of valid matrix event types. This will generate the variants of the event content type "name".
-    /// There needs to be a corresponding variant in `ruma_events::EventType` for
-    /// this event (converted to a valid Rust-style type name by stripping `m.`, replacing the
-    /// remaining dots by underscores and then converting from snake_case to CamelCase).
-    pub events: Vec<LitStr>,
-}
+        /// The name of the event.
+        pub name: Ident,
 
-impl Parse for ContentEnumInput {
-    fn parse(input: ParseStream<'_>) -> parse::Result<Self> {
-        let attrs = input.call(Attribute::parse_outer)?;
-        // name field
-        input.parse::<kw::name>()?;
-        input.parse::<Token![:]>()?;
-        // the name of our content_enum enum
-        let name: Ident = input.parse()?;
-        input.parse::<Token![,]>()?;
+        /// An array of valid matrix event types. This will generate the variants of the event content type "name".
+        /// There needs to be a corresponding variant in `ruma_events::EventType` for
+        /// this event (converted to a valid Rust-style type name by stripping `m.`, replacing the
+        /// remaining dots by underscores and then converting from snake_case to CamelCase).
+        pub events: Vec<LitStr>,
+    }
 
-        // events field
-        input.parse::<kw::events>()?;
-        input.parse::<Token![:]>()?;
+    impl Parse for ContentEnumInput {
+        fn parse(input: ParseStream<'_>) -> parse::Result<Self> {
+            let attrs = input.call(Attribute::parse_outer)?;
+            // name field
+            input.parse::<kw::name>()?;
+            input.parse::<Token![:]>()?;
+            // the name of our content_enum enum
+            let name: Ident = input.parse()?;
+            input.parse::<Token![,]>()?;
 
-        // an array of event names `["m.room.whatever"]`
-        let ev_array = input.parse::<syn::ExprArray>()?;
-        let events = ev_array
-            .elems
-            .into_iter()
-            .map(|item| {
-                if let Expr::Lit(ExprLit { lit: Lit::Str(lit_str), .. }) = item {
-                    Ok(lit_str)
-                } else {
-                    let msg = "values of field `events` are required to be a string literal";
-                    Err(syn::Error::new_spanned(item, msg))
-                }
-            })
-            .collect::<syn::Result<_>>()?;
+            // events field
+            input.parse::<kw::events>()?;
+            input.parse::<Token![:]>()?;
 
-        Ok(Self { attrs, name, events })
+            // an array of event names `["m.room.whatever"]`
+            let ev_array = input.parse::<syn::ExprArray>()?;
+            let events = ev_array
+                .elems
+                .into_iter()
+                .map(|item| {
+                    if let Expr::Lit(ExprLit { lit: Lit::Str(lit_str), .. }) = item {
+                        Ok(lit_str)
+                    } else {
+                        let msg = "values of field `events` are required to be a string literal";
+                        Err(syn::Error::new_spanned(item, msg))
+                    }
+                })
+                .collect::<syn::Result<_>>()?;
+
+            Ok(Self { attrs, name, events })
+        }
     }
 }

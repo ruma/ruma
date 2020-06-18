@@ -101,14 +101,7 @@ fn expand_deserialize_event(
     fields: Vec<Field>,
 ) -> syn::Result<TokenStream> {
     let ident = &input.ident;
-    // we know there is a content field already
-    let content_type = fields
-        .iter()
-        // we also know that the fields are named and have an ident
-        .find(|f| f.ident.as_ref().unwrap() == "content")
-        .map(|f| f.ty.clone())
-        .unwrap();
-
+    let content_ident = Ident::new(&format!("{}Content", ident), input.ident.span());
     let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
 
     let enum_variants = fields
@@ -128,7 +121,7 @@ fn expand_deserialize_event(
                 if is_generic {
                     quote! { Box<::serde_json::value::RawValue> }
                 } else {
-                    quote! { #content_type }
+                    quote! { #content_ident }
                 }
             } else if name == "origin_server_ts" {
                 quote! { ::js_int::UInt }
@@ -230,7 +223,7 @@ fn expand_deserialize_event(
                     type Value = #ident #ty_gen;
 
                     fn expecting(&self, formatter: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                        write!(formatter, "struct implementing {}", stringify!(#content_type))
+                        write!(formatter, "struct implementing {}", stringify!(#content_ident))
                     }
 
                     fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
