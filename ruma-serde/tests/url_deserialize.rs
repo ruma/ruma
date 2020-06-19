@@ -1,7 +1,7 @@
+use form_urlencoded::Serializer as Encoder;
 use matches::assert_matches;
 use ruma_serde::urlencoded;
 use serde::Deserialize;
-use url::form_urlencoded::Serializer as Encoder;
 
 #[derive(Deserialize, Debug, PartialEq)]
 struct NewType<T>(T);

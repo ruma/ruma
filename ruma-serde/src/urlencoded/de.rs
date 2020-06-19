@@ -6,11 +6,11 @@ use std::{
     io::Read,
 };
 
+use form_urlencoded::{parse, Parse as UrlEncodedParse};
 use serde::{
     de::{self, value::MapDeserializer, Error as de_Error, IntoDeserializer},
     forward_to_deserialize_any,
 };
-use url::form_urlencoded::{parse, Parse as UrlEncodedParse};
 
 #[doc(inline)]
 pub use serde::de::value::Error;
