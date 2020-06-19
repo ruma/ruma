@@ -5,7 +5,7 @@ use std::{
 
 use matches::assert_matches;
 use ruma_events::{
-    custom::CustomEventContent, AnyMessageEventContent, AnyStateEventContent, EventJson,
+    custom::CustomEventContent, AnyMessageEvent, AnyStateEvent, AnyStateEventContent, EventJson,
     MessageEvent, StateEvent, StateEventStub, UnsignedData,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
@@ -36,8 +36,8 @@ fn custom_state_event() -> JsonValue {
 
 #[test]
 fn serialize_custom_message_event() {
-    let aliases_event = MessageEvent {
-        content: AnyMessageEventContent::Custom(CustomEventContent {
+    let aliases_event = AnyMessageEvent::Custom(MessageEvent {
+        content: CustomEventContent {
             json: json!({
                 "body": " * edited message",
                 "m.new_content": {
@@ -51,13 +51,13 @@ fn serialize_custom_message_event() {
                 "msgtype": "m.text"
             }),
             event_type: "m.room.message".to_string(),
-        }),
+        },
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(10),
         room_id: RoomId::try_from("!room:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
         unsigned: UnsignedData::default(),
-    };
+    });
 
     let actual = to_json_value(&aliases_event).unwrap();
     let expected = json!({
@@ -85,13 +85,13 @@ fn serialize_custom_message_event() {
 
 #[test]
 fn serialize_custom_state_event() {
-    let aliases_event = StateEvent {
-        content: AnyStateEventContent::Custom(CustomEventContent {
+    let aliases_event = AnyStateEvent::Custom(StateEvent {
+        content: CustomEventContent {
             json: json!({
                 "custom": 10
             }),
             event_type: "m.made.up".to_string(),
-        }),
+        },
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(10),
         prev_content: None,
@@ -99,7 +99,7 @@ fn serialize_custom_state_event() {
         sender: UserId::try_from("@carl:example.com").unwrap(),
         state_key: "".to_string(),
         unsigned: UnsignedData::default(),
-    };
+    });
 
     let actual = to_json_value(&aliases_event).unwrap();
     let expected = json!({
@@ -130,14 +130,14 @@ fn deserialize_custom_state_event() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<StateEvent<AnyStateEventContent>>>(json_data)
+        from_json_value::<EventJson<AnyStateEvent>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap(),
-        StateEvent {
-            content: AnyStateEventContent::Custom(CustomEventContent {
+        AnyStateEvent::Custom(StateEvent {
+            content: CustomEventContent {
                 json, event_type,
-            }),
+            },
             event_id,
             origin_server_ts,
             sender,
@@ -145,7 +145,7 @@ fn deserialize_custom_state_event() {
             prev_content: None,
             state_key,
             unsigned,
-        } if json == expected_content && event_type == "m.reaction"
+        }) if json == expected_content && event_type == "m.reaction"
             && event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
             && origin_server_ts == UNIX_EPOCH + Duration::from_millis(10)
             && sender == UserId::try_from("@carl:example.com").unwrap()

@@ -160,7 +160,6 @@ pub mod typing;
 
 pub use self::{
     algorithm::Algorithm,
-    custom::{CustomBasicEvent, CustomMessageEvent, CustomStateEvent},
     enums::{
         AnyBasicEvent, AnyBasicEventContent, AnyEphemeralRoomEvent, AnyEphemeralRoomEventContent,
         AnyEvent, AnyMessageEvent, AnyMessageEventContent, AnyMessageEventStub, AnyRoomEvent,
