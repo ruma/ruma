@@ -7,7 +7,8 @@ use js_int::UInt;
 use matches::assert_matches;
 use ruma_events::{
     room::{aliases::AliasesEventContent, avatar::AvatarEventContent, ImageInfo, ThumbnailInfo},
-    AnyStateEventContent, EventJson, StateEvent, StateEventStub, UnsignedData,
+    AnyRoomEvent, AnyStateEvent, AnyStateEventContent, EventJson, StateEvent, StateEventStub,
+    UnsignedData,
 };
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde_json::{
@@ -238,7 +239,7 @@ fn deserialize_avatar_without_prev_content() {
 }
 
 #[test]
-fn deserialize_member_event_membership_hoist_unsigned_prev_content() {
+fn deserialize_member_event_with_top_level_membership_field() {
     let json_data = json!({
         "content": {
             "avatar_url": null,
@@ -264,10 +265,10 @@ fn deserialize_member_event_membership_hoist_unsigned_prev_content() {
     });
 
     assert_matches!(
-        from_json_value::<ruma_events::AnyRoomEvent>(json_data)
+        from_json_value::<AnyRoomEvent>(json_data)
             .unwrap(),
-        ruma_events::AnyRoomEvent::State(
-            ruma_events::AnyStateEvent::RoomMember(StateEvent {
+        AnyRoomEvent::State(
+            AnyStateEvent::RoomMember(StateEvent {
                 content,
                 event_id,
                 origin_server_ts,
