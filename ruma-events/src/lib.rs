@@ -120,7 +120,7 @@
 use std::fmt::Debug;
 
 use js_int::Int;
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
 use self::room::redaction::RedactionEvent;
@@ -234,3 +234,21 @@ pub trait MessageEventContent: RoomEventContent {}
 
 /// Marker trait for the content of a state event.
 pub trait StateEventContent: RoomEventContent {}
+
+/// Helper struct to obtain the event type from a serde_json::value::RawValue.
+#[doc(hidden)]
+#[derive(Debug, Deserialize)]
+pub struct EventDeHelper {
+    #[serde(rename = "type")]
+    pub ev_type: String,
+}
+
+/// Helper function for serde_json::value::RawValue deserialization.
+#[doc(hidden)]
+pub fn from_raw_json_value<T, E>(val: &RawJsonValue) -> Result<T, E>
+where
+    T: de::DeserializeOwned,
+    E: de::Error,
+{
+    serde_json::from_str(val.get()).map_err(E::custom)
+}

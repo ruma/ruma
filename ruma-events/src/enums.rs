@@ -1,35 +1,32 @@
-use ruma_events_macros::event_content_enum;
+use ruma_events_macros::event_enum;
 use serde::{
-    de::{self, DeserializeOwned, Error as _},
-    Deserialize, Serialize,
+    de::{self, Error},
+    Serialize,
 };
 use serde_json::value::RawValue as RawJsonValue;
 
 use crate::{
-    event_kinds::{
-        BasicEvent, EphemeralRoomEvent, MessageEvent, MessageEventStub, StateEvent, StateEventStub,
-        StrippedStateEventStub, ToDeviceEvent,
-    },
-    presence::PresenceEvent,
-    room::redaction::{RedactionEvent, RedactionEventStub},
+    event_kinds::{MessageEventStub, StateEventStub, StrippedStateEventStub},
+    from_raw_json_value, EventDeHelper,
 };
 
-event_content_enum! {
+event_enum! {
     /// Any basic event.
-    name: AnyBasicEventContent,
+    name: AnyBasicEvent,
     events: [
         "m.direct",
         "m.dummy",
         "m.ignored_user_list",
+        "m.presence",
         "m.push_rules",
         "m.room_key",
         "m.tag",
     ]
 }
 
-event_content_enum! {
+event_enum! {
     /// Any ephemeral room event.
-    name: AnyEphemeralRoomEventContent,
+    name: AnyEphemeralRoomEvent,
     events: [
         "m.fully_read",
         "m.receipt",
@@ -37,24 +34,25 @@ event_content_enum! {
     ]
 }
 
-event_content_enum! {
+event_enum! {
     /// Any message event.
-    name: AnyMessageEventContent,
+    name: AnyMessageEvent,
     events: [
         "m.call.answer",
         "m.call.invite",
         "m.call.hangup",
         "m.call.candidates",
-        "m.room.encrypted",
         "m.room.message",
         "m.room.message.feedback",
+        "m.room.redaction",
         "m.sticker",
+
     ]
 }
 
-event_content_enum! {
+event_enum! {
     /// Any state event.
-    name: AnyStateEventContent,
+    name: AnyStateEvent,
     events: [
         "m.room.aliases",
         "m.room.avatar",
@@ -76,9 +74,9 @@ event_content_enum! {
     ]
 }
 
-event_content_enum! {
+event_enum! {
     /// Any to-device event.
-    name: AnyToDeviceEventContent,
+    name: AnyToDeviceEvent,
     events: [
         "m.dummy",
         "m.room_key",
@@ -94,20 +92,8 @@ event_content_enum! {
     ]
 }
 
-/// Any basic event, one that has no (well-known) fields outside of `content`.
-pub type AnyBasicEvent = BasicEvent<AnyBasicEventContent>;
-
-/// Any ephemeral room event.
-pub type AnyEphemeralRoomEvent = EphemeralRoomEvent<AnyEphemeralRoomEventContent>;
-
-/// Any message event.
-pub type AnyMessageEvent = MessageEvent<AnyMessageEventContent>;
-
 /// Any message event stub (message event without a `room_id`, as returned in `/sync` responses)
 pub type AnyMessageEventStub = MessageEventStub<AnyMessageEventContent>;
-
-/// Any state event.
-pub type AnyStateEvent = StateEvent<AnyStateEventContent>;
 
 /// Any state event stub (state event without a `room_id`, as returned in `/sync` responses)
 pub type AnyStateEventStub = StateEventStub<AnyStateEventContent>;
@@ -116,23 +102,16 @@ pub type AnyStateEventStub = StateEventStub<AnyStateEventContent>;
 /// been invited to in `/sync` responses)
 pub type AnyStrippedStateEventStub = StrippedStateEventStub<AnyStateEventContent>;
 
-/// Any to-device event.
-pub type AnyToDeviceEvent = ToDeviceEvent<AnyToDeviceEventContent>;
-
 /// Any event.
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
 pub enum AnyEvent {
     /// Any basic event.
     Basic(AnyBasicEvent),
-    /// `"m.presence"`, the only non-room event with a `sender` field.
-    Presence(PresenceEvent),
     /// Any ephemeral room event.
     Ephemeral(AnyEphemeralRoomEvent),
     /// Any message event.
     Message(AnyMessageEvent),
-    /// `"m.room.redaction"`, the only room event with a `redacts` field.
-    Redaction(RedactionEvent),
     /// Any state event.
     State(AnyStateEvent),
 }
@@ -143,8 +122,6 @@ pub enum AnyEvent {
 pub enum AnyRoomEvent {
     /// Any message event.
     Message(AnyMessageEvent),
-    /// `"m.room.redaction"`, the only room event with a `redacts` field.
-    Redaction(RedactionEvent),
     /// Any state event.
     State(AnyStateEvent),
 }
@@ -155,24 +132,8 @@ pub enum AnyRoomEvent {
 pub enum AnyRoomEventStub {
     /// Any message event stub
     Message(AnyMessageEventStub),
-    /// `"m.room.redaction"` stub
-    Redaction(RedactionEventStub),
     /// Any state event stub
     State(AnyStateEventStub),
-}
-
-#[derive(Deserialize)]
-struct EventDeHelper {
-    #[serde(rename = "type")]
-    ev_type: String,
-}
-
-fn from_raw_json_value<T, E>(val: &RawJsonValue) -> Result<T, E>
-where
-    T: DeserializeOwned,
-    E: de::Error,
-{
-    serde_json::from_str(val.get()).map_err(E::custom)
 }
 
 // FIXME `#[serde(untagged)]` deserialization fails for these enums which
@@ -186,8 +147,6 @@ impl<'de> de::Deserialize<'de> for AnyEvent {
         let EventDeHelper { ev_type } = from_raw_json_value(&json)?;
 
         match ev_type.as_str() {
-            "m.room.redaction" => Ok(AnyEvent::Redaction(from_raw_json_value(&json)?)),
-            "m.presence" => Ok(AnyEvent::Presence(from_raw_json_value(&json)?)),
             ev_type if AnyBasicEventContent::is_compatible(ev_type) => {
                 Ok(AnyEvent::Basic(from_raw_json_value(&json)?))
             }
@@ -214,7 +173,6 @@ impl<'de> de::Deserialize<'de> for AnyRoomEvent {
         let EventDeHelper { ev_type } = from_raw_json_value(&json)?;
 
         match ev_type.as_str() {
-            "m.room.redaction" => Ok(AnyRoomEvent::Redaction(from_raw_json_value(&json)?)),
             ev_type if AnyMessageEventContent::is_compatible(ev_type) => {
                 Ok(AnyRoomEvent::Message(from_raw_json_value(&json)?))
             }
@@ -235,7 +193,6 @@ impl<'de> de::Deserialize<'de> for AnyRoomEventStub {
         let EventDeHelper { ev_type } = from_raw_json_value(&json)?;
 
         match ev_type.as_str() {
-            "m.room.redaction" => Ok(AnyRoomEventStub::Redaction(from_raw_json_value(&json)?)),
             ev_type if AnyMessageEventContent::is_compatible(ev_type) => {
                 Ok(AnyRoomEventStub::Message(from_raw_json_value(&json)?))
             }

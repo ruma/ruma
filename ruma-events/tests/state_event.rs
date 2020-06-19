@@ -7,7 +7,8 @@ use js_int::UInt;
 use matches::assert_matches;
 use ruma_events::{
     room::{aliases::AliasesEventContent, avatar::AvatarEventContent, ImageInfo, ThumbnailInfo},
-    AnyStateEventContent, EventJson, StateEvent, StateEventStub, UnsignedData,
+    AnyRoomEvent, AnyStateEvent, AnyStateEventContent, EventJson, StateEvent, StateEventStub,
+    UnsignedData,
 };
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde_json::{
@@ -234,5 +235,50 @@ fn deserialize_avatar_without_prev_content() {
             )
             && url == "http://www.matrix.org"
             && unsigned.is_empty()
+    );
+}
+
+#[test]
+fn deserialize_member_event_with_top_level_membership_field() {
+    let json_data = json!({
+        "content": {
+            "avatar_url": null,
+            "displayname": "example",
+            "membership": "join"
+        },
+        "event_id": "$h29iv0s8:example.com",
+        "membership": "join",
+        "room_id": "!room:localhost",
+        "origin_server_ts": 1,
+        "sender": "@example:localhost",
+        "state_key": "@example:localhost",
+        "type": "m.room.member",
+        "unsigned": {
+            "age": 1,
+            "replaces_state": "$151800111315tsynI:localhost",
+            "prev_content": {
+                "avatar_url": null,
+                "displayname": "example",
+                "membership": "invite"
+            }
+        }
+    });
+
+    assert_matches!(
+        from_json_value::<AnyRoomEvent>(json_data)
+            .unwrap(),
+        AnyRoomEvent::State(
+            AnyStateEvent::RoomMember(StateEvent {
+                content,
+                event_id,
+                origin_server_ts,
+                prev_content: None,
+                sender,
+                ..
+            }
+        )) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
+            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && sender == UserId::try_from("@example:localhost").unwrap()
+            && content.displayname == Some("example".to_string())
     );
 }
