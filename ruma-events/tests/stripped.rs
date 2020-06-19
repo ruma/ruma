@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use js_int::UInt;
+use js_int::uint;
 use ruma_events::{
     room::{join_rules::JoinRule, topic::TopicEventContent},
     AnyStateEventContent, AnyStrippedStateEventStub,
@@ -100,14 +100,11 @@ fn deserialize_stripped_state_events() {
         AnyStateEventContent::RoomAvatar(content) => {
             let image_info = content.info.unwrap();
 
-            assert_eq!(image_info.height.unwrap(), UInt::try_from(128).unwrap());
-            assert_eq!(image_info.width.unwrap(), UInt::try_from(128).unwrap());
+            assert_eq!(image_info.height.unwrap(), uint!(128));
+            assert_eq!(image_info.width.unwrap(), uint!(128));
             assert_eq!(image_info.mimetype.unwrap(), "image/jpeg");
-            assert_eq!(image_info.size.unwrap(), UInt::try_from(1024).unwrap());
-            assert_eq!(
-                image_info.thumbnail_info.unwrap().size.unwrap(),
-                UInt::try_from(32).unwrap()
-            );
+            assert_eq!(image_info.size.unwrap(), uint!(1024));
+            assert_eq!(image_info.thumbnail_info.unwrap().size.unwrap(), uint!(32));
             assert_eq!(content.url, "https://example.com/image.jpg");
             assert_eq!(event.state_key, "");
             assert_eq!(event.sender.to_string(), "@example:localhost");

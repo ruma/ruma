@@ -1,6 +1,6 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/messages](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-rooms-roomid-messages)
 
-use js_int::UInt;
+use js_int::{uint, UInt};
 use ruma_api::ruma_api;
 use ruma_events::{AnyRoomEvent, AnyStateEvent, EventJson};
 use ruma_identifiers::RoomId;
@@ -83,7 +83,7 @@ ruma_api! {
 }
 
 fn default_limit() -> UInt {
-    UInt::from(10u32)
+    uint!(10)
 }
 
 #[allow(clippy::trivially_copy_pass_by_ref)]
@@ -109,7 +109,7 @@ mod tests {
 
     use std::convert::{TryFrom, TryInto};
 
-    use js_int::UInt;
+    use js_int::uint;
     use ruma_identifiers::RoomId;
 
     use crate::r0::filter::{LazyLoadOptions, RoomEventFilter};
@@ -129,7 +129,7 @@ mod tests {
             from: "token".into(),
             to: Some("token2".into()),
             dir: Direction::Backward,
-            limit: UInt::from(0u32),
+            limit: uint!(0),
             filter: Some(filter),
         };
 
@@ -148,7 +148,7 @@ mod tests {
             from: "token".into(),
             to: Some("token2".into()),
             dir: Direction::Backward,
-            limit: UInt::from(0u32),
+            limit: uint!(0),
             filter: None,
         };
 
@@ -164,7 +164,7 @@ mod tests {
             from: "token".into(),
             to: Some("token2".into()),
             dir: Direction::Backward,
-            limit: UInt::from(0u32),
+            limit: uint!(0),
             filter: Some(RoomEventFilter::default()),
         };
 

@@ -1,6 +1,6 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/context/{eventId}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-rooms-roomid-context-eventid)
 
-use js_int::UInt;
+use js_int::{uint, UInt};
 use ruma_api::ruma_api;
 use ruma_events::{AnyRoomEvent, AnyStateEvent, EventJson};
 use ruma_identifiers::{EventId, RoomId};
@@ -75,7 +75,7 @@ ruma_api! {
 }
 
 fn default_limit() -> UInt {
-    UInt::from(10u32)
+    uint!(10)
 }
 
 #[allow(clippy::trivially_copy_pass_by_ref)]

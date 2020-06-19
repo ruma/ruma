@@ -55,7 +55,7 @@ pub struct PresenceEventContent {
 mod tests {
     use std::convert::TryFrom;
 
-    use js_int::UInt;
+    use js_int::uint;
     use matches::assert_matches;
     use ruma_identifiers::UserId;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -69,7 +69,7 @@ mod tests {
                 avatar_url: Some("mxc://localhost:wefuiwegh8742w".to_string()),
                 currently_active: Some(false),
                 displayname: None,
-                last_active_ago: Some(UInt::try_from(2_478_593).unwrap()),
+                last_active_ago: Some(uint!(2_478_593)),
                 presence: PresenceState::Online,
                 status_msg: Some("Making cupcakes".to_string()),
             },
@@ -120,7 +120,7 @@ mod tests {
             } if avatar_url == "mxc://localhost:wefuiwegh8742w"
                 && status_msg == "Making cupcakes"
                 && sender == "@example:localhost"
-                && last_active_ago == UInt::from(2_478_593u32)
+                && last_active_ago == uint!(2_478_593)
         );
     }
 }

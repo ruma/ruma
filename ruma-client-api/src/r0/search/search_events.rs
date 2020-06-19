@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use js_int::UInt;
+use js_int::{uint, UInt};
 use ruma_api::ruma_api;
 use ruma_events::{AnyEvent, AnyStateEvent, EventJson};
 use ruma_identifiers::{EventId, RoomId, UserId};
@@ -102,7 +102,7 @@ pub struct EventContext {
 }
 
 fn default_event_context_limit() -> UInt {
-    UInt::from(5u32)
+    uint!(5)
 }
 
 #[allow(clippy::trivially_copy_pass_by_ref)]
