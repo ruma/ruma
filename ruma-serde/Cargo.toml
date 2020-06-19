@@ -14,7 +14,6 @@ version = "0.2.2"
 edition = "2018"
 
 [dependencies]
-dtoa = "0.4.5"
 js_int = { version = "0.1.5", features = ["serde"] }
 itoa = "0.4.5"
 serde = { version = "1.0.110", features = ["derive"] }

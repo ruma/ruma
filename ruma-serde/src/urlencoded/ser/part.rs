@@ -78,12 +78,12 @@ impl<S: Sink> ser::Serializer for PartSerializer<S> {
         self.serialize_integer(v)
     }
 
-    fn serialize_f32(self, v: f32) -> Result<S::Ok, Error> {
-        self.serialize_floating(v)
+    fn serialize_f32(self, _v: f32) -> Result<S::Ok, Error> {
+        Err(self.sink.unsupported())
     }
 
-    fn serialize_f64(self, v: f64) -> Result<S::Ok, Error> {
-        self.serialize_floating(v)
+    fn serialize_f64(self, _v: f64) -> Result<S::Ok, Error> {
+        Err(self.sink.unsupported())
     }
 
     fn serialize_char(self, v: char) -> Result<S::Ok, Error> {
@@ -200,16 +200,6 @@ impl<S: Sink> PartSerializer<S> {
     {
         let mut buf = [b'\0'; 20];
         let len = itoa::write(&mut buf[..], value).unwrap();
-        let part = unsafe { str::from_utf8_unchecked(&buf[0..len]) };
-        ser::Serializer::serialize_str(self, part)
-    }
-
-    fn serialize_floating<F>(self, value: F) -> Result<S::Ok, Error>
-    where
-        F: dtoa::Floating,
-    {
-        let mut buf = [b'\0'; 24];
-        let len = dtoa::write(&mut buf[..], value).unwrap();
         let part = unsafe { str::from_utf8_unchecked(&buf[0..len]) };
         ser::Serializer::serialize_str(self, part)
     }
