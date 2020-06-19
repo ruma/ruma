@@ -34,7 +34,7 @@ mod event_enum;
 /// use ruma_events_macros::event_enum;
 ///
 /// event_enum! {
-///     name: AnyBarEvent, // `BarEvent` has to be a valid type found `::ruma_events::BarEvent`
+///     name: AnyBarEvent, // `BarEvent` has to be a valid type at `::ruma_events::BarEvent`
 ///     events: [
 ///         "m.any.event",
 ///         "m.other.event",
