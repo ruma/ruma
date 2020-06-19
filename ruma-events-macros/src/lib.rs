@@ -27,7 +27,20 @@ mod event_enum;
 ///
 /// This macro also implements the necessary traits for the type to serialize and deserialize
 /// itself.
-// TODO more docs/example
+///
+/// # Examples
+///
+/// ```ignore
+/// use ruma_events_macros::event_enum;
+///
+/// event_enum! {
+///     name: AnyBarEvent, // `BarEvent` has to be a valid type at `::ruma_events::BarEvent`
+///     events: [
+///         "m.any.event",
+///         "m.other.event",
+///     ]
+/// }
+/// ```
 #[proc_macro]
 pub fn event_enum(input: TokenStream) -> TokenStream {
     let event_enum_input = syn::parse_macro_input!(input as EventEnumInput);

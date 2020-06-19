@@ -12,6 +12,7 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
     let attrs = &input.attrs;
     let ident = &input.name;
     let event_type_str = &input.events;
+    let event_struct = Ident::new(&ident.to_string().trim_start_matches("Any"), ident.span());
 
     let variants = input.events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
     let content = input.events.iter().map(to_event_path).collect::<Vec<_>>();
@@ -26,6 +27,8 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
                 #[doc = #event_type_str]
                 #variants(#content),
             )*
+            /// An event not defined by the Matrix specification
+            Custom(::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>),
         }
     };
 
@@ -46,7 +49,13 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
                             Ok(#ident::#variants(event))
                         },
                     )*
-                    _ => Err(D::Error::custom(format!("event type `{}` is not a valid event", ev_type)))
+                    event => {
+                        let event =
+                            ::serde_json::from_str::<::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>>(json.get())
+                                .map_err(D::Error::custom)?;
+
+                        Ok(Self::Custom(event))
+                    },
                 }
             }
         }
@@ -82,7 +91,7 @@ pub fn expand_content_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
                 #[doc = #event_type_str]
                 #variants(#content),
             )*
-            /// Any custom event.
+            /// Content of an event not defined by the Matrix specification.
             Custom(::ruma_events::custom::CustomEventContent),
         }
     };
