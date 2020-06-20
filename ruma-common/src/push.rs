@@ -2,8 +2,12 @@
 //!
 //! [push]: https://matrix.org/docs/spec/client_server/r0.6.1#id89
 
-use std::fmt::{self, Formatter};
+use std::{
+    fmt::{self, Display, Formatter},
+    str::FromStr,
+};
 
+use js_int::UInt;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -206,6 +210,100 @@ impl Serialize for Action {
     }
 }
 
+/// A decimal integer optionally prefixed by one of `==`, `<`, `>`, `>=` or `<=`.
+///
+/// A prefix of `<` matches rooms where the member count is strictly less than the given
+/// number and so forth. If no prefix is present, this parameter defaults to `==`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum RoomMemberCountIs {
+    /// No prefix
+    Just(UInt),
+    /// Equals
+    Eq(UInt),
+    /// Less than
+    Lt(UInt),
+    /// Greater than
+    Gt(UInt),
+    /// Greater or equal
+    Ge(UInt),
+    /// Less or equal
+    Le(UInt),
+}
+
+impl<T> From<T> for RoomMemberCountIs
+where
+    T: Into<UInt>,
+{
+    fn from(x: T) -> Self {
+        RoomMemberCountIs::Just(x.into())
+    }
+}
+
+impl Display for RoomMemberCountIs {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        use RoomMemberCountIs::*;
+
+        let (prefix, value) = match self {
+            Just(x) => ("", x),
+            Eq(x) => ("==", x),
+            Lt(x) => ("<", x),
+            Gt(x) => (">", x),
+            Ge(x) => (">=", x),
+            Le(x) => ("<=", x),
+        };
+
+        write!(f, "{}{}", prefix, value)
+    }
+}
+
+impl Serialize for RoomMemberCountIs {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let s = self.to_string();
+        s.serialize(serializer)
+    }
+}
+
+impl FromStr for RoomMemberCountIs {
+    type Err = js_int::ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use RoomMemberCountIs::*;
+
+        if s.starts_with("<=") {
+            let value = UInt::from_str(&s[2..])?;
+            Ok(Le(value))
+        } else if s.starts_with("<") {
+            let value = UInt::from_str(&s[1..])?;
+            Ok(Lt(value))
+        } else if s.starts_with(">=") {
+            let value = UInt::from_str(&s[2..])?;
+            Ok(Ge(value))
+        } else if s.starts_with(">") {
+            let value = UInt::from_str(&s[1..])?;
+            Ok(Gt(value))
+        } else if s.starts_with("==") {
+            let value = UInt::from_str(&s[2..])?;
+            Ok(Eq(value))
+        } else {
+            let value = UInt::from_str(s)?;
+            Ok(Just(value))
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for RoomMemberCountIs {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        FromStr::from_str(&s).map_err(serde::de::Error::custom)
+    }
+}
+
 /// A condition that must apply for an associated push rule's action to be taken.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[non_exhaustive]
@@ -229,11 +327,8 @@ pub enum PushCondition {
 
     /// This matches the current number of members in the room.
     RoomMemberCount {
-        /// A decimal integer optionally prefixed by one of `==`, `<`, `>`, `>=` or `<=`.
-        ///
-        /// A prefix of `<` matches rooms where the member count is strictly less than the given
-        /// number and so forth. If no prefix is present, this parameter defaults to `==`.
-        is: String,
+        /// The condition on the current number of members in the room.
+        is: RoomMemberCountIs,
     },
 
     /// This takes into account the current power levels in the room, ensuring the sender of the
@@ -252,7 +347,7 @@ mod tests {
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{Action, PushCondition, Tweak};
+    use super::{Action, PushCondition, RoomMemberCountIs, Tweak};
 
     #[test]
     fn serialize_string_action() {
@@ -349,7 +444,8 @@ mod tests {
             "kind": "room_member_count"
         });
         assert_eq!(
-            to_json_value(&PushCondition::RoomMemberCount { is: "2".to_string() }).unwrap(),
+            to_json_value(&PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(2u32) })
+                .unwrap(),
             json_data
         );
     }
@@ -398,7 +494,7 @@ mod tests {
         assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
             PushCondition::RoomMemberCount { is }
-            if is == "2"
+            if is == RoomMemberCountIs::from(2u32)
         );
     }
 

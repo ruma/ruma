@@ -16,3 +16,4 @@ ruma-serde = { version = "0.2.2", path = "../ruma-serde" }
 serde = { version = "1.0.113", features = ["derive"] }
 serde_json = { version = "1.0.55", features = ["raw_value"] }
 strum = { version = "0.18.0", features = ["derive"] }
+js_int = { version = "0.1.7", features = ["serde"] }
