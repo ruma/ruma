@@ -275,13 +275,13 @@ impl FromStr for RoomMemberCountIs {
         if s.starts_with("<=") {
             let value = UInt::from_str(&s[2..])?;
             Ok(Le(value))
-        } else if s.starts_with("<") {
+        } else if s.starts_with('<') {
             let value = UInt::from_str(&s[1..])?;
             Ok(Lt(value))
         } else if s.starts_with(">=") {
             let value = UInt::from_str(&s[2..])?;
             Ok(Ge(value))
-        } else if s.starts_with(">") {
+        } else if s.starts_with('>') {
             let value = UInt::from_str(&s[1..])?;
             Ok(Gt(value))
         } else if s.starts_with("==") {
