@@ -210,24 +210,37 @@ impl Serialize for Action {
     }
 }
 
+/// Optional prefix used by `RoomMemberCountIs`
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum RoomMemberCountPrefix {
+    /// No prefix
+    None,
+    /// Equals
+    Eq,
+    /// Less than
+    Lt,
+    /// Greater than
+    Gt,
+    /// Greater or equal
+    Ge,
+    /// Less or equal
+    Le,
+}
+
+impl Default for RoomMemberCountPrefix {
+    fn default() -> Self {
+        RoomMemberCountPrefix::None
+    }
+}
+
 /// A decimal integer optionally prefixed by one of `==`, `<`, `>`, `>=` or `<=`.
 ///
 /// A prefix of `<` matches rooms where the member count is strictly less than the given
 /// number and so forth. If no prefix is present, this parameter defaults to `==`.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub enum RoomMemberCountIs {
-    /// No prefix
-    Just(UInt),
-    /// Equals
-    Eq(UInt),
-    /// Less than
-    Lt(UInt),
-    /// Greater than
-    Gt(UInt),
-    /// Greater or equal
-    Ge(UInt),
-    /// Less or equal
-    Le(UInt),
+pub struct RoomMemberCountIs {
+    prefix: RoomMemberCountPrefix,
+    count: UInt,
 }
 
 impl<T> From<T> for RoomMemberCountIs
@@ -235,24 +248,24 @@ where
     T: Into<UInt>,
 {
     fn from(x: T) -> Self {
-        RoomMemberCountIs::Just(x.into())
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::default(), count: x.into() }
     }
 }
 
 impl Display for RoomMemberCountIs {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        use RoomMemberCountIs::*;
+        use RoomMemberCountPrefix::*;
 
-        let (prefix, value) = match self {
-            Just(x) => ("", x),
-            Eq(x) => ("==", x),
-            Lt(x) => ("<", x),
-            Gt(x) => (">", x),
-            Ge(x) => (">=", x),
-            Le(x) => ("<=", x),
+        let prefix = match self.prefix {
+            None => "",
+            Eq => "==",
+            Lt => "<",
+            Gt => ">",
+            Ge => ">=",
+            Le => "<=",
         };
 
-        write!(f, "{}{}", prefix, value)
+        write!(f, "{}{}", prefix, self.count)
     }
 }
 
@@ -270,27 +283,18 @@ impl FromStr for RoomMemberCountIs {
     type Err = js_int::ParseIntError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use RoomMemberCountIs::*;
+        use RoomMemberCountPrefix::*;
 
-        if s.starts_with("<=") {
-            let value = UInt::from_str(&s[2..])?;
-            Ok(Le(value))
-        } else if s.starts_with('<') {
-            let value = UInt::from_str(&s[1..])?;
-            Ok(Lt(value))
-        } else if s.starts_with(">=") {
-            let value = UInt::from_str(&s[2..])?;
-            Ok(Ge(value))
-        } else if s.starts_with('>') {
-            let value = UInt::from_str(&s[1..])?;
-            Ok(Gt(value))
-        } else if s.starts_with("==") {
-            let value = UInt::from_str(&s[2..])?;
-            Ok(Eq(value))
-        } else {
-            let value = UInt::from_str(s)?;
-            Ok(Just(value))
-        }
+        let (prefix, count_str) = match s {
+            s if s.starts_with("<=") => (Le, &s[2..]),
+            s if s.starts_with('<') => (Lt, &s[1..]),
+            s if s.starts_with(">=") => (Ge, &s[2..]),
+            s if s.starts_with('>') => (Gt, &s[1..]),
+            s if s.starts_with("==") => (Eq, &s[2..]),
+            s => (None, s),
+        };
+
+        Ok(RoomMemberCountIs { prefix, count: UInt::from_str(count_str)? })
     }
 }
 
