@@ -4,7 +4,7 @@
 
 use std::{
     fmt::{self, Display, Formatter},
-    ops::{Bound, RangeBounds},
+    ops::{Bound, RangeBounds, RangeFrom, RangeTo, RangeToInclusive},
     str::FromStr,
 };
 
@@ -238,15 +238,75 @@ impl Default for RoomMemberCountPrefix {
 ///
 /// A prefix of `<` matches rooms where the member count is strictly less than the given
 /// number and so forth. If no prefix is present, this parameter defaults to `==`.
+///
+/// Can be constructed from a number or a range:
+/// ```
+/// use js_int::UInt;
+/// use ruma_common::push::RoomMemberCountIs;
+///
+/// // equivalent to `is: "3"`
+/// let exact = RoomMemberCountIs::from(UInt::from(3u32));
+///
+/// // equivalent to `is: ">=3"`
+/// let greater_or_equal = RoomMemberCountIs::from(UInt::from(3u32)..);
+///
+/// // equivalent to `is: "<3"`
+/// let less = RoomMemberCountIs::from(..UInt::from(3u32));
+///
+/// // equivalent to `is: "<=3"`
+/// let less_or_equal = RoomMemberCountIs::from(..=UInt::from(3u32));
+///
+/// // An explicit `==` can be constructed with `RoomMemberCountIs::eq`
+/// // (equivalent to `is: "==3"`)
+/// let explicit_equals = RoomMemberCountIs::eq(UInt::from(3u32));
+///
+/// // An exclusive range can be constructed with `RoomMemberCountIs::gt`:
+/// // (equivalent to `is: ">3"`)
+/// let greater = RoomMemberCountIs::gt(UInt::from(3u32));
+/// ```
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct RoomMemberCountIs {
-    prefix: RoomMemberCountPrefix,
-    count: UInt,
+    /// One of `==`, `<`, `>`, `>=`, `<=`, or no prefix.
+    pub prefix: RoomMemberCountPrefix,
+    /// The number of people in the room.
+    pub count: UInt,
+}
+
+impl RoomMemberCountIs {
+    /// Creates an instance of `RoomMemberCount` equivalent to `==X`,
+    /// where X is the specified member count.
+    pub fn eq(count: UInt) -> Self {
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Eq, count }
+    }
+
+    /// Creates an instance of `RoomMemberCount` equivalent to `<X`,
+    /// where X is the specified member count.
+    pub fn gt(count: UInt) -> Self {
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Gt, count }
+    }
 }
 
 impl From<UInt> for RoomMemberCountIs {
-    fn from(count: UInt) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::default(), count }
+    fn from(x: UInt) -> Self {
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::default(), count: x }
+    }
+}
+
+impl From<RangeFrom<UInt>> for RoomMemberCountIs {
+    fn from(x: RangeFrom<UInt>) -> Self {
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Ge, count: x.start }
+    }
+}
+
+impl From<RangeTo<UInt>> for RoomMemberCountIs {
+    fn from(x: RangeTo<UInt>) -> Self {
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Lt, count: x.end }
+    }
+}
+
+impl From<RangeToInclusive<UInt>> for RoomMemberCountIs {
+    fn from(x: RangeToInclusive<UInt>) -> Self {
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Le, count: x.end }
     }
 }
 
@@ -376,7 +436,7 @@ mod tests {
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{Action, PushCondition, RoomMemberCountIs, RoomMemberCountPrefix, Tweak};
+    use super::{Action, PushCondition, RoomMemberCountIs, Tweak};
 
     #[test]
     fn serialize_string_action() {
@@ -552,11 +612,18 @@ mod tests {
     }
 
     #[test]
-    fn roommembercountis_range_contains_large_number() {
-        let range =
-            RoomMemberCountIs { prefix: RoomMemberCountPrefix::Gt, count: UInt::from(2u32) };
+    fn roommembercountis_ge_range_contains_large_number() {
+        let range = RoomMemberCountIs::from(UInt::from(2u32)..);
         let large_number = 9001u32.into();
 
         assert!(range.contains(&large_number));
+    }
+
+    #[test]
+    fn roommembercountis_gt_range_does_not_contain_initial_point() {
+        let range = RoomMemberCountIs::gt(UInt::from(2u32));
+        let initial_point = UInt::from(2u32);
+
+        assert!(!range.contains(&initial_point));
     }
 }
