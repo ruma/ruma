@@ -241,28 +241,28 @@ impl Default for RoomMemberCountPrefix {
 ///
 /// Can be constructed from a number or a range:
 /// ```
-/// use js_int::UInt;
+/// use js_int::uint;
 /// use ruma_common::push::RoomMemberCountIs;
 ///
 /// // equivalent to `is: "3"`
-/// let exact = RoomMemberCountIs::from(UInt::from(3u32));
+/// let exact = RoomMemberCountIs::from(uint!(3));
 ///
 /// // equivalent to `is: ">=3"`
-/// let greater_or_equal = RoomMemberCountIs::from(UInt::from(3u32)..);
+/// let greater_or_equal = RoomMemberCountIs::from(uint!(3)..);
 ///
 /// // equivalent to `is: "<3"`
-/// let less = RoomMemberCountIs::from(..UInt::from(3u32));
+/// let less = RoomMemberCountIs::from(..uint!(3));
 ///
 /// // equivalent to `is: "<=3"`
-/// let less_or_equal = RoomMemberCountIs::from(..=UInt::from(3u32));
+/// let less_or_equal = RoomMemberCountIs::from(..=uint!(3));
 ///
 /// // An explicit `==` can be constructed with `RoomMemberCountIs::eq`
 /// // (equivalent to `is: "==3"`)
-/// let explicit_equals = RoomMemberCountIs::eq(UInt::from(3u32));
+/// let explicit_equals = RoomMemberCountIs::eq(uint!(3));
 ///
 /// // An exclusive range can be constructed with `RoomMemberCountIs::gt`:
 /// // (equivalent to `is: ">3"`)
-/// let greater = RoomMemberCountIs::gt(UInt::from(3u32));
+/// let greater = RoomMemberCountIs::gt(uint!(3));
 /// ```
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct RoomMemberCountIs {
@@ -432,7 +432,7 @@ pub enum PushCondition {
 mod tests {
     use std::ops::RangeBounds;
 
-    use js_int::UInt;
+    use js_int::uint;
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -534,7 +534,7 @@ mod tests {
         });
         assert_eq!(
             to_json_value(&PushCondition::RoomMemberCount {
-                is: RoomMemberCountIs::from(UInt::from(2u32))
+                is: RoomMemberCountIs::from(uint!(2))
             })
             .unwrap(),
             json_data
@@ -585,7 +585,7 @@ mod tests {
         assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
             PushCondition::RoomMemberCount { is }
-            if is == RoomMemberCountIs::from(UInt::from(2u32))
+            if is == RoomMemberCountIs::from(uint!(2))
         );
     }
 
@@ -613,7 +613,7 @@ mod tests {
 
     #[test]
     fn roommembercountis_ge_range_contains_large_number() {
-        let range = RoomMemberCountIs::from(UInt::from(2u32)..);
+        let range = RoomMemberCountIs::from(uint!(2)..);
         let large_number = 9001u32.into();
 
         assert!(range.contains(&large_number));
@@ -621,8 +621,8 @@ mod tests {
 
     #[test]
     fn roommembercountis_gt_range_does_not_contain_initial_point() {
-        let range = RoomMemberCountIs::gt(UInt::from(2u32));
-        let initial_point = UInt::from(2u32);
+        let range = RoomMemberCountIs::gt(uint!(2));
+        let initial_point = uint!(2);
 
         assert!(!range.contains(&initial_point));
     }
