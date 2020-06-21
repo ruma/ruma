@@ -13,8 +13,7 @@ use std::{convert::TryFrom, num::NonZeroU8};
 use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
 
 #[doc(inline)]
-#[allow(deprecated)]
-pub use crate::{error::Error, server_name::is_valid_server_name};
+pub use crate::error::Error;
 
 #[macro_use]
 mod macros;
@@ -153,6 +152,14 @@ pub type UserId = user_id::UserId<Box<str>>;
 ///
 /// Can be created via `TryFrom<&str>`, implements `Serialize` if the `serde` feature is enabled.
 pub type UserIdRef<'a> = user_id::UserId<&'a str>;
+
+/// Check whether a given string is a valid server name according to [the specification][].
+///
+/// [the specification]: https://matrix.org/docs/spec/appendices#server-name
+#[deprecated = "Use the [`ServerName`](server_name/struct.ServerName.html) type instead."]
+pub fn is_valid_server_name(name: &str) -> bool {
+    ServerNameRef::try_from(name).is_ok()
+}
 
 /// All identifiers must be 255 bytes or less.
 const MAX_BYTES: usize = 255;

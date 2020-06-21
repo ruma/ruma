@@ -25,36 +25,22 @@ fn try_from<S, T>(server_name: S) -> Result<ServerName<T>, Error>
 where
     S: AsRef<str> + Into<T>,
 {
-    if !is_valid_server_name(server_name.as_ref()) {
-        return Err(Error::InvalidServerName);
-    }
-    Ok(ServerName { full_id: server_name.into() })
-}
-
-common_impls!(ServerName, try_from, "An IP address or hostname");
-
-/// Check whether a given string is a valid server name according to [the specification][].
-///
-/// Deprecated. Use the `try_from()` method of [`ServerName`](server_name/struct.ServerName.html) to construct
-/// a server name instead.
-///
-/// [the specification]: https://matrix.org/docs/spec/appendices#server-name
-#[deprecated]
-pub fn is_valid_server_name(name: &str) -> bool {
     use std::net::Ipv6Addr;
 
+    let name = server_name.as_ref();
+
     if name.is_empty() {
-        return false;
+        return Err(Error::InvalidServerName);
     }
 
     let end_of_host = if name.starts_with('[') {
         let end_of_ipv6 = match name.find(']') {
             Some(idx) => idx,
-            None => return false,
+            None => return Err(Error::InvalidServerName),
         };
 
         if name[1..end_of_ipv6].parse::<Ipv6Addr>().is_err() {
-            return false;
+            return Err(Error::InvalidServerName);
         }
 
         end_of_ipv6 + 1
@@ -65,80 +51,87 @@ pub fn is_valid_server_name(name: &str) -> bool {
             .bytes()
             .any(|byte| !(byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'.'))
         {
-            return false;
+            return Err(Error::InvalidServerName);
         }
 
         end_of_host
     };
 
-    if name.len() == end_of_host {
-        true
-    } else if name.as_bytes()[end_of_host] != b':' {
-        // hostname is followed by something other than ":port"
-        false
+    if name.len() != end_of_host
+        && (
+            // hostname is followed by something other than ":port"
+            name.as_bytes()[end_of_host] != b':'
+            // the remaining characters after ':' are not a valid port
+            || name[end_of_host + 1..].parse::<u16>().is_err()
+        )
+    {
+        Err(Error::InvalidServerName)
     } else {
-        // are the remaining characters after ':' a valid port?
-        name[end_of_host + 1..].parse::<u16>().is_ok()
+        Ok(ServerName { full_id: server_name.into() })
     }
 }
 
+common_impls!(ServerName, try_from, "An IP address or hostname");
+
 #[cfg(test)]
 mod tests {
-    use super::is_valid_server_name;
+    use std::convert::TryFrom;
+
+    use crate::ServerNameRef;
 
     #[test]
     fn ipv4_host() {
-        assert!(is_valid_server_name("127.0.0.1"));
+        assert!(ServerNameRef::try_from("127.0.0.1").is_ok());
     }
 
     #[test]
     fn ipv4_host_and_port() {
-        assert!(is_valid_server_name("1.1.1.1:12000"));
+        assert!(ServerNameRef::try_from("1.1.1.1:12000").is_ok());
     }
 
     #[test]
     fn ipv6() {
-        assert!(is_valid_server_name("[::1]"));
+        assert!(ServerNameRef::try_from("[::1]").is_ok());
     }
 
     #[test]
     fn ipv6_with_port() {
-        assert!(is_valid_server_name("[1234:5678::abcd]:5678"));
+        assert!(ServerNameRef::try_from("[1234:5678::abcd]:5678").is_ok());
     }
 
     #[test]
     fn dns_name() {
-        assert!(is_valid_server_name("example.com"));
+        assert!(ServerNameRef::try_from("example.com").is_ok());
     }
 
     #[test]
     fn dns_name_with_port() {
-        assert!(is_valid_server_name("ruma.io:8080"));
+        assert!(ServerNameRef::try_from("ruma.io:8080").is_ok());
     }
 
     #[test]
     fn empty_string() {
-        assert!(!is_valid_server_name(""));
+        assert!(ServerNameRef::try_from("").is_err());
     }
 
     #[test]
     fn invalid_ipv6() {
-        assert!(!is_valid_server_name("[test::1]"));
+        assert!(ServerNameRef::try_from("[test::1]").is_err());
     }
 
     #[test]
     fn ipv4_with_invalid_port() {
-        assert!(!is_valid_server_name("127.0.0.1:"));
+        assert!(ServerNameRef::try_from("127.0.0.1:").is_err());
     }
 
     #[test]
     fn ipv6_with_invalid_port() {
-        assert!(!is_valid_server_name("[fe80::1]:100000"));
-        assert!(!is_valid_server_name("[fe80::1]!"));
+        assert!(ServerNameRef::try_from("[fe80::1]:100000").is_err());
+        assert!(ServerNameRef::try_from("[fe80::1]!").is_err());
     }
 
     #[test]
     fn dns_name_with_invalid_port() {
-        assert!(!is_valid_server_name("matrix.org:hello"));
+        assert!(ServerNameRef::try_from("matrix.org:hello").is_err());
     }
 }
