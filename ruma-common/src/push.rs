@@ -352,6 +352,7 @@ impl RangeBounds<UInt> for RoomMemberCountIs {
             Ge => Bound::Included(&self.count),
         }
     }
+
     fn end_bound(&self) -> Bound<&UInt> {
         use RoomMemberCountPrefix::*;
 
