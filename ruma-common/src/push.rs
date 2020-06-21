@@ -214,9 +214,7 @@ impl Serialize for Action {
 /// Optional prefix used by `RoomMemberCountIs`
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum RoomMemberCountPrefix {
-    /// No prefix
-    None,
-    /// Equals
+    /// Equals (no prefix)
     Eq,
     /// Less than
     Lt,
@@ -230,7 +228,7 @@ pub enum RoomMemberCountPrefix {
 
 impl Default for RoomMemberCountPrefix {
     fn default() -> Self {
-        RoomMemberCountPrefix::None
+        RoomMemberCountPrefix::Eq
     }
 }
 
@@ -244,7 +242,7 @@ impl Default for RoomMemberCountPrefix {
 /// use js_int::uint;
 /// use ruma_common::push::RoomMemberCountIs;
 ///
-/// // equivalent to `is: "3"`
+/// // equivalent to `is: "3"` or `is: "==3"`
 /// let exact = RoomMemberCountIs::from(uint!(3));
 ///
 /// // equivalent to `is: ">=3"`
@@ -255,10 +253,6 @@ impl Default for RoomMemberCountPrefix {
 ///
 /// // equivalent to `is: "<=3"`
 /// let less_or_equal = RoomMemberCountIs::from(..=uint!(3));
-///
-/// // An explicit `==` can be constructed with `RoomMemberCountIs::eq`
-/// // (equivalent to `is: "==3"`)
-/// let explicit_equals = RoomMemberCountIs::eq(uint!(3));
 ///
 /// // An exclusive range can be constructed with `RoomMemberCountIs::gt`:
 /// // (equivalent to `is: ">3"`)
@@ -273,12 +267,6 @@ pub struct RoomMemberCountIs {
 }
 
 impl RoomMemberCountIs {
-    /// Creates an instance of `RoomMemberCount` equivalent to `==X`,
-    /// where X is the specified member count.
-    pub fn eq(count: UInt) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Eq, count }
-    }
-
     /// Creates an instance of `RoomMemberCount` equivalent to `<X`,
     /// where X is the specified member count.
     pub fn gt(count: UInt) -> Self {
@@ -288,7 +276,7 @@ impl RoomMemberCountIs {
 
 impl From<UInt> for RoomMemberCountIs {
     fn from(x: UInt) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::default(), count: x }
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Eq, count: x }
     }
 }
 
@@ -315,8 +303,7 @@ impl Display for RoomMemberCountIs {
         use RoomMemberCountPrefix::*;
 
         let prefix = match self.prefix {
-            None => "",
-            Eq => "==",
+            Eq => "",
             Lt => "<",
             Gt => ">",
             Ge => ">=",
@@ -349,7 +336,7 @@ impl FromStr for RoomMemberCountIs {
             s if s.starts_with(">=") => (Ge, &s[2..]),
             s if s.starts_with('>') => (Gt, &s[1..]),
             s if s.starts_with("==") => (Eq, &s[2..]),
-            s => (None, s),
+            s => (Eq, s),
         };
 
         Ok(RoomMemberCountIs { prefix, count: UInt::from_str(count_str)? })
@@ -371,8 +358,8 @@ impl RangeBounds<UInt> for RoomMemberCountIs {
         use RoomMemberCountPrefix::*;
 
         match self.prefix {
+            Eq => Bound::Included(&self.count),
             Lt | Le => Bound::Unbounded,
-            None | Eq => Bound::Included(&self.count),
             Gt => Bound::Excluded(&self.count),
             Ge => Bound::Included(&self.count),
         }
@@ -382,8 +369,8 @@ impl RangeBounds<UInt> for RoomMemberCountIs {
         use RoomMemberCountPrefix::*;
 
         match self.prefix {
+            Eq => Bound::Included(&self.count),
             Gt | Ge => Bound::Unbounded,
-            None | Eq => Bound::Included(&self.count),
             Lt => Bound::Excluded(&self.count),
             Le => Bound::Included(&self.count),
         }
