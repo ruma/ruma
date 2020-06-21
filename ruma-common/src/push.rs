@@ -4,6 +4,7 @@
 
 use std::{
     fmt::{self, Display, Formatter},
+    ops::{Bound, RangeBounds},
     str::FromStr,
 };
 
@@ -211,7 +212,7 @@ impl Serialize for Action {
 }
 
 /// Optional prefix used by `RoomMemberCountIs`
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum RoomMemberCountPrefix {
     /// No prefix
     None,
@@ -237,10 +238,42 @@ impl Default for RoomMemberCountPrefix {
 ///
 /// A prefix of `<` matches rooms where the member count is strictly less than the given
 /// number and so forth. If no prefix is present, this parameter defaults to `==`.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct RoomMemberCountIs {
     prefix: RoomMemberCountPrefix,
     count: UInt,
+}
+
+impl RoomMemberCountIs {
+    /// A decimal integer with no prefix.
+    pub fn new<T: Into<UInt>>(x: T) -> Self {
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::None, count: x.into() }
+    }
+
+    /// A decimal integer prefixed by `==`.
+    pub fn eq<T: Into<UInt>>(x: T) -> Self {
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Eq, count: x.into() }
+    }
+
+    /// A decimal integer prefixed by `>`.
+    pub fn gt<T: Into<UInt>>(x: T) -> Self {
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Gt, count: x.into() }
+    }
+
+    /// A decimal integer prefixed by `>=`.
+    pub fn ge<T: Into<UInt>>(x: T) -> Self {
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Ge, count: x.into() }
+    }
+
+    /// A decimal integer prefixed by `<`.
+    pub fn lt<T: Into<UInt>>(x: T) -> Self {
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Lt, count: x.into() }
+    }
+
+    /// A decimal integer prefixed by `<=`.
+    pub fn le<T: Into<UInt>>(x: T) -> Self {
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Le, count: x.into() }
+    }
 }
 
 impl<T> From<T> for RoomMemberCountIs
@@ -308,6 +341,29 @@ impl<'de> Deserialize<'de> for RoomMemberCountIs {
     }
 }
 
+impl RangeBounds<UInt> for RoomMemberCountIs {
+    fn start_bound(&self) -> Bound<&UInt> {
+        use RoomMemberCountPrefix::*;
+
+        match self.prefix {
+            Lt | Le => Bound::Unbounded,
+            None | Eq => Bound::Included(&self.count),
+            Gt => Bound::Excluded(&self.count),
+            Ge => Bound::Included(&self.count),
+        }
+    }
+    fn end_bound(&self) -> Bound<&UInt> {
+        use RoomMemberCountPrefix::*;
+
+        match self.prefix {
+            Gt | Ge => Bound::Unbounded,
+            None | Eq => Bound::Included(&self.count),
+            Lt => Bound::Excluded(&self.count),
+            Le => Bound::Included(&self.count),
+        }
+    }
+}
+
 /// A condition that must apply for an associated push rule's action to be taken.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[non_exhaustive]
@@ -348,6 +404,8 @@ pub enum PushCondition {
 
 #[cfg(test)]
 mod tests {
+    use std::ops::RangeBounds;
+
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -514,5 +572,21 @@ mod tests {
                 key
             } if key == "room"
         );
+    }
+
+    #[test]
+    fn roommembercountis_range_contains_its_own_count() {
+        let count = 2u32.into();
+        let range = RoomMemberCountIs::from(count);
+
+        assert!(range.contains(&count));
+    }
+
+    #[test]
+    fn roommembercountis_range_contains_large_number() {
+        let range = RoomMemberCountIs::gt(2u32);
+        let large_number = 9001u32.into();
+
+        assert!(range.contains(&large_number));
     }
 }
