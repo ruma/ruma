@@ -17,6 +17,8 @@ pub mod claim_keys;
 pub mod get_key_changes;
 pub mod get_keys;
 pub mod upload_keys;
+pub mod upload_signatures;
+pub mod upload_signing_keys;
 
 /// The basic key algorithms in the specification
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -160,4 +162,30 @@ pub enum OneTimeKey {
 
     /// A string-valued key, for the Ed25519 and Curve25519 algorithms.
     Key(String),
+}
+
+/// A cross signing key.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CrossSigningKey {
+    /// The ID of the user the key belongs to.
+    pub user_id: UserId,
+    /// What the key is used for.
+    pub usage: Vec<KeyUsage>,
+    /// The public key. The object must have exactly one property.
+    pub keys: BTreeMap<String, String>,
+    /// Signatures of the key. Only optional for master key.
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub signatures: BTreeMap<UserId, BTreeMap<String, String>>,
+}
+
+/// The usage of a cross signing key.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum KeyUsage {
+    /// Master key.
+    Master,
+    /// Self-signing key.
+    SelfSigning,
+    /// User-signing key.
+    UserSigning,
 }
