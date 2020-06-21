@@ -11,6 +11,7 @@ repository = "https://github.com/ruma/ruma"
 edition = "2018"
 
 [dependencies]
+js_int = { version = "0.1.7", features = ["serde"] }
 matches = "0.1.8"
 ruma-serde = { version = "0.2.2", path = "../ruma-serde" }
 serde = { version = "1.0.113", features = ["derive"] }

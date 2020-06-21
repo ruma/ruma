@@ -7,6 +7,9 @@ use std::fmt::{self, Formatter};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::value::RawValue as RawJsonValue;
 
+pub use room_member_count_is::{ComparisonOperator, RoomMemberCountIs};
+
+mod room_member_count_is;
 mod tweak_serde;
 
 /// A push ruleset scopes a set of rules according to some criteria.
@@ -229,11 +232,8 @@ pub enum PushCondition {
 
     /// This matches the current number of members in the room.
     RoomMemberCount {
-        /// A decimal integer optionally prefixed by one of `==`, `<`, `>`, `>=` or `<=`.
-        ///
-        /// A prefix of `<` matches rooms where the member count is strictly less than the given
-        /// number and so forth. If no prefix is present, this parameter defaults to `==`.
-        is: String,
+        /// The condition on the current number of members in the room.
+        is: RoomMemberCountIs,
     },
 
     /// This takes into account the current power levels in the room, ensuring the sender of the
@@ -249,10 +249,11 @@ pub enum PushCondition {
 
 #[cfg(test)]
 mod tests {
+    use js_int::uint;
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{Action, PushCondition, Tweak};
+    use super::{Action, PushCondition, RoomMemberCountIs, Tweak};
 
     #[test]
     fn serialize_string_action() {
@@ -349,7 +350,10 @@ mod tests {
             "kind": "room_member_count"
         });
         assert_eq!(
-            to_json_value(&PushCondition::RoomMemberCount { is: "2".to_string() }).unwrap(),
+            to_json_value(&PushCondition::RoomMemberCount {
+                is: RoomMemberCountIs::from(uint!(2))
+            })
+            .unwrap(),
             json_data
         );
     }
@@ -398,7 +402,7 @@ mod tests {
         assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
             PushCondition::RoomMemberCount { is }
-            if is == "2"
+            if is == RoomMemberCountIs::from(uint!(2))
         );
     }
 
