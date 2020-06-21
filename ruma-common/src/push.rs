@@ -244,44 +244,9 @@ pub struct RoomMemberCountIs {
     count: UInt,
 }
 
-impl RoomMemberCountIs {
-    /// A decimal integer with no prefix.
-    pub fn new<T: Into<UInt>>(x: T) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::None, count: x.into() }
-    }
-
-    /// A decimal integer prefixed by `==`.
-    pub fn eq<T: Into<UInt>>(x: T) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Eq, count: x.into() }
-    }
-
-    /// A decimal integer prefixed by `>`.
-    pub fn gt<T: Into<UInt>>(x: T) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Gt, count: x.into() }
-    }
-
-    /// A decimal integer prefixed by `>=`.
-    pub fn ge<T: Into<UInt>>(x: T) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Ge, count: x.into() }
-    }
-
-    /// A decimal integer prefixed by `<`.
-    pub fn lt<T: Into<UInt>>(x: T) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Lt, count: x.into() }
-    }
-
-    /// A decimal integer prefixed by `<=`.
-    pub fn le<T: Into<UInt>>(x: T) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Le, count: x.into() }
-    }
-}
-
-impl<T> From<T> for RoomMemberCountIs
-where
-    T: Into<UInt>,
-{
-    fn from(x: T) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::default(), count: x.into() }
+impl From<UInt> for RoomMemberCountIs {
+    fn from(count: UInt) -> Self {
+        RoomMemberCountIs { prefix: RoomMemberCountPrefix::default(), count }
     }
 }
 
@@ -407,10 +372,11 @@ pub enum PushCondition {
 mod tests {
     use std::ops::RangeBounds;
 
+    use js_int::UInt;
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{Action, PushCondition, RoomMemberCountIs, Tweak};
+    use super::{Action, PushCondition, RoomMemberCountIs, RoomMemberCountPrefix, Tweak};
 
     #[test]
     fn serialize_string_action() {
@@ -507,8 +473,10 @@ mod tests {
             "kind": "room_member_count"
         });
         assert_eq!(
-            to_json_value(&PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(2u32) })
-                .unwrap(),
+            to_json_value(&PushCondition::RoomMemberCount {
+                is: RoomMemberCountIs::from(UInt::from(2u32))
+            })
+            .unwrap(),
             json_data
         );
     }
@@ -557,7 +525,7 @@ mod tests {
         assert_matches!(
             from_json_value::<PushCondition>(json_data).unwrap(),
             PushCondition::RoomMemberCount { is }
-            if is == RoomMemberCountIs::from(2u32)
+            if is == RoomMemberCountIs::from(UInt::from(2u32))
         );
     }
 
@@ -585,7 +553,8 @@ mod tests {
 
     #[test]
     fn roommembercountis_range_contains_large_number() {
-        let range = RoomMemberCountIs::gt(2u32);
+        let range =
+            RoomMemberCountIs { prefix: RoomMemberCountPrefix::Gt, count: UInt::from(2u32) };
         let large_number = 9001u32.into();
 
         assert!(range.contains(&large_number));
