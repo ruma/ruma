@@ -7,10 +7,12 @@ use std::{
 use js_int::UInt;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-/// Optional prefix used by `RoomMemberCountIs`
+/// One of `==`, `<`, `>`, `>=` or `<=`.
+///
+/// Used by `RoomMemberCountIs`. Defaults to `==`.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum RoomMemberCountPrefix {
-    /// Equals (no prefix)
+pub enum ComparisonOperator {
+    /// Equals
     Eq,
     /// Less than
     Lt,
@@ -22,9 +24,9 @@ pub enum RoomMemberCountPrefix {
     Le,
 }
 
-impl Default for RoomMemberCountPrefix {
+impl Default for ComparisonOperator {
     fn default() -> Self {
-        RoomMemberCountPrefix::Eq
+        ComparisonOperator::Eq
     }
 }
 
@@ -57,7 +59,7 @@ impl Default for RoomMemberCountPrefix {
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct RoomMemberCountIs {
     /// One of `==`, `<`, `>`, `>=`, `<=`, or no prefix.
-    pub prefix: RoomMemberCountPrefix,
+    pub prefix: ComparisonOperator,
     /// The number of people in the room.
     pub count: UInt,
 }
@@ -66,37 +68,37 @@ impl RoomMemberCountIs {
     /// Creates an instance of `RoomMemberCount` equivalent to `<X`,
     /// where X is the specified member count.
     pub fn gt(count: UInt) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Gt, count }
+        RoomMemberCountIs { prefix: ComparisonOperator::Gt, count }
     }
 }
 
 impl From<UInt> for RoomMemberCountIs {
     fn from(x: UInt) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Eq, count: x }
+        RoomMemberCountIs { prefix: ComparisonOperator::Eq, count: x }
     }
 }
 
 impl From<RangeFrom<UInt>> for RoomMemberCountIs {
     fn from(x: RangeFrom<UInt>) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Ge, count: x.start }
+        RoomMemberCountIs { prefix: ComparisonOperator::Ge, count: x.start }
     }
 }
 
 impl From<RangeTo<UInt>> for RoomMemberCountIs {
     fn from(x: RangeTo<UInt>) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Lt, count: x.end }
+        RoomMemberCountIs { prefix: ComparisonOperator::Lt, count: x.end }
     }
 }
 
 impl From<RangeToInclusive<UInt>> for RoomMemberCountIs {
     fn from(x: RangeToInclusive<UInt>) -> Self {
-        RoomMemberCountIs { prefix: RoomMemberCountPrefix::Le, count: x.end }
+        RoomMemberCountIs { prefix: ComparisonOperator::Le, count: x.end }
     }
 }
 
 impl Display for RoomMemberCountIs {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        use RoomMemberCountPrefix::*;
+        use ComparisonOperator::*;
 
         let prefix = match self.prefix {
             Eq => "",
@@ -124,7 +126,7 @@ impl FromStr for RoomMemberCountIs {
     type Err = js_int::ParseIntError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use RoomMemberCountPrefix::*;
+        use ComparisonOperator::*;
 
         let (prefix, count_str) = match s {
             s if s.starts_with("<=") => (Le, &s[2..]),
@@ -151,7 +153,7 @@ impl<'de> Deserialize<'de> for RoomMemberCountIs {
 
 impl RangeBounds<UInt> for RoomMemberCountIs {
     fn start_bound(&self) -> Bound<&UInt> {
-        use RoomMemberCountPrefix::*;
+        use ComparisonOperator::*;
 
         match self.prefix {
             Eq => Bound::Included(&self.count),
@@ -162,7 +164,7 @@ impl RangeBounds<UInt> for RoomMemberCountIs {
     }
 
     fn end_bound(&self) -> Bound<&UInt> {
-        use RoomMemberCountPrefix::*;
+        use ComparisonOperator::*;
 
         match self.prefix {
             Eq => Bound::Included(&self.count),

@@ -7,7 +7,7 @@ use std::fmt::{self, Formatter};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::value::RawValue as RawJsonValue;
 
-pub use room_member_count_is::{RoomMemberCountIs, RoomMemberCountPrefix};
+pub use room_member_count_is::{ComparisonOperator, RoomMemberCountIs};
 
 mod room_member_count_is;
 mod tweak_serde;
