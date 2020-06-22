@@ -68,8 +68,6 @@ impl ruma_events::RoomEventContent for RedactionEventContent {}
 
 impl ruma_events::MessageEventContent for RedactionEventContent {}
 
-impl ruma_events::StateEventContent for RedactionEventContent {}
-
 #[cfg(test)]
 mod tests {
     use std::{

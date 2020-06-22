@@ -9,58 +9,9 @@ use syn::{
 
 /// Create a content enum from `EventEnumInput`.
 pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
-    let attrs = &input.attrs;
     let ident = &input.name;
-    let event_type_str = &input.events;
-    let event_struct = Ident::new(&ident.to_string().trim_start_matches("Any"), ident.span());
 
-    let variants = input.events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
-    let content =
-        input.events.iter().map(|event| to_event_path(event, &event_struct)).collect::<Vec<_>>();
-
-    let event_enum = quote! {
-        #( #attrs )*
-        #[derive(Clone, Debug, ::serde::Serialize)]
-        #[serde(untagged)]
-        #[allow(clippy::large_enum_variant)]
-        pub enum #ident {
-            #(
-                #[doc = #event_type_str]
-                #variants(#content),
-            )*
-            /// An event not defined by the Matrix specification
-            Custom(::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>),
-        }
-    };
-
-    let event_deserialize_impl = quote! {
-        impl<'de> ::serde::de::Deserialize<'de> for #ident {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: ::serde::de::Deserializer<'de>,
-            {
-                use ::serde::de::Error as _;
-
-                let json = Box::<::serde_json::value::RawValue>::deserialize(deserializer)?;
-                let ::ruma_events::EventDeHelper { ev_type, .. } = ::ruma_events::from_raw_json_value(&json)?;
-                match ev_type.as_str() {
-                    #(
-                        #event_type_str => {
-                            let event = ::serde_json::from_str::<#content>(json.get()).map_err(D::Error::custom)?;
-                            Ok(#ident::#variants(event))
-                        },
-                    )*
-                    event => {
-                        let event =
-                            ::serde_json::from_str::<::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>>(json.get())
-                                .map_err(D::Error::custom)?;
-
-                        Ok(Self::Custom(event))
-                    },
-                }
-            }
-        }
-    };
+    let event_enum = expand_any_enum_with_deserialize(&input, ident)?;
 
     let needs_event_content = ident == "AnyStateEvent"
         || ident == "AnyMessageEvent"
@@ -68,20 +19,46 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
         || ident == "AnyEphemeralRoomEvent"
         || ident == "AnyBasicEvent";
 
+    let needs_event_stub = ident == "AnyStateEvent" || ident == "AnyMessageEvent";
+
+    let needs_stripped_event = ident == "AnyStateEvent";
+
+    let event_stub_enum =
+        if needs_event_stub { expand_stub_enum(&input)? } else { TokenStream::new() };
+
+    let event_stripped_enum =
+        if needs_stripped_event { expand_stripped_enum(&input)? } else { TokenStream::new() };
+
     let event_content_enum =
-        if needs_event_content { expand_content_enum(input)? } else { TokenStream::new() };
+        if needs_event_content { expand_content_enum(&input)? } else { TokenStream::new() };
 
     Ok(quote! {
         #event_enum
 
-        #event_deserialize_impl
+        #event_stub_enum
+
+        #event_stripped_enum
 
         #event_content_enum
     })
 }
 
+/// Create a "stub" enum from `EventEnumInput`.
+pub fn expand_stub_enum(input: &EventEnumInput) -> syn::Result<TokenStream> {
+    let ident = Ident::new(&format!("{}Stub", input.name.to_string()), input.name.span());
+
+    expand_any_enum_with_deserialize(input, &ident)
+}
+
+/// Create a "stripped" enum from `EventEnumInput`.
+pub fn expand_stripped_enum(input: &EventEnumInput) -> syn::Result<TokenStream> {
+    let ident = Ident::new("AnyStrippedStateEventStub", input.name.span());
+
+    expand_any_enum_with_deserialize(input, &ident)
+}
+
 /// Create a content enum from `EventEnumInput`.
-pub fn expand_content_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
+pub fn expand_content_enum(input: &EventEnumInput) -> syn::Result<TokenStream> {
     let attrs = &input.attrs;
     let ident = Ident::new(&format!("{}Content", input.name.to_string()), input.name.span());
     let event_type_str = &input.events;
@@ -154,6 +131,69 @@ pub fn expand_content_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
     })
 }
 
+fn expand_any_enum_with_deserialize(
+    input: &EventEnumInput,
+    ident: &Ident,
+) -> syn::Result<TokenStream> {
+    let attrs = &input.attrs;
+    let event_type_str = &input.events;
+    let event_struct = Ident::new(&ident.to_string().trim_start_matches("Any"), ident.span());
+
+    let variants = input.events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
+    let content =
+        input.events.iter().map(|event| to_event_path(event, &event_struct)).collect::<Vec<_>>();
+
+    let any_enum = quote! {
+        #( #attrs )*
+        #[derive(Clone, Debug, ::serde::Serialize)]
+        #[serde(untagged)]
+        #[allow(clippy::large_enum_variant)]
+        pub enum #ident {
+            #(
+                #[doc = #event_type_str]
+                #variants(#content),
+            )*
+            /// An event not defined by the Matrix specification
+            Custom(::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>),
+        }
+    };
+
+    let event_deserialize_impl = quote! {
+        impl<'de> ::serde::de::Deserialize<'de> for #ident {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: ::serde::de::Deserializer<'de>,
+            {
+                use ::serde::de::Error as _;
+
+                let json = Box::<::serde_json::value::RawValue>::deserialize(deserializer)?;
+                let ::ruma_events::EventDeHelper { ev_type, .. } = ::ruma_events::from_raw_json_value(&json)?;
+                match ev_type.as_str() {
+                    #(
+                        #event_type_str => {
+                            let event = ::serde_json::from_str::<#content>(json.get()).map_err(D::Error::custom)?;
+                            Ok(#ident::#variants(event))
+                        },
+                    )*
+                    event => {
+                        let event =
+                            ::serde_json::from_str::<::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>>(json.get())
+                                .map_err(D::Error::custom)?;
+
+                        Ok(Self::Custom(event))
+                    },
+                }
+            }
+        }
+    };
+
+    Ok(quote! {
+        #any_enum
+
+        #event_deserialize_impl
+    })
+}
+
 fn marker_traits(ident: &Ident) -> TokenStream {
     match ident.to_string().as_str() {
         "AnyStateEventContent" => quote! {
@@ -191,7 +231,7 @@ fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
     let path = path.iter().map(|s| Ident::new(s, span));
 
     match struct_name.to_string().as_str() {
-        "MessageEvent" | "MessageEventStub" if event_str.contains("redaction") => {
+        "MessageEvent" | "MessageEventStub" if *event_str == "m.room.redaction" => {
             let redaction = if struct_name == "MessageEvent" {
                 quote! { RedactionEvent }
             } else {
@@ -200,7 +240,6 @@ fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
             quote! { ::ruma_events::room::redaction::#redaction }
         }
         "ToDeviceEvent" | "StateEventStub" | "StrippedStateEventStub" | "MessageEventStub" => {
-            let path = path.clone();
             let content = Ident::new(&format!("{}EventContent", event), span);
             quote! { ::ruma_events::#struct_name<::ruma_events::#( #path )::*::#content> }
         }
