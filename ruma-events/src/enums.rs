@@ -5,10 +5,7 @@ use serde::{
 };
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::{
-    event_kinds::{MessageEventStub, StateEventStub, StrippedStateEventStub},
-    from_raw_json_value, EventDeHelper,
-};
+use crate::{from_raw_json_value, EventDeHelper};
 
 event_enum! {
     /// Any basic event.
@@ -51,8 +48,74 @@ event_enum! {
 }
 
 event_enum! {
+    /// Any message event stub (message event without a `room_id`, as returned in `/sync` responses)
+    name: AnyMessageEventStub,
+    events: [
+        "m.call.answer",
+        "m.call.invite",
+        "m.call.hangup",
+        "m.call.candidates",
+        "m.room.encrypted",
+        "m.room.message",
+        "m.room.message.feedback",
+        "m.room.redaction",
+        "m.sticker",
+
+    ]
+}
+
+event_enum! {
     /// Any state event.
     name: AnyStateEvent,
+    events: [
+        "m.room.aliases",
+        "m.room.avatar",
+        "m.room.canonical_alias",
+        "m.room.create",
+        "m.room.encryption",
+        "m.room.guest_access",
+        "m.room.history_visibility",
+        "m.room.join_rules",
+        "m.room.member",
+        "m.room.name",
+        "m.room.pinned_events",
+        "m.room.power_levels",
+        "m.room.redaction",
+        "m.room.server_acl",
+        "m.room.third_party_invite",
+        "m.room.tombstone",
+        "m.room.topic",
+    ]
+}
+
+event_enum! {
+    /// Any state event stub (state event without a `room_id`, as returned in `/sync` responses)
+    name: AnyStateEventStub,
+    events: [
+        "m.room.aliases",
+        "m.room.avatar",
+        "m.room.canonical_alias",
+        "m.room.create",
+        "m.room.encryption",
+        "m.room.guest_access",
+        "m.room.history_visibility",
+        "m.room.join_rules",
+        "m.room.member",
+        "m.room.name",
+        "m.room.pinned_events",
+        "m.room.power_levels",
+        "m.room.redaction",
+        "m.room.server_acl",
+        "m.room.third_party_invite",
+        "m.room.tombstone",
+        "m.room.topic",
+    ]
+}
+
+event_enum! {
+    /// Any stripped state event stub (stripped-down state event, as returned for rooms the user has
+    /// been invited to in `/sync` responses)
+    name: AnyStrippedStateEventStub,
     events: [
         "m.room.aliases",
         "m.room.avatar",
@@ -91,16 +154,6 @@ event_enum! {
         "m.room.encrypted",
     ]
 }
-
-/// Any message event stub (message event without a `room_id`, as returned in `/sync` responses)
-pub type AnyMessageEventStub = MessageEventStub<AnyMessageEventContent>;
-
-/// Any state event stub (state event without a `room_id`, as returned in `/sync` responses)
-pub type AnyStateEventStub = StateEventStub<AnyStateEventContent>;
-
-/// Any stripped state event stub (stripped-down state event, as returned for rooms the user has
-/// been invited to in `/sync` responses)
-pub type AnyStrippedStateEventStub = StrippedStateEventStub<AnyStateEventContent>;
 
 /// Any event.
 #[derive(Clone, Debug, Serialize)]

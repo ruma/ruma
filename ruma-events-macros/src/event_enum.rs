@@ -15,7 +15,8 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
     let event_struct = Ident::new(&ident.to_string().trim_start_matches("Any"), ident.span());
 
     let variants = input.events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
-    let content = input.events.iter().map(to_event_path).collect::<Vec<_>>();
+    let content =
+        input.events.iter().map(|event| to_event_path(event, &event_struct)).collect::<Vec<_>>();
 
     let event_enum = quote! {
         #( #attrs )*
@@ -61,7 +62,14 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
         }
     };
 
-    let event_content_enum = expand_content_enum(input)?;
+    let needs_event_content = ident == "AnyStateEvent"
+        || ident == "AnyMessageEvent"
+        || ident == "AnyToDeviceEvent"
+        || ident == "AnyEphemeralRoomEvent"
+        || ident == "AnyBasicEvent";
+
+    let event_content_enum =
+        if needs_event_content { expand_content_enum(input)? } else { TokenStream::new() };
 
     Ok(quote! {
         #event_enum
@@ -166,7 +174,7 @@ fn marker_traits(ident: &Ident) -> TokenStream {
     }
 }
 
-fn to_event_path(name: &LitStr) -> TokenStream {
+fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
     let span = name.span();
     let name = name.value();
 
@@ -180,10 +188,26 @@ fn to_event_path(name: &LitStr) -> TokenStream {
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
         .collect::<String>();
 
-    let content_str = Ident::new(&format!("{}Event", event), span);
     let path = path.iter().map(|s| Ident::new(s, span));
-    quote! {
-        ::ruma_events::#( #path )::*::#content_str
+
+    match struct_name.to_string().as_str() {
+        "MessageEvent" | "MessageEventStub" if event_str.contains("redaction") => {
+            let redaction = if struct_name == "MessageEvent" {
+                quote! { RedactionEvent }
+            } else {
+                quote! { RedactionEventStub }
+            };
+            quote! { ::ruma_events::room::redaction::#redaction }
+        }
+        "ToDeviceEvent" | "StateEventStub" | "StrippedStateEventStub" | "MessageEventStub" => {
+            let path = path.clone();
+            let content = Ident::new(&format!("{}EventContent", event), span);
+            quote! { ::ruma_events::#struct_name<::ruma_events::#( #path )::*::#content> }
+        }
+        _ => {
+            let event_name = Ident::new(&format!("{}Event", event), span);
+            quote! { ::ruma_events::#( #path )::*::#event_name }
+        }
     }
 }
 
