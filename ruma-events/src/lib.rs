@@ -240,8 +240,11 @@ pub trait StateEventContent: RoomEventContent {}
 pub struct EventDeHelper {
     #[serde(rename = "type")]
     pub ev_type: String,
+    #[serde(default)]
+    pub state_key: Option<String>,
+    #[serde(default)]
+    pub event_id: Option<String>,
 }
-
 /// Helper function for serde_json::value::RawValue deserialization.
 #[doc(hidden)]
 pub fn from_raw_json_value<T, E>(val: &RawJsonValue) -> Result<T, E>

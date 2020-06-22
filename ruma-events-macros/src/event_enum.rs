@@ -42,7 +42,7 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
                 use ::serde::de::Error as _;
 
                 let json = Box::<::serde_json::value::RawValue>::deserialize(deserializer)?;
-                let ::ruma_events::EventDeHelper { ev_type } = ::ruma_events::from_raw_json_value(&json)?;
+                let ::ruma_events::EventDeHelper { ev_type, .. } = ::ruma_events::from_raw_json_value(&json)?;
                 match ev_type.as_str() {
                     #(
                         #event_type_str => {

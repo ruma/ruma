@@ -5,8 +5,9 @@ use std::{
 
 use matches::assert_matches;
 use ruma_events::{
-    custom::CustomEventContent, AnyMessageEvent, AnyStateEvent, AnyStateEventContent, EventJson,
-    MessageEvent, StateEvent, StateEventStub, UnsignedData,
+    custom::CustomEventContent, AnyMessageEvent, AnyMessageEventStub, AnyRoomEventStub,
+    AnyStateEvent, AnyStateEventContent, EventJson, MessageEvent, MessageEventStub, StateEvent,
+    StateEventStub, UnsignedData,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{
@@ -185,6 +186,53 @@ fn deserialize_custom_state_stub_event() {
             && origin_server_ts == UNIX_EPOCH + Duration::from_millis(10)
             && sender == UserId::try_from("@carl:example.com").unwrap()
             && state_key == ""
+            && !unsigned.is_empty()
+    );
+}
+
+#[test]
+fn deserialize_custom_message_stub_event() {
+    let json_data = json!({
+        "content": {
+            "m.relates_to": {
+                "event_id": "$MDitXXXXXX",
+                "key": "👍",
+                "rel_type": "m.annotation"
+            }
+        },
+        "event_id": "$h29iv0s8:example.com",
+        "origin_server_ts": 10,
+        "room_id": "!room:room.com",
+        "sender": "@carl:example.com",
+        "type": "m.reaction",
+        "unsigned": {
+            "age": 85
+        }
+    });
+
+    let expected_content = json!({
+        "m.relates_to": {
+            "event_id": "$MDitXXXXXX",
+            "key": "👍",
+            "rel_type": "m.annotation"
+        }
+    });
+
+    assert_matches!(
+        from_json_value::<AnyRoomEventStub>(json_data)
+            .unwrap(),
+        AnyRoomEventStub::Message(AnyMessageEventStub::Custom(MessageEventStub {
+            content: CustomEventContent {
+                json, event_type,
+            },
+            event_id,
+            origin_server_ts,
+            sender,
+            unsigned,
+        })) if json == expected_content && event_type == "m.reaction"
+            && event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
+            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(10)
+            && sender == UserId::try_from("@carl:example.com").unwrap()
             && !unsigned.is_empty()
     );
 }
