@@ -10,9 +10,8 @@ use ruma_events::{
         message::{MessageEventContent, TextMessageEventContent},
         power_levels::PowerLevelsEventContent,
     },
-    AnyEvent, AnyMessageEvent, AnyMessageEventContent, AnyRoomEvent, AnyRoomEventStub,
-    AnyStateEvent, AnyStateEventContent, MessageEvent, MessageEventStub, StateEvent,
-    StateEventStub,
+    AnyEvent, AnyMessageEvent, AnyMessageEventStub, AnyRoomEvent, AnyRoomEventStub, AnyStateEvent,
+    AnyStateEventStub, MessageEvent, MessageEventStub, StateEvent, StateEventStub,
 };
 
 fn message_event() -> JsonValue {
@@ -120,12 +119,12 @@ fn power_event_stub_deserialization() {
     assert_matches!(
         from_json_value::<AnyRoomEventStub>(json_data),
         Ok(AnyRoomEventStub::State(
-            StateEventStub {
-                content: AnyStateEventContent::RoomPowerLevels(PowerLevelsEventContent {
+            AnyStateEventStub::RoomPowerLevels(StateEventStub {
+                content: PowerLevelsEventContent {
                     ban, ..
-                }),
+                },
                 ..
-            }
+            })
         ))
         if ban == js_int::Int::new(50).unwrap()
     );
@@ -138,14 +137,14 @@ fn message_event_stub_deserialization() {
     assert_matches!(
         from_json_value::<AnyRoomEventStub>(json_data),
         Ok(AnyRoomEventStub::Message(
-            MessageEventStub {
-                content: AnyMessageEventContent::RoomMessage(MessageEventContent::Text(TextMessageEventContent {
+            AnyMessageEventStub::RoomMessage(MessageEventStub {
+                content: MessageEventContent::Text(TextMessageEventContent {
                     body,
                     formatted: Some(formatted),
                     relates_to: None,
-                })),
+                }),
                 ..
-            }
+            })
         ))
         if body == "baba" && formatted.body == "<strong>baba</strong>"
     );
@@ -158,12 +157,12 @@ fn aliases_event_stub_deserialization() {
     assert_matches!(
         from_json_value::<AnyRoomEventStub>(json_data),
         Ok(AnyRoomEventStub::State(
-            StateEventStub {
-                content: AnyStateEventContent::RoomAliases(AliasesEventContent {
+            AnyStateEventStub::RoomAliases(StateEventStub {
+                content: AliasesEventContent {
                     aliases,
-                }),
+                },
                 ..
-            }
+            })
         ))
         if aliases == vec![ RoomAliasId::try_from("#somewhere:localhost").unwrap() ]
     );

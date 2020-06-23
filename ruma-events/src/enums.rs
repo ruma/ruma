@@ -1,14 +1,8 @@
 use ruma_events_macros::event_enum;
-use serde::{
-    de::{self, Error},
-    Serialize,
-};
+use serde::{de, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::{
-    event_kinds::{MessageEventStub, StateEventStub, StrippedStateEventStub},
-    from_raw_json_value, EventDeHelper,
-};
+use crate::{from_raw_json_value, EventDeHelper};
 
 event_enum! {
     /// Any basic event.
@@ -46,7 +40,6 @@ event_enum! {
         "m.room.message.feedback",
         "m.room.redaction",
         "m.sticker",
-
     ]
 }
 
@@ -66,7 +59,6 @@ event_enum! {
         "m.room.name",
         "m.room.pinned_events",
         "m.room.power_levels",
-        "m.room.redaction",
         "m.room.server_acl",
         "m.room.third_party_invite",
         "m.room.tombstone",
@@ -91,16 +83,6 @@ event_enum! {
         "m.room.encrypted",
     ]
 }
-
-/// Any message event stub (message event without a `room_id`, as returned in `/sync` responses)
-pub type AnyMessageEventStub = MessageEventStub<AnyMessageEventContent>;
-
-/// Any state event stub (state event without a `room_id`, as returned in `/sync` responses)
-pub type AnyStateEventStub = StateEventStub<AnyStateEventContent>;
-
-/// Any stripped state event stub (stripped-down state event, as returned for rooms the user has
-/// been invited to in `/sync` responses)
-pub type AnyStrippedStateEventStub = StrippedStateEventStub<AnyStateEventContent>;
 
 /// Any event.
 #[derive(Clone, Debug, Serialize)]
@@ -144,22 +126,18 @@ impl<'de> de::Deserialize<'de> for AnyEvent {
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { ev_type } = from_raw_json_value(&json)?;
+        let EventDeHelper { state_key, event_id, room_id, .. } = from_raw_json_value(&json)?;
 
-        match ev_type.as_str() {
-            ev_type if AnyBasicEventContent::is_compatible(ev_type) => {
-                Ok(AnyEvent::Basic(from_raw_json_value(&json)?))
-            }
-            ev_type if AnyEphemeralRoomEventContent::is_compatible(ev_type) => {
-                Ok(AnyEvent::Ephemeral(from_raw_json_value(&json)?))
-            }
-            ev_type if AnyMessageEventContent::is_compatible(ev_type) => {
-                Ok(AnyEvent::Message(from_raw_json_value(&json)?))
-            }
-            ev_type if AnyStateEventContent::is_compatible(ev_type) => {
-                Ok(AnyEvent::State(from_raw_json_value(&json)?))
-            }
-            _ => Err(D::Error::custom(format!("event type `{}` is not a valid event", ev_type))),
+        // Determine whether the event is a state, message, ephemeral, or basic event
+        // based on the fields present.
+        if state_key.is_some() {
+            Ok(AnyEvent::State(from_raw_json_value(&json)?))
+        } else if event_id.is_some() {
+            Ok(AnyEvent::Message(from_raw_json_value(&json)?))
+        } else if room_id.is_some() {
+            Ok(AnyEvent::Ephemeral(from_raw_json_value(&json)?))
+        } else {
+            Ok(AnyEvent::Basic(from_raw_json_value(&json)?))
         }
     }
 }
@@ -170,16 +148,12 @@ impl<'de> de::Deserialize<'de> for AnyRoomEvent {
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { ev_type } = from_raw_json_value(&json)?;
+        let EventDeHelper { state_key, .. } = from_raw_json_value(&json)?;
 
-        match ev_type.as_str() {
-            ev_type if AnyMessageEventContent::is_compatible(ev_type) => {
-                Ok(AnyRoomEvent::Message(from_raw_json_value(&json)?))
-            }
-            ev_type if AnyStateEventContent::is_compatible(ev_type) => {
-                Ok(AnyRoomEvent::State(from_raw_json_value(&json)?))
-            }
-            _ => Err(D::Error::custom(format!("event type `{}` is not a valid event", ev_type))),
+        if state_key.is_some() {
+            Ok(AnyRoomEvent::State(from_raw_json_value(&json)?))
+        } else {
+            Ok(AnyRoomEvent::Message(from_raw_json_value(&json)?))
         }
     }
 }
@@ -190,16 +164,12 @@ impl<'de> de::Deserialize<'de> for AnyRoomEventStub {
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { ev_type } = from_raw_json_value(&json)?;
+        let EventDeHelper { state_key, .. } = from_raw_json_value(&json)?;
 
-        match ev_type.as_str() {
-            ev_type if AnyMessageEventContent::is_compatible(ev_type) => {
-                Ok(AnyRoomEventStub::Message(from_raw_json_value(&json)?))
-            }
-            ev_type if AnyStateEventContent::is_compatible(ev_type) => {
-                Ok(AnyRoomEventStub::State(from_raw_json_value(&json)?))
-            }
-            _ => Err(D::Error::custom(format!("event type `{}` is not a valid event", ev_type))),
+        if state_key.is_some() {
+            Ok(AnyRoomEventStub::State(from_raw_json_value(&json)?))
+        } else {
+            Ok(AnyRoomEventStub::Message(from_raw_json_value(&json)?))
         }
     }
 }

@@ -64,6 +64,10 @@ pub struct RedactionEventContent {
     pub reason: Option<String>,
 }
 
+impl ruma_events::RoomEventContent for RedactionEventContent {}
+
+impl ruma_events::MessageEventContent for RedactionEventContent {}
+
 #[cfg(test)]
 mod tests {
     use std::{
