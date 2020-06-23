@@ -7,7 +7,7 @@ use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-use crate::StateEvent;
+use crate::{StateEvent, StateEventStub, StrippedStateEventStub};
 
 /// The current membership state of a user in the room.
 ///
@@ -162,52 +162,80 @@ pub enum MembershipChange {
     NotImplemented,
 }
 
+/// Internal function so all `MemberEventContent` state event kinds can share the same implementation.
+fn membership_change(
+    content: &MemberEventContent,
+    prev_content: Option<&MemberEventContent>,
+    sender: &UserId,
+    state_key: &str,
+) -> MembershipChange {
+    use MembershipState::*;
+    let prev_content = if let Some(prev_content) = &prev_content {
+        prev_content
+    } else {
+        &MemberEventContent {
+            avatar_url: None,
+            displayname: None,
+            is_direct: None,
+            membership: Leave,
+            third_party_invite: None,
+        }
+    };
+
+    match (prev_content.membership, &content.membership) {
+        (Invite, Invite) | (Leave, Leave) | (Ban, Ban) => MembershipChange::None,
+        (Invite, Join) | (Leave, Join) => MembershipChange::Joined,
+        (Invite, Leave) => {
+            if sender.as_ref() == state_key {
+                MembershipChange::InvitationRevoked
+            } else {
+                MembershipChange::InvitationRejected
+            }
+        }
+        (Invite, Ban) | (Leave, Ban) => MembershipChange::Banned,
+        (Join, Invite) | (Ban, Invite) | (Ban, Join) => MembershipChange::Error,
+        (Join, Join) => MembershipChange::ProfileChanged {
+            displayname_changed: prev_content.displayname != content.displayname,
+            avatar_url_changed: prev_content.avatar_url != content.avatar_url,
+        },
+        (Join, Leave) => {
+            if sender.as_ref() == state_key {
+                MembershipChange::Left
+            } else {
+                MembershipChange::Kicked
+            }
+        }
+        (Join, Ban) => MembershipChange::KickedAndBanned,
+        (Leave, Invite) => MembershipChange::Invited,
+        (Ban, Leave) => MembershipChange::Unbanned,
+        (Knock, _) | (_, Knock) => MembershipChange::NotImplemented,
+    }
+}
+
 impl MemberEvent {
     /// Helper function for membership change. Check [the specification][spec] for details.
     ///
     /// [spec]: https://matrix.org/docs/spec/client_server/latest#m-room-member
     pub fn membership_change(&self) -> MembershipChange {
-        use MembershipState::*;
-        let prev_content = if let Some(prev_content) = &self.prev_content {
-            prev_content
-        } else {
-            &MemberEventContent {
-                avatar_url: None,
-                displayname: None,
-                is_direct: None,
-                membership: Leave,
-                third_party_invite: None,
-            }
-        };
+        membership_change(&self.content, self.prev_content.as_ref(), &self.sender, &self.state_key)
+    }
+}
 
-        match (prev_content.membership, &self.content.membership) {
-            (Invite, Invite) | (Leave, Leave) | (Ban, Ban) => MembershipChange::None,
-            (Invite, Join) | (Leave, Join) => MembershipChange::Joined,
-            (Invite, Leave) => {
-                if self.sender == self.state_key {
-                    MembershipChange::InvitationRevoked
-                } else {
-                    MembershipChange::InvitationRejected
-                }
-            }
-            (Invite, Ban) | (Leave, Ban) => MembershipChange::Banned,
-            (Join, Invite) | (Ban, Invite) | (Ban, Join) => MembershipChange::Error,
-            (Join, Join) => MembershipChange::ProfileChanged {
-                displayname_changed: prev_content.displayname != self.content.displayname,
-                avatar_url_changed: prev_content.avatar_url != self.content.avatar_url,
-            },
-            (Join, Leave) => {
-                if self.sender == self.state_key {
-                    MembershipChange::Left
-                } else {
-                    MembershipChange::Kicked
-                }
-            }
-            (Join, Ban) => MembershipChange::KickedAndBanned,
-            (Leave, Invite) => MembershipChange::Invited,
-            (Ban, Leave) => MembershipChange::Unbanned,
-            (Knock, _) | (_, Knock) => MembershipChange::NotImplemented,
-        }
+impl StateEventStub<MemberEventContent> {
+    /// Helper function for membership change. Check [the specification][spec] for details.
+    ///
+    /// [spec]: https://matrix.org/docs/spec/client_server/latest#m-room-member
+    pub fn membership_change(&self) -> MembershipChange {
+        membership_change(&self.content, self.prev_content.as_ref(), &self.sender, &self.state_key)
+    }
+}
+
+impl StrippedStateEventStub<MemberEventContent> {
+    /// Helper function for membership change. Check [the specification][spec] for details.
+    ///
+    /// [spec]: https://matrix.org/docs/spec/client_server/latest#m-room-member
+    pub fn membership_change(&self) -> MembershipChange {
+        membership_change(&self.content, None, &self.sender, &self.state_key)
     }
 }
 
