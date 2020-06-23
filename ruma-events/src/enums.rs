@@ -40,7 +40,6 @@ event_enum! {
         "m.room.message.feedback",
         "m.room.redaction",
         "m.sticker",
-
     ]
 }
 
@@ -60,7 +59,6 @@ event_enum! {
         "m.room.name",
         "m.room.pinned_events",
         "m.room.power_levels",
-        // "m.room.redaction",
         "m.room.server_acl",
         "m.room.third_party_invite",
         "m.room.tombstone",
@@ -128,33 +126,18 @@ impl<'de> de::Deserialize<'de> for AnyEvent {
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { ev_type, state_key, event_id } = from_raw_json_value(&json)?;
+        let EventDeHelper { state_key, event_id, room_id, .. } = from_raw_json_value(&json)?;
 
-        match ev_type.as_str() {
-            ev_type if AnyBasicEventContent::is_compatible(ev_type) => {
-                Ok(AnyEvent::Basic(from_raw_json_value(&json)?))
-            }
-            ev_type if AnyEphemeralRoomEventContent::is_compatible(ev_type) => {
-                Ok(AnyEvent::Ephemeral(from_raw_json_value(&json)?))
-            }
-            ev_type if AnyMessageEventContent::is_compatible(ev_type) => {
-                Ok(AnyEvent::Message(from_raw_json_value(&json)?))
-            }
-            ev_type if AnyStateEventContent::is_compatible(ev_type) => {
-                Ok(AnyEvent::State(from_raw_json_value(&json)?))
-            }
-            // Everything else is a custom event, we must determine wether it is
-            // a state, message, or basic event.
-            _ => {
-                if state_key.is_some() {
-                    Ok(AnyEvent::State(from_raw_json_value(&json)?))
-                } else if event_id.is_some() {
-                    Ok(AnyEvent::Message(from_raw_json_value(&json)?))
-                // TODO how to determine if the event is ephemeral?
-                } else {
-                    Ok(AnyEvent::Basic(from_raw_json_value(&json)?))
-                }
-            }
+        // Determine wether the event is a state, message, ephemeral, or basic event
+        // based on the fields present.
+        if state_key.is_some() {
+            Ok(AnyEvent::State(from_raw_json_value(&json)?))
+        } else if event_id.is_some() {
+            Ok(AnyEvent::Message(from_raw_json_value(&json)?))
+        } else if room_id.is_some() {
+            Ok(AnyEvent::Ephemeral(from_raw_json_value(&json)?))
+        } else {
+            Ok(AnyEvent::Basic(from_raw_json_value(&json)?))
         }
     }
 }
@@ -165,22 +148,12 @@ impl<'de> de::Deserialize<'de> for AnyRoomEvent {
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { ev_type, state_key, .. } = from_raw_json_value(&json)?;
+        let EventDeHelper { state_key, .. } = from_raw_json_value(&json)?;
 
-        match ev_type.as_str() {
-            ev_type if AnyMessageEventContent::is_compatible(ev_type) => {
-                Ok(AnyRoomEvent::Message(from_raw_json_value(&json)?))
-            }
-            ev_type if AnyStateEventContent::is_compatible(ev_type) => {
-                Ok(AnyRoomEvent::State(from_raw_json_value(&json)?))
-            }
-            _ => {
-                if state_key.is_some() {
-                    Ok(AnyRoomEvent::State(from_raw_json_value(&json)?))
-                } else {
-                    Ok(AnyRoomEvent::Message(from_raw_json_value(&json)?))
-                }
-            }
+        if state_key.is_some() {
+            Ok(AnyRoomEvent::State(from_raw_json_value(&json)?))
+        } else {
+            Ok(AnyRoomEvent::Message(from_raw_json_value(&json)?))
         }
     }
 }
@@ -191,22 +164,12 @@ impl<'de> de::Deserialize<'de> for AnyRoomEventStub {
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { ev_type, state_key, .. } = from_raw_json_value(&json)?;
+        let EventDeHelper { state_key, .. } = from_raw_json_value(&json)?;
 
-        match ev_type.as_str() {
-            ev_type if AnyMessageEventContent::is_compatible(ev_type) => {
-                Ok(AnyRoomEventStub::Message(from_raw_json_value(&json)?))
-            }
-            ev_type if AnyStateEventContent::is_compatible(ev_type) => {
-                Ok(AnyRoomEventStub::State(from_raw_json_value(&json)?))
-            }
-            _ => {
-                if state_key.is_some() {
-                    Ok(AnyRoomEventStub::State(from_raw_json_value(&json)?))
-                } else {
-                    Ok(AnyRoomEventStub::Message(from_raw_json_value(&json)?))
-                }
-            }
+        if state_key.is_some() {
+            Ok(AnyRoomEventStub::State(from_raw_json_value(&json)?))
+        } else {
+            Ok(AnyRoomEventStub::Message(from_raw_json_value(&json)?))
         }
     }
 }

@@ -107,23 +107,10 @@ pub fn expand_content_enum(input: &EventEnumInput) -> syn::Result<TokenStream> {
         }
     };
 
-    let any_event_variant_impl = quote! {
-        impl #ident {
-            fn is_compatible(event_type: &str) -> bool {
-                match event_type {
-                    #( #event_type_str => true, )*
-                    _ => false,
-                }
-            }
-        }
-    };
-
     let marker_trait_impls = marker_traits(&ident);
 
     Ok(quote! {
         #content_enum
-
-        #any_event_variant_impl
 
         #event_content_impl
 
@@ -316,18 +303,19 @@ pub struct EventEnumInput {
 impl Parse for EventEnumInput {
     fn parse(input: ParseStream<'_>) -> parse::Result<Self> {
         let attrs = input.call(Attribute::parse_outer)?;
-        // name field
+        // "name" field
         input.parse::<kw::name>()?;
         input.parse::<Token![:]>()?;
+
         // the name of our event enum
         let name: Ident = input.parse()?;
         input.parse::<Token![,]>()?;
 
-        // events field
+        // "events" field
         input.parse::<kw::events>()?;
         input.parse::<Token![:]>()?;
 
-        // an array of event names `["m.room.whatever"]`
+        // an array of event names `["m.room.whatever", ...]`
         let ev_array = input.parse::<syn::ExprArray>()?;
         let events = ev_array
             .elems

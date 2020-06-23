@@ -120,7 +120,10 @@
 use std::fmt::Debug;
 
 use js_int::Int;
-use serde::{de, Deserialize, Serialize};
+use serde::{
+    de::{self, IgnoredAny},
+    Deserialize, Serialize,
+};
 use serde_json::value::RawValue as RawJsonValue;
 
 use self::room::redaction::RedactionEvent;
@@ -234,17 +237,24 @@ pub trait MessageEventContent: RoomEventContent {}
 /// Marker trait for the content of a state event.
 pub trait StateEventContent: RoomEventContent {}
 
-/// Helper struct to obtain the event type from a serde_json::value::RawValue.
+/// Helper struct to determine the event kind from a serde_json::value::RawValue.
 #[doc(hidden)]
 #[derive(Debug, Deserialize)]
 pub struct EventDeHelper {
+    /// the Matrix event type string "m.room.whatever".
     #[serde(rename = "type")]
     pub ev_type: String,
-    #[serde(default)]
-    pub state_key: Option<String>,
-    #[serde(default)]
-    pub event_id: Option<String>,
+
+    /// If present the event is a state event.
+    pub state_key: Option<IgnoredAny>,
+
+    /// If no `state_key` is found but an `event_id` is present the a message event is deserialized.
+    pub event_id: Option<IgnoredAny>,
+
+    /// If no `event_id` or `state_key` are found but a `room_id` is present an ephemeral event is deserialized.
+    pub room_id: Option<IgnoredAny>,
 }
+
 /// Helper function for serde_json::value::RawValue deserialization.
 #[doc(hidden)]
 pub fn from_raw_json_value<T, E>(val: &RawJsonValue) -> Result<T, E>
