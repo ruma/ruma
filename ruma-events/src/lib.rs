@@ -245,13 +245,15 @@ pub struct EventDeHelper {
     #[serde(rename = "type")]
     pub ev_type: String,
 
-    /// If present the event is a state event.
+    /// If `state_key` is present the event will be deserialized as a state event.
     pub state_key: Option<IgnoredAny>,
 
-    /// If no `state_key` is found but an `event_id` is present the a message event is deserialized.
+    /// If no `state_key` is found but an `event_id` is present the event
+    /// will be deserialized as a message event.
     pub event_id: Option<IgnoredAny>,
 
-    /// If no `event_id` or `state_key` are found but a `room_id` is present an ephemeral event is deserialized.
+    /// If no `event_id` or `state_key` are found but a `room_id` is present
+    /// the event will be deserialized as a ephemeral event.
     pub room_id: Option<IgnoredAny>,
 }
 

@@ -128,7 +128,7 @@ impl<'de> de::Deserialize<'de> for AnyEvent {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
         let EventDeHelper { state_key, event_id, room_id, .. } = from_raw_json_value(&json)?;
 
-        // Determine wether the event is a state, message, ephemeral, or basic event
+        // Determine whether the event is a state, message, ephemeral, or basic event
         // based on the fields present.
         if state_key.is_some() {
             Ok(AnyEvent::State(from_raw_json_value(&json)?))
