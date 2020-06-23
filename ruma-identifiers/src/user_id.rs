@@ -1,6 +1,6 @@
 //! Matrix user identifiers.
 
-use std::{convert::TryFrom, num::NonZeroU8};
+use core::{convert::TryFrom, num::NonZeroU8};
 
 use crate::{error::Error, parse_id, ServerNameRef};
 
@@ -13,7 +13,7 @@ use crate::{error::Error, parse_id, ServerNameRef};
 /// `UserIdRef`) in the crate root.
 ///
 /// ```
-/// # use std::convert::TryFrom;
+/// # use core::convert::TryFrom;
 /// # use ruma_identifiers::UserId;
 /// assert_eq!(
 ///     UserId::try_from("@carl:example.com").unwrap().as_ref(),
@@ -32,14 +32,14 @@ pub struct UserId<T> {
     is_historical: bool,
 }
 
+#[cfg(feature = "rand")]
+#[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
 impl<T> UserId<T>
 where
-    String: Into<T>,
+    alloc::string::String: Into<T>,
 {
     /// Attempts to generate a `UserId` for the given origin server with a localpart consisting of
     /// 12 random ASCII characters.
-    #[cfg(feature = "rand")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
     pub fn new(server_name: ServerNameRef<'_>) -> Self {
         use crate::generate_localpart;
 
@@ -153,7 +153,7 @@ pub fn localpart_is_fully_comforming(localpart: &str) -> Result<bool, Error> {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
+    use core::convert::TryFrom;
 
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};

@@ -5,9 +5,13 @@
 #![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
 // Since we support Rust 1.36.0, we can't apply this suggestion yet
 #![allow(clippy::use_self)]
+#![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
-use std::{convert::TryFrom, num::NonZeroU8};
+use core::{convert::TryFrom, num::NonZeroU8};
+
+#[cfg(any(feature = "alloc", feature = "rand", feature = "serde"))]
+extern crate alloc;
 
 #[cfg(feature = "serde")]
 use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
@@ -40,7 +44,8 @@ pub type DeviceKeyAlgorithm = key_algorithms::DeviceKeyAlgorithm;
 ///
 /// Can be created via `TryFrom<String>` and `TryFrom<&str>`; implements `Serialize`
 /// and `Deserialize` if the `serde` feature is enabled.
-pub type DeviceKeyId = device_key_id::DeviceKeyId<Box<str>>;
+#[cfg(feature = "alloc")]
+pub type DeviceKeyId = device_key_id::DeviceKeyId<alloc::boxed::Box<str>>;
 
 /// A reference to a device key identifier containing a key algorithm and device ID.
 ///
@@ -51,6 +56,7 @@ pub type DeviceKeyIdRef<'a> = device_key_id::DeviceKeyId<&'a str>;
 /// An owned device ID.
 ///
 /// While this is currently just a `String`, that will likely change in the future.
+#[cfg(feature = "alloc")]
 pub use device_id::DeviceId;
 
 /// A reference to a device ID.
@@ -62,7 +68,8 @@ pub type DeviceIdRef<'a> = &'a str;
 ///
 /// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
 /// `TryFrom<&str>`, implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
-pub type EventId = event_id::EventId<Box<str>>;
+#[cfg(feature = "alloc")]
+pub type EventId = event_id::EventId<alloc::boxed::Box<str>>;
 
 /// A reference to an event ID.
 ///
@@ -73,7 +80,8 @@ pub type EventIdRef<'a> = event_id::EventId<&'a str>;
 ///
 /// Can be created via `TryFrom<String>` and `TryFrom<&str>`, implements `Serialize` and
 /// `Deserialize` if the `serde` feature is enabled.
-pub type RoomAliasId = room_alias_id::RoomAliasId<Box<str>>;
+#[cfg(feature = "alloc")]
+pub type RoomAliasId = room_alias_id::RoomAliasId<alloc::boxed::Box<str>>;
 
 /// A reference to a room alias ID.
 ///
@@ -84,7 +92,8 @@ pub type RoomAliasIdRef<'a> = room_alias_id::RoomAliasId<&'a str>;
 ///
 /// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
 /// `TryFrom<&str>`, implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
-pub type RoomId = room_id::RoomId<Box<str>>;
+#[cfg(feature = "alloc")]
+pub type RoomId = room_id::RoomId<alloc::boxed::Box<str>>;
 
 /// A reference to a room ID.
 ///
@@ -95,7 +104,8 @@ pub type RoomIdRef<'a> = room_id::RoomId<&'a str>;
 ///
 /// Can be created via `TryFrom<String>`, `TryFrom<&str>`, `From<RoomId>` and `From<RoomAliasId>`;
 /// implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
-pub type RoomIdOrAliasId = room_id_or_room_alias_id::RoomIdOrAliasId<Box<str>>;
+#[cfg(feature = "alloc")]
+pub type RoomIdOrAliasId = room_id_or_room_alias_id::RoomIdOrAliasId<alloc::boxed::Box<str>>;
 
 /// A reference to a room alias ID or room ID.
 ///
@@ -107,7 +117,8 @@ pub type RoomIdOrAliasIdRef<'a> = room_id_or_room_alias_id::RoomIdOrAliasId<&'a 
 ///
 /// Can be created using the `version_N` constructor functions, `TryFrom<String>` and
 /// `TryFrom<&str>`; implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
-pub type RoomVersionId = room_version_id::RoomVersionId<Box<str>>;
+#[cfg(feature = "alloc")]
+pub type RoomVersionId = room_version_id::RoomVersionId<alloc::boxed::Box<str>>;
 
 /// A reference to a room version ID.
 ///
@@ -122,7 +133,8 @@ pub type ServerKeyAlgorithm = key_algorithms::ServerKeyAlgorithm;
 ///
 /// Can be created via `TryFrom<String>` and `TryFrom<&str>`; implements `Serialize`
 /// and `Deserialize` if the `serde` feature is enabled.
-pub type ServerKeyId = server_key_id::ServerKeyId<Box<str>>;
+#[cfg(feature = "alloc")]
+pub type ServerKeyId = server_key_id::ServerKeyId<alloc::boxed::Box<str>>;
 
 /// A reference to a homeserver signing key identifier containing a key
 /// algorithm and version.
@@ -135,7 +147,8 @@ pub type ServerKeyIdRef<'a> = server_key_id::ServerKeyId<&'a str>;
 ///
 /// Can be created via `TryFrom<String>` and `TryFrom<&str>`; implements `Serialize`
 /// and `Deserialize` if the `serde` feature is enabled.
-pub type ServerName = server_name::ServerName<Box<str>>;
+#[cfg(feature = "alloc")]
+pub type ServerName = server_name::ServerName<alloc::boxed::Box<str>>;
 
 /// A reference to a homeserver IP address or hostname.
 ///
@@ -146,7 +159,8 @@ pub type ServerNameRef<'a> = server_name::ServerName<&'a str>;
 ///
 /// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
 /// `TryFrom<&str>`, implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
-pub type UserId = user_id::UserId<Box<str>>;
+#[cfg(feature = "alloc")]
+pub type UserId = user_id::UserId<alloc::boxed::Box<str>>;
 
 /// A reference to a user ID.
 ///
@@ -171,7 +185,7 @@ const MIN_CHARS: usize = 4;
 
 /// Generates a random identifier localpart.
 #[cfg(feature = "rand")]
-fn generate_localpart(length: usize) -> String {
+fn generate_localpart(length: usize) -> alloc::string::String {
     use rand::Rng as _;
     rand::thread_rng().sample_iter(&rand::distributions::Alphanumeric).take(length).collect()
 }
@@ -215,9 +229,9 @@ fn parse_id(id: &str, valid_sigils: &[char]) -> Result<NonZeroU8, Error> {
 fn deserialize_id<'de, D, T>(deserializer: D, expected_str: &str) -> Result<T, D::Error>
 where
     D: Deserializer<'de>,
-    T: for<'a> std::convert::TryFrom<&'a str>,
+    T: for<'a> core::convert::TryFrom<&'a str>,
 {
-    std::borrow::Cow::<'_, str>::deserialize(deserializer).and_then(|v| {
+    alloc::string::String::deserialize(deserializer).and_then(|v| {
         T::try_from(&v).map_err(|_| de::Error::invalid_value(Unexpected::Str(&v), &expected_str))
     })
 }

@@ -7,7 +7,7 @@ macro_rules! doc_concat {
 
 macro_rules! common_impls {
     ($id:ident, $try_from:ident, $desc:literal) => {
-        impl<T: ::std::convert::AsRef<str>> $id<T> {
+        impl<T: ::core::convert::AsRef<str>> $id<T> {
             doc_concat! {
                 #[doc = concat!("Creates a string slice from this `", stringify!($id), "`")]
                 pub fn as_str(&self) -> &str {
@@ -16,19 +16,21 @@ macro_rules! common_impls {
             }
         }
 
-        impl<'a> ::std::convert::From<&'a $id<Box<str>>> for $id<&'a str> {
-            fn from(id: &'a $id<Box<str>>) -> Self {
+        #[cfg(feature = "alloc")]
+        impl<'a> ::core::convert::From<&'a $id<::alloc::boxed::Box<str>>> for $id<&'a str> {
+            fn from(id: &'a $id<::alloc::boxed::Box<str>>) -> Self {
                 id.as_ref()
             }
         }
 
-        impl ::std::convert::From<$id<Box<str>>> for ::std::string::String {
-            fn from(id: $id<Box<str>>) -> Self {
+        #[cfg(feature = "alloc")]
+        impl ::core::convert::From<$id<::alloc::boxed::Box<str>>> for ::alloc::string::String {
+            fn from(id: $id<::alloc::boxed::Box<str>>) -> Self {
                 id.full_id.into()
             }
         }
 
-        impl<'a> ::std::convert::TryFrom<&'a str> for $id<&'a str> {
+        impl<'a> ::core::convert::TryFrom<&'a str> for $id<&'a str> {
             type Error = crate::error::Error;
 
             fn try_from(s: &'a str) -> Result<Self, Self::Error> {
@@ -36,7 +38,7 @@ macro_rules! common_impls {
             }
         }
 
-        impl ::std::convert::TryFrom<&str> for $id<Box<str>> {
+        impl ::core::convert::TryFrom<&str> for $id<::alloc::boxed::Box<str>> {
             type Error = crate::error::Error;
 
             fn try_from(s: &str) -> Result<Self, Self::Error> {
@@ -44,48 +46,48 @@ macro_rules! common_impls {
             }
         }
 
-        impl ::std::convert::TryFrom<String> for $id<Box<str>> {
+        impl ::core::convert::TryFrom<::alloc::string::String> for $id<::alloc::boxed::Box<str>> {
             type Error = crate::error::Error;
 
-            fn try_from(s: String) -> Result<Self, Self::Error> {
+            fn try_from(s: ::alloc::string::String) -> Result<Self, Self::Error> {
                 $try_from(s)
             }
         }
 
-        impl<T: ::std::convert::AsRef<str>> ::std::convert::AsRef<str> for $id<T> {
+        impl<T: ::core::convert::AsRef<str>> ::core::convert::AsRef<str> for $id<T> {
             fn as_ref(&self) -> &str {
                 self.full_id.as_ref()
             }
         }
 
-        impl<T: ::std::fmt::Display> ::std::fmt::Display for $id<T> {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        impl<T: ::core::fmt::Display> ::core::fmt::Display for $id<T> {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 write!(f, "{}", self.full_id)
             }
         }
 
-        impl<T: ::std::cmp::PartialEq> ::std::cmp::PartialEq for $id<T> {
+        impl<T: ::core::cmp::PartialEq> ::core::cmp::PartialEq for $id<T> {
             fn eq(&self, other: &Self) -> bool {
                 self.full_id == other.full_id
             }
         }
 
-        impl<T: ::std::cmp::Eq> ::std::cmp::Eq for $id<T> {}
+        impl<T: ::core::cmp::Eq> ::core::cmp::Eq for $id<T> {}
 
-        impl<T: ::std::cmp::PartialOrd> ::std::cmp::PartialOrd for $id<T> {
-            fn partial_cmp(&self, other: &Self) -> Option<::std::cmp::Ordering> {
-                ::std::cmp::PartialOrd::partial_cmp(&self.full_id, &other.full_id)
+        impl<T: ::core::cmp::PartialOrd> ::core::cmp::PartialOrd for $id<T> {
+            fn partial_cmp(&self, other: &Self) -> Option<::core::cmp::Ordering> {
+                ::core::cmp::PartialOrd::partial_cmp(&self.full_id, &other.full_id)
             }
         }
 
-        impl<T: ::std::cmp::Ord> ::std::cmp::Ord for $id<T> {
-            fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
-                ::std::cmp::Ord::cmp(&self.full_id, &other.full_id)
+        impl<T: ::core::cmp::Ord> ::core::cmp::Ord for $id<T> {
+            fn cmp(&self, other: &Self) -> ::core::cmp::Ordering {
+                ::core::cmp::Ord::cmp(&self.full_id, &other.full_id)
             }
         }
 
-        impl<T: ::std::hash::Hash> ::std::hash::Hash for $id<T> {
-            fn hash<H: ::std::hash::Hasher>(&self, state: &mut H) {
+        impl<T: ::core::hash::Hash> ::core::hash::Hash for $id<T> {
+            fn hash<H: ::core::hash::Hasher>(&self, state: &mut H) {
                 self.full_id.hash(state);
             }
         }
@@ -101,7 +103,7 @@ macro_rules! common_impls {
         }
 
         #[cfg(feature = "serde")]
-        impl<'de> ::serde::Deserialize<'de> for $id<Box<str>> {
+        impl<'de> ::serde::Deserialize<'de> for $id<::alloc::boxed::Box<str>> {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
                 D: ::serde::Deserializer<'de>,
@@ -110,25 +112,26 @@ macro_rules! common_impls {
             }
         }
 
-        impl<T: AsRef<str>> ::std::cmp::PartialEq<&str> for $id<T> {
+        impl<T: AsRef<str>> ::core::cmp::PartialEq<&str> for $id<T> {
             fn eq(&self, other: &&str) -> bool {
                 self.full_id.as_ref() == *other
             }
         }
 
-        impl<T: AsRef<str>> ::std::cmp::PartialEq<$id<T>> for &str {
+        impl<T: AsRef<str>> ::core::cmp::PartialEq<$id<T>> for &str {
             fn eq(&self, other: &$id<T>) -> bool {
                 *self == other.full_id.as_ref()
             }
         }
 
-        impl<T: AsRef<str>> ::std::cmp::PartialEq<::std::string::String> for $id<T> {
-            fn eq(&self, other: &::std::string::String) -> bool {
+        #[cfg(feature = "alloc")]
+        impl<T: AsRef<str>> ::core::cmp::PartialEq<::alloc::string::String> for $id<T> {
+            fn eq(&self, other: &::alloc::string::String) -> bool {
                 self.full_id.as_ref() == &other[..]
             }
         }
 
-        impl<T: AsRef<str>> ::std::cmp::PartialEq<$id<T>> for ::std::string::String {
+        impl<T: AsRef<str>> ::core::cmp::PartialEq<$id<T>> for ::alloc::string::String {
             fn eq(&self, other: &$id<T>) -> bool {
                 &self[..] == other.full_id.as_ref()
             }

@@ -1,6 +1,6 @@
 //! Matrix room identifiers.
 
-use std::{convert::TryFrom, num::NonZeroU8};
+use core::{convert::TryFrom, num::NonZeroU8};
 
 use crate::{error::Error, parse_id, ServerNameRef};
 
@@ -13,7 +13,7 @@ use crate::{error::Error, parse_id, ServerNameRef};
 /// `RoomIdRef`) in the crate root.
 ///
 /// ```
-/// # use std::convert::TryFrom;
+/// # use core::convert::TryFrom;
 /// # use ruma_identifiers::RoomId;
 /// assert_eq!(
 ///     RoomId::try_from("!n8f893n9:example.com").unwrap().as_ref(),
@@ -26,16 +26,16 @@ pub struct RoomId<T> {
     pub(crate) colon_idx: NonZeroU8,
 }
 
+#[cfg(feature = "rand")]
+#[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
 impl<T> RoomId<T>
 where
-    String: Into<T>,
+    alloc::string::String: Into<T>,
 {
     /// Attempts to generate a `RoomId` for the given origin server with a localpart consisting of
     /// 18 random ASCII characters.
     ///
     /// Fails if the given homeserver cannot be parsed as a valid host.
-    #[cfg(feature = "rand")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
     pub fn new(server_name: ServerNameRef<'_>) -> Self {
         use crate::generate_localpart;
 
@@ -82,7 +82,7 @@ common_impls!(RoomId, try_from, "a Matrix room ID");
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
+    use core::convert::TryFrom;
 
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};

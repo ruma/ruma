@@ -1,6 +1,6 @@
 //! Matrix event identifiers.
 
-use std::{convert::TryFrom, num::NonZeroU8};
+use core::{convert::TryFrom, num::NonZeroU8};
 
 use crate::{error::Error, parse_id, validate_id, ServerNameRef};
 
@@ -22,7 +22,7 @@ use crate::{error::Error, parse_id, validate_id, ServerNameRef};
 /// original event format.
 ///
 /// ```
-/// # use std::convert::TryFrom;
+/// # use core::convert::TryFrom;
 /// # use ruma_identifiers::EventId;
 /// // Original format
 /// assert_eq!(
@@ -46,9 +46,11 @@ pub struct EventId<T> {
     colon_idx: Option<NonZeroU8>,
 }
 
+#[cfg(feature = "rand")]
+#[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
 impl<T> EventId<T>
 where
-    String: Into<T>,
+    alloc::string::String: Into<T>,
 {
     /// Attempts to generate an `EventId` for the given origin server with a localpart consisting
     /// of 18 random ASCII characters. This should only be used for events in the original format
@@ -56,8 +58,6 @@ where
     ///
     /// Does not currently ever fail, but may fail in the future if the homeserver cannot be parsed
     /// parsed as a valid host.
-    #[cfg(feature = "rand")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
     pub fn new(server_name: ServerNameRef<'_>) -> Self {
         use crate::generate_localpart;
 
@@ -121,7 +121,7 @@ common_impls!(EventId, try_from, "a Matrix event ID");
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
+    use core::convert::TryFrom;
 
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};

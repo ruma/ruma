@@ -1,6 +1,6 @@
 //! Matrix room version identifiers.
 
-use std::{
+use core::{
     cmp::Ordering,
     convert::TryFrom,
     fmt::{self, Display, Formatter},
@@ -23,7 +23,7 @@ const MAX_CODE_POINTS: usize = 32;
 /// and `RoomVersionIdRef`) in the crate root.
 ///
 /// ```
-/// # use std::convert::TryFrom;
+/// # use core::convert::TryFrom;
 /// # use ruma_identifiers::RoomVersionId;
 /// assert_eq!(RoomVersionId::try_from("1").unwrap().as_ref(), "1");
 /// ```
@@ -131,8 +131,9 @@ impl<T> RoomVersionId<T> {
     }
 }
 
-impl From<RoomVersionId<Box<str>>> for String {
-    fn from(id: RoomVersionId<Box<str>>) -> Self {
+#[cfg(feature = "alloc")]
+impl From<RoomVersionId<alloc::boxed::Box<str>>> for alloc::string::String {
+    fn from(id: RoomVersionId<alloc::boxed::Box<str>>) -> Self {
         match id.0 {
             InnerRoomVersionId::Version1 => "1".to_owned(),
             InnerRoomVersionId::Version2 => "2".to_owned(),
@@ -188,7 +189,7 @@ impl<T: AsRef<str>> Serialize for RoomVersionId<T> {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> Deserialize<'de> for RoomVersionId<Box<str>> {
+impl<'de> Deserialize<'de> for RoomVersionId<alloc::boxed::Box<str>> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -230,7 +231,8 @@ impl<'a> TryFrom<&'a str> for RoomVersionId<&'a str> {
     }
 }
 
-impl TryFrom<&str> for RoomVersionId<Box<str>> {
+#[cfg(feature = "alloc")]
+impl TryFrom<&str> for RoomVersionId<alloc::boxed::Box<str>> {
     type Error = crate::error::Error;
 
     fn try_from(s: &str) -> Result<Self, Error> {
@@ -238,10 +240,11 @@ impl TryFrom<&str> for RoomVersionId<Box<str>> {
     }
 }
 
-impl TryFrom<String> for RoomVersionId<Box<str>> {
+#[cfg(feature = "alloc")]
+impl TryFrom<alloc::string::String> for RoomVersionId<alloc::boxed::Box<str>> {
     type Error = crate::error::Error;
 
-    fn try_from(s: String) -> Result<Self, Error> {
+    fn try_from(s: alloc::string::String) -> Result<Self, Error> {
         try_from(s)
     }
 }
@@ -258,13 +261,15 @@ impl<T: AsRef<str>> PartialEq<RoomVersionId<T>> for &str {
     }
 }
 
-impl<T: AsRef<str>> PartialEq<String> for RoomVersionId<T> {
-    fn eq(&self, other: &String) -> bool {
+#[cfg(feature = "alloc")]
+impl<T: AsRef<str>> PartialEq<alloc::string::String> for RoomVersionId<T> {
+    fn eq(&self, other: &alloc::string::String) -> bool {
         self.as_ref() == other
     }
 }
 
-impl<T: AsRef<str>> PartialEq<RoomVersionId<T>> for String {
+#[cfg(feature = "alloc")]
+impl<T: AsRef<str>> PartialEq<RoomVersionId<T>> for alloc::string::String {
     fn eq(&self, other: &RoomVersionId<T>) -> bool {
         self == other.as_ref()
     }
@@ -272,7 +277,7 @@ impl<T: AsRef<str>> PartialEq<RoomVersionId<T>> for String {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
+    use core::convert::TryFrom;
 
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};

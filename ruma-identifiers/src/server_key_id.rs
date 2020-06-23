@@ -1,6 +1,6 @@
 //! Identifiers for homeserver signing keys used for federation.
 
-use std::{num::NonZeroU8, str::FromStr};
+use core::{num::NonZeroU8, str::FromStr};
 
 use crate::{error::Error, key_algorithms::ServerKeyAlgorithm};
 
@@ -69,7 +69,7 @@ fn validate_server_key_algorithm(algorithm: &str) -> Result<(), Error> {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
+    use core::convert::TryFrom;
 
     #[cfg(feature = "serde")]
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};

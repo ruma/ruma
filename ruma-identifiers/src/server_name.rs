@@ -25,7 +25,7 @@ fn try_from<S, T>(server_name: S) -> Result<ServerName<T>, Error>
 where
     S: AsRef<str> + Into<T>,
 {
-    use std::net::Ipv6Addr;
+    use core::net::Ipv6Addr;
 
     let name = server_name.as_ref();
 
@@ -75,7 +75,7 @@ common_impls!(ServerName, try_from, "An IP address or hostname");
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
+    use core::convert::TryFrom;
 
     use crate::ServerNameRef;
 

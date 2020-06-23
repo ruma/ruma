@@ -1,6 +1,6 @@
 //! Matrix identifiers for places where a room ID or room alias ID are used interchangeably.
 
-use std::{convert::TryFrom, hint::unreachable_unchecked, num::NonZeroU8};
+use core::{convert::TryFrom, hint::unreachable_unchecked, num::NonZeroU8};
 
 use crate::{
     error::Error, parse_id, room_alias_id::RoomAliasId, room_id::RoomId, server_name::ServerName,
@@ -16,7 +16,7 @@ use crate::{
 /// (`RoomIdOrRoomAliasId` and `RoomIdOrRoomAliasIdRef`) in the crate root.
 ///
 /// ```
-/// # use std::convert::TryFrom;
+/// # use core::convert::TryFrom;
 /// # use ruma_identifiers::RoomIdOrAliasId;
 /// assert_eq!(
 ///     RoomIdOrAliasId::try_from("#ruma:example.com").unwrap().as_ref(),
@@ -148,7 +148,7 @@ impl<T: AsRef<str>> TryFrom<RoomIdOrAliasId<T>> for RoomAliasId<T> {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
+    use core::convert::TryFrom;
 
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};

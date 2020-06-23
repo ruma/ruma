@@ -1,7 +1,8 @@
 //! Identifiers for device keys for end-to-end encryption.
 
+use core::{num::NonZeroU8, str::FromStr};
+
 use crate::{error::Error, key_algorithms::DeviceKeyAlgorithm, DeviceIdRef};
-use std::{num::NonZeroU8, str::FromStr};
 
 /// A key algorithm and a device id, combined with a ':'
 #[derive(Clone, Debug)]
@@ -50,7 +51,7 @@ common_impls!(DeviceKeyId, try_from, "Device key ID with algorithm and device ID
 
 #[cfg(test)]
 mod test {
-    use std::convert::TryFrom;
+    use core::convert::TryFrom;
 
     #[cfg(feature = "serde")]
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};

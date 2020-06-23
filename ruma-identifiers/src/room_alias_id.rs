@@ -1,6 +1,6 @@
 //! Matrix room alias identifiers.
 
-use std::{convert::TryFrom, num::NonZeroU8};
+use core::{convert::TryFrom, num::NonZeroU8};
 
 use crate::{error::Error, parse_id, server_name::ServerName};
 
@@ -13,7 +13,7 @@ use crate::{error::Error, parse_id, server_name::ServerName};
 /// needed.
 ///
 /// ```
-/// # use std::convert::TryFrom;
+/// # use core::convert::TryFrom;
 /// # use ruma_identifiers::RoomAliasId;
 /// assert_eq!(
 ///     RoomAliasId::try_from("#ruma:example.com").unwrap().as_ref(),
@@ -62,7 +62,7 @@ common_impls!(RoomAliasId, try_from, "a Matrix room alias ID");
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
+    use core::convert::TryFrom;
 
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
