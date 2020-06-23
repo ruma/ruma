@@ -218,7 +218,7 @@ fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
     let path = path.iter().map(|s| Ident::new(s, span));
 
     match struct_name.to_string().as_str() {
-        "MessageEvent" | "MessageEventStub" if *event_str == "m.room.redaction" => {
+        "MessageEvent" | "MessageEventStub" if name == "m.room.redaction" => {
             let redaction = if struct_name == "MessageEvent" {
                 quote! { RedactionEvent }
             } else {
