@@ -87,14 +87,6 @@ impl<T> RoomVersionId<T> {
         Self(InnerRoomVersionId::Version6)
     }
 
-    /// Creates a custom room version ID from the given string slice.
-    pub fn custom(id: String) -> Self
-    where
-        String: Into<T>,
-    {
-        Self(InnerRoomVersionId::Custom(id.into()))
-    }
-
     /// Whether or not this room version is an official one specified by the Matrix protocol.
     pub fn is_official(&self) -> bool {
         !self.is_custom()
@@ -408,7 +400,6 @@ mod tests {
         assert!(RoomVersionId::version_3().is_version_3());
         assert!(RoomVersionId::version_4().is_version_4());
         assert!(RoomVersionId::version_5().is_version_5());
-        assert!(RoomVersionId::custom("foo".into()).is_custom());
     }
 
     #[test]

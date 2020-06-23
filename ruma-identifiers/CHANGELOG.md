@@ -2,7 +2,10 @@
 
 Breaking changes:
 
-* Removed diesel integration. If you were using it, please comment on the corresponding issue:
+* Remove `RoomVersionId::custom`. It could be used to create invalid room versions (empty or
+  exceeding 32 code points in length). Use the `TryFrom<&str>` or `TryFrom<String>` implementation
+  instead.
+* Remove diesel integration. If you were using it, please comment on the corresponding issue:
   https://github.com/ruma/ruma-identifiers/issues/22
 * Remove `TryFrom<Cow<'_, str>>` implementations for identifier types
 * Update `parse_with_server_name`s signature (instead of `Into<String>` it now requires
