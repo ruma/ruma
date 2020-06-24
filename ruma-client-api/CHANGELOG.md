@@ -16,6 +16,7 @@ Breaking changes:
   `Ruleset` type from `ruma_common::push` (also available as `ruma::push`)
 * Fix event types in `r0::context::get_context`
 * Fix event types in `r0::sync::sync_events`
+* Update type of `user_id` in `r0::account::whoami` from `String` to `ruma_identifiers::UserId`
 
 Improvements:
 
