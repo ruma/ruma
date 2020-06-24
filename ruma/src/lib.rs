@@ -28,8 +28,9 @@ pub use ruma_signatures as signatures;
 #[cfg(feature = "ruma-api")]
 #[doc(inline)]
 pub mod api {
-    // Everything except the `ruma_api!` macro
-    pub use ruma_api::{error, Endpoint, EndpointError, Metadata};
+    // Export everything to allow `ruma_api!` macro to be used.
+    // Otherwise compiler errors with conflicting trait and crate versions.
+    pub use ruma_api::{self, error, Endpoint, EndpointError, Metadata};
 
     #[cfg(feature = "ruma-appservice-api")]
     #[doc(inline)]
