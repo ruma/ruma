@@ -13,15 +13,16 @@ use std::{convert::TryFrom, num::NonZeroU8};
 use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
 
 #[doc(inline)]
-pub use crate::error::Error;
+pub use crate::{device_key_id::DeviceKeyId, error::Error};
 
 #[macro_use]
 mod macros;
 
+mod device_key_id;
 mod error;
+mod util;
 
 pub mod device_id;
-pub mod device_key_id;
 pub mod event_id;
 pub mod key_algorithms;
 pub mod room_alias_id;
@@ -35,18 +36,6 @@ pub mod user_id;
 
 /// Allowed algorithms for homeserver signing keys.
 pub type DeviceKeyAlgorithm = key_algorithms::DeviceKeyAlgorithm;
-
-/// An owned device key identifier containing a key algorithm and device ID.
-///
-/// Can be created via `TryFrom<String>` and `TryFrom<&str>`; implements `Serialize`
-/// and `Deserialize` if the `serde` feature is enabled.
-pub type DeviceKeyId = device_key_id::DeviceKeyId<Box<str>>;
-
-/// A reference to a device key identifier containing a key algorithm and device ID.
-///
-/// Can be created via `TryFrom<&str>`; implements `Serialize` and `Deserialize`
-/// if the `serde` feature is enabled.
-pub type DeviceKeyIdRef<'a> = device_key_id::DeviceKeyId<&'a str>;
 
 /// An owned device ID.
 ///
