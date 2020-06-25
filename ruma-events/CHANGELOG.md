@@ -16,6 +16,7 @@ Breaking changes:
 Improvements:
 
 * Add `room::MessageFormat` and `room::FormattedBody`
+* Skip serialization of optional values on `room::encryption::EncryptionEventContent`
 
 Deprecations:
 
