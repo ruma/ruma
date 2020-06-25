@@ -6,7 +6,7 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_common::presence::PresenceState;
 use ruma_events::{
-    presence::PresenceEvent, AnyBasicEvent, AnyEphemeralRoomEvent, AnyRoomEventStub,
+    presence::PresenceEvent, AnyBasicEvent, AnyEphemeralRoomEventStub, AnyRoomEventStub,
     AnyStateEventStub, AnyStrippedStateEventStub, AnyToDeviceEvent, EventJson,
 };
 use ruma_identifiers::{RoomId, UserId};
@@ -284,7 +284,7 @@ impl AccountData {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Ephemeral {
     /// A list of events.
-    pub events: Vec<EventJson<AnyEphemeralRoomEvent>>,
+    pub events: Vec<EventJson<AnyEphemeralRoomEventStub>>,
 }
 
 impl Ephemeral {

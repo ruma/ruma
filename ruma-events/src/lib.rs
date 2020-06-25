@@ -165,9 +165,9 @@ pub use self::{
     algorithm::Algorithm,
     enums::{
         AnyBasicEvent, AnyBasicEventContent, AnyEphemeralRoomEvent, AnyEphemeralRoomEventContent,
-        AnyEvent, AnyMessageEvent, AnyMessageEventContent, AnyMessageEventStub, AnyRoomEvent,
-        AnyRoomEventStub, AnyStateEvent, AnyStateEventContent, AnyStateEventStub,
-        AnyStrippedStateEventStub, AnyToDeviceEvent, AnyToDeviceEventContent,
+        AnyEphemeralRoomEventStub, AnyEvent, AnyMessageEvent, AnyMessageEventContent,
+        AnyMessageEventStub, AnyRoomEvent, AnyRoomEventStub, AnyStateEvent, AnyStateEventContent,
+        AnyStateEventStub, AnyStrippedStateEventStub, AnyToDeviceEvent, AnyToDeviceEventContent,
     },
     error::{FromStrError, InvalidInput},
     event_kinds::{

@@ -19,7 +19,8 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
         || ident == "AnyEphemeralRoomEvent"
         || ident == "AnyBasicEvent";
 
-    let needs_event_stub = ident == "AnyStateEvent" || ident == "AnyMessageEvent";
+    let needs_event_stub =
+        ident == "AnyStateEvent" || ident == "AnyMessageEvent" || ident == "AnyEphemeralRoomEvent";
 
     let needs_stripped_event = ident == "AnyStateEvent";
 
