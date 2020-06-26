@@ -26,6 +26,7 @@ ruma_api! {
 
     response {
         /// Arbitrary JSON of the event body. Returns both room and state events.
+        #[ruma_api(body)]
         pub event: EventJson<AnyRoomEvent>,
     }
 
