@@ -58,6 +58,7 @@ ruma_api! {
         /// Client configuration provided by the server.
         ///
         /// If present, clients SHOULD use the provided object to reconfigure themselves.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub well_known: Option<DiscoveryInfo>,
     }
 
