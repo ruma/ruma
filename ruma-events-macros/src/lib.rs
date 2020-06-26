@@ -22,6 +22,7 @@ use self::{
 mod event;
 mod event_content;
 mod event_enum;
+mod event_names;
 
 /// Generates an enum to represent the various Matrix event types.
 ///

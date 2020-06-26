@@ -1,10 +1,15 @@
 //! Implementation of event enum and event content enum macros.
 
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
     parse::{self, Parse, ParseStream},
     Attribute, Expr, ExprLit, Ident, Lit, LitStr, Token,
+};
+
+use crate::event_names::{
+    ANY_BASIC_EVENT, ANY_EPHEMERAL_EVENT, ANY_MESSAGE_EVENT, ANY_STATE_EVENT,
+    ANY_SYNC_EPHEMERAL_EVENT, ANY_SYNC_MESSAGE_EVENT, ANY_SYNC_STATE_EVENT, ANY_TO_DEVICE_EVENT,
 };
 
 /// Create a content enum from `EventEnumInput`.
@@ -13,16 +18,16 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
 
     let event_enum = expand_any_enum_with_deserialize(&input, ident)?;
 
-    let needs_event_content = ident == "AnyStateEvent"
-        || ident == "AnyMessageEvent"
-        || ident == "AnyToDeviceEvent"
-        || ident == "AnyEphemeralRoomEvent"
-        || ident == "AnyBasicEvent";
+    let needs_event_content = ident == ANY_STATE_EVENT
+        || ident == ANY_MESSAGE_EVENT
+        || ident == ANY_TO_DEVICE_EVENT
+        || ident == ANY_EPHEMERAL_EVENT
+        || ident == ANY_BASIC_EVENT;
 
     let needs_event_stub =
-        ident == "AnyStateEvent" || ident == "AnyMessageEvent" || ident == "AnyEphemeralRoomEvent";
+        ident == ANY_STATE_EVENT || ident == ANY_MESSAGE_EVENT || ident == ANY_EPHEMERAL_EVENT;
 
-    let needs_stripped_event = ident == "AnyStateEvent";
+    let needs_stripped_event = ident == ANY_STATE_EVENT;
 
     let event_stub_enum =
         if needs_event_stub { expand_stub_enum(&input)? } else { TokenStream::new() };
@@ -175,7 +180,7 @@ fn expand_any_enum_with_deserialize(
         }
     };
 
-    let field_accessor_impl = accessor_methods(ident, &variants)?;
+    let field_accessor_impl = accessor_methods(ident, &variants);
 
     Ok(quote! {
         #any_enum
@@ -206,102 +211,85 @@ fn marker_traits(ident: &Ident) -> TokenStream {
     }
 }
 
-fn accessor_methods(ident: &Ident, variants: &[Ident]) -> syn::Result<TokenStream> {
-    let any_content = ident.to_string().replace("Stub", "").replace("Stripped", "");
-
-    let content_enum = Ident::new(&format!("{}Content", any_content), ident.span());
-
-    let origin_server_ts = if ident == "AnyBasicEvent"
-        || ident == "AnyEphemeralRoomEvent"
-        || ident == "AnyEphemeralRoomEventStub"
-        || ident == "AnyToDeviceEvent"
-        || ident == "AnyStrippedStateEventStub"
-    {
-        TokenStream::new()
-    } else {
-        quote! {
-            /// Returns this events `origin_server_ts` as a `SystemTime`.
-            pub fn origin_server_ts(&self) -> &::std::time::SystemTime {
-                match self {
-                    #(
-                        Self::#variants(event) => &event.origin_server_ts,
-                    )*
-                    Self::Custom(event) => &event.origin_server_ts,
-                }
-            }
-        }
-    };
-
-    let room_id = if ident == "AnyBasicEvent"
-        || ident == "AnyEphemeralRoomEventStub"
-        || ident == "AnyToDeviceEvent"
-        || ident == "AnyMessageEventStub"
-        || ident == "AnyStateEventStub"
-        || ident == "AnyStrippedStateEventStub"
-    {
-        TokenStream::new()
-    } else {
-        quote! {
-            /// Returns this events `room_id`.
-            pub fn room_id(&self) -> &::ruma_identifiers::RoomId {
-                match self {
-                    #(
-                        Self::#variants(event) => &event.room_id,
-                    )*
-                    Self::Custom(event) => &event.room_id,
-                }
-            }
-        }
-    };
-
-    let event_id = if ident == "AnyMessageEvent"
-        || ident == "AnyMessageEventStub"
-        || ident == "AnyStateEvent"
-        || ident == "AnyStateEventStub"
-    {
-        quote! {
-            /// Returns this events `event_id`.
-            pub fn event_id(&self) -> &::ruma_identifiers::EventId {
-                match self {
-                    #(
-                        Self::#variants(event) => &event.event_id,
-                    )*
-                    Self::Custom(event) => &event.event_id,
-                }
-            }
-        }
+fn accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
+    let origin_server_ts = if has_origin_server_ts(ident) {
+        let field_type = quote! { ::std::time::SystemTime };
+        generate_accessor("origin_server_ts", field_type, variants)
     } else {
         TokenStream::new()
     };
 
-    let sender = if ident == "AnyBasicEvent"
-        || ident == "AnyEphemeralRoomEvent"
-        || ident == "AnyEphemeralRoomEventStub"
-    {
-        TokenStream::new()
+    let room_id = if has_room_id(ident) {
+        let field_type = quote! { ::ruma_identifiers::RoomId };
+        generate_accessor("room_id", field_type, variants)
     } else {
-        quote! {
-            /// Returns this events `sender` key.
-            pub fn sender(&self) -> &::ruma_identifiers::UserId {
-                match self {
-                    #(
-                        Self::#variants(event) => &event.sender,
-                    )*
-                    Self::Custom(event) => &event.sender,
-                }
-            }
-        }
+        TokenStream::new()
+    };
+
+    let event_id = if has_event_id(ident) {
+        let field_type = quote! { ::ruma_identifiers::EventId };
+        generate_accessor("event_id", field_type, variants)
+    } else {
+        TokenStream::new()
+    };
+
+    let sender = if has_sender(ident) {
+        let field_type = quote! { ::ruma_identifiers::UserId };
+        generate_accessor("sender", field_type, variants)
+    } else {
+        TokenStream::new()
     };
 
     let state_key = if ident.to_string().contains("State") {
+        let field_type = quote! { str };
+        generate_accessor("state_key", field_type, variants)
+    } else {
+        TokenStream::new()
+    };
+
+    let unsigned = if has_unsigned(ident) {
+        let field_type = quote! { ::ruma_events::UnsignedData };
+        generate_accessor("unsigned", field_type, variants)
+    } else {
+        TokenStream::new()
+    };
+
+    let any_content = ident.to_string().replace("Stub", "").replace("Stripped", "");
+    let content_enum = Ident::new(&format!("{}Content", any_content), ident.span());
+
+    let content = quote! {
+        /// Returns the any content enum for this event.
+        pub fn content(&self) -> #content_enum {
+            match self {
+                #(
+                    Self::#variants(event) => #content_enum::#variants(event.content.clone()),
+                )*
+                Self::Custom(event) => #content_enum::Custom(event.content.clone()),
+            }
+        }
+    };
+
+    let prev_content = if has_prev_content(ident) {
         quote! {
-            /// Returns this events `state_key`.
-            pub fn state_key(&self) -> &str {
+            /// Returns the any content enum for this events prev_content.
+            pub fn prev_content(&self) -> Option<#content_enum> {
                 match self {
                     #(
-                        Self::#variants(event) => &event.state_key,
+                        Self::#variants(event) => {
+                            if let Some(content) = event.prev_content.as_ref() {
+                                Some(#content_enum::#variants(content.clone()))
+                            } else {
+                                None
+                            }
+                        },
                     )*
-                    Self::Custom(event) => &event.state_key,
+                    Self::Custom(event) => {
+                        if let Some(content) = event.prev_content.as_ref() {
+                            Some(#content_enum::Custom(content.clone()))
+                        } else {
+                            None
+                        }
+                    },
                 }
             }
         }
@@ -309,17 +297,9 @@ fn accessor_methods(ident: &Ident, variants: &[Ident]) -> syn::Result<TokenStrea
         TokenStream::new()
     };
 
-    Ok(quote! {
+    quote! {
         impl #ident {
-            /// Returns the any content enum for this event.
-            pub fn content(&self) -> #content_enum {
-                match self {
-                    #(
-                        Self::#variants(event) => #content_enum::#variants(event.content.clone()),
-                    )*
-                    Self::Custom(event) => #content_enum::Custom(event.content.clone()),
-                }
-            }
+            #content
 
             #origin_server_ts
 
@@ -330,8 +310,12 @@ fn accessor_methods(ident: &Ident, variants: &[Ident]) -> syn::Result<TokenStrea
             #sender
 
             #state_key
+
+            #prev_content
+
+            #unsigned
         }
-    })
+    }
 }
 
 fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
@@ -410,6 +394,54 @@ pub(crate) fn to_camel_case(name: &LitStr) -> syn::Result<Ident> {
         .collect::<String>();
 
     Ok(Ident::new(&s, span))
+}
+
+fn generate_accessor(name: &str, field_type: TokenStream, variants: &[Ident]) -> TokenStream {
+    let name = Ident::new(name, Span::call_site());
+    let docs = format!("Returns this events {} field.", name);
+    quote! {
+        #[doc = #docs]
+        pub fn #name(&self) -> &#field_type {
+            match self {
+                #(
+                    Self::#variants(event) => &event.#name,
+                )*
+                Self::Custom(event) => &event.#name,
+            }
+        }
+    }
+}
+
+fn has_origin_server_ts(ident: &Ident) -> bool {
+    ident == ANY_MESSAGE_EVENT
+        || ident == ANY_STATE_EVENT
+        || ident == ANY_SYNC_MESSAGE_EVENT
+        || ident == ANY_SYNC_STATE_EVENT
+}
+
+fn has_room_id(ident: &Ident) -> bool {
+    ident == ANY_MESSAGE_EVENT || ident == ANY_STATE_EVENT || ident == ANY_EPHEMERAL_EVENT
+}
+
+fn has_event_id(ident: &Ident) -> bool {
+    ident == ANY_MESSAGE_EVENT
+        || ident == ANY_SYNC_MESSAGE_EVENT
+        || ident == ANY_STATE_EVENT
+        || ident == ANY_SYNC_STATE_EVENT
+}
+
+fn has_sender(ident: &Ident) -> bool {
+    //  these events don't have a sender field
+    !(ident == ANY_BASIC_EVENT || ident == ANY_EPHEMERAL_EVENT || ident == ANY_SYNC_EPHEMERAL_EVENT)
+}
+
+fn has_prev_content(ident: &Ident) -> bool {
+    ident == ANY_STATE_EVENT || ident == ANY_SYNC_STATE_EVENT
+}
+
+fn has_unsigned(ident: &Ident) -> bool {
+    // the same event types are checked here
+    has_origin_server_ts(ident)
 }
 
 /// Custom keywords for the `event_enum!` macro
