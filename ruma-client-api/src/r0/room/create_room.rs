@@ -16,7 +16,7 @@ use super::Visibility;
 use crate::r0::membership::Invite3pid;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Create a new room.",
         method: POST,
         name: "create_room",
@@ -25,7 +25,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// Extra keys to be added to the content of the `m.room.create`.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub creation_content: Option<CreationContent>,
@@ -84,7 +84,7 @@ ruma_api! {
         pub visibility: Option<Visibility>,
     }
 
-    response {
+    response: {
         /// The created room's ID.
         pub room_id: RoomId,
     }

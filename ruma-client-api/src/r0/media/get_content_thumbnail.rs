@@ -16,7 +16,7 @@ pub enum Method {
 }
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get a thumbnail of content from the media store.",
         method: GET,
         name: "get_content_thumbnail",
@@ -25,7 +25,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {
+    request: {
         /// Whether to fetch media deemed remote.
         ///
         /// Used to prevent routing loops. Defaults to `true`.
@@ -57,7 +57,7 @@ ruma_api! {
         pub width: UInt,
     }
 
-    response {
+    response: {
         /// The content type of the thumbnail.
         #[ruma_api(header = CONTENT_TYPE)]
         pub content_type: String,

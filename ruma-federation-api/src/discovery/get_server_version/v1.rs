@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get the implementation name and version of this homeserver.",
         method: GET,
         name: "discover_homeserver",
@@ -13,9 +13,9 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {}
+    request: {}
 
-    response {
+    response: {
         /// Information about the homeserver implementation
         #[serde(skip_serializing_if = "Option::is_none")]
         pub server: Option<Server>,

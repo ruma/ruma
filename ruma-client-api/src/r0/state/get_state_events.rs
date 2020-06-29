@@ -5,7 +5,7 @@ use ruma_events::{AnyStateEvent, EventJson};
 use ruma_identifiers::RoomId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get state events for a room.",
         method: GET,
         name: "get_state_events",
@@ -14,13 +14,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room to look up the state for.
         #[ruma_api(path)]
         pub room_id: RoomId,
     }
 
-    response {
+    response: {
         /// If the user is a member of the room this will be the current state of the room as a
         /// list of events. If the user has left the room then this will be the state of the
         /// room when they left as a list of events.

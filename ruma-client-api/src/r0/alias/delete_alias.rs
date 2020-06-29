@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::RoomAliasId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Remove an alias from a room.",
         method: DELETE,
         name: "delete_alias",
@@ -13,13 +13,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room alias to remove.
         #[ruma_api(path)]
         pub room_alias: RoomAliasId,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

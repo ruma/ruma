@@ -6,7 +6,7 @@ use super::ThirdPartyIdRemovalStatus;
 use crate::r0::thirdparty::Medium;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Delete a 3PID from a user's account on an identity server.",
         method: POST,
         name: "delete_3pid",
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// Identity server to delete from.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub id_server: Option<String>,
@@ -27,7 +27,7 @@ ruma_api! {
         pub address: String,
     }
 
-    response {
+    response: {
         /// Result of unbind operation.
         pub id_server_unbind_result: ThirdPartyIdRemovalStatus,
     }

@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get all profile information of an user.",
         method: GET,
         name: "get_profile",
@@ -13,13 +13,13 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {
+    request: {
         /// The user whose profile will be retrieved.
         #[ruma_api(path)]
         pub user_id: UserId,
     }
 
-    response {
+    response: {
         /// The user's avatar URL, if set.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub avatar_url: Option<String>,

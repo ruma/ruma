@@ -4,7 +4,7 @@ use crate::discovery::ServerKey;
 use ruma_api::ruma_api;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Gets the homeserver's published signing keys.",
         method: GET,
         name: "get_server_keys",
@@ -13,9 +13,9 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {}
+    request: {}
 
-    response {
+    response: {
         /// Queried server key, signed by the notary server.
         #[ruma_api(body)]
         pub server_key: ServerKey,

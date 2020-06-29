@@ -15,7 +15,7 @@ use serde_json::Value as JsonValue;
 use super::PublicRoomsChunk;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get the list of rooms in this homeserver's public directory.",
         method: POST,
         name: "get_public_rooms_filtered",
@@ -24,7 +24,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The server to fetch the public room lists from.
         ///
         /// `None` means the server this request is sent to.
@@ -49,7 +49,7 @@ ruma_api! {
         pub room_network: RoomNetwork,
     }
 
-    response {
+    response: {
         /// A paginated chunk of public rooms.
         pub chunk: Vec<PublicRoomsChunk>,
 

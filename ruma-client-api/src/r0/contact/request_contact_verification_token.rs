@@ -4,7 +4,7 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Ask for a verification token for a given 3rd party ID.",
         method: POST,
         name: "request_contact_verification_token",
@@ -13,7 +13,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {
+    request: {
         /// Client-generated secret string used to protect this session.
         pub client_secret: String,
 
@@ -41,7 +41,7 @@ ruma_api! {
         pub id_access_token: Option<String>,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

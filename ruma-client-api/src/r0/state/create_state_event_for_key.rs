@@ -6,7 +6,7 @@ use ruma_identifiers::{EventId, RoomId};
 use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Send a state event to a room associated with a given state key.",
         method: PUT,
         name: "create_state_event_for_key",
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room to set the state in.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -35,7 +35,7 @@ ruma_api! {
         pub data: Box<RawJsonValue>,
     }
 
-    response {
+    response: {
         /// A unique identifier for the event.
         pub event_id: EventId,
     }

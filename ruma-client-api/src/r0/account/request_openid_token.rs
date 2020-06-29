@@ -7,7 +7,7 @@ use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Request an OpenID 1.0 token to verify identity with a third party.",
         name: "request_openid_token",
         method: POST,
@@ -16,13 +16,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// User ID of authenticated user.
         #[ruma_api(path)]
         pub user_id: UserId,
     }
 
-    response {
+    response: {
         /// Access token for verifying user's identity.
         pub access_token: String,
 

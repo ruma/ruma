@@ -23,7 +23,7 @@ use http::Method;
 ///
 /// ```text
 /// ruma_api! {
-///     metadata {
+///     metadata: {
 ///         description: &'static str,
 ///         method: http::Method,
 ///         name: &'static str,
@@ -32,15 +32,17 @@ use http::Method;
 ///         requires_authentication: bool,
 ///     }
 ///
-///     request {
+///     request: {
 ///         // Struct fields for each piece of data required
 ///         // to make a request to this API endpoint.
 ///     }
 ///
-///     response {
+///     response: {
 ///         // Struct fields for each piece of data expected
 ///         // in the response from this API endpoint.
 ///     }
+///
+///     error: // The error returned when a response fails, defaults to `Void`.
 /// }
 /// ```
 ///
@@ -129,7 +131,7 @@ use http::Method;
 ///     use ruma_api_macros::ruma_api;
 ///
 ///     ruma_api! {
-///         metadata {
+///         metadata: {
 ///             description: "Does something.",
 ///             method: POST,
 ///             name: "some_endpoint",
@@ -138,7 +140,7 @@ use http::Method;
 ///             requires_authentication: false,
 ///         }
 ///
-///         request {
+///         request: {
 ///             pub foo: String,
 ///
 ///             #[ruma_api(header = CONTENT_TYPE)]
@@ -151,7 +153,7 @@ use http::Method;
 ///             pub baz: String,
 ///         }
 ///
-///         response {
+///         response: {
 ///             #[ruma_api(header = CONTENT_TYPE)]
 ///             pub content_type: String,
 ///
@@ -170,7 +172,7 @@ use http::Method;
 ///     }
 ///
 ///     ruma_api! {
-///         metadata {
+///         metadata: {
 ///             description: "Does something.",
 ///             method: PUT,
 ///             name: "newtype_body_endpoint",
@@ -179,12 +181,12 @@ use http::Method;
 ///             requires_authentication: false,
 ///         }
 ///
-///         request {
+///         request: {
 ///             #[ruma_api(raw_body)]
 ///             pub file: Vec<u8>,
 ///         }
 ///
-///         response {
+///         response: {
 ///             #[ruma_api(body)]
 ///             pub my_custom_type: MyCustomType,
 ///         }

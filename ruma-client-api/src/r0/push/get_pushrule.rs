@@ -5,7 +5,7 @@ use ruma_api::ruma_api;
 use super::{PushRule, RuleKind};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Retrieve a single specified push rule.",
         method: GET,
         name: "get_pushrule",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The scope to fetch rules from. 'global' to specify global rules.
         #[ruma_api(path)]
         pub scope: String,
@@ -28,7 +28,7 @@ ruma_api! {
         pub rule_id: String,
     }
 
-    response {
+    response: {
         /// The specific push rule.
         #[ruma_api(body)]
         pub rule: PushRule

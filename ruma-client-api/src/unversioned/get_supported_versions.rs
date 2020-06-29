@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use ruma_api::ruma_api;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get the versions of the client-server API supported by this homeserver.",
         method: GET,
         name: "api_versions",
@@ -14,9 +14,9 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {}
+    request: {}
 
-    response {
+    response: {
         /// A list of Matrix client API protocol versions supported by the homeserver.
         pub versions: Vec<String>,
 

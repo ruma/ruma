@@ -7,7 +7,7 @@ use serde_json::Value as JsonValue;
 use std::collections::BTreeMap;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Gets information about the server's supported feature set and other relevant capabilities.",
         method: GET,
         name: "get_capabilities",
@@ -16,9 +16,9 @@ ruma_api! {
         requires_authentication: true
     }
 
-    request {}
+    request: {}
 
-    response {
+    response: {
         /// The capabilities the server supports
         pub capabilities: Capabilities,
     }

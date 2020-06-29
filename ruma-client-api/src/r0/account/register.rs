@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::r0::uiaa::{AuthData, UiaaResponse};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Register an account on this homeserver.",
         method: POST,
         name: "register",
@@ -16,7 +16,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {
+    request: {
         /// The desired password for the account.
         ///
         /// May be empty for accounts that should not be able to log in again
@@ -65,7 +65,7 @@ ruma_api! {
         pub inhibit_login: bool,
     }
 
-    response {
+    response: {
         /// An access token for the account.
         ///
         /// This access token can then be used to authorize other requests.

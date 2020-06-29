@@ -6,7 +6,7 @@ use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Performs a search for users.",
         method: POST,
         name: "search_users",
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The term to search for.
         pub search_term: String,
 
@@ -26,7 +26,7 @@ ruma_api! {
         pub limit: Option<UInt>,
     }
 
-    response {
+    response: {
         /// Ordered by rank and then whether or not profile info is available.
         pub results: Vec<User>,
 

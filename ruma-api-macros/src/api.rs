@@ -564,6 +564,7 @@ pub struct RawMetadata {
 impl Parse for RawMetadata {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let metadata_kw = input.parse::<kw::metadata>()?;
+        input.parse::<Token![:]>()?;
         let field_values;
         braced!(field_values in input);
 
@@ -585,6 +586,7 @@ pub struct RawRequest {
 impl Parse for RawRequest {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let request_kw = input.parse::<kw::request>()?;
+        input.parse::<Token![:]>()?;
         let fields;
         braced!(fields in input);
 
@@ -606,6 +608,7 @@ pub struct RawResponse {
 impl Parse for RawResponse {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let response_kw = input.parse::<kw::response>()?;
+        input.parse::<Token![:]>()?;
         let fields;
         braced!(fields in input);
 

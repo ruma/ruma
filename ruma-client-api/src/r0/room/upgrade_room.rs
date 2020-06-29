@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Upgrades a room to a particular version.",
         method: POST,
         name: "upgrade_room",
@@ -13,7 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// ID of the room to be upgraded.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -22,7 +22,7 @@ ruma_api! {
         pub new_version: String,
     }
 
-    response {
+    response: {
         /// ID of the new room.
         pub replacement_room: RoomId,
     }

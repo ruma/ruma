@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::RoomAliasId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "This endpoint is invoked by the homeserver on an application service to query the existence of a given room alias.",
         method: GET,
         name: "query_room_alias",
@@ -13,11 +13,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room alias being queried.
         #[ruma_api(path)]
         pub room_alias: RoomAliasId,
     }
 
-    response {}
+    response: {}
 }

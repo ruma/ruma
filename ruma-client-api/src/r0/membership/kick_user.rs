@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, UserId};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Kick a user from a room.",
         method: POST,
         name: "kick_user",
@@ -13,7 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room to kick the user from.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -26,7 +26,7 @@ ruma_api! {
         pub reason: Option<String>,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

@@ -5,7 +5,7 @@ use ruma_events::{tag::TagEventContent, EventJson};
 use ruma_identifiers::{RoomId, UserId};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get the tags associated with a room.",
         method: GET,
         name: "get_tags",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The user whose tags will be retrieved.
         #[ruma_api(path)]
         pub user_id: UserId,
@@ -24,7 +24,7 @@ ruma_api! {
         pub room_id: RoomId,
     }
 
-    response {
+    response: {
         /// The user's tags for the room.
         pub tags: EventJson<TagEventContent>,
     }

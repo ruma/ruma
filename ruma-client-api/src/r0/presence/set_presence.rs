@@ -5,7 +5,7 @@ use ruma_events::presence::PresenceState;
 use ruma_identifiers::UserId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Set presence status for this user.",
         method: PUT,
         name: "set_presence",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The user whose presence state will be updated.
         #[ruma_api(path)]
         pub user_id: UserId,
@@ -27,7 +27,7 @@ ruma_api! {
         pub status_msg: Option<String>,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

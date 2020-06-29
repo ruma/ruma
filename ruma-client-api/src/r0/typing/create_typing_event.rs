@@ -6,7 +6,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, UserId};
 
 ruma_api! {
-    metadata {
+    metadata: {
         method: PUT,
         path: "/_matrix/client/r0/rooms/:room_id/typing/:user_id",
         name: "create_typing_event",
@@ -15,7 +15,7 @@ ruma_api! {
         rate_limited: true,
     }
 
-    request {
+    request: {
         /// The user who has started to type.
         #[ruma_api(path)]
         pub user_id: UserId,
@@ -38,7 +38,7 @@ ruma_api! {
         pub timeout: Option<Duration>,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

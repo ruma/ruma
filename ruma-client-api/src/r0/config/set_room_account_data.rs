@@ -5,7 +5,7 @@ use ruma_identifiers::{RoomId, UserId};
 use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Associate account data with a room.",
         method: PUT,
         name: "set_room_account_data",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// Arbitrary JSON to store as config data.
         ///
         /// To create a `Box<RawJsonValue>`, use `serde_json::value::to_raw_value`.
@@ -38,7 +38,7 @@ ruma_api! {
         pub user_id: UserId,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

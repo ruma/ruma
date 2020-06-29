@@ -6,7 +6,7 @@ use ruma_identifiers::RoomId;
 use super::ThirdPartySigned;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Join a room using its ID.",
         method: POST,
         name: "join_room_by_id",
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room where the user should be invited.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -26,7 +26,7 @@ ruma_api! {
         pub third_party_signed: Option<ThirdPartySigned>,
     }
 
-    response {
+    response: {
         /// The room that the user joined.
         pub room_id: RoomId,
     }

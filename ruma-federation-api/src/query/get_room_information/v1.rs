@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get mapped room ID and resident homeservers for a given room alias.",
         name: "get_room_information",
         method: GET,
@@ -13,13 +13,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// Room alias to query.
         #[ruma_api(query)]
         pub room_alias: String,
     }
 
-    response {
+    response: {
         /// Room ID mapped to queried alias.
         pub room_id: RoomId,
         /// An array of server names that are likely to hold the given room.

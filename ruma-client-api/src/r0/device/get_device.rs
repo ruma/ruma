@@ -5,7 +5,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::DeviceId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get a device for authenticated user.",
         method: GET,
         name: "get_device",
@@ -14,13 +14,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The device to retrieve.
         #[ruma_api(path)]
         pub device_id: DeviceId,
     }
 
-    response {
+    response: {
         /// Information about the device.
         #[ruma_api(body)]
         pub device: Device,

@@ -5,7 +5,7 @@ use ruma_api::ruma_api;
 use super::{Action, RuleKind};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "This endpoint get the actions for the specified push rule.",
         method: GET,
         name: "get_pushrule_actions",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The scope to fetch a rule from. 'global' to specify global rules.
         #[ruma_api(path)]
         pub scope: String,
@@ -28,7 +28,7 @@ ruma_api! {
         pub rule_id: String,
     }
 
-    response {
+    response: {
         /// The actions to perform for this rule.
         pub actions: Vec<Action>
     }

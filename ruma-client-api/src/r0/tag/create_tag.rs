@@ -5,7 +5,7 @@ use ruma_events::tag::TagInfo;
 use ruma_identifiers::{RoomId, UserId};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Add a new tag to a room.",
         method: PUT,
         name: "create_tag",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The ID of the user creating the tag.
         #[ruma_api(path)]
         pub user_id: UserId,
@@ -32,7 +32,7 @@ ruma_api! {
         pub tag_info: TagInfo,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

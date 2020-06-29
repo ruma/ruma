@@ -6,7 +6,7 @@ use ruma_identifiers::UserId;
 use super::FilterDefinition;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Retrieve a previously created filter.",
         method: GET,
         name: "get_filter",
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The user ID to download a filter for.
         #[ruma_api(path)]
         pub user_id: UserId,
@@ -25,7 +25,7 @@ ruma_api! {
         pub filter_id: String,
     }
 
-    response {
+    response: {
         /// The filter definition.
         #[ruma_api(body)]
         pub filter: FilterDefinition,

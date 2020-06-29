@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Set the avatar URL of the user.",
         method: PUT,
         name: "set_avatar_url",
@@ -13,7 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The user whose avatar URL will be set.
         #[ruma_api(path)]
         pub user_id: UserId,
@@ -24,7 +24,7 @@ ruma_api! {
         pub avatar_url: Option<String>,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

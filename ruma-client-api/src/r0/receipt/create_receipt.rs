@@ -7,7 +7,7 @@ use ruma_identifiers::{EventId, RoomId};
 use strum::{Display, EnumString};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Send a receipt event to a room.",
         method: POST,
         name: "create_receipt",
@@ -16,7 +16,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room in which to send the event.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -30,7 +30,7 @@ ruma_api! {
         pub event_id: EventId,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

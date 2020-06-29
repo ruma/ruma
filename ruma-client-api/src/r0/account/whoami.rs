@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get information about the owner of a given access token.",
         method: GET,
         name: "whoami",
@@ -13,9 +13,9 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {}
+    request: {}
 
-    response {
+    response: {
         /// The id of the user that owns the access token.
         pub user_id: UserId,
     }

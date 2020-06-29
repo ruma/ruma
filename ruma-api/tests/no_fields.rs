@@ -3,7 +3,7 @@ use std::convert::TryFrom;
 use ruma_api::ruma_api;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Does something.",
         method: GET,
         name: "no_fields",
@@ -12,8 +12,8 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {}
-    response {}
+    request: {}
+    response: {}
 }
 
 #[test]

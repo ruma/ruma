@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{RoomAliasId, RoomId};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Resolve a room alias to a room ID.",
         method: GET,
         name: "get_alias",
@@ -13,13 +13,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room alias.
         #[ruma_api(path)]
         pub room_alias: RoomAliasId,
     }
 
-    response {
+    response: {
         /// The room ID for this room alias.
         pub room_id: RoomId,
 

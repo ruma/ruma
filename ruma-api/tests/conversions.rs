@@ -2,7 +2,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Does something.",
         method: POST,
         name: "my_endpoint",
@@ -11,7 +11,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {
+    request: {
         pub hello: String,
         #[ruma_api(header = CONTENT_TYPE)]
         pub world: String,
@@ -25,7 +25,7 @@ ruma_api! {
         pub baz: UserId,
     }
 
-    response {
+    response: {
         pub hello: String,
         #[ruma_api(header = CONTENT_TYPE)]
         pub world: String,

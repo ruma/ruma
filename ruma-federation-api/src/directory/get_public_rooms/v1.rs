@@ -12,7 +12,7 @@ use serde::{
 };
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Gets all the public rooms for the homeserver.",
         method: GET,
         name: "get_public_rooms",
@@ -21,7 +21,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The maximum number of rooms to return. Default is no limit.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
@@ -36,7 +36,7 @@ ruma_api! {
         pub room_network: RoomNetwork,
     }
 
-    response {
+    response: {
         /// A paginated chunk of public rooms.
         pub chunk: Vec<PublicRoomsChunk>,
         /// A pagination token for the response.

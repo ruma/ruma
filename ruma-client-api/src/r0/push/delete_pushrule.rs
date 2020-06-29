@@ -5,7 +5,7 @@ use ruma_api::ruma_api;
 use super::RuleKind;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "This endpoint removes the push rule defined in the path.",
         method: DELETE,
         name: "delete_pushrule",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The scope to delete from. 'global' to specify global rules.
         #[ruma_api(path)]
         pub scope: String,
@@ -28,7 +28,7 @@ ruma_api! {
         pub rule_id: String,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

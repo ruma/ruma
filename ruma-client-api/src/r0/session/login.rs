@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::r0::thirdparty::Medium;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Login to the homeserver.",
         method: POST,
         name: "login",
@@ -16,7 +16,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {
+    request: {
         /// Identification information for the user.
         #[serde(flatten)]
         pub user: UserInfo,
@@ -35,7 +35,7 @@ ruma_api! {
         pub initial_device_display_name: Option<String>,
     }
 
-    response {
+    response: {
         /// The fully-qualified Matrix ID that has been registered.
         pub user_id: UserId,
 

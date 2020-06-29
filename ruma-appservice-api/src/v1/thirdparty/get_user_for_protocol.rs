@@ -7,7 +7,7 @@ use ruma_api::ruma_api;
 use super::User;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Fetches third party users for a protocol.",
         method: GET,
         name: "get_user_for_protocol",
@@ -16,7 +16,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The protocol used to communicate to the third party network.
         #[ruma_api(path)]
         pub protocol: String,
@@ -26,7 +26,7 @@ ruma_api! {
         pub fields: BTreeMap<String, String>,
     }
 
-    response {
+    response: {
         /// List of matched third party users.
         #[ruma_api(body)]
         pub users: Vec<User>,

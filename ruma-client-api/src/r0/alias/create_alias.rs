@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{RoomAliasId, RoomId};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Add an alias to a room.",
         method: PUT,
         name: "create_alias",
@@ -13,7 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room alias to set.
         #[ruma_api(path)]
         pub room_alias: RoomAliasId,
@@ -22,7 +22,7 @@ ruma_api! {
         pub room_id: RoomId,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

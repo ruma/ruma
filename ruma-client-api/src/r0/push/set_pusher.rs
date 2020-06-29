@@ -5,7 +5,7 @@ use ruma_api::ruma_api;
 use super::Pusher;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "This endpoint allows the creation, modification and deletion of pushers for this user ID.",
         method: POST,
         name: "set_pusher",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The pusher to configure
         #[serde(flatten)]
         pub pusher: Pusher,
@@ -26,7 +26,7 @@ ruma_api! {
 
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

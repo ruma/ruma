@@ -7,7 +7,7 @@ use ruma_events::presence::PresenceState;
 use ruma_identifiers::UserId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get presence status for this user.",
         method: GET,
         name: "get_presence",
@@ -16,13 +16,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The user whose presence state will be retrieved.
         #[ruma_api(path)]
         pub user_id: UserId,
     }
 
-    response {
+    response: {
         /// The state message for this user if one was set.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub status_msg: Option<String>,

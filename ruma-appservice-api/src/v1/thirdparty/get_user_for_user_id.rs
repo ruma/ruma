@@ -6,7 +6,7 @@ use ruma_identifiers::UserId;
 use super::User;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Retrieve an array of third party users from a Matrix User ID.",
         method: GET,
         name: "get_user_for_user_id",
@@ -15,13 +15,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The Matrix User ID to look up.
         #[ruma_api(query)]
         pub userid: UserId,
     }
 
-    response {
+    response: {
         /// List of matched third party users.
         #[ruma_api(body)]
         pub users: Vec<User>,

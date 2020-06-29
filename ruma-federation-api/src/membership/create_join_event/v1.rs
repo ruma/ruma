@@ -7,7 +7,7 @@ use ruma_identifiers::{EventId, RoomId};
 use super::RoomState;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Send a join event to a resident server.",
         name: "create_join_event",
         method: PUT,
@@ -16,7 +16,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room ID that is about to be joined.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -29,7 +29,7 @@ ruma_api! {
         pub pdu_stub: PduStub,
     }
 
-    response {
+    response: {
         /// Full state of the room.
         #[ruma_api(body)]
         #[serde(with = "crate::serde::room_state")]

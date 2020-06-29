@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::DeviceId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Update metadata for a device.",
         method: PUT,
         name: "update_device",
@@ -13,7 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The device to update.
         #[ruma_api(path)]
         pub device_id: DeviceId,
@@ -24,7 +24,7 @@ ruma_api! {
         pub display_name: Option<String>,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

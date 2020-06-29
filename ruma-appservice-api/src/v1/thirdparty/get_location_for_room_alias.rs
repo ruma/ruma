@@ -6,7 +6,7 @@ use ruma_identifiers::RoomAliasId;
 use super::Location;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Retrieve an array of third party network locations from a Matrix room alias.",
         method: GET,
         name: "get_location_for_room_alias",
@@ -15,13 +15,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The Matrix room alias to look up.
         #[ruma_api(query)]
         pub alias: RoomAliasId,
     }
 
-    response {
+    response: {
         /// List of matched third party locations.
         #[ruma_api(body)]
         pub locations: Vec<Location>,

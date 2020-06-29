@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Gets a list of users who have updated their device identity keys since a previous sync token.",
         method: GET,
         name: "get_key_changes",
@@ -13,7 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The desired start point of the list.
         /// Should be the next_batch field from a response to an earlier call to /sync.
         #[ruma_api(query)]
@@ -25,7 +25,7 @@ ruma_api! {
         pub to: String,
     }
 
-    response {
+    response: {
         /// The Matrix User IDs of all users who updated their device identity keys.
         pub changed: Vec<UserId>,
 

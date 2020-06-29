@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::r0::thirdparty::Medium;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get a list of 3rd party contacts associated with the user's account.",
         method: GET,
         name: "get_contacts",
@@ -17,9 +17,9 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {}
+    request: {}
 
-    response {
+    response: {
         /// A list of third party identifiers the homeserver has associated with the user's
         /// account.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]

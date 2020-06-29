@@ -11,7 +11,7 @@ use serde_json::Value as JsonValue;
 use super::{AlgorithmAndDeviceId, KeyAlgorithm, OneTimeKey};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Claims one-time keys for use in pre-key messages.",
         method: POST,
         name: "claim_keys",
@@ -20,7 +20,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The time (in milliseconds) to wait when downloading keys from remote servers.
         /// 10 seconds is the recommended default.
         #[serde(
@@ -34,7 +34,7 @@ ruma_api! {
         pub one_time_keys: BTreeMap<UserId, BTreeMap<DeviceId, KeyAlgorithm>>,
     }
 
-    response {
+    response: {
         /// If any remote homeservers could not be reached, they are recorded here.
         /// The names of the properties are the names of the unreachable servers.
         pub failures: BTreeMap<String, JsonValue>,

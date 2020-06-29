@@ -4,7 +4,7 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Gets the config for the media repository.",
         method: GET,
         path: "/_matrix/media/r0/config",
@@ -13,9 +13,9 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {}
+    request: {}
 
-    response {
+    response: {
         /// Maximum size of upload in bytes.
         #[serde(rename = "m.upload.size")]
         pub upload_size: UInt,

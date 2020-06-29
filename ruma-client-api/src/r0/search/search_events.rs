@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use crate::r0::filter::RoomEventFilter;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Search events.",
         method: POST,
         name: "search",
@@ -20,7 +20,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The point to return events from.
         ///
         /// If given, this should be a `next_batch` result from a previous call to this endpoint.
@@ -31,7 +31,7 @@ ruma_api! {
         pub search_categories: Categories,
     }
 
-    response {
+    response: {
         /// A grouping of search results by category.
         pub search_categories: ResultCategories,
     }

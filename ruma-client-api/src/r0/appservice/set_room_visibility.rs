@@ -6,7 +6,7 @@ use ruma_identifiers::RoomId;
 use crate::r0::room::Visibility;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Updates the visibility of a given room on the application service's room directory.",
         method: PUT,
         name: "set_room_visibility",
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The protocol (network) ID to update the room list for.
         #[ruma_api(path)]
         pub network_id: String,
@@ -28,7 +28,7 @@ ruma_api! {
         pub visibility: Visibility,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

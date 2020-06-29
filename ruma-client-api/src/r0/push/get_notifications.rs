@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use super::Action;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Paginate through the list of events that the user has been, or would have been notified about.",
         method: GET,
         name: "get_notifications",
@@ -20,7 +20,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// Pagination token given to retrieve the next set of events.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -38,7 +38,7 @@ ruma_api! {
         pub only: Option<String>
     }
 
-    response {
+    response: {
         /// The token to supply in the from param of the next /notifications request in order
         /// to request more events. If this is absent, there are no more results.
         #[serde(skip_serializing_if = "Option::is_none")]

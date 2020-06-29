@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::r0::filter::RoomEventFilter;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get message events for a room.",
         method: GET,
         name: "get_message_events",
@@ -18,7 +18,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room to get events from.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -61,7 +61,7 @@ ruma_api! {
         pub filter: Option<RoomEventFilter>,
     }
 
-    response {
+    response: {
         /// The token the pagination starts from.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub start: Option<String>,
