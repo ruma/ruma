@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 
 use matches::assert_matches;
-use ruma_identifiers::RoomAliasId;
+use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 
 use ruma_events::{
@@ -11,7 +11,8 @@ use ruma_events::{
         power_levels::PowerLevelsEventContent,
     },
     AnyEvent, AnyMessageEvent, AnyMessageEventStub, AnyRoomEvent, AnyRoomEventStub, AnyStateEvent,
-    AnyStateEventStub, MessageEvent, MessageEventStub, StateEvent, StateEventStub,
+    AnyStateEventContent, AnyStateEventStub, MessageEvent, MessageEventStub, StateEvent,
+    StateEventStub,
 };
 
 fn message_event() -> JsonValue {
@@ -242,4 +243,25 @@ fn alias_event_deserialization() {
         ))
         if aliases == vec![ RoomAliasId::try_from("#somewhere:localhost").unwrap() ]
     );
+}
+
+#[test]
+fn alias_event_field_access() {
+    let json_data = aliases_event();
+
+    assert_matches!(
+        from_json_value::<AnyEvent>(json_data.clone()),
+        Ok(AnyEvent::State(state_event))
+        if state_event.state_key() == ""
+            && state_event.room_id() == &RoomId::try_from("!room:room.com").unwrap()
+            && state_event.event_id() == &EventId::try_from("$152037280074GZeOm:localhost").unwrap()
+            && state_event.sender() == &UserId::try_from("@example:localhost").unwrap()
+    );
+
+    let deser = from_json_value::<AnyStateEvent>(json_data).unwrap();
+    if let AnyStateEventContent::RoomAliases(AliasesEventContent { aliases }) = deser.content() {
+        assert_eq!(aliases, vec![RoomAliasId::try_from("#somewhere:localhost").unwrap()])
+    } else {
+        panic!("the `Any*Event` enum's accessor methods may have been altered")
+    }
 }
