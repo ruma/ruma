@@ -41,8 +41,9 @@ use http::Method;
 ///         // Struct fields for each piece of data expected
 ///         // in the response from this API endpoint.
 ///     }
-///
-///     error: // The error returned when a response fails, defaults to `Void`.
+///     
+///     // The error returned when a response fails, defaults to `Void`.
+///     error: path::to::Error
 /// }
 /// ```
 ///
