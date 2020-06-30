@@ -1,11 +1,50 @@
 //! Implementation of event enum and event content enum macros.
 
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
     parse::{self, Parse, ParseStream},
     Attribute, Expr, ExprLit, Ident, Lit, LitStr, Token,
 };
+
+use crate::event_names::{
+    ANY_BASIC_EVENT, ANY_EPHEMERAL_EVENT, ANY_MESSAGE_EVENT, ANY_STATE_EVENT,
+    ANY_STRIPPED_STATE_EVENT, ANY_SYNC_MESSAGE_EVENT, ANY_SYNC_STATE_EVENT, ANY_TO_DEVICE_EVENT,
+};
+
+// Arrays of event enum names grouped by a field they share in common.
+const ROOM_EVENT_KIND: &[&str] =
+    &[ANY_MESSAGE_EVENT, ANY_SYNC_MESSAGE_EVENT, ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT];
+
+const ROOM_ID_KIND: &[&str] = &[ANY_MESSAGE_EVENT, ANY_STATE_EVENT, ANY_EPHEMERAL_EVENT];
+
+const EVENT_ID_KIND: &[&str] =
+    &[ANY_MESSAGE_EVENT, ANY_SYNC_MESSAGE_EVENT, ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT];
+
+const SENDER_KIND: &[&str] = &[
+    ANY_MESSAGE_EVENT,
+    ANY_STATE_EVENT,
+    ANY_SYNC_STATE_EVENT,
+    ANY_TO_DEVICE_EVENT,
+    ANY_SYNC_MESSAGE_EVENT,
+    ANY_STRIPPED_STATE_EVENT,
+];
+
+const PREV_CONTENT_KIND: &[&str] = &[ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT];
+
+const STATE_KEY_KIND: &[&str] = &[ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT, ANY_STRIPPED_STATE_EVENT];
+
+/// This const is used to generate the accessor methods for the `Any*Event` enums.
+///
+/// DO NOT alter the field names unless the structs in `ruma_events::event_kinds` have changed.
+const EVENT_FIELDS: &[(&str, &[&str])] = &[
+    ("origin_server_ts", ROOM_EVENT_KIND),
+    ("room_id", ROOM_ID_KIND),
+    ("event_id", EVENT_ID_KIND),
+    ("sender", SENDER_KIND),
+    ("state_key", STATE_KEY_KIND),
+    ("unsigned", ROOM_EVENT_KIND),
+];
 
 /// Create a content enum from `EventEnumInput`.
 pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
@@ -13,16 +52,16 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
 
     let event_enum = expand_any_enum_with_deserialize(&input, ident)?;
 
-    let needs_event_content = ident == "AnyStateEvent"
-        || ident == "AnyMessageEvent"
-        || ident == "AnyToDeviceEvent"
-        || ident == "AnyEphemeralRoomEvent"
-        || ident == "AnyBasicEvent";
+    let needs_event_content = ident == ANY_STATE_EVENT
+        || ident == ANY_MESSAGE_EVENT
+        || ident == ANY_TO_DEVICE_EVENT
+        || ident == ANY_EPHEMERAL_EVENT
+        || ident == ANY_BASIC_EVENT;
 
     let needs_event_stub =
-        ident == "AnyStateEvent" || ident == "AnyMessageEvent" || ident == "AnyEphemeralRoomEvent";
+        ident == ANY_STATE_EVENT || ident == ANY_MESSAGE_EVENT || ident == ANY_EPHEMERAL_EVENT;
 
-    let needs_stripped_event = ident == "AnyStateEvent";
+    let needs_stripped_event = ident == ANY_STATE_EVENT;
 
     let event_stub_enum =
         if needs_event_stub { expand_stub_enum(&input)? } else { TokenStream::new() };
@@ -175,8 +214,12 @@ fn expand_any_enum_with_deserialize(
         }
     };
 
+    let field_accessor_impl = accessor_methods(ident, &variants);
+
     Ok(quote! {
         #any_enum
+
+        #field_accessor_impl
 
         #event_deserialize_impl
     })
@@ -199,6 +242,57 @@ fn marker_traits(ident: &Ident) -> TokenStream {
             impl ::ruma_events::BasicEventContent for #ident {}
         },
         _ => TokenStream::new(),
+    }
+}
+
+fn accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
+    let fields = EVENT_FIELDS
+        .iter()
+        .map(|(name, has_field)| generate_accessor(name, ident, *has_field, variants));
+
+    let any_content = ident.to_string().replace("Stub", "").replace("Stripped", "");
+    let content_enum = Ident::new(&format!("{}Content", any_content), ident.span());
+
+    let content = quote! {
+        /// Returns the any content enum for this event.
+        pub fn content(&self) -> #content_enum {
+            match self {
+                #(
+                    Self::#variants(event) => #content_enum::#variants(event.content.clone()),
+                )*
+                Self::Custom(event) => #content_enum::Custom(event.content.clone()),
+            }
+        }
+    };
+
+    let prev_content = if PREV_CONTENT_KIND.contains(&ident.to_string().as_str()) {
+        quote! {
+            /// Returns the any content enum for this events prev_content.
+            pub fn prev_content(&self) -> Option<#content_enum> {
+                match self {
+                    #(
+                        Self::#variants(event) => {
+                            event.prev_content.as_ref().map(|c| #content_enum::#variants(c.clone()))
+                        },
+                    )*
+                    Self::Custom(event) => {
+                        event.prev_content.as_ref().map(|c| #content_enum::Custom(c.clone()))
+                    },
+                }
+            }
+        }
+    } else {
+        TokenStream::new()
+    };
+
+    quote! {
+        impl #ident {
+            #content
+
+            #prev_content
+
+            #( #fields )*
+        }
     }
 }
 
@@ -278,6 +372,45 @@ pub(crate) fn to_camel_case(name: &LitStr) -> syn::Result<Ident> {
         .collect::<String>();
 
     Ok(Ident::new(&s, span))
+}
+
+fn generate_accessor(
+    name: &str,
+    ident: &Ident,
+    event_kind_list: &[&str],
+    variants: &[Ident],
+) -> TokenStream {
+    if event_kind_list.contains(&ident.to_string().as_str()) {
+        let field_type = field_return_type(name);
+
+        let name = Ident::new(name, Span::call_site());
+        let docs = format!("Returns this events {} field.", name);
+        quote! {
+            #[doc = #docs]
+            pub fn #name(&self) -> &#field_type {
+                match self {
+                    #(
+                        Self::#variants(event) => &event.#name,
+                    )*
+                    Self::Custom(event) => &event.#name,
+                }
+            }
+        }
+    } else {
+        TokenStream::new()
+    }
+}
+
+fn field_return_type(name: &str) -> TokenStream {
+    match name {
+        "origin_server_ts" => quote! { ::std::time::SystemTime },
+        "room_id" => quote! { ::ruma_identifiers::RoomId },
+        "event_id" => quote! { ::ruma_identifiers::EventId },
+        "sender" => quote! { ::ruma_identifiers::UserId },
+        "state_key" => quote! { str },
+        "unsigned" => quote! { ::ruma_events::UnsignedData },
+        _ => panic!("the `ruma_events_macros::event_enum::EVENT_FIELD` const was changed"),
+    }
 }
 
 /// Custom keywords for the `event_enum!` macro
