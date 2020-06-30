@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Leave a room.",
         method: POST,
         name: "leave_room",
@@ -13,13 +13,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room to leave.
         #[ruma_api(path)]
         pub room_id: RoomId,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

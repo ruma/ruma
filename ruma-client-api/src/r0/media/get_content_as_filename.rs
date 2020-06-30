@@ -3,7 +3,7 @@
 use ruma_api::ruma_api;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Retrieve content from the media store, specifying a filename to return.",
         method: GET,
         name: "get_media_content_as_filename",
@@ -12,7 +12,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {
+    request: {
         /// The media ID from the mxc:// URI (the path component).
         #[ruma_api(path)]
         pub media_id: String,
@@ -31,7 +31,7 @@ ruma_api! {
         pub allow_remote: Option<bool>,
     }
 
-    response {
+    response: {
         /// The content that was previously uploaded.
         #[ruma_api(raw_body)]
         pub file: Vec<u8>,

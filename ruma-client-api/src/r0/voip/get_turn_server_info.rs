@@ -5,7 +5,7 @@ use std::time::Duration;
 use ruma_api::ruma_api;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get credentials for the client to use when initiating VoIP calls.",
         method: GET,
         name: "turn_server_info",
@@ -14,9 +14,9 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {}
+    request: {}
 
-    response {
+    response: {
         /// The username to use.
         pub username: String,
 

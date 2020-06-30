@@ -7,7 +7,7 @@ use ruma_api::ruma_api;
 use super::Protocol;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Fetches the overall metadata about protocols supported by the homeserver.",
         method: GET,
         name: "get_protocols",
@@ -16,9 +16,9 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {}
+    request: {}
 
-    response {
+    response: {
         /// Metadata about protocols supported by the homeserver.
         #[ruma_api(body)]
         pub protocols: BTreeMap<String, Protocol>,

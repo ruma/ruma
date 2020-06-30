@@ -6,7 +6,7 @@ use ruma_api::ruma_api;
 use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get a preview for a URL.",
         name: "get_media_preview",
         method: GET,
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// URL to get a preview of.
         #[ruma_api(query)]
         pub url: String,
@@ -26,7 +26,7 @@ ruma_api! {
         pub ts: SystemTime,
     }
 
-    response {
+    response: {
         /// OpenGraph-like data for the URL.
         ///
         /// Differences from OpenGraph: the image size in bytes is added to the `matrix:image:size`

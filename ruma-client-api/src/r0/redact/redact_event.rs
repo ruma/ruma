@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{EventId, RoomId};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Redact an event, stripping all information not critical to the event graph integrity.",
         method: PUT,
         name: "redact_event",
@@ -13,7 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The ID of the room of the event to redact.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -33,7 +33,7 @@ ruma_api! {
         pub reason: Option<String>,
     }
 
-    response {
+    response: {
         /// The ID of the redacted event.
         pub event_id: EventId,
     }

@@ -3,7 +3,7 @@
 use ruma_api::ruma_api;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Checks to see if a username is available, and valid, for the server.",
         method: GET,
         name: "get_username_availability",
@@ -12,13 +12,13 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {
+    request: {
         /// The username to check the availability of.
         #[ruma_api(query)]
         pub username: String,
     }
 
-    response {
+    response: {
         /// A flag to indicate that the username is available.
         /// This should always be true when the server replies with 200 OK.
         pub available: bool

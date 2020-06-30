@@ -5,7 +5,7 @@ use ruma_api::ruma_api;
 use super::IdentityServerInfo;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Bind a 3PID to a user's account on an identity server",
         method: POST,
         name: "bind_3pid",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// Client-generated secret string used to protect this session.
         pub client_secret: String,
 
@@ -27,7 +27,7 @@ ruma_api! {
         pub sid: String,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

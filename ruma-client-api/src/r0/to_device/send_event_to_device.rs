@@ -10,7 +10,7 @@ use serde_json::value::RawValue as RawJsonValue;
 use super::DeviceIdOrAllDevices;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Send an event to a device or devices.",
         method: PUT,
         name: "send_event_to_device",
@@ -19,7 +19,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// Type of event being sent to each device.
         #[ruma_api(path)]
         pub event_type: EventType,
@@ -37,7 +37,7 @@ ruma_api! {
         pub messages: BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Box<RawJsonValue>>>
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

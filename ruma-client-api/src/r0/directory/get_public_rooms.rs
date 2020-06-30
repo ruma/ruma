@@ -6,7 +6,7 @@ use ruma_api::ruma_api;
 use super::PublicRoomsChunk;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get the list of rooms in this homeserver's public directory.",
         method: GET,
         name: "get_public_rooms",
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {
+    request: {
         /// Limit for the number of results to return.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
@@ -34,7 +34,7 @@ ruma_api! {
         pub server: Option<String>,
     }
 
-    response {
+    response: {
         /// A paginated chunk of public rooms.
         pub chunk: Vec<PublicRoomsChunk>,
 

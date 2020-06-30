@@ -6,7 +6,7 @@ use ruma_events::{pdu::Pdu, EventJson};
 use ruma_identifiers::{RoomId, UserId};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Send a request for a join event template to a resident server.",
         name: "create_join_event_template",
         method: GET,
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room ID that is about to be joined.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -28,7 +28,7 @@ ruma_api! {
         pub ver: Vec<UInt>,
     }
 
-    response {
+    response: {
         /// The version of the room where the server is trying to join.
         pub room_version: Option<UInt>,
         /// An unsigned template event.

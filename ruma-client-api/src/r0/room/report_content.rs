@@ -5,7 +5,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{EventId, RoomId};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Report content as inappropriate.",
         method: POST,
         name: "report_content",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// Room in which the event to be reported is located.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -30,7 +30,7 @@ ruma_api! {
         pub reason: String,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

@@ -5,7 +5,7 @@ use ruma_api::ruma_api;
 use super::{Action, RuleKind};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "This endpoint allows clients to change the actions of a push rule. This can be used to change the actions of builtin rules.",
         method: PUT,
         name: "set_pushrule_actions",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The scope to fetch a rule from. 'global' to specify global rules.
         #[ruma_api(path)]
         pub scope: String,
@@ -31,7 +31,7 @@ ruma_api! {
         pub actions: Vec<Action>
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

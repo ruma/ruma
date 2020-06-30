@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Set the display name of the user.",
         method: PUT,
         name: "set_display_name",
@@ -13,7 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The user whose display name will be set.
         #[ruma_api(path)]
         pub user_id: UserId,
@@ -23,7 +23,7 @@ ruma_api! {
         pub displayname: Option<String>,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

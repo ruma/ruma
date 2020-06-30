@@ -5,7 +5,7 @@ use ruma_events::{AnyBasicEvent, EventJson};
 use ruma_identifiers::{RoomId, UserId};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Gets account data room for a user for a given room",
         name: "get_room_account_data",
         method: GET,
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// User ID of user for whom to retrieve data.
         #[ruma_api(path)]
         pub user_id: UserId,
@@ -28,7 +28,7 @@ ruma_api! {
         pub event_type: String,
     }
 
-    response {
+    response: {
         /// Account data content for the given type.
         #[ruma_api(body)]
         pub account_data: EventJson<AnyBasicEvent>,

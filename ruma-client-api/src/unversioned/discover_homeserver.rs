@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get discovery information about the domain.",
         method: GET,
         name: "discover_homeserver",
@@ -13,9 +13,9 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {}
+    request: {}
 
-    response {
+    response: {
         /// Information about the homeserver to connect to.
         #[serde(rename = "m.homeserver")]
         pub homeserver: HomeserverInfo,

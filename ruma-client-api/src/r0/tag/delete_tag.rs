@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, UserId};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Remove a tag from a room.",
         method: DELETE,
         name: "delete_tag",
@@ -13,7 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The user whose tag will be deleted.
         #[ruma_api(path)]
         pub user_id: UserId,
@@ -27,7 +27,7 @@ ruma_api! {
         pub tag: String,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

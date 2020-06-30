@@ -3,7 +3,7 @@
 use ruma_api::ruma_api;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Upload content to the media store.",
         method: POST,
         name: "create_media_content",
@@ -12,7 +12,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The name of the file being uploaded.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -28,7 +28,7 @@ ruma_api! {
         pub file: Vec<u8>,
     }
 
-    response {
+    response: {
         /// The MXC URI for the uploaded content.
         pub content_uri: String,
     }

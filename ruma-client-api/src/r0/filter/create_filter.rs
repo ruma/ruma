@@ -6,7 +6,7 @@ use ruma_identifiers::UserId;
 use super::FilterDefinition;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Create a new filter for event retrieval.",
         method: POST,
         name: "create_filter",
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The ID of the user uploading the filter.
         ///
         /// The access token must be authorized to make requests for this user ID.
@@ -27,7 +27,7 @@ ruma_api! {
         pub filter: FilterDefinition,
     }
 
-    response {
+    response: {
         /// The ID of the filter that was created.
         pub filter_id: String,
     }

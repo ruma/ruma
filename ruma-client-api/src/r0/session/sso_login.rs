@@ -3,7 +3,7 @@
 use ruma_api::ruma_api;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "",
         method: GET,
         name: "sso_login",
@@ -13,14 +13,14 @@ ruma_api! {
 
     }
 
-    request {
+    request: {
         /// URL to which the homeserver should return the user after completing
         /// authentication with the SSO identity provider.
         #[ruma_api(query)]
         pub redirect_url: String,
     }
 
-    response {
+    response: {
         /// Redirect URL to the SSO identity provider.
         #[ruma_api(header = LOCATION)]
         pub location: String,

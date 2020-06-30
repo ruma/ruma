@@ -6,7 +6,7 @@ use ruma_identifiers::RoomId;
 use crate::r0::room::Visibility;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get the visibility of a public room on a directory.",
         name: "get_room_visibility",
         method: GET,
@@ -15,13 +15,13 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {
+    request: {
         /// The ID of the room of which to request the visibility.
         #[ruma_api(path)]
         pub room_id: RoomId,
     }
 
-    response {
+    response: {
         /// Visibility of the room.
         pub visibility: Visibility,
     }

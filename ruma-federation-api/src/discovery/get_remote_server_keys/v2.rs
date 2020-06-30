@@ -6,7 +6,7 @@ use crate::discovery::ServerKey;
 use ruma_api::ruma_api;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Query for another server's keys.",
         method: GET,
         name: "get_remote_server_keys",
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {
+    request: {
         /// The server's DNS name to query
         #[ruma_api(path)]
         pub server_name: String,
@@ -31,7 +31,7 @@ ruma_api! {
         pub minimum_valid_until_ts: SystemTime,
     }
 
-    response {
+    response: {
         /// The queried server's keys, signed by the notary server.
         pub server_keys: Vec<ServerKey>,
     }

@@ -14,7 +14,7 @@ pub mod some_endpoint {
     use ruma_api::ruma_api;
 
     ruma_api! {
-        metadata {
+        metadata: {
             description: "Does something.",
             method: GET, // An `http::Method` constant. No imports required.
             name: "some_endpoint",
@@ -23,7 +23,7 @@ pub mod some_endpoint {
             requires_authentication: false,
         }
 
-        request {
+        request: {
             // With no attribute on the field, it will be put into the body of the request.
             pub foo: String,
 
@@ -41,7 +41,7 @@ pub mod some_endpoint {
             pub baz: String,
         }
 
-        response {
+        response: {
             // This value will be extracted from the "Content-Type" HTTP header.
             #[ruma_api(header = CONTENT_TYPE)]
             pub content_type: String
@@ -49,6 +49,9 @@ pub mod some_endpoint {
             // With no attribute on the field, it will be extracted from the body of the response.
             pub value: String,
         }
+
+        // An error can also be specified or defaults to `ruma_api::error::Void`.
+        error: ruma_api::Error
     }
 }
 ```

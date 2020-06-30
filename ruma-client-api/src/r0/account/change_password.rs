@@ -5,7 +5,7 @@ use ruma_api::ruma_api;
 use crate::r0::uiaa::{AuthData, UiaaResponse};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Change the password of the current user's account.",
         method: POST,
         name: "change_password",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The new password for the account.
         pub new_password: String,
 
@@ -22,7 +22,7 @@ ruma_api! {
         pub auth: Option<AuthData>,
     }
 
-    response {}
+    response: {}
 
     error: UiaaResponse
 }

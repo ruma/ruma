@@ -5,7 +5,7 @@ use ruma_identifiers::UserId;
 use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Sets global account data.",
         method: PUT,
         name: "set_global_account_data",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// Arbitrary JSON to store as config data.
         ///
         /// To create a `Box<RawJsonValue>`, use `serde_json::value::to_raw_value`.
@@ -34,7 +34,7 @@ ruma_api! {
         pub user_id: UserId,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

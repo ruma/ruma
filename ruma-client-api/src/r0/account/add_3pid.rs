@@ -5,7 +5,7 @@ use ruma_api::ruma_api;
 use crate::r0::uiaa::{AuthData, UiaaResponse};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Add contact information to a user's account",
         method: POST,
         name: "add_3pid",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// Additional information for the User-Interactive Authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub auth: Option<AuthData>,
@@ -26,7 +26,7 @@ ruma_api! {
         pub sid: String,
     }
 
-    response {}
+    response: {}
 
     error: UiaaResponse
 }

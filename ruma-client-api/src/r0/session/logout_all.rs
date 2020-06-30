@@ -3,7 +3,7 @@
 use ruma_api::ruma_api;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Invalidates all access tokens for a user, so that they can no longer be used for authorization.",
         method: POST,
         name: "logout_all",
@@ -12,9 +12,9 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {}
+    request: {}
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

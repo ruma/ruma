@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_events::{AnyEvent, EventJson};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "This API is called by the homeserver when it wants to push an event (or batch of events) to the application service.",
         method: PUT,
         name: "push_events",
@@ -13,7 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The transaction ID for this set of events.
         ///
         /// Homeservers generate these IDs and they are used to ensure idempotency of results.
@@ -24,5 +24,5 @@ ruma_api! {
         pub events: Vec<EventJson<AnyEvent>>,
     }
 
-    response {}
+    response: {}
 }

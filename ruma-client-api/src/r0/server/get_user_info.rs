@@ -7,7 +7,7 @@ use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get information about a particular user.",
         method: GET,
         name: "get_user_info",
@@ -16,13 +16,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The user to look up.
         #[ruma_api(path)]
         pub user_id: UserId,
     }
 
-    response {
+    response: {
         /// The Matrix user ID of the user.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub user_id: Option<UserId>,

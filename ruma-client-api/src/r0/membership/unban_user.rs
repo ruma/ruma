@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, UserId};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Unban a user from a room.",
         method: POST,
         name: "unban_user",
@@ -13,7 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room to unban the user from.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -22,7 +22,7 @@ ruma_api! {
         pub user_id: UserId,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

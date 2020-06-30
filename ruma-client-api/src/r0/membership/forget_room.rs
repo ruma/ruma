@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Forget a room.",
         method: POST,
         name: "forget_room",
@@ -13,13 +13,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room to forget.
         #[ruma_api(path)]
         pub room_id: RoomId,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

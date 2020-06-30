@@ -5,7 +5,7 @@ use ruma_events::{AnyRoomEvent, EventJson};
 use ruma_identifiers::{EventId, RoomId};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get a single event based on roomId/eventId",
         method: GET,
         name: "get_room_event",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The ID of the room the event is in.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -24,7 +24,7 @@ ruma_api! {
         pub event_id: EventId,
     }
 
-    response {
+    response: {
         /// Arbitrary JSON of the event body. Returns both room and state events.
         #[ruma_api(body)]
         pub event: EventJson<AnyRoomEvent>,

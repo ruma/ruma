@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{EventId, RoomId};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Sets the position of the read marker for a given room, and optionally the read receipt's location.",
         method: POST,
         name: "set_read_marker",
@@ -13,7 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room ID to set the read marker in for the user.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -31,7 +31,7 @@ ruma_api! {
 
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

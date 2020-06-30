@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_common::push::Ruleset;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Retrieve all push rulesets in the global scope for this user.",
         method: GET,
         name: "get_pushrules_global_scope",
@@ -13,9 +13,9 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {}
+    request: {}
 
-    response {
+    response: {
         /// The global ruleset.
         #[ruma_api(body)]
         pub global: Ruleset,

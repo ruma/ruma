@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use super::Invite3pid;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Invite a user to a room.",
         method: POST,
         name: "invite_user",
@@ -22,7 +22,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room where the user should be invited.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -32,7 +32,7 @@ ruma_api! {
         pub recipient: InvitationRecipient,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

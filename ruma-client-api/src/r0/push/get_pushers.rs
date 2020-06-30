@@ -5,7 +5,7 @@ use ruma_api::ruma_api;
 use super::Pusher;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Gets all currently active pushers for the authenticated user.",
         method: GET,
         name: "get_pushers",
@@ -14,9 +14,9 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {}
+    request: {}
 
-    response {
+    response: {
         /// An array containing the current pushers for the user.
         pub pushers: Vec<Pusher>
     }

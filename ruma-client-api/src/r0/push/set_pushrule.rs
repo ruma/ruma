@@ -5,7 +5,7 @@ use ruma_api::ruma_api;
 use super::{Action, PushCondition, RuleKind};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "This endpoint allows the creation, modification and deletion of pushers for this user ID.",
         method: PUT,
         name: "set_pushrule",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The scope to set the rule in. 'global' to specify global rules.
         #[ruma_api(path)]
         pub scope: String,
@@ -48,7 +48,7 @@ ruma_api! {
         pub pattern: Option<String>,
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

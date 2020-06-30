@@ -7,7 +7,7 @@ use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get a map of user ids to member info objects for members of the room. Primarily for use in Application Services.",
         method: GET,
         name: "joined_members",
@@ -16,13 +16,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room to get the members of.
         #[ruma_api(path)]
         pub room_id: RoomId,
     }
 
-    response {
+    response: {
         /// A list of the rooms the user is in, i.e.
         /// the ID of each room in which the user has joined membership.
         pub joined: BTreeMap<UserId, RoomMember>,

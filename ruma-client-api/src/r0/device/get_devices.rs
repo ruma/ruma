@@ -4,7 +4,7 @@ use super::Device;
 use ruma_api::ruma_api;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get registered devices for authenticated user.",
         method: GET,
         name: "get_devices",
@@ -13,9 +13,9 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {}
+    request: {}
 
-    response {
+    response: {
         /// A list of all registered devices for this user
         pub devices: Vec<Device>,
     }

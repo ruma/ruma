@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Gets the homeserver's supported login types to authenticate users. Clients should pick one of these and supply it as the type when logging in.",
         method: GET,
         name: "get_login_types",
@@ -13,9 +13,9 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {}
+    request: {}
 
-    response {
+    response: {
         /// The homeserver's supported login types.
         pub flows: Vec<LoginType>
     }

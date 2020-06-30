@@ -3,7 +3,7 @@ pub mod some_endpoint {
     use ruma_events::{tag::TagEvent, AnyRoomEvent, EventJson};
 
     ruma_api! {
-        metadata {
+        metadata: {
             description: "Does something.",
             method: POST, // An `http::Method` constant. No imports required.
             name: "some_endpoint",
@@ -12,7 +12,7 @@ pub mod some_endpoint {
             requires_authentication: false,
         }
 
-        request {
+        request: {
             // With no attribute on the field, it will be put into the body of the request.
             pub foo: String,
 
@@ -30,7 +30,7 @@ pub mod some_endpoint {
             pub baz: String,
         }
 
-        response {
+        response: {
             // This value will be extracted from the "Content-Type" HTTP header.
             #[ruma_api(header = CONTENT_TYPE)]
             pub content_type: String,
@@ -60,7 +60,7 @@ pub mod newtype_body_endpoint {
     }
 
     ruma_api! {
-        metadata {
+        metadata: {
             description: "Does something.",
             method: PUT,
             name: "newtype_body_endpoint",
@@ -69,12 +69,12 @@ pub mod newtype_body_endpoint {
             requires_authentication: false,
         }
 
-        request {
+        request: {
             #[ruma_api(body)]
             pub list_of_custom_things: Vec<MyCustomType>,
         }
 
-        response {
+        response: {
             #[ruma_api(body)]
             pub my_custom_thing: MyCustomType,
         }
@@ -90,7 +90,7 @@ pub mod newtype_raw_body_endpoint {
     }
 
     ruma_api! {
-        metadata {
+        metadata: {
             description: "Does something.",
             method: PUT,
             name: "newtype_body_endpoint",
@@ -99,12 +99,12 @@ pub mod newtype_raw_body_endpoint {
             requires_authentication: false,
         }
 
-        request {
+        request: {
             #[ruma_api(raw_body)]
             pub file: Vec<u8>,
         }
 
-        response {
+        response: {
             #[ruma_api(raw_body)]
             pub file: Vec<u8>,
         }
@@ -115,7 +115,7 @@ pub mod query_map_endpoint {
     use ruma_api::ruma_api;
 
     ruma_api! {
-        metadata {
+        metadata: {
             description: "Does something.",
             method: GET,
             name: "newtype_body_endpoint",
@@ -124,12 +124,12 @@ pub mod query_map_endpoint {
             requires_authentication: false,
         }
 
-        request {
+        request: {
             #[ruma_api(query_map)]
             pub fields: Vec<(String, String)>,
         }
 
-        response {
+        response: {
         }
     }
 }

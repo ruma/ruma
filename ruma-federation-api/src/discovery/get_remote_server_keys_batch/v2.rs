@@ -8,7 +8,7 @@ use ruma_identifiers::ServerKeyId;
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Query for keys from multiple servers in a batch format.",
         method: POST,
         name: "get_remote_server_keys_batch",
@@ -17,7 +17,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {
+    request: {
         /// The query criteria. The outer string key on the object is the server
         /// name (eg: matrix.org). The inner string key is the Key ID to query
         /// for the particular server. If no key IDs are given to be queried,
@@ -41,7 +41,7 @@ ruma_api! {
         pub minimum_valid_until_ts: SystemTime,
     }
 
-    response {
+    response: {
         /// The queried server's keys, signed by the notary server.
         pub server_keys: Vec<ServerKey>,
     }

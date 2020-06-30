@@ -6,7 +6,7 @@ use ruma_identifiers::RoomId;
 use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get state events associated with a given key.",
         method: GET,
         name: "get_state_events_for_key",
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room to look up the state for.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -29,7 +29,7 @@ ruma_api! {
         pub state_key: String,
     }
 
-    response {
+    response: {
         /// The content of the state event.
         #[ruma_api(body)]
         pub content: Box<RawJsonValue>,

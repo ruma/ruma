@@ -7,7 +7,7 @@ use crate::r0::uiaa::{AuthData, UiaaResponse};
 use super::ThirdPartyIdRemovalStatus;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Deactivate the current user's account.",
         method: POST,
         name: "deactivate",
@@ -16,7 +16,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub auth: Option<AuthData>,
@@ -27,7 +27,7 @@ ruma_api! {
         pub id_server: Option<String>,
     }
 
-    response {
+    response: {
         /// Result of unbind operation.
         pub id_server_unbind_result: ThirdPartyIdRemovalStatus,
     }

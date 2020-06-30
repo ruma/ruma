@@ -8,7 +8,7 @@ use ruma_identifiers::{EventId, RoomId};
 use crate::r0::filter::RoomEventFilter;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get the events immediately preceding and following a given event.",
         method: GET,
         path: "/_matrix/client/r0/rooms/:room_id/context/:event_id",
@@ -17,7 +17,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room to get events from.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -43,7 +43,7 @@ ruma_api! {
         pub filter: Option<RoomEventFilter>,
     }
 
-    response {
+    response: {
         /// A token that can be used to paginate backwards with.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub start: Option<String>,

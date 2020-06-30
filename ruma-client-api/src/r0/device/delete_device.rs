@@ -6,7 +6,7 @@ use ruma_identifiers::DeviceId;
 use crate::r0::uiaa::{AuthData, UiaaResponse};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Delete a device for authenticated user.",
         method: DELETE,
         name: "delete_device",
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The device to delete.
         #[ruma_api(path)]
         pub device_id: DeviceId,
@@ -25,7 +25,7 @@ ruma_api! {
         pub auth: Option<AuthData>,
     }
 
-    response {}
+    response: {}
 
     error: UiaaResponse
 }

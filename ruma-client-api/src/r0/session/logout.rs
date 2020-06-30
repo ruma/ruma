@@ -3,7 +3,7 @@
 use ruma_api::ruma_api;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Log out of the homeserver.",
         method: POST,
         name: "logout",
@@ -12,9 +12,9 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {}
+    request: {}
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 use crate::r0::{filter::FilterDefinition, keys::KeyAlgorithm};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get all new events from all rooms since the last sync or a given point of time.",
         method: GET,
         name: "sync",
@@ -24,7 +24,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// A filter represented either as its full JSON definition or the ID of a saved filter.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
@@ -58,7 +58,7 @@ ruma_api! {
         pub timeout: Option<Duration>,
     }
 
-    response {
+    response: {
         /// The batch token to supply in the `since` param of the next `/sync` request.
         pub next_batch: String,
 

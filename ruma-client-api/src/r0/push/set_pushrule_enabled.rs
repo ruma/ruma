@@ -5,7 +5,7 @@ use ruma_api::ruma_api;
 use super::RuleKind;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "This endpoint allows clients to enable or disable the specified push rule.",
         method: PUT,
         name: "set_pushrule_enabled",
@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The scope to fetch a rule from. 'global' to specify global rules.
         #[ruma_api(path)]
         pub scope: String,
@@ -31,7 +31,7 @@ ruma_api! {
         pub enabled: bool
     }
 
-    response {}
+    response: {}
 
     error: crate::Error
 }

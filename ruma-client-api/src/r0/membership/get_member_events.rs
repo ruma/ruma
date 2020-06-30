@@ -6,7 +6,7 @@ use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Get membership events for a room.",
         method: GET,
         name: "get_member_events",
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The room to get the member events for.
         #[ruma_api(path)]
         pub room_id: RoomId,
@@ -40,7 +40,7 @@ ruma_api! {
         pub not_membership: Option<MembershipEventFilter>,
     }
 
-    response {
+    response: {
         /// A list of member events.
         pub chunk: Vec<EventJson<MemberEvent>>
     }

@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "This endpoint is invoked by the homeserver on an application service to query the existence of a given user ID.",
         method: GET,
         name: "query_user_id",
@@ -13,11 +13,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    request {
+    request: {
         /// The user ID being queried.
         #[ruma_api(path)]
         pub user_id: UserId,
     }
 
-    response {}
+    response: {}
 }

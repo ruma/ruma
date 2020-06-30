@@ -6,7 +6,7 @@ use ruma_api::ruma_api;
 use super::IdentityServerInfo;
 
 ruma_api! {
-    metadata {
+    metadata: {
         description: "Request that a password change token is sent to the given email address.",
         method: POST,
         name: "request_password_change_token_via_email",
@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    request {
+    request: {
         /// Client-generated secret string used to protect this session.
         pub client_secret: String,
 
@@ -35,7 +35,7 @@ ruma_api! {
         pub identity_server_info: Option<IdentityServerInfo>,
     }
 
-    response {
+    response: {
         /// The session identifier given by the identity server.
         pub sid: String,
 
