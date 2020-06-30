@@ -340,7 +340,7 @@ impl ResponseField {
         }
     }
 
-    /// Whether or not the reponse field has a #[wrap_incoming] attribute.
+    /// Whether or not the response field has a #[wrap_incoming] attribute.
     fn has_wrap_incoming_attr(&self) -> bool {
         self.field().attrs.iter().any(|attr| {
             attr.path.segments.len() == 1 && attr.path.segments[0].ident == "wrap_incoming"
