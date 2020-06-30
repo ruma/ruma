@@ -24,10 +24,6 @@ pub enum Meta {
 
 impl Meta {
     /// Check if the given attribute is a ruma_api attribute. If it is, parse it.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the given attribute is a ruma_api attribute, but fails to parse.
     pub fn from_attribute(attr: &syn::Attribute) -> syn::Result<Option<Self>> {
         if attr.path.is_ident("ruma_api") {
             attr.parse_args().map(Some)

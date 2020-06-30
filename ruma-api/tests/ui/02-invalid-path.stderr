@@ -1,0 +1,5 @@
+error: path may only contain printable ASCII characters
+ --> $DIR/02-invalid-path.rs:8:15
+  |
+8 |         path: "/_matrix/some/query/map/\u{ffff}",
+  |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

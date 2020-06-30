@@ -61,6 +61,12 @@ impl TryFrom<RawMetadata> for Metadata {
                 },
                 "path" => match expr {
                     Expr::Lit(ExprLit { lit: Lit::Str(literal), .. }) => {
+                        if !literal.value().is_ascii() {
+                            return Err(syn::Error::new_spanned(
+                                literal,
+                                "path may only contain printable ASCII characters",
+                            ));
+                        }
                         path = Some(literal);
                     }
                     _ => return Err(syn::Error::new_spanned(expr, "expected a string literal")),

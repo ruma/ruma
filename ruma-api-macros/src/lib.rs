@@ -22,6 +22,7 @@ use syn::parse_macro_input;
 use self::api::{Api, RawApi};
 
 mod api;
+mod util;
 
 #[proc_macro]
 pub fn ruma_api(input: TokenStream) -> TokenStream {

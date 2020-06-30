@@ -27,3 +27,4 @@ strum = "0.18.0"
 
 [dev-dependencies]
 ruma-events = { version = "0.21.3", path = "../ruma-events" }
+trybuild = "1.0.30"

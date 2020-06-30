@@ -2,20 +2,21 @@
 
 use std::convert::{TryFrom, TryInto as _};
 
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     braced,
     parse::{Parse, ParseStream},
-    Field, FieldValue, Ident, Token, Type,
+    Field, FieldValue, Token, Type,
 };
 
-mod attribute;
-mod metadata;
-mod request;
-mod response;
+pub(crate) mod attribute;
+pub(crate) mod metadata;
+pub(crate) mod request;
+pub(crate) mod response;
 
 use self::{metadata::Metadata, request::Request, response::Response};
+use crate::util;
 
 /// Removes `serde` attributes from struct fields.
 pub fn strip_serde_attrs(field: &Field) -> Field {
@@ -121,159 +122,12 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let (request_path_string, parse_request_path) = if self.request.has_path_fields() {
-            let path_string = path.value();
+        let (request_path_string, parse_request_path) =
+            util::request_path_string_and_parse(&self.request, &self.metadata);
 
-            assert!(path_string.starts_with('/'), "path needs to start with '/'");
-            assert!(
-                path_string.chars().filter(|c| *c == ':').count()
-                    == self.request.path_field_count(),
-                "number of declared path parameters needs to match amount of placeholders in path"
-            );
+        let request_query_string = util::build_query_string(&self.request);
 
-            let format_call = {
-                let mut format_string = path_string.clone();
-                let mut format_args = Vec::new();
-
-                while let Some(start_of_segment) = format_string.find(':') {
-                    // ':' should only ever appear at the start of a segment
-                    assert_eq!(&format_string[start_of_segment - 1..start_of_segment], "/");
-
-                    let end_of_segment = match format_string[start_of_segment..].find('/') {
-                        Some(rel_pos) => start_of_segment + rel_pos,
-                        None => format_string.len(),
-                    };
-
-                    let path_var = Ident::new(
-                        &format_string[start_of_segment + 1..end_of_segment],
-                        Span::call_site(),
-                    );
-                    format_args.push(quote! {
-                        ruma_api::exports::percent_encoding::utf8_percent_encode(
-                            &request.#path_var.to_string(),
-                            ruma_api::exports::percent_encoding::NON_ALPHANUMERIC,
-                        )
-                    });
-                    format_string.replace_range(start_of_segment..end_of_segment, "{}");
-                }
-
-                quote! {
-                    format!(#format_string, #(#format_args),*)
-                }
-            };
-
-            let path_fields = path_string[1..]
-                .split('/')
-                .enumerate()
-                .filter(|(_, s)| s.starts_with(':'))
-                .map(|(i, segment)| {
-                    let path_var = &segment[1..];
-                    let path_var_ident = Ident::new(path_var, Span::call_site());
-
-                    quote! {
-                        #path_var_ident: {
-                            use std::ops::Deref as _;
-                            use ruma_api::error::RequestDeserializationError;
-
-                            let segment = path_segments.get(#i).unwrap().as_bytes();
-                            let decoded = match ruma_api::exports::percent_encoding::percent_decode(
-                                segment
-                            ).decode_utf8() {
-                                Ok(x) => x,
-                                Err(err) => {
-                                    return Err(
-                                        RequestDeserializationError::new(err, request).into()
-                                    );
-                                }
-                            };
-                            match std::convert::TryFrom::try_from(decoded.deref()) {
-                                Ok(val) => val,
-                                Err(err) => {
-                                    return Err(
-                                        RequestDeserializationError::new(err, request).into()
-                                    );
-                                }
-                            }
-                        }
-                    }
-                });
-
-            (format_call, quote! { #(#path_fields,)* })
-        } else {
-            (quote! { metadata.path.to_owned() }, TokenStream::new())
-        };
-
-        let request_query_string = if let Some(field) = self.request.query_map_field() {
-            let field_name = field.ident.as_ref().expect("expected field to have identifier");
-            let field_type = &field.ty;
-
-            quote!({
-                // This function exists so that the compiler will throw an
-                // error when the type of the field with the query_map
-                // attribute doesn't implement IntoIterator<Item = (String, String)>
-                //
-                // This is necessary because the ruma_serde::urlencoded::to_string
-                // call will result in a runtime error when the type cannot be
-                // encoded as a list key-value pairs (?key1=value1&key2=value2)
-                //
-                // By asserting that it implements the iterator trait, we can
-                // ensure that it won't fail.
-                fn assert_trait_impl<T>()
-                where
-                    T: std::iter::IntoIterator<Item = (std::string::String, std::string::String)>,
-                {}
-                assert_trait_impl::<#field_type>();
-
-                let request_query = RequestQuery(request.#field_name);
-                format!("?{}", ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?)
-            })
-        } else if self.request.has_query_fields() {
-            let request_query_init_fields = self.request.request_query_init_fields();
-
-            quote!({
-                let request_query = RequestQuery {
-                    #request_query_init_fields
-                };
-
-                format!("?{}", ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?)
-            })
-        } else {
-            quote! {
-                String::new()
-            }
-        };
-
-        let extract_request_query = if self.request.query_map_field().is_some() {
-            quote! {
-                let request_query = match ruma_api::exports::ruma_serde::urlencoded::from_str(
-                    &request.uri().query().unwrap_or("")
-                ) {
-                    Ok(query) => query,
-                    Err(err) => {
-                        return Err(
-                            ruma_api::error::RequestDeserializationError::new(err, request).into()
-                        );
-                    }
-                };
-            }
-        } else if self.request.has_query_fields() {
-            quote! {
-                let request_query: RequestQuery =
-                    match ruma_api::exports::ruma_serde::urlencoded::from_str(
-                        &request.uri().query().unwrap_or("")
-                    ) {
-                        Ok(query) => query,
-                        Err(err) => {
-                            return Err(
-                                ruma_api::error::RequestDeserializationError::new(err, request)
-                                    .into()
-                            );
-                        }
-                    };
-            }
-        } else {
-            TokenStream::new()
-        };
+        let extract_request_query = util::extract_request_query(&self.request);
 
         let parse_request_query = if let Some(field) = self.request.query_map_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
@@ -327,42 +181,9 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let request_body = if let Some(field) = self.request.newtype_raw_body_field() {
-            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            quote!(request.#field_name)
-        } else if self.request.has_body_fields() || self.request.newtype_body_field().is_some() {
-            let request_body_initializers = if let Some(field) = self.request.newtype_body_field() {
-                let field_name =
-                    field.ident.as_ref().expect("expected field to have an identifier");
-                quote! { (request.#field_name) }
-            } else {
-                let initializers = self.request.request_body_init_fields();
-                quote! { { #initializers } }
-            };
+        let request_body = util::build_request_body(&self.request);
 
-            quote! {
-                {
-                    let request_body = RequestBody #request_body_initializers;
-                    ruma_api::exports::serde_json::to_vec(&request_body)?
-                }
-            }
-        } else {
-            quote!(Vec::new())
-        };
-
-        let parse_request_body = if let Some(field) = self.request.newtype_body_field() {
-            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            quote! {
-                #field_name: request_body.0,
-            }
-        } else if let Some(field) = self.request.newtype_raw_body_field() {
-            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            quote! {
-                #field_name: request.into_body(),
-            }
-        } else {
-            self.request.request_init_body_fields()
-        };
+        let parse_request_body = util::parse_request_body(&self.request);
 
         let extract_response_headers = if self.response.has_header_fields() {
             quote! {
@@ -448,8 +269,8 @@ impl ToTokens for Api {
                     *http_request.uri_mut() = ruma_api::exports::http::uri::Builder::new()
                         .path_and_query(path_and_query.as_str())
                         .build()
-                        // The only way this can fail is if the path given in the API definition is
-                        // invalid. It is okay to panic in that case.
+                        // The ruma_api! macro guards against invalid path input but if there are
+                        // invalid (non ASCII) bytes in the fields with the query attribute this will fail.
                         .unwrap();
 
                     { #add_headers_to_request }
