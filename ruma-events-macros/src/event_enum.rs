@@ -9,21 +9,41 @@ use syn::{
 
 use crate::event_names::{
     ANY_BASIC_EVENT, ANY_EPHEMERAL_EVENT, ANY_MESSAGE_EVENT, ANY_STATE_EVENT,
-    ANY_SYNC_EPHEMERAL_EVENT, ANY_SYNC_MESSAGE_EVENT, ANY_SYNC_STATE_EVENT, ANY_TO_DEVICE_EVENT,
+    ANY_STRIPPED_STATE_EVENT, ANY_SYNC_MESSAGE_EVENT, ANY_SYNC_STATE_EVENT, ANY_TO_DEVICE_EVENT,
 };
 
-type HasField = fn(&Ident) -> bool;
+// Arrays of event enum names grouped by a field they share in common.
+const ROOM_EVENT_KIND: &[&str] =
+    &[ANY_MESSAGE_EVENT, ANY_SYNC_MESSAGE_EVENT, ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT];
+
+const ROOM_ID_KIND: &[&str] = &[ANY_MESSAGE_EVENT, ANY_STATE_EVENT, ANY_EPHEMERAL_EVENT];
+
+const EVENT_ID_KIND: &[&str] =
+    &[ANY_MESSAGE_EVENT, ANY_SYNC_MESSAGE_EVENT, ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT];
+
+const SENDER_KIND: &[&str] = &[
+    ANY_MESSAGE_EVENT,
+    ANY_STATE_EVENT,
+    ANY_SYNC_STATE_EVENT,
+    ANY_TO_DEVICE_EVENT,
+    ANY_SYNC_MESSAGE_EVENT,
+    ANY_STRIPPED_STATE_EVENT,
+];
+
+const PREV_CONTENT_KIND: &[&str] = &[ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT];
+
+const STATE_KEY_KIND: &[&str] = &[ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT, ANY_STRIPPED_STATE_EVENT];
 
 /// This const is used to generate the accessor methods for the `Any*Event` enums.
 ///
-/// DO NOT alter the field names unless the structs in `ruma_events::event_kinds` changes.
-const EVENT_FIELDS: &[(&str, HasField)] = &[
-    ("origin_server_ts", has_room_event_fields),
-    ("room_id", has_room_id),
-    ("event_id", has_event_id),
-    ("sender", has_sender),
-    ("state_key", has_state_key),
-    ("unsigned", has_room_event_fields),
+/// DO NOT alter the field names unless the structs in `ruma_events::event_kinds` have changed.
+const EVENT_FIELDS: &[(&str, &[&str])] = &[
+    ("origin_server_ts", ROOM_EVENT_KIND),
+    ("room_id", ROOM_ID_KIND),
+    ("event_id", EVENT_ID_KIND),
+    ("sender", SENDER_KIND),
+    ("state_key", STATE_KEY_KIND),
+    ("unsigned", ROOM_EVENT_KIND),
 ];
 
 /// Create a content enum from `EventEnumInput`.
@@ -245,7 +265,7 @@ fn accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
         }
     };
 
-    let prev_content = if has_prev_content(ident) {
+    let prev_content = if PREV_CONTENT_KIND.contains(&ident.to_string().as_str()) {
         quote! {
             /// Returns the any content enum for this events prev_content.
             pub fn prev_content(&self) -> Option<#content_enum> {
@@ -357,10 +377,10 @@ pub(crate) fn to_camel_case(name: &LitStr) -> syn::Result<Ident> {
 fn generate_accessor(
     name: &str,
     ident: &Ident,
-    has_field: HasField,
+    event_kind_list: &[&str],
     variants: &[Ident],
 ) -> TokenStream {
-    if has_field(ident) {
+    if event_kind_list.contains(&ident.to_string().as_str()) {
         let field_type = field_return_type(name);
 
         let name = Ident::new(name, Span::call_site());
@@ -391,38 +411,6 @@ fn field_return_type(name: &str) -> TokenStream {
         "unsigned" => quote! { ::ruma_events::UnsignedData },
         _ => panic!("the `ruma_events_macros::event_enum::EVENT_FIELD` const was changed"),
     }
-}
-
-fn has_room_event_fields(ident: &Ident) -> bool {
-    ident == ANY_MESSAGE_EVENT
-        || ident == ANY_STATE_EVENT
-        || ident == ANY_SYNC_MESSAGE_EVENT
-        || ident == ANY_SYNC_STATE_EVENT
-}
-
-fn has_room_id(ident: &Ident) -> bool {
-    ident == ANY_MESSAGE_EVENT || ident == ANY_STATE_EVENT || ident == ANY_EPHEMERAL_EVENT
-}
-
-fn has_event_id(ident: &Ident) -> bool {
-    ident == ANY_MESSAGE_EVENT
-        || ident == ANY_SYNC_MESSAGE_EVENT
-        || ident == ANY_STATE_EVENT
-        || ident == ANY_SYNC_STATE_EVENT
-}
-
-fn has_sender(ident: &Ident) -> bool {
-    //  these events don't have a sender field
-    !(ident == ANY_BASIC_EVENT || ident == ANY_EPHEMERAL_EVENT || ident == ANY_SYNC_EPHEMERAL_EVENT)
-}
-
-fn has_prev_content(ident: &Ident) -> bool {
-    ident == ANY_STATE_EVENT || ident == ANY_SYNC_STATE_EVENT
-}
-
-fn has_state_key(ident: &Ident) -> bool {
-    // any event with `State` in the name has a `state_key`
-    ident.to_string().contains("State")
 }
 
 /// Custom keywords for the `event_enum!` macro

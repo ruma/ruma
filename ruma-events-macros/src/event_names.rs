@@ -7,8 +7,7 @@ pub const ANY_STATE_EVENT: &str = "AnyStateEvent";
 
 pub const ANY_SYNC_STATE_EVENT: &str = "AnyStateEventStub";
 
-// This is not currently used because of negation used in `has_sender`
-// pub const ANY_STRIPPED_STATE_EVENT: &str = "AnyStrippedStateEventStub";
+pub const ANY_STRIPPED_STATE_EVENT: &str = "AnyStrippedStateEventStub";
 
 // Message events
 pub const ANY_MESSAGE_EVENT: &str = "AnyMessageEvent";
@@ -18,6 +17,8 @@ pub const ANY_SYNC_MESSAGE_EVENT: &str = "AnyMessageEventStub";
 // Ephemeral events
 pub const ANY_EPHEMERAL_EVENT: &str = "AnyEphemeralRoomEvent";
 
+#[allow(dead_code)]
+// This is currently not used but, left for completeness sake.
 pub const ANY_SYNC_EPHEMERAL_EVENT: &str = "AnyEphemeralRoomEventStub";
 
 // Basic event
