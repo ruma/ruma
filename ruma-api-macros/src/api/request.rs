@@ -6,9 +6,12 @@ use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{spanned::Spanned, Field, Ident};
 
-use crate::api::{
-    attribute::{Meta, MetaNameValue},
-    strip_serde_attrs, RawRequest,
+use crate::{
+    api::{
+        attribute::{Meta, MetaNameValue},
+        strip_serde_attrs, RawRequest,
+    },
+    util,
 };
 
 /// The result of processing the `request` section of the macro.
@@ -209,26 +212,13 @@ impl TryFrom<RawRequest> for Request {
                     field_kind = Some(match meta {
                         Meta::Word(ident) => {
                             match &ident.to_string()[..] {
-                                s @ "body" | s @ "raw_body" => {
-                                    if let Some(f) = &newtype_body_field {
-                                        let mut error = syn::Error::new_spanned(
-                                            field,
-                                            "There can only be one newtype body field",
-                                        );
-                                        error.combine(syn::Error::new_spanned(
-                                            f,
-                                            "Previous newtype body field",
-                                        ));
-                                        return Err(error);
-                                    }
-
-                                    newtype_body_field = Some(field.clone());
-                                    match s {
-                                        "body" => RequestFieldKind::NewtypeBody,
-                                        "raw_body" => RequestFieldKind::NewtypeRawBody,
-                                        _ => unreachable!(),
-                                    }
-                                }
+                                attr @ "body" | attr @ "raw_body" => util::req_res_meta_word(
+                                    attr,
+                                    &field,
+                                    &mut newtype_body_field,
+                                    RequestFieldKind::NewtypeBody,
+                                    RequestFieldKind::NewtypeRawBody,
+                                )?,
                                 "path" => RequestFieldKind::Path,
                                 "query" => RequestFieldKind::Query,
                                 "query_map" => {
@@ -255,17 +245,12 @@ impl TryFrom<RawRequest> for Request {
                                 }
                             }
                         }
-                        Meta::NameValue(MetaNameValue { name, value }) => {
-                            if name != "header" {
-                                return Err(syn::Error::new_spanned(
-                                    name,
-                                    "Invalid #[ruma_api] argument with value, expected `header`"
-                                ));
-                            }
-
-                            header = Some(value);
-                            RequestFieldKind::Header
-                        }
+                        Meta::NameValue(MetaNameValue { name, value }) => util::req_res_name_value(
+                            name,
+                            value,
+                            &mut header,
+                            RequestFieldKind::Header,
+                        )?,
                     });
                 }
 
