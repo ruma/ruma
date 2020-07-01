@@ -224,8 +224,8 @@ pub(crate) fn req_res_meta_word<T>(
     attr_kind: &str,
     field: &syn::Field,
     newtype_body_field: &mut Option<syn::Field>,
-    body_field_kind: fn() -> T,
-    raw_field_kind: fn() -> T,
+    body_field_kind: T,
+    raw_field_kind: T,
 ) -> syn::Result<T> {
     if let Some(f) = &newtype_body_field {
         let mut error = syn::Error::new_spanned(field, "There can only be one newtype body field");
@@ -235,17 +235,17 @@ pub(crate) fn req_res_meta_word<T>(
 
     *newtype_body_field = Some(field.clone());
     Ok(match attr_kind {
-        "body" => body_field_kind(),
-        "raw_body" => raw_field_kind(),
+        "body" => body_field_kind,
+        "raw_body" => raw_field_kind,
         _ => unreachable!(),
     })
 }
 
-pub(crate) fn req_res_named_value<T>(
+pub(crate) fn req_res_name_value<T>(
     name: Ident,
     value: Ident,
     header: &mut Option<Ident>,
-    field_kind: fn() -> T,
+    field_kind: T,
 ) -> syn::Result<T> {
     if name != "header" {
         return Err(syn::Error::new_spanned(
@@ -255,5 +255,5 @@ pub(crate) fn req_res_named_value<T>(
     }
 
     *header = Some(value);
-    Ok(field_kind())
+    Ok(field_kind)
 }

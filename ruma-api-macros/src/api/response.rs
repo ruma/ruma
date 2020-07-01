@@ -176,8 +176,8 @@ impl TryFrom<RawResponse> for Response {
                                 s,
                                 &field,
                                 &mut newtype_body_field,
-                                || ResponseFieldKind::NewtypeBody,
-                                || ResponseFieldKind::NewtypeRawBody,
+                                ResponseFieldKind::NewtypeBody,
+                                ResponseFieldKind::NewtypeRawBody,
                             )?,
                             _ => {
                                 return Err(syn::Error::new_spanned(
@@ -186,11 +186,12 @@ impl TryFrom<RawResponse> for Response {
                                 ));
                             }
                         },
-                        Meta::NameValue(MetaNameValue { name, value }) => {
-                            util::req_res_named_value(name, value, &mut header, || {
-                                ResponseFieldKind::Header
-                            })?
-                        }
+                        Meta::NameValue(MetaNameValue { name, value }) => util::req_res_name_value(
+                            name,
+                            value,
+                            &mut header,
+                            ResponseFieldKind::Header,
+                        )?,
                     });
                 }
 

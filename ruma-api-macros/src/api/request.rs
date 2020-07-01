@@ -216,8 +216,8 @@ impl TryFrom<RawRequest> for Request {
                                     attr,
                                     &field,
                                     &mut newtype_body_field,
-                                    || RequestFieldKind::NewtypeBody,
-                                    || RequestFieldKind::NewtypeRawBody,
+                                    RequestFieldKind::NewtypeBody,
+                                    RequestFieldKind::NewtypeRawBody,
                                 )?,
                                 "path" => RequestFieldKind::Path,
                                 "query" => RequestFieldKind::Query,
@@ -245,11 +245,11 @@ impl TryFrom<RawRequest> for Request {
                                 }
                             }
                         }
-                        Meta::NameValue(MetaNameValue { name, value }) => util::req_res_named_value(
+                        Meta::NameValue(MetaNameValue { name, value }) => util::req_res_name_value(
                             name,
                             value,
                             &mut header,
-                            || RequestFieldKind::Header,
+                            RequestFieldKind::Header,
                         )?,
                     });
                 }
