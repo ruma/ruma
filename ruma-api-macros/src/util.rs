@@ -258,6 +258,6 @@ pub(crate) fn req_res_name_value<T>(
     Ok(field_kind)
 }
 
-pub(crate) fn is_ascii_printable(string: &str) -> bool {
-    string.as_bytes().iter().all(|b| (0x20..=0x7E).contains(b))
+pub(crate) fn is_valid_endpoint_path(string: &str) -> bool {
+    string.as_bytes().iter().all(|b| (0x21..=0x7E).contains(b))
 }

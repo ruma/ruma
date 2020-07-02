@@ -62,7 +62,7 @@ impl TryFrom<RawMetadata> for Metadata {
                 "path" => match expr {
                     Expr::Lit(ExprLit { lit: Lit::Str(literal), .. }) => {
                         let path_str = literal.value();
-                        if !util::is_ascii_printable(&path_str) || path_str.contains(' ') {
+                        if !util::is_valid_endpoint_path(&path_str) {
                             return Err(syn::Error::new_spanned(
                                 literal,
                                 "path may only contain printable ASCII characters with no spaces",
