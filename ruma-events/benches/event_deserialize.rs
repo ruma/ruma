@@ -2,8 +2,16 @@
 // or pass any other args to it, it fails with the error
 // `cargo bench unknown option --save-baseline`.
 // To pass args to criterion, use this form
-// `cargo bench --bench <name of the bench> -- --save-baseline <name>`.
+// `cargo bench --features criterion_bench --bench <name of the bench> -- --save-baseline <name>`.
 
+#![allow(unused_imports, dead_code)]
+
+// To run the benchmarks the "criterion_bench" feature must be enabled.
+// `cargo bench --features criterion_bench --bench <name of the bench>`
+#[cfg(not(feature = "criterion_bench"))]
+compile_error!("Enable the criterion_bench feature to run benchmarks");
+
+#[cfg(feature = "criterion_bench")]
 use criterion::{criterion_group, criterion_main, Criterion};
 use ruma_events::{
     room::power_levels::PowerLevelsEventContent, AnyEvent, AnyRoomEvent, AnyStateEvent, EventJson,
@@ -44,6 +52,7 @@ fn power_levels() -> serde_json::Value {
     })
 }
 
+#[cfg(feature = "criterion_bench")]
 fn deserialize_any_event(c: &mut Criterion) {
     let json_data = power_levels();
 
@@ -57,6 +66,7 @@ fn deserialize_any_event(c: &mut Criterion) {
     });
 }
 
+#[cfg(feature = "criterion_bench")]
 fn deserialize_any_room_event(c: &mut Criterion) {
     let json_data = power_levels();
 
@@ -70,6 +80,7 @@ fn deserialize_any_room_event(c: &mut Criterion) {
     });
 }
 
+#[cfg(feature = "criterion_bench")]
 fn deserialize_any_state_event(c: &mut Criterion) {
     let json_data = power_levels();
 
@@ -83,6 +94,7 @@ fn deserialize_any_state_event(c: &mut Criterion) {
     });
 }
 
+#[cfg(feature = "criterion_bench")]
 fn deserialize_specific_event(c: &mut Criterion) {
     let json_data = power_levels();
 
@@ -98,6 +110,7 @@ fn deserialize_specific_event(c: &mut Criterion) {
     });
 }
 
+#[cfg(feature = "criterion_bench")]
 criterion_group!(
     benches,
     deserialize_any_event,
@@ -106,4 +119,10 @@ criterion_group!(
     deserialize_specific_event
 );
 
+#[cfg(feature = "criterion_bench")]
 criterion_main!(benches);
+
+// This makes the compiler only spit out the `compile_error!` when
+// `cargo bench` is run without the `criterion_bench` feature.
+#[cfg(not(feature = "criterion_bench"))]
+fn main() {}

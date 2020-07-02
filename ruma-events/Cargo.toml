@@ -27,7 +27,14 @@ maplit = "1.0.2"
 matches = "0.1.8"
 ruma-identifiers = { version = "0.16.2", path = "../ruma-identifiers", features = ["rand"] }
 trybuild = "1.0.30"
-criterion = "0.3.2"
+
+[dependencies.criterion]
+version = "0.3.2"
+optional = true
+
+[features]
+default = []
+criterion_bench = ["criterion"]
 
 [[bench]]
 name = "event_deserialize"
