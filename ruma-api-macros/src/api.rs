@@ -269,8 +269,8 @@ impl ToTokens for Api {
                     *http_request.uri_mut() = ruma_api::exports::http::uri::Builder::new()
                         .path_and_query(path_and_query.as_str())
                         .build()
-                        // The only way this can fail is if the path given in the API definition is
-                        // invalid. It is okay to panic in that case.
+                        // The ruma_api! macro guards against invalid path input but, if there are
+                        // invalid (non ASCII) bytes in the fields with the query attribute this will panic.
                         .unwrap();
 
                     { #add_headers_to_request }
