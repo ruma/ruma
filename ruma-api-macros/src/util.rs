@@ -263,5 +263,5 @@ fn is_ascii_printable(b: &u8) -> bool {
 }
 
 pub(crate) fn is_printable(string: &str) -> bool {
-    string.as_bytes().into_iter().all(is_ascii_printable)
+    string.as_bytes().iter().all(is_ascii_printable)
 }
