@@ -258,10 +258,6 @@ pub(crate) fn req_res_name_value<T>(
     Ok(field_kind)
 }
 
-fn is_ascii_printable(b: &u8) -> bool {
-    b.wrapping_sub(b' ') < 0x5F
-}
-
-pub(crate) fn is_printable(string: &str) -> bool {
-    string.as_bytes().iter().all(is_ascii_printable)
+pub(crate) fn is_ascii_printable(string: &str) -> bool {
+    string.as_bytes().iter().all(|b| (0x20..=0x7E).contains(b))
 }

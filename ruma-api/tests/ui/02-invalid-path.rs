@@ -2,9 +2,9 @@ use ruma_api::ruma_api;
 
 ruma_api! {
     metadata: {
-        description: "Does something.",
+        description: "This will fail.",
         method: GET,
-        name: "newtype_body_endpoint",
+        name: "invalid_path",
         path: "µ / ° / § / €",
         rate_limited: false,
         requires_authentication: false,
