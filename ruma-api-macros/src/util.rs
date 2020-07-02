@@ -257,3 +257,11 @@ pub(crate) fn req_res_name_value<T>(
     *header = Some(value);
     Ok(field_kind)
 }
+
+fn is_ascii_printable(b: &u8) -> bool {
+    b.wrapping_sub(b' ') < 0x5F
+}
+
+pub(crate) fn is_printable(string: &str) -> bool {
+    string.as_bytes().into_iter().all(is_ascii_printable)
+}

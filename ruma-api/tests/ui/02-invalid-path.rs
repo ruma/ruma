@@ -5,7 +5,7 @@ ruma_api! {
         description: "Does something.",
         method: GET,
         name: "newtype_body_endpoint",
-        path: "/_matrix/some/query/map/\u{ffff}",
+        path: "µ / ° / § / €",
         rate_limited: false,
         requires_authentication: false,
     }

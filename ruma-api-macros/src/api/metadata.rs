@@ -4,7 +4,7 @@ use std::convert::TryFrom;
 
 use syn::{Expr, ExprLit, ExprPath, Ident, Lit, LitBool, LitStr, Member};
 
-use crate::api::RawMetadata;
+use crate::{api::RawMetadata, util};
 
 /// The result of processing the `metadata` section of the macro.
 pub struct Metadata {
@@ -61,7 +61,7 @@ impl TryFrom<RawMetadata> for Metadata {
                 },
                 "path" => match expr {
                     Expr::Lit(ExprLit { lit: Lit::Str(literal), .. }) => {
-                        if !literal.value().is_ascii() {
+                        if !util::is_printable(&literal.value()) {
                             return Err(syn::Error::new_spanned(
                                 literal,
                                 "path may only contain printable ASCII characters",
