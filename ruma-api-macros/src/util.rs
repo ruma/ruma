@@ -257,3 +257,7 @@ pub(crate) fn req_res_name_value<T>(
     *header = Some(value);
     Ok(field_kind)
 }
+
+pub(crate) fn is_valid_endpoint_path(string: &str) -> bool {
+    string.as_bytes().iter().all(|b| (0x21..=0x7E).contains(b))
+}
