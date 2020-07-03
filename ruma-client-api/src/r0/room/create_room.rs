@@ -92,6 +92,26 @@ ruma_api! {
     error: crate::Error
 }
 
+impl Request {
+    /// Creates a `Request` will all-default parameters.
+    pub fn new() -> Self {
+        Self {
+            creation_content: None,
+            initial_state: Vec::new(),
+            invite: Vec::new(),
+            invite_3pid: Vec::new(),
+            is_direct: None,
+            name: None,
+            power_level_content_override: None,
+            preset: None,
+            room_alias_name: None,
+            room_version: None,
+            topic: None,
+            visibility: None,
+        }
+    }
+}
+
 /// Extra options to be added to the `m.room.create` event.
 ///
 /// This is the same as the event content struct for `m.room.create`, but without some fields that
