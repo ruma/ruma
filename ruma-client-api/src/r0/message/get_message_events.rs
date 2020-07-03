@@ -82,6 +82,15 @@ ruma_api! {
     error: crate::Error
 }
 
+impl Request {
+    /// Creates a `Request` with the given parameters.
+    ///
+    /// All other parameters will be defaulted.
+    pub fn new(room_id: RoomId, from: String, dir: Direction) -> Self {
+        Self { room_id, from, to: None, dir, limit: default_limit(), filter: None }
+    }
+}
+
 fn default_limit() -> UInt {
     uint!(10)
 }
