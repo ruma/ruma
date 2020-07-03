@@ -116,7 +116,7 @@ impl ToTokens for Api {
 
         let extract_request_path = if self.request.has_path_fields() {
             quote! {
-                let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
+                let path_segments: Vec<&str> = req.uri().path()[1..].split('/').collect();
             }
         } else {
             TokenStream::new()
@@ -151,7 +151,7 @@ impl ToTokens for Api {
 
         let extract_request_headers = if self.request.has_header_fields() {
             quote! {
-                let headers = request.headers();
+                let headers = req.headers();
             }
         } else {
             TokenStream::new()
@@ -161,15 +161,8 @@ impl ToTokens for Api {
             if self.request.has_body_fields() || self.request.newtype_body_field().is_some() {
                 quote! {
                     let request_body: RequestBody =
-                        match ruma_api::exports::serde_json::from_slice(request.body().as_slice()) {
-                            Ok(body) => body,
-                            Err(err) => {
-                                return Err(
-                                    ruma_api::error::RequestDeserializationError::new(err, request)
-                                        .into()
-                                );
-                            }
-                        };
+                        ruma_api::exports::serde_json::from_slice(req.body().as_slice())
+                            .map_err(::ruma_api::error::DeserializationError::from)?;
                 }
             } else {
                 TokenStream::new()
@@ -187,30 +180,22 @@ impl ToTokens for Api {
 
         let extract_response_headers = if self.response.has_header_fields() {
             quote! {
-                let mut headers = response.headers().clone();
+                let mut headers = resp.headers().clone();
             }
         } else {
             TokenStream::new()
         };
 
-        let typed_response_body_decl = if self.response.has_body_fields()
-            || self.response.newtype_body_field().is_some()
-        {
-            quote! {
-                let response_body: ResponseBody =
-                    match ruma_api::exports::serde_json::from_slice(response.body().as_slice()) {
-                        Ok(body) => body,
-                        Err(err) => {
-                            return Err(
-                                ruma_api::error::ResponseDeserializationError::new(err, response)
-                                    .into()
-                            );
-                        }
-                    };
-            }
-        } else {
-            TokenStream::new()
-        };
+        let typed_response_body_decl =
+            if self.response.has_body_fields() || self.response.newtype_body_field().is_some() {
+                quote! {
+                    let response_body: ResponseBody =
+                        ruma_api::exports::serde_json::from_slice(resp.body().as_slice())
+                            .map_err(::ruma_api::error::DeserializationError::from)?;
+                }
+            } else {
+                TokenStream::new()
+            };
 
         let response_init_fields = self.response.init_fields();
 
@@ -242,17 +227,24 @@ impl ToTokens for Api {
 
                 #[allow(unused_variables)]
                 fn try_from(request: ruma_api::exports::http::Request<Vec<u8>>) -> Result<Self, Self::Error> {
-                    #extract_request_path
-                    #extract_request_query
-                    #extract_request_headers
-                    #extract_request_body
+                    // All calls refer to `req` to avoid moving `request` into the closure.
+                    let req = &request;
 
-                    Ok(Self {
-                        #parse_request_path
-                        #parse_request_query
-                        #parse_request_headers
-                        #parse_request_body
-                    })
+                    #[allow(unused_mut)]
+                    let mut try_from_impl = move || -> Result<_, ruma_api::error::DeserializationError> {
+                        #extract_request_headers
+                        #extract_request_path
+                        #extract_request_query
+                        #extract_request_body
+
+                        Ok(Self {
+                            #parse_request_path
+                            #parse_request_query
+                            #parse_request_headers
+                            #parse_request_body
+                        })
+                    };
+                    try_from_impl().map_err(|err| ::ruma_api::error::RequestDeserializationError::new(err, request).into())
                 }
             }
 
@@ -306,13 +298,19 @@ impl ToTokens for Api {
                     response: ruma_api::exports::http::Response<Vec<u8>>,
                 ) -> Result<Self, Self::Error> {
                     if response.status().as_u16() < 400 {
-                        #extract_response_headers
+                        // All calls refer to `resp` to avoid moving `response` into the closure.
+                        let resp = &response;
 
-                        #typed_response_body_decl
+                        #[allow(unused_mut)]
+                        let mut try_from_impl = move || -> Result<_, ruma_api::error::DeserializationError> {
+                            #extract_response_headers
+                            #typed_response_body_decl
 
-                        Ok(Self {
-                            #response_init_fields
-                        })
+                            Ok(Self {
+                                #response_init_fields
+                            })
+                        };
+                        try_from_impl().map_err(|err| ruma_api::error::ResponseDeserializationError::new(err, response).into())
                     } else {
                         match <#error as ruma_api::EndpointError>::try_from_response(response) {
                             Ok(err) => Err(ruma_api::error::ServerError::Known(err).into()),

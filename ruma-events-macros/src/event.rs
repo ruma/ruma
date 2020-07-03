@@ -77,7 +77,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
 
                 let event_type = ::ruma_events::EventContent::event_type(&self.content);
 
-                let mut state = serializer.serialize_struct(stringify!(#ident), 7)?;
+                let mut state = serializer.serialize_struct(stringify!(#ident), 9)?;
 
                 state.serialize_field("type", event_type)?;
                 #( #serialize_fields )*

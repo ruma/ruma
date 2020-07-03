@@ -69,24 +69,13 @@ pub(crate) fn request_path_string_and_parse(
                             use ruma_api::error::RequestDeserializationError;
 
                             let segment = path_segments.get(#i).unwrap().as_bytes();
-                            let decoded = match ruma_api::exports::percent_encoding::percent_decode(
+                            let decoded = ruma_api::exports::percent_encoding::percent_decode(
                                 segment
-                            ).decode_utf8() {
-                                Ok(x) => x,
-                                Err(err) => {
-                                    return Err(
-                                        RequestDeserializationError::new(err, request).into()
-                                    );
-                                }
-                            };
-                            match std::convert::TryFrom::try_from(decoded.deref()) {
-                                Ok(val) => val,
-                                Err(err) => {
-                                    return Err(
-                                        RequestDeserializationError::new(err, request).into()
-                                    );
-                                }
-                            }
+                            ).decode_utf8()
+                            .map_err(::ruma_api::error::DeserializationError::from)?;
+
+                            std::convert::TryFrom::try_from(decoded.deref())
+                                .map_err(::ruma_api::error::DeserializationError::from)?
                         }
                     }
                 },
@@ -146,31 +135,18 @@ pub(crate) fn build_query_string(request: &Request) -> TokenStream {
 pub(crate) fn extract_request_query(request: &Request) -> TokenStream {
     if request.query_map_field().is_some() {
         quote! {
-            let request_query = match ruma_api::exports::ruma_serde::urlencoded::from_str(
-                &request.uri().query().unwrap_or("")
-            ) {
-                Ok(query) => query,
-                Err(err) => {
-                    return Err(
-                        ruma_api::error::RequestDeserializationError::new(err, request).into()
-                    );
-                }
-            };
+            let query = &req.uri().query().unwrap_or("");
+            let request_query = ruma_api::exports::ruma_serde::urlencoded::from_str(query)
+                .map_err(::ruma_api::error::DeserializationError::from)?;
         }
     } else if request.has_query_fields() {
+        // Although this block looks the same as above the type returned from the `urlencoded::from_str`
+        // is not the same, do not remove.
         quote! {
+            let query = &req.uri().query().unwrap_or("");
             let request_query: RequestQuery =
-                match ruma_api::exports::ruma_serde::urlencoded::from_str(
-                    &request.uri().query().unwrap_or("")
-                ) {
-                    Ok(query) => query,
-                    Err(err) => {
-                        return Err(
-                            ruma_api::error::RequestDeserializationError::new(err, request)
-                                .into()
-                        );
-                    }
-                };
+                ruma_api::exports::ruma_serde::urlencoded::from_str(query)
+                    .map_err(::ruma_api::error::DeserializationError::from)?;
         }
     } else {
         TokenStream::new()
@@ -213,7 +189,7 @@ pub(crate) fn parse_request_body(request: &Request) -> TokenStream {
     } else if let Some(field) = request.newtype_raw_body_field() {
         let field_name = field.ident.as_ref().expect("expected field to have an identifier");
         quote! {
-            #field_name: request.into_body(),
+            #field_name: req.body().to_vec(),
         }
     } else {
         request.request_init_body_fields()
