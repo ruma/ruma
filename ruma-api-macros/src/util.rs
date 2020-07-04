@@ -63,30 +63,26 @@ pub(crate) fn request_path_string_and_parse(
                     let path_var = &segment[1..];
                     let path_var_ident = Ident::new(path_var, Span::call_site());
 
+                    let decoded = try_helper(
+                        quote! {
+                            ruma_api::exports::percent_encoding::percent_decode(segment)
+                                .decode_utf8()
+                        },
+                        HttpDirection::Request,
+                    );
+                    let path_var = try_helper(
+                        quote! { std::convert::TryFrom::try_from(decoded.deref()) },
+                        HttpDirection::Request,
+                    );
                     quote! {
                         #path_var_ident: {
                             use std::ops::Deref as _;
                             use ruma_api::error::RequestDeserializationError;
 
                             let segment = path_segments.get(#i).unwrap().as_bytes();
-                            let decoded = match ruma_api::exports::percent_encoding::percent_decode(
-                                segment
-                            ).decode_utf8() {
-                                Ok(x) => x,
-                                Err(err) => {
-                                    return Err(
-                                        RequestDeserializationError::new(err, request).into()
-                                    );
-                                }
-                            };
-                            match std::convert::TryFrom::try_from(decoded.deref()) {
-                                Ok(val) => val,
-                                Err(err) => {
-                                    return Err(
-                                        RequestDeserializationError::new(err, request).into()
-                                    );
-                                }
-                            }
+                            let decoded = #decoded;
+
+                            #path_var
                         }
                     }
                 },
@@ -145,33 +141,25 @@ pub(crate) fn build_query_string(request: &Request) -> TokenStream {
 /// Deserialize the query string.
 pub(crate) fn extract_request_query(request: &Request) -> TokenStream {
     if request.query_map_field().is_some() {
-        quote! {
-            let request_query = match ruma_api::exports::ruma_serde::urlencoded::from_str(
-                &request.uri().query().unwrap_or("")
-            ) {
-                Ok(query) => query,
-                Err(err) => {
-                    return Err(
-                        ruma_api::error::RequestDeserializationError::new(err, request).into()
-                    );
-                }
-            };
-        }
-    } else if request.has_query_fields() {
-        quote! {
-            let request_query: RequestQuery =
-                match ruma_api::exports::ruma_serde::urlencoded::from_str(
+        let deserialized = try_helper(
+            quote! {
+                ruma_api::exports::ruma_serde::urlencoded::from_str(
                     &request.uri().query().unwrap_or("")
-                ) {
-                    Ok(query) => query,
-                    Err(err) => {
-                        return Err(
-                            ruma_api::error::RequestDeserializationError::new(err, request)
-                                .into()
-                        );
-                    }
-                };
-        }
+                )
+            },
+            HttpDirection::Request,
+        );
+        quote! { let request_query = #deserialized; }
+    } else if request.has_query_fields() {
+        let deserialized = try_helper(
+            quote! {
+                ruma_api::exports::ruma_serde::urlencoded::from_str(
+                    &request.uri().query().unwrap_or("")
+                )
+            },
+            HttpDirection::Request,
+        );
+        quote! { let request_query: RequestQuery = #deserialized; }
     } else {
         TokenStream::new()
     }
@@ -260,4 +248,30 @@ pub(crate) fn req_res_name_value<T>(
 
 pub(crate) fn is_valid_endpoint_path(string: &str) -> bool {
     string.as_bytes().iter().all(|b| (0x21..=0x7E).contains(b))
+}
+
+pub(crate) enum HttpDirection {
+    Request,
+    Response,
+}
+
+pub(crate) fn try_helper(expr: TokenStream, res_or_req: HttpDirection) -> TokenStream {
+    match res_or_req {
+        HttpDirection::Request => {
+            quote! {
+                match #expr {
+                    Ok(val) => val,
+                    Err(err) => return Err(::ruma_api::error::RequestDeserializationError::new(err, request).into())
+                }
+            }
+        }
+        HttpDirection::Response => {
+            quote! {
+                match #expr {
+                    Ok(val) => val,
+                    Err(err) => return Err(::ruma_api::error::ResponseDeserializationError::new(err, response).into())
+                }
+            }
+        }
+    }
 }
