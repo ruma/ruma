@@ -250,11 +250,18 @@ pub(crate) fn is_valid_endpoint_path(string: &str) -> bool {
     string.as_bytes().iter().all(|b| (0x21..=0x7E).contains(b))
 }
 
+/// Used by `try_helper` to determine the error and variable to use.
 pub(crate) enum HttpDirection {
+    /// The `RequestDeserializationError` is used and the `request` variable is passed to it's
+    /// constructor.
     Request,
+    /// The `ResponseDeserializationError` is used and the `response` variable is passed to it's
+    /// constructor.
     Response,
 }
 
+/// Generates a `match` statement of `expr` that returns early with the correct error based on
+/// the `res_or_req`.
 pub(crate) fn try_helper(expr: TokenStream, res_or_req: HttpDirection) -> TokenStream {
     match res_or_req {
         HttpDirection::Request => {
