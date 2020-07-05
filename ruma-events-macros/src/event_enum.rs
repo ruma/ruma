@@ -106,6 +106,20 @@ pub fn expand_content_enum(input: &EventEnumInput) -> syn::Result<TokenStream> {
     let variants = input.events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
     let content = input.events.iter().map(to_event_content_path).collect::<Vec<_>>();
 
+    let (redacted, redacted_ev_type) = if needs_redacted(&ident) {
+        (
+            quote! {
+                /// The result of an event being redacted.
+                IsRedacted(::ruma_events::room::redaction::RedactedContent),
+            },
+            quote! {
+                Self::IsRedacted(content) => content.event_type(),
+            },
+        )
+    } else {
+        (TokenStream::new(), TokenStream::new())
+    };
+
     let content_enum = quote! {
         #( #attrs )*
         #[derive(Clone, Debug, ::serde::Serialize)]
@@ -116,6 +130,7 @@ pub fn expand_content_enum(input: &EventEnumInput) -> syn::Result<TokenStream> {
                 #[doc = #event_type_str]
                 #variants(#content),
             )*
+            #redacted
             /// Content of an event not defined by the Matrix specification.
             Custom(::ruma_events::custom::CustomEventContent),
         }
@@ -126,6 +141,7 @@ pub fn expand_content_enum(input: &EventEnumInput) -> syn::Result<TokenStream> {
             fn event_type(&self) -> &str {
                 match self {
                     #( Self::#variants(content) => content.event_type(), )*
+                    #redacted_ev_type
                     Self::Custom(content) => content.event_type(),
                 }
             }
@@ -170,6 +186,9 @@ fn expand_any_enum_with_deserialize(
     let content =
         input.events.iter().map(|event| to_event_path(event, &event_struct)).collect::<Vec<_>>();
 
+    let redacted = generate_redacted_variant(ident, &event_struct);
+    let redacted_return = generate_redacted_return(ident, &event_struct);
+
     let any_enum = quote! {
         #( #attrs )*
         #[derive(Clone, Debug, ::serde::Serialize)]
@@ -180,6 +199,7 @@ fn expand_any_enum_with_deserialize(
                 #[doc = #event_type_str]
                 #variants(#content),
             )*
+            #redacted
             /// An event not defined by the Matrix specification
             Custom(::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>),
         }
@@ -194,7 +214,16 @@ fn expand_any_enum_with_deserialize(
                 use ::serde::de::Error as _;
 
                 let json = Box::<::serde_json::value::RawValue>::deserialize(deserializer)?;
-                let ::ruma_events::EventDeHelper { ev_type, .. } = ::ruma_events::from_raw_json_value(&json)?;
+                let ::ruma_events::EventDeHelper { ev_type, unsigned, .. } = ::ruma_events::from_raw_json_value(&json)?;
+
+                // If a redacted_because key is found the event has been redacted
+                // https://matrix.org/docs/spec/client_server/r0.6.1#redactions
+                if let Some(unsigned) = unsigned {
+                    if unsigned.redacted_because.is_some() {
+                        #redacted_return
+                    }
+                }
+
                 match ev_type.as_str() {
                     #(
                         #event_type_str => {
@@ -253,6 +282,19 @@ fn accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
     let any_content = ident.to_string().replace("Stub", "").replace("Stripped", "");
     let content_enum = Ident::new(&format!("{}Content", any_content), ident.span());
 
+    let (redacted_content, redacted_prev) = if needs_redacted(ident) {
+        (
+            quote! {
+                Self::IsRedacted(event) => #content_enum::IsRedacted(event.content.clone()),
+            },
+            quote! {
+                Self::IsRedacted(event) => None,
+            },
+        )
+    } else {
+        (TokenStream::new(), TokenStream::new())
+    };
+
     let content = quote! {
         /// Returns the any content enum for this event.
         pub fn content(&self) -> #content_enum {
@@ -260,6 +302,7 @@ fn accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
                 #(
                     Self::#variants(event) => #content_enum::#variants(event.content.clone()),
                 )*
+                #redacted_content
                 Self::Custom(event) => #content_enum::Custom(event.content.clone()),
             }
         }
@@ -275,6 +318,7 @@ fn accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
                             event.prev_content.as_ref().map(|c| #content_enum::#variants(c.clone()))
                         },
                     )*
+                    #redacted_prev
                     Self::Custom(event) => {
                         event.prev_content.as_ref().map(|c| #content_enum::Custom(c.clone()))
                     },
@@ -374,6 +418,36 @@ pub(crate) fn to_camel_case(name: &LitStr) -> syn::Result<Ident> {
     Ok(Ident::new(&s, span))
 }
 
+fn needs_redacted(ident: &Ident) -> bool {
+    let ident = ident.to_string();
+    ident.contains("State") || ident.contains("Message")
+}
+fn generate_redacted_variant(ident: &Ident, event_struct: &Ident) -> TokenStream {
+    if needs_redacted(ident) {
+        quote! {
+            /// The variant of any event that has been redacted.
+            IsRedacted(::ruma_events::#event_struct<::ruma_events::room::redaction::RedactedContent>),
+        }
+    } else {
+        TokenStream::new()
+    }
+}
+
+fn generate_redacted_return(ident: &Ident, event_struct: &Ident) -> TokenStream {
+    if needs_redacted(ident) {
+        quote! {
+            let event =
+                ::serde_json::from_str::<
+                    ::ruma_events::#event_struct<::ruma_events::room::redaction::RedactedContent>
+                >(json.get()).map_err(D::Error::custom)?;
+
+            return Ok(#ident::IsRedacted(event))
+        }
+    } else {
+        TokenStream::new()
+    }
+}
+
 fn generate_accessor(
     name: &str,
     ident: &Ident,
@@ -385,6 +459,13 @@ fn generate_accessor(
 
         let name = Ident::new(name, Span::call_site());
         let docs = format!("Returns this events {} field.", name);
+        let redacted = if needs_redacted(ident) {
+            quote! {
+                Self::IsRedacted(event) => &event.#name,
+            }
+        } else {
+            TokenStream::new()
+        };
         quote! {
             #[doc = #docs]
             pub fn #name(&self) -> &#field_type {
@@ -392,6 +473,7 @@ fn generate_accessor(
                     #(
                         Self::#variants(event) => &event.#name,
                     )*
+                    #redacted
                     Self::Custom(event) => &event.#name,
                 }
             }
