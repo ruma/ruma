@@ -3,6 +3,7 @@
 Bug fixes:
 
 * More missing fields in `r0::sync::sync_events::Response` can be deserialized
+* Fix `get_tags::Response` serialization
 
 Breaking changes:
 
