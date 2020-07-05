@@ -86,7 +86,7 @@ fn redacted_deserialize_any_room() {
         })) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
             && room_id == RoomId::try_from("!roomid:room.com").unwrap()
             && content.reason == Some("who cares".to_string())
-            && content.event_type == "m.room.message".to_string()
+            && content.event_type == "m.room.message"
     )
 }
 
@@ -129,7 +129,7 @@ fn redacted_deserialize_any_room_stub() {
             event_id, content, ..
         })) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
             && content.reason == Some("who cares".to_string())
-            && content.event_type == "m.room.message".to_string()
+            && content.event_type == "m.room.message"
     )
 }
 
@@ -167,6 +167,6 @@ fn redacted_deserialize_to_event_kind() {
             event_id, content, ..
         } if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
             && content.reason == Some("who cares".to_string())
-            && content.event_type == "m.room.message".to_string()
+            && content.event_type == "m.room.message"
     )
 }
