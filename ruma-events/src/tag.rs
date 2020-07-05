@@ -9,13 +9,15 @@ use crate::BasicEvent;
 
 /// Informs the client of tags on a room.
 pub type TagEvent = BasicEvent<TagEventContent>;
+/// Map of tag names to tag info.
+pub type Tags = BTreeMap<String, TagInfo>;
 
 /// The payload for `TagEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.tag")]
 pub struct TagEventContent {
     /// A map of tag names to tag info.
-    pub tags: BTreeMap<String, TagInfo>,
+    pub tags: Tags,
 }
 
 /// Information about a tag.
