@@ -97,6 +97,10 @@ pub enum AnyEvent {
     Message(AnyMessageEvent),
     /// Any state event.
     State(AnyStateEvent),
+    /// Any message event that has been redacted.
+    RedactedMessage(AnyRedactedMessageEvent),
+    /// Any state event that has been redacted.
+    RedactedState(AnyRedactedStateEvent),
 }
 
 /// Any room event.
@@ -107,6 +111,10 @@ pub enum AnyRoomEvent {
     Message(AnyMessageEvent),
     /// Any state event.
     State(AnyStateEvent),
+    /// Any message event that has been redacted.
+    RedactedMessage(AnyRedactedMessageEvent),
+    /// Any state event that has been redacted.
+    RedactedState(AnyRedactedStateEvent),
 }
 
 /// Any room event stub (room event without a `room_id`, as returned in `/sync` responses)
@@ -117,6 +125,10 @@ pub enum AnyRoomEventStub {
     Message(AnyMessageEventStub),
     /// Any state event stub
     State(AnyStateEventStub),
+    /// Any message event stub that has been redacted.
+    RedactedMessage(AnyRedactedMessageEventStub),
+    /// Any state event stub that has been redacted.
+    RedactedState(AnyRedactedStateEventStub),
 }
 
 // FIXME `#[serde(untagged)]` deserialization fails for these enums which
@@ -127,13 +139,24 @@ impl<'de> de::Deserialize<'de> for AnyEvent {
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { state_key, event_id, room_id, .. } = from_raw_json_value(&json)?;
+        let EventDeHelper { state_key, event_id, room_id, unsigned, .. } =
+            from_raw_json_value(&json)?;
 
         // Determine whether the event is a state, message, ephemeral, or basic event
         // based on the fields present.
         if state_key.is_some() {
+            if let Some(unsigned) = unsigned {
+                if unsigned.redacted_because.is_some() {
+                    return Ok(AnyEvent::RedactedState(from_raw_json_value(&json)?));
+                }
+            }
             Ok(AnyEvent::State(from_raw_json_value(&json)?))
         } else if event_id.is_some() {
+            if let Some(unsigned) = unsigned {
+                if unsigned.redacted_because.is_some() {
+                    return Ok(AnyEvent::RedactedMessage(from_raw_json_value(&json)?));
+                }
+            }
             Ok(AnyEvent::Message(from_raw_json_value(&json)?))
         } else if room_id.is_some() {
             Ok(AnyEvent::Ephemeral(from_raw_json_value(&json)?))
@@ -149,11 +172,21 @@ impl<'de> de::Deserialize<'de> for AnyRoomEvent {
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { state_key, .. } = from_raw_json_value(&json)?;
+        let EventDeHelper { state_key, unsigned, .. } = from_raw_json_value(&json)?;
 
         if state_key.is_some() {
+            if let Some(unsigned) = unsigned {
+                if unsigned.redacted_because.is_some() {
+                    return Ok(AnyRoomEvent::RedactedState(from_raw_json_value(&json)?));
+                }
+            }
             Ok(AnyRoomEvent::State(from_raw_json_value(&json)?))
         } else {
+            if let Some(unsigned) = unsigned {
+                if unsigned.redacted_because.is_some() {
+                    return Ok(AnyRoomEvent::RedactedMessage(from_raw_json_value(&json)?));
+                }
+            }
             Ok(AnyRoomEvent::Message(from_raw_json_value(&json)?))
         }
     }
@@ -165,11 +198,21 @@ impl<'de> de::Deserialize<'de> for AnyRoomEventStub {
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper { state_key, .. } = from_raw_json_value(&json)?;
+        let EventDeHelper { state_key, unsigned, .. } = from_raw_json_value(&json)?;
 
         if state_key.is_some() {
+            if let Some(unsigned) = unsigned {
+                if unsigned.redacted_because.is_some() {
+                    return Ok(AnyRoomEventStub::RedactedState(from_raw_json_value(&json)?));
+                }
+            }
             Ok(AnyRoomEventStub::State(from_raw_json_value(&json)?))
         } else {
+            if let Some(unsigned) = unsigned {
+                if unsigned.redacted_because.is_some() {
+                    return Ok(AnyRoomEventStub::RedactedMessage(from_raw_json_value(&json)?));
+                }
+            }
             Ok(AnyRoomEventStub::Message(from_raw_json_value(&json)?))
         }
     }

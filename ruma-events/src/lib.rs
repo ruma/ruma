@@ -255,6 +255,10 @@ pub struct EventDeHelper {
     /// If no `event_id` or `state_key` are found but a `room_id` is present
     /// the event will be deserialized as a ephemeral event.
     pub room_id: Option<IgnoredAny>,
+
+    /// If this `UnsignedData` contains a redacted_because key the event is
+    /// immediately deserialized as a redacted event.
+    pub unsigned: Option<UnsignedData>,
 }
 
 /// Helper function for serde_json::value::RawValue deserialization.
@@ -266,3 +270,4 @@ where
 {
     serde_json::from_str(val.get()).map_err(E::custom)
 }
+mod zzz;
