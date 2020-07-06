@@ -139,7 +139,7 @@ pub(crate) fn extract_request_query(request: &Request) -> TokenStream {
         quote! {
             let request_query = ::ruma_api::try_deserialize!(
                 request,
-                ruma_api::exports::ruma_serde::urlencoded::from_str(
+                ::ruma_api::exports::ruma_serde::urlencoded::from_str(
                     &request.uri().query().unwrap_or("")
                 ),
             );
@@ -148,7 +148,7 @@ pub(crate) fn extract_request_query(request: &Request) -> TokenStream {
         quote! {
             let request_query: RequestQuery = ::ruma_api::try_deserialize!(
                 request,
-                ruma_api::exports::ruma_serde::urlencoded::from_str(
+                ::ruma_api::exports::ruma_serde::urlencoded::from_str(
                     &request.uri().query().unwrap_or("")
                 ),
             );

@@ -270,19 +270,19 @@ pub struct Metadata {
 /// Generates a `match` statement for the given expression that returns early.
 #[macro_export]
 macro_rules! try_deserialize {
-    ($kind:ident, $call:expr $(,)*) => {
-        ::ruma_api::try_deserialize!(@ $kind, $kind, $call)
+    ($kind:ident, $call:expr $(,)?) => {
+        ::ruma_api::try_deserialize!(@$kind, $kind, $call)
     };
-    (@ request, $kind:ident, $call:expr) => {
+    (@request, $kind:ident, $call:expr) => {
         match $call {
             Ok(val) => val,
-            Err(err) => return Err(ruma_api::error::RequestDeserializationError::new(err, $kind).into()),
+            Err(err) => return Err(::ruma_api::error::RequestDeserializationError::new(err, $kind).into()),
         }
     };
-    (@ response, $kind:ident, $call:expr) => {
+    (@response, $kind:ident, $call:expr) => {
         match $call {
             Ok(val) => val,
-            Err(err) => return Err(ruma_api::error::ResponseDeserializationError::new(err, $kind).into()),
+            Err(err) => return Err(::ruma_api::error::ResponseDeserializationError::new(err, $kind).into()),
         }
     };
 }
