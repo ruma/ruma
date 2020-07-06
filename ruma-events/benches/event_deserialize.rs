@@ -2,8 +2,11 @@
 // or pass any other args to it, it fails with the error
 // `cargo bench unknown option --save-baseline`.
 // To pass args to criterion, use this form
-// `cargo bench --bench <name of the bench> -- --save-baseline <name>`.
+// `cargo bench --features criterion --bench <name of the bench> -- --save-baseline <name>`.
 
+#![allow(unused_imports, dead_code)]
+
+#[cfg(feature = "criterion")]
 use criterion::{criterion_group, criterion_main, Criterion};
 use ruma_events::{
     room::power_levels::PowerLevelsEventContent, AnyEvent, AnyRoomEvent, AnyStateEvent, EventJson,
@@ -44,6 +47,7 @@ fn power_levels() -> serde_json::Value {
     })
 }
 
+#[cfg(feature = "criterion")]
 fn deserialize_any_event(c: &mut Criterion) {
     let json_data = power_levels();
 
@@ -57,6 +61,7 @@ fn deserialize_any_event(c: &mut Criterion) {
     });
 }
 
+#[cfg(feature = "criterion")]
 fn deserialize_any_room_event(c: &mut Criterion) {
     let json_data = power_levels();
 
@@ -70,6 +75,7 @@ fn deserialize_any_room_event(c: &mut Criterion) {
     });
 }
 
+#[cfg(feature = "criterion")]
 fn deserialize_any_state_event(c: &mut Criterion) {
     let json_data = power_levels();
 
@@ -83,6 +89,7 @@ fn deserialize_any_state_event(c: &mut Criterion) {
     });
 }
 
+#[cfg(feature = "criterion")]
 fn deserialize_specific_event(c: &mut Criterion) {
     let json_data = power_levels();
 
@@ -98,6 +105,7 @@ fn deserialize_specific_event(c: &mut Criterion) {
     });
 }
 
+#[cfg(feature = "criterion")]
 criterion_group!(
     benches,
     deserialize_any_event,
@@ -106,4 +114,12 @@ criterion_group!(
     deserialize_specific_event
 );
 
+#[cfg(feature = "criterion")]
 criterion_main!(benches);
+
+#[cfg(not(feature = "criterion"))]
+fn main() {
+    // To run the benchmarks the "criterion" feature must be enabled use:
+    // `cargo bench --features criterion --bench event_deserialize`
+    panic!("Enable the criterion feature to run benchmarks");
+}
