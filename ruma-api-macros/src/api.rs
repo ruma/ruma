@@ -159,10 +159,13 @@ impl ToTokens for Api {
 
         let extract_request_body =
             if self.request.has_body_fields() || self.request.newtype_body_field().is_some() {
-                let deserialized = request::try_deserialize(
-                    quote! { ruma_api::exports::serde_json::from_slice(request.body().as_slice()) },
-                );
-                quote! { let request_body: RequestBody =  #deserialized; }
+                quote! {
+                    let request_body: RequestBody =
+                    ::ruma_api::try_deserialize!(
+                        request,
+                        ruma_api::exports::serde_json::from_slice(request.body().as_slice())
+                    );
+                }
             } else {
                 TokenStream::new()
             };
@@ -185,16 +188,18 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let typed_response_body_decl = if self.response.has_body_fields()
-            || self.response.newtype_body_field().is_some()
-        {
-            let deserialized = response::try_deserialize(
-                quote! { ruma_api::exports::serde_json::from_slice(response.body().as_slice()) },
-            );
-            quote! { let response_body: ResponseBody = #deserialized; }
-        } else {
-            TokenStream::new()
-        };
+        let typed_response_body_decl =
+            if self.response.has_body_fields() || self.response.newtype_body_field().is_some() {
+                quote! {
+                    let response_body: ResponseBody =
+                        ::ruma_api::try_deserialize!(
+                            response,
+                            ruma_api::exports::serde_json::from_slice(response.body().as_slice()),
+                        );
+                }
+            } else {
+                TokenStream::new()
+            };
 
         let response_init_fields = self.response.init_fields();
 
