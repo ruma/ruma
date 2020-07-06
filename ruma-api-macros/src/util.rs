@@ -4,7 +4,10 @@ use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::Ident;
 
-use crate::api::{metadata::Metadata, request::Request};
+use crate::api::{
+    metadata::Metadata,
+    request::{self, Request},
+};
 
 /// The first item in the tuple generates code for the request path from
 /// the `Metadata` and `Request` structs. The second item in the returned tuple
@@ -63,16 +66,12 @@ pub(crate) fn request_path_string_and_parse(
                     let path_var = &segment[1..];
                     let path_var_ident = Ident::new(path_var, Span::call_site());
 
-                    let decoded = try_helper(
-                        quote! {
-                            ruma_api::exports::percent_encoding::percent_decode(segment)
-                                .decode_utf8()
-                        },
-                        HttpDirection::Request,
-                    );
-                    let path_var = try_helper(
+                    let decoded = request::try_deserialize(quote! {
+                        ruma_api::exports::percent_encoding::percent_decode(segment)
+                            .decode_utf8()
+                    });
+                    let path_var = request::try_deserialize(
                         quote! { std::convert::TryFrom::try_from(decoded.deref()) },
-                        HttpDirection::Request,
                     );
                     quote! {
                         #path_var_ident: {
@@ -141,24 +140,18 @@ pub(crate) fn build_query_string(request: &Request) -> TokenStream {
 /// Deserialize the query string.
 pub(crate) fn extract_request_query(request: &Request) -> TokenStream {
     if request.query_map_field().is_some() {
-        let deserialized = try_helper(
-            quote! {
-                ruma_api::exports::ruma_serde::urlencoded::from_str(
-                    &request.uri().query().unwrap_or("")
-                )
-            },
-            HttpDirection::Request,
-        );
+        let deserialized = request::try_deserialize(quote! {
+            ruma_api::exports::ruma_serde::urlencoded::from_str(
+                &request.uri().query().unwrap_or("")
+            )
+        });
         quote! { let request_query = #deserialized; }
     } else if request.has_query_fields() {
-        let deserialized = try_helper(
-            quote! {
-                ruma_api::exports::ruma_serde::urlencoded::from_str(
-                    &request.uri().query().unwrap_or("")
-                )
-            },
-            HttpDirection::Request,
-        );
+        let deserialized = request::try_deserialize(quote! {
+            ruma_api::exports::ruma_serde::urlencoded::from_str(
+                &request.uri().query().unwrap_or("")
+            )
+        });
         quote! { let request_query: RequestQuery = #deserialized; }
     } else {
         TokenStream::new()
@@ -248,37 +241,4 @@ pub(crate) fn req_res_name_value<T>(
 
 pub(crate) fn is_valid_endpoint_path(string: &str) -> bool {
     string.as_bytes().iter().all(|b| (0x21..=0x7E).contains(b))
-}
-
-/// Used by `try_helper` to determine the error and variable to use.
-pub(crate) enum HttpDirection {
-    /// The `RequestDeserializationError` is used and the `request` variable is passed to it's
-    /// constructor.
-    Request,
-    /// The `ResponseDeserializationError` is used and the `response` variable is passed to it's
-    /// constructor.
-    Response,
-}
-
-/// Generates a `match` statement of `expr` that returns early with the correct error based on
-/// the `res_or_req`.
-pub(crate) fn try_helper(expr: TokenStream, res_or_req: HttpDirection) -> TokenStream {
-    match res_or_req {
-        HttpDirection::Request => {
-            quote! {
-                match #expr {
-                    Ok(val) => val,
-                    Err(err) => return Err(::ruma_api::error::RequestDeserializationError::new(err, request).into())
-                }
-            }
-        }
-        HttpDirection::Response => {
-            quote! {
-                match #expr {
-                    Ok(val) => val,
-                    Err(err) => return Err(::ruma_api::error::ResponseDeserializationError::new(err, response).into())
-                }
-            }
-        }
-    }
 }

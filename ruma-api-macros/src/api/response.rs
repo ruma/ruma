@@ -14,6 +14,26 @@ use crate::{
     util,
 };
 
+/// Generates a `match` statement of `expr` that returns early a
+/// `ResponseDeserializationError`.
+///
+/// # Generated
+///
+/// ```text
+/// match <expr> {
+///     Ok(val) => val,
+///     Err(err) => return Err(RequestDeserializationError::new(err, request).into())
+/// }
+/// ```
+pub(crate) fn try_deserialize(expr: TokenStream) -> TokenStream {
+    quote! {
+        match #expr {
+            Ok(val) => val,
+            Err(err) => return Err(::ruma_api::error::ResponseDeserializationError::new(err, response).into())
+        }
+    }
+}
+
 /// The result of processing the `response` section of the macro.
 pub struct Response {
     /// The fields of the response.

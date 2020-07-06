@@ -159,9 +159,8 @@ impl ToTokens for Api {
 
         let extract_request_body =
             if self.request.has_body_fields() || self.request.newtype_body_field().is_some() {
-                let deserialized = util::try_helper(
+                let deserialized = request::try_deserialize(
                     quote! { ruma_api::exports::serde_json::from_slice(request.body().as_slice()) },
-                    util::HttpDirection::Request,
                 );
                 quote! { let request_body: RequestBody =  #deserialized; }
             } else {
@@ -189,9 +188,8 @@ impl ToTokens for Api {
         let typed_response_body_decl = if self.response.has_body_fields()
             || self.response.newtype_body_field().is_some()
         {
-            let deserialized = util::try_helper(
+            let deserialized = response::try_deserialize(
                 quote! { ruma_api::exports::serde_json::from_slice(response.body().as_slice()) },
-                util::HttpDirection::Response,
             );
             quote! { let response_body: ResponseBody = #deserialized; }
         } else {
