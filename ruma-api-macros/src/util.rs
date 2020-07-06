@@ -4,10 +4,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::Ident;
 
-use crate::api::{
-    metadata::Metadata,
-    request::Request,
-};
+use crate::api::{metadata::Metadata, request::Request};
 
 /// The first item in the tuple generates code for the request path from
 /// the `Metadata` and `Request` structs. The second item in the returned tuple
@@ -72,7 +69,7 @@ pub(crate) fn request_path_string_and_parse(
 
                             let segment = path_segments.get(#i).unwrap().as_bytes();
                             let decoded = ::ruma_api::try_deserialize!(
-                                request, 
+                                request,
                                 ruma_api::exports::percent_encoding::percent_decode(segment)
                                     .decode_utf8(),
                             );

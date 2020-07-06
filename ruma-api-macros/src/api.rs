@@ -160,10 +160,10 @@ impl ToTokens for Api {
         let extract_request_body =
             if self.request.has_body_fields() || self.request.newtype_body_field().is_some() {
                 quote! {
-                        let request_body: RequestBody = ::ruma_api::try_deserialize!(
-                            request,
-                            ::ruma_api::exports::serde_json::from_slice(request.body().as_slice())
-                        );
+                    let request_body: RequestBody = ::ruma_api::try_deserialize!(
+                        request,
+                        ::ruma_api::exports::serde_json::from_slice(request.body().as_slice())
+                    );
                 }
             } else {
                 TokenStream::new()
