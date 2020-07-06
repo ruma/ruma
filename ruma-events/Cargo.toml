@@ -34,7 +34,6 @@ optional = true
 
 [features]
 default = []
-criterion_bench = ["criterion"]
 
 [[bench]]
 name = "event_deserialize"
