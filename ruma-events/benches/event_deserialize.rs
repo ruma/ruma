@@ -6,11 +6,6 @@
 
 #![allow(unused_imports, dead_code)]
 
-// To run the benchmarks the "criterion_bench" feature must be enabled.
-// `cargo bench --features criterion_bench --bench <name of the bench>`
-#[cfg(not(feature = "criterion_bench"))]
-compile_error!("Enable the criterion_bench feature to run benchmarks");
-
 #[cfg(feature = "criterion_bench")]
 use criterion::{criterion_group, criterion_main, Criterion};
 use ruma_events::{
@@ -122,7 +117,9 @@ criterion_group!(
 #[cfg(feature = "criterion_bench")]
 criterion_main!(benches);
 
-// This makes the compiler only spit out the `compile_error!` when
-// `cargo bench` is run without the `criterion_bench` feature.
 #[cfg(not(feature = "criterion_bench"))]
-fn main() {}
+fn main() {
+    // To run the benchmarks the "criterion_bench" feature must be enabled.
+    // `cargo bench --features criterion_bench --bench <name of the bench>`
+    panic!("Enable the criterion_bench feature to run benchmarks");
+}
