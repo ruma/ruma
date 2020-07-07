@@ -20,7 +20,7 @@ ruma_api! {
     }
 
     response: {
-        /// Information about the user who generated the OpenID access token.
+        /// The Matrix User ID who generated the token.
         pub sub: UserId,
     }
 }
