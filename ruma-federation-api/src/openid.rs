@@ -1,3 +1,3 @@
 //! OpenID endpoints.
 
-pub mod get_userinfo;
+pub mod get_openid_userinfo;

@@ -5,9 +5,9 @@ use ruma_identifiers::UserId;
 
 ruma_api! {
     metadata: {
-        description: "Exchanges an OpenID access token for information about the user who generated the token. Currently this only exposes the Matrix User ID of the owner.",
+        description: "Exchanges an OpenID access token for information about the user who generated the token.",
         method: GET,
-        name: "openid_userinfo",
+        name: "get_openid_userinfo",
         path: "/_matrix/federation/v1/openid/userinfo",
         rate_limited: false,
         requires_authentication: false,
