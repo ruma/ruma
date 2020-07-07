@@ -7,5 +7,6 @@ mod serde;
 pub mod directory;
 pub mod discovery;
 pub mod membership;
+pub mod openid;
 pub mod query;
 pub mod transactions;
