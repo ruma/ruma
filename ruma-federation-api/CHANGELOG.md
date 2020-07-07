@@ -18,6 +18,9 @@ Improvements:
         create_join_event::v1,
         create_join_event_template::v1
     },
+    openid::{
+        get_openid_userinfo::v1
+    },
     query::{
       get_profile_information::v1,
       get_room_information::v1,
