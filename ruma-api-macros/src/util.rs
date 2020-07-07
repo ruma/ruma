@@ -62,31 +62,19 @@ pub(crate) fn request_path_string_and_parse(
                 |(i, segment)| {
                     let path_var = &segment[1..];
                     let path_var_ident = Ident::new(path_var, Span::call_site());
-
                     quote! {
                         #path_var_ident: {
                             use std::ops::Deref as _;
                             use ruma_api::error::RequestDeserializationError;
 
                             let segment = path_segments.get(#i).unwrap().as_bytes();
-                            let decoded = match ruma_api::exports::percent_encoding::percent_decode(
-                                segment
-                            ).decode_utf8() {
-                                Ok(x) => x,
-                                Err(err) => {
-                                    return Err(
-                                        RequestDeserializationError::new(err, request).into()
-                                    );
-                                }
-                            };
-                            match std::convert::TryFrom::try_from(decoded.deref()) {
-                                Ok(val) => val,
-                                Err(err) => {
-                                    return Err(
-                                        RequestDeserializationError::new(err, request).into()
-                                    );
-                                }
-                            }
+                            let decoded = ::ruma_api::try_deserialize!(
+                                request,
+                                ruma_api::exports::percent_encoding::percent_decode(segment)
+                                    .decode_utf8(),
+                            );
+
+                            ::ruma_api::try_deserialize!(request, std::convert::TryFrom::try_from(decoded.deref()))
                         }
                     }
                 },
@@ -146,31 +134,21 @@ pub(crate) fn build_query_string(request: &Request) -> TokenStream {
 pub(crate) fn extract_request_query(request: &Request) -> TokenStream {
     if request.query_map_field().is_some() {
         quote! {
-            let request_query = match ruma_api::exports::ruma_serde::urlencoded::from_str(
-                &request.uri().query().unwrap_or("")
-            ) {
-                Ok(query) => query,
-                Err(err) => {
-                    return Err(
-                        ruma_api::error::RequestDeserializationError::new(err, request).into()
-                    );
-                }
-            };
+            let request_query = ::ruma_api::try_deserialize!(
+                request,
+                ::ruma_api::exports::ruma_serde::urlencoded::from_str(
+                    &request.uri().query().unwrap_or("")
+                ),
+            );
         }
     } else if request.has_query_fields() {
         quote! {
-            let request_query: RequestQuery =
-                match ruma_api::exports::ruma_serde::urlencoded::from_str(
+            let request_query: RequestQuery = ::ruma_api::try_deserialize!(
+                request,
+                ::ruma_api::exports::ruma_serde::urlencoded::from_str(
                     &request.uri().query().unwrap_or("")
-                ) {
-                    Ok(query) => query,
-                    Err(err) => {
-                        return Err(
-                            ruma_api::error::RequestDeserializationError::new(err, request)
-                                .into()
-                        );
-                    }
-                };
+                ),
+            );
         }
     } else {
         TokenStream::new()

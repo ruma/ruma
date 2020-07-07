@@ -267,6 +267,26 @@ pub struct Metadata {
     pub requires_authentication: bool,
 }
 
+#[doc(hidden)]
+#[macro_export]
+macro_rules! try_deserialize {
+    ($kind:ident, $call:expr $(,)?) => {
+        ::ruma_api::try_deserialize!(@$kind, $kind, $call)
+    };
+    (@request, $kind:ident, $call:expr) => {
+        match $call {
+            Ok(val) => val,
+            Err(err) => return Err(::ruma_api::error::RequestDeserializationError::new(err, $kind).into()),
+        }
+    };
+    (@response, $kind:ident, $call:expr) => {
+        match $call {
+            Ok(val) => val,
+            Err(err) => return Err(::ruma_api::error::ResponseDeserializationError::new(err, $kind).into()),
+        }
+    };
+}
+
 #[cfg(test)]
 mod tests {
     /// PUT /_matrix/client/r0/directory/room/:room_alias
