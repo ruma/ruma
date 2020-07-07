@@ -105,6 +105,54 @@ pub fn expand_stripped_enum(input: &EventEnumInput) -> syn::Result<TokenStream> 
     expand_any_enum_with_deserialize(input, &ident)
 }
 
+/// Generates the 3 redacted state enums, 2 redacted message enums,
+/// and `Deserialize` implementations.
+///
+/// No content enums are generated since only five state variants contain content.
+fn expand_any_redacted_enum_with_deserialize(
+    input: &EventEnumInput,
+    ident: &Ident,
+) -> syn::Result<TokenStream> {
+    let name = ident.to_string().trim_start_matches("Any").to_string();
+
+    let redacted_enums_deserialize = if ident.to_string().contains("State") {
+        let ident = Ident::new(&format!("AnyRedacted{}", name), ident.span());
+
+        let full = expand_any_enum_with_deserialize(input, &ident)?;
+
+        let ident = Ident::new(&format!("AnyRedacted{}Stub", name), ident.span());
+        let stub = expand_any_enum_with_deserialize(input, &ident)?;
+
+        let ident = Ident::new(&format!("AnyRedactedStripped{}Stub", name), ident.span());
+        let stripped = expand_any_enum_with_deserialize(input, &ident)?;
+
+        quote! {
+            #full
+
+            #stub
+
+            #stripped
+        }
+    } else {
+        let ident = Ident::new(&format!("AnyRedacted{}", name), ident.span());
+
+        let full = expand_any_enum_with_deserialize(input, &ident)?;
+
+        let ident = Ident::new(&format!("AnyRedacted{}Stub", name), ident.span());
+        let stub = expand_any_enum_with_deserialize(input, &ident)?;
+
+        quote! {
+            #full
+
+            #stub
+        }
+    };
+
+    Ok(quote! {
+        #redacted_enums_deserialize
+    })
+}
+
 /// Create a content enum from `EventEnumInput`.
 pub fn expand_content_enum(input: &EventEnumInput, ident: &Ident) -> syn::Result<TokenStream> {
     let attrs = &input.attrs;
@@ -178,40 +226,7 @@ fn expand_any_enum_with_deserialize(
     let content =
         input.events.iter().map(|event| to_event_path(event, &event_struct)).collect::<Vec<_>>();
 
-    let (custom_variant, custom_deserialize) = if ident.to_string().contains("Redacted") {
-        let redacted_event = Ident::new(&format!("Empty{}", event_struct), ident.span());
-        (
-            quote! {
-                /// A redacted event not defined by the Matrix specification
-                Custom(::ruma_events::#redacted_event),
-            },
-            quote! {
-                event => {
-                    let event =
-                        ::serde_json::from_str::<::ruma_events::#redacted_event>(json.get())
-                            .map_err(D::Error::custom)?;
-
-                    Ok(Self::Custom(event))
-                },
-            },
-        )
-    } else {
-        (
-            quote! {
-                /// An event not defined by the Matrix specification
-                Custom(::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>),
-            },
-            quote! {
-                event => {
-                    let event =
-                        ::serde_json::from_str::<::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>>(json.get())
-                            .map_err(D::Error::custom)?;
-
-                    Ok(Self::Custom(event))
-                },
-            },
-        )
-    };
+    let (custom_variant, custom_deserialize) = expand_custom_variant(ident, &event_struct);
 
     let any_enum = quote! {
         #( #attrs )*
@@ -261,59 +276,41 @@ fn expand_any_enum_with_deserialize(
     })
 }
 
-fn expand_any_redacted_enum_with_deserialize(
-    input: &EventEnumInput,
-    ident: &Ident,
-) -> syn::Result<TokenStream> {
-    let name = ident.to_string().trim_start_matches("Any").to_string();
+fn expand_custom_variant(ident: &Ident, event_struct: &Ident) -> (TokenStream, TokenStream) {
+    if ident.to_string().contains("Redacted") {
+        let redacted_event = Ident::new(&format!("Empty{}", event_struct), ident.span());
+        (
+            quote! {
+                /// A redacted event not defined by the Matrix specification
+                Custom(::ruma_events::#redacted_event),
+            },
+            quote! {
+                event => {
+                    let event =
+                        ::serde_json::from_str::<::ruma_events::#redacted_event>(json.get())
+                            .map_err(D::Error::custom)?;
 
-    let enums_deserialize_accessor = if ident.to_string().contains("State") {
-        let ident = Ident::new(&format!("AnyRedacted{}", name), ident.span());
-
-        let content = expand_content_enum(input, &ident)?;
-        let full = expand_any_enum_with_deserialize(input, &ident)?;
-
-        let ident = Ident::new(&format!("AnyRedacted{}Stub", name), ident.span());
-        let stub = expand_any_enum_with_deserialize(input, &ident)?;
-
-        let ident = Ident::new(&format!("AnyRedactedStripped{}Stub", name), ident.span());
-        let stripped = expand_any_enum_with_deserialize(input, &ident)?;
-
-        quote! {
-            #content
-
-            #full
-
-            #stub
-
-            #stripped
-        }
+                    Ok(Self::Custom(event))
+                },
+            },
+        )
     } else {
-        let ident = Ident::new(&format!("AnyRedacted{}", name), ident.span());
+        (
+            quote! {
+                /// An event not defined by the Matrix specification
+                Custom(::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>),
+            },
+            quote! {
+                event => {
+                    let event =
+                        ::serde_json::from_str::<::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>>(json.get())
+                            .map_err(D::Error::custom)?;
 
-        let content = expand_content_enum(input, &ident)?;
-        let full = expand_any_enum_with_deserialize(input, &ident)?;
-
-        let ident = Ident::new(&format!("AnyRedacted{}Stub", name), ident.span());
-        let stub = expand_any_enum_with_deserialize(input, &ident)?;
-
-        quote! {
-            #content
-
-            #full
-
-            #stub
-        }
-    };
-
-    Ok(quote! {
-        #enums_deserialize_accessor
-    })
-}
-
-fn needs_redacted(ident: &Ident) -> bool {
-    let ident = ident.to_string();
-    ident.contains("State") || ident.contains("Message")
+                    Ok(Self::Custom(event))
+                },
+            },
+        )
+    }
 }
 
 fn marker_traits(ident: &Ident) -> TokenStream {
@@ -511,6 +508,12 @@ fn generate_accessor(
     } else {
         TokenStream::new()
     }
+}
+
+/// Returns true if the `ident` is a state or message event.
+fn needs_redacted(ident: &Ident) -> bool {
+    let ident = ident.to_string();
+    ident.contains("State") || ident.contains("Message")
 }
 
 fn field_return_type(name: &str) -> TokenStream {
