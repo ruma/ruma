@@ -172,12 +172,46 @@ fn expand_any_enum_with_deserialize(
 ) -> syn::Result<TokenStream> {
     let attrs = &input.attrs;
     let event_type_str = &input.events;
-    let event_struct =
-        Ident::new(&ident.to_string().replace("Any", "").replace("Redacted", ""), ident.span());
+    let event_struct = Ident::new(&ident.to_string().replace("Any", ""), ident.span());
 
     let variants = input.events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
     let content =
         input.events.iter().map(|event| to_event_path(event, &event_struct)).collect::<Vec<_>>();
+
+    let (custom_variant, custom_deserialize) = if ident.to_string().contains("Redacted") {
+        let redacted_event = Ident::new(&format!("Empty{}", event_struct), ident.span());
+        (
+            quote! {
+                /// A redacted event not defined by the Matrix specification
+                Custom(::ruma_events::#redacted_event),
+            },
+            quote! {
+                event => {
+                    let event =
+                        ::serde_json::from_str::<::ruma_events::#redacted_event>(json.get())
+                            .map_err(D::Error::custom)?;
+
+                    Ok(Self::Custom(event))
+                },
+            },
+        )
+    } else {
+        (
+            quote! {
+                /// An event not defined by the Matrix specification
+                Custom(::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>),
+            },
+            quote! {
+                event => {
+                    let event =
+                        ::serde_json::from_str::<::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>>(json.get())
+                            .map_err(D::Error::custom)?;
+
+                    Ok(Self::Custom(event))
+                },
+            },
+        )
+    };
 
     let any_enum = quote! {
         #( #attrs )*
@@ -189,8 +223,7 @@ fn expand_any_enum_with_deserialize(
                 #[doc = #event_type_str]
                 #variants(#content),
             )*
-            /// An event not defined by the Matrix specification
-            Custom(::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>),
+            #custom_variant
         }
     };
 
@@ -211,13 +244,7 @@ fn expand_any_enum_with_deserialize(
                             Ok(Self::#variants(event))
                         },
                     )*
-                    event => {
-                        let event =
-                            ::serde_json::from_str::<::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>>(json.get())
-                                .map_err(D::Error::custom)?;
-
-                        Ok(Self::Custom(event))
-                    },
+                    #custom_deserialize
                 }
             }
         }
@@ -310,63 +337,16 @@ fn marker_traits(ident: &Ident) -> TokenStream {
 }
 
 fn accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
+    // We do not supply accessor methods for redacted events.
+    if ident.to_string().contains("Redacted") {
+        return TokenStream::new();
+    }
+
     let fields = EVENT_FIELDS
         .iter()
         .map(|(name, has_field)| generate_accessor(name, ident, *has_field, variants));
 
     let any_content = ident.to_string().replace("Stub", "").replace("Stripped", "");
-    let content_enum = Ident::new(&format!("{}Content", any_content), ident.span());
-
-    let content = quote! {
-        /// Returns the any content enum for this event.
-        pub fn content(&self) -> #content_enum {
-            match self {
-                #(
-                    Self::#variants(event) => #content_enum::#variants(event.content.clone()),
-                )*
-                Self::Custom(event) => #content_enum::Custom(event.content.clone()),
-            }
-        }
-    };
-
-    let prev_content = if PREV_CONTENT_KIND.contains(&ident.to_string().as_str()) {
-        quote! {
-            /// Returns the any content enum for this events prev_content.
-            pub fn prev_content(&self) -> Option<#content_enum> {
-                match self {
-                    #(
-                        Self::#variants(event) => {
-                            event.prev_content.as_ref().map(|c| #content_enum::#variants(c.clone()))
-                        },
-                    )*
-                    Self::Custom(event) => {
-                        event.prev_content.as_ref().map(|c| #content_enum::Custom(c.clone()))
-                    },
-                }
-            }
-        }
-    } else {
-        TokenStream::new()
-    };
-
-    quote! {
-        impl #ident {
-            #content
-
-            #prev_content
-
-            #( #fields )*
-        }
-    }
-}
-
-fn redacted_accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
-    let fields = EVENT_FIELDS
-        .iter()
-        .map(|(name, has_field)| generate_accessor(name, ident, *has_field, variants));
-
-    let any_content =
-        ident.to_string().replace("Stub", "").replace("Stripped", "").replace("Redacted", "");
     let content_enum = Ident::new(&format!("{}Content", any_content), ident.span());
 
     let content = quote! {
@@ -441,11 +421,22 @@ fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
             let content = Ident::new(&format!("{}EventContent", event), span);
             quote! { ::ruma_events::#struct_name<::ruma_events::#( #path )::*::#content> }
         }
-        struct_str if struct_str.contains("Redacted") => {
-            let struct_name = Ident::new(&format!("Redacted{}", struct_name.to_string()), span);
+        struct_str if struct_str.contains("Redacted") => match name.as_str() {
+            "m.room.member"
+            | "m.room.create"
+            | "m.room.join_rules"
+            | "m.room.power_levels"
+            | "m.room.history_visibility" => {
+                let content = Ident::new(&format!("Redacted{}EventContent", event), span);
 
-            quote! { ::ruma_events::#struct_name }
-        }
+                quote! { ::ruma_events::#struct_name<::ruma_events::#( #path )::*::#content> }
+            }
+            _ => {
+                let struct_name = Ident::new(&format!("Empty{}", struct_name), span);
+
+                quote! { ::ruma_events::#struct_name }
+            }
+        },
         _ => {
             let event_name = Ident::new(&format!("{}Event", event), span);
             quote! { ::ruma_events::#( #path )::*::#event_name }

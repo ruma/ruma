@@ -12,6 +12,14 @@ use crate::StateEvent;
 /// events.
 pub type CreateEvent = StateEvent<CreateEventContent>;
 
+/// The payload for a redacted `CreateEvent`.
+#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[ruma_event(type = "m.room.create")]
+pub struct RedactedCreateEventContent {
+    /// The `user_id` of the room creator. This is set by the homeserver.
+    pub creator: UserId,
+}
+
 /// The payload for `CreateEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.create")]

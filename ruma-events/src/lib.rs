@@ -166,13 +166,18 @@ pub use self::{
     enums::{
         AnyBasicEvent, AnyBasicEventContent, AnyEphemeralRoomEvent, AnyEphemeralRoomEventContent,
         AnyEphemeralRoomEventStub, AnyEvent, AnyMessageEvent, AnyMessageEventContent,
-        AnyMessageEventStub, AnyRoomEvent, AnyRoomEventStub, AnyStateEvent, AnyStateEventContent,
-        AnyStateEventStub, AnyStrippedStateEventStub, AnyToDeviceEvent, AnyToDeviceEventContent,
+        AnyMessageEventStub, AnyRedactedMessageEvent, AnyRedactedMessageEventStub,
+        AnyRedactedStateEvent, AnyRedactedStateEventStub, AnyRedactedStrippedStateEventStub,
+        AnyRoomEvent, AnyRoomEventStub, AnyStateEvent, AnyStateEventContent, AnyStateEventStub,
+        AnyStrippedStateEventStub, AnyToDeviceEvent, AnyToDeviceEventContent,
     },
     error::{FromStrError, InvalidInput},
     event_kinds::{
-        BasicEvent, EphemeralRoomEvent, EphemeralRoomEventStub, MessageEvent, MessageEventStub,
-        StateEvent, StateEventStub, StrippedStateEventStub, ToDeviceEvent,
+        BasicEvent, EmptyRedactedMessageEvent, EmptyRedactedMessageEventStub,
+        EmptyRedactedStateEvent, EmptyRedactedStateEventStub, EmptyRedactedStrippedStateEventStub,
+        EphemeralRoomEvent, EphemeralRoomEventStub, MessageEvent, MessageEventStub,
+        RedactedStateEvent, RedactedStateEventStub, RedactedStrippedStateEventStub, StateEvent,
+        StateEventStub, StrippedStateEventStub, ToDeviceEvent,
     },
     event_type::EventType,
     json::EventJson,
@@ -270,4 +275,3 @@ where
 {
     serde_json::from_str(val.get()).map_err(E::custom)
 }
-mod zzz;
