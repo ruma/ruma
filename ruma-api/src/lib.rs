@@ -267,7 +267,7 @@ pub struct Metadata {
     pub requires_authentication: bool,
 }
 
-/// Generates a `match` statement for the given expression that returns early.
+#[doc(hidden)]
 #[macro_export]
 macro_rules! try_deserialize {
     ($kind:ident, $call:expr $(,)?) => {
