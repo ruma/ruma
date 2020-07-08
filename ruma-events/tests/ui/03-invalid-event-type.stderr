@@ -1,4 +1,4 @@
-error: expected `type`
+error: not a `ruma_event` attribute
   --> $DIR/03-invalid-event-type.rs:11:14
    |
 11 | #[ruma_event(event = "m.macro.test")]

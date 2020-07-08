@@ -15,6 +15,7 @@ pub type CreateEvent = StateEvent<CreateEventContent>;
 /// The payload for a redacted `CreateEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.create")]
+#[ruma_event(custom_redacted)]
 pub struct RedactedCreateEventContent {
     /// The `user_id` of the room creator. This is set by the homeserver.
     pub creator: UserId,
@@ -23,6 +24,7 @@ pub struct RedactedCreateEventContent {
 /// The payload for `CreateEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.create")]
+#[ruma_event(skip_redacted)]
 pub struct CreateEventContent {
     /// The `user_id` of the room creator. This is set by the homeserver.
     pub creator: UserId,

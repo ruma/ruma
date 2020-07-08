@@ -173,11 +173,10 @@ pub use self::{
     },
     error::{FromStrError, InvalidInput},
     event_kinds::{
-        BasicEvent, EmptyRedactedMessageEvent, EmptyRedactedMessageEventStub,
-        EmptyRedactedStateEvent, EmptyRedactedStateEventStub, EmptyRedactedStrippedStateEventStub,
-        EphemeralRoomEvent, EphemeralRoomEventStub, MessageEvent, MessageEventStub,
-        RedactedStateEvent, RedactedStateEventStub, RedactedStrippedStateEventStub, StateEvent,
-        StateEventStub, StrippedStateEventStub, ToDeviceEvent,
+        BasicEvent, EphemeralRoomEvent, EphemeralRoomEventStub, MessageEvent, MessageEventStub,
+        RedactedMessageEvent, RedactedMessageEventStub, RedactedStateEvent, RedactedStateEventStub,
+        RedactedStrippedStateEventStub, StateEvent, StateEventStub, StrippedStateEventStub,
+        ToDeviceEvent,
     },
     event_type::EventType,
     json::EventJson,
@@ -225,6 +224,13 @@ pub trait EventContent: Sized + Serialize {
 
     /// Constructs the given event content.
     fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, serde_json::Error>;
+
+    /// Constructs the redacted event content.
+    ///
+    /// If called for anything but "empty" redacted content this will error.
+    fn redacted(_event_type: &str) -> Result<Self, serde_json::Error> {
+        Err(serde_json::Error::from(serde::de::Error::custom("this event is not redacted")))
+    }
 }
 
 /// Marker trait for the content of an ephemeral room event.

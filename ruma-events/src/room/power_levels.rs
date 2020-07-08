@@ -15,6 +15,7 @@ pub type PowerLevelsEvent = StateEvent<PowerLevelsEventContent>;
 /// The payload for a redacted `PowerLevelsEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.power_levels")]
+#[ruma_event(custom_redacted)]
 pub struct RedactedPowerLevelsEventContent {
     /// The level required to ban a user.
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
@@ -56,6 +57,7 @@ pub struct RedactedPowerLevelsEventContent {
 /// The payload for `PowerLevelsEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.power_levels")]
+#[ruma_event(skip_redacted)]
 pub struct PowerLevelsEventContent {
     /// The level required to ban a user.
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]

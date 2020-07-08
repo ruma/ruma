@@ -34,6 +34,14 @@ const PREV_CONTENT_KIND: &[&str] = &[ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT];
 
 const STATE_KEY_KIND: &[&str] = &[ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT, ANY_STRIPPED_STATE_EVENT];
 
+const REDACTED_EVENT_KIND: &[&str] = &[
+    ANY_STATE_EVENT,
+    ANY_SYNC_STATE_EVENT,
+    ANY_STRIPPED_STATE_EVENT,
+    ANY_MESSAGE_EVENT,
+    ANY_SYNC_MESSAGE_EVENT,
+];
+
 /// This const is used to generate the accessor methods for the `Any*Event` enums.
 ///
 /// DO NOT alter the field names unless the structs in `ruma_events::event_kinds` have changed.
@@ -108,7 +116,8 @@ pub fn expand_stripped_enum(input: &EventEnumInput) -> syn::Result<TokenStream> 
 /// Generates the 3 redacted state enums, 2 redacted message enums,
 /// and `Deserialize` implementations.
 ///
-/// No content enums are generated since only five state variants contain content.
+/// No content enums are generated since no part of the API deals with
+/// redacted event's content. There are only five state variants that contain content.
 fn expand_any_redacted_enum_with_deserialize(
     input: &EventEnumInput,
     ident: &Ident,
@@ -278,17 +287,17 @@ fn expand_any_enum_with_deserialize(
 
 fn expand_custom_variant(ident: &Ident, event_struct: &Ident) -> (TokenStream, TokenStream) {
     if ident.to_string().contains("Redacted") {
-        let redacted_event = Ident::new(&format!("Empty{}", event_struct), ident.span());
         (
             quote! {
                 /// A redacted event not defined by the Matrix specification
-                Custom(::ruma_events::#redacted_event),
+                Custom(::ruma_events::#event_struct<::ruma_events::custom::RedactedCustomEventContent>),
             },
             quote! {
                 event => {
-                    let event =
-                        ::serde_json::from_str::<::ruma_events::#redacted_event>(json.get())
-                            .map_err(D::Error::custom)?;
+                    let event = ::serde_json::from_str::<
+                        ::ruma_events::#event_struct<::ruma_events::custom::RedactedCustomEventContent>,
+                    >(json.get())
+                    .map_err(D::Error::custom)?;
 
                     Ok(Self::Custom(event))
                 },
@@ -418,22 +427,10 @@ fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
             let content = Ident::new(&format!("{}EventContent", event), span);
             quote! { ::ruma_events::#struct_name<::ruma_events::#( #path )::*::#content> }
         }
-        struct_str if struct_str.contains("Redacted") => match name.as_str() {
-            "m.room.member"
-            | "m.room.create"
-            | "m.room.join_rules"
-            | "m.room.power_levels"
-            | "m.room.history_visibility" => {
-                let content = Ident::new(&format!("Redacted{}EventContent", event), span);
-
-                quote! { ::ruma_events::#struct_name<::ruma_events::#( #path )::*::#content> }
-            }
-            _ => {
-                let struct_name = Ident::new(&format!("Empty{}", struct_name), span);
-
-                quote! { ::ruma_events::#struct_name }
-            }
-        },
+        struct_str if struct_str.contains("Redacted") => {
+            let content = Ident::new(&format!("Redacted{}EventContent", event), span);
+            quote! { ::ruma_events::#struct_name<::ruma_events::#( #path )::*::#content> }
+        }
         _ => {
             let event_name = Ident::new(&format!("{}Event", event), span);
             quote! { ::ruma_events::#( #path )::*::#event_name }
@@ -512,8 +509,7 @@ fn generate_accessor(
 
 /// Returns true if the `ident` is a state or message event.
 fn needs_redacted(ident: &Ident) -> bool {
-    let ident = ident.to_string();
-    ident.contains("State") || ident.contains("Message")
+    REDACTED_EVENT_KIND.contains(&ident.to_string().as_str())
 }
 
 fn field_return_type(name: &str) -> TokenStream {

@@ -6,20 +6,26 @@ use std::{
 use matches::assert_matches;
 use ruma_events::{
     room::{
+        aliases::RedactedAliasesEventContent,
         create::RedactedCreateEventContent,
+        message::RedactedMessageEventContent,
         redaction::{RedactionEvent, RedactionEventContent},
     },
     AnyRedactedMessageEvent, AnyRedactedMessageEventStub, AnyRedactedStateEventStub, AnyRoomEvent,
-    AnyRoomEventStub, EmptyRedactedMessageEvent, EmptyRedactedMessageEventStub, EventJson,
+    AnyRoomEventStub, EventJson, RedactedMessageEvent, RedactedMessageEventStub,
     RedactedStateEventStub, UnsignedData,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
+fn is_zst<T>(_: &T) -> bool {
+    std::mem::size_of::<T>() == 0
+}
+
 #[test]
 fn redacted_message_event_serialize() {
-    let redacted = EmptyRedactedMessageEventStub {
-        event_type: "m.room.message".to_string(),
+    let redacted = RedactedMessageEventStub {
+        content: RedactedMessageEventContent,
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         sender: UserId::try_from("@carl:example.com").unwrap(),
@@ -31,6 +37,29 @@ fn redacted_message_event_serialize() {
       "origin_server_ts": 1,
       "sender": "@carl:example.com",
       "type": "m.room.message"
+    });
+
+    let actual = to_json_value(&redacted).unwrap();
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn redacted_aliases_event_serialize() {
+    let redacted = RedactedStateEventStub {
+        content: RedactedAliasesEventContent,
+        event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+        state_key: "".to_string(),
+        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        sender: UserId::try_from("@carl:example.com").unwrap(),
+        unsigned: UnsignedData::default(),
+    };
+
+    let expected = json!({
+      "event_id": "$h29iv0s8:example.com",
+      "state_key": "",
+      "origin_server_ts": 1,
+      "sender": "@carl:example.com",
+      "type": "m.room.aliases"
     });
 
     let actual = to_json_value(&redacted).unwrap();
@@ -69,11 +98,11 @@ fn redacted_deserialize_any_room() {
             .unwrap()
             .deserialize()
             .unwrap(),
-        AnyRoomEvent::RedactedMessage(AnyRedactedMessageEvent::RoomMessage(EmptyRedactedMessageEvent {
-            event_id, room_id, event_type, ..
+        AnyRoomEvent::RedactedMessage(AnyRedactedMessageEvent::RoomMessage(RedactedMessageEvent {
+            event_id, room_id, content, ..
         })) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
             && room_id == RoomId::try_from("!roomid:room.com").unwrap()
-            && event_type == "m.room.message"
+            && is_zst(&content)
     )
 }
 
@@ -108,10 +137,10 @@ fn redacted_deserialize_any_room_stub() {
             .unwrap()
             .deserialize()
             .unwrap(),
-        AnyRoomEventStub::RedactedMessage(AnyRedactedMessageEventStub::RoomMessage(EmptyRedactedMessageEventStub {
-            event_id, event_type, ..
+        AnyRoomEventStub::RedactedMessage(AnyRedactedMessageEventStub::RoomMessage(RedactedMessageEventStub {
+            event_id, content, ..
         })) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
-            && event_type == "m.room.message"
+            && is_zst(&content)
     )
 }
 

@@ -52,42 +52,42 @@ pub fn event_enum(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(EventContent, attributes(ruma_event))]
 pub fn derive_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_event_content(input).unwrap_or_else(|err| err.to_compile_error()).into()
+    expand_event_content(&input).unwrap_or_else(|err| err.to_compile_error()).into()
 }
 
 /// Generates an implementation of `ruma_events::BasicEventContent` and it's super traits.
 #[proc_macro_derive(BasicEventContent, attributes(ruma_event))]
 pub fn derive_basic_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_basic_event_content(input).unwrap_or_else(|err| err.to_compile_error()).into()
+    expand_basic_event_content(&input).unwrap_or_else(|err| err.to_compile_error()).into()
 }
 
 /// Generates an implementation of `ruma_events::RoomEventContent` and it's super traits.
 #[proc_macro_derive(RoomEventContent, attributes(ruma_event))]
 pub fn derive_room_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_room_event_content(input).unwrap_or_else(|err| err.to_compile_error()).into()
+    expand_room_event_content(&input).unwrap_or_else(|err| err.to_compile_error()).into()
 }
 
 /// Generates an implementation of `ruma_events::MessageEventContent` and it's super traits.
 #[proc_macro_derive(MessageEventContent, attributes(ruma_event))]
 pub fn derive_message_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_message_event_content(input).unwrap_or_else(|err| err.to_compile_error()).into()
+    expand_message_event_content(&input).unwrap_or_else(|err| err.to_compile_error()).into()
 }
 
 /// Generates an implementation of `ruma_events::StateEventContent` and it's super traits.
 #[proc_macro_derive(StateEventContent, attributes(ruma_event))]
 pub fn derive_state_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_state_event_content(input).unwrap_or_else(|err| err.to_compile_error()).into()
+    expand_state_event_content(&input).unwrap_or_else(|err| err.to_compile_error()).into()
 }
 
 /// Generates an implementation of `ruma_events::EphemeralRoomEventContent` and it's super traits.
 #[proc_macro_derive(EphemeralRoomEventContent, attributes(ruma_event))]
 pub fn derive_ephemeral_room_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_ephemeral_room_event_content(input).unwrap_or_else(|err| err.to_compile_error()).into()
+    expand_ephemeral_room_event_content(&input).unwrap_or_else(|err| err.to_compile_error()).into()
 }
 
 /// Generates implementations needed to serialize and deserialize Matrix events.

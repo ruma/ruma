@@ -18,6 +18,7 @@ pub type RedactedHistoryVisibilityEventContent = HistoryVisibilityEventContent;
 /// The payload for `HistoryVisibilityEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.history_visibility")]
+#[ruma_event(skip_redacted)]
 pub struct HistoryVisibilityEventContent {
     /// Who can see the room history.
     pub history_visibility: HistoryVisibility,

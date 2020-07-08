@@ -39,6 +39,7 @@ pub type MemberEvent = StateEvent<MemberEventContent>;
 /// The payload for a redacted `MemberEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.member")]
+#[ruma_event(custom_redacted)]
 pub struct RedactedMemberEventContent {
     /// The membership state of this user.
     pub membership: MembershipState,
@@ -47,6 +48,7 @@ pub struct RedactedMemberEventContent {
 /// The payload for `MemberEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.member")]
+#[ruma_event(skip_redacted)]
 pub struct MemberEventContent {
     /// The avatar URL for this user, if any. This is added by the homeserver.
     #[serde(skip_serializing_if = "Option::is_none")]
