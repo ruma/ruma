@@ -10,23 +10,26 @@ use crate::{
 
 /// A custom event that has been redacted.
 #[derive(Clone, Debug, Serialize)]
-pub struct RedactedCustomEventContent;
+pub struct RedactedCustomEventContent {
+    /// The event type string for this custom event.
+    #[serde(skip, rename = "type")]
+    pub event_type: String,
+}
 
 impl EventContent for RedactedCustomEventContent {
     fn event_type(&self) -> &str {
-        // TODO how do we handle this?
-        "custom"
+        &self.event_type
     }
 
     fn from_parts(
-        _event_type: &str,
+        event_type: &str,
         _content: Box<RawJsonValue>,
     ) -> Result<Self, serde_json::Error> {
-        Ok(Self)
+        Ok(Self { event_type: event_type.to_string() })
     }
 
-    fn redacted(_event_type: &str) -> Result<Self, serde_json::Error> {
-        Ok(Self)
+    fn redacted(event_type: &str) -> Result<Self, serde_json::Error> {
+        Ok(Self { event_type: event_type.to_string() })
     }
 }
 

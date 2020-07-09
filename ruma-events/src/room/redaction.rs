@@ -55,7 +55,6 @@ pub struct RedactionEventStub {
     pub unsigned: UnsignedData,
 }
 
-// TODO is this possible or should we special case this in the macro
 /// A redacted redaction event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.room.redaction")]
@@ -69,7 +68,7 @@ impl ruma_events::MessageEventContent for RedactedRedactionEventContent {}
 /// A redaction of an event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.room.redaction")]
-#[ruma_event(skip_redacted)]
+#[ruma_event(custom_redacted)]
 pub struct RedactionEventContent {
     /// The reason for the redaction, if any.
     #[serde(skip_serializing_if = "Option::is_none")]

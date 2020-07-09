@@ -39,7 +39,8 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
             let name = field.ident.as_ref().unwrap();
             if name == "content" && ident.to_string().contains("Redacted") {
                 quote! {
-                    if !is_zst(&self.content) {
+                    // this expands to `std::mem::size_of::<GenericType>()`
+                    if ::std::mem::size_of::#ty_gen() != 0 {
                         state.serialize_field("content", &self.content)?;
                     }
                 }
@@ -79,10 +80,6 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
             where
                 S: ::serde::ser::Serializer,
             {
-                #[allow(dead_code)]
-                fn is_zst<T>(_: &T) -> bool {
-                    std::mem::size_of::<T>() == 0
-                }
                 use ::serde::ser::{SerializeStruct as _, Error as _};
 
                 let event_type = ::ruma_events::EventContent::event_type(&self.content);
@@ -155,7 +152,7 @@ fn expand_deserialize_event(
         if name == "content" {
             if is_generic && ident.to_string().contains("Redacted") {
                 quote! {
-                    let content = if std::mem::size_of::<C>() == 0 {
+                    let content = if ::std::mem::size_of::<C>() == 0 {
                         C::redacted(&event_type).map_err(A::Error::custom)?
                     } else {
                         let json = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;

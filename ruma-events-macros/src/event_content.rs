@@ -8,7 +8,9 @@ use syn::{
 };
 
 mod kw {
-    syn::custom_keyword!(skip_redacted);
+    // This `content` field is kept when the event is redacted.
+    syn::custom_keyword!(skip_redaction);
+    // Do not emit any redacted event code.
     syn::custom_keyword!(custom_redacted);
 }
 
@@ -20,19 +22,21 @@ enum EventMeta {
     /// Variant holds the "m.whatever" event type.
     Type(LitStr),
 
-    /// Variant signals that this content type keeps redacted fields and is manually implemented.
+    /// Fields marked with `#[ruma_event(skip_redaction)]` are kept when the event is
+    /// redacted.
     SkipRedacted,
 
-    /// Variant signals when an event is a manually implemented redacted event.
+    /// This attribute signals that the events redacted form is manually implemented and should
+    /// not be generated.
     RedactedCustom,
 }
 
 impl EventMeta {
-    fn is_event_type(&self) -> bool {
-        if let Self::Type(_) = self {
-            true
+    fn get_event_type(&self) -> Option<&LitStr> {
+        if let Self::Type(lit) = self {
+            Some(lit)
         } else {
-            false
+            None
         }
     }
 }
@@ -42,7 +46,7 @@ impl Parse for EventMeta {
         if input.parse::<Token![type]>().is_ok() {
             input.parse::<Token![=]>()?;
             Ok(EventMeta::Type(input.parse::<LitStr>()?))
-        } else if input.parse::<kw::skip_redacted>().is_ok() {
+        } else if input.parse::<kw::skip_redaction>().is_ok() {
             Ok(EventMeta::SkipRedacted)
         } else if input.parse::<kw::custom_redacted>().is_ok() {
             Ok(EventMeta::RedactedCustom)
@@ -63,72 +67,107 @@ pub fn expand_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
         .map(|attr| attr.parse_args::<EventMeta>())
         .collect::<syn::Result<Vec<_>>>()?;
 
-    let event_type = {
-        let event_str = content_attr.iter().find(|a| a.is_event_type()).ok_or_else(|| {
-            let msg = "no event type attribute found, \
+    let event_type = content_attr.iter().find_map(|a| a.get_event_type()).ok_or_else(|| {
+        let msg = "no event type attribute found, \
             add `#[ruma_event(type = \"any.room.event\")]` \
             below the event content derive";
 
-            syn::Error::new(Span::call_site(), msg)
-        })?;
+        syn::Error::new(Span::call_site(), msg)
+    })?;
 
-        if let EventMeta::Type(lit) = event_str {
-            lit
-        } else {
-            unreachable!("variant was checked to be of type EventMeta::Type")
-        }
-    };
-
-    let (redact_method, redacted) = if needs_redacted(input) {
+    let redacted = if needs_redacted(&input) {
         let doc = format!("The payload for a redacted {}", ident);
         let redacted_ident = quote::format_ident!("Redacted{}", ident);
+        let kept_redacted_fields = if let syn::Data::Struct(syn::DataStruct {
+            fields: syn::Fields::Named(syn::FieldsNamed { named, .. }),
+            ..
+        }) = &input.data
+        {
+            let mut fields = named
+                .iter()
+                .filter(|f| {
+                    f.attrs.iter().find_map(|a| a.parse_args::<EventMeta>().ok())
+                        == Some(EventMeta::SkipRedacted)
+                })
+                .cloned()
+                .collect::<Vec<_>>();
+            // remove only the field attributes that are from `ruma_events_macro` compiler
+            // fails otherwise.
+            for f in &mut fields {
+                f.attrs.retain(|a| !a.path.is_ident("ruma_event"));
+            }
+            fields
+        } else {
+            vec![]
+        };
+        let redaction_struct_fields = kept_redacted_fields.iter().flat_map(|f| &f.ident);
 
-        (
-            quote! {
-                impl #ident {
-                    /// Transforms the full event content into a redacted content according to spec.
-                    pub fn redact(self) -> #redacted_ident {
-                        #redacted_ident
-                    }
+        // redacted_fields allows one to declare an empty redacted event without braces,
+        // otherwise `RedactedWhateverEventContent {}` is needed.
+        // The redacted_return is used in `EventContent::redacted` which only returns
+        // zero sized types (unit structs).
+        let (redacted_fields, redacted_return) = if kept_redacted_fields.is_empty() {
+            (quote! { ; }, quote! { Ok(#redacted_ident {}) })
+        } else {
+            (
+                quote! {
+                    { #( #kept_redacted_fields, )* }
+                },
+                quote! {
+                    Err(::serde::de::Error::custom(
+                        format!("this redacted event has fields that cannot be constructed")
+                    ))
+                },
+            )
+        };
+
+        quote! {
+            // this is the non redacted event content's impl
+            impl #ident {
+                /// Transforms the full event content into a redacted content according to spec.
+                pub fn redact(self) -> #redacted_ident {
+                    #redacted_ident { #( #redaction_struct_fields: self.#redaction_struct_fields, )* }
                 }
-            },
-            quote! {
-                #[doc = #doc]
-                #[derive(Clone, Debug, Default, ::serde::Deserialize, ::serde::Serialize)]
-                pub struct #redacted_ident;
+            }
 
-                impl ::ruma_events::EventContent for #redacted_ident {
-                    fn event_type(&self) -> &str {
-                        #event_type
-                    }
+            #[doc = #doc]
+            #[derive(Clone, Debug, ::serde::Deserialize, ::serde::Serialize)]
+            pub struct #redacted_ident #redacted_fields
 
-                    fn from_parts(
-                        ev_type: &str,
-                        content: Box<::serde_json::value::RawValue>
-                    ) -> Result<Self, ::serde_json::Error> {
-                        // TODO error or just Ok(#redacted_ident) ??
-                        Err(::serde::de::Error::custom("redacted event content cannot be generated from a JSON value"))
-                    }
-
-                    fn redacted(ev_type: &str) -> Result<Self, ::serde_json::Error> {
-                        if ev_type != #event_type {
-                            return Err(::serde::de::Error::custom(
-                                format!("expected event type `{}`, found `{}`", #event_type, ev_type)
-                            ));
-                        }
-
-                        Ok(#redacted_ident)
-                    }
+            impl ::ruma_events::EventContent for #redacted_ident {
+                fn event_type(&self) -> &str {
+                    #event_type
                 }
-            },
-        )
+
+                fn from_parts(
+                    ev_type: &str,
+                    content: Box<::serde_json::value::RawValue>
+                ) -> Result<Self, ::serde_json::Error> {
+                    if ev_type != #event_type {
+                        return Err(::serde::de::Error::custom(
+                            format!("expected event type `{}`, found `{}`", #event_type, ev_type)
+                        ));
+                    }
+
+                    Ok(::serde_json::from_str(content.get())?)
+                }
+
+                fn redacted(ev_type: &str) -> Result<Self, ::serde_json::Error> {
+                    if ev_type != #event_type {
+                        return Err(::serde::de::Error::custom(
+                            format!("expected event type `{}`, found `{}`", #event_type, ev_type)
+                        ));
+                    }
+
+                    #redacted_return
+                }
+            }
+        }
     } else {
-        (TokenStream::new(), TokenStream::new())
+        TokenStream::new()
     };
 
     Ok(quote! {
-        #redact_method
-
         impl ::ruma_events::EventContent for #ident {
             fn event_type(&self) -> &str {
                 #event_type
@@ -271,6 +310,6 @@ fn needs_redacted(input: &DeriveInput) -> bool {
         .attrs
         .iter()
         .flat_map(|a| a.parse_args::<EventMeta>().ok())
-        .find(|a| a == &EventMeta::SkipRedacted || a == &EventMeta::RedactedCustom)
+        .find(|a| a == &EventMeta::RedactedCustom)
         .is_none()
 }

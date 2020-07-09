@@ -36,19 +36,18 @@ use crate::{StateEvent, StateEventStub, StrippedStateEventStub};
 /// must be assumed as leave.
 pub type MemberEvent = StateEvent<MemberEventContent>;
 
-/// The payload for a redacted `MemberEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[ruma_event(type = "m.room.member")]
-#[ruma_event(custom_redacted)]
-pub struct RedactedMemberEventContent {
-    /// The membership state of this user.
-    pub membership: MembershipState,
-}
+// /// The payload for a redacted `MemberEvent`.
+// #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+// #[ruma_event(type = "m.room.member")]
+// #[ruma_event(custom_redacted)]
+// pub struct RedactedMemberEventContent {
+//     /// The membership state of this user.
+//     pub membership: MembershipState,
+// }
 
 /// The payload for `MemberEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.member")]
-#[ruma_event(skip_redacted)]
 pub struct MemberEventContent {
     /// The avatar URL for this user, if any. This is added by the homeserver.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -64,6 +63,7 @@ pub struct MemberEventContent {
     pub is_direct: Option<bool>,
 
     /// The membership state of this user.
+    #[ruma_event(skip_redacted)]
     pub membership: MembershipState,
 
     /// If this member event is the successor to a third party invitation, this field will
