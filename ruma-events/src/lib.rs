@@ -229,7 +229,7 @@ pub trait EventContent: Sized + Serialize {
     ///
     /// If called for anything but "empty" redacted content this will error.
     fn redacted(_event_type: &str) -> Result<Self, serde_json::Error> {
-        Err(serde_json::Error::from(serde::de::Error::custom("this event is not redacted")))
+        Err(serde::de::Error::custom("this event is not redacted"))
     }
 }
 
