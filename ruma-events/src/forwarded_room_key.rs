@@ -15,7 +15,6 @@ pub type ForwardedRoomKeyEvent = BasicEvent<ForwardedRoomKeyEventContent>;
 /// The payload for `ForwardedRoomKeyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.forwarded_room_key")]
-#[ruma_event(not_redacted)]
 pub struct ForwardedRoomKeyEventContent {
     /// The encryption algorithm the key in this event is to be used with.
     pub algorithm: Algorithm,

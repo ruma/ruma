@@ -75,16 +75,16 @@ impl EventContent for RedactedCustomEventContent {
 }
 
 impl RedactedEventContent for RedactedCustomEventContent {
+    fn empty(event_type: &str) -> Result<Self, serde_json::Error> {
+        Ok(Self { event_type: event_type.to_string() })
+    }
+
     fn has_serialize_fields(&self) -> bool {
         false
     }
 
     fn has_deserialize_fields() -> bool {
         false
-    }
-
-    fn redacted(event_type: &str) -> Result<Self, serde_json::Error> {
-        Ok(Self { event_type: event_type.to_string() })
     }
 }
 

@@ -15,7 +15,6 @@ pub type CancelEvent = BasicEvent<CancelEventContent>;
 /// The payload for `CancelEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.key.verification.cancel")]
-#[ruma_event(not_redacted)]
 pub struct CancelEventContent {
     /// The opaque identifier for the verification process/request.
     pub transaction_id: String,

@@ -50,9 +50,7 @@ impl Parse for EventMeta {
             Ok(EventMeta::Type(input.parse::<LitStr>()?))
         } else if input.parse::<kw::skip_redaction>().is_ok() {
             Ok(EventMeta::SkipRedacted)
-        } else if input.parse::<kw::custom_redacted>().is_ok()
-            || input.parse::<kw::not_redacted>().is_ok()
-        {
+        } else if input.parse::<kw::custom_redacted>().is_ok() {
             Ok(EventMeta::CustomRedacted)
         } else {
             Err(syn::Error::new(input.span(), "not a recognized `ruma_event` attribute"))
@@ -61,7 +59,7 @@ impl Parse for EventMeta {
 }
 
 /// Create an `EventContent` implementation for a struct.
-pub fn expand_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Result<TokenStream> {
     let ident = &input.ident;
 
     let content_attr = input
@@ -79,7 +77,7 @@ pub fn expand_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
         syn::Error::new(Span::call_site(), msg)
     })?;
 
-    let redacted = if needs_redacted(&input) {
+    let redacted = if emit_redacted && needs_redacted(input) {
         let doc = format!("The payload for a redacted `{}`", ident);
         let redacted_ident = quote::format_ident!("Redacted{}", ident);
         let kept_redacted_fields = if let syn::Data::Struct(syn::DataStruct {
@@ -163,15 +161,7 @@ pub fn expand_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
             }
 
             impl ::ruma_events::RedactedEventContent for #redacted_ident {
-                fn has_serialize_fields(&self) -> bool {
-                    #has_fields
-                }
-
-                fn has_deserialize_fields() -> bool {
-                    #has_fields
-                }
-
-                fn redacted(ev_type: &str) -> Result<Self, ::serde_json::Error> {
+                fn empty(ev_type: &str) -> Result<Self, ::serde_json::Error> {
                     if ev_type != #event_type {
                         return Err(::serde::de::Error::custom(
                             format!("expected event type `{}`, found `{}`", #event_type, ev_type)
@@ -179,6 +169,14 @@ pub fn expand_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
                     }
 
                     #redacted_return
+                }
+
+                fn has_serialize_fields(&self) -> bool {
+                    #has_fields
+                }
+
+                fn has_deserialize_fields() -> bool {
+                    #has_fields
                 }
             }
         }
@@ -211,31 +209,27 @@ pub fn expand_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
 }
 
 /// Create a `BasicEventContent` implementation for a struct
-pub fn expand_basic_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_basic_event_content(
+    input: &DeriveInput,
+    emit_redacted: bool,
+) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let redacted_marker_trait = if needs_redacted(input) {
-        let ident = quote::format_ident!("Redacted{}", input.ident);
-        quote! {
-            impl ::ruma_events::RedactedBasicEventContent for #ident { }
-        }
-    } else {
-        TokenStream::new()
-    };
-    let event_content_impl = expand_event_content(input)?;
+    let event_content_impl = expand_event_content(input, emit_redacted)?;
 
     Ok(quote! {
         #event_content_impl
 
         impl ::ruma_events::BasicEventContent for #ident { }
-
-        #redacted_marker_trait
     })
 }
 
 /// Create a `EphemeralRoomEventContent` implementation for a struct
-pub fn expand_ephemeral_room_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_ephemeral_room_event_content(
+    input: &DeriveInput,
+    emit_redacted: bool,
+) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let event_content_impl = expand_event_content(input)?;
+    let event_content_impl = expand_event_content(input, emit_redacted)?;
 
     Ok(quote! {
         #event_content_impl
@@ -245,9 +239,12 @@ pub fn expand_ephemeral_room_event_content(input: &DeriveInput) -> syn::Result<T
 }
 
 /// Create a `RoomEventContent` implementation for a struct.
-pub fn expand_room_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_room_event_content(
+    input: &DeriveInput,
+    emit_redacted: bool,
+) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let event_content_impl = expand_event_content(input)?;
+    let event_content_impl = expand_event_content(input, emit_redacted)?;
 
     Ok(quote! {
         #event_content_impl
@@ -257,11 +254,14 @@ pub fn expand_room_event_content(input: &DeriveInput) -> syn::Result<TokenStream
 }
 
 /// Create a `MessageEventContent` implementation for a struct
-pub fn expand_message_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_message_event_content(
+    input: &DeriveInput,
+    emit_redacted: bool,
+) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let room_ev_content = expand_room_event_content(input)?;
+    let room_ev_content = expand_room_event_content(input, emit_redacted)?;
 
-    let redacted_marker_trait = if needs_redacted(input) {
+    let redacted_marker_trait = if emit_redacted && needs_redacted(input) {
         let ident = quote::format_ident!("Redacted{}", &ident);
         quote! {
             impl ::ruma_events::RedactedMessageEventContent for #ident { }
@@ -280,11 +280,14 @@ pub fn expand_message_event_content(input: &DeriveInput) -> syn::Result<TokenStr
 }
 
 /// Create a `StateEventContent` implementation for a struct
-pub fn expand_state_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_state_event_content(
+    input: &DeriveInput,
+    emit_redacted: bool,
+) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let room_ev_content = expand_room_event_content(input)?;
+    let room_ev_content = expand_room_event_content(input, emit_redacted)?;
 
-    let redacted_marker_trait = if needs_redacted(input) {
+    let redacted_marker_trait = if emit_redacted && needs_redacted(input) {
         let ident = quote::format_ident!("Redacted{}", input.ident);
         quote! {
             impl ::ruma_events::RedactedStateEventContent for #ident { }

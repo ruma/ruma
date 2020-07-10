@@ -17,7 +17,6 @@ pub type RequestEvent = BasicEvent<RequestEventContent>;
 /// The payload for `RequestEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.key.verification.request")]
-#[ruma_event(not_redacted)]
 pub struct RequestEventContent {
     /// The device ID which is initiating the request.
     pub from_device: DeviceId,

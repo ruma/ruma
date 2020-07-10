@@ -18,7 +18,6 @@ pub type StartEvent = BasicEvent<StartEventContent>;
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[non_exhaustive]
 #[ruma_event(type = "m.key.verification.start")]
-#[ruma_event(not_redacted)]
 #[serde(tag = "method")]
 pub enum StartEventContent {
     /// The *m.sas.v1* verification method.

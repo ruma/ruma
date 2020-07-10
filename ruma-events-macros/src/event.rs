@@ -152,7 +152,7 @@ fn expand_deserialize_event(
             if is_generic && ident.to_string().contains("Redacted") {
                 quote! {
                     let content = if !C::has_deserialize_fields() {
-                        C::redacted(&event_type).map_err(A::Error::custom)?
+                        C::empty(&event_type).map_err(A::Error::custom)?
                     } else {
                         let json = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;
                         C::from_parts(&event_type, json).map_err(A::Error::custom)?
