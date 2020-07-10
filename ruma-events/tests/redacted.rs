@@ -47,7 +47,7 @@ fn redacted_message_event_serialize() {
 #[test]
 fn redacted_aliases_event_serialize() {
     let redacted = RedactedStateEventStub {
-        content: RedactedAliasesEventContent,
+        content: RedactedAliasesEventContent { aliases: None },
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         state_key: "".to_string(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),

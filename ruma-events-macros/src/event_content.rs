@@ -209,12 +209,9 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
 }
 
 /// Create a `BasicEventContent` implementation for a struct
-pub fn expand_basic_event_content(
-    input: &DeriveInput,
-    emit_redacted: bool,
-) -> syn::Result<TokenStream> {
+pub fn expand_basic_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let event_content_impl = expand_event_content(input, emit_redacted)?;
+    let event_content_impl = expand_event_content(input, false)?;
 
     Ok(quote! {
         #event_content_impl
@@ -224,12 +221,9 @@ pub fn expand_basic_event_content(
 }
 
 /// Create a `EphemeralRoomEventContent` implementation for a struct
-pub fn expand_ephemeral_room_event_content(
-    input: &DeriveInput,
-    emit_redacted: bool,
-) -> syn::Result<TokenStream> {
+pub fn expand_ephemeral_room_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let event_content_impl = expand_event_content(input, emit_redacted)?;
+    let event_content_impl = expand_event_content(input, false)?;
 
     Ok(quote! {
         #event_content_impl
@@ -239,12 +233,9 @@ pub fn expand_ephemeral_room_event_content(
 }
 
 /// Create a `RoomEventContent` implementation for a struct.
-pub fn expand_room_event_content(
-    input: &DeriveInput,
-    emit_redacted: bool,
-) -> syn::Result<TokenStream> {
+pub fn expand_room_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let event_content_impl = expand_event_content(input, emit_redacted)?;
+    let event_content_impl = expand_event_content(input, true)?;
 
     Ok(quote! {
         #event_content_impl
@@ -254,14 +245,11 @@ pub fn expand_room_event_content(
 }
 
 /// Create a `MessageEventContent` implementation for a struct
-pub fn expand_message_event_content(
-    input: &DeriveInput,
-    emit_redacted: bool,
-) -> syn::Result<TokenStream> {
+pub fn expand_message_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let room_ev_content = expand_room_event_content(input, emit_redacted)?;
+    let room_ev_content = expand_room_event_content(input)?;
 
-    let redacted_marker_trait = if emit_redacted && needs_redacted(input) {
+    let redacted_marker_trait = if needs_redacted(input) {
         let ident = quote::format_ident!("Redacted{}", &ident);
         quote! {
             impl ::ruma_events::RedactedMessageEventContent for #ident { }
@@ -280,14 +268,11 @@ pub fn expand_message_event_content(
 }
 
 /// Create a `StateEventContent` implementation for a struct
-pub fn expand_state_event_content(
-    input: &DeriveInput,
-    emit_redacted: bool,
-) -> syn::Result<TokenStream> {
+pub fn expand_state_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let room_ev_content = expand_room_event_content(input, emit_redacted)?;
+    let room_ev_content = expand_room_event_content(input)?;
 
-    let redacted_marker_trait = if emit_redacted && needs_redacted(input) {
+    let redacted_marker_trait = if needs_redacted(input) {
         let ident = quote::format_ident!("Redacted{}", input.ident);
         quote! {
             impl ::ruma_events::RedactedStateEventContent for #ident { }
