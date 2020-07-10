@@ -211,7 +211,7 @@ fn redacted_custom_event_serialize() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<AnyRoomEventStub>>(redacted)
+        from_json_value::<EventJson<AnyRoomEventStub>>(redacted.clone())
             .unwrap()
             .deserialize()
             .unwrap(),
@@ -224,7 +224,13 @@ fn redacted_custom_event_serialize() {
             && unsigned.redacted_because.is_some()
             && state_key == "hello there"
             && event_type == "m.made.up"
-    )
+    );
+
+    let x = from_json_value::<EventJson<crate::AnyRedactedStateEventStub>>(redacted)
+        .unwrap()
+        .deserialize()
+        .unwrap();
+    assert_eq!(x.event_id(), &EventId::try_from("$h29iv0s8:example.com").unwrap())
 }
 
 #[test]

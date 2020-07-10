@@ -10,16 +10,40 @@ use syn::{
 use crate::event_names::{
     ANY_BASIC_EVENT, ANY_EPHEMERAL_EVENT, ANY_MESSAGE_EVENT, ANY_STATE_EVENT,
     ANY_STRIPPED_STATE_EVENT, ANY_SYNC_MESSAGE_EVENT, ANY_SYNC_STATE_EVENT, ANY_TO_DEVICE_EVENT,
+    REDACTED_MESSAGE_EVENT, REDACTED_STATE_EVENT, REDACTED_STRIPPED_STATE_EVENT,
+    REDACTED_SYNC_MESSAGE_EVENT, REDACTED_SYNC_STATE_EVENT,
 };
 
 // Arrays of event enum names grouped by a field they share in common.
-const ROOM_EVENT_KIND: &[&str] =
-    &[ANY_MESSAGE_EVENT, ANY_SYNC_MESSAGE_EVENT, ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT];
+const ROOM_EVENT_KIND: &[&str] = &[
+    ANY_MESSAGE_EVENT,
+    ANY_SYNC_MESSAGE_EVENT,
+    ANY_STATE_EVENT,
+    ANY_SYNC_STATE_EVENT,
+    REDACTED_MESSAGE_EVENT,
+    REDACTED_STATE_EVENT,
+    REDACTED_SYNC_MESSAGE_EVENT,
+    REDACTED_SYNC_STATE_EVENT,
+];
 
-const ROOM_ID_KIND: &[&str] = &[ANY_MESSAGE_EVENT, ANY_STATE_EVENT, ANY_EPHEMERAL_EVENT];
+const ROOM_ID_KIND: &[&str] = &[
+    ANY_MESSAGE_EVENT,
+    ANY_STATE_EVENT,
+    ANY_EPHEMERAL_EVENT,
+    REDACTED_STATE_EVENT,
+    REDACTED_MESSAGE_EVENT,
+];
 
-const EVENT_ID_KIND: &[&str] =
-    &[ANY_MESSAGE_EVENT, ANY_SYNC_MESSAGE_EVENT, ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT];
+const EVENT_ID_KIND: &[&str] = &[
+    ANY_MESSAGE_EVENT,
+    ANY_SYNC_MESSAGE_EVENT,
+    ANY_STATE_EVENT,
+    ANY_SYNC_STATE_EVENT,
+    REDACTED_SYNC_STATE_EVENT,
+    REDACTED_SYNC_MESSAGE_EVENT,
+    REDACTED_STATE_EVENT,
+    REDACTED_MESSAGE_EVENT,
+];
 
 const SENDER_KIND: &[&str] = &[
     ANY_MESSAGE_EVENT,
@@ -28,11 +52,23 @@ const SENDER_KIND: &[&str] = &[
     ANY_TO_DEVICE_EVENT,
     ANY_SYNC_MESSAGE_EVENT,
     ANY_STRIPPED_STATE_EVENT,
+    REDACTED_MESSAGE_EVENT,
+    REDACTED_STATE_EVENT,
+    REDACTED_STRIPPED_STATE_EVENT,
+    REDACTED_SYNC_MESSAGE_EVENT,
+    REDACTED_SYNC_STATE_EVENT,
 ];
 
 const PREV_CONTENT_KIND: &[&str] = &[ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT];
 
-const STATE_KEY_KIND: &[&str] = &[ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT, ANY_STRIPPED_STATE_EVENT];
+const STATE_KEY_KIND: &[&str] = &[
+    ANY_STATE_EVENT,
+    ANY_SYNC_STATE_EVENT,
+    ANY_STRIPPED_STATE_EVENT,
+    REDACTED_SYNC_STATE_EVENT,
+    REDACTED_STRIPPED_STATE_EVENT,
+    REDACTED_STATE_EVENT,
+];
 
 const REDACTED_EVENT_KIND: &[&str] = &[
     ANY_STATE_EVENT,
@@ -345,7 +381,7 @@ fn marker_traits(ident: &Ident) -> TokenStream {
 fn accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
     // We do not supply accessor methods for redacted events.
     if ident.to_string().contains("Redacted") {
-        return TokenStream::new();
+        return redacted_accessor_methods(ident, variants);
     }
 
     let fields = EVENT_FIELDS
@@ -393,6 +429,18 @@ fn accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
 
             #prev_content
 
+            #( #fields )*
+        }
+    }
+}
+
+fn redacted_accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
+    let fields = EVENT_FIELDS
+        .iter()
+        .map(|(name, has_field)| generate_accessor(name, ident, *has_field, variants));
+
+    quote! {
+        impl #ident {
             #( #fields )*
         }
     }
