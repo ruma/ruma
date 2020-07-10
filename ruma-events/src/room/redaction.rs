@@ -75,6 +75,13 @@ pub struct RedactionEventContent {
     pub reason: Option<String>,
 }
 
+impl RedactionEventContent {
+    /// Transforms the full event content into a redacted content according to spec.
+    pub fn redact(self) -> RedactedRedactionEventContent {
+        RedactedRedactionEventContent
+    }
+}
+
 impl ruma_events::RoomEventContent for RedactionEventContent {}
 
 impl ruma_events::MessageEventContent for RedactionEventContent {}

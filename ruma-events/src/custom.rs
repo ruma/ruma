@@ -57,6 +57,13 @@ pub struct CustomEventContent {
     pub json: JsonValue,
 }
 
+impl CustomEventContent {
+    /// Transforms the full event content into a redacted content according to spec.
+    pub fn redact(self) -> RedactedCustomEventContent {
+        RedactedCustomEventContent { event_type: self.event_type }
+    }
+}
+
 impl EventContent for CustomEventContent {
     fn event_type(&self) -> &str {
         &self.event_type
