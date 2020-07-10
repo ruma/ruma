@@ -5,10 +5,7 @@ use ruma_identifiers::RoomAliasId;
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::{
-    EventContent, RedactedEventContent, RedactedRoomEventContent, RedactedStateEventContent,
-    StateEvent,
-};
+use crate::{EventContent, RedactedEventContent, RedactedStateEventContent, StateEvent};
 
 /// Informs the room about what room aliases it has been given.
 pub type AliasesEvent = StateEvent<AliasesEventContent>;
@@ -67,8 +64,6 @@ impl RedactedEventContent for RedactedAliasesEventContent {
     }
 }
 
-impl RedactedRoomEventContent for RedactedAliasesEventContent {}
-
 impl RedactedStateEventContent for RedactedAliasesEventContent {}
 
 /// An aliases event that has been redacted.
@@ -78,7 +73,7 @@ pub struct RedactedV1AliasesEventContent {
     ///
     /// According to the Matrix spec version 1 redaction rules allowed this field to be
     /// kept after redaction, this was changed in version 6.
-    pub aliases: Vec<RoomAliasId>,
+    pub aliases: Option<Vec<RoomAliasId>>,
 }
 
 impl EventContent for RedactedV1AliasesEventContent {
@@ -109,7 +104,5 @@ impl RedactedEventContent for RedactedV1AliasesEventContent {
         true
     }
 }
-
-impl RedactedRoomEventContent for RedactedV1AliasesEventContent {}
 
 impl RedactedStateEventContent for RedactedV1AliasesEventContent {}

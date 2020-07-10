@@ -12,6 +12,7 @@ pub type IgnoredUserListEvent = BasicEvent<IgnoredUserListEventContent>;
 /// The payload for `IgnoredUserListEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.ignored_user_list")]
+#[ruma_event(not_redacted)]
 pub struct IgnoredUserListEventContent {
     /// A list of users to ignore.
     #[serde(with = "ruma_serde::vec_as_map_of_empty")]

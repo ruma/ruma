@@ -19,9 +19,10 @@ use crate::BasicEvent;
 /// sending client receiving keys over the newly established session.
 pub type DummyEvent = BasicEvent<DummyEventContent>;
 
+/// The payload for `DummyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.dummy")]
-/// The payload for `DummyEvent`.
+#[ruma_event(not_redacted)]
 pub struct DummyEventContent(pub Empty);
 
 impl Deref for DummyEventContent {

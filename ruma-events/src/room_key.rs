@@ -15,6 +15,7 @@ pub type RoomKeyEvent = BasicEvent<RoomKeyEventContent>;
 /// The payload for `RoomKeyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.room_key")]
+#[ruma_event(not_redacted)]
 pub struct RoomKeyEventContent {
     /// The encryption algorithm the key in this event is to be used with.
     ///

@@ -12,6 +12,8 @@ mod kw {
     syn::custom_keyword!(skip_redaction);
     // Do not emit any redacted event code.
     syn::custom_keyword!(custom_redacted);
+    // This event is not redact-able
+    syn::custom_keyword!(not_redacted);
 }
 
 /// Parses attributes for `*EventContent` derives.
@@ -48,7 +50,9 @@ impl Parse for EventMeta {
             Ok(EventMeta::Type(input.parse::<LitStr>()?))
         } else if input.parse::<kw::skip_redaction>().is_ok() {
             Ok(EventMeta::SkipRedacted)
-        } else if input.parse::<kw::custom_redacted>().is_ok() {
+        } else if input.parse::<kw::custom_redacted>().is_ok()
+            || input.parse::<kw::not_redacted>().is_ok()
+        {
             Ok(EventMeta::CustomRedacted)
         } else {
             Err(syn::Error::new(input.span(), "not a recognized `ruma_event` attribute"))
@@ -233,21 +237,10 @@ pub fn expand_ephemeral_room_event_content(input: &DeriveInput) -> syn::Result<T
     let ident = input.ident.clone();
     let event_content_impl = expand_event_content(input)?;
 
-    let redacted_marker_trait = if needs_redacted(input) {
-        let ident = quote::format_ident!("Redacted{}", input.ident);
-        quote! {
-            impl ::ruma_events::RedactedEphemeralRoomEventContent for #ident { }
-        }
-    } else {
-        TokenStream::new()
-    };
-
     Ok(quote! {
         #event_content_impl
 
         impl ::ruma_events::EphemeralRoomEventContent for #ident { }
-
-        #redacted_marker_trait
     })
 }
 
@@ -256,21 +249,10 @@ pub fn expand_room_event_content(input: &DeriveInput) -> syn::Result<TokenStream
     let ident = input.ident.clone();
     let event_content_impl = expand_event_content(input)?;
 
-    let redacted_marker_trait = if needs_redacted(input) {
-        let ident = quote::format_ident!("Redacted{}", input.ident);
-        quote! {
-            impl ::ruma_events::RedactedRoomEventContent for #ident { }
-        }
-    } else {
-        TokenStream::new()
-    };
-
     Ok(quote! {
         #event_content_impl
 
         impl ::ruma_events::RoomEventContent for #ident { }
-
-        #redacted_marker_trait
     })
 }
 

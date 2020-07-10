@@ -13,6 +13,7 @@ pub type KeyEvent = BasicEvent<KeyEventContent>;
 /// The payload for `KeyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.key.verification.key")]
+#[ruma_event(not_redacted)]
 pub struct KeyEventContent {
     /// An opaque identifier for the verification process.
     ///

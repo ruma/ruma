@@ -18,6 +18,7 @@ pub type DirectEvent = crate::BasicEvent<DirectEventContent>;
 /// particular user.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.direct")]
+#[ruma_event(not_redacted)]
 pub struct DirectEventContent(pub BTreeMap<UserId, Vec<RoomId>>);
 
 impl Deref for DirectEventContent {

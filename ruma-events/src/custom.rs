@@ -5,9 +5,8 @@ use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 use crate::{
     BasicEventContent, EphemeralRoomEventContent, EventContent, MessageEventContent,
-    RedactedBasicEventContent, RedactedEphemeralRoomEventContent, RedactedEventContent,
-    RedactedMessageEventContent, RedactedRoomEventContent, RedactedStateEventContent,
-    RoomEventContent, StateEventContent,
+    RedactedEventContent, RedactedMessageEventContent, RedactedStateEventContent, RoomEventContent,
+    StateEventContent,
 };
 
 /// A custom event's type and `content` JSON object.
@@ -89,14 +88,7 @@ impl RedactedEventContent for RedactedCustomEventContent {
     }
 }
 
-// A redacted custom event must satisfy all of the event content marker traits since
-// they can be used for any event kind.
-impl RedactedRoomEventContent for RedactedCustomEventContent {}
-
-impl RedactedBasicEventContent for RedactedCustomEventContent {}
-
-impl RedactedEphemeralRoomEventContent for RedactedCustomEventContent {}
-
+// A redacted custom event must satisfy both state and message events.
 impl RedactedMessageEventContent for RedactedCustomEventContent {}
 
 impl RedactedStateEventContent for RedactedCustomEventContent {}

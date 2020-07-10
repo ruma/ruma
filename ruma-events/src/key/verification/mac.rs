@@ -15,6 +15,7 @@ pub type MacEvent = BasicEvent<MacEventContent>;
 /// The payload for `MacEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.key.verification.mac")]
+#[ruma_event(not_redacted)]
 pub struct MacEventContent {
     /// An opaque identifier for the verification process.
     ///

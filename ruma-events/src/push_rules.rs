@@ -12,6 +12,7 @@ pub type PushRulesEvent = BasicEvent<PushRulesEventContent>;
 /// The payload for `PushRulesEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.push_rules")]
+#[ruma_event(not_redacted)]
 pub struct PushRulesEventContent {
     /// The global ruleset.
     pub global: Ruleset,

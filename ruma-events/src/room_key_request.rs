@@ -16,6 +16,7 @@ pub type RoomKeyRequestEvent = BasicEvent<RoomKeyRequestEventContent>;
 /// The payload for `RoomKeyRequestEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.room_key_request")]
+#[ruma_event(not_redacted)]
 pub struct RoomKeyRequestEventContent {
     /// Whether this is a new key request or a cancellation of a previous request.
     pub action: Action,

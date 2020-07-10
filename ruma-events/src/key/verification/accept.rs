@@ -17,6 +17,7 @@ pub type AcceptEvent = BasicEvent<AcceptEventContent>;
 /// The payload for `AcceptEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.key.verification.accept")]
+#[ruma_event(not_redacted)]
 pub struct AcceptEventContent {
     /// An opaque identifier for the verification process.
     ///

@@ -259,20 +259,11 @@ pub trait RedactedEventContent: EventContent {
     }
 }
 
-/// Marker trait for the content of an ephemeral room event.
-pub trait RedactedEphemeralRoomEventContent: RedactedEventContent {}
+/// Marker trait for the content of a redacted message event.
+pub trait RedactedMessageEventContent: RedactedEventContent {}
 
-/// Marker trait for the content of a basic event.
-pub trait RedactedBasicEventContent: RedactedEventContent {}
-
-/// Marker trait for the content of a room event.
-pub trait RedactedRoomEventContent: RedactedEventContent {}
-
-/// Marker trait for the content of a message event.
-pub trait RedactedMessageEventContent: RedactedRoomEventContent {}
-
-/// Marker trait for the content of a state event.
-pub trait RedactedStateEventContent: RedactedRoomEventContent {}
+/// Marker trait for the content of a redacted state event.
+pub trait RedactedStateEventContent: RedactedEventContent {}
 
 /// Helper struct to determine if the event has been redacted.
 #[doc(hidden)]
