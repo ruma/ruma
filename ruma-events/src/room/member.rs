@@ -36,15 +36,6 @@ use crate::{StateEvent, StateEventStub, StrippedStateEventStub};
 /// must be assumed as leave.
 pub type MemberEvent = StateEvent<MemberEventContent>;
 
-// /// The payload for a redacted `MemberEvent`.
-// #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-// #[ruma_event(type = "m.room.member")]
-// #[ruma_event(custom_redacted)]
-// pub struct RedactedMemberEventContent {
-//     /// The membership state of this user.
-//     pub membership: MembershipState,
-// }
-
 /// The payload for `MemberEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.member")]

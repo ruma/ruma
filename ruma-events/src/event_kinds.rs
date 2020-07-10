@@ -5,7 +5,7 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 
 use crate::{
     BasicEventContent, EphemeralRoomEventContent, EventContent, MessageEventContent,
-    StateEventContent, UnsignedData,
+    RedactedMessageEventContent, RedactedStateEventContent, StateEventContent, UnsignedData,
 };
 
 /// A basic event – one that consists only of it's type and the `content` object.
@@ -75,7 +75,7 @@ pub struct MessageEventStub<C: MessageEventContent> {
 
 /// A redacted message event.
 #[derive(Clone, Debug, Event)]
-pub struct RedactedMessageEvent<C: MessageEventContent> {
+pub struct RedactedMessageEvent<C: RedactedMessageEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -97,7 +97,7 @@ pub struct RedactedMessageEvent<C: MessageEventContent> {
 
 /// A redacted message event without a `room_id`.
 #[derive(Clone, Debug, Event)]
-pub struct RedactedMessageEventStub<C: MessageEventContent> {
+pub struct RedactedMessageEventStub<C: RedactedMessageEventContent> {
     /// Data specific to the event type.
     // #[serde(default, skip_serializing_if = "is_zst")]
     pub content: C,
@@ -193,7 +193,7 @@ pub struct StrippedStateEventStub<C: StateEventContent> {
 
 /// A redacted state event.
 #[derive(Clone, Debug, Event)]
-pub struct RedactedStateEvent<C: StateEventContent> {
+pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -221,7 +221,7 @@ pub struct RedactedStateEvent<C: StateEventContent> {
 
 /// A redacted state event without a `room_id`.
 #[derive(Clone, Debug, Event)]
-pub struct RedactedStateEventStub<C: StateEventContent> {
+pub struct RedactedStateEventStub<C: RedactedStateEventContent> {
     /// Data specific to the event type.
     // #[serde(default, skip_serializing_if = "is_zst")]
     pub content: C,
@@ -247,7 +247,7 @@ pub struct RedactedStateEventStub<C: StateEventContent> {
 
 /// A stripped-down redacted state event.
 #[derive(Clone, Debug, Event)]
-pub struct RedactedStrippedStateEventStub<C: StateEventContent> {
+pub struct RedactedStrippedStateEventStub<C: RedactedStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 

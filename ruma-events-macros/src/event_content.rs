@@ -28,7 +28,7 @@ enum EventMeta {
 
     /// This attribute signals that the events redacted form is manually implemented and should
     /// not be generated.
-    RedactedCustom,
+    CustomRedacted,
 }
 
 impl EventMeta {
@@ -49,9 +49,9 @@ impl Parse for EventMeta {
         } else if input.parse::<kw::skip_redaction>().is_ok() {
             Ok(EventMeta::SkipRedacted)
         } else if input.parse::<kw::custom_redacted>().is_ok() {
-            Ok(EventMeta::RedactedCustom)
+            Ok(EventMeta::CustomRedacted)
         } else {
-            Err(syn::Error::new(input.span(), "not a `ruma_event` attribute"))
+            Err(syn::Error::new(input.span(), "not a recognized `ruma_event` attribute"))
         }
     }
 }
@@ -76,7 +76,7 @@ pub fn expand_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
     })?;
 
     let redacted = if needs_redacted(&input) {
-        let doc = format!("The payload for a redacted {}", ident);
+        let doc = format!("The payload for a redacted `{}`", ident);
         let redacted_ident = quote::format_ident!("Redacted{}", ident);
         let kept_redacted_fields = if let syn::Data::Struct(syn::DataStruct {
             fields: syn::Fields::Named(syn::FieldsNamed { named, .. }),
@@ -91,8 +91,7 @@ pub fn expand_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
                 })
                 .cloned()
                 .collect::<Vec<_>>();
-            // remove only the field attributes that are from `ruma_events_macro` compiler
-            // fails otherwise.
+            // don't re-emit our `ruma_event` attributes
             for f in &mut fields {
                 f.attrs.retain(|a| !a.path.is_ident("ruma_event"));
             }
@@ -119,6 +118,12 @@ pub fn expand_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
                     ))
                 },
             )
+        };
+
+        let has_fields = if kept_redacted_fields.is_empty() {
+            quote! { false }
+        } else {
+            quote! { true }
         };
 
         quote! {
@@ -150,6 +155,16 @@ pub fn expand_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
                     }
 
                     Ok(::serde_json::from_str(content.get())?)
+                }
+            }
+
+            impl ::ruma_events::RedactedEventContent for #redacted_ident {
+                fn has_serialize_fields(&self) -> bool {
+                    #has_fields
+                }
+
+                fn has_deserialize_fields() -> bool {
+                    #has_fields
                 }
 
                 fn redacted(ev_type: &str) -> Result<Self, ::serde_json::Error> {
@@ -197,7 +212,7 @@ pub fn expand_basic_event_content(input: &DeriveInput) -> syn::Result<TokenStrea
     let redacted_marker_trait = if needs_redacted(input) {
         let ident = quote::format_ident!("Redacted{}", input.ident);
         quote! {
-            impl ::ruma_events::BasicEventContent for #ident { }
+            impl ::ruma_events::RedactedBasicEventContent for #ident { }
         }
     } else {
         TokenStream::new()
@@ -221,7 +236,7 @@ pub fn expand_ephemeral_room_event_content(input: &DeriveInput) -> syn::Result<T
     let redacted_marker_trait = if needs_redacted(input) {
         let ident = quote::format_ident!("Redacted{}", input.ident);
         quote! {
-            impl ::ruma_events::EphemeralRoomEventContent for #ident { }
+            impl ::ruma_events::RedactedEphemeralRoomEventContent for #ident { }
         }
     } else {
         TokenStream::new()
@@ -244,7 +259,7 @@ pub fn expand_room_event_content(input: &DeriveInput) -> syn::Result<TokenStream
     let redacted_marker_trait = if needs_redacted(input) {
         let ident = quote::format_ident!("Redacted{}", input.ident);
         quote! {
-            impl ::ruma_events::RoomEventContent for #ident { }
+            impl ::ruma_events::RedactedRoomEventContent for #ident { }
         }
     } else {
         TokenStream::new()
@@ -267,7 +282,7 @@ pub fn expand_message_event_content(input: &DeriveInput) -> syn::Result<TokenStr
     let redacted_marker_trait = if needs_redacted(input) {
         let ident = quote::format_ident!("Redacted{}", &ident);
         quote! {
-            impl ::ruma_events::MessageEventContent for #ident { }
+            impl ::ruma_events::RedactedMessageEventContent for #ident { }
         }
     } else {
         TokenStream::new()
@@ -290,7 +305,7 @@ pub fn expand_state_event_content(input: &DeriveInput) -> syn::Result<TokenStrea
     let redacted_marker_trait = if needs_redacted(input) {
         let ident = quote::format_ident!("Redacted{}", input.ident);
         quote! {
-            impl ::ruma_events::StateEventContent for #ident { }
+            impl ::ruma_events::RedactedStateEventContent for #ident { }
         }
     } else {
         TokenStream::new()
@@ -310,6 +325,6 @@ fn needs_redacted(input: &DeriveInput) -> bool {
         .attrs
         .iter()
         .flat_map(|a| a.parse_args::<EventMeta>().ok())
-        .find(|a| a == &EventMeta::RedactedCustom)
+        .find(|a| a == &EventMeta::CustomRedacted)
         .is_none()
 }

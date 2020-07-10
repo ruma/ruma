@@ -40,7 +40,9 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
             if name == "content" && ident.to_string().contains("Redacted") {
                 quote! {
                     // this expands to `std::mem::size_of::<GenericType>()`
-                    if ::std::mem::size_of::#ty_gen() != 0 {
+                    if ::std::mem::size_of::#ty_gen() != 0 
+                        && ::ruma_events::RedactedEventContent::has_serialize_fields(&self.content)
+                    {
                         state.serialize_field("content", &self.content)?;
                     }
                 }
@@ -152,7 +154,9 @@ fn expand_deserialize_event(
         if name == "content" {
             if is_generic && ident.to_string().contains("Redacted") {
                 quote! {
-                    let content = if ::std::mem::size_of::<C>() == 0 {
+                    let content = if ::std::mem::size_of::<C>() == 0 
+                        || !C::has_deserialize_fields()
+                    {
                         C::redacted(&event_type).map_err(A::Error::custom)?
                     } else {
                         let json = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;

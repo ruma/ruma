@@ -379,7 +379,6 @@ fn marker_traits(ident: &Ident) -> TokenStream {
 }
 
 fn accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
-    // We do not supply accessor methods for redacted events.
     if ident.to_string().contains("Redacted") {
         return redacted_accessor_methods(ident, variants);
     }
@@ -434,6 +433,8 @@ fn accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
     }
 }
 
+/// Redacted events do NOT generate `content` or `prev_content` methods like
+/// un-redacted events; otherwise, they are the same.
 fn redacted_accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
     let fields = EVENT_FIELDS
         .iter()

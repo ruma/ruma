@@ -6,7 +6,7 @@ use ruma_events_macros::{Event, EventContent};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::UnsignedData;
+use crate::{RedactedMessageEventContent, RedactedRoomEventContent, UnsignedData};
 
 /// Redaction event.
 #[derive(Clone, Debug, Event)]
@@ -55,33 +55,19 @@ pub struct RedactionEventStub {
     pub unsigned: UnsignedData,
 }
 
-/// A redacted redaction event.
-#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
-#[ruma_event(type = "m.room.redaction")]
-#[ruma_event(custom_redacted)]
-pub struct RedactedRedactionEventContent;
-
-impl ruma_events::RoomEventContent for RedactedRedactionEventContent {}
-
-impl ruma_events::MessageEventContent for RedactedRedactionEventContent {}
-
 /// A redaction of an event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.room.redaction")]
-#[ruma_event(custom_redacted)]
 pub struct RedactionEventContent {
     /// The reason for the redaction, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 }
 
-impl RedactionEventContent {
-    /// Transforms the full event content into a redacted content according to spec.
-    pub fn redact(self) -> RedactedRedactionEventContent {
-        RedactedRedactionEventContent
-    }
-}
-
 impl ruma_events::RoomEventContent for RedactionEventContent {}
 
 impl ruma_events::MessageEventContent for RedactionEventContent {}
+
+impl RedactedRoomEventContent for RedactedRedactionEventContent {}
+
+impl RedactedMessageEventContent for RedactedRedactionEventContent {}

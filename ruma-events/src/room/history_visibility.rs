@@ -10,17 +10,12 @@ use crate::StateEvent;
 /// from before they joined.
 pub type HistoryVisibilityEvent = StateEvent<HistoryVisibilityEventContent>;
 
-/// The redacted version of this event.
-///
-/// Since no keys are excluded post redaction we use a type alias to specify the redacted event.
-pub type RedactedHistoryVisibilityEventContent = HistoryVisibilityEventContent;
-
 /// The payload for `HistoryVisibilityEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.history_visibility")]
-#[ruma_event(custom_redacted)]
 pub struct HistoryVisibilityEventContent {
     /// Who can see the room history.
+    #[ruma_event(skip_redacted)]
     pub history_visibility: HistoryVisibility,
 }
 

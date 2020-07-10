@@ -9,17 +9,12 @@ use crate::StateEvent;
 /// Describes how users are allowed to join the room.
 pub type JoinRulesEvent = StateEvent<JoinRulesEventContent>;
 
-/// The redacted version of this event.
-///
-/// Since no keys are excluded post redaction we use a type alias to specify the redacted event.
-pub type RedactedJoinRulesEventContent = JoinRulesEventContent;
-
 /// The payload for `JoinRulesEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.room.join_rules")]
-#[ruma_event(custom_redacted)]
 pub struct JoinRulesEventContent {
     /// The type of rules used for users wishing to join this room.
+    #[ruma_event(skip_redacted)]
     pub join_rule: JoinRule,
 }
 

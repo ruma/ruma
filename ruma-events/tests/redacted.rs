@@ -71,7 +71,7 @@ fn redacted_aliases_event_serialize() {
 fn redacted_deserialize_any_room() {
     let mut unsigned = UnsignedData::default();
     // The presence of `redacted_because` triggers the event enum (AnyRoomEvent in this case)
-    // to return early with `RedactedContent` instead of failing to deserialize itself according
+    // to return early with `RedactedContent` instead of failing to deserialize according
     // to the event type string.
     unsigned.redacted_because = Some(EventJson::from(RedactionEvent {
         content: RedactionEventContent { reason: Some("redacted because".into()) },
@@ -111,7 +111,7 @@ fn redacted_deserialize_any_room() {
 fn redacted_deserialize_any_room_stub() {
     let mut unsigned = UnsignedData::default();
     // The presence of `redacted_because` triggers the event enum (AnyRoomEventStub in this case)
-    // to return early with `RedactedContent` instead of failing to deserialize itself according
+    // to return early with `RedactedContent` instead of failing to deserialize according
     // to the event type string.
     unsigned.redacted_because = Some(EventJson::from(RedactionEvent {
         content: RedactionEventContent { reason: Some("redacted because".into()) },
@@ -201,7 +201,6 @@ fn redacted_custom_event_serialize() {
     }));
 
     let redacted = json!({
-        "content": {},
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 1,
         "sender": "@carl:example.com",
@@ -256,7 +255,6 @@ fn redacted_custom_event_deserialize() {
     };
 
     let expected = json!({
-      "content": {},
       "event_id": "$h29iv0s8:example.com",
       "origin_server_ts": 1,
       "sender": "@carl:example.com",
