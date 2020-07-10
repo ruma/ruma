@@ -8,6 +8,7 @@ Improvements:
 
 * Add endpoints:
     ```
+    authorization::get_event_authorization::v1,
     directory::get_public_rooms::v1,
     discovery::{
         discover_homeserver,
