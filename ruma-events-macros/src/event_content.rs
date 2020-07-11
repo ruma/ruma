@@ -43,18 +43,12 @@ impl EventMeta {
 
 impl Parse for EventMeta {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let look = input.lookahead1();
-        if look.peek(Token![type]) {
-            // The ParseStream cursor must be advanced or it affects
-            // the next attribute to be parsed.
-            input.parse::<Token![type]>()?;
+        if input.parse::<Token![type]>().is_ok() {
             input.parse::<Token![=]>()?;
             Ok(EventMeta::Type(input.parse::<LitStr>()?))
-        } else if look.peek(kw::skip_redaction) {
-            input.parse::<kw::skip_redaction>()?;
+        } else if input.parse::<kw::skip_redaction>().is_ok() {
             Ok(EventMeta::SkipRedacted)
-        } else if look.peek(kw::custom_redacted) {
-            input.parse::<kw::custom_redacted>()?;
+        } else if input.parse::<kw::custom_redacted>().is_ok() {
             Ok(EventMeta::CustomRedacted)
         } else {
             Err(syn::Error::new(input.span(), "not a recognized `ruma_event` attribute"))
