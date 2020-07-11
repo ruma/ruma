@@ -1,0 +1,5 @@
+error: valid event kinds are Basic, EphemeralRoom, Message, State, ToDevice found `NotReal`
+ --> $DIR/09-enum-invalid-kind.rs:4:18
+  |
+4 |     kind: NotReal,
+  |                  ^
