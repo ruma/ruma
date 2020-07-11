@@ -103,7 +103,7 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
         TokenStream::new()
     };
 
-    let event_stripped_enum = if let Some(_) = ident.to_stripped_event_enum() {
+    let event_stripped_enum = if ident.to_stripped_event_enum().is_some() {
         expand_stripped_enum(&input)?
     } else {
         TokenStream::new()
