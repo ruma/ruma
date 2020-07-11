@@ -16,11 +16,12 @@ ruma-events has [comprehensive documentation](https://docs.rs/ruma-events) avail
 
 # How-To
 
-## Deserializing
+## Deserializing/Getting Events
+<!-- Maybe changing the title would help? -->
 
-Ruma offers the `EventJson` wrapper to enable passing around JSON text that is semi validated. This
-is useful when [extending ruma](TODO_link). All event structs and enums implement `Serialize/Deserialize` so
-EventJson is not strictly needed anymore (pre 0.22 this was not the case).
+Ruma offers the `EventJson` wrapper to enable passing around JSON text that is only partially validated. This
+is useful when [extending Matrix](TODO_link). All event structs and enums implement `Serialize/Deserialize`, but
+`EventJson` should be used to pass around events in a lossless way.
 
 ```rust
 let json = r#"{ "type": "imagine a full event", "content": {...} }"#;
@@ -40,7 +41,7 @@ let redacted = deser.redact();
 
 ## Creating Events to Extend Ruma
 
-For our example we will create a reaction message event. This can be used with ruma's event structs, for
+For our example we will create a reaction message event. This can be used with Rumas event structs, for
 this event we need a `MessageEventStub` struct but, either `MessageEvent` struct would work.
 
 ```rust
