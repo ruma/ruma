@@ -14,7 +14,7 @@ pub type JoinRulesEvent = StateEvent<JoinRulesEventContent>;
 #[ruma_event(type = "m.room.join_rules")]
 pub struct JoinRulesEventContent {
     /// The type of rules used for users wishing to join this room.
-    #[ruma_event(skip_redacted)]
+    #[ruma_event(skip_redaction)]
     pub join_rule: JoinRule,
 }
 

@@ -15,7 +15,7 @@ pub type HistoryVisibilityEvent = StateEvent<HistoryVisibilityEventContent>;
 #[ruma_event(type = "m.room.history_visibility")]
 pub struct HistoryVisibilityEventContent {
     /// Who can see the room history.
-    #[ruma_event(skip_redacted)]
+    #[ruma_event(skip_redaction)]
     pub history_visibility: HistoryVisibility,
 }
 

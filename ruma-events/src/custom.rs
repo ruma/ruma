@@ -88,7 +88,6 @@ impl RedactedEventContent for RedactedCustomEventContent {
     }
 }
 
-// A redacted custom event must satisfy both state and message events.
 impl RedactedMessageEventContent for RedactedCustomEventContent {}
 
 impl RedactedStateEventContent for RedactedCustomEventContent {}

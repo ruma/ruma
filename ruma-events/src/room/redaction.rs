@@ -71,7 +71,6 @@ impl RoomEventContent for RedactionEventContent {}
 
 impl MessageEventContent for RedactionEventContent {}
 
-// A redacted custom event must satisfy both state and message events.
 impl RedactedMessageEventContent for RedactedRedactionEventContent {}
 
 impl RedactedStateEventContent for RedactedRedactionEventContent {}

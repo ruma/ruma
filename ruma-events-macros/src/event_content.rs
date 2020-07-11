@@ -4,7 +4,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
     parse::{Parse, ParseStream},
-    DeriveInput, LitStr, Token,
+    DeriveInput, Ident, LitStr, Token,
 };
 
 mod kw {
@@ -12,8 +12,6 @@ mod kw {
     syn::custom_keyword!(skip_redaction);
     // Do not emit any redacted event code.
     syn::custom_keyword!(custom_redacted);
-    // This event is not redact-able
-    syn::custom_keyword!(not_redacted);
 }
 
 /// Parses attributes for `*EventContent` derives.
@@ -45,12 +43,18 @@ impl EventMeta {
 
 impl Parse for EventMeta {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        if input.parse::<Token![type]>().is_ok() {
+        let look = input.lookahead1();
+        if look.peek(Token![type]) {
+            // The ParseStream cursor must be advanced or it affects
+            // the next attribute to be parsed.
+            input.parse::<Token![type]>()?;
             input.parse::<Token![=]>()?;
             Ok(EventMeta::Type(input.parse::<LitStr>()?))
-        } else if input.parse::<kw::skip_redaction>().is_ok() {
+        } else if look.peek(kw::skip_redaction) {
+            input.parse::<kw::skip_redaction>()?;
             Ok(EventMeta::SkipRedacted)
-        } else if input.parse::<kw::custom_redacted>().is_ok() {
+        } else if look.peek(kw::custom_redacted) {
+            input.parse::<kw::custom_redacted>()?;
             Ok(EventMeta::CustomRedacted)
         } else {
             Err(syn::Error::new(input.span(), "not a recognized `ruma_event` attribute"))
@@ -85,6 +89,20 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
             ..
         }) = &input.data
         {
+            // this is to validate the `#[ruma_event(skip_redaction)]` attribute
+            named
+                .iter()
+                .flat_map(|f| &f.attrs)
+                .filter(|a| a.path.is_ident("ruma_event"))
+                .find_map(|a| {
+                    if let Err(e) = a.parse_args::<EventMeta>() {
+                        Some(Err(e))
+                    } else {
+                        None
+                    }
+                })
+                .unwrap_or(Ok(()))?;
+
             let mut fields = named
                 .iter()
                 .filter(|f| {
@@ -93,6 +111,7 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
                 })
                 .cloned()
                 .collect::<Vec<_>>();
+
             // don't re-emit our `ruma_event` attributes
             for f in &mut fields {
                 f.attrs.retain(|a| !a.path.is_ident("ruma_event"));
@@ -128,6 +147,8 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
             quote! { true }
         };
 
+        let redacted_event_content = generate_event_content_impl(&redacted_ident, event_type);
+
         quote! {
             // this is the non redacted event content's impl
             impl #ident {
@@ -141,24 +162,7 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
             #[derive(Clone, Debug, ::serde::Deserialize, ::serde::Serialize)]
             pub struct #redacted_ident #redacted_fields
 
-            impl ::ruma_events::EventContent for #redacted_ident {
-                fn event_type(&self) -> &str {
-                    #event_type
-                }
-
-                fn from_parts(
-                    ev_type: &str,
-                    content: Box<::serde_json::value::RawValue>
-                ) -> Result<Self, ::serde_json::Error> {
-                    if ev_type != #event_type {
-                        return Err(::serde::de::Error::custom(
-                            format!("expected event type `{}`, found `{}`", #event_type, ev_type)
-                        ));
-                    }
-
-                    Ok(::serde_json::from_str(content.get())?)
-                }
-            }
+            #redacted_event_content
 
             impl ::ruma_events::RedactedEventContent for #redacted_ident {
                 fn empty(ev_type: &str) -> Result<Self, ::serde_json::Error> {
@@ -184,25 +188,10 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
         TokenStream::new()
     };
 
+    let event_content = generate_event_content_impl(ident, event_type);
+
     Ok(quote! {
-        impl ::ruma_events::EventContent for #ident {
-            fn event_type(&self) -> &str {
-                #event_type
-            }
-
-            fn from_parts(
-                ev_type: &str,
-                content: Box<::serde_json::value::RawValue>
-            ) -> Result<Self, ::serde_json::Error> {
-                if ev_type != #event_type {
-                    return Err(::serde::de::Error::custom(
-                        format!("expected event type `{}`, found `{}`", #event_type, ev_type)
-                    ));
-                }
-
-                ::serde_json::from_str(content.get())
-            }
-        }
+        #event_content
 
         #redacted
     })
@@ -288,6 +277,29 @@ pub fn expand_state_event_content(input: &DeriveInput) -> syn::Result<TokenStrea
 
         #redacted_marker_trait
     })
+}
+
+fn generate_event_content_impl(ident: &Ident, event_type: &LitStr) -> TokenStream {
+    quote! {
+        impl ::ruma_events::EventContent for #ident {
+            fn event_type(&self) -> &str {
+                #event_type
+            }
+
+            fn from_parts(
+                ev_type: &str,
+                content: Box<::serde_json::value::RawValue>
+            ) -> Result<Self, ::serde_json::Error> {
+                if ev_type != #event_type {
+                    return Err(::serde::de::Error::custom(
+                        format!("expected event type `{}`, found `{}`", #event_type, ev_type)
+                    ));
+                }
+
+                ::serde_json::from_str(content.get())
+            }
+        }
+    }
 }
 
 fn needs_redacted(input: &DeriveInput) -> bool {
