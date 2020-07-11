@@ -166,13 +166,17 @@ pub use self::{
     enums::{
         AnyBasicEvent, AnyBasicEventContent, AnyEphemeralRoomEvent, AnyEphemeralRoomEventContent,
         AnyEphemeralRoomEventStub, AnyEvent, AnyMessageEvent, AnyMessageEventContent,
-        AnyMessageEventStub, AnyRoomEvent, AnyRoomEventStub, AnyStateEvent, AnyStateEventContent,
-        AnyStateEventStub, AnyStrippedStateEventStub, AnyToDeviceEvent, AnyToDeviceEventContent,
+        AnyMessageEventStub, AnyRedactedMessageEvent, AnyRedactedMessageEventStub,
+        AnyRedactedStateEvent, AnyRedactedStateEventStub, AnyRedactedStrippedStateEventStub,
+        AnyRoomEvent, AnyRoomEventStub, AnyStateEvent, AnyStateEventContent, AnyStateEventStub,
+        AnyStrippedStateEventStub, AnyToDeviceEvent, AnyToDeviceEventContent,
     },
     error::{FromStrError, InvalidInput},
     event_kinds::{
         BasicEvent, EphemeralRoomEvent, EphemeralRoomEventStub, MessageEvent, MessageEventStub,
-        StateEvent, StateEventStub, StrippedStateEventStub, ToDeviceEvent,
+        RedactedMessageEvent, RedactedMessageEventStub, RedactedStateEvent, RedactedStateEventStub,
+        RedactedStrippedStateEventStub, StateEvent, StateEventStub, StrippedStateEventStub,
+        ToDeviceEvent,
     },
     event_type::EventType,
     json::EventJson,
@@ -237,6 +241,38 @@ pub trait MessageEventContent: RoomEventContent {}
 /// Marker trait for the content of a state event.
 pub trait StateEventContent: RoomEventContent {}
 
+/// The base trait that all redacted event content types implement.
+///
+/// Implementing this trait allows content types to be serialized as well as deserialized.
+pub trait RedactedEventContent: EventContent {
+    /// Constructs the redacted event content.
+    ///
+    /// If called for anything but "empty" redacted content this will error.
+    fn empty(_event_type: &str) -> Result<Self, serde_json::Error> {
+        Err(serde::de::Error::custom("this event is not redacted"))
+    }
+
+    /// Determines if the redacted event content needs to serialize fields.
+    fn has_serialize_fields(&self) -> bool;
+
+    /// Determines if the redacted event content needs to deserialize fields.
+    fn has_deserialize_fields() -> bool;
+}
+
+/// Marker trait for the content of a redacted message event.
+pub trait RedactedMessageEventContent: RedactedEventContent {}
+
+/// Marker trait for the content of a redacted state event.
+pub trait RedactedStateEventContent: RedactedEventContent {}
+
+/// Helper struct to determine if the event has been redacted.
+#[doc(hidden)]
+#[derive(Debug, Deserialize)]
+pub struct UnsignedDeHelper {
+    /// This is the field that signals an event has been redacted.
+    pub redacted_because: Option<IgnoredAny>,
+}
+
 /// Helper struct to determine the event kind from a serde_json::value::RawValue.
 #[doc(hidden)]
 #[derive(Debug, Deserialize)]
@@ -255,6 +291,10 @@ pub struct EventDeHelper {
     /// If no `event_id` or `state_key` are found but a `room_id` is present
     /// the event will be deserialized as a ephemeral event.
     pub room_id: Option<IgnoredAny>,
+
+    /// If this `UnsignedData` contains a redacted_because key the event is
+    /// immediately deserialized as a redacted event.
+    pub unsigned: Option<UnsignedDeHelper>,
 }
 
 /// Helper function for serde_json::value::RawValue deserialization.

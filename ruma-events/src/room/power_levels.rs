@@ -18,16 +18,19 @@ pub type PowerLevelsEvent = StateEvent<PowerLevelsEventContent>;
 pub struct PowerLevelsEventContent {
     /// The level required to ban a user.
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
+    #[ruma_event(skip_redaction)]
     pub ban: Int,
 
     /// The level required to send specific event types.
     ///
     /// This is a mapping from event type to power level required.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[ruma_event(skip_redaction)]
     pub events: BTreeMap<EventType, Int>,
 
     /// The default level required to send message events.
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[ruma_event(skip_redaction)]
     pub events_default: Int,
 
     /// The level required to invite a user.
@@ -36,24 +39,29 @@ pub struct PowerLevelsEventContent {
 
     /// The level required to kick a user.
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
+    #[ruma_event(skip_redaction)]
     pub kick: Int,
 
     /// The level required to redact an event.
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
+    #[ruma_event(skip_redaction)]
     pub redact: Int,
 
     /// The default level required to send state events.
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
+    #[ruma_event(skip_redaction)]
     pub state_default: Int,
 
     /// The power levels for specific users.
     ///
     /// This is a mapping from `user_id` to power level for that user.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[ruma_event(skip_redaction)]
     pub users: BTreeMap<UserId, Int>,
 
     /// The default power level for every user in the room.
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[ruma_event(skip_redaction)]
     pub users_default: Int,
 
     /// The power level requirements for specific notification types.

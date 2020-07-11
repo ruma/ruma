@@ -17,6 +17,7 @@ pub type CreateEvent = StateEvent<CreateEventContent>;
 #[ruma_event(type = "m.room.create")]
 pub struct CreateEventContent {
     /// The `user_id` of the room creator. This is set by the homeserver.
+    #[ruma_event(skip_redaction)]
     pub creator: UserId,
 
     /// Whether or not this room's data should be transferred to other homeservers.

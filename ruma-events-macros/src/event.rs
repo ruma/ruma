@@ -37,7 +37,13 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         .iter()
         .map(|field| {
             let name = field.ident.as_ref().unwrap();
-            if name == "prev_content" {
+            if name == "content" && ident.to_string().contains("Redacted") {
+                quote! {
+                    if ::ruma_events::RedactedEventContent::has_serialize_fields(&self.content) {
+                        state.serialize_field("content", &self.content)?;
+                    }
+                }
+            } else if name == "prev_content" {
                 quote! {
                     if let Some(content) = self.prev_content.as_ref() {
                         state.serialize_field("prev_content", content)?;
@@ -143,7 +149,16 @@ fn expand_deserialize_event(
     .map(|field| {
         let name = field.ident.as_ref().unwrap();
         if name == "content" {
-            if is_generic {
+            if is_generic && ident.to_string().contains("Redacted") {
+                quote! {
+                    let content = if !C::has_deserialize_fields() {
+                        C::empty(&event_type).map_err(A::Error::custom)?
+                    } else {
+                        let json = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;
+                        C::from_parts(&event_type, json).map_err(A::Error::custom)?
+                    };
+                }
+            } else if is_generic {
                 quote! {
                     let json = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;
                     let content = C::from_parts(&event_type, json).map_err(A::Error::custom)?;

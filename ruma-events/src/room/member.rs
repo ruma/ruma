@@ -54,6 +54,7 @@ pub struct MemberEventContent {
     pub is_direct: Option<bool>,
 
     /// The membership state of this user.
+    #[ruma_event(skip_redaction)]
     pub membership: MembershipState,
 
     /// If this member event is the successor to a third party invitation, this field will

@@ -5,7 +5,8 @@ use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 use crate::{
     BasicEventContent, EphemeralRoomEventContent, EventContent, MessageEventContent,
-    RoomEventContent, StateEventContent,
+    RedactedEventContent, RedactedMessageEventContent, RedactedStateEventContent, RoomEventContent,
+    StateEventContent,
 };
 
 /// A custom event's type and `content` JSON object.
@@ -18,6 +19,13 @@ pub struct CustomEventContent {
     /// The actual `content` JSON object.
     #[serde(flatten)]
     pub json: JsonValue,
+}
+
+impl CustomEventContent {
+    /// Transforms the full event content into a redacted content according to spec.
+    pub fn redact(self) -> RedactedCustomEventContent {
+        RedactedCustomEventContent { event_type: self.event_type }
+    }
 }
 
 impl EventContent for CustomEventContent {
@@ -42,3 +50,44 @@ impl EphemeralRoomEventContent for CustomEventContent {}
 impl MessageEventContent for CustomEventContent {}
 
 impl StateEventContent for CustomEventContent {}
+
+/// A custom event that has been redacted.
+#[derive(Clone, Debug, Serialize)]
+pub struct RedactedCustomEventContent {
+    // This field is marked skipped but will be present because deserialization
+    // passes the `type` field of the JSON event to the events `EventContent::from_parts` method.
+    /// The event type string for this custom event "m.whatever".
+    #[serde(skip)]
+    pub event_type: String,
+}
+
+impl EventContent for RedactedCustomEventContent {
+    fn event_type(&self) -> &str {
+        &self.event_type
+    }
+
+    fn from_parts(
+        event_type: &str,
+        _content: Box<RawJsonValue>,
+    ) -> Result<Self, serde_json::Error> {
+        Ok(Self { event_type: event_type.to_string() })
+    }
+}
+
+impl RedactedEventContent for RedactedCustomEventContent {
+    fn empty(event_type: &str) -> Result<Self, serde_json::Error> {
+        Ok(Self { event_type: event_type.to_string() })
+    }
+
+    fn has_serialize_fields(&self) -> bool {
+        false
+    }
+
+    fn has_deserialize_fields() -> bool {
+        false
+    }
+}
+
+impl RedactedMessageEventContent for RedactedCustomEventContent {}
+
+impl RedactedStateEventContent for RedactedCustomEventContent {}
