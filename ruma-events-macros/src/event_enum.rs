@@ -84,16 +84,22 @@ const EVENT_FIELDS: &[(&str, &[&str])] = &[
 
 /// Create a content enum from `EventEnumInput`.
 pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
-    let event_enum = expand_any_enum_with_deserialize(&input, EventKindVariation::Full)?;
+    let name = &input.name;
+    let events = &input.events;
+    let attrs = &input.attrs;
 
-    let event_stub_enum = expand_any_enum_with_deserialize(&input, EventKindVariation::Stub)?;
+    let event_enum =
+        expand_any_enum_with_deserialize(name, events, attrs, &EventKindVariation::Full)?;
+
+    let event_stub_enum =
+        expand_any_enum_with_deserialize(name, events, attrs, &EventKindVariation::Stub)?;
 
     let event_stripped_enum =
-        expand_any_enum_with_deserialize(&input, EventKindVariation::Stripped)?;
+        expand_any_enum_with_deserialize(name, events, attrs, &EventKindVariation::Stripped)?;
 
-    let redacted_event_enums = expand_any_redacted_enum_with_deserialize(&input)?;
+    let redacted_event_enums = expand_any_redacted_enum_with_deserialize(name, events, attrs)?;
 
-    let event_content_enum = expand_content_enum(&input)?;
+    let event_content_enum = expand_content_enum(name, events, attrs)?;
 
     Ok(quote! {
         #event_enum
@@ -109,26 +115,28 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
 }
 
 fn expand_any_enum_with_deserialize(
-    input: &EventEnumInput,
-    var: EventKindVariation,
+    name: &EventKind,
+    events: &[LitStr],
+    attrs: &[Attribute],
+    var: &EventKindVariation,
 ) -> syn::Result<TokenStream> {
-    let event_struct = if let Some(i) = input.name.to_event_ident(&var) {
+    let event_struct = if let Some(i) = name.to_event_ident(var) {
         i
     } else {
         return Ok(TokenStream::new());
     };
-    let ident = if let Some(i) = input.name.to_event_enum_ident(&var) {
+    let ident = if let Some(i) = name.to_event_enum_ident(var) {
         i
     } else {
         return Ok(TokenStream::new());
     };
 
-    let attrs = &input.attrs;
-    let event_type_str = &input.events;
+    let attrs = attrs;
+    let event_type_str = events;
 
-    let variants = input.events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
+    let variants = events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
     let content =
-        input.events.iter().map(|event| to_event_path(event, &event_struct)).collect::<Vec<_>>();
+        events.iter().map(|event| to_event_path(event, &event_struct)).collect::<Vec<_>>();
 
     let (custom_variant, custom_deserialize) = expand_custom_variant(&event_struct);
 
@@ -185,12 +193,26 @@ fn expand_any_enum_with_deserialize(
 ///
 /// No content enums are generated since no part of the API deals with
 /// redacted event's content. There are only five state variants that contain content.
-fn expand_any_redacted_enum_with_deserialize(input: &EventEnumInput) -> syn::Result<TokenStream> {
-    if input.name.is_state() {
-        let state_full = expand_any_enum_with_deserialize(input, EventKindVariation::Redacted)?;
-        let state_stub = expand_any_enum_with_deserialize(input, EventKindVariation::RedactedStub)?;
-        let state_stripped =
-            expand_any_enum_with_deserialize(input, EventKindVariation::RedactedStripped)?;
+fn expand_any_redacted_enum_with_deserialize(
+    name: &EventKind,
+    events: &[LitStr],
+    attrs: &[Attribute],
+) -> syn::Result<TokenStream> {
+    if name.is_state() {
+        let state_full =
+            expand_any_enum_with_deserialize(name, events, attrs, &EventKindVariation::Redacted)?;
+        let state_stub = expand_any_enum_with_deserialize(
+            name,
+            events,
+            attrs,
+            &EventKindVariation::RedactedStub,
+        )?;
+        let state_stripped = expand_any_enum_with_deserialize(
+            name,
+            events,
+            attrs,
+            &EventKindVariation::RedactedStripped,
+        )?;
 
         Ok(quote! {
             #state_full
@@ -199,10 +221,15 @@ fn expand_any_redacted_enum_with_deserialize(input: &EventEnumInput) -> syn::Res
 
             #state_stripped
         })
-    } else if input.name.is_message() {
-        let message_full = expand_any_enum_with_deserialize(input, EventKindVariation::Redacted)?;
-        let message_stub =
-            expand_any_enum_with_deserialize(input, EventKindVariation::RedactedStub)?;
+    } else if name.is_message() {
+        let message_full =
+            expand_any_enum_with_deserialize(name, events, attrs, &EventKindVariation::Redacted)?;
+        let message_stub = expand_any_enum_with_deserialize(
+            name,
+            events,
+            attrs,
+            &EventKindVariation::RedactedStub,
+        )?;
 
         Ok(quote! {
             #message_full
@@ -215,13 +242,16 @@ fn expand_any_redacted_enum_with_deserialize(input: &EventEnumInput) -> syn::Res
 }
 
 /// Create a content enum from `EventEnumInput`.
-pub fn expand_content_enum(input: &EventEnumInput) -> syn::Result<TokenStream> {
-    let ident = input.name.to_content_enum();
-    let attrs = &input.attrs;
-    let event_type_str = &input.events;
+pub fn expand_content_enum(
+    name: &EventKind,
+    events: &[LitStr],
+    attrs: &[Attribute],
+) -> syn::Result<TokenStream> {
+    let ident = name.to_content_enum();
+    let event_type_str = events;
 
-    let variants = input.events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
-    let content = input.events.iter().map(to_event_content_path).collect::<Vec<_>>();
+    let variants = events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
+    let content = events.iter().map(to_event_content_path).collect::<Vec<_>>();
 
     let content_enum = quote! {
         #( #attrs )*
