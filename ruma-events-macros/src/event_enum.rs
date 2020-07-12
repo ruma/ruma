@@ -88,17 +88,20 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
     let name = &input.name;
     let events = &input.events;
     let attrs = &input.attrs;
+    let variants = events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
 
-    let event_enum = expand_any_with_deser(name, events, attrs, &EventKindVariation::Full)?;
+    let event_enum =
+        expand_any_with_deser(name, events, attrs, &variants, &EventKindVariation::Full);
 
-    let event_stub_enum = expand_any_with_deser(name, events, attrs, &EventKindVariation::Stub)?;
+    let event_stub_enum =
+        expand_any_with_deser(name, events, attrs, &variants, &EventKindVariation::Stub);
 
     let event_stripped_enum =
-        expand_any_with_deser(name, events, attrs, &EventKindVariation::Stripped)?;
+        expand_any_with_deser(name, events, attrs, &variants, &EventKindVariation::Stripped);
 
-    let redacted_event_enums = expand_any_redacted(name, events, attrs)?;
+    let redacted_event_enums = expand_any_redacted(name, events, attrs, &variants);
 
-    let event_content_enum = expand_content_enum(name, events, attrs)?;
+    let event_content_enum = expand_content_enum(name, events, attrs, &variants);
 
     Ok(quote! {
         #event_enum
@@ -121,15 +124,14 @@ fn expand_any_with_deser(
     name: &EventKind,
     events: &[LitStr],
     attrs: &[Attribute],
+    variants: &[Ident],
     var: &EventKindVariation,
-) -> syn::Result<TokenStream> {
-    let (event_struct, ident) = if let Some(idents) = generate_event_idents(name, var) {
-        idents
-    } else {
-        return Ok(TokenStream::new());
-    };
+) -> Option<TokenStream> {
+    // If the event cannot be generated this bails out returning None which is rendered the same
+    // as an empty `TokenStream`. This is effectively the check if the given input generates
+    // a valid event enum.
+    let (event_struct, ident) = generate_event_idents(name, var)?;
 
-    let variants = events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
     let content =
         events.iter().map(|event| to_event_path(event, &event_struct)).collect::<Vec<_>>();
 
@@ -174,7 +176,7 @@ fn expand_any_with_deser(
 
     let field_accessor_impl = accessor_methods(name, var, &variants);
 
-    Ok(quote! {
+    Some(quote! {
         #any_enum
 
         #field_accessor_impl
@@ -192,34 +194,34 @@ fn expand_any_redacted(
     name: &EventKind,
     events: &[LitStr],
     attrs: &[Attribute],
-) -> syn::Result<TokenStream> {
-    if name.is_state() {
-        let state_full = expand_any_with_deser(name, events, attrs, &EventKindVariation::Redacted)?;
-        let state_stub =
-            expand_any_with_deser(name, events, attrs, &EventKindVariation::RedactedStub)?;
-        let state_stripped =
-            expand_any_with_deser(name, events, attrs, &EventKindVariation::RedactedStripped)?;
+    variants: &[Ident],
+) -> TokenStream {
+    use EventKindVariation::*;
 
-        Ok(quote! {
+    if name.is_state() {
+        let state_full = expand_any_with_deser(name, events, attrs, variants, &Redacted);
+        let state_stub = expand_any_with_deser(name, events, attrs, variants, &RedactedStub);
+        let state_stripped =
+            expand_any_with_deser(name, events, attrs, variants, &RedactedStripped);
+
+        quote! {
             #state_full
 
             #state_stub
 
             #state_stripped
-        })
+        }
     } else if name.is_message() {
-        let message_full =
-            expand_any_with_deser(name, events, attrs, &EventKindVariation::Redacted)?;
-        let message_stub =
-            expand_any_with_deser(name, events, attrs, &EventKindVariation::RedactedStub)?;
+        let message_full = expand_any_with_deser(name, events, attrs, variants, &Redacted);
+        let message_stub = expand_any_with_deser(name, events, attrs, variants, &RedactedStub);
 
-        Ok(quote! {
+        quote! {
             #message_full
 
             #message_stub
-        })
+        }
     } else {
-        Ok(TokenStream::new())
+        TokenStream::new()
     }
 }
 
@@ -228,11 +230,11 @@ pub fn expand_content_enum(
     name: &EventKind,
     events: &[LitStr],
     attrs: &[Attribute],
-) -> syn::Result<TokenStream> {
+    variants: &[Ident],
+) -> TokenStream {
     let ident = name.to_content_enum();
     let event_type_str = events;
 
-    let variants = events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
     let content = events.iter().map(to_event_content_path).collect::<Vec<_>>();
 
     let content_enum = quote! {
@@ -278,13 +280,13 @@ pub fn expand_content_enum(
 
     let marker_trait_impls = marker_traits(&name);
 
-    Ok(quote! {
+    quote! {
         #content_enum
 
         #event_content_impl
 
         #marker_trait_impls
-    })
+    }
 }
 
 fn expand_custom_variant(
