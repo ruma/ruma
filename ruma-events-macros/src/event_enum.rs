@@ -8,79 +8,72 @@ use syn::{
     Attribute, Expr, ExprLit, Ident, Lit, LitStr, Token,
 };
 
-use crate::event_names::{
-    ANY_EPHEMERAL_EVENT, ANY_MESSAGE_EVENT, ANY_STATE_EVENT, ANY_STRIPPED_STATE_EVENT,
-    ANY_SYNC_MESSAGE_EVENT, ANY_SYNC_STATE_EVENT, ANY_TO_DEVICE_EVENT, REDACTED_MESSAGE_EVENT,
-    REDACTED_STATE_EVENT, REDACTED_STRIPPED_STATE_EVENT, REDACTED_SYNC_MESSAGE_EVENT,
-    REDACTED_SYNC_STATE_EVENT,
-};
+fn room_event_kind(name: &EventKind, var: &EventKindVariation) -> bool {
+    matches!(
+        (name, var),
+        (EventKind::Message(_),EventKindVariation::Full)
+            | (EventKind::Message(_), EventKindVariation::Stub)
+            | (EventKind::Message(_), EventKindVariation::Redacted)
+            | (EventKind::Message(_), EventKindVariation::RedactedStub)
+            | (EventKind::State(_), EventKindVariation::Full)
+            | (EventKind::State(_), EventKindVariation::Stub)
+            | (EventKind::State(_), EventKindVariation::Redacted)
+            | (EventKind::State(_), EventKindVariation::RedactedStub)
+    )
+}
 
-// Arrays of event enum names grouped by a field they share in common.
-const ROOM_EVENT_KIND: &[&str] = &[
-    ANY_MESSAGE_EVENT,
-    ANY_SYNC_MESSAGE_EVENT,
-    ANY_STATE_EVENT,
-    ANY_SYNC_STATE_EVENT,
-    REDACTED_MESSAGE_EVENT,
-    REDACTED_STATE_EVENT,
-    REDACTED_SYNC_MESSAGE_EVENT,
-    REDACTED_SYNC_STATE_EVENT,
-];
+fn room_id_kind(name: &EventKind, var: &EventKindVariation) -> bool {
+    matches!(
+        (name, var),
+        (EventKind::Message(_), EventKindVariation::Full)
+            | (EventKind::Message(_), EventKindVariation::Redacted)
+            | (EventKind::State(_), EventKindVariation::Full)
+            | (EventKind::State(_), EventKindVariation::Redacted)
+            | (EventKind::Ephemeral(_), EventKindVariation::Full)
+    )
+}
 
-const ROOM_ID_KIND: &[&str] = &[
-    ANY_MESSAGE_EVENT,
-    ANY_STATE_EVENT,
-    ANY_EPHEMERAL_EVENT,
-    REDACTED_STATE_EVENT,
-    REDACTED_MESSAGE_EVENT,
-];
+fn event_id_kind(name: &EventKind, var: &EventKindVariation) -> bool {
+    matches!(
+        (name, var),
+        (EventKind::Message(_),EventKindVariation::Full)
+            | (EventKind::Message(_), EventKindVariation::Stub)
+            | (EventKind::Message(_), EventKindVariation::Redacted)
+            | (EventKind::Message(_), EventKindVariation::RedactedStub)
+            | (EventKind::State(_), EventKindVariation::Full)
+            | (EventKind::State(_), EventKindVariation::Stub)
+            | (EventKind::State(_), EventKindVariation::Redacted)
+            | (EventKind::State(_), EventKindVariation::RedactedStub)
+    )
+}
 
-const EVENT_ID_KIND: &[&str] = &[
-    ANY_MESSAGE_EVENT,
-    ANY_SYNC_MESSAGE_EVENT,
-    ANY_STATE_EVENT,
-    ANY_SYNC_STATE_EVENT,
-    REDACTED_SYNC_STATE_EVENT,
-    REDACTED_SYNC_MESSAGE_EVENT,
-    REDACTED_STATE_EVENT,
-    REDACTED_MESSAGE_EVENT,
-];
+fn sender_id_kind(name: &EventKind, _var: &EventKindVariation) -> bool {
+    matches!(name, EventKind::Message(_) | EventKind::State(_) | EventKind::ToDevice(_))
+}
 
-const SENDER_KIND: &[&str] = &[
-    ANY_MESSAGE_EVENT,
-    ANY_STATE_EVENT,
-    ANY_SYNC_STATE_EVENT,
-    ANY_TO_DEVICE_EVENT,
-    ANY_SYNC_MESSAGE_EVENT,
-    ANY_STRIPPED_STATE_EVENT,
-    REDACTED_MESSAGE_EVENT,
-    REDACTED_STATE_EVENT,
-    REDACTED_STRIPPED_STATE_EVENT,
-    REDACTED_SYNC_MESSAGE_EVENT,
-    REDACTED_SYNC_STATE_EVENT,
-];
+fn prev_content_kind(name: &EventKind, var: &EventKindVariation) -> bool {
+    matches!(
+        (name, var),
+        (EventKind::State(_), EventKindVariation::Full) | (EventKind::State(_), EventKindVariation::Stub)
+    )
+}
 
-const PREV_CONTENT_KIND: &[&str] = &[ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT];
+fn state_key_kind(name: &EventKind, _var: &EventKindVariation) -> bool {
+    matches!(name, EventKind::State(_))
+}
 
-const STATE_KEY_KIND: &[&str] = &[
-    ANY_STATE_EVENT,
-    ANY_SYNC_STATE_EVENT,
-    ANY_STRIPPED_STATE_EVENT,
-    REDACTED_SYNC_STATE_EVENT,
-    REDACTED_STRIPPED_STATE_EVENT,
-    REDACTED_STATE_EVENT,
-];
+type EventKindFn = fn(&EventKind, &EventKindVariation) -> bool;
 
 /// This const is used to generate the accessor methods for the `Any*Event` enums.
 ///
 /// DO NOT alter the field names unless the structs in `ruma_events::event_kinds` have changed.
-const EVENT_FIELDS: &[(&str, &[&str])] = &[
-    ("origin_server_ts", ROOM_EVENT_KIND),
-    ("room_id", ROOM_ID_KIND),
-    ("event_id", EVENT_ID_KIND),
-    ("sender", SENDER_KIND),
-    ("state_key", STATE_KEY_KIND),
-    ("unsigned", ROOM_EVENT_KIND),
+const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
+    ("origin_server_ts", room_event_kind),
+    ("room_id", room_id_kind),
+    ("event_id", event_id_kind),
+    ("sender", sender_id_kind),
+    ("state_key", state_key_kind),
+    ("unsigned", room_event_kind),
 ];
 
 /// Create a content enum from `EventEnumInput`.
@@ -352,25 +345,25 @@ fn marker_traits(kind: &EventKind) -> TokenStream {
     }
 }
 
-fn accessor_methods(name: &EventKind, var: &EventKindVariation, variants: &[Ident]) -> TokenStream {
+fn accessor_methods(
+    kind: &EventKind,
+    var: &EventKindVariation,
+    variants: &[Ident],
+) -> Option<TokenStream> {
     use EventKindVariation::*;
 
-    let ident = if let Some(ident) = name.to_event_enum_ident(var) {
-        ident
-    } else {
-        return TokenStream::new();
-    };
+    let ident = kind.to_event_enum_ident(var)?;
 
     // matching `EventKindVariation`s
-    if matches!(var, Redacted | RedactedStub | RedactedStripped) {
-        return redacted_accessor_methods(&ident, variants);
+    if let Redacted | RedactedStub | RedactedStripped = var {
+        return redacted_accessor_methods(kind, var, variants);
     }
 
     let methods = EVENT_FIELDS
         .iter()
-        .map(|(name, has_field)| generate_accessor(name, &ident, *has_field, variants));
+        .map(|(name, has_field)| generate_accessor(name, kind, var, *has_field, variants));
 
-    let content_enum = name.to_content_enum();
+    let content_enum = kind.to_content_enum();
 
     let content = quote! {
         /// Returns the any content enum for this event.
@@ -384,7 +377,7 @@ fn accessor_methods(name: &EventKind, var: &EventKindVariation, variants: &[Iden
         }
     };
 
-    let prev_content = if PREV_CONTENT_KIND.contains(&ident.to_string().as_str()) {
+    let prev_content = if prev_content_kind(kind, var) {
         quote! {
             /// Returns the any content enum for this events prev_content.
             pub fn prev_content(&self) -> Option<#content_enum> {
@@ -404,7 +397,7 @@ fn accessor_methods(name: &EventKind, var: &EventKindVariation, variants: &[Iden
         TokenStream::new()
     };
 
-    quote! {
+    Some(quote! {
         impl #ident {
             #content
 
@@ -412,21 +405,27 @@ fn accessor_methods(name: &EventKind, var: &EventKindVariation, variants: &[Iden
 
             #( #methods )*
         }
-    }
+    })
 }
 
 /// Redacted events do NOT generate `content` or `prev_content` methods like
 /// un-redacted events; otherwise, they are the same.
-fn redacted_accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
+fn redacted_accessor_methods(
+    kind: &EventKind,
+    var: &EventKindVariation,
+    variants: &[Ident],
+) -> Option<TokenStream> {
+    // this will never fail as it is called in `expand_any_with_deser`.
+    let ident = kind.to_event_enum_ident(var).unwrap();
     let methods = EVENT_FIELDS
         .iter()
-        .map(|(name, has_field)| generate_accessor(name, ident, *has_field, variants));
+        .map(|(name, has_field)| generate_accessor(name, kind, var, *has_field, variants));
 
-    quote! {
+    Some(quote! {
         impl #ident {
             #( #methods )*
         }
-    }
+    })
 }
 
 fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
@@ -515,11 +514,12 @@ pub(crate) fn to_camel_case(name: &LitStr) -> syn::Result<Ident> {
 
 fn generate_accessor(
     name: &str,
-    ident: &Ident,
-    event_kind_list: &[&str],
+    kind: &EventKind,
+    var: &EventKindVariation,
+    is_event_kind: EventKindFn,
     variants: &[Ident],
 ) -> TokenStream {
-    if event_kind_list.contains(&ident.to_string().as_str()) {
+    if is_event_kind(kind, var) {
         let field_type = field_return_type(name);
 
         let name = Ident::new(name, Span::call_site());
