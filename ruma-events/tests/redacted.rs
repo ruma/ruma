@@ -19,10 +19,6 @@ use ruma_events::{
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-fn is_zst<T>(_: &T) -> bool {
-    std::mem::size_of::<T>() == 0
-}
-
 fn full_unsigned() -> UnsignedData {
     let mut unsigned = UnsignedData::default();
     // The presence of `redacted_because` triggers the event enum to return early
@@ -63,7 +59,7 @@ fn redacted_message_event_serialize() {
 }
 
 #[test]
-fn redacted_aliases_event_serialize() {
+fn redacted_aliases_event_serialize_no_content() {
     let redacted = RedactedSyncStateEvent {
         content: RedactedAliasesEventContent { aliases: None },
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
@@ -74,6 +70,32 @@ fn redacted_aliases_event_serialize() {
     };
 
     let expected = json!({
+      "event_id": "$h29iv0s8:example.com",
+      "state_key": "",
+      "origin_server_ts": 1,
+      "sender": "@carl:example.com",
+      "type": "m.room.aliases"
+    });
+
+    let actual = to_json_value(&redacted).unwrap();
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn redacted_aliases_event_serialize_with_content() {
+    let redacted = RedactedSyncStateEvent {
+        content: RedactedAliasesEventContent { aliases: Some(vec![]) },
+        event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+        state_key: "".to_string(),
+        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        sender: UserId::try_from("@carl:example.com").unwrap(),
+        unsigned: UnsignedData::default(),
+    };
+
+    let expected = json!({
+      "content": {
+          "aliases": []
+      },
       "event_id": "$h29iv0s8:example.com",
       "state_key": "",
       "origin_server_ts": 1,
@@ -101,14 +123,15 @@ fn redacted_aliases_deserialize() {
     let actual = to_json_value(&redacted).unwrap();
 
     assert_matches!(
-        from_json_value::<EventJson<AnyRoomEventStub>>(actual)
+        from_json_value::<EventJson<AnySyncRoomEvent>>(actual)
             .unwrap()
             .deserialize()
             .unwrap(),
-        AnyRoomEventStub::RedactedState(AnyRedactedStateEventStub::RoomAliases(RedactedStateEventStub {
-            event_id, content, ..
+        AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::RoomAliases(RedactedSyncStateEvent {
+            content: RedactedAliasesEventContent { aliases },
+            event_id, ..
         })) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
-            && is_zst(&content)
+            && aliases.is_none()
     )
 }
 
@@ -133,10 +156,10 @@ fn redacted_deserialize_any_room() {
             .deserialize()
             .unwrap(),
         AnyRoomEvent::RedactedMessage(AnyRedactedMessageEvent::RoomMessage(RedactedMessageEvent {
-            event_id, room_id, content, ..
+            content: RedactedMessageEventContent,
+            event_id, room_id, ..
         })) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
             && room_id == RoomId::try_from("!roomid:room.com").unwrap()
-            && is_zst(&content)
     )
 }
 
@@ -172,9 +195,9 @@ fn redacted_deserialize_any_room_sync() {
             .deserialize()
             .unwrap(),
         AnySyncRoomEvent::RedactedMessage(AnyRedactedSyncMessageEvent::RoomMessage(RedactedSyncMessageEvent {
-            event_id, content, ..
+            content: RedactedMessageEventContent,
+            event_id, ..
         })) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
-            && is_zst(&content)
     )
 }
 
