@@ -23,6 +23,24 @@ fn is_zst<T>(_: &T) -> bool {
     std::mem::size_of::<T>() == 0
 }
 
+fn full_unsigned() -> UnsignedData {
+    let mut unsigned = UnsignedData::default();
+    // The presence of `redacted_because` triggers the event enum to return early
+    // with `RedactedContent` instead of failing to deserialize according
+    // to the event type string.
+    unsigned.redacted_because = Some(EventJson::from(RedactionEvent {
+        content: RedactionEventContent { reason: Some("redacted because".into()) },
+        redacts: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+        event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        room_id: RoomId::try_from("!roomid:room.com").unwrap(),
+        sender: UserId::try_from("@carl:example.com").unwrap(),
+        unsigned: UnsignedData::default(),
+    }));
+
+    unsigned
+}
+
 #[test]
 fn redacted_message_event_serialize() {
     let redacted = RedactedSyncMessageEvent {
@@ -69,19 +87,7 @@ fn redacted_aliases_event_serialize() {
 
 #[test]
 fn redacted_deserialize_any_room() {
-    let mut unsigned = UnsignedData::default();
-    // The presence of `redacted_because` triggers the event enum (AnyRoomEvent in this case)
-    // to return early with `RedactedContent` instead of failing to deserialize according
-    // to the event type string.
-    unsigned.redacted_because = Some(EventJson::from(RedactionEvent {
-        content: RedactionEventContent { reason: Some("redacted because".into()) },
-        redacts: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-        event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
-        room_id: RoomId::try_from("!roomid:room.com").unwrap(),
-        sender: UserId::try_from("@carl:example.com").unwrap(),
-        unsigned: UnsignedData::default(),
-    }));
+    let unsigned = full_unsigned();
 
     let redacted = json!({
       "event_id": "$h29iv0s8:example.com",
@@ -147,16 +153,7 @@ fn redacted_deserialize_any_room_sync() {
 
 #[test]
 fn redacted_state_event_deserialize() {
-    let mut unsigned = UnsignedData::default();
-    unsigned.redacted_because = Some(EventJson::from(RedactionEvent {
-        content: RedactionEventContent { reason: Some("redacted because".into()) },
-        redacts: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-        event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
-        room_id: RoomId::try_from("!roomid:room.com").unwrap(),
-        sender: UserId::try_from("@carl:example.com").unwrap(),
-        unsigned: UnsignedData::default(),
-    }));
+    let unsigned = full_unsigned();
 
     let redacted = json!({
       "content": {
@@ -189,16 +186,7 @@ fn redacted_state_event_deserialize() {
 
 #[test]
 fn redacted_custom_event_serialize() {
-    let mut unsigned = UnsignedData::default();
-    unsigned.redacted_because = Some(EventJson::from(RedactionEvent {
-        content: RedactionEventContent { reason: Some("redacted because".into()) },
-        redacts: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-        event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
-        room_id: RoomId::try_from("!roomid:room.com").unwrap(),
-        sender: UserId::try_from("@carl:example.com").unwrap(),
-        unsigned: UnsignedData::default(),
-    }));
+    let unsigned = full_unsigned();
 
     let redacted = json!({
         "event_id": "$h29iv0s8:example.com",
@@ -234,16 +222,7 @@ fn redacted_custom_event_serialize() {
 
 #[test]
 fn redacted_custom_event_deserialize() {
-    let mut unsigned = UnsignedData::default();
-    unsigned.redacted_because = Some(EventJson::from(RedactionEvent {
-        content: RedactionEventContent { reason: Some("redacted because".into()) },
-        redacts: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-        event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
-        room_id: RoomId::try_from("!roomid:room.com").unwrap(),
-        sender: UserId::try_from("@carl:example.com").unwrap(),
-        unsigned: UnsignedData::default(),
-    }));
+    let unsigned = full_unsigned();
 
     let redacted = RedactedSyncStateEvent {
         content: RedactedCustomEventContent { event_type: "m.made.up".into() },
