@@ -63,8 +63,8 @@ fn redacted_message_event_serialize() {
 }
 
 #[test]
-fn redacted_aliases_event_serialize() {
-    let redacted = RedactedSyncStateEvent {
+fn redacted_aliases_event_serialize_no_content() {
+    let redacted = RedactedStateEventStub {
         content: RedactedAliasesEventContent { aliases: None },
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         state_key: "".into(),
@@ -74,6 +74,32 @@ fn redacted_aliases_event_serialize() {
     };
 
     let expected = json!({
+      "event_id": "$h29iv0s8:example.com",
+      "state_key": "",
+      "origin_server_ts": 1,
+      "sender": "@carl:example.com",
+      "type": "m.room.aliases"
+    });
+
+    let actual = to_json_value(&redacted).unwrap();
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn redacted_aliases_event_serialize_with_content() {
+    let redacted = RedactedStateEventStub {
+        content: RedactedAliasesEventContent { aliases: Some(vec![]) },
+        event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+        state_key: "".to_string(),
+        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        sender: UserId::try_from("@carl:example.com").unwrap(),
+        unsigned: UnsignedData::default(),
+    };
+
+    let expected = json!({
+      "content": {
+          "aliases": []
+      },
       "event_id": "$h29iv0s8:example.com",
       "state_key": "",
       "origin_server_ts": 1,
@@ -108,7 +134,7 @@ fn redacted_aliases_deserialize() {
         AnyRoomEventStub::RedactedState(AnyRedactedStateEventStub::RoomAliases(RedactedStateEventStub {
             event_id, content, ..
         })) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
-            && is_zst(&content)
+            && !is_zst(&content)
     )
 }
 
