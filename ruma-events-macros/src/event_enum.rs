@@ -13,11 +13,6 @@ fn is_non_stripped_room_event(kind: &EventKind, var: &EventKindVariation) -> boo
         && !matches!(var, EventKindVariation::Stripped | EventKindVariation::RedactedStripped)
 }
 
-fn has_room_id_field(kind: &EventKind, var: &EventKindVariation) -> bool {
-    matches!(kind, EventKind::Message(_) | EventKind::State(_))
-        && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
-}
-
 fn has_prev_content_field(kind: &EventKind, var: &EventKindVariation) -> bool {
     matches!(kind, EventKind::State(_))
         && matches!(var, EventKindVariation::Full | EventKindVariation::Stub)
@@ -30,7 +25,10 @@ type EventKindFn = fn(&EventKind, &EventKindVariation) -> bool;
 /// DO NOT alter the field names unless the structs in `ruma_events::event_kinds` have changed.
 const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
     ("origin_server_ts", is_non_stripped_room_event),
-    ("room_id", has_room_id_field),
+    ("room_id", |kind, var| {
+        matches!(kind, EventKind::Message(_) | EventKind::State(_))
+            && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
+    }),
     ("event_id", is_non_stripped_room_event),
     (
         "sender",
