@@ -8,27 +8,9 @@ use syn::{
     Attribute, Expr, ExprLit, Ident, Lit, LitStr, Token,
 };
 
-fn room_event_kind(kind: &EventKind, var: &EventKindVariation) -> bool {
-    matches!(kind, EventKind::Message(_) | EventKind::State(_))
-        && !matches!(var, EventKindVariation::Stripped | EventKindVariation::RedactedStripped)
-}
-
-fn room_id_kind(kind: &EventKind, var: &EventKindVariation) -> bool {
-    matches!(kind, EventKind::Message(_) | EventKind::State(_))
-        && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
-}
-
-fn sender_id_kind(kind: &EventKind, _var: &EventKindVariation) -> bool {
-    matches!(kind, EventKind::Message(_) | EventKind::State(_) | EventKind::ToDevice(_))
-}
-
 fn prev_content_kind(kind: &EventKind, var: &EventKindVariation) -> bool {
     matches!(kind, EventKind::State(_))
         && matches!(var, EventKindVariation::Full | EventKindVariation::Stub)
-}
-
-fn state_key_kind(kind: &EventKind, _var: &EventKindVariation) -> bool {
-    matches!(kind, EventKind::State(_))
 }
 
 type EventKindFn = fn(&EventKind, &EventKindVariation) -> bool;
@@ -37,12 +19,27 @@ type EventKindFn = fn(&EventKind, &EventKindVariation) -> bool;
 ///
 /// DO NOT alter the field names unless the structs in `ruma_events::event_kinds` have changed.
 const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
-    ("origin_server_ts", room_event_kind),
-    ("room_id", room_id_kind),
-    ("event_id", room_event_kind),
-    ("sender", sender_id_kind),
-    ("state_key", state_key_kind),
-    ("unsigned", room_event_kind),
+    ("origin_server_ts", |kind, var| {
+        matches!(kind, EventKind::Message(_) | EventKind::State(_))
+            && !matches!(var, EventKindVariation::Stripped | EventKindVariation::RedactedStripped)
+    }),
+    ("room_id", |kind, var| {
+        matches!(kind, EventKind::Message(_) | EventKind::State(_))
+            && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
+    }),
+    ("event_id", |kind, var| {
+        matches!(kind, EventKind::Message(_) | EventKind::State(_))
+            && !matches!(var, EventKindVariation::Stripped | EventKindVariation::RedactedStripped)
+    }),
+    (
+        "sender",
+        |kind, _| matches!(kind, EventKind::Message(_) | EventKind::State(_) | EventKind::ToDevice(_)),
+    ),
+    ("state_key", |kind, _| matches!(kind, EventKind::State(_))),
+    ("unsigned", |kind, var| {
+        matches!(kind, EventKind::Message(_) | EventKind::State(_))
+            && !matches!(var, EventKindVariation::Stripped | EventKindVariation::RedactedStripped)
+    }),
 ];
 
 /// Create a content enum from `EventEnumInput`.
