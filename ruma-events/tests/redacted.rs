@@ -86,6 +86,33 @@ fn redacted_aliases_event_serialize() {
 }
 
 #[test]
+fn redacted_aliases_deserialize() {
+    let unsigned = full_unsigned();
+
+    let redacted = json!({
+      "event_id": "$h29iv0s8:example.com",
+      "origin_server_ts": 1,
+      "sender": "@carl:example.com",
+      "state_key": "hello",
+      "unsigned": unsigned,
+      "type": "m.room.aliases"
+    });
+
+    let actual = to_json_value(&redacted).unwrap();
+
+    assert_matches!(
+        from_json_value::<EventJson<AnyRoomEventStub>>(actual)
+            .unwrap()
+            .deserialize()
+            .unwrap(),
+        AnyRoomEventStub::RedactedState(AnyRedactedStateEventStub::RoomAliases(RedactedStateEventStub {
+            event_id, content, ..
+        })) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
+            && is_zst(&content)
+    )
+}
+
+#[test]
 fn redacted_deserialize_any_room() {
     let unsigned = full_unsigned();
 
