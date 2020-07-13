@@ -233,8 +233,8 @@ impl UnreadNotificationsCount {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Timeline {
     /// True if the number of events returned was limited by the `limit` on the filter.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limited: Option<bool>,
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    pub limited: bool,
 
     /// A token that can be supplied to to the `from` parameter of the
     /// `/rooms/{roomId}/messages` endpoint.
@@ -406,9 +406,11 @@ impl DeviceLists {
 mod tests {
     use std::{convert::TryInto, time::Duration};
 
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+
     use matches::assert_matches;
 
-    use super::{Filter, PresenceState, Request};
+    use super::{Filter, PresenceState, Request, Timeline};
 
     #[test]
     fn serialize_all_params() {
@@ -499,5 +501,32 @@ mod tests {
         assert_eq!(req.full_state, false);
         assert_eq!(req.set_presence, PresenceState::Online);
         assert_eq!(req.timeout, Some(Duration::from_millis(0)));
+    }
+
+    #[test]
+    fn timeline_serde() {
+        let timeline = Timeline { limited: true, prev_batch: None, events: vec![] };
+
+        let timeline_serialized = json!({
+            "limited": true,
+            "events": []
+        });
+
+        assert_eq!(to_json_value(timeline).unwrap(), timeline_serialized);
+
+        let timeline_deserialized: Timeline = from_json_value(timeline_serialized).unwrap();
+        assert_eq!(timeline_deserialized.limited, true);
+
+        let timeline_default = Timeline { limited: false, prev_batch: None, events: vec![] };
+
+        let timeline_default_serialized = json!({
+            "events": []
+        });
+
+        assert_eq!(to_json_value(timeline_default).unwrap(), timeline_default_serialized);
+
+        let timeline_default_deserialized: Timeline =
+            from_json_value(timeline_default_serialized).unwrap();
+        assert_eq!(timeline_default_deserialized.limited, false);
     }
 }
