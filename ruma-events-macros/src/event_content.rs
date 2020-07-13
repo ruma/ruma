@@ -1,7 +1,7 @@
 //! Implementations of the MessageEventContent and StateEventContent derive macro.
 
 use proc_macro2::{Span, TokenStream};
-use quote::quote;
+use quote::{format_ident, quote};
 use syn::{
     parse::{Parse, ParseStream},
     DeriveInput, Ident, LitStr, Token,
@@ -77,7 +77,7 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
 
     let redacted = if emit_redacted && needs_redacted(input) {
         let doc = format!("The payload for a redacted `{}`", ident);
-        let redacted_ident = quote::format_ident!("Redacted{}", ident);
+        let redacted_ident = format_ident!("Redacted{}", ident);
         let kept_redacted_fields = if let syn::Data::Struct(syn::DataStruct {
             fields: syn::Fields::Named(syn::FieldsNamed { named, .. }),
             ..
@@ -233,7 +233,7 @@ pub fn expand_message_event_content(input: &DeriveInput) -> syn::Result<TokenStr
     let room_ev_content = expand_room_event_content(input)?;
 
     let redacted_marker_trait = if needs_redacted(input) {
-        let ident = quote::format_ident!("Redacted{}", &ident);
+        let ident = format_ident!("Redacted{}", &ident);
         quote! {
             impl ::ruma_events::RedactedMessageEventContent for #ident { }
         }
@@ -256,7 +256,7 @@ pub fn expand_state_event_content(input: &DeriveInput) -> syn::Result<TokenStrea
     let room_ev_content = expand_room_event_content(input)?;
 
     let redacted_marker_trait = if needs_redacted(input) {
-        let ident = quote::format_ident!("Redacted{}", input.ident);
+        let ident = format_ident!("Redacted{}", input.ident);
         quote! {
             impl ::ruma_events::RedactedStateEventContent for #ident { }
         }

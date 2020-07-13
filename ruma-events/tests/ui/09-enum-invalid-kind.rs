@@ -1,8 +1,7 @@
 use ruma_events_macros::event_enum;
 
 event_enum! {
-    /// Any basic event.
-    kind: Basic,
+    kind: NotReal,
     events: [
         "m.direct",
         "m.dummy",

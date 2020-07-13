@@ -1,126 +1,62 @@
 //! Implementation of event enum and event content enum macros.
 
+use matches::matches;
 use proc_macro2::{Span, TokenStream};
-use quote::quote;
+use quote::{format_ident, quote};
 use syn::{
     parse::{self, Parse, ParseStream},
     Attribute, Expr, ExprLit, Ident, Lit, LitStr, Token,
 };
 
-use crate::event_names::{
-    ANY_BASIC_EVENT, ANY_EPHEMERAL_EVENT, ANY_MESSAGE_EVENT, ANY_STATE_EVENT,
-    ANY_STRIPPED_STATE_EVENT, ANY_SYNC_MESSAGE_EVENT, ANY_SYNC_STATE_EVENT, ANY_TO_DEVICE_EVENT,
-    REDACTED_MESSAGE_EVENT, REDACTED_STATE_EVENT, REDACTED_STRIPPED_STATE_EVENT,
-    REDACTED_SYNC_MESSAGE_EVENT, REDACTED_SYNC_STATE_EVENT,
-};
+fn is_non_stripped_room_event(kind: &EventKind, var: &EventKindVariation) -> bool {
+    matches!(kind, EventKind::Message(_) | EventKind::State(_))
+        && !matches!(var, EventKindVariation::Stripped | EventKindVariation::RedactedStripped)
+}
 
-// Arrays of event enum names grouped by a field they share in common.
-const ROOM_EVENT_KIND: &[&str] = &[
-    ANY_MESSAGE_EVENT,
-    ANY_SYNC_MESSAGE_EVENT,
-    ANY_STATE_EVENT,
-    ANY_SYNC_STATE_EVENT,
-    REDACTED_MESSAGE_EVENT,
-    REDACTED_STATE_EVENT,
-    REDACTED_SYNC_MESSAGE_EVENT,
-    REDACTED_SYNC_STATE_EVENT,
-];
+fn has_prev_content_field(kind: &EventKind, var: &EventKindVariation) -> bool {
+    matches!(kind, EventKind::State(_))
+        && matches!(var, EventKindVariation::Full | EventKindVariation::Stub)
+}
 
-const ROOM_ID_KIND: &[&str] = &[
-    ANY_MESSAGE_EVENT,
-    ANY_STATE_EVENT,
-    ANY_EPHEMERAL_EVENT,
-    REDACTED_STATE_EVENT,
-    REDACTED_MESSAGE_EVENT,
-];
-
-const EVENT_ID_KIND: &[&str] = &[
-    ANY_MESSAGE_EVENT,
-    ANY_SYNC_MESSAGE_EVENT,
-    ANY_STATE_EVENT,
-    ANY_SYNC_STATE_EVENT,
-    REDACTED_SYNC_STATE_EVENT,
-    REDACTED_SYNC_MESSAGE_EVENT,
-    REDACTED_STATE_EVENT,
-    REDACTED_MESSAGE_EVENT,
-];
-
-const SENDER_KIND: &[&str] = &[
-    ANY_MESSAGE_EVENT,
-    ANY_STATE_EVENT,
-    ANY_SYNC_STATE_EVENT,
-    ANY_TO_DEVICE_EVENT,
-    ANY_SYNC_MESSAGE_EVENT,
-    ANY_STRIPPED_STATE_EVENT,
-    REDACTED_MESSAGE_EVENT,
-    REDACTED_STATE_EVENT,
-    REDACTED_STRIPPED_STATE_EVENT,
-    REDACTED_SYNC_MESSAGE_EVENT,
-    REDACTED_SYNC_STATE_EVENT,
-];
-
-const PREV_CONTENT_KIND: &[&str] = &[ANY_STATE_EVENT, ANY_SYNC_STATE_EVENT];
-
-const STATE_KEY_KIND: &[&str] = &[
-    ANY_STATE_EVENT,
-    ANY_SYNC_STATE_EVENT,
-    ANY_STRIPPED_STATE_EVENT,
-    REDACTED_SYNC_STATE_EVENT,
-    REDACTED_STRIPPED_STATE_EVENT,
-    REDACTED_STATE_EVENT,
-];
-
-const REDACTED_EVENT_KIND: &[&str] = &[
-    ANY_STATE_EVENT,
-    ANY_SYNC_STATE_EVENT,
-    ANY_STRIPPED_STATE_EVENT,
-    ANY_MESSAGE_EVENT,
-    ANY_SYNC_MESSAGE_EVENT,
-];
+type EventKindFn = fn(&EventKind, &EventKindVariation) -> bool;
 
 /// This const is used to generate the accessor methods for the `Any*Event` enums.
 ///
 /// DO NOT alter the field names unless the structs in `ruma_events::event_kinds` have changed.
-const EVENT_FIELDS: &[(&str, &[&str])] = &[
-    ("origin_server_ts", ROOM_EVENT_KIND),
-    ("room_id", ROOM_ID_KIND),
-    ("event_id", EVENT_ID_KIND),
-    ("sender", SENDER_KIND),
-    ("state_key", STATE_KEY_KIND),
-    ("unsigned", ROOM_EVENT_KIND),
+const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
+    ("origin_server_ts", is_non_stripped_room_event),
+    ("room_id", |kind, var| {
+        matches!(kind, EventKind::Message(_) | EventKind::State(_))
+            && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
+    }),
+    ("event_id", is_non_stripped_room_event),
+    (
+        "sender",
+        |kind, _| matches!(kind, EventKind::Message(_) | EventKind::State(_) | EventKind::ToDevice(_)),
+    ),
+    ("state_key", |kind, _| matches!(kind, EventKind::State(_))),
+    ("unsigned", is_non_stripped_room_event),
 ];
 
 /// Create a content enum from `EventEnumInput`.
 pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
-    let ident = &input.name;
+    let name = &input.name;
+    let events = &input.events;
+    let attrs = &input.attrs;
+    let variants = events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
 
-    let event_enum = expand_any_enum_with_deserialize(&input, ident)?;
-
-    let needs_event_content = ident == ANY_STATE_EVENT
-        || ident == ANY_MESSAGE_EVENT
-        || ident == ANY_TO_DEVICE_EVENT
-        || ident == ANY_EPHEMERAL_EVENT
-        || ident == ANY_BASIC_EVENT;
-
-    let needs_event_stub =
-        ident == ANY_STATE_EVENT || ident == ANY_MESSAGE_EVENT || ident == ANY_EPHEMERAL_EVENT;
-
-    let needs_stripped_event = ident == ANY_STATE_EVENT;
+    let event_enum =
+        expand_any_with_deser(name, events, attrs, &variants, &EventKindVariation::Full);
 
     let event_stub_enum =
-        if needs_event_stub { expand_stub_enum(&input)? } else { TokenStream::new() };
+        expand_any_with_deser(name, events, attrs, &variants, &EventKindVariation::Stub);
 
     let event_stripped_enum =
-        if needs_stripped_event { expand_stripped_enum(&input)? } else { TokenStream::new() };
+        expand_any_with_deser(name, events, attrs, &variants, &EventKindVariation::Stripped);
 
-    let redacted_event_enums = if needs_redacted(ident) {
-        expand_any_redacted_enum_with_deserialize(&input, ident)?
-    } else {
-        TokenStream::new()
-    };
+    let redacted_event_enums = expand_any_redacted(name, events, attrs, &variants);
 
-    let event_content_enum =
-        if needs_event_content { expand_content_enum(&input, ident)? } else { TokenStream::new() };
+    let event_content_enum = expand_content_enum(name, events, attrs, &variants);
 
     Ok(quote! {
         #event_enum
@@ -135,18 +71,73 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
     })
 }
 
-/// Create a "stub" enum from `EventEnumInput`.
-pub fn expand_stub_enum(input: &EventEnumInput) -> syn::Result<TokenStream> {
-    let ident = Ident::new(&format!("{}Stub", input.name.to_string()), input.name.span());
-
-    expand_any_enum_with_deserialize(input, &ident)
+fn generate_event_idents(kind: &EventKind, var: &EventKindVariation) -> Option<(Ident, Ident)> {
+    Some((kind.to_event_ident(var)?, kind.to_event_enum_ident(var)?))
 }
 
-/// Create a "stripped" enum from `EventEnumInput`.
-pub fn expand_stripped_enum(input: &EventEnumInput) -> syn::Result<TokenStream> {
-    let ident = Ident::new("AnyStrippedStateEventStub", input.name.span());
+fn expand_any_with_deser(
+    kind: &EventKind,
+    events: &[LitStr],
+    attrs: &[Attribute],
+    variants: &[Ident],
+    var: &EventKindVariation,
+) -> Option<TokenStream> {
+    // If the event cannot be generated this bails out returning None which is rendered the same
+    // as an empty `TokenStream`. This is effectively the check if the given input generates
+    // a valid event enum.
+    let (event_struct, ident) = generate_event_idents(kind, var)?;
 
-    expand_any_enum_with_deserialize(input, &ident)
+    let content =
+        events.iter().map(|event| to_event_path(event, &event_struct)).collect::<Vec<_>>();
+
+    let (custom_variant, custom_deserialize) = expand_custom_variant(&event_struct, var);
+
+    let any_enum = quote! {
+        #( #attrs )*
+        #[derive(Clone, Debug, ::serde::Serialize)]
+        #[serde(untagged)]
+        #[allow(clippy::large_enum_variant)]
+        pub enum #ident {
+            #(
+                #[doc = #events]
+                #variants(#content),
+            )*
+            #custom_variant
+        }
+    };
+
+    let event_deserialize_impl = quote! {
+        impl<'de> ::serde::de::Deserialize<'de> for #ident {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: ::serde::de::Deserializer<'de>,
+            {
+                use ::serde::de::Error as _;
+
+                let json = Box::<::serde_json::value::RawValue>::deserialize(deserializer)?;
+                let ::ruma_events::EventDeHelper { ev_type, .. } = ::ruma_events::from_raw_json_value(&json)?;
+                match ev_type.as_str() {
+                    #(
+                        #events => {
+                            let event = ::serde_json::from_str::<#content>(json.get()).map_err(D::Error::custom)?;
+                            Ok(Self::#variants(event))
+                        },
+                    )*
+                    #custom_deserialize
+                }
+            }
+        }
+    };
+
+    let field_accessor_impl = accessor_methods(kind, var, &variants);
+
+    Some(quote! {
+        #any_enum
+
+        #field_accessor_impl
+
+        #event_deserialize_impl
+    })
 }
 
 /// Generates the 3 redacted state enums, 2 redacted message enums,
@@ -154,58 +145,52 @@ pub fn expand_stripped_enum(input: &EventEnumInput) -> syn::Result<TokenStream> 
 ///
 /// No content enums are generated since no part of the API deals with
 /// redacted event's content. There are only five state variants that contain content.
-fn expand_any_redacted_enum_with_deserialize(
-    input: &EventEnumInput,
-    ident: &Ident,
-) -> syn::Result<TokenStream> {
-    let name = ident.to_string().trim_start_matches("Any").to_string();
+fn expand_any_redacted(
+    kind: &EventKind,
+    events: &[LitStr],
+    attrs: &[Attribute],
+    variants: &[Ident],
+) -> TokenStream {
+    use EventKindVariation::*;
 
-    let redacted_enums_deserialize = if ident.to_string().contains("State") {
-        let ident = Ident::new(&format!("AnyRedacted{}", name), ident.span());
-
-        let full = expand_any_enum_with_deserialize(input, &ident)?;
-
-        let ident = Ident::new(&format!("AnyRedacted{}Stub", name), ident.span());
-        let stub = expand_any_enum_with_deserialize(input, &ident)?;
-
-        let ident = Ident::new(&format!("AnyRedactedStripped{}Stub", name), ident.span());
-        let stripped = expand_any_enum_with_deserialize(input, &ident)?;
+    if kind.is_state() {
+        let state_full = expand_any_with_deser(kind, events, attrs, variants, &Redacted);
+        let state_stub = expand_any_with_deser(kind, events, attrs, variants, &RedactedStub);
+        let state_stripped =
+            expand_any_with_deser(kind, events, attrs, variants, &RedactedStripped);
 
         quote! {
-            #full
+            #state_full
 
-            #stub
+            #state_stub
 
-            #stripped
+            #state_stripped
+        }
+    } else if kind.is_message() {
+        let message_full = expand_any_with_deser(kind, events, attrs, variants, &Redacted);
+        let message_stub = expand_any_with_deser(kind, events, attrs, variants, &RedactedStub);
+
+        quote! {
+            #message_full
+
+            #message_stub
         }
     } else {
-        let ident = Ident::new(&format!("AnyRedacted{}", name), ident.span());
-
-        let full = expand_any_enum_with_deserialize(input, &ident)?;
-
-        let ident = Ident::new(&format!("AnyRedacted{}Stub", name), ident.span());
-        let stub = expand_any_enum_with_deserialize(input, &ident)?;
-
-        quote! {
-            #full
-
-            #stub
-        }
-    };
-
-    Ok(quote! {
-        #redacted_enums_deserialize
-    })
+        TokenStream::new()
+    }
 }
 
 /// Create a content enum from `EventEnumInput`.
-pub fn expand_content_enum(input: &EventEnumInput, ident: &Ident) -> syn::Result<TokenStream> {
-    let attrs = &input.attrs;
-    let ident = Ident::new(&format!("{}Content", ident), ident.span());
-    let event_type_str = &input.events;
+fn expand_content_enum(
+    kind: &EventKind,
+    events: &[LitStr],
+    attrs: &[Attribute],
+    variants: &[Ident],
+) -> TokenStream {
+    let ident = kind.to_content_enum();
+    let event_type_str = events;
 
-    let variants = input.events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
-    let content = input.events.iter().map(to_event_content_path).collect::<Vec<_>>();
+    let content = events.iter().map(to_event_content_path).collect::<Vec<_>>();
 
     let content_enum = quote! {
         #( #attrs )*
@@ -248,81 +233,24 @@ pub fn expand_content_enum(input: &EventEnumInput, ident: &Ident) -> syn::Result
         }
     };
 
-    let marker_trait_impls = marker_traits(&ident);
+    let marker_trait_impls = marker_traits(&kind);
 
-    Ok(quote! {
+    quote! {
         #content_enum
 
         #event_content_impl
 
         #marker_trait_impls
-    })
+    }
 }
 
-fn expand_any_enum_with_deserialize(
-    input: &EventEnumInput,
-    ident: &Ident,
-) -> syn::Result<TokenStream> {
-    let attrs = &input.attrs;
-    let event_type_str = &input.events;
-    let event_struct = Ident::new(&ident.to_string().replace("Any", ""), ident.span());
+fn expand_custom_variant(
+    event_struct: &Ident,
+    var: &EventKindVariation,
+) -> (TokenStream, TokenStream) {
+    use EventKindVariation::*;
 
-    let variants = input.events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
-    let content =
-        input.events.iter().map(|event| to_event_path(event, &event_struct)).collect::<Vec<_>>();
-
-    let (custom_variant, custom_deserialize) = expand_custom_variant(ident, &event_struct);
-
-    let any_enum = quote! {
-        #( #attrs )*
-        #[derive(Clone, Debug, ::serde::Serialize)]
-        #[serde(untagged)]
-        #[allow(clippy::large_enum_variant)]
-        pub enum #ident {
-            #(
-                #[doc = #event_type_str]
-                #variants(#content),
-            )*
-            #custom_variant
-        }
-    };
-
-    let event_deserialize_impl = quote! {
-        impl<'de> ::serde::de::Deserialize<'de> for #ident {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: ::serde::de::Deserializer<'de>,
-            {
-                use ::serde::de::Error as _;
-
-                let json = Box::<::serde_json::value::RawValue>::deserialize(deserializer)?;
-                let ::ruma_events::EventDeHelper { ev_type, .. } = ::ruma_events::from_raw_json_value(&json)?;
-                match ev_type.as_str() {
-                    #(
-                        #event_type_str => {
-                            let event = ::serde_json::from_str::<#content>(json.get()).map_err(D::Error::custom)?;
-                            Ok(Self::#variants(event))
-                        },
-                    )*
-                    #custom_deserialize
-                }
-            }
-        }
-    };
-
-    let field_accessor_impl = accessor_methods(ident, &variants);
-
-    Ok(quote! {
-        #any_enum
-
-        #field_accessor_impl
-
-        #event_deserialize_impl
-    })
-}
-
-fn expand_custom_variant(ident: &Ident, event_struct: &Ident) -> (TokenStream, TokenStream) {
-    if ident.to_string().contains("Redacted") {
+    if matches!(var, Redacted | RedactedStub | RedactedStripped) {
         (
             quote! {
                 /// A redacted event not defined by the Matrix specification
@@ -358,37 +286,46 @@ fn expand_custom_variant(ident: &Ident, event_struct: &Ident) -> (TokenStream, T
     }
 }
 
-fn marker_traits(ident: &Ident) -> TokenStream {
-    match ident.to_string().as_str() {
-        "AnyStateEventContent" => quote! {
+fn marker_traits(kind: &EventKind) -> TokenStream {
+    let ident = kind.to_content_enum();
+    match kind {
+        EventKind::State(_) => quote! {
             impl ::ruma_events::RoomEventContent for #ident {}
             impl ::ruma_events::StateEventContent for #ident {}
         },
-        "AnyMessageEventContent" => quote! {
+        EventKind::Message(_) => quote! {
             impl ::ruma_events::RoomEventContent for #ident {}
             impl ::ruma_events::MessageEventContent for #ident {}
         },
-        "AnyEphemeralRoomEventContent" => quote! {
+        EventKind::Ephemeral(_) => quote! {
             impl ::ruma_events::EphemeralRoomEventContent for #ident {}
         },
-        "AnyBasicEventContent" => quote! {
+        EventKind::Basic(_) => quote! {
             impl ::ruma_events::BasicEventContent for #ident {}
         },
         _ => TokenStream::new(),
     }
 }
 
-fn accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
-    if ident.to_string().contains("Redacted") {
-        return redacted_accessor_methods(ident, variants);
+fn accessor_methods(
+    kind: &EventKind,
+    var: &EventKindVariation,
+    variants: &[Ident],
+) -> Option<TokenStream> {
+    use EventKindVariation::*;
+
+    let ident = kind.to_event_enum_ident(var)?;
+
+    // matching `EventKindVariation`s
+    if let Redacted | RedactedStub | RedactedStripped = var {
+        return redacted_accessor_methods(kind, var, variants);
     }
 
-    let fields = EVENT_FIELDS
+    let methods = EVENT_FIELDS
         .iter()
-        .map(|(name, has_field)| generate_accessor(name, ident, *has_field, variants));
+        .map(|(name, has_field)| generate_accessor(name, kind, var, *has_field, variants));
 
-    let any_content = ident.to_string().replace("Stub", "").replace("Stripped", "");
-    let content_enum = Ident::new(&format!("{}Content", any_content), ident.span());
+    let content_enum = kind.to_content_enum();
 
     let content = quote! {
         /// Returns the any content enum for this event.
@@ -402,7 +339,7 @@ fn accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
         }
     };
 
-    let prev_content = if PREV_CONTENT_KIND.contains(&ident.to_string().as_str()) {
+    let prev_content = if has_prev_content_field(kind, var) {
         quote! {
             /// Returns the any content enum for this events prev_content.
             pub fn prev_content(&self) -> Option<#content_enum> {
@@ -422,35 +359,42 @@ fn accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
         TokenStream::new()
     };
 
-    quote! {
+    Some(quote! {
         impl #ident {
             #content
 
             #prev_content
 
-            #( #fields )*
+            #( #methods )*
         }
-    }
+    })
 }
 
 /// Redacted events do NOT generate `content` or `prev_content` methods like
 /// un-redacted events; otherwise, they are the same.
-fn redacted_accessor_methods(ident: &Ident, variants: &[Ident]) -> TokenStream {
-    let fields = EVENT_FIELDS
+fn redacted_accessor_methods(
+    kind: &EventKind,
+    var: &EventKindVariation,
+    variants: &[Ident],
+) -> Option<TokenStream> {
+    // this will never fail as it is called in `expand_any_with_deser`.
+    let ident = kind.to_event_enum_ident(var).unwrap();
+    let methods = EVENT_FIELDS
         .iter()
-        .map(|(name, has_field)| generate_accessor(name, ident, *has_field, variants));
+        .map(|(name, has_field)| generate_accessor(name, kind, var, *has_field, variants));
 
-    quote! {
+    Some(quote! {
         impl #ident {
-            #( #fields )*
+            #( #methods )*
         }
-    }
+    })
 }
 
 fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
     let span = name.span();
     let name = name.value();
 
+    // There is no need to give a good compiler error as `to_camel_case` is called first.
     assert_eq!(&name[..2], "m.");
 
     let path = name[2..].split('.').collect::<Vec<_>>();
@@ -473,15 +417,15 @@ fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
             quote! { ::ruma_events::room::redaction::#redaction }
         }
         "ToDeviceEvent" | "StateEventStub" | "StrippedStateEventStub" | "MessageEventStub" => {
-            let content = Ident::new(&format!("{}EventContent", event), span);
+            let content = format_ident!("{}EventContent", event);
             quote! { ::ruma_events::#struct_name<::ruma_events::#( #path )::*::#content> }
         }
         struct_str if struct_str.contains("Redacted") => {
-            let content = Ident::new(&format!("Redacted{}EventContent", event), span);
+            let content = format_ident!("Redacted{}EventContent", event);
             quote! { ::ruma_events::#struct_name<::ruma_events::#( #path )::*::#content> }
         }
         _ => {
-            let event_name = Ident::new(&format!("{}Event", event), span);
+            let event_name = format_ident!("{}Event", event);
             quote! { ::ruma_events::#( #path )::*::#event_name }
         }
     }
@@ -491,6 +435,7 @@ fn to_event_content_path(name: &LitStr) -> TokenStream {
     let span = name.span();
     let name = name.value();
 
+    // There is no need to give a good compiler error as `to_camel_case` is called first.
     assert_eq!(&name[..2], "m.");
 
     let path = name[2..].split('.').collect::<Vec<_>>();
@@ -501,7 +446,7 @@ fn to_event_content_path(name: &LitStr) -> TokenStream {
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
         .collect::<String>();
 
-    let content_str = Ident::new(&format!("{}EventContent", event), span);
+    let content_str = format_ident!("{}EventContent", event);
     let path = path.iter().map(|s| Ident::new(s, span));
     quote! {
         ::ruma_events::#( #path )::*::#content_str
@@ -510,7 +455,7 @@ fn to_event_content_path(name: &LitStr) -> TokenStream {
 
 /// Splits the given `event_type` string on `.` and `_` removing the `m.room.` then
 /// camel casing to give the `Event` struct name.
-pub(crate) fn to_camel_case(name: &LitStr) -> syn::Result<Ident> {
+fn to_camel_case(name: &LitStr) -> syn::Result<Ident> {
     let span = name.span();
     let name = name.value();
 
@@ -531,11 +476,12 @@ pub(crate) fn to_camel_case(name: &LitStr) -> syn::Result<Ident> {
 
 fn generate_accessor(
     name: &str,
-    ident: &Ident,
-    event_kind_list: &[&str],
+    kind: &EventKind,
+    var: &EventKindVariation,
+    is_event_kind: EventKindFn,
     variants: &[Ident],
 ) -> TokenStream {
-    if event_kind_list.contains(&ident.to_string().as_str()) {
+    if is_event_kind(kind, var) {
         let field_type = field_return_type(name);
 
         let name = Ident::new(name, Span::call_site());
@@ -556,11 +502,6 @@ fn generate_accessor(
     }
 }
 
-/// Returns true if the `ident` is a state or message event.
-fn needs_redacted(ident: &Ident) -> bool {
-    REDACTED_EVENT_KIND.contains(&ident.to_string().as_str())
-}
-
 fn field_return_type(name: &str) -> TokenStream {
     match name {
         "origin_server_ts" => quote! { ::std::time::SystemTime },
@@ -575,34 +516,127 @@ fn field_return_type(name: &str) -> TokenStream {
 
 /// Custom keywords for the `event_enum!` macro
 mod kw {
-    syn::custom_keyword!(name);
+    syn::custom_keyword!(kind);
     syn::custom_keyword!(events);
+}
+
+// If the variants of this enum change `to_event_path` needs to be updated as well.
+enum EventKindVariation {
+    Full,
+    Stub,
+    Stripped,
+    Redacted,
+    RedactedStub,
+    RedactedStripped,
+}
+
+// If the variants of this enum change `to_event_path` needs to be updated as well.
+enum EventKind {
+    Basic(Ident),
+    Ephemeral(Ident),
+    Message(Ident),
+    State(Ident),
+    ToDevice(Ident),
+}
+
+impl EventKind {
+    fn is_state(&self) -> bool {
+        matches!(self, Self::State(_))
+    }
+
+    fn is_message(&self) -> bool {
+        matches!(self, Self::Message(_))
+    }
+
+    fn to_event_ident(&self, var: &EventKindVariation) -> Option<Ident> {
+        use EventKindVariation::*;
+
+        match (self, var) {
+            // all `EventKind`s are valid event structs and event enums.
+            (_, Full) => Some(format_ident!("{}Event", self.get_ident())),
+            (Self::Ephemeral(i), Stub) | (Self::Message(i), Stub) | (Self::State(i), Stub) => {
+                Some(format_ident!("{}EventStub", i))
+            }
+            (Self::State(i), Stripped) => Some(format_ident!("Stripped{}EventStub", i)),
+            (Self::Message(i), Redacted) | (Self::State(i), Redacted) => {
+                Some(format_ident!("Redacted{}Event", i))
+            }
+            (Self::Message(i), RedactedStub) | (Self::State(i), RedactedStub) => {
+                Some(format_ident!("Redacted{}EventStub", i))
+            }
+            (Self::State(i), RedactedStripped) => {
+                Some(format_ident!("RedactedStripped{}EventStub", i))
+            }
+            _ => None,
+        }
+    }
+
+    fn to_event_enum_ident(&self, var: &EventKindVariation) -> Option<Ident> {
+        Some(format_ident!("Any{}", self.to_event_ident(var)?))
+    }
+
+    /// `Any[kind]EventContent`
+    fn to_content_enum(&self) -> Ident {
+        format_ident!("Any{}EventContent", self.get_ident())
+    }
+
+    fn get_ident(&self) -> &Ident {
+        match self {
+            EventKind::Basic(i)
+            | EventKind::Ephemeral(i)
+            | EventKind::Message(i)
+            | EventKind::State(i)
+            | EventKind::ToDevice(i) => i,
+        }
+    }
+}
+
+impl Parse for EventKind {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let ident = input.parse::<Ident>()?;
+        Ok(match ident.to_string().as_str() {
+            "Basic" => EventKind::Basic(ident),
+            "EphemeralRoom" => EventKind::Ephemeral(ident),
+            "Message" => EventKind::Message(ident),
+            "State" => EventKind::State(ident),
+            "ToDevice" => EventKind::ToDevice(ident),
+            id => {
+                return Err(syn::Error::new(
+                    input.span(),
+                    format!(
+                        "valid event kinds are Basic, EphemeralRoom, Message, State, ToDevice found `{}`",
+                        id
+                    ),
+                ));
+            }
+        })
+    }
 }
 
 /// The entire `event_enum!` macro structure directly as it appears in the source code.
 pub struct EventEnumInput {
     /// Outer attributes on the field, such as a docstring.
-    pub attrs: Vec<Attribute>,
+    attrs: Vec<Attribute>,
 
     /// The name of the event.
-    pub name: Ident,
+    name: EventKind,
 
     /// An array of valid matrix event types. This will generate the variants of the event type "name".
     /// There needs to be a corresponding variant in `ruma_events::EventType` for
     /// this event (converted to a valid Rust-style type name by stripping `m.`, replacing the
     /// remaining dots by underscores and then converting from snake_case to CamelCase).
-    pub events: Vec<LitStr>,
+    events: Vec<LitStr>,
 }
 
 impl Parse for EventEnumInput {
     fn parse(input: ParseStream<'_>) -> parse::Result<Self> {
         let attrs = input.call(Attribute::parse_outer)?;
         // "name" field
-        input.parse::<kw::name>()?;
+        input.parse::<kw::kind>()?;
         input.parse::<Token![:]>()?;
 
         // the name of our event enum
-        let name: Ident = input.parse()?;
+        let name = input.parse::<EventKind>()?;
         input.parse::<Token![,]>()?;
 
         // "events" field

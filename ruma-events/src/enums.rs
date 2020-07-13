@@ -6,7 +6,7 @@ use crate::{from_raw_json_value, EventDeHelper};
 
 event_enum! {
     /// Any basic event.
-    name: AnyBasicEvent,
+    kind: Basic,
     events: [
         "m.direct",
         "m.dummy",
@@ -20,7 +20,7 @@ event_enum! {
 
 event_enum! {
     /// Any ephemeral room event.
-    name: AnyEphemeralRoomEvent,
+    kind: EphemeralRoom,
     events: [
         "m.fully_read",
         "m.receipt",
@@ -30,7 +30,7 @@ event_enum! {
 
 event_enum! {
     /// Any message event.
-    name: AnyMessageEvent,
+    kind: Message,
     events: [
         "m.call.answer",
         "m.call.invite",
@@ -46,7 +46,7 @@ event_enum! {
 
 event_enum! {
     /// Any state event.
-    name: AnyStateEvent,
+    kind: State,
     events: [
         "m.room.aliases",
         "m.room.avatar",
@@ -69,7 +69,7 @@ event_enum! {
 
 event_enum! {
     /// Any to-device event.
-    name: AnyToDeviceEvent,
+    kind: ToDevice,
     events: [
         "m.dummy",
         "m.room_key",
