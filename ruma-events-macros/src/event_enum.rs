@@ -8,58 +8,27 @@ use syn::{
     Attribute, Expr, ExprLit, Ident, Lit, LitStr, Token,
 };
 
-fn room_event_kind(name: &EventKind, var: &EventKindVariation) -> bool {
-    matches!(
-        (name, var),
-        (EventKind::Message(_),EventKindVariation::Full)
-            | (EventKind::Message(_), EventKindVariation::Stub)
-            | (EventKind::Message(_), EventKindVariation::Redacted)
-            | (EventKind::Message(_), EventKindVariation::RedactedStub)
-            | (EventKind::State(_), EventKindVariation::Full)
-            | (EventKind::State(_), EventKindVariation::Stub)
-            | (EventKind::State(_), EventKindVariation::Redacted)
-            | (EventKind::State(_), EventKindVariation::RedactedStub)
-    )
+fn room_event_kind(kind: &EventKind, var: &EventKindVariation) -> bool {
+    matches!(kind, EventKind::Message(_) | EventKind::State(_))
+        && !matches!(var, EventKindVariation::Stripped | EventKindVariation::RedactedStripped)
 }
 
-fn room_id_kind(name: &EventKind, var: &EventKindVariation) -> bool {
-    matches!(
-        (name, var),
-        (EventKind::Message(_), EventKindVariation::Full)
-            | (EventKind::Message(_), EventKindVariation::Redacted)
-            | (EventKind::State(_), EventKindVariation::Full)
-            | (EventKind::State(_), EventKindVariation::Redacted)
-            | (EventKind::Ephemeral(_), EventKindVariation::Full)
-    )
+fn room_id_kind(kind: &EventKind, var: &EventKindVariation) -> bool {
+    matches!(kind, EventKind::Message(_) | EventKind::State(_))
+        && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
 }
 
-fn event_id_kind(name: &EventKind, var: &EventKindVariation) -> bool {
-    matches!(
-        (name, var),
-        (EventKind::Message(_),EventKindVariation::Full)
-            | (EventKind::Message(_), EventKindVariation::Stub)
-            | (EventKind::Message(_), EventKindVariation::Redacted)
-            | (EventKind::Message(_), EventKindVariation::RedactedStub)
-            | (EventKind::State(_), EventKindVariation::Full)
-            | (EventKind::State(_), EventKindVariation::Stub)
-            | (EventKind::State(_), EventKindVariation::Redacted)
-            | (EventKind::State(_), EventKindVariation::RedactedStub)
-    )
+fn sender_id_kind(kind: &EventKind, _var: &EventKindVariation) -> bool {
+    matches!(kind, EventKind::Message(_) | EventKind::State(_) | EventKind::ToDevice(_))
 }
 
-fn sender_id_kind(name: &EventKind, _var: &EventKindVariation) -> bool {
-    matches!(name, EventKind::Message(_) | EventKind::State(_) | EventKind::ToDevice(_))
+fn prev_content_kind(kind: &EventKind, var: &EventKindVariation) -> bool {
+    matches!(kind, EventKind::State(_))
+        && matches!(var, EventKindVariation::Full | EventKindVariation::Stub)
 }
 
-fn prev_content_kind(name: &EventKind, var: &EventKindVariation) -> bool {
-    matches!(
-        (name, var),
-        (EventKind::State(_), EventKindVariation::Full) | (EventKind::State(_), EventKindVariation::Stub)
-    )
-}
-
-fn state_key_kind(name: &EventKind, _var: &EventKindVariation) -> bool {
-    matches!(name, EventKind::State(_))
+fn state_key_kind(kind: &EventKind, _var: &EventKindVariation) -> bool {
+    matches!(kind, EventKind::State(_))
 }
 
 type EventKindFn = fn(&EventKind, &EventKindVariation) -> bool;
@@ -70,7 +39,7 @@ type EventKindFn = fn(&EventKind, &EventKindVariation) -> bool;
 const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
     ("origin_server_ts", room_event_kind),
     ("room_id", room_id_kind),
-    ("event_id", event_id_kind),
+    ("event_id", room_event_kind),
     ("sender", sender_id_kind),
     ("state_key", state_key_kind),
     ("unsigned", room_event_kind),
@@ -109,12 +78,12 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
     })
 }
 
-fn generate_event_idents(name: &EventKind, var: &EventKindVariation) -> Option<(Ident, Ident)> {
-    Some((name.to_event_ident(var)?, name.to_event_enum_ident(var)?))
+fn generate_event_idents(kind: &EventKind, var: &EventKindVariation) -> Option<(Ident, Ident)> {
+    Some((kind.to_event_ident(var)?, kind.to_event_enum_ident(var)?))
 }
 
 fn expand_any_with_deser(
-    name: &EventKind,
+    kind: &EventKind,
     events: &[LitStr],
     attrs: &[Attribute],
     variants: &[Ident],
@@ -123,7 +92,7 @@ fn expand_any_with_deser(
     // If the event cannot be generated this bails out returning None which is rendered the same
     // as an empty `TokenStream`. This is effectively the check if the given input generates
     // a valid event enum.
-    let (event_struct, ident) = generate_event_idents(name, var)?;
+    let (event_struct, ident) = generate_event_idents(kind, var)?;
 
     let content =
         events.iter().map(|event| to_event_path(event, &event_struct)).collect::<Vec<_>>();
@@ -167,7 +136,7 @@ fn expand_any_with_deser(
         }
     };
 
-    let field_accessor_impl = accessor_methods(name, var, &variants);
+    let field_accessor_impl = accessor_methods(kind, var, &variants);
 
     Some(quote! {
         #any_enum
@@ -184,18 +153,18 @@ fn expand_any_with_deser(
 /// No content enums are generated since no part of the API deals with
 /// redacted event's content. There are only five state variants that contain content.
 fn expand_any_redacted(
-    name: &EventKind,
+    kind: &EventKind,
     events: &[LitStr],
     attrs: &[Attribute],
     variants: &[Ident],
 ) -> TokenStream {
     use EventKindVariation::*;
 
-    if name.is_state() {
-        let state_full = expand_any_with_deser(name, events, attrs, variants, &Redacted);
-        let state_stub = expand_any_with_deser(name, events, attrs, variants, &RedactedStub);
+    if kind.is_state() {
+        let state_full = expand_any_with_deser(kind, events, attrs, variants, &Redacted);
+        let state_stub = expand_any_with_deser(kind, events, attrs, variants, &RedactedStub);
         let state_stripped =
-            expand_any_with_deser(name, events, attrs, variants, &RedactedStripped);
+            expand_any_with_deser(kind, events, attrs, variants, &RedactedStripped);
 
         quote! {
             #state_full
@@ -204,9 +173,9 @@ fn expand_any_redacted(
 
             #state_stripped
         }
-    } else if name.is_message() {
-        let message_full = expand_any_with_deser(name, events, attrs, variants, &Redacted);
-        let message_stub = expand_any_with_deser(name, events, attrs, variants, &RedactedStub);
+    } else if kind.is_message() {
+        let message_full = expand_any_with_deser(kind, events, attrs, variants, &Redacted);
+        let message_stub = expand_any_with_deser(kind, events, attrs, variants, &RedactedStub);
 
         quote! {
             #message_full
@@ -220,12 +189,12 @@ fn expand_any_redacted(
 
 /// Create a content enum from `EventEnumInput`.
 pub fn expand_content_enum(
-    name: &EventKind,
+    kind: &EventKind,
     events: &[LitStr],
     attrs: &[Attribute],
     variants: &[Ident],
 ) -> TokenStream {
-    let ident = name.to_content_enum();
+    let ident = kind.to_content_enum();
     let event_type_str = events;
 
     let content = events.iter().map(to_event_content_path).collect::<Vec<_>>();
@@ -271,7 +240,7 @@ pub fn expand_content_enum(
         }
     };
 
-    let marker_trait_impls = marker_traits(&name);
+    let marker_trait_impls = marker_traits(&kind);
 
     quote! {
         #content_enum
