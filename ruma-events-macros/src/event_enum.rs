@@ -8,27 +8,19 @@ use syn::{
     Attribute, Expr, ExprLit, Ident, Lit, LitStr, Token,
 };
 
-fn room_event_kind(kind: &EventKind, var: &EventKindVariation) -> bool {
+fn is_non_stripped_room_event(kind: &EventKind, var: &EventKindVariation) -> bool {
     matches!(kind, EventKind::Message(_) | EventKind::State(_))
         && !matches!(var, EventKindVariation::Stripped | EventKindVariation::RedactedStripped)
 }
 
-fn room_id_kind(kind: &EventKind, var: &EventKindVariation) -> bool {
+fn has_room_id_field(kind: &EventKind, var: &EventKindVariation) -> bool {
     matches!(kind, EventKind::Message(_) | EventKind::State(_))
         && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
 }
 
-fn sender_id_kind(kind: &EventKind, _var: &EventKindVariation) -> bool {
-    matches!(kind, EventKind::Message(_) | EventKind::State(_) | EventKind::ToDevice(_))
-}
-
-fn prev_content_kind(kind: &EventKind, var: &EventKindVariation) -> bool {
+fn has_prev_content_field(kind: &EventKind, var: &EventKindVariation) -> bool {
     matches!(kind, EventKind::State(_))
         && matches!(var, EventKindVariation::Full | EventKindVariation::Stub)
-}
-
-fn state_key_kind(kind: &EventKind, _var: &EventKindVariation) -> bool {
-    matches!(kind, EventKind::State(_))
 }
 
 type EventKindFn = fn(&EventKind, &EventKindVariation) -> bool;
@@ -37,12 +29,15 @@ type EventKindFn = fn(&EventKind, &EventKindVariation) -> bool;
 ///
 /// DO NOT alter the field names unless the structs in `ruma_events::event_kinds` have changed.
 const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
-    ("origin_server_ts", room_event_kind),
-    ("room_id", room_id_kind),
-    ("event_id", room_event_kind),
-    ("sender", sender_id_kind),
-    ("state_key", state_key_kind),
-    ("unsigned", room_event_kind),
+    ("origin_server_ts", is_non_stripped_room_event),
+    ("room_id", has_room_id_field),
+    ("event_id", is_non_stripped_room_event),
+    (
+        "sender",
+        |kind, _| matches!(kind, EventKind::Message(_) | EventKind::State(_) | EventKind::ToDevice(_)),
+    ),
+    ("state_key", |kind, _| matches!(kind, EventKind::State(_))),
+    ("unsigned", is_non_stripped_room_event),
 ];
 
 /// Create a content enum from `EventEnumInput`.
@@ -188,7 +183,7 @@ fn expand_any_redacted(
 }
 
 /// Create a content enum from `EventEnumInput`.
-pub fn expand_content_enum(
+fn expand_content_enum(
     kind: &EventKind,
     events: &[LitStr],
     attrs: &[Attribute],
@@ -346,7 +341,7 @@ fn accessor_methods(
         }
     };
 
-    let prev_content = if prev_content_kind(kind, var) {
+    let prev_content = if has_prev_content_field(kind, var) {
         quote! {
             /// Returns the any content enum for this events prev_content.
             pub fn prev_content(&self) -> Option<#content_enum> {
@@ -462,7 +457,7 @@ fn to_event_content_path(name: &LitStr) -> TokenStream {
 
 /// Splits the given `event_type` string on `.` and `_` removing the `m.room.` then
 /// camel casing to give the `Event` struct name.
-pub(crate) fn to_camel_case(name: &LitStr) -> syn::Result<Ident> {
+fn to_camel_case(name: &LitStr) -> syn::Result<Ident> {
     let span = name.span();
     let name = name.value();
 
@@ -527,7 +522,8 @@ mod kw {
     syn::custom_keyword!(events);
 }
 
-pub enum EventKindVariation {
+// If the variants of this enum change `to_event_path` needs to be updated as well.
+enum EventKindVariation {
     Full,
     Stub,
     Stripped,
@@ -536,7 +532,8 @@ pub enum EventKindVariation {
     RedactedStripped,
 }
 
-pub enum EventKind {
+// If the variants of this enum change `to_event_path` needs to be updated as well.
+enum EventKind {
     Basic(Ident),
     Ephemeral(Ident),
     Message(Ident),
@@ -621,16 +618,16 @@ impl Parse for EventKind {
 /// The entire `event_enum!` macro structure directly as it appears in the source code.
 pub struct EventEnumInput {
     /// Outer attributes on the field, such as a docstring.
-    pub attrs: Vec<Attribute>,
+    attrs: Vec<Attribute>,
 
     /// The name of the event.
-    pub name: EventKind,
+    name: EventKind,
 
     /// An array of valid matrix event types. This will generate the variants of the event type "name".
     /// There needs to be a corresponding variant in `ruma_events::EventType` for
     /// this event (converted to a valid Rust-style type name by stripping `m.`, replacing the
     /// remaining dots by underscores and then converting from snake_case to CamelCase).
-    pub events: Vec<LitStr>,
+    events: Vec<LitStr>,
 }
 
 impl Parse for EventEnumInput {
