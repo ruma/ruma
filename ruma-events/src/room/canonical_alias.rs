@@ -54,7 +54,7 @@ mod tests {
             prev_content: None,
             room_id: RoomId::try_from("!dummy:example.com").unwrap(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
-            state_key: "".to_string(),
+            state_key: "".into(),
             unsigned: UnsignedData::default(),
         };
 

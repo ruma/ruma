@@ -78,10 +78,10 @@ mod tests {
     fn serialization() {
         let key_verification_start_content =
             EncryptedEventContent::MegolmV1AesSha2(MegolmV1AesSha2Content {
-                ciphertext: "ciphertext".to_string(),
-                sender_key: "sender_key".to_string(),
-                device_id: "device_id".to_string(),
-                session_id: "session_id".to_string(),
+                ciphertext: "ciphertext".into(),
+                sender_key: "sender_key".into(),
+                device_id: "device_id".into(),
+                session_id: "session_id".into(),
             });
 
         let json_data = json!({

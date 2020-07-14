@@ -149,8 +149,8 @@ mod tests {
     #[test]
     fn test_serialize_authentication_data_direct_request() {
         let authentication_data = AuthData::DirectRequest {
-            kind: "example.type.foo".to_string(),
-            session: Some("ZXY000".to_string()),
+            kind: "example.type.foo".into(),
+            session: Some("ZXY000".into()),
             auth_parameters: btreemap! {
                 "example_credential".to_owned() => json!("verypoorsharedsecret")
             },
@@ -187,8 +187,7 @@ mod tests {
 
     #[test]
     fn test_serialize_authentication_data_fallback() {
-        let authentication_data =
-            AuthData::FallbackAcknowledgement { session: "ZXY000".to_string() };
+        let authentication_data = AuthData::FallbackAcknowledgement { session: "ZXY000".into() };
 
         assert_eq!(json!({ "session": "ZXY000" }), to_json_value(authentication_data).unwrap());
     }
@@ -208,9 +207,9 @@ mod tests {
     fn test_serialize_uiaa_info() {
         let uiaa_info = UiaaInfo {
             flows: vec![AuthFlow {
-                stages: vec!["m.login.password".to_string(), "m.login.dummy".to_string()],
+                stages: vec!["m.login.password".into(), "m.login.dummy".into()],
             }],
-            completed: vec!["m.login.password".to_string()],
+            completed: vec!["m.login.password".into()],
             params: to_raw_json_value(&json!({
                 "example.type.baz": {
                     "example_key": "foobar"
@@ -267,18 +266,18 @@ mod tests {
                 params,
                 session: Some(session),
             } if error_message == "Invalid password"
-                && completed == vec!["example.type.foo".to_string()]
+                && completed == vec!["example.type.foo".to_owned()]
                 && flows == vec![
                     AuthFlow {
                         stages: vec![
-                            "example.type.foo".to_string(),
-                            "example.type.bar".to_string(),
+                            "example.type.foo".into(),
+                            "example.type.bar".into(),
                         ],
                     },
                     AuthFlow {
                         stages: vec![
-                            "example.type.foo".to_string(),
-                            "example.type.baz".to_string(),
+                            "example.type.foo".into(),
+                            "example.type.baz".into(),
                         ],
                     },
                 ]
@@ -295,9 +294,9 @@ mod tests {
     fn test_try_uiaa_response_into_http_response() {
         let uiaa_info = UiaaInfo {
             flows: vec![AuthFlow {
-                stages: vec!["m.login.password".to_string(), "m.login.dummy".to_string()],
+                stages: vec!["m.login.password".into(), "m.login.dummy".into()],
             }],
-            completed: vec!["m.login.password".to_string()],
+            completed: vec!["m.login.password".into()],
             params: to_raw_json_value(&json!({
                 "example.type.baz": {
                     "example_key": "foobar"
@@ -318,9 +317,9 @@ mod tests {
                 session: None,
                 auth_error: None,
             } if flows == vec![AuthFlow {
-                    stages: vec!["m.login.password".to_string(), "m.login.dummy".to_string()],
+                    stages: vec!["m.login.password".into(), "m.login.dummy".into()],
                 }]
-                && completed == vec!["m.login.password".to_string()]
+                && completed == vec!["m.login.password".to_owned()]
                 && from_json_str::<JsonValue>(params.get()).unwrap() == json!({
                     "example.type.baz": {
                         "example_key": "foobar"
@@ -375,18 +374,18 @@ mod tests {
                 params,
                 session: Some(session),
             } if error_message == "Invalid password"
-                && completed == vec!["example.type.foo".to_string()]
+                && completed == vec!["example.type.foo".to_owned()]
                 && flows == vec![
                     AuthFlow {
                         stages: vec![
-                            "example.type.foo".to_string(),
-                            "example.type.bar".to_string(),
+                            "example.type.foo".into(),
+                            "example.type.bar".into(),
                         ],
                     },
                     AuthFlow {
                         stages: vec![
-                            "example.type.foo".to_string(),
-                            "example.type.baz".to_string(),
+                            "example.type.foo".into(),
+                            "example.type.baz".into(),
                         ],
                     },
                 ]

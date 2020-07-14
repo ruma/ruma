@@ -133,7 +133,7 @@ mod tests {
     #[test]
     fn custom_cancel_codes_serialize_to_display_form() {
         assert_eq!(
-            to_json_value(&CancelCode::Custom("io.ruma.test".to_string())).unwrap(),
+            to_json_value(&CancelCode::Custom("io.ruma.test".into())).unwrap(),
             json!("io.ruma.test")
         );
     }
@@ -147,7 +147,7 @@ mod tests {
     fn custom_cancel_codes_deserialize_from_display_form() {
         assert_eq!(
             from_json_value::<CancelCode>(json!("io.ruma.test")).unwrap(),
-            CancelCode::Custom("io.ruma.test".to_string())
+            CancelCode::Custom("io.ruma.test".into())
         )
     }
 }

@@ -45,7 +45,7 @@ fn serialize_aliases_with_prev_content() {
         })),
         room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        state_key: "".to_string(),
+        state_key: "".into(),
         unsigned: UnsignedData::default(),
     };
 
@@ -66,7 +66,7 @@ fn serialize_aliases_without_prev_content() {
         prev_content: None,
         room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        state_key: "".to_string(),
+        state_key: "".into(),
         unsigned: UnsignedData::default(),
     };
 
@@ -228,7 +228,7 @@ fn deserialize_avatar_without_prev_content() {
                             size: thumb_size,
                         } if *thumb_width == UInt::new(800)
                             && *thumb_height == UInt::new(334)
-                            && *thumb_mimetype == Some("image/png".to_string())
+                            && *thumb_mimetype == Some("image/png".into())
                             && *thumb_size == UInt::new(82595)
                             && *thumbnail_url == "mxc://matrix.org"
                     )
@@ -279,6 +279,6 @@ fn deserialize_member_event_with_top_level_membership_field() {
         )) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
             && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
             && sender == UserId::try_from("@example:localhost").unwrap()
-            && content.displayname == Some("example".to_string())
+            && content.displayname == Some("example".into())
     );
 }

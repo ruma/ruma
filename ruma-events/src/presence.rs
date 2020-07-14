@@ -66,12 +66,12 @@ mod tests {
     fn serialization() {
         let event = PresenceEvent {
             content: PresenceEventContent {
-                avatar_url: Some("mxc://localhost:wefuiwegh8742w".to_string()),
+                avatar_url: Some("mxc://localhost:wefuiwegh8742w".into()),
                 currently_active: Some(false),
                 displayname: None,
                 last_active_ago: Some(uint!(2_478_593)),
                 presence: PresenceState::Online,
-                status_msg: Some("Making cupcakes".to_string()),
+                status_msg: Some("Making cupcakes".into()),
             },
             sender: UserId::try_from("@example:localhost").unwrap(),
         };

@@ -296,7 +296,7 @@ mod test {
     fn sign_empty_json() {
         let key_pair = Ed25519KeyPair::new(
             decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
-            "1".to_string(),
+            "1".into(),
         )
         .unwrap();
 
@@ -315,10 +315,10 @@ mod test {
         let value = from_str(r#"{"signatures":{"domain":{"ed25519:1":"lXjsnvhVlz8t3etR+6AEJ0IT70WujeHC1CFjDDsVx0xSig1Bx7lvoi1x3j/2/GPNjQM4a2gD34UqsXFluaQEBA"}}}"#).unwrap();
 
         let mut signature_set = HashMap::new();
-        signature_set.insert("ed25519:1".to_string(), public_key_string());
+        signature_set.insert("ed25519:1".into(), public_key_string());
 
         let mut public_key_map = HashMap::new();
-        public_key_map.insert("domain".to_string(), signature_set);
+        public_key_map.insert("domain".into(), signature_set);
 
         assert!(verify_json(&public_key_map, &value).is_ok());
     }
@@ -327,7 +327,7 @@ mod test {
     fn sign_minimal_json() {
         let key_pair = Ed25519KeyPair::new(
             decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
-            "1".to_string(),
+            "1".into(),
         )
         .unwrap();
 
@@ -366,10 +366,10 @@ mod test {
         ).unwrap();
 
         let mut signature_set = HashMap::new();
-        signature_set.insert("ed25519:1".to_string(), public_key_string());
+        signature_set.insert("ed25519:1".into(), public_key_string());
 
         let mut public_key_map = HashMap::new();
-        public_key_map.insert("domain".to_string(), signature_set);
+        public_key_map.insert("domain".into(), signature_set);
 
         assert!(verify_json(&public_key_map, &value).is_ok());
 
@@ -385,10 +385,10 @@ mod test {
         let value = from_str(r#"{"not":"empty","signatures":{"domain":"lXjsnvhVlz8t3etR+6AEJ0IT70WujeHC1CFjDDsVx0xSig1Bx7lvoi1x3j/2/GPNjQM4a2gD34UqsXFluaQEBA"}}"#).unwrap();
 
         let mut signature_set = HashMap::new();
-        signature_set.insert("ed25519:1".to_string(), public_key_string());
+        signature_set.insert("ed25519:1".into(), public_key_string());
 
         let mut public_key_map = HashMap::new();
-        public_key_map.insert("domain".to_string(), signature_set);
+        public_key_map.insert("domain".into(), signature_set);
 
         assert!(verify_json(&public_key_map, &value).is_err());
     }
@@ -397,7 +397,7 @@ mod test {
     fn sign_minimal_event() {
         let key_pair = Ed25519KeyPair::new(
             decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
-            "1".to_string(),
+            "1".into(),
         )
         .unwrap();
 
@@ -431,7 +431,7 @@ mod test {
     fn sign_redacted_event() {
         let key_pair = Ed25519KeyPair::new(
             decode_config(&PKCS8, STANDARD_NO_PAD).unwrap().as_slice(),
-            "1".to_string(),
+            "1".into(),
         )
         .unwrap();
 
@@ -463,10 +463,10 @@ mod test {
     #[test]
     fn verify_minimal_event() {
         let mut signature_set = HashMap::new();
-        signature_set.insert("ed25519:1".to_string(), public_key_string());
+        signature_set.insert("ed25519:1".into(), public_key_string());
 
         let mut public_key_map = HashMap::new();
-        public_key_map.insert("domain".to_string(), signature_set);
+        public_key_map.insert("domain".into(), signature_set);
 
         let value = from_str(
             r#"{

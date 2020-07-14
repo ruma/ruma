@@ -30,7 +30,7 @@ fn redaction() -> JsonValue {
 #[test]
 fn serialize_redaction() {
     let aliases_event = RedactionEvent {
-        content: RedactionEventContent { reason: Some("being a turd".to_string()) },
+        content: RedactionEventContent { reason: Some("being a turd".into()) },
         redacts: EventId::try_from("$nomore:example.com").unwrap(),
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),

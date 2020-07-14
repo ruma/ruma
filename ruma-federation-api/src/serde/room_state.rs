@@ -88,11 +88,8 @@ mod tests {
 
     #[test]
     fn test_serialize_response() {
-        let room_state = RoomState {
-            origin: "matrix.org".to_string(),
-            auth_chain: Vec::new(),
-            state: Vec::new(),
-        };
+        let room_state =
+            RoomState { origin: "matrix.org".into(), auth_chain: Vec::new(), state: Vec::new() };
 
         let serialized = serialize(&room_state, serde_json::value::Serializer).unwrap();
         let expected = to_json_value(&json!(

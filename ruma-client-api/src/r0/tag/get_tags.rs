@@ -43,8 +43,8 @@ mod tests {
     #[test]
     fn test_serializing_get_tags_response() {
         let mut tags = Tags::new();
-        tags.insert("m.favourite".to_string(), TagInfo { order: Some(0.25) });
-        tags.insert("u.user_tag".to_string(), TagInfo { order: Some(0.11) });
+        tags.insert("m.favourite".into(), TagInfo { order: Some(0.25) });
+        tags.insert("u.user_tag".into(), TagInfo { order: Some(0.11) });
         let response = Response { tags };
 
         let http_response = http::Response::<Vec<u8>>::try_from(response).unwrap();

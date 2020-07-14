@@ -214,7 +214,7 @@ fn deserialize_message_sticker() {
                     size: thumb_size,
                 } if *thumb_width == UInt::new(800)
                     && *thumb_height == UInt::new(334)
-                    && *thumb_mimetype == Some("image/png".to_string())
+                    && *thumb_mimetype == Some("image/png".into())
                     && *thumb_size == UInt::new(82595)
             )
             && url == "http://www.matrix.org"

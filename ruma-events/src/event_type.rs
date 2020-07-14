@@ -306,6 +306,6 @@ mod tests {
         serde_json_eq(EventType::Sticker, json!("m.sticker"));
         serde_json_eq(EventType::Tag, json!("m.tag"));
         serde_json_eq(EventType::Typing, json!("m.typing"));
-        serde_json_eq(EventType::Custom("io.ruma.test".to_string()), json!("io.ruma.test"));
+        serde_json_eq(EventType::Custom("io.ruma.test".into()), json!("io.ruma.test"));
     }
 }

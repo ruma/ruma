@@ -107,12 +107,12 @@ impl MSasV1Content {
     /// * `short_authentication_string` does not include `ShortAuthenticationString::Decimal`.
     pub fn new(options: MSasV1ContentOptions) -> Result<Self, InvalidInput> {
         if !options.key_agreement_protocols.contains(&KeyAgreementProtocol::Curve25519) {
-            return Err(InvalidInput("`key_agreement_protocols` must contain at least `KeyAgreementProtocol::Curve25519`".to_string()));
+            return Err(InvalidInput("`key_agreement_protocols` must contain at least `KeyAgreementProtocol::Curve25519`".into()));
         }
 
         if !options.hashes.contains(&HashAlgorithm::Sha256) {
             return Err(InvalidInput(
-                "`hashes` must contain at least `HashAlgorithm::Sha256`".to_string(),
+                "`hashes` must contain at least `HashAlgorithm::Sha256`".into(),
             ));
         }
 
@@ -120,11 +120,11 @@ impl MSasV1Content {
             .message_authentication_codes
             .contains(&MessageAuthenticationCode::HkdfHmacSha256)
         {
-            return Err(InvalidInput("`message_authentication_codes` must contain at least `MessageAuthenticationCode::HkdfHmacSha256`".to_string()));
+            return Err(InvalidInput("`message_authentication_codes` must contain at least `MessageAuthenticationCode::HkdfHmacSha256`".into()));
         }
 
         if !options.short_authentication_string.contains(&ShortAuthenticationString::Decimal) {
-            return Err(InvalidInput("`short_authentication_string` must contain at least `ShortAuthenticationString::Decimal`".to_string()));
+            return Err(InvalidInput("`short_authentication_string` must contain at least `ShortAuthenticationString::Decimal`".into()));
         }
 
         Ok(Self {
@@ -152,8 +152,8 @@ mod tests {
     #[test]
     fn invalid_m_sas_v1_content_missing_required_key_agreement_protocols() {
         let error = MSasV1Content::new(MSasV1ContentOptions {
-            from_device: "123".to_string(),
-            transaction_id: "456".to_string(),
+            from_device: "123".into(),
+            transaction_id: "456".into(),
             hashes: vec![HashAlgorithm::Sha256],
             key_agreement_protocols: vec![],
             message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
@@ -168,8 +168,8 @@ mod tests {
     #[test]
     fn invalid_m_sas_v1_content_missing_required_hashes() {
         let error = MSasV1Content::new(MSasV1ContentOptions {
-            from_device: "123".to_string(),
-            transaction_id: "456".to_string(),
+            from_device: "123".into(),
+            transaction_id: "456".into(),
             hashes: vec![],
             key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
             message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
@@ -184,8 +184,8 @@ mod tests {
     #[test]
     fn invalid_m_sas_v1_content_missing_required_message_authentication_codes() {
         let error = MSasV1Content::new(MSasV1ContentOptions {
-            from_device: "123".to_string(),
-            transaction_id: "456".to_string(),
+            from_device: "123".into(),
+            transaction_id: "456".into(),
             hashes: vec![HashAlgorithm::Sha256],
             key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
             message_authentication_codes: vec![],
@@ -200,8 +200,8 @@ mod tests {
     #[test]
     fn invalid_m_sas_v1_content_missing_required_short_authentication_string() {
         let error = MSasV1Content::new(MSasV1ContentOptions {
-            from_device: "123".to_string(),
-            transaction_id: "456".to_string(),
+            from_device: "123".into(),
+            transaction_id: "456".into(),
             hashes: vec![HashAlgorithm::Sha256],
             key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
             message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
@@ -217,8 +217,8 @@ mod tests {
     fn serialization() {
         let key_verification_start_content = StartEventContent::MSasV1(
             MSasV1Content::new(MSasV1ContentOptions {
-                from_device: "123".to_string(),
-                transaction_id: "456".to_string(),
+                from_device: "123".into(),
+                transaction_id: "456".into(),
                 hashes: vec![HashAlgorithm::Sha256],
                 key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
                 message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],

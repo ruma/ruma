@@ -12,9 +12,9 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 fn serialize_stripped_state_event_any_content() {
     let event = StrippedStateEvent {
         content: AnyStateEventContent::RoomTopic(TopicEventContent {
-            topic: "Testing room".to_string(),
+            topic: "Testing room".into(),
         }),
-        state_key: "".to_string(),
+        state_key: "".into(),
         sender: UserId::try_from("@example:localhost").unwrap(),
     };
 
@@ -33,8 +33,8 @@ fn serialize_stripped_state_event_any_content() {
 #[test]
 fn serialize_stripped_state_event_any_event() {
     let event = AnyStrippedStateEvent::RoomTopic(StrippedStateEvent {
-        content: TopicEventContent { topic: "Testing room".to_string() },
-        state_key: "".to_string(),
+        content: TopicEventContent { topic: "Testing room".into() },
+        state_key: "".into(),
         sender: UserId::try_from("@example:localhost").unwrap(),
     });
 

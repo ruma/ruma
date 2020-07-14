@@ -191,7 +191,7 @@ mod tests {
             },
             login_info: LoginInfo::Token { token: "0xdeadbeef".to_owned() },
             device_id: None,
-            initial_device_display_name: Some("test".to_string()),
+            initial_device_display_name: Some("test".into()),
         }
         .try_into()
         .unwrap();

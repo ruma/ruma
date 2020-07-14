@@ -49,7 +49,7 @@ fn redacted_aliases_event_serialize() {
     let redacted = RedactedSyncStateEvent {
         content: RedactedAliasesEventContent { aliases: None },
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-        state_key: "".to_string(),
+        state_key: "".into(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         sender: UserId::try_from("@carl:example.com").unwrap(),
         unsigned: UnsignedData::default(),
@@ -246,10 +246,10 @@ fn redacted_custom_event_deserialize() {
     }));
 
     let redacted = RedactedSyncStateEvent {
-        content: RedactedCustomEventContent { event_type: "m.made.up".to_string() },
+        content: RedactedCustomEventContent { event_type: "m.made.up".into() },
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        state_key: "hello there".to_string(),
+        state_key: "hello there".into(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         unsigned: unsigned.clone(),
     };

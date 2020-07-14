@@ -45,7 +45,7 @@ mod tests {
             prev_content: None,
             room_id: RoomId::new(server_name),
             sender: UserId::new(server_name),
-            state_key: "".to_string(),
+            state_key: "".into(),
             unsigned: UnsignedData::default(),
         };
 
