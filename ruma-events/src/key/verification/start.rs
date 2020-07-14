@@ -29,34 +29,34 @@ pub enum StartEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MSasV1Content {
     /// The device ID which is initiating the process.
-    pub(crate) from_device: DeviceId,
+    pub from_device: DeviceId,
 
     /// An opaque identifier for the verification process.
     ///
     /// Must be unique with respect to the devices involved. Must be the same as the
     /// `transaction_id` given in the *m.key.verification.request* if this process is originating
     /// from a request.
-    pub(crate) transaction_id: String,
+    pub transaction_id: String,
 
     /// The key agreement protocols the sending device understands.
     ///
     /// Must include at least `curve25519`.
-    pub(crate) key_agreement_protocols: Vec<KeyAgreementProtocol>,
+    pub key_agreement_protocols: Vec<KeyAgreementProtocol>,
 
     /// The hash methods the sending device understands.
     ///
     /// Must include at least `sha256`.
-    pub(crate) hashes: Vec<HashAlgorithm>,
+    pub hashes: Vec<HashAlgorithm>,
 
     /// The message authentication codes that the sending device understands.
     ///
     /// Must include at least `hkdf-hmac-sha256`.
-    pub(crate) message_authentication_codes: Vec<MessageAuthenticationCode>,
+    pub message_authentication_codes: Vec<MessageAuthenticationCode>,
 
     /// The SAS methods the sending device (and the sending device's user) understands.
     ///
     /// Must include at least `decimal`. Optionally can include `emoji`.
-    pub(crate) short_authentication_string: Vec<ShortAuthenticationString>,
+    pub short_authentication_string: Vec<ShortAuthenticationString>,
 }
 
 /// Options for creating an `MSasV1Content` with `MSasV1Content::new`.
