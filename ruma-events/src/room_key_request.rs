@@ -26,7 +26,7 @@ pub struct RoomKeyRequestEventContent {
     pub body: Option<RequestedKeyInfo>,
 
     /// ID of the device requesting the key.
-    pub requesting_device_id: DeviceId,
+    pub requesting_device_id: Box<DeviceId>,
 
     /// A random string uniquely identifying the request for a key.
     ///

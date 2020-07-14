@@ -13,152 +13,44 @@ use std::{convert::TryFrom, num::NonZeroU8};
 use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
 
 #[doc(inline)]
-pub use crate::error::Error;
+pub use crate::{
+    device_id::DeviceId,
+    device_key_id::DeviceKeyId,
+    error::Error,
+    event_id::EventId,
+    key_algorithms::{DeviceKeyAlgorithm, ServerKeyAlgorithm},
+    room_alias_id::RoomAliasId,
+    room_id::RoomId,
+    room_id_or_room_alias_id::RoomIdOrAliasId,
+    room_version_id::RoomVersionId,
+    server_key_id::ServerKeyId,
+    server_name::ServerName,
+    user_id::UserId,
+};
 
 #[macro_use]
 mod macros;
 
-mod error;
-
 pub mod device_id;
-pub mod device_key_id;
-pub mod event_id;
-pub mod key_algorithms;
-pub mod room_alias_id;
-pub mod room_id;
-pub mod room_id_or_room_alias_id;
-pub mod room_version_id;
-pub mod server_key_id;
-#[allow(deprecated)]
-pub mod server_name;
 pub mod user_id;
 
-/// Allowed algorithms for homeserver signing keys.
-pub type DeviceKeyAlgorithm = key_algorithms::DeviceKeyAlgorithm;
-
-/// An owned device key identifier containing a key algorithm and device ID.
-///
-/// Can be created via `TryFrom<String>` and `TryFrom<&str>`; implements `Serialize`
-/// and `Deserialize` if the `serde` feature is enabled.
-pub type DeviceKeyId = device_key_id::DeviceKeyId<Box<str>>;
-
-/// A reference to a device key identifier containing a key algorithm and device ID.
-///
-/// Can be created via `TryFrom<&str>`; implements `Serialize` and `Deserialize`
-/// if the `serde` feature is enabled.
-pub type DeviceKeyIdRef<'a> = device_key_id::DeviceKeyId<&'a str>;
-
-/// An owned device ID.
-///
-/// While this is currently just a `String`, that will likely change in the future.
-pub use device_id::DeviceId;
-
-/// A reference to a device ID.
-///
-/// While this is currently just a string slice, that will likely change in the future.
-pub type DeviceIdRef<'a> = &'a str;
-
-/// An owned event ID.
-///
-/// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
-/// `TryFrom<&str>`, implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
-pub type EventId = event_id::EventId<Box<str>>;
-
-/// A reference to an event ID.
-///
-/// Can be created via `TryFrom<&str>`, implements `Serialize` if the `serde` feature is enabled.
-pub type EventIdRef<'a> = event_id::EventId<&'a str>;
-
-/// An owned room alias ID.
-///
-/// Can be created via `TryFrom<String>` and `TryFrom<&str>`, implements `Serialize` and
-/// `Deserialize` if the `serde` feature is enabled.
-pub type RoomAliasId = room_alias_id::RoomAliasId<Box<str>>;
-
-/// A reference to a room alias ID.
-///
-/// Can be created via `TryFrom<&str>`, implements `Serialize` if the `serde` feature is enabled.
-pub type RoomAliasIdRef<'a> = room_alias_id::RoomAliasId<&'a str>;
-
-/// An owned room ID.
-///
-/// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
-/// `TryFrom<&str>`, implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
-pub type RoomId = room_id::RoomId<Box<str>>;
-
-/// A reference to a room ID.
-///
-/// Can be created via `TryFrom<&str>`, implements `Serialize` if the `serde` feature is enabled.
-pub type RoomIdRef<'a> = room_id::RoomId<&'a str>;
-
-/// An owned room alias ID or room ID.
-///
-/// Can be created via `TryFrom<String>`, `TryFrom<&str>`, `From<RoomId>` and `From<RoomAliasId>`;
-/// implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
-pub type RoomIdOrAliasId = room_id_or_room_alias_id::RoomIdOrAliasId<Box<str>>;
-
-/// A reference to a room alias ID or room ID.
-///
-/// Can be created via `TryFrom<&str>`, `From<RoomIdRef>` and `From<RoomAliasIdRef>`; implements
-/// `Serialize` if the `serde` feature is enabled.
-pub type RoomIdOrAliasIdRef<'a> = room_id_or_room_alias_id::RoomIdOrAliasId<&'a str>;
-
-/// An owned room version ID.
-///
-/// Can be created using the `version_N` constructor functions, `TryFrom<String>` and
-/// `TryFrom<&str>`; implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
-pub type RoomVersionId = room_version_id::RoomVersionId<Box<str>>;
-
-/// A reference to a room version ID.
-///
-/// Can be created using the `version_N` constructor functions and via `TryFrom<&str>`, implements
-/// `Serialize` if the `serde` feature is enabled.
-pub type RoomVersionIdRef<'a> = room_version_id::RoomVersionId<&'a str>;
-
-/// Allowed algorithms for homeserver signing keys.
-pub type ServerKeyAlgorithm = key_algorithms::ServerKeyAlgorithm;
-
-/// An owned homeserver signing key identifier containing a key algorithm and version.
-///
-/// Can be created via `TryFrom<String>` and `TryFrom<&str>`; implements `Serialize`
-/// and `Deserialize` if the `serde` feature is enabled.
-pub type ServerKeyId = server_key_id::ServerKeyId<Box<str>>;
-
-/// A reference to a homeserver signing key identifier containing a key
-/// algorithm and version.
-///
-/// Can be created via `TryFrom<&str>`; implements `Serialize`
-/// and `Deserialize` if the `serde` feature is enabled.
-pub type ServerKeyIdRef<'a> = server_key_id::ServerKeyId<&'a str>;
-
-/// An owned homeserver IP address or hostname.
-///
-/// Can be created via `TryFrom<String>` and `TryFrom<&str>`; implements `Serialize`
-/// and `Deserialize` if the `serde` feature is enabled.
-pub type ServerName = server_name::ServerName<Box<str>>;
-
-/// A reference to a homeserver IP address or hostname.
-///
-/// Can be created via `TryFrom<&str>`; implements `Serialize`
-/// and `Deserialize` if the `serde` feature is enabled.
-pub type ServerNameRef<'a> = server_name::ServerName<&'a str>;
-/// An owned user ID.
-///
-/// Can be created via `new` (if the `rand` feature is enabled) and `TryFrom<String>` +
-/// `TryFrom<&str>`, implements `Serialize` and `Deserialize` if the `serde` feature is enabled.
-pub type UserId = user_id::UserId<Box<str>>;
-
-/// A reference to a user ID.
-///
-/// Can be created via `TryFrom<&str>`, implements `Serialize` if the `serde` feature is enabled.
-pub type UserIdRef<'a> = user_id::UserId<&'a str>;
+mod device_key_id;
+mod error;
+mod event_id;
+mod key_algorithms;
+mod room_alias_id;
+mod room_id;
+mod room_id_or_room_alias_id;
+mod room_version_id;
+mod server_key_id;
+mod server_name;
 
 /// Check whether a given string is a valid server name according to [the specification][].
 ///
 /// [the specification]: https://matrix.org/docs/spec/appendices#server-name
 #[deprecated = "Use the [`ServerName`](server_name/struct.ServerName.html) type instead."]
 pub fn is_valid_server_name(name: &str) -> bool {
-    ServerNameRef::try_from(name).is_ok()
+    <&ServerName>::try_from(name).is_ok()
 }
 
 /// All identifiers must be 255 bytes or less.
@@ -171,9 +63,13 @@ const MIN_CHARS: usize = 4;
 
 /// Generates a random identifier localpart.
 #[cfg(feature = "rand")]
-fn generate_localpart(length: usize) -> String {
+fn generate_localpart(length: usize) -> Box<str> {
     use rand::Rng as _;
-    rand::thread_rng().sample_iter(&rand::distributions::Alphanumeric).take(length).collect()
+    rand::thread_rng()
+        .sample_iter(&rand::distributions::Alphanumeric)
+        .take(length)
+        .collect::<String>()
+        .into_boxed_str()
 }
 
 /// Checks if an identifier is valid.
@@ -203,7 +99,7 @@ fn parse_id(id: &str, valid_sigils: &[char]) -> Result<NonZeroU8, Error> {
         return Err(Error::InvalidLocalPart);
     }
 
-    server_name::ServerName::<&str>::try_from(&id[colon_idx + 1..])?;
+    server_name::validate(&id[colon_idx + 1..])?;
 
     Ok(NonZeroU8::new(colon_idx as u8).unwrap())
 }

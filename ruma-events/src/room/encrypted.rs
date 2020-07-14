@@ -60,7 +60,7 @@ pub struct MegolmV1AesSha2Content {
     pub sender_key: String,
 
     /// The ID of the sending device.
-    pub device_id: DeviceId,
+    pub device_id: Box<DeviceId>,
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,
@@ -117,7 +117,7 @@ mod tests {
                 session_id,
             }) if ciphertext == "ciphertext"
                 && sender_key == "sender_key"
-                && device_id == "device_id"
+                && device_id.as_ref() == "device_id"
                 && session_id == "session_id"
         );
     }

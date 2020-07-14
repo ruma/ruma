@@ -6,20 +6,12 @@ use crate::{error::Error, key_algorithms::ServerKeyAlgorithm};
 
 /// Key identifiers used for homeserver signing keys.
 #[derive(Clone, Debug)]
-pub struct ServerKeyId<T> {
-    full_id: T,
+pub struct ServerKeyId {
+    full_id: Box<str>,
     colon_idx: NonZeroU8,
 }
 
-impl<T> ServerKeyId<T>
-where
-    T: AsRef<str>,
-{
-    /// Creates a reference to this `ServerKeyId`.
-    pub fn as_ref(&self) -> ServerKeyId<&str> {
-        ServerKeyId { full_id: self.full_id.as_ref(), colon_idx: self.colon_idx }
-    }
-
+impl ServerKeyId {
     /// Returns key algorithm of the server key ID.
     pub fn algorithm(&self) -> ServerKeyAlgorithm {
         ServerKeyAlgorithm::from_str(&self.full_id.as_ref()[..self.colon_idx.get() as usize])
@@ -32,9 +24,9 @@ where
     }
 }
 
-fn try_from<S, T>(key_id: S) -> Result<ServerKeyId<T>, Error>
+fn try_from<S>(key_id: S) -> Result<ServerKeyId, Error>
 where
-    S: AsRef<str> + Into<T>,
+    S: AsRef<str> + Into<Box<str>>,
 {
     let key_str = key_id.as_ref();
     let colon_idx =
@@ -83,7 +75,7 @@ mod tests {
     #[cfg(feature = "serde")]
     #[test]
     fn deserialize_id() {
-        let server_key_id: ServerKeyId<_> = from_json_value(json!("ed25519:Abc_1")).unwrap();
+        let server_key_id: ServerKeyId = from_json_value(json!("ed25519:Abc_1")).unwrap();
         assert_eq!(server_key_id.algorithm(), ServerKeyAlgorithm::Ed25519);
         assert_eq!(server_key_id.version(), "Abc_1");
     }
@@ -91,22 +83,19 @@ mod tests {
     #[cfg(feature = "serde")]
     #[test]
     fn serialize_id() {
-        let server_key_id: ServerKeyId<&str> = ServerKeyId::try_from("ed25519:abc123").unwrap();
+        let server_key_id: ServerKeyId = ServerKeyId::try_from("ed25519:abc123").unwrap();
         assert_eq!(to_json_value(&server_key_id).unwrap(), json!("ed25519:abc123"));
     }
 
     #[test]
     fn invalid_version_characters() {
-        assert_eq!(
-            ServerKeyId::<&str>::try_from("ed25519:Abc-1").unwrap_err(),
-            Error::InvalidCharacters,
-        );
+        assert_eq!(ServerKeyId::try_from("ed25519:Abc-1").unwrap_err(), Error::InvalidCharacters,);
     }
 
     #[test]
     fn invalid_key_algorithm() {
         assert_eq!(
-            ServerKeyId::<&str>::try_from("signed_curve25519:Abc-1").unwrap_err(),
+            ServerKeyId::try_from("signed_curve25519:Abc-1").unwrap_err(),
             Error::UnknownKeyAlgorithm,
         );
     }
@@ -114,7 +103,7 @@ mod tests {
     #[test]
     fn missing_delimiter() {
         assert_eq!(
-            ServerKeyId::<&str>::try_from("ed25519|Abc_1").unwrap_err(),
+            ServerKeyId::try_from("ed25519|Abc_1").unwrap_err(),
             Error::MissingServerKeyDelimiter,
         );
     }

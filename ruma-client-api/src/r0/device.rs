@@ -15,7 +15,7 @@ pub mod update_device;
 #[derive(Clone, Debug, Deserialize, Hash, PartialEq, Serialize)]
 pub struct Device {
     /// Device ID
-    pub device_id: DeviceId,
+    pub device_id: Box<DeviceId>,
 
     /// Public display name of the device.
     pub display_name: Option<String>,

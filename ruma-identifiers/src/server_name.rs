@@ -1,53 +1,75 @@
 //! Matrix-spec compliant server names.
 
+use std::{
+    convert::TryFrom,
+    fmt::{self, Display},
+    mem,
+};
+
 use crate::error::Error;
 
 /// A Matrix-spec compliant server name.
-///
-/// It is discouraged to use this type directly – instead use one of the aliases ([`ServerName`](../type.ServerName.html) and
-/// [`ServerNameRef`](../type.ServerNameRef.html)) in the crate root.
-#[derive(Clone, Copy, Debug)]
-pub struct ServerName<T> {
-    full_id: T,
-}
+#[repr(transparent)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
+pub struct ServerName(str);
 
-impl<T> ServerName<T>
-where
-    T: AsRef<str>,
-{
-    /// Creates a reference to this `ServerName`.
-    pub fn as_ref(&self) -> ServerName<&str> {
-        ServerName { full_id: self.full_id.as_ref() }
+impl ServerName {
+    #[allow(clippy::transmute_ptr_to_ptr)]
+    fn from_borrowed(s: &str) -> &Self {
+        unsafe { mem::transmute(s) }
+    }
+
+    fn from_owned(s: Box<str>) -> Box<Self> {
+        unsafe { mem::transmute(s) }
+    }
+
+    fn into_owned(self: Box<Self>) -> Box<str> {
+        unsafe { mem::transmute(self) }
+    }
+
+    /// Creates a string slice from this `ServerName`.
+    pub fn as_str(&self) -> &str {
+        &self.0
     }
 }
 
-fn try_from<S, T>(server_name: S) -> Result<ServerName<T>, Error>
-where
-    S: AsRef<str> + Into<T>,
-{
+impl Clone for Box<ServerName> {
+    fn clone(&self) -> Self {
+        (**self).to_owned()
+    }
+}
+
+impl ToOwned for ServerName {
+    type Owned = Box<ServerName>;
+
+    fn to_owned(&self) -> Self::Owned {
+        Self::from_owned(self.0.to_owned().into_boxed_str())
+    }
+}
+
+pub(crate) fn validate(server_name: &str) -> Result<(), Error> {
     use std::net::Ipv6Addr;
 
-    let name = server_name.as_ref();
-
-    if name.is_empty() {
+    if server_name.is_empty() {
         return Err(Error::InvalidServerName);
     }
 
-    let end_of_host = if name.starts_with('[') {
-        let end_of_ipv6 = match name.find(']') {
+    let end_of_host = if server_name.starts_with('[') {
+        let end_of_ipv6 = match server_name.find(']') {
             Some(idx) => idx,
             None => return Err(Error::InvalidServerName),
         };
 
-        if name[1..end_of_ipv6].parse::<Ipv6Addr>().is_err() {
+        if server_name[1..end_of_ipv6].parse::<Ipv6Addr>().is_err() {
             return Err(Error::InvalidServerName);
         }
 
         end_of_ipv6 + 1
     } else {
-        let end_of_host = name.find(':').unwrap_or_else(|| name.len());
+        let end_of_host = server_name.find(':').unwrap_or_else(|| server_name.len());
 
-        if name[..end_of_host]
+        if server_name[..end_of_host]
             .bytes()
             .any(|byte| !(byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'.'))
         {
@@ -57,81 +79,170 @@ where
         end_of_host
     };
 
-    if name.len() != end_of_host
+    if server_name.len() != end_of_host
         && (
             // hostname is followed by something other than ":port"
-            name.as_bytes()[end_of_host] != b':'
+            server_name.as_bytes()[end_of_host] != b':'
             // the remaining characters after ':' are not a valid port
-            || name[end_of_host + 1..].parse::<u16>().is_err()
+            || server_name[end_of_host + 1..].parse::<u16>().is_err()
         )
     {
         Err(Error::InvalidServerName)
     } else {
-        Ok(ServerName { full_id: server_name.into() })
+        Ok(())
     }
 }
 
-common_impls!(ServerName, try_from, "An IP address or hostname");
+fn try_from<S>(server_name: S) -> Result<Box<ServerName>, Error>
+where
+    S: AsRef<str> + Into<Box<str>>,
+{
+    validate(server_name.as_ref())?;
+    Ok(ServerName::from_owned(server_name.into()))
+}
+
+impl AsRef<str> for ServerName {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl AsRef<str> for Box<ServerName> {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl From<Box<ServerName>> for String {
+    fn from(id: Box<ServerName>) -> Self {
+        id.into_owned().into()
+    }
+}
+
+impl<'a> TryFrom<&'a str> for &'a ServerName {
+    type Error = Error;
+
+    fn try_from(server_name: &'a str) -> Result<Self, Self::Error> {
+        validate(server_name)?;
+        Ok(ServerName::from_borrowed(server_name))
+    }
+}
+
+impl TryFrom<&str> for Box<ServerName> {
+    type Error = crate::error::Error;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        try_from(s)
+    }
+}
+
+impl TryFrom<String> for Box<ServerName> {
+    type Error = crate::error::Error;
+
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        try_from(s)
+    }
+}
+
+impl Display for ServerName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for Box<ServerName> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        crate::deserialize_id(deserializer, "An IP address or hostname")
+    }
+}
+
+impl PartialEq<str> for ServerName {
+    fn eq(&self, other: &str) -> bool {
+        self.as_str() == other
+    }
+}
+
+impl PartialEq<ServerName> for str {
+    fn eq(&self, other: &ServerName) -> bool {
+        self == other.as_str()
+    }
+}
+
+impl PartialEq<String> for ServerName {
+    fn eq(&self, other: &String) -> bool {
+        self.as_str() == other.as_str()
+    }
+}
+
+impl PartialEq<ServerName> for String {
+    fn eq(&self, other: &ServerName) -> bool {
+        self.as_str() == other.as_str()
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use std::convert::TryFrom;
 
-    use crate::ServerNameRef;
+    use super::ServerName;
 
     #[test]
     fn ipv4_host() {
-        assert!(ServerNameRef::try_from("127.0.0.1").is_ok());
+        assert!(<&ServerName>::try_from("127.0.0.1").is_ok());
     }
 
     #[test]
     fn ipv4_host_and_port() {
-        assert!(ServerNameRef::try_from("1.1.1.1:12000").is_ok());
+        assert!(<&ServerName>::try_from("1.1.1.1:12000").is_ok());
     }
 
     #[test]
     fn ipv6() {
-        assert!(ServerNameRef::try_from("[::1]").is_ok());
+        assert!(<&ServerName>::try_from("[::1]").is_ok());
     }
 
     #[test]
     fn ipv6_with_port() {
-        assert!(ServerNameRef::try_from("[1234:5678::abcd]:5678").is_ok());
+        assert!(<&ServerName>::try_from("[1234:5678::abcd]:5678").is_ok());
     }
 
     #[test]
     fn dns_name() {
-        assert!(ServerNameRef::try_from("example.com").is_ok());
+        assert!(<&ServerName>::try_from("example.com").is_ok());
     }
 
     #[test]
     fn dns_name_with_port() {
-        assert!(ServerNameRef::try_from("ruma.io:8080").is_ok());
+        assert!(<&ServerName>::try_from("ruma.io:8080").is_ok());
     }
 
     #[test]
     fn empty_string() {
-        assert!(ServerNameRef::try_from("").is_err());
+        assert!(<&ServerName>::try_from("").is_err());
     }
 
     #[test]
     fn invalid_ipv6() {
-        assert!(ServerNameRef::try_from("[test::1]").is_err());
+        assert!(<&ServerName>::try_from("[test::1]").is_err());
     }
 
     #[test]
     fn ipv4_with_invalid_port() {
-        assert!(ServerNameRef::try_from("127.0.0.1:").is_err());
+        assert!(<&ServerName>::try_from("127.0.0.1:").is_err());
     }
 
     #[test]
     fn ipv6_with_invalid_port() {
-        assert!(ServerNameRef::try_from("[fe80::1]:100000").is_err());
-        assert!(ServerNameRef::try_from("[fe80::1]!").is_err());
+        assert!(<&ServerName>::try_from("[fe80::1]:100000").is_err());
+        assert!(<&ServerName>::try_from("[fe80::1]!").is_err());
     }
 
     #[test]
     fn dns_name_with_invalid_port() {
-        assert!(ServerNameRef::try_from("matrix.org:hello").is_err());
+        assert!(<&ServerName>::try_from("matrix.org:hello").is_err());
     }
 }

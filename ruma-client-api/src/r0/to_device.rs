@@ -17,7 +17,7 @@ pub mod send_event_to_device;
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum DeviceIdOrAllDevices {
     /// Represents a device Id for one of a user's devices.
-    DeviceId(DeviceId),
+    DeviceId(Box<DeviceId>),
 
     /// Represents all devices for a user.
     AllDevices,
@@ -40,7 +40,7 @@ impl TryFrom<&str> for DeviceIdOrAllDevices {
         } else if "*" == device_id_or_all_devices {
             Ok(DeviceIdOrAllDevices::AllDevices)
         } else {
-            Ok(DeviceIdOrAllDevices::DeviceId(device_id_or_all_devices.to_string()))
+            Ok(DeviceIdOrAllDevices::DeviceId(device_id_or_all_devices.into()))
         }
     }
 }

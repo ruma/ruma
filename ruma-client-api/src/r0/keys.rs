@@ -60,7 +60,7 @@ impl TryFrom<&'_ str> for KeyAlgorithm {
 
 /// A key algorithm and a device id, combined with a ':'
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct AlgorithmAndDeviceId(pub KeyAlgorithm, pub DeviceId);
+pub struct AlgorithmAndDeviceId(pub KeyAlgorithm, pub Box<DeviceId>);
 
 impl Display for AlgorithmAndDeviceId {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -102,7 +102,7 @@ impl<'de> Deserialize<'de> for AlgorithmAndDeviceId {
 
         let algorithm_result = KeyAlgorithm::try_from(parts[0]);
         match algorithm_result {
-            Ok(algorithm) => Ok(AlgorithmAndDeviceId(algorithm, parts[1].to_string())),
+            Ok(algorithm) => Ok(AlgorithmAndDeviceId(algorithm, parts[1].into())),
             Err(_) => {
                 Err(de::Error::invalid_value(Unexpected::Str(parts[0]), &"valid key algorithm"))
             }
@@ -117,7 +117,7 @@ pub struct DeviceKeys {
     pub user_id: UserId,
 
     /// The ID of the device these keys belong to. Must match the device ID used when logging in.
-    pub device_id: DeviceId,
+    pub device_id: Box<DeviceId>,
 
     /// The encryption algorithms supported by this device.
     pub algorithms: Vec<Algorithm>,

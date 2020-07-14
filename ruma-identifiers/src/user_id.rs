@@ -2,15 +2,12 @@
 
 use std::{convert::TryFrom, num::NonZeroU8};
 
-use crate::{error::Error, parse_id, ServerNameRef};
+use crate::{error::Error, parse_id, ServerName};
 
 /// A Matrix user ID.
 ///
 /// A `UserId` is generated randomly or converted from a string slice, and can be converted back
 /// into a string as needed.
-///
-/// It is discouraged to use this type directly – instead use one of the aliases (`UserId` and
-/// `UserIdRef`) in the crate root.
 ///
 /// ```
 /// # use std::convert::TryFrom;
@@ -20,9 +17,9 @@ use crate::{error::Error, parse_id, ServerNameRef};
 ///     "@carl:example.com"
 /// );
 /// ```
-#[derive(Clone, Copy, Debug)]
-pub struct UserId<T> {
-    full_id: T,
+#[derive(Clone, Debug)]
+pub struct UserId {
+    full_id: Box<str>,
     colon_idx: NonZeroU8,
     /// Whether this user id is a historical one.
     ///
@@ -32,15 +29,12 @@ pub struct UserId<T> {
     is_historical: bool,
 }
 
-impl<T> UserId<T>
-where
-    String: Into<T>,
-{
+impl UserId {
     /// Attempts to generate a `UserId` for the given origin server with a localpart consisting of
     /// 12 random ASCII characters.
     #[cfg(feature = "rand")]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
-    pub fn new(server_name: ServerNameRef<'_>) -> Self {
+    pub fn new(server_name: &ServerName) -> Self {
         use crate::generate_localpart;
 
         let full_id = format!("@{}:{}", generate_localpart(12).to_lowercase(), server_name).into();
@@ -56,13 +50,13 @@ where
     /// localpart, not the localpart plus the `@` prefix, or the localpart plus server name without
     /// the `@` prefix.
     pub fn parse_with_server_name(
-        id: impl AsRef<str> + Into<T>,
-        server_name: ServerNameRef<'_>,
+        id: impl AsRef<str> + Into<Box<str>>,
+        server_name: &ServerName,
     ) -> Result<Self, Error> {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
-            try_from(id)
+            try_from(id.into())
         } else {
             let is_fully_conforming = localpart_is_fully_comforming(id_str)?;
 
@@ -75,32 +69,18 @@ where
     }
 }
 
-impl<T> UserId<T>
-where
-    T: AsRef<str>,
-{
-    /// Creates a reference to this `UserId`.
-    pub fn as_ref(&self) -> UserId<&str> {
-        UserId {
-            full_id: self.full_id.as_ref(),
-            colon_idx: self.colon_idx,
-            is_historical: self.is_historical,
-        }
-    }
-
+impl UserId {
     /// Returns the user's localpart.
     pub fn localpart(&self) -> &str {
-        &self.full_id.as_ref()[1..self.colon_idx.get() as usize]
+        &self.full_id[1..self.colon_idx.get() as usize]
     }
 
     /// Returns the server name of the user ID.
-    pub fn server_name(&self) -> ServerNameRef<'_> {
-        ServerNameRef::try_from(&self.full_id.as_ref()[self.colon_idx.get() as usize + 1..])
+    pub fn server_name(&self) -> &ServerName {
+        <&ServerName>::try_from(&self.full_id.as_ref()[self.colon_idx.get() as usize + 1..])
             .unwrap()
     }
-}
 
-impl<T> UserId<T> {
     /// Whether this user ID is a historical one, i.e. one that doesn't conform to the latest
     /// specification of the user ID grammar but is still accepted because it was previously
     /// allowed.
@@ -112,9 +92,9 @@ impl<T> UserId<T> {
 /// Attempts to create a new Matrix user ID from a string representation.
 ///
 /// The string must include the leading @ sigil, the localpart, a literal colon, and a server name.
-fn try_from<S, T>(user_id: S) -> Result<UserId<T>, Error>
+fn try_from<S>(user_id: S) -> Result<UserId, Error>
 where
-    S: AsRef<str> + Into<T>,
+    S: AsRef<str> + Into<Box<str>>,
 {
     let colon_idx = parse_id(user_id.as_ref(), &['@'])?;
     let localpart = &user_id.as_ref()[1..colon_idx.get() as usize];
@@ -158,9 +138,8 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
-    use crate::{error::Error, ServerNameRef};
-
-    type UserId = super::UserId<Box<str>>;
+    use super::UserId;
+    use crate::{error::Error, ServerName};
 
     #[test]
     fn valid_user_id_from_str() {
@@ -173,7 +152,7 @@ mod tests {
 
     #[test]
     fn parse_valid_user_id() {
-        let server_name = ServerNameRef::try_from("example.com").unwrap();
+        let server_name = <&ServerName>::try_from("example.com").unwrap();
         let user_id = UserId::parse_with_server_name("@carl:example.com", server_name)
             .expect("Failed to create UserId.");
         assert_eq!(user_id.as_ref(), "@carl:example.com");
@@ -184,7 +163,7 @@ mod tests {
 
     #[test]
     fn parse_valid_user_id_parts() {
-        let server_name = ServerNameRef::try_from("example.com").unwrap();
+        let server_name = <&ServerName>::try_from("example.com").unwrap();
         let user_id =
             UserId::parse_with_server_name("carl", server_name).expect("Failed to create UserId.");
         assert_eq!(user_id.as_ref(), "@carl:example.com");
@@ -204,7 +183,7 @@ mod tests {
 
     #[test]
     fn parse_valid_historical_user_id() {
-        let server_name = ServerNameRef::try_from("example.com").unwrap();
+        let server_name = <&ServerName>::try_from("example.com").unwrap();
         let user_id = UserId::parse_with_server_name("@a%b[irc]:example.com", server_name)
             .expect("Failed to create UserId.");
         assert_eq!(user_id.as_ref(), "@a%b[irc]:example.com");
@@ -215,7 +194,7 @@ mod tests {
 
     #[test]
     fn parse_valid_historical_user_id_parts() {
-        let server_name = ServerNameRef::try_from("example.com").unwrap();
+        let server_name = <&ServerName>::try_from("example.com").unwrap();
         let user_id = UserId::parse_with_server_name("a%b[irc]", server_name)
             .expect("Failed to create UserId.");
         assert_eq!(user_id.as_ref(), "@a%b[irc]:example.com");
@@ -234,7 +213,7 @@ mod tests {
     #[cfg(feature = "rand")]
     #[test]
     fn generate_random_valid_user_id() {
-        let server_name = ServerNameRef::try_from("example.com").unwrap();
+        let server_name = <&ServerName>::try_from("example.com").unwrap();
         let user_id = UserId::new(server_name);
         assert_eq!(user_id.localpart().len(), 12);
         assert_eq!(user_id.server_name(), "example.com");

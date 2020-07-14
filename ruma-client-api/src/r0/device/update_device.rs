@@ -16,7 +16,7 @@ ruma_api! {
     request: {
         /// The device to update.
         #[ruma_api(path)]
-        pub device_id: DeviceId,
+        pub device_id: Box<DeviceId>,
 
         /// The new display name for this device. If this is `None`, the display name won't be
         /// changed.

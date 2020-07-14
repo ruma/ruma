@@ -29,7 +29,7 @@ pub enum StartEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MSasV1Content {
     /// The device ID which is initiating the process.
-    pub(crate) from_device: DeviceId,
+    pub(crate) from_device: Box<DeviceId>,
 
     /// An opaque identifier for the verification process.
     ///
@@ -63,7 +63,7 @@ pub struct MSasV1Content {
 #[derive(Clone, Debug, Deserialize)]
 pub struct MSasV1ContentOptions {
     /// The device ID which is initiating the process.
-    pub from_device: DeviceId,
+    pub from_device: Box<DeviceId>,
 
     /// An opaque identifier for the verification process.
     ///
@@ -270,7 +270,7 @@ mod tests {
                 key_agreement_protocols,
                 message_authentication_codes,
                 short_authentication_string,
-            }) if from_device == "123"
+            }) if from_device.as_ref() == "123"
                 && transaction_id == "456"
                 && hashes == vec![HashAlgorithm::Sha256]
                 && key_agreement_protocols == vec![KeyAgreementProtocol::Curve25519]
@@ -305,7 +305,7 @@ mod tests {
                     message_authentication_codes,
                     short_authentication_string,
                 })
-            } if from_device == "123"
+            } if from_device.as_ref() == "123"
                 && transaction_id == "456"
                 && hashes == vec![HashAlgorithm::Sha256]
                 && key_agreement_protocols == vec![KeyAgreementProtocol::Curve25519]
