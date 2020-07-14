@@ -243,13 +243,24 @@ pub trait StateEventContent: RoomEventContent {}
 
 /// The base trait that all redacted event content types implement.
 ///
-/// Implementing this trait allows content types to be serialized as well as deserialized.
+/// This trait's associated functions and methods should not be used to build
+/// redacted events, prefer the `redact` method on `AnyStateEvent` and
+/// `AnyMessageEvent` and their "stub" and "stripped" counterparts.
 pub trait RedactedEventContent: EventContent {
     /// Constructs the redacted event content.
     ///
     /// If called for anything but "empty" redacted content this will error.
     fn empty(_event_type: &str) -> Result<Self, serde_json::Error> {
         Err(serde::de::Error::custom("this event is not redacted"))
+    }
+
+    /// Determines if the redacted event needs to include a content field.
+    ///
+    /// `has_optional_content` is used in the `Event` derive macro when generating
+    /// `(De)Serialize` implementations. Unless creating events to extend the Matrix spec
+    /// it's default implementation should not be used.
+    fn has_optional_content() -> bool {
+        false
     }
 
     /// Determines if the redacted event content needs to serialize fields.

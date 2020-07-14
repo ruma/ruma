@@ -64,7 +64,7 @@ fn redacted_message_event_serialize() {
 
 #[test]
 fn redacted_aliases_event_serialize_no_content() {
-    let redacted = RedactedStateEventStub {
+    let redacted = RedactedSyncStateEvent {
         content: RedactedAliasesEventContent { aliases: None },
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         state_key: "".into(),
@@ -87,7 +87,7 @@ fn redacted_aliases_event_serialize_no_content() {
 
 #[test]
 fn redacted_aliases_event_serialize_with_content() {
-    let redacted = RedactedStateEventStub {
+    let redacted = RedactedSyncStateEvent {
         content: RedactedAliasesEventContent { aliases: Some(vec![]) },
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         state_key: "".to_string(),
@@ -127,14 +127,15 @@ fn redacted_aliases_deserialize() {
     let actual = to_json_value(&redacted).unwrap();
 
     assert_matches!(
-        from_json_value::<EventJson<AnyRoomEventStub>>(actual)
+        from_json_value::<EventJson<AnySyncRoomEvent>>(actual)
             .unwrap()
             .deserialize()
             .unwrap(),
-        AnyRoomEventStub::RedactedState(AnyRedactedStateEventStub::RoomAliases(RedactedStateEventStub {
-            event_id, content, ..
+        AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::RoomAliases(RedactedSyncStateEvent {
+            content: RedactedAliasesEventContent { aliases },
+            event_id, ..
         })) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
-            && !is_zst(&content)
+            && aliases.is_none()
     )
 }
 
@@ -159,10 +160,10 @@ fn redacted_deserialize_any_room() {
             .deserialize()
             .unwrap(),
         AnyRoomEvent::RedactedMessage(AnyRedactedMessageEvent::RoomMessage(RedactedMessageEvent {
-            event_id, room_id, content, ..
+            content: RedactedMessageEventContent,
+            event_id, room_id, ..
         })) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
             && room_id == RoomId::try_from("!roomid:room.com").unwrap()
-            && is_zst(&content)
     )
 }
 
@@ -198,9 +199,9 @@ fn redacted_deserialize_any_room_sync() {
             .deserialize()
             .unwrap(),
         AnySyncRoomEvent::RedactedMessage(AnyRedactedSyncMessageEvent::RoomMessage(RedactedSyncMessageEvent {
-            event_id, content, ..
+            content: RedactedMessageEventContent,
+            event_id, ..
         })) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
-            && is_zst(&content)
     )
 }
 

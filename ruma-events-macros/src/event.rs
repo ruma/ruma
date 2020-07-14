@@ -153,7 +153,7 @@ fn expand_deserialize_event(
                 quote! {
                     let content = if !C::has_deserialize_fields() {
                         C::empty(&event_type).map_err(A::Error::custom)?
-                    } else if event_type == "m.room.aliases" {
+                    } else if C::has_optional_content() {
                         let json = content.unwrap_or(::serde_json::value::RawValue::from_string("{}".to_string()).unwrap());
                         C::from_parts(&event_type, json).map_err(A::Error::custom)?
                     } else {

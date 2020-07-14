@@ -53,6 +53,10 @@ impl RedactedEventContent for RedactedAliasesEventContent {
         self.aliases.is_some()
     }
 
+    fn has_optional_content() -> bool {
+        true
+    }
+
     fn has_deserialize_fields() -> bool {
         true
     }
