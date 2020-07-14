@@ -5,7 +5,7 @@
 //! `auth_events` and `prev_events` take `Vec<(EventId, EventHash)> rather than
 //! `Vec<EventId>` in `RoomV3Pdu`.
 //!
-//! The stubbed versions of each PDU type remove the `event_id` field (if any)
+//! The sync versions of each PDU type removes the `event_id` field (if any)
 //! and the `room_id` field for use in PDU templates.
 
 use std::{collections::BTreeMap, time::SystemTime};
@@ -146,29 +146,29 @@ pub struct RoomV3Pdu {
 /// PDU type without event and room IDs.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(untagged)]
-pub enum PduStub {
-    /// Stub for PDUs of room version 1 and 2.
-    RoomV1PduStub(RoomV1PduStub),
+pub enum SyncPdu {
+    /// Sync version of PDUs for room version 1 and 2.
+    RoomV1SyncPdu(RoomV1SyncPdu),
 
-    /// Stub for PDUs of room versions 3 and above.
-    RoomV3PduStub(RoomV3PduStub),
+    /// sync version of PDUs for room versions 3 and above.
+    RoomV3SyncPdu(RoomV3SyncPdu),
 }
 
-impl PduStub {
-    /// Helper method to get PDU from a PDU stub.
+impl SyncPdu {
+    /// Helper method to get PDU from a sync PDU.
     pub fn into_pdu(self, room_id: RoomId, event_id: EventId) -> Pdu {
         match self {
-            PduStub::RoomV1PduStub(v1_stub) => {
-                Pdu::RoomV1Pdu(v1_stub.into_v1_pdu(room_id, event_id))
+            SyncPdu::RoomV1SyncPdu(sync_v1) => {
+                Pdu::RoomV1Pdu(sync_v1.into_v1_pdu(room_id, event_id))
             }
-            PduStub::RoomV3PduStub(v3_stub) => Pdu::RoomV3Pdu(v3_stub.into_v3_pdu(room_id)),
+            SyncPdu::RoomV3SyncPdu(sync_v3) => Pdu::RoomV3Pdu(sync_v3.into_v3_pdu(room_id)),
         }
     }
 }
 
-/// Stub for PDUs of room version 1 and 2.
+/// Sync version of PDUs for room version 1 and 2.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct RoomV1PduStub {
+pub struct RoomV1SyncPdu {
     /// The user id of the user who sent this event.
     pub sender: UserId,
 
@@ -219,8 +219,8 @@ pub struct RoomV1PduStub {
     pub signatures: BTreeMap<String, BTreeMap<String, String>>,
 }
 
-impl RoomV1PduStub {
-    /// Converts a V1 PDU stub into a full V1 PDU.
+impl RoomV1SyncPdu {
+    /// Converts a V1 sync PDU into a full V1 PDU.
     pub fn into_v1_pdu(self, room_id: RoomId, event_id: EventId) -> RoomV1Pdu {
         RoomV1Pdu {
             event_id,
@@ -242,9 +242,9 @@ impl RoomV1PduStub {
     }
 }
 
-/// Stub for PDUs of room versions 3 and above.
+/// Sync version PDUs for room versions 3 and above.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct RoomV3PduStub {
+pub struct RoomV3SyncPdu {
     /// The user id of the user who sent this event.
     pub sender: UserId,
 
@@ -295,8 +295,8 @@ pub struct RoomV3PduStub {
     pub signatures: BTreeMap<String, BTreeMap<String, String>>,
 }
 
-impl RoomV3PduStub {
-    /// Converts a V3 PDU stub into a full V3 PDU.
+impl RoomV3SyncPdu {
+    /// Converts a V3 sync PDU into a full V3 PDU.
     pub fn into_v3_pdu(self, room_id: RoomId) -> RoomV3Pdu {
         RoomV3Pdu {
             room_id,

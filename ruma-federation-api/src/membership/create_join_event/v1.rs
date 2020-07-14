@@ -1,7 +1,7 @@
 //! [PUT /_matrix/federation/v1/send_join/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.3#put-matrix-federation-v1-send-join-roomid-eventid)
 
 use ruma_api::ruma_api;
-use ruma_events::pdu::PduStub;
+use ruma_events::pdu::SyncPdu;
 use ruma_identifiers::{EventId, RoomId};
 
 use super::RoomState;
@@ -26,7 +26,7 @@ ruma_api! {
 
         /// PDU type without event and room IDs.
         #[ruma_api(body)]
-        pub pdu_stub: PduStub,
+        pub sync_pdu: SyncPdu,
     }
 
     response: {

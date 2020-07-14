@@ -6,14 +6,14 @@ use std::{
 
 use matches::assert_matches;
 use ruma_events::{
-    pdu::{EventHash, Pdu, PduStub, RoomV1Pdu, RoomV1PduStub, RoomV3Pdu, RoomV3PduStub},
+    pdu::{EventHash, Pdu, RoomV1Pdu, RoomV1SyncPdu, RoomV3Pdu, RoomV3SyncPdu, SyncPdu},
     EventType,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]
-fn serialize_stub_as_v1() {
+fn serialize_sync_as_v1() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
     inner_signature.insert(
@@ -25,7 +25,7 @@ fn serialize_stub_as_v1() {
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".to_string(), json!({"a": 456}));
 
-    let v1_stub = RoomV1PduStub {
+    let sync_v1 = RoomV1SyncPdu {
         sender: UserId::try_from("@sender:example.com").unwrap(),
         origin: "matrix.org".to_string(),
         origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
@@ -46,7 +46,7 @@ fn serialize_stub_as_v1() {
         hashes: EventHash { sha256: "1233543bABACDEF".to_string() },
         signatures,
     };
-    let pdu_stub = PduStub::RoomV1PduStub(v1_stub);
+    let sync_pdu = SyncPdu::RoomV1SyncPdu(sync_v1);
     let json = json!({
         "sender": "@sender:example.com",
         "origin": "matrix.org",
@@ -72,11 +72,11 @@ fn serialize_stub_as_v1() {
         }
     });
 
-    assert_eq!(to_json_value(&pdu_stub).unwrap(), json);
+    assert_eq!(to_json_value(&sync_pdu).unwrap(), json);
 }
 
 #[test]
-fn serialize_stub_as_v3() {
+fn serialize_sync_as_v3() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
     inner_signature.insert(
@@ -88,7 +88,7 @@ fn serialize_stub_as_v3() {
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".to_string(), json!({"a": 456}));
 
-    let v3_stub = RoomV3PduStub {
+    let sync_v3 = RoomV3SyncPdu {
         sender: UserId::try_from("@sender:example.com").unwrap(),
         origin: "matrix.org".to_string(),
         origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
@@ -103,7 +103,7 @@ fn serialize_stub_as_v3() {
         hashes: EventHash { sha256: "1233543bABACDEF".to_string() },
         signatures,
     };
-    let pdu_stub = PduStub::RoomV3PduStub(v3_stub);
+    let sync_pdu = SyncPdu::RoomV3SyncPdu(sync_v3);
     let json = json!({
         "sender": "@sender:example.com",
         "origin": "matrix.org",
@@ -125,11 +125,11 @@ fn serialize_stub_as_v3() {
         }
     });
 
-    assert_eq!(to_json_value(&pdu_stub).unwrap(), json);
+    assert_eq!(to_json_value(&sync_pdu).unwrap(), json);
 }
 
 #[test]
-fn test_deserialize_stub_as_v1() {
+fn test_deserialize_sync_as_v1() {
     let json = json!({
         "auth_events": [
             [
@@ -171,25 +171,25 @@ fn test_deserialize_stub_as_v1() {
             "key": "value"
         }
     });
-    let parsed = from_json_value::<PduStub>(json).unwrap();
+    let parsed = from_json_value::<SyncPdu>(json).unwrap();
 
     match parsed {
-        PduStub::RoomV1PduStub(v1_stub) => {
+        SyncPdu::RoomV1SyncPdu(sync_v1) => {
             assert_eq!(
-                v1_stub.auth_events.first().unwrap().0,
+                sync_v1.auth_events.first().unwrap().0,
                 EventId::try_from("$abc123:matrix.org").unwrap()
             );
             assert_eq!(
-                v1_stub.auth_events.first().unwrap().1.sha256,
+                sync_v1.auth_events.first().unwrap().1.sha256,
                 "Base64EncodedSha256HashesShouldBe43BytesLong"
             );
         }
-        PduStub::RoomV3PduStub(_) => panic!("Matched V3 stub"),
+        SyncPdu::RoomV3SyncPdu(_) => panic!("Matched sync V3"),
     }
 }
 
 #[test]
-fn deserialize_stub_as_v3() {
+fn deserialize_sync_as_v3() {
     let json = json!({
         "auth_events": [
             "$abc123:matrix.org"
@@ -221,13 +221,13 @@ fn deserialize_stub_as_v3() {
             "key": "value"
         }
     });
-    let parsed = from_json_value::<PduStub>(json).unwrap();
+    let parsed = from_json_value::<SyncPdu>(json).unwrap();
 
     match parsed {
-        PduStub::RoomV1PduStub(_) => panic!("Matched V1 stub"),
-        PduStub::RoomV3PduStub(v3_stub) => {
+        SyncPdu::RoomV1SyncPdu(_) => panic!("Matched sync V1"),
+        SyncPdu::RoomV3SyncPdu(sync_v3) => {
             assert_eq!(
-                v3_stub.auth_events.first().unwrap(),
+                sync_v3.auth_events.first().unwrap(),
                 &EventId::try_from("$abc123:matrix.org").unwrap()
             );
         }
@@ -330,7 +330,7 @@ fn serialize_pdu_as_v3() {
         hashes: EventHash { sha256: "1233543bABACDEF".to_string() },
         signatures,
     };
-    let pdu_stub = Pdu::RoomV3Pdu(v3_pdu);
+    let sync_pdu = Pdu::RoomV3Pdu(v3_pdu);
     let json = json!({
         "room_id": "!n8f893n9:example.com",
         "sender": "@sender:example.com",
@@ -353,7 +353,7 @@ fn serialize_pdu_as_v3() {
         }
     });
 
-    assert_eq!(to_json_value(&pdu_stub).unwrap(), json);
+    assert_eq!(to_json_value(&sync_pdu).unwrap(), json);
 }
 
 #[test]
@@ -466,7 +466,7 @@ fn deserialize_pdu_as_v3() {
 }
 
 #[test]
-fn convert_v1_stub_to_pdu() {
+fn convert_v1_sync_to_pdu() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
     inner_signature.insert(
@@ -478,7 +478,7 @@ fn convert_v1_stub_to_pdu() {
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".to_string(), json!({"a": 456}));
 
-    let v1_stub = RoomV1PduStub {
+    let sync_v1 = RoomV1SyncPdu {
         sender: UserId::try_from("@sender:example.com").unwrap(),
         origin: "matrix.org".to_string(),
         origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
@@ -501,7 +501,7 @@ fn convert_v1_stub_to_pdu() {
     };
 
     assert_matches!(
-        v1_stub.into_v1_pdu(
+        sync_v1.into_v1_pdu(
             RoomId::try_from("!n8f893n9:example.com").unwrap(),
             EventId::try_from("$somejoinevent:matrix.org").unwrap()
         ),
@@ -542,7 +542,7 @@ fn convert_v1_stub_to_pdu() {
 }
 
 #[test]
-fn convert_v3_stub_to_pdu() {
+fn convert_v3_sync_to_pdu() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
     inner_signature.insert(
@@ -554,7 +554,7 @@ fn convert_v3_stub_to_pdu() {
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".to_string(), json!({"a": 456}));
 
-    let v3_stub = RoomV3PduStub {
+    let sync_v3 = RoomV3SyncPdu {
         sender: UserId::try_from("@sender:example.com").unwrap(),
         origin: "matrix.org".to_string(),
         origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
@@ -571,7 +571,7 @@ fn convert_v3_stub_to_pdu() {
     };
 
     assert_matches!(
-        v3_stub.into_v3_pdu(RoomId::try_from("!n8f893n9:example.com").unwrap()),
+        sync_v3.into_v3_pdu(RoomId::try_from("!n8f893n9:example.com").unwrap()),
         RoomV3Pdu {
             room_id,
             sender,
