@@ -19,13 +19,16 @@ ruma_api! {
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub auth: Option<AuthData>,
+
         /// The user's master key.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub master_key: Option<CrossSigningKey>,
+
         /// The user's self-signing key. Must be signed with the accompanied master, or by the
         /// user's most recently uploaded master key if no master key is included in the request.
         #[serde(skip_serializing_if = "Option::is_none")]
         pub self_signing_key: Option<CrossSigningKey>,
+
         /// The user's user-signing key. Must be signed with the accompanied master, or by the
         /// user's most recently uploaded master key if no master key is included in the request.
         #[serde(skip_serializing_if = "Option::is_none")]

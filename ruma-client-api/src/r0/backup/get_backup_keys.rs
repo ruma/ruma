@@ -6,6 +6,8 @@ use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
+use super::KeyData;
+
 ruma_api! {
     metadata: {
         description: "Retrieve all keys from a backup.",
@@ -24,15 +26,17 @@ ruma_api! {
 
     response: {
         /// A map from room IDs to session IDs to key data.
-        pub rooms: BTreeMap<RoomId, Sessions>, // TODO: synapse has the sessions:{} wrapper, the spec has not
+        ///
+        /// Note: synapse has the `sessions: {}` wrapper, the Matrix spec does not.
+        pub rooms: BTreeMap<RoomId, Sessions>,
     }
 
     error: crate::Error
 }
 
-/// TODO: remove
+// TODO: remove
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sessions {
-    /// TODO: remove
-    pub sessions: BTreeMap<String, super::KeyData>,
+    // TODO: remove
+    pub sessions: BTreeMap<String, KeyData>,
 }

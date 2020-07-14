@@ -16,6 +16,7 @@ ruma_api! {
         /// The backup version.
         #[ruma_api(path)]
         pub version: String,
+
         /// The algorithm used for storing backups.
         #[serde(flatten)]
         pub algorithm: super::BackupAlgorithm,

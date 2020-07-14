@@ -7,6 +7,8 @@ use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
+use super::KeyData;
+
 ruma_api! {
     metadata: {
         description: "Store several keys in the backup.",
@@ -21,14 +23,18 @@ ruma_api! {
         /// The backup version. Must be the current backup.
         #[ruma_api(query)]
         pub version: String,
+
         /// A map from room IDs to session IDs to key data.
-        pub rooms: BTreeMap<RoomId, Sessions>, // TODO: synapse has the sessions:{} wrapper, the spec has not
+        ///
+        /// Note: synapse has the `sessions: {}` wrapper, the Matrix spec does not.
+        pub rooms: BTreeMap<RoomId, Sessions>,
     }
 
     response: {
         /// An opaque string representing stored keys in the backup. Clients can compare it with
         /// the etag value they received in the request of their last key storage request.
         pub etag: String,
+
         /// The number of keys stored in the backup.
         pub count: UInt,
     }
@@ -36,9 +42,9 @@ ruma_api! {
     error: crate::Error
 }
 
-/// TODO: remove
+// TODO: remove
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sessions {
-    /// TODO: remove
-    pub sessions: BTreeMap<String, super::KeyData>,
+    // TODO: remove
+    pub sessions: BTreeMap<String, KeyData>,
 }

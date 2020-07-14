@@ -23,11 +23,14 @@ ruma_api! {
         /// The algorithm used for storing backups.
         #[serde(flatten)]
         pub algorithm: super::BackupAlgorithm,
+
         /// The number of keys stored in the backup.
         pub count: UInt,
+
         /// An opaque string representing stored keys in the backup. Clients can compare it with
         /// the etag value they received in the request of their last key storage request.
         pub etag: String,
+
         /// The backup version. This is an opaque string.
         pub version: String,
     }
