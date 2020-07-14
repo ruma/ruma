@@ -15,7 +15,7 @@ fn is_non_stripped_room_event(kind: &EventKind, var: &EventKindVariation) -> boo
 
 fn has_prev_content_field(kind: &EventKind, var: &EventKindVariation) -> bool {
     matches!(kind, EventKind::State(_))
-        && matches!(var, EventKindVariation::Full | EventKindVariation::Stub)
+        && matches!(var, EventKindVariation::Full | EventKindVariation::Sync)
 }
 
 type EventKindFn = fn(&EventKind, &EventKindVariation) -> bool;
@@ -48,8 +48,8 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
     let event_enum =
         expand_any_with_deser(name, events, attrs, &variants, &EventKindVariation::Full);
 
-    let event_stub_enum =
-        expand_any_with_deser(name, events, attrs, &variants, &EventKindVariation::Stub);
+    let sync_event_enum =
+        expand_any_with_deser(name, events, attrs, &variants, &EventKindVariation::Sync);
 
     let event_stripped_enum =
         expand_any_with_deser(name, events, attrs, &variants, &EventKindVariation::Stripped);
@@ -61,7 +61,7 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
     Ok(quote! {
         #event_enum
 
-        #event_stub_enum
+        #sync_event_enum
 
         #event_stripped_enum
 
@@ -154,26 +154,26 @@ fn expand_any_redacted(
     use EventKindVariation::*;
 
     if kind.is_state() {
-        let state_full = expand_any_with_deser(kind, events, attrs, variants, &Redacted);
-        let state_stub = expand_any_with_deser(kind, events, attrs, variants, &RedactedStub);
-        let state_stripped =
+        let full_state = expand_any_with_deser(kind, events, attrs, variants, &Redacted);
+        let sync_state = expand_any_with_deser(kind, events, attrs, variants, &RedactedSync);
+        let stripped_state =
             expand_any_with_deser(kind, events, attrs, variants, &RedactedStripped);
 
         quote! {
-            #state_full
+            #full_state
 
-            #state_stub
+            #sync_state
 
-            #state_stripped
+            #stripped_state
         }
     } else if kind.is_message() {
-        let message_full = expand_any_with_deser(kind, events, attrs, variants, &Redacted);
-        let message_stub = expand_any_with_deser(kind, events, attrs, variants, &RedactedStub);
+        let full_message = expand_any_with_deser(kind, events, attrs, variants, &Redacted);
+        let sync_message = expand_any_with_deser(kind, events, attrs, variants, &RedactedSync);
 
         quote! {
-            #message_full
+            #full_message
 
-            #message_stub
+            #sync_message
         }
     } else {
         TokenStream::new()
@@ -250,7 +250,7 @@ fn expand_custom_variant(
 ) -> (TokenStream, TokenStream) {
     use EventKindVariation::*;
 
-    if matches!(var, Redacted | RedactedStub | RedactedStripped) {
+    if matches!(var, Redacted | RedactedSync | RedactedStripped) {
         (
             quote! {
                 /// A redacted event not defined by the Matrix specification
@@ -317,7 +317,7 @@ fn accessor_methods(
     let ident = kind.to_event_enum_ident(var)?;
 
     // matching `EventKindVariation`s
-    if let Redacted | RedactedStub | RedactedStripped = var {
+    if let Redacted | RedactedSync | RedactedStripped = var {
         return redacted_accessor_methods(kind, var, variants);
     }
 
@@ -408,15 +408,15 @@ fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
     let path = path.iter().map(|s| Ident::new(s, span));
 
     match struct_name.to_string().as_str() {
-        "MessageEvent" | "MessageEventStub" if name == "m.room.redaction" => {
+        "MessageEvent" | "SyncMessageEvent" if name == "m.room.redaction" => {
             let redaction = if struct_name == "MessageEvent" {
                 quote! { RedactionEvent }
             } else {
-                quote! { RedactionEventStub }
+                quote! { SyncRedactionEvent }
             };
             quote! { ::ruma_events::room::redaction::#redaction }
         }
-        "ToDeviceEvent" | "StateEventStub" | "StrippedStateEventStub" | "MessageEventStub" => {
+        "ToDeviceEvent" | "SyncStateEvent" | "StrippedStateEvent" | "SyncMessageEvent" => {
             let content = format_ident!("{}EventContent", event);
             quote! { ::ruma_events::#struct_name<::ruma_events::#( #path )::*::#content> }
         }
@@ -523,10 +523,10 @@ mod kw {
 // If the variants of this enum change `to_event_path` needs to be updated as well.
 enum EventKindVariation {
     Full,
-    Stub,
+    Sync,
     Stripped,
     Redacted,
-    RedactedStub,
+    RedactedSync,
     RedactedStripped,
 }
 
@@ -554,19 +554,17 @@ impl EventKind {
         match (self, var) {
             // all `EventKind`s are valid event structs and event enums.
             (_, Full) => Some(format_ident!("{}Event", self.get_ident())),
-            (Self::Ephemeral(i), Stub) | (Self::Message(i), Stub) | (Self::State(i), Stub) => {
-                Some(format_ident!("{}EventStub", i))
+            (Self::Ephemeral(i), Sync) | (Self::Message(i), Sync) | (Self::State(i), Sync) => {
+                Some(format_ident!("Sync{}Event", i))
             }
-            (Self::State(i), Stripped) => Some(format_ident!("Stripped{}EventStub", i)),
+            (Self::State(i), Stripped) => Some(format_ident!("Stripped{}Event", i)),
             (Self::Message(i), Redacted) | (Self::State(i), Redacted) => {
                 Some(format_ident!("Redacted{}Event", i))
             }
-            (Self::Message(i), RedactedStub) | (Self::State(i), RedactedStub) => {
-                Some(format_ident!("Redacted{}EventStub", i))
+            (Self::Message(i), RedactedSync) | (Self::State(i), RedactedSync) => {
+                Some(format_ident!("RedactedSync{}Event", i))
             }
-            (Self::State(i), RedactedStripped) => {
-                Some(format_ident!("RedactedStripped{}EventStub", i))
-            }
+            (Self::State(i), RedactedStripped) => Some(format_ident!("RedactedStripped{}Event", i)),
             _ => None,
         }
     }

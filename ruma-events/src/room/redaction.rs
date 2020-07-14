@@ -38,7 +38,7 @@ pub struct RedactionEvent {
 
 /// Redaction event without a `room_id`.
 #[derive(Clone, Debug, Event)]
-pub struct RedactionEventStub {
+pub struct SyncRedactionEvent {
     /// Data specific to the event type.
     pub content: RedactionEventContent,
 

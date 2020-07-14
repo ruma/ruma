@@ -117,18 +117,18 @@ pub enum AnyRoomEvent {
     RedactedState(AnyRedactedStateEvent),
 }
 
-/// Any room event stub (room event without a `room_id`, as returned in `/sync` responses)
+/// Any sync room event (room event without a `room_id`, as returned in `/sync` responses)
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
-pub enum AnyRoomEventStub {
-    /// Any message event stub
-    Message(AnyMessageEventStub),
-    /// Any state event stub
-    State(AnyStateEventStub),
-    /// Any message event stub that has been redacted.
-    RedactedMessage(AnyRedactedMessageEventStub),
-    /// Any state event stub that has been redacted.
-    RedactedState(AnyRedactedStateEventStub),
+pub enum AnySyncRoomEvent {
+    /// Any sync message event
+    Message(AnySyncMessageEvent),
+    /// Any sync state event
+    State(AnySyncStateEvent),
+    /// Any sync message event that has been redacted.
+    RedactedMessage(AnyRedactedSyncMessageEvent),
+    /// Any sync state event that has been redacted.
+    RedactedState(AnyRedactedSyncStateEvent),
 }
 
 // FIXME `#[serde(untagged)]` deserialization fails for these enums which
@@ -192,7 +192,7 @@ impl<'de> de::Deserialize<'de> for AnyRoomEvent {
     }
 }
 
-impl<'de> de::Deserialize<'de> for AnyRoomEventStub {
+impl<'de> de::Deserialize<'de> for AnySyncRoomEvent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -203,16 +203,16 @@ impl<'de> de::Deserialize<'de> for AnyRoomEventStub {
         if state_key.is_some() {
             Ok(match unsigned {
                 Some(unsigned) if unsigned.redacted_because.is_some() => {
-                    AnyRoomEventStub::RedactedState(from_raw_json_value(&json)?)
+                    AnySyncRoomEvent::RedactedState(from_raw_json_value(&json)?)
                 }
-                _ => AnyRoomEventStub::State(from_raw_json_value(&json)?),
+                _ => AnySyncRoomEvent::State(from_raw_json_value(&json)?),
             })
         } else {
             Ok(match unsigned {
                 Some(unsigned) if unsigned.redacted_because.is_some() => {
-                    AnyRoomEventStub::RedactedMessage(from_raw_json_value(&json)?)
+                    AnySyncRoomEvent::RedactedMessage(from_raw_json_value(&json)?)
                 }
-                _ => AnyRoomEventStub::Message(from_raw_json_value(&json)?),
+                _ => AnySyncRoomEvent::Message(from_raw_json_value(&json)?),
             })
         }
     }

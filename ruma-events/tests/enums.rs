@@ -10,9 +10,9 @@ use ruma_events::{
         message::{MessageEventContent, TextMessageEventContent},
         power_levels::PowerLevelsEventContent,
     },
-    AnyEvent, AnyMessageEvent, AnyMessageEventStub, AnyRoomEvent, AnyRoomEventStub, AnyStateEvent,
-    AnyStateEventContent, AnyStateEventStub, MessageEvent, MessageEventStub, StateEvent,
-    StateEventStub,
+    AnyEvent, AnyMessageEvent, AnyRoomEvent, AnyStateEvent, AnyStateEventContent,
+    AnySyncMessageEvent, AnySyncRoomEvent, AnySyncStateEvent, MessageEvent, StateEvent,
+    SyncMessageEvent, SyncStateEvent,
 };
 
 fn message_event() -> JsonValue {
@@ -34,7 +34,7 @@ fn message_event() -> JsonValue {
     })
 }
 
-fn message_event_stub() -> JsonValue {
+fn message_event_sync() -> JsonValue {
     json!({
         "content": {
             "body": "baba",
@@ -69,7 +69,7 @@ fn aliases_event() -> JsonValue {
     })
 }
 
-fn aliases_event_stub() -> JsonValue {
+fn aliases_event_sync() -> JsonValue {
     json!({
         "content": {
             "aliases": ["#somewhere:localhost"]
@@ -86,7 +86,7 @@ fn aliases_event_stub() -> JsonValue {
 }
 
 #[test]
-fn power_event_stub_deserialization() {
+fn power_event_sync_deserialization() {
     let json_data = json!({
         "content": {
             "ban": 50,
@@ -118,9 +118,9 @@ fn power_event_stub_deserialization() {
     });
 
     assert_matches!(
-        from_json_value::<AnyRoomEventStub>(json_data),
-        Ok(AnyRoomEventStub::State(
-            AnyStateEventStub::RoomPowerLevels(StateEventStub {
+        from_json_value::<AnySyncRoomEvent>(json_data),
+        Ok(AnySyncRoomEvent::State(
+            AnySyncStateEvent::RoomPowerLevels(SyncStateEvent {
                 content: PowerLevelsEventContent {
                     ban, ..
                 },
@@ -132,13 +132,13 @@ fn power_event_stub_deserialization() {
 }
 
 #[test]
-fn message_event_stub_deserialization() {
-    let json_data = message_event_stub();
+fn message_event_sync_deserialization() {
+    let json_data = message_event_sync();
 
     assert_matches!(
-        from_json_value::<AnyRoomEventStub>(json_data),
-        Ok(AnyRoomEventStub::Message(
-            AnyMessageEventStub::RoomMessage(MessageEventStub {
+        from_json_value::<AnySyncRoomEvent>(json_data),
+        Ok(AnySyncRoomEvent::Message(
+            AnySyncMessageEvent::RoomMessage(SyncMessageEvent {
                 content: MessageEventContent::Text(TextMessageEventContent {
                     body,
                     formatted: Some(formatted),
@@ -152,13 +152,13 @@ fn message_event_stub_deserialization() {
 }
 
 #[test]
-fn aliases_event_stub_deserialization() {
-    let json_data = aliases_event_stub();
+fn aliases_event_sync_deserialization() {
+    let json_data = aliases_event_sync();
 
     assert_matches!(
-        from_json_value::<AnyRoomEventStub>(json_data),
-        Ok(AnyRoomEventStub::State(
-            AnyStateEventStub::RoomAliases(StateEventStub {
+        from_json_value::<AnySyncRoomEvent>(json_data),
+        Ok(AnySyncRoomEvent::State(
+            AnySyncStateEvent::RoomAliases(SyncStateEvent {
                 content: AliasesEventContent {
                     aliases,
                 },

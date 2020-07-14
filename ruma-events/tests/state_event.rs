@@ -7,7 +7,7 @@ use js_int::UInt;
 use matches::assert_matches;
 use ruma_events::{
     room::{aliases::AliasesEventContent, avatar::AvatarEventContent, ImageInfo, ThumbnailInfo},
-    AnyRoomEvent, AnyStateEvent, AnyStateEventContent, EventJson, StateEvent, StateEventStub,
+    AnyRoomEvent, AnyStateEvent, AnyStateEventContent, EventJson, StateEvent, SyncStateEvent,
     UnsignedData,
 };
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
@@ -132,13 +132,13 @@ fn deserialize_aliases_with_prev_content() {
 }
 
 #[test]
-fn deserialize_aliases_stub_with_room_id() {
+fn deserialize_aliases_sync_with_room_id() {
     let json_data = aliases_event_with_prev_content();
 
     assert_matches!(
-        from_json_value::<StateEventStub<AnyStateEventContent>>(json_data)
+        from_json_value::<SyncStateEvent<AnyStateEventContent>>(json_data)
             .unwrap(),
-        StateEventStub {
+        SyncStateEvent {
             content: AnyStateEventContent::RoomAliases(content),
             event_id,
             origin_server_ts,

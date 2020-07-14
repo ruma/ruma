@@ -7,7 +7,7 @@ use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-use crate::{StateEvent, StateEventStub, StrippedStateEventStub};
+use crate::{StateEvent, StrippedStateEvent, SyncStateEvent};
 
 /// The current membership state of a user in the room.
 ///
@@ -222,7 +222,7 @@ impl MemberEvent {
     }
 }
 
-impl StateEventStub<MemberEventContent> {
+impl SyncStateEvent<MemberEventContent> {
     /// Helper function for membership change. Check [the specification][spec] for details.
     ///
     /// [spec]: https://matrix.org/docs/spec/client_server/latest#m-room-member
@@ -231,7 +231,7 @@ impl StateEventStub<MemberEventContent> {
     }
 }
 
-impl StrippedStateEventStub<MemberEventContent> {
+impl StrippedStateEvent<MemberEventContent> {
     /// Helper function for membership change. Check [the specification][spec] for details.
     ///
     /// [spec]: https://matrix.org/docs/spec/client_server/latest#m-room-member
