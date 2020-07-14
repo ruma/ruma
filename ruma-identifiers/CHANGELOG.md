@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.17.0
+
 Breaking changes:
 
 * Remove `RoomVersionId::custom`. It could be used to create invalid room versions (empty or
@@ -19,7 +21,7 @@ Breaking changes:
     ```
     to
     ```rust
-    fn new(ServerNameRef<'_>) -> Self
+    fn new(&ServerName) -> Self
     ```
 
   * Change signature of `server_name()` for `EventId`, `RoomAliasId`, `RoomId`, `RoomIdOrAliasId`, `UserId` from
@@ -28,18 +30,21 @@ Breaking changes:
     ```
     to
     ```rust
-    fn server_name() -> ServerNameRef<'_>
+    fn server_name() -> &ServerName
     ```
+* Change `DeviceId` from being an alias for `String` to being an alias for `str`
+  * This means any string slice or string literal is a valid `&DeviceId` now
+  * But to store one, you need to box it: `Box<DeviceId>`
 
 Deprecations:
 
-* Mark `server_name::is_valid_server_name` as deprecated in favor of `ServerName::try_from()`
-
+* Mark `server_name::is_valid_server_name` as deprecated in favor of `<&ServerName>::try_from()`
 
 Improvements:
 
 * Add `DeviceKeyId`, `DeviceKeyAlgorithm`, `ServerKeyId`, and `ServerKeyAlgorithm`
-* Add `ServerName` and `ServerNameRef` types
+* Add a `ServerName` type
+  * This is a dynamically-sized type, if you need to store it use `Box<ServerName>`
 
 # 0.16.2
 
