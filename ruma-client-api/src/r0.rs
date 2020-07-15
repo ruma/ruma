@@ -3,6 +3,8 @@
 pub mod account;
 pub mod alias;
 pub mod appservice;
+#[cfg(feature = "unstable-pre-spec")]
+pub mod backup;
 pub mod capabilities;
 pub mod config;
 pub mod contact;
