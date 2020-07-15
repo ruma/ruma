@@ -6,6 +6,7 @@ use std::{
     fmt::{self, Display, Formatter},
 };
 
+use matches::matches;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -91,10 +92,7 @@ impl RoomVersionId {
 
     /// Whether or not this is a custom room version.
     pub fn is_custom(&self) -> bool {
-        match self.0 {
-            InnerRoomVersionId::Custom(_) => true,
-            _ => false,
-        }
+        matches!(self.0, InnerRoomVersionId::Custom(_))
     }
 
     /// Whether or not this is a version 1 room.

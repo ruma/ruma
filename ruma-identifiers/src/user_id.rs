@@ -2,6 +2,8 @@
 
 use std::{convert::TryFrom, num::NonZeroU8};
 
+use matches::matches;
+
 use crate::{error::Error, parse_id, ServerName};
 
 /// A Matrix user ID.
@@ -116,10 +118,9 @@ pub fn localpart_is_fully_comforming(localpart: &str) -> Result<bool, Error> {
     }
 
     // See https://matrix.org/docs/spec/appendices#user-identifiers
-    let is_fully_conforming = localpart.bytes().all(|b| match b {
-        b'0'..=b'9' | b'a'..=b'z' | b'-' | b'.' | b'=' | b'_' | b'/' => true,
-        _ => false,
-    });
+    let is_fully_conforming = localpart
+        .bytes()
+        .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'z' | b'-' | b'.' | b'=' | b'_' | b'/'));
 
     // If it's not fully conforming, check if it contains characters that are also disallowed
     // for historical user IDs. If there are, return an error.
