@@ -14,6 +14,15 @@ use std::collections::BTreeMap;
 
 use crate::r0::keys::AlgorithmAndDeviceId;
 
+// TODO: remove
+/// A wrapper around a mapping of session IDs to key data.
+#[cfg(feature = "unstable-synapse-quirks")]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Sessions {
+    ///  A map of session IDs to key data.
+    pub sessions: BTreeMap<String, KeyData>,
+}
+
 /// The algorithm used for storing backups.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "algorithm", content = "auth_data")]

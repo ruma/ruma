@@ -34,3 +34,4 @@ matches = "0.1.8"
 
 [features]
 unstable-pre-spec = []
+unstable-synapse-quirks = []

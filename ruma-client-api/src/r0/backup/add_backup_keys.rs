@@ -5,9 +5,6 @@ use std::collections::BTreeMap;
 use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
-use serde::{Deserialize, Serialize};
-
-use super::KeyData;
 
 ruma_api! {
     metadata: {
@@ -27,7 +24,12 @@ ruma_api! {
         /// A map from room IDs to session IDs to key data.
         ///
         /// Note: synapse has the `sessions: {}` wrapper, the Matrix spec does not.
-        pub rooms: BTreeMap<RoomId, Sessions>,
+        #[cfg(feature = "unstable-synapse-quirks")]
+        pub rooms: BTreeMap<RoomId, super::Sessions>,
+
+        /// A map from room IDs to session IDs to key data.
+        #[cfg(not(feature = "unstable-synapse-quirks"))]
+        pub rooms: BTreeMap<RoomId, BTreeMap<String, super::KeyData>>,
     }
 
     response: {
@@ -40,13 +42,4 @@ ruma_api! {
     }
 
     error: crate::Error
-}
-
-// TODO: remove
-/// A wrapper around a mapping of session IDs to key data.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Sessions {
-    // TODO: remove
-    ///  A map of session IDs to key data.
-    pub sessions: BTreeMap<String, KeyData>,
 }
