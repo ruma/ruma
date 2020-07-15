@@ -245,9 +245,9 @@ pub trait StateEventContent: RoomEventContent {}
 ///
 /// This trait's associated functions and methods should not be used to build
 /// redacted events, prefer the `redact` method on `AnyStateEvent` and
-/// `AnyMessageEvent` and their "stub" and "stripped" counterparts. The
+/// `AnyMessageEvent` and their "sync" and "stripped" counterparts. The
 /// `RedactedEventContent` trait is an implementation detail, ruma makes no
-/// API guaranties.
+/// API guarantees.
 pub trait RedactedEventContent: EventContent {
     /// Constructs the redacted event content.
     ///
