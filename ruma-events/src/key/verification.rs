@@ -25,8 +25,8 @@ pub enum HashAlgorithm {
 /// A key agreement protocol.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Serialize, Deserialize)]
 #[non_exhaustive]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
+#[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "kebab-case")]
 pub enum KeyAgreementProtocol {
     /// The [Curve25519](https://cr.yp.to/ecdh.html) key agreement protocol.
     Curve25519,
