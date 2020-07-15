@@ -112,9 +112,12 @@ impl MSasV1Content {
                 .key_agreement_protocols
                 .contains(&KeyAgreementProtocol::Curve25519HkdfSha256)
         {
-            return Err(InvalidInput("`key_agreement_protocols` must contain at \
-                                    least `KeyAgreementProtocol::Curve25519` or \
-                                    `KeyAgreementProtocol::Curve25519HkdfSha256`".into()));
+            return Err(InvalidInput(
+                "`key_agreement_protocols` must contain at \
+                 least `KeyAgreementProtocol::Curve25519` or \
+                 `KeyAgreementProtocol::Curve25519HkdfSha256`"
+                    .into(),
+            ));
         }
 
         if !options.hashes.contains(&HashAlgorithm::Sha256) {
@@ -127,13 +130,19 @@ impl MSasV1Content {
             .message_authentication_codes
             .contains(&MessageAuthenticationCode::HkdfHmacSha256)
         {
-            return Err(InvalidInput("`message_authentication_codes` must contain \
-                                    at least `MessageAuthenticationCode::HkdfHmacSha256`".into()));
+            return Err(InvalidInput(
+                "`message_authentication_codes` must contain \
+                 at least `MessageAuthenticationCode::HkdfHmacSha256`"
+                    .into(),
+            ));
         }
 
         if !options.short_authentication_string.contains(&ShortAuthenticationString::Decimal) {
-            return Err(InvalidInput("`short_authentication_string` must contain \
-                                    at least `ShortAuthenticationString::Decimal`".into()));
+            return Err(InvalidInput(
+                "`short_authentication_string` must contain \
+                 at least `ShortAuthenticationString::Decimal`"
+                    .into(),
+            ));
         }
 
         Ok(Self {
