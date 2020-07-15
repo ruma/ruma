@@ -5,8 +5,8 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 
 use crate::{
     BasicEventContent, EphemeralRoomEventContent, EventContent, MessageEventContent,
-    RedactedMessageEventContent, RedactedStateEventContent, StateEventContent, Unsigned,
-    UnsignedSync,
+    RedactedMessageEventContent, RedactedStateEventContent, RedactedUnsigned, RedactedUnsignedSync,
+    StateEventContent, Unsigned,
 };
 
 /// A basic event – one that consists only of it's type and the `content` object.
@@ -71,7 +71,7 @@ pub struct SyncMessageEvent<C: MessageEventContent> {
     pub origin_server_ts: SystemTime,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: UnsignedSync,
+    pub unsigned: Unsigned,
 }
 
 /// A redacted message event.
@@ -93,7 +93,7 @@ pub struct RedactedMessageEvent<C: RedactedMessageEventContent> {
     pub room_id: RoomId,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Unsigned,
+    pub unsigned: RedactedUnsigned,
 }
 
 /// A redacted message event without a `room_id`.
@@ -113,7 +113,7 @@ pub struct RedactedSyncMessageEvent<C: RedactedMessageEventContent> {
     pub origin_server_ts: SystemTime,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: UnsignedSync,
+    pub unsigned: RedactedUnsignedSync,
 }
 
 /// State event.
@@ -172,7 +172,7 @@ pub struct SyncStateEvent<C: StateEventContent> {
     pub prev_content: Option<C>,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: UnsignedSync,
+    pub unsigned: Unsigned,
 }
 
 /// A stripped-down state event, used for previews of rooms the user has been
@@ -217,7 +217,7 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Unsigned,
+    pub unsigned: RedactedUnsigned,
 }
 
 /// A redacted state event without a `room_id`.
@@ -243,7 +243,7 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: UnsignedSync,
+    pub unsigned: RedactedUnsignedSync,
 }
 
 /// A stripped-down redacted state event.

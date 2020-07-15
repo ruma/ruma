@@ -509,9 +509,11 @@ fn field_return_type(name: &str, var: &EventKindVariation) -> TokenStream {
         "event_id" => quote! { ::ruma_identifiers::EventId },
         "sender" => quote! { ::ruma_identifiers::UserId },
         "state_key" => quote! { str },
-        "unsigned" if &EventKindVariation::Sync == var => quote! { ::ruma_events::UnsignedSync },
         "unsigned" if &EventKindVariation::RedactedSync == var => {
-            quote! { ::ruma_events::UnsignedSync }
+            quote! { ::ruma_events::RedactedUnsignedSync }
+        }
+        "unsigned" if &EventKindVariation::Redacted == var => {
+            quote! { ::ruma_events::RedactedUnsigned }
         }
         "unsigned" => quote! { ::ruma_events::Unsigned },
         _ => panic!("the `ruma_events_macros::event_enum::EVENT_FIELD` const was changed"),
