@@ -2,6 +2,7 @@
 
 use std::{convert::TryFrom, mem};
 
+use matches::matches;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{spanned::Spanned, Field, Ident};
@@ -290,10 +291,7 @@ impl ResponseField {
 
     /// Whether or not this response field is a header kind.
     fn is_header(&self) -> bool {
-        match self {
-            ResponseField::Header(..) => true,
-            _ => false,
-        }
+        matches!(self, ResponseField::Header(..))
     }
 
     /// Whether or not this response field is a newtype body kind.

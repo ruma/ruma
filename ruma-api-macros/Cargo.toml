@@ -16,6 +16,7 @@ version = "0.16.1"
 edition = "2018"
 
 [dependencies]
+matches = "0.1.8"
 proc-macro2 = "1.0.18"
 quote = "1.0.7"
 syn = { version = "1.0.31", features = ["full", "extra-traits"] }
