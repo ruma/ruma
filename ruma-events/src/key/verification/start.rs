@@ -27,6 +27,7 @@ pub enum StartEventContent {
 
 /// The payload of an *m.key.verification.start* event using the *m.sas.v1* method.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct MSasV1Content {
     /// The device ID which is initiating the process.
     pub from_device: DeviceId,
