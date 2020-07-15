@@ -7,12 +7,12 @@ use crate::generate_localpart;
 ///
 /// Device identifiers in Matrix are completely opaque character sequences. This type alias is
 /// provided simply for its semantic value.
-pub type DeviceId = String;
+pub type DeviceId = str;
 
 /// Generates a random `DeviceId`, suitable for assignment to a new device.
 #[cfg(feature = "rand")]
 #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
-pub fn generate() -> DeviceId {
+pub fn generate() -> Box<DeviceId> {
     generate_localpart(8)
 }
 

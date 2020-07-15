@@ -27,7 +27,7 @@ pub struct EphemeralRoomEvent<C: EphemeralRoomEventContent> {
 
 /// An ephemeral room event without a `room_id`.
 #[derive(Clone, Debug, Event)]
-pub struct EphemeralRoomEventStub<C: EphemeralRoomEventContent> {
+pub struct SyncEphemeralRoomEvent<C: EphemeralRoomEventContent> {
     /// Data specific to the event type.
     pub content: C,
 }
@@ -56,7 +56,7 @@ pub struct MessageEvent<C: MessageEventContent> {
 
 /// A message event without a `room_id`.
 #[derive(Clone, Debug, Event)]
-pub struct MessageEventStub<C: MessageEventContent> {
+pub struct SyncMessageEvent<C: MessageEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -97,7 +97,7 @@ pub struct RedactedMessageEvent<C: RedactedMessageEventContent> {
 
 /// A redacted message event without a `room_id`.
 #[derive(Clone, Debug, Event)]
-pub struct RedactedMessageEventStub<C: RedactedMessageEventContent> {
+pub struct RedactedSyncMessageEvent<C: RedactedMessageEventContent> {
     /// Data specific to the event type.
     // #[serde(default, skip_serializing_if = "is_zst")]
     pub content: C,
@@ -148,7 +148,7 @@ pub struct StateEvent<C: StateEventContent> {
 
 /// A state event without a `room_id`.
 #[derive(Clone, Debug, Event)]
-pub struct StateEventStub<C: StateEventContent> {
+pub struct SyncStateEvent<C: StateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -177,7 +177,7 @@ pub struct StateEventStub<C: StateEventContent> {
 /// A stripped-down state event, used for previews of rooms the user has been
 /// invited to.
 #[derive(Clone, Debug, Event)]
-pub struct StrippedStateEventStub<C: StateEventContent> {
+pub struct StrippedStateEvent<C: StateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 
@@ -221,7 +221,7 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
 
 /// A redacted state event without a `room_id`.
 #[derive(Clone, Debug, Event)]
-pub struct RedactedStateEventStub<C: RedactedStateEventContent> {
+pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     /// Data specific to the event type.
     // #[serde(default, skip_serializing_if = "is_zst")]
     pub content: C,
@@ -247,7 +247,7 @@ pub struct RedactedStateEventStub<C: RedactedStateEventContent> {
 
 /// A stripped-down redacted state event.
 #[derive(Clone, Debug, Event)]
-pub struct RedactedStrippedStateEventStub<C: RedactedStateEventContent> {
+pub struct RedactedStrippedStateEvent<C: RedactedStateEventContent> {
     /// Data specific to the event type.
     pub content: C,
 

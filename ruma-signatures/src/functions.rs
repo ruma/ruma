@@ -85,7 +85,7 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 /// // Create an Ed25519 key pair.
 /// let key_pair = ruma_signatures::Ed25519KeyPair::new(
 ///     &document,
-///     "1".to_string(), // The "version" of the key.
+///     "1".into(), // The "version" of the key.
 /// ).unwrap();
 ///
 /// // Deserialize some JSON.
@@ -148,10 +148,10 @@ where
     let map = value.as_object_mut().unwrap();
 
     // Put `signatures` and `unsigned` back in.
-    map.insert("signatures".to_string(), to_value(signature_map)?);
+    map.insert("signatures".into(), to_value(signature_map)?);
 
     if let Some(unsigned) = maybe_unsigned {
-        map.insert("unsigned".to_string(), to_value(unsigned)?);
+        map.insert("unsigned".into(), to_value(unsigned)?);
     }
 
     Ok(())
@@ -221,9 +221,9 @@ pub fn canonical_json(value: &Value) -> Result<String, Error> {
 ///
 /// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
 /// let mut public_key_set = HashMap::new();
-/// public_key_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
+/// public_key_set.insert("ed25519:1".into(), PUBLIC_KEY.to_string());
 /// let mut public_key_map = HashMap::new();
-/// public_key_map.insert("domain".to_string(), public_key_set);
+/// public_key_map.insert("domain".into(), public_key_set);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
 /// assert!(ruma_signatures::verify_json(&public_key_map, &value).is_ok());
@@ -400,7 +400,7 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 /// // Create an Ed25519 key pair.
 /// let key_pair = ruma_signatures::Ed25519KeyPair::new(
 ///     &document,
-///     "1".to_string(), // The "version" of the key.
+///     "1".into(), // The "version" of the key.
 /// ).unwrap();
 ///
 /// // Deserialize an event from JSON.
@@ -472,7 +472,7 @@ where
             map.entry("hashes").or_insert_with(|| Value::Object(Map::with_capacity(1)));
 
         match hashes_value.as_object_mut() {
-            Some(hashes) => hashes.insert("sha256".to_string(), Value::String(hash)),
+            Some(hashes) => hashes.insert("sha256".into(), Value::String(hash)),
             None => return Err(Error::new("field `hashes` must be a JSON object")),
         };
     }
@@ -484,7 +484,7 @@ where
     // Safe to unwrap because we did this exact check at the beginning of the function.
     let map = value.as_object_mut().unwrap();
 
-    map.insert("signatures".to_string(), redacted["signatures"].take());
+    map.insert("signatures".into(), redacted["signatures"].take());
 
     Ok(())
 }
@@ -543,9 +543,9 @@ where
 ///
 /// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
 /// let mut public_key_set = HashMap::new();
-/// public_key_set.insert("ed25519:1".to_string(), PUBLIC_KEY.to_string());
+/// public_key_set.insert("ed25519:1".into(), PUBLIC_KEY.to_string());
 /// let mut public_key_map = HashMap::new();
-/// public_key_map.insert("domain".to_string(), public_key_set);
+/// public_key_map.insert("domain".into(), public_key_set);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
 /// assert!(ruma_signatures::verify_event(&public_key_map, &value).is_ok());

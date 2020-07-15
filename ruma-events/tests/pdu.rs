@@ -16,34 +16,32 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 fn serialize_stub_as_v1() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
-    inner_signature.insert(
-        "ed25519:key_version".to_string(),
-        "86BytesOfSignatureOfTheRedactedEvent".to_string(),
-    );
-    signatures.insert("example.com".to_string(), inner_signature);
+    inner_signature
+        .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
+    signatures.insert("example.com".into(), inner_signature);
 
     let mut unsigned = BTreeMap::new();
-    unsigned.insert("somekey".to_string(), json!({"a": 456}));
+    unsigned.insert("somekey".into(), json!({"a": 456}));
 
     let v1_stub = RoomV1PduStub {
         sender: UserId::try_from("@sender:example.com").unwrap(),
-        origin: "matrix.org".to_string(),
+        origin: "matrix.org".into(),
         origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
         kind: EventType::RoomPowerLevels,
         content: json!({"testing": 123}),
-        state_key: Some("state".to_string()),
+        state_key: Some("state".into()),
         prev_events: vec![(
             EventId::try_from("$previousevent:matrix.org").unwrap(),
-            EventHash { sha256: "123567".to_string() },
+            EventHash { sha256: "123567".into() },
         )],
         depth: 2_u32.into(),
         auth_events: vec![(
             EventId::try_from("$someauthevent:matrix.org").unwrap(),
-            EventHash { sha256: "21389CFEDABC".to_string() },
+            EventHash { sha256: "21389CFEDABC".into() },
         )],
         redacts: Some(EventId::try_from("$9654:matrix.org").unwrap()),
         unsigned,
-        hashes: EventHash { sha256: "1233543bABACDEF".to_string() },
+        hashes: EventHash { sha256: "1233543bABACDEF".into() },
         signatures,
     };
     let pdu_stub = PduStub::RoomV1PduStub(v1_stub);
@@ -79,28 +77,26 @@ fn serialize_stub_as_v1() {
 fn serialize_stub_as_v3() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
-    inner_signature.insert(
-        "ed25519:key_version".to_string(),
-        "86BytesOfSignatureOfTheRedactedEvent".to_string(),
-    );
-    signatures.insert("example.com".to_string(), inner_signature);
+    inner_signature
+        .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
+    signatures.insert("example.com".into(), inner_signature);
 
     let mut unsigned = BTreeMap::new();
-    unsigned.insert("somekey".to_string(), json!({"a": 456}));
+    unsigned.insert("somekey".into(), json!({"a": 456}));
 
     let v3_stub = RoomV3PduStub {
         sender: UserId::try_from("@sender:example.com").unwrap(),
-        origin: "matrix.org".to_string(),
+        origin: "matrix.org".into(),
         origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
         kind: EventType::RoomPowerLevels,
         content: json!({"testing": 123}),
-        state_key: Some("state".to_string()),
+        state_key: Some("state".into()),
         prev_events: vec![EventId::try_from("$previousevent:matrix.org").unwrap()],
         depth: 2_u32.into(),
         auth_events: vec![EventId::try_from("$someauthevent:matrix.org").unwrap()],
         redacts: Some(EventId::try_from("$9654:matrix.org").unwrap()),
         unsigned,
-        hashes: EventHash { sha256: "1233543bABACDEF".to_string() },
+        hashes: EventHash { sha256: "1233543bABACDEF".into() },
         signatures,
     };
     let pdu_stub = PduStub::RoomV3PduStub(v3_stub);
@@ -238,36 +234,34 @@ fn deserialize_stub_as_v3() {
 fn serialize_pdu_as_v1() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
-    inner_signature.insert(
-        "ed25519:key_version".to_string(),
-        "86BytesOfSignatureOfTheRedactedEvent".to_string(),
-    );
-    signatures.insert("example.com".to_string(), inner_signature);
+    inner_signature
+        .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
+    signatures.insert("example.com".into(), inner_signature);
 
     let mut unsigned = BTreeMap::new();
-    unsigned.insert("somekey".to_string(), json!({"a": 456}));
+    unsigned.insert("somekey".into(), json!({"a": 456}));
 
     let v1_pdu = RoomV1Pdu {
         room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
         event_id: EventId::try_from("$somejoinevent:matrix.org").unwrap(),
         sender: UserId::try_from("@sender:example.com").unwrap(),
-        origin: "matrix.org".to_string(),
+        origin: "matrix.org".into(),
         origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
         kind: EventType::RoomPowerLevels,
         content: json!({"testing": 123}),
-        state_key: Some("state".to_string()),
+        state_key: Some("state".into()),
         prev_events: vec![(
             EventId::try_from("$previousevent:matrix.org").unwrap(),
-            EventHash { sha256: "123567".to_string() },
+            EventHash { sha256: "123567".into() },
         )],
         depth: 2_u32.into(),
         auth_events: vec![(
             EventId::try_from("$someauthevent:matrix.org").unwrap(),
-            EventHash { sha256: "21389CFEDABC".to_string() },
+            EventHash { sha256: "21389CFEDABC".into() },
         )],
         redacts: Some(EventId::try_from("$9654:matrix.org").unwrap()),
         unsigned,
-        hashes: EventHash { sha256: "1233543bABACDEF".to_string() },
+        hashes: EventHash { sha256: "1233543bABACDEF".into() },
         signatures,
     };
     let pdu = Pdu::RoomV1Pdu(v1_pdu);
@@ -305,29 +299,27 @@ fn serialize_pdu_as_v1() {
 fn serialize_pdu_as_v3() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
-    inner_signature.insert(
-        "ed25519:key_version".to_string(),
-        "86BytesOfSignatureOfTheRedactedEvent".to_string(),
-    );
-    signatures.insert("example.com".to_string(), inner_signature);
+    inner_signature
+        .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
+    signatures.insert("example.com".into(), inner_signature);
 
     let mut unsigned = BTreeMap::new();
-    unsigned.insert("somekey".to_string(), json!({"a": 456}));
+    unsigned.insert("somekey".into(), json!({"a": 456}));
 
     let v3_pdu = RoomV3Pdu {
         room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
         sender: UserId::try_from("@sender:example.com").unwrap(),
-        origin: "matrix.org".to_string(),
+        origin: "matrix.org".into(),
         origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
         kind: EventType::RoomPowerLevels,
         content: json!({"testing": 123}),
-        state_key: Some("state".to_string()),
+        state_key: Some("state".into()),
         prev_events: vec![EventId::try_from("$previousevent:matrix.org").unwrap()],
         depth: 2_u32.into(),
         auth_events: vec![EventId::try_from("$someauthevent:matrix.org").unwrap()],
         redacts: Some(EventId::try_from("$9654:matrix.org").unwrap()),
         unsigned,
-        hashes: EventHash { sha256: "1233543bABACDEF".to_string() },
+        hashes: EventHash { sha256: "1233543bABACDEF".into() },
         signatures,
     };
     let pdu_stub = Pdu::RoomV3Pdu(v3_pdu);
@@ -469,34 +461,32 @@ fn deserialize_pdu_as_v3() {
 fn convert_v1_stub_to_pdu() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
-    inner_signature.insert(
-        "ed25519:key_version".to_string(),
-        "86BytesOfSignatureOfTheRedactedEvent".to_string(),
-    );
-    signatures.insert("example.com".to_string(), inner_signature);
+    inner_signature
+        .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
+    signatures.insert("example.com".into(), inner_signature);
 
     let mut unsigned = BTreeMap::new();
-    unsigned.insert("somekey".to_string(), json!({"a": 456}));
+    unsigned.insert("somekey".into(), json!({"a": 456}));
 
     let v1_stub = RoomV1PduStub {
         sender: UserId::try_from("@sender:example.com").unwrap(),
-        origin: "matrix.org".to_string(),
+        origin: "matrix.org".into(),
         origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
         kind: EventType::RoomPowerLevels,
         content: json!({"testing": 123}),
-        state_key: Some("state".to_string()),
+        state_key: Some("state".into()),
         prev_events: vec![(
             EventId::try_from("$previousevent:matrix.org").unwrap(),
-            EventHash { sha256: "123567".to_string() },
+            EventHash { sha256: "123567".into() },
         )],
         depth: 2_u32.into(),
         auth_events: vec![(
             EventId::try_from("$someauthevent:matrix.org").unwrap(),
-            EventHash { sha256: "21389CFEDABC".to_string() },
+            EventHash { sha256: "21389CFEDABC".into() },
         )],
         redacts: Some(EventId::try_from("$9654:matrix.org").unwrap()),
         unsigned: (&unsigned).clone(),
-        hashes: EventHash { sha256: "1233543bABACDEF".to_string() },
+        hashes: EventHash { sha256: "1233543bABACDEF".into() },
         signatures: (&signatures).clone(),
     };
 
@@ -528,7 +518,7 @@ fn convert_v1_stub_to_pdu() {
             && origin_server_ts == SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658)
             && kind == EventType::RoomPowerLevels
             && content == json!({"testing": 123})
-            && state_key == Some("state".to_string())
+            && state_key == Some("state".into())
             && prev_events[0].0 == EventId::try_from("$previousevent:matrix.org").unwrap()
             && prev_events[0].1.sha256 == "123567"
             && depth == 2_u32.into()
@@ -545,28 +535,26 @@ fn convert_v1_stub_to_pdu() {
 fn convert_v3_stub_to_pdu() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
-    inner_signature.insert(
-        "ed25519:key_version".to_string(),
-        "86BytesOfSignatureOfTheRedactedEvent".to_string(),
-    );
-    signatures.insert("example.com".to_string(), inner_signature);
+    inner_signature
+        .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
+    signatures.insert("example.com".into(), inner_signature);
 
     let mut unsigned = BTreeMap::new();
-    unsigned.insert("somekey".to_string(), json!({"a": 456}));
+    unsigned.insert("somekey".into(), json!({"a": 456}));
 
     let v3_stub = RoomV3PduStub {
         sender: UserId::try_from("@sender:example.com").unwrap(),
-        origin: "matrix.org".to_string(),
+        origin: "matrix.org".into(),
         origin_server_ts: SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658),
         kind: EventType::RoomPowerLevels,
         content: json!({"testing": 123}),
-        state_key: Some("state".to_string()),
+        state_key: Some("state".into()),
         prev_events: vec![EventId::try_from("$previousevent:matrix.org").unwrap()],
         depth: 2_u32.into(),
         auth_events: vec![EventId::try_from("$someauthevent:matrix.org").unwrap()],
         redacts: Some(EventId::try_from("$9654:matrix.org").unwrap()),
         unsigned: (&unsigned).clone(),
-        hashes: EventHash { sha256: "1233543bABACDEF".to_string() },
+        hashes: EventHash { sha256: "1233543bABACDEF".into() },
         signatures: (&signatures).clone(),
     };
 
@@ -593,7 +581,7 @@ fn convert_v3_stub_to_pdu() {
             && origin_server_ts == SystemTime::UNIX_EPOCH + Duration::from_millis(1_592_050_773_658)
             && kind == EventType::RoomPowerLevels
             && content == json!({"testing": 123})
-            && state_key == Some("state".to_string())
+            && state_key == Some("state".into())
             && prev_events == vec![EventId::try_from("$previousevent:matrix.org").unwrap()]
             && depth == 2_u32.into()
             && auth_events == vec![EventId::try_from("$someauthevent:matrix.org").unwrap()]

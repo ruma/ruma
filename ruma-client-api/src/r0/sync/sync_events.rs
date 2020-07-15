@@ -6,8 +6,8 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_common::presence::PresenceState;
 use ruma_events::{
-    presence::PresenceEvent, AnyBasicEvent, AnyEphemeralRoomEventStub, AnyRoomEventStub,
-    AnyStateEventStub, AnyStrippedStateEventStub, AnyToDeviceEvent, EventJson,
+    presence::PresenceEvent, AnyBasicEvent, AnyStrippedStateEvent, AnySyncEphemeralRoomEvent,
+    AnySyncRoomEvent, AnySyncStateEvent, AnyToDeviceEvent, EventJson,
 };
 use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
@@ -242,7 +242,7 @@ pub struct Timeline {
     pub prev_batch: Option<String>,
 
     /// A list of events.
-    pub events: Vec<EventJson<AnyRoomEventStub>>,
+    pub events: Vec<EventJson<AnySyncRoomEvent>>,
 }
 
 impl Timeline {
@@ -256,7 +256,7 @@ impl Timeline {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct State {
     /// A list of state events.
-    pub events: Vec<EventJson<AnyStateEventStub>>,
+    pub events: Vec<EventJson<AnySyncStateEvent>>,
 }
 
 impl State {
@@ -284,7 +284,7 @@ impl AccountData {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Ephemeral {
     /// A list of events.
-    pub events: Vec<EventJson<AnyEphemeralRoomEventStub>>,
+    pub events: Vec<EventJson<AnySyncEphemeralRoomEvent>>,
 }
 
 impl Ephemeral {
@@ -343,7 +343,7 @@ impl InvitedRoom {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct InviteState {
     /// A list of state events.
-    pub events: Vec<EventJson<AnyStrippedStateEventStub>>,
+    pub events: Vec<EventJson<AnyStrippedStateEvent>>,
 }
 
 impl InviteState {

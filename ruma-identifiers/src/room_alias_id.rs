@@ -6,9 +6,6 @@ use crate::{error::Error, parse_id, server_name::ServerName};
 
 /// A Matrix room alias ID.
 ///
-/// It is discouraged to use this type directly – instead use one of the aliases (`RoomAliasId` and
-/// `RoomAliasIdRef`) in the crate root.
-///
 /// A `RoomAliasId` is converted from a string slice, and can be converted back into a string as
 /// needed.
 ///
@@ -20,38 +17,30 @@ use crate::{error::Error, parse_id, server_name::ServerName};
 ///     "#ruma:example.com"
 /// );
 /// ```
-#[derive(Clone, Copy, Debug)]
-pub struct RoomAliasId<T> {
-    pub(crate) full_id: T,
+#[derive(Clone, Debug)]
+pub struct RoomAliasId {
+    pub(crate) full_id: Box<str>,
     pub(crate) colon_idx: NonZeroU8,
 }
 
-impl<T> RoomAliasId<T>
-where
-    T: AsRef<str>,
-{
-    /// Creates a reference to this `RoomAliasId`.
-    pub fn as_ref(&self) -> RoomAliasId<&str> {
-        RoomAliasId { full_id: self.full_id.as_ref(), colon_idx: self.colon_idx }
-    }
-
+impl RoomAliasId {
     /// Returns the room's alias.
     pub fn alias(&self) -> &str {
-        &self.full_id.as_ref()[1..self.colon_idx.get() as usize]
+        &self.full_id[1..self.colon_idx.get() as usize]
     }
 
     /// Returns the server name of the room alias ID.
-    pub fn server_name(&self) -> ServerName<&str> {
-        ServerName::try_from(&self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]).unwrap()
+    pub fn server_name(&self) -> &ServerName {
+        <&ServerName>::try_from(&self.full_id[self.colon_idx.get() as usize + 1..]).unwrap()
     }
 }
 
 /// Attempts to create a new Matrix room alias ID from a string representation.
 ///
 /// The string must include the leading # sigil, the alias, a literal colon, and a server name.
-fn try_from<S, T>(room_id: S) -> Result<RoomAliasId<T>, Error>
+fn try_from<S>(room_id: S) -> Result<RoomAliasId, Error>
 where
-    S: AsRef<str> + Into<T>,
+    S: AsRef<str> + Into<Box<str>>,
 {
     let colon_idx = parse_id(room_id.as_ref(), &['#'])?;
 
@@ -67,9 +56,8 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
+    use super::RoomAliasId;
     use crate::error::Error;
-
-    type RoomAliasId = super::RoomAliasId<Box<str>>;
 
     #[test]
     fn valid_room_alias_id() {

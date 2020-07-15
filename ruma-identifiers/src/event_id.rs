@@ -2,15 +2,12 @@
 
 use std::{convert::TryFrom, num::NonZeroU8};
 
-use crate::{error::Error, parse_id, validate_id, ServerNameRef};
+use crate::{error::Error, parse_id, validate_id, ServerName};
 
 /// A Matrix event ID.
 ///
 /// An `EventId` is generated randomly or converted from a string slice, and can be converted back
 /// into a string as needed.
-///
-/// It is discouraged to use this type directly – instead use one of the aliases (`EventId` and
-/// `EventIdRef`) in the crate root.
 ///
 /// # Room versions
 ///
@@ -40,16 +37,13 @@ use crate::{error::Error, parse_id, validate_id, ServerNameRef};
 ///     "$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg"
 /// );
 /// ```
-#[derive(Clone, Copy, Debug)]
-pub struct EventId<T> {
-    full_id: T,
+#[derive(Clone, Debug)]
+pub struct EventId {
+    full_id: Box<str>,
     colon_idx: Option<NonZeroU8>,
 }
 
-impl<T> EventId<T>
-where
-    String: Into<T>,
-{
+impl EventId {
     /// Attempts to generate an `EventId` for the given origin server with a localpart consisting
     /// of 18 random ASCII characters. This should only be used for events in the original format
     /// as used by Matrix room versions 1 and 2.
@@ -58,7 +52,7 @@ where
     /// parsed as a valid host.
     #[cfg(feature = "rand")]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
-    pub fn new(server_name: ServerNameRef<'_>) -> Self {
+    pub fn new(server_name: &ServerName) -> Self {
         use crate::generate_localpart;
 
         let full_id = format!("${}:{}", generate_localpart(18), server_name).into();
@@ -67,33 +61,25 @@ where
     }
 }
 
-impl<T> EventId<T>
-where
-    T: AsRef<str>,
-{
-    /// Creates a reference to this `EventId`.
-    pub fn as_ref(&self) -> EventId<&str> {
-        EventId { full_id: self.full_id.as_ref(), colon_idx: self.colon_idx }
-    }
-
+impl EventId {
     /// Returns the event's unique ID. For the original event format as used by Matrix room
     /// versions 1 and 2, this is the "localpart" that precedes the homeserver. For later formats,
     /// this is the entire ID without the leading $ sigil.
     pub fn localpart(&self) -> &str {
         let idx = match self.colon_idx {
             Some(idx) => idx.get() as usize,
-            None => self.full_id.as_ref().len(),
+            None => self.full_id.len(),
         };
 
-        &self.full_id.as_ref()[1..idx]
+        &self.full_id[1..idx]
     }
 
     /// Returns the server name of the event ID.
     ///
     /// Only applicable to events in the original format as used by Matrix room versions 1 and 2.
-    pub fn server_name(&self) -> Option<ServerNameRef<'_>> {
+    pub fn server_name(&self) -> Option<&ServerName> {
         self.colon_idx.map(|idx| {
-            ServerNameRef::try_from(&self.full_id.as_ref()[idx.get() as usize + 1..]).unwrap()
+            <&ServerName>::try_from(&self.full_id.as_ref()[idx.get() as usize + 1..]).unwrap()
         })
     }
 }
@@ -102,9 +88,9 @@ where
 ///
 /// If using the original event format as used by Matrix room versions 1 and 2, the string must
 /// include the leading $ sigil, the localpart, a literal colon, and a valid homeserver hostname.
-fn try_from<S, T>(event_id: S) -> Result<EventId<T>, Error>
+fn try_from<S>(event_id: S) -> Result<EventId, Error>
 where
-    S: AsRef<str> + Into<T>,
+    S: AsRef<str> + Into<Box<str>>,
 {
     if event_id.as_ref().contains(':') {
         let colon_idx = parse_id(event_id.as_ref(), &['$'])?;
@@ -126,9 +112,8 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
-    use crate::{error::Error, ServerNameRef};
-
-    type EventId = super::EventId<Box<str>>;
+    use super::EventId;
+    use crate::{error::Error, ServerName};
 
     #[test]
     fn valid_original_event_id() {
@@ -164,7 +149,7 @@ mod tests {
     #[test]
     fn generate_random_valid_event_id() {
         let server_name =
-            ServerNameRef::try_from("example.com").expect("Failed to parse ServerName");
+            <&ServerName>::try_from("example.com").expect("Failed to parse ServerName");
         let event_id = EventId::new(server_name);
         let id_str = event_id.as_str();
 

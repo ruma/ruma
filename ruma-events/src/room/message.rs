@@ -412,9 +412,9 @@ mod tests {
     fn serialization() {
         let ev = MessageEvent {
             content: MessageEventContent::Audio(AudioMessageEventContent {
-                body: "test".to_string(),
+                body: "test".into(),
                 info: None,
-                url: Some("http://example.com/audio.mp3".to_string()),
+                url: Some("http://example.com/audio.mp3".into()),
                 file: None,
             }),
             event_id: EventId::try_from("$143273582443PhrSn:example.org").unwrap(),
@@ -444,9 +444,9 @@ mod tests {
     #[test]
     fn content_serialization() {
         let message_event_content = MessageEventContent::Audio(AudioMessageEventContent {
-            body: "test".to_string(),
+            body: "test".into(),
             info: None,
-            url: Some("http://example.com/audio.mp3".to_string()),
+            url: Some("http://example.com/audio.mp3".into()),
             file: None,
         });
 

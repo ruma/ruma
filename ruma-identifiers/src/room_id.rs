@@ -2,15 +2,12 @@
 
 use std::{convert::TryFrom, num::NonZeroU8};
 
-use crate::{error::Error, parse_id, ServerNameRef};
+use crate::{error::Error, parse_id, ServerName};
 
 /// A Matrix room ID.
 ///
 /// A `RoomId` is generated randomly or converted from a string slice, and can be converted back
 /// into a string as needed.
-///
-/// It is discouraged to use this type directly – instead use one of the aliases (`RoomId` and
-/// `RoomIdRef`) in the crate root.
 ///
 /// ```
 /// # use std::convert::TryFrom;
@@ -20,23 +17,20 @@ use crate::{error::Error, parse_id, ServerNameRef};
 ///     "!n8f893n9:example.com"
 /// );
 /// ```
-#[derive(Clone, Copy, Debug)]
-pub struct RoomId<T> {
-    pub(crate) full_id: T,
+#[derive(Clone, Debug)]
+pub struct RoomId {
+    pub(crate) full_id: Box<str>,
     pub(crate) colon_idx: NonZeroU8,
 }
 
-impl<T> RoomId<T>
-where
-    String: Into<T>,
-{
+impl RoomId {
     /// Attempts to generate a `RoomId` for the given origin server with a localpart consisting of
     /// 18 random ASCII characters.
     ///
     /// Fails if the given homeserver cannot be parsed as a valid host.
     #[cfg(feature = "rand")]
     #[cfg_attr(docsrs, doc(cfg(feature = "rand")))]
-    pub fn new(server_name: ServerNameRef<'_>) -> Self {
+    pub fn new(server_name: &ServerName) -> Self {
         use crate::generate_localpart;
 
         let full_id = format!("!{}:{}", generate_localpart(18), server_name).into();
@@ -45,33 +39,24 @@ where
     }
 }
 
-impl<T> RoomId<T>
-where
-    T: AsRef<str>,
-{
-    /// Creates a reference to this `RoomId`.
-    pub fn as_ref(&self) -> RoomId<&str> {
-        RoomId { full_id: self.full_id.as_ref(), colon_idx: self.colon_idx }
-    }
-
+impl RoomId {
     /// Returns the rooms's unique ID.
     pub fn localpart(&self) -> &str {
-        &self.full_id.as_ref()[1..self.colon_idx.get() as usize]
+        &self.full_id[1..self.colon_idx.get() as usize]
     }
 
     /// Returns the server name of the room ID.
-    pub fn server_name(&self) -> ServerNameRef<'_> {
-        ServerNameRef::try_from(&self.full_id.as_ref()[self.colon_idx.get() as usize + 1..])
-            .unwrap()
+    pub fn server_name(&self) -> &ServerName {
+        <&ServerName>::try_from(&self.full_id[self.colon_idx.get() as usize + 1..]).unwrap()
     }
 }
 
 /// Attempts to create a new Matrix room ID from a string representation.
 ///
 /// The string must include the leading ! sigil, the localpart, a literal colon, and a server name.
-fn try_from<S, T>(room_id: S) -> Result<RoomId<T>, Error>
+fn try_from<S>(room_id: S) -> Result<RoomId, Error>
 where
-    S: AsRef<str> + Into<T>,
+    S: AsRef<str> + Into<Box<str>>,
 {
     let colon_idx = parse_id(room_id.as_ref(), &['!'])?;
 
@@ -87,9 +72,8 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
-    use crate::{error::Error, ServerNameRef};
-
-    type RoomId = super::RoomId<Box<str>>;
+    use super::RoomId;
+    use crate::{error::Error, ServerName};
 
     #[test]
     fn valid_room_id() {
@@ -105,7 +89,7 @@ mod tests {
     #[test]
     fn generate_random_valid_room_id() {
         let server_name =
-            ServerNameRef::try_from("example.com").expect("Failed to parse ServerName");
+            <&ServerName>::try_from("example.com").expect("Failed to parse ServerName");
         let room_id = RoomId::new(server_name);
         let id_str = room_id.as_str();
 

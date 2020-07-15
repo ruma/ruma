@@ -35,7 +35,7 @@ ruma_api! {
         /// If this does not correspond to a known client device, a new device will be created.
         /// The server will auto-generate a device_id if this is not specified.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_id: Option<DeviceId>,
+        pub device_id: Option<Box<DeviceId>>,
 
         /// A display name to assign to the newly-created device.
         ///
@@ -78,7 +78,7 @@ ruma_api! {
         /// ID of the registered device.
         ///
         /// Will be the same as the corresponding parameter in the request, if one was specified.
-        pub device_id: Option<DeviceId>,
+        pub device_id: Option<Box<DeviceId>>,
     }
 
     error: UiaaResponse

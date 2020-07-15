@@ -7,7 +7,7 @@ use js_int::UInt;
 use matches::assert_matches;
 use ruma_events::{
     room::{aliases::AliasesEventContent, avatar::AvatarEventContent, ImageInfo, ThumbnailInfo},
-    AnyRoomEvent, AnyStateEvent, AnyStateEventContent, EventJson, StateEvent, StateEventStub,
+    AnyRoomEvent, AnyStateEvent, AnyStateEventContent, EventJson, StateEvent, SyncStateEvent,
     UnsignedData,
 };
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
@@ -45,7 +45,7 @@ fn serialize_aliases_with_prev_content() {
         })),
         room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        state_key: "".to_string(),
+        state_key: "".into(),
         unsigned: UnsignedData::default(),
     };
 
@@ -66,7 +66,7 @@ fn serialize_aliases_without_prev_content() {
         prev_content: None,
         room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        state_key: "".to_string(),
+        state_key: "".into(),
         unsigned: UnsignedData::default(),
     };
 
@@ -132,13 +132,13 @@ fn deserialize_aliases_with_prev_content() {
 }
 
 #[test]
-fn deserialize_aliases_stub_with_room_id() {
+fn deserialize_aliases_sync_with_room_id() {
     let json_data = aliases_event_with_prev_content();
 
     assert_matches!(
-        from_json_value::<StateEventStub<AnyStateEventContent>>(json_data)
+        from_json_value::<SyncStateEvent<AnyStateEventContent>>(json_data)
             .unwrap(),
-        StateEventStub {
+        SyncStateEvent {
             content: AnyStateEventContent::RoomAliases(content),
             event_id,
             origin_server_ts,
@@ -228,7 +228,7 @@ fn deserialize_avatar_without_prev_content() {
                             size: thumb_size,
                         } if *thumb_width == UInt::new(800)
                             && *thumb_height == UInt::new(334)
-                            && *thumb_mimetype == Some("image/png".to_string())
+                            && *thumb_mimetype == Some("image/png".into())
                             && *thumb_size == UInt::new(82595)
                             && *thumbnail_url == "mxc://matrix.org"
                     )
@@ -279,6 +279,6 @@ fn deserialize_member_event_with_top_level_membership_field() {
         )) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
             && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
             && sender == UserId::try_from("@example:localhost").unwrap()
-            && content.displayname == Some("example".to_string())
+            && content.displayname == Some("example".into())
     );
 }

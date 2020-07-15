@@ -19,21 +19,18 @@ const MAX_CODE_POINTS: usize = 32;
 /// A `RoomVersionId` can be or converted or deserialized from a string slice, and can be converted
 /// or serialized back into a string as needed.
 ///
-/// It is discouraged to use this type directly – instead use one of the aliases (`RoomVersionId`
-/// and `RoomVersionIdRef`) in the crate root.
-///
 /// ```
 /// # use std::convert::TryFrom;
 /// # use ruma_identifiers::RoomVersionId;
 /// assert_eq!(RoomVersionId::try_from("1").unwrap().as_ref(), "1");
 /// ```
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct RoomVersionId<T>(InnerRoomVersionId<T>);
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct RoomVersionId(InnerRoomVersionId);
 
 /// Possibile values for room version, distinguishing between official Matrix versions and custom
 /// versions.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-enum InnerRoomVersionId<T> {
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+enum InnerRoomVersionId {
     /// A version 1 room.
     Version1,
 
@@ -53,10 +50,10 @@ enum InnerRoomVersionId<T> {
     Version6,
 
     /// A custom room version.
-    Custom(T),
+    Custom(Box<str>),
 }
 
-impl<T> RoomVersionId<T> {
+impl RoomVersionId {
     /// Creates a version 1 room ID.
     pub fn version_1() -> Self {
         Self(InnerRoomVersionId::Version1)
@@ -102,37 +99,37 @@ impl<T> RoomVersionId<T> {
 
     /// Whether or not this is a version 1 room.
     pub fn is_version_1(&self) -> bool {
-        matches!(self.0, InnerRoomVersionId::Version1)
+        self.0 == InnerRoomVersionId::Version1
     }
 
     /// Whether or not this is a version 2 room.
     pub fn is_version_2(&self) -> bool {
-        matches!(self.0, InnerRoomVersionId::Version2)
+        self.0 == InnerRoomVersionId::Version2
     }
 
     /// Whether or not this is a version 3 room.
     pub fn is_version_3(&self) -> bool {
-        matches!(self.0, InnerRoomVersionId::Version3)
+        self.0 == InnerRoomVersionId::Version3
     }
 
     /// Whether or not this is a version 4 room.
     pub fn is_version_4(&self) -> bool {
-        matches!(self.0, InnerRoomVersionId::Version4)
+        self.0 == InnerRoomVersionId::Version4
     }
 
     /// Whether or not this is a version 5 room.
     pub fn is_version_5(&self) -> bool {
-        matches!(self.0, InnerRoomVersionId::Version5)
+        self.0 == InnerRoomVersionId::Version5
     }
 
     /// Whether or not this is a version 6 room.
     pub fn is_version_6(&self) -> bool {
-        matches!(self.0, InnerRoomVersionId::Version5)
+        self.0 == InnerRoomVersionId::Version5
     }
 }
 
-impl From<RoomVersionId<Box<str>>> for String {
-    fn from(id: RoomVersionId<Box<str>>) -> Self {
+impl From<RoomVersionId> for String {
+    fn from(id: RoomVersionId) -> Self {
         match id.0 {
             InnerRoomVersionId::Version1 => "1".to_owned(),
             InnerRoomVersionId::Version2 => "2".to_owned(),
@@ -145,7 +142,7 @@ impl From<RoomVersionId<Box<str>>> for String {
     }
 }
 
-impl<T: AsRef<str>> AsRef<str> for RoomVersionId<T> {
+impl AsRef<str> for RoomVersionId {
     fn as_ref(&self) -> &str {
         match &self.0 {
             InnerRoomVersionId::Version1 => "1",
@@ -154,31 +151,31 @@ impl<T: AsRef<str>> AsRef<str> for RoomVersionId<T> {
             InnerRoomVersionId::Version4 => "4",
             InnerRoomVersionId::Version5 => "5",
             InnerRoomVersionId::Version6 => "6",
-            InnerRoomVersionId::Custom(version) => version.as_ref(),
+            InnerRoomVersionId::Custom(version) => version,
         }
     }
 }
 
-impl<T: AsRef<str>> Display for RoomVersionId<T> {
+impl Display for RoomVersionId {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.as_ref())
     }
 }
 
-impl<T: PartialEq + AsRef<str>> PartialOrd for RoomVersionId<T> {
-    fn partial_cmp(&self, other: &RoomVersionId<T>) -> Option<Ordering> {
+impl PartialOrd for RoomVersionId {
+    fn partial_cmp(&self, other: &RoomVersionId) -> Option<Ordering> {
         self.as_ref().partial_cmp(other.as_ref())
     }
 }
 
-impl<T: Eq + AsRef<str>> Ord for RoomVersionId<T> {
+impl Ord for RoomVersionId {
     fn cmp(&self, other: &Self) -> Ordering {
         self.as_ref().cmp(other.as_ref())
     }
 }
 
 #[cfg(feature = "serde")]
-impl<T: AsRef<str>> Serialize for RoomVersionId<T> {
+impl Serialize for RoomVersionId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -188,7 +185,7 @@ impl<T: AsRef<str>> Serialize for RoomVersionId<T> {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> Deserialize<'de> for RoomVersionId<Box<str>> {
+impl<'de> Deserialize<'de> for RoomVersionId {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -198,9 +195,9 @@ impl<'de> Deserialize<'de> for RoomVersionId<Box<str>> {
 }
 
 /// Attempts to create a new Matrix room version ID from a string representation.
-fn try_from<S, T>(room_version_id: S) -> Result<RoomVersionId<T>, Error>
+fn try_from<S>(room_version_id: S) -> Result<RoomVersionId, Error>
 where
-    S: AsRef<str> + Into<T>,
+    S: AsRef<str> + Into<Box<str>>,
 {
     let version = match room_version_id.as_ref() {
         "1" => RoomVersionId(InnerRoomVersionId::Version1),
@@ -222,15 +219,7 @@ where
     Ok(version)
 }
 
-impl<'a> TryFrom<&'a str> for RoomVersionId<&'a str> {
-    type Error = crate::error::Error;
-
-    fn try_from(s: &'a str) -> Result<Self, Error> {
-        try_from(s)
-    }
-}
-
-impl TryFrom<&str> for RoomVersionId<Box<str>> {
+impl TryFrom<&str> for RoomVersionId {
     type Error = crate::error::Error;
 
     fn try_from(s: &str) -> Result<Self, Error> {
@@ -238,7 +227,7 @@ impl TryFrom<&str> for RoomVersionId<Box<str>> {
     }
 }
 
-impl TryFrom<String> for RoomVersionId<Box<str>> {
+impl TryFrom<String> for RoomVersionId {
     type Error = crate::error::Error;
 
     fn try_from(s: String) -> Result<Self, Error> {
@@ -246,26 +235,26 @@ impl TryFrom<String> for RoomVersionId<Box<str>> {
     }
 }
 
-impl<T: AsRef<str>> PartialEq<&str> for RoomVersionId<T> {
+impl PartialEq<&str> for RoomVersionId {
     fn eq(&self, other: &&str) -> bool {
         self.as_ref() == *other
     }
 }
 
-impl<T: AsRef<str>> PartialEq<RoomVersionId<T>> for &str {
-    fn eq(&self, other: &RoomVersionId<T>) -> bool {
+impl PartialEq<RoomVersionId> for &str {
+    fn eq(&self, other: &RoomVersionId) -> bool {
         *self == other.as_ref()
     }
 }
 
-impl<T: AsRef<str>> PartialEq<String> for RoomVersionId<T> {
+impl PartialEq<String> for RoomVersionId {
     fn eq(&self, other: &String) -> bool {
         self.as_ref() == other
     }
 }
 
-impl<T: AsRef<str>> PartialEq<RoomVersionId<T>> for String {
-    fn eq(&self, other: &RoomVersionId<T>) -> bool {
+impl PartialEq<RoomVersionId> for String {
+    fn eq(&self, other: &RoomVersionId) -> bool {
         self == other.as_ref()
     }
 }
@@ -277,9 +266,8 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
+    use super::RoomVersionId;
     use crate::error::Error;
-
-    type RoomVersionId = super::RoomVersionId<Box<str>>;
 
     #[test]
     fn valid_version_1_room_version_id() {

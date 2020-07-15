@@ -154,7 +154,7 @@ mod tests {
             room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
             unsigned: UnsignedData::default(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
-            state_key: "".to_string(),
+            state_key: "".into(),
         };
 
         let actual = to_json_value(&power_levels_event).unwrap();
@@ -213,7 +213,7 @@ mod tests {
             room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
             unsigned: UnsignedData { age: Some(Int::from(100)), ..UnsignedData::default() },
             sender: user,
-            state_key: "".to_string(),
+            state_key: "".into(),
         };
 
         let actual = to_json_value(&power_levels_event).unwrap();

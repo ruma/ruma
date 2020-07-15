@@ -12,9 +12,9 @@ use ruma_events::{
         message::RedactedMessageEventContent,
         redaction::{RedactionEvent, RedactionEventContent},
     },
-    AnyRedactedMessageEvent, AnyRedactedMessageEventStub, AnyRedactedStateEventStub, AnyRoomEvent,
-    AnyRoomEventStub, EventJson, RedactedMessageEvent, RedactedMessageEventStub,
-    RedactedStateEventStub, UnsignedData,
+    AnyRedactedMessageEvent, AnyRedactedSyncMessageEvent, AnyRedactedSyncStateEvent, AnyRoomEvent,
+    AnySyncRoomEvent, EventJson, RedactedMessageEvent, RedactedSyncMessageEvent,
+    RedactedSyncStateEvent, UnsignedData,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -25,7 +25,7 @@ fn is_zst<T>(_: &T) -> bool {
 
 #[test]
 fn redacted_message_event_serialize() {
-    let redacted = RedactedMessageEventStub {
+    let redacted = RedactedSyncMessageEvent {
         content: RedactedMessageEventContent,
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
@@ -46,10 +46,10 @@ fn redacted_message_event_serialize() {
 
 #[test]
 fn redacted_aliases_event_serialize() {
-    let redacted = RedactedStateEventStub {
+    let redacted = RedactedSyncStateEvent {
         content: RedactedAliasesEventContent { aliases: None },
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
-        state_key: "".to_string(),
+        state_key: "".into(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         sender: UserId::try_from("@carl:example.com").unwrap(),
         unsigned: UnsignedData::default(),
@@ -108,9 +108,9 @@ fn redacted_deserialize_any_room() {
 }
 
 #[test]
-fn redacted_deserialize_any_room_stub() {
+fn redacted_deserialize_any_room_sync() {
     let mut unsigned = UnsignedData::default();
-    // The presence of `redacted_because` triggers the event enum (AnyRoomEventStub in this case)
+    // The presence of `redacted_because` triggers the event enum (AnySyncRoomEvent in this case)
     // to return early with `RedactedContent` instead of failing to deserialize according
     // to the event type string.
     unsigned.redacted_because = Some(EventJson::from(RedactionEvent {
@@ -134,11 +134,11 @@ fn redacted_deserialize_any_room_stub() {
     let actual = to_json_value(&redacted).unwrap();
 
     assert_matches!(
-        from_json_value::<EventJson<AnyRoomEventStub>>(actual)
+        from_json_value::<EventJson<AnySyncRoomEvent>>(actual)
             .unwrap()
             .deserialize()
             .unwrap(),
-        AnyRoomEventStub::RedactedMessage(AnyRedactedMessageEventStub::RoomMessage(RedactedMessageEventStub {
+        AnySyncRoomEvent::RedactedMessage(AnyRedactedSyncMessageEvent::RoomMessage(RedactedSyncMessageEvent {
             event_id, content, ..
         })) if event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
             && is_zst(&content)
@@ -171,11 +171,11 @@ fn redacted_state_event_deserialize() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<AnyRoomEventStub>>(redacted)
+        from_json_value::<EventJson<AnySyncRoomEvent>>(redacted)
             .unwrap()
             .deserialize()
             .unwrap(),
-        AnyRoomEventStub::RedactedState(AnyRedactedStateEventStub::RoomCreate(RedactedStateEventStub {
+        AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::RoomCreate(RedactedSyncStateEvent {
             content: RedactedCreateEventContent {
                 creator,
             },
@@ -210,11 +210,11 @@ fn redacted_custom_event_serialize() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<AnyRoomEventStub>>(redacted.clone())
+        from_json_value::<EventJson<AnySyncRoomEvent>>(redacted.clone())
             .unwrap()
             .deserialize()
             .unwrap(),
-        AnyRoomEventStub::RedactedState(AnyRedactedStateEventStub::Custom(RedactedStateEventStub {
+        AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::Custom(RedactedSyncStateEvent {
             content: RedactedCustomEventContent {
                 event_type,
             },
@@ -225,7 +225,7 @@ fn redacted_custom_event_serialize() {
             && event_type == "m.made.up"
     );
 
-    let x = from_json_value::<EventJson<crate::AnyRedactedStateEventStub>>(redacted)
+    let x = from_json_value::<EventJson<crate::AnyRedactedSyncStateEvent>>(redacted)
         .unwrap()
         .deserialize()
         .unwrap();
@@ -245,11 +245,11 @@ fn redacted_custom_event_deserialize() {
         unsigned: UnsignedData::default(),
     }));
 
-    let redacted = RedactedStateEventStub {
-        content: RedactedCustomEventContent { event_type: "m.made.up".to_string() },
+    let redacted = RedactedSyncStateEvent {
+        content: RedactedCustomEventContent { event_type: "m.made.up".into() },
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        state_key: "hello there".to_string(),
+        state_key: "hello there".into(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         unsigned: unsigned.clone(),
     };

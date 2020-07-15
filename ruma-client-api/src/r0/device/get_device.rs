@@ -17,7 +17,7 @@ ruma_api! {
     request: {
         /// The device to retrieve.
         #[ruma_api(path)]
-        pub device_id: DeviceId,
+        pub device_id: Box<DeviceId>,
     }
 
     response: {

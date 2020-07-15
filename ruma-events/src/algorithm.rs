@@ -59,6 +59,6 @@ mod tests {
     fn serialize_and_deserialize_from_display_form() {
         serde_json_eq(Algorithm::MegolmV1AesSha2, json!("m.megolm.v1.aes-sha2"));
         serde_json_eq(Algorithm::OlmV1Curve25519AesSha2, json!("m.olm.v1.curve25519-aes-sha2"));
-        serde_json_eq(Algorithm::Custom("io.ruma.test".to_string()), json!("io.ruma.test"));
+        serde_json_eq(Algorithm::Custom("io.ruma.test".into()), json!("io.ruma.test"));
     }
 }

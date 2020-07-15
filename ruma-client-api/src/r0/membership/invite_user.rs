@@ -80,10 +80,10 @@ mod tests {
         }))
         .unwrap();
         let recipient = InvitationRecipient::ThirdPartyId(Invite3pid {
-            id_server: "example.org".to_string(),
-            id_access_token: "abcdefghijklmnop".to_string(),
+            id_server: "example.org".into(),
+            id_access_token: "abcdefghijklmnop".into(),
             medium: Medium::Email,
-            address: "carl@example.org".to_string(),
+            address: "carl@example.org".into(),
         });
         assert_eq!(incoming, recipient);
     }

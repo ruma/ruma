@@ -19,7 +19,7 @@ pub type RequestEvent = BasicEvent<RequestEventContent>;
 #[ruma_event(type = "m.key.verification.request")]
 pub struct RequestEventContent {
     /// The device ID which is initiating the request.
-    pub from_device: DeviceId,
+    pub from_device: Box<DeviceId>,
 
     /// An opaque identifier for the verification request.
     ///

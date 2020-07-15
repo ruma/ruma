@@ -27,7 +27,7 @@ impl NameEventContent {
         match name.len() {
             0 => Ok(Self { name: None }),
             1..=255 => Ok(Self { name: Some(name) }),
-            _ => Err(InvalidInput("a room name cannot be more than 255 bytes".to_string())),
+            _ => Err(InvalidInput("a room name cannot be more than 255 bytes".into())),
         }
     }
 
@@ -74,13 +74,13 @@ mod tests {
     #[test]
     fn serialization_with_optional_fields_as_none() {
         let name_event = StateEvent {
-            content: NameEventContent { name: Some("The room name".to_string()) },
+            content: NameEventContent { name: Some("The room name".into()) },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: None,
             room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
-            state_key: "".to_string(),
+            state_key: "".into(),
             unsigned: UnsignedData::default(),
         };
 
@@ -103,13 +103,13 @@ mod tests {
     #[test]
     fn serialization_with_all_fields() {
         let name_event = StateEvent {
-            content: NameEventContent { name: Some("The room name".to_string()) },
+            content: NameEventContent { name: Some("The room name".into()) },
             event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
-            prev_content: Some(NameEventContent { name: Some("The old name".to_string()) }),
+            prev_content: Some(NameEventContent { name: Some("The old name".into()) }),
             room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
-            state_key: "".to_string(),
+            state_key: "".into(),
             unsigned: UnsignedData { age: Some(Int::from(100)), ..UnsignedData::default() },
         };
 
@@ -233,7 +233,7 @@ mod tests {
 
     #[test]
     fn nonempty_field_as_some() {
-        let name = Some("The room name".to_string());
+        let name = Some("The room name".into());
         let json_data = json!({
             "content": {
                 "name": "The room name"

@@ -30,7 +30,7 @@ ruma_api! {
 
         /// The keys to be downloaded. An empty list indicates all devices for
         /// the corresponding user.
-        pub device_keys: BTreeMap<UserId, Vec<DeviceId>>,
+        pub device_keys: BTreeMap<UserId, Vec<Box<DeviceId>>>,
 
         /// If the client is fetching keys as a result of a device update
         /// received in a sync request, this should be the 'since' token of that
@@ -48,7 +48,7 @@ ruma_api! {
         pub failures: BTreeMap<String, JsonValue>,
 
         /// Information on the queried devices.
-        pub device_keys: BTreeMap<UserId, BTreeMap<DeviceId, DeviceKeys>>,
+        pub device_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeys>>,
     }
 
     error: crate::Error

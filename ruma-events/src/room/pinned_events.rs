@@ -24,7 +24,7 @@ mod tests {
         time::{Duration, UNIX_EPOCH},
     };
 
-    use ruma_identifiers::{EventId, RoomId, ServerNameRef, UserId};
+    use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
     use serde_json::to_string;
 
     use super::PinnedEventsEventContent;
@@ -33,7 +33,7 @@ mod tests {
     #[test]
     fn serialization_deserialization() {
         let mut content: PinnedEventsEventContent = PinnedEventsEventContent { pinned: Vec::new() };
-        let server_name = ServerNameRef::try_from("example.com").unwrap();
+        let server_name = <&ServerName>::try_from("example.com").unwrap();
 
         content.pinned.push(EventId::new(server_name));
         content.pinned.push(EventId::new(server_name));
@@ -45,7 +45,7 @@ mod tests {
             prev_content: None,
             room_id: RoomId::new(server_name),
             sender: UserId::new(server_name),
-            state_key: "".to_string(),
+            state_key: "".into(),
             unsigned: UnsignedData::default(),
         };
 

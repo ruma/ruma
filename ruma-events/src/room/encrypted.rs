@@ -60,7 +60,7 @@ pub struct MegolmV1AesSha2Content {
     pub sender_key: String,
 
     /// The ID of the sending device.
-    pub device_id: DeviceId,
+    pub device_id: Box<DeviceId>,
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,
@@ -78,10 +78,10 @@ mod tests {
     fn serialization() {
         let key_verification_start_content =
             EncryptedEventContent::MegolmV1AesSha2(MegolmV1AesSha2Content {
-                ciphertext: "ciphertext".to_string(),
-                sender_key: "sender_key".to_string(),
-                device_id: "device_id".to_string(),
-                session_id: "session_id".to_string(),
+                ciphertext: "ciphertext".into(),
+                sender_key: "sender_key".into(),
+                device_id: "device_id".into(),
+                session_id: "session_id".into(),
             });
 
         let json_data = json!({
@@ -117,7 +117,7 @@ mod tests {
                 session_id,
             }) if ciphertext == "ciphertext"
                 && sender_key == "sender_key"
-                && device_id == "device_id"
+                && device_id.as_ref() == "device_id"
                 && session_id == "session_id"
         );
     }

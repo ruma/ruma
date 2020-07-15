@@ -217,7 +217,7 @@ mod tests {
     #[test]
     fn test_serialize_third_party_network() {
         let json = json!({ "third_party_instance_id": "freenode" });
-        assert_eq!(to_json_value(RoomNetwork::ThirdParty("freenode".to_string())).unwrap(), json);
+        assert_eq!(to_json_value(RoomNetwork::ThirdParty("freenode".into())).unwrap(), json);
     }
 
     #[test]
@@ -225,7 +225,7 @@ mod tests {
         let json = json!({ "third_party_instance_id": "freenode" });
         assert_eq!(
             from_json_value::<RoomNetwork>(json).unwrap(),
-            RoomNetwork::ThirdParty("freenode".to_string())
+            RoomNetwork::ThirdParty("freenode".into())
         );
     }
 

@@ -2,18 +2,13 @@
 
 use std::{convert::TryFrom, hint::unreachable_unchecked, num::NonZeroU8};
 
-use crate::{
-    error::Error, parse_id, room_alias_id::RoomAliasId, room_id::RoomId, server_name::ServerName,
-};
+use crate::{error::Error, parse_id, server_name::ServerName, RoomAliasId, RoomId};
 
 /// A Matrix room ID or a Matrix room alias ID.
 ///
 /// `RoomIdOrAliasId` is useful for APIs that accept either kind of room identifier. It is converted
 /// from a string slice, and can be converted back into a string as needed. When converted from a
 /// string slice, the variant is determined by the leading sigil character.
-///
-/// It is discouraged to use this type directly – instead use one of the aliases
-/// (`RoomIdOrRoomAliasId` and `RoomIdOrRoomAliasIdRef`) in the crate root.
 ///
 /// ```
 /// # use std::convert::TryFrom;
@@ -28,29 +23,21 @@ use crate::{
 ///     "!n8f893n9:example.com"
 /// );
 /// ```
-#[derive(Clone, Copy, Debug)]
-pub struct RoomIdOrAliasId<T> {
-    full_id: T,
+#[derive(Clone, Debug)]
+pub struct RoomIdOrAliasId {
+    full_id: Box<str>,
     colon_idx: NonZeroU8,
 }
 
-impl<T> RoomIdOrAliasId<T>
-where
-    T: AsRef<str>,
-{
-    /// Creates a reference to this `RoomIdOrAliasId`.
-    pub fn as_ref(&self) -> RoomIdOrAliasId<&str> {
-        RoomIdOrAliasId { full_id: self.full_id.as_ref(), colon_idx: self.colon_idx }
-    }
-
+impl RoomIdOrAliasId {
     /// Returns the local part (everything after the `!` or `#` and before the first colon).
     pub fn localpart(&self) -> &str {
-        &self.full_id.as_ref()[1..self.colon_idx.get() as usize]
+        &self.full_id[1..self.colon_idx.get() as usize]
     }
 
     /// Returns the server name of the room (alias) ID.
-    pub fn server_name(&self) -> ServerName<&str> {
-        ServerName::try_from(&self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]).unwrap()
+    pub fn server_name(&self) -> &ServerName {
+        <&ServerName>::try_from(&self.full_id[self.colon_idx.get() as usize + 1..]).unwrap()
     }
 
     /// Whether this is a room id (starts with `'!'`)
@@ -66,7 +53,7 @@ where
     /// Turn this `RoomIdOrAliasId` into `Either<RoomId, RoomAliasId>`
     #[cfg(feature = "either")]
     #[cfg_attr(docsrs, doc(cfg(feature = "either")))]
-    pub fn into_either(self) -> either::Either<RoomId<T>, RoomAliasId<T>> {
+    pub fn into_either(self) -> either::Either<RoomId, RoomAliasId> {
         match self.variant() {
             Variant::RoomId => {
                 either::Either::Left(RoomId { full_id: self.full_id, colon_idx: self.colon_idx })
@@ -79,7 +66,7 @@ where
     }
 
     fn variant(&self) -> Variant {
-        match self.full_id.as_ref().bytes().next() {
+        match self.full_id.bytes().next() {
             Some(b'!') => Variant::RoomId,
             Some(b'#') => Variant::RoomAliasId,
             _ => unsafe { unreachable_unchecked() },
@@ -98,9 +85,9 @@ enum Variant {
 /// The string must either include the leading ! sigil, the localpart, a literal colon, and a
 /// valid homeserver host or include the leading # sigil, the alias, a literal colon, and a
 /// valid homeserver host.
-fn try_from<S, T>(room_id_or_alias_id: S) -> Result<RoomIdOrAliasId<T>, Error>
+fn try_from<S>(room_id_or_alias_id: S) -> Result<RoomIdOrAliasId, Error>
 where
-    S: AsRef<str> + Into<T>,
+    S: AsRef<str> + Into<Box<str>>,
 {
     let colon_idx = parse_id(room_id_or_alias_id.as_ref(), &['#', '!'])?;
     Ok(RoomIdOrAliasId { full_id: room_id_or_alias_id.into(), colon_idx })
@@ -108,22 +95,22 @@ where
 
 common_impls!(RoomIdOrAliasId, try_from, "a Matrix room ID or room alias ID");
 
-impl<T> From<RoomId<T>> for RoomIdOrAliasId<T> {
-    fn from(RoomId { full_id, colon_idx }: RoomId<T>) -> Self {
+impl From<RoomId> for RoomIdOrAliasId {
+    fn from(RoomId { full_id, colon_idx }: RoomId) -> Self {
         Self { full_id, colon_idx }
     }
 }
 
-impl<T> From<RoomAliasId<T>> for RoomIdOrAliasId<T> {
-    fn from(RoomAliasId { full_id, colon_idx }: RoomAliasId<T>) -> Self {
+impl From<RoomAliasId> for RoomIdOrAliasId {
+    fn from(RoomAliasId { full_id, colon_idx }: RoomAliasId) -> Self {
         Self { full_id, colon_idx }
     }
 }
 
-impl<T: AsRef<str>> TryFrom<RoomIdOrAliasId<T>> for RoomId<T> {
-    type Error = RoomAliasId<T>;
+impl TryFrom<RoomIdOrAliasId> for RoomId {
+    type Error = RoomAliasId;
 
-    fn try_from(id: RoomIdOrAliasId<T>) -> Result<RoomId<T>, RoomAliasId<T>> {
+    fn try_from(id: RoomIdOrAliasId) -> Result<RoomId, RoomAliasId> {
         match id.variant() {
             Variant::RoomId => Ok(RoomId { full_id: id.full_id, colon_idx: id.colon_idx }),
             Variant::RoomAliasId => {
@@ -133,10 +120,10 @@ impl<T: AsRef<str>> TryFrom<RoomIdOrAliasId<T>> for RoomId<T> {
     }
 }
 
-impl<T: AsRef<str>> TryFrom<RoomIdOrAliasId<T>> for RoomAliasId<T> {
-    type Error = RoomId<T>;
+impl TryFrom<RoomIdOrAliasId> for RoomAliasId {
+    type Error = RoomId;
 
-    fn try_from(id: RoomIdOrAliasId<T>) -> Result<RoomAliasId<T>, RoomId<T>> {
+    fn try_from(id: RoomIdOrAliasId) -> Result<RoomAliasId, RoomId> {
         match id.variant() {
             Variant::RoomAliasId => {
                 Ok(RoomAliasId { full_id: id.full_id, colon_idx: id.colon_idx })
@@ -153,9 +140,8 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
+    use super::RoomIdOrAliasId;
     use crate::error::Error;
-
-    type RoomIdOrAliasId = super::RoomIdOrAliasId<Box<str>>;
 
     #[test]
     fn valid_room_id_or_alias_id_with_a_room_alias_id() {

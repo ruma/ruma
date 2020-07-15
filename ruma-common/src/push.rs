@@ -327,8 +327,8 @@ mod tests {
         });
         assert_eq!(
             to_json_value(&PushCondition::EventMatch {
-                key: "content.msgtype".to_string(),
-                pattern: "m.notice".to_string(),
+                key: "content.msgtype".into(),
+                pattern: "m.notice".into(),
             })
             .unwrap(),
             json_data
@@ -366,7 +366,7 @@ mod tests {
         });
         assert_eq!(
             json_data,
-            to_json_value(&PushCondition::SenderNotificationPermission { key: "room".to_string() })
+            to_json_value(&PushCondition::SenderNotificationPermission { key: "room".into() })
                 .unwrap()
         );
     }

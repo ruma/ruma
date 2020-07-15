@@ -5,9 +5,9 @@ use std::{
 
 use matches::assert_matches;
 use ruma_events::{
-    custom::CustomEventContent, AnyMessageEvent, AnyMessageEventStub, AnyRoomEventStub,
-    AnyStateEvent, AnyStateEventContent, EventJson, MessageEvent, MessageEventStub, StateEvent,
-    StateEventStub, UnsignedData,
+    custom::CustomEventContent, AnyMessageEvent, AnyStateEvent, AnyStateEventContent,
+    AnySyncMessageEvent, AnySyncRoomEvent, EventJson, MessageEvent, StateEvent, SyncMessageEvent,
+    SyncStateEvent, UnsignedData,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{
@@ -51,7 +51,7 @@ fn serialize_custom_message_event() {
                 },
                 "msgtype": "m.text"
             }),
-            event_type: "m.room.message".to_string(),
+            event_type: "m.room.message".into(),
         },
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(10),
@@ -91,14 +91,14 @@ fn serialize_custom_state_event() {
             json: json!({
                 "custom": 10
             }),
-            event_type: "m.made.up".to_string(),
+            event_type: "m.made.up".into(),
         },
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(10),
         prev_content: None,
         room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        state_key: "".to_string(),
+        state_key: "".into(),
         unsigned: UnsignedData::default(),
     });
 
@@ -157,7 +157,7 @@ fn deserialize_custom_state_event() {
 }
 
 #[test]
-fn deserialize_custom_state_stub_event() {
+fn deserialize_custom_state_sync_event() {
     let json_data = custom_state_event();
 
     let expected_content = json!({
@@ -169,9 +169,9 @@ fn deserialize_custom_state_stub_event() {
     });
 
     assert_matches!(
-        from_json_value::<StateEventStub<AnyStateEventContent>>(json_data)
+        from_json_value::<SyncStateEvent<AnyStateEventContent>>(json_data)
             .unwrap(),
-        StateEventStub {
+        SyncStateEvent {
             content: AnyStateEventContent::Custom(CustomEventContent {
                 json, event_type,
             }),
@@ -191,7 +191,7 @@ fn deserialize_custom_state_stub_event() {
 }
 
 #[test]
-fn deserialize_custom_message_stub_event() {
+fn deserialize_custom_message_sync_event() {
     let json_data = json!({
         "content": {
             "m.relates_to": {
@@ -219,9 +219,9 @@ fn deserialize_custom_message_stub_event() {
     });
 
     assert_matches!(
-        from_json_value::<AnyRoomEventStub>(json_data)
+        from_json_value::<AnySyncRoomEvent>(json_data)
             .unwrap(),
-        AnyRoomEventStub::Message(AnyMessageEventStub::Custom(MessageEventStub {
+        AnySyncRoomEvent::Message(AnySyncMessageEvent::Custom(SyncMessageEvent {
             content: CustomEventContent {
                 json, event_type,
             },
