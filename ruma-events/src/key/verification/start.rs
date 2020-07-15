@@ -41,7 +41,7 @@ pub struct MSasV1Content {
 
     /// The key agreement protocols the sending device understands.
     ///
-    /// Must include at least `curve25519`.
+    /// Must include at least `Curve25519` or `Curve25519HkdfSha256`.
     pub key_agreement_protocols: Vec<KeyAgreementProtocol>,
 
     /// The hash methods the sending device understands.
@@ -107,8 +107,14 @@ impl MSasV1Content {
     /// `MessageAuthenticationCode::HkdfHmacSha256`.
     /// * `short_authentication_string` does not include `ShortAuthenticationString::Decimal`.
     pub fn new(options: MSasV1ContentOptions) -> Result<Self, InvalidInput> {
-        if !options.key_agreement_protocols.contains(&KeyAgreementProtocol::Curve25519) {
-            return Err(InvalidInput("`key_agreement_protocols` must contain at least `KeyAgreementProtocol::Curve25519`".to_string()));
+        if !options.key_agreement_protocols.contains(&KeyAgreementProtocol::Curve25519)
+            && !options
+                .key_agreement_protocols
+                .contains(&KeyAgreementProtocol::Curve25519HkdfSha256)
+        {
+            return Err(InvalidInput("`key_agreement_protocols` must contain at \
+                                    least `KeyAgreementProtocol::Curve25519` or \
+                                    `KeyAgreementProtocol::Curve25519HkdfSha256`".to_string()));
         }
 
         if !options.hashes.contains(&HashAlgorithm::Sha256) {
@@ -121,11 +127,13 @@ impl MSasV1Content {
             .message_authentication_codes
             .contains(&MessageAuthenticationCode::HkdfHmacSha256)
         {
-            return Err(InvalidInput("`message_authentication_codes` must contain at least `MessageAuthenticationCode::HkdfHmacSha256`".to_string()));
+            return Err(InvalidInput("`message_authentication_codes` must contain \
+                                    at least `MessageAuthenticationCode::HkdfHmacSha256`".to_string()));
         }
 
         if !options.short_authentication_string.contains(&ShortAuthenticationString::Decimal) {
-            return Err(InvalidInput("`short_authentication_string` must contain at least `ShortAuthenticationString::Decimal`".to_string()));
+            return Err(InvalidInput("`short_authentication_string` must contain \
+                                    at least `ShortAuthenticationString::Decimal`".to_string()));
         }
 
         Ok(Self {
