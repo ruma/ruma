@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     MessageEventContent, RedactedMessageEventContent, RedactedStateEventContent, RoomEventContent,
-    Unsigned,
+    Unsigned, UnsignedSync,
 };
 
 /// Redaction event.
@@ -55,7 +55,7 @@ pub struct SyncRedactionEvent {
     pub origin_server_ts: SystemTime,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: Unsigned,
+    pub unsigned: UnsignedSync,
 }
 
 /// A redaction of an event.
