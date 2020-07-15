@@ -113,7 +113,7 @@ mod tests {
     use serde_json::{from_str, to_string};
 
     use super::EventId;
-    use crate::{error::Error, ServerName};
+    use crate::error::Error;
 
     #[test]
     fn valid_original_event_id() {
@@ -148,6 +148,8 @@ mod tests {
     #[cfg(feature = "rand")]
     #[test]
     fn generate_random_valid_event_id() {
+        use crate::ServerName;
+
         let server_name =
             <&ServerName>::try_from("example.com").expect("Failed to parse ServerName");
         let event_id = EventId::new(server_name);

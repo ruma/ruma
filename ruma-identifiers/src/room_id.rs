@@ -73,7 +73,7 @@ mod tests {
     use serde_json::{from_str, to_string};
 
     use super::RoomId;
-    use crate::{error::Error, ServerName};
+    use crate::error::Error;
 
     #[test]
     fn valid_room_id() {
@@ -88,6 +88,8 @@ mod tests {
     #[cfg(feature = "rand")]
     #[test]
     fn generate_random_valid_room_id() {
+        use crate::ServerName;
+
         let server_name =
             <&ServerName>::try_from("example.com").expect("Failed to parse ServerName");
         let room_id = RoomId::new(server_name);
