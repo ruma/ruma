@@ -4,9 +4,9 @@ use serde::Serialize;
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 use crate::{
-    BasicEventContent, EphemeralRoomEventContent, EventContent, MessageEventContent,
-    RedactedEventContent, RedactedMessageEventContent, RedactedStateEventContent, RoomEventContent,
-    StateEventContent,
+    BasicEventContent, EphemeralRoomEventContent, EventContent, HasDeserializeFields,
+    MessageEventContent, RedactedEventContent, RedactedMessageEventContent,
+    RedactedStateEventContent, RoomEventContent, StateEventContent,
 };
 
 /// A custom event's type and `content` JSON object.
@@ -83,8 +83,8 @@ impl RedactedEventContent for RedactedCustomEventContent {
         false
     }
 
-    fn has_deserialize_fields() -> bool {
-        false
+    fn has_deserialize_fields() -> HasDeserializeFields {
+        HasDeserializeFields::False
     }
 }
 

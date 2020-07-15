@@ -19,10 +19,6 @@ use ruma_events::{
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-fn is_zst<T>(_: &T) -> bool {
-    std::mem::size_of::<T>() == 0
-}
-
 fn full_unsigned() -> UnsignedData {
     let mut unsigned = UnsignedData::default();
     // The presence of `redacted_because` triggers the event enum to return early

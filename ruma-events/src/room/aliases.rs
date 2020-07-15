@@ -5,7 +5,9 @@ use ruma_identifiers::RoomAliasId;
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
-use crate::{EventContent, RedactedEventContent, RedactedStateEventContent, StateEvent};
+use crate::{
+    EventContent, HasDeserializeFields, RedactedEventContent, RedactedStateEventContent, StateEvent,
+};
 
 /// Informs the room about what room aliases it has been given.
 pub type AliasesEvent = StateEvent<AliasesEventContent>;
@@ -53,12 +55,8 @@ impl RedactedEventContent for RedactedAliasesEventContent {
         self.aliases.is_some()
     }
 
-    fn has_optional_content() -> bool {
-        true
-    }
-
-    fn has_deserialize_fields() -> bool {
-        true
+    fn has_deserialize_fields() -> HasDeserializeFields {
+        HasDeserializeFields::Optional
     }
 }
 

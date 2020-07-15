@@ -135,7 +135,13 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
             )
         };
 
-        let has_fields = if kept_redacted_fields.is_empty() {
+        let has_deserialize_fields = if kept_redacted_fields.is_empty() {
+            quote! { ::ruma_events::HasDeserializeFields::False }
+        } else {
+            quote! { ::ruma_events::HasDeserializeFields::True }
+        };
+
+        let has_serialize_fields = if kept_redacted_fields.is_empty() {
             quote! { false }
         } else {
             quote! { true }
@@ -170,11 +176,11 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
                 }
 
                 fn has_serialize_fields(&self) -> bool {
-                    #has_fields
+                    #has_serialize_fields
                 }
 
-                fn has_deserialize_fields() -> bool {
-                    #has_fields
+                fn has_deserialize_fields() -> ::ruma_events::HasDeserializeFields {
+                    #has_deserialize_fields
                 }
             }
         }
