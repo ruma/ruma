@@ -43,8 +43,10 @@ ruma_api! {
 }
 
 // TODO: remove
+/// A wrapper around a mapping of session IDs to key data.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sessions {
     // TODO: remove
+    ///  A map of session IDs to key data.
     pub sessions: BTreeMap<String, KeyData>,
 }
