@@ -66,3 +66,18 @@ pub enum VerificationMethod {
     #[strum(serialize = "m.sas.v1")]
     MSasV1,
 }
+
+#[cfg(test)]
+mod test {
+    use super::KeyAgreementProtocol;
+
+    #[test]
+    fn serialize_key_agreement() {
+        let serialized =
+            serde_json::to_string(&KeyAgreementProtocol::Curve25519HkdfSha256).unwrap();
+        assert_eq!(serialized, "\"curve25519-hkdf-sha256\"");
+
+        let deserialized: KeyAgreementProtocol = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(deserialized, KeyAgreementProtocol::Curve25519HkdfSha256);
+    }
+}
