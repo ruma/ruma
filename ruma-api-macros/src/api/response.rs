@@ -43,10 +43,13 @@ impl Response {
             let field = response_field.field();
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let span = field.span();
+            let cfg_attrs =
+                field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
 
             match response_field {
                 ResponseField::Body(_) => {
                     quote_spanned! {span=>
+                        #( #cfg_attrs )*
                         #field_name: response_body.#field_name
                     }
                 }
@@ -114,8 +117,11 @@ impl Response {
                     let field_name =
                         field.ident.as_ref().expect("expected field to have an identifier");
                     let span = field.span();
+                    let cfg_attrs =
+                        field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
 
                     Some(quote_spanned! {span=>
+                        #( #cfg_attrs )*
                         #field_name: response.#field_name
                     })
                 } else {
