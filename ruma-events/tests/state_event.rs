@@ -8,7 +8,7 @@ use matches::assert_matches;
 use ruma_events::{
     room::{aliases::AliasesEventContent, avatar::AvatarEventContent, ImageInfo, ThumbnailInfo},
     AnyRoomEvent, AnyStateEvent, AnyStateEventContent, EventJson, StateEvent, SyncStateEvent,
-    UnsignedData,
+    Unsigned,
 };
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde_json::{
@@ -46,7 +46,7 @@ fn serialize_aliases_with_prev_content() {
         room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
         state_key: "".into(),
-        unsigned: UnsignedData::default(),
+        unsigned: Unsigned::default(),
     };
 
     let actual = to_json_value(&aliases_event).unwrap();
@@ -67,7 +67,7 @@ fn serialize_aliases_without_prev_content() {
         room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
         state_key: "".into(),
-        unsigned: UnsignedData::default(),
+        unsigned: Unsigned::default(),
     };
 
     let actual = to_json_value(&aliases_event).unwrap();

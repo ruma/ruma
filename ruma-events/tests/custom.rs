@@ -7,7 +7,7 @@ use matches::assert_matches;
 use ruma_events::{
     custom::CustomEventContent, AnyMessageEvent, AnyStateEvent, AnyStateEventContent,
     AnySyncMessageEvent, AnySyncRoomEvent, EventJson, MessageEvent, StateEvent, SyncMessageEvent,
-    SyncStateEvent, UnsignedData,
+    SyncStateEvent, Unsigned,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{
@@ -57,7 +57,7 @@ fn serialize_custom_message_event() {
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(10),
         room_id: RoomId::try_from("!room:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        unsigned: UnsignedData::default(),
+        unsigned: Unsigned::default(),
     });
 
     let actual = to_json_value(&aliases_event).unwrap();
@@ -99,7 +99,7 @@ fn serialize_custom_state_event() {
         room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
         state_key: "".into(),
-        unsigned: UnsignedData::default(),
+        unsigned: Unsigned::default(),
     });
 
     let actual = to_json_value(&aliases_event).unwrap();

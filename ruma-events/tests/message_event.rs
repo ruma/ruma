@@ -9,7 +9,7 @@ use ruma_events::{
     call::{answer::AnswerEventContent, SessionDescription, SessionDescriptionType},
     room::{ImageInfo, ThumbnailInfo},
     sticker::StickerEventContent,
-    AnyMessageEventContent, EventJson, MessageEvent, UnsignedData,
+    AnyMessageEventContent, EventJson, MessageEvent, Unsigned,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -39,7 +39,7 @@ fn message_serialize_sticker() {
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        unsigned: UnsignedData::default(),
+        unsigned: Unsigned::default(),
     };
 
     let actual = to_json_value(&aliases_event).unwrap();

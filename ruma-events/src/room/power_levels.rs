@@ -129,7 +129,7 @@ mod tests {
     use serde_json::{json, to_value as to_json_value};
 
     use super::{default_power_level, NotificationPowerLevels, PowerLevelsEventContent};
-    use crate::{EventType, StateEvent, UnsignedData};
+    use crate::{EventType, StateEvent, Unsigned};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -152,7 +152,7 @@ mod tests {
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: None,
             room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
-            unsigned: UnsignedData::default(),
+            unsigned: Unsigned::default(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".into(),
         };
@@ -211,7 +211,7 @@ mod tests {
                 notifications: NotificationPowerLevels { room: Int::from(42) },
             }),
             room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
-            unsigned: UnsignedData { age: Some(Int::from(100)), ..UnsignedData::default() },
+            unsigned: Unsigned { age: Some(Int::from(100)), ..Unsigned::default() },
             sender: user,
             state_key: "".into(),
         };

@@ -28,7 +28,7 @@ mod tests {
     use serde_json::to_string;
 
     use super::PinnedEventsEventContent;
-    use crate::{EventJson, StateEvent, UnsignedData};
+    use crate::{EventJson, StateEvent, Unsigned};
 
     #[test]
     fn serialization_deserialization() {
@@ -46,7 +46,7 @@ mod tests {
             room_id: RoomId::new(server_name),
             sender: UserId::new(server_name),
             state_key: "".into(),
-            unsigned: UnsignedData::default(),
+            unsigned: Unsigned::default(),
         };
 
         let serialized_event = to_string(&event).unwrap();
