@@ -73,16 +73,16 @@
 //! # Serialization and deserialization
 //!
 //! All concrete event types in ruma-events can be serialized via the `Serialize` trait from
-//! [serde](https://serde.rs/) and can be deserialized from as `EventJson<EventType>`. In order to
+//! [serde](https://serde.rs/) and can be deserialized from as `Raw<EventType>`. In order to
 //! handle incoming data that may not conform to `ruma-events`' strict definitions of event
-//! structures, deserialization will return `EventJson::Err` on error. This error covers both
+//! structures, deserialization will return `Raw::Err` on error. This error covers both
 //! structurally invalid JSON data as well as structurally valid JSON that doesn't fulfill
 //! additional constraints the matrix specification defines for some event types. The error exposes
 //! the deserialized `serde_json::Value` so that developers can still work with the received
 //! event data. This makes it possible to deserialize a collection of events without the entire
 //! collection failing to deserialize due to a single invalid event. The "content" type for each
 //! event also implements `Serialize` and either `TryFromRaw` (enabling usage as
-//! `EventJson<ContentType>` for dedicated content types) or `Deserialize` (when the content is a
+//! `Raw<ContentType>` for dedicated content types) or `Deserialize` (when the content is a
 //! type alias), allowing content to be converted to and from JSON indepedently of the surrounding
 //! event structure, if needed.
 //!
@@ -120,6 +120,7 @@
 use std::fmt::Debug;
 
 use js_int::Int;
+use ruma_common::Raw;
 use serde::{
     de::{self, IgnoredAny},
     Deserialize, Serialize,
@@ -136,7 +137,6 @@ mod enums;
 mod error;
 mod event_kinds;
 mod event_type;
-mod json;
 
 // Hack to allow both ruma-events itself and external crates (or tests) to use procedural macros
 // that expect `ruma_events` to exist in the prelude.
@@ -179,8 +179,10 @@ pub use self::{
         ToDeviceEvent,
     },
     event_type::EventType,
-    json::EventJson,
 };
+
+#[deprecated = "Use ruma_common::Raw instead."]
+pub use ruma_common::Raw as EventJson;
 
 /// Extra information about an event that is not incorporated into the event's
 /// hash.
@@ -217,7 +219,7 @@ impl Unsigned {
 pub struct RedactedUnsigned {
     /// The event that redacted this event, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub redacted_because: Option<EventJson<RedactionEvent>>,
+    pub redacted_because: Option<Raw<RedactionEvent>>,
 }
 
 impl RedactedUnsigned {
@@ -238,7 +240,7 @@ impl RedactedUnsigned {
 pub struct RedactedSyncUnsigned {
     /// The event that redacted this event, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub redacted_because: Option<EventJson<SyncRedactionEvent>>,
+    pub redacted_because: Option<Raw<SyncRedactionEvent>>,
 }
 
 impl RedactedSyncUnsigned {
@@ -262,6 +264,22 @@ pub trait EventContent: Sized + Serialize {
 
     /// Constructs the given event content.
     fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, serde_json::Error>;
+}
+
+/// Extension trait for Raw<EventContent>
+pub trait RawExt<T: EventContent> {
+    /// Try to deserialize the JSON as event content
+    fn deserialize_content(self, event_type: &str) -> Result<T, serde_json::Error>;
+}
+
+impl<T: EventContent> RawExt<T> for Raw<T>
+where
+    T: EventContent,
+{
+    /// Try to deserialize the JSON as event content
+    fn deserialize_content(self, event_type: &str) -> Result<T, serde_json::Error> {
+        T::from_parts(event_type, self.into_json())
+    }
 }
 
 /// Marker trait for the content of an ephemeral room event.

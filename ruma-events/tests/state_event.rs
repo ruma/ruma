@@ -5,9 +5,10 @@ use std::{
 
 use js_int::UInt;
 use matches::assert_matches;
+use ruma_common::Raw;
 use ruma_events::{
     room::{aliases::AliasesEventContent, avatar::AvatarEventContent, ImageInfo, ThumbnailInfo},
-    AnyRoomEvent, AnyStateEvent, AnyStateEventContent, EventJson, StateEvent, SyncStateEvent,
+    AnyRoomEvent, AnyStateEvent, AnyStateEventContent, RawExt, StateEvent, SyncStateEvent,
     Unsigned,
 };
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
@@ -35,14 +36,14 @@ fn aliases_event_with_prev_content() -> JsonValue {
 #[test]
 fn serialize_aliases_with_prev_content() {
     let aliases_event = StateEvent {
-        content: AnyStateEventContent::RoomAliases(AliasesEventContent {
-            aliases: vec![RoomAliasId::try_from("#somewhere:localhost").unwrap()],
-        }),
+        content: AnyStateEventContent::RoomAliases(AliasesEventContent::new(vec![
+            RoomAliasId::try_from("#somewhere:localhost").unwrap(),
+        ])),
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
-        prev_content: Some(AnyStateEventContent::RoomAliases(AliasesEventContent {
-            aliases: vec![RoomAliasId::try_from("#inner:localhost").unwrap()],
-        })),
+        prev_content: Some(AnyStateEventContent::RoomAliases(AliasesEventContent::new(vec![
+            RoomAliasId::try_from("#inner:localhost").unwrap(),
+        ]))),
         room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
         state_key: "".into(),
@@ -58,9 +59,9 @@ fn serialize_aliases_with_prev_content() {
 #[test]
 fn serialize_aliases_without_prev_content() {
     let aliases_event = StateEvent {
-        content: AnyStateEventContent::RoomAliases(AliasesEventContent {
-            aliases: vec![RoomAliasId::try_from("#somewhere:localhost").unwrap()],
-        }),
+        content: AnyStateEventContent::RoomAliases(AliasesEventContent::new(vec![
+            RoomAliasId::try_from("#somewhere:localhost").unwrap(),
+        ])),
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         prev_content: None,
@@ -93,7 +94,7 @@ fn deserialize_aliases_content() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<AnyStateEventContent>>(json_data)
+        from_json_value::<Raw<AnyStateEventContent>>(json_data)
             .unwrap()
             .deserialize_content("m.room.aliases")
             .unwrap(),
@@ -107,7 +108,7 @@ fn deserialize_aliases_with_prev_content() {
     let json_data = aliases_event_with_prev_content();
 
     assert_matches!(
-        from_json_value::<EventJson<StateEvent<AnyStateEventContent>>>(json_data)
+        from_json_value::<Raw<StateEvent<AnyStateEventContent>>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap(),
@@ -184,7 +185,7 @@ fn deserialize_avatar_without_prev_content() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<StateEvent<AnyStateEventContent>>>(json_data)
+        from_json_value::<Raw<StateEvent<AnyStateEventContent>>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap(),

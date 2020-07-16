@@ -161,6 +161,7 @@ fn aliases_event_sync_deserialization() {
             AnySyncStateEvent::RoomAliases(SyncStateEvent {
                 content: AliasesEventContent {
                     aliases,
+                    ..
                 },
                 ..
             })
@@ -199,6 +200,7 @@ fn alias_room_event_deserialization() {
             AnyStateEvent::RoomAliases(StateEvent {
                 content: AliasesEventContent {
                     aliases,
+                    ..
                 },
                 ..
             })
@@ -237,6 +239,7 @@ fn alias_event_deserialization() {
             AnyStateEvent::RoomAliases(StateEvent {
                 content: AliasesEventContent {
                     aliases,
+                    ..
                 },
                 ..
             })
@@ -259,7 +262,8 @@ fn alias_event_field_access() {
     );
 
     let deser = from_json_value::<AnyStateEvent>(json_data).unwrap();
-    if let AnyStateEventContent::RoomAliases(AliasesEventContent { aliases }) = deser.content() {
+    if let AnyStateEventContent::RoomAliases(AliasesEventContent { aliases, .. }) = deser.content()
+    {
         assert_eq!(aliases, vec![RoomAliasId::try_from("#somewhere:localhost").unwrap()])
     } else {
         panic!("the `Any*Event` enum's accessor methods may have been altered")

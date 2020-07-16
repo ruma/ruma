@@ -10,22 +10,20 @@ use serde::{
 };
 use serde_json::value::RawValue;
 
-use crate::EventContent;
-
-/// A wrapper around `Box<RawValue>`, to be used in place of event \[content\] \[collection\] types
-/// in Matrix endpoint definition to allow request and response types to contain unknown events in
-/// addition to the known event(s) represented by the generic argument `Ev`.
-pub struct EventJson<T> {
+/// A wrapper around `Box<RawValue>`, to be used in place of any type in the Matrix endpoint
+/// definition to allow request and response types to contain that said type represented by
+/// the generic argument `Ev`.
+pub struct Raw<T> {
     json: Box<RawValue>,
     _ev: PhantomData<T>,
 }
 
-impl<T> EventJson<T> {
+impl<T> Raw<T> {
     fn new(json: Box<RawValue>) -> Self {
         Self { json, _ev: PhantomData }
     }
 
-    /// Create an `EventJson` from a boxed `RawValue`.
+    /// Create a `Raw` from a boxed `RawValue`.
     pub fn from_json(raw: Box<RawValue>) -> Self {
         Self::new(raw)
     }
@@ -41,27 +39,17 @@ impl<T> EventJson<T> {
     }
 }
 
-impl<T> EventJson<T>
+impl<T> Raw<T>
 where
     T: DeserializeOwned,
 {
-    /// Try to deserialize the JSON into the expected event type.
+    /// Try to deserialize the JSON into the expected type.
     pub fn deserialize(&self) -> Result<T, serde_json::Error> {
         serde_json::from_str(self.json.get())
     }
 }
 
-impl<T: EventContent> EventJson<T>
-where
-    T: EventContent,
-{
-    /// Try to deserialize the JSON as event content
-    pub fn deserialize_content(self, event_type: &str) -> Result<T, serde_json::Error> {
-        T::from_parts(event_type, self.json)
-    }
-}
-
-impl<T: Serialize> From<&T> for EventJson<T> {
+impl<T: Serialize> From<&T> for Raw<T> {
     fn from(val: &T) -> Self {
         Self::new(serde_json::value::to_raw_value(val).unwrap())
     }
@@ -69,28 +57,26 @@ impl<T: Serialize> From<&T> for EventJson<T> {
 
 // With specialization a fast path from impl for `impl<T> From<Box<RawValue...`
 // could be used. Until then there is a special constructor `from_json` for this.
-impl<T: Serialize> From<T> for EventJson<T> {
+impl<T: Serialize> From<T> for Raw<T> {
     fn from(val: T) -> Self {
         Self::from(&val)
     }
 }
 
-impl<T> Clone for EventJson<T> {
+impl<T> Clone for Raw<T> {
     fn clone(&self) -> Self {
         Self::new(self.json.clone())
     }
 }
 
-impl<T> Debug for EventJson<T> {
+impl<T> Debug for Raw<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         use std::any::type_name;
-        f.debug_struct(&format!("EventJson::<{}>", type_name::<T>()))
-            .field("json", &self.json)
-            .finish()
+        f.debug_struct(&format!("Raw::<{}>", type_name::<T>())).field("json", &self.json).finish()
     }
 }
 
-impl<'de, T> Deserialize<'de> for EventJson<T> {
+impl<'de, T> Deserialize<'de> for Raw<T> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -99,7 +85,7 @@ impl<'de, T> Deserialize<'de> for EventJson<T> {
     }
 }
 
-impl<T> Serialize for EventJson<T> {
+impl<T> Serialize for Raw<T> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

@@ -41,7 +41,7 @@ impl DerefMut for DummyEventContent {
 #[cfg(test)]
 mod tests {
     use super::{DummyEvent, DummyEventContent, Empty};
-    use crate::EventJson;
+    use ruma_common::Raw;
 
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -65,6 +65,6 @@ mod tests {
             "type": "m.dummy"
         });
 
-        assert!(from_json_value::<EventJson<DummyEvent>>(json).unwrap().deserialize().is_ok());
+        assert!(from_json_value::<Raw<DummyEvent>>(json).unwrap().deserialize().is_ok());
     }
 }

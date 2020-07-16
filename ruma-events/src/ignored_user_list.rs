@@ -23,11 +23,12 @@ mod tests {
     use std::convert::TryFrom;
 
     use matches::assert_matches;
+    use ruma_common::Raw;
     use ruma_identifiers::UserId;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::IgnoredUserListEventContent;
-    use crate::{AnyBasicEventContent, BasicEvent, EventJson};
+    use crate::{AnyBasicEventContent, BasicEvent};
 
     #[test]
     fn serialization() {
@@ -61,7 +62,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<EventJson<BasicEvent<AnyBasicEventContent>>>(json)
+            from_json_value::<Raw<BasicEvent<AnyBasicEventContent>>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),

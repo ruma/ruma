@@ -38,11 +38,11 @@ impl DerefMut for DirectEventContent {
 mod tests {
     use std::{collections::BTreeMap, convert::TryFrom};
 
+    use ruma_common::Raw;
     use ruma_identifiers::{RoomId, ServerName, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{DirectEvent, DirectEventContent};
-    use crate::EventJson;
 
     #[test]
     fn serialization() {
@@ -78,7 +78,7 @@ mod tests {
         });
 
         let event: DirectEvent =
-            from_json_value::<EventJson<_>>(json_data).unwrap().deserialize().unwrap();
+            from_json_value::<Raw<_>>(json_data).unwrap().deserialize().unwrap();
         let direct_rooms = event.content.get(&alice).unwrap();
 
         assert!(direct_rooms.contains(&rooms[0]));

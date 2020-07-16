@@ -1,7 +1,8 @@
 //! [PUT /_matrix/app/v1/transactions/{txnId}](https://matrix.org/docs/spec/application_service/r0.1.2#put-matrix-app-v1-transactions-txnid)
 
 use ruma_api::ruma_api;
-use ruma_events::{AnyEvent, EventJson};
+use ruma_common::Raw;
+use ruma_events::AnyEvent;
 
 ruma_api! {
     metadata: {
@@ -21,7 +22,7 @@ ruma_api! {
         pub txn_id: String,
         /// A list of events.
         #[ruma_api(body)]
-        pub events: Vec<EventJson<AnyEvent>>,
+        pub events: Vec<Raw<AnyEvent>>,
     }
 
     response: {}

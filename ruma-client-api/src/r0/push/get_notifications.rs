@@ -4,7 +4,8 @@ use std::time::SystemTime;
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_events::{AnyEvent, EventJson};
+use ruma_common::Raw;
+use ruma_events::AnyEvent;
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
@@ -46,7 +47,7 @@ ruma_api! {
 
 
         /// The list of events that triggered notifications.
-        pub notifications: Vec<EventJson<Notification>>,
+        pub notifications: Vec<Raw<Notification>>,
     }
 
     error: crate::Error
@@ -59,7 +60,7 @@ pub struct Notification {
     pub actions: Vec<Action>,
 
     /// The event that triggered the notification.
-    pub event: EventJson<AnyEvent>,
+    pub event: Raw<AnyEvent>,
 
     /// The profile tag of the rule that matched this event.
     #[serde(skip_serializing_if = "Option::is_none")]

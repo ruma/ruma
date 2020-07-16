@@ -4,6 +4,7 @@ use std::{
 };
 
 use matches::assert_matches;
+use ruma_common::Raw;
 use ruma_events::{
     custom::RedactedCustomEventContent,
     room::{
@@ -13,8 +14,8 @@ use ruma_events::{
         redaction::{RedactionEvent, RedactionEventContent, SyncRedactionEvent},
     },
     AnyRedactedMessageEvent, AnyRedactedSyncMessageEvent, AnyRedactedSyncStateEvent, AnyRoomEvent,
-    AnySyncRoomEvent, EventJson, RedactedMessageEvent, RedactedSyncMessageEvent,
-    RedactedSyncStateEvent, RedactedSyncUnsigned, RedactedUnsigned, Unsigned,
+    AnySyncRoomEvent, RedactedMessageEvent, RedactedSyncMessageEvent, RedactedSyncStateEvent,
+    RedactedSyncUnsigned, RedactedUnsigned, Unsigned,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -24,7 +25,7 @@ fn full_unsigned() -> RedactedSyncUnsigned {
     // The presence of `redacted_because` triggers the event enum to return early
     // with `RedactedContent` instead of failing to deserialize according
     // to the event type string.
-    unsigned.redacted_because = Some(EventJson::from(SyncRedactionEvent {
+    unsigned.redacted_because = Some(Raw::from(SyncRedactionEvent {
         content: RedactionEventContent { reason: Some("redacted because".into()) },
         redacts: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
@@ -122,7 +123,7 @@ fn redacted_aliases_deserialize() {
     let actual = to_json_value(&redacted).unwrap();
 
     assert_matches!(
-        from_json_value::<EventJson<AnySyncRoomEvent>>(actual)
+        from_json_value::<Raw<AnySyncRoomEvent>>(actual)
             .unwrap()
             .deserialize()
             .unwrap(),
@@ -150,7 +151,7 @@ fn redacted_deserialize_any_room() {
     let actual = to_json_value(&redacted).unwrap();
 
     assert_matches!(
-        from_json_value::<EventJson<AnyRoomEvent>>(actual)
+        from_json_value::<Raw<AnyRoomEvent>>(actual)
             .unwrap()
             .deserialize()
             .unwrap(),
@@ -168,7 +169,7 @@ fn redacted_deserialize_any_room_sync() {
     // The presence of `redacted_because` triggers the event enum (AnySyncRoomEvent in this case)
     // to return early with `RedactedContent` instead of failing to deserialize according
     // to the event type string.
-    unsigned.redacted_because = Some(EventJson::from(RedactionEvent {
+    unsigned.redacted_because = Some(Raw::from(RedactionEvent {
         content: RedactionEventContent { reason: Some("redacted because".into()) },
         redacts: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
@@ -189,7 +190,7 @@ fn redacted_deserialize_any_room_sync() {
     let actual = to_json_value(&redacted).unwrap();
 
     assert_matches!(
-        from_json_value::<EventJson<AnySyncRoomEvent>>(actual)
+        from_json_value::<Raw<AnySyncRoomEvent>>(actual)
             .unwrap()
             .deserialize()
             .unwrap(),
@@ -217,7 +218,7 @@ fn redacted_state_event_deserialize() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<AnySyncRoomEvent>>(redacted)
+        from_json_value::<Raw<AnySyncRoomEvent>>(redacted)
             .unwrap()
             .deserialize()
             .unwrap(),
@@ -247,7 +248,7 @@ fn redacted_custom_event_serialize() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<AnySyncRoomEvent>>(redacted.clone())
+        from_json_value::<Raw<AnySyncRoomEvent>>(redacted.clone())
             .unwrap()
             .deserialize()
             .unwrap(),
@@ -262,7 +263,7 @@ fn redacted_custom_event_serialize() {
             && event_type == "m.made.up"
     );
 
-    let x = from_json_value::<EventJson<crate::AnyRedactedSyncStateEvent>>(redacted)
+    let x = from_json_value::<Raw<crate::AnyRedactedSyncStateEvent>>(redacted)
         .unwrap()
         .deserialize()
         .unwrap();

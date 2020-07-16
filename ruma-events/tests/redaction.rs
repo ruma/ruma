@@ -4,9 +4,10 @@ use std::{
 };
 
 use matches::assert_matches;
+use ruma_common::Raw;
 use ruma_events::{
     room::redaction::{RedactionEvent, RedactionEventContent},
-    AnyMessageEvent, EventJson, Unsigned,
+    AnyMessageEvent, Unsigned,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{
@@ -50,7 +51,7 @@ fn deserialize_redaction() {
     let json_data = redaction();
 
     assert_matches!(
-        from_json_value::<EventJson<AnyMessageEvent>>(json_data)
+        from_json_value::<Raw<AnyMessageEvent>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap(),

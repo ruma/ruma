@@ -5,13 +5,14 @@ use std::{
 
 use maplit::btreemap;
 use matches::assert_matches;
+use ruma_common::Raw;
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 use ruma_events::{
     receipt::{Receipt, ReceiptEventContent, Receipts},
     typing::TypingEventContent,
-    AnyEphemeralRoomEventContent, EphemeralRoomEvent, EventJson,
+    AnyEphemeralRoomEventContent, EphemeralRoomEvent,
 };
 
 #[test]
@@ -46,7 +47,7 @@ fn deserialize_ephemeral_typing() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<EphemeralRoomEvent<AnyEphemeralRoomEventContent>>>(json_data)
+        from_json_value::<Raw<EphemeralRoomEvent<AnyEphemeralRoomEventContent>>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap(),
@@ -110,7 +111,7 @@ fn deserialize_ephemeral_receipt() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<EphemeralRoomEvent<AnyEphemeralRoomEventContent>>>(json_data)
+        from_json_value::<Raw<EphemeralRoomEvent<AnyEphemeralRoomEventContent>>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap(),

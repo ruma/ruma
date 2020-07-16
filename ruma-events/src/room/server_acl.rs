@@ -43,7 +43,8 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::ServerAclEventContent;
-    use crate::{EventJson, StateEvent};
+    use crate::StateEvent;
+    use ruma_common::Raw;
 
     #[test]
     fn default_values() {
@@ -57,11 +58,10 @@ mod tests {
             "type": "m.room.server_acl"
         });
 
-        let server_acl_event =
-            from_json_value::<EventJson<StateEvent<ServerAclEventContent>>>(json_data)
-                .unwrap()
-                .deserialize()
-                .unwrap();
+        let server_acl_event = from_json_value::<Raw<StateEvent<ServerAclEventContent>>>(json_data)
+            .unwrap()
+            .deserialize()
+            .unwrap();
 
         assert_eq!(server_acl_event.content.allow_ip_literals, true);
         assert!(server_acl_event.content.allow.is_empty());

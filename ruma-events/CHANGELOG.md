@@ -21,6 +21,7 @@ Improvements:
 Deprecations:
 
 * `presence::PresenceState` has been moved. Import it from `ruma` or `ruma-common`.
+* `EventJson` has been moved and renamed. Import it from `ruma` or `ruma-common`.
 
 # 0.21.3
 

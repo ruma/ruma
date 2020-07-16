@@ -2,7 +2,8 @@
 
 use js_int::{uint, UInt};
 use ruma_api::ruma_api;
-use ruma_events::{AnyRoomEvent, AnyStateEvent, EventJson};
+use ruma_common::Raw;
+use ruma_events::{AnyRoomEvent, AnyStateEvent};
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
@@ -72,11 +73,11 @@ ruma_api! {
 
         /// A list of room events.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub chunk: Vec<EventJson<AnyRoomEvent>>,
+        pub chunk: Vec<Raw<AnyRoomEvent>>,
 
         /// A list of state events relevant to showing the `chunk`.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub state: Vec<EventJson<AnyStateEvent>>,
+        pub state: Vec<Raw<AnyStateEvent>>,
     }
 
     error: crate::Error

@@ -4,9 +4,10 @@ use std::{
 };
 
 use matches::assert_matches;
+use ruma_common::Raw;
 use ruma_events::{
     custom::CustomEventContent, AnyMessageEvent, AnyStateEvent, AnyStateEventContent,
-    AnySyncMessageEvent, AnySyncRoomEvent, EventJson, MessageEvent, StateEvent, SyncMessageEvent,
+    AnySyncMessageEvent, AnySyncRoomEvent, MessageEvent, StateEvent, SyncMessageEvent,
     SyncStateEvent, Unsigned,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
@@ -131,7 +132,7 @@ fn deserialize_custom_state_event() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<AnyStateEvent>>(json_data)
+        from_json_value::<Raw<AnyStateEvent>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap(),

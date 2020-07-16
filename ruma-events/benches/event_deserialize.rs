@@ -8,9 +8,9 @@
 
 #[cfg(feature = "criterion")]
 use criterion::{criterion_group, criterion_main, Criterion};
+use ruma_common::Raw;
 use ruma_events::{
-    room::power_levels::PowerLevelsEventContent, AnyEvent, AnyRoomEvent, AnyStateEvent, EventJson,
-    StateEvent,
+    room::power_levels::PowerLevelsEventContent, AnyEvent, AnyRoomEvent, AnyStateEvent, StateEvent,
 };
 use serde_json::json;
 
@@ -53,7 +53,7 @@ fn deserialize_any_event(c: &mut Criterion) {
 
     c.bench_function("deserialize to `AnyEvent`", |b| {
         b.iter(|| {
-            let _ = serde_json::from_value::<EventJson<AnyEvent>>(json_data.clone())
+            let _ = serde_json::from_value::<Raw<AnyEvent>>(json_data.clone())
                 .unwrap()
                 .deserialize()
                 .unwrap();
@@ -67,7 +67,7 @@ fn deserialize_any_room_event(c: &mut Criterion) {
 
     c.bench_function("deserialize to `AnyRoomEvent`", |b| {
         b.iter(|| {
-            let _ = serde_json::from_value::<EventJson<AnyRoomEvent>>(json_data.clone())
+            let _ = serde_json::from_value::<Raw<AnyRoomEvent>>(json_data.clone())
                 .unwrap()
                 .deserialize()
                 .unwrap();
@@ -81,7 +81,7 @@ fn deserialize_any_state_event(c: &mut Criterion) {
 
     c.bench_function("deserialize to `AnyStateEvent`", |b| {
         b.iter(|| {
-            let _ = serde_json::from_value::<EventJson<AnyStateEvent>>(json_data.clone())
+            let _ = serde_json::from_value::<Raw<AnyStateEvent>>(json_data.clone())
                 .unwrap()
                 .deserialize()
                 .unwrap();
@@ -95,7 +95,7 @@ fn deserialize_specific_event(c: &mut Criterion) {
 
     c.bench_function("deserialize to `StateEvent<PowerLevelsEventContent>`", |b| {
         b.iter(|| {
-            let _ = serde_json::from_value::<EventJson<StateEvent<PowerLevelsEventContent>>>(
+            let _ = serde_json::from_value::<Raw<StateEvent<PowerLevelsEventContent>>>(
                 json_data.clone(),
             )
             .unwrap()

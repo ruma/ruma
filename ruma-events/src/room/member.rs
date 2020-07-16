@@ -249,7 +249,8 @@ mod tests {
     use serde_json::{from_value as from_json_value, json};
 
     use super::{MemberEventContent, MembershipState, SignedContent, ThirdPartyInvite};
-    use crate::{EventJson, StateEvent};
+    use crate::StateEvent;
+    use ruma_common::Raw;
 
     #[test]
     fn serde_with_no_prev_content() {
@@ -266,7 +267,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<EventJson<StateEvent<MemberEventContent>>>(json)
+            from_json_value::<Raw<StateEvent<MemberEventContent>>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
@@ -312,7 +313,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<EventJson<StateEvent<MemberEventContent>>>(json)
+            from_json_value::<Raw<StateEvent<MemberEventContent>>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
@@ -376,7 +377,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<EventJson<StateEvent<MemberEventContent>>>(json)
+            from_json_value::<Raw<StateEvent<MemberEventContent>>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
@@ -450,7 +451,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<EventJson<StateEvent<MemberEventContent>>>(json)
+            from_json_value::<Raw<StateEvent<MemberEventContent>>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),

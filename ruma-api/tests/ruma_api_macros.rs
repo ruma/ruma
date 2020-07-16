@@ -1,6 +1,7 @@
 pub mod some_endpoint {
     use ruma_api::ruma_api;
-    use ruma_events::{tag::TagEvent, AnyRoomEvent, EventJson};
+    use ruma_common::Raw;
+    use ruma_events::{tag::TagEvent, AnyRoomEvent};
 
     ruma_api! {
         metadata: {
@@ -42,11 +43,11 @@ pub mod some_endpoint {
             #[serde(skip_serializing_if = "Option::is_none")]
             pub optional_flag: Option<bool>,
 
-            // Use `EventJson` instead of the actual event to allow additional fields to be sent...
-            pub event: EventJson<TagEvent>,
+            // Use `Raw` instead of the actual event to allow additional fields to be sent...
+            pub event: Raw<TagEvent>,
 
             // ... and to allow unknown events when the endpoint deals with event collections.
-            pub list_of_events: Vec<EventJson<AnyRoomEvent>>,
+            pub list_of_events: Vec<Raw<AnyRoomEvent>>,
         }
     }
 }

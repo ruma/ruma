@@ -5,11 +5,12 @@ use std::{
 
 use js_int::UInt;
 use matches::assert_matches;
+use ruma_common::Raw;
 use ruma_events::{
     call::{answer::AnswerEventContent, SessionDescription, SessionDescriptionType},
     room::{ImageInfo, ThumbnailInfo},
     sticker::StickerEventContent,
-    AnyMessageEventContent, EventJson, MessageEvent, Unsigned,
+    AnyMessageEventContent, MessageEvent, RawExt, Unsigned,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -83,7 +84,7 @@ fn deserialize_message_call_answer_content() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<AnyMessageEventContent>>(json_data)
+        from_json_value::<Raw<AnyMessageEventContent>>(json_data)
             .unwrap()
             .deserialize_content("m.call.answer")
             .unwrap(),
@@ -117,7 +118,7 @@ fn deserialize_message_call_answer() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<MessageEvent<AnyMessageEventContent>>>(json_data)
+        from_json_value::<Raw<MessageEvent<AnyMessageEventContent>>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap(),
@@ -172,7 +173,7 @@ fn deserialize_message_sticker() {
     });
 
     assert_matches!(
-        from_json_value::<EventJson<MessageEvent<AnyMessageEventContent>>>(json_data)
+        from_json_value::<Raw<MessageEvent<AnyMessageEventContent>>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap(),

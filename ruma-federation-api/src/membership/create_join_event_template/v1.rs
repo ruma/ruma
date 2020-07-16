@@ -2,7 +2,8 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_events::{pdu::Pdu, EventJson};
+use ruma_common::Raw;
+use ruma_events::pdu::Pdu;
 use ruma_identifiers::{RoomId, UserId};
 
 ruma_api! {
@@ -32,6 +33,6 @@ ruma_api! {
         /// The version of the room where the server is trying to join.
         pub room_version: Option<UInt>,
         /// An unsigned template event.
-        pub event: EventJson<Pdu>,
+        pub event: Raw<Pdu>,
     }
 }

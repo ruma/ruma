@@ -165,7 +165,7 @@ mod tests {
         HashAlgorithm, KeyAgreementProtocol, MSasV1Content, MSasV1ContentOptions,
         MessageAuthenticationCode, ShortAuthenticationString, StartEvent, StartEventContent,
     };
-    use crate::EventJson;
+    use ruma_common::Raw;
 
     #[test]
     fn invalid_m_sas_v1_content_missing_required_key_agreement_protocols() {
@@ -277,7 +277,7 @@ mod tests {
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_matches!(
-            from_json_value::<EventJson<StartEventContent>>(json)
+            from_json_value::<Raw<StartEventContent>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
@@ -310,7 +310,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<EventJson<StartEvent>>(json)
+            from_json_value::<Raw<StartEvent>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
@@ -335,7 +335,7 @@ mod tests {
     #[test]
     fn deserialization_failure() {
         // Ensure that invalid JSON  creates a `serde_json::Error` and not `InvalidEvent`
-        assert!(serde_json::from_str::<EventJson<StartEventContent>>("{").is_err());
+        assert!(serde_json::from_str::<Raw<StartEventContent>>("{").is_err());
     }
 
     // TODO this fails because the error is a Validation error not deserialization?
@@ -344,7 +344,7 @@ mod tests {
     fn deserialization_structure_mismatch() {
         // Missing several required fields.
         let error =
-            from_json_value::<EventJson<StartEventContent>>(json!({ "from_device": "123" }))
+            from_json_value::<Raw<StartEventContent>>(json!({ "from_device": "123" }))
                 .unwrap()
                 .deserialize()
                 .unwrap_err();
@@ -368,7 +368,7 @@ mod tests {
             "short_authentication_string": ["decimal"]
         });
 
-        let error = from_json_value::<EventJson<StartEventContent>>(json_data)
+        let error = from_json_value::<Raw<StartEventContent>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap_err();
@@ -391,7 +391,7 @@ mod tests {
             "message_authentication_codes": ["hkdf-hmac-sha256"],
             "short_authentication_string": ["decimal"]
         });
-        let error = from_json_value::<EventJson<StartEventContent>>(json_data)
+        let error = from_json_value::<Raw<StartEventContent>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap_err();
@@ -414,7 +414,7 @@ mod tests {
             "message_authentication_codes": [],
             "short_authentication_string": ["decimal"]
         });
-        let error = from_json_value::<EventJson<StartEventContent>>(json_data)
+        let error = from_json_value::<Raw<StartEventContent>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap_err();
@@ -436,7 +436,7 @@ mod tests {
             "message_authentication_codes": ["hkdf-hmac-sha256"],
             "short_authentication_string": []
         });
-        let error = from_json_value::<EventJson<StartEventContent>>(json_data)
+        let error = from_json_value::<Raw<StartEventContent>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap_err();
@@ -463,7 +463,7 @@ mod tests {
             },
             "type": "m.key.verification.start"
         });
-        let error = from_json_value::<EventJson<StartEvent>>(json_data)
+        let error = from_json_value::<Raw<StartEvent>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap_err();

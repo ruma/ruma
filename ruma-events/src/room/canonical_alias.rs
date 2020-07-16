@@ -36,11 +36,12 @@ mod tests {
         time::{Duration, UNIX_EPOCH},
     };
 
+    use ruma_common::Raw;
     use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::CanonicalAliasEventContent;
-    use crate::{EventJson, StateEvent, Unsigned};
+    use crate::{StateEvent, Unsigned};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -87,7 +88,7 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<EventJson<StateEvent<CanonicalAliasEventContent>>>(json_data)
+            from_json_value::<Raw<StateEvent<CanonicalAliasEventContent>>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap()
@@ -111,7 +112,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<EventJson<StateEvent<CanonicalAliasEventContent>>>(json_data)
+            from_json_value::<Raw<StateEvent<CanonicalAliasEventContent>>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap()
@@ -135,7 +136,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<EventJson<StateEvent<CanonicalAliasEventContent>>>(json_data)
+            from_json_value::<Raw<StateEvent<CanonicalAliasEventContent>>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap()
@@ -160,7 +161,7 @@ mod tests {
             "type": "m.room.canonical_alias"
         });
         assert_eq!(
-            from_json_value::<EventJson<StateEvent<CanonicalAliasEventContent>>>(json_data)
+            from_json_value::<Raw<StateEvent<CanonicalAliasEventContent>>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap()

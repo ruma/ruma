@@ -64,10 +64,11 @@ mod tests {
 
     use js_int::Int;
     use matches::assert_matches;
+    use ruma_common::Raw;
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use crate::{EventJson, StateEvent, Unsigned};
+    use crate::{StateEvent, Unsigned};
 
     use super::NameEventContent;
 
@@ -145,7 +146,7 @@ mod tests {
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<EventJson<StateEvent<NameEventContent>>>(json_data)
+            from_json_value::<Raw<StateEvent<NameEventContent>>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap()
@@ -162,7 +163,7 @@ mod tests {
         assert_eq!(long_string.len(), 256);
 
         let long_content_json = json!({ "name": &long_string });
-        let from_raw: EventJson<NameEventContent> = from_json_value(long_content_json).unwrap();
+        let from_raw: Raw<NameEventContent> = from_json_value(long_content_json).unwrap();
 
         let result = from_raw.deserialize();
         assert!(result.is_err(), "Result should be invalid: {:?}", result);
@@ -171,7 +172,7 @@ mod tests {
     #[test]
     fn json_with_empty_name_creates_content_as_none() {
         let long_content_json = json!({ "name": "" });
-        let from_raw: EventJson<NameEventContent> = from_json_value(long_content_json).unwrap();
+        let from_raw: Raw<NameEventContent> = from_json_value(long_content_json).unwrap();
         assert_matches!(from_raw.deserialize().unwrap(), NameEventContent { name: None });
     }
 
@@ -197,7 +198,7 @@ mod tests {
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<EventJson<StateEvent<NameEventContent>>>(json_data)
+            from_json_value::<Raw<StateEvent<NameEventContent>>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap()
@@ -221,7 +222,7 @@ mod tests {
             "type": "m.room.name"
         });
         assert_eq!(
-            from_json_value::<EventJson<StateEvent<NameEventContent>>>(json_data)
+            from_json_value::<Raw<StateEvent<NameEventContent>>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap()
@@ -247,7 +248,7 @@ mod tests {
         });
 
         assert_eq!(
-            from_json_value::<EventJson<StateEvent<NameEventContent>>>(json_data)
+            from_json_value::<Raw<StateEvent<NameEventContent>>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap()

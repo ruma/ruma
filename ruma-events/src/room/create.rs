@@ -57,11 +57,11 @@ mod tests {
     use std::convert::TryFrom;
 
     use matches::assert_matches;
+    use ruma_common::Raw;
     use ruma_identifiers::{RoomVersionId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::CreateEventContent;
-    use crate::EventJson;
 
     #[test]
     fn serialization() {
@@ -90,7 +90,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<EventJson<CreateEventContent>>(json)
+            from_json_value::<Raw<CreateEventContent>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),

@@ -399,13 +399,14 @@ mod tests {
     };
 
     use matches::assert_matches;
+    use ruma_common::Raw;
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{AudioMessageEventContent, FormattedBody, MessageEventContent, MessageFormat};
     use crate::{
         room::message::{InReplyTo, RelatesTo, TextMessageEventContent},
-        EventJson, MessageEvent, Unsigned,
+        MessageEvent, Unsigned,
     };
 
     #[test]
@@ -531,7 +532,7 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<EventJson<MessageEventContent>>(json_data)
+            from_json_value::<Raw<MessageEventContent>>(json_data)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
@@ -550,7 +551,7 @@ mod tests {
             "body": "test","msgtype": "m.location",
             "url": "http://example.com/audio.mp3"
         });
-        assert!(from_json_value::<EventJson<MessageEventContent>>(json_data)
+        assert!(from_json_value::<Raw<MessageEventContent>>(json_data)
             .unwrap()
             .deserialize()
             .is_err());
