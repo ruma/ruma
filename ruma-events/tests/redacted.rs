@@ -14,7 +14,7 @@ use ruma_events::{
         redaction::{RedactionEvent, RedactionEventContent, SyncRedactionEvent},
     },
     AnyMessageEvent, AnyRedactedMessageEvent, AnyRedactedSyncMessageEvent,
-    AnyRedactedSyncStateEvent, AnyRoomEvent, AnySyncRoomEvent, EventJson, RedactedMessageEvent,
+    AnyRedactedSyncStateEvent, AnyRoomEvent, AnySyncRoomEvent, RedactedMessageEvent,
     RedactedSyncMessageEvent, RedactedSyncStateEvent, RedactedSyncUnsigned, RedactedUnsigned,
     Unsigned,
 };
@@ -264,10 +264,8 @@ fn redacted_custom_event_serialize() {
             && event_type == "m.made.up"
     );
 
-    let x = from_json_value::<EventJson<AnyRedactedSyncStateEvent>>(redacted)
-        .unwrap()
-        .deserialize()
-        .unwrap();
+    let x =
+        from_json_value::<Raw<AnyRedactedSyncStateEvent>>(redacted).unwrap().deserialize().unwrap();
     assert_eq!(x.event_id(), &EventId::try_from("$h29iv0s8:example.com").unwrap())
 }
 
@@ -322,7 +320,7 @@ fn redact_method_properly_redacts() {
         unsigned: Unsigned::default(),
     };
 
-    let event = from_json_value::<EventJson<AnyMessageEvent>>(ev).unwrap().deserialize().unwrap();
+    let event = from_json_value::<Raw<AnyMessageEvent>>(ev).unwrap().deserialize().unwrap();
 
     assert_matches!(
         event.redact(redaction, RoomVersionId::version_6()),

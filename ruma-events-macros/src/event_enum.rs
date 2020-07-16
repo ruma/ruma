@@ -233,10 +233,9 @@ fn generate_redacted_fields(
             };
 
             quote! {
-                unsigned: {
-                    let mut unsigned = ::ruma_events::#redaction_type::default();
-                    unsigned.redacted_because = Some(::ruma_events::EventJson::from(redaction));
-                    unsigned
+                unsigned: ::ruma_events::#redaction_type {
+                    redacted_because: Some(::ruma_events::EventJson::from(redaction)),
+                    .. Default::default()
                 },
             }
         } else {
