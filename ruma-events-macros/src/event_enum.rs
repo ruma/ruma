@@ -235,7 +235,6 @@ fn generate_redacted_fields(
             quote! {
                 unsigned: ::ruma_events::#redaction_type {
                     redacted_because: Some(::ruma_events::EventJson::from(redaction)),
-                    .. Default::default()
                 },
             }
         } else {
