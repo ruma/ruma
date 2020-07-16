@@ -111,6 +111,7 @@
 
 #![recursion_limit = "1024"]
 #![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
+#![allow(clippy::new_without_default)] // lint is no good
 // Since we support Rust 1.36.0, we can't apply this suggestion yet
 #![allow(clippy::use_self)]
 // Remove this once https://github.com/rust-lang/rust/issues/54883 becomes stable

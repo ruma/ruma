@@ -11,6 +11,7 @@ pub type CanonicalAliasEvent = StateEvent<CanonicalAliasEventContent>;
 
 /// The payload for `CanonicalAliasEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[non_exhaustive]
 #[ruma_event(type = "m.room.canonical_alias")]
 pub struct CanonicalAliasEventContent {
     /// The canonical alias.
@@ -27,6 +28,13 @@ pub struct CanonicalAliasEventContent {
     /// List of alternative aliases to the room.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub alt_aliases: Vec<RoomAliasId>,
+}
+
+impl CanonicalAliasEventContent {
+    /// Creates an empty `CanonicalAliasEventContent`.
+    pub fn new() -> Self {
+        Self { alias: None, alt_aliases: Vec::new() }
+    }
 }
 
 #[cfg(test)]
