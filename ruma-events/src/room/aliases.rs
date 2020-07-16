@@ -27,6 +27,18 @@ impl AliasesEventContent {
     pub fn new(aliases: Vec<RoomAliasId>) -> Self {
         Self { aliases }
     }
+
+    /// Redact an `AliasesEventContent` according to current Matrix spec.
+    pub fn redact(self) -> RedactedAliasesEventContent {
+        RedactedAliasesEventContent { aliases: None }
+    }
+
+    /// Redact an `AliasesEventContent` according to version 1 of the Matrix spec.
+    ///
+    /// This leaves the `aliases` information intact after redaction.
+    pub fn redact_v1(self) -> RedactedAliasesEventContent {
+        RedactedAliasesEventContent { aliases: Some(self.aliases) }
+    }
 }
 
 /// An aliases event that has been redacted.
