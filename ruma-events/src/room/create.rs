@@ -14,6 +14,7 @@ pub type CreateEvent = StateEvent<CreateEventContent>;
 
 /// The payload for `CreateEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[non_exhaustive]
 #[ruma_event(type = "m.room.create")]
 pub struct CreateEventContent {
     /// The `user_id` of the room creator. This is set by the homeserver.
@@ -37,14 +38,29 @@ pub struct CreateEventContent {
     pub predecessor: Option<PreviousRoom>,
 }
 
+impl CreateEventContent {
+    /// Creates a new `CreateEventContent` with the given creator.
+    pub fn new(creator: UserId) -> Self {
+        Self { creator, federate: true, room_version: default_room_version_id(), predecessor: None }
+    }
+}
+
 /// A reference to an old room replaced during a room version upgrade.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct PreviousRoom {
     /// The ID of the old room.
     pub room_id: RoomId,
 
     /// The event ID of the last known event in the old room.
     pub event_id: EventId,
+}
+
+impl PreviousRoom {
+    /// Creates a new `PreviousRoom` from the given room and event IDs.
+    pub fn new(room_id: RoomId, event_id: EventId) -> Self {
+        Self { room_id, event_id }
+    }
 }
 
 /// Used to default the `room_version` field to room version 1.
