@@ -12,11 +12,19 @@ pub type HistoryVisibilityEvent = StateEvent<HistoryVisibilityEventContent>;
 
 /// The payload for `HistoryVisibilityEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[non_exhaustive]
 #[ruma_event(type = "m.room.history_visibility")]
 pub struct HistoryVisibilityEventContent {
     /// Who can see the room history.
     #[ruma_event(skip_redaction)]
     pub history_visibility: HistoryVisibility,
+}
+
+impl HistoryVisibilityEventContent {
+    /// Creates a new `HistoryVisibilityEventContent` with the given policy.
+    pub fn new(history_visibility: HistoryVisibility) -> Self {
+        Self { history_visibility }
+    }
 }
 
 /// Who can see a room's history.
