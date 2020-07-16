@@ -161,12 +161,22 @@ impl Display for RoomVersionId {
 }
 
 impl PartialOrd for RoomVersionId {
+    /// Compare the two given room version IDs by comparing their string representations.
+    ///
+    /// Please be aware that room version IDs don't have a defined ordering in the Matrix
+    /// specification. This implementation only exists to be able to use `RoomVersionId`s or
+    /// types containing `RoomVersionId`s as `BTreeMap` keys.
     fn partial_cmp(&self, other: &RoomVersionId) -> Option<Ordering> {
         self.as_ref().partial_cmp(other.as_ref())
     }
 }
 
 impl Ord for RoomVersionId {
+    /// Compare the two given room version IDs by comparing their string representations.
+    ///
+    /// Please be aware that room version IDs don't have a defined ordering in the Matrix
+    /// specification. This implementation only exists to be able to use `RoomVersionId`s or
+    /// types containing `RoomVersionId`s as `BTreeMap` keys.
     fn cmp(&self, other: &Self) -> Ordering {
         self.as_ref().cmp(other.as_ref())
     }
