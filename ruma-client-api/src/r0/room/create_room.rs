@@ -141,7 +141,11 @@ impl CreationContent {
         creator: UserId,
         room_version: RoomVersionId,
     ) -> CreateEventContent {
-        CreateEventContent { creator, federate, room_version, predecessor }
+        let mut res = CreateEventContent::new(creator);
+        res.federate = federate;
+        res.room_version = room_version;
+        res.predecessor = predecessor;
+        res
     }
 }
 
