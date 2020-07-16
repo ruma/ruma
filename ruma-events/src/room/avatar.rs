@@ -13,6 +13,7 @@ pub type AvatarEvent = StateEvent<AvatarEventContent>;
 
 /// The payload for `AvatarEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[non_exhaustive]
 #[ruma_event(type = "m.room.avatar")]
 pub struct AvatarEventContent {
     /// Information about the avatar image.
@@ -22,4 +23,11 @@ pub struct AvatarEventContent {
     /// Information about the avatar thumbnail image.
     /// URL of the avatar image.
     pub url: String,
+}
+
+impl AvatarEventContent {
+    /// Create an `AvatarEventContent` from the given image URL.
+    pub fn new(url: String) -> Self {
+        Self { info: None, url }
+    }
 }

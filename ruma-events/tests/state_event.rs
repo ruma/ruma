@@ -193,6 +193,7 @@ fn deserialize_avatar_without_prev_content() {
             content: AnyStateEventContent::RoomAvatar(AvatarEventContent {
                 info: Some(info),
                 url,
+                ..
             }),
             event_id,
             origin_server_ts,
