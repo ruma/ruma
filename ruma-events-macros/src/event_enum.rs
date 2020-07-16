@@ -510,7 +510,7 @@ fn field_return_type(name: &str, var: &EventKindVariation) -> TokenStream {
         "sender" => quote! { ::ruma_identifiers::UserId },
         "state_key" => quote! { str },
         "unsigned" if &EventKindVariation::RedactedSync == var => {
-            quote! { ::ruma_events::RedactedUnsignedSync }
+            quote! { ::ruma_events::RedactedSyncUnsigned }
         }
         "unsigned" if &EventKindVariation::Redacted == var => {
             quote! { ::ruma_events::RedactedUnsigned }

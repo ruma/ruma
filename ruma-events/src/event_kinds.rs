@@ -5,7 +5,7 @@ use ruma_identifiers::{EventId, RoomId, UserId};
 
 use crate::{
     BasicEventContent, EphemeralRoomEventContent, EventContent, MessageEventContent,
-    RedactedMessageEventContent, RedactedStateEventContent, RedactedUnsigned, RedactedUnsignedSync,
+    RedactedMessageEventContent, RedactedStateEventContent, RedactedSyncUnsigned, RedactedUnsigned,
     StateEventContent, Unsigned,
 };
 
@@ -113,7 +113,7 @@ pub struct RedactedSyncMessageEvent<C: RedactedMessageEventContent> {
     pub origin_server_ts: SystemTime,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: RedactedUnsignedSync,
+    pub unsigned: RedactedSyncUnsigned,
 }
 
 /// State event.
@@ -243,7 +243,7 @@ pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     pub state_key: String,
 
     /// Additional key-value pairs not signed by the homeserver.
-    pub unsigned: RedactedUnsignedSync,
+    pub unsigned: RedactedSyncUnsigned,
 }
 
 /// A stripped-down redacted state event.

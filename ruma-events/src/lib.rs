@@ -235,13 +235,13 @@ impl RedactedUnsigned {
 /// Extra information about a redacted sync event that is not incorporated into the sync event's
 /// hash.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-pub struct RedactedUnsignedSync {
+pub struct RedactedSyncUnsigned {
     /// The event that redacted this event, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub redacted_because: Option<EventJson<SyncRedactionEvent>>,
 }
 
-impl RedactedUnsignedSync {
+impl RedactedSyncUnsigned {
     /// Whether this unsigned data is empty (`redacted_because` is `None`).
     ///
     /// This method is used to determine whether to skip serializing the
