@@ -131,13 +131,120 @@ fn expand_any_with_deser(
 
     let field_accessor_impl = accessor_methods(kind, var, &variants);
 
+    let redact_impl = generate_redact(&ident, kind, var, &variants);
+
     Some(quote! {
         #any_enum
 
         #field_accessor_impl
 
+        #redact_impl
+
         #event_deserialize_impl
     })
+}
+
+fn generate_redact(
+    ident: &Ident,
+    kind: &EventKind,
+    var: &EventKindVariation,
+    variants: &[Ident],
+) -> Option<TokenStream> {
+    if let EventKindVariation::Full | EventKindVariation::Sync | EventKindVariation::Stripped = var
+    {
+        let (param, redaction_type, redaction_enum) = match var {
+            EventKindVariation::Full => {
+                let struct_id = kind.to_event_ident(&EventKindVariation::Redacted)?;
+                (
+                    quote! { ::ruma_events::room::redaction::RedactionEvent },
+                    quote! { ::ruma_events::#struct_id },
+                    kind.to_event_enum_ident(&EventKindVariation::Redacted)?,
+                )
+            }
+            EventKindVariation::Sync => {
+                let struct_id = kind.to_event_ident(&EventKindVariation::RedactedSync)?;
+                (
+                    quote! { ::ruma_events::room::redaction::SyncRedactionEvent },
+                    quote! { ::ruma_events::#struct_id },
+                    kind.to_event_enum_ident(&EventKindVariation::RedactedSync)?,
+                )
+            }
+            EventKindVariation::Stripped => {
+                let struct_id = kind.to_event_ident(&EventKindVariation::RedactedStripped)?;
+                (
+                    quote! { ::ruma_events::room::redaction::SyncRedactionEvent },
+                    quote! { ::ruma_events::#struct_id },
+                    kind.to_event_enum_ident(&EventKindVariation::RedactedStripped)?,
+                )
+            }
+            _ => return None,
+        };
+
+        let fields = EVENT_FIELDS
+            .iter()
+            .map(|(name, has_field)| generate_redacted_fields(name, kind, var, *has_field));
+
+        let fields = quote! { #( #fields )* };
+
+        Some(quote! {
+            impl #ident {
+                /// Redacts `Self` given a valid `Redaction[Sync]Event`.
+                pub fn redact(self, redaction: #param, version: ::ruma_identifiers::RoomVersionId) -> #redaction_enum {
+                    match self {
+                        #(
+                            Self::#variants(event) => {
+                                let content = event.content.redact(version);
+                                #redaction_enum::#variants(#redaction_type {
+                                    content,
+                                    #fields
+                                })
+                            }
+                        )*
+                        Self::Custom(event) => {
+                            let content = event.content.redact(version);
+                            #redaction_enum::Custom(#redaction_type {
+                                content,
+                                #fields
+                            })
+                        }
+                    }
+                }
+            }
+        })
+    } else {
+        None
+    }
+}
+
+fn generate_redacted_fields(
+    name: &str,
+    kind: &EventKind,
+    var: &EventKindVariation,
+    is_event_kind: EventKindFn,
+) -> TokenStream {
+    if is_event_kind(kind, var) {
+        let name = Ident::new(name, Span::call_site());
+
+        if name == "unsigned" {
+            let redaction_type = if let EventKindVariation::Sync = var {
+                quote! { RedactedSyncUnsigned }
+            } else {
+                quote! { RedactedUnsigned }
+            };
+
+            quote! {
+                unsigned: ::ruma_events::#redaction_type {
+                    redacted_because: Some(::ruma_events::EventJson::from(redaction)),
+                },
+            }
+        } else {
+            quote! {
+                #name: event.#name,
+            }
+        }
+    } else {
+        TokenStream::new()
+    }
 }
 
 /// Generates the 3 redacted state enums, 2 redacted message enums,

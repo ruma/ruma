@@ -1,5 +1,6 @@
 //! Types for custom events outside of the Matrix specification.
 
+use ruma_identifiers::RoomVersionId;
 use serde::Serialize;
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
@@ -23,7 +24,7 @@ pub struct CustomEventContent {
 
 impl CustomEventContent {
     /// Transforms the full event content into a redacted content according to spec.
-    pub fn redact(self) -> RedactedCustomEventContent {
+    pub fn redact(self, _: RoomVersionId) -> RedactedCustomEventContent {
         RedactedCustomEventContent { event_type: self.event_type }
     }
 }
