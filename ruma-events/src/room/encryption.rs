@@ -11,6 +11,7 @@ pub type EncryptionEvent = StateEvent<EncryptionEventContent>;
 
 /// The payload for `EncryptionEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[non_exhaustive]
 #[ruma_event(type = "m.room.encryption")]
 pub struct EncryptionEventContent {
     /// The encryption algorithm to be used to encrypt messages sent in this room.
@@ -29,4 +30,11 @@ pub struct EncryptionEventContent {
     /// `uint!(100)` is the recommended default.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rotation_period_msgs: Option<UInt>,
+}
+
+impl EncryptionEventContent {
+    /// Creates a new `EncryptionEventContent` with the given algorithm.
+    pub fn new(algorithm: Algorithm) -> Self {
+        Self { algorithm, rotation_period_ms: None, rotation_period_msgs: None }
+    }
 }
