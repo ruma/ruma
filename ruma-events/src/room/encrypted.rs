@@ -29,6 +29,7 @@ pub enum EncryptedEventContent {
 
 /// The payload for `EncryptedEvent` using the *m.olm.v1.curve25519-aes-sha2* algorithm.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct OlmV1Curve25519AesSha2Content {
     /// A map from the recipient Curve25519 identity key to ciphertext information.
     pub ciphertext: BTreeMap<String, CiphertextInfo>,
@@ -37,10 +38,18 @@ pub struct OlmV1Curve25519AesSha2Content {
     pub sender_key: String,
 }
 
+impl OlmV1Curve25519AesSha2Content {
+    /// Creates a new `OlmV1Curve25519AesSha2Content` with the given ciphertext and sender key.
+    pub fn new(ciphertext: BTreeMap<String, CiphertextInfo>, sender_key: String) -> Self {
+        Self { ciphertext, sender_key }
+    }
+}
+
 /// Ciphertext information holding the ciphertext and message type.
 ///
 /// Used for messages encrypted with the *m.olm.v1.curve25519-aes-sha2* algorithm.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct CiphertextInfo {
     /// The encrypted payload.
     pub body: String,
@@ -50,9 +59,44 @@ pub struct CiphertextInfo {
     pub message_type: UInt,
 }
 
+impl CiphertextInfo {
+    /// Creates a new `CiphertextInfo` with the given body and type.
+    pub fn new(body: String, message_type: UInt) -> Self {
+        Self { body, message_type }
+    }
+}
+
 /// The payload for `EncryptedEvent` using the *m.megolm.v1.aes-sha2* algorithm.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct MegolmV1AesSha2Content {
+    /// The encrypted content of the event.
+    pub ciphertext: String,
+
+    /// The Curve25519 key of the sender.
+    pub sender_key: String,
+
+    /// The ID of the sending device.
+    pub device_id: Box<DeviceId>,
+
+    /// The ID of the session used to encrypt the message.
+    pub session_id: String,
+}
+
+impl MegolmV1AesSha2Content {
+    /// Creates a new `MegolmV1AesSha2Content` from the given init struct.
+    pub fn new(init: MegolmV1AesSha2ContentInit) -> Self {
+        let MegolmV1AesSha2ContentInit { ciphertext, sender_key, device_id, session_id } = init;
+        Self { ciphertext, sender_key, device_id, session_id }
+    }
+}
+
+/// Mandatory initial set of fields of `MegolmV1AesSha2Content`.
+///
+/// This struct will not be updated even if additional fields are added to `MegolmV1AesSha2Content`
+/// in a new (non-breaking) release of the Matrix specification.
+#[derive(Clone, Debug)]
+pub struct MegolmV1AesSha2ContentInit {
     /// The encrypted content of the event.
     pub ciphertext: String,
 
