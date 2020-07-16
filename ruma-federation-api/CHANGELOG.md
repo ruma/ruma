@@ -28,7 +28,7 @@ Improvements:
     },
     transactions::send_transaction_message::v1,
     version::get_server_version::v1
-  ```
+    ```
 
 # 0.0.1
 
