@@ -13,9 +13,10 @@ use ruma_events::{
         message::RedactedMessageEventContent,
         redaction::{RedactionEvent, RedactionEventContent, SyncRedactionEvent},
     },
-    AnyRedactedMessageEvent, AnyRedactedSyncMessageEvent, AnyRedactedSyncStateEvent, AnyRoomEvent,
-    AnySyncRoomEvent, RedactedMessageEvent, RedactedSyncMessageEvent, RedactedSyncStateEvent,
-    RedactedSyncUnsigned, RedactedUnsigned, Unsigned,
+    AnyMessageEvent, AnyRedactedMessageEvent, AnyRedactedSyncMessageEvent,
+    AnyRedactedSyncStateEvent, AnyRoomEvent, AnySyncRoomEvent, EventJson, RedactedMessageEvent,
+    RedactedSyncMessageEvent, RedactedSyncStateEvent, RedactedSyncUnsigned, RedactedUnsigned,
+    Unsigned,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -263,7 +264,7 @@ fn redacted_custom_event_serialize() {
             && event_type == "m.made.up"
     );
 
-    let x = from_json_value::<Raw<crate::AnyRedactedSyncStateEvent>>(redacted)
+    let x = from_json_value::<EventJson<AnyRedactedSyncStateEvent>>(redacted)
         .unwrap()
         .deserialize()
         .unwrap();
@@ -294,4 +295,48 @@ fn redacted_custom_event_deserialize() {
 
     let actual = to_json_value(&redacted).unwrap();
     assert_eq!(actual, expected);
+}
+
+#[test]
+fn redact_method_properly_redacts() {
+    let ev = json!({
+        "type": "m.room.message",
+        "event_id": "$143273582443PhrSn:example.com",
+        "origin_server_ts": 1,
+        "room_id": "!roomid:room.com",
+        "sender": "@user:example.com",
+        "content": {
+            "body": "test",
+            "msgtype": "m.audio",
+            "url": "http://example.com/audio.mp3",
+        }
+    });
+
+    let redaction = RedactionEvent {
+        content: RedactionEventContent { reason: Some("redacted because".into()) },
+        redacts: EventId::try_from("$143273582443PhrSn:example.com").unwrap(),
+        event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        room_id: RoomId::try_from("!roomid:room.com").unwrap(),
+        sender: UserId::try_from("@carl:example.com").unwrap(),
+        unsigned: Unsigned::default(),
+    };
+
+    let event = from_json_value::<EventJson<AnyMessageEvent>>(ev).unwrap().deserialize().unwrap();
+
+    assert_matches!(
+        event.redact(redaction),
+        AnyRedactedMessageEvent::RoomMessage(RedactedMessageEvent {
+            content: RedactedMessageEventContent,
+            event_id,
+            room_id,
+            sender,
+            origin_server_ts,
+            unsigned,
+        }) if event_id == EventId::try_from("$143273582443PhrSn:example.com").unwrap()
+            && unsigned.redacted_because.is_some()
+            && room_id == RoomId::try_from("!roomid:room.com").unwrap()
+            && sender == UserId::try_from("@user:example.com").unwrap()
+            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+    );
 }
