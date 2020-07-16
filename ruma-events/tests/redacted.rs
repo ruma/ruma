@@ -10,28 +10,27 @@ use ruma_events::{
         aliases::RedactedAliasesEventContent,
         create::RedactedCreateEventContent,
         message::RedactedMessageEventContent,
-        redaction::{RedactionEvent, RedactionEventContent},
+        redaction::{RedactionEvent, RedactionEventContent, SyncRedactionEvent},
     },
     AnyRedactedMessageEvent, AnyRedactedSyncMessageEvent, AnyRedactedSyncStateEvent, AnyRoomEvent,
     AnySyncRoomEvent, EventJson, RedactedMessageEvent, RedactedSyncMessageEvent,
-    RedactedSyncStateEvent, UnsignedData,
+    RedactedSyncStateEvent, RedactedSyncUnsigned, RedactedUnsigned, Unsigned,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-fn full_unsigned() -> UnsignedData {
-    let mut unsigned = UnsignedData::default();
+fn full_unsigned() -> RedactedSyncUnsigned {
+    let mut unsigned = RedactedSyncUnsigned::default();
     // The presence of `redacted_because` triggers the event enum to return early
     // with `RedactedContent` instead of failing to deserialize according
     // to the event type string.
-    unsigned.redacted_because = Some(EventJson::from(RedactionEvent {
+    unsigned.redacted_because = Some(EventJson::from(SyncRedactionEvent {
         content: RedactionEventContent { reason: Some("redacted because".into()) },
         redacts: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
-        room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        unsigned: UnsignedData::default(),
+        unsigned: Unsigned::default(),
     }));
 
     unsigned
@@ -44,7 +43,7 @@ fn redacted_message_event_serialize() {
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        unsigned: UnsignedData::default(),
+        unsigned: RedactedSyncUnsigned::default(),
     };
 
     let expected = json!({
@@ -66,7 +65,7 @@ fn redacted_aliases_event_serialize_no_content() {
         state_key: "".into(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        unsigned: UnsignedData::default(),
+        unsigned: RedactedSyncUnsigned::default(),
     };
 
     let expected = json!({
@@ -89,7 +88,7 @@ fn redacted_aliases_event_serialize_with_content() {
         state_key: "".to_string(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        unsigned: UnsignedData::default(),
+        unsigned: RedactedSyncUnsigned::default(),
     };
 
     let expected = json!({
@@ -165,7 +164,7 @@ fn redacted_deserialize_any_room() {
 
 #[test]
 fn redacted_deserialize_any_room_sync() {
-    let mut unsigned = UnsignedData::default();
+    let mut unsigned = RedactedUnsigned::default();
     // The presence of `redacted_because` triggers the event enum (AnySyncRoomEvent in this case)
     // to return early with `RedactedContent` instead of failing to deserialize according
     // to the event type string.
@@ -176,7 +175,7 @@ fn redacted_deserialize_any_room_sync() {
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        unsigned: UnsignedData::default(),
+        unsigned: Unsigned::default(),
     }));
 
     let redacted = json!({

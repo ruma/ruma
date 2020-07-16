@@ -67,7 +67,7 @@ mod tests {
     use ruma_identifiers::{EventId, RoomId, UserId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use crate::{EventJson, StateEvent, UnsignedData};
+    use crate::{EventJson, StateEvent, Unsigned};
 
     use super::NameEventContent;
 
@@ -81,7 +81,7 @@ mod tests {
             room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".into(),
-            unsigned: UnsignedData::default(),
+            unsigned: Unsigned::default(),
         };
 
         let actual = to_json_value(&name_event).unwrap();
@@ -110,7 +110,7 @@ mod tests {
             room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".into(),
-            unsigned: UnsignedData { age: Some(Int::from(100)), ..UnsignedData::default() },
+            unsigned: Unsigned { age: Some(Int::from(100)), ..Unsigned::default() },
         };
 
         let actual = to_json_value(&name_event).unwrap();

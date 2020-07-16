@@ -40,7 +40,7 @@ mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::CanonicalAliasEventContent;
-    use crate::{EventJson, StateEvent, UnsignedData};
+    use crate::{EventJson, StateEvent, Unsigned};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
@@ -55,7 +55,7 @@ mod tests {
             room_id: RoomId::try_from("!dummy:example.com").unwrap(),
             sender: UserId::try_from("@carl:example.com").unwrap(),
             state_key: "".into(),
-            unsigned: UnsignedData::default(),
+            unsigned: Unsigned::default(),
         };
 
         let actual = to_json_value(&canonical_alias_event).unwrap();

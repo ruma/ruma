@@ -12,7 +12,7 @@ use ruma_events::{
     call::{answer::AnswerEventContent, SessionDescription, SessionDescriptionType},
     room::{ImageInfo, ThumbnailInfo},
     sticker::StickerEventContent,
-    AnyMessageEvent, MessageEvent, UnsignedData,
+    AnyMessageEvent, MessageEvent, Unsigned,
 };
 
 #[test]
@@ -92,7 +92,7 @@ fn serialize_message_event() {
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        unsigned: UnsignedData::default(),
+        unsigned: Unsigned::default(),
     });
 
     let actual = to_json_value(&aliases_event).unwrap();

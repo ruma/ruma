@@ -405,7 +405,7 @@ mod tests {
     use super::{AudioMessageEventContent, FormattedBody, MessageEventContent, MessageFormat};
     use crate::{
         room::message::{InReplyTo, RelatesTo, TextMessageEventContent},
-        EventJson, MessageEvent, UnsignedData,
+        EventJson, MessageEvent, Unsigned,
     };
 
     #[test]
@@ -421,7 +421,7 @@ mod tests {
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(10_000),
             room_id: RoomId::try_from("!testroomid:example.org").unwrap(),
             sender: UserId::try_from("@user:example.org").unwrap(),
-            unsigned: UnsignedData::default(),
+            unsigned: Unsigned::default(),
         };
 
         assert_eq!(

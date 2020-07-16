@@ -6,7 +6,7 @@ use std::{
 use matches::assert_matches;
 use ruma_events::{
     room::redaction::{RedactionEvent, RedactionEventContent},
-    AnyMessageEvent, EventJson, UnsignedData,
+    AnyMessageEvent, EventJson, Unsigned,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{
@@ -36,7 +36,7 @@ fn serialize_redaction() {
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         sender: UserId::try_from("@carl:example.com").unwrap(),
-        unsigned: UnsignedData::default(),
+        unsigned: Unsigned::default(),
     };
 
     let actual = to_json_value(&aliases_event).unwrap();

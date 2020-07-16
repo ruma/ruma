@@ -482,7 +482,7 @@ fn generate_accessor(
     variants: &[Ident],
 ) -> TokenStream {
     if is_event_kind(kind, var) {
-        let field_type = field_return_type(name);
+        let field_type = field_return_type(name, var);
 
         let name = Ident::new(name, Span::call_site());
         let docs = format!("Returns this events {} field.", name);
@@ -502,14 +502,20 @@ fn generate_accessor(
     }
 }
 
-fn field_return_type(name: &str) -> TokenStream {
+fn field_return_type(name: &str, var: &EventKindVariation) -> TokenStream {
     match name {
         "origin_server_ts" => quote! { ::std::time::SystemTime },
         "room_id" => quote! { ::ruma_identifiers::RoomId },
         "event_id" => quote! { ::ruma_identifiers::EventId },
         "sender" => quote! { ::ruma_identifiers::UserId },
         "state_key" => quote! { str },
-        "unsigned" => quote! { ::ruma_events::UnsignedData },
+        "unsigned" if &EventKindVariation::RedactedSync == var => {
+            quote! { ::ruma_events::RedactedSyncUnsigned }
+        }
+        "unsigned" if &EventKindVariation::Redacted == var => {
+            quote! { ::ruma_events::RedactedUnsigned }
+        }
+        "unsigned" => quote! { ::ruma_events::Unsigned },
         _ => panic!("the `ruma_events_macros::event_enum::EVENT_FIELD` const was changed"),
     }
 }
@@ -521,6 +527,7 @@ mod kw {
 }
 
 // If the variants of this enum change `to_event_path` needs to be updated as well.
+#[derive(Eq, PartialEq)]
 enum EventKindVariation {
     Full,
     Sync,
