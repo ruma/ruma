@@ -131,13 +131,136 @@ fn expand_any_with_deser(
 
     let field_accessor_impl = accessor_methods(kind, var, &variants);
 
+    let redact_impl = generate_redact(&ident, kind, var, &variants);
+
     Some(quote! {
         #any_enum
 
         #field_accessor_impl
 
+        #redact_impl
+
         #event_deserialize_impl
     })
+}
+
+fn generate_redact(
+    ident: &Ident,
+    kind: &EventKind,
+    var: &EventKindVariation,
+    variants: &[Ident],
+) -> Option<TokenStream> {
+    if let EventKindVariation::Full | EventKindVariation::Sync | EventKindVariation::Stripped = var
+    {
+        let (param, redaction_type, redaction_enum) = match var {
+            EventKindVariation::Full => {
+                let struct_id = kind.to_event_ident(&EventKindVariation::Redacted)?;
+                (
+                    quote! { ::ruma_events::room::redaction::RedactionEvent },
+                    quote! { ::ruma_events::#struct_id },
+                    kind.to_event_enum_ident(&EventKindVariation::Redacted)?,
+                )
+            }
+            EventKindVariation::Sync => {
+                let struct_id = kind.to_event_ident(&EventKindVariation::RedactedSync)?;
+                (
+                    quote! { ::ruma_events::room::redaction::SyncRedactionEvent },
+                    quote! { ::ruma_events::#struct_id },
+                    kind.to_event_enum_ident(&EventKindVariation::RedactedSync)?,
+                )
+            }
+            EventKindVariation::Stripped => {
+                let struct_id = kind.to_event_ident(&EventKindVariation::RedactedStripped)?;
+                (
+                    quote! { ::ruma_events::room::redaction::SyncRedactionEvent },
+                    quote! { ::ruma_events::#struct_id },
+                    kind.to_event_enum_ident(&EventKindVariation::RedactedStripped)?,
+                )
+            }
+            _ => return None,
+        };
+
+        let fields = generate_redacted_fields(kind, var)?;
+
+        Some(quote! {
+            impl #ident {
+                /// Redacts `Self` given a valid `Redaction[Sync]Event`.
+                pub fn redact(self, redaction: #param) -> #redaction_enum {
+                    match self {
+                        #(
+                            Self::#variants(event) => {
+                                let content = event.content.redact();
+                                #redaction_enum::#variants(#redaction_type {
+                                    content,
+                                    sender: event.sender,
+                                    #fields
+                                })
+                            }
+                        )*
+                        Self::Custom(event) => {
+                            let content = event.content.redact();
+                            #redaction_enum::Custom(#redaction_type {
+                                content,
+                                sender: event.sender,
+                                #fields
+                            })
+                        }
+                    }
+                }
+            }
+        })
+    } else {
+        None
+    }
+}
+
+fn generate_redacted_fields(kind: &EventKind, var: &EventKindVariation) -> Option<TokenStream> {
+    match (kind, var) {
+        (EventKind::State(_), EventKindVariation::Full) => Some(quote! {
+            event_id: event.event_id,
+            origin_server_ts: event.origin_server_ts,
+            room_id: event.room_id,
+            state_key: event.state_key,
+            unsigned: {
+                let mut unsigned = ::ruma_events::RedactedUnsigned::default();
+                unsigned.redacted_because = Some(::ruma_events::EventJson::from(redaction));
+                unsigned
+            },
+        }),
+        (EventKind::State(_), EventKindVariation::Sync) => Some(quote! {
+            event_id: event.event_id,
+            origin_server_ts: event.origin_server_ts,
+            state_key: event.state_key,
+            unsigned: {
+                let mut unsigned = ::ruma_events::RedactedSyncUnsigned::default();
+                unsigned.redacted_because = Some(::ruma_events::EventJson::from(redaction));
+                unsigned
+            },
+        }),
+        (EventKind::State(_), EventKindVariation::Stripped) => Some(quote! {
+            state_key: event.state_key,
+        }),
+        (EventKind::Message(_), EventKindVariation::Full) => Some(quote! {
+            event_id: event.event_id,
+            origin_server_ts: event.origin_server_ts,
+            room_id: event.room_id,
+            unsigned: {
+                let mut unsigned = ::ruma_events::RedactedUnsigned::default();
+                unsigned.redacted_because = Some(::ruma_events::EventJson::from(redaction));
+                unsigned
+            },
+        }),
+        (EventKind::Message(_), EventKindVariation::Sync) => Some(quote! {
+            event_id: event.event_id,
+            origin_server_ts: event.origin_server_ts,
+            unsigned: {
+                let mut unsigned = ::ruma_events::RedactedSyncUnsigned::default();
+                unsigned.redacted_because = Some(::ruma_events::EventJson::from(redaction));
+                unsigned
+            },
+        }),
+        _ => None,
+    }
 }
 
 /// Generates the 3 redacted state enums, 2 redacted message enums,
