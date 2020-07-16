@@ -15,6 +15,7 @@ pub type FeedbackEvent = MessageEvent<FeedbackEventContent>;
 
 /// The payload for `FeedbackEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
+#[non_exhaustive]
 #[ruma_event(type = "m.room.message.feedback")]
 pub struct FeedbackEventContent {
     /// The event that this feedback is related to.
@@ -23,6 +24,13 @@ pub struct FeedbackEventContent {
     /// The type of feedback.
     #[serde(rename = "type")]
     pub feedback_type: FeedbackType,
+}
+
+impl FeedbackEventContent {
+    /// Create a `FeedbackEventContent` from the given target event id and feedback type.
+    pub fn new(target_event_id: EventId, feedback_type: FeedbackType) -> Self {
+        Self { target_event_id, feedback_type }
+    }
 }
 
 /// A type of feedback.
