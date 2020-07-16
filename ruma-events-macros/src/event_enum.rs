@@ -189,11 +189,11 @@ fn generate_redact(
         Some(quote! {
             impl #ident {
                 /// Redacts `Self` given a valid `Redaction[Sync]Event`.
-                pub fn redact(self, redaction: #param) -> #redaction_enum {
+                pub fn redact(self, redaction: #param, version: ::ruma_identifiers::RoomVersionId) -> #redaction_enum {
                     match self {
                         #(
                             Self::#variants(event) => {
-                                let content = event.content.redact();
+                                let content = event.content.redact(version);
                                 #redaction_enum::#variants(#redaction_type {
                                     content,
                                     #fields
@@ -201,7 +201,7 @@ fn generate_redact(
                             }
                         )*
                         Self::Custom(event) => {
-                            let content = event.content.redact();
+                            let content = event.content.redact(version);
                             #redaction_enum::Custom(#redaction_type {
                                 content,
                                 #fields

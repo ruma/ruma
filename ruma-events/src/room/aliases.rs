@@ -1,7 +1,7 @@
 //! Types for the *m.room.aliases* event.
 
 use ruma_events_macros::StateEventContent;
-use ruma_identifiers::RoomAliasId;
+use ruma_identifiers::{RoomAliasId, RoomVersionId};
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 
@@ -29,15 +29,12 @@ impl AliasesEventContent {
     }
 
     /// Redact an `AliasesEventContent` according to current Matrix spec.
-    pub fn redact(self) -> RedactedAliasesEventContent {
-        RedactedAliasesEventContent { aliases: None }
-    }
-
-    /// Redact an `AliasesEventContent` according to version 1 of the Matrix spec.
-    ///
-    /// This leaves the `aliases` information intact after redaction.
-    pub fn redact_v1(self) -> RedactedAliasesEventContent {
-        RedactedAliasesEventContent { aliases: Some(self.aliases) }
+    pub fn redact(self, version: RoomVersionId) -> RedactedAliasesEventContent {
+        if version.is_version_6() {
+            RedactedAliasesEventContent { aliases: None }
+        } else {
+            RedactedAliasesEventContent { aliases: Some(self.aliases) }
+        }
     }
 }
 

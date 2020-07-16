@@ -18,7 +18,7 @@ use ruma_events::{
     RedactedSyncMessageEvent, RedactedSyncStateEvent, RedactedSyncUnsigned, RedactedUnsigned,
     Unsigned,
 };
-use ruma_identifiers::{EventId, RoomId, UserId};
+use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 fn full_unsigned() -> RedactedSyncUnsigned {
@@ -325,7 +325,7 @@ fn redact_method_properly_redacts() {
     let event = from_json_value::<EventJson<AnyMessageEvent>>(ev).unwrap().deserialize().unwrap();
 
     assert_matches!(
-        event.redact(redaction),
+        event.redact(redaction, RoomVersionId::version_6()),
         AnyRedactedMessageEvent::RoomMessage(RedactedMessageEvent {
             content: RedactedMessageEventContent,
             event_id,
