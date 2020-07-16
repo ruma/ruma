@@ -180,7 +180,11 @@ fn generate_redact(
             _ => return None,
         };
 
-        let fields = generate_redacted_fields(kind, var)?;
+        let fields = EVENT_FIELDS
+            .iter()
+            .map(|(name, has_field)| generate_redacted_fields(name, kind, var, *has_field));
+
+        let fields = quote! { #( #fields )* };
 
         Some(quote! {
             impl #ident {
@@ -192,7 +196,6 @@ fn generate_redact(
                                 let content = event.content.redact();
                                 #redaction_enum::#variants(#redaction_type {
                                     content,
-                                    sender: event.sender,
                                     #fields
                                 })
                             }
@@ -201,7 +204,6 @@ fn generate_redact(
                             let content = event.content.redact();
                             #redaction_enum::Custom(#redaction_type {
                                 content,
-                                sender: event.sender,
                                 #fields
                             })
                         }
@@ -214,52 +216,36 @@ fn generate_redact(
     }
 }
 
-fn generate_redacted_fields(kind: &EventKind, var: &EventKindVariation) -> Option<TokenStream> {
-    match (kind, var) {
-        (EventKind::State(_), EventKindVariation::Full) => Some(quote! {
-            event_id: event.event_id,
-            origin_server_ts: event.origin_server_ts,
-            room_id: event.room_id,
-            state_key: event.state_key,
-            unsigned: {
-                let mut unsigned = ::ruma_events::RedactedUnsigned::default();
-                unsigned.redacted_because = Some(::ruma_events::EventJson::from(redaction));
-                unsigned
-            },
-        }),
-        (EventKind::State(_), EventKindVariation::Sync) => Some(quote! {
-            event_id: event.event_id,
-            origin_server_ts: event.origin_server_ts,
-            state_key: event.state_key,
-            unsigned: {
-                let mut unsigned = ::ruma_events::RedactedSyncUnsigned::default();
-                unsigned.redacted_because = Some(::ruma_events::EventJson::from(redaction));
-                unsigned
-            },
-        }),
-        (EventKind::State(_), EventKindVariation::Stripped) => Some(quote! {
-            state_key: event.state_key,
-        }),
-        (EventKind::Message(_), EventKindVariation::Full) => Some(quote! {
-            event_id: event.event_id,
-            origin_server_ts: event.origin_server_ts,
-            room_id: event.room_id,
-            unsigned: {
-                let mut unsigned = ::ruma_events::RedactedUnsigned::default();
-                unsigned.redacted_because = Some(::ruma_events::EventJson::from(redaction));
-                unsigned
-            },
-        }),
-        (EventKind::Message(_), EventKindVariation::Sync) => Some(quote! {
-            event_id: event.event_id,
-            origin_server_ts: event.origin_server_ts,
-            unsigned: {
-                let mut unsigned = ::ruma_events::RedactedSyncUnsigned::default();
-                unsigned.redacted_because = Some(::ruma_events::EventJson::from(redaction));
-                unsigned
-            },
-        }),
-        _ => None,
+fn generate_redacted_fields(
+    name: &str,
+    kind: &EventKind,
+    var: &EventKindVariation,
+    is_event_kind: EventKindFn,
+) -> TokenStream {
+    if is_event_kind(kind, var) {
+        let name = Ident::new(name, Span::call_site());
+
+        if name == "unsigned" {
+            let redaction_type = if let EventKindVariation::Sync = var {
+                quote! { RedactedSyncUnsigned }
+            } else {
+                quote! { RedactedUnsigned }
+            };
+
+            quote! {
+                unsigned: {
+                    let mut unsigned = ::ruma_events::#redaction_type::default();
+                    unsigned.redacted_because = Some(::ruma_events::EventJson::from(redaction));
+                    unsigned
+                },
+            }
+        } else {
+            quote! {
+                #name: event.#name,
+            }
+        }
+    } else {
+        TokenStream::new()
     }
 }
 
