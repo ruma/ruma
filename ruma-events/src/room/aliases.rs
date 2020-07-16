@@ -14,11 +14,19 @@ pub type AliasesEvent = StateEvent<AliasesEventContent>;
 
 /// The payload for `AliasesEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[non_exhaustive]
 #[ruma_event(type = "m.room.aliases")]
 #[ruma_event(custom_redacted)]
 pub struct AliasesEventContent {
     /// A list of room aliases.
     pub aliases: Vec<RoomAliasId>,
+}
+
+impl AliasesEventContent {
+    /// Create an `AliasesEventContent` from the given aliases.
+    pub fn new(aliases: Vec<RoomAliasId>) -> Self {
+        Self { aliases }
+    }
 }
 
 /// An aliases event that has been redacted.
