@@ -31,7 +31,7 @@ impl AliasesEventContent {
     /// Redact an `AliasesEventContent` according to current Matrix spec.
     pub fn redact(self, version: RoomVersionId) -> RedactedAliasesEventContent {
         // We compare the long way to avoid pre version 6 behavior if/when
-        // the room version is updated.
+        // a new room version is introduced.
         if version.is_version_1()
             || version.is_version_2()
             || version.is_version_3()
