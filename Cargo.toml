@@ -1,0 +1,15 @@
+[package]
+name = "state-res"
+version = "0.1.0"
+authors = ["Devin R <devin.ragotzy@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+petgraph = "0.5.1"
+serde = { version = "1.0.114", features = ["derive"] }
+serde_json = "1.0.56"
+
+[dependencies.ruma]
+git = "https://github.com/ruma/ruma"
+features = ["client-api", "federation-api", "appservice-api"]
