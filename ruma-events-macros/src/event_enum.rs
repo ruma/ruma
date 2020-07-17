@@ -129,6 +129,8 @@ fn expand_any_with_deser(
         }
     };
 
+    let redacted_enum = generate_redacted_enum(kind, var);
+
     let field_accessor_impl = accessor_methods(kind, var, &variants);
 
     let redact_impl = generate_redact(&ident, kind, var, &variants);
@@ -141,7 +143,64 @@ fn expand_any_with_deser(
         #redact_impl
 
         #event_deserialize_impl
+
+        #redacted_enum
     })
+}
+
+fn generate_redacted_enum(kind: &EventKind, var: &EventKindVariation) -> Option<TokenStream> {
+    if let EventKind::State(_) | EventKind::Message(_) = kind {
+        let ident = format_ident!("AnyPossiblyRedacted{}", kind.to_event_ident(var)?);
+
+        let (regular_enum_ident, redacted_enum_ident) = inner_enum_idents(kind, var)?;
+        Some(quote! {
+            /// An enum that holds either regular un-redacted events or redacted events.
+            #[derive(Clone, Debug, ::serde::Serialize)]
+            #[serde(untagged)]
+            pub enum #ident {
+                /// An un-redacted event.
+                Regular(#regular_enum_ident),
+                /// A redacted event.
+                Redacted(#redacted_enum_ident),
+            }
+
+            impl<'de> ::serde::de::Deserialize<'de> for #ident {
+                fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                where
+                    D: ::serde::de::Deserializer<'de>,
+                {
+                    let json = Box::<::serde_json::value::RawValue>::deserialize(deserializer)?;
+                    let ::ruma_events::EventDeHelper { unsigned, .. } = ::ruma_events::from_raw_json_value(&json)?;
+                    Ok(match unsigned {
+                        Some(unsigned) if unsigned.redacted_because.is_some() => {
+                            Self::Redacted(::ruma_events::from_raw_json_value(&json)?)
+                        }
+                        _ => Self::Regular(::ruma_events::from_raw_json_value(&json)?),
+                    })
+                }
+            }
+        })
+    } else {
+        None
+    }
+}
+
+fn inner_enum_idents(kind: &EventKind, var: &EventKindVariation) -> Option<(Ident, Ident)> {
+    match var {
+        EventKindVariation::Full => Some((
+            kind.to_event_enum_ident(var)?,
+            kind.to_event_enum_ident(&EventKindVariation::Redacted)?,
+        )),
+        EventKindVariation::Sync => Some((
+            kind.to_event_enum_ident(var)?,
+            kind.to_event_enum_ident(&EventKindVariation::RedactedSync)?,
+        )),
+        EventKindVariation::Stripped => Some((
+            kind.to_event_enum_ident(var)?,
+            kind.to_event_enum_ident(&EventKindVariation::RedactedStripped)?,
+        )),
+        _ => None,
+    }
 }
 
 fn generate_redact(
