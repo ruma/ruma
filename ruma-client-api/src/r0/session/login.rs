@@ -51,9 +51,9 @@ ruma_api! {
 
         /// ID of the logged-in device.
         ///
-        /// Will be the same as the corresponging parameter in the request, if one was
+        /// Will be the same as the corresponding parameter in the request, if one was
         /// specified.
-        pub device_id: String,
+        pub device_id: DeviceId,
 
         /// Client configuration provided by the server.
         ///
