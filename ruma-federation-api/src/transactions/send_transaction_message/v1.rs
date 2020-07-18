@@ -4,7 +4,7 @@ use std::{collections::BTreeMap, time::SystemTime};
 
 use ruma_api::ruma_api;
 use ruma_events::pdu::Pdu;
-use ruma_identifiers::EventId;
+use ruma_identifiers::{EventId, ServerName};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
@@ -24,7 +24,7 @@ ruma_api! {
         pub transaction_id: String,
 
         /// The server_name of the homeserver sending this transaction.
-        pub origin: String,
+        pub origin: Box<ServerName>,
 
         /// POSIX timestamp in milliseconds on the originating homeserver when this transaction started.
         #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]

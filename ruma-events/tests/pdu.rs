@@ -1,6 +1,6 @@
 use std::{
     collections::BTreeMap,
-    convert::TryFrom,
+    convert::{TryFrom, TryInto},
     time::{Duration, SystemTime},
 };
 
@@ -18,7 +18,7 @@ fn serialize_stub_as_v1() {
     let mut inner_signature = BTreeMap::new();
     inner_signature
         .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
-    signatures.insert("example.com".into(), inner_signature);
+    signatures.insert("example.com".try_into().unwrap(), inner_signature);
 
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".into(), json!({"a": 456}));
@@ -79,7 +79,7 @@ fn serialize_stub_as_v3() {
     let mut inner_signature = BTreeMap::new();
     inner_signature
         .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
-    signatures.insert("example.com".into(), inner_signature);
+    signatures.insert("example.com".try_into().unwrap(), inner_signature);
 
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".into(), json!({"a": 456}));
@@ -125,7 +125,7 @@ fn serialize_stub_as_v3() {
 }
 
 #[test]
-fn test_deserialize_stub_as_v1() {
+fn deserialize_stub_as_v1() {
     let json = json!({
         "auth_events": [
             [
@@ -236,7 +236,7 @@ fn serialize_pdu_as_v1() {
     let mut inner_signature = BTreeMap::new();
     inner_signature
         .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
-    signatures.insert("example.com".into(), inner_signature);
+    signatures.insert("example.com".try_into().unwrap(), inner_signature);
 
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".into(), json!({"a": 456}));
@@ -301,7 +301,7 @@ fn serialize_pdu_as_v3() {
     let mut inner_signature = BTreeMap::new();
     inner_signature
         .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
-    signatures.insert("example.com".into(), inner_signature);
+    signatures.insert("example.com".try_into().unwrap(), inner_signature);
 
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".into(), json!({"a": 456}));
@@ -463,7 +463,7 @@ fn convert_v1_stub_to_pdu() {
     let mut inner_signature = BTreeMap::new();
     inner_signature
         .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
-    signatures.insert("example.com".into(), inner_signature);
+    signatures.insert("example.com".try_into().unwrap(), inner_signature);
 
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".into(), json!({"a": 456}));
@@ -537,7 +537,8 @@ fn convert_v3_stub_to_pdu() {
     let mut inner_signature = BTreeMap::new();
     inner_signature
         .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
-    signatures.insert("example.com".into(), inner_signature);
+
+    signatures.insert("example.com".try_into().unwrap(), inner_signature);
 
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".into(), json!({"a": 456}));
