@@ -582,7 +582,11 @@ fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
             };
             quote! { ::ruma_events::room::redaction::#redaction }
         }
-        "ToDeviceEvent" | "SyncStateEvent" | "StrippedStateEvent" | "SyncMessageEvent" => {
+        "ToDeviceEvent"
+        | "SyncStateEvent"
+        | "StrippedStateEvent"
+        | "SyncMessageEvent"
+        | "SyncEphemeralRoomEvent" => {
             let content = format_ident!("{}EventContent", event);
             quote! { ::ruma_events::#struct_name<::ruma_events::#( #path )::*::#content> }
         }
