@@ -9,8 +9,11 @@ edition = "2018"
 petgraph = "0.5.1"
 serde = { version = "1.0.114", features = ["derive"] }
 serde_json = "1.0.56"
-maplit = "1.0.2"
+tracing = "0.1.16"
 
 [dependencies.ruma]
 git = "https://github.com/ruma/ruma"
 features = ["client-api", "federation-api", "appservice-api"]
+
+[dev-dependencies]
+maplit = "1.0.2"

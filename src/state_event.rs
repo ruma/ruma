@@ -1,7 +1,9 @@
 use ruma::{
     events::{
-        from_raw_json_value, room::member::MembershipState, AnyStateEvent, AnyStrippedStateEvent,
-        AnySyncStateEvent, EventDeHelper, EventType,
+        from_raw_json_value,
+        pdu::{Pdu, PduStub, RoomV1Pdu, RoomV1PduStub, RoomV3Pdu, RoomV3PduStub},
+        room::member::{MemberEventContent, MembershipState},
+        AnyStateEvent, AnyStrippedStateEvent, AnySyncStateEvent, EventDeHelper, EventType,
     },
     identifiers::{EventId, RoomId},
 };
@@ -12,71 +14,93 @@ use std::{convert::TryFrom, time::SystemTime};
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
 pub enum StateEvent {
-    Full(AnyStateEvent),
-    Sync(AnySyncStateEvent),
-    Stripped(AnyStrippedStateEvent),
+    Full(Pdu),
+    Sync(PduStub),
 }
 
 impl StateEvent {
     pub fn is_power_event(&self) -> bool {
         match self {
             Self::Full(any_event) => match any_event {
-                AnyStateEvent::RoomPowerLevels(event) => event.state_key == "",
-                AnyStateEvent::RoomJoinRules(event) => event.state_key == "",
-                AnyStateEvent::RoomCreate(event) => event.state_key == "",
-                AnyStateEvent::RoomMember(event) => {
-                    if [MembershipState::Leave, MembershipState::Ban]
-                        .contains(&event.content.membership)
-                    {
-                        return event.sender.as_str() != event.state_key;
+                Pdu::RoomV1Pdu(event) => match event.kind {
+                    EventType::RoomPowerLevels
+                    | EventType::RoomJoinRules
+                    | EventType::RoomCreate => event.state_key == Some("".into()),
+                    EventType::RoomMember => {
+                        if let Ok(content) =
+                            // TODO fix clone
+                            serde_json::from_value::<MemberEventContent>(event.content.clone())
+                        {
+                            if [MembershipState::Leave, MembershipState::Ban]
+                                .contains(&content.membership)
+                            {
+                                return event.sender.as_str()
+                                    // TODO does None here mean the same as state_key = ""
+                                    != event.state_key.as_deref().unwrap_or("");
+                            }
+                        }
+
+                        false
                     }
-                    false
-                }
-                _ => false,
+                    _ => false,
+                },
+                Pdu::RoomV3Pdu(event) => event.state_key == Some("".into()),
             },
             Self::Sync(any_event) => match any_event {
-                AnySyncStateEvent::RoomPowerLevels(event) => event.state_key == "",
-                AnySyncStateEvent::RoomJoinRules(event) => event.state_key == "",
-                AnySyncStateEvent::RoomCreate(event) => event.state_key == "",
-                AnySyncStateEvent::RoomMember(event) => {
-                    if [MembershipState::Leave, MembershipState::Ban]
-                        .contains(&event.content.membership)
-                    {
-                        return event.sender.as_str() != event.state_key;
+                PduStub::RoomV1PduStub(event) => match event.kind {
+                    EventType::RoomPowerLevels
+                    | EventType::RoomJoinRules
+                    | EventType::RoomCreate => event.state_key == Some("".into()),
+                    EventType::RoomMember => {
+                        if let Ok(content) =
+                            serde_json::from_value::<MemberEventContent>(event.content.clone())
+                        {
+                            if [MembershipState::Leave, MembershipState::Ban]
+                                .contains(&content.membership)
+                            {
+                                return event.sender.as_str()
+                                    // TODO does None here mean the same as state_key = ""
+                                    != event.state_key.as_deref().unwrap_or("");
+                            }
+                        }
+
+                        false
                     }
-                    false
-                }
-                _ => false,
+                    _ => false,
+                },
+                PduStub::RoomV3PduStub(event) => event.state_key == Some("".into()),
             },
-            Self::Stripped(any_event) => match any_event {
-                AnyStrippedStateEvent::RoomPowerLevels(event) => event.state_key == "",
-                AnyStrippedStateEvent::RoomJoinRules(event) => event.state_key == "",
-                AnyStrippedStateEvent::RoomCreate(event) => event.state_key == "",
-                AnyStrippedStateEvent::RoomMember(event) => {
-                    if [MembershipState::Leave, MembershipState::Ban]
-                        .contains(&event.content.membership)
-                    {
-                        return event.sender.as_str() != event.state_key;
-                    }
-                    false
-                }
-                _ => false,
-            },
-            _ => false,
         }
     }
-    pub fn origin_server_ts(&self) -> Option<&SystemTime> {
+    pub fn origin_server_ts(&self) -> &SystemTime {
         match self {
-            Self::Full(ev) => Some(ev.origin_server_ts()),
-            Self::Sync(ev) => Some(ev.origin_server_ts()),
-            Self::Stripped(ev) => None,
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => &ev.origin_server_ts,
+                Pdu::RoomV3Pdu(ev) => &ev.origin_server_ts,
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(ev) => &ev.origin_server_ts,
+                PduStub::RoomV3PduStub(ev) => &ev.origin_server_ts,
+            },
         }
     }
     pub fn event_id(&self) -> Option<&EventId> {
         match self {
-            Self::Full(ev) => Some(ev.event_id()),
-            Self::Sync(ev) => Some(ev.event_id()),
-            Self::Stripped(ev) => None,
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => Some(&ev.event_id),
+                Pdu::RoomV3Pdu(ev) => None,
+            },
+            Self::Sync(ev) => None,
+        }
+    }
+
+    pub fn room_id(&self) -> Option<&RoomId> {
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => Some(&ev.room_id),
+                Pdu::RoomV3Pdu(ev) => Some(&ev.room_id),
+            },
+            Self::Sync(ev) => None,
         }
     }
 
@@ -108,15 +132,13 @@ impl<'de> de::Deserialize<'de> for StateEvent {
                 }
                 _ => StateEvent::Full(from_raw_json_value(&json)?),
             })
-        } else if event_id.is_some() {
+        } else {
             Ok(match unsigned {
                 Some(unsigned) if unsigned.redacted_because.is_some() => {
                     panic!("TODO deal with redacted events")
                 }
                 _ => StateEvent::Sync(from_raw_json_value(&json)?),
             })
-        } else {
-            Ok(StateEvent::Stripped(from_raw_json_value(&json)?))
         }
     }
 }

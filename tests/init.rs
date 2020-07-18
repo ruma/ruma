@@ -186,7 +186,7 @@ fn it_works() {
     let mut resolver = StateResolution::default();
 
     let res = resolver
-        .resolve(&room_id, &room_version, vec![initial_state], &mut store)
+        .resolve(&room_id, &room_version, &[initial_state], &mut store)
         .unwrap();
     assert!(if let ResolutionResult::Resolved(_) = res {
         true
@@ -195,7 +195,7 @@ fn it_works() {
     });
 
     let resolved = resolver
-        .resolve(&room_id, &room_version, vec![state_to_resolve], &mut store)
+        .resolve(&room_id, &room_version, &[state_to_resolve], &mut store)
         .unwrap();
 
     assert!(resolver.conflicting_events.is_empty());

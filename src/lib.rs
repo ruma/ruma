@@ -57,28 +57,55 @@ impl StateResolution {
         &mut self,
         room_id: &RoomId,
         room_version: &RoomVersionId,
-        state_sets: Vec<StateMap<EventId>>,
+        state_sets: &[StateMap<EventId>],
         store: &dyn StateStore,
         // TODO actual error handling (`thiserror`??)
-    ) -> Result<ResolutionResult, serde_json::Error> {
+    ) -> Result<ResolutionResult, String> {
+        tracing::debug!("State resolution starting");
+
         let mut event_map = EventMap::new();
         // split non-conflicting and conflicting state
         let (clean, conflicting) = self.seperate(&state_sets);
 
         if conflicting.is_empty() {
-            return Ok(ResolutionResult::Resolved(
-                clean.into_iter().flat_map(|map| map.into_iter()).collect(),
-            ));
+            return Ok(ResolutionResult::Resolved(clean));
         }
+
+        tracing::debug!("computing {} conflicting events", conflicting.len());
 
         // the set of auth events that are not common across server forks
         let mut auth_diff = self.get_auth_chain_diff(&state_sets, &mut event_map, store)?;
 
         // add the auth_diff to conflicting now we have a full set of conflicting events
-        auth_diff.extend(conflicting.iter().flat_map(|map| map.values().cloned()));
+        auth_diff.extend(conflicting.values().cloned().flatten());
         let all_conflicted = auth_diff;
 
-        // TODO get events and add to event_map
+        tracing::debug!("full conflicted set is {} events", all_conflicted.len());
+
+        let events = store
+            .get_events(
+                &all_conflicted
+                    .iter()
+                    // we only want the events we don't know about yet
+                    .filter(|id| !event_map.contains_key(id))
+                    .cloned()
+                    .collect::<Vec<_>>(),
+            )
+            .unwrap();
+
+        for event in event_map.values() {
+            if event.room_id() != Some(room_id) {
+                return Err(format!(
+                    "resolving event {} in room {}, when correct room is {}",
+                    event
+                        .event_id()
+                        .map(|id| id.as_str())
+                        .unwrap_or("`unknown`"),
+                    event.room_id().map(|id| id.as_str()).unwrap_or("`unknown`"),
+                    room_id.as_str()
+                ));
+            }
+        }
         // TODO throw error if event is not for this room
         // TODO make sure each conflicting event is in?? event_map `{eid for eid in full_conflicted_set if eid in event_map}`
 
@@ -109,7 +136,6 @@ impl StateResolution {
 
         // At this point the power_events have been resolved we now have to
         // sort the remaining events using the mainline of the resolved power level.
-
         sorted_power_levels.dedup();
         let deduped_power_ev = sorted_power_levels;
 
@@ -128,13 +154,13 @@ impl StateResolution {
             room_id,
             room_version,
             &sorted_left_events,
-            &[resolved],
+            &resolved,
             &mut event_map,
             store,
         );
 
         // add unconflicted state to the resolved state
-        resolved_state.extend(clean.into_iter().flat_map(|map| map.into_iter()));
+        resolved_state.extend(clean);
 
         // TODO return something not a place holder
         Ok(ResolutionResult::Resolved(resolved_state))
@@ -146,8 +172,25 @@ impl StateResolution {
     fn seperate(
         &mut self,
         state_sets: &[StateMap<EventId>],
-    ) -> (Vec<StateMap<EventId>>, Vec<StateMap<EventId>>) {
-        panic!()
+    ) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
+        let mut unconflicted_state = StateMap::new();
+        let mut conflicted_state = StateMap::new();
+
+        for key in state_sets.iter().flat_map(|map| map.keys()) {
+            let mut event_ids = state_sets
+                .iter()
+                .flat_map(|map| map.get(key).cloned())
+                .collect::<Vec<EventId>>();
+
+            if event_ids.len() == 1 {
+                // unwrap is ok since we know the len is 1
+                unconflicted_state.insert(key.clone(), event_ids.pop().unwrap());
+            } else {
+                conflicted_state.insert(key.clone(), event_ids);
+            }
+        }
+
+        (unconflicted_state, conflicted_state)
     }
 
     /// Returns a Vec of deduped EventIds that appear in some chains but no others.
@@ -156,7 +199,8 @@ impl StateResolution {
         state_sets: &[StateMap<EventId>],
         event_map: &EventMap<StateEvent>,
         store: &dyn StateStore,
-    ) -> Result<Vec<EventId>, serde_json::Error> {
+    ) -> Result<Vec<EventId>, String> {
+        tracing::debug!("calculating auth chain difference");
         panic!()
     }
 
@@ -168,6 +212,7 @@ impl StateResolution {
         store: &dyn StateStore,
         conflicted_set: &[EventId],
     ) -> Vec<EventId> {
+        tracing::debug!("reverse topological sort of power events");
         panic!()
     }
 
@@ -176,10 +221,11 @@ impl StateResolution {
         room_id: &RoomId,
         room_version: &RoomVersionId,
         power_events: &[EventId],
-        unconflicted_state: &[StateMap<EventId>],
+        unconflicted_state: &StateMap<EventId>,
         event_map: &EventMap<StateEvent>,
         store: &dyn StateStore,
     ) -> StateMap<EventId> {
+        tracing::debug!("starting iter auth check");
         panic!()
     }
 
@@ -193,6 +239,7 @@ impl StateResolution {
         event_map: &EventMap<StateEvent>,
         store: &dyn StateStore,
     ) -> Vec<EventId> {
+        tracing::debug!("mainline sort of remaining events");
         // There can be no EventId's to sort, bail.
         if to_sort.is_empty() {
             return vec![];
