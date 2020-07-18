@@ -12,8 +12,14 @@ use ruma::{
 use crate::StateEvent;
 
 pub trait StateStore {
+    /// Return a single event based on the EventId.
+    fn get_event(&self, event_id: &EventId) -> Result<StateEvent, String>;
+
     /// Returns the events that correspond to the `event_ids` sorted in the same order.
-    fn get_events(&self, event_ids: &[EventId]) -> Result<Vec<StateEvent>, serde_json::Error>;
+    fn get_events(&self, event_ids: &[EventId]) -> Result<Vec<StateEvent>, String>;
+
+    /// Returns a Vec of the related auth events to the given `event`.
+    fn auth_event_ids(&self, room_id: &RoomId, event_id: &EventId) -> Result<Vec<EventId>, String>;
 
     /// Returns a tuple of requested state events from `event_id` and the auth chain events that
     /// relate to the.
@@ -22,5 +28,5 @@ pub trait StateStore {
         room_id: &RoomId,
         version: &RoomVersionId,
         event_id: &EventId,
-    ) -> Result<(Vec<StateEvent>, Vec<StateEvent>), serde_json::Error>;
+    ) -> Result<(Vec<StateEvent>, Vec<StateEvent>), String>;
 }

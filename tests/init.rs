@@ -1,5 +1,6 @@
-use std::convert::TryFrom;
+use std::{collections::BTreeMap, convert::TryFrom};
 
+use maplit::btreemap;
 use ruma::{
     events::{
         room::{self},
@@ -136,8 +137,22 @@ fn power_levels() -> JsonValue {
 pub struct TestStore;
 
 impl StateStore for TestStore {
-    fn get_events(&self, events: &[EventId]) -> Result<Vec<StateEvent>, serde_json::Error> {
-        Ok(vec![from_json_value(power_levels())?])
+    fn get_events(&self, events: &[EventId]) -> Result<Vec<StateEvent>, String> {
+        vec![room_create(), join_rules(), join_event(), power_levels()]
+            .into_iter()
+            .map(from_json_value)
+            .collect::<serde_json::Result<Vec<_>>>()
+            .map_err(|e| e.to_string())
+    }
+
+    fn get_event(&self, event_id: &EventId) -> Result<StateEvent, String> {
+        from_json_value(power_levels()).map_err(|e| e.to_string())
+    }
+
+    fn auth_event_ids(&self, room_id: &RoomId, event_id: &EventId) -> Result<Vec<EventId>, String> {
+        Ok(vec![
+            EventId::try_from("$aaa:example.org").map_err(|e| e.to_string())?
+        ])
     }
 
     fn get_remote_state_for_room(
@@ -145,10 +160,10 @@ impl StateStore for TestStore {
         room_id: &RoomId,
         version: &RoomVersionId,
         event_id: &EventId,
-    ) -> Result<(Vec<StateEvent>, Vec<StateEvent>), serde_json::Error> {
+    ) -> Result<(Vec<StateEvent>, Vec<StateEvent>), String> {
         Ok((
-            vec![from_json_value(federated_json())?],
-            vec![from_json_value(power_levels())?],
+            vec![from_json_value(federated_json()).map_err(|e| e.to_string())?],
+            vec![from_json_value(power_levels()).map_err(|e| e.to_string())?],
         ))
     }
 }
@@ -160,14 +175,18 @@ fn it_works() {
     let room_id = RoomId::try_from("!room_id:example.org").unwrap();
     let room_version = RoomVersionId::version_6();
 
-    let a = from_json_value::<StateEvent>(room_create()).unwrap();
-    let b = from_json_value::<StateEvent>(join_rules()).unwrap();
-    let c = from_json_value::<StateEvent>(join_event()).unwrap();
+    let initial_state = btreemap! {
+        (EventType::RoomCreate, "".into()) => EventId::try_from("").unwrap(),
+    };
+
+    let state_to_resolve = btreemap! {
+        (EventType::RoomCreate, "".into()) => EventId::try_from("").unwrap(),
+    };
 
     let mut resolver = StateResolution::default();
 
     let res = resolver
-        .resolve(&room_id, &room_version, vec![a.clone()], &mut store)
+        .resolve(&room_id, &room_version, vec![initial_state], &mut store)
         .unwrap();
     assert!(if let ResolutionResult::Resolved(_) = res {
         true
@@ -176,9 +195,10 @@ fn it_works() {
     });
 
     let resolved = resolver
-        .resolve(&room_id, &room_version, vec![b, c], &mut store)
+        .resolve(&room_id, &room_version, vec![state_to_resolve], &mut store)
         .unwrap();
 
     assert!(resolver.conflicting_events.is_empty());
+    assert_eq!(resolver.resolved_events.len(), 3);
     assert_eq!(resolver.resolved_events.len(), 3);
 }
