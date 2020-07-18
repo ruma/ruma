@@ -2,6 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
+use ruma_identifiers::ServerName;
 use serde::{Deserialize, Serialize};
 
 /// The desired resizing method.
@@ -39,7 +40,7 @@ ruma_api! {
 
         /// The server name from the mxc:// URI (the authoritory component).
         #[ruma_api(path)]
-        pub server_name: String,
+        pub server_name: Box<ServerName>,
 
         /// The *desired* height of the thumbnail. The actual thumbnail may not match the size
         /// specified.

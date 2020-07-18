@@ -1,7 +1,7 @@
 //! [POST /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-login)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{DeviceId, UserId};
+use ruma_identifiers::{DeviceId, ServerName, UserId};
 use serde::{Deserialize, Serialize};
 
 use crate::r0::thirdparty::Medium;
@@ -44,16 +44,16 @@ ruma_api! {
 
         /// The hostname of the homeserver on which the account has been registered.
         ///
-        /// Deprecated: Clients should extract the server_name from user_id (by splitting at the
-        /// first colon) if they require it.
+        /// Deprecated: Clients should instead use the `user_id.server_name()`
+        /// method if they require it.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub home_server: Option<String>,
+        pub home_server: Option<Box<ServerName>>,
 
         /// ID of the logged-in device.
         ///
         /// Will be the same as the corresponding parameter in the request, if one was
         /// specified.
-        pub device_id: DeviceId,
+        pub device_id: Box<DeviceId>,
 
         /// Client configuration provided by the server.
         ///

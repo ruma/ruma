@@ -66,8 +66,7 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::ServerKeyId;
-    use crate::error::Error;
+    use crate::{error::Error, ServerKeyId};
 
     #[cfg(feature = "serde")]
     use crate::key_algorithms::ServerKeyAlgorithm;

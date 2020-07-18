@@ -1,6 +1,7 @@
 //! [GET /_matrix/media/r0/download/{serverName}/{mediaId}/{fileName}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-media-r0-download-servername-mediaid-filename)
 
 use ruma_api::ruma_api;
+use ruma_identifiers::ServerName;
 
 ruma_api! {
     metadata: {
@@ -19,7 +20,7 @@ ruma_api! {
 
         /// The server name from the mxc:// URI (the authoritory component).
         #[ruma_api(path)]
-        pub server_name: String,
+        pub server_name: Box<ServerName>,
 
         /// The filename to return in the `Content-Disposition` header.
         #[ruma_api(path)]
