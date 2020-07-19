@@ -66,7 +66,7 @@ impl StateResolution {
 
         let mut event_map = EventMap::new();
         // split non-conflicting and conflicting state
-        let (clean, conflicting) = self.seperate(&state_sets);
+        let (clean, conflicting) = self.separate(&state_sets);
 
         if conflicting.is_empty() {
             return Ok(ResolutionResult::Resolved(clean));
@@ -115,7 +115,8 @@ impl StateResolution {
             }
         }
 
-        // TODO make sure each conflicting event is in?? event_map `{eid for eid in full_conflicted_set if eid in event_map}`
+        // TODO make sure each conflicting event is in event_map??
+        // synapse says `full_set = {eid for eid in full_conflicted_set if eid in event_map}`
         all_conflicted.retain(|id| event_map.contains_key(id));
 
         // get only the power events with a state_key: "" or ban/kick event (sender != state_key)
@@ -180,7 +181,7 @@ impl StateResolution {
     /// Split the events that have no conflicts from those that are conflicting.
     ///
     /// The tuple looks like `(unconflicted, conflicted)`.
-    fn seperate(
+    fn separate(
         &mut self,
         state_sets: &[StateMap<EventId>],
     ) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
@@ -259,13 +260,18 @@ impl StateResolution {
         }
 
         self.lexicographical_topological_sort(&mut graph, |event_id| {
-            let ev = event_map.get(event_id).cloned().unwrap();
+            let ev = event_map.get(event_id).unwrap();
             let pl = event_to_pl.get(event_id).unwrap();
-
+            // This return value is the key used for sorting events,
+            // events are then sorted by power level, time,
+            // and lexically by event_id.
             (*pl, ev.origin_server_ts().clone(), ev.event_id().cloned())
         })
     }
 
+    /// Sorts the event graph based on number of outgoing/incoming edges, where
+    /// `key_fn` is used as a tie breaker. The tie breaker happens based on
+    /// power level, age, and event_id.
     fn lexicographical_topological_sort<F>(
         &mut self,
         graph: &BTreeMap<EventId, Vec<EventId>>,
@@ -274,13 +280,16 @@ impl StateResolution {
     where
         F: Fn(&EventId) -> (i64, SystemTime, Option<EventId>),
     {
-        // Note, this is basically Kahn's algorithm except we look at nodes with no
+        // NOTE: an event that has no incoming edges happened most recently,
+        // and an event that has no outgoing edges happened least recently.
+
+        // NOTE: this is basically Kahn's algorithm except we look at nodes with no
         // outgoing edges, c.f.
         // https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm
         let outdegree_map = graph;
         let mut reverse_graph = BTreeMap::new();
 
-        // Vec of nodes that have zero out degree.
+        // Vec of nodes that have zero out degree, least recent events.
         let mut zero_outdegree = vec![];
 
         for (node, edges) in graph.iter() {
@@ -296,6 +305,8 @@ impl StateResolution {
 
         let mut heap = BinaryHeap::from(zero_outdegree);
 
+        // we remove the oldest node (most incoming edges) and check against all other
+        //
         while let Some((_, node)) = heap.pop() {
             for parent in reverse_graph.get(node).unwrap() {
                 let out = outdegree_map.get(parent).unwrap();
@@ -305,14 +316,20 @@ impl StateResolution {
             }
         }
 
-        heap.into_iter().map(|(_, id)| id).cloned().collect()
+        // rust BinaryHeap does not iter in order so we gotta do it the long way
+        let mut sorted = vec![];
+        while let Some((_, id)) = heap.pop() {
+            sorted.push(id.clone())
+        }
+
+        sorted
     }
 
     fn get_power_level_for_sender(
         &self,
         room_id: &RoomId,
         event_id: &EventId,
-        event_map: &EventMap<StateEvent>,
+        _event_map: &EventMap<StateEvent>, // TODO use event_map over store ??
         store: &dyn StateStore,
     ) -> i64 {
         let mut pl = None;
@@ -363,7 +380,7 @@ impl StateResolution {
         room_version: &RoomVersionId,
         power_events: &[EventId],
         unconflicted_state: &StateMap<EventId>,
-        event_map: &EventMap<StateEvent>,
+        _event_map: &EventMap<StateEvent>, // TODO use event_map over store ??
         store: &dyn StateStore,
     ) -> Result<StateMap<EventId>, String> {
         tracing::debug!("starting iter auth check");
@@ -542,11 +559,6 @@ impl StateResolution {
 pub fn is_power_event(event_id: &EventId, store: &dyn StateStore) -> bool {
     match store.get_event(event_id) {
         Ok(state) => state.is_power_event(),
-        _ => false, // TODO this shouldn't eat errors
+        _ => false, // TODO this shouldn't eat errors?
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
 }
