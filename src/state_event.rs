@@ -1,15 +1,15 @@
 use ruma::{
     events::{
         from_raw_json_value,
-        pdu::{Pdu, PduStub, RoomV1Pdu, RoomV1PduStub, RoomV3Pdu, RoomV3PduStub},
+        pdu::{Pdu, PduStub},
         room::member::{MemberEventContent, MembershipState},
-        AnyStateEvent, AnyStrippedStateEvent, AnySyncStateEvent, EventDeHelper, EventType,
+        EventDeHelper, EventType,
     },
-    identifiers::{EventId, RoomId},
+    identifiers::{EventId, RoomId, UserId},
 };
 use serde::{de, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
-use std::{convert::TryFrom, time::SystemTime};
+use std::time::SystemTime;
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
@@ -72,6 +72,20 @@ impl StateEvent {
             },
         }
     }
+    pub fn deserialize_content<C: serde::de::DeserializeOwned>(
+        &self,
+    ) -> Result<C, serde_json::Error> {
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => serde_json::from_value(ev.content.clone()),
+                Pdu::RoomV3Pdu(ev) => serde_json::from_value(ev.content.clone()),
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(ev) => serde_json::from_value(ev.content.clone()),
+                PduStub::RoomV3PduStub(ev) => serde_json::from_value(ev.content.clone()),
+            },
+        }
+    }
     pub fn origin_server_ts(&self) -> &SystemTime {
         match self {
             Self::Full(ev) => match ev {
@@ -88,9 +102,35 @@ impl StateEvent {
         match self {
             Self::Full(ev) => match ev {
                 Pdu::RoomV1Pdu(ev) => Some(&ev.event_id),
-                Pdu::RoomV3Pdu(ev) => None,
+                Pdu::RoomV3Pdu(_) => None,
             },
-            Self::Sync(ev) => None,
+            Self::Sync(_) => None,
+        }
+    }
+
+    pub fn sender(&self) -> &UserId {
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => &ev.sender,
+                Pdu::RoomV3Pdu(ev) => &ev.sender,
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(ev) => &ev.sender,
+                PduStub::RoomV3PduStub(ev) => &ev.sender,
+            },
+        }
+    }
+
+    pub fn redacts(&self) -> Option<&EventId> {
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => ev.redacts.as_ref(),
+                Pdu::RoomV3Pdu(ev) => ev.redacts.as_ref(),
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(ev) => ev.redacts.as_ref(),
+                PduStub::RoomV3PduStub(ev) => ev.redacts.as_ref(),
+            },
         }
     }
 
@@ -100,12 +140,81 @@ impl StateEvent {
                 Pdu::RoomV1Pdu(ev) => Some(&ev.room_id),
                 Pdu::RoomV3Pdu(ev) => Some(&ev.room_id),
             },
-            Self::Sync(ev) => None,
+            Self::Sync(_) => None,
+        }
+    }
+    pub fn kind(&self) -> EventType {
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => ev.kind.clone(),
+                Pdu::RoomV3Pdu(ev) => ev.kind.clone(),
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(ev) => ev.kind.clone(),
+                PduStub::RoomV3PduStub(ev) => ev.kind.clone(),
+            },
+        }
+    }
+    pub fn state_key(&self) -> Option<String> {
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => ev.state_key.clone(),
+                Pdu::RoomV3Pdu(ev) => ev.state_key.clone(),
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(ev) => ev.state_key.clone(),
+                PduStub::RoomV3PduStub(ev) => ev.state_key.clone(),
+            },
+        }
+    }
+
+    pub fn prev_event_ids(&self) -> Vec<EventId> {
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => ev.prev_events.iter().map(|(id, _)| id).cloned().collect(),
+                Pdu::RoomV3Pdu(ev) => ev.prev_events.clone(),
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(ev) => {
+                    ev.prev_events.iter().map(|(id, _)| id).cloned().collect()
+                }
+                PduStub::RoomV3PduStub(ev) => ev.prev_events.clone(),
+            },
+        }
+    }
+
+    pub fn content(&self) -> serde_json::Value {
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => ev.content.clone(),
+                Pdu::RoomV3Pdu(ev) => ev.content.clone(),
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(ev) => ev.content.clone(),
+                PduStub::RoomV3PduStub(ev) => ev.content.clone(),
+            },
         }
     }
 
     pub fn is_type_and_key(&self, ev_type: EventType, state_key: &str) -> bool {
-        true
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => {
+                    ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
+                }
+                Pdu::RoomV3Pdu(ev) => {
+                    ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
+                }
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(ev) => {
+                    ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
+                }
+                PduStub::RoomV3PduStub(ev) => {
+                    ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
+                }
+            },
+        }
     }
 }
 
@@ -116,14 +225,10 @@ impl<'de> de::Deserialize<'de> for StateEvent {
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
         let EventDeHelper {
-            state_key,
-            event_id,
-            room_id,
-            unsigned,
-            ..
+            room_id, unsigned, ..
         } = from_raw_json_value(&json)?;
 
-        // Determine whether the event is a full, sync, or stripped
+        // Determine whether the event is a full or sync
         // based on the fields present.
         if room_id.is_some() {
             Ok(match unsigned {

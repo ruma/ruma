@@ -1,13 +1,4 @@
-use std::{collections::BTreeMap, time::SystemTime};
-
-use petgraph::Graph;
-use ruma::{
-    events::{
-        room::{self},
-        AnyStateEvent, AnyStrippedStateEvent, AnySyncStateEvent, EventType,
-    },
-    identifiers::{EventId, RoomId, RoomVersionId},
-};
+use ruma::identifiers::{EventId, RoomId, RoomVersionId};
 
 use crate::StateEvent;
 
@@ -20,6 +11,9 @@ pub trait StateStore {
 
     /// Returns a Vec of the related auth events to the given `event`.
     fn auth_event_ids(&self, room_id: &RoomId, event_id: &EventId) -> Result<Vec<EventId>, String>;
+
+    /// Returns a Vec<EventId> representing the difference in auth chains of the given `events`.
+    fn auth_chain_diff(&self, event_id: &[&EventId]) -> Result<Vec<EventId>, String>;
 
     /// Returns a tuple of requested state events from `event_id` and the auth chain events that
     /// relate to the.

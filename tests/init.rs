@@ -155,6 +155,10 @@ impl StateStore for TestStore {
         ])
     }
 
+    fn auth_chain_diff(&self, event_id: &[&EventId]) -> Result<Vec<EventId>, String> {
+        Ok(vec![])
+    }
+
     fn get_remote_state_for_room(
         &self,
         room_id: &RoomId,
@@ -176,11 +180,11 @@ fn it_works() {
     let room_version = RoomVersionId::version_6();
 
     let initial_state = btreemap! {
-        (EventType::RoomCreate, "".into()) => EventId::try_from("").unwrap(),
+        (EventType::RoomCreate, "".into()) => EventId::try_from("$aaa:example.org").unwrap(),
     };
 
     let state_to_resolve = btreemap! {
-        (EventType::RoomCreate, "".into()) => EventId::try_from("").unwrap(),
+        (EventType::RoomCreate, "".into()) => EventId::try_from("$bbb:example.org").unwrap(),
     };
 
     let mut resolver = StateResolution::default();
