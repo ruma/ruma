@@ -39,6 +39,18 @@ pub struct Ruleset {
     pub underride: Vec<ConditionalPushRule>,
 }
 
+/// An enum that represents a push rule of any shape
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum AnyPushRule {
+    /// A rule with no pattern or conditions
+    Normal(PushRule),
+    /// A rule with a pattern
+    Patterned(PatternedPushRule),
+    /// A rule with conditions
+    Conditional(ConditionalPushRule),
+}
+
 /// A push rule is a single rule that states under what conditions an event should be passed onto a
 /// push gateway and how the notification should be presented.
 ///
