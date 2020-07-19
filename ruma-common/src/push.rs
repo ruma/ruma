@@ -265,7 +265,7 @@ mod tests {
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{Action, PushCondition, RoomMemberCountIs, Tweak};
+    use super::{Action, AnyPushRule, PushCondition, PushRule, RoomMemberCountIs, Tweak};
 
     #[test]
     fn serialize_string_action() {
@@ -430,5 +430,55 @@ mod tests {
                 key
             } if key == "room"
         );
+    }
+
+    #[test]
+    fn deserialize_normal_any_push_rule() {
+        let json_data = json!({
+            "actions": [],
+            "default": false,
+            "enabled": true,
+            "rule_id": ".test.rule"
+        });
+        assert_matches!(
+            from_json_value::<AnyPushRule>(json_data).unwrap(),
+            AnyPushRule::Normal(PushRule {
+                actions,
+                default: false,
+                enabled: true,
+                rule_id,
+            }) if actions.is_empty() && rule_id == ".test.rule".to_string()
+        );
+    }
+
+    #[test]
+    fn deserialize_invalid_any_push_rule() {
+        // Taken from https://matrix.org/docs/spec/client_server/latest#m-rule-member-event
+        // but with added "pattern".
+        // Should be invalid because "pattern" and "conditions" shouldn't occur at the same time.
+        let json_data = json!({
+            "rule_id": ".m.rule.member_event",
+            "default": true,
+            "enabled": true,
+            "conditions": [
+                {
+                    "key": "type",
+                    "kind": "event_match",
+                    "pattern": "m.room.member"
+                }
+            ],
+            "actions": [
+                "dont_notify"
+            ],
+            "pattern": "m.room.member"
+        });
+        let result = from_json_value::<AnyPushRule>(json_data);
+        assert_matches!(result, Err(_));
+        if let Err(err) = result {
+            assert_eq!(
+                err.to_string(),
+                "data did not match any variant of untagged enum AnyPushRule"
+            );
+        }
     }
 }
