@@ -57,6 +57,7 @@ pub enum AnyPushRule {
 /// These rules are stored on the user's homeserver. They are manually configured by the user, who
 /// can create and view them via the Client/Server API.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct PushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -75,6 +76,7 @@ pub struct PushRule {
 ///
 /// Only applicable to underride and override rules.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct ConditionalPushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -98,6 +100,7 @@ pub struct ConditionalPushRule {
 ///
 /// Only applicable to content rules.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct PatternedPushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
