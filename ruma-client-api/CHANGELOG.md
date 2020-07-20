@@ -39,6 +39,7 @@ Improvements:
 * Add a constructor for request structs of the followign endpoints
   * `r0::room::create_room`
   * `r0::message::get_message_events`
+* Add `logout_devices` field to `r0::account::change_password`
 
 Deprecations:
 
@@ -160,7 +161,6 @@ Improvements:
 * Add request and response parameters for `r0::account::deactivate`
 * Add `r0::session::sso_login` (introduced in r0.5.0)
 * Add `filter` type for `r0::context::get_context`
-* Add `logout_devices` field to `r0::account::change_password`
 
 # 0.6.0
 
