@@ -450,7 +450,7 @@ mod tests {
                 default: false,
                 enabled: true,
                 rule_id,
-            }) if actions.is_empty() && rule_id == ".test.rule".to_string()
+            }) if actions.is_empty() && rule_id == *".test.rule"
         );
     }
 
