@@ -2,7 +2,10 @@
 //!
 //! [push]: https://matrix.org/docs/spec/client_server/r0.6.1#id89
 
-use std::fmt::{self, Formatter};
+use std::{
+    convert::TryFrom,
+    fmt::{self, Formatter},
+};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::value::RawValue as RawJsonValue;
@@ -126,6 +129,80 @@ pub struct AnyPushRule {
     /// The glob-style pattern to match against. Only applicable to content rules.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pattern: Option<String>,
+}
+
+impl From<PushRule> for AnyPushRule {
+    fn from(push_rule: PushRule) -> Self {
+        let PushRule { actions, default, enabled, rule_id } = push_rule;
+        AnyPushRule { actions, default, enabled, rule_id, pattern: None, conditions: None }
+    }
+}
+
+impl From<PatternedPushRule> for AnyPushRule {
+    fn from(push_rule: PatternedPushRule) -> Self {
+        let PatternedPushRule { actions, default, enabled, rule_id, pattern } = push_rule;
+        AnyPushRule { actions, default, enabled, rule_id, pattern: Some(pattern), conditions: None }
+    }
+}
+
+impl From<ConditionalPushRule> for AnyPushRule {
+    fn from(push_rule: ConditionalPushRule) -> Self {
+        let ConditionalPushRule { actions, default, enabled, rule_id, conditions } = push_rule;
+        AnyPushRule {
+            actions,
+            default,
+            enabled,
+            rule_id,
+            pattern: None,
+            conditions: Some(conditions),
+        }
+    }
+}
+
+impl From<AnyPushRule> for PushRule {
+    fn from(push_rule: AnyPushRule) -> Self {
+        let AnyPushRule { actions, default, enabled, rule_id, .. } = push_rule;
+        PushRule { actions, default, enabled, rule_id }
+    }
+}
+
+/// An error that happens when `AnyPushRule` cannot be converted
+/// into a more specific push rule type.
+#[derive(Debug)]
+pub struct AnyPushRuleConversionError;
+
+impl TryFrom<AnyPushRule> for PatternedPushRule {
+    type Error = AnyPushRuleConversionError;
+
+    fn try_from(push_rule: AnyPushRule) -> Result<Self, Self::Error> {
+        if let AnyPushRule { actions, default, enabled, rule_id, pattern: Some(pattern), .. } =
+            push_rule
+        {
+            Ok(PatternedPushRule { actions, default, enabled, rule_id, pattern })
+        } else {
+            Err(AnyPushRuleConversionError)
+        }
+    }
+}
+
+impl TryFrom<AnyPushRule> for ConditionalPushRule {
+    type Error = AnyPushRuleConversionError;
+
+    fn try_from(push_rule: AnyPushRule) -> Result<Self, Self::Error> {
+        if let AnyPushRule {
+            actions,
+            default,
+            enabled,
+            rule_id,
+            conditions: Some(conditions),
+            ..
+        } = push_rule
+        {
+            Ok(ConditionalPushRule { actions, default, enabled, rule_id, conditions })
+        } else {
+            Err(AnyPushRuleConversionError)
+        }
+    }
 }
 
 /// This represents the different actions that should be taken when a rule is matched, and
