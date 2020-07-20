@@ -160,6 +160,7 @@ Improvements:
 * Add request and response parameters for `r0::account::deactivate`
 * Add `r0::session::sso_login` (introduced in r0.5.0)
 * Add `filter` type for `r0::context::get_context`
+* Add `logout_devices` field to `r0::account::change_password`
 
 # 0.6.0
 
