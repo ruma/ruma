@@ -103,6 +103,31 @@ pub struct PatternedPushRule {
     pub pattern: String,
 }
 
+/// A push rule
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AnyPushRule {
+    /// The actions to perform when this rule is matched.
+    pub actions: Vec<Action>,
+
+    /// Whether this is a default rule, or has been set explicitly.
+    pub default: bool,
+
+    /// Whether the push rule is enabled or not.
+    pub enabled: bool,
+
+    /// The ID of this rule.
+    pub rule_id: String,
+
+    /// The conditions that must hold true for an event in order for a rule to be applied to an event. A rule with no conditions always matches.
+    /// Only applicable to underride and override rules.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub conditions: Option<Vec<PushCondition>>,
+
+    /// The glob-style pattern to match against. Only applicable to content rules.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pattern: Option<String>,
+}
+
 /// This represents the different actions that should be taken when a rule is matched, and
 /// controls how notifications are delivered to the client.
 ///
