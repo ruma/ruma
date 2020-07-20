@@ -13,13 +13,12 @@ pub struct DeviceKeyId {
 impl DeviceKeyId {
     /// Returns key algorithm of the device key ID.
     pub fn algorithm(&self) -> DeviceKeyAlgorithm {
-        DeviceKeyAlgorithm::from_str(&self.full_id.as_ref()[..self.colon_idx.get() as usize])
-            .unwrap()
+        DeviceKeyAlgorithm::from_str(&self.full_id[..self.colon_idx.get() as usize]).unwrap()
     }
 
     /// Returns device ID of the device key ID.
     pub fn device_id(&self) -> &DeviceId {
-        &self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]
+        &self.full_id[self.colon_idx.get() as usize + 1..]
     }
 }
 

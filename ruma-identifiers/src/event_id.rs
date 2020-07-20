@@ -78,9 +78,8 @@ impl EventId {
     ///
     /// Only applicable to events in the original format as used by Matrix room versions 1 and 2.
     pub fn server_name(&self) -> Option<&ServerName> {
-        self.colon_idx.map(|idx| {
-            <&ServerName>::try_from(&self.full_id.as_ref()[idx.get() as usize + 1..]).unwrap()
-        })
+        self.colon_idx
+            .map(|idx| <&ServerName>::try_from(&self.full_id[idx.get() as usize + 1..]).unwrap())
     }
 }
 

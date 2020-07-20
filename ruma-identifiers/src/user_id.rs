@@ -79,8 +79,7 @@ impl UserId {
 
     /// Returns the server name of the user ID.
     pub fn server_name(&self) -> &ServerName {
-        <&ServerName>::try_from(&self.full_id.as_ref()[self.colon_idx.get() as usize + 1..])
-            .unwrap()
+        <&ServerName>::try_from(&self.full_id[self.colon_idx.get() as usize + 1..]).unwrap()
     }
 
     /// Whether this user ID is a historical one, i.e. one that doesn't conform to the latest
@@ -98,8 +97,10 @@ fn try_from<S>(user_id: S) -> Result<UserId, Error>
 where
     S: AsRef<str> + Into<Box<str>>,
 {
-    let colon_idx = parse_id(user_id.as_ref(), &['@'])?;
-    let localpart = &user_id.as_ref()[1..colon_idx.get() as usize];
+    let user_id_str = user_id.as_ref();
+
+    let colon_idx = parse_id(user_id_str, &['@'])?;
+    let localpart = &user_id_str[1..colon_idx.get() as usize];
 
     let is_historical = localpart_is_fully_comforming(localpart)?;
 

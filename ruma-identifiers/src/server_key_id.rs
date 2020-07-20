@@ -14,13 +14,12 @@ pub struct ServerKeyId {
 impl ServerKeyId {
     /// Returns key algorithm of the server key ID.
     pub fn algorithm(&self) -> ServerKeyAlgorithm {
-        ServerKeyAlgorithm::from_str(&self.full_id.as_ref()[..self.colon_idx.get() as usize])
-            .unwrap()
+        ServerKeyAlgorithm::from_str(&self.full_id[..self.colon_idx.get() as usize]).unwrap()
     }
 
     /// Returns the version of the server key ID.
     pub fn version(&self) -> &str {
-        &self.full_id.as_ref()[self.colon_idx.get() as usize + 1..]
+        &self.full_id[self.colon_idx.get() as usize + 1..]
     }
 }
 
