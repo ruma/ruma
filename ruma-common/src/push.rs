@@ -106,7 +106,8 @@ pub struct PatternedPushRule {
     pub pattern: String,
 }
 
-/// A push rule
+/// Like `PushRule`, but may represent any kind of push rule
+/// thanks to `pattern` and `conditions` being optional.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AnyPushRule {
     /// The actions to perform when this rule is matched.
