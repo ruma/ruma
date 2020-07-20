@@ -39,6 +39,7 @@ Improvements:
 * Add a constructor for request structs of the followign endpoints
   * `r0::room::create_room`
   * `r0::message::get_message_events`
+* Add `logout_devices` field to `r0::account::change_password`
 
 Deprecations:
 
