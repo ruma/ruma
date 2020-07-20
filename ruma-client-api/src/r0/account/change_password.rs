@@ -18,6 +18,9 @@ ruma_api! {
         /// The new password for the account.
         pub new_password: String,
 
+        /// Whether the user's other access tokens, and their associated devices, should be revoked if the request succeeds.
+        pub logout_devices: Option<bool>,
+
         /// Additional authentication information for the user-interactive authentication API.
         pub auth: Option<AuthData>,
     }
