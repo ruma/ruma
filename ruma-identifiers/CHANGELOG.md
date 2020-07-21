@@ -35,6 +35,8 @@ Breaking changes:
 * Change `DeviceId` from being an alias for `String` to being an alias for `str`
   * This means any string slice or string literal is a valid `&DeviceId` now
   * But to store one, you need to box it: `Box<DeviceId>`
+* Change `RoomVersionId` from being an opaque struct to a non-exhaustive enum
+  * The constructor functions and `is_` predicates are now deprecated
 
 Deprecations:
 

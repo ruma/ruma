@@ -84,7 +84,7 @@ mod tests {
         let content = CreateEventContent {
             creator: UserId::try_from("@carl:example.com").unwrap(),
             federate: false,
-            room_version: RoomVersionId::version_4(),
+            room_version: RoomVersionId::Version4,
             predecessor: None,
         };
 
@@ -113,10 +113,9 @@ mod tests {
             CreateEventContent {
                 creator,
                 federate: true,
-                room_version,
+                room_version: RoomVersionId::Version4,
                 predecessor: None,
             } if creator == "@carl:example.com"
-                && room_version == RoomVersionId::version_4()
         );
     }
 }

@@ -32,16 +32,16 @@ impl AliasesEventContent {
     pub fn redact(self, version: RoomVersionId) -> RedactedAliasesEventContent {
         // We compare the long way to avoid pre version 6 behavior if/when
         // a new room version is introduced.
-        if version.is_version_1()
-            || version.is_version_2()
-            || version.is_version_3()
-            || version.is_version_4()
-            || version.is_version_5()
-        {
-            RedactedAliasesEventContent { aliases: Some(self.aliases) }
-        } else {
-            RedactedAliasesEventContent { aliases: None }
-        }
+        let aliases = match version {
+            RoomVersionId::Version1
+            | RoomVersionId::Version2
+            | RoomVersionId::Version3
+            | RoomVersionId::Version4
+            | RoomVersionId::Version5 => Some(self.aliases),
+            _ => None,
+        };
+
+        RedactedAliasesEventContent { aliases }
     }
 }
 

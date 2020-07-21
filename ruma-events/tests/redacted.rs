@@ -323,7 +323,7 @@ fn redact_method_properly_redacts() {
     let event = from_json_value::<Raw<AnyMessageEvent>>(ev).unwrap().deserialize().unwrap();
 
     assert_matches!(
-        event.redact(redaction, RoomVersionId::version_6()),
+        event.redact(redaction, RoomVersionId::Version6),
         AnyRedactedMessageEvent::RoomMessage(RedactedMessageEvent {
             content: RedactedMessageEventContent,
             event_id,

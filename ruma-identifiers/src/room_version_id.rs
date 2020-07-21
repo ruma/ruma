@@ -26,12 +26,8 @@ const MAX_CODE_POINTS: usize = 32;
 /// assert_eq!(RoomVersionId::try_from("1").unwrap().as_ref(), "1");
 /// ```
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct RoomVersionId(InnerRoomVersionId);
-
-/// Possibile values for room version, distinguishing between official Matrix versions and custom
-/// versions.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-enum InnerRoomVersionId {
+#[non_exhaustive]
+pub enum RoomVersionId {
     /// A version 1 room.
     Version1,
 
@@ -51,38 +47,44 @@ enum InnerRoomVersionId {
     Version6,
 
     /// A custom room version.
-    Custom(Box<str>),
+    Custom(CustomRoomVersion),
 }
 
 impl RoomVersionId {
     /// Creates a version 1 room ID.
+    #[deprecated = "use RoomVersionId::Version1 instead"]
     pub fn version_1() -> Self {
-        Self(InnerRoomVersionId::Version1)
+        Self::Version1
     }
 
     /// Creates a version 2 room ID.
+    #[deprecated = "use RoomVersionId::Version2 instead"]
     pub fn version_2() -> Self {
-        Self(InnerRoomVersionId::Version2)
+        Self::Version2
     }
 
     /// Creates a version 3 room ID.
+    #[deprecated = "use RoomVersionId::Version3 instead"]
     pub fn version_3() -> Self {
-        Self(InnerRoomVersionId::Version3)
+        Self::Version3
     }
 
     /// Creates a version 4 room ID.
+    #[deprecated = "use RoomVersionId::Version4 instead"]
     pub fn version_4() -> Self {
-        Self(InnerRoomVersionId::Version4)
+        Self::Version4
     }
 
     /// Creates a version 5 room ID.
+    #[deprecated = "use RoomVersionId::Version5 instead"]
     pub fn version_5() -> Self {
-        Self(InnerRoomVersionId::Version5)
+        Self::Version5
     }
 
     /// Creates a version 6 room ID.
+    #[deprecated = "use RoomVersionId::Version6 instead"]
     pub fn version_6() -> Self {
-        Self(InnerRoomVersionId::Version6)
+        Self::Version6
     }
 
     /// Whether or not this room version is an official one specified by the Matrix protocol.
@@ -92,64 +94,70 @@ impl RoomVersionId {
 
     /// Whether or not this is a custom room version.
     pub fn is_custom(&self) -> bool {
-        matches!(self.0, InnerRoomVersionId::Custom(_))
+        matches!(self, Self::Custom(_))
     }
 
     /// Whether or not this is a version 1 room.
+    #[deprecated = "compare to RoomVersionId::Version1 instead"]
     pub fn is_version_1(&self) -> bool {
-        self.0 == InnerRoomVersionId::Version1
+        matches!(self, Self::Version1)
     }
 
     /// Whether or not this is a version 2 room.
+    #[deprecated = "compare to RoomVersionId::Version2 instead"]
     pub fn is_version_2(&self) -> bool {
-        self.0 == InnerRoomVersionId::Version2
+        matches!(self, Self::Version2)
     }
 
     /// Whether or not this is a version 3 room.
+    #[deprecated = "compare to RoomVersionId::Version3 instead"]
     pub fn is_version_3(&self) -> bool {
-        self.0 == InnerRoomVersionId::Version3
+        matches!(self, Self::Version3)
     }
 
     /// Whether or not this is a version 4 room.
+    #[deprecated = "compare to RoomVersionId::Version4 instead"]
     pub fn is_version_4(&self) -> bool {
-        self.0 == InnerRoomVersionId::Version4
+        matches!(self, Self::Version4)
     }
 
     /// Whether or not this is a version 5 room.
+    #[deprecated = "compare to RoomVersionId::Version5 instead"]
     pub fn is_version_5(&self) -> bool {
-        self.0 == InnerRoomVersionId::Version5
+        matches!(self, Self::Version5)
     }
 
     /// Whether or not this is a version 6 room.
+    #[deprecated = "compare to RoomVersionId::Version6 instead"]
     pub fn is_version_6(&self) -> bool {
-        self.0 == InnerRoomVersionId::Version5
+        matches!(self, Self::Version5)
     }
 }
 
 impl From<RoomVersionId> for String {
     fn from(id: RoomVersionId) -> Self {
-        match id.0 {
-            InnerRoomVersionId::Version1 => "1".to_owned(),
-            InnerRoomVersionId::Version2 => "2".to_owned(),
-            InnerRoomVersionId::Version3 => "3".to_owned(),
-            InnerRoomVersionId::Version4 => "4".to_owned(),
-            InnerRoomVersionId::Version5 => "5".to_owned(),
-            InnerRoomVersionId::Version6 => "6".to_owned(),
-            InnerRoomVersionId::Custom(version) => version.into(),
+        match id {
+            RoomVersionId::Version1 => "1".to_owned(),
+            RoomVersionId::Version2 => "2".to_owned(),
+            RoomVersionId::Version3 => "3".to_owned(),
+            RoomVersionId::Version4 => "4".to_owned(),
+            RoomVersionId::Version5 => "5".to_owned(),
+            RoomVersionId::Version6 => "6".to_owned(),
+            RoomVersionId::Custom(version) => version.into(),
         }
     }
 }
 
 impl AsRef<str> for RoomVersionId {
     fn as_ref(&self) -> &str {
-        match &self.0 {
-            InnerRoomVersionId::Version1 => "1",
-            InnerRoomVersionId::Version2 => "2",
-            InnerRoomVersionId::Version3 => "3",
-            InnerRoomVersionId::Version4 => "4",
-            InnerRoomVersionId::Version5 => "5",
-            InnerRoomVersionId::Version6 => "6",
-            InnerRoomVersionId::Custom(version) => version,
+        match &self {
+            Self::Version1 => "1",
+            Self::Version2 => "2",
+            Self::Version3 => "3",
+            Self::Version4 => "4",
+            Self::Version5 => "5",
+            Self::Version6 => "6",
+            Self::Custom(version) => version.as_ref(),
         }
     }
 }
@@ -208,18 +216,18 @@ where
     S: AsRef<str> + Into<Box<str>>,
 {
     let version = match room_version_id.as_ref() {
-        "1" => RoomVersionId(InnerRoomVersionId::Version1),
-        "2" => RoomVersionId(InnerRoomVersionId::Version2),
-        "3" => RoomVersionId(InnerRoomVersionId::Version3),
-        "4" => RoomVersionId(InnerRoomVersionId::Version4),
-        "5" => RoomVersionId(InnerRoomVersionId::Version5),
+        "1" => RoomVersionId::Version1,
+        "2" => RoomVersionId::Version2,
+        "3" => RoomVersionId::Version3,
+        "4" => RoomVersionId::Version4,
+        "5" => RoomVersionId::Version5,
         custom => {
             if custom.is_empty() {
                 return Err(Error::MinimumLengthNotSatisfied);
             } else if custom.chars().count() > MAX_CODE_POINTS {
                 return Err(Error::MaximumLengthExceeded);
             } else {
-                RoomVersionId(InnerRoomVersionId::Custom(room_version_id.into()))
+                RoomVersionId::Custom(CustomRoomVersion(room_version_id.into()))
             }
         }
     };
@@ -267,10 +275,26 @@ impl PartialEq<RoomVersionId> for String {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct CustomRoomVersion(Box<str>);
+
+impl From<CustomRoomVersion> for String {
+    fn from(v: CustomRoomVersion) -> Self {
+        v.0.into()
+    }
+}
+
+impl AsRef<str> for CustomRoomVersion {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::convert::TryFrom;
 
+    use matches::assert_matches;
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
@@ -354,7 +378,7 @@ mod tests {
         let deserialized =
             from_str::<RoomVersionId>(r#""1""#).expect("Failed to convert RoomVersionId to JSON.");
 
-        assert!(deserialized.is_version_1());
+        assert_matches!(deserialized, RoomVersionId::Version1);
         assert!(deserialized.is_official());
 
         assert_eq!(
@@ -390,6 +414,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn constructors() {
         assert!(RoomVersionId::version_1().is_version_1());
         assert!(RoomVersionId::version_2().is_version_2());
@@ -399,7 +424,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity)]
+    #[allow(deprecated, clippy::cognitive_complexity)]
     fn predicate_methods() {
         let version_1 = RoomVersionId::try_from("1").expect("Failed to create RoomVersionId.");
         let version_2 = RoomVersionId::try_from("2").expect("Failed to create RoomVersionId.");
