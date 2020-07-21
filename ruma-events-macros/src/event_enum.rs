@@ -125,6 +125,8 @@ fn expand_any_with_deser(
         }
     };
 
+    let event_enum_to_from_sync = expand_conversion_impl(kind, var, &variants);
+
     let redacted_enum = expand_redacted_enum(kind, var);
 
     let field_accessor_impl = accessor_methods(kind, var, &variants);
@@ -134,6 +136,8 @@ fn expand_any_with_deser(
     Some(quote! {
         #any_enum
 
+        #event_enum_to_from_sync
+
         #field_accessor_impl
 
         #redact_impl
@@ -142,6 +146,89 @@ fn expand_any_with_deser(
 
         #redacted_enum
     })
+}
+
+fn expand_conversion_impl(
+    kind: &EventKind,
+    var: &EventKindVariation,
+    variants: &[Ident],
+) -> Option<TokenStream> {
+    let ident = kind.to_event_enum_ident(var)?;
+    let struct_ident = kind.to_event_ident(var)?;
+
+    match var {
+        EventKindVariation::Full | EventKindVariation::Redacted => {
+            let variation = if var == &EventKindVariation::Full {
+                EventKindVariation::Sync
+            } else {
+                EventKindVariation::RedactedSync
+            };
+            let sync = kind.to_event_enum_ident(&variation)?;
+            let sync_struct = kind.to_event_ident(&variation)?;
+            let _fields = EVENT_FIELDS
+                .iter()
+                .map(|(name, _)| generate_conversion_fields(name, kind, &variation))
+                .collect::<Vec<_>>();
+
+            let init_fields = quote! {
+                content: event.content,
+                #( #_fields ),*
+            };
+
+            Some(quote! {
+                impl From<#ident> for #sync {
+                    fn from(event: #ident) -> Self {
+                        match event {
+                            #(
+                                #ident::#variants(event) => {
+                                    Self::#variants( ::ruma_events::#sync_struct { #init_fields })
+                                }
+                            )*
+                            #ident::Custom(event) => {
+                                Self::Custom( ::ruma_events::#sync_struct { #init_fields })
+                            }
+                        }
+                    }
+                }
+            })
+        }
+        EventKindVariation::Sync | EventKindVariation::RedactedSync => {
+            let variation = if var == &EventKindVariation::Sync {
+                EventKindVariation::Full
+            } else {
+                EventKindVariation::Redacted
+            };
+            let full = kind.to_event_enum_ident(&variation)?;
+            let full_struct = kind.to_event_ident(&variation)?;
+            let _fields = EVENT_FIELDS
+                .iter()
+                .map(|(name, _)| generate_conversion_fields(name, kind, &variation))
+                .collect::<Vec<_>>();
+
+            let init_fields = quote! {
+                content: event.content,
+                #( #_fields ),*
+            };
+
+            Some(quote! {
+                impl #ident {
+                    pub fn into_full_event(self, room_id: ::ruma_identifiers::RoomId) -> #full {
+                        match self {
+                            #(
+                                Self::#variants(event) => {
+                                    #full::#variants( ::ruma_events::#full_struct { #init_fields })
+                                }
+                            )*
+                            Self::Custom(event) => {
+                                #full::Custom( ::ruma_events::#full_struct { #init_fields })
+                            }
+                        }
+                    }
+                }
+            })
+        }
+        _ => None,
+    }
 }
 
 /// Generates the 3 redacted state enums, 2 redacted message enums,
@@ -359,6 +446,59 @@ fn expand_redacted_enum(kind: &EventKind, var: &EventKindVariation) -> Option<To
 
 fn generate_event_idents(kind: &EventKind, var: &EventKindVariation) -> Option<(Ident, Ident)> {
     Some((kind.to_event_ident(var)?, kind.to_event_enum_ident(var)?))
+}
+
+fn generate_conversion_fields(
+    name: &str,
+    kind: &EventKind,
+    var: &EventKindVariation,
+) -> TokenStream {
+    let ident = Ident::new(name, Span::call_site());
+    match (kind, var) {
+        (EventKind::Ephemeral(_), EventKindVariation::Full) => match name {
+            "room_id" => quote! { #ident: #ident, },
+            _ => TokenStream::new(),
+        },
+        (EventKind::Message(_), EventKindVariation::Full)
+        | (EventKind::Message(_), EventKindVariation::Redacted) => match name {
+            "event_id" | "sender" | "origin_server_ts" | "unsigned" => {
+                quote! { #ident: event.#ident }
+            }
+            "room_id" => quote! { #ident: #ident, },
+            _ => TokenStream::new(),
+        },
+        (EventKind::Message(_), EventKindVariation::Sync)
+        | (EventKind::Message(_), EventKindVariation::RedactedSync) => match name {
+            "event_id" | "sender" | "origin_server_ts" | "unsigned" => {
+                quote! { #ident: event.#ident }
+            }
+            _ => TokenStream::new(),
+        },
+        (EventKind::State(_), EventKindVariation::Full) => match name {
+            "event_id" | "sender" | "origin_server_ts" | "state_key" | "prev_content"
+            | "unsigned" => quote! { #ident: event.#ident },
+            "room_id" => quote! { #ident: #ident, },
+            _ => TokenStream::new(),
+        },
+        (EventKind::State(_), EventKindVariation::Redacted) => match name {
+            "event_id" | "sender" | "origin_server_ts" | "state_key" | "unsigned" => {
+                quote! { #ident: event.#ident }
+            }
+            "room_id" => quote! { #ident: #ident, },
+            _ => TokenStream::new(),
+        },
+        (EventKind::State(_), EventKindVariation::Sync) => match name {
+            "event_id" | "sender" | "origin_server_ts" | "state_key" | "prev_content"
+            | "unsigned" => quote! { #ident: event.#ident },
+            _ => TokenStream::new(),
+        },
+        (EventKind::State(_), EventKindVariation::RedactedSync) => match name {
+            "event_id" | "sender" | "origin_server_ts" | "state_key" | "prev_content"
+            | "unsigned" => quote! { #ident: event.#ident },
+            _ => TokenStream::new(),
+        },
+        _ => TokenStream::new(),
+    }
 }
 
 fn generate_redacted_fields(
