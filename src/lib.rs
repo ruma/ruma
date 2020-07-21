@@ -81,7 +81,13 @@ impl StateResolution {
         let mut auth_diff =
             self.get_auth_chain_diff(room_id, &state_sets, &mut event_map, store)?;
 
-        println!("{:?}", auth_diff);
+        println!(
+            "AUTH DIFF {:?}",
+            auth_diff
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+        );
 
         // add the auth_diff to conflicting now we have a full set of conflicting events
         auth_diff.extend(conflicting.values().cloned().flatten());
@@ -191,6 +197,8 @@ impl StateResolution {
         &mut self,
         state_sets: &[StateMap<EventId>],
     ) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
+        use itertools::Itertools;
+
         let mut unconflicted_state = StateMap::new();
         let mut conflicted_state = StateMap::new();
 
@@ -198,6 +206,7 @@ impl StateResolution {
             let mut event_ids = state_sets
                 .iter()
                 .flat_map(|map| map.get(key).cloned())
+                .dedup()
                 .collect::<Vec<EventId>>();
 
             if event_ids.len() == 1 {
@@ -221,12 +230,22 @@ impl StateResolution {
     ) -> Result<Vec<EventId>, String> {
         use itertools::Itertools;
 
+        println!(
+            "{:?}",
+            state_sets
+                .iter()
+                .flat_map(|map| map.values())
+                .map(ToString::to_string)
+                .dedup()
+                .collect::<Vec<_>>()
+        );
+
         tracing::debug!("calculating auth chain difference");
         store.auth_chain_diff(
             room_id,
-            &state_sets
+            state_sets
                 .iter()
-                .flat_map(|map| map.values())
+                .map(|map| map.values().cloned().collect())
                 .dedup()
                 .collect::<Vec<_>>(),
         )

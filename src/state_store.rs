@@ -20,6 +20,6 @@ pub trait StateStore {
     fn auth_chain_diff(
         &self,
         room_id: &RoomId,
-        event_id: &[&EventId],
+        event_id: Vec<Vec<EventId>>,
     ) -> Result<Vec<EventId>, String>;
 }

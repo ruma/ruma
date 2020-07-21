@@ -1,6 +1,7 @@
 #![allow(unused)]
 
 use std::{
+    cell::RefCell,
     collections::{BTreeMap, BTreeSet},
     convert::TryFrom,
     time::{Duration, SystemTime, UNIX_EPOCH},
@@ -28,20 +29,20 @@ fn id(id: &str) -> EventId {
 }
 
 fn alice() -> UserId {
-    UserId::try_from("@alice:example.com").unwrap()
+    UserId::try_from("@alice:foo").unwrap()
 }
 fn bobo() -> UserId {
-    UserId::try_from("@bobo:example.com").unwrap()
+    UserId::try_from("@bobo:foo").unwrap()
 }
 fn devin() -> UserId {
-    UserId::try_from("@devin:example.com").unwrap()
+    UserId::try_from("@devin:foo").unwrap()
 }
 fn zera() -> UserId {
-    UserId::try_from("@zera:example.com").unwrap()
+    UserId::try_from("@zera:foo").unwrap()
 }
 
 fn room_id() -> RoomId {
-    RoomId::try_from("!test:example.com").unwrap()
+    RoomId::try_from("!test:foo").unwrap()
 }
 
 fn member_content_ban() -> JsonValue {
@@ -297,26 +298,41 @@ impl StateStore for TestStore {
     fn auth_chain_diff(
         &self,
         room_id: &RoomId,
-        event_ids: &[&EventId],
+        event_ids: Vec<Vec<EventId>>,
     ) -> Result<Vec<EventId>, String> {
-        let mut chains = BTreeSet::new();
-        let mut list = vec![];
-        for id in event_ids {
+        use itertools::Itertools;
+
+        println!(
+            "EVENTS FOR AUTH {:?}",
+            event_ids
+                .iter()
+                .map(|v| v.iter().map(ToString::to_string).collect::<Vec<_>>())
+                .collect::<Vec<_>>()
+        );
+
+        let mut chains = vec![];
+        for ids in event_ids {
             let chain = self
-                .auth_event_ids(room_id, &[(*id).clone()])?
+                .auth_event_ids(room_id, &ids)?
                 .into_iter()
                 .collect::<BTreeSet<_>>();
-            list.push(chain.clone());
-            chains.insert(chain);
+            chains.push(chain);
         }
-        if let Some(chain) = list.first() {
-            let set = maplit::btreeset!(chain.clone());
-            let common = set.intersection(&chains).flatten().collect::<Vec<_>>();
+
+        if let Some(chain) = chains.first() {
+            let rest = chains.iter().skip(1).flatten().cloned().collect();
+            let common = chain.intersection(&rest).collect::<Vec<_>>();
+            println!(
+                "COMMON {:?}",
+                common.iter().map(ToString::to_string).collect::<Vec<_>>()
+            );
             Ok(chains
                 .iter()
                 .flatten()
-                .filter(|id| common.contains(&id))
+                .filter(|id| !common.contains(&id))
                 .cloned()
+                .collect::<BTreeSet<_>>()
+                .into_iter()
                 .collect())
         } else {
             Ok(vec![])
@@ -325,6 +341,8 @@ impl StateStore for TestStore {
 }
 
 fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids: Vec<EventId>) {
+    use itertools::Itertools;
+
     let mut resolver = StateResolution::default();
     // TODO what do we fill this with, everything ??
     let store = TestStore(
@@ -340,10 +358,17 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
     // this is the same as in `resolve` event_id -> StateEvent
     let mut fake_event_map = BTreeMap::new();
 
+    // create the DB of events that led up to this point
     // TODO maybe clean up some of these clones it is just tests but...
     for ev in INITIAL_EVENTS().values().chain(events) {
         graph.insert(ev.event_id().unwrap().clone(), vec![]);
         fake_event_map.insert(ev.event_id().unwrap().clone(), ev.clone());
+    }
+
+    for pair in INITIAL_EDGES().windows(2) {
+        if let &[a, b] = &pair {
+            graph.entry(a.clone()).or_insert(vec![]).push(b.clone());
+        }
     }
 
     for edge_list in edges {
@@ -392,8 +417,12 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
             //         .collect::<Vec<_>>()
             // );
 
-            let resolved =
-                resolver.resolve(&room_id(), &RoomVersionId::version_1(), &state_sets, &store);
+            let resolved = resolver.resolve(
+                &room_id(),
+                &RoomVersionId::version_1(),
+                &state_sets,
+                &TestStore(event_map.clone()),
+            );
             match resolved {
                 Ok(ResolutionResult::Resolved(state)) => state,
                 _ => panic!("resolution for {} failed", node),
@@ -428,6 +457,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         // TODO The event is just remade, adding the auth_events and prev_events here
         // UPDATE: the `to_pdu_event` was split into `init` and the fn below, could be better
         let e = fake_event;
+        let ev_id = e.event_id().unwrap();
         let event = to_pdu_event(
             &e.event_id().unwrap().to_string(),
             e.sender().clone(),
@@ -437,6 +467,9 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
             &auth_events,
             prev_events,
         );
+        // we have to update our store, an actual user of this lib would do this
+        // with the result of the resolution>
+        // *store.0.borrow_mut().get_mut(ev_id).unwrap() = event.clone();
 
         state_at_event.insert(node, state_after);
         event_map.insert(event_id.clone(), event);
@@ -462,13 +495,18 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         .get(&EventId::try_from("$START:foo").unwrap())
         .unwrap();
 
-    println!("{:?}", start_state);
-
     let end_state = state_at_event
         .get(&EventId::try_from("$END:foo").unwrap())
         .unwrap()
         .iter()
-        .filter(|(k, v)| expected_state.contains_key(k) || start_state.get(k) != Some(*v))
+        .filter(|(k, v)| {
+            println!(
+                "{:?} == {:?}",
+                start_state.get(k).map(ToString::to_string),
+                Some(v.to_string())
+            );
+            expected_state.contains_key(k) || start_state.get(k) != Some(*v)
+        })
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect::<StateMap<EventId>>();
 
