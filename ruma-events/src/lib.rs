@@ -291,6 +291,8 @@ impl RedactedSyncUnsigned {
 }
 
 impl RedactedSyncUnsigned {
+    /// Convert a `RedactedSyncUnsigned` into `RedactedUnsigned`, converting the
+    /// underlying sync redaction event to a full redaction event (with room_id).
     pub fn into_full_event(self, room_id: RoomId) -> RedactedUnsigned {
         if let Some(why) = self.redacted_because {
             let SyncRedactionEvent {
