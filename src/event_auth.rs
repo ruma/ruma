@@ -20,7 +20,7 @@ pub enum RedactAllowed {
     No,
 }
 
-pub(crate) fn auth_types_for_event(event: &StateEvent) -> Vec<(EventType, String)> {
+pub fn auth_types_for_event(event: &StateEvent) -> Vec<(EventType, String)> {
     if event.kind() == EventType::RoomCreate {
         return vec![];
     }
@@ -50,7 +50,7 @@ pub(crate) fn auth_types_for_event(event: &StateEvent) -> Vec<(EventType, String
     auth_types
 }
 
-pub(crate) fn auth_check(
+pub fn auth_check(
     room_version: &RoomVersionId,
     event: &StateEvent,
     auth_events: StateMap<StateEvent>,

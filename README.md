@@ -26,16 +26,7 @@ trait StateStore {
     fn get_events(&self, event_ids: &[EventId]) -> Result<Vec<StateEvent>, String>;
 
     /// Returns a Vec of the related auth events to the given `event`.
-    fn auth_event_ids(&self, room_id: &RoomId, event_id: &EventId) -> Result<Vec<EventId>, String>;
-
-    /// Returns a tuple of requested state events from `event_id` and the auth chain events that
-    /// they relate to the.
-    fn get_remote_state_for_room(
-        &self,
-        room_id: &RoomId,
-        version: &RoomVersionId,
-        event_id: &EventId,
-    ) -> Result<(Vec<StateEvent>, Vec<StateEvent>), String>;
+    fn auth_event_ids(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<Vec<EventId>, String>;
 
 }
 

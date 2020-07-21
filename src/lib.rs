@@ -1,8 +1,10 @@
 use std::{
-    collections::{BTreeMap, BinaryHeap},
+    cmp::Reverse,
+    collections::{BTreeMap, BTreeSet, BinaryHeap},
     time::SystemTime,
 };
 
+use maplit::btreeset;
 use ruma::{
     events::EventType,
     identifiers::{EventId, RoomId, RoomVersionId},
@@ -14,6 +16,7 @@ mod room_version;
 mod state_event;
 mod state_store;
 
+pub use event_auth::{auth_check, auth_types_for_event};
 pub use state_event::StateEvent;
 pub use state_store::StateStore;
 
@@ -75,7 +78,10 @@ impl StateResolution {
         tracing::debug!("computing {} conflicting events", conflicting.len());
 
         // the set of auth events that are not common across server forks
-        let mut auth_diff = self.get_auth_chain_diff(&state_sets, &mut event_map, store)?;
+        let mut auth_diff =
+            self.get_auth_chain_diff(room_id, &state_sets, &mut event_map, store)?;
+
+        println!("{:?}", auth_diff);
 
         // add the auth_diff to conflicting now we have a full set of conflicting events
         auth_diff.extend(conflicting.values().cloned().flatten());
@@ -181,7 +187,7 @@ impl StateResolution {
     /// Split the events that have no conflicts from those that are conflicting.
     ///
     /// The tuple looks like `(unconflicted, conflicted)`.
-    fn separate(
+    pub fn separate(
         &mut self,
         state_sets: &[StateMap<EventId>],
     ) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
@@ -206,8 +212,9 @@ impl StateResolution {
     }
 
     /// Returns a Vec of deduped EventIds that appear in some chains but no others.
-    fn get_auth_chain_diff(
+    pub fn get_auth_chain_diff(
         &mut self,
+        room_id: &RoomId,
         state_sets: &[StateMap<EventId>],
         _event_map: &EventMap<StateEvent>,
         store: &dyn StateStore,
@@ -216,6 +223,7 @@ impl StateResolution {
 
         tracing::debug!("calculating auth chain difference");
         store.auth_chain_diff(
+            room_id,
             &state_sets
                 .iter()
                 .flat_map(|map| map.values())
@@ -224,7 +232,7 @@ impl StateResolution {
         )
     }
 
-    fn reverse_topological_power_sort(
+    pub fn reverse_topological_power_sort(
         &mut self,
         room_id: &RoomId,
         power_events: &[EventId],
@@ -272,7 +280,7 @@ impl StateResolution {
     /// Sorts the event graph based on number of outgoing/incoming edges, where
     /// `key_fn` is used as a tie breaker. The tie breaker happens based on
     /// power level, age, and event_id.
-    fn lexicographical_topological_sort<F>(
+    pub fn lexicographical_topological_sort<F>(
         &mut self,
         graph: &BTreeMap<EventId, Vec<EventId>>,
         key_fn: F,
@@ -286,7 +294,12 @@ impl StateResolution {
         // NOTE: this is basically Kahn's algorithm except we look at nodes with no
         // outgoing edges, c.f.
         // https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm
-        let outdegree_map = graph;
+
+        // TODO make the BTreeSet conversion cleaner ??
+        let mut outdegree_map: BTreeMap<EventId, BTreeSet<EventId>> = graph
+            .into_iter()
+            .map(|(k, v)| (k.clone(), v.into_iter().cloned().collect()))
+            .collect();
         let mut reverse_graph = BTreeMap::new();
 
         // Vec of nodes that have zero out degree, least recent events.
@@ -294,34 +307,46 @@ impl StateResolution {
 
         for (node, edges) in graph.iter() {
             if edges.is_empty() {
-                zero_outdegree.push((key_fn(node), node));
+                // the `Reverse` is because rusts bin heap sorts largest -> smallest we need
+                // smallest -> largest
+                zero_outdegree.push(Reverse((key_fn(node), node)));
             }
 
-            reverse_graph.insert(node, vec![]);
+            reverse_graph.entry(node).or_insert(btreeset![]);
             for edge in edges {
-                reverse_graph.entry(edge).or_insert(vec![]).push(node);
+                reverse_graph
+                    .entry(edge)
+                    .or_insert(btreeset![])
+                    .insert(node);
             }
         }
 
         let mut heap = BinaryHeap::from(zero_outdegree);
 
         // we remove the oldest node (most incoming edges) and check against all other
-        //
-        while let Some((_, node)) = heap.pop() {
+        let mut sorted = vec![];
+        // match out the `Reverse` and take the smallest `node` each time
+        while let Some(Reverse((_, node))) = heap.pop() {
+            let node: &EventId = node;
             for parent in reverse_graph.get(node).unwrap() {
-                let out = outdegree_map.get(parent).unwrap();
-                if out.iter().filter(|id| *id == node).count() == 0 {
-                    heap.push((key_fn(parent), parent));
+                // the number of outgoing edges this node has
+                let out = outdegree_map.get_mut(parent).unwrap();
+
+                // only push on the heap once older events have been cleared
+                out.remove(node);
+                if out.is_empty() {
+                    heap.push(Reverse((key_fn(parent), parent)));
                 }
             }
+
+            // synapse yields we push then return the vec
+            sorted.push(node.clone());
         }
 
-        // rust BinaryHeap does not iter in order so we gotta do it the long way
-        let mut sorted = vec![];
-        while let Some((_, id)) = heap.pop() {
-            sorted.push(id.clone())
-        }
-
+        // println!(
+        //     "{:#?}",
+        //     sorted.iter().map(ToString::to_string).collect::<Vec<_>>()
+        // );
         sorted
     }
 
@@ -333,7 +358,7 @@ impl StateResolution {
         store: &dyn StateStore,
     ) -> i64 {
         let mut pl = None;
-        for aid in store.auth_event_ids(room_id, event_id).unwrap() {
+        for aid in store.auth_event_ids(room_id, &[event_id.clone()]).unwrap() {
             if let Ok(aev) = store.get_event(&aid) {
                 if aev.is_type_and_key(EventType::RoomPowerLevels, "") {
                     pl = Some(aev);
@@ -343,7 +368,7 @@ impl StateResolution {
         }
 
         if pl.is_none() {
-            for aid in store.auth_event_ids(room_id, event_id).unwrap() {
+            for aid in store.auth_event_ids(room_id, &[event_id.clone()]).unwrap() {
                 if let Ok(aev) = store.get_event(&aid) {
                     if aev.is_type_and_key(EventType::RoomCreate, "") {
                         if let Ok(content) = aev
@@ -384,12 +409,14 @@ impl StateResolution {
         store: &dyn StateStore,
     ) -> Result<StateMap<EventId>, String> {
         tracing::debug!("starting iter auth check");
+
         let resolved_state = unconflicted_state.clone();
+
         for (idx, event_id) in power_events.iter().enumerate() {
             let event = store.get_event(event_id).unwrap();
 
             let mut auth_events = BTreeMap::new();
-            for aid in store.auth_event_ids(room_id, event_id).unwrap() {
+            for aid in store.auth_event_ids(room_id, &[event_id.clone()]).unwrap() {
                 if let Ok(ev) = store.get_event(&aid) {
                     // TODO is None the same as "" for state_key, pretty sure it is NOT
                     auth_events.insert((ev.kind(), ev.state_key().unwrap_or_default()), ev);
@@ -408,7 +435,11 @@ impl StateResolution {
                 }
             }
 
-            if !event_auth::auth_check(room_version, &event, auth_events).ok_or("".to_string())? {}
+            if !event_auth::auth_check(room_version, &event, auth_events)
+                .ok_or("Auth check failed due to deserialization most likely".to_string())?
+            {
+                // TODO synapse passes here on AuthError ??
+            }
 
             // We yield occasionally when we're working with large data sets to
             // ensure that we don't block the reactor loop for too long.
@@ -441,7 +472,7 @@ impl StateResolution {
         while let Some(p) = pl {
             mainline.push(p.clone());
             // We don't need the actual pl_ev here since we delegate to the store
-            let auth_events = store.auth_event_ids(room_id, &p).unwrap();
+            let auth_events = store.auth_event_ids(room_id, &[p]).unwrap();
             pl = None;
             for aid in auth_events {
                 let ev = store.get_event(&aid).unwrap();
@@ -490,6 +521,7 @@ impl StateResolution {
         }
 
         // sort the event_ids by their depth, timestamp and EventId
+        // unwrap is OK order map and sort_event_ids are from to_sort (the same Vec)
         sort_event_ids.sort_by_key(|sort_id| order_map.get(sort_id).unwrap());
 
         sort_event_ids
@@ -510,7 +542,7 @@ impl StateResolution {
             }
 
             let auth_events = if let Some(id) = sort_ev.event_id() {
-                store.auth_event_ids(room_id, id).unwrap()
+                store.auth_event_ids(room_id, &[id.clone()]).unwrap()
             } else {
                 vec![]
             };
@@ -542,7 +574,7 @@ impl StateResolution {
             let eid = state.pop().unwrap();
             graph.insert(eid.clone(), vec![]);
 
-            for aid in store.auth_event_ids(room_id, &eid).unwrap() {
+            for aid in store.auth_event_ids(room_id, &[eid.clone()]).unwrap() {
                 if auth_diff.contains(&aid) {
                     if !graph.contains_key(&aid) {
                         state.push(aid.clone());
