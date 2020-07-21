@@ -62,12 +62,18 @@ impl StateResolution {
         room_id: &RoomId,
         room_version: &RoomVersionId,
         state_sets: &[StateMap<EventId>],
+        // TODO remove or make this mut so we aren't cloning the whole thing
+        event_map: Option<EventMap<StateEvent>>,
         store: &dyn StateStore,
         // TODO actual error handling (`thiserror`??)
     ) -> Result<ResolutionResult, String> {
         tracing::debug!("State resolution starting");
 
-        let mut event_map = EventMap::new();
+        let mut event_map = if let Some(ev_map) = event_map {
+            ev_map
+        } else {
+            EventMap::new()
+        };
         // split non-conflicting and conflicting state
         let (clean, conflicting) = self.separate(&state_sets);
 
@@ -78,20 +84,23 @@ impl StateResolution {
         tracing::debug!("computing {} conflicting events", conflicting.len());
 
         // the set of auth events that are not common across server forks
-        let mut auth_diff =
-            self.get_auth_chain_diff(room_id, &state_sets, &mut event_map, store)?;
+        let mut auth_diff = self.get_auth_chain_diff(room_id, &state_sets, &event_map, store)?;
+
+        // add the auth_diff to conflicting now we have a full set of conflicting events
+        auth_diff.extend(conflicting.values().cloned().flatten());
+        let mut all_conflicted = auth_diff
+            .into_iter()
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
 
         println!(
-            "AUTH DIFF {:?}",
-            auth_diff
+            "FULL CONF {:?}",
+            all_conflicted
                 .iter()
                 .map(ToString::to_string)
                 .collect::<Vec<_>>()
         );
-
-        // add the auth_diff to conflicting now we have a full set of conflicting events
-        auth_diff.extend(conflicting.values().cloned().flatten());
-        let mut all_conflicted = auth_diff;
 
         tracing::debug!("full conflicted set is {} events", all_conflicted.len());
 
@@ -106,6 +115,7 @@ impl StateResolution {
                     .collect::<Vec<_>>(),
             )
             .unwrap();
+
         // update event_map to include the fetched events
         event_map.extend(
             events
@@ -137,6 +147,13 @@ impl StateResolution {
             .filter(|id| is_power_event(id, store))
             .cloned()
             .collect::<Vec<_>>();
+        println!(
+            "POWER {:?}",
+            power_events
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+        );
 
         // sort the power events based on power_level/clock/event_id and outgoing/incoming edges
         let mut sorted_power_levels = self.reverse_topological_power_sort(
@@ -145,6 +162,14 @@ impl StateResolution {
             &mut event_map,
             store,
             &all_conflicted,
+        );
+
+        println!(
+            "SRTD {:?}",
+            sorted_power_levels
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
         );
 
         // sequentially auth check each event.
@@ -157,6 +182,8 @@ impl StateResolution {
             store,
         )?;
 
+        println!("AUTHED {:?}", resolved.iter().collect::<Vec<_>>());
+
         // At this point the power_events have been resolved we now have to
         // sort the remaining events using the mainline of the resolved power level.
         sorted_power_levels.dedup();
@@ -165,14 +192,32 @@ impl StateResolution {
         // we have resolved the power events so remove them, I'm sure theres other reasons to do so
         let events_to_resolve = all_conflicted
             .iter()
-            .filter(|id| deduped_power_ev.contains(id))
+            .filter(|id| !deduped_power_ev.contains(id))
             .cloned()
             .collect::<Vec<_>>();
 
+        println!(
+            "LEFT {:?}",
+            events_to_resolve
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+        );
+
         let power_event = resolved.get(&(EventType::RoomPowerLevels, "".into()));
+
+        println!("PL {:?}", power_event);
 
         let sorted_left_events =
             self.mainline_sort(room_id, &events_to_resolve, power_event, &event_map, store);
+
+        println!(
+            "SORTED LEFT {:?}",
+            events_to_resolve
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+        );
 
         let mut resolved_state = self.iterative_auth_check(
             room_id,
@@ -276,6 +321,7 @@ impl StateResolution {
         let mut event_to_pl = BTreeMap::new();
         for (idx, event_id) in graph.keys().enumerate() {
             let pl = self.get_power_level_for_sender(room_id, &event_id, event_map, store);
+            println!("{}", pl);
 
             event_to_pl.insert(event_id.clone(), pl);
 
@@ -287,6 +333,7 @@ impl StateResolution {
         }
 
         self.lexicographical_topological_sort(&mut graph, |event_id| {
+            println!("{:?}", event_map.get(event_id).unwrap().origin_server_ts());
             let ev = event_map.get(event_id).unwrap();
             let pl = event_to_pl.get(event_id).unwrap();
             // This return value is the key used for sorting events,
@@ -510,6 +557,7 @@ impl StateResolution {
 
         let mainline_map = mainline
             .iter()
+            .rev()
             .enumerate()
             .map(|(idx, eid)| ((*eid).clone(), idx))
             .collect::<BTreeMap<_, _>>();
@@ -553,6 +601,7 @@ impl StateResolution {
         mainline_map: &EventMap<usize>,
         store: &dyn StateStore,
     ) -> usize {
+        let mut count = 0;
         while let Some(sort_ev) = event {
             if let Some(id) = sort_ev.event_id() {
                 if let Some(depth) = mainline_map.get(id) {
@@ -565,6 +614,18 @@ impl StateResolution {
             } else {
                 vec![]
             };
+            if count < 15 {
+                println!(
+                    "{:?}",
+                    auth_events
+                        .iter()
+                        .map(ToString::to_string)
+                        .collect::<Vec<_>>()
+                );
+            } else {
+                panic!("{}", sort_ev.event_id().unwrap().to_string())
+            }
+            count += 1;
             event = None;
 
             for aid in auth_events {
@@ -591,8 +652,9 @@ impl StateResolution {
         while !state.is_empty() {
             // we just checked if it was empty so unwrap is fine
             let eid = state.pop().unwrap();
-            graph.insert(eid.clone(), vec![]);
-
+            graph.entry(eid.clone()).or_insert(vec![]);
+            // prefer the store to event as the store filters dedups the events
+            // otherwise it seems we can loop forever
             for aid in store.auth_event_ids(room_id, &[eid.clone()]).unwrap() {
                 if auth_diff.contains(&aid) {
                     if !graph.contains_key(&aid) {

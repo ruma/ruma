@@ -34,19 +34,29 @@ pub fn auth_types_for_event(event: &StateEvent) -> Vec<(EventType, String)> {
     if event.kind() == EventType::RoomMember {
         if let Ok(content) = event.deserialize_content::<room::member::MemberEventContent>() {
             if [MembershipState::Join, MembershipState::Invite].contains(&content.membership) {
-                auth_types.push((EventType::RoomJoinRules, "".into()))
+                let key = (EventType::RoomJoinRules, "".into());
+                if !auth_types.contains(&key) {
+                    auth_types.push(key)
+                }
             }
 
-            // TODO is None the same as "" for state_key, probably NOT
-            auth_types.push((EventType::RoomMember, event.state_key().unwrap_or_default()));
+            // TODO what when we don't find a state_key
+            let key = (EventType::RoomMember, event.state_key().unwrap());
+            if !auth_types.contains(&key) {
+                auth_types.push(key)
+            }
 
             if content.membership == MembershipState::Invite {
                 if let Some(t_id) = content.third_party_invite {
-                    auth_types.push((EventType::RoomThirdPartyInvite, t_id.signed.token))
+                    let key = (EventType::RoomThirdPartyInvite, t_id.signed.token);
+                    if !auth_types.contains(&key) {
+                        auth_types.push(key)
+                    }
                 }
             }
         }
     }
+
     auth_types
 }
 

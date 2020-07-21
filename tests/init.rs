@@ -249,13 +249,14 @@ fn INITIAL_EDGES() -> Vec<EventId> {
     .unwrap()
 }
 
-pub struct TestStore(BTreeMap<EventId, StateEvent>);
+pub struct TestStore(RefCell<BTreeMap<EventId, StateEvent>>);
 
 #[allow(unused)]
 impl StateStore for TestStore {
     fn get_events(&self, events: &[EventId]) -> Result<Vec<StateEvent>, String> {
         Ok(self
             .0
+            .borrow()
             .iter()
             .filter(|e| events.contains(e.0))
             .map(|(_, s)| s)
@@ -265,6 +266,7 @@ impl StateStore for TestStore {
 
     fn get_event(&self, event_id: &EventId) -> Result<StateEvent, String> {
         self.0
+            .borrow()
             .get(event_id)
             .cloned()
             .ok_or(format!("{} not found", event_id.to_string()))
@@ -345,13 +347,13 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
 
     let mut resolver = StateResolution::default();
     // TODO what do we fill this with, everything ??
-    let store = TestStore(
+    let store = TestStore(RefCell::new(
         INITIAL_EVENTS()
             .values()
             .chain(events)
             .map(|ev| (ev.event_id().unwrap().clone(), ev.clone()))
             .collect(),
-    );
+    ));
 
     // This will be lexi_topo_sorted for resolution
     let mut graph = BTreeMap::new();
@@ -361,6 +363,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
     // create the DB of events that led up to this point
     // TODO maybe clean up some of these clones it is just tests but...
     for ev in INITIAL_EVENTS().values().chain(events) {
+        println!("{:?}", ev.event_id().unwrap().to_string());
         graph.insert(ev.event_id().unwrap().clone(), vec![]);
         fake_event_map.insert(ev.event_id().unwrap().clone(), ev.clone());
     }
@@ -390,6 +393,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         // TODO is this `key_fn` return correct ??
         .lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, Some(id.clone())))
     {
+        println!("{}", node.to_string());
         let fake_event = fake_event_map.get(&node).unwrap();
         let event_id = fake_event.event_id().unwrap();
 
@@ -421,7 +425,8 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
                 &room_id(),
                 &RoomVersionId::version_1(),
                 &state_sets,
-                &TestStore(event_map.clone()),
+                Some(event_map.clone()),
+                &store,
             );
             match resolved {
                 Ok(ResolutionResult::Resolved(state)) => state,
@@ -432,20 +437,16 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         let mut state_after = state_before.clone();
         if fake_event.state_key().is_some() {
             let ty = fake_event.kind().clone();
+            // we know there is a state_key unwrap OK
             let key = fake_event.state_key().unwrap().clone();
             state_after.insert((ty, key), event_id.clone());
         }
 
-        let auth_types = state_res::auth_types_for_event(fake_event)
-            .into_iter()
-            .collect::<BTreeSet<_>>();
-        // println!(
-        //     "{:?}",
-        //     auth_types
-        //         .iter()
-        //         .map(|(t, id)| (t, id.to_string()))
-        //         .collect::<Vec<_>>()
-        // );
+        let auth_types = state_res::auth_types_for_event(fake_event);
+        println!(
+            "AUTH TYPES {:?}",
+            auth_types.iter().map(|(t, id)| (t, id)).collect::<Vec<_>>()
+        );
 
         let mut auth_events = vec![];
         for key in auth_types {
@@ -469,7 +470,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         );
         // we have to update our store, an actual user of this lib would do this
         // with the result of the resolution>
-        // *store.0.borrow_mut().get_mut(ev_id).unwrap() = event.clone();
+        *store.0.borrow_mut().get_mut(ev_id).unwrap() = event.clone();
 
         state_at_event.insert(node, state_after);
         event_map.insert(event_id.clone(), event);
