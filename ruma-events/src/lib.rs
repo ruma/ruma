@@ -121,6 +121,7 @@ use std::fmt::Debug;
 
 use js_int::Int;
 use ruma_common::Raw;
+use ruma_identifiers::RoomId;
 use serde::{
     de::{self, IgnoredAny},
     Deserialize, Serialize,
@@ -237,6 +238,37 @@ impl RedactedUnsigned {
     }
 }
 
+impl From<RedactedUnsigned> for RedactedSyncUnsigned {
+    fn from(redacted: RedactedUnsigned) -> Self {
+        if let Some(why) = redacted.redacted_because {
+            let RedactionEvent {
+                sender,
+                event_id,
+                redacts,
+                origin_server_ts,
+                unsigned,
+                content,
+                ..
+                // TODO how do you want to handle this .unwrap()
+            } = why.deserialize().unwrap();
+            Self {
+                redacted_because: Some(
+                    SyncRedactionEvent {
+                        sender,
+                        event_id,
+                        origin_server_ts,
+                        redacts,
+                        unsigned,
+                        content,
+                    }
+                    .into(),
+                ),
+            }
+        } else {
+            Self { redacted_because: None }
+        }
+    }
+}
 /// Extra information about a redacted sync event that is not incorporated into the sync event's
 /// hash.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -255,6 +287,38 @@ impl RedactedSyncUnsigned {
     /// present but contained none of the known fields.
     pub fn is_empty(&self) -> bool {
         self.redacted_because.is_none()
+    }
+}
+
+impl RedactedSyncUnsigned {
+    pub fn into_full_event(self, room_id: RoomId) -> RedactedUnsigned {
+        if let Some(why) = self.redacted_because {
+            let SyncRedactionEvent {
+                sender,
+                event_id,
+                redacts,
+                origin_server_ts,
+                unsigned,
+                content,
+                // TODO how do you want to handle this .unwrap()
+            } = why.deserialize().unwrap();
+            RedactedUnsigned {
+                redacted_because: Some(
+                    RedactionEvent {
+                        room_id,
+                        sender,
+                        event_id,
+                        origin_server_ts,
+                        redacts,
+                        unsigned,
+                        content,
+                    }
+                    .into(),
+                ),
+            }
+        } else {
+            RedactedUnsigned { redacted_because: None }
+        }
     }
 }
 
