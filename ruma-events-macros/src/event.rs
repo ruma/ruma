@@ -4,9 +4,15 @@ use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, Ident};
 
+use crate::event_parse::{to_kind_variation, EventKindVariation};
+
 /// Derive `Event` macro code generation.
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     let ident = &input.ident;
+
+    let (_kind, var) = to_kind_variation(ident)
+        .ok_or(syn::Error::new(Span::call_site(), "not a valid ruma event struct identifier"))?;
+
     let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
     let is_generic = !input.generics.params.is_empty();
 
@@ -37,7 +43,12 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         .iter()
         .map(|field| {
             let name = field.ident.as_ref().unwrap();
-            if name == "content" && ident.to_string().contains("Redacted") {
+            if name == "content" && matches!(
+                var,
+                EventKindVariation::Redacted
+                    | EventKindVariation::RedactedSync
+                    | EventKindVariation::RedactedStripped
+            ) {
                 quote! {
                     if ::ruma_events::RedactedEventContent::has_serialize_fields(&self.content) {
                         state.serialize_field("content", &self.content)?;
@@ -92,7 +103,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         }
     };
 
-    let deserialize_impl = expand_deserialize_event(is_generic, input, fields)?;
+    let deserialize_impl = expand_deserialize_event(input, &var, fields, is_generic)?;
 
     Ok(quote! {
         #serialize_impl
@@ -102,9 +113,10 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
 }
 
 fn expand_deserialize_event(
-    is_generic: bool,
     input: DeriveInput,
+    var: &EventKindVariation,
     fields: Vec<Field>,
+    is_generic: bool,
 ) -> syn::Result<TokenStream> {
     let ident = &input.ident;
     // we know there is a content field already
@@ -149,7 +161,12 @@ fn expand_deserialize_event(
     .map(|field| {
         let name = field.ident.as_ref().unwrap();
         if name == "content" {
-            if is_generic && ident.to_string().contains("Redacted") {
+            if is_generic && matches!(
+                var,
+                EventKindVariation::Redacted
+                    | EventKindVariation::RedactedSync
+                    | EventKindVariation::RedactedStripped
+            ) {
                 quote! {
                     let content = match C::has_deserialize_fields() {
                         ::ruma_events::HasDeserializeFields::False => {
