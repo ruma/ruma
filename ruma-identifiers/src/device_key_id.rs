@@ -18,7 +18,7 @@ impl DeviceKeyId {
 
     /// Returns device ID of the device key ID.
     pub fn device_id(&self) -> &DeviceId {
-        &self.full_id[self.colon_idx.get() as usize + 1..]
+        (&self.full_id[self.colon_idx.get() as usize + 1..]).into()
     }
 }
 
