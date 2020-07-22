@@ -32,7 +32,7 @@ ruma_api! {
     response: {
         /// The specific push rule.
         #[ruma_api(body)]
-        pub rule: AnyPushRule
+        pub rule: AnyPushRule,
     }
 
     error: crate::Error
