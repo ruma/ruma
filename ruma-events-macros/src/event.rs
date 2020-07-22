@@ -43,12 +43,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         .iter()
         .map(|field| {
             let name = field.ident.as_ref().unwrap();
-            if name == "content" && matches!(
-                var,
-                EventKindVariation::Redacted
-                    | EventKindVariation::RedactedSync
-                    | EventKindVariation::RedactedStripped
-            ) {
+            if name == "content" && var.is_redacted() {
                 quote! {
                     if ::ruma_events::RedactedEventContent::has_serialize_fields(&self.content) {
                         state.serialize_field("content", &self.content)?;
@@ -161,12 +156,7 @@ fn expand_deserialize_event(
     .map(|field| {
         let name = field.ident.as_ref().unwrap();
         if name == "content" {
-            if is_generic && matches!(
-                var,
-                EventKindVariation::Redacted
-                    | EventKindVariation::RedactedSync
-                    | EventKindVariation::RedactedStripped
-            ) {
+            if is_generic && var.is_redacted() {
                 quote! {
                     let content = match C::has_deserialize_fields() {
                         ::ruma_events::HasDeserializeFields::False => {
