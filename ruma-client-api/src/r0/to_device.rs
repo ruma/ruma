@@ -51,7 +51,7 @@ impl Serialize for DeviceIdOrAllDevices {
         S: Serializer,
     {
         match self {
-            Self::DeviceId(ref device_id) => serializer.serialize_str(&device_id),
+            Self::DeviceId(device_id) => device_id.serialize(serializer),
             Self::AllDevices => serializer.serialize_str("*"),
         }
     }

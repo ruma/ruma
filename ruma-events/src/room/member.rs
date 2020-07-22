@@ -187,7 +187,7 @@ fn membership_change(
         (Invite, Invite) | (Leave, Leave) | (Ban, Ban) => MembershipChange::None,
         (Invite, Join) | (Leave, Join) => MembershipChange::Joined,
         (Invite, Leave) => {
-            if sender.as_ref() == state_key {
+            if sender == state_key {
                 MembershipChange::InvitationRevoked
             } else {
                 MembershipChange::InvitationRejected
@@ -200,7 +200,7 @@ fn membership_change(
             avatar_url_changed: prev_content.avatar_url != content.avatar_url,
         },
         (Join, Leave) => {
-            if sender.as_ref() == state_key {
+            if sender == state_key {
                 MembershipChange::Left
             } else {
                 MembershipChange::Kicked

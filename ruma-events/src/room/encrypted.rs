@@ -161,7 +161,7 @@ mod tests {
                 session_id,
             }) if ciphertext == "ciphertext"
                 && sender_key == "sender_key"
-                && device_id.as_str() == "device_id"
+                && device_id == "device_id"
                 && session_id == "session_id"
         );
     }

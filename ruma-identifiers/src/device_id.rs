@@ -110,29 +110,8 @@ impl<'de> serde::Deserialize<'de> for Box<DeviceId> {
     }
 }
 
-impl PartialEq<str> for DeviceId {
-    fn eq(&self, other: &str) -> bool {
-        self.as_str() == other
-    }
-}
-
-impl PartialEq<DeviceId> for str {
-    fn eq(&self, other: &DeviceId) -> bool {
-        self == other.as_str()
-    }
-}
-
-impl PartialEq<String> for DeviceId {
-    fn eq(&self, other: &String) -> bool {
-        self.as_str() == other.as_str()
-    }
-}
-
-impl PartialEq<DeviceId> for String {
-    fn eq(&self, other: &DeviceId) -> bool {
-        self.as_str() == other.as_str()
-    }
-}
+partial_eq_string!(DeviceId);
+partial_eq_string!(Box<DeviceId>);
 
 /// Generates a random `DeviceId`, suitable for assignment to a new device.
 #[cfg(feature = "rand")]

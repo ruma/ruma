@@ -87,6 +87,19 @@ impl RoomVersionId {
         Self::Version6
     }
 
+    /// Creates a string slice from this `RoomVersionId`
+    pub fn as_str(&self) -> &str {
+        match &self {
+            Self::Version1 => "1",
+            Self::Version2 => "2",
+            Self::Version3 => "3",
+            Self::Version4 => "4",
+            Self::Version5 => "5",
+            Self::Version6 => "6",
+            Self::Custom(version) => version.as_str(),
+        }
+    }
+
     /// Whether or not this room version is an official one specified by the Matrix protocol.
     pub fn is_official(&self) -> bool {
         !self.is_custom()
@@ -150,15 +163,7 @@ impl From<RoomVersionId> for String {
 
 impl AsRef<str> for RoomVersionId {
     fn as_ref(&self) -> &str {
-        match &self {
-            Self::Version1 => "1",
-            Self::Version2 => "2",
-            Self::Version3 => "3",
-            Self::Version4 => "4",
-            Self::Version5 => "5",
-            Self::Version6 => "6",
-            Self::Custom(version) => version.as_ref(),
-        }
+        self.as_str()
     }
 }
 
@@ -253,30 +258,37 @@ impl TryFrom<String> for RoomVersionId {
 
 impl PartialEq<&str> for RoomVersionId {
     fn eq(&self, other: &&str) -> bool {
-        self.as_ref() == *other
+        self.as_str() == *other
     }
 }
 
 impl PartialEq<RoomVersionId> for &str {
     fn eq(&self, other: &RoomVersionId) -> bool {
-        *self == other.as_ref()
+        *self == other.as_str()
     }
 }
 
 impl PartialEq<String> for RoomVersionId {
     fn eq(&self, other: &String) -> bool {
-        self.as_ref() == other
+        self.as_str() == other
     }
 }
 
 impl PartialEq<RoomVersionId> for String {
     fn eq(&self, other: &RoomVersionId) -> bool {
-        self == other.as_ref()
+        self == other.as_str()
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct CustomRoomVersion(Box<str>);
+
+impl CustomRoomVersion {
+    /// Creates a string slice from this `CustomRoomVersion`
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
 
 impl From<CustomRoomVersion> for String {
     fn from(v: CustomRoomVersion) -> Self {
@@ -286,7 +298,7 @@ impl From<CustomRoomVersion> for String {
 
 impl AsRef<str> for CustomRoomVersion {
     fn as_ref(&self) -> &str {
-        &self.0
+        self.as_str()
     }
 }
 

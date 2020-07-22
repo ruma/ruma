@@ -160,29 +160,8 @@ impl<'de> serde::Deserialize<'de> for Box<ServerName> {
     }
 }
 
-impl PartialEq<str> for ServerName {
-    fn eq(&self, other: &str) -> bool {
-        self.as_str() == other
-    }
-}
-
-impl PartialEq<ServerName> for str {
-    fn eq(&self, other: &ServerName) -> bool {
-        self == other.as_str()
-    }
-}
-
-impl PartialEq<String> for ServerName {
-    fn eq(&self, other: &String) -> bool {
-        self.as_str() == other.as_str()
-    }
-}
-
-impl PartialEq<ServerName> for String {
-    fn eq(&self, other: &ServerName) -> bool {
-        self.as_str() == other.as_str()
-    }
-}
+partial_eq_string!(ServerName);
+partial_eq_string!(Box<ServerName>);
 
 #[cfg(test)]
 mod tests {

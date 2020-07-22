@@ -5,6 +5,25 @@ macro_rules! doc_concat {
     ( $( #[doc = $doc:expr] $( $thing:tt )* )* ) => ( $( #[doc = $doc] $( $thing )* )* );
 }
 
+macro_rules! partial_eq_string {
+    ($id:ty) => {
+        partial_eq_string!(@imp, $id, str);
+        partial_eq_string!(@imp, $id, &str);
+        partial_eq_string!(@imp, $id, String);
+        partial_eq_string!(@imp, str, $id);
+        partial_eq_string!(@imp, &str, $id);
+        partial_eq_string!(@imp, String, $id);
+    };
+    (@imp, $l:ty, $r:ty) => {
+        impl ::std::cmp::PartialEq<$r> for $l {
+            fn eq(&self, other: &$r) -> bool {
+                ::std::convert::AsRef::<str>::as_ref(self)
+                    == ::std::convert::AsRef::<str>::as_ref(other)
+            }
+        }
+    }
+}
+
 macro_rules! common_impls {
     ($id:ty, $try_from:ident, $desc:literal) => {
         impl $id {
@@ -96,28 +115,6 @@ macro_rules! common_impls {
             }
         }
 
-        impl ::std::cmp::PartialEq<&str> for $id {
-            fn eq(&self, other: &&str) -> bool {
-                self.as_str() == *other
-            }
-        }
-
-        impl ::std::cmp::PartialEq<$id> for &str {
-            fn eq(&self, other: &$id) -> bool {
-                *self == other.as_str()
-            }
-        }
-
-        impl ::std::cmp::PartialEq<::std::string::String> for $id {
-            fn eq(&self, other: &::std::string::String) -> bool {
-                self.as_str() == other.as_str()
-            }
-        }
-
-        impl ::std::cmp::PartialEq<$id> for ::std::string::String {
-            fn eq(&self, other: &$id) -> bool {
-                self.as_str() == other.as_str()
-            }
-        }
+        partial_eq_string!($id);
     };
 }

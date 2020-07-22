@@ -288,7 +288,7 @@ mod tests {
                 key_agreement_protocols,
                 message_authentication_codes,
                 short_authentication_string,
-            }) if from_device.as_str() == "123"
+            }) if from_device == "123"
                 && transaction_id == "456"
                 && hashes == vec![HashAlgorithm::Sha256]
                 && key_agreement_protocols == vec![KeyAgreementProtocol::Curve25519]
@@ -323,7 +323,7 @@ mod tests {
                     message_authentication_codes,
                     short_authentication_string,
                 })
-            } if from_device.as_str() == "123"
+            } if from_device == "123"
                 && transaction_id == "456"
                 && hashes == vec![HashAlgorithm::Sha256]
                 && key_agreement_protocols == vec![KeyAgreementProtocol::Curve25519]
