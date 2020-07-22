@@ -21,13 +21,28 @@ use ruma_events::{
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-fn full_unsigned() -> RedactedSyncUnsigned {
+fn sync_unsigned() -> RedactedSyncUnsigned {
     let mut unsigned = RedactedSyncUnsigned::default();
     // The presence of `redacted_because` triggers the event enum to return early
     // with `RedactedContent` instead of failing to deserialize according
     // to the event type string.
-    unsigned.redacted_because = Some(Raw::from(SyncRedactionEvent {
+    unsigned.redacted_because = Some(Box::new(SyncRedactionEvent {
         content: RedactionEventContent { reason: Some("redacted because".into()) },
+        redacts: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+        event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+        origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
+        sender: UserId::try_from("@carl:example.com").unwrap(),
+        unsigned: Unsigned::default(),
+    }));
+
+    unsigned
+}
+
+fn full_unsigned() -> RedactedUnsigned {
+    let mut unsigned = RedactedUnsigned::default();
+    unsigned.redacted_because = Some(Box::new(RedactionEvent {
+        content: RedactionEventContent { reason: Some("redacted because".into()) },
+        room_id: RoomId::try_from("!roomid:room.com").unwrap(),
         redacts: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
@@ -110,7 +125,7 @@ fn redacted_aliases_event_serialize_with_content() {
 
 #[test]
 fn redacted_aliases_deserialize() {
-    let unsigned = full_unsigned();
+    let unsigned = sync_unsigned();
 
     let redacted = json!({
       "event_id": "$h29iv0s8:example.com",
@@ -170,7 +185,7 @@ fn redacted_deserialize_any_room_sync() {
     // The presence of `redacted_because` triggers the event enum (AnySyncRoomEvent in this case)
     // to return early with `RedactedContent` instead of failing to deserialize according
     // to the event type string.
-    unsigned.redacted_because = Some(Raw::from(RedactionEvent {
+    unsigned.redacted_because = Some(Box::new(RedactionEvent {
         content: RedactionEventContent { reason: Some("redacted because".into()) },
         redacts: EventId::try_from("$h29iv0s8:example.com").unwrap(),
         event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
@@ -204,7 +219,7 @@ fn redacted_deserialize_any_room_sync() {
 
 #[test]
 fn redacted_state_event_deserialize() {
-    let unsigned = full_unsigned();
+    let unsigned = sync_unsigned();
 
     let redacted = json!({
       "content": {
@@ -237,7 +252,7 @@ fn redacted_state_event_deserialize() {
 
 #[test]
 fn redacted_custom_event_serialize() {
-    let unsigned = full_unsigned();
+    let unsigned = sync_unsigned();
 
     let redacted = json!({
         "event_id": "$h29iv0s8:example.com",
@@ -271,7 +286,7 @@ fn redacted_custom_event_serialize() {
 
 #[test]
 fn redacted_custom_event_deserialize() {
-    let unsigned = full_unsigned();
+    let unsigned = sync_unsigned();
 
     let redacted = RedactedSyncStateEvent {
         content: RedactedCustomEventContent { event_type: "m.made.up".into() },

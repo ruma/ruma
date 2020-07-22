@@ -222,7 +222,7 @@ impl Unsigned {
 pub struct RedactedUnsigned {
     /// The event that redacted this event, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub redacted_because: Option<Raw<RedactionEvent>>,
+    pub redacted_because: Option<Box<RedactionEvent>>,
 }
 
 impl RedactedUnsigned {
@@ -243,7 +243,7 @@ impl RedactedUnsigned {
 pub struct RedactedSyncUnsigned {
     /// The event that redacted this event, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub redacted_because: Option<Raw<SyncRedactionEvent>>,
+    pub redacted_because: Option<Box<SyncRedactionEvent>>,
 }
 
 impl RedactedSyncUnsigned {
