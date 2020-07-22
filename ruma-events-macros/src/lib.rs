@@ -16,13 +16,14 @@ use self::{
         expand_basic_event_content, expand_ephemeral_room_event_content, expand_event_content,
         expand_message_event_content, expand_room_event_content, expand_state_event_content,
     },
-    event_enum::{expand_event_enum, EventEnumInput},
+    event_enum::expand_event_enum,
+    event_parse::EventEnumInput,
 };
 
 mod event;
 mod event_content;
 mod event_enum;
-
+mod event_parse;
 /// Generates an enum to represent the various Matrix event types.
 ///
 /// This macro also implements the necessary traits for the type to serialize and deserialize
