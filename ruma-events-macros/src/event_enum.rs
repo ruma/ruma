@@ -7,12 +7,12 @@ use syn::{Attribute, Ident, LitStr};
 use crate::event_parse::{EventEnumInput, EventKind, EventKindVariation};
 
 fn is_non_stripped_room_event(kind: &EventKind, var: &EventKindVariation) -> bool {
-    matches!(kind, EventKind::Message(_) | EventKind::State(_))
+    matches!(kind, EventKind::Message | EventKind::State)
         && !matches!(var, EventKindVariation::Stripped | EventKindVariation::RedactedStripped)
 }
 
 fn has_prev_content_field(kind: &EventKind, var: &EventKindVariation) -> bool {
-    matches!(kind, EventKind::State(_))
+    matches!(kind, EventKind::State)
         && matches!(var, EventKindVariation::Full | EventKindVariation::Sync)
 }
 
@@ -24,15 +24,14 @@ type EventKindFn = fn(&EventKind, &EventKindVariation) -> bool;
 const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
     ("origin_server_ts", is_non_stripped_room_event),
     ("room_id", |kind, var| {
-        matches!(kind, EventKind::Message(_) | EventKind::State(_))
+        matches!(kind, EventKind::Message | EventKind::State)
             && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
     }),
     ("event_id", is_non_stripped_room_event),
-    (
-        "sender",
-        |kind, _| matches!(kind, EventKind::Message(_) | EventKind::State(_) | EventKind::ToDevice(_)),
-    ),
-    ("state_key", |kind, _| matches!(kind, EventKind::State(_))),
+    ("sender", |kind, _| {
+        matches!(kind, EventKind::Message | EventKind::State | EventKind::ToDevice)
+    }),
+    ("state_key", |kind, _| matches!(kind, EventKind::State)),
     ("unsigned", is_non_stripped_room_event),
 ];
 
@@ -319,7 +318,7 @@ fn expand_redact(
 }
 
 fn expand_redacted_enum(kind: &EventKind, var: &EventKindVariation) -> Option<TokenStream> {
-    if let EventKind::State(_) | EventKind::Message(_) = kind {
+    if let EventKind::State | EventKind::Message = kind {
         let ident = format_ident!("AnyPossiblyRedacted{}", kind.to_event_ident(var)?);
 
         let (regular_enum_ident, redacted_enum_ident) = inner_enum_idents(kind, var)?;
@@ -435,18 +434,18 @@ fn generate_custom_variant(
 fn marker_traits(kind: &EventKind) -> TokenStream {
     let ident = kind.to_content_enum();
     match kind {
-        EventKind::State(_) => quote! {
+        EventKind::State => quote! {
             impl ::ruma_events::RoomEventContent for #ident {}
             impl ::ruma_events::StateEventContent for #ident {}
         },
-        EventKind::Message(_) => quote! {
+        EventKind::Message => quote! {
             impl ::ruma_events::RoomEventContent for #ident {}
             impl ::ruma_events::MessageEventContent for #ident {}
         },
-        EventKind::Ephemeral(_) => quote! {
+        EventKind::Ephemeral => quote! {
             impl ::ruma_events::EphemeralRoomEventContent for #ident {}
         },
-        EventKind::Basic(_) => quote! {
+        EventKind::Basic => quote! {
             impl ::ruma_events::BasicEventContent for #ident {}
         },
         _ => TokenStream::new(),

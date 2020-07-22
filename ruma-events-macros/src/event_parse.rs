@@ -1,6 +1,9 @@
 //! Implementation of event enum and event content enum macros.
 
+use std::fmt;
+
 use matches::matches;
+use proc_macro2::Span;
 use quote::format_ident;
 use syn::{
     parse::{self, Parse, ParseStream},
@@ -22,7 +25,19 @@ pub enum EventKindVariation {
     Redacted,
     RedactedSync,
     RedactedStripped,
-    ManuallyImpled,
+}
+
+impl fmt::Display for EventKindVariation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            EventKindVariation::Full => write!(f, ""),
+            EventKindVariation::Sync => write!(f, "Sync"),
+            EventKindVariation::Stripped => write!(f, "Stripped"),
+            EventKindVariation::Redacted => write!(f, "Redacted"),
+            EventKindVariation::RedactedSync => write!(f, "RedactedSync"),
+            EventKindVariation::RedactedStripped => write!(f, "RedactedStripped"),
+        }
+    }
 }
 
 impl EventKindVariation {
@@ -33,40 +48,55 @@ impl EventKindVariation {
 
 // If the variants of this enum change `to_event_path` needs to be updated as well.
 pub enum EventKind {
-    Basic(Ident),
-    Ephemeral(Ident),
-    Message(Ident),
-    State(Ident),
-    ToDevice(Ident),
-    ManuallyImpled(Ident),
+    Basic,
+    Ephemeral,
+    Message,
+    State,
+    ToDevice,
+    Redaction,
+    Presence,
+}
+
+impl fmt::Display for EventKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            EventKind::Basic => write!(f, "BasicEvent"),
+            EventKind::Ephemeral => write!(f, "EphemeralRoomEvent"),
+            EventKind::Message => write!(f, "MessageEvent"),
+            EventKind::State => write!(f, "StateEvent"),
+            EventKind::ToDevice => write!(f, "ToDeviceEvent"),
+            EventKind::Redaction => write!(f, "RedactionEvent"),
+            EventKind::Presence => write!(f, "PresenceEvent"),
+        }
+    }
 }
 
 impl EventKind {
     pub fn is_state(&self) -> bool {
-        matches!(self, Self::State(_))
+        matches!(self, Self::State)
     }
 
     pub fn is_message(&self) -> bool {
-        matches!(self, Self::Message(_))
+        matches!(self, Self::Message)
     }
 
     pub fn to_event_ident(&self, var: &EventKindVariation) -> Option<Ident> {
         use EventKindVariation::*;
 
+        // this match is only used to validate the input
         match (self, var) {
-            // all `EventKind`s are valid event structs and event enums.
-            (_, Full) => Some(format_ident!("{}Event", self.get_ident())),
-            (Self::Ephemeral(i), Sync) | (Self::Message(i), Sync) | (Self::State(i), Sync) => {
-                Some(format_ident!("Sync{}Event", i))
+            (_, Full)
+            | (Self::Ephemeral, Sync)
+            | (Self::Message, Sync)
+            | (Self::State, Sync)
+            | (Self::State, Stripped)
+            | (Self::Message, Redacted)
+            | (Self::State, Redacted)
+            | (Self::Message, RedactedSync)
+            | (Self::State, RedactedSync)
+            | (Self::State, RedactedStripped) => {
+                Some(Ident::new(&format!("{}{}", var, self), Span::call_site()))
             }
-            (Self::State(i), Stripped) => Some(format_ident!("Stripped{}Event", i)),
-            (Self::Message(i), Redacted) | (Self::State(i), Redacted) => {
-                Some(format_ident!("Redacted{}Event", i))
-            }
-            (Self::Message(i), RedactedSync) | (Self::State(i), RedactedSync) => {
-                Some(format_ident!("RedactedSync{}Event", i))
-            }
-            (Self::State(i), RedactedStripped) => Some(format_ident!("RedactedStripped{}Event", i)),
             _ => None,
         }
     }
@@ -77,18 +107,7 @@ impl EventKind {
 
     /// `Any[kind]EventContent`
     pub fn to_content_enum(&self) -> Ident {
-        format_ident!("Any{}EventContent", self.get_ident())
-    }
-
-    pub fn get_ident(&self) -> &Ident {
-        match self {
-            EventKind::Basic(i)
-            | EventKind::Ephemeral(i)
-            | EventKind::Message(i)
-            | EventKind::State(i)
-            | EventKind::ToDevice(i)
-            | EventKind::ManuallyImpled(i) => i,
-        }
+        Ident::new(&format!("Any{}Content", self), Span::call_site())
     }
 }
 
@@ -96,11 +115,11 @@ impl Parse for EventKind {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let ident = input.parse::<Ident>()?;
         Ok(match ident.to_string().as_str() {
-            "Basic" => EventKind::Basic(ident),
-            "EphemeralRoom" => EventKind::Ephemeral(ident),
-            "Message" => EventKind::Message(ident),
-            "State" => EventKind::State(ident),
-            "ToDevice" => EventKind::ToDevice(ident),
+            "Basic" => EventKind::Basic,
+            "EphemeralRoom" => EventKind::Ephemeral,
+            "Message" => EventKind::Message,
+            "State" => EventKind::State,
+            "ToDevice" => EventKind::ToDevice,
             id => {
                 return Err(syn::Error::new(
                     input.span(),
@@ -114,40 +133,31 @@ impl Parse for EventKind {
     }
 }
 
+// This function is only used in the `Event` derive macro expansion code.
+/// Validates the given `ident` is a valid event struct name and returns a tuple of enums
+/// representing the name.
 pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation)> {
     let ident_str = ident.to_string();
     match ident_str.as_str() {
-        "BasicEvent" => Some((EventKind::Basic(ident.clone()), EventKindVariation::Full)),
-        "EphemeralRoomEvent" => Some((EventKind::Basic(ident.clone()), EventKindVariation::Full)),
-        "SyncEphemeralRoomEvent" => {
-            Some((EventKind::Basic(ident.clone()), EventKindVariation::Sync))
-        }
-        "MessageEvent" => Some((EventKind::Basic(ident.clone()), EventKindVariation::Full)),
-        "SyncMessageEvent" => Some((EventKind::Basic(ident.clone()), EventKindVariation::Sync)),
-        "RedactedMessageEvent" => {
-            Some((EventKind::Basic(ident.clone()), EventKindVariation::Redacted))
-        }
-        "RedactedSyncMessageEvent" => {
-            Some((EventKind::Basic(ident.clone()), EventKindVariation::RedactedSync))
-        }
-        "StateEvent" => Some((EventKind::Basic(ident.clone()), EventKindVariation::Full)),
-        "SyncStateEvent" => Some((EventKind::Basic(ident.clone()), EventKindVariation::Sync)),
-        "StrippedStateEvent" => {
-            Some((EventKind::Basic(ident.clone()), EventKindVariation::Stripped))
-        }
-        "RedactedStateEvent" => {
-            Some((EventKind::Basic(ident.clone()), EventKindVariation::Redacted))
-        }
-        "RedactedSyncStateEvent" => {
-            Some((EventKind::Basic(ident.clone()), EventKindVariation::RedactedSync))
-        }
+        "BasicEvent" => Some((EventKind::Basic, EventKindVariation::Full)),
+        "EphemeralRoomEvent" => Some((EventKind::Ephemeral, EventKindVariation::Full)),
+        "SyncEphemeralRoomEvent" => Some((EventKind::Ephemeral, EventKindVariation::Sync)),
+        "MessageEvent" => Some((EventKind::Message, EventKindVariation::Full)),
+        "SyncMessageEvent" => Some((EventKind::Message, EventKindVariation::Sync)),
+        "RedactedMessageEvent" => Some((EventKind::Message, EventKindVariation::Redacted)),
+        "RedactedSyncMessageEvent" => Some((EventKind::Message, EventKindVariation::RedactedSync)),
+        "StateEvent" => Some((EventKind::State, EventKindVariation::Full)),
+        "SyncStateEvent" => Some((EventKind::State, EventKindVariation::Sync)),
+        "StrippedStateEvent" => Some((EventKind::State, EventKindVariation::Stripped)),
+        "RedactedStateEvent" => Some((EventKind::State, EventKindVariation::Redacted)),
+        "RedactedSyncStateEvent" => Some((EventKind::State, EventKindVariation::RedactedSync)),
         "RedactedStrippedStateEvent" => {
-            Some((EventKind::Basic(ident.clone()), EventKindVariation::RedactedStripped))
+            Some((EventKind::State, EventKindVariation::RedactedStripped))
         }
-        "ToDeviceEvent" => Some((EventKind::Basic(ident.clone()), EventKindVariation::Full)),
-        "PresenceEvent" | "RedactionEvent" | "SyncRedactionEvent" => {
-            Some((EventKind::ManuallyImpled(ident.clone()), EventKindVariation::ManuallyImpled))
-        }
+        "ToDeviceEvent" => Some((EventKind::ToDevice, EventKindVariation::Full)),
+        "PresenceEvent" => Some((EventKind::Presence, EventKindVariation::Full)),
+        "RedactionEvent" => Some((EventKind::Redaction, EventKindVariation::Full)),
+        "SyncRedactionEvent" => Some((EventKind::Redaction, EventKindVariation::Sync)),
         _ => None,
     }
 }
