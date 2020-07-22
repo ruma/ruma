@@ -6,10 +6,6 @@
 
 **ruma-events** contains serializable types for the events in the [Matrix](https://matrix.org/) specification that can be shared by client and server code.
 
-## Minimum Rust version
-
-ruma-events requires Rust 1.40.0 or later.
-
 ## Documentation
 
 ruma-events has [comprehensive documentation](https://docs.rs/ruma-events) available on docs.rs.

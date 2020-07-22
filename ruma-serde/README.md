@@ -6,7 +6,3 @@ Part of that is a fork of serde_urlencoded, with support for sequences in `Deser
 `Serialize` structs (e.g. `Vec<Something>`) that are (de)serialized as `field=val1&field=val2`
 (instead of the more common `field[]=val1&field[]=val2` format supported by other crates like
 `serde_qs`).
-
-## Minimum Rust version
-
-ruma-serde requires Rust 1.36.0 or later.
