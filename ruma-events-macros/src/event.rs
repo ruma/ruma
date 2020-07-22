@@ -94,7 +94,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
 
     let deserialize_impl = expand_deserialize_event(is_generic, &input, &fields)?;
 
-    let conversion_impl = expand_from_into(is_generic, &input, &fields);
+    let conversion_impl = expand_from_into(&input, &fields);
 
     Ok(quote! {
         #conversion_impl
@@ -305,30 +305,10 @@ fn expand_deserialize_event(
     })
 }
 
-fn expand_from_into(
-    is_generic: bool,
-    input: &DeriveInput,
-    fields: &[Field],
-) -> Option<TokenStream> {
+fn expand_from_into(input: &DeriveInput, fields: &[Field]) -> Option<TokenStream> {
     let ident = &input.ident;
 
-    // we know there is a content field already
-    let content_type = fields
-        .iter()
-        // we also know that the fields are named and have an ident
-        .find(|f| f.ident.as_ref().unwrap() == "content")
-        .map(|f| f.ty.clone())
-        .unwrap();
-
     let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
-
-    let enum_variants = fields
-        .iter()
-        .map(|field| {
-            let name = field.ident.as_ref().unwrap();
-            to_camel_case(name)
-        })
-        .collect::<Vec<_>>();
 
     let fields = fields.iter().flat_map(|f| &f.ident).collect::<Vec<_>>();
 
