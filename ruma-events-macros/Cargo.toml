@@ -16,7 +16,6 @@ version = "0.21.3"
 syn = { version = "1.0.31", features = ["full"] }
 quote = "1.0.7"
 proc-macro2 = "1.0.18"
-matches = "0.1.8"
 
 [lib]
 proc-macro = true

@@ -1,6 +1,5 @@
 //! Implementation of event enum and event content enum macros.
 
-use matches::matches;
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::{

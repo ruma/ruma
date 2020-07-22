@@ -2,8 +2,6 @@
 
 use std::{convert::TryFrom, num::NonZeroU8};
 
-use matches::matches;
-
 use crate::{error::Error, parse_id, ServerName};
 
 /// A Matrix user ID.

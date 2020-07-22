@@ -2,7 +2,6 @@
 
 use std::{convert::TryFrom, mem};
 
-use matches::matches;
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::{spanned::Spanned, Field, Ident};

@@ -6,7 +6,6 @@ use std::{
     fmt::{self, Display, Formatter},
 };
 
-use matches::matches;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
