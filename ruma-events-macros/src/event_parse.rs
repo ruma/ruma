@@ -22,6 +22,7 @@ pub enum EventKindVariation {
     Redacted,
     RedactedSync,
     RedactedStripped,
+    ManuallyImpled,
 }
 
 // If the variants of this enum change `to_event_path` needs to be updated as well.
@@ -31,6 +32,7 @@ pub enum EventKind {
     Message(Ident),
     State(Ident),
     ToDevice(Ident),
+    ManuallyImpled(Ident),
 }
 
 impl EventKind {
@@ -78,7 +80,8 @@ impl EventKind {
             | EventKind::Ephemeral(i)
             | EventKind::Message(i)
             | EventKind::State(i)
-            | EventKind::ToDevice(i) => i,
+            | EventKind::ToDevice(i)
+            | EventKind::ManuallyImpled(i) => i,
         }
     }
 }
@@ -102,6 +105,44 @@ impl Parse for EventKind {
                 ));
             }
         })
+    }
+}
+
+pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation)> {
+    let ident_str = ident.to_string();
+    match ident_str.as_str() {
+        "BasicEvent" => Some((EventKind::Basic(ident.clone()), EventKindVariation::Full)),
+        "EphemeralRoomEvent" => Some((EventKind::Basic(ident.clone()), EventKindVariation::Full)),
+        "SyncEphemeralRoomEvent" => {
+            Some((EventKind::Basic(ident.clone()), EventKindVariation::Sync))
+        }
+        "MessageEvent" => Some((EventKind::Basic(ident.clone()), EventKindVariation::Full)),
+        "SyncMessageEvent" => Some((EventKind::Basic(ident.clone()), EventKindVariation::Sync)),
+        "RedactedMessageEvent" => {
+            Some((EventKind::Basic(ident.clone()), EventKindVariation::Redacted))
+        }
+        "RedactedSyncMessageEvent" => {
+            Some((EventKind::Basic(ident.clone()), EventKindVariation::RedactedSync))
+        }
+        "StateEvent" => Some((EventKind::Basic(ident.clone()), EventKindVariation::Full)),
+        "SyncStateEvent" => Some((EventKind::Basic(ident.clone()), EventKindVariation::Sync)),
+        "StrippedStateEvent" => {
+            Some((EventKind::Basic(ident.clone()), EventKindVariation::Stripped))
+        }
+        "RedactedStateEvent" => {
+            Some((EventKind::Basic(ident.clone()), EventKindVariation::Redacted))
+        }
+        "RedactedSyncStateEvent" => {
+            Some((EventKind::Basic(ident.clone()), EventKindVariation::RedactedSync))
+        }
+        "RedactedStrippedStateEvent" => {
+            Some((EventKind::Basic(ident.clone()), EventKindVariation::RedactedStripped))
+        }
+        "ToDeviceEvent" => Some((EventKind::Basic(ident.clone()), EventKindVariation::Full)),
+        "PresenceEvent" | "RedactionEvent" | "SyncRedactionEvent" => {
+            Some((EventKind::ManuallyImpled(ident.clone()), EventKindVariation::ManuallyImpled))
+        }
+        _ => None,
     }
 }
 
