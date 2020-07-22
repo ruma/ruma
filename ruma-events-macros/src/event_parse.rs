@@ -25,6 +25,12 @@ pub enum EventKindVariation {
     ManuallyImpled,
 }
 
+impl EventKindVariation {
+    pub fn is_redacted(&self) -> bool {
+        matches!(self, Self::Redacted | Self::RedactedSync | Self::RedactedStripped)
+    }
+}
+
 // If the variants of this enum change `to_event_path` needs to be updated as well.
 pub enum EventKind {
     Basic(Ident),
