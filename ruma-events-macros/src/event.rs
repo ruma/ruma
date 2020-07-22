@@ -92,9 +92,13 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         }
     };
 
-    let deserialize_impl = expand_deserialize_event(is_generic, input, fields)?;
+    let deserialize_impl = expand_deserialize_event(is_generic, &input, &fields)?;
+
+    let conversion_impl = expand_from_into(is_generic, &input, &fields);
 
     Ok(quote! {
+        #conversion_impl
+
         #serialize_impl
 
         #deserialize_impl
@@ -103,8 +107,8 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
 
 fn expand_deserialize_event(
     is_generic: bool,
-    input: DeriveInput,
-    fields: Vec<Field>,
+    input: &DeriveInput,
+    fields: &[Field],
 ) -> syn::Result<TokenStream> {
     let ident = &input.ident;
     // we know there is a content field already
@@ -299,6 +303,76 @@ fn expand_deserialize_event(
             }
         }
     })
+}
+
+fn expand_from_into(
+    is_generic: bool,
+    input: &DeriveInput,
+    fields: &[Field],
+) -> Option<TokenStream> {
+    let ident = &input.ident;
+
+    // we know there is a content field already
+    let content_type = fields
+        .iter()
+        // we also know that the fields are named and have an ident
+        .find(|f| f.ident.as_ref().unwrap() == "content")
+        .map(|f| f.ty.clone())
+        .unwrap();
+
+    let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
+
+    let enum_variants = fields
+        .iter()
+        .map(|field| {
+            let name = field.ident.as_ref().unwrap();
+            to_camel_case(name)
+        })
+        .collect::<Vec<_>>();
+
+    let fields = fields.iter().flat_map(|f| &f.ident).collect::<Vec<_>>();
+
+    let fields_without_unsigned =
+        fields.iter().filter(|id| !(id.to_string() == "unsigned")).collect::<Vec<_>>();
+
+    let (into, into_full_event) = if ident.to_string().contains("Redacted") {
+        (
+            quote! { unsigned: unsigned.into(), },
+            quote! { unsigned: unsigned.into_full_event(room_id), },
+        )
+    } else if ident.to_string().contains("Ephemeral") {
+        (TokenStream::new(), TokenStream::new())
+    } else {
+        (quote! { unsigned, }, quote! { unsigned, })
+    };
+
+    if ident.to_string().contains("Sync") {
+        let full_struct = Ident::new(&ident.to_string().replace("Sync", ""), ident.span());
+        Some(quote! {
+            impl #impl_generics From<#full_struct #ty_gen> for #ident #ty_gen #where_clause {
+                fn from(event: #full_struct #ty_gen) -> Self {
+                    let #full_struct {
+                        #( #fields, )* ..
+                    } = event;
+                    Self { #( #fields_without_unsigned, )* #into }
+                }
+            }
+
+            impl #impl_generics #ident #ty_gen #where_clause {
+                /// Convert this sync event into a full event, one with a room_id field.
+                pub fn into_full_event(self, room_id: ::ruma_identifiers::RoomId) -> #full_struct #ty_gen {
+                    let Self { #( #fields, )* } = self;
+                    #full_struct {
+                        #( #fields_without_unsigned, )*
+                        room_id: room_id.clone(),
+                        #into_full_event
+                    }
+                }
+            }
+        })
+    } else {
+        None
+    }
 }
 
 /// CamelCase's a field ident like "foo_bar" to "FooBar".
