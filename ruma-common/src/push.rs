@@ -4,7 +4,8 @@
 
 use std::{
     convert::TryFrom,
-    fmt::{self, Formatter},
+    error::Error,
+    fmt::{self, Display, Formatter},
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -167,13 +168,21 @@ impl From<AnyPushRule> for PushRule {
     }
 }
 
-/// An error that happens when `AnyPushRule` cannot be converted
-/// into a more specific push rule type.
+/// An error that happens when `AnyPushRule` cannot
+/// be converted into `PatternedPushRule`
 #[derive(Debug)]
-pub struct AnyPushRuleConversionError;
+pub struct MissingPatternError;
+
+impl Display for MissingPatternError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "Push rule does not have a pattern.")
+    }
+}
+
+impl Error for MissingPatternError {}
 
 impl TryFrom<AnyPushRule> for PatternedPushRule {
-    type Error = AnyPushRuleConversionError;
+    type Error = MissingPatternError;
 
     fn try_from(push_rule: AnyPushRule) -> Result<Self, Self::Error> {
         if let AnyPushRule { actions, default, enabled, rule_id, pattern: Some(pattern), .. } =
@@ -181,13 +190,26 @@ impl TryFrom<AnyPushRule> for PatternedPushRule {
         {
             Ok(PatternedPushRule { actions, default, enabled, rule_id, pattern })
         } else {
-            Err(AnyPushRuleConversionError)
+            Err(MissingPatternError)
         }
     }
 }
 
+/// An error that happens when `AnyPushRule` cannot
+/// be converted into `ConditionalPushRule`
+#[derive(Debug)]
+pub struct MissingConditionsError;
+
+impl Display for MissingConditionsError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "Push rule has no conditions.")
+    }
+}
+
+impl Error for MissingConditionsError {}
+
 impl TryFrom<AnyPushRule> for ConditionalPushRule {
-    type Error = AnyPushRuleConversionError;
+    type Error = MissingConditionsError;
 
     fn try_from(push_rule: AnyPushRule) -> Result<Self, Self::Error> {
         if let AnyPushRule {
@@ -201,7 +223,7 @@ impl TryFrom<AnyPushRule> for ConditionalPushRule {
         {
             Ok(ConditionalPushRule { actions, default, enabled, rule_id, conditions })
         } else {
-            Err(AnyPushRuleConversionError)
+            Err(MissingConditionsError)
         }
     }
 }
