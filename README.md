@@ -2,6 +2,10 @@
 
 *Monorepo for our various Rust + Matrix crates.*
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Minimum Rust version
 
 Ruma currently requires Rust 1.43.0. In general, we will never require beta or

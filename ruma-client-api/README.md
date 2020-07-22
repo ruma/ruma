@@ -7,7 +7,3 @@
 
 **ruma-client-api** contains serializable types for the requests and responses for each endpoint in the [Matrix](https://matrix.org/) client API specification.
 These types can be shared by client and server code.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).

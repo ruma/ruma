@@ -6,9 +6,6 @@ These types can be shared by client and server code.
 ## Documentation
 [https://docs.rs/ruma-federation-api](https://docs.rs/ruma-federation-api)
 
-## Contributing
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-
 ## License
 
 [MIT](http://opensource.org/licenses/MIT)
