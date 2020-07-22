@@ -48,6 +48,12 @@ impl ToOwned for ServerName {
     }
 }
 
+impl From<&ServerName> for Box<ServerName> {
+    fn from(s: &ServerName) -> Self {
+        s.to_owned()
+    }
+}
+
 pub(crate) fn validate(server_name: &str) -> Result<(), Error> {
     use std::net::Ipv6Addr;
 
@@ -114,8 +120,8 @@ impl AsRef<str> for Box<ServerName> {
 }
 
 impl From<Box<ServerName>> for String {
-    fn from(id: Box<ServerName>) -> Self {
-        id.into_owned().into()
+    fn from(s: Box<ServerName>) -> Self {
+        s.into_owned().into()
     }
 }
 

@@ -58,6 +58,12 @@ impl ToOwned for DeviceId {
     }
 }
 
+impl From<&DeviceId> for Box<DeviceId> {
+    fn from(id: &DeviceId) -> Self {
+        id.to_owned()
+    }
+}
+
 impl AsRef<str> for DeviceId {
     fn as_ref(&self) -> &str {
         self.as_str()
