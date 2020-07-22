@@ -4,9 +4,11 @@
 
 Breaking changes:
 
-* Remove `RoomVersionId::custom`. It could be used to create invalid room versions (empty or
-  exceeding 32 code points in length). Use the `TryFrom<&str>` or `TryFrom<String>` implementation
-  instead.
+* Change `RoomVersionId` from being an opaque struct to a non-exhaustive enum
+  * The constructor functions and `is_` predicates are now deprecated
+  * Remove `RoomVersionId::custom`. It could be used to create invalid room versions (empty or
+    exceeding 32 code points in length). Use the `TryFrom<&str>` or `TryFrom<String>` implementation
+    instead.
 * Remove diesel integration. If you were using it, please comment on the corresponding issue:
   https://github.com/ruma/ruma-identifiers/issues/22
 * Remove `TryFrom<Cow<'_, str>>` implementations for identifier types
@@ -35,8 +37,6 @@ Breaking changes:
 * Change `DeviceId` from being an alias for `String` to being a newtype around `str`
 
   This means owned device IDs are now `Box<DeviceId>`.
-* Change `RoomVersionId` from being an opaque struct to a non-exhaustive enum
-  * The constructor functions and `is_` predicates are now deprecated
 
 Deprecations:
 
