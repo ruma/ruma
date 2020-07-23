@@ -286,10 +286,10 @@ fn INITIAL_EDGES() -> Vec<EventId> {
 fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids: Vec<EventId>) {
     use itertools::Itertools;
 
-    // to activate logging use `RUST_LOG=debug cargo t`
-    tracer::fmt()
-        .with_env_filter(tracer::EnvFilter::from_default_env())
-        .init();
+    // to activate logging use `RUST_LOG=debug cargo t one_test_only`
+    // tracer::fmt()
+    //     .with_env_filter(tracer::EnvFilter::from_default_env())
+    //     .init();
 
     let mut resolver = StateResolution::default();
     // TODO what do we fill this with, everything ??
@@ -519,6 +519,59 @@ fn ban_vs_power_level() {
 }
 
 // #[test]
+fn topic_basic() {
+    let events = &[
+        to_init_pdu_event("T1", alice(), EventType::RoomTopic, Some(""), json!({})),
+        to_init_pdu_event(
+            "PA1",
+            alice(),
+            EventType::RoomPowerLevels,
+            Some(""),
+            json!({"users": {alice(): 100, bobo(): 50}}),
+        ),
+        to_init_pdu_event("T2", alice(), EventType::RoomTopic, Some(""), json!({})),
+        to_init_pdu_event(
+            "PA2",
+            alice(),
+            EventType::RoomPowerLevels,
+            Some(""),
+            json!({"users": {alice(): 100, bobo(): 0}}),
+        ),
+        to_init_pdu_event(
+            "PAB",
+            bobo(),
+            EventType::RoomPowerLevels,
+            Some(""),
+            json!({"users": {alice(): 100, bobo(): 50}}),
+        ),
+        to_init_pdu_event("T3", bobo(), EventType::RoomTopic, Some(""), json!({})),
+    ];
+
+    let edges = vec![
+        vec!["END", "PA2", "T2", "PA1", "T1", "START"],
+        vec!["END", "T3", "PB", "PA1"],
+    ]
+    .into_iter()
+    .map(|list| {
+        list.into_iter()
+            .map(|s| format!("${}:foo", s))
+            .map(EventId::try_from)
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap()
+    })
+    .collect::<Vec<_>>();
+
+    let expected_state_ids = vec!["PA2", "T2"]
+        .into_iter()
+        .map(|s| format!("${}:foo", s))
+        .map(EventId::try_from)
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
+
+    do_check(events, edges, expected_state_ids)
+}
+
+#[test]
 fn topic_reset() {
     let events = &[
         to_init_pdu_event("T1", alice(), EventType::RoomTopic, Some(""), json!({})),

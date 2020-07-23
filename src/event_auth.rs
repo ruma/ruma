@@ -180,7 +180,14 @@ pub fn auth_check(
     }
 
     if event.kind() == EventType::RoomPowerLevels {
-        if !check_power_levels(room_version, event, &auth_events)? {
+        tracing::info!("starting m.room.power_levels check");
+        if let Some(required_pwr_lvl) = check_power_levels(room_version, event, &auth_events) {
+            if !required_pwr_lvl {
+                tracing::warn!("power level was not allowed");
+                return Some(false);
+            }
+        } else {
+            tracing::warn!("power level was not allowed");
             return Some(false);
         }
         tracing::info!("power levels event allowed");
@@ -372,6 +379,13 @@ fn can_send_event(event: &StateEvent, auth_events: &StateMap<StateEvent>) -> Opt
     let send_level = get_send_level(event.kind(), event.state_key(), ple);
     let user_level = get_user_power_level(event.sender(), auth_events);
 
+    tracing::debug!(
+        "{} snd {} usr {}",
+        event.event_id().unwrap().to_string(),
+        send_level,
+        user_level
+    );
+
     if user_level < send_level {
         return Some(false);
     }
@@ -394,16 +408,17 @@ fn check_power_levels(
 ) -> Option<bool> {
     use itertools::Itertools;
 
-    let key = (power_event.kind(), power_event.state_key()?);
+    let key = (power_event.kind(), power_event.state_key().unwrap());
     let current_state = auth_events.get(&key)?;
 
     let user_content = power_event
         .deserialize_content::<room::power_levels::PowerLevelsEventContent>()
-        .ok()?;
+        .unwrap();
     let current_content = current_state
         .deserialize_content::<room::power_levels::PowerLevelsEventContent>()
-        .ok()?;
+        .unwrap();
 
+    tracing::info!("validation of power event finished");
     // validation of users is done in Ruma, synapse for loops validating user_ids and integers here
 
     let user_level = get_user_power_level(power_event.sender(), auth_events);
@@ -424,6 +439,8 @@ fn check_power_levels(
         event_levels_to_check.push(ev_id);
     }
 
+    tracing::debug!("events to check {:?}", event_levels_to_check);
+
     // TODO validate MSC2209 depending on room version check "notifications".
     // synapse does this very differently with the loops (see comments below)
     // but since we have a validated JSON event we can check the levels directly
@@ -435,6 +452,7 @@ fn check_power_levels(
         let old_level_too_big = old_level > user_level;
         let new_level_too_big = new_level > user_level;
         if old_level_too_big || new_level_too_big {
+            tracing::info!("m.room.power_level cannot add ops > than own");
             return Some(false); // cannot add ops greater than own
         }
     }
@@ -456,6 +474,7 @@ fn check_power_levels(
         }
         if user != power_event.sender() {
             if old_level.map(|int| (*int).into()) == Some(user_level) {
+                tracing::info!("m.room.power_level cannot remove ops == to own");
                 return Some(false); // cannot remove ops level == to own
             }
         }
@@ -463,6 +482,7 @@ fn check_power_levels(
         let old_level_too_big = old_level.map(|int| (*int).into()) > Some(user_level);
         let new_level_too_big = new_level.map(|int| (*int).into()) > Some(user_level);
         if old_level_too_big || new_level_too_big {
+            tracing::info!("m.room.power_level failed to add ops > than own");
             return Some(false); // cannot add ops greater than own
         }
     }
@@ -480,6 +500,7 @@ fn check_power_levels(
         let old_level_too_big = old_level.map(|int| (*int).into()) > Some(user_level);
         let new_level_too_big = new_level.map(|int| (*int).into()) > Some(user_level);
         if old_level_too_big || new_level_too_big {
+            tracing::info!("m.room.power_level failed to add ops > than own");
             return Some(false); // cannot add ops greater than own
         }
     }
@@ -579,21 +600,30 @@ fn get_send_level(
     state_key: Option<String>,
     power_lvl: Option<&StateEvent>,
 ) -> i64 {
+    tracing::debug!("{:?} {:?}", e_type, state_key);
     if let Some(ple) = power_lvl {
-        if state_key.is_some() {
-            if let Ok(content) =
-                serde_json::from_value::<room::power_levels::PowerLevelsEventContent>(ple.content())
-            {
-                if let Some(_specific_ev) = content.events.get(&e_type) {
-                    // this is done differently in synapse the `specific_ev` is set and if `users_default` is
-                    // found it is used
+        if let Ok(content) =
+            serde_json::from_value::<room::power_levels::PowerLevelsEventContent>(ple.content())
+        {
+            let mut lvl: i64 = content
+                .events
+                .get(&e_type)
+                .cloned()
+                .unwrap_or(js_int::int!(50))
+                .into();
+            let state_def: i64 = content.state_default.into();
+            let event_def: i64 = content.events_default.into();
+            if state_key.is_some() {
+                if state_def > lvl {
+                    lvl = event_def;
                 }
-                content.users_default.into()
-            } else {
-                return 50;
             }
+            if event_def > lvl {
+                lvl = event_def;
+            }
+            return lvl;
         } else {
-            return 0;
+            return 50;
         }
     } else {
         return 0;

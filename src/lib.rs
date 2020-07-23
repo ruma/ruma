@@ -140,7 +140,13 @@ impl StateResolution {
         // TODO make sure each conflicting event is in event_map??
         // synapse says `full_set = {eid for eid in full_conflicted_set if eid in event_map}`
         all_conflicted.retain(|id| event_map.contains_key(id));
-
+        println!(
+            "ALL {:?}",
+            all_conflicted
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+        );
         // get only the power events with a state_key: "" or ban/kick event (sender != state_key)
         let power_events = all_conflicted
             .iter()
@@ -148,7 +154,7 @@ impl StateResolution {
             .cloned()
             .collect::<Vec<_>>();
 
-        tracing::debug!(
+        println!(
             "POWER {:?}",
             power_events
                 .iter()
@@ -165,7 +171,7 @@ impl StateResolution {
             &all_conflicted,
         );
 
-        tracing::debug!(
+        println!(
             "SRTD {:?}",
             sorted_power_levels
                 .iter()
@@ -203,7 +209,7 @@ impl StateResolution {
             .cloned()
             .collect::<Vec<_>>();
 
-        tracing::debug!(
+        println!(
             "LEFT {:?}",
             events_to_resolve
                 .iter()
@@ -218,7 +224,7 @@ impl StateResolution {
         let sorted_left_events =
             self.mainline_sort(room_id, &events_to_resolve, power_event, &event_map, store);
 
-        tracing::debug!(
+        println!(
             "SORTED LEFT {:?}",
             sorted_left_events
                 .iter()
@@ -324,7 +330,7 @@ impl StateResolution {
         let mut event_to_pl = BTreeMap::new();
         for (idx, event_id) in graph.keys().enumerate() {
             let pl = self.get_power_level_for_sender(room_id, &event_id, event_map, store);
-            tracing::debug!("{} power level {}", event_id.to_string(), pl);
+            println!("{} power level {}", event_id.to_string(), pl);
 
             event_to_pl.insert(event_id.clone(), pl);
 
@@ -424,16 +430,17 @@ impl StateResolution {
         &self,
         room_id: &RoomId,
         event_id: &EventId,
-        _event_map: &EventMap<StateEvent>, // TODO use event_map over store ??
+        event_map: &EventMap<StateEvent>, // TODO use event_map over store ??
         store: &dyn StateStore,
     ) -> i64 {
         tracing::info!("fetch event senders ({}) power level", event_id.to_string());
-
+        let event = event_map.get(event_id);
         let mut pl = None;
         // TODO store.auth_event_ids returns "self" with the event ids is this ok
         // event.auth_event_ids does not include its own event id ?
-        for aid in store.auth_event_ids(room_id, &[event_id.clone()]).unwrap() {
-            if let Ok(aev) = store.get_event(&aid) {
+        for aid in event_map.get(event_id).unwrap().auth_event_ids() {
+            println!("aid {}", aid.to_string());
+            if let Some(aev) = event_map.get(&aid) {
                 if aev.is_type_and_key(EventType::RoomPowerLevels, "") {
                     pl = Some(aev);
                     break;
@@ -442,8 +449,10 @@ impl StateResolution {
         }
 
         if pl.is_none() {
-            for aid in store.auth_event_ids(room_id, &[event_id.clone()]).unwrap() {
-                if let Ok(aev) = store.get_event(&aid) {
+            for aid in event_map.get(event_id).unwrap().auth_event_ids() {
+                println!("aid NONE {}", aid.to_string());
+
+                if let Some(aev) = event_map.get(&aid) {
                     if aev.is_type_and_key(EventType::RoomCreate, "") {
                         if let Ok(content) = aev
                             .deserialize_content::<ruma::events::room::create::CreateEventContent>()
@@ -467,7 +476,12 @@ impl StateResolution {
             })
             .flatten()
         {
-            content.users_default.into()
+            if let Some(ev) = event {
+                if let Some(user) = content.users.get(ev.sender()) {
+                    return (*user).into();
+                }
+            }
+            content.state_default.into()
         } else {
             0
         }
@@ -510,6 +524,7 @@ impl StateResolution {
                 }
             }
 
+            tracing::debug!("event to check {:?}", event.event_id().unwrap().to_string());
             if !event_auth::auth_check(room_version, &event, auth_events)
                 .ok_or("Auth check failed due to deserialization most likely".to_string())
                 .unwrap()

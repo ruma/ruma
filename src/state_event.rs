@@ -35,8 +35,8 @@ impl StateEvent {
                                 .contains(&content.membership)
                             {
                                 return event.sender.as_str()
-                                    // TODO does None here mean the same as state_key = ""
-                                    != event.state_key.as_deref().unwrap_or("");
+                                    // TODO is None here a failure
+                                    != event.state_key.as_deref().unwrap_or("NOT A STATE KEY");
                             }
                         }
 
@@ -44,32 +44,9 @@ impl StateEvent {
                     }
                     _ => false,
                 },
-                Pdu::RoomV3Pdu(event) => event.state_key == Some("".into()),
+                Pdu::RoomV3Pdu(event) => panic!(),
             },
-            Self::Sync(any_event) => match any_event {
-                PduStub::RoomV1PduStub(event) => match event.kind {
-                    EventType::RoomPowerLevels
-                    | EventType::RoomJoinRules
-                    | EventType::RoomCreate => event.state_key == Some("".into()),
-                    EventType::RoomMember => {
-                        if let Ok(content) =
-                            serde_json::from_value::<MemberEventContent>(event.content.clone())
-                        {
-                            if [MembershipState::Leave, MembershipState::Ban]
-                                .contains(&content.membership)
-                            {
-                                return event.sender.as_str()
-                                    // TODO does None here mean the same as state_key = ""
-                                    != event.state_key.as_deref().unwrap_or("");
-                            }
-                        }
-
-                        false
-                    }
-                    _ => false,
-                },
-                PduStub::RoomV3PduStub(event) => event.state_key == Some("".into()),
-            },
+            Self::Sync(any_event) => panic!(),
         }
     }
     pub fn deserialize_content<C: serde::de::DeserializeOwned>(
