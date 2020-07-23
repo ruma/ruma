@@ -390,7 +390,7 @@ mod tests {
         let deserialized =
             from_str::<RoomVersionId>(r#""1""#).expect("Failed to convert RoomVersionId to JSON.");
 
-        assert_matches!(deserialized, RoomVersionId::Version1);
+        assert_eq!(deserialized, RoomVersionId::Version1);
         assert!(deserialized.is_official());
 
         assert_eq!(

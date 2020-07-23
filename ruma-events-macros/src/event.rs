@@ -10,8 +10,9 @@ use crate::event_parse::{to_kind_variation, EventKindVariation};
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     let ident = &input.ident;
 
-    let (_kind, var) = to_kind_variation(ident)
-        .ok_or(syn::Error::new(Span::call_site(), "not a valid ruma event struct identifier"))?;
+    let (_kind, var) = to_kind_variation(ident).ok_or_else(|| {
+        syn::Error::new(Span::call_site(), "not a valid ruma event struct identifier")
+    })?;
 
     let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
     let is_generic = !input.generics.params.is_empty();
