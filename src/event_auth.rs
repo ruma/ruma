@@ -65,22 +65,26 @@ pub fn auth_check(
     event: &StateEvent,
     auth_events: StateMap<StateEvent>,
 ) -> Option<bool> {
-    tracing::debug!("auth_check begingin");
+    tracing::info!("auth_check beginning");
+
+    // don't let power from other rooms be used
     for auth_event in auth_events.values() {
         if auth_event.room_id() != event.room_id() {
             return Some(false);
         }
     }
 
-    // TODO sig_check is false when called by `iterative_auth_check`
+    // TODO do_sig_check, do_size_check is false when called by `iterative_auth_check`
 
     // Implementation of https://matrix.org/docs/spec/rooms/v1#authorization-rules
     //
     // 1. If type is m.room.create:
     if event.kind() == EventType::RoomCreate {
+        tracing::info!("start m.room.create check");
+
         // domain of room_id must match domain of sender.
         if event.room_id().map(|id| id.server_name()) != Some(event.sender().server_name()) {
-            return Some(false);
+            return Some(false); // creation events room id does not match senders
         }
 
         // if content.room_version is present and is not a valid version
@@ -97,7 +101,7 @@ pub fn auth_check(
             return Some(false);
         }
 
-        tracing::debug!("m.room.create event was allowed");
+        tracing::info!("m.room.create event was allowed");
         return Some(true);
     }
 
@@ -106,18 +110,25 @@ pub fn auth_check(
         .get(&(EventType::RoomCreate, "".into()))
         .is_none()
     {
+        tracing::warn!("no m.room.create event in auth chain");
+
         return Some(false);
     }
 
     // check for m.federate
     if event.room_id().map(|id| id.server_name()) != Some(event.sender().server_name()) {
+        tracing::info!("checking federation");
+
         if !can_federate(&auth_events) {
+            tracing::warn!("federation not allowed");
+
             return Some(false);
         }
     }
 
     // 4. if type is m.room.aliases
     if event.kind() == EventType::RoomAliases {
+        tracing::info!("starting m.room.aliases check");
         // TODO && room_version "special case aliases auth" ??
         if event.state_key().is_none() {
             return Some(false); // must have state_key
@@ -130,18 +141,29 @@ pub fn auth_check(
             return Some(false);
         }
 
-        tracing::debug!("m.room.aliases event was allowed");
+        tracing::info!("m.room.aliases event was allowed");
         return Some(true);
     }
 
     if event.kind() == EventType::RoomMember {
+        tracing::info!("starting m.room.member check");
+
         if is_membership_change_allowed(event, &auth_events)? {
-            tracing::debug!("m.room.member event was allowed");
+            tracing::info!("m.room.member membership change was allowed");
             return Some(true);
         }
+
+        tracing::info!("m.room.member event was allowed");
+        return Some(true);
     }
 
-    if !check_event_sender_in_room(event, &auth_events)? {
+    if let Some(in_room) = check_event_sender_in_room(event, &auth_events) {
+        if !in_room {
+            tracing::warn!("sender not in room");
+            return Some(false);
+        }
+    } else {
+        tracing::warn!("sender not in room");
         return Some(false);
     }
 
@@ -153,6 +175,7 @@ pub fn auth_check(
     }
 
     if !can_send_event(event, &auth_events)? {
+        tracing::warn!("user cannot send event");
         return Some(false);
     }
 
@@ -160,6 +183,7 @@ pub fn auth_check(
         if !check_power_levels(room_version, event, &auth_events)? {
             return Some(false);
         }
+        tracing::info!("power levels event allowed");
     }
 
     if event.kind() == EventType::RoomRedaction {
@@ -168,7 +192,7 @@ pub fn auth_check(
         }
     }
 
-    tracing::debug!("allowing event passed all checks");
+    tracing::info!("allowing event passed all checks");
     Some(true)
 }
 
@@ -194,7 +218,8 @@ fn is_membership_change_allowed(
 ) -> Option<bool> {
     let content = event
         .deserialize_content::<room::member::MemberEventContent>()
-        .ok()?;
+        .ok()
+        .unwrap();
     let membership = content.membership;
 
     // check if this is the room creator joining
@@ -210,17 +235,14 @@ fn is_membership_change_allowed(
         }
     }
 
-    let target_user_id = UserId::try_from(event.state_key()?).ok()?;
+    let target_user_id = UserId::try_from(event.state_key().unwrap()).ok().unwrap();
     // if the server_names are different and federation is NOT allowed
-    if event.room_id()?.server_name() != target_user_id.server_name() {
+    if event.room_id().unwrap().server_name() != target_user_id.server_name() {
         if !can_federate(auth_events) {
             return Some(false);
         }
     }
 
-    // TODO according to
-    // https://github.com/matrix-org/synapse/blob/f2af3e4fc550e7e93be1b0f425c3e9c484b96293/synapse/events/__init__.py#L240
-    // sender is the `user_id`?
     let key = (EventType::RoomMember, event.sender().to_string());
     let caller = auth_events.get(&key);
 
@@ -246,7 +268,7 @@ fn is_membership_change_allowed(
     let user_level = get_user_power_level(event.sender(), auth_events);
     let target_level = get_user_power_level(event.sender(), auth_events);
 
-    // synapse has a not "what to do for default here                  ##"
+    // synapse has a not "what to do for default here   50"
     let ban_level = get_named_level(auth_events, "ban", 50);
 
     // TODO clean this up
@@ -327,12 +349,14 @@ fn is_membership_change_allowed(
 }
 
 /// Is the event's sender in the room that they sent the event to.
+///
+/// A return value of None is not a failure
 fn check_event_sender_in_room(
     event: &StateEvent,
     auth_events: &StateMap<StateEvent>,
 ) -> Option<bool> {
     let mem = auth_events.get(&(EventType::RoomMember, event.sender().to_string()))?;
-    // TODO this is check_membership
+    // TODO this is check_membership a helper fn in synapse but it does this
     Some(
         mem.deserialize_content::<room::member::MemberEventContent>()
             .ok()?

@@ -67,7 +67,7 @@ impl StateResolution {
         store: &dyn StateStore,
         // TODO actual error handling (`thiserror`??)
     ) -> Result<ResolutionResult, String> {
-        tracing::debug!("State resolution starting");
+        tracing::info!("State resolution starting");
 
         let mut event_map = if let Some(ev_map) = event_map {
             ev_map
@@ -81,7 +81,7 @@ impl StateResolution {
             return Ok(ResolutionResult::Resolved(clean));
         }
 
-        tracing::debug!("computing {} conflicting events", conflicting.len());
+        tracing::info!("computing {} conflicting events", conflicting.len());
 
         // the set of auth events that are not common across server forks
         let mut auth_diff = self.get_auth_chain_diff(room_id, &state_sets, &event_map, store)?;
@@ -94,7 +94,7 @@ impl StateResolution {
             .into_iter()
             .collect::<Vec<_>>();
 
-        println!(
+        tracing::debug!(
             "FULL CONF {:?}",
             all_conflicted
                 .iter()
@@ -102,7 +102,7 @@ impl StateResolution {
                 .collect::<Vec<_>>()
         );
 
-        tracing::debug!("full conflicted set is {} events", all_conflicted.len());
+        tracing::info!("full conflicted set is {} events", all_conflicted.len());
 
         // gather missing events for the event_map
         let events = store
@@ -147,7 +147,8 @@ impl StateResolution {
             .filter(|id| is_power_event(id, store))
             .cloned()
             .collect::<Vec<_>>();
-        println!(
+
+        tracing::debug!(
             "POWER {:?}",
             power_events
                 .iter()
@@ -164,7 +165,7 @@ impl StateResolution {
             &all_conflicted,
         );
 
-        println!(
+        tracing::debug!(
             "SRTD {:?}",
             sorted_power_levels
                 .iter()
@@ -172,7 +173,7 @@ impl StateResolution {
                 .collect::<Vec<_>>()
         );
 
-        // sequentially auth check each event.
+        // sequentially auth check each power level event event.
         let resolved = self.iterative_auth_check(
             room_id,
             room_version,
@@ -182,7 +183,13 @@ impl StateResolution {
             store,
         )?;
 
-        println!("AUTHED {:?}", resolved.iter().collect::<Vec<_>>());
+        tracing::debug!(
+            "AUTHED {:?}",
+            resolved
+                .iter()
+                .map(|(key, id)| (key, id.to_string()))
+                .collect::<Vec<_>>()
+        );
 
         // At this point the power_events have been resolved we now have to
         // sort the remaining events using the mainline of the resolved power level.
@@ -196,7 +203,7 @@ impl StateResolution {
             .cloned()
             .collect::<Vec<_>>();
 
-        println!(
+        tracing::debug!(
             "LEFT {:?}",
             events_to_resolve
                 .iter()
@@ -206,14 +213,14 @@ impl StateResolution {
 
         let power_event = resolved.get(&(EventType::RoomPowerLevels, "".into()));
 
-        println!("PL {:?}", power_event);
+        tracing::debug!("PL {:?}", power_event);
 
         let sorted_left_events =
             self.mainline_sort(room_id, &events_to_resolve, power_event, &event_map, store);
 
-        println!(
+        tracing::debug!(
             "SORTED LEFT {:?}",
-            events_to_resolve
+            sorted_left_events
                 .iter()
                 .map(ToString::to_string)
                 .collect::<Vec<_>>()
@@ -243,6 +250,11 @@ impl StateResolution {
         state_sets: &[StateMap<EventId>],
     ) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
         use itertools::Itertools;
+
+        tracing::info!(
+            "seperating {} sets of events into conflicted/unconflicted",
+            state_sets.len()
+        );
 
         let mut unconflicted_state = StateMap::new();
         let mut conflicted_state = StateMap::new();
@@ -275,17 +287,8 @@ impl StateResolution {
     ) -> Result<Vec<EventId>, String> {
         use itertools::Itertools;
 
-        println!(
-            "{:?}",
-            state_sets
-                .iter()
-                .flat_map(|map| map.values())
-                .map(ToString::to_string)
-                .dedup()
-                .collect::<Vec<_>>()
-        );
-
         tracing::debug!("calculating auth chain difference");
+
         store.auth_chain_diff(
             room_id,
             state_sets
@@ -321,7 +324,7 @@ impl StateResolution {
         let mut event_to_pl = BTreeMap::new();
         for (idx, event_id) in graph.keys().enumerate() {
             let pl = self.get_power_level_for_sender(room_id, &event_id, event_map, store);
-            println!("{}", pl);
+            tracing::debug!("{} power level {}", event_id.to_string(), pl);
 
             event_to_pl.insert(event_id.clone(), pl);
 
@@ -333,7 +336,7 @@ impl StateResolution {
         }
 
         self.lexicographical_topological_sort(&mut graph, |event_id| {
-            println!("{:?}", event_map.get(event_id).unwrap().origin_server_ts());
+            // tracing::debug!("{:?}", event_map.get(event_id).unwrap().origin_server_ts());
             let ev = event_map.get(event_id).unwrap();
             let pl = event_to_pl.get(event_id).unwrap();
             // This return value is the key used for sorting events,
@@ -354,6 +357,7 @@ impl StateResolution {
     where
         F: Fn(&EventId) -> (i64, SystemTime, Option<EventId>),
     {
+        tracing::info!("starting lexicographical topological sort");
         // NOTE: an event that has no incoming edges happened most recently,
         // and an event that has no outgoing edges happened least recently.
 
@@ -409,7 +413,7 @@ impl StateResolution {
             sorted.push(node.clone());
         }
 
-        // println!(
+        // tracing::debug!(
         //     "{:#?}",
         //     sorted.iter().map(ToString::to_string).collect::<Vec<_>>()
         // );
@@ -423,7 +427,11 @@ impl StateResolution {
         _event_map: &EventMap<StateEvent>, // TODO use event_map over store ??
         store: &dyn StateStore,
     ) -> i64 {
+        tracing::info!("fetch event senders ({}) power level", event_id.to_string());
+
         let mut pl = None;
+        // TODO store.auth_event_ids returns "self" with the event ids is this ok
+        // event.auth_event_ids does not include its own event id ?
         for aid in store.auth_event_ids(room_id, &[event_id.clone()]).unwrap() {
             if let Ok(aev) = store.get_event(&aid) {
                 if aev.is_type_and_key(EventType::RoomPowerLevels, "") {
@@ -467,25 +475,26 @@ impl StateResolution {
 
     fn iterative_auth_check(
         &mut self,
-        room_id: &RoomId,
+        _room_id: &RoomId,
         room_version: &RoomVersionId,
         power_events: &[EventId],
         unconflicted_state: &StateMap<EventId>,
         _event_map: &EventMap<StateEvent>, // TODO use event_map over store ??
         store: &dyn StateStore,
     ) -> Result<StateMap<EventId>, String> {
-        tracing::debug!("starting iter auth check");
+        tracing::info!("starting iterative auth check");
 
-        let resolved_state = unconflicted_state.clone();
+        let mut resolved_state = unconflicted_state.clone();
 
         for (idx, event_id) in power_events.iter().enumerate() {
             let event = store.get_event(event_id).unwrap();
 
             let mut auth_events = BTreeMap::new();
-            for aid in store.auth_event_ids(room_id, &[event_id.clone()]).unwrap() {
+            for aid in event.auth_event_ids() {
                 if let Ok(ev) = store.get_event(&aid) {
-                    // TODO is None the same as "" for state_key, pretty sure it is NOT
-                    auth_events.insert((ev.kind(), ev.state_key().unwrap_or_default()), ev);
+                    // TODO what to do when no state_key is found ??
+                    // TODO check "rejected_reason", I'm guessing this is redacted_because for ruma ??
+                    auth_events.insert((ev.kind(), ev.state_key().unwrap()), ev);
                 } else {
                     tracing::warn!("auth event id for {} is missing {}", aid, event_id);
                 }
@@ -502,9 +511,14 @@ impl StateResolution {
             }
 
             if !event_auth::auth_check(room_version, &event, auth_events)
-                .ok_or("Auth check failed due to deserialization most likely".to_string())?
+                .ok_or("Auth check failed due to deserialization most likely".to_string())
+                .unwrap()
             {
                 // TODO synapse passes here on AuthError ??
+                tracing::warn!("event {} failed the authentication", event_id.to_string());
+            } else {
+                // add event to resolved state map
+                resolved_state.insert((event.kind(), event.state_key().unwrap()), event_id.clone());
             }
 
             // We yield occasionally when we're working with large data sets to
@@ -527,6 +541,10 @@ impl StateResolution {
         store: &dyn StateStore,
     ) -> Vec<EventId> {
         tracing::debug!("mainline sort of remaining events");
+        // tracing::debug!(
+        //     "{:?}",
+        //     to_sort.iter().map(ToString::to_string).collect::<Vec<_>>()
+        // );
         // There can be no EventId's to sort, bail.
         if to_sort.is_empty() {
             return vec![];
@@ -565,12 +583,7 @@ impl StateResolution {
 
         let mut order_map = BTreeMap::new();
         for (idx, ev_id) in to_sort.iter().enumerate() {
-            let depth = self.get_mainline_depth(
-                room_id,
-                event_map.get(ev_id).cloned(),
-                &mainline_map,
-                store,
-            );
+            let depth = self.get_mainline_depth(store.get_event(ev_id).ok(), &mainline_map, store);
             order_map.insert(
                 ev_id,
                 (
@@ -596,36 +609,30 @@ impl StateResolution {
 
     fn get_mainline_depth(
         &mut self,
-        room_id: &RoomId,
         mut event: Option<StateEvent>,
         mainline_map: &EventMap<usize>,
         store: &dyn StateStore,
     ) -> usize {
-        let mut count = 0;
         while let Some(sort_ev) = event {
+            tracing::debug!(
+                "mainline EVENT ID {}",
+                sort_ev.event_id().unwrap().to_string()
+            );
             if let Some(id) = sort_ev.event_id() {
                 if let Some(depth) = mainline_map.get(id) {
                     return *depth;
                 }
             }
 
-            let auth_events = if let Some(id) = sort_ev.event_id() {
-                store.auth_event_ids(room_id, &[id.clone()]).unwrap()
-            } else {
-                vec![]
-            };
-            if count < 15 {
-                println!(
-                    "{:?}",
-                    auth_events
-                        .iter()
-                        .map(ToString::to_string)
-                        .collect::<Vec<_>>()
-                );
-            } else {
-                panic!("{}", sort_ev.event_id().unwrap().to_string())
-            }
-            count += 1;
+            let auth_events = sort_ev.auth_event_ids();
+            tracing::debug!(
+                "mainline AUTH EV {:?}",
+                auth_events
+                    .iter()
+                    .map(ToString::to_string)
+                    .collect::<Vec<_>>()
+            );
+
             event = None;
 
             for aid in auth_events {

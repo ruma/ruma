@@ -21,6 +21,7 @@ use ruma::{
 };
 use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 use state_res::{ResolutionResult, StateEvent, StateMap, StateResolution, StateStore};
+use tracing_subscriber as tracer;
 
 static mut SERVER_TIMESTAMP: i32 = 0;
 
@@ -66,15 +67,18 @@ fn member_content_join() -> JsonValue {
     .unwrap()
 }
 
-fn to_pdu_event(
+fn to_pdu_event<S>(
     id: &str,
     sender: UserId,
     ev_type: EventType,
     state_key: Option<&str>,
     content: JsonValue,
-    auth_events: &[EventId],
-    prev_events: &[EventId],
-) -> StateEvent {
+    auth_events: &[S],
+    prev_events: &[S],
+) -> StateEvent
+where
+    S: AsRef<str>,
+{
     let ts = unsafe {
         let ts = SERVER_TIMESTAMP;
         // increment the "origin_server_ts" value
@@ -86,6 +90,36 @@ fn to_pdu_event(
     } else {
         format!("${}:foo", id)
     };
+    let auth_events = auth_events
+        .iter()
+        .map(AsRef::as_ref)
+        .map(|s| {
+            EventId::try_from(
+                if s.contains("$") {
+                    s.to_owned()
+                } else {
+                    format!("${}:foo", s)
+                }
+                .as_str(),
+            )
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
+    let prev_events = prev_events
+        .iter()
+        .map(AsRef::as_ref)
+        .map(|s| {
+            EventId::try_from(
+                if s.contains("$") {
+                    s.to_owned()
+                } else {
+                    format!("${}:foo", s)
+                }
+                .as_str(),
+            )
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
 
     let json = if let Some(state_key) = state_key {
         json!({
@@ -249,101 +283,13 @@ fn INITIAL_EDGES() -> Vec<EventId> {
     .unwrap()
 }
 
-pub struct TestStore(RefCell<BTreeMap<EventId, StateEvent>>);
-
-#[allow(unused)]
-impl StateStore for TestStore {
-    fn get_events(&self, events: &[EventId]) -> Result<Vec<StateEvent>, String> {
-        Ok(self
-            .0
-            .borrow()
-            .iter()
-            .filter(|e| events.contains(e.0))
-            .map(|(_, s)| s)
-            .cloned()
-            .collect())
-    }
-
-    fn get_event(&self, event_id: &EventId) -> Result<StateEvent, String> {
-        self.0
-            .borrow()
-            .get(event_id)
-            .cloned()
-            .ok_or(format!("{} not found", event_id.to_string()))
-    }
-
-    fn auth_event_ids(
-        &self,
-        room_id: &RoomId,
-        event_ids: &[EventId],
-    ) -> Result<Vec<EventId>, String> {
-        let mut result = vec![];
-        let mut stack = event_ids.to_vec();
-
-        while !stack.is_empty() {
-            let ev_id = stack.pop().unwrap();
-            if result.contains(&ev_id) {
-                continue;
-            }
-
-            result.push(ev_id.clone());
-
-            let event = self.get_event(&ev_id).unwrap();
-            for aid in event.auth_event_ids() {
-                stack.push(aid);
-            }
-        }
-
-        Ok(result)
-    }
-
-    fn auth_chain_diff(
-        &self,
-        room_id: &RoomId,
-        event_ids: Vec<Vec<EventId>>,
-    ) -> Result<Vec<EventId>, String> {
-        use itertools::Itertools;
-
-        println!(
-            "EVENTS FOR AUTH {:?}",
-            event_ids
-                .iter()
-                .map(|v| v.iter().map(ToString::to_string).collect::<Vec<_>>())
-                .collect::<Vec<_>>()
-        );
-
-        let mut chains = vec![];
-        for ids in event_ids {
-            let chain = self
-                .auth_event_ids(room_id, &ids)?
-                .into_iter()
-                .collect::<BTreeSet<_>>();
-            chains.push(chain);
-        }
-
-        if let Some(chain) = chains.first() {
-            let rest = chains.iter().skip(1).flatten().cloned().collect();
-            let common = chain.intersection(&rest).collect::<Vec<_>>();
-            println!(
-                "COMMON {:?}",
-                common.iter().map(ToString::to_string).collect::<Vec<_>>()
-            );
-            Ok(chains
-                .iter()
-                .flatten()
-                .filter(|id| !common.contains(&id))
-                .cloned()
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect())
-        } else {
-            Ok(vec![])
-        }
-    }
-}
-
 fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids: Vec<EventId>) {
     use itertools::Itertools;
+
+    // to activate logging use `RUST_LOG=debug cargo t`
+    tracer::fmt()
+        .with_env_filter(tracer::EnvFilter::from_default_env())
+        .init();
 
     let mut resolver = StateResolution::default();
     // TODO what do we fill this with, everything ??
@@ -363,7 +309,6 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
     // create the DB of events that led up to this point
     // TODO maybe clean up some of these clones it is just tests but...
     for ev in INITIAL_EVENTS().values().chain(events) {
-        println!("{:?}", ev.event_id().unwrap().to_string());
         graph.insert(ev.event_id().unwrap().clone(), vec![]);
         fake_event_map.insert(ev.event_id().unwrap().clone(), ev.clone());
     }
@@ -393,7 +338,6 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         // TODO is this `key_fn` return correct ??
         .lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, Some(id.clone())))
     {
-        println!("{}", node.to_string());
         let fake_event = fake_event_map.get(&node).unwrap();
         let event_id = fake_event.event_id().unwrap();
 
@@ -411,7 +355,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
                 .collect::<Vec<_>>();
 
             // println!(
-            //     "resolving {:#?}",
+            //     "RESOLVING {:?}",
             //     state_sets
             //         .iter()
             //         .map(|map| map
@@ -430,7 +374,17 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
             );
             match resolved {
                 Ok(ResolutionResult::Resolved(state)) => state,
-                _ => panic!("resolution for {} failed", node),
+                Ok(ResolutionResult::Conflicted(state)) => panic!(
+                    "conflicted: {:?}",
+                    state
+                        .iter()
+                        .map(|map| map
+                            .iter()
+                            .map(|(key, id)| (key, id.to_string()))
+                            .collect::<Vec<_>>())
+                        .collect::<Vec<_>>()
+                ),
+                Err(e) => panic!("resolution for {} failed: {}", node, e),
             }
         };
 
@@ -443,10 +397,10 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         }
 
         let auth_types = state_res::auth_types_for_event(fake_event);
-        println!(
-            "AUTH TYPES {:?}",
-            auth_types.iter().map(|(t, id)| (t, id)).collect::<Vec<_>>()
-        );
+        // println!(
+        //     "AUTH TYPES {:?}",
+        //     auth_types.iter().map(|(t, id)| (t, id)).collect::<Vec<_>>()
+        // );
 
         let mut auth_events = vec![];
         for key in auth_types {
@@ -500,14 +454,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         .get(&EventId::try_from("$END:foo").unwrap())
         .unwrap()
         .iter()
-        .filter(|(k, v)| {
-            println!(
-                "{:?} == {:?}",
-                start_state.get(k).map(ToString::to_string),
-                Some(v.to_string())
-            );
-            expected_state.contains_key(k) || start_state.get(k) != Some(*v)
-        })
+        .filter(|(k, v)| expected_state.contains_key(k) || start_state.get(k) != Some(*v))
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect::<StateMap<EventId>>();
 
@@ -638,4 +585,101 @@ fn test_lexicographical_sort() {
             .map(|s| s.replace("$", "").replace(":foo", ""))
             .collect::<Vec<_>>()
     )
+}
+
+// A StateStore implementation for testing
+//
+//
+
+/// The test state store.
+pub struct TestStore(RefCell<BTreeMap<EventId, StateEvent>>);
+
+#[allow(unused)]
+impl StateStore for TestStore {
+    fn get_events(&self, events: &[EventId]) -> Result<Vec<StateEvent>, String> {
+        Ok(self
+            .0
+            .borrow()
+            .iter()
+            .filter(|e| events.contains(e.0))
+            .map(|(_, s)| s)
+            .cloned()
+            .collect())
+    }
+
+    fn get_event(&self, event_id: &EventId) -> Result<StateEvent, String> {
+        self.0
+            .borrow()
+            .get(event_id)
+            .cloned()
+            .ok_or(format!("{} not found", event_id.to_string()))
+    }
+
+    fn auth_event_ids(
+        &self,
+        room_id: &RoomId,
+        event_ids: &[EventId],
+    ) -> Result<Vec<EventId>, String> {
+        let mut result = vec![];
+        let mut stack = event_ids.to_vec();
+
+        // DFS for auth event chain
+        while !stack.is_empty() {
+            let ev_id = stack.pop().unwrap();
+            if result.contains(&ev_id) {
+                continue;
+            }
+
+            result.push(ev_id.clone());
+
+            let event = self.get_event(&ev_id).unwrap();
+            stack.extend(event.auth_event_ids());
+        }
+
+        Ok(result)
+    }
+
+    fn auth_chain_diff(
+        &self,
+        room_id: &RoomId,
+        event_ids: Vec<Vec<EventId>>,
+    ) -> Result<Vec<EventId>, String> {
+        use itertools::Itertools;
+
+        // println!(
+        //     "EVENTS FOR AUTH {:?}",
+        //     event_ids
+        //         .iter()
+        //         .map(|v| v.iter().map(ToString::to_string).collect::<Vec<_>>())
+        //         .collect::<Vec<_>>()
+        // );
+
+        let mut chains = vec![];
+        for ids in event_ids {
+            let chain = self
+                .auth_event_ids(room_id, &ids)?
+                .into_iter()
+                .collect::<BTreeSet<_>>();
+            chains.push(chain);
+        }
+
+        if let Some(chain) = chains.first() {
+            let rest = chains.iter().skip(1).flatten().cloned().collect();
+            let common = chain.intersection(&rest).collect::<Vec<_>>();
+            // println!(
+            //     "COMMON {:?}",
+            //     common.iter().map(ToString::to_string).collect::<Vec<_>>()
+            // );
+            Ok(chains
+                .iter()
+                .flatten()
+                .filter(|id| !common.contains(&id))
+                .cloned()
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .collect())
+        } else {
+            Ok(vec![])
+        }
+    }
 }
