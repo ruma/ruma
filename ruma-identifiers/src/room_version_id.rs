@@ -306,7 +306,6 @@ impl AsRef<str> for CustomRoomVersion {
 mod tests {
     use std::convert::TryFrom;
 
-    use matches::assert_matches;
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
@@ -390,7 +389,7 @@ mod tests {
         let deserialized =
             from_str::<RoomVersionId>(r#""1""#).expect("Failed to convert RoomVersionId to JSON.");
 
-        assert_matches!(deserialized, RoomVersionId::Version1);
+        assert_eq!(deserialized, RoomVersionId::Version1);
         assert!(deserialized.is_official());
 
         assert_eq!(
