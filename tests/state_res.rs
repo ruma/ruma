@@ -32,11 +32,11 @@ fn id(id: &str) -> EventId {
 fn alice() -> UserId {
     UserId::try_from("@alice:foo").unwrap()
 }
-fn bobo() -> UserId {
-    UserId::try_from("@bobo:foo").unwrap()
+fn bob() -> UserId {
+    UserId::try_from("@bob:foo").unwrap()
 }
-fn devin() -> UserId {
-    UserId::try_from("@devin:foo").unwrap()
+fn charlie() -> UserId {
+    UserId::try_from("@charlie:foo").unwrap()
 }
 fn zera() -> UserId {
     UserId::try_from("@zera:foo").unwrap()
@@ -244,16 +244,16 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, StateEvent> {
         ),
         to_init_pdu_event(
             "IMB",
-            bobo(),
+            bob(),
             EventType::RoomMember,
-            Some(bobo().to_string().as_str()),
+            Some(bob().to_string().as_str()),
             member_content_join(),
         ),
         to_init_pdu_event(
             "IMC",
-            devin(),
+            charlie(),
             EventType::RoomMember,
-            Some(devin().to_string().as_str()),
+            Some(charlie().to_string().as_str()),
             member_content_join(),
         ),
         to_init_pdu_event(
@@ -292,7 +292,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
     //     .init();
 
     let mut resolver = StateResolution::default();
-    // TODO what do we fill this with, everything ??
+
     let store = TestStore(RefCell::new(
         INITIAL_EVENTS()
             .values()
@@ -354,16 +354,16 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
                 .cloned()
                 .collect::<Vec<_>>();
 
-            // println!(
-            //     "RESOLVING {:?}",
-            //     state_sets
-            //         .iter()
-            //         .map(|map| map
-            //             .iter()
-            //             .map(|((t, s), id)| (t, s, id.to_string()))
-            //             .collect::<Vec<_>>())
-            //         .collect::<Vec<_>>()
-            // );
+            tracing::debug!(
+                "RESOLVING {:?}",
+                state_sets
+                    .iter()
+                    .map(|map| map
+                        .iter()
+                        .map(|((t, s), id)| (t, s, id.to_string()))
+                        .collect::<Vec<_>>())
+                    .collect::<Vec<_>>()
+            );
 
             let resolved = resolver.resolve(
                 &room_id(),
@@ -397,10 +397,6 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         }
 
         let auth_types = state_res::auth_types_for_event(fake_event);
-        // println!(
-        //     "AUTH TYPES {:?}",
-        //     auth_types.iter().map(|(t, id)| (t, id)).collect::<Vec<_>>()
-        // );
 
         let mut auth_events = vec![];
         for key in auth_types {
@@ -469,7 +465,7 @@ fn ban_vs_power_level() {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bobo(): 50}}),
+            json!({"users": {alice(): 100, bob(): 50}}),
         ),
         to_init_pdu_event(
             "MA",
@@ -482,15 +478,15 @@ fn ban_vs_power_level() {
             "MB",
             alice(),
             EventType::RoomMember,
-            Some(bobo().to_string().as_str()),
+            Some(bob().to_string().as_str()),
             member_content_ban(),
         ),
         to_init_pdu_event(
             "PB",
-            bobo(),
+            bob(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bobo(): 50}}),
+            json!({"users": {alice(): 100, bob(): 50}}),
         ),
     ];
 
@@ -518,7 +514,7 @@ fn ban_vs_power_level() {
     do_check(events, edges, expected_state_ids)
 }
 
-// #[test]
+#[test]
 fn topic_basic() {
     let events = &[
         to_init_pdu_event("T1", alice(), EventType::RoomTopic, Some(""), json!({})),
@@ -527,7 +523,7 @@ fn topic_basic() {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bobo(): 50}}),
+            json!({"users": {alice(): 100, bob(): 50}}),
         ),
         to_init_pdu_event("T2", alice(), EventType::RoomTopic, Some(""), json!({})),
         to_init_pdu_event(
@@ -535,16 +531,16 @@ fn topic_basic() {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bobo(): 0}}),
+            json!({"users": {alice(): 100, bob(): 0}}),
         ),
         to_init_pdu_event(
-            "PAB",
-            bobo(),
+            "PB",
+            bob(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bobo(): 50}}),
+            json!({"users": {alice(): 100, bob(): 50}}),
         ),
-        to_init_pdu_event("T3", bobo(), EventType::RoomTopic, Some(""), json!({})),
+        to_init_pdu_event("T3", bob(), EventType::RoomTopic, Some(""), json!({})),
     ];
 
     let edges = vec![
@@ -580,14 +576,14 @@ fn topic_reset() {
             alice(),
             EventType::RoomPowerLevels,
             Some(""),
-            json!({"users": {alice(): 100, bobo(): 50}}),
+            json!({"users": {alice(): 100, bob(): 50}}),
         ),
-        to_init_pdu_event("T2", bobo(), EventType::RoomTopic, Some(""), json!({})),
+        to_init_pdu_event("T2", bob(), EventType::RoomTopic, Some(""), json!({})),
         to_init_pdu_event(
             "MB",
             alice(),
             EventType::RoomMember,
-            Some(bobo().to_string().as_str()),
+            Some(bob().to_string().as_str()),
             member_content_ban(),
         ),
     ];
@@ -614,6 +610,30 @@ fn topic_reset() {
         .unwrap();
 
     do_check(events, edges, expected_state_ids)
+}
+
+#[test]
+fn test_event_map_none() {
+    let mut resolver = StateResolution::default();
+
+    let store = TestStore(RefCell::new(btreemap! {}));
+
+    // build up the DAG
+    let (state_at_bob, state_at_charlie, expected) = store.set_up();
+
+    let resolved = match resolver.resolve(
+        &room_id(),
+        &RoomVersionId::version_2(),
+        &[state_at_bob, state_at_charlie],
+        None,
+        &store,
+    ) {
+        Ok(ResolutionResult::Resolved(state)) => state,
+        Err(e) => panic!("{}", e),
+        _ => panic!("conflicted state left"),
+    };
+
+    assert_eq!(expected, resolved)
 }
 
 #[test]
@@ -699,16 +719,10 @@ impl StateStore for TestStore {
     ) -> Result<Vec<EventId>, String> {
         use itertools::Itertools;
 
-        // println!(
-        //     "EVENTS FOR AUTH {:?}",
-        //     event_ids
-        //         .iter()
-        //         .map(|v| v.iter().map(ToString::to_string).collect::<Vec<_>>())
-        //         .collect::<Vec<_>>()
-        // );
-
         let mut chains = vec![];
         for ids in event_ids {
+            // TODO state store `auth_event_ids` returns self in the event ids list
+            // when an event returns `auth_event_ids` self is not contained
             let chain = self
                 .auth_event_ids(room_id, &ids)?
                 .into_iter()
@@ -719,10 +733,7 @@ impl StateStore for TestStore {
         if let Some(chain) = chains.first() {
             let rest = chains.iter().skip(1).flatten().cloned().collect();
             let common = chain.intersection(&rest).collect::<Vec<_>>();
-            // println!(
-            //     "COMMON {:?}",
-            //     common.iter().map(ToString::to_string).collect::<Vec<_>>()
-            // );
+
             Ok(chains
                 .iter()
                 .flatten()
@@ -734,5 +745,115 @@ impl StateStore for TestStore {
         } else {
             Ok(vec![])
         }
+    }
+}
+
+impl TestStore {
+    pub fn set_up(&self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
+        let create_event = to_pdu_event::<EventId>(
+            "CREATE",
+            alice(),
+            EventType::RoomCreate,
+            Some(""),
+            json!({ "creator": alice() }),
+            &[],
+            &[],
+        );
+        let cre = create_event.event_id().unwrap().clone();
+        self.0
+            .borrow_mut()
+            .insert(cre.clone(), create_event.clone());
+
+        let alice_mem = to_pdu_event(
+            "IMA",
+            alice(),
+            EventType::RoomMember,
+            Some(alice().to_string().as_str()),
+            member_content_join(),
+            &[cre.clone()],
+            &[cre.clone()],
+        );
+        self.0
+            .borrow_mut()
+            .insert(alice_mem.event_id().unwrap().clone(), alice_mem.clone());
+
+        let join_rules = to_pdu_event(
+            "IJR",
+            alice(),
+            EventType::RoomJoinRules,
+            Some(""),
+            json!({ "join_rule": JoinRule::Public }),
+            &[cre.clone(), alice_mem.event_id().unwrap().clone()],
+            &[alice_mem.event_id().unwrap().clone()],
+        );
+        self.0
+            .borrow_mut()
+            .insert(join_rules.event_id().unwrap().clone(), join_rules.clone());
+
+        // Bob and Charlie join at the same time, so there is a fork
+        // this will be represented in the state_sets when we resolve
+        let bob_mem = to_pdu_event(
+            "IMB",
+            bob(),
+            EventType::RoomMember,
+            Some(bob().to_string().as_str()),
+            member_content_join(),
+            &[cre.clone(), join_rules.event_id().unwrap().clone()],
+            &[join_rules.event_id().unwrap().clone()],
+        );
+        self.0
+            .borrow_mut()
+            .insert(bob_mem.event_id().unwrap().clone(), bob_mem.clone());
+
+        let charlie_mem = to_pdu_event(
+            "IMC",
+            charlie(),
+            EventType::RoomMember,
+            Some(charlie().to_string().as_str()),
+            member_content_join(),
+            &[cre.clone(), join_rules.event_id().unwrap().clone()],
+            &[join_rules.event_id().unwrap().clone()],
+        );
+        self.0
+            .borrow_mut()
+            .insert(charlie_mem.event_id().unwrap().clone(), charlie_mem.clone());
+
+        let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
+            .iter()
+            .map(|e| {
+                (
+                    (e.kind(), e.state_key().unwrap().clone()),
+                    e.event_id().unwrap().clone(),
+                )
+            })
+            .collect::<BTreeMap<_, _>>();
+
+        let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
+            .iter()
+            .map(|e| {
+                (
+                    (e.kind(), e.state_key().unwrap().clone()),
+                    e.event_id().unwrap().clone(),
+                )
+            })
+            .collect::<BTreeMap<_, _>>();
+
+        let expected = [
+            &create_event,
+            &alice_mem,
+            &join_rules,
+            &bob_mem,
+            &charlie_mem,
+        ]
+        .iter()
+        .map(|e| {
+            (
+                (e.kind(), e.state_key().unwrap().clone()),
+                e.event_id().unwrap().clone(),
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+
+        (state_at_bob, state_at_charlie, expected)
     }
 }

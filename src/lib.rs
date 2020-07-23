@@ -140,13 +140,15 @@ impl StateResolution {
         // TODO make sure each conflicting event is in event_map??
         // synapse says `full_set = {eid for eid in full_conflicted_set if eid in event_map}`
         all_conflicted.retain(|id| event_map.contains_key(id));
-        println!(
+
+        tracing::debug!(
             "ALL {:?}",
             all_conflicted
                 .iter()
                 .map(ToString::to_string)
                 .collect::<Vec<_>>()
         );
+
         // get only the power events with a state_key: "" or ban/kick event (sender != state_key)
         let power_events = all_conflicted
             .iter()
@@ -154,7 +156,7 @@ impl StateResolution {
             .cloned()
             .collect::<Vec<_>>();
 
-        println!(
+        tracing::debug!(
             "POWER {:?}",
             power_events
                 .iter()
@@ -171,7 +173,7 @@ impl StateResolution {
             &all_conflicted,
         );
 
-        println!(
+        tracing::debug!(
             "SRTD {:?}",
             sorted_power_levels
                 .iter()
@@ -209,7 +211,7 @@ impl StateResolution {
             .cloned()
             .collect::<Vec<_>>();
 
-        println!(
+        tracing::debug!(
             "LEFT {:?}",
             events_to_resolve
                 .iter()
@@ -224,7 +226,7 @@ impl StateResolution {
         let sorted_left_events =
             self.mainline_sort(room_id, &events_to_resolve, power_event, &event_map, store);
 
-        println!(
+        tracing::debug!(
             "SORTED LEFT {:?}",
             sorted_left_events
                 .iter()
@@ -330,7 +332,7 @@ impl StateResolution {
         let mut event_to_pl = BTreeMap::new();
         for (idx, event_id) in graph.keys().enumerate() {
             let pl = self.get_power_level_for_sender(room_id, &event_id, event_map, store);
-            println!("{} power level {}", event_id.to_string(), pl);
+            tracing::info!("{} power level {}", event_id.to_string(), pl);
 
             event_to_pl.insert(event_id.clone(), pl);
 
@@ -345,10 +347,20 @@ impl StateResolution {
             // tracing::debug!("{:?}", event_map.get(event_id).unwrap().origin_server_ts());
             let ev = event_map.get(event_id).unwrap();
             let pl = event_to_pl.get(event_id).unwrap();
+
+            tracing::debug!(
+                "{:?}",
+                (
+                    -*pl,
+                    ev.origin_server_ts().clone(),
+                    ev.event_id().unwrap().to_string()
+                )
+            );
+
             // This return value is the key used for sorting events,
             // events are then sorted by power level, time,
             // and lexically by event_id.
-            (*pl, ev.origin_server_ts().clone(), ev.event_id().cloned())
+            (-*pl, ev.origin_server_ts().clone(), ev.event_id().cloned())
         })
     }
 
@@ -419,16 +431,12 @@ impl StateResolution {
             sorted.push(node.clone());
         }
 
-        // tracing::debug!(
-        //     "{:#?}",
-        //     sorted.iter().map(ToString::to_string).collect::<Vec<_>>()
-        // );
         sorted
     }
 
     fn get_power_level_for_sender(
         &self,
-        room_id: &RoomId,
+        _room_id: &RoomId,
         event_id: &EventId,
         event_map: &EventMap<StateEvent>, // TODO use event_map over store ??
         store: &dyn StateStore,
@@ -438,9 +446,8 @@ impl StateResolution {
         let mut pl = None;
         // TODO store.auth_event_ids returns "self" with the event ids is this ok
         // event.auth_event_ids does not include its own event id ?
-        for aid in event_map.get(event_id).unwrap().auth_event_ids() {
-            println!("aid {}", aid.to_string());
-            if let Some(aev) = event_map.get(&aid) {
+        for aid in store.get_event(event_id).unwrap().auth_event_ids() {
+            if let Ok(aev) = store.get_event(&aid) {
                 if aev.is_type_and_key(EventType::RoomPowerLevels, "") {
                     pl = Some(aev);
                     break;
@@ -449,10 +456,8 @@ impl StateResolution {
         }
 
         if pl.is_none() {
-            for aid in event_map.get(event_id).unwrap().auth_event_ids() {
-                println!("aid NONE {}", aid.to_string());
-
-                if let Some(aev) = event_map.get(&aid) {
+            for aid in store.get_event(event_id).unwrap().auth_event_ids() {
+                if let Ok(aev) = store.get_event(&aid) {
                     if aev.is_type_and_key(EventType::RoomCreate, "") {
                         if let Ok(content) = aev
                             .deserialize_content::<ruma::events::room::create::CreateEventContent>()
@@ -478,10 +483,11 @@ impl StateResolution {
         {
             if let Some(ev) = event {
                 if let Some(user) = content.users.get(ev.sender()) {
+                    tracing::debug!("found {} at power_level {}", ev.sender().to_string(), user);
                     return (*user).into();
                 }
             }
-            content.state_default.into()
+            content.users_default.into()
         } else {
             0
         }
@@ -549,7 +555,7 @@ impl StateResolution {
     /// the `resolved_power_level`.
     fn mainline_sort(
         &mut self,
-        room_id: &RoomId,
+        _room_id: &RoomId,
         to_sort: &[EventId],
         resolved_power_level: Option<&EventId>,
         event_map: &EventMap<StateEvent>,
@@ -571,7 +577,7 @@ impl StateResolution {
         while let Some(p) = pl {
             mainline.push(p.clone());
             // We don't need the actual pl_ev here since we delegate to the store
-            let auth_events = store.auth_event_ids(room_id, &[p]).unwrap();
+            let auth_events = store.get_event(&p).unwrap().auth_event_ids();
             pl = None;
             for aid in auth_events {
                 let ev = store.get_event(&aid).unwrap();
@@ -664,7 +670,7 @@ impl StateResolution {
 
     fn add_event_and_auth_chain_to_graph(
         &self,
-        room_id: &RoomId,
+        _room_id: &RoomId,
         graph: &mut BTreeMap<EventId, Vec<EventId>>,
         event_id: &EventId,
         store: &dyn StateStore,
@@ -677,7 +683,7 @@ impl StateResolution {
             graph.entry(eid.clone()).or_insert(vec![]);
             // prefer the store to event as the store filters dedups the events
             // otherwise it seems we can loop forever
-            for aid in store.auth_event_ids(room_id, &[eid.clone()]).unwrap() {
+            for aid in store.get_event(&eid).unwrap().auth_event_ids() {
                 if auth_diff.contains(&aid) {
                     if !graph.contains_key(&aid) {
                         state.push(aid.clone());
