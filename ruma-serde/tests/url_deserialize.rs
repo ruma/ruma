@@ -260,7 +260,7 @@ fn deserialize_nested_struct_with_list() {
     let nested = Nested { item: InnerList { list: vec![1, 2, 3] } };
 
     assert_eq!(
-        urlencoded::from_str(&encoder.append_pair("item", r#"{"list":[1,2,3]}"#).finish(),),
+        urlencoded::from_str(&encoder.append_pair("item", r#"{"list":[1,2,3]}"#).finish()),
         Ok(nested)
     );
 }
@@ -272,7 +272,7 @@ fn deserialize_nested_list_option() {
 
     let nested = Nested { item: InnerList { list: vec![Some(1), Some(2), None] } };
     assert_eq!(
-        urlencoded::from_str(&encoder.append_pair("item", r#"{"list":[1,2,null]}"#).finish(),),
+        urlencoded::from_str(&encoder.append_pair("item", r#"{"list":[1,2,null]}"#).finish()),
         Ok(nested)
     );
 }
