@@ -5,8 +5,6 @@
 
 #![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
 
-extern crate proc_macro;
-
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};
 

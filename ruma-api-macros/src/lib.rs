@@ -11,8 +11,6 @@
 #![allow(clippy::unknown_clippy_lints)]
 #![recursion_limit = "256"]
 
-extern crate proc_macro;
-
 use std::convert::TryFrom as _;
 
 use proc_macro::TokenStream;
