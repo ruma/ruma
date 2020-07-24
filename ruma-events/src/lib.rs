@@ -121,6 +121,7 @@ use std::fmt::Debug;
 
 use js_int::Int;
 use ruma_common::Raw;
+use ruma_identifiers::RoomId;
 use serde::{
     de::{self, IgnoredAny},
     Deserialize, Serialize,
@@ -246,6 +247,32 @@ pub struct RedactedSyncUnsigned {
     pub redacted_because: Option<Box<SyncRedactionEvent>>,
 }
 
+impl From<RedactedUnsigned> for RedactedSyncUnsigned {
+    fn from(redacted: RedactedUnsigned) -> Self {
+        match redacted.redacted_because.map(|b| *b) {
+            Some(RedactionEvent {
+                sender,
+                event_id,
+                origin_server_ts,
+                redacts,
+                unsigned,
+                content,
+                ..
+            }) => Self {
+                redacted_because: Some(Box::new(SyncRedactionEvent {
+                    sender,
+                    event_id,
+                    origin_server_ts,
+                    redacts,
+                    unsigned,
+                    content,
+                })),
+            },
+            _ => Self { redacted_because: None },
+        }
+    }
+}
+
 impl RedactedSyncUnsigned {
     /// Whether this unsigned data is empty (`redacted_because` is `None`).
     ///
@@ -255,6 +282,32 @@ impl RedactedSyncUnsigned {
     /// present but contained none of the known fields.
     pub fn is_empty(&self) -> bool {
         self.redacted_because.is_none()
+    }
+
+    /// Convert a `RedactedSyncUnsigned` into `RedactedUnsigned`, converting the
+    /// underlying sync redaction event to a full redaction event (with room_id).
+    pub fn into_full(self, room_id: RoomId) -> RedactedUnsigned {
+        match self.redacted_because.map(|b| *b) {
+            Some(SyncRedactionEvent {
+                sender,
+                event_id,
+                origin_server_ts,
+                redacts,
+                unsigned,
+                content,
+            }) => RedactedUnsigned {
+                redacted_because: Some(Box::new(RedactionEvent {
+                    room_id,
+                    sender,
+                    event_id,
+                    origin_server_ts,
+                    redacts,
+                    unsigned,
+                    content,
+                })),
+            },
+            _ => RedactedUnsigned { redacted_because: None },
+        }
     }
 }
 

@@ -2,7 +2,6 @@
 
 use std::fmt;
 
-use matches::matches;
 use proc_macro2::Span;
 use quote::format_ident;
 use syn::{
@@ -44,9 +43,21 @@ impl EventKindVariation {
     pub fn is_redacted(&self) -> bool {
         matches!(self, Self::Redacted | Self::RedactedSync | Self::RedactedStripped)
     }
+
+    pub fn to_full_variation(&self) -> Self {
+        match self {
+            EventKindVariation::Redacted
+            | EventKindVariation::RedactedSync
+            | EventKindVariation::RedactedStripped => EventKindVariation::Redacted,
+            EventKindVariation::Full | EventKindVariation::Sync | EventKindVariation::Stripped => {
+                EventKindVariation::Full
+            }
+        }
+    }
 }
 
 // If the variants of this enum change `to_event_path` needs to be updated as well.
+#[derive(Debug, Eq, PartialEq)]
 pub enum EventKind {
     Basic,
     Ephemeral,

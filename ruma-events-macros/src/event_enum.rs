@@ -122,6 +122,8 @@ fn expand_any_with_deser(
         }
     };
 
+    let event_enum_to_from_sync = expand_conversion_impl(kind, var, &variants);
+
     let redacted_enum = expand_redacted_enum(kind, var);
 
     let field_accessor_impl = accessor_methods(kind, var, &variants);
@@ -131,6 +133,8 @@ fn expand_any_with_deser(
     Some(quote! {
         #any_enum
 
+        #event_enum_to_from_sync
+
         #field_accessor_impl
 
         #redact_impl
@@ -139,6 +143,104 @@ fn expand_any_with_deser(
 
         #redacted_enum
     })
+}
+
+fn expand_conversion_impl(
+    kind: &EventKind,
+    var: &EventKindVariation,
+    variants: &[Ident],
+) -> Option<TokenStream> {
+    let ident = kind.to_event_enum_ident(var)?;
+    let variants = &variants
+        .iter()
+        .filter(|id| {
+            // We filter this variant out only for non redacted events.
+            // The type of the struct held in the enum variant is different in this case
+            // so we construct the variant manually.
+            !(id.to_string().as_str() == "RoomRedaction"
+                && matches!(var, EventKindVariation::Full | EventKindVariation::Sync))
+        })
+        .collect::<Vec<_>>();
+
+    match var {
+        EventKindVariation::Full | EventKindVariation::Redacted => {
+            // the opposite event variation full -> sync, redacted -> redacted sync
+            let variation = if var == &EventKindVariation::Full {
+                EventKindVariation::Sync
+            } else {
+                EventKindVariation::RedactedSync
+            };
+
+            let sync = kind.to_event_enum_ident(&variation)?;
+            let sync_struct = kind.to_event_ident(&variation)?;
+
+            let redaction = if let (EventKind::Message, EventKindVariation::Full) = (kind, var) {
+                quote! {
+                    #ident::RoomRedaction(event) => {
+                        Self::RoomRedaction(::ruma_events::room::redaction::SyncRedactionEvent::from(event))
+                    },
+                }
+            } else {
+                TokenStream::new()
+            };
+
+            Some(quote! {
+                impl From<#ident> for #sync {
+                    fn from(event: #ident) -> Self {
+                        match event {
+                            #(
+                                #ident::#variants(event) => {
+                                    Self::#variants(::ruma_events::#sync_struct::from(event))
+                                },
+                            )*
+                            #redaction
+                            #ident::Custom(event) => {
+                                Self::Custom(::ruma_events::#sync_struct::from(event))
+                            },
+                        }
+                    }
+                }
+            })
+        }
+        EventKindVariation::Sync | EventKindVariation::RedactedSync => {
+            let variation = if var == &EventKindVariation::Sync {
+                EventKindVariation::Full
+            } else {
+                EventKindVariation::Redacted
+            };
+            let full = kind.to_event_enum_ident(&variation)?;
+
+            let redaction = if let (EventKind::Message, EventKindVariation::Sync) = (kind, var) {
+                quote! {
+                    Self::RoomRedaction(event) => {
+                        #full::RoomRedaction(event.into_full_event(room_id))
+                    },
+                }
+            } else {
+                TokenStream::new()
+            };
+
+            Some(quote! {
+                impl #ident {
+                    /// Convert this sync event into a full event, one with a room_id field.
+                    pub fn into_full_event(self, room_id: ::ruma_identifiers::RoomId) -> #full {
+                        match self {
+                            #(
+                                Self::#variants(event) => {
+                                    #full::#variants(event.into_full_event(room_id))
+                                },
+                            )*
+                            #redaction
+                            Self::Custom(event) => {
+                                #full::Custom(event.into_full_event(room_id))
+                            },
+                        }
+                    }
+                }
+            })
+        }
+        _ => None,
+    }
 }
 
 /// Generates the 3 redacted state enums, 2 redacted message enums,
