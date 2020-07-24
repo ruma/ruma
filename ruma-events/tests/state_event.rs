@@ -310,10 +310,10 @@ fn deserialize_full_event_convert_to_sync() {
             state_key,
             unsigned,
         }) if content.aliases == vec![RoomAliasId::try_from("#somewhere:localhost").unwrap()]
-            && event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
+            && event_id == "$h29iv0s8:example.com"
             && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
             && prev_content.aliases == vec![RoomAliasId::try_from("#inner:localhost").unwrap()]
-            && sender == UserId::try_from("@carl:example.com").unwrap()
+            && sender == "@carl:example.com"
             && state_key == ""
             && unsigned.is_empty()
     );

@@ -3,7 +3,7 @@ use std::{
     time::{Duration, UNIX_EPOCH},
 };
 
-use js_int::UInt;
+use js_int::{uint, UInt};
 use matches::assert_matches;
 use ruma_common::Raw;
 use ruma_events::{
@@ -267,11 +267,13 @@ fn deserialize_message_then_convert_to_full() {
             room_id,
             sender,
             unsigned,
-        } if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
-            && event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
+        } if sdp == "Hello"
+            && call_id == "foofoo"
+            && version == uint!(1)
+            && event_id == "$h29iv0s8:example.com"
             && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
-            && room_id == RoomId::try_from("!roomid:room.com").unwrap()
-            && sender == UserId::try_from("@carl:example.com").unwrap()
+            && room_id == "!roomid:room.com"
+            && sender == "@carl:example.com"
             && unsigned.is_empty()
     );
 }
