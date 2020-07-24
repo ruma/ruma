@@ -292,6 +292,13 @@ pub struct FormattedBody {
     pub body: String,
 }
 
+impl FormattedBody {
+    /// Creates a new HTML-formatted message body.
+    pub fn html(body: String) -> Self {
+        Self { format: MessageFormat::Html, body }
+    }
+}
+
 /// The payload for a text message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct TextMessageEventContent {
