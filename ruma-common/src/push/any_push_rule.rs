@@ -37,28 +37,21 @@ pub struct AnyPushRule {
 impl From<PushRule> for AnyPushRule {
     fn from(push_rule: PushRule) -> Self {
         let PushRule { actions, default, enabled, rule_id } = push_rule;
-        AnyPushRule { actions, default, enabled, rule_id, pattern: None, conditions: None }
+        Self { actions, default, enabled, rule_id, conditions: None, pattern: None }
     }
 }
 
 impl From<PatternedPushRule> for AnyPushRule {
     fn from(push_rule: PatternedPushRule) -> Self {
         let PatternedPushRule { actions, default, enabled, rule_id, pattern } = push_rule;
-        AnyPushRule { actions, default, enabled, rule_id, pattern: Some(pattern), conditions: None }
+        Self { actions, default, enabled, rule_id, conditions: None, pattern: Some(pattern) }
     }
 }
 
 impl From<ConditionalPushRule> for AnyPushRule {
     fn from(push_rule: ConditionalPushRule) -> Self {
         let ConditionalPushRule { actions, default, enabled, rule_id, conditions } = push_rule;
-        AnyPushRule {
-            actions,
-            default,
-            enabled,
-            rule_id,
-            pattern: None,
-            conditions: Some(conditions),
-        }
+        Self { actions, default, enabled, rule_id, conditions: Some(conditions), pattern: None }
     }
 }
 
