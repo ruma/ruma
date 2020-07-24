@@ -31,7 +31,6 @@ ruma_api! {
 
     response: {
         /// Full state of the room.
-        #[serde(with = "crate::serde::room_state")]
         pub room_state: RoomState,
     }
 }
