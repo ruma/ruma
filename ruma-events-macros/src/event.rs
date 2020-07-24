@@ -4,13 +4,13 @@ use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, Ident};
 
-use crate::event_parse::{to_kind_variation, EventKindVariation};
+use crate::event_parse::{to_kind_variation, EventKind, EventKindVariation};
 
 /// Derive `Event` macro code generation.
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     let ident = &input.ident;
 
-    let (_kind, var) = to_kind_variation(ident).ok_or_else(|| {
+    let (kind, var) = to_kind_variation(ident).ok_or_else(|| {
         syn::Error::new(Span::call_site(), "not a valid ruma event struct identifier")
     })?;
 
@@ -99,9 +99,13 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         }
     };
 
-    let deserialize_impl = expand_deserialize_event(input, &var, fields, is_generic)?;
+    let deserialize_impl = expand_deserialize_event(&input, &var, &fields, is_generic)?;
+
+    let conversion_impl = expand_from_into(&input, &kind, &var, &fields);
 
     Ok(quote! {
+        #conversion_impl
+
         #serialize_impl
 
         #deserialize_impl
@@ -109,9 +113,9 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
 }
 
 fn expand_deserialize_event(
-    input: DeriveInput,
+    input: &DeriveInput,
     var: &EventKindVariation,
-    fields: Vec<Field>,
+    fields: &[Field],
     is_generic: bool,
 ) -> syn::Result<TokenStream> {
     let ident = &input.ident;
@@ -307,6 +311,61 @@ fn expand_deserialize_event(
             }
         }
     })
+}
+
+fn expand_from_into(
+    input: &DeriveInput,
+    kind: &EventKind,
+    var: &EventKindVariation,
+    fields: &[Field],
+) -> Option<TokenStream> {
+    let ident = &input.ident;
+
+    let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
+
+    let fields = fields.iter().flat_map(|f| &f.ident).collect::<Vec<_>>();
+
+    let fields_without_unsigned =
+        fields.iter().filter(|id| id.to_string().as_str() != "unsigned").collect::<Vec<_>>();
+
+    let (into, into_full_event) = if var.is_redacted() {
+        (
+            quote! { unsigned: unsigned.into(), },
+            quote! { unsigned: unsigned.into_full_event(room_id), },
+        )
+    } else if kind == &EventKind::Ephemeral {
+        (TokenStream::new(), TokenStream::new())
+    } else {
+        (quote! { unsigned, }, quote! { unsigned, })
+    };
+
+    if let EventKindVariation::Sync | EventKindVariation::RedactedSync = var {
+        let full_struct = kind.to_event_ident(&var.to_full_variation());
+        Some(quote! {
+            impl #impl_generics From<#full_struct #ty_gen> for #ident #ty_gen #where_clause {
+                fn from(event: #full_struct #ty_gen) -> Self {
+                    let #full_struct {
+                        #( #fields, )* ..
+                    } = event;
+                    Self { #( #fields_without_unsigned, )* #into }
+                }
+            }
+
+            impl #impl_generics #ident #ty_gen #where_clause {
+                /// Convert this sync event into a full event, one with a room_id field.
+                pub fn into_full_event(self, room_id: ::ruma_identifiers::RoomId) -> #full_struct #ty_gen {
+                    let Self { #( #fields, )* } = self;
+                    #full_struct {
+                        #( #fields_without_unsigned, )*
+                        room_id: room_id.clone(),
+                        #into_full_event
+                    }
+                }
+            }
+        })
+    } else {
+        None
+    }
 }
 
 /// CamelCase's a field ident like "foo_bar" to "FooBar".
