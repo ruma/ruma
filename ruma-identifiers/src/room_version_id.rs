@@ -385,8 +385,6 @@ mod tests {
     #[cfg(feature = "serde")]
     #[test]
     fn deserialize_official_room_id() {
-        use matches::assert_matches;
-
         let deserialized =
             from_str::<RoomVersionId>(r#""1""#).expect("Failed to convert RoomVersionId to JSON.");
 
