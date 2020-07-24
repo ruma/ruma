@@ -249,31 +249,26 @@ pub struct RedactedSyncUnsigned {
 
 impl From<RedactedUnsigned> for RedactedSyncUnsigned {
     fn from(redacted: RedactedUnsigned) -> Self {
-        if let Some(why) = redacted.redacted_because {
-            let RedactionEvent {
+        match redacted.redacted_because.map(|b| *b) {
+            Some(RedactionEvent {
                 sender,
                 event_id,
-                redacts,
                 origin_server_ts,
+                redacts,
                 unsigned,
                 content,
                 ..
-            } = *why;
-            Self {
-                redacted_because: Some(
-                    SyncRedactionEvent {
-                        sender,
-                        event_id,
-                        origin_server_ts,
-                        redacts,
-                        unsigned,
-                        content,
-                    }
-                    .into(),
-                ),
-            }
-        } else {
-            Self { redacted_because: None }
+            }) => Self {
+                redacted_because: Some(Box::new(SyncRedactionEvent {
+                    sender,
+                    event_id,
+                    origin_server_ts,
+                    redacts,
+                    unsigned,
+                    content,
+                })),
+            },
+            _ => Self { redacted_because: None },
         }
     }
 }
@@ -291,32 +286,27 @@ impl RedactedSyncUnsigned {
 
     /// Convert a `RedactedSyncUnsigned` into `RedactedUnsigned`, converting the
     /// underlying sync redaction event to a full redaction event (with room_id).
-    pub fn into_full_event(self, room_id: RoomId) -> RedactedUnsigned {
-        if let Some(why) = self.redacted_because {
-            let SyncRedactionEvent {
+    pub fn into_full(self, room_id: RoomId) -> RedactedUnsigned {
+        match self.redacted_because.map(|b| *b) {
+            Some(SyncRedactionEvent {
                 sender,
                 event_id,
-                redacts,
                 origin_server_ts,
+                redacts,
                 unsigned,
                 content,
-            } = *why;
-            RedactedUnsigned {
-                redacted_because: Some(
-                    RedactionEvent {
-                        room_id,
-                        sender,
-                        event_id,
-                        origin_server_ts,
-                        redacts,
-                        unsigned,
-                        content,
-                    }
-                    .into(),
-                ),
-            }
-        } else {
-            RedactedUnsigned { redacted_because: None }
+            }) => RedactedUnsigned {
+                redacted_because: Some(Box::new(RedactionEvent {
+                    room_id,
+                    sender,
+                    event_id,
+                    origin_server_ts,
+                    redacts,
+                    unsigned,
+                    content,
+                })),
+            },
+            _ => RedactedUnsigned { redacted_because: None },
         }
     }
 }

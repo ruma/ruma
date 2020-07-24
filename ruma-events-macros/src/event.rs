@@ -329,10 +329,7 @@ fn expand_from_into(
         fields.iter().filter(|id| id.to_string().as_str() != "unsigned").collect::<Vec<_>>();
 
     let (into, into_full_event) = if var.is_redacted() {
-        (
-            quote! { unsigned: unsigned.into(), },
-            quote! { unsigned: unsigned.into_full_event(room_id), },
-        )
+        (quote! { unsigned: unsigned.into(), }, quote! { unsigned: unsigned.into_full(room_id), })
     } else if kind == &EventKind::Ephemeral {
         (TokenStream::new(), TokenStream::new())
     } else {
