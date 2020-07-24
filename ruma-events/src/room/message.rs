@@ -393,8 +393,14 @@ pub struct InReplyTo {
 
 impl TextMessageEventContent {
     /// A convenience constructor to create a plain text message
-    pub fn new_plain(body: impl Into<String>) -> TextMessageEventContent {
-        TextMessageEventContent { body: body.into(), formatted: None, relates_to: None }
+    pub fn plain(body: impl Into<String>) -> Self {
+        Self { body: body.into(), formatted: None, relates_to: None }
+    }
+
+    /// A convenience constructor to create a plain text message
+    #[deprecated = "Renamed to plain"]
+    pub fn new_plain(body: impl Into<String>) -> Self {
+        Self::plain(body)
     }
 }
 
@@ -492,7 +498,7 @@ mod tests {
 
     #[test]
     fn plain_text_content_serialization() {
-        let message_event_content = MessageEventContent::Text(TextMessageEventContent::new_plain(
+        let message_event_content = MessageEventContent::Text(TextMessageEventContent::plain(
             "> <@test:example.com> test\n\ntest reply",
         ));
 
