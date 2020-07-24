@@ -67,6 +67,9 @@ impl CiphertextInfo {
 }
 
 /// The payload for `EncryptedEvent` using the *m.megolm.v1.aes-sha2* algorithm.
+///
+/// To createn an instance of this type, first create a `MegolmV1AesSh2ContentInit` and convert it
+/// via `MegolmV1AesSha2Content::from` / `.into()`.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[non_exhaustive]
 pub struct MegolmV1AesSha2Content {
@@ -81,14 +84,6 @@ pub struct MegolmV1AesSha2Content {
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,
-}
-
-impl MegolmV1AesSha2Content {
-    /// Creates a new `MegolmV1AesSha2Content` from the given init struct.
-    pub fn new(init: MegolmV1AesSha2ContentInit) -> Self {
-        let MegolmV1AesSha2ContentInit { ciphertext, sender_key, device_id, session_id } = init;
-        Self { ciphertext, sender_key, device_id, session_id }
-    }
 }
 
 /// Mandatory initial set of fields of `MegolmV1AesSha2Content`.
@@ -108,6 +103,14 @@ pub struct MegolmV1AesSha2ContentInit {
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,
+}
+
+impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
+    /// Creates a new `MegolmV1AesSha2Content` from the given init struct.
+    fn from(init: MegolmV1AesSha2ContentInit) -> Self {
+        let MegolmV1AesSha2ContentInit { ciphertext, sender_key, device_id, session_id } = init;
+        Self { ciphertext, sender_key, device_id, session_id }
+    }
 }
 
 #[cfg(test)]
