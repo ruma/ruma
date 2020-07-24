@@ -1,10 +1,12 @@
 //! Crate **ruma_identifiers** contains types for [Matrix](https://matrix.org/) identifiers
 //! for events, rooms, room aliases, room versions, and users.
 
-#![warn(rust_2018_idioms)]
-#![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
-// Since we support Rust 1.36.0, we can't apply this suggestion yet
-#![allow(clippy::use_self)]
+#![warn(
+    rust_2018_idioms,
+    missing_copy_implementations,
+    missing_debug_implementations,
+    missing_docs
+)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 use std::{convert::TryFrom, num::NonZeroU8};

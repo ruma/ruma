@@ -87,7 +87,7 @@ mod tests {
 
     #[test]
     fn invalid_version_characters() {
-        assert_eq!(ServerKeyId::try_from("ed25519:Abc-1").unwrap_err(), Error::InvalidCharacters,);
+        assert_eq!(ServerKeyId::try_from("ed25519:Abc-1").unwrap_err(), Error::InvalidCharacters);
     }
 
     #[test]

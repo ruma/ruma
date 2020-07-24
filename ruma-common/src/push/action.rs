@@ -26,6 +26,7 @@ pub enum Action {
 
 /// The `set_tweak` action.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 #[serde(from = "tweak_serde::Tweak", into = "tweak_serde::Tweak")]
 pub enum Tweak {
     /// A string representing the sound to be played when this notification arrives.
@@ -116,7 +117,7 @@ mod tweak_serde {
     /// Values for the `set_tweak` action.
     #[derive(Clone, Deserialize, Serialize)]
     #[serde(untagged)]
-    pub enum Tweak {
+    pub(crate) enum Tweak {
         Sound(SoundTweak),
         Highlight(HighlightTweak),
         Custom {
@@ -126,15 +127,15 @@ mod tweak_serde {
         },
     }
 
-    #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+    #[derive(Clone, PartialEq, Deserialize, Serialize)]
     #[serde(tag = "set_tweak", rename = "sound")]
-    pub struct SoundTweak {
+    pub(crate) struct SoundTweak {
         value: String,
     }
 
-    #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+    #[derive(Clone, PartialEq, Deserialize, Serialize)]
     #[serde(tag = "set_tweak", rename = "highlight")]
-    pub struct HighlightTweak {
+    pub(crate) struct HighlightTweak {
         #[serde(default = "ruma_serde::default_true", skip_serializing_if = "ruma_serde::is_true")]
         value: bool,
     }

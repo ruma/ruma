@@ -1,6 +1,6 @@
 //! Common types for other ruma crates.
 
-#![warn(missing_docs)]
+#![warn(missing_docs, missing_debug_implementations)]
 
 pub mod presence;
 pub mod push;

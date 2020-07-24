@@ -153,7 +153,7 @@ mod tests {
             from_json_value::<LoginInfo>(json!({
                 "type": "m.login.password",
                 "password": "ilovebananas"
-            }),)
+            }))
             .unwrap(),
             LoginInfo::Password { password: "ilovebananas".into() }
         );
@@ -162,7 +162,7 @@ mod tests {
             from_json_value::<LoginInfo>(json!({
                 "type": "m.login.token",
                 "token": "1234567890abcdef"
-            }),)
+            }))
             .unwrap(),
             LoginInfo::Token { token: "1234567890abcdef".into() }
         );
