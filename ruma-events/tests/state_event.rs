@@ -8,8 +8,8 @@ use matches::assert_matches;
 use ruma_common::Raw;
 use ruma_events::{
     room::{aliases::AliasesEventContent, avatar::AvatarEventContent, ImageInfo, ThumbnailInfo},
-    AnyRoomEvent, AnyStateEvent, AnyStateEventContent, RawExt, StateEvent, SyncStateEvent,
-    Unsigned,
+    AnyRoomEvent, AnyStateEvent, AnyStateEventContent, AnySyncStateEvent, RawExt, StateEvent,
+    SyncStateEvent, Unsigned,
 };
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde_json::{
@@ -134,6 +134,7 @@ fn deserialize_aliases_with_prev_content() {
 
 #[test]
 fn deserialize_aliases_sync_with_room_id() {
+    // The same JSON can be used to create a sync event, it just ignores the `room_id` field
     let json_data = aliases_event_with_prev_content();
 
     assert_matches!(
@@ -282,5 +283,38 @@ fn deserialize_member_event_with_top_level_membership_field() {
             && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
             && sender == UserId::try_from("@example:localhost").unwrap()
             && content.displayname == Some("example".into())
+    );
+}
+
+#[test]
+fn deserialize_full_event_convert_to_sync() {
+    let json_data = aliases_event_with_prev_content();
+
+    let full_ev = from_json_value::<Raw<AnyStateEvent>>(json_data).unwrap().deserialize().unwrap();
+
+    // Test conversion to sync event (without room_id field)
+    let sync: AnySyncStateEvent = full_ev.into();
+    let sync_json = to_json_value(sync).unwrap();
+
+    assert_matches!(
+        from_json_value::<Raw<AnySyncStateEvent>>(sync_json)
+            .unwrap()
+            .deserialize()
+            .unwrap(),
+        AnySyncStateEvent::RoomAliases(SyncStateEvent {
+            content,
+            event_id,
+            origin_server_ts,
+            prev_content: Some(prev_content),
+            sender,
+            state_key,
+            unsigned,
+        }) if content.aliases == vec![RoomAliasId::try_from("#somewhere:localhost").unwrap()]
+            && event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
+            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && prev_content.aliases == vec![RoomAliasId::try_from("#inner:localhost").unwrap()]
+            && sender == UserId::try_from("@carl:example.com").unwrap()
+            && state_key == ""
+            && unsigned.is_empty()
     );
 }

@@ -10,7 +10,7 @@ use ruma_events::{
     call::{answer::AnswerEventContent, SessionDescription, SessionDescriptionType},
     room::{ImageInfo, ThumbnailInfo},
     sticker::StickerEventContent,
-    AnyMessageEventContent, MessageEvent, RawExt, Unsigned,
+    AnyMessageEventContent, AnySyncMessageEvent, MessageEvent, RawExt, Unsigned,
 };
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
@@ -219,6 +219,59 @@ fn deserialize_message_sticker() {
                     && *thumb_size == UInt::new(82595)
             )
             && url == "http://www.matrix.org"
+            && unsigned.is_empty()
+    );
+}
+
+#[test]
+fn deserialize_message_then_convert_to_full() {
+    let rid = RoomId::try_from("!roomid:room.com").unwrap();
+    let json_data = json!({
+        "content": {
+            "answer": {
+                "type": "answer",
+                "sdp": "Hello"
+            },
+            "call_id": "foofoo",
+            "version": 1
+        },
+        "event_id": "$h29iv0s8:example.com",
+        "origin_server_ts": 1,
+        "sender": "@carl:example.com",
+        "type": "m.call.answer"
+    });
+
+    let sync_ev =
+        from_json_value::<Raw<AnySyncMessageEvent>>(json_data).unwrap().deserialize().unwrap();
+
+    // Test conversion method
+    let full = sync_ev.into_full_event(rid);
+    let full_json = to_json_value(full).unwrap();
+
+    assert_matches!(
+        from_json_value::<Raw<MessageEvent<AnyMessageEventContent>>>(full_json)
+            .unwrap()
+            .deserialize()
+            .unwrap(),
+        MessageEvent {
+            content: AnyMessageEventContent::CallAnswer(AnswerEventContent {
+                answer: SessionDescription {
+                    session_type: SessionDescriptionType::Answer,
+                    sdp,
+                },
+                call_id,
+                version,
+            }),
+            event_id,
+            origin_server_ts,
+            room_id,
+            sender,
+            unsigned,
+        } if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
+            && event_id == EventId::try_from("$h29iv0s8:example.com").unwrap()
+            && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
+            && room_id == RoomId::try_from("!roomid:room.com").unwrap()
+            && sender == UserId::try_from("@carl:example.com").unwrap()
             && unsigned.is_empty()
     );
 }
