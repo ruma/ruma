@@ -7,6 +7,7 @@ use strum::{Display, EnumString};
 
 /// A description of a user's connectivity and availability for chat.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
+#[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum PresenceState {

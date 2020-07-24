@@ -26,6 +26,7 @@ pub enum Action {
 
 /// The `set_tweak` action.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 #[serde(from = "tweak_serde::Tweak", into = "tweak_serde::Tweak")]
 pub enum Tweak {
     /// A string representing the sound to be played when this notification arrives.

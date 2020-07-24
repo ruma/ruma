@@ -6,11 +6,17 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use super::{Action, ConditionalPushRule, PatternedPushRule, PushCondition, PushRule};
+use super::{
+    Action, ConditionalPushRule, ConditionalPushRuleInit, PatternedPushRule, PatternedPushRuleInit,
+    PushCondition, PushRule, PushRuleInit,
+};
 
 /// Like `PushRule`, but may represent any kind of push rule
 /// thanks to `pattern` and `conditions` being optional.
+///
+/// To create an instance of this type, use one of its `From` implementations.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct AnyPushRule {
     /// The actions to perform when this rule is matched.
     pub actions: Vec<Action>,
@@ -55,6 +61,27 @@ impl From<ConditionalPushRule> for AnyPushRule {
     }
 }
 
+impl From<PushRuleInit> for AnyPushRule {
+    fn from(init: PushRuleInit) -> Self {
+        let PushRuleInit { actions, default, enabled, rule_id } = init;
+        Self { actions, default, enabled, rule_id, pattern: None, conditions: None }
+    }
+}
+
+impl From<ConditionalPushRuleInit> for AnyPushRule {
+    fn from(init: ConditionalPushRuleInit) -> Self {
+        let ConditionalPushRuleInit { actions, default, enabled, rule_id, conditions } = init;
+        Self { actions, default, enabled, rule_id, pattern: None, conditions: Some(conditions) }
+    }
+}
+
+impl From<PatternedPushRuleInit> for AnyPushRule {
+    fn from(init: PatternedPushRuleInit) -> Self {
+        let PatternedPushRuleInit { actions, default, enabled, rule_id, pattern } = init;
+        Self { actions, default, enabled, rule_id, pattern: Some(pattern), conditions: None }
+    }
+}
+
 impl From<AnyPushRule> for PushRule {
     fn from(push_rule: AnyPushRule) -> Self {
         let AnyPushRule { actions, default, enabled, rule_id, .. } = push_rule;
@@ -65,6 +92,7 @@ impl From<AnyPushRule> for PushRule {
 /// An error that happens when `AnyPushRule` cannot
 /// be converted into `PatternedPushRule`
 #[derive(Debug)]
+#[non_exhaustive]
 pub struct MissingPatternError;
 
 impl Display for MissingPatternError {
@@ -92,6 +120,7 @@ impl TryFrom<AnyPushRule> for PatternedPushRule {
 /// An error that happens when `AnyPushRule` cannot
 /// be converted into `ConditionalPushRule`
 #[derive(Debug)]
+#[non_exhaustive]
 pub struct MissingConditionsError;
 
 impl Display for MissingConditionsError {

@@ -18,7 +18,11 @@ pub use self::{
 ///
 /// For example, some rules may only be applied for messages from a particular sender, a particular
 /// room, or by default. The push ruleset contains the entire set of scopes and rules.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+///
+/// To create an instance of this type, use its `Default` implementation and set the fields you
+/// need.
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct Ruleset {
     /// These rules configure behavior for (unencrypted) messages that match certain patterns.
     pub content: Vec<PatternedPushRule>,
@@ -46,7 +50,11 @@ pub struct Ruleset {
 ///
 /// These rules are stored on the user's homeserver. They are manually configured by the user, who
 /// can create and view them via the Client/Server API.
+///
+/// To create an instance of this type, first create a `PushRuleInit` and convert it via
+/// `PushRule::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct PushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -61,10 +69,40 @@ pub struct PushRule {
     pub rule_id: String,
 }
 
+/// Initial set of fields of `PushRule`.
+///
+/// This struct will not be updated even if additional fields are added to `PushRule` in a new
+/// (non-breaking) release of the Matrix specification.
+#[derive(Debug)]
+pub struct PushRuleInit {
+    /// Actions to determine if and how a notification is delivered for events matching this rule.
+    pub actions: Vec<Action>,
+
+    /// Whether this is a default rule, or has been set explicitly.
+    pub default: bool,
+
+    /// Whether the push rule is enabled or not.
+    pub enabled: bool,
+
+    /// The ID of this rule.
+    pub rule_id: String,
+}
+
+impl From<PushRuleInit> for PushRule {
+    fn from(init: PushRuleInit) -> Self {
+        let PushRuleInit { actions, default, enabled, rule_id } = init;
+        Self { actions, default, enabled, rule_id }
+    }
+}
+
 /// Like `PushRule`, but with an additional `conditions` field.
 ///
 /// Only applicable to underride and override rules.
+///
+/// To create an instance of this type, first create a `ConditionalPushRuleInit` and convert it via
+/// `ConditionalPushRule::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct ConditionalPushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -84,10 +122,45 @@ pub struct ConditionalPushRule {
     pub conditions: Vec<PushCondition>,
 }
 
+/// Initial set of fields of `ConditionalPushRule`.
+///
+/// This struct will not be updated even if additional fields are added to `ConditionalPushRule` in
+/// a new (non-breaking) release of the Matrix specification.
+#[derive(Debug)]
+pub struct ConditionalPushRuleInit {
+    /// Actions to determine if and how a notification is delivered for events matching this rule.
+    pub actions: Vec<Action>,
+
+    /// Whether this is a default rule, or has been set explicitly.
+    pub default: bool,
+
+    /// Whether the push rule is enabled or not.
+    pub enabled: bool,
+
+    /// The ID of this rule.
+    pub rule_id: String,
+
+    /// The conditions that must hold true for an event in order for a rule to be applied to an event.
+    ///
+    /// A rule with no conditions always matches.
+    pub conditions: Vec<PushCondition>,
+}
+
+impl From<ConditionalPushRuleInit> for ConditionalPushRule {
+    fn from(init: ConditionalPushRuleInit) -> Self {
+        let ConditionalPushRuleInit { actions, default, enabled, rule_id, conditions } = init;
+        Self { actions, default, enabled, rule_id, conditions }
+    }
+}
+
 /// Like `PushRule`, but with an additional `pattern` field.
 ///
 /// Only applicable to content rules.
+///
+/// To create an instance of this type, first create a `PatternedPushRuleInit` and convert it via
+/// `PatternedPushRule::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct PatternedPushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -103,4 +176,33 @@ pub struct PatternedPushRule {
 
     /// The glob-style pattern to match against.
     pub pattern: String,
+}
+
+/// Initial set of fields of `PatterenedPushRule`.
+///
+/// This struct will not be updated even if additional fields are added to `PatterenedPushRule` in a new
+/// (non-breaking) release of the Matrix specification.
+#[derive(Debug)]
+pub struct PatternedPushRuleInit {
+    /// Actions to determine if and how a notification is delivered for events matching this rule.
+    pub actions: Vec<Action>,
+
+    /// Whether this is a default rule, or has been set explicitly.
+    pub default: bool,
+
+    /// Whether the push rule is enabled or not.
+    pub enabled: bool,
+
+    /// The ID of this rule.
+    pub rule_id: String,
+
+    /// The glob-style pattern to match against.
+    pub pattern: String,
+}
+
+impl From<PatternedPushRuleInit> for PatternedPushRule {
+    fn from(init: PatternedPushRuleInit) -> Self {
+        let PatternedPushRuleInit { actions, default, enabled, rule_id, pattern } = init;
+        Self { actions, default, enabled, rule_id, pattern }
+    }
 }
