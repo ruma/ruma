@@ -16,6 +16,7 @@
 pub use ruma_common::*;
 #[doc(inline)]
 pub use ruma_identifiers as identifiers;
+pub use ruma_identifiers_macros::*;
 
 #[cfg(feature = "ruma-events")]
 #[doc(inline)]

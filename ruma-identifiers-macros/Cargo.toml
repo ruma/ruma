@@ -1,0 +1,19 @@
+[package]
+authors = ["Jonas Platte <jplatte@posteo.de>"]
+description = "Procedural macros for creating Matrix identifiers."
+homepage = "https://www.ruma.io/"
+keywords = ["matrix", "chat", "messaging", "ruma"]
+license = "MIT"
+name = "ruma-identifiers-macros"
+repository = "https://github.com/ruma/ruma"
+version = "0.17.0"
+edition = "2018"
+
+[dependencies]
+ruma-identifiers = "=0.17.0"
+quote = "1.0.7"
+proc-macro2 = "1.0.19"
+syn = "1.0.35"
+
+[lib]
+proc-macro = true
