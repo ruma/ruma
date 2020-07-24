@@ -17,6 +17,7 @@ Improvements:
     },
     membership::{
         create_join_event::v1,
+        create_join_event::v2,
         create_join_event_template::v1
     },
     openid::{
