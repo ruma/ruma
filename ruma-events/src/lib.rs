@@ -121,6 +121,7 @@ use std::fmt::Debug;
 
 use js_int::Int;
 use ruma_common::Raw;
+use ruma_identifiers::RoomId;
 use serde::{
     de::{self, IgnoredAny},
     Deserialize, Serialize,
@@ -246,6 +247,37 @@ pub struct RedactedSyncUnsigned {
     pub redacted_because: Option<Box<SyncRedactionEvent>>,
 }
 
+impl From<RedactedUnsigned> for RedactedSyncUnsigned {
+    fn from(redacted: RedactedUnsigned) -> Self {
+        if let Some(why) = redacted.redacted_because {
+            let RedactionEvent {
+                sender,
+                event_id,
+                redacts,
+                origin_server_ts,
+                unsigned,
+                content,
+                ..
+            } = *why;
+            Self {
+                redacted_because: Some(
+                    SyncRedactionEvent {
+                        sender,
+                        event_id,
+                        origin_server_ts,
+                        redacts,
+                        unsigned,
+                        content,
+                    }
+                    .into(),
+                ),
+            }
+        } else {
+            Self { redacted_because: None }
+        }
+    }
+}
+
 impl RedactedSyncUnsigned {
     /// Whether this unsigned data is empty (`redacted_because` is `None`).
     ///
@@ -255,6 +287,37 @@ impl RedactedSyncUnsigned {
     /// present but contained none of the known fields.
     pub fn is_empty(&self) -> bool {
         self.redacted_because.is_none()
+    }
+
+    /// Convert a `RedactedSyncUnsigned` into `RedactedUnsigned`, converting the
+    /// underlying sync redaction event to a full redaction event (with room_id).
+    pub fn into_full_event(self, room_id: RoomId) -> RedactedUnsigned {
+        if let Some(why) = self.redacted_because {
+            let SyncRedactionEvent {
+                sender,
+                event_id,
+                redacts,
+                origin_server_ts,
+                unsigned,
+                content,
+            } = *why;
+            RedactedUnsigned {
+                redacted_because: Some(
+                    RedactionEvent {
+                        room_id,
+                        sender,
+                        event_id,
+                        origin_server_ts,
+                        redacts,
+                        unsigned,
+                        content,
+                    }
+                    .into(),
+                ),
+            }
+        } else {
+            RedactedUnsigned { redacted_because: None }
+        }
     }
 }
 
