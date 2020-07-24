@@ -68,7 +68,7 @@ impl CiphertextInfo {
 
 /// The payload for `EncryptedEvent` using the *m.megolm.v1.aes-sha2* algorithm.
 ///
-/// To createn an instance of this type, first create a `MegolmV1AesSh2ContentInit` and convert it
+/// To create an instance of this type, first create a `MegolmV1AesSha2ContentInit` and convert it
 /// via `MegolmV1AesSha2Content::from` / `.into()`.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[non_exhaustive]
