@@ -23,9 +23,16 @@ use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 use state_res::{ResolutionResult, StateEvent, StateMap, StateResolution, StateStore};
 use tracing_subscriber as tracer;
 
+use std::sync::Once;
+
+static LOGGER: Once = Once::new();
+
 static mut SERVER_TIMESTAMP: i32 = 0;
 
-fn id(id: &str) -> EventId {
+fn event_id(id: &str) -> EventId {
+    if id.contains("$") {
+        return EventId::try_from(id).unwrap();
+    }
     EventId::try_from(format!("${}:foo", id)).unwrap()
 }
 
@@ -37,6 +44,9 @@ fn bob() -> UserId {
 }
 fn charlie() -> UserId {
     UserId::try_from("@charlie:foo").unwrap()
+}
+fn ella() -> UserId {
+    UserId::try_from("@ella:foo").unwrap()
 }
 fn zera() -> UserId {
     UserId::try_from("@zera:foo").unwrap()
@@ -277,19 +287,19 @@ fn INITIAL_EDGES() -> Vec<EventId> {
         "START", "IMZ", "IMC", "IMB", "IJR", "IPOWER", "IMA", "CREATE",
     ]
     .into_iter()
-    .map(|s| format!("${}:foo", s))
-    .map(EventId::try_from)
-    .collect::<Result<Vec<_>, _>>()
-    .unwrap()
+    .map(event_id)
+    .collect::<Vec<_>>()
 }
 
 fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids: Vec<EventId>) {
     use itertools::Itertools;
 
     // to activate logging use `RUST_LOG=debug cargo t one_test_only`
-    // tracer::fmt()
-    //     .with_env_filter(tracer::EnvFilter::from_default_env())
-    //     .init();
+    let _ = LOGGER.call_once(|| {
+        tracer::fmt()
+            .with_env_filter(tracer::EnvFilter::from_default_env())
+            .init()
+    });
 
     let mut resolver = StateResolution::default();
 
@@ -354,17 +364,6 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
                 .cloned()
                 .collect::<Vec<_>>();
 
-            tracing::debug!(
-                "RESOLVING {:?}",
-                state_sets
-                    .iter()
-                    .map(|map| map
-                        .iter()
-                        .map(|((t, s), id)| (t, s, id.to_string()))
-                        .collect::<Vec<_>>())
-                    .collect::<Vec<_>>()
-            );
-
             let resolved = resolver.resolve(
                 &room_id(),
                 &RoomVersionId::version_1(),
@@ -389,6 +388,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         };
 
         let mut state_after = state_before.clone();
+
         if fake_event.state_key().is_some() {
             let ty = fake_event.kind().clone();
             // we know there is a state_key unwrap OK
@@ -414,12 +414,16 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
             e.sender().clone(),
             e.kind(),
             e.state_key().as_deref(),
-            e.content(),
+            e.content().clone(),
             &auth_events,
             prev_events,
         );
-        // we have to update our store, an actual user of this lib would do this
-        // with the result of the resolution>
+        // we have to update our store, an actual user of this lib would
+        // be giving us state from a DB.
+        //
+        // TODO
+        // TODO we need to convert the `StateResolution::resolve` to use the event_map
+        // because the user of this crate cannot update their DB's state.
         *store.0.borrow_mut().get_mut(ev_id).unwrap() = event.clone();
 
         state_at_event.insert(node, state_after);
@@ -442,12 +446,10 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         expected_state.insert(key, node);
     }
 
-    let start_state = state_at_event
-        .get(&EventId::try_from("$START:foo").unwrap())
-        .unwrap();
+    let start_state = state_at_event.get(&event_id("$START:foo")).unwrap();
 
     let end_state = state_at_event
-        .get(&EventId::try_from("$END:foo").unwrap())
+        .get(&event_id("$END:foo"))
         .unwrap()
         .iter()
         .filter(|(k, v)| expected_state.contains_key(k) || start_state.get(k) != Some(*v))
@@ -495,21 +497,13 @@ fn ban_vs_power_level() {
         vec!["END", "PB", "PA"],
     ]
     .into_iter()
-    .map(|list| {
-        list.into_iter()
-            .map(|s| format!("${}:foo", s))
-            .map(EventId::try_from)
-            .collect::<Result<Vec<_>, _>>()
-            .unwrap()
-    })
+    .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
     .collect::<Vec<_>>();
 
     let expected_state_ids = vec!["PA", "MA", "MB"]
         .into_iter()
-        .map(|s| format!("${}:foo", s))
-        .map(EventId::try_from)
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
+        .map(event_id)
+        .collect::<Vec<_>>();
 
     do_check(events, edges, expected_state_ids)
 }
@@ -548,21 +542,13 @@ fn topic_basic() {
         vec!["END", "T3", "PB", "PA1"],
     ]
     .into_iter()
-    .map(|list| {
-        list.into_iter()
-            .map(|s| format!("${}:foo", s))
-            .map(EventId::try_from)
-            .collect::<Result<Vec<_>, _>>()
-            .unwrap()
-    })
+    .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
     .collect::<Vec<_>>();
 
     let expected_state_ids = vec!["PA2", "T2"]
         .into_iter()
-        .map(|s| format!("${}:foo", s))
-        .map(EventId::try_from)
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
+        .map(event_id)
+        .collect::<Vec<_>>();
 
     do_check(events, edges, expected_state_ids)
 }
@@ -593,21 +579,125 @@ fn topic_reset() {
         vec!["END", "T1"],
     ]
     .into_iter()
-    .map(|list| {
-        list.into_iter()
-            .map(|s| format!("${}:foo", s))
-            .map(EventId::try_from)
-            .collect::<Result<Vec<_>, _>>()
-            .unwrap()
-    })
+    .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
     .collect::<Vec<_>>();
 
     let expected_state_ids = vec!["T1", "MB", "PA"]
         .into_iter()
-        .map(|s| format!("${}:foo", s))
-        .map(EventId::try_from)
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
+        .map(event_id)
+        .collect::<Vec<_>>();
+
+    do_check(events, edges, expected_state_ids)
+}
+
+#[test]
+fn join_rule_evasion() {
+    let events = &[
+        to_init_pdu_event(
+            "JR",
+            alice(),
+            EventType::RoomJoinRules,
+            Some(""),
+            json!({ "join_rule": JoinRule::Private }),
+        ),
+        to_init_pdu_event(
+            "ME",
+            ella(),
+            EventType::RoomMember,
+            Some(ella().to_string().as_str()),
+            member_content_join(),
+        ),
+    ];
+
+    let edges = vec![vec!["END", "JR", "START"], vec!["END", "ME", "START"]]
+        .into_iter()
+        .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+
+    let expected_state_ids = vec![event_id("JR")];
+
+    do_check(events, edges, expected_state_ids)
+}
+
+#[test]
+fn offtopic_power_level() {
+    let events = &[
+        to_init_pdu_event(
+            "PA",
+            alice(),
+            EventType::RoomPowerLevels,
+            Some(""),
+            json!({"users": {alice(): 100, bob(): 50}}),
+        ),
+        to_init_pdu_event(
+            "PB",
+            bob(),
+            EventType::RoomPowerLevels,
+            Some(""),
+            json!({"users": {alice(): 100, bob(): 50, charlie(): 50}}),
+        ),
+        to_init_pdu_event(
+            "PC",
+            charlie(),
+            EventType::RoomPowerLevels,
+            Some(""),
+            json!({"users": {alice(): 100, bob(): 50, charlie(): 0}}),
+        ),
+    ];
+
+    let edges = vec![vec!["END", "PC", "PB", "PA", "START"], vec!["END", "PA"]]
+        .into_iter()
+        .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+
+    let expected_state_ids = vec!["PC"].into_iter().map(event_id).collect::<Vec<_>>();
+
+    do_check(events, edges, expected_state_ids)
+}
+
+#[test]
+fn topic_setting() {
+    let events = &[
+        to_init_pdu_event("T1", alice(), EventType::RoomTopic, Some(""), json!({})),
+        to_init_pdu_event(
+            "PA1",
+            alice(),
+            EventType::RoomPowerLevels,
+            Some(""),
+            json!({"users": {alice(): 100, bob(): 50}}),
+        ),
+        to_init_pdu_event("T2", alice(), EventType::RoomTopic, Some(""), json!({})),
+        to_init_pdu_event(
+            "PA2",
+            alice(),
+            EventType::RoomPowerLevels,
+            Some(""),
+            json!({"users": {alice(): 100, bob(): 0}}),
+        ),
+        to_init_pdu_event(
+            "PB",
+            bob(),
+            EventType::RoomPowerLevels,
+            Some(""),
+            json!({"users": {alice(): 100, bob(): 50}}),
+        ),
+        to_init_pdu_event("T3", bob(), EventType::RoomTopic, Some(""), json!({})),
+        to_init_pdu_event("MZ1", zera(), EventType::RoomMessage, None, json!({})),
+        to_init_pdu_event("T4", alice(), EventType::RoomTopic, Some(""), json!({})),
+    ];
+
+    let edges = vec![
+        vec!["END", "T4", "MZ1", "PA2", "T2", "PA1", "T1", "START"],
+        vec!["END", "MZ1", "T3", "PB", "PA1"],
+    ]
+    .into_iter()
+    .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
+    .collect::<Vec<_>>();
+
+    let expected_state_ids = vec!["T4", "PA2"]
+        .into_iter()
+        .map(event_id)
+        .collect::<Vec<_>>();
 
     do_check(events, edges, expected_state_ids)
 }
@@ -641,11 +731,11 @@ fn test_lexicographical_sort() {
     let mut resolver = StateResolution::default();
 
     let graph = btreemap! {
-        id("l") => vec![id("o")],
-        id("m") => vec![id("n"), id("o")],
-        id("n") => vec![id("o")],
-        id("o") => vec![], // "o" has zero outgoing edges but 4 incoming edges
-        id("p") => vec![id("o")],
+        event_id("l") => vec![event_id("o")],
+        event_id("m") => vec![event_id("n"), event_id("o")],
+        event_id("n") => vec![event_id("o")],
+        event_id("o") => vec![], // "o" has zero outgoing edges but 4 incoming edges
+        event_id("p") => vec![event_id("o")],
     };
 
     let res =
@@ -750,6 +840,12 @@ impl StateStore for TestStore {
 
 impl TestStore {
     pub fn set_up(&self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
+        // to activate logging use `RUST_LOG=debug cargo t one_test_only`
+        let _ = LOGGER.call_once(|| {
+            tracer::fmt()
+                .with_env_filter(tracer::EnvFilter::from_default_env())
+                .init()
+        });
         let create_event = to_pdu_event::<EventId>(
             "CREATE",
             alice(),

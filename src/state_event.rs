@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use ruma::{
     events::{
         from_raw_json_value,
@@ -5,7 +7,7 @@ use ruma::{
         room::member::{MemberEventContent, MembershipState},
         EventDeHelper, EventType,
     },
-    identifiers::{EventId, RoomId, UserId},
+    identifiers::{EventId, RoomId, ServerName, UserId},
 };
 use serde::{de, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
@@ -198,15 +200,28 @@ impl StateEvent {
         }
     }
 
-    pub fn content(&self) -> serde_json::Value {
+    pub fn content(&self) -> &serde_json::Value {
         match self {
             Self::Full(ev) => match ev {
-                Pdu::RoomV1Pdu(ev) => ev.content.clone(),
-                Pdu::RoomV3Pdu(ev) => ev.content.clone(),
+                Pdu::RoomV1Pdu(ev) => &ev.content,
+                Pdu::RoomV3Pdu(ev) => &ev.content,
             },
             Self::Sync(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => ev.content.clone(),
-                PduStub::RoomV3PduStub(ev) => ev.content.clone(),
+                PduStub::RoomV1PduStub(ev) => &ev.content,
+                PduStub::RoomV3PduStub(ev) => &ev.content,
+            },
+        }
+    }
+
+    pub fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<String, String>> {
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(_) => maplit::btreemap! {},
+                Pdu::RoomV3Pdu(ev) => ev.signatures.clone(),
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(ev) => ev.signatures.clone(),
+                PduStub::RoomV3PduStub(ev) => ev.signatures.clone(),
             },
         }
     }

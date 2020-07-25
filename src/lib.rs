@@ -77,7 +77,10 @@ impl StateResolution {
         // split non-conflicting and conflicting state
         let (clean, conflicting) = self.separate(&state_sets);
 
+        tracing::info!("non conflicting {:?}", clean.len());
+
         if conflicting.is_empty() {
+            tracing::warn!("no conflicting state found");
             return Ok(ResolutionResult::Resolved(clean));
         }
 
@@ -86,6 +89,8 @@ impl StateResolution {
         // the set of auth events that are not common across server forks
         let mut auth_diff = self.get_auth_chain_diff(room_id, &state_sets, &event_map, store)?;
 
+        tracing::debug!("auth diff size {}", auth_diff.len());
+
         // add the auth_diff to conflicting now we have a full set of conflicting events
         auth_diff.extend(conflicting.values().cloned().flatten());
         let mut all_conflicted = auth_diff
@@ -93,14 +98,6 @@ impl StateResolution {
             .collect::<BTreeSet<_>>()
             .into_iter()
             .collect::<Vec<_>>();
-
-        tracing::debug!(
-            "FULL CONF {:?}",
-            all_conflicted
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<_>>()
-        );
 
         tracing::info!("full conflicted set is {} events", all_conflicted.len());
 
@@ -123,6 +120,8 @@ impl StateResolution {
                 .flat_map(|ev| Some((ev.event_id()?.clone(), ev))),
         );
 
+        tracing::debug!("event map size: {}", event_map.len());
+
         for event in event_map.values() {
             if event.room_id() != Some(room_id) {
                 return Err(format!(
@@ -139,15 +138,9 @@ impl StateResolution {
 
         // TODO make sure each conflicting event is in event_map??
         // synapse says `full_set = {eid for eid in full_conflicted_set if eid in event_map}`
+        //
+        // don't honor events we cannot "verify"
         all_conflicted.retain(|id| event_map.contains_key(id));
-
-        tracing::debug!(
-            "ALL {:?}",
-            all_conflicted
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<_>>()
-        );
 
         // get only the power events with a state_key: "" or ban/kick event (sender != state_key)
         let power_events = all_conflicted
@@ -155,14 +148,6 @@ impl StateResolution {
             .filter(|id| is_power_event(id, store))
             .cloned()
             .collect::<Vec<_>>();
-
-        tracing::debug!(
-            "POWER {:?}",
-            power_events
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<_>>()
-        );
 
         // sort the power events based on power_level/clock/event_id and outgoing/incoming edges
         let mut sorted_power_levels = self.reverse_topological_power_sort(
@@ -204,7 +189,7 @@ impl StateResolution {
         sorted_power_levels.dedup();
         let deduped_power_ev = sorted_power_levels;
 
-        // we have resolved the power events so remove them, I'm sure theres other reasons to do so
+        // we have resolved the power events so remove them, I'm sure there are other reasons to do so
         let events_to_resolve = all_conflicted
             .iter()
             .filter(|id| !deduped_power_ev.contains(id))
@@ -267,18 +252,28 @@ impl StateResolution {
         let mut unconflicted_state = StateMap::new();
         let mut conflicted_state = StateMap::new();
 
-        for key in state_sets.iter().flat_map(|map| map.keys()) {
+        for key in state_sets
+            .iter()
+            .flat_map(|map| map.keys())
+            .collect::<BTreeSet<_>>()
+        {
             let mut event_ids = state_sets
                 .iter()
-                .flat_map(|map| map.get(key).cloned())
+                .map(|state_set| state_set.get(key))
                 .dedup()
-                .collect::<Vec<EventId>>();
+                .collect::<Vec<_>>();
 
             if event_ids.len() == 1 {
-                // unwrap is ok since we know the len is 1
-                unconflicted_state.insert(key.clone(), event_ids.pop().unwrap());
+                if let Some(Some(id)) = event_ids.pop() {
+                    unconflicted_state.insert(key.clone(), id.clone());
+                } else {
+                    panic!()
+                }
             } else {
-                conflicted_state.insert(key.clone(), event_ids);
+                conflicted_state.insert(
+                    key.clone(),
+                    event_ids.into_iter().flatten().cloned().collect::<Vec<_>>(),
+                );
             }
         }
 
@@ -347,15 +342,6 @@ impl StateResolution {
             // tracing::debug!("{:?}", event_map.get(event_id).unwrap().origin_server_ts());
             let ev = event_map.get(event_id).unwrap();
             let pl = event_to_pl.get(event_id).unwrap();
-
-            tracing::debug!(
-                "{:?}",
-                (
-                    -*pl,
-                    ev.origin_server_ts().clone(),
-                    ev.event_id().unwrap().to_string()
-                )
-            );
 
             // This return value is the key used for sorting events,
             // events are then sorted by power level, time,
@@ -531,15 +517,17 @@ impl StateResolution {
             }
 
             tracing::debug!("event to check {:?}", event.event_id().unwrap().to_string());
-            if !event_auth::auth_check(room_version, &event, auth_events)
-                .ok_or("Auth check failed due to deserialization most likely".to_string())
-                .unwrap()
+            if event_auth::auth_check(room_version, &event, auth_events, false)
+                .ok_or("Auth check failed due to deserialization most likely".to_string())?
             {
-                // TODO synapse passes here on AuthError ??
-                tracing::warn!("event {} failed the authentication", event_id.to_string());
-            } else {
                 // add event to resolved state map
                 resolved_state.insert((event.kind(), event.state_key().unwrap()), event_id.clone());
+            } else {
+                // TODO synapse passes here on AuthError ??
+                tracing::warn!(
+                    "event {} failed the authentication check",
+                    event_id.to_string()
+                );
             }
 
             // We yield occasionally when we're working with large data sets to
@@ -576,13 +564,15 @@ impl StateResolution {
         let mut idx = 0;
         while let Some(p) = pl {
             mainline.push(p.clone());
+
             // We don't need the actual pl_ev here since we delegate to the store
-            let auth_events = store.get_event(&p).unwrap().auth_event_ids();
+            let event = store.get_event(&p).unwrap();
+            let auth_events = event.auth_event_ids();
             pl = None;
             for aid in auth_events {
                 let ev = store.get_event(&aid).unwrap();
                 if ev.is_type_and_key(EventType::RoomPowerLevels, "") {
-                    pl = Some(aid);
+                    pl = Some(aid.clone());
                     break;
                 }
             }
@@ -646,16 +636,7 @@ impl StateResolution {
             }
 
             let auth_events = sort_ev.auth_event_ids();
-            tracing::debug!(
-                "mainline AUTH EV {:?}",
-                auth_events
-                    .iter()
-                    .map(ToString::to_string)
-                    .collect::<Vec<_>>()
-            );
-
             event = None;
-
             for aid in auth_events {
                 let aev = store.get_event(&aid).unwrap();
                 if aev.is_type_and_key(EventType::RoomPowerLevels, "") {
@@ -690,7 +671,7 @@ impl StateResolution {
                     }
 
                     // we just inserted this at the start of the while loop
-                    graph.get_mut(&eid).unwrap().push(aid);
+                    graph.get_mut(&eid).unwrap().push(aid.clone());
                 }
             }
         }
