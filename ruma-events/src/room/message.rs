@@ -294,8 +294,8 @@ pub struct FormattedBody {
 
 impl FormattedBody {
     /// Creates a new HTML-formatted message body.
-    pub fn html(body: String) -> Self {
-        Self { format: MessageFormat::Html, body }
+    pub fn html(body: impl Into<String>) -> Self {
+        Self { format: MessageFormat::Html, body: body.into() }
     }
 }
 
