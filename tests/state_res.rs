@@ -2,13 +2,12 @@ use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet},
     convert::TryFrom,
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::UNIX_EPOCH,
 };
 
 use maplit::btreemap;
 use ruma::{
     events::{
-        pdu::Pdu,
         room::{
             join_rules::JoinRule,
             member::{MemberEventContent, MembershipState},
@@ -17,7 +16,7 @@ use ruma::{
     },
     identifiers::{EventId, RoomId, RoomVersionId, UserId},
 };
-use serde_json::{from_value as from_json_value, json, Value as JsonValue};
+use serde_json::{json, Value as JsonValue};
 use state_res::{ResolutionResult, StateEvent, StateMap, StateResolution, StateStore};
 use tracing_subscriber as tracer;
 
@@ -290,8 +289,6 @@ fn INITIAL_EDGES() -> Vec<EventId> {
 }
 
 fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids: Vec<EventId>) {
-    use itertools::Itertools;
-
     // to activate logging use `RUST_LOG=debug cargo t one_test_only`
     let _ = LOGGER.call_once(|| {
         tracer::fmt()
