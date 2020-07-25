@@ -11,11 +11,19 @@ pub type JoinRulesEvent = StateEvent<JoinRulesEventContent>;
 
 /// The payload for `JoinRulesEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
+#[non_exhaustive]
 #[ruma_event(type = "m.room.join_rules")]
 pub struct JoinRulesEventContent {
     /// The type of rules used for users wishing to join this room.
     #[ruma_event(skip_redaction)]
     pub join_rule: JoinRule,
+}
+
+impl JoinRulesEventContent {
+    /// Creates a new `JoinRulesEventContent` with the given rule.
+    pub fn new(join_rule: JoinRule) -> Self {
+        Self { join_rule }
+    }
 }
 
 /// The rule used for users wishing to join this room.
