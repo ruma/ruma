@@ -16,7 +16,7 @@ Improvements:
         get_server_version::v1
     },
     membership::{
-        create_join_event::v1,
+        create_join_event::{v1, v2},
         create_join_event_template::v1
     },
     openid::{
