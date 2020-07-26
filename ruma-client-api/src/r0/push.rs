@@ -2,7 +2,6 @@
 
 use std::convert::TryFrom;
 
-use ruma_common::push::PushCondition;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
