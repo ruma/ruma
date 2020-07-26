@@ -194,12 +194,12 @@ pub enum OrderBy {
 pub struct ResultCategories {
     /// Room event results.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub room_events: Option<RoomEventJsons>,
+    pub room_events: Option<ResultRoomEvents>,
 }
 
 /// Categories of events that can be searched for.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct RoomEventJsons {
+pub struct ResultRoomEvents {
     /// An approximate count of the total number of results found.
     pub count: UInt,
 

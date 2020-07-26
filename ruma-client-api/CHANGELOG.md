@@ -30,6 +30,8 @@ Breaking changes:
       session::login,
   }
   ```
+* Rename `r0::search::search_events::{RoomEventJsons => ResultRoomEvents}`. The previous name was an
+  error introduced in a mass search and replace
 
 Improvements:
 
