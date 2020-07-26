@@ -56,6 +56,29 @@ impl Parse for EventMeta {
     }
 }
 
+struct MetaAttrs(Vec<EventMeta>);
+
+impl MetaAttrs {
+    fn needs_redacted(&self) -> bool {
+        self.0.iter().any(|a| a == &EventMeta::CustomRedacted)
+    }
+    fn get_event_type(&self) -> Option<&LitStr> {
+        self.0.iter().find_map(|a| a.get_event_type())
+    }
+}
+
+impl Parse for MetaAttrs {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut attrs = vec![];
+        while !input.is_empty() {
+            attrs.push(input.parse::<EventMeta>()?);
+            // we don't care if this fails since that means we hit the end
+            let _ = input.parse::<Token![,]>();
+        }
+        Ok(Self(attrs))
+    }
+}
+
 /// Create an `EventContent` implementation for a struct.
 pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Result<TokenStream> {
     let ident = &input.ident;
@@ -64,7 +87,7 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
         .attrs
         .iter()
         .filter(|attr| attr.path.is_ident("ruma_event"))
-        .map(|attr| attr.parse_args::<EventMeta>())
+        .map(|attr| attr.parse_args::<MetaAttrs>())
         .collect::<syn::Result<Vec<_>>>()?;
 
     let event_type = content_attr.iter().find_map(|a| a.get_event_type()).ok_or_else(|| {
@@ -75,7 +98,7 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
         syn::Error::new(Span::call_site(), msg)
     })?;
 
-    let redacted = if emit_redacted && needs_redacted(input) {
+    let redacted = if emit_redacted && needs_redacted(&content_attr) {
         let doc = format!("The payload for a redacted `{}`", ident);
         let redacted_ident = format_ident!("Redacted{}", ident);
         let kept_redacted_fields = if let syn::Data::Struct(syn::DataStruct {
@@ -238,7 +261,7 @@ pub fn expand_message_event_content(input: &DeriveInput) -> syn::Result<TokenStr
     let ident = input.ident.clone();
     let room_ev_content = expand_room_event_content(input)?;
 
-    let redacted_marker_trait = if needs_redacted(input) {
+    let redacted_marker_trait = if needs_redacted_from_input(input) {
         let ident = format_ident!("Redacted{}", &ident);
         quote! {
             impl ::ruma_events::RedactedMessageEventContent for #ident { }
@@ -261,7 +284,7 @@ pub fn expand_state_event_content(input: &DeriveInput) -> syn::Result<TokenStrea
     let ident = input.ident.clone();
     let room_ev_content = expand_room_event_content(input)?;
 
-    let redacted_marker_trait = if needs_redacted(input) {
+    let redacted_marker_trait = if needs_redacted_from_input(input) {
         let ident = format_ident!("Redacted{}", input.ident);
         quote! {
             impl ::ruma_events::RedactedStateEventContent for #ident { }
@@ -302,11 +325,10 @@ fn generate_event_content_impl(ident: &Ident, event_type: &LitStr) -> TokenStrea
     }
 }
 
-fn needs_redacted(input: &DeriveInput) -> bool {
-    input
-        .attrs
-        .iter()
-        .flat_map(|a| a.parse_args::<EventMeta>().ok())
-        .find(|a| a == &EventMeta::CustomRedacted)
-        .is_none()
+fn needs_redacted(input: &[MetaAttrs]) -> bool {
+    input.iter().any(|a| !a.needs_redacted())
+}
+
+fn needs_redacted_from_input(input: &DeriveInput) -> bool {
+    input.attrs.iter().flat_map(|a| a.parse_args::<MetaAttrs>().ok()).any(|a| !a.needs_redacted())
 }
