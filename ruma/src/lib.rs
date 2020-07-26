@@ -18,6 +18,11 @@ pub use ruma_common::*;
 pub use ruma_identifiers as identifiers;
 pub use ruma_identifiers_macros::*;
 
+pub use ruma_identifiers::{
+    DeviceId, DeviceKeyAlgorithm, DeviceKeyId, EventId, RoomAliasId, RoomId, RoomIdOrAliasId,
+    RoomVersionId, ServerKeyAlgorithm, ServerKeyId, ServerName, UserId,
+};
+
 #[cfg(feature = "ruma-events")]
 #[doc(inline)]
 pub use ruma_events as events;
