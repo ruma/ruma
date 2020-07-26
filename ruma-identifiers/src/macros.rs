@@ -33,6 +33,13 @@ macro_rules! common_impls {
                     &self.full_id
                 }
             }
+
+            doc_concat! {
+                #[doc = concat!("Creates a byte slice from this `", stringify!($id), "`")]
+                pub fn as_bytes(&self) -> &[u8] {
+                    self.full_id.as_bytes()
+                }
+            }
         }
 
         impl ::std::convert::AsRef<str> for $id {

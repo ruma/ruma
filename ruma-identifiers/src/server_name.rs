@@ -32,6 +32,11 @@ impl ServerName {
     pub fn as_str(&self) -> &str {
         &self.0
     }
+
+    /// Creates a byte slice from this `ServerName`.
+    pub fn as_bytes(&self) -> &[u8] {
+        self.0.as_bytes()
+    }
 }
 
 impl Clone for Box<ServerName> {

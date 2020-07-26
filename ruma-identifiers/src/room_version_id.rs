@@ -86,7 +86,7 @@ impl RoomVersionId {
         Self::Version6
     }
 
-    /// Creates a string slice from this `RoomVersionId`
+    /// Creates a string slice from this `RoomVersionId`.
     pub fn as_str(&self) -> &str {
         match &self {
             Self::Version1 => "1",
@@ -97,6 +97,11 @@ impl RoomVersionId {
             Self::Version6 => "6",
             Self::Custom(version) => version.as_str(),
         }
+    }
+
+    /// Creates a byte slice from this `RoomVersionId`.
+    pub fn as_bytes(&self) -> &[u8] {
+        self.as_str().as_bytes()
     }
 
     /// Whether or not this room version is an official one specified by the Matrix protocol.
