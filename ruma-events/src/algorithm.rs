@@ -53,7 +53,7 @@ mod tests {
     use ruma_serde::test::serde_json_eq;
     use serde_json::json;
 
-    use super::*;
+    use super::Algorithm;
 
     #[test]
     fn serialize_and_deserialize_from_display_form() {
