@@ -30,7 +30,7 @@ macro_rules! common_impls {
             doc_concat! {
                 #[doc = concat!("Creates a string slice from this `", stringify!($id), "`")]
                 pub fn as_str(&self) -> &str {
-                    self.full_id.as_ref()
+                    &self.full_id
                 }
             }
         }
