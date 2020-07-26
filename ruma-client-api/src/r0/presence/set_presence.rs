@@ -1,7 +1,7 @@
 //! [PUT /_matrix/client/r0/presence/{userId}/status](https://matrix.org/docs/spec/client_server/r0.6.0#put-matrix-client-r0-presence-userid-status)
 
 use ruma_api::ruma_api;
-use ruma_events::presence::PresenceState;
+use ruma_common::presence::PresenceState;
 use ruma_identifiers::UserId;
 
 ruma_api! {

@@ -1,8 +1,9 @@
 //! [GET /_matrix/client/r0/pushrules/{scope}/{kind}/{ruleId}/actions](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-pushrules-scope-kind-ruleid-actions)
 
 use ruma_api::ruma_api;
+use ruma_common::push::Action;
 
-use super::{Action, RuleKind};
+use super::RuleKind;
 
 ruma_api! {
     metadata: {
