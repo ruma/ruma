@@ -62,6 +62,7 @@ impl MetaAttrs {
     fn is_custom(&self) -> bool {
         self.0.iter().any(|a| a == &EventMeta::CustomRedacted)
     }
+
     fn get_event_type(&self) -> Option<&LitStr> {
         self.0.iter().find_map(|a| a.get_event_type())
     }
@@ -69,13 +70,8 @@ impl MetaAttrs {
 
 impl Parse for MetaAttrs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut attrs = vec![];
-        while !input.is_empty() {
-            attrs.push(input.parse::<EventMeta>()?);
-            // we don't care if this fails since that means we hit the end
-            let _ = input.parse::<Token![,]>();
-        }
-        Ok(Self(attrs))
+        let attrs = syn::punctuated::Punctuated::<EventMeta, Token![,]>::parse_terminated(input)?;
+        Ok(Self(attrs.into_iter().collect()))
     }
 }
 
@@ -326,9 +322,12 @@ fn generate_event_content_impl(ident: &Ident, event_type: &LitStr) -> TokenStrea
 }
 
 fn needs_redacted(input: &[MetaAttrs]) -> bool {
-    input.iter().any(|a| !a.is_custom())
+    // `is_custom` means that the content struct does not need a generated
+    // redacted struct also. If no `custom_redacted` attrs are found the content
+    // needs a redacted struct generated.
+    !input.iter().any(|a| a.is_custom())
 }
 
 fn needs_redacted_from_input(input: &DeriveInput) -> bool {
-    input.attrs.iter().flat_map(|a| a.parse_args::<MetaAttrs>().ok()).any(|a| !a.is_custom())
+    !input.attrs.iter().flat_map(|a| a.parse_args::<MetaAttrs>().ok()).any(|a| a.is_custom())
 }
