@@ -59,7 +59,7 @@ impl Parse for EventMeta {
 struct MetaAttrs(Vec<EventMeta>);
 
 impl MetaAttrs {
-    fn needs_redacted(&self) -> bool {
+    fn is_custom(&self) -> bool {
         self.0.iter().any(|a| a == &EventMeta::CustomRedacted)
     }
     fn get_event_type(&self) -> Option<&LitStr> {
@@ -326,9 +326,9 @@ fn generate_event_content_impl(ident: &Ident, event_type: &LitStr) -> TokenStrea
 }
 
 fn needs_redacted(input: &[MetaAttrs]) -> bool {
-    input.iter().any(|a| !a.needs_redacted())
+    input.iter().any(|a| !a.is_custom())
 }
 
 fn needs_redacted_from_input(input: &DeriveInput) -> bool {
-    input.attrs.iter().flat_map(|a| a.parse_args::<MetaAttrs>().ok()).any(|a| !a.needs_redacted())
+    input.attrs.iter().flat_map(|a| a.parse_args::<MetaAttrs>().ok()).any(|a| !a.is_custom())
 }
