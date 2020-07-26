@@ -7,9 +7,6 @@ use ruma_events_macros::{Event, EventContent};
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
-#[deprecated = "use `presence::PresenceState` from `ruma` or `ruma-common` instead"]
-pub use ruma_common::presence::PresenceState;
-
 /// Presence event.
 #[derive(Clone, Debug, Event)]
 pub struct PresenceEvent {

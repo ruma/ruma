@@ -32,6 +32,9 @@ Breaking changes:
   ```
 * Rename `r0::search::search_events::{RoomEventJsons => ResultRoomEvents}`. The previous name was an
   error introduced in a mass search and replace
+* `r0::sync::sync_events::SetPresence` has been moved and renamed. Use `presence::PresenceState`
+  from `ruma` or `ruma-common`.
+* `r0::push::Action` has been moved. Import it from `ruma` or `ruma-common`.
 
 Improvements:
 
@@ -42,12 +45,6 @@ Improvements:
   * `r0::room::create_room`
   * `r0::message::get_message_events`
 * Add `logout_devices` field to `r0::account::change_password`
-
-Deprecations:
-
-* `r0::sync::sync_events::SetPresence` has been moved and renamed. Use `presence::PresenceState`
-  from `ruma` or `ruma-common`.
-* `r0::push::Action` has been moved. Import it from `ruma` or `ruma-common`.
 
 # 0.9.0
 

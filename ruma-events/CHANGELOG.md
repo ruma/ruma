@@ -12,16 +12,14 @@ Breaking changes:
   * This change removes the types `EventMatchCondition`, `RoomMemberCountCondition` and
     `SenderNotificationPermissionCondition`
 * Add PDU types: `pdu::{Pdu, PduStub}`
+* `presence::PresenceState` has been moved. Import it from `ruma` or `ruma-common`.
+* `EventJson` has been moved and renamed. Import it from `ruma` or `ruma-common`.
+
 
 Improvements:
 
 * Add `room::MessageFormat` and `room::FormattedBody`
 * Skip serialization of optional values on `room::encryption::EncryptionEventContent`
-
-Deprecations:
-
-* `presence::PresenceState` has been moved. Import it from `ruma` or `ruma-common`.
-* `EventJson` has been moved and renamed. Import it from `ruma` or `ruma-common`.
 
 # 0.21.3
 

@@ -130,9 +130,6 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use self::room::redaction::{RedactionEvent, SyncRedactionEvent};
 
-#[deprecated = "Use ruma_serde::empty::Empty directly instead."]
-pub use ruma_serde::empty::Empty;
-
 mod algorithm;
 mod enums;
 mod error;
@@ -184,9 +181,6 @@ pub use self::{
     },
     event_type::EventType,
 };
-
-#[deprecated = "Use ruma_common::Raw instead."]
-pub use ruma_common::Raw as EventJson;
 
 /// Extra information about an event that is not incorporated into the event's
 /// hash.

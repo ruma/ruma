@@ -93,9 +93,6 @@ ruma_api! {
     error: crate::Error
 }
 
-#[deprecated = "use `presence::PresenceState` from `ruma` or `ruma-common` instead"]
-pub use ruma_common::presence::PresenceState as SetPresence;
-
 /// A filter represented either as its full JSON definition or the ID of a saved filter.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[allow(clippy::large_enum_variant)]

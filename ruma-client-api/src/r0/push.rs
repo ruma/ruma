@@ -19,9 +19,6 @@ pub mod set_pushrule;
 pub mod set_pushrule_actions;
 pub mod set_pushrule_enabled;
 
-#[deprecated = "use `push::Action` from `ruma` or `ruma-common` instead"]
-pub use ruma_common::push::Action;
-
 /// The kinds of push rules that are available
 #[derive(
     Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Display, EnumString,
