@@ -254,13 +254,13 @@ fn expand_any_redacted(
     attrs: &[Attribute],
     variants: &[Ident],
 ) -> TokenStream {
-    use EventKindVariation::*;
+    use EventKindVariation as V;
 
     if kind.is_state() {
-        let full_state = expand_any_with_deser(kind, events, attrs, variants, &Redacted);
-        let sync_state = expand_any_with_deser(kind, events, attrs, variants, &RedactedSync);
+        let full_state = expand_any_with_deser(kind, events, attrs, variants, &V::Redacted);
+        let sync_state = expand_any_with_deser(kind, events, attrs, variants, &V::RedactedSync);
         let stripped_state =
-            expand_any_with_deser(kind, events, attrs, variants, &RedactedStripped);
+            expand_any_with_deser(kind, events, attrs, variants, &V::RedactedStripped);
 
         quote! {
             #full_state
@@ -270,8 +270,8 @@ fn expand_any_redacted(
             #stripped_state
         }
     } else if kind.is_message() {
-        let full_message = expand_any_with_deser(kind, events, attrs, variants, &Redacted);
-        let sync_message = expand_any_with_deser(kind, events, attrs, variants, &RedactedSync);
+        let full_message = expand_any_with_deser(kind, events, attrs, variants, &V::Redacted);
+        let sync_message = expand_any_with_deser(kind, events, attrs, variants, &V::RedactedSync);
 
         quote! {
             #full_message
@@ -495,9 +495,9 @@ fn generate_custom_variant(
     event_struct: &Ident,
     var: &EventKindVariation,
 ) -> (TokenStream, TokenStream) {
-    use EventKindVariation::*;
+    use EventKindVariation as V;
 
-    if matches!(var, Redacted | RedactedSync | RedactedStripped) {
+    if matches!(var, V::Redacted | V::RedactedSync | V::RedactedStripped) {
         (
             quote! {
                 /// A redacted event not defined by the Matrix specification
@@ -559,12 +559,12 @@ fn accessor_methods(
     var: &EventKindVariation,
     variants: &[Ident],
 ) -> Option<TokenStream> {
-    use EventKindVariation::*;
+    use EventKindVariation as V;
 
     let ident = kind.to_event_enum_ident(var)?;
 
     // matching `EventKindVariation`s
-    if let Redacted | RedactedSync | RedactedStripped = var {
+    if let V::Redacted | V::RedactedSync | V::RedactedStripped = var {
         return redacted_accessor_methods(kind, var, variants);
     }
 

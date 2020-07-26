@@ -98,14 +98,14 @@ impl From<RangeToInclusive<UInt>> for RoomMemberCountIs {
 
 impl Display for RoomMemberCountIs {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        use ComparisonOperator::*;
+        use ComparisonOperator as Op;
 
         let prefix = match self.prefix {
-            Eq => "",
-            Lt => "<",
-            Gt => ">",
-            Ge => ">=",
-            Le => "<=",
+            Op::Eq => "",
+            Op::Lt => "<",
+            Op::Gt => ">",
+            Op::Ge => ">=",
+            Op::Le => "<=",
         };
 
         write!(f, "{}{}", prefix, self.count)
@@ -126,15 +126,15 @@ impl FromStr for RoomMemberCountIs {
     type Err = js_int::ParseIntError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use ComparisonOperator::*;
+        use ComparisonOperator as Op;
 
         let (prefix, count_str) = match s {
-            s if s.starts_with("<=") => (Le, &s[2..]),
-            s if s.starts_with('<') => (Lt, &s[1..]),
-            s if s.starts_with(">=") => (Ge, &s[2..]),
-            s if s.starts_with('>') => (Gt, &s[1..]),
-            s if s.starts_with("==") => (Eq, &s[2..]),
-            s => (Eq, s),
+            s if s.starts_with("<=") => (Op::Le, &s[2..]),
+            s if s.starts_with('<') => (Op::Lt, &s[1..]),
+            s if s.starts_with(">=") => (Op::Ge, &s[2..]),
+            s if s.starts_with('>') => (Op::Gt, &s[1..]),
+            s if s.starts_with("==") => (Op::Eq, &s[2..]),
+            s => (Op::Eq, s),
         };
 
         Ok(RoomMemberCountIs { prefix, count: UInt::from_str(count_str)? })
@@ -153,24 +153,24 @@ impl<'de> Deserialize<'de> for RoomMemberCountIs {
 
 impl RangeBounds<UInt> for RoomMemberCountIs {
     fn start_bound(&self) -> Bound<&UInt> {
-        use ComparisonOperator::*;
+        use ComparisonOperator as Op;
 
         match self.prefix {
-            Eq => Bound::Included(&self.count),
-            Lt | Le => Bound::Unbounded,
-            Gt => Bound::Excluded(&self.count),
-            Ge => Bound::Included(&self.count),
+            Op::Eq => Bound::Included(&self.count),
+            Op::Lt | Op::Le => Bound::Unbounded,
+            Op::Gt => Bound::Excluded(&self.count),
+            Op::Ge => Bound::Included(&self.count),
         }
     }
 
     fn end_bound(&self) -> Bound<&UInt> {
-        use ComparisonOperator::*;
+        use ComparisonOperator as Op;
 
         match self.prefix {
-            Eq => Bound::Included(&self.count),
-            Gt | Ge => Bound::Unbounded,
-            Lt => Bound::Excluded(&self.count),
-            Le => Bound::Included(&self.count),
+            Op::Eq => Bound::Included(&self.count),
+            Op::Gt | Op::Ge => Bound::Unbounded,
+            Op::Lt => Bound::Excluded(&self.count),
+            Op::Le => Bound::Included(&self.count),
         }
     }
 }

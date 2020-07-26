@@ -170,7 +170,9 @@ fn membership_change(
     sender: &UserId,
     state_key: &str,
 ) -> MembershipChange {
-    use MembershipState::*;
+    use MembershipChange as Ch;
+    use MembershipState as St;
+
     let prev_content = if let Some(prev_content) = &prev_content {
         prev_content
     } else {
@@ -178,38 +180,38 @@ fn membership_change(
             avatar_url: None,
             displayname: None,
             is_direct: None,
-            membership: Leave,
+            membership: St::Leave,
             third_party_invite: None,
         }
     };
 
     match (prev_content.membership, &content.membership) {
-        (Invite, Invite) | (Leave, Leave) | (Ban, Ban) => MembershipChange::None,
-        (Invite, Join) | (Leave, Join) => MembershipChange::Joined,
-        (Invite, Leave) => {
+        (St::Invite, St::Invite) | (St::Leave, St::Leave) | (St::Ban, St::Ban) => Ch::None,
+        (St::Invite, St::Join) | (St::Leave, St::Join) => Ch::Joined,
+        (St::Invite, St::Leave) => {
             if sender == state_key {
-                MembershipChange::InvitationRevoked
+                Ch::InvitationRevoked
             } else {
-                MembershipChange::InvitationRejected
+                Ch::InvitationRejected
             }
         }
-        (Invite, Ban) | (Leave, Ban) => MembershipChange::Banned,
-        (Join, Invite) | (Ban, Invite) | (Ban, Join) => MembershipChange::Error,
-        (Join, Join) => MembershipChange::ProfileChanged {
+        (St::Invite, St::Ban) | (St::Leave, St::Ban) => Ch::Banned,
+        (St::Join, St::Invite) | (St::Ban, St::Invite) | (St::Ban, St::Join) => Ch::Error,
+        (St::Join, St::Join) => Ch::ProfileChanged {
             displayname_changed: prev_content.displayname != content.displayname,
             avatar_url_changed: prev_content.avatar_url != content.avatar_url,
         },
-        (Join, Leave) => {
+        (St::Join, St::Leave) => {
             if sender == state_key {
-                MembershipChange::Left
+                Ch::Left
             } else {
-                MembershipChange::Kicked
+                Ch::Kicked
             }
         }
-        (Join, Ban) => MembershipChange::KickedAndBanned,
-        (Leave, Invite) => MembershipChange::Invited,
-        (Ban, Leave) => MembershipChange::Unbanned,
-        (Knock, _) | (_, Knock) => MembershipChange::NotImplemented,
+        (St::Join, St::Ban) => Ch::KickedAndBanned,
+        (St::Leave, St::Invite) => Ch::Invited,
+        (St::Ban, St::Leave) => Ch::Unbanned,
+        (St::Knock, _) | (_, St::Knock) => Ch::NotImplemented,
     }
 }
 

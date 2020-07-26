@@ -92,20 +92,20 @@ impl EventKind {
     }
 
     pub fn to_event_ident(&self, var: &EventKindVariation) -> Option<Ident> {
-        use EventKindVariation::*;
+        use EventKindVariation as V;
 
         // this match is only used to validate the input
         match (self, var) {
-            (_, Full)
-            | (Self::Ephemeral, Sync)
-            | (Self::Message, Sync)
-            | (Self::State, Sync)
-            | (Self::State, Stripped)
-            | (Self::Message, Redacted)
-            | (Self::State, Redacted)
-            | (Self::Message, RedactedSync)
-            | (Self::State, RedactedSync)
-            | (Self::State, RedactedStripped) => {
+            (_, V::Full)
+            | (Self::Ephemeral, V::Sync)
+            | (Self::Message, V::Sync)
+            | (Self::State, V::Sync)
+            | (Self::State, V::Stripped)
+            | (Self::Message, V::Redacted)
+            | (Self::State, V::Redacted)
+            | (Self::Message, V::RedactedSync)
+            | (Self::State, V::RedactedSync)
+            | (Self::State, V::RedactedStripped) => {
                 Some(Ident::new(&format!("{}{}", var, self), Span::call_site()))
             }
             _ => None,
