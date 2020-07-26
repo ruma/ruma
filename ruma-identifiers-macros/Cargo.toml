@@ -6,11 +6,11 @@ keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
 name = "ruma-identifiers-macros"
 repository = "https://github.com/ruma/ruma"
-version = "0.17.0"
+version = "0.17.1"
 edition = "2018"
 
 [dependencies]
-ruma-identifiers = "=0.17.0"
+ruma-identifiers = { version = "=0.17.1", path = "../ruma-identifiers" }
 quote = "1.0.7"
 proc-macro2 = "1.0.19"
 syn = "1.0.35"

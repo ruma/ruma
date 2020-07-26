@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.17.1
+
+Improvements:
+
+* Add `.as_bytes()` to all identifier types that already had `.as_str()`
+
 # 0.17.0
 
 Breaking changes:
