@@ -373,7 +373,7 @@ pub struct ToDevice {
 
 impl ToDevice {
     /// Returns true if there are no to-device events.
-    fn is_empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.events.is_empty()
     }
 }
@@ -394,7 +394,7 @@ pub struct DeviceLists {
 
 impl DeviceLists {
     /// Returns true if there are no device list updates.
-    fn is_empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.changed.is_empty() && self.left.is_empty()
     }
 }
