@@ -14,7 +14,7 @@ Breaking changes:
 * Add PDU types: `pdu::{Pdu, PduStub}`
 * `presence::PresenceState` has been moved. Import it from `ruma` or `ruma-common`.
 * `EventJson` has been moved and renamed. Import it from `ruma` or `ruma-common`.
-
+* The `in_reply_to` field of `room::message::RelatesTo` is now optional
 
 Improvements:
 

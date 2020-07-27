@@ -381,7 +381,7 @@ pub struct VideoInfo {
 pub struct RelatesTo {
     /// Information about another message being replied to.
     #[serde(rename = "m.in_reply_to")]
-    pub in_reply_to: InReplyTo,
+    pub in_reply_to: Option<InReplyTo>,
 }
 
 /// Information about the event a "rich reply" is replying to.
@@ -517,9 +517,9 @@ mod tests {
             body: "> <@test:example.com> test\n\ntest reply".to_owned(),
             formatted: None,
             relates_to: Some(RelatesTo {
-                in_reply_to: InReplyTo {
+                in_reply_to: Some(InReplyTo {
                     event_id: EventId::try_from("$15827405538098VGFWH:example.com").unwrap(),
-                },
+                }),
             }),
         });
 
