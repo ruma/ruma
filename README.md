@@ -1,4 +1,5 @@
-Would it be possible to abstract state res into a `ruma-state-res` crate? I've been thinking about something along the lines of
+### Matrix state resolution in rust!
+
 ```rust
 /// StateMap is just a wrapper/deserialize target for a PDU.
 struct StateEvent {
@@ -41,3 +42,9 @@ trait StateStore {
 }
 
 ```
+
+
+
+The `StateStore` trait is an abstraction around what ever database your server (or maybe even client) uses to store __P__[]()ersistant __D__[]()ata __U__[]()nits.
+
+We use `ruma`s types when deserializing any PDU or it's contents which helps avoid a lot of type checking logic [synapse](https://github.com/matrix-org/synapse) must do while authenticating event chains.

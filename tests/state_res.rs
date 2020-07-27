@@ -1,3 +1,5 @@
+#![allow(clippy::or_fun_call, clippy::expect_fun_call)]
+
 use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet},
@@ -27,7 +29,7 @@ static LOGGER: Once = Once::new();
 static mut SERVER_TIMESTAMP: i32 = 0;
 
 fn event_id(id: &str) -> EventId {
-    if id.contains("$") {
+    if id.contains('$') {
         return EventId::try_from(id).unwrap();
     }
     EventId::try_from(format!("${}:foo", id)).unwrap()
@@ -92,7 +94,7 @@ where
         SERVER_TIMESTAMP += 1;
         ts
     };
-    let id = if id.contains("$") {
+    let id = if id.contains('$') {
         id.to_string()
     } else {
         format!("${}:foo", id)
@@ -100,33 +102,13 @@ where
     let auth_events = auth_events
         .iter()
         .map(AsRef::as_ref)
-        .map(|s| {
-            EventId::try_from(
-                if s.contains("$") {
-                    s.to_owned()
-                } else {
-                    format!("${}:foo", s)
-                }
-                .as_str(),
-            )
-        })
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
+        .map(event_id)
+        .collect::<Vec<_>>();
     let prev_events = prev_events
         .iter()
         .map(AsRef::as_ref)
-        .map(|s| {
-            EventId::try_from(
-                if s.contains("$") {
-                    s.to_owned()
-                } else {
-                    format!("${}:foo", s)
-                }
-                .as_str(),
-            )
-        })
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
+        .map(event_id)
+        .collect::<Vec<_>>();
 
     let json = if let Some(state_key) = state_key {
         json!({
@@ -176,7 +158,7 @@ fn to_init_pdu_event(
         SERVER_TIMESTAMP += 1;
         ts
     };
-    let id = if id.contains("$") {
+    let id = if id.contains('$') {
         id.to_string()
     } else {
         format!("${}:foo", id)
@@ -319,14 +301,14 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
     }
 
     for pair in INITIAL_EDGES().windows(2) {
-        if let &[a, b] = &pair {
+        if let [a, b] = &pair {
             graph.entry(a.clone()).or_insert(vec![]).push(b.clone());
         }
     }
 
     for edge_list in edges {
         for pair in edge_list.windows(2) {
-            if let &[a, b] = &pair {
+            if let [a, b] = &pair {
                 graph.entry(a.clone()).or_insert(vec![]).push(b.clone());
             }
         }
@@ -338,10 +320,9 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
     let mut state_at_event: BTreeMap<EventId, StateMap<EventId>> = BTreeMap::new();
 
     // resolve the current state and add it to the state_at_event map then continue
-    // on in "time"?
-    for node in resolver
-        // TODO is this `key_fn` return correct ??
-        .lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, Some(id.clone())))
+    // on in "time"
+    for node in
+        resolver.lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, Some(id.clone())))
     {
         let fake_event = fake_event_map.get(&node).unwrap();
         let event_id = fake_event.event_id().unwrap();
@@ -358,6 +339,17 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
                 .filter_map(|k| state_at_event.get(k))
                 .cloned()
                 .collect::<Vec<_>>();
+
+            tracing::warn!(
+                "{:#?}",
+                state_sets
+                    .iter()
+                    .map(|map| map
+                        .iter()
+                        .map(|((ty, key), id)| format!("(({}{}), {})", ty, key, id))
+                        .collect::<Vec<_>>())
+                    .collect::<Vec<_>>()
+            );
 
             let resolved = resolver.resolve(
                 &room_id(),
@@ -791,7 +783,8 @@ impl StateStore for TestStore {
             result.push(ev_id.clone());
 
             let event = self.get_event(&ev_id).unwrap();
-            stack.extend(event.auth_event_ids());
+
+            stack.extend(event.auth_events());
         }
 
         Ok(result)
@@ -902,7 +895,7 @@ impl TestStore {
             EventType::RoomMember,
             Some(charlie().to_string().as_str()),
             member_content_join(),
-            &[cre.clone(), join_rules.event_id().unwrap().clone()],
+            &[cre, join_rules.event_id().unwrap().clone()],
             &[join_rules.event_id().unwrap().clone()],
         );
         self.0
@@ -913,7 +906,7 @@ impl TestStore {
             .iter()
             .map(|e| {
                 (
-                    (e.kind(), e.state_key().unwrap().clone()),
+                    (e.kind(), e.state_key().unwrap()),
                     e.event_id().unwrap().clone(),
                 )
             })
@@ -923,7 +916,7 @@ impl TestStore {
             .iter()
             .map(|e| {
                 (
-                    (e.kind(), e.state_key().unwrap().clone()),
+                    (e.kind(), e.state_key().unwrap()),
                     e.event_id().unwrap().clone(),
                 )
             })
@@ -939,7 +932,7 @@ impl TestStore {
         .iter()
         .map(|e| {
             (
-                (e.kind(), e.state_key().unwrap().clone()),
+                (e.kind(), e.state_key().unwrap()),
                 e.event_id().unwrap().clone(),
             )
         })

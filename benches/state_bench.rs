@@ -70,10 +70,83 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, lexico_topo_sort, resolution_shallow_auth_chain);
+fn resolve_deeper_event_set(c: &mut Criterion) {
+    c.bench_function("resolve state of 10 events 3 conflicting", |b| {
+        let mut resolver = StateResolution::default();
+
+        let init = INITIAL_EVENTS();
+        let ban = BAN_STATE_SET();
+
+        let mut inner = init;
+        inner.extend(ban);
+        let store = TestStore(RefCell::new(inner.clone()));
+
+        let state_set_a = [
+            inner.get(&event_id("CREATE")).unwrap(),
+            inner.get(&event_id("IJR")).unwrap(),
+            inner.get(&event_id("IMA")).unwrap(),
+            inner.get(&event_id("IMB")).unwrap(),
+            inner.get(&event_id("IMC")).unwrap(),
+            inner.get(&event_id("MB")).unwrap(),
+            inner.get(&event_id("PA")).unwrap(),
+        ]
+        .iter()
+        .map(|ev| {
+            (
+                (ev.kind(), ev.state_key().unwrap()),
+                ev.event_id().unwrap().clone(),
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+
+        let state_set_b = [
+            inner.get(&event_id("CREATE")).unwrap(),
+            inner.get(&event_id("IJR")).unwrap(),
+            inner.get(&event_id("IMA")).unwrap(),
+            inner.get(&event_id("IMB")).unwrap(),
+            inner.get(&event_id("IMC")).unwrap(),
+            inner.get(&event_id("IME")).unwrap(),
+            inner.get(&event_id("PA")).unwrap(),
+        ]
+        .iter()
+        .map(|ev| {
+            (
+                (ev.kind(), ev.state_key().unwrap()),
+                ev.event_id().unwrap().clone(),
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+
+        b.iter(|| {
+            let _resolved = match resolver.resolve(
+                &room_id(),
+                &RoomVersionId::version_2(),
+                &[state_set_a.clone(), state_set_b.clone()],
+                Some(inner.clone()),
+                &store,
+            ) {
+                Ok(ResolutionResult::Resolved(state)) => state,
+                Err(_) => panic!("resolution failed during benchmarking"),
+                _ => panic!("resolution failed during benchmarking"),
+            };
+        })
+    });
+}
+
+criterion_group!(
+    benches,
+    lexico_topo_sort,
+    resolution_shallow_auth_chain,
+    resolve_deeper_event_set
+);
 
 criterion_main!(benches);
 
+//*/////////////////////////////////////////////////////////////////////
+//
+//  IMPLEMENTATION DETAILS AHEAD
+//
+/////////////////////////////////////////////////////////////////////*/
 pub struct TestStore(RefCell<BTreeMap<EventId, StateEvent>>);
 
 #[allow(unused)]
@@ -115,7 +188,7 @@ impl StateStore for TestStore {
             result.push(ev_id.clone());
 
             let event = self.get_event(&ev_id).unwrap();
-            stack.extend(event.auth_event_ids());
+            stack.extend(event.auth_events());
         }
 
         Ok(result)
@@ -220,7 +293,7 @@ impl TestStore {
             EventType::RoomMember,
             Some(charlie().to_string().as_str()),
             member_content_join(),
-            &[cre.clone(), join_rules.event_id().unwrap().clone()],
+            &[cre, join_rules.event_id().unwrap().clone()],
             &[join_rules.event_id().unwrap().clone()],
         );
         self.0
@@ -231,7 +304,7 @@ impl TestStore {
             .iter()
             .map(|e| {
                 (
-                    (e.kind(), e.state_key().unwrap().clone()),
+                    (e.kind(), e.state_key().unwrap()),
                     e.event_id().unwrap().clone(),
                 )
             })
@@ -241,7 +314,7 @@ impl TestStore {
             .iter()
             .map(|e| {
                 (
-                    (e.kind(), e.state_key().unwrap().clone()),
+                    (e.kind(), e.state_key().unwrap()),
                     e.event_id().unwrap().clone(),
                 )
             })
@@ -257,7 +330,7 @@ impl TestStore {
         .iter()
         .map(|e| {
             (
-                (e.kind(), e.state_key().unwrap().clone()),
+                (e.kind(), e.state_key().unwrap()),
                 e.event_id().unwrap().clone(),
             )
         })
@@ -268,7 +341,7 @@ impl TestStore {
 }
 
 fn event_id(id: &str) -> EventId {
-    if id.contains("$") {
+    if id.contains('$') {
         return EventId::try_from(id).unwrap();
     }
     EventId::try_from(format!("${}:foo", id)).unwrap()
@@ -283,9 +356,23 @@ fn bob() -> UserId {
 fn charlie() -> UserId {
     UserId::try_from("@charlie:foo").unwrap()
 }
+fn ella() -> UserId {
+    UserId::try_from("@ella:foo").unwrap()
+}
 
 fn room_id() -> RoomId {
     RoomId::try_from("!test:foo").unwrap()
+}
+
+fn member_content_ban() -> JsonValue {
+    serde_json::to_value(MemberEventContent {
+        membership: MembershipState::Ban,
+        displayname: None,
+        avatar_url: None,
+        is_direct: None,
+        third_party_invite: None,
+    })
+    .unwrap()
 }
 
 fn member_content_join() -> JsonValue {
@@ -317,7 +404,7 @@ where
         SERVER_TIMESTAMP += 1;
         ts
     };
-    let id = if id.contains("$") {
+    let id = if id.contains('$') {
         id.to_string()
     } else {
         format!("${}:foo", id)
@@ -325,33 +412,13 @@ where
     let auth_events = auth_events
         .iter()
         .map(AsRef::as_ref)
-        .map(|s| {
-            EventId::try_from(
-                if s.contains("$") {
-                    s.to_owned()
-                } else {
-                    format!("${}:foo", s)
-                }
-                .as_str(),
-            )
-        })
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
+        .map(event_id)
+        .collect::<Vec<_>>();
     let prev_events = prev_events
         .iter()
         .map(AsRef::as_ref)
-        .map(|s| {
-            EventId::try_from(
-                if s.contains("$") {
-                    s.to_owned()
-                } else {
-                    format!("${}:foo", s)
-                }
-                .as_str(),
-            )
-        })
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
+        .map(event_id)
+        .collect::<Vec<_>>();
 
     let json = if let Some(state_key) = state_key {
         json!({
@@ -386,4 +453,132 @@ where
         })
     };
     serde_json::from_value(json).unwrap()
+}
+
+// all graphs start with these input events
+#[allow(non_snake_case)]
+fn INITIAL_EVENTS() -> BTreeMap<EventId, StateEvent> {
+    vec![
+        to_pdu_event::<EventId>(
+            "CREATE",
+            alice(),
+            EventType::RoomCreate,
+            Some(""),
+            json!({ "creator": alice() }),
+            &[],
+            &[],
+        ),
+        to_pdu_event(
+            "IMA",
+            alice(),
+            EventType::RoomMember,
+            Some(alice().to_string().as_str()),
+            member_content_join(),
+            &["CREATE"],
+            &["CREATE"],
+        ),
+        to_pdu_event(
+            "IPOWER",
+            alice(),
+            EventType::RoomPowerLevels,
+            Some(""),
+            json!({"users": {alice().to_string(): 100}}),
+            &["CREATE", "IMA"],
+            &["IMA"],
+        ),
+        to_pdu_event(
+            "IJR",
+            alice(),
+            EventType::RoomJoinRules,
+            Some(""),
+            json!({ "join_rule": JoinRule::Public }),
+            &["CREATE", "IMA", "IPOWER"],
+            &["IPOWER"],
+        ),
+        to_pdu_event(
+            "IMB",
+            bob(),
+            EventType::RoomMember,
+            Some(bob().to_string().as_str()),
+            member_content_join(),
+            &["CREATE", "IJR", "IPOWER"],
+            &["IJR"],
+        ),
+        to_pdu_event(
+            "IMC",
+            charlie(),
+            EventType::RoomMember,
+            Some(charlie().to_string().as_str()),
+            member_content_join(),
+            &["CREATE", "IJR", "IPOWER"],
+            &["IMB"],
+        ),
+        to_pdu_event::<EventId>(
+            "START",
+            charlie(),
+            EventType::RoomMessage,
+            None,
+            json!({}),
+            &[],
+            &[],
+        ),
+        to_pdu_event::<EventId>(
+            "END",
+            charlie(),
+            EventType::RoomMessage,
+            None,
+            json!({}),
+            &[],
+            &[],
+        ),
+    ]
+    .into_iter()
+    .map(|ev| (ev.event_id().unwrap().clone(), ev))
+    .collect()
+}
+
+// all graphs start with these input events
+#[allow(non_snake_case)]
+fn BAN_STATE_SET() -> BTreeMap<EventId, StateEvent> {
+    vec![
+        to_pdu_event(
+            "PA",
+            alice(),
+            EventType::RoomPowerLevels,
+            Some(""),
+            json!({"users": {alice(): 100, bob(): 50}}),
+            &["CREATE", "IMA", "IPOWER"], // auth_events
+            &["START"],                   // prev_events
+        ),
+        to_pdu_event(
+            "PB",
+            alice(),
+            EventType::RoomPowerLevels,
+            Some(""),
+            json!({"users": {alice(): 100, bob(): 50}}),
+            &["CREATE", "IMA", "IPOWER"],
+            &["END"],
+        ),
+        to_pdu_event(
+            "MB",
+            alice(),
+            EventType::RoomMember,
+            Some(ella().as_str()),
+            member_content_ban(),
+            &["CREATE", "IMA", "PB"],
+            &["PA"],
+        ),
+        to_pdu_event(
+            "IME",
+            ella(),
+            EventType::RoomMember,
+            Some(ella().as_str()),
+            member_content_join(),
+            &["CREATE", "IJR", "PA"],
+            &["MB"],
+        ),
+    ]
+    .into_iter()
+    .map(|ev| (ev.event_id().unwrap().clone(), ev))
+    .collect()
 }

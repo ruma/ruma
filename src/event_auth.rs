@@ -1,5 +1,6 @@
 use std::convert::TryFrom;
 
+use maplit::btreeset;
 use ruma::{
     events::{
         room::{self, join_rules::JoinRule, member::MembershipState},
@@ -89,7 +90,7 @@ pub fn auth_check(
             false
         };
 
-        if !event.signatures().get(sender_domain).is_some() && !is_invite_via_3pid {
+        if event.signatures().get(sender_domain).is_none() && !is_invite_via_3pid {
             tracing::info!("event not signed by sender's server");
             return Some(false);
         }
@@ -107,6 +108,7 @@ pub fn auth_check(
 
         // domain of room_id must match domain of sender.
         if event.room_id().map(|id| id.server_name()) != Some(event.sender().server_name()) {
+            tracing::info!("creation events server does not match sender");
             return Some(false); // creation events room id does not match senders
         }
 
@@ -117,7 +119,8 @@ pub fn auth_check(
                 .content()
                 .get("room_version")
                 .cloned()
-                .unwrap_or(serde_json::json!({})),
+                // synapse defaults to version 1
+                .unwrap_or(serde_json::json!("1")),
         )
         .is_err()
         {
@@ -231,7 +234,7 @@ fn can_federate(auth_events: &StateMap<StateEvent>) -> bool {
     let creation_event = auth_events.get(&(EventType::RoomCreate, "".into()));
     if let Some(ev) = creation_event {
         if let Some(fed) = ev.content().get("m.federate") {
-            fed.to_string() == "true"
+            fed == "true"
         } else {
             false
         }
@@ -468,7 +471,7 @@ fn can_send_event(event: &StateEvent, auth_events: &StateMap<StateEvent>) -> Opt
     }
 
     if let Some(sk) = event.state_key() {
-        if sk.starts_with("@") && sk != event.sender().to_string() {
+        if sk.starts_with('@') && sk != event.sender().as_str() {
             return Some(false); // permission required to post in this room
         }
     }
@@ -484,7 +487,13 @@ fn check_power_levels(
     use itertools::Itertools;
 
     let key = (power_event.kind(), power_event.state_key().unwrap());
-    let current_state = auth_events.get(&key)?;
+
+    let current_state = if let Some(current_state) = auth_events.get(&key) {
+        current_state
+    } else {
+        // TODO synapse returns here, shouldn't this be an error ??
+        return Some(true);
+    };
 
     let user_content = power_event
         .deserialize_content::<room::power_levels::PowerLevelsEventContent>()
@@ -493,25 +502,27 @@ fn check_power_levels(
         .deserialize_content::<room::power_levels::PowerLevelsEventContent>()
         .unwrap();
 
-    tracing::info!("validation of power event finished");
     // validation of users is done in Ruma, synapse for loops validating user_ids and integers here
+    tracing::info!("validation of power event finished");
 
     let user_level = get_user_power_level(power_event.sender(), auth_events);
 
-    let mut user_levels_to_check = vec![];
+    let mut user_levels_to_check = btreeset![];
     let old_list = &current_content.users;
     let user_list = &user_content.users;
     for user in old_list.keys().chain(user_list.keys()).dedup() {
         let user: &UserId = user;
-        user_levels_to_check.push(user);
+        user_levels_to_check.insert(user);
     }
 
-    let mut event_levels_to_check = vec![];
+    tracing::debug!("users to check {:?}", user_levels_to_check);
+
+    let mut event_levels_to_check = btreeset![];
     let old_list = &current_content.events;
     let new_list = &user_content.events;
     for ev_id in old_list.keys().chain(new_list.keys()).dedup() {
         let ev_id: &EventType = ev_id;
-        event_levels_to_check.push(ev_id);
+        event_levels_to_check.insert(ev_id);
     }
 
     tracing::debug!("events to check {:?}", event_levels_to_check);
@@ -574,7 +585,41 @@ fn check_power_levels(
         }
     }
 
+    let levels = [
+        "users_default",
+        "events_default",
+        "state_default",
+        "ban",
+        "redact",
+        "kick",
+        "invite",
+    ];
+    let old_state = serde_json::to_value(old_state).unwrap();
+    let new_state = serde_json::to_value(new_state).unwrap();
+    for lvl_name in &levels {
+        if let Some((old_lvl, new_lvl)) = get_deserialize_levels(&old_state, &new_state, lvl_name) {
+            let old_level_too_big = old_lvl > user_level;
+            let new_level_too_big = new_lvl > user_level;
+
+            if old_level_too_big || new_level_too_big {
+                tracing::info!("cannot add ops > than own");
+                return Some(false);
+            }
+        }
+    }
+
     Some(true)
+}
+
+fn get_deserialize_levels(
+    old: &serde_json::Value,
+    new: &serde_json::Value,
+    name: &str,
+) -> Option<(i64, i64)> {
+    Some((
+        serde_json::from_value(old.get(name)?.clone()).ok()?,
+        serde_json::from_value(new.get(name)?.clone()).ok()?,
+    ))
 }
 
 /// Does the event redacting come from a user with enough power to redact the given event.

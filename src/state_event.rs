@@ -173,29 +173,29 @@ impl StateEvent {
     pub fn prev_event_ids(&self) -> Vec<EventId> {
         match self {
             Self::Full(ev) => match ev {
-                Pdu::RoomV1Pdu(ev) => ev.prev_events.iter().cloned().collect(),
+                Pdu::RoomV1Pdu(ev) => ev.prev_events.to_vec(),
                 Pdu::RoomV3Pdu(ev) => ev.prev_events.clone(),
             },
             Self::Sync(ev) => match ev {
                 PduStub::RoomV1PduStub(ev) => {
                     ev.prev_events.iter().map(|(id, _)| id).cloned().collect()
                 }
-                PduStub::RoomV3PduStub(ev) => ev.prev_events.clone(),
+                PduStub::RoomV3PduStub(ev) => ev.prev_events.to_vec(),
             },
         }
     }
 
-    pub fn auth_event_ids(&self) -> Vec<EventId> {
+    pub fn auth_events(&self) -> Vec<EventId> {
         match self {
             Self::Full(ev) => match ev {
-                Pdu::RoomV1Pdu(ev) => ev.auth_events.iter().cloned().collect(),
-                Pdu::RoomV3Pdu(ev) => ev.auth_events.clone(),
+                Pdu::RoomV1Pdu(ev) => ev.auth_events.to_vec(),
+                Pdu::RoomV3Pdu(ev) => ev.auth_events.to_vec(),
             },
             Self::Sync(ev) => match ev {
                 PduStub::RoomV1PduStub(ev) => {
                     ev.auth_events.iter().map(|(id, _)| id).cloned().collect()
                 }
-                PduStub::RoomV3PduStub(ev) => ev.auth_events.clone(),
+                PduStub::RoomV3PduStub(ev) => ev.auth_events.to_vec(),
             },
         }
     }
