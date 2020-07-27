@@ -340,7 +340,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
                 .cloned()
                 .collect::<Vec<_>>();
 
-            tracing::warn!(
+            tracing::debug!(
                 "{:#?}",
                 state_sets
                     .iter()

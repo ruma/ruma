@@ -68,12 +68,15 @@ pub fn auth_check(
     auth_events: StateMap<StateEvent>,
     do_sig_check: bool,
 ) -> Option<bool> {
-    tracing::info!("auth_check beginning");
+    tracing::info!(
+        "auth_check beginning for {}",
+        event.event_id().unwrap().as_str()
+    );
 
     // don't let power from other rooms be used
     for auth_event in auth_events.values() {
         if auth_event.room_id() != event.room_id() {
-            tracing::info!("found auth event that did not match event's room_id");
+            tracing::warn!("found auth event that did not match event's room_id");
             return Some(false);
         }
     }
@@ -91,7 +94,7 @@ pub fn auth_check(
         };
 
         if event.signatures().get(sender_domain).is_none() && !is_invite_via_3pid {
-            tracing::info!("event not signed by sender's server");
+            tracing::warn!("event not signed by sender's server");
             return Some(false);
         }
     }
@@ -108,7 +111,7 @@ pub fn auth_check(
 
         // domain of room_id must match domain of sender.
         if event.room_id().map(|id| id.server_name()) != Some(event.sender().server_name()) {
-            tracing::info!("creation events server does not match sender");
+            tracing::warn!("creation events server does not match sender");
             return Some(false); // creation events room id does not match senders
         }
 
@@ -124,6 +127,7 @@ pub fn auth_check(
         )
         .is_err()
         {
+            tracing::warn!("invalid room version found in m.room.create event");
             return Some(false);
         }
 
@@ -157,13 +161,16 @@ pub fn auth_check(
         tracing::info!("starting m.room.aliases check");
         // TODO && room_version "special case aliases auth" ??
         if event.state_key().is_none() {
+            tracing::warn!("no state_key field found for event");
             return Some(false); // must have state_key
         }
         if event.state_key().unwrap().is_empty() {
+            tracing::warn!("state_key must be non-empty");
             return Some(false); // and be non-empty state_key (point to a user_id)
         }
 
         if event.state_key() != Some(event.sender().to_string()) {
+            tracing::warn!("no state_key field found for event");
             return Some(false);
         }
 
@@ -272,7 +279,7 @@ fn is_membership_change_allowed(
     if event.room_id().unwrap().server_name() != target_user_id.server_name()
         && !can_federate(auth_events)
     {
-        tracing::info!("server cannot federate");
+        tracing::warn!("server cannot federate");
         return Some(false);
     }
 
@@ -325,23 +332,11 @@ fn is_membership_change_allowed(
     if membership == MembershipState::Invite && content.third_party_invite.is_some() {
         // TODO this is unimpled
         if !verify_third_party_invite(event, auth_events) {
-            tracing::info!(
-                "{} was not invited to this room",
-                event
-                    .event_id()
-                    .map(ToString::to_string)
-                    .unwrap_or("Unknow".into())
-            );
+            tracing::warn!("not invited to this room",);
             return Some(false);
         }
         if target_banned {
-            tracing::info!(
-                "{} is banned",
-                event
-                    .event_id()
-                    .map(ToString::to_string)
-                    .unwrap_or("Unknow".into())
-            );
+            tracing::warn!("banned from this room",);
             return Some(false);
         }
         tracing::info!("invite succeded");
@@ -353,15 +348,14 @@ fn is_membership_change_allowed(
             && membership == MembershipState::Leave
             && &target_user_id == event.sender()
         {
-            tracing::info!("join event succeded");
+            tracing::warn!("join event succeded");
             return Some(true);
         }
 
         if !caller_in_room {
-            tracing::info!(
-                "{} is not in this room {:?}",
-                event.sender(),
-                event.room_id()
+            tracing::warn!(
+                "user is not in this room {}",
+                event.room_id().unwrap().as_str(),
             );
             return Some(false); // caller is not joined
         }
@@ -369,10 +363,10 @@ fn is_membership_change_allowed(
 
     if membership == MembershipState::Invite {
         if target_banned {
-            tracing::info!("target has been banned");
+            tracing::warn!("target has been banned");
             return Some(false);
         } else if target_in_room {
-            tracing::info!("already in room");
+            tracing::warn!("already in room");
             return Some(false); // already in room
         } else {
             let invite_level = get_named_level(auth_events, "invite", 0);
@@ -382,21 +376,21 @@ fn is_membership_change_allowed(
         }
     } else if membership == MembershipState::Join {
         if event.sender() != &target_user_id {
-            tracing::info!("cannot force another user to join");
+            tracing::warn!("cannot force another user to join");
             return Some(false); // cannot force another user to join
         } else if target_banned {
-            tracing::info!("cannot join when banned");
+            tracing::warn!("cannot join when banned");
             return Some(false); // cannot joined when banned
         } else if join_rule == JoinRule::Public {
             tracing::info!("join rule public")
         // pass
         } else if join_rule == JoinRule::Invite {
             if !caller_in_room && !caller_invited {
-                tracing::info!("user has not been invited to this room");
+                tracing::warn!("user has not been invited to this room");
                 return Some(false); // you are not invited to this room
             }
         } else {
-            tracing::info!("the join rule is Private or yet to be spec'ed by Matrix");
+            tracing::warn!("the join rule is Private or yet to be spec'ed by Matrix");
             // synapse has 2 TODO's may_join list and private rooms
 
             // the join_rule is Private or Knock which means it is not yet spec'ed
@@ -404,13 +398,13 @@ fn is_membership_change_allowed(
         }
     } else if membership == MembershipState::Leave {
         if target_banned && user_level < ban_level {
-            tracing::info!("not enough power to unban");
+            tracing::warn!("not enough power to unban");
             return Some(false); // you cannot unban this user
         } else if &target_user_id != event.sender() {
             let kick_level = get_named_level(auth_events, "kick", 50);
 
             if user_level < kick_level || user_level <= target_level {
-                tracing::info!("not enough power to kick user");
+                tracing::warn!("not enough power to kick user");
                 return Some(false); // you do not have the power to kick user
             }
         }
@@ -423,7 +417,7 @@ fn is_membership_change_allowed(
             target_level
         );
         if user_level < ban_level || user_level <= target_level {
-            tracing::info!("not enough power to ban");
+            tracing::warn!("not enough power to ban");
             return Some(false);
         }
     } else {
@@ -538,7 +532,7 @@ fn check_power_levels(
         let old_level_too_big = old_level > user_level;
         let new_level_too_big = new_level > user_level;
         if old_level_too_big || new_level_too_big {
-            tracing::info!("m.room.power_level cannot add ops > than own");
+            tracing::warn!("m.room.power_level cannot add ops > than own");
             return Some(false); // cannot add ops greater than own
         }
     }
@@ -557,14 +551,14 @@ fn check_power_levels(
             continue;
         }
         if user != power_event.sender() && old_level.map(|int| (*int).into()) == Some(user_level) {
-            tracing::info!("m.room.power_level cannot remove ops == to own");
+            tracing::warn!("m.room.power_level cannot remove ops == to own");
             return Some(false); // cannot remove ops level == to own
         }
 
         let old_level_too_big = old_level.map(|int| (*int).into()) > Some(user_level);
         let new_level_too_big = new_level.map(|int| (*int).into()) > Some(user_level);
         if old_level_too_big || new_level_too_big {
-            tracing::info!("m.room.power_level failed to add ops > than own");
+            tracing::warn!("m.room.power_level failed to add ops > than own");
             return Some(false); // cannot add ops greater than own
         }
     }
@@ -580,7 +574,7 @@ fn check_power_levels(
         let old_level_too_big = old_level.map(|int| (*int).into()) > Some(user_level);
         let new_level_too_big = new_level.map(|int| (*int).into()) > Some(user_level);
         if old_level_too_big || new_level_too_big {
-            tracing::info!("m.room.power_level failed to add ops > than own");
+            tracing::warn!("m.room.power_level failed to add ops > than own");
             return Some(false); // cannot add ops greater than own
         }
     }
@@ -602,7 +596,7 @@ fn check_power_levels(
             let new_level_too_big = new_lvl > user_level;
 
             if old_level_too_big || new_level_too_big {
-                tracing::info!("cannot add ops > than own");
+                tracing::warn!("cannot add ops > than own");
                 return Some(false);
             }
         }

@@ -79,34 +79,15 @@ impl StateResolution {
         };
         // split non-conflicting and conflicting state
         let (clean, conflicting) = self.separate(&state_sets);
-        tracing::debug!(
-            "CLEAN {:#?}",
-            clean
-                .iter()
-                .map(|((ty, key), id)| format!("(({}{}), {})", ty, key, id))
-                .collect::<Vec<_>>()
-        );
 
-        tracing::debug!(
-            "CONFLICT {:#?}",
-            conflicting
-                .iter()
-                .map(|((ty, key), ids)| format!(
-                    "(({} `{}`), {:?})",
-                    ty,
-                    key,
-                    ids.iter().map(ToString::to_string).collect::<Vec<_>>()
-                ))
-                .collect::<Vec<_>>()
-        );
         tracing::info!("non conflicting {:?}", clean.len());
 
         if conflicting.is_empty() {
-            tracing::warn!("no conflicting state found");
+            tracing::info!("no conflicting state found");
             return Ok(ResolutionResult::Resolved(clean));
         }
 
-        tracing::info!("computing {} conflicting events", conflicting.len());
+        tracing::info!("{} conflicting events", conflicting.len());
 
         // the set of auth events that are not common across server forks
         let mut auth_diff = self.get_auth_chain_diff(room_id, &state_sets, store)?;
@@ -167,7 +148,7 @@ impl StateResolution {
         // get only the power events with a state_key: "" or ban/kick event (sender != state_key)
         let power_events = all_conflicted
             .iter()
-            .filter(|id| is_power_event(id, store))
+            .filter(|id| is_power_event(id, &event_map))
             .cloned()
             .collect::<Vec<_>>();
 
@@ -306,7 +287,6 @@ impl StateResolution {
                     panic!()
                 }
             } else {
-                tracing::warn!("{:?}", key);
                 conflicted_state.insert(
                     key.clone(),
                     event_ids.into_iter().flatten().cloned().collect::<Vec<_>>(),
@@ -383,7 +363,7 @@ impl StateResolution {
             let ev = event_map.get(event_id).unwrap();
             let pl = event_to_pl.get(event_id).unwrap();
 
-            tracing::warn!(
+            tracing::debug!(
                 "{:?}",
                 (-*pl, *ev.origin_server_ts(), ev.event_id().cloned())
             );
@@ -547,7 +527,6 @@ impl StateResolution {
         let mut resolved_state = unconflicted_state.clone();
 
         for (idx, event_id) in power_events.iter().enumerate() {
-            tracing::warn!("POWER EVENTS {}", event_id.as_str());
             let event = self
                 ._get_event(room_id, event_id, event_map, store)
                 .unwrap();
@@ -556,7 +535,7 @@ impl StateResolution {
             for aid in event.auth_events() {
                 if let Some(ev) = self._get_event(room_id, &aid, event_map, store) {
                     // TODO what to do when no state_key is found ??
-                    // TODO check "rejected_reason", I'm guessing this is redacted_because for ruma ??
+                    // TODO synapse check "rejected_reason", I'm guessing this is redacted_because for ruma ??
                     auth_events.insert((ev.kind(), ev.state_key().unwrap()), ev);
                 } else {
                     tracing::warn!("auth event id for {} is missing {}", aid, event_id);
@@ -580,7 +559,7 @@ impl StateResolution {
                 // add event to resolved state map
                 resolved_state.insert((event.kind(), event.state_key().unwrap()), event_id.clone());
             } else {
-                // TODO synapse passes here on AuthError ??
+                // synapse passes here on AuthError. We do not add this event to resolved_state.
                 tracing::warn!(
                     "event {} failed the authentication check",
                     event_id.to_string()
@@ -610,11 +589,8 @@ impl StateResolution {
         store: &dyn StateStore,
     ) -> Vec<EventId> {
         tracing::debug!("mainline sort of remaining events");
-        // tracing::debug!(
-        //     "{:?}",
-        //     to_sort.iter().map(ToString::to_string).collect::<Vec<_>>()
-        // );
-        // There can be no EventId's to sort, bail.
+
+        // There are no EventId's to sort, bail.
         if to_sort.is_empty() {
             return vec![];
         }
@@ -692,7 +668,7 @@ impl StateResolution {
     ) -> usize {
         while let Some(sort_ev) = event {
             tracing::debug!(
-                "mainline EVENT ID {}",
+                "mainline event_id {}",
                 sort_ev.event_id().unwrap().to_string()
             );
             if let Some(id) = sort_ev.event_id() {
@@ -767,9 +743,9 @@ impl StateResolution {
     }
 }
 
-pub fn is_power_event(event_id: &EventId, store: &dyn StateStore) -> bool {
-    match store.get_event(event_id) {
-        Ok(state) => state.is_power_event(),
+pub fn is_power_event(event_id: &EventId, event_map: &EventMap<StateEvent>) -> bool {
+    match event_map.get(event_id) {
+        Some(state) => state.is_power_event(),
         _ => false, // TODO this shouldn't eat errors?
     }
 }
