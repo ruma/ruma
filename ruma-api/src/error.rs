@@ -35,6 +35,13 @@ impl From<ruma_serde::urlencoded::ser::Error> for IntoHttpError {
     }
 }
 
+#[doc(hidden)]
+impl From<http::header::InvalidHeaderValue> for IntoHttpError {
+    fn from(err: http::header::InvalidHeaderValue) -> Self {
+        Self(SerializationError::Header(err))
+    }
+}
+
 impl Display for IntoHttpError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match &self.0 {
@@ -42,6 +49,7 @@ impl Display for IntoHttpError {
             SerializationError::Query(err) => {
                 write!(f, "Query parameter serialization failed: {}", err)
             }
+            SerializationError::Header(err) => write!(f, "Header serialization failed: {}", err),
         }
     }
 }
@@ -196,6 +204,7 @@ impl<E: std::error::Error> std::error::Error for ServerError<E> {}
 enum SerializationError {
     Json(serde_json::Error),
     Query(ruma_serde::urlencoded::ser::Error),
+    Header(http::header::InvalidHeaderValue),
 }
 
 /// This type is public so it is accessible from `ruma_api!` generated code.
@@ -210,6 +219,7 @@ pub enum DeserializationError {
     // String <> Enum conversion failed. This can currently only happen in path
     // segment deserialization
     Strum(strum::ParseError),
+    Header(http::header::ToStrError),
 }
 
 impl Display for DeserializationError {
@@ -220,7 +230,15 @@ impl Display for DeserializationError {
             DeserializationError::Query(err) => Display::fmt(err, f),
             DeserializationError::Ident(err) => Display::fmt(err, f),
             DeserializationError::Strum(err) => Display::fmt(err, f),
+            DeserializationError::Header(err) => Display::fmt(err, f),
         }
+    }
+}
+
+#[doc(hidden)]
+impl From<http::header::ToStrError> for DeserializationError {
+    fn from(err: http::header::ToStrError) -> Self {
+        Self::Header(err)
     }
 }
 

@@ -56,10 +56,12 @@ impl Response {
                 }
                 ResponseField::Header(_, header_name) => {
                     quote_spanned! {span=>
-                        #field_name: headers.remove(ruma_api::exports::http::header::#header_name)
-                            .expect("response missing expected header")
-                            .to_str()
-                            .expect("failed to convert HeaderValue to str")
+                        #field_name: ruma_api::try_deserialize!(
+                            response,
+                            headers.remove(ruma_api::exports::http::header::#header_name)
+                                .expect("response missing expected header")
+                                .to_str()
+                            )
                             .to_owned()
                     }
                 }

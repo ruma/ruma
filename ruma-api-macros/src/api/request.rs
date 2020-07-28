@@ -34,8 +34,7 @@ impl Request {
             quote! {
                 headers.append(
                     ruma_api::exports::http::header::#header_name,
-                    ruma_api::exports::http::header::HeaderValue::from_str(request.#field_name.as_ref())
-                        .expect("failed to convert value into HeaderValue"),
+                    ruma_api::exports::http::header::HeaderValue::from_str(request.#field_name.as_ref())?,
                 );
             }
         });
