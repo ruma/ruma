@@ -163,7 +163,7 @@ impl Request {
         request_field_kind: RequestFieldKind,
         src: TokenStream,
     ) -> TokenStream {
-        let fields = self.fields.iter().filter_map(|f| {
+        let process_field = |f: &RequestField| {
             f.field_of_kind(request_field_kind).map(|field| {
                 let field_name =
                     field.ident.as_ref().expect("expected field to have an identifier");
@@ -176,7 +176,20 @@ impl Request {
                     #field_name: #src.#field_name
                 }
             })
-        });
+        };
+
+        let mut fields = vec![];
+        let mut new_type_body = None;
+        for field in &self.fields {
+            if let RequestField::NewtypeRawBody(_) = field {
+                new_type_body = process_field(field);
+            } else {
+                fields.extend(process_field(field));
+            }
+        }
+
+        // Move field that consumes `request` to the end of the init list.
+        fields.extend(new_type_body);
 
         quote! { #(#fields,)* }
     }

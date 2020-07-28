@@ -38,14 +38,16 @@ impl Response {
 
     /// Produces code for a response struct initializer.
     pub fn init_fields(&self) -> TokenStream {
-        let fields = self.fields.iter().map(|response_field| {
+        let mut fields = vec![];
+        let mut new_type_raw_body = None;
+        for response_field in &self.fields {
             let field = response_field.field();
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let span = field.span();
             let cfg_attrs =
                 field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
 
-            match response_field {
+            fields.push(match response_field {
                 ResponseField::Body(_) => {
                     quote_spanned! {span=>
                         #( #cfg_attrs )*
@@ -66,13 +68,19 @@ impl Response {
                         #field_name: response_body.0
                     }
                 }
+                // This field must be instantiated last to avoid `use of move value` error.
+                // We are guaranteed only one new body field because of a check in `try_from`.
                 ResponseField::NewtypeRawBody(_) => {
-                    quote_spanned! {span=>
+                    new_type_raw_body = Some(quote_spanned! {span=>
                         #field_name: response.into_body()
-                    }
+                    });
+                    // skip adding to the vec
+                    continue;
                 }
-            }
-        });
+            });
+        }
+
+        fields.extend(new_type_raw_body);
 
         quote! {
             #(#fields,)*
