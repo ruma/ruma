@@ -37,7 +37,7 @@ fn lexico_topo_sort(c: &mut Criterion) {
             event_id("p") => vec![event_id("o")],
         };
         b.iter(|| {
-            let mut resolver = StateResolution::default();
+            let resolver = StateResolution::default();
 
             let _ = resolver
                 .lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, Some(id.clone())));
@@ -47,7 +47,7 @@ fn lexico_topo_sort(c: &mut Criterion) {
 
 fn resolution_shallow_auth_chain(c: &mut Criterion) {
     c.bench_function("resolve state of 5 events one fork", |b| {
-        let mut resolver = StateResolution::default();
+        let resolver = StateResolution::default();
 
         let store = TestStore(RefCell::new(btreemap! {}));
 
@@ -72,7 +72,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
 
 fn resolve_deeper_event_set(c: &mut Criterion) {
     c.bench_function("resolve state of 10 events 3 conflicting", |b| {
-        let mut resolver = StateResolution::default();
+        let resolver = StateResolution::default();
 
         let init = INITIAL_EVENTS();
         let ban = BAN_STATE_SET();

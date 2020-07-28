@@ -278,7 +278,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
             .init()
     });
 
-    let mut resolver = StateResolution::default();
+    let resolver = StateResolution::default();
 
     let store = TestStore(RefCell::new(
         INITIAL_EVENTS()
@@ -691,7 +691,7 @@ fn topic_setting() {
 
 #[test]
 fn test_event_map_none() {
-    let mut resolver = StateResolution::default();
+    let resolver = StateResolution::default();
 
     let store = TestStore(RefCell::new(btreemap! {}));
 
@@ -715,7 +715,7 @@ fn test_event_map_none() {
 
 #[test]
 fn test_lexicographical_sort() {
-    let mut resolver = StateResolution::default();
+    let resolver = StateResolution::default();
 
     let graph = btreemap! {
         event_id("l") => vec![event_id("o")],

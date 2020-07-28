@@ -11,7 +11,6 @@ use ruma::{
     events::EventType,
     identifiers::{EventId, RoomId, RoomVersionId},
 };
-use serde::{Deserialize, Serialize};
 
 mod error;
 mod event_auth;
@@ -40,29 +39,14 @@ pub type StateMap<T> = BTreeMap<(EventType, String), T>;
 /// A mapping of `EventId` to `T`, usually a `StateEvent`.
 pub type EventMap<T> = BTreeMap<EventId, T>;
 
-#[derive(Debug, Default, Deserialize, Serialize)] // TODO make the ser/de impls useful
-pub struct StateResolution {
-    // TODO remove pub after initial testing
-    /// The set of resolved events over time.
-    pub resolved_events: Vec<StateEvent>,
-    /// The resolved state, kept to have easy access to the last resolved
-    /// layer of state.
-    pub state: BTreeMap<EventType, BTreeMap<String, StateEvent>>,
-    /// The graph of authenticated events, kept to find the most recent auth event
-    /// in a chain for incoming state sets.
-    pub auth_graph: BTreeMap<EventId, Vec<StateMap<EventId>>>,
-    /// The last known point in the state graph.
-    pub most_recent_resolved: Option<(EventType, String)>,
-
-    // fields for temp storage during resolution
-    pub conflicting_events: Vec<StateEvent>,
-}
+#[derive(Default)]
+pub struct StateResolution;
 
 impl StateResolution {
     /// Resolve sets of state events as they come in. Internally `StateResolution` builds a graph
     /// and an auth chain to allow for state conflict resolution.
     pub fn resolve(
-        &mut self,
+        &self,
         room_id: &RoomId,
         room_version: &RoomVersionId,
         state_sets: &[StateMap<EventId>],
@@ -247,7 +231,7 @@ impl StateResolution {
     ///
     /// The tuple looks like `(unconflicted, conflicted)`.
     pub fn separate(
-        &mut self,
+        &self,
         state_sets: &[StateMap<EventId>],
     ) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
         use itertools::Itertools;
@@ -299,7 +283,7 @@ impl StateResolution {
 
     /// Returns a Vec of deduped EventIds that appear in some chains but no others.
     pub fn get_auth_chain_diff(
-        &mut self,
+        &self,
         room_id: &RoomId,
         state_sets: &[StateMap<EventId>],
         store: &dyn StateStore,
@@ -321,7 +305,7 @@ impl StateResolution {
     }
 
     pub fn reverse_topological_power_sort(
-        &mut self,
+        &self,
         room_id: &RoomId,
         power_events: &[EventId],
         event_map: &mut EventMap<StateEvent>,
@@ -379,7 +363,7 @@ impl StateResolution {
     /// `key_fn` is used as a tie breaker. The tie breaker happens based on
     /// power level, age, and event_id.
     pub fn lexicographical_topological_sort<F>(
-        &mut self,
+        &self,
         graph: &BTreeMap<EventId, Vec<EventId>>,
         key_fn: F,
     ) -> Vec<EventId>
@@ -446,7 +430,7 @@ impl StateResolution {
     }
 
     fn get_power_level_for_sender(
-        &mut self,
+        &self,
         room_id: &RoomId,
         event_id: &EventId,
         event_map: &mut EventMap<StateEvent>,
@@ -506,7 +490,7 @@ impl StateResolution {
     }
 
     fn iterative_auth_check(
-        &mut self,
+        &self,
         room_id: &RoomId,
         room_version: &RoomVersionId,
         power_events: &[EventId],
@@ -581,7 +565,7 @@ impl StateResolution {
     /// NOTE we rely on the `event_map` beign full at this point.
     /// TODO is this ok?
     fn mainline_sort(
-        &mut self,
+        &self,
         room_id: &RoomId,
         to_sort: &[EventId],
         resolved_power_level: Option<&EventId>,
@@ -659,7 +643,7 @@ impl StateResolution {
 
     // TODO make `event` not clone every loop
     fn get_mainline_depth(
-        &mut self,
+        &self,
         room_id: &RoomId,
         mut event: Option<StateEvent>,
         mainline_map: &EventMap<usize>,
@@ -692,7 +676,7 @@ impl StateResolution {
     }
 
     fn add_event_and_auth_chain_to_graph(
-        &mut self,
+        &self,
         room_id: &RoomId,
         graph: &mut BTreeMap<EventId, Vec<EventId>>,
         event_id: &EventId,
@@ -726,7 +710,7 @@ impl StateResolution {
 
     /// TODO update self if we go that route just as event_map will be updated
     fn _get_event(
-        &mut self,
+        &self,
         _room_id: &RoomId,
         ev_id: &EventId,
         event_map: &mut EventMap<StateEvent>,

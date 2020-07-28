@@ -34,7 +34,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
             .init()
     });
 
-    let mut resolver = StateResolution::default();
+    let resolver = StateResolution::default();
 
     let store = TestStore(RefCell::new(
         INITIAL_EVENTS()
@@ -568,7 +568,7 @@ fn ban_with_auth_chains() {
 
 #[test]
 fn base_with_auth_chains() {
-    let mut resolver = StateResolution::default();
+    let resolver = StateResolution::default();
 
     let store = TestStore(RefCell::new(INITIAL_EVENTS()));
 
@@ -608,7 +608,7 @@ fn base_with_auth_chains() {
 
 #[test]
 fn ban_with_auth_chains2() {
-    let mut resolver = StateResolution::default();
+    let resolver = StateResolution::default();
 
     let init = INITIAL_EVENTS();
     let ban = BAN_STATE_SET();
