@@ -1,6 +1,9 @@
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
 
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+pub struct Foo;
+
 ruma_api! {
     metadata: {
         description: "Does something.",
@@ -13,7 +16,7 @@ ruma_api! {
 
     request: {
         #[ruma_api(body)]
-        pub q2: Vec<u8>,
+        pub q2: Foo,
 
         #[ruma_api(path)]
         pub bar: String,
@@ -26,11 +29,90 @@ ruma_api! {
     }
 
     response: {
-        #[ruma_api(body)]
+        #[ruma_api(raw_body)]
         pub q2: Vec<u8>,
 
         #[ruma_api(header = CONTENT_TYPE)]
         pub world: String,
+    }
+}
+
+mod raw_body_request {
+    use ruma_api::ruma_api;
+    use ruma_identifiers::UserId;
+
+    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+    pub struct Foo;
+
+    ruma_api! {
+        metadata: {
+            description: "Does something.",
+            method: POST,
+            name: "my_endpoint",
+            path: "/_matrix/foo/:bar/",
+            rate_limited: false,
+            requires_authentication: false,
+        }
+
+        request: {
+            #[ruma_api(raw_body)]
+            pub q2: Vec<u8>,
+
+            #[ruma_api(path)]
+            pub bar: String,
+
+            #[ruma_api(query)]
+            pub baz: UserId,
+
+            #[ruma_api(header = CONTENT_TYPE)]
+            pub world: String,
+        }
+
+        response: {
+            #[ruma_api(body)]
+            pub q2: Foo,
+
+            #[ruma_api(header = CONTENT_TYPE)]
+            pub world: String,
+        }
+    }
+}
+
+mod plain {
+    use ruma_api::ruma_api;
+    use ruma_identifiers::UserId;
+
+    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+    pub struct Foo;
+
+    ruma_api! {
+        metadata: {
+            description: "Does something.",
+            method: POST,
+            name: "my_endpoint",
+            path: "/_matrix/foo/:bar/",
+            rate_limited: false,
+            requires_authentication: false,
+        }
+
+        request: {
+            pub q2: Foo,
+
+            pub bar: String,
+
+            #[ruma_api(query)]
+            pub baz: UserId,
+
+            #[ruma_api(header = CONTENT_TYPE)]
+            pub world: String,
+        }
+
+        response: {
+            pub q2: Vec<u8>,
+
+            #[ruma_api(header = CONTENT_TYPE)]
+            pub world: String,
+        }
     }
 }
 
