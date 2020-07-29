@@ -1,8 +1,7 @@
-# [unreleased]
-
-Breaking changes:
-
-* Remove `TryFromRaw`, `FromRaw` and `InvalidEvent`
+Since version 0.19.0 of ruma-events, ruma-events-macros is versioned in lockstep with ruma-api.
+Since ruma-events-macros cannot be used independently anyway, it no longer maintains a separate
+change log or its own version. Instead, refer to ruma-events's change log for changes in versions
+0.19.0 and above.
 
 # 0.3.0
 
