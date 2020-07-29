@@ -12,11 +12,11 @@ license = "MIT"
 name = "ruma-api-macros"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.16.1"
+version = "0.17.0-alpha.1"
 edition = "2018"
 
 [dependencies]
-proc-macro2 = "1.0.18"
+proc-macro2 = "1.0.19"
 quote = "1.0.7"
 syn = { version = "1.0.31", features = ["full", "extra-traits"] }
 

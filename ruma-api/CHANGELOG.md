@@ -1,5 +1,12 @@
 # [unreleased]
 
+# 0.17.0
+
+Breaking changes:
+
+* Update the syntax of the `ruma_api!` macro. Colons are now required after the keywords `metadata`,
+  `request` and `response`.
+
 # 0.16.1
 
 Bug fixes:

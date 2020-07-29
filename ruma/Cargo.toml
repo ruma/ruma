@@ -30,7 +30,7 @@ ruma-identifiers-macros = { version = "0.17.1", path = "../ruma-identifiers-macr
 ruma-events = { version = "=0.22.0-alpha.1", path = "../ruma-events", optional = true }
 ruma-signatures = { version = "0.6.0-dev.1", path = "../ruma-signatures", optional = true }
 
-ruma-api = { version = "0.16.1", path = "../ruma-api", optional = true }
+ruma-api = { version = "=0.17.0-alpha.1", path = "../ruma-api", optional = true }
 ruma-appservice-api = { version = "0.1.0", path = "../ruma-appservice-api", optional = true }
 ruma-client-api = { version = "0.9.0", path = "../ruma-client-api", optional = true }
 ruma-federation-api = { version = "0.0.2", path = "../ruma-federation-api", optional = true }
