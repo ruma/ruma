@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.0.3
+
 Breaking Changes:
 
 * Replace `RoomV3Pdu` with `ruma_events::pdu::{Pdu, PduStub}`.
