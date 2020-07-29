@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.22.0
+
 Breaking changes:
 
 * Change `get_message_events` limit field type from `Option<UInt>` to `UInt`

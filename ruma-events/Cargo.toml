@@ -9,18 +9,18 @@ license = "MIT"
 name = "ruma-events"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.21.3"
+version = "0.22.0-alpha.1"
 edition = "2018"
 
 [dependencies]
-criterion = { version = "0.3.2", optional = true }
-js_int = { version = "0.1.7", features = ["serde"] }
+criterion = { version = "0.3.3", optional = true }
+js_int = { version = "0.1.9", features = ["serde"] }
 ruma-common = { version = "0.2.0", path = "../ruma-common" }
-ruma-events-macros = { version = "=0.21.3", path = "../ruma-events-macros" }
+ruma-events-macros = { version = "=0.22.0-alpha.1", path = "../ruma-events-macros" }
 ruma-identifiers = { version = "0.17.1", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.2.3", path = "../ruma-serde" }
 serde = { version = "1.0.113", features = ["derive"] }
-serde_json = { version = "1.0.55", features = ["raw_value"] }
+serde_json = { version = "1.0.57", features = ["raw_value"] }
 strum = { version = "0.18.0", features = ["derive"] }
 
 [dev-dependencies]
