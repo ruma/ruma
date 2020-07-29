@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.10.0
+
 Bug fixes:
 
 * Fix deserialization of `r0::room::get_room_event::Response`
