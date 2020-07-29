@@ -56,9 +56,9 @@ impl Response {
                 }
                 ResponseField::Header(_, header_name) => {
                     quote_spanned! {span=>
-                        #field_name: ruma_api::try_deserialize!(
+                        #field_name: ::ruma_api::try_deserialize!(
                             response,
-                            headers.remove(ruma_api::exports::http::header::#header_name)
+                            headers.remove(::ruma_api::exports::http::header::#header_name)
                                 .expect("response missing expected header")
                                 .to_str()
                             )
@@ -98,7 +98,7 @@ impl Response {
                 let span = field.span();
 
                 Some(quote_spanned! {span=>
-                    .header(ruma_api::exports::http::header::#header_name, response.#field_name)
+                    .header(::ruma_api::exports::http::header::#header_name, response.#field_name)
                 })
             } else {
                 None
@@ -143,7 +143,7 @@ impl Response {
             }
         };
 
-        quote!(ruma_api::exports::serde_json::to_vec(&#body)?)
+        quote!(::ruma_api::exports::serde_json::to_vec(&#body)?)
     }
 
     /// Gets the newtype body field, if this response has one.
@@ -245,28 +245,44 @@ impl ToTokens for Response {
             quote! { { #(#fields),* } }
         };
 
-        let def = if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
-            let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
-            quote! { (#field); }
-        } else if self.has_body_fields() {
-            let fields = self.fields.iter().filter_map(|f| f.as_body_field());
-            quote!({ #(#fields),* })
-        } else {
-            quote!({})
-        };
+        let (derive_deserialize, def) =
+            if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
+                let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
+                let derive_deserialize = if body_field.has_wrap_incoming_attr() {
+                    TokenStream::new()
+                } else {
+                    quote!(::ruma_api::exports::serde::Deserialize)
+                };
+
+                (derive_deserialize, quote! { (#field); })
+            } else if self.has_body_fields() {
+                let fields = self.fields.iter().filter(|f| f.is_body());
+                let derive_deserialize = if fields.clone().any(|f| f.has_wrap_incoming_attr()) {
+                    TokenStream::new()
+                } else {
+                    quote!(::ruma_api::exports::serde::Deserialize)
+                };
+                let fields = fields.map(ResponseField::field);
+
+                (derive_deserialize, quote!({ #(#fields),* }))
+            } else {
+                (TokenStream::new(), quote!({}))
+            };
 
         let response_body_struct = quote! {
             /// Data in the response body.
             #[derive(
                 Debug,
-                ruma_api::exports::serde::Deserialize,
-                ruma_api::exports::serde::Serialize,
+                ::ruma_api::Outgoing,
+                ::ruma_api::exports::serde::Serialize,
+                #derive_deserialize
             )]
             struct ResponseBody #def
         };
 
         let response = quote! {
-            #[derive(Debug, Clone)]
+            #[derive(Debug, Clone, ::ruma_api::Outgoing)]
+            #[incoming_no_deserialize]
             pub struct Response #response_def
 
             #response_body_struct

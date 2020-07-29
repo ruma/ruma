@@ -194,7 +194,16 @@ use http::Method;
 ///     }
 /// }
 /// ```
+///
+/// ## Fallible deserialization
+///
+/// All request and response types also derive [`Outgoing`][Outgoing]. As such, to allow fallible
+/// deserialization, you can use the `#[wrap_incoming]` attribute. For details, see the
+/// documentation for [the derive macro](derive.Outgoing.html).
+// TODO: Explain the concept of fallible deserialization before jumping to `ruma_api::Outgoing`
 pub use ruma_api_macros::ruma_api;
+
+pub use ruma_api_macros::Outgoing;
 
 pub mod error;
 /// This module is used to support the generated code from ruma-api-macros.
@@ -210,6 +219,18 @@ pub mod exports {
 
 use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
 
+/// A type that can be sent to another party that understands the matrix protocol. If any of the
+/// fields of `Self` don't implement serde's `Deserialize`, you can derive this trait to generate a
+/// corresponding 'Incoming' type that supports deserialization. This is useful for things like
+/// ruma_events' `EventResult` type. For more details, see the [derive macro's documentation][doc].
+///
+/// [doc]: derive.Outgoing.html
+// TODO: Better explain how this trait relates to serde's traits
+pub trait Outgoing {
+    /// The 'Incoming' variant of `Self`.
+    type Incoming;
+}
+
 /// Gives users the ability to define their own serializable/deserializable errors.
 pub trait EndpointError: Sized {
     /// Tries to construct `Self` from an `http::Response`.
@@ -224,14 +245,16 @@ pub trait EndpointError: Sized {
 /// A Matrix API endpoint.
 ///
 /// The type implementing this trait contains any data needed to make a request to the endpoint.
-pub trait Endpoint:
-    TryInto<http::Request<Vec<u8>>, Error = IntoHttpError>
-    + TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>
+pub trait Endpoint: Outgoing + TryInto<http::Request<Vec<u8>>, Error = IntoHttpError>
+where
+    <Self as Outgoing>::Incoming: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>,
+    <Self::Response as Outgoing>::Incoming: TryFrom<
+        http::Response<Vec<u8>>,
+        Error = FromHttpResponseError<<Self as Endpoint>::ResponseError>,
+    >,
 {
     /// Data returned in a successful response from the endpoint.
-    type Response: TryInto<http::Response<Vec<u8>>, Error = IntoHttpError>
-        + TryFrom<http::Response<Vec<u8>>, Error = FromHttpResponseError<Self::ResponseError>>;
-
+    type Response: Outgoing + TryInto<http::Response<Vec<u8>>, Error = IntoHttpError>;
     /// Error type returned when response from endpoint fails.
     type ResponseError: EndpointError;
 
@@ -242,7 +265,15 @@ pub trait Endpoint:
 /// A Matrix API endpoint that doesn't require authentication.
 ///
 /// This marker trait is to indicate that a type implementing `Endpoint` doesn't require any authentication.
-pub trait NonAuthEndpoint: Endpoint {}
+pub trait NonAuthEndpoint: Endpoint
+where
+    <Self as Outgoing>::Incoming: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>,
+    <Self::Response as Outgoing>::Incoming: TryFrom<
+        http::Response<Vec<u8>>,
+        Error = FromHttpResponseError<<Self as Endpoint>::ResponseError>,
+    >,
+{
+}
 
 /// Metadata about an API endpoint.
 #[derive(Clone, Debug)]
@@ -302,7 +333,7 @@ mod tests {
                 FromHttpRequestError, FromHttpResponseError, IntoHttpError,
                 RequestDeserializationError, ServerError, Void,
             },
-            Endpoint, Metadata,
+            Endpoint, Metadata, Outgoing,
         };
 
         /// A request to create a new room alias.
@@ -310,6 +341,10 @@ mod tests {
         pub struct Request {
             pub room_id: RoomId,         // body
             pub room_alias: RoomAliasId, // path
+        }
+
+        impl Outgoing for Request {
+            type Incoming = Self;
         }
 
         impl Endpoint for Request {
@@ -393,6 +428,10 @@ mod tests {
         /// The response to a request to create a new room alias.
         #[derive(Clone, Copy, Debug)]
         pub struct Response;
+
+        impl Outgoing for Response {
+            type Incoming = Self;
+        }
 
         impl TryFrom<http::Response<Vec<u8>>> for Response {
             type Error = FromHttpResponseError<Void>;

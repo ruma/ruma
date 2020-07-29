@@ -33,8 +33,8 @@ impl Request {
 
             quote! {
                 headers.append(
-                    ruma_api::exports::http::header::#header_name,
-                    ruma_api::exports::http::header::HeaderValue::from_str(request.#field_name.as_ref())?,
+                    ::ruma_api::exports::http::header::#header_name,
+                    ::ruma_api::exports::http::header::HeaderValue::from_str(request.#field_name.as_ref())?,
                 );
             }
         });
@@ -56,13 +56,13 @@ impl Request {
             let header_name_string = header_name.to_string();
 
             quote! {
-                #field_name: match headers.get(ruma_api::exports::http::header::#header_name)
+                #field_name: match headers.get(::ruma_api::exports::http::header::#header_name)
                     .and_then(|v| v.to_str().ok()) {
                         Some(header) => header.to_owned(),
                         None => {
                             return Err(
-                                ruma_api::error::RequestDeserializationError::new(
-                                    ruma_api::exports::serde_json::Error::missing_field(
+                                ::ruma_api::error::RequestDeserializationError::new(
+                                    ::ruma_api::exports::serde_json::Error::missing_field(
                                         #header_name_string
                                     ),
                                     request,
@@ -310,21 +310,34 @@ impl ToTokens for Request {
         let request_body_struct =
             if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
                 let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
-                Some(quote! { (#field); })
+                let derive_deserialize = if body_field.has_wrap_incoming_attr() {
+                    TokenStream::new()
+                } else {
+                    quote!(::ruma_api::exports::serde::Deserialize)
+                };
+
+                Some((derive_deserialize, quote! { (#field); }))
             } else if self.has_body_fields() {
                 let fields = self.fields.iter().filter(|f| f.is_body());
+                let derive_deserialize = if fields.clone().any(|f| f.has_wrap_incoming_attr()) {
+                    TokenStream::new()
+                } else {
+                    quote!(::ruma_api::exports::serde::Deserialize)
+                };
                 let fields = fields.map(RequestField::field);
-                Some(quote! { { #(#fields),* } })
+
+                Some((derive_deserialize, quote! { { #(#fields),* } }))
             } else {
                 None
             }
-            .map(|def| {
+            .map(|(derive_deserialize, def)| {
                 quote! {
                     /// Data in the request body.
                     #[derive(
                         Debug,
-                        ruma_api::exports::serde::Deserialize,
-                        ruma_api::exports::serde::Serialize,
+                        ::ruma_api::Outgoing,
+                        ::ruma_api::exports::serde::Serialize,
+                        #derive_deserialize
                     )]
                     struct RequestBody #def
                 }
@@ -337,8 +350,8 @@ impl ToTokens for Request {
                 /// Data in the request's query string.
                 #[derive(
                     Debug,
-                    ruma_api::exports::serde::Deserialize,
-                    ruma_api::exports::serde::Serialize,
+                    ::ruma_api::exports::serde::Deserialize,
+                    ::ruma_api::exports::serde::Serialize,
                 )]
                 struct RequestQuery(#field);
             }
@@ -349,8 +362,8 @@ impl ToTokens for Request {
                 /// Data in the request's query string.
                 #[derive(
                     Debug,
-                    ruma_api::exports::serde::Deserialize,
-                    ruma_api::exports::serde::Serialize,
+                    ::ruma_api::exports::serde::Deserialize,
+                    ::ruma_api::exports::serde::Serialize,
                 )]
                 struct RequestQuery {
                     #(#fields),*
@@ -361,7 +374,8 @@ impl ToTokens for Request {
         };
 
         let request = quote! {
-            #[derive(Debug, Clone)]
+            #[derive(Debug, Clone, ::ruma_api::Outgoing)]
+            #[incoming_no_deserialize]
             pub struct Request #request_def
 
             #request_body_struct
