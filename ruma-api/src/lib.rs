@@ -41,7 +41,7 @@ use http::Method;
 ///         // Struct fields for each piece of data expected
 ///         // in the response from this API endpoint.
 ///     }
-///     
+///
 ///     // The error returned when a response fails, defaults to `Void`.
 ///     error: path::to::Error
 /// }
@@ -245,7 +245,7 @@ pub trait EndpointError: Sized {
 /// A Matrix API endpoint.
 ///
 /// The type implementing this trait contains any data needed to make a request to the endpoint.
-pub trait Endpoint: Outgoing + TryInto<http::Request<Vec<u8>>, Error = IntoHttpError>
+pub trait Endpoint: Outgoing
 where
     <Self as Outgoing>::Incoming: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>,
     <Self::Response as Outgoing>::Incoming: TryFrom<
@@ -260,6 +260,20 @@ where
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;
+
+    /// Tries to convert this request into an `http::Request`.
+    ///
+    /// This method should only fail when called on endpoints that require authentication. It may
+    /// also fail with a serialization error in case of bugs in Ruma though.
+    ///
+    /// The endpoints path will be appended to the given `base_url`, for example
+    /// `https://matrix.org`. Since all paths begin with a slash, it is not necessary for the
+    /// `base_url` to have a trailing slash. If it has one however, it will be ignored.
+    fn try_into_http_request(
+        self,
+        base_url: &str,
+        access_token: Option<&str>,
+    ) -> Result<http::Request<Vec<u8>>, IntoHttpError>;
 }
 
 /// A Matrix API endpoint that doesn't require authentication.
@@ -357,26 +371,24 @@ mod tests {
                 name: "create_alias",
                 path: "/_matrix/client/r0/directory/room/:room_alias",
                 rate_limited: false,
-                requires_authentication: true,
+                requires_authentication: false,
             };
-        }
 
-        impl TryFrom<Request> for http::Request<Vec<u8>> {
-            type Error = IntoHttpError;
-
-            fn try_from(request: Request) -> Result<http::Request<Vec<u8>>, Self::Error> {
+            fn try_into_http_request(
+                self,
+                base_url: &str,
+                _access_token: Option<&str>,
+            ) -> Result<http::Request<Vec<u8>>, IntoHttpError> {
                 let metadata = Request::METADATA;
 
-                let path = metadata
-                    .path
-                    .to_string()
-                    .replace(":room_alias", &request.room_alias.to_string());
+                let url = (base_url.to_owned() + metadata.path)
+                    .replace(":room_alias", &self.room_alias.to_string());
 
-                let request_body = RequestBody { room_id: request.room_id };
+                let request_body = RequestBody { room_id: self.room_id };
 
                 let http_request = http::Request::builder()
                     .method(metadata.method)
-                    .uri(path)
+                    .uri(url)
                     .body(serde_json::to_vec(&request_body)?)
                     // this cannot fail because we don't give user-supplied data to any of the
                     // builder methods

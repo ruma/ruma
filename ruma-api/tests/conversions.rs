@@ -47,7 +47,7 @@ fn request_serde() -> Result<(), Box<dyn std::error::Error + 'static>> {
         baz: UserId::try_from("@bazme:ruma.io")?,
     };
 
-    let http_req = http::Request::<Vec<u8>>::try_from(req.clone())?;
+    let http_req = req.clone().try_into_http_request("https://homeserver.tld", None)?;
     let req2 = Request::try_from(http_req)?;
 
     assert_eq!(req.hello, req2.hello);

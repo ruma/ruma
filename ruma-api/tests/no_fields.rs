@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use ruma_api::ruma_api;
+use ruma_api::{ruma_api, Endpoint};
 
 ruma_api! {
     metadata: {
@@ -19,7 +19,7 @@ ruma_api! {
 #[test]
 fn empty_request_http_repr() {
     let req = Request {};
-    let http_req = http::Request::<Vec<u8>>::try_from(req).unwrap();
+    let http_req = req.try_into_http_request("https://homeserver.tld", None).unwrap();
 
     assert!(http_req.body().is_empty());
 }

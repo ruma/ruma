@@ -45,7 +45,7 @@ pub(crate) fn request_path_string_and_parse(
                 );
                 format_args.push(quote! {
                     ruma_api::exports::percent_encoding::utf8_percent_encode(
-                        &request.#path_var.to_string(),
+                        &self.#path_var.to_string(),
                         ruma_api::exports::percent_encoding::NON_ALPHANUMERIC,
                     )
                 });
@@ -53,7 +53,7 @@ pub(crate) fn request_path_string_and_parse(
             }
 
             quote! {
-                format!(#format_string, #(#format_args),*)
+                format_args!(#format_string, #(#format_args),*)
             }
         };
 
@@ -110,8 +110,11 @@ pub(crate) fn build_query_string(request: &Request) -> TokenStream {
             {}
             assert_trait_impl::<#field_type>();
 
-            let request_query = RequestQuery(request.#field_name);
-            format!("?{}", ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?)
+            let request_query = RequestQuery(self.#field_name);
+            format_args!(
+                "?{}",
+                ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?
+            )
         })
     } else if request.has_query_fields() {
         let request_query_init_fields = request.request_query_init_fields();
@@ -121,12 +124,13 @@ pub(crate) fn build_query_string(request: &Request) -> TokenStream {
                 #request_query_init_fields
             };
 
-            format!("?{}", ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?)
+            format_args!(
+                "?{}",
+                ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?
+            )
         })
     } else {
-        quote! {
-            String::new()
-        }
+        quote! { "" }
     }
 }
 
@@ -161,11 +165,11 @@ pub(crate) fn extract_request_query(request: &Request) -> TokenStream {
 pub(crate) fn build_request_body(request: &Request) -> TokenStream {
     if let Some(field) = request.newtype_raw_body_field() {
         let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-        quote!(request.#field_name)
+        quote!(self.#field_name)
     } else if request.has_body_fields() || request.newtype_body_field().is_some() {
         let request_body_initializers = if let Some(field) = request.newtype_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            quote! { (request.#field_name) }
+            quote! { (self.#field_name) }
         } else {
             let initializers = request.request_body_init_fields();
             quote! { { #initializers } }

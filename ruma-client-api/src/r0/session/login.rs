@@ -141,8 +141,7 @@ mod user_serde;
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryInto;
-
+    use ruma_api::Endpoint;
     use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 
     use super::{LoginInfo, Medium, Request, UserInfo};
@@ -193,7 +192,7 @@ mod tests {
             device_id: None,
             initial_device_display_name: Some("test".into()),
         }
-        .try_into()
+        .try_into_http_request("https://homeserver.tld", None)
         .unwrap();
 
         let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();

@@ -139,15 +139,20 @@ impl ToTokens for Api {
             self.request.request_init_query_fields()
         };
 
-        let add_headers_to_request = if self.request.has_header_fields() {
-            let add_headers = self.request.add_headers_to_request();
-            quote! {
-                let headers = http_request.headers_mut();
-                #add_headers
-            }
-        } else {
-            TokenStream::new()
-        };
+        let mut header_kvs = self.request.append_header_kvs();
+        if requires_authentication.value {
+            header_kvs.push(quote! {
+                ruma_api::exports::http::header::AUTHORIZATION,
+                ruma_api::exports::http::header::HeaderValue::from_str(
+                    &format!(
+                        "Bearer {}",
+                        access_token.ok_or_else(
+                            ruma_api::error::IntoHttpError::needs_authentication
+                        )?
+                    )
+                )?
+            });
+        }
 
         let extract_request_headers = if self.request.has_header_fields() {
             quote! {
@@ -245,29 +250,6 @@ impl ToTokens for Api {
                 }
             }
 
-            impl std::convert::TryFrom<Request> for ::ruma_api::exports::http::Request<Vec<u8>> {
-                type Error = ::ruma_api::error::IntoHttpError;
-
-                #[allow(unused_mut, unused_variables)]
-                fn try_from(request: Request) -> Result<Self, Self::Error> {
-                    let metadata = Request::METADATA;
-                    let path_and_query = #request_path_string + &#request_query_string;
-                    let mut http_request = ::ruma_api::exports::http::Request::new(#request_body);
-
-                    *http_request.method_mut() = ::ruma_api::exports::http::Method::#method;
-                    *http_request.uri_mut() = ::ruma_api::exports::http::uri::Builder::new()
-                        .path_and_query(path_and_query.as_str())
-                        .build()
-                        // The ruma_api! macro guards against invalid path input, but if there are
-                        // invalid (non ASCII) bytes in the fields with the query attribute this will panic.
-                        .unwrap();
-
-                    { #add_headers_to_request }
-
-                    Ok(http_request)
-                }
-            }
-
             #[doc = #response_doc]
             #response_type
 
@@ -324,6 +306,31 @@ impl ToTokens for Api {
                     rate_limited: #rate_limited,
                     requires_authentication: #requires_authentication,
                 };
+
+                #[allow(unused_mut, unused_variables)]
+                fn try_into_http_request(
+                    self,
+                    base_url: &str,
+                    access_token: ::std::option::Option<&str>,
+                ) -> ::std::result::Result<
+                    ::ruma_api::exports::http::Request<Vec<u8>>,
+                    ::ruma_api::error::IntoHttpError,
+                > {
+                    let metadata = Request::METADATA;
+
+                    let http_request = ::ruma_api::exports::http::Request::builder()
+                        .method(::ruma_api::exports::http::Method::#method)
+                        .uri(::std::format!(
+                            "{}{}{}",
+                            base_url.strip_suffix("/").unwrap_or(base_url),
+                            #request_path_string,
+                            #request_query_string,
+                        ))
+                        #( .header(#header_kvs) )*
+                        .body(#request_body)?;
+
+                    Ok(http_request)
+                }
             }
 
             #non_auth_endpoint_impl

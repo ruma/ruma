@@ -16,40 +16,62 @@ impl crate::EndpointError for Void {
         Err(ResponseDeserializationError::from_response(response))
     }
 }
+
 /// An error when converting one of ruma's endpoint-specific request or response
 /// types to the corresponding http type.
 #[derive(Debug)]
-pub struct IntoHttpError(SerializationError);
+pub struct IntoHttpError(InnerIntoHttpError);
+
+impl IntoHttpError {
+    // For usage in macros
+    #[doc(hidden)]
+    pub fn needs_authentication() -> Self {
+        Self(InnerIntoHttpError::NeedsAuthentication)
+    }
+}
 
 #[doc(hidden)]
 impl From<serde_json::Error> for IntoHttpError {
     fn from(err: serde_json::Error) -> Self {
-        Self(SerializationError::Json(err))
+        Self(InnerIntoHttpError::Json(err))
     }
 }
 
 #[doc(hidden)]
 impl From<ruma_serde::urlencoded::ser::Error> for IntoHttpError {
     fn from(err: ruma_serde::urlencoded::ser::Error) -> Self {
-        Self(SerializationError::Query(err))
+        Self(InnerIntoHttpError::Query(err))
     }
 }
 
 #[doc(hidden)]
 impl From<http::header::InvalidHeaderValue> for IntoHttpError {
     fn from(err: http::header::InvalidHeaderValue) -> Self {
-        Self(SerializationError::Header(err))
+        Self(InnerIntoHttpError::Header(err))
+    }
+}
+
+#[doc(hidden)]
+impl From<http::Error> for IntoHttpError {
+    fn from(err: http::Error) -> Self {
+        Self(InnerIntoHttpError::Http(err))
     }
 }
 
 impl Display for IntoHttpError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match &self.0 {
-            SerializationError::Json(err) => write!(f, "JSON serialization failed: {}", err),
-            SerializationError::Query(err) => {
+            InnerIntoHttpError::NeedsAuthentication => write!(
+                f,
+                "This endpoint has to be converted to http::Request using \
+                try_into_authenticated_http_request"
+            ),
+            InnerIntoHttpError::Json(err) => write!(f, "JSON serialization failed: {}", err),
+            InnerIntoHttpError::Query(err) => {
                 write!(f, "Query parameter serialization failed: {}", err)
             }
-            SerializationError::Header(err) => write!(f, "Header serialization failed: {}", err),
+            InnerIntoHttpError::Header(err) => write!(f, "Header serialization failed: {}", err),
+            InnerIntoHttpError::Http(err) => write!(f, "HTTP request construction failed: {}", err),
         }
     }
 }
@@ -201,10 +223,12 @@ impl<E: Display> Display for ServerError<E> {
 impl<E: std::error::Error> std::error::Error for ServerError<E> {}
 
 #[derive(Debug)]
-enum SerializationError {
+enum InnerIntoHttpError {
+    NeedsAuthentication,
     Json(serde_json::Error),
     Query(ruma_serde::urlencoded::ser::Error),
     Header(http::header::InvalidHeaderValue),
+    Http(http::Error),
 }
 
 /// This type is public so it is accessible from `ruma_api!` generated code.

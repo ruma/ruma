@@ -22,8 +22,8 @@ pub struct Request {
 
 impl Request {
     /// Produces code to add necessary HTTP headers to an `http::Request`.
-    pub fn add_headers_to_request(&self) -> TokenStream {
-        let append_stmts = self.header_fields().map(|request_field| {
+    pub fn append_header_kvs(&self) -> Vec<TokenStream> {
+        self.header_fields().map(|request_field| {
             let (field, header_name) = match request_field {
                 RequestField::Header(field, header_name) => (field, header_name),
                 _ => unreachable!("expected request field to be header variant"),
@@ -32,16 +32,10 @@ impl Request {
             let field_name = &field.ident;
 
             quote! {
-                headers.append(
-                    ::ruma_api::exports::http::header::#header_name,
-                    ::ruma_api::exports::http::header::HeaderValue::from_str(request.#field_name.as_ref())?,
-                );
+                ::ruma_api::exports::http::header::#header_name,
+                ::ruma_api::exports::http::header::HeaderValue::from_str(self.#field_name.as_ref())?
             }
-        });
-
-        quote! {
-            #(#append_stmts)*
-        }
+        }).collect()
     }
 
     /// Produces code to extract fields from the HTTP headers in an `http::Request`.
@@ -136,12 +130,12 @@ impl Request {
 
     /// Produces code for a struct initializer for body fields on a variable named `request`.
     pub fn request_body_init_fields(&self) -> TokenStream {
-        self.struct_init_fields(RequestFieldKind::Body, quote!(request))
+        self.struct_init_fields(RequestFieldKind::Body, quote!(self))
     }
 
     /// Produces code for a struct initializer for query string fields on a variable named `request`.
     pub fn request_query_init_fields(&self) -> TokenStream {
-        self.struct_init_fields(RequestFieldKind::Query, quote!(request))
+        self.struct_init_fields(RequestFieldKind::Query, quote!(self))
     }
 
     /// Produces code for a struct initializer for body fields on a variable named `request_body`.
