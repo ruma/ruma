@@ -2,6 +2,8 @@
 
 Breaking changes:
 
+* Change the structure of `StartEventContent` so that we can access transaction
+  ids without the need to understand the concrete method.
 * Change `get_message_events` limit field type from `Option<UInt>` to `UInt`
 * Add `alt_aliases` to `CanonicalAliasEventContent`
 * Replace `format` and `formatted_body` fields in `TextMessagEventContent`,
