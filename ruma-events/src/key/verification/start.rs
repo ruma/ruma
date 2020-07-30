@@ -86,9 +86,9 @@ pub struct MSasV1Content {
     pub short_authentication_string: Vec<ShortAuthenticationString>,
 }
 
-/// Options for creating an `MSasV1Content` with `MSasV1Content::new`.
+/// Mandatory initial set of fields for creating an `MSasV1Content`.
 #[derive(Clone, Debug, Deserialize)]
-pub struct MSasV1ContentOptions {
+pub struct MSasV1ContentInit {
     /// The key agreement protocols the sending device understands.
     ///
     /// Must include at least `curve25519`.
@@ -122,20 +122,18 @@ impl MSasV1Content {
     /// * `message_authentication_codes` does not include
     /// `MessageAuthenticationCode::HkdfHmacSha256`.
     /// * `short_authentication_string` does not include `ShortAuthenticationString::Decimal`.
-    pub fn new(options: MSasV1ContentOptions) -> Result<Self, InvalidInput> {
+    pub fn new(options: MSasV1ContentInit) -> Result<Self, InvalidInput> {
         MSasV1Content::try_from(options)
     }
 }
 
-impl TryFrom<MSasV1ContentOptions> for MSasV1Content {
+impl TryFrom<MSasV1ContentInit> for MSasV1Content {
     type Error = InvalidInput;
 
     /// Creates a new `MSasV1Content` from the given init struct.
-    fn try_from(options: MSasV1ContentOptions) -> Result<Self, Self::Error> {
-        if !options.key_agreement_protocols.contains(&KeyAgreementProtocol::Curve25519)
-            && !options
-                .key_agreement_protocols
-                .contains(&KeyAgreementProtocol::Curve25519HkdfSha256)
+    fn try_from(init: MSasV1ContentInit) -> Result<Self, Self::Error> {
+        if !init.key_agreement_protocols.contains(&KeyAgreementProtocol::Curve25519)
+            && !init.key_agreement_protocols.contains(&KeyAgreementProtocol::Curve25519HkdfSha256)
         {
             return Err(InvalidInput(
                 "`key_agreement_protocols` must contain at \
@@ -145,16 +143,13 @@ impl TryFrom<MSasV1ContentOptions> for MSasV1Content {
             ));
         }
 
-        if !options.hashes.contains(&HashAlgorithm::Sha256) {
+        if !init.hashes.contains(&HashAlgorithm::Sha256) {
             return Err(InvalidInput(
                 "`hashes` must contain at least `HashAlgorithm::Sha256`".into(),
             ));
         }
 
-        if !options
-            .message_authentication_codes
-            .contains(&MessageAuthenticationCode::HkdfHmacSha256)
-        {
+        if !init.message_authentication_codes.contains(&MessageAuthenticationCode::HkdfHmacSha256) {
             return Err(InvalidInput(
                 "`message_authentication_codes` must contain \
                  at least `MessageAuthenticationCode::HkdfHmacSha256`"
@@ -162,7 +157,7 @@ impl TryFrom<MSasV1ContentOptions> for MSasV1Content {
             ));
         }
 
-        if !options.short_authentication_string.contains(&ShortAuthenticationString::Decimal) {
+        if !init.short_authentication_string.contains(&ShortAuthenticationString::Decimal) {
             return Err(InvalidInput(
                 "`short_authentication_string` must contain \
                  at least `ShortAuthenticationString::Decimal`"
@@ -171,10 +166,10 @@ impl TryFrom<MSasV1ContentOptions> for MSasV1Content {
         }
 
         Ok(Self {
-            key_agreement_protocols: options.key_agreement_protocols,
-            hashes: options.hashes,
-            message_authentication_codes: options.message_authentication_codes,
-            short_authentication_string: options.short_authentication_string,
+            key_agreement_protocols: init.key_agreement_protocols,
+            hashes: init.hashes,
+            message_authentication_codes: init.message_authentication_codes,
+            short_authentication_string: init.short_authentication_string,
         })
     }
 }
@@ -189,7 +184,7 @@ mod tests {
     };
 
     use super::{
-        CustomContent, HashAlgorithm, KeyAgreementProtocol, MSasV1Content, MSasV1ContentOptions,
+        CustomContent, HashAlgorithm, KeyAgreementProtocol, MSasV1Content, MSasV1ContentInit,
         MessageAuthenticationCode, ShortAuthenticationString, StartEvent, StartEventContent,
         StartMethod,
     };
@@ -197,7 +192,7 @@ mod tests {
 
     #[test]
     fn invalid_m_sas_v1_content_missing_required_key_agreement_protocols() {
-        let error = MSasV1Content::new(MSasV1ContentOptions {
+        let error = MSasV1Content::new(MSasV1ContentInit {
             hashes: vec![HashAlgorithm::Sha256],
             key_agreement_protocols: vec![],
             message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
@@ -211,7 +206,7 @@ mod tests {
 
     #[test]
     fn invalid_m_sas_v1_content_missing_required_hashes() {
-        let error = MSasV1Content::new(MSasV1ContentOptions {
+        let error = MSasV1Content::new(MSasV1ContentInit {
             hashes: vec![],
             key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
             message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
@@ -225,7 +220,7 @@ mod tests {
 
     #[test]
     fn invalid_m_sas_v1_content_missing_required_message_authentication_codes() {
-        let error = MSasV1Content::new(MSasV1ContentOptions {
+        let error = MSasV1Content::new(MSasV1ContentInit {
             hashes: vec![HashAlgorithm::Sha256],
             key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
             message_authentication_codes: vec![],
@@ -239,7 +234,7 @@ mod tests {
 
     #[test]
     fn invalid_m_sas_v1_content_missing_required_short_authentication_string() {
-        let error = MSasV1Content::new(MSasV1ContentOptions {
+        let error = MSasV1Content::new(MSasV1ContentInit {
             hashes: vec![HashAlgorithm::Sha256],
             key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
             message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
@@ -257,7 +252,7 @@ mod tests {
             from_device: "123".into(),
             transaction_id: "456".into(),
             method: StartMethod::MSasV1(
-                MSasV1Content::new(MSasV1ContentOptions {
+                MSasV1Content::new(MSasV1ContentInit {
                     hashes: vec![HashAlgorithm::Sha256],
                     key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
                     message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
