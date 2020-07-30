@@ -1,6 +1,6 @@
 //! Types for the *m.key.verification.start* event.
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, convert::TryFrom};
 
 use ruma_events_macros::BasicEventContent;
 use ruma_identifiers::DeviceId;
@@ -123,6 +123,15 @@ impl MSasV1Content {
     /// `MessageAuthenticationCode::HkdfHmacSha256`.
     /// * `short_authentication_string` does not include `ShortAuthenticationString::Decimal`.
     pub fn new(options: MSasV1ContentOptions) -> Result<Self, InvalidInput> {
+        MSasV1Content::try_from(options)
+    }
+}
+
+impl TryFrom<MSasV1ContentOptions> for MSasV1Content {
+    type Error = InvalidInput;
+
+    /// Creates a new `MSasV1Content` from the given init struct.
+    fn try_from(options: MSasV1ContentOptions) -> Result<Self, Self::Error> {
         if !options.key_agreement_protocols.contains(&KeyAgreementProtocol::Curve25519)
             && !options
                 .key_agreement_protocols
