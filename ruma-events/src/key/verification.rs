@@ -42,6 +42,8 @@ pub enum KeyAgreementProtocol {
 pub enum MessageAuthenticationCode {
     /// The HKDF-HMAC-SHA256 MAC.
     HkdfHmacSha256,
+    /// The HMAC-SHA256 MAC.
+    HmacSha256,
 }
 
 /// A Short Authentication String method.
@@ -69,7 +71,9 @@ pub enum VerificationMethod {
 
 #[cfg(test)]
 mod test {
-    use super::KeyAgreementProtocol;
+    use super::{KeyAgreementProtocol, MessageAuthenticationCode};
+
+    use serde_json::{from_value as from_json_value, json};
 
     #[test]
     fn serialize_key_agreement() {
@@ -79,5 +83,26 @@ mod test {
 
         let deserialized: KeyAgreementProtocol = serde_json::from_str(&serialized).unwrap();
         assert_eq!(deserialized, KeyAgreementProtocol::Curve25519HkdfSha256);
+    }
+
+    #[test]
+    fn deserialize_mac_method() {
+        let json = json!(["hkdf-hmac-sha256", "hmac-sha256"]);
+
+        let deserialized: Vec<MessageAuthenticationCode> = from_json_value(json).unwrap();
+        assert!(deserialized.contains(&MessageAuthenticationCode::HkdfHmacSha256));
+    }
+
+    #[test]
+    fn serialize_mac_method() {
+        let serialized = serde_json::to_string(&MessageAuthenticationCode::HkdfHmacSha256).unwrap();
+        let deserialized: MessageAuthenticationCode = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(serialized, "\"hkdf-hmac-sha256\"");
+        assert_eq!(deserialized, MessageAuthenticationCode::HkdfHmacSha256);
+
+        let serialized = serde_json::to_string(&MessageAuthenticationCode::HmacSha256).unwrap();
+        let deserialized: MessageAuthenticationCode = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(serialized, "\"hmac-sha256\"");
+        assert_eq!(deserialized, MessageAuthenticationCode::HmacSha256);
     }
 }
