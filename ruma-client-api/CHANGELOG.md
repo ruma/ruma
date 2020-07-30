@@ -2,8 +2,9 @@
 
 Breaking changes:
 
-* Update type of `limit` in `r0::user_directory::search_users` from
+* Update type of `limit` in `r0::user_directory::search_users::Request` from
   `Option<UInt>` to `UInt`
+* Make `access_token` and `device_id` in `r0::session::login::Response` optional
 
 # 0.10.0
 

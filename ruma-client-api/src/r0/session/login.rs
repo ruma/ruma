@@ -40,7 +40,8 @@ ruma_api! {
         pub user_id: UserId,
 
         /// An access token for the account.
-        pub access_token: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub access_token: Option<String>,
 
         /// The hostname of the homeserver on which the account has been registered.
         ///
@@ -53,11 +54,13 @@ ruma_api! {
         ///
         /// Will be the same as the corresponding parameter in the request, if one was
         /// specified.
-        pub device_id: Box<DeviceId>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub device_id: Option<Box<DeviceId>>,
 
         /// Client configuration provided by the server.
         ///
         /// If present, clients SHOULD use the provided object to reconfigure themselves.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub well_known: Option<DiscoveryInfo>,
     }
 
