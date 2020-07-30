@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+* Update type of `limit` in `r0::user_directory::search_users` from
+  `Option<UInt>` to `UInt`
+
 # 0.10.0
 
 Bug fixes:

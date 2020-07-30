@@ -1,6 +1,6 @@
 //! [POST /_matrix/client/r0/user_directory/search](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-user-directory-search)
 
-use js_int::UInt;
+use js_int::{uint, UInt};
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
@@ -22,8 +22,8 @@ ruma_api! {
         /// The maximum number of results to return.
         ///
         /// Defaults to 10.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub limit: Option<UInt>,
+        #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
+        pub limit: UInt,
     }
 
     response: {
@@ -35,6 +35,14 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+fn default_limit() -> UInt {
+    uint!(10)
+}
+
+fn is_default_limit(limit: &UInt) -> bool {
+    limit == &default_limit()
 }
 
 /// User data as result of a search.
