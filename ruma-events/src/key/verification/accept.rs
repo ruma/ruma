@@ -85,6 +85,46 @@ pub struct MSasV1Content {
     pub commitment: String,
 }
 
+/// Mandatory initial set of fields for creating an accept `MSasV1Content`.
+#[derive(Clone, Debug, Deserialize)]
+pub struct MSasV1ContentInit {
+    /// The key agreement protocol the device is choosing to use, out of the
+    /// options in the *m.key.verification.start* message.
+    pub key_agreement_protocol: KeyAgreementProtocol,
+
+    /// The hash method the device is choosing to use, out of the options in the
+    /// *m.key.verification.start* message.
+    pub hash: HashAlgorithm,
+
+    /// The message authentication codes that the accepting device understands.
+    pub message_authentication_code: MessageAuthenticationCode,
+
+    /// The SAS methods both devices involved in the verification process
+    /// understand.
+    ///
+    /// Must be a subset of the options in the *m.key.verification.start*
+    /// message.
+    pub short_authentication_string: Vec<ShortAuthenticationString>,
+
+    /// The hash (encoded as unpadded base64) of the concatenation of the
+    /// device's ephemeral public key (encoded as unpadded base64) and the
+    /// canonical JSON representation of the *m.key.verification.start* message.
+    pub commitment: String,
+}
+
+impl From<MSasV1ContentInit> for MSasV1Content {
+    /// Creates a new `MSasV1Content` from the given init struct.
+    fn from(init: MSasV1ContentInit) -> Self {
+        MSasV1Content {
+            hash: init.hash,
+            key_agreement_protocol: init.key_agreement_protocol,
+            message_authentication_code: init.message_authentication_code,
+            short_authentication_string: init.short_authentication_string,
+            commitment: init.commitment,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::BTreeMap;
