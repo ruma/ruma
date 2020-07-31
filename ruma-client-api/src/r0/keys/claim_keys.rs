@@ -1,14 +1,14 @@
-//! [POST /_matrix/client/r0/keys/claim](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-keys-claim)
+//! [POST /_matrix/client/r0/keys/claim](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-keys-claim)
 
 use std::collections::BTreeMap;
 
 use std::time::Duration;
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{DeviceId, UserId};
+use ruma_identifiers::{DeviceId, DeviceKeyAlgorithm, DeviceKeyId, UserId};
 use serde_json::Value as JsonValue;
 
-use super::{AlgorithmAndDeviceId, KeyAlgorithm, OneTimeKey};
+use super::OneTimeKey;
 
 ruma_api! {
     metadata: {
@@ -31,7 +31,7 @@ ruma_api! {
         pub timeout: Option<Duration>,
 
         /// The keys to be claimed.
-        pub one_time_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, KeyAlgorithm>>,
+        pub one_time_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeyAlgorithm>>,
     }
 
     response: {
@@ -47,4 +47,4 @@ ruma_api! {
 }
 
 /// The one-time keys for a given device.
-pub type OneTimeKeys = BTreeMap<Box<DeviceId>, BTreeMap<AlgorithmAndDeviceId, OneTimeKey>>;
+pub type OneTimeKeys = BTreeMap<Box<DeviceId>, BTreeMap<DeviceKeyId, OneTimeKey>>;

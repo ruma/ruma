@@ -50,6 +50,8 @@ Breaking changes:
 * Update strum dependency to 0.19
 * Rename `r0::message::{create_message_event => send_message_event}`
 * Rename `r0::state::{create_state_event_* => send_state_event_*}`
+* Replace `r0::keys::{AlgorithmAndDeviceId, KeyAlgorithm}` with
+  `ruma_identifiers::{DeviceKeyId, DeviceKeyAlgorithm}`, respectively
 
 Improvements:
 

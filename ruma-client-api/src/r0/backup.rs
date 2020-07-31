@@ -8,11 +8,9 @@ pub mod get_latest_backup;
 pub mod update_backup;
 
 use js_int::UInt;
-use ruma_identifiers::UserId;
+use ruma_identifiers::{DeviceKeyId, UserId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-
-use crate::r0::keys::AlgorithmAndDeviceId;
 
 // TODO: remove
 /// A wrapper around a mapping of session IDs to key data.
@@ -33,7 +31,7 @@ pub enum BackupAlgorithm {
         /// The curve25519 public key used to encrypt the backups, encoded in unpadded base64.
         public_key: String,
         /// Signatures of the auth_data as Signed JSON.
-        signatures: BTreeMap<UserId, BTreeMap<AlgorithmAndDeviceId, String>>,
+        signatures: BTreeMap<UserId, BTreeMap<DeviceKeyId, String>>,
     },
 }
 

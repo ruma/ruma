@@ -1,17 +1,10 @@
 //! Endpoints for key management
 
-use std::{
-    collections::BTreeMap,
-    convert::TryFrom,
-    fmt::{self, Debug, Display, Formatter},
-};
+use std::{collections::BTreeMap, fmt::Debug};
 
 use ruma_events::Algorithm;
-use ruma_identifiers::{DeviceId, UserId};
-use serde::{
-    de::{self, Unexpected},
-    Deserialize, Deserializer, Serialize, Serializer,
-};
+use ruma_identifiers::{DeviceId, DeviceKeyId, UserId};
+use serde::{Deserialize, Serialize};
 
 pub mod claim_keys;
 pub mod get_key_changes;
@@ -22,98 +15,6 @@ pub mod upload_keys;
 pub mod upload_signatures;
 #[cfg(feature = "unstable-pre-spec")]
 pub mod upload_signing_keys;
-
-/// The basic key algorithms in the specification
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub enum KeyAlgorithm {
-    /// The Ed25519 signature algorithm.
-    #[serde(rename = "ed25519")]
-    Ed25519,
-
-    /// The Curve25519 ECDH algorithm.
-    #[serde(rename = "curve25519")]
-    Curve25519,
-
-    /// The Curve25519 ECDH algorithm, but the key also contains signatures
-    #[serde(rename = "signed_curve25519")]
-    SignedCurve25519,
-}
-
-impl Display for KeyAlgorithm {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let algorithm_str = match *self {
-            KeyAlgorithm::Ed25519 => "ed25519",
-            KeyAlgorithm::Curve25519 => "curve25519",
-            KeyAlgorithm::SignedCurve25519 => "signed_curve25519",
-        };
-        write!(f, "{}", algorithm_str)?;
-        Ok(())
-    }
-}
-
-impl TryFrom<&'_ str> for KeyAlgorithm {
-    type Error = &'static str;
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        match s {
-            "ed25519" => Ok(KeyAlgorithm::Ed25519),
-            "curve25519" => Ok(KeyAlgorithm::Curve25519),
-            "signed_curve25519" => Ok(KeyAlgorithm::SignedCurve25519),
-            _ => Err("Unknown algorithm"),
-        }
-    }
-}
-
-/// A key algorithm and a device id, combined with a ':'
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct AlgorithmAndDeviceId(pub KeyAlgorithm, pub Box<DeviceId>);
-
-impl Display for AlgorithmAndDeviceId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:{}", self.0, self.1)
-    }
-}
-
-impl Serialize for AlgorithmAndDeviceId {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
-    }
-}
-
-impl<'de> Deserialize<'de> for AlgorithmAndDeviceId {
-    #[allow(clippy::comparison_chain)]
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let value = String::deserialize(deserializer)?;
-        let parts = value.split(':').collect::<Vec<_>>();
-
-        const EXPECTED: &str = "a string composed of an algorithm and a device id separated by ':'";
-
-        if parts.len() < 2 {
-            return Err(de::Error::invalid_type(
-                Unexpected::Other("string without a ':' separator"),
-                &EXPECTED,
-            ));
-        } else if parts.len() > 2 {
-            return Err(de::Error::invalid_type(
-                Unexpected::Other("string with more than one ':' separator"),
-                &EXPECTED,
-            ));
-        }
-
-        let algorithm_result = KeyAlgorithm::try_from(parts[0]);
-        match algorithm_result {
-            Ok(algorithm) => Ok(AlgorithmAndDeviceId(algorithm, parts[1].into())),
-            Err(_) => {
-                Err(de::Error::invalid_value(Unexpected::Str(parts[0]), &"valid key algorithm"))
-            }
-        }
-    }
-}
 
 /// Identity keys for a device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -128,10 +29,10 @@ pub struct DeviceKeys {
     pub algorithms: Vec<Algorithm>,
 
     /// Public identity keys.
-    pub keys: BTreeMap<AlgorithmAndDeviceId, String>,
+    pub keys: BTreeMap<DeviceKeyId, String>,
 
     /// Signatures for the device key object.
-    pub signatures: BTreeMap<UserId, BTreeMap<AlgorithmAndDeviceId, String>>,
+    pub signatures: BTreeMap<UserId, BTreeMap<DeviceKeyId, String>>,
 
     /// Additional data added to the device key information by intermediate servers, and
     /// not covered by the signatures.
@@ -153,7 +54,7 @@ pub struct SignedKey {
     pub key: String,
 
     /// Signatures for the key object.
-    pub signatures: BTreeMap<UserId, BTreeMap<AlgorithmAndDeviceId, String>>,
+    pub signatures: BTreeMap<UserId, BTreeMap<DeviceKeyId, String>>,
 }
 
 /// A one-time public key for "pre-key" messages.
