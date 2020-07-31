@@ -12,7 +12,8 @@ use crate::api::{metadata::Metadata, request::Request};
 /// of the path that start with ":".
 ///
 /// The first `TokenStream` returned is the constructed url path. The second `TokenStream` is
-/// used for implementing `TryFrom<http::Request<Vec<u8>>>`, from path strings deserialized to ruma types.
+/// used for implementing `TryFrom<http::Request<Vec<u8>>>`, from path strings deserialized to Ruma
+/// types.
 pub(crate) fn request_path_string_and_parse(
     request: &Request,
     metadata: &Metadata,
