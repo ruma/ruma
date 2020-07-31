@@ -93,7 +93,7 @@ impl ToTokens for Api {
 
         let non_auth_endpoint_impl = if requires_authentication.value {
             quote! {
-                impl ruma_api::NonAuthEndpoint for Request {}
+                impl ::ruma_api::NonAuthEndpoint for Request {}
             }
         } else {
             TokenStream::new()
@@ -116,7 +116,8 @@ impl ToTokens for Api {
 
         let extract_request_path = if self.request.has_path_fields() {
             quote! {
-                let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
+                let path_segments: ::std::vec::Vec<&::std::primitive::str> =
+                    request.uri().path()[1..].split('/').collect();
             }
         } else {
             TokenStream::new()
@@ -142,12 +143,12 @@ impl ToTokens for Api {
         let mut header_kvs = self.request.append_header_kvs();
         if requires_authentication.value {
             header_kvs.push(quote! {
-                ruma_api::exports::http::header::AUTHORIZATION,
-                ruma_api::exports::http::header::HeaderValue::from_str(
-                    &format!(
+                ::ruma_api::exports::http::header::AUTHORIZATION,
+                ::ruma_api::exports::http::header::HeaderValue::from_str(
+                    &::std::format!(
                         "Bearer {}",
                         access_token.ok_or_else(
-                            ruma_api::error::IntoHttpError::needs_authentication
+                            ::ruma_api::error::IntoHttpError::needs_authentication
                         )?
                     )
                 )?
@@ -162,18 +163,18 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let extract_request_body = if self.request.has_body_fields()
-            || self.request.newtype_body_field().is_some()
-        {
-            quote! {
-                let request_body: <RequestBody as ::ruma_api::Outgoing>::Incoming = ::ruma_api::try_deserialize!(
-                    request,
-                    ::ruma_api::exports::serde_json::from_slice(request.body().as_slice())
-                );
-            }
-        } else {
-            TokenStream::new()
-        };
+        let extract_request_body =
+            if self.request.has_body_fields() || self.request.newtype_body_field().is_some() {
+                quote! {
+                    let request_body: <RequestBody as ::ruma_api::Outgoing>::Incoming =
+                        ::ruma_api::try_deserialize!(
+                            request,
+                            ::ruma_api::exports::serde_json::from_slice(request.body().as_slice())
+                        );
+                }
+            } else {
+                TokenStream::new()
+            };
 
         let parse_request_headers = if self.request.has_header_fields() {
             self.request.parse_headers_from_request()
@@ -193,18 +194,18 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let typed_response_body_decl = if self.response.has_body_fields()
-            || self.response.newtype_body_field().is_some()
-        {
-            quote! {
-                let response_body: <ResponseBody as ::ruma_api::Outgoing>::Incoming = ::ruma_api::try_deserialize!(
-                    response,
-                    ::ruma_api::exports::serde_json::from_slice(response.body().as_slice()),
-                );
-            }
-        } else {
-            TokenStream::new()
-        };
+        let typed_response_body_decl =
+            if self.response.has_body_fields() || self.response.newtype_body_field().is_some() {
+                quote! {
+                    let response_body: <ResponseBody as ::ruma_api::Outgoing>::Incoming =
+                        ::ruma_api::try_deserialize!(
+                            response,
+                            ::ruma_api::exports::serde_json::from_slice(response.body().as_slice()),
+                        );
+                }
+            } else {
+                TokenStream::new()
+            };
 
         let response_init_fields = self.response.init_fields();
 
@@ -222,20 +223,26 @@ impl ToTokens for Api {
         let error = &self.error;
 
         let api = quote! {
+            // FIXME: These can't conflict with other imports, but it would still be nice not to
+            //        bring anything into scope that code outside the macro could then rely on.
+            use ::std::convert::TryInto as _;
+
             use ::ruma_api::exports::serde::de::Error as _;
             use ::ruma_api::exports::serde::Deserialize as _;
             use ::ruma_api::Endpoint as _;
 
-            use std::convert::TryInto as _;
-
             #[doc = #request_doc]
             #request_type
 
-            impl std::convert::TryFrom<::ruma_api::exports::http::Request<Vec<u8>>> for #request_try_from_type {
+            impl ::std::convert::TryFrom<::ruma_api::exports::http::Request<Vec<u8>>>
+                for #request_try_from_type
+            {
                 type Error = ::ruma_api::error::FromHttpRequestError;
 
                 #[allow(unused_variables)]
-                fn try_from(request: ::ruma_api::exports::http::Request<Vec<u8>>) -> Result<Self, Self::Error> {
+                fn try_from(
+                    request: ::ruma_api::exports::http::Request<Vec<u8>>
+                ) -> ::std::result::Result<Self, Self::Error> {
                     #extract_request_path
                     #extract_request_query
                     #extract_request_headers
@@ -253,11 +260,13 @@ impl ToTokens for Api {
             #[doc = #response_doc]
             #response_type
 
-            impl std::convert::TryFrom<Response> for ::ruma_api::exports::http::Response<Vec<u8>> {
+            impl ::std::convert::TryFrom<Response>
+                for ::ruma_api::exports::http::Response<Vec<u8>>
+            {
                 type Error = ::ruma_api::error::IntoHttpError;
 
                 #[allow(unused_variables)]
-                fn try_from(response: Response) -> Result<Self, Self::Error> {
+                fn try_from(response: Response) -> ::std::result::Result<Self, Self::Error> {
                     let response = ::ruma_api::exports::http::Response::builder()
                         .header(::ruma_api::exports::http::header::CONTENT_TYPE, "application/json")
                         #serialize_response_headers
@@ -269,13 +278,15 @@ impl ToTokens for Api {
                 }
             }
 
-            impl std::convert::TryFrom<::ruma_api::exports::http::Response<Vec<u8>>> for #response_try_from_type {
+            impl ::std::convert::TryFrom<::ruma_api::exports::http::Response<Vec<u8>>>
+                for #response_try_from_type
+            {
                 type Error = ::ruma_api::error::FromHttpResponseError<#error>;
 
                 #[allow(unused_variables)]
                 fn try_from(
                     response: ::ruma_api::exports::http::Response<Vec<u8>>,
-                ) -> Result<Self, Self::Error> {
+                ) -> ::std::result::Result<Self, Self::Error> {
                     if response.status().as_u16() < 400 {
                         #extract_response_headers
 
@@ -310,7 +321,7 @@ impl ToTokens for Api {
                 #[allow(unused_mut, unused_variables)]
                 fn try_into_http_request(
                     self,
-                    base_url: &str,
+                    base_url: &::std::primitive::str,
                     access_token: ::std::option::Option<&str>,
                 ) -> ::std::result::Result<
                     ::ruma_api::exports::http::Request<Vec<u8>>,

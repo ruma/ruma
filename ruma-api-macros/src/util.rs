@@ -45,9 +45,9 @@ pub(crate) fn request_path_string_and_parse(
                     Span::call_site(),
                 );
                 format_args.push(quote! {
-                    ruma_api::exports::percent_encoding::utf8_percent_encode(
+                    ::ruma_api::exports::percent_encoding::utf8_percent_encode(
                         &self.#path_var.to_string(),
-                        ruma_api::exports::percent_encoding::NON_ALPHANUMERIC,
+                        ::ruma_api::exports::percent_encoding::NON_ALPHANUMERIC,
                     )
                 });
                 format_string.replace_range(start_of_segment..end_of_segment, "{}");
@@ -65,17 +65,16 @@ pub(crate) fn request_path_string_and_parse(
                     let path_var_ident = Ident::new(path_var, Span::call_site());
                     quote! {
                         #path_var_ident: {
-                            use std::ops::Deref as _;
-                            use ruma_api::error::RequestDeserializationError;
+                            use ::ruma_api::error::RequestDeserializationError;
 
                             let segment = path_segments.get(#i).unwrap().as_bytes();
                             let decoded = ::ruma_api::try_deserialize!(
                                 request,
-                                ruma_api::exports::percent_encoding::percent_decode(segment)
+                                ::ruma_api::exports::percent_encoding::percent_decode(segment)
                                     .decode_utf8(),
                             );
 
-                            ::ruma_api::try_deserialize!(request, std::convert::TryFrom::try_from(decoded.deref()))
+                            ::ruma_api::try_deserialize!(request, ::std::convert::TryFrom::try_from(&*decoded))
                         }
                     }
                 },
@@ -107,14 +106,14 @@ pub(crate) fn build_query_string(request: &Request) -> TokenStream {
             // ensure that it won't fail.
             fn assert_trait_impl<T>()
             where
-                T: std::iter::IntoIterator<Item = (std::string::String, std::string::String)>,
+                T: ::std::iter::IntoIterator<Item = (::std::string::String, ::std::string::String)>,
             {}
             assert_trait_impl::<#field_type>();
 
             let request_query = RequestQuery(self.#field_name);
             format_args!(
                 "?{}",
-                ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?
+                ::ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?
             )
         })
     } else if request.has_query_fields() {
@@ -127,7 +126,7 @@ pub(crate) fn build_query_string(request: &Request) -> TokenStream {
 
             format_args!(
                 "?{}",
-                ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?
+                ::ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?
             )
         })
     } else {
@@ -179,7 +178,7 @@ pub(crate) fn build_request_body(request: &Request) -> TokenStream {
         quote! {
             {
                 let request_body = RequestBody #request_body_initializers;
-                ruma_api::exports::serde_json::to_vec(&request_body)?
+                ::ruma_api::exports::serde_json::to_vec(&request_body)?
             }
         }
     } else {

@@ -138,10 +138,10 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
 
                 if path.is_ident("str") {
                     // &str -> String
-                    *field_type = parse_quote! { String };
+                    *field_type = parse_quote! { ::std::string::String };
                 } else if segs.contains(&"DeviceId".into()) || segs.contains(&"ServerName".into()) {
                     // The identifiers that need to be boxed `Box<T>` since they are DST's.
-                    *field_type = parse_quote! { Box<#path> };
+                    *field_type = parse_quote! { ::std::boxed::Box<#path> };
                 } else {
                     // &T -> T
                     *field_type = Type::Path(ty_path.clone());
