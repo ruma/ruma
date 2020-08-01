@@ -22,4 +22,14 @@ pub struct Request<'a, T> {
     pub user_id: &'a UserId,
     pub bytes: &'a [u8],
     pub recursive: &'a [Thing<'a, T>],
+    pub option: Option<&'a [u8]>,
+}
+
+#[derive(Outgoing)]
+#[incoming_no_deserialize]
+pub enum EnumThing<'a, T> {
+    Abc(&'a str),
+    Stuff(Thing<'a, T>),
+    Boxy(&'a ::ruma_identifiers::DeviceId),
+    Other(Option<&'a str>),
 }
