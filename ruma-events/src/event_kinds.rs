@@ -34,6 +34,10 @@ pub struct SyncEphemeralRoomEvent<C: EphemeralRoomEventContent> {
 }
 
 /// Message event.
+///
+/// `MessageEvent` implements the comparison trait's using only
+/// the `event_id` field, a sorted list would be sorted lexicographically based on
+/// the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct MessageEvent<C: MessageEventContent> {
     /// Data specific to the event type.
