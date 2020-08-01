@@ -32,4 +32,5 @@ pub enum EnumThing<'a, T> {
     Stuff(Thing<'a, T>),
     Boxy(&'a ::ruma_identifiers::DeviceId),
     Other(Option<&'a str>),
+    StructVar { stuff: &'a str, more: &'a ::ruma_identifiers::ServerName },
 }

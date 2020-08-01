@@ -1,4 +1,4 @@
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::{
     parse_quote, AngleBracketedGenericArguments, Attribute, Data, DeriveInput, Field, Fields,
@@ -14,6 +14,7 @@ enum StructKind {
 enum DataKind {
     Struct(Vec<Field>, StructKind),
     Enum(Vec<Variant>),
+    Unit,
 }
 
 pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
@@ -23,7 +24,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
         quote!(::ruma_api::exports::serde::Deserialize)
     };
 
-    let data = match input.data {
+    let data = match input.data.clone() {
         Data::Union(_) => panic!("#[derive(Outgoing)] does not support Union types"),
         Data::Enum(e) => DataKind::Enum(e.variants.into_iter().collect()),
         Data::Struct(s) => match s.fields {
@@ -33,11 +34,12 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
             Fields::Unnamed(fs) => {
                 DataKind::Struct(fs.unnamed.into_iter().collect(), StructKind::Tuple)
             }
-            Fields::Unit => return Ok(impl_outgoing_with_incoming_self(&input.ident, None, None)),
+            Fields::Unit => DataKind::Unit,
         },
     };
 
     match data {
+        DataKind::Unit => Ok(impl_outgoing_with_incoming_self(&input)),
         DataKind::Enum(mut vars) => {
             let mut any_attribute = false;
             for var in &mut vars {
@@ -52,11 +54,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
             let (original_impl_gen, original_ty_gen, _) = input.generics.split_for_impl();
 
             if !any_attribute {
-                return Ok(impl_outgoing_with_incoming_self(
-                    original_ident,
-                    Some(original_impl_gen),
-                    Some(original_ty_gen),
-                ));
+                return Ok(impl_outgoing_with_incoming_self(&input));
             }
 
             let vis = input.vis;
@@ -88,11 +86,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
             let (original_impl_gen, original_ty_gen, _) = input.generics.split_for_impl();
 
             if !any_attribute {
-                return Ok(impl_outgoing_with_incoming_self(
-                    original_ident,
-                    Some(original_impl_gen),
-                    Some(original_ty_gen),
-                ));
+                return Ok(impl_outgoing_with_incoming_self(&input));
             }
 
             let vis = input.vis;
@@ -124,11 +118,9 @@ fn no_deserialize_in_attrs(attrs: &[Attribute]) -> bool {
     attrs.iter().any(|attr| attr.path.is_ident("incoming_no_deserialize"))
 }
 
-fn impl_outgoing_with_incoming_self(
-    ident: &Ident,
-    impl_gen: Option<ImplGenerics>,
-    ty_gen: Option<TypeGenerics>,
-) -> TokenStream {
+fn impl_outgoing_with_incoming_self(input: &DeriveInput) -> TokenStream {
+    let ident = &input.ident;
+    let (impl_gen, ty_gen, _) = input.generics.split_for_impl();
     quote! {
         impl #impl_gen ::ruma_api::Outgoing for #ident #ty_gen {
             type Incoming = Self;
