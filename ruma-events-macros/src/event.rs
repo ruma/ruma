@@ -9,13 +9,9 @@ use crate::event_parse::{to_kind_variation, EventKind, EventKindVariation};
 /// Derive `Event` macro code generation.
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     let ident = &input.ident;
-
     let (kind, var) = to_kind_variation(ident).ok_or_else(|| {
         syn::Error::new(Span::call_site(), "not a valid ruma event struct identifier")
     })?;
-
-    let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
-    let is_generic = !input.generics.params.is_empty();
 
     let fields = if let Data::Struct(DataStruct { fields, .. }) = input.data.clone() {
         if let Fields::Named(FieldsNamed { named, .. }) = fields {
@@ -40,6 +36,28 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         ));
     };
 
+    let serialize_impl = expand_serialize_event(&input, &var, &fields)?;
+
+    let deserialize_impl = expand_deserialize_event(&input, &var, &fields)?;
+
+    let conversion_impl = expand_from_into(&input, &kind, &var, &fields);
+
+    Ok(quote! {
+        #conversion_impl
+
+        #serialize_impl
+
+        #deserialize_impl
+    })
+}
+
+fn expand_serialize_event(
+    input: &DeriveInput,
+    var: &EventKindVariation,
+    fields: &[Field],
+) -> syn::Result<TokenStream> {
+    let ident = &input.ident;
+    let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
     let serialize_fields = fields
         .iter()
         .map(|field| {
@@ -80,7 +98,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         })
         .collect::<Vec<_>>();
 
-    let serialize_impl = quote! {
+    Ok(quote! {
         impl #impl_gen ::serde::ser::Serialize for #ident #ty_gen #where_clause {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -97,18 +115,6 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
                 state.end()
             }
         }
-    };
-
-    let deserialize_impl = expand_deserialize_event(&input, &var, &fields, is_generic)?;
-
-    let conversion_impl = expand_from_into(&input, &kind, &var, &fields);
-
-    Ok(quote! {
-        #conversion_impl
-
-        #serialize_impl
-
-        #deserialize_impl
     })
 }
 
@@ -116,7 +122,6 @@ fn expand_deserialize_event(
     input: &DeriveInput,
     var: &EventKindVariation,
     fields: &[Field],
-    is_generic: bool,
 ) -> syn::Result<TokenStream> {
     let ident = &input.ident;
     // we know there is a content field already
@@ -128,6 +133,7 @@ fn expand_deserialize_event(
         .unwrap();
 
     let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
+    let is_generic = !input.generics.params.is_empty();
 
     let enum_variants = fields
         .iter()
