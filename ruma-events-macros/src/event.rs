@@ -42,12 +42,16 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
 
     let conversion_impl = expand_from_into(&input, &kind, &var, &fields);
 
+    let eq_impl = expand_eq_ord_event(&input, &fields);
+
     Ok(quote! {
         #conversion_impl
 
         #serialize_impl
 
         #deserialize_impl
+
+        #eq_impl
     })
 }
 
@@ -363,6 +367,37 @@ fn expand_from_into(
                         room_id: room_id.clone(),
                         #into_full_event
                     }
+                }
+            }
+        })
+    } else {
+        None
+    }
+}
+
+fn expand_eq_ord_event(input: &DeriveInput, fields: &[Field]) -> Option<TokenStream> {
+    if fields.iter().flat_map(|f| f.ident.as_ref()).any(|f| f == "event_id") {
+        let ident = &input.ident;
+        let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
+
+        Some(quote! {
+            impl #impl_gen ::std::cmp::PartialEq for #ident #ty_gen #where_clause {
+                fn eq(&self, other: &Self) -> bool {
+                    self.event_id == other.event_id
+                }
+            }
+
+            impl #impl_gen ::std::cmp::Eq for #ident #ty_gen #where_clause {}
+
+            impl #impl_gen ::std::cmp::PartialOrd for #ident #ty_gen #where_clause {
+                fn partial_cmp(&self, other: &Self) -> ::std::option::Option<::std::cmp::Ordering> {
+                    self.event_id.partial_cmp(&other.event_id)
+                }
+            }
+
+            impl #impl_gen ::std::cmp::Ord for #ident #ty_gen #where_clause {
+                fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
+                    self.event_id.cmp(&other.event_id)
                 }
             }
         })
