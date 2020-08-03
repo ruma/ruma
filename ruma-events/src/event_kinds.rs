@@ -16,7 +16,7 @@ pub struct BasicEvent<C: BasicEventContent> {
     pub content: C,
 }
 
-/// Ephemeral room event.
+/// An ephemeral room event.
 #[derive(Clone, Debug, Event)]
 pub struct EphemeralRoomEvent<C: EphemeralRoomEventContent> {
     /// Data specific to the event type.
@@ -33,9 +33,9 @@ pub struct SyncEphemeralRoomEvent<C: EphemeralRoomEventContent> {
     pub content: C,
 }
 
-/// Message event.
+/// A message event.
 ///
-/// `MessageEvent` implements the comparison trait's using only
+/// `MessageEvent` implements the comparison traits using only
 /// the `event_id` field, a sorted list would be sorted lexicographically based on
 /// the event's `EventId`.
 #[derive(Clone, Debug, Event)]
@@ -60,6 +60,10 @@ pub struct MessageEvent<C: MessageEventContent> {
 }
 
 /// A message event without a `room_id`.
+///
+/// `SyncMessageEvent` implements the comparison traits using only
+/// the `event_id` field, a sorted list would be sorted lexicographically based on
+/// the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct SyncMessageEvent<C: MessageEventContent> {
     /// Data specific to the event type.
@@ -79,6 +83,10 @@ pub struct SyncMessageEvent<C: MessageEventContent> {
 }
 
 /// A redacted message event.
+///
+/// `RedactedMessageEvent` implements the comparison traits using only
+/// the `event_id` field, a sorted list would be sorted lexicographically based on
+/// the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct RedactedMessageEvent<C: RedactedMessageEventContent> {
     /// Data specific to the event type.
@@ -101,6 +109,10 @@ pub struct RedactedMessageEvent<C: RedactedMessageEventContent> {
 }
 
 /// A redacted message event without a `room_id`.
+///
+/// `RedactedSyncMessageEvent` implements the comparison traits using only
+/// the `event_id` field, a sorted list would be sorted lexicographically based on
+/// the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct RedactedSyncMessageEvent<C: RedactedMessageEventContent> {
     /// Data specific to the event type.
@@ -120,7 +132,11 @@ pub struct RedactedSyncMessageEvent<C: RedactedMessageEventContent> {
     pub unsigned: RedactedSyncUnsigned,
 }
 
-/// State event.
+/// A state event.
+///
+/// `StateEvent` implements the comparison traits using only
+/// the `event_id` field, a sorted list would be sorted lexicographically based on
+/// the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct StateEvent<C: StateEventContent> {
     /// Data specific to the event type.
@@ -152,6 +168,10 @@ pub struct StateEvent<C: StateEventContent> {
 }
 
 /// A state event without a `room_id`.
+///
+/// `SyncStateEvent` implements the comparison traits using only
+/// the `event_id` field, a sorted list would be sorted lexicographically based on
+/// the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct SyncStateEvent<C: StateEventContent> {
     /// Data specific to the event type.
@@ -197,6 +217,10 @@ pub struct StrippedStateEvent<C: StateEventContent> {
 }
 
 /// A redacted state event.
+///
+/// `RedactedStateEvent` implements the comparison traits using only
+/// the `event_id` field, a sorted list would be sorted lexicographically based on
+/// the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct RedactedStateEvent<C: RedactedStateEventContent> {
     /// Data specific to the event type.
@@ -225,6 +249,10 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
 }
 
 /// A redacted state event without a `room_id`.
+///
+/// `RedactedSyncStateEvent` implements the comparison traits using only
+/// the `event_id` field, a sorted list would be sorted lexicographically based on
+/// the event's `EventId`.
 #[derive(Clone, Debug, Event)]
 pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     /// Data specific to the event type.
