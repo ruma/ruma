@@ -2,9 +2,100 @@
 
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::Ident;
+use std::collections::BTreeSet;
+use syn::{
+    AngleBracketedGenericArguments, GenericArgument, Ident, Lifetime,
+    ParenthesizedGenericArguments, PathArguments, Type, TypePath, TypeReference,
+};
 
 use crate::api::{metadata::Metadata, request::Request};
+
+/// Whether or not the request field has a lifetime.
+pub fn has_lifetime(ty: &Type) -> bool {
+    let mut found_lifetime = false;
+    if let Type::Path(TypePath { path, .. }) = ty {
+        for seg in &path.segments {
+            #[allow(clippy::blocks_in_if_conditions)] // TODO
+            if match &seg.arguments {
+                PathArguments::AngleBracketed(AngleBracketedGenericArguments { args, .. }) => {
+                    args.clone().iter().any(|gen| {
+                        if let GenericArgument::Type(ty) = gen {
+                            has_lifetime(ty)
+                        } else {
+                            matches!(gen, GenericArgument::Lifetime(_))
+                        }
+                    })
+                }
+                PathArguments::Parenthesized(ParenthesizedGenericArguments { inputs, .. }) => {
+                    inputs.iter().any(|ty| has_lifetime(ty))
+                }
+                _ => false,
+            } {
+                found_lifetime = true;
+            }
+        }
+    }
+
+    matches!(ty, Type::Reference(_) | Type::Slice(_)) || found_lifetime
+}
+
+pub fn copy_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
+    match ty {
+        Type::Path(TypePath { path, .. }) => {
+            for seg in &path.segments {
+                match &seg.arguments {
+                    PathArguments::AngleBracketed(AngleBracketedGenericArguments {
+                        args, ..
+                    }) => {
+                        for gen in args {
+                            if let GenericArgument::Type(ty) = gen {
+                                copy_lifetime_ident(lifetimes, &ty)
+                            } else if let GenericArgument::Lifetime(lt) = gen {
+                                lifetimes.insert(lt.clone());
+                            }
+                        }
+                    }
+                    PathArguments::Parenthesized(ParenthesizedGenericArguments {
+                        inputs, ..
+                    }) => {
+                        for ty in inputs {
+                            copy_lifetime_ident(lifetimes, ty)
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+        Type::Reference(TypeReference { elem, lifetime, .. }) => {
+            copy_lifetime_ident(lifetimes, &*elem);
+            if let Some(lt) = lifetime {
+                lifetimes.insert(lt.clone());
+            }
+        }
+        _ => {}
+    }
+}
+
+/// Collects the unique lifetime identifiers from the struct declaration.
+pub fn collect_generic_idents<'a, I: Iterator<Item = &'a Type>>(iter: I) -> TokenStream {
+    let mut lifetimes = BTreeSet::new();
+
+    for ty in iter {
+        copy_lifetime_ident(&mut lifetimes, &ty);
+    }
+    generics_to_tokens(lifetimes.iter())
+}
+
+/// Generates a `TokenStream` of lifetime identifiers `<'lifetime>`.
+pub fn generics_to_tokens<'a, I: Iterator<Item = &'a Lifetime>>(lifetimes: I) -> TokenStream {
+    let lifetimes = lifetimes.collect::<Vec<_>>();
+    if lifetimes.is_empty() {
+        TokenStream::new()
+    } else {
+        let lifetimes = quote! { #( #lifetimes ),* };
+        quote! { < #lifetimes > }
+    }
+}
 
 /// The first item in the tuple generates code for the request path from
 /// the `Metadata` and `Request` structs. The second item in the returned tuple
