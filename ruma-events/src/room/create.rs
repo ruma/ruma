@@ -1,7 +1,5 @@
 //! Types for the *m.room.create* event.
 
-use std::convert::TryFrom;
-
 use ruma_events_macros::StateEventContent;
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use serde::{Deserialize, Serialize};
@@ -65,7 +63,7 @@ impl PreviousRoom {
 
 /// Used to default the `room_version` field to room version 1.
 fn default_room_version_id() -> RoomVersionId {
-    RoomVersionId::try_from("1").unwrap()
+    RoomVersionId::Version1
 }
 
 #[cfg(test)]
