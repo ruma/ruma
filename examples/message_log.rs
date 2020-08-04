@@ -3,13 +3,11 @@ use std::{env, process::exit, time::Duration};
 use futures_util::stream::{StreamExt as _, TryStreamExt as _};
 use ruma_client::{
     self,
-    api::r0::sync::sync_events::SetPresence,
-    events::{
-        collections::all::RoomEvent,
-        room::message::{MessageEvent, MessageEventContent, TextMessageEventContent},
-    },
+    events::room::message::{MessageEventContent, TextMessageEventContent},
     HttpClient,
 };
+use ruma_common::presence::PresenceState;
+use ruma_events::{AnySyncMessageEvent, AnySyncRoomEvent, SyncMessageEvent};
 use url::Url;
 
 async fn log_messages(
@@ -26,7 +24,7 @@ async fn log_messages(
             .sync(
                 None,
                 None,
-                SetPresence::Online,
+                PresenceState::Online,
                 Some(Duration::from_secs(30)),
             )
             // TODO: This is a horrible way to obtain an initial next_batch token that generates way
@@ -44,12 +42,16 @@ async fn log_messages(
                 .flat_map(|r| r.deserialize())
             {
                 // Filter out the text messages
-                if let RoomEvent::RoomMessage(MessageEvent {
-                    content:
-                        MessageEventContent::Text(TextMessageEventContent { body: msg_body, .. }),
-                    sender,
-                    ..
-                }) = event
+                if let AnySyncRoomEvent::Message(AnySyncMessageEvent::RoomMessage(
+                    SyncMessageEvent {
+                        content:
+                            MessageEventContent::Text(TextMessageEventContent {
+                                body: msg_body, ..
+                            }),
+                        sender,
+                        ..
+                    },
+                )) = event
                 {
                     println!("{:?} in {:?}: {}", sender, room_id, msg_body);
                 }

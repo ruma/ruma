@@ -45,7 +45,8 @@
 //! use std::time::Duration;
 //!
 //! # use futures_util::stream::{StreamExt as _, TryStreamExt as _};
-//! # use ruma_client::{api::r0::sync::sync_events::SetPresence, Client};
+//! # use ruma_client::Client;
+//! # use ruma_common::presence::PresenceState;
 //! # let homeserver_url = "https://example.com".parse().unwrap();
 //! # let client = Client::https(homeserver_url, None);
 //! # let next_batch_token = String::new();
@@ -53,7 +54,7 @@
 //! let mut sync_stream = Box::pin(client.sync(
 //!     None,
 //!     Some(next_batch_token),
-//!     SetPresence::Online,
+//!     PresenceState::Online,
 //!     Some(Duration::from_secs(30)),
 //! ));
 //! while let Some(response) = sync_stream.try_next().await? {
@@ -219,7 +220,7 @@ where
         &self,
         user: String,
         password: String,
-        device_id: Option<DeviceId>,
+        device_id: Option<Box<DeviceId>>,
         initial_device_display_name: Option<String>,
     ) -> Result<Session, Error<api::Error>> {
         use api::r0::session::login;
@@ -329,7 +330,7 @@ where
         &self,
         filter: Option<api::r0::sync::sync_events::Filter>,
         since: Option<String>,
-        set_presence: api::r0::sync::sync_events::SetPresence,
+        set_presence: ruma_common::presence::PresenceState,
         timeout: Option<Duration>,
     ) -> impl Stream<Item = Result<api::r0::sync::sync_events::Response, Error<api::Error>>>
            + TryStream<Ok = api::r0::sync::sync_events::Response, Error = Error<api::Error>> {

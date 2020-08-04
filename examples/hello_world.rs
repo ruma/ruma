@@ -39,8 +39,7 @@ async fn hello_world(homeserver_url: Url, room: String) -> anyhow::Result<()> {
             txn_id: "1".to_owned(),
             data: to_raw_json_value(&MessageEventContent::Text(TextMessageEventContent {
                 body: "Hello World!".to_owned(),
-                format: None,
-                formatted_body: None,
+                formatted: None,
                 relates_to: None,
             }))?,
         })
