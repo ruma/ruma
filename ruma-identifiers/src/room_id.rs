@@ -2,7 +2,7 @@
 
 use std::{convert::TryFrom, num::NonZeroU8};
 
-use crate::{error::Error, parse_id, ServerName};
+use crate::{Error, ServerName};
 
 /// A Matrix room ID.
 ///
@@ -58,8 +58,7 @@ fn try_from<S>(room_id: S) -> Result<RoomId, Error>
 where
     S: AsRef<str> + Into<Box<str>>,
 {
-    let colon_idx = parse_id(room_id.as_ref(), &['!'])?;
-
+    let colon_idx = ruma_identifiers_validation::room_id::validate(room_id.as_ref())?;
     Ok(RoomId { full_id: room_id.into(), colon_idx })
 }
 
@@ -73,7 +72,7 @@ mod tests {
     use serde_json::{from_str, to_string};
 
     use super::RoomId;
-    use crate::error::Error;
+    use crate::Error;
 
     #[test]
     fn valid_room_id() {

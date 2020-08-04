@@ -2,7 +2,7 @@
 
 use std::{convert::TryFrom, num::NonZeroU8};
 
-use crate::{error::Error, parse_id, server_name::ServerName};
+use crate::{server_name::ServerName, Error};
 
 /// A Matrix room alias ID.
 ///
@@ -38,13 +38,12 @@ impl RoomAliasId {
 /// Attempts to create a new Matrix room alias ID from a string representation.
 ///
 /// The string must include the leading # sigil, the alias, a literal colon, and a server name.
-fn try_from<S>(room_id: S) -> Result<RoomAliasId, Error>
+fn try_from<S>(room_alias_id: S) -> Result<RoomAliasId, Error>
 where
     S: AsRef<str> + Into<Box<str>>,
 {
-    let colon_idx = parse_id(room_id.as_ref(), &['#'])?;
-
-    Ok(RoomAliasId { full_id: room_id.into(), colon_idx })
+    let colon_idx = ruma_identifiers_validation::room_alias_id::validate(room_alias_id.as_ref())?;
+    Ok(RoomAliasId { full_id: room_alias_id.into(), colon_idx })
 }
 
 common_impls!(RoomAliasId, try_from, "a Matrix room alias ID");
@@ -57,7 +56,7 @@ mod tests {
     use serde_json::{from_str, to_string};
 
     use super::RoomAliasId;
-    use crate::error::Error;
+    use crate::Error;
 
     #[test]
     fn valid_room_alias_id() {

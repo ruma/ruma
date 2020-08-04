@@ -2,7 +2,7 @@
 
 use std::{convert::TryFrom, num::NonZeroU8};
 
-use crate::{error::Error, parse_id, validate_id, ServerName};
+use crate::{Error, ServerName};
 
 /// A Matrix event ID.
 ///
@@ -91,15 +91,8 @@ fn try_from<S>(event_id: S) -> Result<EventId, Error>
 where
     S: AsRef<str> + Into<Box<str>>,
 {
-    if event_id.as_ref().contains(':') {
-        let colon_idx = parse_id(event_id.as_ref(), &['$'])?;
-
-        Ok(EventId { full_id: event_id.into(), colon_idx: Some(colon_idx) })
-    } else {
-        validate_id(event_id.as_ref(), &['$'])?;
-
-        Ok(EventId { full_id: event_id.into(), colon_idx: None })
-    }
+    let colon_idx = ruma_identifiers_validation::event_id::validate(event_id.as_ref())?;
+    Ok(EventId { full_id: event_id.into(), colon_idx })
 }
 
 common_impls!(EventId, try_from, "a Matrix event ID");
@@ -112,7 +105,7 @@ mod tests {
     use serde_json::{from_str, to_string};
 
     use super::EventId;
-    use crate::error::Error;
+    use crate::Error;
 
     #[test]
     fn valid_original_event_id() {

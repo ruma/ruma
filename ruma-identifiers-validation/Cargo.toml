@@ -1,0 +1,16 @@
+[package]
+name = "ruma-identifiers-validation"
+description = "Validation logic for ruma-identifiers and ruma-identifiers-macros"
+documentation = "https://docs.rs/ruma-identifiers"
+homepage = "https://www.ruma.io/"
+repository = "https://github.com/ruma/ruma"
+authors = [
+    "Jimmy Cuadra <jimmy@jimmycuadra.com>",
+    "Jonas Platte <jplatte@posteo.de>",
+]
+license = "MIT"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+strum = { version = "0.18.0", features = ["derive"] }

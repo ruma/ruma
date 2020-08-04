@@ -2,7 +2,7 @@
 
 use std::{num::NonZeroU8, str::FromStr};
 
-use crate::{error::Error, key_algorithms::ServerKeyAlgorithm};
+use ruma_identifiers_validation::{key_algorithms::ServerKeyAlgorithm, Error};
 
 /// Key identifiers used for homeserver signing keys.
 #[derive(Clone, Debug)]
@@ -27,36 +27,11 @@ fn try_from<S>(key_id: S) -> Result<ServerKeyId, Error>
 where
     S: AsRef<str> + Into<Box<str>>,
 {
-    let key_str = key_id.as_ref();
-    let colon_idx =
-        NonZeroU8::new(key_str.find(':').ok_or(Error::MissingServerKeyDelimiter)? as u8)
-            .ok_or(Error::UnknownKeyAlgorithm)?;
-
-    validate_server_key_algorithm(&key_str[..colon_idx.get() as usize])?;
-
-    validate_version(&key_str[colon_idx.get() as usize + 1..])?;
-
+    let colon_idx = ruma_identifiers_validation::server_key_id::validate(key_id.as_ref())?;
     Ok(ServerKeyId { full_id: key_id.into(), colon_idx })
 }
 
 common_impls!(ServerKeyId, try_from, "Key ID with algorithm and version");
-
-fn validate_version(version: &str) -> Result<(), Error> {
-    if version.is_empty() {
-        return Err(Error::MinimumLengthNotSatisfied);
-    } else if !version.chars().all(|c| c.is_alphanumeric() || c == '_') {
-        return Err(Error::InvalidCharacters);
-    }
-
-    Ok(())
-}
-
-fn validate_server_key_algorithm(algorithm: &str) -> Result<(), Error> {
-    match ServerKeyAlgorithm::from_str(algorithm) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(Error::UnknownKeyAlgorithm),
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -65,10 +40,10 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use crate::{error::Error, ServerKeyId};
+    use crate::{Error, ServerKeyId};
 
     #[cfg(feature = "serde")]
-    use crate::key_algorithms::ServerKeyAlgorithm;
+    use ruma_identifiers_validation::key_algorithms::ServerKeyAlgorithm;
 
     #[cfg(feature = "serde")]
     #[test]

@@ -9,10 +9,7 @@ use std::{
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::error::Error;
-
-/// Room version identifiers cannot be more than 32 code points.
-const MAX_CODE_POINTS: usize = 32;
+use crate::Error;
 
 /// A Matrix room version ID.
 ///
@@ -231,13 +228,8 @@ where
         "4" => RoomVersionId::Version4,
         "5" => RoomVersionId::Version5,
         custom => {
-            if custom.is_empty() {
-                return Err(Error::MinimumLengthNotSatisfied);
-            } else if custom.chars().count() > MAX_CODE_POINTS {
-                return Err(Error::MaximumLengthExceeded);
-            } else {
-                RoomVersionId::Custom(CustomRoomVersion(room_version_id.into()))
-            }
+            ruma_identifiers_validation::room_version_id::validate(custom)?;
+            RoomVersionId::Custom(CustomRoomVersion(room_version_id.into()))
         }
     };
 
@@ -245,7 +237,7 @@ where
 }
 
 impl TryFrom<&str> for RoomVersionId {
-    type Error = crate::error::Error;
+    type Error = crate::Error;
 
     fn try_from(s: &str) -> Result<Self, Error> {
         try_from(s)
@@ -253,7 +245,7 @@ impl TryFrom<&str> for RoomVersionId {
 }
 
 impl TryFrom<String> for RoomVersionId {
-    type Error = crate::error::Error;
+    type Error = crate::Error;
 
     fn try_from(s: String) -> Result<Self, Error> {
         try_from(s)
@@ -314,7 +306,7 @@ mod tests {
     use serde_json::{from_str, to_string};
 
     use super::RoomVersionId;
-    use crate::error::Error;
+    use crate::Error;
 
     #[test]
     fn valid_version_1_room_version_id() {

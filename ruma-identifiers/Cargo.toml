@@ -1,5 +1,8 @@
 [package]
-authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
+authors = [
+    "Jimmy Cuadra <jimmy@jimmycuadra.com>",
+    "Jonas Platte <jplatte@posteo.de>",
+]
 categories = ["api-bindings"]
 description = "Resource identifiers for Matrix."
 documentation = "https://docs.rs/ruma-identifiers"
@@ -22,9 +25,10 @@ default = ["serde"]
 [dependencies]
 either = { version = "1.5.3", optional = true }
 rand = { version = "0.7.3", optional = true }
+ruma-identifiers-validation = { version = "0.1.0", path = "../ruma-identifiers-validation" }
 serde = { version = "1.0.114", optional = true, features = ["derive"] }
 strum = { version = "0.18.0", features = ["derive"] }
 
 [dev-dependencies]
 matches = "0.1.8"
-serde_json = "1.0.56"
+serde_json = "1.0.57"

@@ -1,7 +1,10 @@
 //! Identifiers for device keys for end-to-end encryption.
 
-use crate::{error::Error, key_algorithms::DeviceKeyAlgorithm, DeviceId};
 use std::{num::NonZeroU8, str::FromStr};
+
+use ruma_identifiers_validation::{key_algorithms::DeviceKeyAlgorithm, Error};
+
+use crate::DeviceId;
 
 /// A key algorithm and a device id, combined with a ':'
 #[derive(Clone, Debug)]
@@ -26,14 +29,7 @@ fn try_from<S>(key_id: S) -> Result<DeviceKeyId, Error>
 where
     S: AsRef<str> + Into<Box<str>>,
 {
-    let key_str = key_id.as_ref();
-    let colon_idx =
-        NonZeroU8::new(key_str.find(':').ok_or(Error::MissingDeviceKeyDelimiter)? as u8)
-            .ok_or(Error::UnknownKeyAlgorithm)?;
-
-    DeviceKeyAlgorithm::from_str(&key_str[0..colon_idx.get() as usize])
-        .map_err(|_| Error::UnknownKeyAlgorithm)?;
-
+    let colon_idx = ruma_identifiers_validation::device_key_id::validate(key_id.as_ref())?;
     Ok(DeviceKeyId { full_id: key_id.into(), colon_idx })
 }
 
@@ -43,11 +39,11 @@ common_impls!(DeviceKeyId, try_from, "Device key ID with algorithm and device ID
 mod test {
     use std::convert::TryFrom;
 
+    use ruma_identifiers_validation::{key_algorithms::DeviceKeyAlgorithm, Error};
     #[cfg(feature = "serde")]
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::DeviceKeyId;
-    use crate::{error::Error, key_algorithms::DeviceKeyAlgorithm};
 
     #[test]
     fn convert_device_key_id() {

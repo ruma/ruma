@@ -55,7 +55,7 @@ macro_rules! common_impls {
         }
 
         impl ::std::convert::TryFrom<&str> for $id {
-            type Error = crate::error::Error;
+            type Error = crate::Error;
 
             fn try_from(s: &str) -> Result<Self, Self::Error> {
                 $try_from(s)
@@ -63,7 +63,7 @@ macro_rules! common_impls {
         }
 
         impl ::std::convert::TryFrom<String> for $id {
-            type Error = crate::error::Error;
+            type Error = crate::Error;
 
             fn try_from(s: String) -> Result<Self, Self::Error> {
                 $try_from(s)
