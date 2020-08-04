@@ -117,17 +117,15 @@ pub enum Direction {
 mod tests {
     use super::{Direction, Request};
 
-    use std::convert::TryFrom;
-
     use js_int::uint;
     use ruma_api::Endpoint;
-    use ruma_identifiers::RoomId;
+    use ruma_identifiers::room_id;
 
     use crate::r0::filter::{LazyLoadOptions, RoomEventFilter};
 
     #[test]
     fn test_serialize_some_room_event_filter() {
-        let room_id = RoomId::try_from("!roomid:example.org").unwrap();
+        let room_id = room_id!("!roomid:example.org");
         let filter = RoomEventFilter {
             lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: true },
             rooms: Some(vec![room_id.clone()]),
@@ -154,7 +152,7 @@ mod tests {
 
     #[test]
     fn test_serialize_none_room_event_filter() {
-        let room_id = RoomId::try_from("!roomid:example.org").unwrap();
+        let room_id = room_id!("!roomid:example.org");
         let req = Request {
             room_id,
             from: "token".into(),
@@ -171,7 +169,7 @@ mod tests {
 
     #[test]
     fn test_serialize_default_room_event_filter() {
-        let room_id = RoomId::try_from("!roomid:example.org").unwrap();
+        let room_id = room_id!("!roomid:example.org");
         let req = Request {
             room_id,
             from: "token".into(),

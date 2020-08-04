@@ -57,7 +57,6 @@ where
 #[cfg(test)]
 mod tests {
     use std::{
-        convert::TryFrom,
         iter::FromIterator,
         time::{Duration, UNIX_EPOCH},
     };
@@ -65,7 +64,7 @@ mod tests {
     use js_int::Int;
     use matches::assert_matches;
     use ruma_common::Raw;
-    use ruma_identifiers::{EventId, RoomId, UserId};
+    use ruma_identifiers::{event_id, room_id, user_id};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use crate::{StateEvent, Unsigned};
@@ -76,11 +75,11 @@ mod tests {
     fn serialization_with_optional_fields_as_none() {
         let name_event = StateEvent {
             content: NameEventContent { name: Some("The room name".into()) },
-            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+            event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: None,
-            room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
-            sender: UserId::try_from("@carl:example.com").unwrap(),
+            room_id: room_id!("!n8f893n9:example.com"),
+            sender: user_id!("@carl:example.com"),
             state_key: "".into(),
             unsigned: Unsigned::default(),
         };
@@ -105,11 +104,11 @@ mod tests {
     fn serialization_with_all_fields() {
         let name_event = StateEvent {
             content: NameEventContent { name: Some("The room name".into()) },
-            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+            event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: Some(NameEventContent { name: Some("The old name".into()) }),
-            room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
-            sender: UserId::try_from("@carl:example.com").unwrap(),
+            room_id: room_id!("!n8f893n9:example.com"),
+            sender: user_id!("@carl:example.com"),
             state_key: "".into(),
             unsigned: Unsigned { age: Some(Int::from(100)), ..Unsigned::default() },
         };

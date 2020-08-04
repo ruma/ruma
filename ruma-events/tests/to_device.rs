@@ -1,18 +1,16 @@
-use std::convert::TryFrom;
-
 use ruma_events::{
     room_key::RoomKeyEventContent, Algorithm, AnyToDeviceEventContent, ToDeviceEvent,
 };
-use ruma_identifiers::{RoomId, UserId};
+use ruma_identifiers::{room_id, user_id};
 use serde_json::{json, to_value as to_json_value};
 
 #[test]
 fn serialization() {
     let ev = ToDeviceEvent {
-        sender: UserId::try_from("@example:example.org").unwrap(),
+        sender: user_id!("@example:example.org"),
         content: AnyToDeviceEventContent::RoomKey(RoomKeyEventContent {
             algorithm: Algorithm::MegolmV1AesSha2,
-            room_id: RoomId::try_from("!testroomid:example.org").unwrap(),
+            room_id: room_id!("!testroomid:example.org"),
             session_id: "SessId".into(),
             session_key: "SessKey".into(),
         }),

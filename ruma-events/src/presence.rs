@@ -51,12 +51,10 @@ pub struct PresenceEventContent {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use js_int::uint;
     use matches::assert_matches;
     use ruma_common::presence::PresenceState;
-    use ruma_identifiers::UserId;
+    use ruma_identifiers::user_id;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{PresenceEvent, PresenceEventContent};
@@ -72,7 +70,7 @@ mod tests {
                 presence: PresenceState::Online,
                 status_msg: Some("Making cupcakes".into()),
             },
-            sender: UserId::try_from("@example:localhost").unwrap(),
+            sender: user_id!("@example:localhost"),
         };
 
         let json = json!({

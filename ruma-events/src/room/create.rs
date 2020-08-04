@@ -68,11 +68,9 @@ fn default_room_version_id() -> RoomVersionId {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use matches::assert_matches;
     use ruma_common::Raw;
-    use ruma_identifiers::{RoomVersionId, UserId};
+    use ruma_identifiers::{user_id, RoomVersionId};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::CreateEventContent;
@@ -80,7 +78,7 @@ mod tests {
     #[test]
     fn serialization() {
         let content = CreateEventContent {
-            creator: UserId::try_from("@carl:example.com").unwrap(),
+            creator: user_id!("@carl:example.com"),
             federate: false,
             room_version: RoomVersionId::Version4,
             predecessor: None,

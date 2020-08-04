@@ -38,13 +38,15 @@ ruma_api! {
 fn request_serde() -> Result<(), Box<dyn std::error::Error + 'static>> {
     use std::convert::TryFrom;
 
+    use ruma_identifiers::user_id;
+
     let req = Request {
         hello: "hi".to_owned(),
         world: "test".to_owned(),
         q1: "query_param_special_chars %/&@!".to_owned(),
         q2: 55,
         bar: "barVal".to_owned(),
-        baz: UserId::try_from("@bazme:ruma.io")?,
+        baz: user_id!("@bazme:ruma.io"),
     };
 
     let http_req = req.clone().try_into_http_request("https://homeserver.tld", None)?;

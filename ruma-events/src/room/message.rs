@@ -406,14 +406,11 @@ impl TextMessageEventContent {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        convert::TryFrom,
-        time::{Duration, UNIX_EPOCH},
-    };
+    use std::time::{Duration, UNIX_EPOCH};
 
     use matches::assert_matches;
     use ruma_common::Raw;
-    use ruma_identifiers::{EventId, RoomId, UserId};
+    use ruma_identifiers::{event_id, room_id, user_id};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{AudioMessageEventContent, FormattedBody, MessageEventContent, MessageFormat};
@@ -431,10 +428,10 @@ mod tests {
                 url: Some("http://example.com/audio.mp3".into()),
                 file: None,
             }),
-            event_id: EventId::try_from("$143273582443PhrSn:example.org").unwrap(),
+            event_id: event_id!("$143273582443PhrSn:example.org"),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(10_000),
-            room_id: RoomId::try_from("!testroomid:example.org").unwrap(),
-            sender: UserId::try_from("@user:example.org").unwrap(),
+            room_id: room_id!("!testroomid:example.org"),
+            sender: user_id!("@user:example.org"),
             unsigned: Unsigned::default(),
         };
 
@@ -518,7 +515,7 @@ mod tests {
             formatted: None,
             relates_to: Some(RelatesTo {
                 in_reply_to: Some(InReplyTo {
-                    event_id: EventId::try_from("$15827405538098VGFWH:example.com").unwrap(),
+                    event_id: event_id!("$15827405538098VGFWH:example.com"),
                 }),
             }),
         });

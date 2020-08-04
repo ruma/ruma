@@ -20,11 +20,9 @@ pub struct IgnoredUserListEventContent {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use matches::assert_matches;
     use ruma_common::Raw;
-    use ruma_identifiers::UserId;
+    use ruma_identifiers::user_id;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::IgnoredUserListEventContent;
@@ -34,7 +32,7 @@ mod tests {
     fn serialization() {
         let ignored_user_list_event = BasicEvent {
             content: IgnoredUserListEventContent {
-                ignored_users: vec![UserId::try_from("@carl:example.com").unwrap()],
+                ignored_users: vec![user_id!("@carl:example.com")],
             },
         };
 
@@ -68,7 +66,7 @@ mod tests {
                 .unwrap(),
             BasicEvent {
                 content: AnyBasicEventContent::IgnoredUserList(IgnoredUserListEventContent { ignored_users, }),
-            } if ignored_users == vec![UserId::try_from("@carl:example.com").unwrap()]
+            } if ignored_users == vec![user_id!("@carl:example.com")]
         );
     }
 }

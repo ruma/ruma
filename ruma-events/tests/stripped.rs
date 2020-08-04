@@ -1,11 +1,9 @@
-use std::convert::TryFrom;
-
 use js_int::uint;
 use ruma_events::{
     room::{join_rules::JoinRule, topic::TopicEventContent},
     AnyStateEventContent, AnyStrippedStateEvent, StrippedStateEvent,
 };
-use ruma_identifiers::UserId;
+use ruma_identifiers::user_id;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]
@@ -15,7 +13,7 @@ fn serialize_stripped_state_event_any_content() {
             topic: "Testing room".into(),
         }),
         state_key: "".into(),
-        sender: UserId::try_from("@example:localhost").unwrap(),
+        sender: user_id!("@example:localhost"),
     };
 
     let json_data = json!({
@@ -35,7 +33,7 @@ fn serialize_stripped_state_event_any_event() {
     let event = AnyStrippedStateEvent::RoomTopic(StrippedStateEvent {
         content: TopicEventContent { topic: "Testing room".into() },
         state_key: "".into(),
-        sender: UserId::try_from("@example:localhost").unwrap(),
+        sender: user_id!("@example:localhost"),
     });
 
     let json_data = json!({

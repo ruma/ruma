@@ -119,13 +119,12 @@ fn is_default_power_level(l: &Int) -> bool {
 mod tests {
     use std::{
         collections::BTreeMap,
-        convert::TryFrom,
         time::{Duration, UNIX_EPOCH},
     };
 
     use js_int::Int;
     use maplit::btreemap;
-    use ruma_identifiers::{EventId, RoomId, UserId};
+    use ruma_identifiers::{event_id, room_id, user_id};
     use serde_json::{json, to_value as to_json_value};
 
     use super::{default_power_level, NotificationPowerLevels, PowerLevelsEventContent};
@@ -148,12 +147,12 @@ mod tests {
                 users_default: Int::from(0),
                 notifications: NotificationPowerLevels::default(),
             },
-            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+            event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: None,
-            room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
+            room_id: room_id!("!n8f893n9:example.com"),
             unsigned: Unsigned::default(),
-            sender: UserId::try_from("@carl:example.com").unwrap(),
+            sender: user_id!("@carl:example.com"),
             state_key: "".into(),
         };
 
@@ -173,7 +172,7 @@ mod tests {
 
     #[test]
     fn serialization_with_all_fields() {
-        let user = UserId::try_from("@carl:example.com").unwrap();
+        let user = user_id!("@carl:example.com");
         let power_levels_event = StateEvent {
             content: PowerLevelsEventContent {
                 ban: Int::from(23),
@@ -191,7 +190,7 @@ mod tests {
                 users_default: Int::from(23),
                 notifications: NotificationPowerLevels { room: Int::from(23) },
             },
-            event_id: EventId::try_from("$h29iv0s8:example.com").unwrap(),
+            event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: Some(PowerLevelsEventContent {
                 // Make just one field different so we at least know they're two different objects.
@@ -210,7 +209,7 @@ mod tests {
                 users_default: Int::from(42),
                 notifications: NotificationPowerLevels { room: Int::from(42) },
             }),
-            room_id: RoomId::try_from("!n8f893n9:example.com").unwrap(),
+            room_id: room_id!("!n8f893n9:example.com"),
             unsigned: Unsigned { age: Some(Int::from(100)), ..Unsigned::default() },
             sender: user,
             state_key: "".into(),
