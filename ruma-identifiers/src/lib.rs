@@ -73,3 +73,11 @@ where
         T::try_from(&v).map_err(|_| de::Error::invalid_value(Unexpected::Str(&v), &expected_str))
     })
 }
+
+/// Shorthand for `Box::<DeviceId>::from`.
+#[macro_export]
+macro_rules! device_id {
+    ($s:tt) => {
+        ::std::boxed::Box<$crate::DeviceId>::from($s)
+    };
+}

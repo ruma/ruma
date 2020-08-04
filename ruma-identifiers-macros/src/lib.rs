@@ -8,16 +8,6 @@ use ruma_identifiers_validation::{
 use syn::{parse_macro_input, LitStr};
 
 #[proc_macro]
-pub fn device_id(input: TokenStream) -> TokenStream {
-    let id = parse_macro_input!(input as LitStr);
-    let output = quote! {
-        ::std::boxed::Box<::ruma::identifiers::DeviceId>::from(#id)
-    };
-
-    output.into()
-}
-
-#[proc_macro]
 pub fn device_key_id(input: TokenStream) -> TokenStream {
     let id = parse_macro_input!(input as LitStr);
     assert!(device_key_id::validate(&id.value()).is_ok(), "Invalid device key id");
