@@ -17,9 +17,6 @@ pub fn device_id(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-// w/o macro:  UserId::try_from("@user:example.org").unwrap()
-// w/ macro:   user_id!("@user:example.org")
-
 #[proc_macro]
 pub fn device_key_id(input: TokenStream) -> TokenStream {
     let id = parse_macro_input!(input as LitStr);
