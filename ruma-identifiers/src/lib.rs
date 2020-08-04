@@ -81,3 +81,70 @@ macro_rules! device_id {
         ::std::boxed::Box<$crate::DeviceId>::from($s)
     };
 }
+
+#[doc(hidden)]
+pub use ruma_identifiers_macros as _macros;
+
+/// Compile-time checked `DeviceKeyId` construction.
+#[macro_export]
+macro_rules! device_key_id {
+    ($s:literal) => {
+        $crate::_macros::device_key_id!($crate, $s)
+    };
+}
+
+/// Compile-time checked `EventId` construction.
+#[macro_export]
+macro_rules! event_id {
+    ($s:literal) => {
+        $crate::_macros::event_id!($crate, $s)
+    };
+}
+
+/// Compile-time checked `RoomAliasId` construction.
+#[macro_export]
+macro_rules! room_alias_id {
+    ($s:literal) => {
+        $crate::_macros::room_alias_id!($crate, $s)
+    };
+}
+
+/// Compile-time checked `RoomId` construction.
+#[macro_export]
+macro_rules! room_id {
+    ($s:literal) => {
+        $crate::_macros::room_id!($crate, $s)
+    };
+}
+
+/// Compile-time checked `RoomVersionId` construction.
+#[macro_export]
+macro_rules! room_version_id {
+    ($s:literal) => {
+        $crate::_macros::room_version_id!($crate, $s)
+    };
+}
+
+/// Compile-time checked `ServerKeyId` construction.
+#[macro_export]
+macro_rules! server_key_id {
+    ($s:literal) => {
+        $crate::_macros::server_key_id!($crate, $s)
+    };
+}
+
+/// Compile-time checked `ServerName` construction.
+#[macro_export]
+macro_rules! server_name {
+    ($s:literal) => {
+        $crate::_macros::server_name!($crate, $s)
+    };
+}
+
+/// Compile-time checked `UserId` construction.
+#[macro_export]
+macro_rules! user_id {
+    ($s:literal) => {
+        $crate::_macros::user_id!($crate, $s)
+    };
+}
