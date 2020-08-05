@@ -36,6 +36,7 @@ pub struct FakeRequest<'a, T> {
     pub bytes: &'a [u8],
     pub recursive: &'a [Thing<'a, T>],
     pub option: Option<&'a [u8]>,
+    pub depth: Option<&'a [(&'a str, &'a str)]>,
 }
 
 #[derive(Outgoing)]
