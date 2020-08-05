@@ -47,16 +47,6 @@ pub fn copy_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
     }
 }
 
-/// Collects the unique lifetime identifiers from the struct declaration.
-pub fn collect_generic_idents<'a, I: Iterator<Item = &'a Type>>(iter: I) -> TokenStream {
-    let mut lifetimes = BTreeSet::new();
-
-    for ty in iter {
-        copy_lifetime_ident(&mut lifetimes, &ty);
-    }
-    generics_to_tokens(lifetimes.iter())
-}
-
 /// Generates a `TokenStream` of lifetime identifiers `<'lifetime>`.
 pub fn generics_to_tokens<'a, I: Iterator<Item = &'a Lifetime>>(lifetimes: I) -> TokenStream {
     let lifetimes = lifetimes.collect::<Vec<_>>();
