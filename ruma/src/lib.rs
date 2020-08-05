@@ -49,4 +49,7 @@ pub mod api {
     #[cfg(feature = "identity-service-api")]
     #[doc(inline)]
     pub use ruma_identity_service_api as identity_service;
+    #[cfg(feature = "identity-service-api")]
+    #[doc(inline)]
+    pub use ruma_push_gateway_api as push_gateway;
 }

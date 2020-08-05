@@ -22,6 +22,7 @@ appservice-api = ["ruma-api", "ruma-appservice-api", "ruma-events"]
 client-api = ["ruma-api", "ruma-client-api", "ruma-events"]
 federation-api = ["ruma-api", "ruma-federation-api", "ruma-signatures"]
 identity-service-api = ["ruma-api", "ruma-identity-service-api"]
+push-gateway-api = ["ruma-api", "ruma-push-gateway-api"]
 
 [dependencies]
 ruma-common = { version = "0.2.0", path = "../ruma-common" }
@@ -35,3 +36,4 @@ ruma-appservice-api = { version = "=0.2.0-alpha.1", path = "../ruma-appservice-a
 ruma-client-api = { version = "=0.10.0-alpha.1", path = "../ruma-client-api", optional = true }
 ruma-federation-api = { version = "0.0.3", path = "../ruma-federation-api", optional = true }
 ruma-identity-service-api = { version = "0.0.0", path = "../ruma-identity-service-api", optional = true }
+ruma-push-gateway-api = { version = "0.0.0", path = "../ruma-push-gateway-api", optional = true }
