@@ -227,6 +227,15 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
             }
             _ => false,
         },
+        Type::Tuple(syn::TypeTuple { elems, .. }) => {
+            let mut has_lifetime = false;
+            for elem in elems {
+                if strip_lifetimes(elem) {
+                    has_lifetime = true;
+                }
+            }
+            has_lifetime
+        }
         _ => false,
     }
 }
