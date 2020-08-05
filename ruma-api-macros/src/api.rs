@@ -126,7 +126,7 @@ impl ToTokens for Api {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
 
             quote! {
-                #field_name: request_query
+                #field_name: request_query,
             }
         } else {
             self.request.request_init_query_fields()
@@ -247,10 +247,10 @@ impl ToTokens for Api {
         let api = quote! {
             // FIXME: These can't conflict with other imports, but it would still be nice not to
             //        bring anything into scope that code outside the macro could then rely on.
-            // use ::std::convert::TryInto as _;
+            use ::std::convert::TryInto as _;
 
             use ::ruma_api::exports::serde::de::Error as _;
-            // use ::ruma_api::exports::serde::Deserialize as _;
+            use ::ruma_api::exports::serde::Deserialize as _;
             use ::ruma_api::Endpoint as _;
 
             #[doc = #request_doc]
