@@ -46,4 +46,7 @@ pub mod api {
     #[cfg(feature = "ruma-federation-api")]
     #[doc(inline)]
     pub use ruma_federation_api as federation;
+    #[cfg(feature = "identity-service-api")]
+    #[doc(inline)]
+    pub use ruma_identity_service_api as identity_service;
 }

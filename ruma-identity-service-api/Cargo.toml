@@ -1,0 +1,14 @@
+[package]
+name = "ruma-identity-service-api"
+version = "0.0.0"
+authors = ["Jonas Platte <jplatte@posteo.de>"]
+description = "Types for the endpoints in the Matrix identity service API."
+homepage = "https://www.ruma.io/"
+keywords = ["matrix", "chat", "messaging", "ruma"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/ruma/ruma"
+edition = "2018"
+
+[dependencies]
+ruma-api = { version = "=0.17.0-alpha.1", path = "../ruma-api" }
