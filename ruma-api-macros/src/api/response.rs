@@ -1,10 +1,10 @@
 //! Details of the `response` section of the procedural macro.
 
-use std::{convert::TryFrom, mem};
+use std::{collections::BTreeSet, convert::TryFrom, mem};
 
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{spanned::Spanned, Field, Ident};
+use syn::{spanned::Spanned, Field, Ident, Lifetime};
 
 use crate::{
     api::{
@@ -18,6 +18,9 @@ use crate::{
 pub struct Response {
     /// The fields of the response.
     fields: Vec<ResponseField>,
+
+    /// The collected lifetime identifiers from the declared fields.
+    lifetimes: Vec<Lifetime>,
 }
 
 impl Response {
@@ -31,9 +34,13 @@ impl Response {
         self.fields.iter().any(|field| field.is_header())
     }
 
-    /// Whether any field has a #[wrap_incoming] attribute.
-    pub fn uses_wrap_incoming(&self) -> bool {
-        self.fields.iter().any(|f| f.has_wrap_incoming_attr())
+    /// Whether any field has a lifetime.
+    pub fn contains_lifetimes(&self) -> bool {
+        self.fields.iter().any(|f| util::has_lifetime(&f.field().ty))
+    }
+
+    pub fn lifetimes(&self) -> impl Iterator<Item = &Lifetime> {
+        self.lifetimes.iter()
     }
 
     /// Produces code for a response struct initializer.
@@ -162,6 +169,7 @@ impl TryFrom<RawResponse> for Response {
 
     fn try_from(raw: RawResponse) -> syn::Result<Self> {
         let mut newtype_body_field = None;
+        let mut lifetimes = BTreeSet::new();
 
         let fields = raw
             .fields
@@ -169,6 +177,8 @@ impl TryFrom<RawResponse> for Response {
             .map(|mut field| {
                 let mut field_kind = None;
                 let mut header = None;
+
+                util::copy_lifetime_ident(&mut lifetimes, &field.ty);
 
                 for attr in mem::replace(&mut field.attrs, Vec::new()) {
                     let meta = match Meta::from_attribute(&attr)? {
@@ -230,7 +240,7 @@ impl TryFrom<RawResponse> for Response {
             ));
         }
 
-        Ok(Self { fields })
+        Ok(Self { fields, lifetimes: lifetimes.into_iter().collect() })
     }
 }
 
@@ -245,29 +255,39 @@ impl ToTokens for Response {
             quote! { { #(#fields),* } }
         };
 
-        let (derive_deserialize, def) =
-            if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
-                let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
-                let derive_deserialize = if body_field.has_wrap_incoming_attr() {
-                    TokenStream::new()
-                } else {
-                    quote!(::ruma_api::exports::serde::Deserialize)
-                };
+        let (derive_deserialize, def) = if let Some(body_field) =
+            self.fields.iter().find(|f| f.is_newtype_body())
+        {
+            let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
 
-                (derive_deserialize, quote! { (#field); })
-            } else if self.has_body_fields() {
-                let fields = self.fields.iter().filter(|f| f.is_body());
-                let derive_deserialize = if fields.clone().any(|f| f.has_wrap_incoming_attr()) {
-                    TokenStream::new()
-                } else {
-                    quote!(::ruma_api::exports::serde::Deserialize)
-                };
-                let fields = fields.map(ResponseField::field);
-
-                (derive_deserialize, quote!({ #(#fields),* }))
+            let (derive_deserialize, lifetimes) = if util::has_lifetime(&body_field.field().ty) {
+                (
+                    TokenStream::new(),
+                    util::collect_generic_idents(Some(&body_field.field().ty).into_iter()),
+                )
             } else {
-                (TokenStream::new(), quote!({}))
+                (quote!(::ruma_api::exports::serde::Deserialize), TokenStream::new())
             };
+
+            (derive_deserialize, quote! { #lifetimes (#field); })
+        } else if self.has_body_fields() {
+            let fields = self.fields.iter().filter(|f| f.is_body());
+            let (derive_deserialize, lifetimes) =
+                if fields.clone().any(|f| util::has_lifetime(&f.field().ty)) {
+                    (
+                        TokenStream::new(),
+                        util::collect_generic_idents(fields.clone().map(|f| &f.field().ty)),
+                    )
+                } else {
+                    (quote!(::ruma_api::exports::serde::Deserialize), TokenStream::new())
+                };
+
+            let fields = fields.map(ResponseField::field);
+
+            (derive_deserialize, quote!( #lifetimes { #(#fields),* }))
+        } else {
+            (TokenStream::new(), quote!({}))
+        };
 
         let response_body_struct = quote! {
             /// Data in the response body.
@@ -280,10 +300,11 @@ impl ToTokens for Response {
             struct ResponseBody #def
         };
 
+        let response_generics = util::generics_to_tokens(self.lifetimes.iter());
         let response = quote! {
             #[derive(Debug, Clone, ::ruma_api::Outgoing)]
             #[incoming_no_deserialize]
-            pub struct Response #response_def
+            pub struct Response #response_generics #response_def
 
             #response_body_struct
         };
@@ -352,13 +373,6 @@ impl ResponseField {
             ResponseField::NewtypeRawBody(field) => Some(field),
             _ => None,
         }
-    }
-
-    /// Whether or not the response field has a #[wrap_incoming] attribute.
-    fn has_wrap_incoming_attr(&self) -> bool {
-        self.field().attrs.iter().any(|attr| {
-            attr.path.segments.len() == 1 && attr.path.segments[0].ident == "wrap_incoming"
-        })
     }
 }
 

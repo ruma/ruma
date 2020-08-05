@@ -1,10 +1,10 @@
 //! Details of the `request` section of the procedural macro.
 
-use std::{convert::TryFrom, mem};
+use std::{collections::BTreeSet, convert::TryFrom, mem};
 
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{spanned::Spanned, Field, Ident};
+use syn::{spanned::Spanned, Field, Ident, Lifetime};
 
 use crate::{
     api::{
@@ -18,6 +18,9 @@ use crate::{
 pub struct Request {
     /// The fields of the request.
     fields: Vec<RequestField>,
+
+    /// The collected lifetime identifiers from the declared fields.
+    lifetimes: Vec<Lifetime>,
 }
 
 impl Request {
@@ -98,9 +101,13 @@ impl Request {
         self.fields.iter().filter_map(|field| field.as_body_field())
     }
 
-    /// Whether any field has a #[wrap_incoming] attribute.
-    pub fn uses_wrap_incoming(&self) -> bool {
-        self.fields.iter().any(|f| f.has_wrap_incoming_attr())
+    /// Whether any field has a lifetime.
+    pub fn contains_lifetimes(&self) -> bool {
+        self.fields.iter().any(|f| util::has_lifetime(&f.field().ty))
+    }
+
+    pub fn lifetimes(&self) -> impl Iterator<Item = &Lifetime> {
+        self.lifetimes.iter()
     }
 
     /// Produces an iterator over all the header fields.
@@ -194,6 +201,7 @@ impl TryFrom<RawRequest> for Request {
     fn try_from(raw: RawRequest) -> syn::Result<Self> {
         let mut newtype_body_field = None;
         let mut query_map_field = None;
+        let mut lifetimes = BTreeSet::new();
 
         let fields = raw
             .fields
@@ -201,6 +209,8 @@ impl TryFrom<RawRequest> for Request {
             .map(|mut field| {
                 let mut field_kind = None;
                 let mut header = None;
+
+                util::copy_lifetime_ident(&mut lifetimes, &field.ty);
 
                 for attr in mem::replace(&mut field.attrs, Vec::new()) {
                     let meta = match Meta::from_attribute(&attr)? {
@@ -287,7 +297,7 @@ impl TryFrom<RawRequest> for Request {
             ));
         }
 
-        Ok(Self { fields })
+        Ok(Self { fields, lifetimes: lifetimes.into_iter().collect() })
     }
 }
 
@@ -301,10 +311,12 @@ impl ToTokens for Request {
             quote! { { #(#fields),* } }
         };
 
+        let request_generics = util::generics_to_tokens(self.lifetimes.iter());
+
         let request_body_struct =
             if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
                 let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
-                let derive_deserialize = if body_field.has_wrap_incoming_attr() {
+                let derive_deserialize = if util::has_lifetime(&body_field.field().ty) {
                     TokenStream::new()
                 } else {
                     quote!(::ruma_api::exports::serde::Deserialize)
@@ -313,14 +325,18 @@ impl ToTokens for Request {
                 Some((derive_deserialize, quote! { (#field); }))
             } else if self.has_body_fields() {
                 let fields = self.fields.iter().filter(|f| f.is_body());
-                let derive_deserialize = if fields.clone().any(|f| f.has_wrap_incoming_attr()) {
-                    TokenStream::new()
-                } else {
-                    quote!(::ruma_api::exports::serde::Deserialize)
-                };
+                let (derive_deserialize, lifetimes) =
+                    if fields.clone().any(|f| util::has_lifetime(&f.field().ty)) {
+                        (
+                            TokenStream::new(),
+                            util::collect_generic_idents(fields.clone().map(|f| &f.field().ty)),
+                        )
+                    } else {
+                        (quote!(::ruma_api::exports::serde::Deserialize), TokenStream::new())
+                    };
                 let fields = fields.map(RequestField::field);
 
-                Some((derive_deserialize, quote! { { #(#fields),* } }))
+                Some((derive_deserialize, quote! { #lifetimes { #(#fields),* } }))
             } else {
                 None
             }
@@ -339,6 +355,7 @@ impl ToTokens for Request {
 
         let request_query_struct = if let Some(f) = self.query_map_field() {
             let field = Field { ident: None, colon_token: None, ..f.clone() };
+            let lifetime = util::collect_generic_idents(Some(&field.ty).into_iter());
 
             quote! {
                 /// Data in the request's query string.
@@ -347,10 +364,11 @@ impl ToTokens for Request {
                     ::ruma_api::exports::serde::Deserialize,
                     ::ruma_api::exports::serde::Serialize,
                 )]
-                struct RequestQuery(#field);
+                struct RequestQuery #lifetime (#field);
             }
         } else if self.has_query_fields() {
             let fields = self.fields.iter().filter_map(RequestField::as_query_field);
+            let lifetime = util::collect_generic_idents(fields.clone().map(|f| &f.ty));
 
             quote! {
                 /// Data in the request's query string.
@@ -359,7 +377,7 @@ impl ToTokens for Request {
                     ::ruma_api::exports::serde::Deserialize,
                     ::ruma_api::exports::serde::Serialize,
                 )]
-                struct RequestQuery {
+                struct RequestQuery #lifetime {
                     #(#fields),*
                 }
             }
@@ -370,7 +388,7 @@ impl ToTokens for Request {
         let request = quote! {
             #[derive(Debug, Clone, ::ruma_api::Outgoing)]
             #[incoming_no_deserialize]
-            pub struct Request #request_def
+            pub struct Request #request_generics #request_def
 
             #request_body_struct
             #request_query_struct
@@ -497,13 +515,6 @@ impl RequestField {
         } else {
             None
         }
-    }
-
-    /// Whether or not the request field has a #[wrap_incoming] attribute.
-    fn has_wrap_incoming_attr(&self) -> bool {
-        self.field().attrs.iter().any(|attr| {
-            attr.path.segments.len() == 1 && attr.path.segments[0].ident == "wrap_incoming"
-        })
     }
 }
 

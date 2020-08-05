@@ -102,13 +102,13 @@ impl ToTokens for Api {
         let request_type = &self.request;
         let response_type = &self.response;
 
-        let request_try_from_type = if self.request.uses_wrap_incoming() {
+        let request_try_from_type = if self.request.contains_lifetimes() {
             quote!(IncomingRequest)
         } else {
             quote!(Request)
         };
 
-        let response_try_from_type = if self.response.uses_wrap_incoming() {
+        let response_try_from_type = if self.response.contains_lifetimes() {
             quote!(IncomingResponse)
         } else {
             quote!(Response)
@@ -222,6 +222,21 @@ impl ToTokens for Api {
 
         let error = &self.error;
 
+        let res_life = self.response.lifetimes().collect::<Vec<_>>();
+        let req_life = self.request.lifetimes().collect::<Vec<_>>();
+
+        let response_lifetimes = util::generics_to_tokens(res_life.iter().cloned());
+        let request_lifetimes = util::generics_to_tokens(req_life.iter().cloned());
+
+        let endpoint_impl_lifetimes = if res_life != req_life {
+            let diff =
+                res_life.into_iter().filter(|resp| !req_life.contains(resp)).collect::<Vec<_>>();
+
+            util::generics_to_tokens(req_life.iter().cloned().chain(diff))
+        } else {
+            request_lifetimes.clone()
+        };
+
         let api = quote! {
             // FIXME: These can't conflict with other imports, but it would still be nice not to
             //        bring anything into scope that code outside the macro could then rely on.
@@ -260,13 +275,13 @@ impl ToTokens for Api {
             #[doc = #response_doc]
             #response_type
 
-            impl ::std::convert::TryFrom<Response>
+            impl #response_lifetimes ::std::convert::TryFrom<Response #response_lifetimes>
                 for ::ruma_api::exports::http::Response<Vec<u8>>
             {
                 type Error = ::ruma_api::error::IntoHttpError;
 
                 #[allow(unused_variables)]
-                fn try_from(response: Response) -> ::std::result::Result<Self, Self::Error> {
+                fn try_from(response: Response #response_lifetimes) -> ::std::result::Result<Self, Self::Error> {
                     let response = ::ruma_api::exports::http::Response::builder()
                         .header(::ruma_api::exports::http::header::CONTENT_TYPE, "application/json")
                         #serialize_response_headers
@@ -304,8 +319,8 @@ impl ToTokens for Api {
                 }
             }
 
-            impl ::ruma_api::Endpoint for Request {
-                type Response = Response;
+            impl #endpoint_impl_lifetimes ::ruma_api::Endpoint for Request #request_lifetimes {
+                type Response = Response #response_lifetimes;
                 type ResponseError = #error;
 
                 /// Metadata for the `#name` endpoint.
