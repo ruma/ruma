@@ -26,34 +26,6 @@ pub struct IncomingOtherThing {
     t: Vec<u8>,
 }
 
-use ruma_api::ruma_api;
-
-ruma_api! {
-    metadata: {
-        description: "Does something.",
-        method: GET,
-        name: "no_fields",
-        path: "/_matrix/my/endpoint/:thing",
-        rate_limited: false,
-        requires_authentication: false,
-    }
-
-    request: {
-        #[ruma_api(query)]
-        pub abc: &'a str,
-        #[ruma_api(path)]
-        pub thing: &'a str,
-        #[ruma_api(header = CONTENT_TYPE)]
-        pub stuff: &'a str,
-    }
-
-    response: {
-        pub body: &'a str,
-        pub thing: OtherThing<'a>,
-        pub stuff: &'a [u8],
-    }
-}
-
 #[derive(Outgoing)]
 #[incoming_no_deserialize]
 pub struct FakeRequest<'a, T> {
