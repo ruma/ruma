@@ -5,8 +5,8 @@ use quote::quote;
 use std::collections::BTreeSet;
 use syn::{
     AngleBracketedGenericArguments, GenericArgument, Ident, Lifetime,
-    ParenthesizedGenericArguments, PathArguments, Type, TypeGroup, TypeParen, TypePath,
-    TypeReference, TypeTuple,
+    ParenthesizedGenericArguments, PathArguments, Type, TypeArray, TypeBareFn, TypeGroup,
+    TypeParen, TypePath, TypePtr, TypeReference, TypeSlice, TypeTuple,
 };
 
 use crate::api::{metadata::Metadata, request::Request};
@@ -51,6 +51,18 @@ pub fn collect_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
         }
         Type::Paren(TypeParen { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
         Type::Group(TypeGroup { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
+        Type::Ptr(TypePtr { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
+        Type::Slice(TypeSlice { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
+        Type::Array(TypeArray { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
+        Type::BareFn(TypeBareFn {
+            lifetimes: Some(syn::BoundLifetimes { lifetimes: fn_lifetimes, .. }),
+            ..
+        }) => {
+            for lt in fn_lifetimes {
+                let syn::LifetimeDef { lifetime, .. } = lt;
+                lifetimes.insert(lifetime.clone());
+            }
+        }
         _ => {}
     }
 }
