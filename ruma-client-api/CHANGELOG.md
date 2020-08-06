@@ -52,6 +52,8 @@ Breaking changes:
 * Rename `r0::state::{create_state_event_* => send_state_event_*}`
 * Replace `r0::keys::{AlgorithmAndDeviceId, KeyAlgorithm}` with
   `ruma_identifiers::{DeviceKeyId, DeviceKeyAlgorithm}`, respectively
+* Use `ruma_identifiers::{ServerName, ServerKeyId}` in `signatures` fields of
+  `r0::room::membership::ThirdPartySigned`.
 
 Improvements:
 
