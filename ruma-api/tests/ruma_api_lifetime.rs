@@ -1,5 +1,12 @@
 use ruma_identifiers::{RoomAliasId, RoomId};
 
+#[allow(unused)]
+#[derive(Copy, Clone, Debug, ruma_api::Outgoing, serde::Serialize)]
+pub struct OtherThing<'t> {
+    some: &'t str,
+    t: &'t [u8],
+}
+
 mod empty_response {
     use super::*;
 
@@ -54,18 +61,7 @@ mod nested_types {
 }
 
 mod full_request_response {
-    #[allow(unused)]
-    #[derive(Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
-    pub struct OtherThing<'t> {
-        some: &'t str,
-        t: &'t [u8],
-    }
-
-    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
-    pub struct IncomingOtherThing {
-        some: String,
-        t: Vec<u8>,
-    }
+    use super::*;
 
     ruma_api::ruma_api! {
         metadata: {
@@ -97,18 +93,7 @@ mod full_request_response {
 }
 
 mod full_request_response_with_query_map {
-    #[allow(unused)]
-    #[derive(Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
-    pub struct OtherThing<'t> {
-        some: &'t str,
-        t: &'t [u8],
-    }
-
-    #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
-    pub struct IncomingOtherThing {
-        some: String,
-        t: Vec<u8>,
-    }
+    use super::*;
 
     ruma_api::ruma_api! {
         metadata: {
@@ -122,7 +107,7 @@ mod full_request_response_with_query_map {
 
         request: {
             #[ruma_api(query_map)]
-            // pub abc: &'a [(&'a str, &'a str)], // TODO This does not impl Deserialize
+            // pub abc: &'a [(&'a str, &'a str)], // TODO handle this use case
             pub abc: Vec<(String, String)>,
             #[ruma_api(path)]
             pub thing: &'a str,
