@@ -30,7 +30,6 @@ mod empty_response {
         }
 
         response: {}
-
     }
 }
 
@@ -56,7 +55,6 @@ mod nested_types {
         }
 
         response: {}
-
     }
 }
 

@@ -10,7 +10,7 @@ use syn::{
 
 use crate::api::{metadata::Metadata, request::Request};
 
-pub fn copy_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
+pub fn collect_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
     match ty {
         Type::Path(TypePath { path, .. }) => {
             for seg in &path.segments {
@@ -20,7 +20,7 @@ pub fn copy_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
                     }) => {
                         for gen in args {
                             if let GenericArgument::Type(ty) = gen {
-                                copy_lifetime_ident(lifetimes, &ty)
+                                collect_lifetime_ident(lifetimes, &ty)
                             } else if let GenericArgument::Lifetime(lt) = gen {
                                 lifetimes.insert(lt.clone());
                             }
@@ -30,7 +30,7 @@ pub fn copy_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
                         inputs, ..
                     }) => {
                         for ty in inputs {
-                            copy_lifetime_ident(lifetimes, ty)
+                            collect_lifetime_ident(lifetimes, ty)
                         }
                     }
                     _ => {}
@@ -38,7 +38,7 @@ pub fn copy_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
             }
         }
         Type::Reference(TypeReference { elem, lifetime, .. }) => {
-            copy_lifetime_ident(lifetimes, &*elem);
+            collect_lifetime_ident(lifetimes, &*elem);
             if let Some(lt) = lifetime {
                 lifetimes.insert(lt.clone());
             }

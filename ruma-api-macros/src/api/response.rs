@@ -248,19 +248,19 @@ impl TryFrom<RawResponse> for Response {
 
                 Ok(match field_kind.unwrap_or(ResponseFieldKind::Body) {
                     ResponseFieldKind::Body => {
-                        util::copy_lifetime_ident(&mut lifetimes.body, &field.ty);
+                        util::collect_lifetime_ident(&mut lifetimes.body, &field.ty);
                         ResponseField::Body(field)
                     }
                     ResponseFieldKind::Header => {
-                        util::copy_lifetime_ident(&mut lifetimes.header, &field.ty);
+                        util::collect_lifetime_ident(&mut lifetimes.header, &field.ty);
                         ResponseField::Header(field, header.expect("missing header name"))
                     }
                     ResponseFieldKind::NewtypeBody => {
-                        util::copy_lifetime_ident(&mut lifetimes.body, &field.ty);
+                        util::collect_lifetime_ident(&mut lifetimes.body, &field.ty);
                         ResponseField::NewtypeBody(field)
                     }
                     ResponseFieldKind::NewtypeRawBody => {
-                        util::copy_lifetime_ident(&mut lifetimes.body, &field.ty);
+                        util::collect_lifetime_ident(&mut lifetimes.body, &field.ty);
                         ResponseField::NewtypeRawBody(field)
                     }
                 })
