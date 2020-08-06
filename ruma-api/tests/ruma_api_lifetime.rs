@@ -121,3 +121,37 @@ mod full_request_response_with_query_map {
         }
     }
 }
+
+mod query_fields {
+    ruma_api::ruma_api! {
+        metadata: {
+            description: "Get the list of rooms in this homeserver's public directory.",
+            method: GET,
+            name: "get_public_rooms",
+            path: "/_matrix/client/r0/publicRooms",
+            rate_limited: false,
+            requires_authentication: false,
+        }
+
+        request: {
+            /// Limit for the number of results to return.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[ruma_api(query)]
+            pub limit: Option<usize>,
+
+            /// Pagination token from a previous request.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[ruma_api(query)]
+            pub since: Option<&'a str>,
+
+            /// The server to fetch the public room lists from.
+            ///
+            /// `None` means the server this request is sent to.
+            #[serde(skip_serializing_if = "Option::is_none")]
+            #[ruma_api(query)]
+            pub server: Option<&'a str>,
+        }
+
+        response: { }
+    }
+}
