@@ -160,9 +160,9 @@ impl ToTokens for Api {
         {
             let body_lifetimes = if self.request.has_body_lifetimes() {
                 // duplicate the anonymous lifetime as many times as needed
-                let anon = quote! { '_, };
-                let lifetimes = vec![&anon].repeat(self.request.body_lifetime_count());
-                quote! { < #( #lifetimes )* >}
+                let lifetimes =
+                    std::iter::repeat(quote! { '_ }).take(self.request.body_lifetime_count());
+                quote! { < #( #lifetimes, )* >}
             } else {
                 TokenStream::new()
             };
@@ -200,9 +200,9 @@ impl ToTokens for Api {
         {
             let body_lifetimes = if self.response.has_body_lifetimes() {
                 // duplicate the anonymous lifetime as many times as needed
-                let anon = quote! { '_, };
-                let lifetimes = vec![&anon].repeat(self.response.body_lifetime_count());
-                quote! { < #( #lifetimes )* >}
+                let lifetimes =
+                    std::iter::repeat(quote! { '_ }).take(self.response.body_lifetime_count());
+                quote! { < #( #lifetimes, )* >}
             } else {
                 TokenStream::new()
             };
