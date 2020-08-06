@@ -14,13 +14,21 @@ use crate::{
     util,
 };
 
+#[derive(Debug, Default)]
+pub struct RequetLifetimes {
+    body: BTreeSet<Lifetime>,
+    path: BTreeSet<Lifetime>,
+    query: BTreeSet<Lifetime>,
+    header: BTreeSet<Lifetime>,
+}
+
 /// The result of processing the `request` section of the macro.
 pub struct Request {
     /// The fields of the request.
     fields: Vec<RequestField>,
 
     /// The collected lifetime identifiers from the declared fields.
-    lifetimes: Vec<Lifetime>,
+    lifetimes: RequetLifetimes,
 }
 
 impl Request {
@@ -101,14 +109,57 @@ impl Request {
         self.fields.iter().filter_map(|field| field.as_body_field())
     }
 
-    /// Whether any field has a lifetime.
-    pub fn contains_lifetimes(&self) -> bool {
-        self.fields.iter().any(|f| util::has_lifetime(&f.field().ty))
+    /// The number of unique lifetime annotations for `body` fields.
+    pub fn body_lifetime_count(&self) -> usize {
+        self.lifetimes.body.len()
     }
 
-    pub fn lifetimes(&self) -> impl Iterator<Item = &Lifetime> {
-        self.lifetimes.iter()
+    /// Whether any `body` field has a lifetime annotation.
+    pub fn has_body_lifetimes(&self) -> bool {
+        !self.lifetimes.body.is_empty()
     }
+
+    /// Whether any `query` field has a lifetime annotation.
+    pub fn has_query_lifetimes(&self) -> bool {
+        !self.lifetimes.query.is_empty()
+    }
+
+    /// Whether any field has a lifetime.
+    pub fn contains_lifetimes(&self) -> bool {
+        !(self.lifetimes.body.is_empty()
+            && self.lifetimes.path.is_empty()
+            && self.lifetimes.query.is_empty()
+            && self.lifetimes.header.is_empty())
+    }
+
+    /// The combination of every fields unique lifetime annotation.
+    pub fn combine_lifetimes(&self) -> TokenStream {
+        util::generics_to_tokens(
+            self.lifetimes
+                .body
+                .iter()
+                .chain(self.lifetimes.path.iter())
+                .chain(self.lifetimes.query.iter())
+                .chain(self.lifetimes.header.iter())
+                .collect::<BTreeSet<_>>()
+                .into_iter(),
+        )
+    }
+
+    /// The lifetimes on fields with the `query` attribute.
+    pub fn query_lifetimes(&self) -> TokenStream {
+        util::generics_to_tokens(self.lifetimes.query.iter())
+    }
+
+    /// The lifetimes on fields with the `body` attribute.
+    pub fn body_lifetimes(&self) -> TokenStream {
+        util::generics_to_tokens(self.lifetimes.body.iter())
+    }
+
+    // /// The lifetimes on fields with the `header` attribute.
+    // pub fn header_lifetimes(&self) -> TokenStream {
+    //     util::generics_to_tokens(self.lifetimes.header.iter())
+    // }
 
     /// Produces an iterator over all the header fields.
     pub fn header_fields(&self) -> impl Iterator<Item = &RequestField> {
@@ -201,7 +252,7 @@ impl TryFrom<RawRequest> for Request {
     fn try_from(raw: RawRequest) -> syn::Result<Self> {
         let mut newtype_body_field = None;
         let mut query_map_field = None;
-        let mut lifetimes = BTreeSet::new();
+        let mut lifetimes = RequetLifetimes::default();
 
         let fields = raw
             .fields
@@ -209,8 +260,6 @@ impl TryFrom<RawRequest> for Request {
             .map(|mut field| {
                 let mut field_kind = None;
                 let mut header = None;
-
-                util::copy_lifetime_ident(&mut lifetimes, &field.ty);
 
                 for attr in mem::replace(&mut field.attrs, Vec::new()) {
                     let meta = match Meta::from_attribute(&attr)? {
@@ -273,6 +322,16 @@ impl TryFrom<RawRequest> for Request {
                     });
                 }
 
+                match field_kind.unwrap_or(RequestFieldKind::Body) {
+                    RequestFieldKind::Header => util::copy_lifetime_ident(&mut lifetimes.header, &field.ty),
+                    RequestFieldKind::Body => util::copy_lifetime_ident(&mut lifetimes.body, &field.ty),
+                    RequestFieldKind::NewtypeBody => util::copy_lifetime_ident(&mut lifetimes.body, &field.ty),
+                    RequestFieldKind::NewtypeRawBody => util::copy_lifetime_ident(&mut lifetimes.body, &field.ty),
+                    RequestFieldKind::Path => util::copy_lifetime_ident(&mut lifetimes.path, &field.ty),
+                    RequestFieldKind::Query => util::copy_lifetime_ident(&mut lifetimes.query, &field.ty),
+                    RequestFieldKind::QueryMap => util::copy_lifetime_ident(&mut lifetimes.query, &field.ty),
+                }
+
                 Ok(RequestField::new(
                     field_kind.unwrap_or(RequestFieldKind::Body),
                     field,
@@ -297,7 +356,7 @@ impl TryFrom<RawRequest> for Request {
             ));
         }
 
-        Ok(Self { fields, lifetimes: lifetimes.into_iter().collect() })
+        Ok(Self { fields, lifetimes })
     }
 }
 
@@ -311,29 +370,29 @@ impl ToTokens for Request {
             quote! { { #(#fields),* } }
         };
 
-        let request_generics = util::generics_to_tokens(self.lifetimes.iter());
+        let request_generics = self.combine_lifetimes();
 
         let request_body_struct =
             if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
                 let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
-                let derive_deserialize = if util::has_lifetime(&body_field.field().ty) {
-                    TokenStream::new()
+                // Though we don't track the difference between new type body and body
+                // for lifetimes, the outer check and the macro failing if it encounters
+                // an illegal combination of field attributes, is enough to guarantee `body_lifetimes`
+                // correctness.
+                let (derive_deserialize, lifetimes) = if self.has_body_lifetimes() {
+                    (TokenStream::new(), self.body_lifetimes())
                 } else {
-                    quote!(::ruma_api::exports::serde::Deserialize)
+                    (quote!(::ruma_api::exports::serde::Deserialize), TokenStream::new())
                 };
 
-                Some((derive_deserialize, quote! { (#field); }))
+                Some((derive_deserialize, quote! { #lifetimes (#field); }))
             } else if self.has_body_fields() {
                 let fields = self.fields.iter().filter(|f| f.is_body());
-                let (derive_deserialize, lifetimes) =
-                    if fields.clone().any(|f| util::has_lifetime(&f.field().ty)) {
-                        (
-                            TokenStream::new(),
-                            util::collect_generic_idents(fields.clone().map(|f| &f.field().ty)),
-                        )
-                    } else {
-                        (quote!(::ruma_api::exports::serde::Deserialize), TokenStream::new())
-                    };
+                let (derive_deserialize, lifetimes) = if self.has_body_lifetimes() {
+                    (TokenStream::new(), self.body_lifetimes())
+                } else {
+                    (quote!(::ruma_api::exports::serde::Deserialize), TokenStream::new())
+                };
                 let fields = fields.map(RequestField::field);
 
                 Some((derive_deserialize, quote! { #lifetimes { #(#fields),* } }))
@@ -355,12 +414,13 @@ impl ToTokens for Request {
 
         let request_query_struct = if let Some(f) = self.query_map_field() {
             let field = Field { ident: None, colon_token: None, ..f.clone() };
-            let lifetime = util::collect_generic_idents(Some(&field.ty).into_iter());
+            let lifetime = self.query_lifetimes();
 
             quote! {
                 /// Data in the request's query string.
                 #[derive(
                     Debug,
+                    ::ruma_api::Outgoing,
                     ::ruma_api::exports::serde::Deserialize,
                     ::ruma_api::exports::serde::Serialize,
                 )]
@@ -368,12 +428,13 @@ impl ToTokens for Request {
             }
         } else if self.has_query_fields() {
             let fields = self.fields.iter().filter_map(RequestField::as_query_field);
-            let lifetime = util::collect_generic_idents(fields.clone().map(|f| &f.ty));
+            let lifetime = self.query_lifetimes();
 
             quote! {
                 /// Data in the request's query string.
                 #[derive(
                     Debug,
+                    ::ruma_api::Outgoing,
                     ::ruma_api::exports::serde::Deserialize,
                     ::ruma_api::exports::serde::Serialize,
                 )]
