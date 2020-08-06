@@ -43,6 +43,11 @@ pub fn collect_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
                 lifetimes.insert(lt.clone());
             }
         }
+        Type::Tuple(syn::TypeTuple { elems, .. }) => {
+            for ty in elems {
+                collect_lifetime_ident(lifetimes, ty)
+            }
+        }
         _ => {}
     }
 }
