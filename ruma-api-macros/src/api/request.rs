@@ -422,29 +422,37 @@ impl ToTokens for Request {
 
         let request_query_struct = if let Some(f) = self.query_map_field() {
             let field = Field { ident: None, colon_token: None, ..f.clone() };
-            let lifetime = self.query_lifetimes();
+            let (derive_deserialize, lifetime) = if self.has_query_lifetimes() {
+                (TokenStream::new(), self.query_lifetimes())
+            } else {
+                (quote!(::ruma_api::exports::serde::Deserialize), TokenStream::new())
+            };
 
             quote! {
                 /// Data in the request's query string.
                 #[derive(
                     Debug,
                     ::ruma_api::Outgoing,
-                    ::ruma_api::exports::serde::Deserialize,
                     ::ruma_api::exports::serde::Serialize,
+                    #derive_deserialize
                 )]
                 struct RequestQuery #lifetime (#field);
             }
         } else if self.has_query_fields() {
             let fields = self.fields.iter().filter_map(RequestField::as_query_field);
-            let lifetime = self.query_lifetimes();
+            let (derive_deserialize, lifetime) = if self.has_query_lifetimes() {
+                (TokenStream::new(), self.query_lifetimes())
+            } else {
+                (quote!(::ruma_api::exports::serde::Deserialize), TokenStream::new())
+            };
 
             quote! {
                 /// Data in the request's query string.
                 #[derive(
                     Debug,
                     ::ruma_api::Outgoing,
-                    ::ruma_api::exports::serde::Deserialize,
                     ::ruma_api::exports::serde::Serialize,
+                    #derive_deserialize
                 )]
                 struct RequestQuery #lifetime {
                     #(#fields),*
@@ -460,6 +468,7 @@ impl ToTokens for Request {
             pub struct Request #request_generics #request_def
 
             #request_body_struct
+
             #request_query_struct
         };
 
