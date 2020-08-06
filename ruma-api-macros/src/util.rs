@@ -5,7 +5,8 @@ use quote::quote;
 use std::collections::BTreeSet;
 use syn::{
     AngleBracketedGenericArguments, GenericArgument, Ident, Lifetime,
-    ParenthesizedGenericArguments, PathArguments, Type, TypePath, TypeReference,
+    ParenthesizedGenericArguments, PathArguments, Type, TypeGroup, TypeParen, TypePath,
+    TypeReference, TypeTuple,
 };
 
 use crate::api::{metadata::Metadata, request::Request};
@@ -20,7 +21,7 @@ pub fn collect_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
                     }) => {
                         for gen in args {
                             if let GenericArgument::Type(ty) = gen {
-                                collect_lifetime_ident(lifetimes, &ty)
+                                collect_lifetime_ident(lifetimes, &ty);
                             } else if let GenericArgument::Lifetime(lt) = gen {
                                 lifetimes.insert(lt.clone());
                             }
@@ -30,7 +31,7 @@ pub fn collect_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
                         inputs, ..
                     }) => {
                         for ty in inputs {
-                            collect_lifetime_ident(lifetimes, ty)
+                            collect_lifetime_ident(lifetimes, ty);
                         }
                     }
                     _ => {}
@@ -43,11 +44,13 @@ pub fn collect_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
                 lifetimes.insert(lt.clone());
             }
         }
-        Type::Tuple(syn::TypeTuple { elems, .. }) => {
+        Type::Tuple(TypeTuple { elems, .. }) => {
             for ty in elems {
-                collect_lifetime_ident(lifetimes, ty)
+                collect_lifetime_ident(lifetimes, ty);
             }
         }
+        Type::Paren(TypeParen { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
+        Type::Group(TypeGroup { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
         _ => {}
     }
 }
