@@ -10,35 +10,6 @@ use syn::{
 
 use crate::api::{metadata::Metadata, request::Request};
 
-/// Whether or not the request field has a lifetime.
-pub fn has_lifetime(ty: &Type) -> bool {
-    let mut found_lifetime = false;
-    if let Type::Path(TypePath { path, .. }) = ty {
-        for seg in &path.segments {
-            #[allow(clippy::blocks_in_if_conditions)] // TODO
-            if match &seg.arguments {
-                PathArguments::AngleBracketed(AngleBracketedGenericArguments { args, .. }) => {
-                    args.clone().iter().any(|gen| {
-                        if let GenericArgument::Type(ty) = gen {
-                            has_lifetime(ty)
-                        } else {
-                            matches!(gen, GenericArgument::Lifetime(_))
-                        }
-                    })
-                }
-                PathArguments::Parenthesized(ParenthesizedGenericArguments { inputs, .. }) => {
-                    inputs.iter().any(|ty| has_lifetime(ty))
-                }
-                _ => false,
-            } {
-                found_lifetime = true;
-            }
-        }
-    }
-
-    matches!(ty, Type::Reference(_) | Type::Slice(_)) || found_lifetime
-}
-
 pub fn copy_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
     match ty {
         Type::Path(TypePath { path, .. }) => {
@@ -182,7 +153,6 @@ pub(crate) fn request_path_string_and_parse(
 pub(crate) fn build_query_string(request: &Request) -> TokenStream {
     if let Some(field) = request.query_map_field() {
         let field_name = field.ident.as_ref().expect("expected field to have identifier");
-        let field_type = &field.ty;
 
         quote!({
             // This function exists so that the compiler will throw an
@@ -195,13 +165,14 @@ pub(crate) fn build_query_string(request: &Request) -> TokenStream {
             //
             // By asserting that it implements the iterator trait, we can
             // ensure that it won't fail.
-            fn assert_trait_impl<T>()
+            fn assert_trait_impl<T>(_: &T)
             where
                 T: ::std::iter::IntoIterator<Item = (::std::string::String, ::std::string::String)>,
             {}
-            assert_trait_impl::<#field_type>();
 
             let request_query = RequestQuery(self.#field_name);
+            assert_trait_impl(&request_query.0);
+
             format_args!(
                 "?{}",
                 ::ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?
@@ -237,8 +208,13 @@ pub(crate) fn extract_request_query(request: &Request) -> TokenStream {
             );
         }
     } else if request.has_query_fields() {
+        let request_query_type = if request.has_query_lifetimes() {
+            quote! { IncomingRequestQuery }
+        } else {
+            quote! { RequestQuery }
+        };
         quote! {
-            let request_query: RequestQuery = ::ruma_api::try_deserialize!(
+            let request_query: #request_query_type = ::ruma_api::try_deserialize!(
                 request,
                 ::ruma_api::exports::ruma_serde::urlencoded::from_str(
                     &request.uri().query().unwrap_or("")

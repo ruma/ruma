@@ -91,14 +91,6 @@ impl ToTokens for Api {
         let rate_limited = &self.metadata.rate_limited;
         let requires_authentication = &self.metadata.requires_authentication;
 
-        let non_auth_endpoint_impl = if requires_authentication.value {
-            quote! {
-                impl ::ruma_api::NonAuthEndpoint for Request {}
-            }
-        } else {
-            TokenStream::new()
-        };
-
         let request_type = &self.request;
         let response_type = &self.response;
 
@@ -163,18 +155,27 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let extract_request_body =
-            if self.request.has_body_fields() || self.request.newtype_body_field().is_some() {
-                quote! {
-                    let request_body: <RequestBody as ::ruma_api::Outgoing>::Incoming =
-                        ::ruma_api::try_deserialize!(
-                            request,
-                            ::ruma_api::exports::serde_json::from_slice(request.body().as_slice())
-                        );
-                }
+        let extract_request_body = if self.request.has_body_fields()
+            || self.request.newtype_body_field().is_some()
+        {
+            let body_lifetimes = if self.request.has_body_lifetimes() {
+                // duplicate the anonymous lifetime as many times as needed
+                let anon = quote! { '_, };
+                let lifetimes = vec![&anon].repeat(self.request.body_lifetime_count());
+                quote! { < #( #lifetimes )* >}
             } else {
                 TokenStream::new()
             };
+            quote! {
+                let request_body: <RequestBody #body_lifetimes as ::ruma_api::Outgoing>::Incoming =
+                    ::ruma_api::try_deserialize!(
+                        request,
+                        ::ruma_api::exports::serde_json::from_slice(request.body().as_slice())
+                    );
+            }
+        } else {
+            TokenStream::new()
+        };
 
         let parse_request_headers = if self.request.has_header_fields() {
             self.request.parse_headers_from_request()
@@ -194,18 +195,28 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let typed_response_body_decl =
-            if self.response.has_body_fields() || self.response.newtype_body_field().is_some() {
-                quote! {
-                    let response_body: <ResponseBody as ::ruma_api::Outgoing>::Incoming =
-                        ::ruma_api::try_deserialize!(
-                            response,
-                            ::ruma_api::exports::serde_json::from_slice(response.body().as_slice()),
-                        );
-                }
+        let typed_response_body_decl = if self.response.has_body_fields()
+            || self.response.newtype_body_field().is_some()
+        {
+            let body_lifetimes = if self.response.has_body_lifetimes() {
+                // duplicate the anonymous lifetime as many times as needed
+                let anon = quote! { '_, };
+                let lifetimes = vec![&anon].repeat(self.response.body_lifetime_count());
+                quote! { < #( #lifetimes )* >}
             } else {
                 TokenStream::new()
             };
+
+            quote! {
+                let response_body: <ResponseBody #body_lifetimes as ::ruma_api::Outgoing>::Incoming =
+                    ::ruma_api::try_deserialize!(
+                        response,
+                        ::ruma_api::exports::serde_json::from_slice(response.body().as_slice()),
+                    );
+            }
+        } else {
+            TokenStream::new()
+        };
 
         let response_init_fields = self.response.init_fields();
 
@@ -222,28 +233,24 @@ impl ToTokens for Api {
 
         let error = &self.error;
 
-        let res_life = self.response.lifetimes().collect::<Vec<_>>();
-        let req_life = self.request.lifetimes().collect::<Vec<_>>();
+        let response_lifetimes = self.response.combine_lifetimes();
+        let request_lifetimes = self.request.combine_lifetimes();
 
-        let response_lifetimes = util::generics_to_tokens(res_life.iter().cloned());
-        let request_lifetimes = util::generics_to_tokens(req_life.iter().cloned());
-
-        let endpoint_impl_lifetimes = if res_life != req_life {
-            let diff =
-                res_life.into_iter().filter(|resp| !req_life.contains(resp)).collect::<Vec<_>>();
-
-            util::generics_to_tokens(req_life.iter().cloned().chain(diff))
+        let non_auth_endpoint_impl = if requires_authentication.value {
+            quote! {
+                impl #request_lifetimes  ::ruma_api::NonAuthEndpoint for Request #request_lifetimes {}
+            }
         } else {
-            request_lifetimes.clone()
+            TokenStream::new()
         };
 
         let api = quote! {
             // FIXME: These can't conflict with other imports, but it would still be nice not to
             //        bring anything into scope that code outside the macro could then rely on.
-            use ::std::convert::TryInto as _;
+            // use ::std::convert::TryInto as _;
 
             use ::ruma_api::exports::serde::de::Error as _;
-            use ::ruma_api::exports::serde::Deserialize as _;
+            // use ::ruma_api::exports::serde::Deserialize as _;
             use ::ruma_api::Endpoint as _;
 
             #[doc = #request_doc]
@@ -319,7 +326,7 @@ impl ToTokens for Api {
                 }
             }
 
-            impl #endpoint_impl_lifetimes ::ruma_api::Endpoint for Request #request_lifetimes {
+            impl #request_lifetimes ::ruma_api::Endpoint for Request #request_lifetimes {
                 type Response = Response #response_lifetimes;
                 type ResponseError = #error;
 
