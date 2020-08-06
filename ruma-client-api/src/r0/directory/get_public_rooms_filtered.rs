@@ -12,7 +12,7 @@ use serde::{
 
 use serde_json::Value as JsonValue;
 
-use super::PublicRoomsChunk;
+use super::{IncomingPublicRoomsChunk, PublicRoomsChunk};
 
 ruma_api! {
     metadata: {
@@ -30,7 +30,7 @@ ruma_api! {
         /// `None` means the server this request is sent to.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub server: Option<String>,
+        pub server: Option<&'a str>,
 
         /// Limit for the number of results to return.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -38,7 +38,7 @@ ruma_api! {
 
         /// Pagination token from a previous request.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub since: Option<String>,
+        pub since: Option<&'a str>,
 
         /// Filter to apply to the results.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -51,13 +51,13 @@ ruma_api! {
 
     response: {
         /// A paginated chunk of public rooms.
-        pub chunk: Vec<PublicRoomsChunk>,
+        pub chunk: Vec<PublicRoomsChunk<'a>>,
 
         /// A pagination token for the response.
-        pub next_batch: Option<String>,
+        pub next_batch: Option<&'a str>,
 
         /// A pagination token that allows fetching previous results.
-        pub prev_batch: Option<String>,
+        pub prev_batch: Option<&'a str>,
 
         /// An estimate on the total number of public rooms, if the server has an estimate.
         pub total_room_count_estimate: Option<UInt>,

@@ -3,7 +3,7 @@
 use js_int::UInt;
 use ruma_api::ruma_api;
 
-use super::PublicRoomsChunk;
+use super::{IncomingPublicRoomsChunk, PublicRoomsChunk};
 
 ruma_api! {
     metadata: {
@@ -24,29 +24,64 @@ ruma_api! {
         /// Pagination token from a previous request.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub since: Option<String>,
+        pub since: Option<&'a str>,
 
         /// The server to fetch the public room lists from.
         ///
         /// `None` means the server this request is sent to.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub server: Option<String>,
+        pub server: Option<&'a str>,
     }
 
     response: {
         /// A paginated chunk of public rooms.
-        pub chunk: Vec<PublicRoomsChunk>,
+        pub chunk: Vec<PublicRoomsChunk<'a>>,
 
         /// A pagination token for the response.
-        pub next_batch: Option<String>,
+        pub next_batch: Option<&'a str>,
 
         /// A pagination token that allows fetching previous results.
-        pub prev_batch: Option<String>,
+        pub prev_batch: Option<&'a str>,
 
         /// An estimate on the total number of public rooms, if the server has an estimate.
         pub total_room_count_estimate: Option<UInt>,
     }
 
     error: crate::Error
+}
+
+#[test]
+fn construct_request_from_refs() {
+    let req: http::Request<Vec<u8>> =
+        Request { limit: Some(js_int::uint!(10)), since: Some("hello"), server: Some("address") }
+            .try_into_http_request("https://homeserver.tld", Some("auth_tok"))
+            .unwrap();
+
+    let uri = req.uri();
+    let query = uri.query().unwrap();
+
+    assert_eq!(uri.path(), "/_matrix/client/r0/publicRooms");
+    assert!(query.contains("since=hello"));
+    assert!(query.contains("limit=10"));
+    assert!(query.contains("server=address"));
+}
+
+#[test]
+fn construct_response_from_refs() {
+    use std::convert::TryInto;
+
+    let res: http::Response<Vec<u8>> = Response {
+        chunk: vec![],
+        next_batch: Some("next_batch_token"),
+        prev_batch: Some("prev_batch_token"),
+        total_room_count_estimate: Some(js_int::uint!(10)),
+    }
+    .try_into()
+    .unwrap();
+
+    assert_eq!(
+        String::from_utf8_lossy(res.body()),
+        r#"{"chunk":[],"next_batch":"next_batch_token","prev_batch":"prev_batch_token","total_room_count_estimate":10}"#
+    );
 }

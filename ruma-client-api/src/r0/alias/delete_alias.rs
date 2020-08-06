@@ -16,7 +16,7 @@ ruma_api! {
     request: {
         /// The room alias to remove.
         #[ruma_api(path)]
-        pub room_alias: RoomAliasId,
+        pub room_alias: &'a RoomAliasId,
     }
 
     response: {}
