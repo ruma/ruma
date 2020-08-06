@@ -41,11 +41,11 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
     match data {
         DataKind::Unit => Ok(impl_outgoing_with_incoming_self(&input)),
         DataKind::Enum(mut vars) => {
-            let mut any_attribute = false;
+            let mut found_lifetime = false;
             for var in &mut vars {
                 for field in &mut var.fields {
                     if strip_lifetimes(&mut field.ty) {
-                        any_attribute = true;
+                        found_lifetime = true;
                     }
                 }
             }
@@ -53,7 +53,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
             let original_ident = &input.ident;
             let (original_impl_gen, original_ty_gen, _) = input.generics.split_for_impl();
 
-            if !any_attribute {
+            if !found_lifetime {
                 return Ok(impl_outgoing_with_incoming_self(&input));
             }
 
@@ -75,17 +75,17 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
             })
         }
         DataKind::Struct(mut fields, struct_kind) => {
-            let mut any_attribute = false;
+            let mut found_lifetime = false;
             for field in &mut fields {
                 if strip_lifetimes(&mut field.ty) {
-                    any_attribute = true;
+                    found_lifetime = true;
                 }
             }
 
             let original_ident = &input.ident;
             let (original_impl_gen, original_ty_gen, _) = input.generics.split_for_impl();
 
-            if !any_attribute {
+            if !found_lifetime {
                 return Ok(impl_outgoing_with_incoming_self(&input));
             }
 
@@ -121,6 +121,7 @@ fn no_deserialize_in_attrs(attrs: &[Attribute]) -> bool {
 fn impl_outgoing_with_incoming_self(input: &DeriveInput) -> TokenStream {
     let ident = &input.ident;
     let (impl_gen, ty_gen, _) = input.generics.split_for_impl();
+
     quote! {
         impl #impl_gen ::ruma_api::Outgoing for #ident #ty_gen {
             type Incoming = Self;
@@ -146,6 +147,8 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
         // The IncomingT has to be declared by the user of this derive macro.
         Type::Path(TypePath { path, .. }) => {
             let mut has_lifetimes = false;
+            let mut generic_lifetime = false;
+
             for seg in &mut path.segments {
                 // strip generic lifetimes
                 match &mut seg.arguments {
@@ -157,13 +160,15 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                             .into_iter()
                             .map(|mut ty| {
                                 if let GenericArgument::Type(ty) = &mut ty {
-                                    strip_lifetimes(ty);
+                                    if strip_lifetimes(ty) {
+                                        has_lifetimes = true;
+                                    };
                                 }
                                 ty
                             })
                             .filter(|arg| {
                                 if let GenericArgument::Lifetime(_) = arg {
-                                    has_lifetimes = true;
+                                    generic_lifetime = true;
                                     false
                                 } else {
                                     true
@@ -178,7 +183,9 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                             .clone()
                             .into_iter()
                             .map(|mut ty| {
-                                strip_lifetimes(&mut ty);
+                                if strip_lifetimes(&mut ty) {
+                                    has_lifetimes = true;
+                                };
                                 ty
                             })
                             .collect();
@@ -187,14 +194,15 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                 }
             }
 
-            if has_lifetimes {
+            // If a type has a generic lifetime parameter there must be an `Incoming` variant of that type.
+            if generic_lifetime {
                 if let Some(name) = path.segments.last_mut() {
                     let incoming_ty_ident = format_ident!("Incoming{}", name.ident);
                     name.ident = incoming_ty_ident;
                 }
             }
 
-            has_lifetimes
+            has_lifetimes || generic_lifetime
         }
         Type::Reference(TypeReference { elem, .. }) => match &mut **elem {
             Type::Path(ty_path) => {
