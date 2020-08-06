@@ -147,7 +147,7 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
         // The IncomingT has to be declared by the user of this derive macro.
         Type::Path(TypePath { path, .. }) => {
             let mut has_lifetimes = false;
-            let mut generic_lifetime = false;
+            let mut is_lifetime_generic = false;
 
             for seg in &mut path.segments {
                 // strip generic lifetimes
@@ -168,7 +168,7 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                             })
                             .filter(|arg| {
                                 if let GenericArgument::Lifetime(_) = arg {
-                                    generic_lifetime = true;
+                                    is_lifetime_generic = true;
                                     false
                                 } else {
                                     true
@@ -195,14 +195,14 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
             }
 
             // If a type has a generic lifetime parameter there must be an `Incoming` variant of that type.
-            if generic_lifetime {
+            if is_lifetime_generic {
                 if let Some(name) = path.segments.last_mut() {
                     let incoming_ty_ident = format_ident!("Incoming{}", name.ident);
                     name.ident = incoming_ty_ident;
                 }
             }
 
-            has_lifetimes || generic_lifetime
+            has_lifetimes || is_lifetime_generic
         }
         Type::Reference(TypeReference { elem, .. }) => match &mut **elem {
             Type::Path(ty_path) => {
