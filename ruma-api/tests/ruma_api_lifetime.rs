@@ -70,7 +70,7 @@ mod full_request_response {
     ruma_api::ruma_api! {
         metadata: {
             description: "Does something.",
-            method: GET,
+            method: POST,
             name: "no_fields",
             path: "/_matrix/my/endpoint/:thing",
             rate_limited: false,
@@ -84,6 +84,7 @@ mod full_request_response {
             pub thing: &'a str,
             #[ruma_api(header = CONTENT_TYPE)]
             pub stuff: &'a str,
+            pub more: OtherThing<'t>,
         }
 
         response: {
@@ -121,8 +122,8 @@ mod full_request_response_with_query_map {
 
         request: {
             #[ruma_api(query_map)]
-            // pub abc: &'a [(&'a str, &'a str)],
-            pub abc: &'a [(String, String)],
+            // pub abc: &'a [(&'a str, &'a str)], // TODO This does not impl Deserialize
+            pub abc: Vec<(String, String)>,
             #[ruma_api(path)]
             pub thing: &'a str,
             #[ruma_api(header = CONTENT_TYPE)]
