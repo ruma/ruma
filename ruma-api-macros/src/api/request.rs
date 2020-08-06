@@ -356,6 +356,14 @@ impl TryFrom<RawRequest> for Request {
             ));
         }
 
+        // TODO when/if `&[(&str, &str)]` is supported remove this
+        if query_map_field.is_some() && !lifetimes.query.is_empty() {
+            return Err(syn::Error::new_spanned(
+                raw.request_kw,
+                "Lifetimes are not allowed for query_map fields",
+            ));
+        }
+
         Ok(Self { fields, lifetimes })
     }
 }
