@@ -15,7 +15,7 @@ use crate::{
 };
 
 #[derive(Debug, Default)]
-pub struct RequetLifetimes {
+pub struct RequestLifetimes {
     body: BTreeSet<Lifetime>,
     path: BTreeSet<Lifetime>,
     query: BTreeSet<Lifetime>,
@@ -28,7 +28,7 @@ pub struct Request {
     fields: Vec<RequestField>,
 
     /// The collected lifetime identifiers from the declared fields.
-    lifetimes: RequetLifetimes,
+    lifetimes: RequestLifetimes,
 }
 
 impl Request {
@@ -252,7 +252,7 @@ impl TryFrom<RawRequest> for Request {
     fn try_from(raw: RawRequest) -> syn::Result<Self> {
         let mut newtype_body_field = None;
         let mut query_map_field = None;
-        let mut lifetimes = RequetLifetimes::default();
+        let mut lifetimes = RequestLifetimes::default();
 
         let fields = raw
             .fields
@@ -323,13 +323,13 @@ impl TryFrom<RawRequest> for Request {
                 }
 
                 match field_kind.unwrap_or(RequestFieldKind::Body) {
-                    RequestFieldKind::Header => util::copy_lifetime_ident(&mut lifetimes.header, &field.ty),
-                    RequestFieldKind::Body => util::copy_lifetime_ident(&mut lifetimes.body, &field.ty),
-                    RequestFieldKind::NewtypeBody => util::copy_lifetime_ident(&mut lifetimes.body, &field.ty),
-                    RequestFieldKind::NewtypeRawBody => util::copy_lifetime_ident(&mut lifetimes.body, &field.ty),
-                    RequestFieldKind::Path => util::copy_lifetime_ident(&mut lifetimes.path, &field.ty),
-                    RequestFieldKind::Query => util::copy_lifetime_ident(&mut lifetimes.query, &field.ty),
-                    RequestFieldKind::QueryMap => util::copy_lifetime_ident(&mut lifetimes.query, &field.ty),
+                    RequestFieldKind::Header => util::collect_lifetime_ident(&mut lifetimes.header, &field.ty),
+                    RequestFieldKind::Body => util::collect_lifetime_ident(&mut lifetimes.body, &field.ty),
+                    RequestFieldKind::NewtypeBody => util::collect_lifetime_ident(&mut lifetimes.body, &field.ty),
+                    RequestFieldKind::NewtypeRawBody => util::collect_lifetime_ident(&mut lifetimes.body, &field.ty),
+                    RequestFieldKind::Path => util::collect_lifetime_ident(&mut lifetimes.path, &field.ty),
+                    RequestFieldKind::Query => util::collect_lifetime_ident(&mut lifetimes.query, &field.ty),
+                    RequestFieldKind::QueryMap => util::collect_lifetime_ident(&mut lifetimes.query, &field.ty),
                 }
 
                 Ok(RequestField::new(
