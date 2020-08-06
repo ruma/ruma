@@ -1,6 +1,5 @@
 use std::{
     collections::BTreeMap,
-    convert::TryInto,
     time::{Duration, SystemTime},
 };
 
@@ -9,16 +8,18 @@ use ruma_events::{
     pdu::{EventHash, Pdu, PduStub, RoomV1Pdu, RoomV1PduStub, RoomV3Pdu, RoomV3PduStub},
     EventType,
 };
-use ruma_identifiers::{event_id, room_id, user_id};
+use ruma_identifiers::{event_id, room_id, server_key_id, server_name, user_id};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]
 fn serialize_stub_as_v1() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
-    inner_signature
-        .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
-    signatures.insert("example.com".try_into().unwrap(), inner_signature);
+    inner_signature.insert(
+        server_key_id!("ed25519:key_version"),
+        "86BytesOfSignatureOfTheRedactedEvent".into(),
+    );
+    signatures.insert(server_name!("example.com"), inner_signature);
 
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".into(), json!({"a": 456}));
@@ -77,9 +78,11 @@ fn serialize_stub_as_v1() {
 fn serialize_stub_as_v3() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
-    inner_signature
-        .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
-    signatures.insert("example.com".try_into().unwrap(), inner_signature);
+    inner_signature.insert(
+        server_key_id!("ed25519:key_version"),
+        "86BytesOfSignatureOfTheRedactedEvent".into(),
+    );
+    signatures.insert(server_name!("example.com"), inner_signature);
 
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".into(), json!({"a": 456}));
@@ -158,7 +161,7 @@ fn deserialize_stub_as_v1() {
         "sender": "@someone:matrix.org",
         "signatures": {
             "example.com": {
-                "ed25519:key_version:": "86BytesOfSignatureOfTheRedactedEvent"
+                "ed25519:key_version": "86BytesOfSignatureOfTheRedactedEvent"
             }
         },
         "state_key": "my_key",
@@ -205,7 +208,7 @@ fn deserialize_stub_as_v3() {
         "sender": "@someone:matrix.org",
         "signatures": {
             "example.com": {
-                "ed25519:key_version:": "86BytesOfSignatureOfTheRedactedEvent"
+                "ed25519:key_version": "86BytesOfSignatureOfTheRedactedEvent"
             }
         },
         "state_key": "my_key",
@@ -228,9 +231,11 @@ fn deserialize_stub_as_v3() {
 fn serialize_pdu_as_v1() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
-    inner_signature
-        .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
-    signatures.insert("example.com".try_into().unwrap(), inner_signature);
+    inner_signature.insert(
+        server_key_id!("ed25519:key_version"),
+        "86BytesOfSignatureOfTheRedactedEvent".into(),
+    );
+    signatures.insert(server_name!("example.com"), inner_signature);
 
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".into(), json!({"a": 456}));
@@ -293,9 +298,11 @@ fn serialize_pdu_as_v1() {
 fn serialize_pdu_as_v3() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
-    inner_signature
-        .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
-    signatures.insert("example.com".try_into().unwrap(), inner_signature);
+    inner_signature.insert(
+        server_key_id!("ed25519:key_version"),
+        "86BytesOfSignatureOfTheRedactedEvent".into(),
+    );
+    signatures.insert(server_name!("example.com"), inner_signature);
 
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".into(), json!({"a": 456}));
@@ -378,7 +385,7 @@ fn test_deserialize_pdu_as_v1() {
         "sender": "@someone:matrix.org",
         "signatures": {
             "example.com": {
-                "ed25519:key_version:": "86BytesOfSignatureOfTheRedactedEvent"
+                "ed25519:key_version": "86BytesOfSignatureOfTheRedactedEvent"
             }
         },
         "state_key": "my_key",
@@ -426,7 +433,7 @@ fn deserialize_pdu_as_v3() {
         "sender": "@someone:matrix.org",
         "signatures": {
             "example.com": {
-                "ed25519:key_version:": "86BytesOfSignatureOfTheRedactedEvent"
+                "ed25519:key_version": "86BytesOfSignatureOfTheRedactedEvent"
             }
         },
         "state_key": "my_key",
@@ -449,9 +456,11 @@ fn deserialize_pdu_as_v3() {
 fn convert_v1_stub_to_pdu() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
-    inner_signature
-        .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
-    signatures.insert("example.com".try_into().unwrap(), inner_signature);
+    inner_signature.insert(
+        server_key_id!("ed25519:key_version"),
+        "86BytesOfSignatureOfTheRedactedEvent".into(),
+    );
+    signatures.insert(server_name!("example.com"), inner_signature);
 
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".into(), json!({"a": 456}));
@@ -523,10 +532,12 @@ fn convert_v1_stub_to_pdu() {
 fn convert_v3_stub_to_pdu() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
-    inner_signature
-        .insert("ed25519:key_version".into(), "86BytesOfSignatureOfTheRedactedEvent".into());
+    inner_signature.insert(
+        server_key_id!("ed25519:key_version"),
+        "86BytesOfSignatureOfTheRedactedEvent".into(),
+    );
 
-    signatures.insert("example.com".try_into().unwrap(), inner_signature);
+    signatures.insert(server_name!("example.com"), inner_signature);
 
     let mut unsigned = BTreeMap::new();
     unsigned.insert("somekey".into(), json!({"a": 456}));

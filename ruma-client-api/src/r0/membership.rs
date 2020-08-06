@@ -17,6 +17,7 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 
 use crate::r0::thirdparty::Medium;
+use ruma_identifiers::{ServerKeyId, ServerName};
 
 /// A signature of an `m.third_party_invite` token to prove that this user owns a third party
 /// identity which has been invited to the room.
@@ -32,7 +33,7 @@ pub struct ThirdPartySigned {
     pub token: String,
 
     /// A signatures object containing a signature of the entire signed object.
-    pub signatures: BTreeMap<String, BTreeMap<String, String>>,
+    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<ServerKeyId, String>>,
 }
 
 /// Represents third party IDs to invite to the room.

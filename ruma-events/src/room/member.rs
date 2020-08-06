@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use ruma_events_macros::StateEventContent;
-use ruma_identifiers::UserId;
+use ruma_identifiers::{ServerKeyId, ServerName, UserId};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
@@ -108,7 +108,7 @@ pub struct SignedContent {
 
     /// A single signature from the verifying server, in the format specified by the Signing Events
     /// section of the server-server API.
-    pub signatures: BTreeMap<String, BTreeMap<String, String>>,
+    pub signatures: BTreeMap<Box<ServerName>, BTreeMap<ServerKeyId, String>>,
 
     /// The token property of the containing third_party_invite object.
     pub token: String,
@@ -248,11 +248,12 @@ mod tests {
 
     use maplit::btreemap;
     use matches::assert_matches;
+    use ruma_common::Raw;
+    use ruma_identifiers::{server_key_id, server_name};
     use serde_json::{from_value as from_json_value, json};
 
     use super::{MemberEventContent, MembershipState, SignedContent, ThirdPartyInvite};
     use crate::StateEvent;
-    use ruma_common::Raw;
 
     #[test]
     fn serde_with_no_prev_content() {
@@ -406,8 +407,8 @@ mod tests {
                 && third_party_displayname == "alice"
                 && mxid == "@alice:example.org"
                 && signatures == btreemap! {
-                    "magic.forest".to_owned() => btreemap! {
-                        "ed25519:3".to_owned() => "foobar".to_owned()
+                    server_name!("magic.forest") => btreemap! {
+                        server_key_id!("ed25519:3") => "foobar".to_owned()
                     }
                 }
                 && token == "abc123"
@@ -492,8 +493,8 @@ mod tests {
                 && third_party_displayname == "alice"
                 && mxid == "@alice:example.org"
                 && signatures == btreemap! {
-                    "magic.forest".to_owned() => btreemap! {
-                        "ed25519:3".to_owned() => "foobar".to_owned()
+                    server_name!("magic.forest") => btreemap! {
+                        server_key_id!("ed25519:3") => "foobar".to_owned()
                     }
                 }
                 && token == "abc123"
