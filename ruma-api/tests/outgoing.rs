@@ -14,16 +14,10 @@ pub struct IncomingThing<T> {
 }
 
 #[allow(unused)]
-#[derive(Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Copy, Clone, Debug, Outgoing, serde::Serialize)]
 pub struct OtherThing<'t> {
     some: &'t str,
     t: &'t [u8],
-}
-
-#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
-pub struct IncomingOtherThing {
-    some: String,
-    t: Vec<u8>,
 }
 
 #[derive(Outgoing)]
@@ -37,6 +31,7 @@ pub struct FakeRequest<'a, T> {
     pub recursive: &'a [Thing<'a, T>],
     pub option: Option<&'a [u8]>,
     pub depth: Option<&'a [(&'a str, &'a str)]>,
+    pub arc_type: std::sync::Arc<&'a str>,
 }
 
 #[derive(Outgoing)]
