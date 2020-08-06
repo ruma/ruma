@@ -218,13 +218,8 @@ pub(crate) fn extract_request_query(request: &Request) -> TokenStream {
             );
         }
     } else if request.has_query_fields() {
-        let request_query_type = if request.has_query_lifetimes() {
-            quote! { IncomingRequestQuery }
-        } else {
-            quote! { RequestQuery }
-        };
         quote! {
-            let request_query: #request_query_type = ::ruma_api::try_deserialize!(
+            let request_query: <RequestQuery as ::ruma_api::Outgoing>::Incoming = ::ruma_api::try_deserialize!(
                 request,
                 ::ruma_api::exports::ruma_serde::urlencoded::from_str(
                     &request.uri().query().unwrap_or("")
