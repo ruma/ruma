@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Update strum dependency to 0.19
+
 # 0.22.0
 
 Breaking changes:

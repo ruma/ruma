@@ -13,4 +13,4 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-strum = { version = "0.18.0", features = ["derive"] }
+strum = { version = "0.19.2", features = ["derive"] }

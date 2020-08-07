@@ -13,7 +13,7 @@ edition = "2018"
 ruma-identifiers-validation = { version = "0.1.0", path = "../ruma-identifiers-validation" }
 quote = "1.0.7"
 proc-macro2 = "1.0.19"
-syn = "1.0.35"
+syn = "1.0.38"
 
 [lib]
 proc-macro = true

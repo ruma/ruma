@@ -4,6 +4,7 @@ Breaking changes:
 
 * Update type of `limit` in `r0::user_directory::search_users` from
   `Option<UInt>` to `UInt`
+* Update strum dependency to 0.19
 
 # 0.10.0
 

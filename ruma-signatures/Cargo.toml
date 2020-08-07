@@ -13,7 +13,7 @@ repository = "https://github.com/ruma/ruma"
 version = "0.6.0-dev.1"
 
 [dependencies]
-base64 = "0.12.2"
+base64 = "0.12.3"
 ring = "0.16.15"
-serde_json = "1.0.55"
+serde_json = "1.0.57"
 untrusted = "0.7.1"
