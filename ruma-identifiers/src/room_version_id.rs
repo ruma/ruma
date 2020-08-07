@@ -144,7 +144,7 @@ impl RoomVersionId {
     /// Whether or not this is a version 6 room.
     #[deprecated = "compare to RoomVersionId::Version6 instead"]
     pub fn is_version_6(&self) -> bool {
-        matches!(self, Self::Version5)
+        matches!(self, Self::Version6)
     }
 }
 
@@ -227,6 +227,7 @@ where
         "3" => RoomVersionId::Version3,
         "4" => RoomVersionId::Version4,
         "5" => RoomVersionId::Version5,
+        "6" => RoomVersionId::Version6,
         custom => {
             ruma_identifiers_validation::room_version_id::validate(custom)?;
             RoomVersionId::Custom(CustomRoomVersion(room_version_id.into()))
@@ -349,6 +350,14 @@ mod tests {
     }
 
     #[test]
+    fn valid_version_6_room_version_id() {
+        assert_eq!(
+            RoomVersionId::try_from("6").expect("Failed to create RoomVersionId.").as_ref(),
+            "6"
+        );
+    }
+
+    #[test]
     fn valid_custom_room_version_id() {
         assert_eq!(
             RoomVersionId::try_from("io.ruma.1").expect("Failed to create RoomVersionId.").as_ref(),
@@ -428,6 +437,7 @@ mod tests {
         assert!(RoomVersionId::version_3().is_version_3());
         assert!(RoomVersionId::version_4().is_version_4());
         assert!(RoomVersionId::version_5().is_version_5());
+        assert!(RoomVersionId::version_6().is_version_6());
     }
 
     #[test]
@@ -438,6 +448,7 @@ mod tests {
         let version_3 = RoomVersionId::try_from("3").expect("Failed to create RoomVersionId.");
         let version_4 = RoomVersionId::try_from("4").expect("Failed to create RoomVersionId.");
         let version_5 = RoomVersionId::try_from("5").expect("Failed to create RoomVersionId.");
+        let version_6 = RoomVersionId::try_from("6").expect("Failed to create RoomVersionId.");
         let custom = RoomVersionId::try_from("io.ruma.1").expect("Failed to create RoomVersionId.");
 
         assert!(version_1.is_version_1());
@@ -445,23 +456,27 @@ mod tests {
         assert!(version_3.is_version_3());
         assert!(version_4.is_version_4());
         assert!(version_5.is_version_5());
+        assert!(version_6.is_version_6());
 
         assert!(!version_1.is_version_2());
         assert!(!version_1.is_version_3());
         assert!(!version_1.is_version_4());
         assert!(!version_1.is_version_5());
+        assert!(!version_1.is_version_6());
 
         assert!(version_1.is_official());
         assert!(version_2.is_official());
         assert!(version_3.is_official());
         assert!(version_4.is_official());
         assert!(version_5.is_official());
+        assert!(version_6.is_official());
 
         assert!(!version_1.is_custom());
         assert!(!version_2.is_custom());
         assert!(!version_3.is_custom());
         assert!(!version_4.is_custom());
         assert!(!version_5.is_custom());
+        assert!(!version_6.is_custom());
 
         assert!(custom.is_custom());
         assert!(!custom.is_official());
@@ -470,5 +485,6 @@ mod tests {
         assert!(!custom.is_version_3());
         assert!(!custom.is_version_4());
         assert!(!custom.is_version_5());
+        assert!(!custom.is_version_6());
     }
 }
