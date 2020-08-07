@@ -20,10 +20,10 @@ ruma_api! {
         pub auth: Option<AuthData>,
 
         /// Client-generated secret string used to protect this session.
-        pub client_secret: String,
+        pub client_secret: &'a str,
 
         /// The session identifier given by the identity server.
-        pub sid: String,
+        pub sid: &'a str,
     }
 
     response: {}

@@ -16,15 +16,15 @@ ruma_api! {
     request: {
         /// The room alias.
         #[ruma_api(path)]
-        pub room_alias: RoomAliasId,
+        pub room_alias: &'a RoomAliasId,
     }
 
     response: {
         /// The room ID for this room alias.
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// A list of servers that are aware of this room ID.
-        pub servers: Vec<String>,
+        pub servers: &'a [String],
     }
 
     error: crate::Error

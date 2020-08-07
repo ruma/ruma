@@ -16,10 +16,10 @@ ruma_api! {
     request: {
         /// The room alias to set.
         #[ruma_api(path)]
-        pub room_alias: RoomAliasId,
+        pub room_alias: &'a RoomAliasId,
 
         /// The room ID to set.
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
     }
 
     response: {}
