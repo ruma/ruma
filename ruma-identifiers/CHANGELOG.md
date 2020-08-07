@@ -1,5 +1,13 @@
 # [unreleased]
 
+# 0.17.2
+
+Bug fixes:
+
+* Fix `RoomVersionId::is_version_6` actually checking for version 5
+* Fix `TryFrom` implementations for `RoomVersionId`, which previously returned
+  `RoomVersionId::Custom` for the input `6`
+
 # 0.17.1
 
 Improvements:
