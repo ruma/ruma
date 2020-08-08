@@ -20,7 +20,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
-default = ["serde"]
+default = ["serde", "ruma-identifiers-validation/serde"]
 
 [dependencies]
 either = { version = "1.5.3", optional = true }
