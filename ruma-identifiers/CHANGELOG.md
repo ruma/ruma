@@ -1,14 +1,16 @@
 # [unreleased]
 
+Breaking changes:
+
+* Update strum dependency to 0.19
+
+# 0.17.4
+
 Bug fixes:
 
 * Fix key algorithm serde (de)serialization
 * Fix `key_algorithms::{DeviceKeyAlgorithm, ServerKeyAlgorithm}` not implementing `Deserialize` and
   `Serialize` with `default-features = false` + `features = ["serde", …]`
-
-Breaking changes:
-
-* Update strum dependency to 0.19
 
 # 0.17.3
 

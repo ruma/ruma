@@ -12,7 +12,7 @@ license = "MIT"
 name = "ruma-identifiers"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.17.3"
+version = "0.17.4"
 edition = "2018"
 
 [package.metadata.docs.rs]
@@ -26,7 +26,7 @@ serde = ["serde1", "ruma-identifiers-validation/serde"]
 [dependencies]
 either = { version = "1.5.3", optional = true }
 rand = { version = "0.7.3", optional = true }
-ruma-identifiers-macros = { version = "=0.17.3", path = "../ruma-identifiers-macros" }
+ruma-identifiers-macros = { version = "=0.17.4", path = "../ruma-identifiers-macros" }
 ruma-identifiers-validation = { version = "0.1.1", path = "../ruma-identifiers-validation" }
 serde1 = { package = "serde", version = "1.0.114", optional = true, features = ["derive"] }
 strum = { version = "0.19.2", features = ["derive"] }
