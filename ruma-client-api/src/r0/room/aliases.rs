@@ -20,7 +20,7 @@ ruma_api! {
     }
 
     response: {
-        aliases: &'a [RoomAliasId],
+        aliases: Vec<RoomAliasId>,
     }
 
     error: crate::Error

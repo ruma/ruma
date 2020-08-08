@@ -41,7 +41,7 @@ ruma_api! {
 
     response: {
         /// A unique identifier for the event.
-        pub event_id: &'a EventId,
+        pub event_id: EventId,
     }
 
     error: crate::Error

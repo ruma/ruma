@@ -3,7 +3,7 @@
 use js_int::UInt;
 use ruma_api::ruma_api;
 
-use super::{IncomingPublicRoomsChunk, PublicRoomsChunk};
+use super::PublicRoomsChunk;
 
 ruma_api! {
     metadata: {
@@ -36,13 +36,13 @@ ruma_api! {
 
     response: {
         /// A paginated chunk of public rooms.
-        pub chunk: Vec<PublicRoomsChunk<'a>>,
+        pub chunk: Vec<PublicRoomsChunk>,
 
         /// A pagination token for the response.
-        pub next_batch: Option<&'a str>,
+        pub next_batch: Option<String>,
 
         /// A pagination token that allows fetching previous results.
-        pub prev_batch: Option<&'a str>,
+        pub prev_batch: Option<String>,
 
         /// An estimate on the total number of public rooms, if the server has an estimate.
         pub total_room_count_estimate: Option<UInt>,
@@ -73,8 +73,8 @@ fn construct_response_from_refs() {
 
     let res: http::Response<Vec<u8>> = Response {
         chunk: vec![],
-        next_batch: Some("next_batch_token"),
-        prev_batch: Some("prev_batch_token"),
+        next_batch: Some("next_batch_token".into()),
+        prev_batch: Some("prev_batch_token".into()),
         total_room_count_estimate: Some(js_int::uint!(10)),
     }
     .try_into()

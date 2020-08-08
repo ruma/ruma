@@ -6,34 +6,33 @@ pub mod get_room_visibility;
 pub mod set_room_visibility;
 
 use js_int::UInt;
-use ruma_api::Outgoing;
 use ruma_identifiers::{RoomAliasId, RoomId};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// A chunk of a room list response, describing one room
-#[derive(Clone, Debug, Outgoing, Serialize)]
-pub struct PublicRoomsChunk<'a> {
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct PublicRoomsChunk {
     /// Aliases of the room.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub aliases: Vec<&'a RoomAliasId>,
+    pub aliases: Vec<RoomAliasId>,
 
     /// The canonical alias of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub canonical_alias: Option<&'a RoomAliasId>,
+    pub canonical_alias: Option<RoomAliasId>,
 
     /// The name of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<&'a str>,
+    pub name: Option<String>,
 
     /// The number of members joined to the room.
     pub num_joined_members: UInt,
 
     /// The ID of the room.
-    pub room_id: &'a RoomId,
+    pub room_id: RoomId,
 
     /// The topic of the room, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub topic: Option<&'a str>,
+    pub topic: Option<String>,
 
     /// Whether the room may be viewed by guest users without joining.
     pub world_readable: bool,
@@ -45,5 +44,5 @@ pub struct PublicRoomsChunk<'a> {
 
     /// The URL for the room's avatar, if one is set.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar_url: Option<&'a str>,
+    pub avatar_url: Option<String>,
 }

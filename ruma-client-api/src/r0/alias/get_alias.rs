@@ -21,10 +21,10 @@ ruma_api! {
 
     response: {
         /// The room ID for this room alias.
-        pub room_id: &'a RoomId,
+        pub room_id: RoomId,
 
         /// A list of servers that are aware of this room ID.
-        pub servers: &'a [String],
+        pub servers: Vec<String>,
     }
 
     error: crate::Error

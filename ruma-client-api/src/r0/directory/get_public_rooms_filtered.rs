@@ -12,7 +12,7 @@ use serde::{
 
 use serde_json::Value as JsonValue;
 
-use super::{IncomingPublicRoomsChunk, PublicRoomsChunk};
+use super::PublicRoomsChunk;
 
 ruma_api! {
     metadata: {
@@ -51,13 +51,13 @@ ruma_api! {
 
     response: {
         /// A paginated chunk of public rooms.
-        pub chunk: Vec<PublicRoomsChunk<'a>>,
+        pub chunk: Vec<PublicRoomsChunk>,
 
         /// A pagination token for the response.
-        pub next_batch: Option<&'a str>,
+        pub next_batch: Option<String>,
 
         /// A pagination token that allows fetching previous results.
-        pub prev_batch: Option<&'a str>,
+        pub prev_batch: Option<String>,
 
         /// An estimate on the total number of public rooms, if the server has an estimate.
         pub total_room_count_estimate: Option<UInt>,

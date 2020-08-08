@@ -27,11 +27,11 @@ ruma_api! {
 
     response: {
         /// The Matrix User IDs of all users who updated their device identity keys.
-        pub changed: &'a [UserId],
+        pub changed: Vec<UserId>,
 
         /// The Matrix User IDs of all users who may have left all the end-to-end
         /// encrypted rooms they previously shared with the user.
-        pub left: &'a [UserId],
+        pub left: Vec<UserId>,
     }
 
     error: crate::Error
