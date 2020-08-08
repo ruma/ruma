@@ -85,17 +85,15 @@ mod full_request_response {
 
         response: {
             #[ruma_api(body)]
-            pub thing: OtherThing<'a>,
+            pub thing: Vec<String>,
             #[ruma_api(header = CONTENT_TYPE)]
-            pub stuff: &'a str,
+            pub stuff: String,
         }
     }
 }
 
 mod full_request_response_with_query_map {
     use ruma_api::ruma_api;
-
-    use super::{IncomingOtherThing, OtherThing};
 
     ruma_api! {
         metadata: {
@@ -119,9 +117,9 @@ mod full_request_response_with_query_map {
 
         response: {
             #[ruma_api(body)]
-            pub thing: OtherThing<'a>,
+            pub thing: String,
             #[ruma_api(header = CONTENT_TYPE)]
-            pub stuff: &'a str,
+            pub stuff: String,
         }
     }
 }
