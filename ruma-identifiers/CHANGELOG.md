@@ -1,5 +1,9 @@
 # [unreleased]
 
+Bug fixes:
+
+* Fix key algorithm serde (de)serialization
+
 # 0.17.3
 
 Bug fixes:
