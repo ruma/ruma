@@ -51,37 +51,45 @@ ruma_api! {
     error: crate::Error
 }
 
-#[test]
-fn construct_request_from_refs() {
-    let req: http::Request<Vec<u8>> =
-        Request { limit: Some(js_int::uint!(10)), since: Some("hello"), server: Some("address") }
-            .try_into_http_request("https://homeserver.tld", Some("auth_tok"))
-            .unwrap();
-
-    let uri = req.uri();
-    let query = uri.query().unwrap();
-
-    assert_eq!(uri.path(), "/_matrix/client/r0/publicRooms");
-    assert!(query.contains("since=hello"));
-    assert!(query.contains("limit=10"));
-    assert!(query.contains("server=address"));
-}
-
-#[test]
-fn construct_response_from_refs() {
+#[cfg(test)]
+mod tests {
     use std::convert::TryInto;
 
-    let res: http::Response<Vec<u8>> = Response {
-        chunk: vec![],
-        next_batch: Some("next_batch_token".into()),
-        prev_batch: Some("prev_batch_token".into()),
-        total_room_count_estimate: Some(js_int::uint!(10)),
-    }
-    .try_into()
-    .unwrap();
+    use js_int::uint;
+    use ruma_api::Endpoint as _;
 
-    assert_eq!(
-        String::from_utf8_lossy(res.body()),
-        r#"{"chunk":[],"next_batch":"next_batch_token","prev_batch":"prev_batch_token","total_room_count_estimate":10}"#
-    );
+    use super::{Request, Response};
+
+    #[test]
+    fn construct_request_from_refs() {
+        let req: http::Request<Vec<u8>> =
+            Request { limit: Some(uint!(10)), since: Some("hello"), server: Some("address") }
+                .try_into_http_request("https://homeserver.tld", Some("auth_tok"))
+                .unwrap();
+
+        let uri = req.uri();
+        let query = uri.query().unwrap();
+
+        assert_eq!(uri.path(), "/_matrix/client/r0/publicRooms");
+        assert!(query.contains("since=hello"));
+        assert!(query.contains("limit=10"));
+        assert!(query.contains("server=address"));
+    }
+
+    #[test]
+    fn construct_response_from_refs() {
+        let res: http::Response<Vec<u8>> = Response {
+            chunk: vec![],
+            next_batch: Some("next_batch_token".into()),
+            prev_batch: Some("prev_batch_token".into()),
+            total_room_count_estimate: Some(uint!(10)),
+        }
+        .try_into()
+        .unwrap();
+
+        assert_eq!(
+            String::from_utf8_lossy(res.body()),
+            r#"{"chunk":[],"next_batch":"next_batch_token","prev_batch":"prev_batch_token","total_room_count_estimate":10}"#
+        );
+    }
 }
