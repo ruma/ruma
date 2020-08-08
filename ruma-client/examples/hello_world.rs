@@ -5,34 +5,30 @@ use ruma::{
     api::client::r0::{alias::get_alias, membership::join_room_by_id, message::send_message_event},
     events::{
         room::message::{MessageEventContent, TextMessageEventContent},
-        EventType,
+        AnyMessageEventContent,
     },
     RoomAliasId,
 };
 use ruma_client::{self, Client};
-use serde_json::value::to_raw_value as to_raw_json_value;
 
 async fn hello_world(homeserver_url: Uri, room_alias: &RoomAliasId) -> anyhow::Result<()> {
     let client = Client::new(homeserver_url, None);
-
     client.register_guest().await?;
-    let response = client.request(get_alias::Request::new(room_alias)).await?;
 
-    let room_id = response.room_id;
-
+    let room_id = client.request(get_alias::Request::new(room_alias)).await?.room_id;
     client.request(join_room_by_id::Request::new(&room_id)).await?;
-
     client
-        .request(send_message_event::Request {
-            room_id: &room_id,
-            event_type: EventType::RoomMessage,
-            txn_id: "1",
-            data: to_raw_json_value(&MessageEventContent::Text(TextMessageEventContent {
-                body: "Hello World!".to_owned(),
-                formatted: None,
-                relates_to: None,
-            }))?,
-        })
+        .request(send_message_event::Request::new(
+            &room_id,
+            "1",
+            &AnyMessageEventContent::RoomMessage(MessageEventContent::Text(
+                TextMessageEventContent {
+                    body: "Hello World!".to_owned(),
+                    formatted: None,
+                    relates_to: None,
+                },
+            )),
+        ))
         .await?;
 
     Ok(())

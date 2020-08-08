@@ -20,6 +20,7 @@ edition = "2018"
 assign = "1.1.0"
 http = "0.2.1"
 js_int = { version = "0.1.9", features = ["serde"] }
+percent-encoding = "2.1.0"
 ruma-api = { version = "=0.17.0-alpha.1", path = "../ruma-api" }
 ruma-common = { version = "0.2.0", path = "../ruma-common" }
 ruma-events = { version = "=0.22.0-alpha.1", path = "../ruma-events" }
