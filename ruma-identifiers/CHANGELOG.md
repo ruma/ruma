@@ -12,6 +12,10 @@ Bug fixes:
 * Fix `TryFrom` implementations for `RoomVersionId`, which previously returned
   `RoomVersionId::Custom` for the input `6`
 
+Improvements:
+
+* Add macros to construct identifiers with compile-time validation
+
 # 0.17.1
 
 Improvements:
