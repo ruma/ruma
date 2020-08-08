@@ -18,7 +18,7 @@ ruma_api! {
     request: {
         /// The room to send the event to.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The type of event to send.
         #[ruma_api(path)]
@@ -30,7 +30,7 @@ ruma_api! {
         /// same access token; it will be used by the server to ensure
         /// idempotency of requests.
         #[ruma_api(path)]
-        pub txn_id: String,
+        pub txn_id: &'a str,
 
         /// The event's content. The type for this field will be updated in a
         /// future release, until then you can create a value using
@@ -41,7 +41,7 @@ ruma_api! {
 
     response: {
         /// A unique identifier for the event.
-        pub event_id: EventId,
+        pub event_id: &'a EventId,
     }
 
     error: crate::Error
