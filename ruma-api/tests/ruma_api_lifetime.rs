@@ -32,6 +32,30 @@ mod empty_response {
     }
 }
 
+mod empty_request {
+    use ruma_api::ruma_api;
+    use ruma_identifiers::UserId;
+
+    ruma_api! {
+        metadata: {
+            description: "Add an alias to a room.",
+            method: PUT,
+            name: "create_alias",
+            path: "/_matrix/client/r0/directory/room/:room_alias",
+            rate_limited: false,
+            requires_authentication: true,
+        }
+
+        request: {}
+
+        response: {
+            #[ruma_api(header = CONTENT_TYPE)]
+            pub content_type: &'a str,
+            pub the_user: &'a UserId,
+        }
+    }
+}
+
 mod nested_types {
     use ruma_api::ruma_api;
     use ruma_identifiers::RoomAliasId;
