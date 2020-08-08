@@ -1,5 +1,3 @@
-use ruma_identifiers::{RoomAliasId, RoomId};
-
 #[allow(unused)]
 #[derive(Copy, Clone, Debug, ruma_api::Outgoing, serde::Serialize)]
 pub struct OtherThing<'t> {
@@ -8,9 +6,10 @@ pub struct OtherThing<'t> {
 }
 
 mod empty_response {
-    use super::*;
+    use ruma_api::ruma_api;
+    use ruma_identifiers::{RoomAliasId, RoomId};
 
-    ruma_api::ruma_api! {
+    ruma_api! {
         metadata: {
             description: "Add an alias to a room.",
             method: PUT,
@@ -34,9 +33,10 @@ mod empty_response {
 }
 
 mod nested_types {
-    use super::*;
+    use ruma_api::ruma_api;
+    use ruma_identifiers::RoomAliasId;
 
-    ruma_api::ruma_api! {
+    ruma_api! {
         metadata: {
             description: "Add an alias to a room.",
             method: PUT,
@@ -59,9 +59,11 @@ mod nested_types {
 }
 
 mod full_request_response {
-    use super::*;
+    use ruma_api::ruma_api;
 
-    ruma_api::ruma_api! {
+    use super::{IncomingOtherThing, OtherThing};
+
+    ruma_api! {
         metadata: {
             description: "Does something.",
             method: POST,
@@ -91,9 +93,11 @@ mod full_request_response {
 }
 
 mod full_request_response_with_query_map {
-    use super::*;
+    use ruma_api::ruma_api;
 
-    ruma_api::ruma_api! {
+    use super::{IncomingOtherThing, OtherThing};
+
+    ruma_api! {
         metadata: {
             description: "Does something.",
             method: GET,
@@ -123,7 +127,9 @@ mod full_request_response_with_query_map {
 }
 
 mod query_fields {
-    ruma_api::ruma_api! {
+    use ruma_api::ruma_api;
+
+    ruma_api! {
         metadata: {
             description: "Get the list of rooms in this homeserver's public directory.",
             method: GET,
