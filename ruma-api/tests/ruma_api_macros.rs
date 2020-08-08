@@ -130,7 +130,6 @@ pub mod query_map_endpoint {
             pub fields: Vec<(String, String)>,
         }
 
-        response: {
-        }
+        response: {}
     }
 }
