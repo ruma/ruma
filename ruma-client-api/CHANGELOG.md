@@ -1,16 +1,4 @@
-# [unreleased]
-
-Breaking changes:
-
-* Update type of `limit` in `r0::user_directory::search_users` from
-  `Option<UInt>` to `UInt`
-* Update strum dependency to 0.19
-
-Improvements:
-
-* Add `r0::room::aliases` (introduced in r0.6.1)
-
-# 0.10.0
+# 0.10.0 [unreleased]
 
 Bug fixes:
 
@@ -47,6 +35,9 @@ Breaking changes:
 * `r0::sync::sync_events::SetPresence` has been moved and renamed. Use `presence::PresenceState`
   from `ruma` or `ruma-common`.
 * `r0::push::Action` has been moved. Import it from `ruma` or `ruma-common`.
+* Update type of `limit` in `r0::user_directory::search_users` from
+  `Option<UInt>` to `UInt`
+* Update strum dependency to 0.19
 
 Improvements:
 
@@ -57,6 +48,7 @@ Improvements:
   * `r0::room::create_room`
   * `r0::message::get_message_events`
 * Add `logout_devices` field to `r0::account::change_password`
+* Add `r0::room::aliases` (introduced in r0.6.1)
 
 # 0.9.0
 
