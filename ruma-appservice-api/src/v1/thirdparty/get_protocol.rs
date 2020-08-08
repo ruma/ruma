@@ -1,8 +1,7 @@
 //! [GET /_matrix/app/v1/thirdparty/protocol/{protocol}](https://matrix.org/docs/spec/application_service/r0.1.2#get-matrix-app-v1-thirdparty-protocol-protocol)
 
 use ruma_api::ruma_api;
-
-use super::Protocol;
+use ruma_common::thirdparty::Protocol;
 
 ruma_api! {
     metadata: {

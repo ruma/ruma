@@ -14,10 +14,9 @@ pub mod unban_user;
 
 use std::collections::BTreeMap;
 
-use serde::{Deserialize, Serialize};
-
-use crate::r0::thirdparty::Medium;
+use ruma_common::thirdparty::Medium;
 use ruma_identifiers::{ServerKeyId, ServerName};
+use serde::{Deserialize, Serialize};
 
 /// A signature of an `m.third_party_invite` token to prove that this user owns a third party
 /// identity which has been invited to the room.

@@ -1,9 +1,9 @@
 //! [POST /_matrix/client/r0/account/3pid/unbind](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-account-3pid-unbind)
 
 use ruma_api::ruma_api;
+use ruma_common::thirdparty::Medium;
 
 use super::ThirdPartyIdRemovalStatus;
-use crate::r0::thirdparty::Medium;
 
 ruma_api! {
     metadata: {

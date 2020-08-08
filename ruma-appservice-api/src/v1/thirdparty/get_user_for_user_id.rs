@@ -1,9 +1,8 @@
 //! [GET /_matrix/app/v1/thirdparty/user](https://matrix.org/docs/spec/application_service/r0.1.2#get-matrix-app-v1-thirdparty-user)
 
 use ruma_api::ruma_api;
+use ruma_common::thirdparty::User;
 use ruma_identifiers::UserId;
-
-use super::User;
 
 ruma_api! {
     metadata: {

@@ -3,8 +3,7 @@
 use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
-
-use super::Protocol;
+use ruma_common::thirdparty::Protocol;
 
 ruma_api! {
     metadata: {

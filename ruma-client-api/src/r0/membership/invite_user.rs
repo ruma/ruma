@@ -53,11 +53,13 @@ pub enum InvitationRecipient {
 
 #[cfg(test)]
 mod tests {
+    use ruma_common::thirdparty::Medium;
     use ruma_identifiers::user_id;
     use serde_json::{from_value as from_json_value, json};
 
     use super::InvitationRecipient;
-    use crate::r0::{membership::Invite3pid, thirdparty::Medium};
+    use crate::r0::membership::Invite3pid;
+
     #[test]
     fn deserialize_invite_by_user_id() {
         let incoming =

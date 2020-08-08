@@ -3,8 +3,7 @@
 use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
-
-use super::Location;
+use ruma_common::thirdparty::Location;
 
 ruma_api! {
     metadata: {

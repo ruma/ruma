@@ -3,9 +3,8 @@
 use std::time::SystemTime;
 
 use ruma_api::ruma_api;
+use ruma_common::thirdparty::Medium;
 use serde::{Deserialize, Serialize};
-
-use crate::r0::thirdparty::Medium;
 
 ruma_api! {
     metadata: {

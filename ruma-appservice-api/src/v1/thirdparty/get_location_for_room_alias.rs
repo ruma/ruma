@@ -1,9 +1,8 @@
 //! [GET /_matrix/app/v1/thirdparty/location](https://matrix.org/docs/spec/application_service/r0.1.2#get-matrix-app-v1-thirdparty-location)
 
 use ruma_api::ruma_api;
+use ruma_common::thirdparty::Location;
 use ruma_identifiers::RoomAliasId;
-
-use super::Location;
 
 ruma_api! {
     metadata: {

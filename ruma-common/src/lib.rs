@@ -5,5 +5,6 @@
 pub mod presence;
 pub mod push;
 mod raw;
+pub mod thirdparty;
 
 pub use self::raw::Raw;
