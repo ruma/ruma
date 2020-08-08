@@ -3,6 +3,8 @@
 Bug fixes:
 
 * Fix key algorithm serde (de)serialization
+* Fix `key_algorithms::{DeviceKeyAlgorithm, ServerKeyAlgorithm}` not implementing `Deserialize` and
+  `Serialize` with `default-features = false` + `features = ["serde", …]`
 
 # 0.17.3
 
