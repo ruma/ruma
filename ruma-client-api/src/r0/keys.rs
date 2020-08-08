@@ -2,7 +2,6 @@
 
 use std::{collections::BTreeMap, fmt::Debug};
 
-use ruma_api::Outgoing;
 use ruma_events::Algorithm;
 use ruma_identifiers::{DeviceId, DeviceKeyId, UserId};
 use serde::{Deserialize, Serialize};
@@ -70,13 +69,13 @@ pub enum OneTimeKey {
 }
 
 /// A cross signing key.
-#[derive(Clone, Debug, Outgoing, Serialize)]
-pub struct CrossSigningKey<'a> {
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CrossSigningKey {
     /// The ID of the user the key belongs to.
-    pub user_id: &'a UserId,
+    pub user_id: UserId,
 
     /// What the key is used for.
-    pub usage: &'a [KeyUsage],
+    pub usage: Vec<KeyUsage>,
 
     /// The public key. The object must have exactly one property.
     pub keys: BTreeMap<String, String>,

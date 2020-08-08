@@ -6,6 +6,8 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{DeviceId, UserId};
 use serde_json::Value as JsonValue;
 
+#[cfg(feature = "unstable-pre-spec")]
+use super::CrossSigningKey;
 use super::DeviceKeys;
 
 ruma_api! {
@@ -55,17 +57,17 @@ ruma_api! {
         /// Information on the master cross-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub master_keys: BTreeMap<UserId, super::CrossSigningKey>,
+        pub master_keys: BTreeMap<UserId, CrossSigningKey>,
 
         /// Information on the self-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub self_signing_keys: BTreeMap<UserId, super::CrossSigningKey>,
+        pub self_signing_keys: BTreeMap<UserId, CrossSigningKey>,
 
         /// Information on the user-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub user_signing_keys: BTreeMap<UserId, super::CrossSigningKey>,
+        pub user_signing_keys: BTreeMap<UserId, CrossSigningKey>,
     }
 
     error: crate::Error
