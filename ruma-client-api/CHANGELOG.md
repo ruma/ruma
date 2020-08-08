@@ -1,11 +1,13 @@
 # [unreleased]
 
-* Add `r0::room::aliases` (introduced in r0.6.1)
-
 Breaking changes:
 
 * Update type of `limit` in `r0::user_directory::search_users` from
   `Option<UInt>` to `UInt`
+
+Improvements:
+
+* Add `r0::room::aliases` (introduced in r0.6.1)
 
 # 0.10.0
 

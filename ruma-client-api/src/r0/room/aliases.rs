@@ -16,11 +16,11 @@ ruma_api! {
     request: {
         /// The room ID to get aliases of.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
     }
 
     response: {
-        aliases: Vec<RoomAliasId>,
+        aliases: &'a [RoomAliasId],
     }
 
     error: crate::Error
