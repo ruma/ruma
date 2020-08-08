@@ -18,12 +18,26 @@ ruma_api! {
     request: {
         /// The Matrix room alias to look up.
         #[ruma_api(query)]
-        pub alias: RoomAliasId,
+        pub alias: &'a RoomAliasId,
     }
 
     response: {
         /// List of matched third party locations.
         #[ruma_api(body)]
         pub locations: Vec<Location>,
+    }
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room alias id.
+    pub fn new(alias: &'a RoomAliasId) -> Self {
+        Self { alias }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given locations.
+    pub fn new(locations: Vec<Location>) -> Self {
+        Self { locations }
     }
 }

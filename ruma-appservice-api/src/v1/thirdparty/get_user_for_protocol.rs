@@ -19,7 +19,8 @@ ruma_api! {
     request: {
         /// The protocol used to communicate to the third party network.
         #[ruma_api(path)]
-        pub protocol: String,
+        pub protocol: &'a str,
+
         /// One or more custom fields that are passed to the AS to help identify the user.
         // The specification is incorrect for this parameter. See matrix-org/matrix-doc#2352.
         #[ruma_api(query_map)]
@@ -30,5 +31,19 @@ ruma_api! {
         /// List of matched third party users.
         #[ruma_api(body)]
         pub users: Vec<User>,
+    }
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given protocol name.
+    pub fn new(protocol: &'a str) -> Self {
+        Self { protocol, fields: BTreeMap::new() }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given users.
+    pub fn new(users: Vec<User>) -> Self {
+        Self { users }
     }
 }

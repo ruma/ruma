@@ -19,7 +19,8 @@ ruma_api! {
     request: {
         /// The protocol used to communicate to the third party network.
         #[ruma_api(path)]
-        pub protocol: String,
+        pub protocol: &'a str,
+
         /// One or more custom fields to help identify the third party location.
         // The specification is incorrect for this parameter. See matrix-org/matrix-doc#2352.
         #[ruma_api(query_map)]
@@ -30,5 +31,19 @@ ruma_api! {
         /// List of matched third party locations.
         #[ruma_api(body)]
         pub locations: Vec<Location>,
+    }
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given protocol.
+    pub fn new(protocol: &'a str) -> Self {
+        Self { protocol, fields: BTreeMap::new() }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given locations.
+    pub fn new(locations: Vec<Location>) -> Self {
+        Self { locations }
     }
 }

@@ -19,11 +19,26 @@ ruma_api! {
         ///
         /// Homeservers generate these IDs and they are used to ensure idempotency of results.
         #[ruma_api(path)]
-        pub txn_id: String,
+        pub txn_id: &'a str,
+
         /// A list of events.
         #[ruma_api(body)]
-        pub events: Vec<Raw<AnyEvent>>,
+        pub events: &'a [Raw<AnyEvent>],
     }
 
     response: {}
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given transaction ID and list of events.
+    pub fn new(txn_id: &'a str, events: &'a [Raw<AnyEvent>]) -> Self {
+        Self { txn_id, events }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

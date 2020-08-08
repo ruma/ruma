@@ -18,12 +18,26 @@ ruma_api! {
     request: {
         /// The Matrix User ID to look up.
         #[ruma_api(query)]
-        pub userid: UserId,
+        pub userid: &'a UserId,
     }
 
     response: {
         /// List of matched third party users.
         #[ruma_api(body)]
         pub users: Vec<User>,
+    }
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user id.
+    pub fn new(userid: &'a UserId) -> Self {
+        Self { userid }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given users.
+    pub fn new(users: Vec<User>) -> Self {
+        Self { users }
     }
 }

@@ -17,12 +17,26 @@ ruma_api! {
     request: {
         /// The name of the protocol.
         #[ruma_api(path)]
-        pub protocol: String,
+        pub protocol: &'a str,
     }
 
     response: {
         /// Metadata about the protocol.
         #[ruma_api(body)]
         pub protocol: Protocol,
+    }
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given protocol name.
+    pub fn new(protocol: &'a str) -> Self {
+        Self { protocol }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given protocol.
+    pub fn new(protocol: Protocol) -> Self {
+        Self { protocol }
     }
 }

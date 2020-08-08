@@ -16,8 +16,22 @@ ruma_api! {
     request: {
         /// The user ID being queried.
         #[ruma_api(path)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
     }
 
     response: {}
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user id.
+    pub fn new(user_id: &'a UserId) -> Self {
+        Self { user_id }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

@@ -16,8 +16,22 @@ ruma_api! {
     request: {
         /// The room alias being queried.
         #[ruma_api(path)]
-        pub room_alias: RoomAliasId,
+        pub room_alias: &'a RoomAliasId,
     }
 
     response: {}
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room alias.
+    pub fn new(room_alias: &'a RoomAliasId) -> Self {
+        Self { room_alias }
+    }
+}
+
+impl Response {
+    /// Create an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }
