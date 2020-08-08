@@ -1,5 +1,9 @@
 # [unreleased]
 
+Bug fixes:
+
+* Fix key algorithm serde (de)serialization
+
 Breaking changes:
 
 * Update strum dependency to 0.19

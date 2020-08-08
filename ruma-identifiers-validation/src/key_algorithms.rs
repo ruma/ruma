@@ -9,7 +9,7 @@ use strum::{AsRefStr, Display, EnumString};
 
 /// The basic key algorithms in the specification.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, Display, EnumString)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize), serde(rename_all = "snake_case"))]
 #[non_exhaustive]
 #[strum(serialize_all = "snake_case")]
 pub enum DeviceKeyAlgorithm {
@@ -41,7 +41,7 @@ impl TryFrom<String> for DeviceKeyAlgorithm {
 
 /// The server key algorithms defined in the Matrix spec.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, Display, EnumString)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize), serde(rename_all = "snake_case"))]
 #[non_exhaustive]
 #[strum(serialize_all = "snake_case")]
 pub enum ServerKeyAlgorithm {
