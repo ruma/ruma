@@ -7,7 +7,7 @@ use std::{
 };
 
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde1::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::Error;
 

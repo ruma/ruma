@@ -12,7 +12,7 @@
 use std::convert::TryFrom;
 
 #[cfg(feature = "serde")]
-use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
+use serde1::de::{self, Deserialize as _, Deserializer, Unexpected};
 
 #[doc(inline)]
 pub use crate::{

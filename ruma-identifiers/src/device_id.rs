@@ -14,7 +14,7 @@ use crate::generate_localpart;
 /// provided simply for its semantic value.
 #[repr(transparent)]
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent))]
+#[cfg_attr(feature = "serde", derive(serde1::Serialize), serde(transparent, crate = "serde1"))]
 pub struct DeviceId(str);
 
 impl DeviceId {
@@ -112,10 +112,10 @@ impl Display for DeviceId {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde::Deserialize<'de> for Box<DeviceId> {
+impl<'de> serde1::Deserialize<'de> for Box<DeviceId> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: serde::Deserializer<'de>,
+        D: serde1::Deserializer<'de>,
     {
         crate::deserialize_id(deserializer, "An IP address or hostname")
     }
