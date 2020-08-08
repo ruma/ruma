@@ -26,7 +26,7 @@ ruma_api! {
 
         /// A request identifier unique to the access token used to send the request.
         #[ruma_api(path)]
-        pub txn_id: String,
+        pub txn_id: &'a str,
 
         /// A map of users to devices to a content for a message event to be
         /// sent to the user's device. Individual message events can be sent

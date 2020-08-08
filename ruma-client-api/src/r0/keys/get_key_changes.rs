@@ -17,21 +17,21 @@ ruma_api! {
         /// The desired start point of the list.
         /// Should be the next_batch field from a response to an earlier call to /sync.
         #[ruma_api(query)]
-        pub from: String,
+        pub from: &'a str,
 
         /// The desired end point of the list.
         /// Should be the next_batch field from a recent call to /sync - typically the most recent such call.
         #[ruma_api(query)]
-        pub to: String,
+        pub to: &'a str,
     }
 
     response: {
         /// The Matrix User IDs of all users who updated their device identity keys.
-        pub changed: Vec<UserId>,
+        pub changed: &'a [UserId],
 
         /// The Matrix User IDs of all users who may have left all the end-to-end
         /// encrypted rooms they previously shared with the user.
-        pub left: Vec<UserId>
+        pub left: &'a [UserId],
     }
 
     error: crate::Error

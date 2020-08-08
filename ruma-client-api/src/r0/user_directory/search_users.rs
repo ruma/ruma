@@ -1,9 +1,9 @@
 //! [POST /_matrix/client/r0/user_directory/search](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-user-directory-search)
 
 use js_int::{uint, UInt};
-use ruma_api::ruma_api;
+use ruma_api::{ruma_api, Outgoing};
 use ruma_identifiers::UserId;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 ruma_api! {
     metadata: {
@@ -17,7 +17,7 @@ ruma_api! {
 
     request: {
         /// The term to search for.
-        pub search_term: String,
+        pub search_term: &'a str,
 
         /// The maximum number of results to return.
         ///
@@ -28,7 +28,7 @@ ruma_api! {
 
     response: {
         /// Ordered by rank and then whether or not profile info is available.
-        pub results: Vec<User>,
+        pub results: &'a [User<'a>],
 
         /// Indicates if the result list has been truncated by the limit.
         pub limited: bool,
@@ -46,16 +46,16 @@ fn is_default_limit(limit: &UInt) -> bool {
 }
 
 /// User data as result of a search.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct User {
+#[derive(Clone, Debug, Outgoing, Serialize)]
+pub struct User<'a> {
     /// The user's matrix user ID.
-    pub user_id: UserId,
+    pub user_id: &'a UserId,
 
     /// The display name of the user, if one exists.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub display_name: Option<String>,
+    pub display_name: Option<&'a str>,
 
     /// The avatar url, as an MXC, if one exists.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar_url: Option<String>,
+    pub avatar_url: Option<&'a str>,
 }

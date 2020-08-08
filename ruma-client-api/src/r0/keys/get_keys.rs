@@ -38,7 +38,7 @@ ruma_api! {
         /// ensure its response contains the keys advertised by the notification
         /// in that sync.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub token: Option<String>,
+        pub token: Option<&'a str>,
     }
 
     response: {
