@@ -61,21 +61,24 @@ impl Request {
             let header_name_string = header_name.to_string();
 
             quote! {
-                #field_name: match headers.get(::ruma_api::exports::http::header::#header_name)
-                    .and_then(|v| v.to_str().ok()) {
-                        Some(header) => header.to_owned(),
-                        None => {
-                            return Err(
-                                ::ruma_api::error::RequestDeserializationError::new(
-                                    ::ruma_api::exports::serde_json::Error::missing_field(
-                                        #header_name_string
-                                    ),
-                                    request,
-                                )
-                                .into()
-                            );
-                        }
+                #field_name: match headers
+                    .get(::ruma_api::exports::http::header::#header_name)
+                    .and_then(|v| v.to_str().ok()) // FIXME: Should have a distinct error message
+                {
+                    Some(header) => header.to_owned(),
+                    None => {
+                        use ::ruma_api::exports::serde::de::Error as _;
+
+                        // FIXME: Not a missing json field, a missing header!
+                        return Err(::ruma_api::error::RequestDeserializationError::new(
+                            ::ruma_api::exports::serde_json::Error::missing_field(
+                                #header_name_string
+                            ),
+                            request,
+                        )
+                        .into());
                     }
+                }
             }
         });
 

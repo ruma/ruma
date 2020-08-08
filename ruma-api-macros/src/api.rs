@@ -247,14 +247,6 @@ impl ToTokens for Api {
         };
 
         let api = quote! {
-            // FIXME: These can't conflict with other imports, but it would still be nice not to
-            //        bring anything into scope that code outside the macro could then rely on.
-            use ::std::convert::TryInto as _;
-
-            use ::ruma_api::exports::serde::de::Error as _;
-            use ::ruma_api::exports::serde::Deserialize as _;
-            use ::ruma_api::Endpoint as _;
-
             #[doc = #request_doc]
             #request_type
 

@@ -6,7 +6,7 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomAliasId, RoomId};
 use serde::{
-    de::{MapAccess, Visitor},
+    de::{Error as _, MapAccess, Visitor},
     ser::SerializeStruct,
     Deserialize, Deserializer, Serialize, Serializer,
 };

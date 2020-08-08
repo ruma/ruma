@@ -1,5 +1,7 @@
-use ruma_api::ruma_api;
-use ruma_identifiers::UserId;
+use std::convert::TryFrom;
+
+use ruma_api::{ruma_api, Endpoint as _};
+use ruma_identifiers::{user_id, UserId};
 
 ruma_api! {
     metadata: {
@@ -36,10 +38,6 @@ ruma_api! {
 
 #[test]
 fn request_serde() -> Result<(), Box<dyn std::error::Error + 'static>> {
-    use std::convert::TryFrom;
-
-    use ruma_identifiers::user_id;
-
     let req = Request {
         hello: "hi".to_owned(),
         world: "test".to_owned(),
