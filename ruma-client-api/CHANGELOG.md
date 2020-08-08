@@ -8,6 +8,16 @@ Bug fixes:
 
 Breaking changes:
 
+* Borrow strings in outgoing requests and responses.
+  * Explicit types may have to be updated from `endpoint::Request` to `endpoint::Request<'_>` on
+    clients and `endpoint::IncomingRequest` on servers, the other way around for responses.
+  * When sending a request or response, you shouldn't have to clone things as much as before. Tip:
+    Use clippy to detect now-unnecessary `.into()` conversions.
+* Make most types non-exhaustive
+  * This means you no longer can construct many of them using struct literals.
+  * Instead, constructors are provided.
+  * Tip: To set optional fields that aren't set in the constructor, you may find the `assign` crate
+    useful.
 * Make `avatar_url` in `r0::profile::set_avatar_url::Request` an `Option`
 * Update type of `canonical_alias` in `r0::directory::PublicRoomsChunk` from
   `Option<String>` to `Option<RoomAliasId>`
