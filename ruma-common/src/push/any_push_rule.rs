@@ -30,7 +30,9 @@ pub struct AnyPushRule {
     /// The ID of this rule.
     pub rule_id: String,
 
-    /// The conditions that must hold true for an event in order for a rule to be applied to an event. A rule with no conditions always matches.
+    /// The conditions that must hold true for an event in order for a rule to be applied to an
+    /// event. A rule with no conditions always matches.
+    ///
     /// Only applicable to underride and override rules.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub conditions: Option<Vec<PushCondition>>,

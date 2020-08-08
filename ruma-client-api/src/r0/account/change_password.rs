@@ -18,9 +18,13 @@ ruma_api! {
         /// The new password for the account.
         pub new_password: String,
 
-        /// True to revoke the user's other access tokens, and their associated devices if the request succeeds.
+        /// True to revoke the user's other access tokens, and their associated devices if the
+        /// request succeeds.
+        ///
         /// Defaults to true.
-        /// When false, the server can still take advantage of the soft logout method for the user's remaining devices.
+        ///
+        /// When false, the server can still take advantage of the soft logout method for the user's
+        /// remaining devices.
         #[serde(default = "ruma_serde::default_true", skip_serializing_if = "ruma_serde::is_true")]
         pub logout_devices: bool,
 

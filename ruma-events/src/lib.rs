@@ -1,5 +1,5 @@
-//! Crate `ruma_events` contains serializable types for the events in the [Matrix](https://matrix.org)
-//! specification that can be shared by client and server code.
+//! Crate `ruma_events` contains serializable types for the events in the
+//! [Matrix](https://matrix.org) specification that can be shared by client and server code.
 //!
 //! All data exchanged over Matrix is expressed as an event.
 //! Different event types represent different actions, such as joining a room or sending a message.
@@ -44,8 +44,8 @@
 //!     They have at least the following additional keys:
 //!     *   `state_key`, a string which serves as a sort of "sub-type."
 //!         The state key allows a room to persist multiple state events of the same type.
-//!         You can think of a room's state events as being a `BTreeMap` where the keys are the tuple
-//!         `(event_type, state_key)`.
+//!         You can think of a room's state events as being a `BTreeMap` where the keys are the
+//!         tuple `(event_type, state_key)`.
 //!     *   Optionally, `prev_content`, a JSON object containing the `content` object from the
 //!     previous event of the given `(event_type, state_key)` tuple in the given room.
 //!

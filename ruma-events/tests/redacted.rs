@@ -140,10 +140,13 @@ fn redacted_aliases_deserialize() {
             .unwrap()
             .deserialize()
             .unwrap(),
-        AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::RoomAliases(RedactedSyncStateEvent {
-            content: RedactedAliasesEventContent { aliases },
-            event_id, ..
-        })) if event_id == event_id!("$h29iv0s8:example.com")
+        AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::RoomAliases(
+            RedactedSyncStateEvent {
+                content: RedactedAliasesEventContent { aliases },
+                event_id,
+                ..
+            },
+        )) if event_id == event_id!("$h29iv0s8:example.com")
             && aliases.is_none()
     )
 }
@@ -207,10 +210,13 @@ fn redacted_deserialize_any_room_sync() {
             .unwrap()
             .deserialize()
             .unwrap(),
-        AnySyncRoomEvent::RedactedMessage(AnyRedactedSyncMessageEvent::RoomMessage(RedactedSyncMessageEvent {
-            content: RedactedMessageEventContent,
-            event_id, ..
-        })) if event_id == event_id!("$h29iv0s8:example.com")
+        AnySyncRoomEvent::RedactedMessage(AnyRedactedSyncMessageEvent::RoomMessage(
+            RedactedSyncMessageEvent {
+                content: RedactedMessageEventContent,
+                event_id,
+                ..
+            }
+        )) if event_id == event_id!("$h29iv0s8:example.com")
     )
 }
 
@@ -235,12 +241,17 @@ fn redacted_state_event_deserialize() {
             .unwrap()
             .deserialize()
             .unwrap(),
-        AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::RoomCreate(RedactedSyncStateEvent {
-            content: RedactedCreateEventContent {
-                creator,
-            },
-            event_id, state_key, unsigned, ..
-        })) if event_id == event_id!("$h29iv0s8:example.com")
+        AnySyncRoomEvent::RedactedState(AnyRedactedSyncStateEvent::RoomCreate(
+            RedactedSyncStateEvent {
+                content: RedactedCreateEventContent {
+                    creator,
+                },
+                event_id,
+                state_key,
+                unsigned,
+                ..
+            }
+        )) if event_id == event_id!("$h29iv0s8:example.com")
             && unsigned.redacted_because.is_some()
             && state_key == "hello there"
             && creator == user_id!("@carl:example.com")

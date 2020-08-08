@@ -1,4 +1,6 @@
-//! De-/serialization functions for `Option<std::time::Duration>` objects represented as milliseconds.
+//! De-/serialization functions for `Option<std::time::Duration>` objects represented as
+//! milliseconds.
+//!
 //! Delegates to `js_int::UInt` to ensure integer size is within bounds.
 
 use std::{convert::TryFrom, time::Duration};

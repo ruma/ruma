@@ -28,19 +28,22 @@ ruma_api! {
         #[ruma_api(path)]
         pub rule_id: String,
 
-        /// Use 'before' with a rule_id as its value to make the new rule the next-most important rule with respect to the given user defined rule.
+        /// Use 'before' with a rule_id as its value to make the new rule the next-most important
+        /// rule with respect to the given user defined rule.
         #[ruma_api(query)]
         pub before: Option<String>,
 
-        /// This makes the new rule the next-less important rule relative to the given user defined rule.
+        /// This makes the new rule the next-less important rule relative to the given user defined
+        /// rule.
         #[ruma_api(query)]
         pub after: Option<String>,
 
         /// The actions to perform when this rule is matched.
         pub actions: Vec<Action>,
 
-        /// The conditions that must hold true for an event in order for a rule to be applied to an event. A rule with no conditions always matches.
-        /// Only applicable to underride and override rules, empty Vec otherwise.
+        /// The conditions that must hold true for an event in order for a rule to be applied to an
+        /// event. A rule with no conditions always matches. Only applicable to underride and
+        /// override rules, empty Vec otherwise.
         #[serde(default)]
         pub conditions: Vec<PushCondition>,
 

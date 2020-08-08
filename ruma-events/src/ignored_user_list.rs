@@ -65,7 +65,9 @@ mod tests {
                 .deserialize()
                 .unwrap(),
             BasicEvent {
-                content: AnyBasicEventContent::IgnoredUserList(IgnoredUserListEventContent { ignored_users, }),
+                content: AnyBasicEventContent::IgnoredUserList(IgnoredUserListEventContent {
+                    ignored_users,
+                }),
             } if ignored_users == vec![user_id!("@carl:example.com")]
         );
     }

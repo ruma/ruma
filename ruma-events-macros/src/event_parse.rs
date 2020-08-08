@@ -135,7 +135,8 @@ impl Parse for EventKind {
                 return Err(syn::Error::new(
                     input.span(),
                     format!(
-                        "valid event kinds are Basic, EphemeralRoom, Message, State, ToDevice found `{}`",
+                        "valid event kinds are Basic, EphemeralRoom, Message, State, ToDevice \
+                         found `{}`",
                         id
                     ),
                 ));
@@ -181,10 +182,12 @@ pub struct EventEnumInput {
     /// The name of the event.
     pub name: EventKind,
 
-    /// An array of valid matrix event types. This will generate the variants of the event type "name".
-    /// There needs to be a corresponding variant in `ruma_events::EventType` for
-    /// this event (converted to a valid Rust-style type name by stripping `m.`, replacing the
-    /// remaining dots by underscores and then converting from snake_case to CamelCase).
+    /// An array of valid matrix event types.
+    ///
+    /// This will generate the variants of the event type "name". There needs to be a corresponding
+    /// variant in `ruma_events::EventType` for this event (converted to a valid Rust-style type
+    /// name by stripping `m.`, replacing the remaining dots by underscores and then converting from
+    /// snake_case to CamelCase).
     pub events: Vec<LitStr>,
 }
 

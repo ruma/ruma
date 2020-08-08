@@ -282,7 +282,9 @@ impl ToTokens for Api {
                 type Error = ::ruma_api::error::IntoHttpError;
 
                 #[allow(unused_variables)]
-                fn try_from(response: Response #response_lifetimes) -> ::std::result::Result<Self, Self::Error> {
+                fn try_from(
+                    response: Response #response_lifetimes,
+                ) -> ::std::result::Result<Self, Self::Error> {
                     let response = ::ruma_api::exports::http::Response::builder()
                         .header(::ruma_api::exports::http::header::CONTENT_TYPE, "application/json")
                         #serialize_response_headers
@@ -314,7 +316,9 @@ impl ToTokens for Api {
                     } else {
                         match <#error as ::ruma_api::EndpointError>::try_from_response(response) {
                             Ok(err) => Err(::ruma_api::error::ServerError::Known(err).into()),
-                            Err(response_err) => Err(::ruma_api::error::ServerError::Unknown(response_err).into())
+                            Err(response_err) => {
+                                Err(::ruma_api::error::ServerError::Unknown(response_err).into())
+                            }
                         }
                     }
                 }

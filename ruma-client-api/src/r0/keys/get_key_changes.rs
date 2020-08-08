@@ -15,12 +15,15 @@ ruma_api! {
 
     request: {
         /// The desired start point of the list.
+        ///
         /// Should be the next_batch field from a response to an earlier call to /sync.
         #[ruma_api(query)]
         pub from: &'a str,
 
         /// The desired end point of the list.
-        /// Should be the next_batch field from a recent call to /sync - typically the most recent such call.
+        ///
+        /// Should be the next_batch field from a recent call to /sync - typically the most recent
+        /// such call.
         #[ruma_api(query)]
         pub to: &'a str,
     }

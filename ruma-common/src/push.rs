@@ -116,7 +116,8 @@ pub struct ConditionalPushRule {
     /// The ID of this rule.
     pub rule_id: String,
 
-    /// The conditions that must hold true for an event in order for a rule to be applied to an event.
+    /// The conditions that must hold true for an event in order for a rule to be applied to an
+    /// event.
     ///
     /// A rule with no conditions always matches.
     pub conditions: Vec<PushCondition>,
@@ -140,7 +141,8 @@ pub struct ConditionalPushRuleInit {
     /// The ID of this rule.
     pub rule_id: String,
 
-    /// The conditions that must hold true for an event in order for a rule to be applied to an event.
+    /// The conditions that must hold true for an event in order for a rule to be applied to an
+    /// event.
     ///
     /// A rule with no conditions always matches.
     pub conditions: Vec<PushCondition>,
@@ -180,8 +182,8 @@ pub struct PatternedPushRule {
 
 /// Initial set of fields of `PatterenedPushRule`.
 ///
-/// This struct will not be updated even if additional fields are added to `PatterenedPushRule` in a new
-/// (non-breaking) release of the Matrix specification.
+/// This struct will not be updated even if additional fields are added to `PatterenedPushRule` in a
+/// new (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
 pub struct PatternedPushRuleInit {
     /// Actions to determine if and how a notification is delivered for events matching this rule.

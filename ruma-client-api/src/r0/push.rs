@@ -103,7 +103,9 @@ pub struct PusherData {
 }
 
 /// A special format that the homeserver should use when sending notifications to a Push Gateway.
-/// Currently, only "event_id_only" is supported as of [Push Gateway API r0.1.1](https://matrix.org/docs/spec/push_gateway/r0.1.1#homeserver-behaviour)
+/// Currently, only "event_id_only" is supported as of [Push Gateway API r0.1.1][spec].
+///
+/// [spec]: https://matrix.org/docs/spec/push_gateway/r0.1.1#homeserver-behaviour
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PushFormat {

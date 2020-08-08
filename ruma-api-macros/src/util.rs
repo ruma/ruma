@@ -146,7 +146,10 @@ pub(crate) fn request_path_string_and_parse(
                                     .decode_utf8(),
                             );
 
-                            ::ruma_api::try_deserialize!(request, ::std::convert::TryFrom::try_from(&*decoded))
+                            ::ruma_api::try_deserialize!(
+                                request,
+                                ::std::convert::TryFrom::try_from(&*decoded),
+                            )
                         }
                     }
                 },
@@ -219,12 +222,13 @@ pub(crate) fn extract_request_query(request: &Request) -> TokenStream {
         }
     } else if request.has_query_fields() {
         quote! {
-            let request_query: <RequestQuery as ::ruma_api::Outgoing>::Incoming = ::ruma_api::try_deserialize!(
-                request,
-                ::ruma_api::exports::ruma_serde::urlencoded::from_str(
-                    &request.uri().query().unwrap_or("")
-                ),
-            );
+            let request_query: <RequestQuery as ::ruma_api::Outgoing>::Incoming =
+                ::ruma_api::try_deserialize!(
+                    request,
+                    ::ruma_api::exports::ruma_serde::urlencoded::from_str(
+                        &request.uri().query().unwrap_or("")
+                    ),
+                );
         }
     } else {
         TokenStream::new()

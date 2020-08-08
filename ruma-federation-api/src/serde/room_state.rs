@@ -1,7 +1,9 @@
 //! A module to deserialize a RoomState struct from incorrectly specified v1
 //! send_join endpoint.
 //!
-//! For more information, see this [GitHub issue](https://github.com/matrix-org/matrix-doc/issues/2541).
+//! For more information, see this [GitHub issue][issue].
+//!
+//! [issue]: https://github.com/matrix-org/matrix-doc/issues/2541
 
 use std::fmt;
 

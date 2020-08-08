@@ -182,7 +182,10 @@ mod test {
         canonical_json, hash_and_sign_event, sign_json, verify_event, verify_json, Ed25519KeyPair,
     };
 
-    const PKCS8: &str = "MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ";
+    const PKCS8: &str = "\
+        MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
+        tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ\
+    ";
 
     /// Convenience method for getting the public key as a string
     fn public_key_string() -> String {

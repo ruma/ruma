@@ -26,7 +26,8 @@ ruma_api! {
         /// The server_name of the homeserver sending this transaction.
         pub origin: Box<ServerName>,
 
-        /// POSIX timestamp in milliseconds on the originating homeserver when this transaction started.
+        /// POSIX timestamp in milliseconds on the originating homeserver when this transaction
+        /// started.
         #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
         pub origin_server_ts: SystemTime,
 

@@ -83,8 +83,9 @@ fn expand_serialize_event(
                     let time_since_epoch =
                         self.origin_server_ts.duration_since(::std::time::UNIX_EPOCH).unwrap();
 
-                    let timestamp = <::js_int::UInt as ::std::convert::TryFrom<_>>::try_from(time_since_epoch.as_millis())
-                        .map_err(S::Error::custom)?;
+                    let timestamp = <::js_int::UInt as ::std::convert::TryFrom<_>>::try_from(
+                        time_since_epoch.as_millis(),
+                    ).map_err(S::Error::custom)?;
 
                     state.serialize_field("origin_server_ts", &timestamp)?;
                 }
@@ -178,11 +179,16 @@ fn expand_deserialize_event(
                             C::empty(&event_type).map_err(A::Error::custom)?
                         },
                         ::ruma_events::HasDeserializeFields::True => {
-                            let json = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;
+                            let json = content.ok_or_else(
+                                || ::serde::de::Error::missing_field("content"),
+                            )?;
                             C::from_parts(&event_type, json).map_err(A::Error::custom)?
                         },
                         ::ruma_events::HasDeserializeFields::Optional => {
-                            let json = content.unwrap_or(::serde_json::value::RawValue::from_string("{}".to_string()).unwrap());
+                            let json = content.unwrap_or(
+                                ::serde_json::value::RawValue::from_string("{}".to_string())
+                                    .unwrap()
+                            );
                             C::from_parts(&event_type, json).map_err(A::Error::custom)?
                         },
                     };
@@ -194,7 +200,9 @@ fn expand_deserialize_event(
                 }
             } else {
                 quote! {
-                    let content = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;
+                    let content = content.ok_or_else(
+                        || ::serde::de::Error::missing_field("content"),
+                    )?;
                 }
             }
         } else if name == "prev_content" {
@@ -259,7 +267,8 @@ fn expand_deserialize_event(
                 #[derive(::serde::Deserialize)]
                 #[serde(field_identifier, rename_all = "snake_case")]
                 enum Field {
-                    // since this is represented as an enum we have to add it so the JSON picks it up
+                    // since this is represented as an enum we have to add it so the JSON picks it
+                    // up
                     Type,
                     #( #enum_variants, )*
                     #[serde(other)]
@@ -270,10 +279,15 @@ fn expand_deserialize_event(
                 /// the `content` and `prev_content` fields.
                 struct EventVisitor #impl_generics (#deserialize_phantom_type #ty_gen);
 
-                impl #deserialize_impl_gen ::serde::de::Visitor<'de> for EventVisitor #ty_gen #where_clause {
+                impl #deserialize_impl_gen ::serde::de::Visitor<'de>
+                    for EventVisitor #ty_gen #where_clause
+                {
                     type Value = #ident #ty_gen;
 
-                    fn expecting(&self, formatter: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                    fn expecting(
+                        &self,
+                        formatter: &mut ::std::fmt::Formatter<'_>,
+                    ) -> ::std::fmt::Result {
                         write!(formatter, "struct implementing {}", stringify!(#content_type))
                     }
 
@@ -300,7 +314,9 @@ fn expand_deserialize_event(
                                 #(
                                     Field::#enum_variants => {
                                         if #field_names.is_some() {
-                                            return Err(::serde::de::Error::duplicate_field(stringify!(#field_names)));
+                                            return Err(::serde::de::Error::duplicate_field(
+                                                stringify!(#field_names),
+                                            ));
                                         }
                                         #field_names = Some(map.next_value()?);
                                     }
@@ -308,7 +324,8 @@ fn expand_deserialize_event(
                             }
                         }
 
-                        let event_type = event_type.ok_or_else(|| ::serde::de::Error::missing_field("type"))?;
+                        let event_type =
+                            event_type.ok_or_else(|| ::serde::de::Error::missing_field("type"))?;
                         #( #ok_or_else_fields )*
 
                         Ok(#ident {
@@ -360,7 +377,10 @@ fn expand_from_into(
 
             impl #impl_generics #ident #ty_gen #where_clause {
                 /// Convert this sync event into a full event, one with a room_id field.
-                pub fn into_full_event(self, room_id: ::ruma_identifiers::RoomId) -> #full_struct #ty_gen {
+                pub fn into_full_event(
+                    self,
+                    room_id: ::ruma_identifiers::RoomId,
+                ) -> #full_struct #ty_gen {
                     let Self { #( #fields, )* } = self;
                     #full_struct {
                         #( #fields_without_unsigned, )*

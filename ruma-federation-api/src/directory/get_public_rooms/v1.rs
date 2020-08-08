@@ -164,7 +164,8 @@ impl<'de> Visitor<'de> for RoomNetworkVisitor {
                 Ok(RoomNetwork::All)
             } else {
                 Err(M::Error::custom(
-                    "`include_all_networks = true` and `third_party_instance_id` are mutually exclusive.",
+                    "`include_all_networks = true` and `third_party_instance_id` are mutually \
+                     exclusive.",
                 ))
             }
         } else {

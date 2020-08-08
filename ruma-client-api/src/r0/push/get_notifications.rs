@@ -30,8 +30,8 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub limit: Option<UInt>,
 
-        /// Allows basic filtering of events returned. Supply "highlight" to return only events where
-        /// the notification had the 'highlight' tweak set.
+        /// Allows basic filtering of events returned. Supply "highlight" to return only events
+        /// where the notification had the 'highlight' tweak set.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
         pub only: Option<String>
@@ -64,7 +64,8 @@ pub struct Notification {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub profile_tag: Option<String>,
 
-    /// Indicates whether the user has sent a read receipt indicating that they have read this message.
+    /// Indicates whether the user has sent a read receipt indicating that they have read this
+    /// message.
     pub read: bool,
 
     /// The ID of the room in which the event was posted.

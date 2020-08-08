@@ -78,7 +78,10 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 /// A homeserver signs JSON with a key pair:
 ///
 /// ```rust
-/// const PKCS8: &str = "MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ";
+/// const PKCS8: &str = "\
+///     MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
+///     tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ\
+/// ";
 ///
 /// let document = base64::decode_config(&PKCS8, base64::STANDARD_NO_PAD).unwrap();
 ///
@@ -393,7 +396,10 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 /// # Examples
 ///
 /// ```rust
-/// const PKCS8: &str = "MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ";
+/// const PKCS8: &str = "\
+///     MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
+///     tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ\
+/// ";
 ///
 /// let document = base64::decode_config(&PKCS8, base64::STANDARD_NO_PAD).unwrap();
 ///

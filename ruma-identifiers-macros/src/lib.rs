@@ -100,7 +100,9 @@ pub fn server_name(input: TokenStream) -> TokenStream {
     assert!(server_name::validate(&id.value()).is_ok(), "Invalid server_name");
 
     let output = quote! {
-        <::std::boxed::Box::<#dollar_crate::ServerName> as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+        <::std::boxed::Box::<#dollar_crate::ServerName> as ::std::convert::TryFrom<&str>>::try_from(
+            #id,
+        ).unwrap()
     };
 
     output.into()

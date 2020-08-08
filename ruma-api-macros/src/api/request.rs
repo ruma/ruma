@@ -194,7 +194,8 @@ impl Request {
         self.struct_init_fields(RequestFieldKind::Body, quote!(self))
     }
 
-    /// Produces code for a struct initializer for query string fields on a variable named `request`.
+    /// Produces code for a struct initializer for query string fields on a variable named
+    /// `request`.
     pub fn request_query_init_fields(&self) -> TokenStream {
         self.struct_init_fields(RequestFieldKind::Query, quote!(self))
     }
@@ -281,41 +282,40 @@ impl TryFrom<RawRequest> for Request {
                     }
 
                     field_kind = Some(match meta {
-                        Meta::Word(ident) => {
-                            match &ident.to_string()[..] {
-                                attr @ "body" | attr @ "raw_body" => util::req_res_meta_word(
-                                    attr,
-                                    &field,
-                                    &mut newtype_body_field,
-                                    RequestFieldKind::NewtypeBody,
-                                    RequestFieldKind::NewtypeRawBody,
-                                )?,
-                                "path" => RequestFieldKind::Path,
-                                "query" => RequestFieldKind::Query,
-                                "query_map" => {
-                                    if let Some(f) = &query_map_field {
-                                        let mut error = syn::Error::new_spanned(
-                                            field,
-                                            "There can only be one query map field",
-                                        );
-                                        error.combine(syn::Error::new_spanned(
-                                            f,
-                                            "Previous query map field",
-                                        ));
-                                        return Err(error);
-                                    }
-
-                                    query_map_field = Some(field.clone());
-                                    RequestFieldKind::QueryMap
-                                },
-                                _ => {
-                                    return Err(syn::Error::new_spanned(
-                                        ident,
-                                        "Invalid #[ruma_api] argument, expected one of `body`, `path`, `query`, `query_map`",
+                        Meta::Word(ident) => match &ident.to_string()[..] {
+                            attr @ "body" | attr @ "raw_body" => util::req_res_meta_word(
+                                attr,
+                                &field,
+                                &mut newtype_body_field,
+                                RequestFieldKind::NewtypeBody,
+                                RequestFieldKind::NewtypeRawBody,
+                            )?,
+                            "path" => RequestFieldKind::Path,
+                            "query" => RequestFieldKind::Query,
+                            "query_map" => {
+                                if let Some(f) = &query_map_field {
+                                    let mut error = syn::Error::new_spanned(
+                                        field,
+                                        "There can only be one query map field",
+                                    );
+                                    error.combine(syn::Error::new_spanned(
+                                        f,
+                                        "Previous query map field",
                                     ));
+                                    return Err(error);
                                 }
+
+                                query_map_field = Some(field.clone());
+                                RequestFieldKind::QueryMap
                             }
-                        }
+                            _ => {
+                                return Err(syn::Error::new_spanned(
+                                    ident,
+                                    "Invalid #[ruma_api] argument, expected one of \
+                                     `body`, `path`, `query`, `query_map`",
+                                ));
+                            }
+                        },
                         Meta::NameValue(MetaNameValue { name, value }) => util::req_res_name_value(
                             name,
                             value,
@@ -326,20 +326,30 @@ impl TryFrom<RawRequest> for Request {
                 }
 
                 match field_kind.unwrap_or(RequestFieldKind::Body) {
-                    RequestFieldKind::Header => util::collect_lifetime_ident(&mut lifetimes.header, &field.ty),
-                    RequestFieldKind::Body => util::collect_lifetime_ident(&mut lifetimes.body, &field.ty),
-                    RequestFieldKind::NewtypeBody => util::collect_lifetime_ident(&mut lifetimes.body, &field.ty),
-                    RequestFieldKind::NewtypeRawBody => util::collect_lifetime_ident(&mut lifetimes.body, &field.ty),
-                    RequestFieldKind::Path => util::collect_lifetime_ident(&mut lifetimes.path, &field.ty),
-                    RequestFieldKind::Query => util::collect_lifetime_ident(&mut lifetimes.query, &field.ty),
-                    RequestFieldKind::QueryMap => util::collect_lifetime_ident(&mut lifetimes.query, &field.ty),
+                    RequestFieldKind::Header => {
+                        util::collect_lifetime_ident(&mut lifetimes.header, &field.ty)
+                    }
+                    RequestFieldKind::Body => {
+                        util::collect_lifetime_ident(&mut lifetimes.body, &field.ty)
+                    }
+                    RequestFieldKind::NewtypeBody => {
+                        util::collect_lifetime_ident(&mut lifetimes.body, &field.ty)
+                    }
+                    RequestFieldKind::NewtypeRawBody => {
+                        util::collect_lifetime_ident(&mut lifetimes.body, &field.ty)
+                    }
+                    RequestFieldKind::Path => {
+                        util::collect_lifetime_ident(&mut lifetimes.path, &field.ty)
+                    }
+                    RequestFieldKind::Query => {
+                        util::collect_lifetime_ident(&mut lifetimes.query, &field.ty)
+                    }
+                    RequestFieldKind::QueryMap => {
+                        util::collect_lifetime_ident(&mut lifetimes.query, &field.ty)
+                    }
                 }
 
-                Ok(RequestField::new(
-                    field_kind.unwrap_or(RequestFieldKind::Body),
-                    field,
-                    header,
-                ))
+                Ok(RequestField::new(field_kind.unwrap_or(RequestFieldKind::Body), field, header))
             })
             .collect::<syn::Result<Vec<_>>>()?;
 
@@ -388,8 +398,8 @@ impl ToTokens for Request {
                 let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
                 // Though we don't track the difference between new type body and body
                 // for lifetimes, the outer check and the macro failing if it encounters
-                // an illegal combination of field attributes, is enough to guarantee `body_lifetimes`
-                // correctness.
+                // an illegal combination of field attributes, is enough to guarantee
+                // `body_lifetimes` correctness.
                 let (derive_deserialize, lifetimes) = if self.has_body_lifetimes() {
                     (TokenStream::new(), self.body_lifetimes())
                 } else {

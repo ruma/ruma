@@ -108,11 +108,14 @@ fn expand_any_with_deser(
                 use ::serde::de::Error as _;
 
                 let json = Box::<::serde_json::value::RawValue>::deserialize(deserializer)?;
-                let ::ruma_events::EventDeHelper { ev_type, .. } = ::ruma_events::from_raw_json_value(&json)?;
+                let ::ruma_events::EventDeHelper { ev_type, .. } =
+                    ::ruma_events::from_raw_json_value(&json)?;
+
                 match ev_type.as_str() {
                     #(
                         #events => {
-                            let event = ::serde_json::from_str::<#content>(json.get()).map_err(D::Error::custom)?;
+                            let event = ::serde_json::from_str::<#content>(json.get())
+                                .map_err(D::Error::custom)?;
                             Ok(Self::#variants(event))
                         },
                     )*
@@ -176,9 +179,9 @@ fn expand_conversion_impl(
 
             let redaction = if let (EventKind::Message, EventKindVariation::Full) = (kind, var) {
                 quote! {
-                    #ident::RoomRedaction(event) => {
-                        Self::RoomRedaction(::ruma_events::room::redaction::SyncRedactionEvent::from(event))
-                    },
+                    #ident::RoomRedaction(event) => Self::RoomRedaction(
+                        ::ruma_events::room::redaction::SyncRedactionEvent::from(event),
+                    ),
                 }
             } else {
                 TokenStream::new()
@@ -319,7 +322,9 @@ fn expand_content_enum(
                 }
             }
 
-            fn from_parts(event_type: &str, input: Box<::serde_json::value::RawValue>) -> Result<Self, ::serde_json::Error> {
+            fn from_parts(
+                event_type: &str, input: Box<::serde_json::value::RawValue>,
+            ) -> Result<Self, ::serde_json::Error> {
                 match event_type {
                     #(
                         #event_type_str => {
@@ -328,7 +333,8 @@ fn expand_content_enum(
                         },
                     )*
                     ev_type => {
-                        let content = ::ruma_events::custom::CustomEventContent::from_parts(ev_type, input)?;
+                        let content =
+                            ::ruma_events::custom::CustomEventContent::from_parts(ev_type, input)?;
                         Ok(Self::Custom(content))
                     },
                 }
@@ -392,7 +398,11 @@ fn expand_redact(
         Some(quote! {
             impl #ident {
                 /// Redacts `Self` given a valid `Redaction[Sync]Event`.
-                pub fn redact(self, redaction: #param, version: ::ruma_identifiers::RoomVersionId) -> #redaction_enum {
+                pub fn redact(
+                    self,
+                    redaction: #param,
+                    version: ::ruma_identifiers::RoomVersionId,
+                ) -> #redaction_enum {
                     match self {
                         #(
                             Self::#variants(event) => {
@@ -441,7 +451,9 @@ fn expand_redacted_enum(kind: &EventKind, var: &EventKindVariation) -> Option<To
                     D: ::serde::de::Deserializer<'de>,
                 {
                     let json = Box::<::serde_json::value::RawValue>::deserialize(deserializer)?;
-                    let ::ruma_events::EventDeHelper { unsigned, .. } = ::ruma_events::from_raw_json_value(&json)?;
+                    let ::ruma_events::EventDeHelper { unsigned, .. } =
+                        ::ruma_events::from_raw_json_value(&json)?;
+
                     Ok(match unsigned {
                         Some(unsigned) if unsigned.redacted_because.is_some() => {
                             Self::Redacted(::ruma_events::from_raw_json_value(&json)?)
@@ -523,8 +535,10 @@ fn generate_custom_variant(
             quote! {
                 event => {
                     let event =
-                        ::serde_json::from_str::<::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>>(json.get())
-                            .map_err(D::Error::custom)?;
+                        ::serde_json::from_str::<
+                            ::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>
+                        >(json.get())
+                        .map_err(D::Error::custom)?;
 
                     Ok(Self::Custom(event))
                 },

@@ -163,7 +163,8 @@ pub enum MembershipChange {
     NotImplemented,
 }
 
-/// Internal function so all `MemberEventContent` state event kinds can share the same implementation.
+/// Internal function so all `MemberEventContent` state event kinds can share the same
+/// implementation.
 fn membership_change(
     content: &MemberEventContent,
     prev_content: Option<&MemberEventContent>,

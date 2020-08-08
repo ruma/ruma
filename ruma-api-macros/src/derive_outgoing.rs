@@ -194,7 +194,8 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
                 }
             }
 
-            // If a type has a generic lifetime parameter there must be an `Incoming` variant of that type.
+            // If a type has a generic lifetime parameter there must be an `Incoming` variant of
+            // that type.
             if is_lifetime_generic {
                 if let Some(name) = path.segments.last_mut() {
                     let incoming_ty_ident = format_ident!("Incoming{}", name.ident);

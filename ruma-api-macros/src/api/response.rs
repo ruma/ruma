@@ -296,8 +296,8 @@ impl ToTokens for Response {
 
                 // Though we don't track the difference between new type body and body
                 // for lifetimes, the outer check and the macro failing if it encounters
-                // an illegal combination of field attributes, is enough to guarantee `body_lifetimes`
-                // correctness.
+                // an illegal combination of field attributes, is enough to guarantee
+                // `body_lifetimes` correctness.
                 let (derive_deserialize, lifetimes) = if self.has_body_lifetimes() {
                     (TokenStream::new(), self.body_lifetimes())
                 } else {

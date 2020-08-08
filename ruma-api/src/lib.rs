@@ -278,7 +278,8 @@ where
 
 /// A Matrix API endpoint that doesn't require authentication.
 ///
-/// This marker trait is to indicate that a type implementing `Endpoint` doesn't require any authentication.
+/// This marker trait is to indicate that a type implementing `Endpoint` doesn't require any
+/// authentication.
 pub trait NonAuthEndpoint: Endpoint
 where
     <Self as Outgoing>::Incoming: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>,

@@ -24,7 +24,8 @@ ruma_api! {
 
         /// The transaction ID for this event.
         ///
-        /// Clients should generate a unique ID; it will be used by the server to ensure idempotency of requests.
+        /// Clients should generate a unique ID; it will be used by the server to ensure idempotency
+        /// of requests.
         #[ruma_api(path)]
         pub txn_id: String,
 
