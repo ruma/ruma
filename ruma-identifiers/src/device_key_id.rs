@@ -1,6 +1,6 @@
 //! Identifiers for device keys for end-to-end encryption.
 
-use std::{num::NonZeroU8, str::FromStr};
+use std::{convert::TryInto, num::NonZeroU8, str::FromStr};
 
 use ruma_identifiers_validation::{key_algorithms::DeviceKeyAlgorithm, Error};
 
@@ -14,6 +14,23 @@ pub struct DeviceKeyId {
 }
 
 impl DeviceKeyId {
+    /// Create a `DeviceKeyId` from a `DeviceKeyAlgorithm` and a `DeviceId`.
+    pub fn from_parts(algorithm: DeviceKeyAlgorithm, device_id: &DeviceId) -> Self {
+        let algorithm: &str = algorithm.as_ref();
+        let device_id: &str = device_id.as_ref();
+
+        let mut res = String::with_capacity(algorithm.len() + 1 + device_id.len());
+        res.push_str(algorithm);
+        res.push_str(":");
+        res.push_str(device_id);
+
+        let colon_idx =
+            NonZeroU8::new(algorithm.len().try_into().expect("no algorithm name len > 255"))
+                .expect("no empty algorithm name");
+
+        DeviceKeyId { full_id: res.into(), colon_idx }
+    }
+
     /// Returns key algorithm of the device key ID.
     pub fn algorithm(&self) -> DeviceKeyAlgorithm {
         DeviceKeyAlgorithm::from_str(&self.full_id[..self.colon_idx.get() as usize]).unwrap()

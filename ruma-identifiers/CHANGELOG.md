@@ -4,6 +4,10 @@ Breaking changes:
 
 * Update strum dependency to 0.19
 
+Improvements:
+
+* Add `DeviceKeyId::from_parts` and `ServerKeyId::from_parts`
+
 # 0.17.4
 
 Bug fixes:

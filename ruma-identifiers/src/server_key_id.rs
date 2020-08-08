@@ -1,6 +1,6 @@
 //! Identifiers for homeserver signing keys used for federation.
 
-use std::{num::NonZeroU8, str::FromStr};
+use std::{convert::TryInto, num::NonZeroU8, str::FromStr};
 
 use ruma_identifiers_validation::{key_algorithms::ServerKeyAlgorithm, Error};
 
@@ -12,6 +12,22 @@ pub struct ServerKeyId {
 }
 
 impl ServerKeyId {
+    /// Create a `ServerKeyId` from a `ServerKeyAlgorithm` and a `ServerId`.
+    pub fn from_parts(algorithm: ServerKeyAlgorithm, version: &str) -> Self {
+        let algorithm: &str = algorithm.as_ref();
+
+        let mut res = String::with_capacity(algorithm.len() + 1 + version.len());
+        res.push_str(algorithm);
+        res.push_str(":");
+        res.push_str(version);
+
+        let colon_idx =
+            NonZeroU8::new(algorithm.len().try_into().expect("no algorithm name len > 255"))
+                .expect("no empty algorithm name");
+
+        ServerKeyId { full_id: res.into(), colon_idx }
+    }
+
     /// Returns key algorithm of the server key ID.
     pub fn algorithm(&self) -> ServerKeyAlgorithm {
         ServerKeyAlgorithm::from_str(&self.full_id[..self.colon_idx.get() as usize]).unwrap()
