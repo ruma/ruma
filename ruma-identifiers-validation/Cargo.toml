@@ -12,5 +12,9 @@ license = "MIT"
 version = "0.1.0"
 edition = "2018"
 
+[features]
+default = ["serde"]
+
 [dependencies]
+serde = { version = "1.0.114", optional = true, features = ["derive"] }
 strum = { version = "0.19.2", features = ["derive"] }
