@@ -237,11 +237,13 @@ impl ToTokens for Api {
         let request_lifetimes = self.request.combine_lifetimes();
 
         let non_auth_endpoint_impl = if requires_authentication.value {
-            quote! {
-                impl #request_lifetimes  ::ruma_api::NonAuthEndpoint for Request #request_lifetimes {}
-            }
-        } else {
             TokenStream::new()
+        } else {
+            quote! {
+                impl #request_lifetimes ::ruma_api::NonAuthEndpoint
+                    for Request #request_lifetimes
+                {}
+            }
         };
 
         let api = quote! {
