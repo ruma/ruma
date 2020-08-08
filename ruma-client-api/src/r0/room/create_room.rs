@@ -1,5 +1,6 @@
 //! [POST /_matrix/client/r0/createRoom](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-createroom)
 
+use assign::assign;
 use ruma_api::ruma_api;
 use ruma_common::Raw;
 use ruma_events::{
@@ -141,11 +142,7 @@ impl CreationContent {
         creator: UserId,
         room_version: RoomVersionId,
     ) -> CreateEventContent {
-        let mut res = CreateEventContent::new(creator);
-        res.federate = federate;
-        res.room_version = room_version;
-        res.predecessor = predecessor;
-        res
+        assign!(CreateEventContent::new(creator), { federate, room_version, predecessor })
     }
 }
 

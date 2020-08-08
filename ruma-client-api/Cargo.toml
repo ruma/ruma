@@ -17,6 +17,7 @@ version = "0.10.0-alpha.1"
 edition = "2018"
 
 [dependencies]
+assign = "1.1.0"
 http = "0.2.1"
 js_int = { version = "0.1.9", features = ["serde"] }
 ruma-api = { version = "=0.17.0-alpha.1", path = "../ruma-api" }
