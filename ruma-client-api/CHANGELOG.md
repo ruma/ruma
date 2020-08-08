@@ -38,6 +38,8 @@ Breaking changes:
 * Update type of `limit` in `r0::user_directory::search_users` from
   `Option<UInt>` to `UInt`
 * Update strum dependency to 0.19
+* Rename `r0::message::{create_message_event => send_message_event}`
+* Rename `r0::state::{create_state_event_* => send_state_event_*}`
 
 Improvements:
 
