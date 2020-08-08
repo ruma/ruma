@@ -55,15 +55,18 @@ impl Response {
         !(self.lifetimes.body.is_empty() && self.lifetimes.header.is_empty())
     }
 
+    /// The combination of every fields unique lifetime annotation.
+    pub fn lifetimes(&self) -> impl Iterator<Item = &Lifetime> {
+        self.lifetimes
+            .body
+            .iter()
+            .chain(self.lifetimes.header.iter())
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+    }
+
     pub fn combine_lifetimes(&self) -> TokenStream {
-        util::generics_to_tokens(
-            self.lifetimes
-                .body
-                .iter()
-                .chain(self.lifetimes.header.iter())
-                .collect::<BTreeSet<_>>()
-                .into_iter(),
-        )
+        util::generics_to_tokens(self.lifetimes())
     }
 
     pub fn body_lifetimes(&self) -> TokenStream {

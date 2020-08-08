@@ -1,6 +1,9 @@
 //! Details of the `ruma_api` procedural macro.
 
-use std::convert::{TryFrom, TryInto as _};
+use std::{
+    collections::BTreeSet,
+    convert::{TryFrom, TryInto as _},
+};
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
@@ -236,6 +239,12 @@ impl ToTokens for Api {
         let response_lifetimes = self.response.combine_lifetimes();
         let request_lifetimes = self.request.combine_lifetimes();
 
+        let all_lifetimes = util::generics_to_tokens(
+            self.request
+                .lifetimes()
+                .chain(self.response.lifetimes().collect::<BTreeSet<_>>().into_iter()),
+        );
+
         let non_auth_endpoint_impl = if requires_authentication.value {
             quote! {
                 impl #request_lifetimes  ::ruma_api::NonAuthEndpoint for Request #request_lifetimes {}
@@ -326,7 +335,7 @@ impl ToTokens for Api {
                 }
             }
 
-            impl #request_lifetimes ::ruma_api::Endpoint for Request #request_lifetimes {
+            impl #all_lifetimes ::ruma_api::Endpoint for Request #request_lifetimes {
                 type Response = Response #response_lifetimes;
                 type ResponseError = #error;
 

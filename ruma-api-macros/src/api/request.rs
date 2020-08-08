@@ -133,17 +133,20 @@ impl Request {
     }
 
     /// The combination of every fields unique lifetime annotation.
+    pub fn lifetimes(&self) -> impl Iterator<Item = &Lifetime> {
+        self.lifetimes
+            .body
+            .iter()
+            .chain(self.lifetimes.path.iter())
+            .chain(self.lifetimes.query.iter())
+            .chain(self.lifetimes.header.iter())
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+    }
+
+    /// The combination of every fields unique lifetime annotation.
     pub fn combine_lifetimes(&self) -> TokenStream {
-        util::generics_to_tokens(
-            self.lifetimes
-                .body
-                .iter()
-                .chain(self.lifetimes.path.iter())
-                .chain(self.lifetimes.query.iter())
-                .chain(self.lifetimes.header.iter())
-                .collect::<BTreeSet<_>>()
-                .into_iter(),
-        )
+        util::generics_to_tokens(self.lifetimes())
     }
 
     /// The lifetimes on fields with the `query` attribute.
