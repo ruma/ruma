@@ -17,7 +17,7 @@ criterion = { version = "0.3.3", optional = true }
 js_int = { version = "0.1.9", features = ["serde"] }
 ruma-common = { version = "0.2.0", path = "../ruma-common" }
 ruma-events-macros = { version = "=0.22.0-alpha.1", path = "../ruma-events-macros" }
-ruma-identifiers = { version = "0.17.1", path = "../ruma-identifiers" }
+ruma-identifiers = { version = "0.17.3", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.2.3", path = "../ruma-serde" }
 serde = { version = "1.0.114", features = ["derive"] }
 serde_json = { version = "1.0.57", features = ["raw_value"] }
@@ -26,7 +26,7 @@ strum = { version = "0.19.2", features = ["derive"] }
 [dev-dependencies]
 maplit = "1.0.2"
 matches = "0.1.8"
-ruma-identifiers = { version = "0.17.1", path = "../ruma-identifiers", features = ["rand"] }
+ruma-identifiers = { version = "0.17.3", path = "../ruma-identifiers", features = ["rand"] }
 trybuild = "1.0.31"
 
 [[bench]]

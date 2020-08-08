@@ -4,7 +4,17 @@ Breaking changes:
 
 * Update strum dependency to 0.19
 
-# 0.17.2
+# 0.17.3
+
+Bug fixes:
+
+* Fix `key_algorithms::{DeviceKeyAlgorithm, ServerKeyAlgorithm}` not implementing `Deserialize` and
+  `Serialize` with the default feature set
+  * This bug was introduced in 0.17.2
+  * This problem still persists with `default-features = false` + `features = ["serde", …]`, but
+    there was never a reason to use ruma-identifiers like that
+
+# 0.17.2 (yanked)
 
 Bug fixes:
 
