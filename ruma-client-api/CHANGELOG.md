@@ -6,6 +6,10 @@ Breaking changes:
   `Option<UInt>` to `UInt`
 * Update strum dependency to 0.19
 
+Improvements:
+
+* Add `r0::room::aliases` (introduced in r0.6.1)
+
 # 0.10.0
 
 Bug fixes:
