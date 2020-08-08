@@ -7,6 +7,7 @@ use quote::{quote, ToTokens};
 use syn::{
     braced,
     parse::{Parse, ParseStream},
+    spanned::Spanned,
     Field, FieldValue, Token, Type,
 };
 
@@ -100,12 +101,6 @@ impl ToTokens for Api {
             quote!(Request)
         };
 
-        let response_try_from_type = if self.response.contains_lifetimes() {
-            quote!(IncomingResponse)
-        } else {
-            quote!(Response)
-        };
-
         let extract_request_path = if self.request.has_path_fields() {
             quote! {
                 let path_segments: ::std::vec::Vec<&::std::primitive::str> =
@@ -195,28 +190,18 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let typed_response_body_decl = if self.response.has_body_fields()
-            || self.response.newtype_body_field().is_some()
-        {
-            let body_lifetimes = if self.response.has_body_lifetimes() {
-                // duplicate the anonymous lifetime as many times as needed
-                let lifetimes =
-                    std::iter::repeat(quote! { '_ }).take(self.response.body_lifetime_count());
-                quote! { < #( #lifetimes, )* >}
+        let typed_response_body_decl =
+            if self.response.has_body_fields() || self.response.newtype_body_field().is_some() {
+                quote! {
+                    let response_body: <ResponseBody as ::ruma_api::Outgoing>::Incoming =
+                        ::ruma_api::try_deserialize!(
+                            response,
+                            ::ruma_api::exports::serde_json::from_slice(response.body().as_slice()),
+                        );
+                }
             } else {
                 TokenStream::new()
             };
-
-            quote! {
-                let response_body: <ResponseBody #body_lifetimes as ::ruma_api::Outgoing>::Incoming =
-                    ::ruma_api::try_deserialize!(
-                        response,
-                        ::ruma_api::exports::serde_json::from_slice(response.body().as_slice()),
-                    );
-            }
-        } else {
-            TokenStream::new()
-        };
 
         let response_init_fields = self.response.init_fields();
 
@@ -233,7 +218,6 @@ impl ToTokens for Api {
 
         let error = &self.error;
 
-        let response_lifetimes = self.response.combine_lifetimes();
         let request_lifetimes = self.request.combine_lifetimes();
 
         let non_auth_endpoint_impl = if requires_authentication.value {
@@ -250,9 +234,7 @@ impl ToTokens for Api {
             #[doc = #request_doc]
             #request_type
 
-            impl ::std::convert::TryFrom<::ruma_api::exports::http::Request<Vec<u8>>>
-                for #request_try_from_type
-            {
+            impl ::std::convert::TryFrom<::ruma_api::exports::http::Request<Vec<u8>>> for #request_try_from_type {
                 type Error = ::ruma_api::error::FromHttpRequestError;
 
                 #[allow(unused_variables)]
@@ -276,15 +258,11 @@ impl ToTokens for Api {
             #[doc = #response_doc]
             #response_type
 
-            impl #response_lifetimes ::std::convert::TryFrom<Response #response_lifetimes>
-                for ::ruma_api::exports::http::Response<Vec<u8>>
-            {
+            impl ::std::convert::TryFrom<Response> for ::ruma_api::exports::http::Response<Vec<u8>> {
                 type Error = ::ruma_api::error::IntoHttpError;
 
                 #[allow(unused_variables)]
-                fn try_from(
-                    response: Response #response_lifetimes,
-                ) -> ::std::result::Result<Self, Self::Error> {
+                fn try_from(response: Response) -> ::std::result::Result<Self, Self::Error> {
                     let response = ::ruma_api::exports::http::Response::builder()
                         .header(::ruma_api::exports::http::header::CONTENT_TYPE, "application/json")
                         #serialize_response_headers
@@ -296,9 +274,7 @@ impl ToTokens for Api {
                 }
             }
 
-            impl ::std::convert::TryFrom<::ruma_api::exports::http::Response<Vec<u8>>>
-                for #response_try_from_type
-            {
+            impl ::std::convert::TryFrom<::ruma_api::exports::http::Response<Vec<u8>>> for Response {
                 type Error = ::ruma_api::error::FromHttpResponseError<#error>;
 
                 #[allow(unused_variables)]
@@ -325,7 +301,7 @@ impl ToTokens for Api {
             }
 
             impl #request_lifetimes ::ruma_api::Endpoint for Request #request_lifetimes {
-                type Response = Response #response_lifetimes;
+                type Response = Response;
                 type ResponseError = #error;
 
                 /// Metadata for the `#name` endpoint.
@@ -465,7 +441,17 @@ impl Parse for RawResponse {
             fields: fields
                 .parse_terminated::<Field, Token![,]>(Field::parse_named)?
                 .into_iter()
-                .collect(),
+                .map(|f| {
+                    if util::has_lifetime(&f.ty) {
+                        Err(syn::Error::new(
+                            f.ident.span(),
+                            "Lifetimes on Response fields cannot be supported until GAT are stable",
+                        ))
+                    } else {
+                        Ok(f)
+                    }
+                })
+                .collect::<Result<Vec<_>, _>>()?,
         })
     }
 }

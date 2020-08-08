@@ -137,7 +137,7 @@ impl Request {
 
     /// The combination of every fields unique lifetime annotation.
     pub fn combine_lifetimes(&self) -> TokenStream {
-        util::generics_to_tokens(
+        util::unique_lifetimes_to_tokens(
             self.lifetimes
                 .body
                 .iter()
@@ -151,12 +151,12 @@ impl Request {
 
     /// The lifetimes on fields with the `query` attribute.
     pub fn query_lifetimes(&self) -> TokenStream {
-        util::generics_to_tokens(self.lifetimes.query.iter())
+        util::unique_lifetimes_to_tokens(self.lifetimes.query.iter())
     }
 
     /// The lifetimes on fields with the `body` attribute.
     pub fn body_lifetimes(&self) -> TokenStream {
-        util::generics_to_tokens(self.lifetimes.body.iter())
+        util::unique_lifetimes_to_tokens(self.lifetimes.body.iter())
     }
 
     // /// The lifetimes on fields with the `header` attribute.

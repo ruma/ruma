@@ -1,10 +1,10 @@
 //! Details of the `response` section of the procedural macro.
 
-use std::{collections::BTreeSet, convert::TryFrom, mem};
+use std::{convert::TryFrom, mem};
 
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{spanned::Spanned, Field, Ident, Lifetime};
+use syn::{spanned::Spanned, Field, Ident};
 
 use crate::{
     api::{
@@ -14,19 +14,10 @@ use crate::{
     util,
 };
 
-#[derive(Debug, Default)]
-pub struct ResponseLifetimes {
-    body: BTreeSet<Lifetime>,
-    header: BTreeSet<Lifetime>,
-}
-
 /// The result of processing the `response` section of the macro.
 pub struct Response {
     /// The fields of the response.
     fields: Vec<ResponseField>,
-
-    /// The collected lifetime identifiers from the declared fields.
-    lifetimes: ResponseLifetimes,
 }
 
 impl Response {
@@ -38,36 +29,6 @@ impl Response {
     /// Whether or not this response has any data in HTTP headers.
     pub fn has_header_fields(&self) -> bool {
         self.fields.iter().any(|field| field.is_header())
-    }
-
-    /// Whether any `body` field has a lifetime annotation.
-    pub fn has_body_lifetimes(&self) -> bool {
-        !self.lifetimes.body.is_empty()
-    }
-
-    /// The number of unique lifetime annotations for `body` fields.
-    pub fn body_lifetime_count(&self) -> usize {
-        self.lifetimes.body.len()
-    }
-
-    /// Whether any field has a lifetime annotation.
-    pub fn contains_lifetimes(&self) -> bool {
-        !(self.lifetimes.body.is_empty() && self.lifetimes.header.is_empty())
-    }
-
-    pub fn combine_lifetimes(&self) -> TokenStream {
-        util::generics_to_tokens(
-            self.lifetimes
-                .body
-                .iter()
-                .chain(self.lifetimes.header.iter())
-                .collect::<BTreeSet<_>>()
-                .into_iter(),
-        )
-    }
-
-    pub fn body_lifetimes(&self) -> TokenStream {
-        util::generics_to_tokens(self.lifetimes.body.iter())
     }
 
     /// Produces code for a response struct initializer.
@@ -196,7 +157,6 @@ impl TryFrom<RawResponse> for Response {
 
     fn try_from(raw: RawResponse) -> syn::Result<Self> {
         let mut newtype_body_field = None;
-        let mut lifetimes = ResponseLifetimes::default();
 
         let fields = raw
             .fields
@@ -247,22 +207,12 @@ impl TryFrom<RawResponse> for Response {
                 }
 
                 Ok(match field_kind.unwrap_or(ResponseFieldKind::Body) {
-                    ResponseFieldKind::Body => {
-                        util::collect_lifetime_ident(&mut lifetimes.body, &field.ty);
-                        ResponseField::Body(field)
-                    }
+                    ResponseFieldKind::Body => ResponseField::Body(field),
                     ResponseFieldKind::Header => {
-                        util::collect_lifetime_ident(&mut lifetimes.header, &field.ty);
                         ResponseField::Header(field, header.expect("missing header name"))
                     }
-                    ResponseFieldKind::NewtypeBody => {
-                        util::collect_lifetime_ident(&mut lifetimes.body, &field.ty);
-                        ResponseField::NewtypeBody(field)
-                    }
-                    ResponseFieldKind::NewtypeRawBody => {
-                        util::collect_lifetime_ident(&mut lifetimes.body, &field.ty);
-                        ResponseField::NewtypeRawBody(field)
-                    }
+                    ResponseFieldKind::NewtypeBody => ResponseField::NewtypeBody(field),
+                    ResponseFieldKind::NewtypeRawBody => ResponseField::NewtypeRawBody(field),
                 })
             })
             .collect::<syn::Result<Vec<_>>>()?;
@@ -275,7 +225,7 @@ impl TryFrom<RawResponse> for Response {
             ));
         }
 
-        Ok(Self { fields, lifetimes })
+        Ok(Self { fields })
     }
 }
 
@@ -290,52 +240,34 @@ impl ToTokens for Response {
             quote! { { #(#fields),* } }
         };
 
-        let (derive_deserialize, def) =
-            if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
-                let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
+        let def = if let Some(body_field) = self.fields.iter().find(|f| f.is_newtype_body()) {
+            let field = Field { ident: None, colon_token: None, ..body_field.field().clone() };
 
-                // Though we don't track the difference between new type body and body
-                // for lifetimes, the outer check and the macro failing if it encounters
-                // an illegal combination of field attributes, is enough to guarantee
-                // `body_lifetimes` correctness.
-                let (derive_deserialize, lifetimes) = if self.has_body_lifetimes() {
-                    (TokenStream::new(), self.body_lifetimes())
-                } else {
-                    (quote!(::ruma_api::exports::serde::Deserialize), TokenStream::new())
-                };
+            quote! { (#field); }
+        } else if self.has_body_fields() {
+            let fields = self.fields.iter().filter(|f| f.is_body());
 
-                (derive_deserialize, quote! { #lifetimes (#field); })
-            } else if self.has_body_fields() {
-                let fields = self.fields.iter().filter(|f| f.is_body());
-                let (derive_deserialize, lifetimes) = if self.has_body_lifetimes() {
-                    (TokenStream::new(), self.body_lifetimes())
-                } else {
-                    (quote!(::ruma_api::exports::serde::Deserialize), TokenStream::new())
-                };
+            let fields = fields.map(ResponseField::field);
 
-                let fields = fields.map(ResponseField::field);
-
-                (derive_deserialize, quote!( #lifetimes { #(#fields),* }))
-            } else {
-                (TokenStream::new(), quote!({}))
-            };
+            quote!( { #(#fields),* } )
+        } else {
+            quote! { {} }
+        };
 
         let response_body_struct = quote! {
             /// Data in the response body.
             #[derive(
                 Debug,
                 ::ruma_api::Outgoing,
+                ::ruma_api::exports::serde::Deserialize,
                 ::ruma_api::exports::serde::Serialize,
-                #derive_deserialize
             )]
             struct ResponseBody #def
         };
 
-        let response_generics = self.combine_lifetimes();
         let response = quote! {
-            #[derive(Debug, Clone, ::ruma_api::Outgoing)]
-            #[incoming_no_deserialize]
-            pub struct Response #response_generics #response_def
+            #[derive(Debug, Clone, ::ruma_api::Outgoing, ::ruma_api::exports::serde::Deserialize)]
+            pub struct Response #response_def
 
             #response_body_struct
         };
