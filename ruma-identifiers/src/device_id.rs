@@ -10,8 +10,8 @@ use crate::generate_localpart;
 
 /// A Matrix device ID.
 ///
-/// Device identifiers in Matrix are completely opaque character sequences. This type alias is
-/// provided simply for its semantic value.
+/// Device identifiers in Matrix are completely opaque character sequences. This type is provided
+/// simply for its semantic value.
 #[repr(transparent)]
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde1::Serialize), serde(transparent, crate = "serde1"))]
