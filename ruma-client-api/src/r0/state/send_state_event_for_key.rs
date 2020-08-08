@@ -18,7 +18,7 @@ ruma_api! {
     request: {
         /// The room to set the state in.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The type of event to send.
         #[ruma_api(path)]
@@ -26,7 +26,7 @@ ruma_api! {
 
         /// The state_key for the state to send. Defaults to the empty string.
         #[ruma_api(path)]
-        pub state_key: String,
+        pub state_key: &'a str,
 
         /// The event's content. The type for this field will be updated in a
         /// future release, until then you can create a value using
@@ -37,7 +37,7 @@ ruma_api! {
 
     response: {
         /// A unique identifier for the event.
-        pub event_id: EventId,
+        pub event_id: &'a EventId,
     }
 
     error: crate::Error
