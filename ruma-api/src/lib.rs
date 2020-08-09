@@ -245,18 +245,20 @@ pub trait EndpointError: Sized {
 /// A Matrix API endpoint.
 ///
 /// The type implementing this trait contains any data needed to make a request to the endpoint.
-pub trait Endpoint: Outgoing
-where
-    <Self as Outgoing>::Incoming: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>,
-    <Self::Response as Outgoing>::Incoming: TryFrom<
-        http::Response<Vec<u8>>,
-        Error = FromHttpResponseError<<Self as Endpoint>::ResponseError>,
-    >,
-{
+pub trait Endpoint: Outgoing<Incoming = <Self as Endpoint>::IncomingRequest> {
     /// Data returned in a successful response from the endpoint.
-    type Response: Outgoing + TryInto<http::Response<Vec<u8>>, Error = IntoHttpError>;
+    type Response: Outgoing<Incoming = Self::IncomingResponse>
+        + TryInto<http::Response<Vec<u8>>, Error = IntoHttpError>;
     /// Error type returned when response from endpoint fails.
     type ResponseError: EndpointError;
+
+    /// Shorthand for `<Self as Outgoing>::Incoming`.
+    type IncomingRequest: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>;
+    /// Shorthand for `<Self::Response as Outgoing>::Incoming`.
+    type IncomingResponse: TryFrom<
+        http::Response<Vec<u8>>,
+        Error = FromHttpResponseError<<Self as Endpoint>::ResponseError>,
+    >;
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;
@@ -280,15 +282,7 @@ where
 ///
 /// This marker trait is to indicate that a type implementing `Endpoint` doesn't require any
 /// authentication.
-pub trait NonAuthEndpoint: Endpoint
-where
-    <Self as Outgoing>::Incoming: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>,
-    <Self::Response as Outgoing>::Incoming: TryFrom<
-        http::Response<Vec<u8>>,
-        Error = FromHttpResponseError<<Self as Endpoint>::ResponseError>,
-    >,
-{
-}
+pub trait NonAuthEndpoint: Endpoint {}
 
 /// Metadata about an API endpoint.
 #[derive(Clone, Debug)]
@@ -365,6 +359,8 @@ mod tests {
         impl Endpoint for Request {
             type Response = Response;
             type ResponseError = Void;
+            type IncomingRequest = Self;
+            type IncomingResponse = Response;
 
             const METADATA: Metadata = Metadata {
                 description: "Add an alias to a room.",

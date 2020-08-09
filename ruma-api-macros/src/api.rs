@@ -303,6 +303,8 @@ impl ToTokens for Api {
             impl #request_lifetimes ::ruma_api::Endpoint for Request #request_lifetimes {
                 type Response = Response;
                 type ResponseError = #error;
+                type IncomingRequest = <Self as ::ruma_api::Outgoing>::Incoming;
+                type IncomingResponse = <Response as ::ruma_api::Outgoing>::Incoming;
 
                 /// Metadata for the `#name` endpoint.
                 const METADATA: ::ruma_api::Metadata = ::ruma_api::Metadata {
