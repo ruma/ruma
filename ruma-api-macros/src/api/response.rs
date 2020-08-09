@@ -249,7 +249,7 @@ impl ToTokens for Response {
 
             let fields = fields.map(ResponseField::field);
 
-            quote!( { #(#fields),* } )
+            quote! { { #(#fields),* } }
         } else {
             quote! { {} }
         };
@@ -266,7 +266,8 @@ impl ToTokens for Response {
         };
 
         let response = quote! {
-            #[derive(Debug, Clone, ::ruma_api::Outgoing, ::ruma_api::exports::serde::Deserialize)]
+            #[derive(Debug, Clone, ::ruma_api::Outgoing)]
+            #[incoming_no_deserialize]
             pub struct Response #response_def
 
             #response_body_struct
