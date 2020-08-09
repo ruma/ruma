@@ -68,13 +68,74 @@ pub fn collect_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
 }
 
 /// Generates a `TokenStream` of lifetime identifiers `<'lifetime>`.
-pub fn generics_to_tokens<'a, I: Iterator<Item = &'a Lifetime>>(lifetimes: I) -> TokenStream {
-    let lifetimes = lifetimes.collect::<Vec<_>>();
+pub fn unique_lifetimes_to_tokens<'a, I: Iterator<Item = &'a Lifetime>>(
+    lifetimes: I,
+) -> TokenStream {
+    let lifetimes = lifetimes.collect::<BTreeSet<_>>();
     if lifetimes.is_empty() {
         TokenStream::new()
     } else {
         let lifetimes = quote! { #( #lifetimes ),* };
         quote! { < #lifetimes > }
+    }
+}
+
+pub fn has_lifetime(ty: &Type) -> bool {
+    match ty {
+        Type::Path(TypePath { path, .. }) => {
+            let mut found = false;
+            for seg in &path.segments {
+                match &seg.arguments {
+                    PathArguments::AngleBracketed(AngleBracketedGenericArguments {
+                        args, ..
+                    }) => {
+                        for gen in args {
+                            if let GenericArgument::Type(ty) = gen {
+                                if has_lifetime(&ty) {
+                                    found = true;
+                                };
+                            } else if let GenericArgument::Lifetime(_) = gen {
+                                return true;
+                            }
+                        }
+                    }
+                    PathArguments::Parenthesized(ParenthesizedGenericArguments {
+                        inputs, ..
+                    }) => {
+                        for ty in inputs {
+                            if has_lifetime(ty) {
+                                found = true;
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            found
+        }
+        Type::Reference(TypeReference { elem, lifetime, .. }) => {
+            if lifetime.is_some() {
+                true
+            } else {
+                has_lifetime(&elem)
+            }
+        }
+        Type::Tuple(TypeTuple { elems, .. }) => {
+            let mut found = false;
+            for ty in elems {
+                if has_lifetime(ty) {
+                    found = true;
+                }
+            }
+            found
+        }
+        Type::Paren(TypeParen { elem, .. }) => has_lifetime(&elem),
+        Type::Group(TypeGroup { elem, .. }) => has_lifetime(&*elem),
+        Type::Ptr(TypePtr { elem, .. }) => has_lifetime(&*elem),
+        Type::Slice(TypeSlice { elem, .. }) => has_lifetime(&*elem),
+        Type::Array(TypeArray { elem, .. }) => has_lifetime(&*elem),
+        Type::BareFn(TypeBareFn { lifetimes: Some(syn::BoundLifetimes { .. }), .. }) => true,
+        _ => false,
     }
 }
 
