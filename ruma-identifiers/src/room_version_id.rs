@@ -306,7 +306,7 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
-    use super::RoomVersionId;
+    use super::{CustomRoomVersion, RoomVersionId};
     use crate::Error;
 
     #[test]
@@ -441,50 +441,24 @@ mod tests {
     }
 
     #[test]
-    #[allow(deprecated, clippy::cognitive_complexity)]
-    fn predicate_methods() {
-        let version_1 = RoomVersionId::try_from("1").expect("Failed to create RoomVersionId.");
-        let version_2 = RoomVersionId::try_from("2").expect("Failed to create RoomVersionId.");
-        let version_3 = RoomVersionId::try_from("3").expect("Failed to create RoomVersionId.");
-        let version_4 = RoomVersionId::try_from("4").expect("Failed to create RoomVersionId.");
-        let version_5 = RoomVersionId::try_from("5").expect("Failed to create RoomVersionId.");
-        let version_6 = RoomVersionId::try_from("6").expect("Failed to create RoomVersionId.");
-        let custom = RoomVersionId::try_from("io.ruma.1").expect("Failed to create RoomVersionId.");
+    fn official_versions() {
+        assert!(RoomVersionId::Version1.is_official());
+        assert!(RoomVersionId::Version2.is_official());
+        assert!(RoomVersionId::Version3.is_official());
+        assert!(RoomVersionId::Version4.is_official());
+        assert!(RoomVersionId::Version5.is_official());
+        assert!(RoomVersionId::Version6.is_official());
+        assert!(!RoomVersionId::Custom(CustomRoomVersion("io.ruma.1".into())).is_official());
+    }
 
-        assert!(version_1.is_version_1());
-        assert!(version_2.is_version_2());
-        assert!(version_3.is_version_3());
-        assert!(version_4.is_version_4());
-        assert!(version_5.is_version_5());
-        assert!(version_6.is_version_6());
-
-        assert!(!version_1.is_version_2());
-        assert!(!version_1.is_version_3());
-        assert!(!version_1.is_version_4());
-        assert!(!version_1.is_version_5());
-        assert!(!version_1.is_version_6());
-
-        assert!(version_1.is_official());
-        assert!(version_2.is_official());
-        assert!(version_3.is_official());
-        assert!(version_4.is_official());
-        assert!(version_5.is_official());
-        assert!(version_6.is_official());
-
-        assert!(!version_1.is_custom());
-        assert!(!version_2.is_custom());
-        assert!(!version_3.is_custom());
-        assert!(!version_4.is_custom());
-        assert!(!version_5.is_custom());
-        assert!(!version_6.is_custom());
-
-        assert!(custom.is_custom());
-        assert!(!custom.is_official());
-        assert!(!custom.is_version_1());
-        assert!(!custom.is_version_2());
-        assert!(!custom.is_version_3());
-        assert!(!custom.is_version_4());
-        assert!(!custom.is_version_5());
-        assert!(!custom.is_version_6());
+    #[test]
+    fn custom_versions() {
+        assert!(!RoomVersionId::Version1.is_custom());
+        assert!(!RoomVersionId::Version2.is_custom());
+        assert!(!RoomVersionId::Version3.is_custom());
+        assert!(!RoomVersionId::Version4.is_custom());
+        assert!(!RoomVersionId::Version5.is_custom());
+        assert!(!RoomVersionId::Version6.is_custom());
+        assert!(RoomVersionId::Custom(CustomRoomVersion("io.ruma.1".into())).is_custom());
     }
 }
