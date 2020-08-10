@@ -225,6 +225,13 @@ pub struct NoticeMessageEventContent {
     pub relates_to: Option<RelatesTo>,
 }
 
+impl NoticeMessageEventContent {
+    /// A convenience constructor to create a plain text notices.
+    pub fn plain(body: impl Into<String>) -> Self {
+        Self { body: body.into(), formatted: None, relates_to: None }
+    }
+}
+
 /// The payload for a server notice message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ServerNoticeMessageEventContent {
@@ -315,6 +322,19 @@ pub struct TextMessageEventContent {
     pub relates_to: Option<RelatesTo>,
 }
 
+impl TextMessageEventContent {
+    /// A convenience constructor to create a plain text message.
+    pub fn plain(body: impl Into<String>) -> Self {
+        Self { body: body.into(), formatted: None, relates_to: None }
+    }
+
+    /// A convenience constructor to create a plain text message.
+    #[deprecated = "Renamed to plain"]
+    pub fn new_plain(body: impl Into<String>) -> Self {
+        Self::plain(body)
+    }
+}
+
 /// The payload for a video message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct VideoMessageEventContent {
@@ -389,19 +409,6 @@ pub struct RelatesTo {
 pub struct InReplyTo {
     /// The event being replied to.
     pub event_id: EventId,
-}
-
-impl TextMessageEventContent {
-    /// A convenience constructor to create a plain text message
-    pub fn plain(body: impl Into<String>) -> Self {
-        Self { body: body.into(), formatted: None, relates_to: None }
-    }
-
-    /// A convenience constructor to create a plain text message
-    #[deprecated = "Renamed to plain"]
-    pub fn new_plain(body: impl Into<String>) -> Self {
-        Self::plain(body)
-    }
 }
 
 #[cfg(test)]
