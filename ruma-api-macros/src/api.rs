@@ -2,13 +2,14 @@
 
 use std::convert::{TryFrom, TryInto as _};
 
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
+use proc_macro_crate::crate_name;
 use quote::{quote, ToTokens};
 use syn::{
     braced,
     parse::{Parse, ParseStream},
     spanned::Spanned,
-    Field, FieldValue, Token, Type,
+    Field, FieldValue, Ident, Token, Type,
 };
 
 pub(crate) mod attribute;
@@ -24,6 +25,15 @@ pub fn strip_serde_attrs(field: &Field) -> Field {
     let mut field = field.clone();
     field.attrs.retain(|attr| !attr.path.is_ident("serde"));
     field
+}
+
+pub fn import_ruma_api() -> TokenStream {
+    if let Ok(name) = crate_name("ruma-api") {
+        let import = Ident::new(&name, Span::call_site());
+        quote! { ::#import }
+    } else {
+        quote! { ::ruma_api }
+    }
 }
 
 /// The result of processing the `ruma_api` macro, ready for output back to source code.
@@ -82,6 +92,9 @@ impl TryFrom<RawApi> for Api {
 
 impl ToTokens for Api {
     fn to_tokens(&self, tokens: &mut TokenStream) {
+        // Guarantee `ruma_api` is available and named something we can refer to.
+        let ruma_api_import = import_ruma_api();
+
         let description = &self.metadata.description;
         let method = &self.metadata.method;
         // We don't (currently) use this literal as a literal in the generated code. Instead we just
@@ -130,12 +143,12 @@ impl ToTokens for Api {
         let mut header_kvs = self.request.append_header_kvs();
         if requires_authentication.value {
             header_kvs.push(quote! {
-                ::ruma_api::exports::http::header::AUTHORIZATION,
-                ::ruma_api::exports::http::header::HeaderValue::from_str(
+                #ruma_api_import::exports::http::header::AUTHORIZATION,
+                #ruma_api_import::exports::http::header::HeaderValue::from_str(
                     &::std::format!(
                         "Bearer {}",
                         access_token.ok_or_else(
-                            ::ruma_api::error::IntoHttpError::needs_authentication
+                            #ruma_api_import::error::IntoHttpError::needs_authentication
                         )?
                     )
                 )?
@@ -162,10 +175,10 @@ impl ToTokens for Api {
                 TokenStream::new()
             };
             quote! {
-                let request_body: <RequestBody #body_lifetimes as ::ruma_api::Outgoing>::Incoming =
-                    ::ruma_api::try_deserialize!(
+                let request_body: <RequestBody #body_lifetimes as #ruma_api_import::Outgoing>::Incoming =
+                    #ruma_api_import::try_deserialize!(
                         request,
-                        ::ruma_api::exports::serde_json::from_slice(request.body().as_slice())
+                        #ruma_api_import::exports::serde_json::from_slice(request.body().as_slice())
                     );
             }
         } else {
@@ -190,18 +203,19 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let typed_response_body_decl =
-            if self.response.has_body_fields() || self.response.newtype_body_field().is_some() {
-                quote! {
-                    let response_body: <ResponseBody as ::ruma_api::Outgoing>::Incoming =
-                        ::ruma_api::try_deserialize!(
-                            response,
-                            ::ruma_api::exports::serde_json::from_slice(response.body().as_slice()),
-                        );
-                }
-            } else {
-                TokenStream::new()
-            };
+        let typed_response_body_decl = if self.response.has_body_fields()
+            || self.response.newtype_body_field().is_some()
+        {
+            quote! {
+                let response_body: <ResponseBody as #ruma_api_import::Outgoing>::Incoming =
+                    #ruma_api_import::try_deserialize!(
+                        response,
+                        #ruma_api_import::exports::serde_json::from_slice(response.body().as_slice()),
+                    );
+            }
+        } else {
+            TokenStream::new()
+        };
 
         let response_init_fields = self.response.init_fields();
 
@@ -224,22 +238,23 @@ impl ToTokens for Api {
             TokenStream::new()
         } else {
             quote! {
-                impl #request_lifetimes ::ruma_api::NonAuthEndpoint
+                impl #request_lifetimes #ruma_api_import::NonAuthEndpoint
                     for Request #request_lifetimes
                 {}
             }
         };
 
         let api = quote! {
+
             #[doc = #request_doc]
             #request_type
 
-            impl ::std::convert::TryFrom<::ruma_api::exports::http::Request<Vec<u8>>> for #request_try_from_type {
-                type Error = ::ruma_api::error::FromHttpRequestError;
+            impl ::std::convert::TryFrom<#ruma_api_import::exports::http::Request<Vec<u8>>> for #request_try_from_type {
+                type Error = #ruma_api_import::error::FromHttpRequestError;
 
                 #[allow(unused_variables)]
                 fn try_from(
-                    request: ::ruma_api::exports::http::Request<Vec<u8>>
+                    request: #ruma_api_import::exports::http::Request<Vec<u8>>
                 ) -> ::std::result::Result<Self, Self::Error> {
                     #extract_request_path
                     #extract_request_query
@@ -258,13 +273,13 @@ impl ToTokens for Api {
             #[doc = #response_doc]
             #response_type
 
-            impl ::std::convert::TryFrom<Response> for ::ruma_api::exports::http::Response<Vec<u8>> {
-                type Error = ::ruma_api::error::IntoHttpError;
+            impl ::std::convert::TryFrom<Response> for #ruma_api_import::exports::http::Response<Vec<u8>> {
+                type Error = #ruma_api_import::error::IntoHttpError;
 
                 #[allow(unused_variables)]
                 fn try_from(response: Response) -> ::std::result::Result<Self, Self::Error> {
-                    let response = ::ruma_api::exports::http::Response::builder()
-                        .header(::ruma_api::exports::http::header::CONTENT_TYPE, "application/json")
+                    let response = #ruma_api_import::exports::http::Response::builder()
+                        .header(#ruma_api_import::exports::http::header::CONTENT_TYPE, "application/json")
                         #serialize_response_headers
                         .body(#body)
                         // Since we require header names to come from the `http::header` module,
@@ -274,12 +289,12 @@ impl ToTokens for Api {
                 }
             }
 
-            impl ::std::convert::TryFrom<::ruma_api::exports::http::Response<Vec<u8>>> for Response {
-                type Error = ::ruma_api::error::FromHttpResponseError<#error>;
+            impl ::std::convert::TryFrom<#ruma_api_import::exports::http::Response<Vec<u8>>> for Response {
+                type Error = #ruma_api_import::error::FromHttpResponseError<#error>;
 
                 #[allow(unused_variables)]
                 fn try_from(
-                    response: ::ruma_api::exports::http::Response<Vec<u8>>,
+                    response: #ruma_api_import::exports::http::Response<Vec<u8>>,
                 ) -> ::std::result::Result<Self, Self::Error> {
                     if response.status().as_u16() < 400 {
                         #extract_response_headers
@@ -290,26 +305,26 @@ impl ToTokens for Api {
                             #response_init_fields
                         })
                     } else {
-                        match <#error as ::ruma_api::EndpointError>::try_from_response(response) {
-                            Ok(err) => Err(::ruma_api::error::ServerError::Known(err).into()),
+                        match <#error as #ruma_api_import::EndpointError>::try_from_response(response) {
+                            Ok(err) => Err(#ruma_api_import::error::ServerError::Known(err).into()),
                             Err(response_err) => {
-                                Err(::ruma_api::error::ServerError::Unknown(response_err).into())
+                                Err(#ruma_api_import::error::ServerError::Unknown(response_err).into())
                             }
                         }
                     }
                 }
             }
 
-            impl #request_lifetimes ::ruma_api::Endpoint for Request #request_lifetimes {
+            impl #request_lifetimes #ruma_api_import::Endpoint for Request #request_lifetimes {
                 type Response = Response;
                 type ResponseError = #error;
-                type IncomingRequest = <Self as ::ruma_api::Outgoing>::Incoming;
-                type IncomingResponse = <Response as ::ruma_api::Outgoing>::Incoming;
+                type IncomingRequest = <Self as #ruma_api_import::Outgoing>::Incoming;
+                type IncomingResponse = <Response as #ruma_api_import::Outgoing>::Incoming;
 
                 /// Metadata for the `#name` endpoint.
-                const METADATA: ::ruma_api::Metadata = ::ruma_api::Metadata {
+                const METADATA: #ruma_api_import::Metadata = #ruma_api_import::Metadata {
                     description: #description,
-                    method: ::ruma_api::exports::http::Method::#method,
+                    method: #ruma_api_import::exports::http::Method::#method,
                     name: #name,
                     path: #path,
                     rate_limited: #rate_limited,
@@ -322,13 +337,13 @@ impl ToTokens for Api {
                     base_url: &::std::primitive::str,
                     access_token: ::std::option::Option<&str>,
                 ) -> ::std::result::Result<
-                    ::ruma_api::exports::http::Request<Vec<u8>>,
-                    ::ruma_api::error::IntoHttpError,
+                    #ruma_api_import::exports::http::Request<Vec<u8>>,
+                    #ruma_api_import::error::IntoHttpError,
                 > {
                     let metadata = Request::METADATA;
 
-                    let http_request = ::ruma_api::exports::http::Request::builder()
-                        .method(::ruma_api::exports::http::Method::#method)
+                    let http_request = #ruma_api_import::exports::http::Request::builder()
+                        .method(#ruma_api_import::exports::http::Method::#method)
                         .uri(::std::format!(
                             "{}{}{}",
                             base_url.strip_suffix("/").unwrap_or(base_url),
