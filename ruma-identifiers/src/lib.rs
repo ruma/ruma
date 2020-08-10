@@ -22,8 +22,8 @@ pub use crate::{
 };
 #[doc(inline)]
 pub use ruma_identifiers_validation::{
+    crypto_algorithms::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, ServerKeyAlgorithm},
     error::Error,
-    key_algorithms::{DeviceKeyAlgorithm, ServerKeyAlgorithm},
 };
 
 #[macro_use]

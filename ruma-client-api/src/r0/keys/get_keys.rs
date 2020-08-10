@@ -3,12 +3,12 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use ruma_api::ruma_api;
+use ruma_common::encryption::DeviceKeys;
 use ruma_identifiers::{DeviceId, UserId};
 use serde_json::Value as JsonValue;
 
 #[cfg(feature = "unstable-pre-spec")]
 use super::CrossSigningKey;
-use super::DeviceKeys;
 
 ruma_api! {
     metadata: {

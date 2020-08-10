@@ -2,7 +2,7 @@
 
 use std::{convert::TryInto, num::NonZeroU8, str::FromStr};
 
-use ruma_identifiers_validation::{key_algorithms::DeviceKeyAlgorithm, Error};
+use ruma_identifiers_validation::{crypto_algorithms::DeviceKeyAlgorithm, Error};
 
 use crate::DeviceId;
 
@@ -56,7 +56,7 @@ common_impls!(DeviceKeyId, try_from, "Device key ID with algorithm and device ID
 mod test {
     use std::convert::TryFrom;
 
-    use ruma_identifiers_validation::{key_algorithms::DeviceKeyAlgorithm, Error};
+    use ruma_identifiers_validation::{crypto_algorithms::DeviceKeyAlgorithm, Error};
     #[cfg(feature = "serde")]
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

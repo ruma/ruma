@@ -2,7 +2,7 @@
 
 use std::{convert::TryInto, num::NonZeroU8, str::FromStr};
 
-use ruma_identifiers_validation::{key_algorithms::ServerKeyAlgorithm, Error};
+use ruma_identifiers_validation::{crypto_algorithms::ServerKeyAlgorithm, Error};
 
 /// Key identifiers used for homeserver signing keys.
 #[derive(Clone, Debug)]
@@ -59,7 +59,7 @@ mod tests {
     use crate::{Error, ServerKeyId};
 
     #[cfg(feature = "serde")]
-    use ruma_identifiers_validation::key_algorithms::ServerKeyAlgorithm;
+    use ruma_identifiers_validation::crypto_algorithms::ServerKeyAlgorithm;
 
     #[cfg(feature = "serde")]
     #[test]

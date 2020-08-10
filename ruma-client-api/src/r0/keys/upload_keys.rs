@@ -4,9 +4,10 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_api::ruma_api;
+use ruma_common::encryption::DeviceKeys;
 use ruma_identifiers::{DeviceKeyAlgorithm, DeviceKeyId};
 
-use super::{DeviceKeys, OneTimeKey};
+use super::OneTimeKey;
 
 ruma_api! {
     metadata: {

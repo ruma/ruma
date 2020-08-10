@@ -1,10 +1,9 @@
 //! Types for the *m.room_key* event.
 
 use ruma_events_macros::BasicEventContent;
-use ruma_identifiers::RoomId;
+use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
 use serde::{Deserialize, Serialize};
 
-use super::Algorithm;
 use crate::BasicEvent;
 
 /// This event type is used to exchange keys for end-to-end encryption.
@@ -19,7 +18,7 @@ pub struct RoomKeyEventContent {
     /// The encryption algorithm the key in this event is to be used with.
     ///
     /// Must be `m.megolm.v1.aes-sha2`.
-    pub algorithm: Algorithm,
+    pub algorithm: EventEncryptionAlgorithm,
 
     /// The room where the key is used.
     pub room_id: RoomId,
@@ -33,17 +32,17 @@ pub struct RoomKeyEventContent {
 
 #[cfg(test)]
 mod tests {
-    use ruma_identifiers::room_id;
+    use ruma_identifiers::{room_id, EventEncryptionAlgorithm};
     use serde_json::{json, to_value as to_json_value};
 
     use super::RoomKeyEventContent;
-    use crate::{Algorithm, BasicEvent};
+    use crate::BasicEvent;
 
     #[test]
     fn serialization() {
         let ev = BasicEvent {
             content: RoomKeyEventContent {
-                algorithm: Algorithm::MegolmV1AesSha2,
+                algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
                 room_id: room_id!("!testroomid:example.org"),
                 session_id: "SessId".into(),
                 session_key: "SessKey".into(),

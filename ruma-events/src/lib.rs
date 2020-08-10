@@ -121,7 +121,7 @@ use std::fmt::Debug;
 
 use js_int::Int;
 use ruma_common::Raw;
-use ruma_identifiers::RoomId;
+use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
 use serde::{
     de::{self, IgnoredAny},
     Deserialize, Serialize,
@@ -130,7 +130,6 @@ use serde_json::value::RawValue as RawJsonValue;
 
 use self::room::redaction::{RedactionEvent, SyncRedactionEvent};
 
-mod algorithm;
 mod enums;
 mod error;
 mod event_kinds;
@@ -160,7 +159,6 @@ pub mod tag;
 pub mod typing;
 
 pub use self::{
-    algorithm::Algorithm,
     enums::{
         AnyBasicEvent, AnyBasicEventContent, AnyEphemeralRoomEvent, AnyEphemeralRoomEventContent,
         AnyEvent, AnyMessageEvent, AnyMessageEventContent, AnyPossiblyRedactedMessageEvent,

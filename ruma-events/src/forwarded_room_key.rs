@@ -1,10 +1,9 @@
 //! Types for the *m.forwarded_room_key* event.
 
 use ruma_events_macros::BasicEventContent;
-use ruma_identifiers::RoomId;
+use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
 use serde::{Deserialize, Serialize};
 
-use super::Algorithm;
 use crate::BasicEvent;
 
 /// This event type is used to forward keys for end-to-end encryption.
@@ -17,7 +16,7 @@ pub type ForwardedRoomKeyEvent = BasicEvent<ForwardedRoomKeyEventContent>;
 #[ruma_event(type = "m.forwarded_room_key")]
 pub struct ForwardedRoomKeyEventContent {
     /// The encryption algorithm the key in this event is to be used with.
-    pub algorithm: Algorithm,
+    pub algorithm: EventEncryptionAlgorithm,
 
     /// The room where the key is used.
     pub room_id: RoomId,

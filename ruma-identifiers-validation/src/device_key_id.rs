@@ -1,6 +1,6 @@
 use std::{num::NonZeroU8, str::FromStr};
 
-use crate::{key_algorithms::DeviceKeyAlgorithm, Error};
+use crate::{crypto_algorithms::DeviceKeyAlgorithm, Error};
 
 pub fn validate(s: &str) -> Result<NonZeroU8, Error> {
     let colon_idx = NonZeroU8::new(s.find(':').ok_or(Error::MissingDeviceKeyDelimiter)? as u8)

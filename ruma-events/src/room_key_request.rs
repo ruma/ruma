@@ -1,11 +1,10 @@
 //! Types for the *m.room_key_request* event.
 
 use ruma_events_macros::BasicEventContent;
-use ruma_identifiers::{DeviceId, RoomId};
+use ruma_identifiers::{DeviceId, EventEncryptionAlgorithm, RoomId};
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-use super::Algorithm;
 use crate::BasicEvent;
 
 /// This event type is used to request keys for end-to-end encryption.
@@ -54,7 +53,7 @@ pub enum Action {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RequestedKeyInfo {
     /// The encryption algorithm the requested key in this event is to be used with.
-    pub algorithm: Algorithm,
+    pub algorithm: EventEncryptionAlgorithm,
 
     /// The room where the key is used.
     pub room_id: RoomId,
