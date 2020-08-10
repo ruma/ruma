@@ -9,7 +9,7 @@ use syn::{spanned::Spanned, Field, Ident};
 use crate::{
     api::{
         attribute::{Meta, MetaNameValue},
-        strip_serde_attrs, RawResponse,
+        import_ruma_api, strip_serde_attrs, RawResponse,
     },
     util,
 };
@@ -18,6 +18,9 @@ use crate::{
 pub struct Response {
     /// The fields of the response.
     fields: Vec<ResponseField>,
+
+    // Guarantee `ruma_api` is available and named something we can refer to.
+    ruma_api_import: TokenStream,
 }
 
 impl Response {
@@ -33,6 +36,8 @@ impl Response {
 
     /// Produces code for a response struct initializer.
     pub fn init_fields(&self) -> TokenStream {
+        let ruma_api = &self.ruma_api_import;
+
         let mut fields = vec![];
         let mut new_type_raw_body = None;
         for response_field in &self.fields {
@@ -51,9 +56,9 @@ impl Response {
                 }
                 ResponseField::Header(_, header_name) => {
                     quote_spanned! {span=>
-                        #field_name: ::ruma_api::try_deserialize!(
+                        #field_name: #ruma_api::try_deserialize!(
                             response,
-                            headers.remove(::ruma_api::exports::http::header::#header_name)
+                            headers.remove(#ruma_api::exports::http::header::#header_name)
                                 .expect("response missing expected header")
                                 .to_str()
                             )
@@ -86,6 +91,8 @@ impl Response {
 
     /// Produces code to add necessary HTTP headers to an `http::Response`.
     pub fn apply_header_fields(&self) -> TokenStream {
+        let ruma_api = &self.ruma_api_import;
+
         let header_calls = self.fields.iter().filter_map(|response_field| {
             if let ResponseField::Header(ref field, ref header_name) = *response_field {
                 let field_name =
@@ -93,7 +100,7 @@ impl Response {
                 let span = field.span();
 
                 Some(quote_spanned! {span=>
-                    .header(::ruma_api::exports::http::header::#header_name, response.#field_name)
+                    .header(#ruma_api::exports::http::header::#header_name, response.#field_name)
                 })
             } else {
                 None
@@ -105,6 +112,8 @@ impl Response {
 
     /// Produces code to initialize the struct that will be used to create the response body.
     pub fn to_body(&self) -> TokenStream {
+        let ruma_api = &self.ruma_api_import;
+
         if let Some(field) = self.newtype_raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let span = field.span();
@@ -138,7 +147,7 @@ impl Response {
             }
         };
 
-        quote!(::ruma_api::exports::serde_json::to_vec(&#body)?)
+        quote!(#ruma_api::exports::serde_json::to_vec(&#body)?)
     }
 
     /// Gets the newtype body field, if this response has one.
@@ -225,12 +234,14 @@ impl TryFrom<RawResponse> for Response {
             ));
         }
 
-        Ok(Self { fields })
+        Ok(Self { fields, ruma_api_import: import_ruma_api() })
     }
 }
 
 impl ToTokens for Response {
     fn to_tokens(&self, tokens: &mut TokenStream) {
+        let ruma_api = &self.ruma_api_import;
+
         let response_def = if self.fields.is_empty() {
             quote!(;)
         } else {
@@ -258,15 +269,15 @@ impl ToTokens for Response {
             /// Data in the response body.
             #[derive(
                 Debug,
-                ::ruma_api::Outgoing,
-                ::ruma_api::exports::serde::Deserialize,
-                ::ruma_api::exports::serde::Serialize,
+                #ruma_api::Outgoing,
+                #ruma_api::exports::serde::Deserialize,
+                #ruma_api::exports::serde::Serialize,
             )]
             struct ResponseBody #def
         };
 
         let response = quote! {
-            #[derive(Debug, Clone, ::ruma_api::Outgoing)]
+            #[derive(Debug, Clone, #ruma_api::Outgoing)]
             #[incoming_no_deserialize]
             pub struct Response #response_def
 
