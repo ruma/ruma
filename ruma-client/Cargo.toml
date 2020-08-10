@@ -1,0 +1,40 @@
+[package]
+authors = [
+    "Jimmy Cuadra <jimmy@jimmycuadra.com>",
+    "Jonas Platte <jplatte@posteo.de>",
+]
+categories = ["api-bindings", "web-programming"]
+description = "A Matrix client library."
+documentation = "https://docs.rs/ruma-client"
+edition = "2018"
+homepage = "https://github.com/ruma/ruma-client"
+keywords = ["matrix", "chat", "messaging", "ruma"]
+license = "MIT"
+name = "ruma-client"
+readme = "README.md"
+repository = "https://github.com/ruma/ruma-client"
+version = "0.4.0"
+
+[dependencies]
+futures-core = "0.3.5"
+futures-util = "0.3.5"
+http = "0.2.1"
+hyper = "0.13.5"
+hyper-tls = { version = "0.4.1", optional = true }
+ruma-api = "=0.17.0-alpha.1"
+ruma-client-api = "=0.10.0-alpha.1"
+ruma-common = "0.2.0"
+ruma-events = "=0.22.0-alpha.1"
+ruma-identifiers = "0.17.1"
+serde = { version = "1.0.110", features = ["derive"] }
+serde_json = "1.0.53"
+serde_urlencoded = "0.6.1"
+url = "2.1.1"
+
+[dev-dependencies]
+anyhow = "1.0.31"
+tokio = { version = "0.2.21", features = ["macros"] }
+
+[features]
+default = ["tls"]
+tls = ["hyper-tls"]
