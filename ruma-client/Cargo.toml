@@ -16,24 +16,26 @@ repository = "https://github.com/ruma/ruma-client"
 version = "0.4.0"
 
 [dependencies]
+assign = "1.1.0"
 futures-core = "0.3.5"
 futures-util = "0.3.5"
 http = "0.2.1"
-hyper = "0.13.5"
-hyper-tls = { version = "0.4.1", optional = true }
-ruma-api = "=0.17.0-alpha.1"
-ruma-client-api = "=0.10.0-alpha.1"
-ruma-common = "0.2.0"
-ruma-events = "=0.22.0-alpha.1"
-ruma-identifiers = "0.17.1"
-serde = { version = "1.0.110", features = ["derive"] }
-serde_json = "1.0.53"
+hyper = "0.13.7"
+hyper-tls = { version = "0.4.3", optional = true }
+ruma-api = { version = "=0.17.0-alpha.1", path = "../ruma-api" }
+ruma-client-api = { version = "0.10.0-alpha.1", path = "../ruma-client-api" }
+ruma-common = { version = "0.2.0", path = "../ruma-common" }
+ruma-events = { version = "=0.22.0-alpha.1", path = "../ruma-events" }
+ruma-identifiers = { version = "0.17.4", path = "../ruma-identifiers" }
+ruma-serde = { version = "0.2.3", path = "../ruma-serde" }
+serde = { version = "1.0.115", features = ["derive"] }
+serde_json = "1.0.57"
 serde_urlencoded = "0.6.1"
-url = "2.1.1"
 
 [dev-dependencies]
-anyhow = "1.0.31"
-tokio = { version = "0.2.21", features = ["macros"] }
+anyhow = "1.0.32"
+ruma = { version = "0.0.1", path = "../ruma", features = ["client-api"] }
+tokio = { version = "0.2.22", features = ["macros"] }
 
 [features]
 default = ["tls"]

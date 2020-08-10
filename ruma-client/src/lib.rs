@@ -46,7 +46,7 @@
 //!
 //! # use futures_util::stream::{StreamExt as _, TryStreamExt as _};
 //! # use ruma_client::Client;
-//! # use ruma_common::presence::PresenceState;
+//! # use ruma::presence::PresenceState;
 //! # let homeserver_url = "https://example.com".parse().unwrap();
 //! # let client = Client::https(homeserver_url, None);
 //! # let next_batch_token = String::new();
@@ -81,58 +81,53 @@
 //! # let client = Client::https(homeserver_url, None);
 //! use std::convert::TryFrom;
 //!
-//! use ruma_client::api::r0::alias::get_alias;
-//! use ruma_identifiers::{RoomAliasId, RoomId};
+//! use ruma::{
+//!     api::client::r0::alias::get_alias,
+//!     room_alias_id, room_id,
+//! };
 //!
 //! async {
 //!     let response = client
-//!         .request(get_alias::Request {
-//!             room_alias: RoomAliasId::try_from("#example_room:example.com").unwrap(),
-//!         })
+//!         .request(get_alias::Request::new(&room_alias_id!("#example_room:example.com")))
 //!         .await?;
 //!
-//!     assert_eq!(response.room_id, RoomId::try_from("!n8f893n9:example.com").unwrap());
+//!     assert_eq!(response.room_id, room_id!("!n8f893n9:example.com"));
 //! #   Result::<(), ruma_client::Error<_>>::Ok(())
 //! }
 //! # ;
 //! ```
 
 #![warn(rust_2018_idioms)]
-#![deny(
-    missing_copy_implementations,
-    missing_debug_implementations,
-    missing_docs
-)]
+#![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
 
 use std::{
     convert::TryFrom,
-    str::FromStr,
     sync::{Arc, Mutex},
     time::Duration,
 };
 
-use futures_core::{
-    future::Future,
-    stream::{Stream, TryStream},
-};
+use assign::assign;
+use futures_core::stream::{Stream, TryStream};
 use futures_util::stream;
-use http::Response as HttpResponse;
-use hyper::{client::HttpConnector, Client as HyperClient, Uri};
+use http::{uri::Uri, Response as HttpResponse};
+use hyper::{client::HttpConnector, Client as HyperClient};
 #[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
 use ruma_api::Endpoint;
+use ruma_client_api::r0::sync::sync_events::{
+    Filter as SyncFilter, Request as SyncRequest, Response as SyncResponse,
+};
 use ruma_identifiers::DeviceId;
+use ruma_serde::urlencoded;
 use std::collections::BTreeMap;
-use url::Url;
-
-pub use ruma_client_api as api;
-pub use ruma_events as events;
-pub use ruma_identifiers as identifiers;
 
 mod error;
 mod session;
 
-pub use self::{error::Error, session::Identification, session::Session};
+pub use self::{
+    error::Error,
+    session::{Identification, Session},
+};
 
 /// A client for the Matrix client-server API.
 #[derive(Debug)]
@@ -142,7 +137,7 @@ pub struct Client<C>(Arc<ClientData<C>>);
 #[derive(Debug)]
 struct ClientData<C> {
     /// The URL of the homeserver to connect to.
-    homeserver_url: Url,
+    homeserver_url: Uri,
     /// The underlying HTTP client.
     hyper: HyperClient<C>,
     /// User session data.
@@ -154,7 +149,7 @@ pub type HttpClient = Client<HttpConnector>;
 
 impl HttpClient {
     /// Creates a new client for making HTTP requests to the given homeserver.
-    pub fn new(homeserver_url: Url, session: Option<Session>) -> Self {
+    pub fn new(homeserver_url: Uri, session: Option<Session>) -> Self {
         Self(Arc::new(ClientData {
             homeserver_url,
             hyper: HyperClient::builder().build_http(),
@@ -170,7 +165,7 @@ pub type HttpsClient = Client<HttpsConnector<HttpConnector>>;
 #[cfg(feature = "tls")]
 impl HttpsClient {
     /// Creates a new client for making HTTPS requests to the given homeserver.
-    pub fn https(homeserver_url: Url, session: Option<Session>) -> Self {
+    pub fn https(homeserver_url: Uri, session: Option<Session>) -> Self {
         let connector = HttpsConnector::new();
 
         Self(Arc::new(ClientData {
@@ -190,7 +185,7 @@ where
     /// This allows the user to configure the details of HTTP as desired.
     pub fn custom(
         hyper_client: HyperClient<C>,
-        homeserver_url: Url,
+        homeserver_url: Uri,
         session: Option<Session>,
     ) -> Self {
         Self(Arc::new(ClientData {
@@ -204,11 +199,7 @@ where
     ///
     /// Useful for serializing and persisting the session to be restored later.
     pub fn session(&self) -> Option<Session> {
-        self.0
-            .session
-            .lock()
-            .expect("session mutex was poisoned")
-            .clone()
+        self.0.session.lock().expect("session mutex was poisoned").clone()
     }
 
     /// Log in with a username and password.
@@ -222,8 +213,8 @@ where
         password: String,
         device_id: Option<Box<DeviceId>>,
         initial_device_display_name: Option<String>,
-    ) -> Result<Session, Error<api::Error>> {
-        use api::r0::session::login;
+    ) -> Result<Session, Error<ruma_client_api::Error>> {
+        use ruma_client_api::r0::session::login;
 
         let response = self
             .request(login::Request {
@@ -249,8 +240,10 @@ where
     /// Register as a guest. In contrast to `api::r0::account::register::call()`,
     /// this method stores the session data returned by the endpoint in this
     /// client, instead of returning it.
-    pub async fn register_guest(&self) -> Result<Session, Error<api::r0::uiaa::UiaaResponse>> {
-        use api::r0::account::register;
+    pub async fn register_guest(
+        &self,
+    ) -> Result<Session, Error<ruma_client_api::r0::uiaa::UiaaResponse>> {
+        use ruma_client_api::r0::account::register;
 
         let response = self
             .request(register::Request {
@@ -291,8 +284,8 @@ where
         &self,
         username: Option<String>,
         password: String,
-    ) -> Result<Session, Error<api::r0::uiaa::UiaaResponse>> {
-        use api::r0::account::register;
+    ) -> Result<Session, Error<ruma_client_api::r0::uiaa::UiaaResponse>> {
+        use ruma_client_api::r0::account::register;
 
         let response = self
             .request(register::Request {
@@ -328,14 +321,12 @@ where
     /// the logged-in users account and are visible to them.
     pub fn sync(
         &self,
-        filter: Option<api::r0::sync::sync_events::Filter>,
+        filter: Option<SyncFilter>,
         since: Option<String>,
         set_presence: ruma_common::presence::PresenceState,
         timeout: Option<Duration>,
-    ) -> impl Stream<Item = Result<api::r0::sync::sync_events::Response, Error<api::Error>>>
-           + TryStream<Ok = api::r0::sync::sync_events::Response, Error = Error<api::Error>> {
-        use api::r0::sync::sync_events;
-
+    ) -> impl Stream<Item = Result<SyncResponse, Error<ruma_client_api::Error>>>
+           + TryStream<Ok = SyncResponse, Error = Error<ruma_client_api::Error>> {
         let client = self.clone();
         stream::try_unfold(since, move |since| {
             let client = client.clone();
@@ -343,7 +334,7 @@ where
 
             async move {
                 let response = client
-                    .request(sync_events::Request {
+                    .request(SyncRequest {
                         filter,
                         since,
                         full_state: false,
@@ -359,60 +350,55 @@ where
     }
 
     /// Makes a request to a Matrix API endpoint.
-    pub fn request<Request: Endpoint>(
+    pub async fn request<Request: Endpoint>(
         &self,
         request: Request,
-    ) -> impl Future<Output = Result<Request::Response, Error<Request::ResponseError>>> {
-        self.request_with_url_params(request, None)
+    ) -> Result<Request::IncomingResponse, Error<Request::ResponseError>> {
+        self.request_with_url_params(request, None).await
     }
 
     /// Makes a request to a Matrix API endpoint including additional URL parameters.
-    pub fn request_with_url_params<Request: Endpoint>(
+    pub async fn request_with_url_params<Request: Endpoint>(
         &self,
         request: Request,
-        params: Option<BTreeMap<String, String>>,
-    ) -> impl Future<Output = Result<Request::Response, Error<Request::ResponseError>>> {
+        extra_params: Option<BTreeMap<String, String>>,
+    ) -> Result<Request::IncomingResponse, Error<Request::ResponseError>> {
         let client = self.0.clone();
-
-        let mut url = client.homeserver_url.clone();
-
-        async move {
-            let mut hyper_request = request.try_into()?.map(hyper::Body::from);
-
-            {
-                let uri = hyper_request.uri();
-
-                url.set_path(uri.path());
-                url.set_query(uri.query());
-
-                if let Some(params) = params {
-                    for (key, value) in params {
-                        url.query_pairs_mut().append_pair(&key, &value);
-                    }
+        let mut http_request = {
+            let session;
+            let access_token = if Request::METADATA.requires_authentication {
+                session = client.session.lock().unwrap();
+                if let Some(s) = &*session {
+                    Some(s.access_token.as_str())
+                } else {
+                    return Err(Error::AuthenticationRequired);
                 }
+            } else {
+                None
+            };
 
-                if Request::METADATA.requires_authentication {
-                    if let Some(ref session) = *client.session.lock().unwrap() {
-                        url.query_pairs_mut()
-                            .append_pair("access_token", &session.access_token);
-                    } else {
-                        return Err(Error::AuthenticationRequired);
-                    }
-                }
-            }
+            request.try_into_http_request(&client.homeserver_url.to_string(), access_token)?
+        };
 
-            *hyper_request.uri_mut() = Uri::from_str(url.as_ref())?;
+        let extra_params = urlencoded::to_string(extra_params).unwrap();
+        let uri = http_request.uri_mut();
+        let new_path_and_query = match uri.query() {
+            Some(params) => format!("{}?{}&{}", uri.path(), params, extra_params),
+            None => format!("{}?{}", uri.path(), extra_params),
+        };
+        *uri = Uri::from_parts(assign!(uri.clone().into_parts(), {
+            path_and_query: Some(new_path_and_query.parse()?),
+        }))?;
 
-            let hyper_response = client.hyper.request(hyper_request).await?;
-            let (head, body) = hyper_response.into_parts();
+        let hyper_response = client.hyper.request(http_request.map(hyper::Body::from)).await?;
+        let (head, body) = hyper_response.into_parts();
 
-            // FIXME: We read the response into a contiguous buffer here (not actually required for
-            // deserialization) and then copy the whole thing to convert from Bytes to Vec<u8>.
-            let full_body = hyper::body::to_bytes(body).await?;
-            let full_response = HttpResponse::from_parts(head, full_body.as_ref().to_owned());
+        // FIXME: We read the response into a contiguous buffer here (not actually required for
+        // deserialization) and then copy the whole thing to convert from Bytes to Vec<u8>.
+        let full_body = hyper::body::to_bytes(body).await?;
+        let full_response = HttpResponse::from_parts(head, full_body.as_ref().to_owned());
 
-            Ok(Request::Response::try_from(full_response)?)
-        }
+        Ok(Request::IncomingResponse::try_from(full_response)?)
     }
 }
 

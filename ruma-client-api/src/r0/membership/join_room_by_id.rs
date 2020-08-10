@@ -18,7 +18,7 @@ ruma_api! {
     request: {
         /// The room where the user should be invited.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The signature of a `m.third_party_invite` token to prove that this user owns a third
         /// party identity which has been invited to the room.
@@ -32,4 +32,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room id.
+    pub fn new(room_id: &'a RoomId) -> Self {
+        Self { room_id, third_party_signed: None }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given room id.
+    pub fn new(room_id: RoomId) -> Self {
+        Self { room_id }
+    }
 }

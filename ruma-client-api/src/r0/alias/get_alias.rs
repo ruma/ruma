@@ -29,3 +29,17 @@ ruma_api! {
 
     error: crate::Error
 }
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room alias id.
+    pub fn new(room_alias: &'a RoomAliasId) -> Self {
+        Self { room_alias }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given room id and servers
+    pub fn new(room_id: RoomId, servers: Vec<String>) -> Self {
+        Self { room_id, servers }
+    }
+}

@@ -43,7 +43,14 @@ impl<E> From<IntoHttpError> for Error<E> {
 #[doc(hidden)]
 impl<E> From<http::uri::InvalidUri> for Error<E> {
     fn from(err: http::uri::InvalidUri) -> Self {
-        Error::Url(UrlError(err))
+        Error::Url(UrlError(err.into()))
+    }
+}
+
+#[doc(hidden)]
+impl<E> From<http::uri::InvalidUriParts> for Error<E> {
+    fn from(err: http::uri::InvalidUriParts) -> Self {
+        Error::Url(UrlError(err.into()))
     }
 }
 
@@ -63,7 +70,7 @@ impl<E> From<FromHttpResponseError<E>> for Error<E> {
 impl<E: Debug + Display> std::error::Error for Error<E> {}
 
 #[derive(Debug)]
-pub struct UrlError(http::uri::InvalidUri);
+pub struct UrlError(http::Error);
 
 #[derive(Debug)]
 pub struct ResponseError(hyper::Error);

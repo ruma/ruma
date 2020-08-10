@@ -1,17 +1,18 @@
 use std::{env, process::exit, time::Duration};
 
 use futures_util::stream::{StreamExt as _, TryStreamExt as _};
-use ruma_client::{
-    self,
-    events::room::message::{MessageEventContent, TextMessageEventContent},
-    HttpClient,
+use http::Uri;
+use ruma::{
+    events::{
+        room::message::{MessageEventContent, TextMessageEventContent},
+        AnySyncMessageEvent, AnySyncRoomEvent, SyncMessageEvent,
+    },
+    presence::PresenceState,
 };
-use ruma_common::presence::PresenceState;
-use ruma_events::{AnySyncMessageEvent, AnySyncRoomEvent, SyncMessageEvent};
-use url::Url;
+use ruma_client::{self, HttpClient};
 
 async fn log_messages(
-    homeserver_url: Url,
+    homeserver_url: Uri,
     username: String,
     password: String,
 ) -> anyhow::Result<()> {
@@ -21,12 +22,7 @@ async fn log_messages(
 
     let mut sync_stream = Box::pin(
         client
-            .sync(
-                None,
-                None,
-                PresenceState::Online,
-                Some(Duration::from_secs(30)),
-            )
+            .sync(None, None, PresenceState::Online, Some(Duration::from_secs(30)))
             // TODO: This is a horrible way to obtain an initial next_batch token that generates way
             //       too much server load and network traffic. Fix this!
             .skip(1),
@@ -35,12 +31,7 @@ async fn log_messages(
     while let Some(res) = sync_stream.try_next().await? {
         // Only look at rooms the user hasn't left yet
         for (room_id, room) in res.rooms.join {
-            for event in room
-                .timeline
-                .events
-                .into_iter()
-                .flat_map(|r| r.deserialize())
-            {
+            for event in room.timeline.events.into_iter().flat_map(|r| r.deserialize()) {
                 // Filter out the text messages
                 if let AnySyncRoomEvent::Message(AnySyncMessageEvent::RoomMessage(
                     SyncMessageEvent {
@@ -76,6 +67,6 @@ async fn main() -> anyhow::Result<()> {
             }
         };
 
-    let server = Url::parse(&homeserver_url).unwrap();
+    let server = homeserver_url.parse()?;
     log_messages(server, username, password).await
 }
