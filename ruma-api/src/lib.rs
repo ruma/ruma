@@ -232,7 +232,7 @@ pub trait Outgoing {
 }
 
 /// Gives users the ability to define their own serializable/deserializable errors.
-pub trait EndpointError: Sized {
+pub trait EndpointError: std::error::Error + Sized {
     /// Tries to construct `Self` from an `http::Response`.
     ///
     /// This will always return `Err` variant when no `error` field is defined in
