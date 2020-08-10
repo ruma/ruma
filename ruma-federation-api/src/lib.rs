@@ -5,6 +5,7 @@
 mod serde;
 
 pub mod authorization;
+pub mod device;
 pub mod directory;
 pub mod discovery;
 pub mod membership;

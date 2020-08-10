@@ -1,5 +1,13 @@
 # [unreleased]
 
+Improvements:
+
+* Add endpoints:
+
+  ```
+  device::get_devices::v1,
+  ```
+
 # 0.0.3
 
 Breaking Changes:
