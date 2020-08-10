@@ -28,9 +28,12 @@ pub fn strip_serde_attrs(field: &Field) -> Field {
 }
 
 pub fn import_ruma_api() -> TokenStream {
-    if let Ok(name) = crate_name("ruma-api") {
-        let import = Ident::new(&name, Span::call_site());
+    if let Ok(possibly_renamed) = crate_name("ruma-api") {
+        let import = Ident::new(&possibly_renamed, Span::call_site());
         quote! { ::#import }
+    } else if let Ok(possibly_renamed) = crate_name("ruma") {
+        let import = Ident::new(&possibly_renamed, Span::call_site());
+        quote! { ::#import::api }
     } else {
         quote! { ::ruma_api }
     }
