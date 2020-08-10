@@ -34,8 +34,7 @@ pub use ruma_signatures as signatures;
 #[cfg(feature = "ruma-api")]
 #[doc(inline)]
 pub mod api {
-    // Everything except the `ruma_api!` macro
-    pub use ruma_api::{error, Endpoint, EndpointError, Metadata, Outgoing};
+    pub use ruma_api::*;
 
     #[cfg(feature = "ruma-appservice-api")]
     #[doc(inline)]
