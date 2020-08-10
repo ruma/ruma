@@ -25,10 +25,7 @@ impl Session {
     /// Create a new user session from an access token and a user ID.
     #[deprecated]
     pub fn new(access_token: String, user_id: UserId, device_id: Box<DeviceId>) -> Self {
-        Self {
-            access_token,
-            identification: Some(Identification { user_id, device_id }),
-        }
+        Self { access_token, identification: Some(Identification { user_id, device_id }) }
     }
 
     /// Get the access token associated with this session.

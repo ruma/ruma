@@ -1,7 +1,9 @@
 //! Key algorithms used in Matrix spec.
 
-use std::convert::TryFrom;
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::{
+    convert::TryFrom,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
