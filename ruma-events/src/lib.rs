@@ -139,6 +139,25 @@ mod event_type;
 // that expect `ruma_events` to exist in the prelude.
 extern crate self as ruma_events;
 
+/// Re-exports to allow users to declare their own event types using the
+/// macros used internally.
+///
+/// It is not considered part of ruma-events' public API.
+#[doc(hidden)]
+pub mod exports {
+    pub use js_int;
+    pub use ruma_identifiers;
+    pub use serde;
+    pub use serde_json;
+}
+
+/// Re-export of all the derives needed to create your own event types.
+pub mod macros {
+    pub use ruma_events_macros::{
+        BasicEventContent, EphemeralRoomEventContent, Event, MessageEventContent, StateEventContent,
+    };
+}
+
 pub mod call;
 pub mod custom;
 pub mod direct;

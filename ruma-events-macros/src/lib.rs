@@ -6,7 +6,10 @@
 #![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
 
 use proc_macro::TokenStream;
-use syn::{parse_macro_input, DeriveInput};
+use proc_macro2 as pm2;
+use proc_macro_crate::crate_name;
+use quote::quote;
+use syn::{parse_macro_input, DeriveInput, Ident};
 
 use self::{
     event::expand_event,
@@ -93,4 +96,16 @@ pub fn derive_ephemeral_room_event_content(input: TokenStream) -> TokenStream {
 pub fn derive_state_event(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     expand_event(input).unwrap_or_else(|err| err.to_compile_error()).into()
+}
+
+pub(crate) fn import_ruma_events() -> pm2::TokenStream {
+    if let Ok(possibly_renamed) = crate_name("ruma-events") {
+        let import = Ident::new(&possibly_renamed, pm2::Span::call_site());
+        quote! { ::#import }
+    } else if let Ok(possibly_renamed) = crate_name("ruma") {
+        let import = Ident::new(&possibly_renamed, pm2::Span::call_site());
+        quote! { ::#import::events }
+    } else {
+        quote! { ::ruma_events }
+    }
 }

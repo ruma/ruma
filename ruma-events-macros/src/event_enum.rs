@@ -226,7 +226,7 @@ fn expand_conversion_impl(
             Some(quote! {
                 impl #ident {
                     /// Convert this sync event into a full event, one with a room_id field.
-                    pub fn into_full_event(self, room_id: ::ruma_identifiers::RoomId) -> #full {
+                    pub fn into_full_event(self, room_id: #import_path::exports::ruma_identifiers::RoomId) -> #full {
                         match self {
                             #(
                                 Self::#variants(event) => {
@@ -401,7 +401,7 @@ fn expand_redact(
                 pub fn redact(
                     self,
                     redaction: #param,
-                    version: ::ruma_identifiers::RoomVersionId,
+                    version: #import_path::exports::ruma_identifiers::RoomVersionId,
                 ) -> #redaction_enum {
                     match self {
                         #(
@@ -788,9 +788,9 @@ fn generate_accessor(
 fn field_return_type(name: &str, var: &EventKindVariation) -> TokenStream {
     match name {
         "origin_server_ts" => quote! { ::std::time::SystemTime },
-        "room_id" => quote! { ::ruma_identifiers::RoomId },
-        "event_id" => quote! { ::ruma_identifiers::EventId },
-        "sender" => quote! { ::ruma_identifiers::UserId },
+        "room_id" => quote! { #import_path::exports::ruma_identifiers::RoomId },
+        "event_id" => quote! { #import_path::exports::ruma_identifiers::EventId },
+        "sender" => quote! { #import_path::exports::ruma_identifiers::UserId },
         "state_key" => quote! { str },
         "unsigned" if &EventKindVariation::RedactedSync == var => {
             quote! { ::ruma_events::RedactedSyncUnsigned }

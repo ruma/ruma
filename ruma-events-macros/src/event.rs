@@ -40,7 +40,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
 
     let deserialize_impl = expand_deserialize_event(&input, &var, &fields)?;
 
-    let conversion_impl = expand_from_into(&input, &kind, &var, &fields);
+    let conversion_impl = expand_from_into(&input, &kind, &var, &fields, &import_path);
 
     let eq_impl = expand_eq_ord_event(&input, &fields);
 
@@ -345,6 +345,7 @@ fn expand_from_into(
     kind: &EventKind,
     var: &EventKindVariation,
     fields: &[Field],
+    import_path: &TokenStream,
 ) -> Option<TokenStream> {
     let ident = &input.ident;
 
@@ -379,7 +380,7 @@ fn expand_from_into(
                 /// Convert this sync event into a full event, one with a room_id field.
                 pub fn into_full_event(
                     self,
-                    room_id: ::ruma_identifiers::RoomId,
+                    room_id: #import_path::exports::ruma_identifiers::RoomId,
                 ) -> #full_struct #ty_gen {
                     let Self { #( #fields, )* } = self;
                     #full_struct {
