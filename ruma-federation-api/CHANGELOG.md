@@ -6,7 +6,10 @@ Improvements:
 
   ```
   device::get_devices::v1,
-  keys::claim_keys::v1,
+  keys::{
+      claim_keys::v1,
+      query_keys::v1,
+  },
   ```
 
 # 0.0.3
