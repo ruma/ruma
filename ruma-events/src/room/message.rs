@@ -1,5 +1,7 @@
 //! Types for the *m.room.message* event.
 
+use std::fmt;
+
 use js_int::UInt;
 use ruma_events_macros::MessageEventContent;
 use ruma_identifiers::EventId;
@@ -285,6 +287,15 @@ pub enum MessageFormat {
 
     /// A custom message format.
     Custom(String),
+}
+
+impl fmt::Display for MessageFormat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Html => f.write_str("org.matrix.custom.html"),
+            Self::Custom(fmt) => f.write_str(fmt),
+        }
+    }
 }
 
 /// Common message event content fields for message types that have separate plain-text and
