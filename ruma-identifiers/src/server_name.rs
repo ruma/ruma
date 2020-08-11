@@ -4,6 +4,7 @@ use std::{
     convert::TryFrom,
     fmt::{self, Display},
     mem,
+    str::FromStr,
 };
 
 use ruma_identifiers_validation::server_name::validate;
@@ -93,6 +94,14 @@ impl<'a> TryFrom<&'a str> for &'a ServerName {
     fn try_from(server_name: &'a str) -> Result<Self, Self::Error> {
         validate(server_name)?;
         Ok(ServerName::from_borrowed(server_name))
+    }
+}
+
+impl FromStr for Box<ServerName> {
+    type Err = crate::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        try_from(s)
     }
 }
 

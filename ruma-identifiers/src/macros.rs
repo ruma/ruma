@@ -54,6 +54,14 @@ macro_rules! common_impls {
             }
         }
 
+        impl ::std::str::FromStr for $id {
+            type Err = crate::Error;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                $try_from(s)
+            }
+        }
+
         impl ::std::convert::TryFrom<&str> for $id {
             type Error = crate::Error;
 

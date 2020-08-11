@@ -4,6 +4,7 @@ use std::{
     cmp::Ordering,
     convert::TryFrom,
     fmt::{self, Display, Formatter},
+    str::FromStr,
 };
 
 #[cfg(feature = "serde")]
@@ -235,6 +236,14 @@ where
     };
 
     Ok(version)
+}
+
+impl FromStr for RoomVersionId {
+    type Err = crate::Error;
+
+    fn from_str(s: &str) -> Result<Self, Error> {
+        try_from(s)
+    }
 }
 
 impl TryFrom<&str> for RoomVersionId {
