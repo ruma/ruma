@@ -4,10 +4,15 @@ use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, Ident};
 
-use crate::event_parse::{to_kind_variation, EventKind, EventKindVariation};
+use crate::{
+    event_parse::{to_kind_variation, EventKind, EventKindVariation},
+    import_ruma_events,
+};
 
 /// Derive `Event` macro code generation.
 pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
+    let import_path = import_ruma_events();
+
     let ident = &input.ident;
     let (kind, var) = to_kind_variation(ident).ok_or_else(|| {
         syn::Error::new(Span::call_site(), "not a valid ruma event struct identifier")
@@ -36,9 +41,9 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         ));
     };
 
-    let serialize_impl = expand_serialize_event(&input, &var, &fields)?;
+    let serialize_impl = expand_serialize_event(&input, &var, &fields, &import_path)?;
 
-    let deserialize_impl = expand_deserialize_event(&input, &var, &fields)?;
+    let deserialize_impl = expand_deserialize_event(&input, &var, &fields, &import_path)?;
 
     let conversion_impl = expand_from_into(&input, &kind, &var, &fields, &import_path);
 
@@ -59,6 +64,7 @@ fn expand_serialize_event(
     input: &DeriveInput,
     var: &EventKindVariation,
     fields: &[Field],
+    import_path: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let ident = &input.ident;
     let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
@@ -68,7 +74,7 @@ fn expand_serialize_event(
             let name = field.ident.as_ref().unwrap();
             if name == "content" && var.is_redacted() {
                 quote! {
-                    if ::ruma_events::RedactedEventContent::has_serialize_fields(&self.content) {
+                    if #import_path::RedactedEventContent::has_serialize_fields(&self.content) {
                         state.serialize_field("content", &self.content)?;
                     }
                 }
@@ -83,7 +89,7 @@ fn expand_serialize_event(
                     let time_since_epoch =
                         self.origin_server_ts.duration_since(::std::time::UNIX_EPOCH).unwrap();
 
-                    let timestamp = <::js_int::UInt as ::std::convert::TryFrom<_>>::try_from(
+                    let timestamp = <#import_path::exports::js_int::UInt as ::std::convert::TryFrom<_>>::try_from(
                         time_since_epoch.as_millis(),
                     ).map_err(S::Error::custom)?;
 
@@ -104,14 +110,14 @@ fn expand_serialize_event(
         .collect::<Vec<_>>();
 
     Ok(quote! {
-        impl #impl_gen ::serde::ser::Serialize for #ident #ty_gen #where_clause {
+        impl #impl_gen #import_path::exports::serde::ser::Serialize for #ident #ty_gen #where_clause {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
-                S: ::serde::ser::Serializer,
+                S: #import_path::exports::serde::ser::Serializer,
             {
-                use ::serde::ser::{SerializeStruct as _, Error as _};
+                use #import_path::exports::serde::ser::{SerializeStruct as _, Error as _};
 
-                let event_type = ::ruma_events::EventContent::event_type(&self.content);
+                let event_type = #import_path::EventContent::event_type(&self.content);
 
                 let mut state = serializer.serialize_struct(stringify!(#ident), 7)?;
 
@@ -127,6 +133,7 @@ fn expand_deserialize_event(
     input: &DeriveInput,
     var: &EventKindVariation,
     fields: &[Field],
+    import_path: &TokenStream,
 ) -> syn::Result<TokenStream> {
     let ident = &input.ident;
     // we know there is a content field already
@@ -155,12 +162,12 @@ fn expand_deserialize_event(
             let ty = &field.ty;
             if name == "content" || name == "prev_content" {
                 if is_generic {
-                    quote! { Box<::serde_json::value::RawValue> }
+                    quote! { Box<#import_path::exports::serde_json::value::RawValue> }
                 } else {
                     quote! { #content_type }
                 }
             } else if name == "origin_server_ts" {
-                quote! { ::js_int::UInt }
+                quote! { #import_path::exports::js_int::UInt }
             } else {
                 quote! { #ty }
             }
@@ -175,18 +182,18 @@ fn expand_deserialize_event(
             if is_generic && var.is_redacted() {
                 quote! {
                     let content = match C::has_deserialize_fields() {
-                        ::ruma_events::HasDeserializeFields::False => {
+                        #import_path::HasDeserializeFields::False => {
                             C::empty(&event_type).map_err(A::Error::custom)?
                         },
-                        ::ruma_events::HasDeserializeFields::True => {
+                        #import_path::HasDeserializeFields::True => {
                             let json = content.ok_or_else(
-                                || ::serde::de::Error::missing_field("content"),
+                                || #import_path::exports::serde::de::Error::missing_field("content"),
                             )?;
                             C::from_parts(&event_type, json).map_err(A::Error::custom)?
                         },
-                        ::ruma_events::HasDeserializeFields::Optional => {
+                        #import_path::HasDeserializeFields::Optional => {
                             let json = content.unwrap_or(
-                                ::serde_json::value::RawValue::from_string("{}".to_string())
+                                #import_path::exports::serde_json::value::RawValue::from_string("{}".to_string())
                                     .unwrap()
                             );
                             C::from_parts(&event_type, json).map_err(A::Error::custom)?
@@ -195,13 +202,13 @@ fn expand_deserialize_event(
                 }
             } else if is_generic {
                 quote! {
-                    let json = content.ok_or_else(|| ::serde::de::Error::missing_field("content"))?;
+                    let json = content.ok_or_else(|| #import_path::exports::serde::de::Error::missing_field("content"))?;
                     let content = C::from_parts(&event_type, json).map_err(A::Error::custom)?;
                 }
             } else {
                 quote! {
                     let content = content.ok_or_else(
-                        || ::serde::de::Error::missing_field("content"),
+                        || #import_path::exports::serde::de::Error::missing_field("content"),
                     )?;
                 }
             }
@@ -230,14 +237,14 @@ fn expand_deserialize_event(
                         let t = time.into();
                         ::std::time::UNIX_EPOCH + ::std::time::Duration::from_millis(t)
                     })
-                    .ok_or_else(|| ::serde::de::Error::missing_field("origin_server_ts"))?;
+                    .ok_or_else(|| #import_path::exports::serde::de::Error::missing_field("origin_server_ts"))?;
             }
         } else if name == "unsigned" {
             quote! { let unsigned = unsigned.unwrap_or_default(); }
         } else {
             quote! {
                 let #name = #name.ok_or_else(|| {
-                    ::serde::de::Error::missing_field(stringify!(#name))
+                    #import_path::exports::serde::de::Error::missing_field(stringify!(#name))
                 })?;
             }
         }
@@ -259,12 +266,12 @@ fn expand_deserialize_event(
     };
 
     Ok(quote! {
-        impl #deserialize_impl_gen ::serde::de::Deserialize<'de> for #ident #ty_gen #where_clause {
+        impl #deserialize_impl_gen #import_path::exports::serde::de::Deserialize<'de> for #ident #ty_gen #where_clause {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
-                D: ::serde::de::Deserializer<'de>,
+                D: #import_path::exports::serde::de::Deserializer<'de>,
             {
-                #[derive(::serde::Deserialize)]
+                #[derive(#import_path::exports::serde::Deserialize)]
                 #[serde(field_identifier, rename_all = "snake_case")]
                 enum Field {
                     // since this is represented as an enum we have to add it so the JSON picks it
@@ -279,7 +286,7 @@ fn expand_deserialize_event(
                 /// the `content` and `prev_content` fields.
                 struct EventVisitor #impl_generics (#deserialize_phantom_type #ty_gen);
 
-                impl #deserialize_impl_gen ::serde::de::Visitor<'de>
+                impl #deserialize_impl_gen #import_path::exports::serde::de::Visitor<'de>
                     for EventVisitor #ty_gen #where_clause
                 {
                     type Value = #ident #ty_gen;
@@ -293,9 +300,9 @@ fn expand_deserialize_event(
 
                     fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
                     where
-                        A: ::serde::de::MapAccess<'de>,
+                        A: #import_path::exports::serde::de::MapAccess<'de>,
                     {
-                        use ::serde::de::Error as _;
+                        use #import_path::exports::serde::de::Error as _;
 
                         let mut event_type: Option<String> = None;
                         #( let mut #field_names: Option<#deserialize_var_types> = None; )*
@@ -303,18 +310,18 @@ fn expand_deserialize_event(
                         while let Some(key) = map.next_key()? {
                             match key {
                                 Field::Unknown => {
-                                    let _: ::serde::de::IgnoredAny = map.next_value()?;
+                                    let _: #import_path::exports::serde::de::IgnoredAny = map.next_value()?;
                                 },
                                 Field::Type => {
                                     if event_type.is_some() {
-                                        return Err(::serde::de::Error::duplicate_field("type"));
+                                        return Err(#import_path::exports::serde::de::Error::duplicate_field("type"));
                                     }
                                     event_type = Some(map.next_value()?);
                                 }
                                 #(
                                     Field::#enum_variants => {
                                         if #field_names.is_some() {
-                                            return Err(::serde::de::Error::duplicate_field(
+                                            return Err(#import_path::exports::serde::de::Error::duplicate_field(
                                                 stringify!(#field_names),
                                             ));
                                         }
@@ -325,7 +332,7 @@ fn expand_deserialize_event(
                         }
 
                         let event_type =
-                            event_type.ok_or_else(|| ::serde::de::Error::missing_field("type"))?;
+                            event_type.ok_or_else(|| #import_path::exports::serde::de::Error::missing_field("type"))?;
                         #( #ok_or_else_fields )*
 
                         Ok(#ident {
