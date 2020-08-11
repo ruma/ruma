@@ -37,23 +37,43 @@ const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
 
 /// Create a content enum from `EventEnumInput`.
 pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
+    let import_path = crate::import_ruma_events();
+
     let name = &input.name;
     let events = &input.events;
     let attrs = &input.attrs;
     let variants = events.iter().map(to_camel_case).collect::<syn::Result<Vec<_>>>()?;
 
-    let event_enum =
-        expand_any_with_deser(name, events, attrs, &variants, &EventKindVariation::Full);
+    let event_enum = expand_any_with_deser(
+        name,
+        events,
+        attrs,
+        &variants,
+        &EventKindVariation::Full,
+        &import_path,
+    );
 
-    let sync_event_enum =
-        expand_any_with_deser(name, events, attrs, &variants, &EventKindVariation::Sync);
+    let sync_event_enum = expand_any_with_deser(
+        name,
+        events,
+        attrs,
+        &variants,
+        &EventKindVariation::Sync,
+        &import_path,
+    );
 
-    let event_stripped_enum =
-        expand_any_with_deser(name, events, attrs, &variants, &EventKindVariation::Stripped);
+    let event_stripped_enum = expand_any_with_deser(
+        name,
+        events,
+        attrs,
+        &variants,
+        &EventKindVariation::Stripped,
+        &import_path,
+    );
 
-    let redacted_event_enums = expand_any_redacted(name, events, attrs, &variants);
+    let redacted_event_enums = expand_any_redacted(name, events, attrs, &variants, &import_path);
 
-    let event_content_enum = expand_content_enum(name, events, attrs, &variants);
+    let event_content_enum = expand_content_enum(name, events, attrs, &variants, &import_path);
 
     Ok(quote! {
         #event_enum
@@ -74,20 +94,24 @@ fn expand_any_with_deser(
     attrs: &[Attribute],
     variants: &[Ident],
     var: &EventKindVariation,
+    import_path: &TokenStream,
 ) -> Option<TokenStream> {
     // If the event cannot be generated this bails out returning None which is rendered the same
     // as an empty `TokenStream`. This is effectively the check if the given input generates
     // a valid event enum.
     let (event_struct, ident) = generate_event_idents(kind, var)?;
 
-    let content =
-        events.iter().map(|event| to_event_path(event, &event_struct)).collect::<Vec<_>>();
+    let content = events
+        .iter()
+        .map(|event| to_event_path(event, &event_struct, import_path))
+        .collect::<Vec<_>>();
 
-    let (custom_variant, custom_deserialize) = generate_custom_variant(&event_struct, var);
+    let (custom_variant, custom_deserialize) =
+        generate_custom_variant(&event_struct, var, import_path);
 
     let any_enum = quote! {
         #( #attrs )*
-        #[derive(Clone, Debug, ::serde::Serialize)]
+        #[derive(Clone, Debug, #import_path::exports::serde::Serialize)]
         #[serde(untagged)]
         #[allow(clippy::large_enum_variant)]
         pub enum #ident {
@@ -100,21 +124,21 @@ fn expand_any_with_deser(
     };
 
     let event_deserialize_impl = quote! {
-        impl<'de> ::serde::de::Deserialize<'de> for #ident {
+        impl<'de> #import_path::exports::serde::de::Deserialize<'de> for #ident {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
-                D: ::serde::de::Deserializer<'de>,
+                D: #import_path::exports::serde::de::Deserializer<'de>,
             {
-                use ::serde::de::Error as _;
+                use #import_path::exports::serde::de::Error as _;
 
-                let json = Box::<::serde_json::value::RawValue>::deserialize(deserializer)?;
-                let ::ruma_events::EventDeHelper { ev_type, .. } =
-                    ::ruma_events::from_raw_json_value(&json)?;
+                let json = Box::<#import_path::exports::serde_json::value::RawValue>::deserialize(deserializer)?;
+                let #import_path::EventDeHelper { ev_type, .. } =
+                    #import_path::from_raw_json_value(&json)?;
 
                 match ev_type.as_str() {
                     #(
                         #events => {
-                            let event = ::serde_json::from_str::<#content>(json.get())
+                            let event = #import_path::exports::serde_json::from_str::<#content>(json.get())
                                 .map_err(D::Error::custom)?;
                             Ok(Self::#variants(event))
                         },
@@ -125,13 +149,13 @@ fn expand_any_with_deser(
         }
     };
 
-    let event_enum_to_from_sync = expand_conversion_impl(kind, var, &variants);
+    let event_enum_to_from_sync = expand_conversion_impl(kind, var, &variants, import_path);
 
-    let redacted_enum = expand_redacted_enum(kind, var);
+    let redacted_enum = expand_redacted_enum(kind, var, import_path);
 
-    let field_accessor_impl = accessor_methods(kind, var, &variants);
+    let field_accessor_impl = accessor_methods(kind, var, &variants, import_path);
 
-    let redact_impl = expand_redact(&ident, kind, var, &variants);
+    let redact_impl = expand_redact(&ident, kind, var, &variants, import_path);
 
     Some(quote! {
         #any_enum
@@ -152,6 +176,7 @@ fn expand_conversion_impl(
     kind: &EventKind,
     var: &EventKindVariation,
     variants: &[Ident],
+    import_path: &TokenStream,
 ) -> Option<TokenStream> {
     let ident = kind.to_event_enum_ident(var)?;
     let variants = &variants
@@ -180,7 +205,7 @@ fn expand_conversion_impl(
             let redaction = if let (EventKind::Message, EventKindVariation::Full) = (kind, var) {
                 quote! {
                     #ident::RoomRedaction(event) => Self::RoomRedaction(
-                        ::ruma_events::room::redaction::SyncRedactionEvent::from(event),
+                        #import_path::room::redaction::SyncRedactionEvent::from(event),
                     ),
                 }
             } else {
@@ -193,12 +218,12 @@ fn expand_conversion_impl(
                         match event {
                             #(
                                 #ident::#variants(event) => {
-                                    Self::#variants(::ruma_events::#sync_struct::from(event))
+                                    Self::#variants(#import_path::#sync_struct::from(event))
                                 },
                             )*
                             #redaction
                             #ident::Custom(event) => {
-                                Self::Custom(::ruma_events::#sync_struct::from(event))
+                                Self::Custom(#import_path::#sync_struct::from(event))
                             },
                         }
                     }
@@ -256,14 +281,17 @@ fn expand_any_redacted(
     events: &[LitStr],
     attrs: &[Attribute],
     variants: &[Ident],
+    import_path: &TokenStream,
 ) -> TokenStream {
     use EventKindVariation as V;
 
     if kind.is_state() {
-        let full_state = expand_any_with_deser(kind, events, attrs, variants, &V::Redacted);
-        let sync_state = expand_any_with_deser(kind, events, attrs, variants, &V::RedactedSync);
+        let full_state =
+            expand_any_with_deser(kind, events, attrs, variants, &V::Redacted, import_path);
+        let sync_state =
+            expand_any_with_deser(kind, events, attrs, variants, &V::RedactedSync, import_path);
         let stripped_state =
-            expand_any_with_deser(kind, events, attrs, variants, &V::RedactedStripped);
+            expand_any_with_deser(kind, events, attrs, variants, &V::RedactedStripped, import_path);
 
         quote! {
             #full_state
@@ -273,8 +301,10 @@ fn expand_any_redacted(
             #stripped_state
         }
     } else if kind.is_message() {
-        let full_message = expand_any_with_deser(kind, events, attrs, variants, &V::Redacted);
-        let sync_message = expand_any_with_deser(kind, events, attrs, variants, &V::RedactedSync);
+        let full_message =
+            expand_any_with_deser(kind, events, attrs, variants, &V::Redacted, import_path);
+        let sync_message =
+            expand_any_with_deser(kind, events, attrs, variants, &V::RedactedSync, import_path);
 
         quote! {
             #full_message
@@ -292,15 +322,17 @@ fn expand_content_enum(
     events: &[LitStr],
     attrs: &[Attribute],
     variants: &[Ident],
+    import_path: &TokenStream,
 ) -> TokenStream {
     let ident = kind.to_content_enum();
     let event_type_str = events;
 
-    let content = events.iter().map(to_event_content_path).collect::<Vec<_>>();
+    let content =
+        events.iter().map(|ev| to_event_content_path(ev, import_path)).collect::<Vec<_>>();
 
     let content_enum = quote! {
         #( #attrs )*
-        #[derive(Clone, Debug, ::serde::Serialize)]
+        #[derive(Clone, Debug, #import_path::exports::serde::Serialize)]
         #[serde(untagged)]
         #[allow(clippy::large_enum_variant)]
         pub enum #ident {
@@ -309,12 +341,12 @@ fn expand_content_enum(
                 #variants(#content),
             )*
             /// Content of an event not defined by the Matrix specification.
-            Custom(::ruma_events::custom::CustomEventContent),
+            Custom(#import_path::custom::CustomEventContent),
         }
     };
 
     let event_content_impl = quote! {
-        impl ::ruma_events::EventContent for #ident {
+        impl #import_path::EventContent for #ident {
             fn event_type(&self) -> &str {
                 match self {
                     #( Self::#variants(content) => content.event_type(), )*
@@ -323,8 +355,8 @@ fn expand_content_enum(
             }
 
             fn from_parts(
-                event_type: &str, input: Box<::serde_json::value::RawValue>,
-            ) -> Result<Self, ::serde_json::Error> {
+                event_type: &str, input: Box<#import_path::exports::serde_json::value::RawValue>,
+            ) -> Result<Self, #import_path::exports::serde_json::Error> {
                 match event_type {
                     #(
                         #event_type_str => {
@@ -334,7 +366,7 @@ fn expand_content_enum(
                     )*
                     ev_type => {
                         let content =
-                            ::ruma_events::custom::CustomEventContent::from_parts(ev_type, input)?;
+                            #import_path::custom::CustomEventContent::from_parts(ev_type, input)?;
                         Ok(Self::Custom(content))
                     },
                 }
@@ -342,7 +374,7 @@ fn expand_content_enum(
         }
     };
 
-    let marker_trait_impls = marker_traits(&kind);
+    let marker_trait_impls = marker_traits(&kind, import_path);
 
     quote! {
         #content_enum
@@ -358,6 +390,7 @@ fn expand_redact(
     kind: &EventKind,
     var: &EventKindVariation,
     variants: &[Ident],
+    import_path: &TokenStream,
 ) -> Option<TokenStream> {
     if let EventKindVariation::Full | EventKindVariation::Sync | EventKindVariation::Stripped = var
     {
@@ -365,33 +398,33 @@ fn expand_redact(
             EventKindVariation::Full => {
                 let struct_id = kind.to_event_ident(&EventKindVariation::Redacted)?;
                 (
-                    quote! { ::ruma_events::room::redaction::RedactionEvent },
-                    quote! { ::ruma_events::#struct_id },
+                    quote! { #import_path::room::redaction::RedactionEvent },
+                    quote! { #import_path::#struct_id },
                     kind.to_event_enum_ident(&EventKindVariation::Redacted)?,
                 )
             }
             EventKindVariation::Sync => {
                 let struct_id = kind.to_event_ident(&EventKindVariation::RedactedSync)?;
                 (
-                    quote! { ::ruma_events::room::redaction::SyncRedactionEvent },
-                    quote! { ::ruma_events::#struct_id },
+                    quote! { #import_path::room::redaction::SyncRedactionEvent },
+                    quote! { #import_path::#struct_id },
                     kind.to_event_enum_ident(&EventKindVariation::RedactedSync)?,
                 )
             }
             EventKindVariation::Stripped => {
                 let struct_id = kind.to_event_ident(&EventKindVariation::RedactedStripped)?;
                 (
-                    quote! { ::ruma_events::room::redaction::SyncRedactionEvent },
-                    quote! { ::ruma_events::#struct_id },
+                    quote! { #import_path::room::redaction::SyncRedactionEvent },
+                    quote! { #import_path::#struct_id },
                     kind.to_event_enum_ident(&EventKindVariation::RedactedStripped)?,
                 )
             }
             _ => return None,
         };
 
-        let fields = EVENT_FIELDS
-            .iter()
-            .map(|(name, has_field)| generate_redacted_fields(name, kind, var, *has_field));
+        let fields = EVENT_FIELDS.iter().map(|(name, has_field)| {
+            generate_redacted_fields(name, kind, var, *has_field, import_path)
+        });
 
         let fields = quote! { #( #fields )* };
 
@@ -429,14 +462,18 @@ fn expand_redact(
     }
 }
 
-fn expand_redacted_enum(kind: &EventKind, var: &EventKindVariation) -> Option<TokenStream> {
+fn expand_redacted_enum(
+    kind: &EventKind,
+    var: &EventKindVariation,
+    import_path: &TokenStream,
+) -> Option<TokenStream> {
     if let EventKind::State | EventKind::Message = kind {
         let ident = format_ident!("AnyPossiblyRedacted{}", kind.to_event_ident(var)?);
 
         let (regular_enum_ident, redacted_enum_ident) = inner_enum_idents(kind, var)?;
         Some(quote! {
             /// An enum that holds either regular un-redacted events or redacted events.
-            #[derive(Clone, Debug, ::serde::Serialize)]
+            #[derive(Clone, Debug, #import_path::exports::serde::Serialize)]
             #[serde(untagged)]
             pub enum #ident {
                 /// An un-redacted event.
@@ -445,20 +482,20 @@ fn expand_redacted_enum(kind: &EventKind, var: &EventKindVariation) -> Option<To
                 Redacted(#redacted_enum_ident),
             }
 
-            impl<'de> ::serde::de::Deserialize<'de> for #ident {
+            impl<'de> #import_path::exports::serde::de::Deserialize<'de> for #ident {
                 fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
                 where
-                    D: ::serde::de::Deserializer<'de>,
+                    D: #import_path::exports::serde::de::Deserializer<'de>,
                 {
-                    let json = Box::<::serde_json::value::RawValue>::deserialize(deserializer)?;
-                    let ::ruma_events::EventDeHelper { unsigned, .. } =
-                        ::ruma_events::from_raw_json_value(&json)?;
+                    let json = Box::<#import_path::exports::serde_json::value::RawValue>::deserialize(deserializer)?;
+                    let #import_path::EventDeHelper { unsigned, .. } =
+                        #import_path::from_raw_json_value(&json)?;
 
                     Ok(match unsigned {
                         Some(unsigned) if unsigned.redacted_because.is_some() => {
-                            Self::Redacted(::ruma_events::from_raw_json_value(&json)?)
+                            Self::Redacted(#import_path::from_raw_json_value(&json)?)
                         }
-                        _ => Self::Regular(::ruma_events::from_raw_json_value(&json)?),
+                        _ => Self::Regular(#import_path::from_raw_json_value(&json)?),
                     })
                 }
             }
@@ -477,6 +514,7 @@ fn generate_redacted_fields(
     kind: &EventKind,
     var: &EventKindVariation,
     is_event_kind: EventKindFn,
+    import_path: &TokenStream,
 ) -> TokenStream {
     if is_event_kind(kind, var) {
         let name = Ident::new(name, Span::call_site());
@@ -489,7 +527,7 @@ fn generate_redacted_fields(
             };
 
             quote! {
-                unsigned: ::ruma_events::#redaction_type {
+                unsigned: #import_path::#redaction_type {
                     redacted_because: Some(::std::boxed::Box::new(redaction)),
                 },
             }
@@ -506,6 +544,7 @@ fn generate_redacted_fields(
 fn generate_custom_variant(
     event_struct: &Ident,
     var: &EventKindVariation,
+    import_path: &TokenStream,
 ) -> (TokenStream, TokenStream) {
     use EventKindVariation as V;
 
@@ -513,12 +552,12 @@ fn generate_custom_variant(
         (
             quote! {
                 /// A redacted event not defined by the Matrix specification
-                Custom(::ruma_events::#event_struct<::ruma_events::custom::RedactedCustomEventContent>),
+                Custom(#import_path::#event_struct<#import_path::custom::RedactedCustomEventContent>),
             },
             quote! {
                 event => {
-                    let event = ::serde_json::from_str::<
-                        ::ruma_events::#event_struct<::ruma_events::custom::RedactedCustomEventContent>,
+                    let event = #import_path::exports::serde_json::from_str::<
+                        #import_path::#event_struct<#import_path::custom::RedactedCustomEventContent>,
                     >(json.get())
                     .map_err(D::Error::custom)?;
 
@@ -530,13 +569,13 @@ fn generate_custom_variant(
         (
             quote! {
                 /// An event not defined by the Matrix specification
-                Custom(::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>),
+                Custom(#import_path::#event_struct<#import_path::custom::CustomEventContent>),
             },
             quote! {
                 event => {
                     let event =
-                        ::serde_json::from_str::<
-                            ::ruma_events::#event_struct<::ruma_events::custom::CustomEventContent>
+                        #import_path::exports::serde_json::from_str::<
+                            #import_path::#event_struct<#import_path::custom::CustomEventContent>
                         >(json.get())
                         .map_err(D::Error::custom)?;
 
@@ -547,22 +586,22 @@ fn generate_custom_variant(
     }
 }
 
-fn marker_traits(kind: &EventKind) -> TokenStream {
+fn marker_traits(kind: &EventKind, import_path: &TokenStream) -> TokenStream {
     let ident = kind.to_content_enum();
     match kind {
         EventKind::State => quote! {
-            impl ::ruma_events::RoomEventContent for #ident {}
-            impl ::ruma_events::StateEventContent for #ident {}
+            impl #import_path::RoomEventContent for #ident {}
+            impl #import_path::StateEventContent for #ident {}
         },
         EventKind::Message => quote! {
-            impl ::ruma_events::RoomEventContent for #ident {}
-            impl ::ruma_events::MessageEventContent for #ident {}
+            impl #import_path::RoomEventContent for #ident {}
+            impl #import_path::MessageEventContent for #ident {}
         },
         EventKind::Ephemeral => quote! {
-            impl ::ruma_events::EphemeralRoomEventContent for #ident {}
+            impl #import_path::EphemeralRoomEventContent for #ident {}
         },
         EventKind::Basic => quote! {
-            impl ::ruma_events::BasicEventContent for #ident {}
+            impl #import_path::BasicEventContent for #ident {}
         },
         _ => TokenStream::new(),
     }
@@ -572,6 +611,7 @@ fn accessor_methods(
     kind: &EventKind,
     var: &EventKindVariation,
     variants: &[Ident],
+    import_path: &TokenStream,
 ) -> Option<TokenStream> {
     use EventKindVariation as V;
 
@@ -579,12 +619,12 @@ fn accessor_methods(
 
     // matching `EventKindVariation`s
     if let V::Redacted | V::RedactedSync | V::RedactedStripped = var {
-        return redacted_accessor_methods(kind, var, variants);
+        return redacted_accessor_methods(kind, var, variants, import_path);
     }
 
-    let methods = EVENT_FIELDS
-        .iter()
-        .map(|(name, has_field)| generate_accessor(name, kind, var, *has_field, variants));
+    let methods = EVENT_FIELDS.iter().map(|(name, has_field)| {
+        generate_accessor(name, kind, var, *has_field, variants, import_path)
+    });
 
     let content_enum = kind.to_content_enum();
 
@@ -655,12 +695,13 @@ fn redacted_accessor_methods(
     kind: &EventKind,
     var: &EventKindVariation,
     variants: &[Ident],
+    import_path: &TokenStream,
 ) -> Option<TokenStream> {
     // this will never fail as it is called in `expand_any_with_deser`.
     let ident = kind.to_event_enum_ident(var).unwrap();
-    let methods = EVENT_FIELDS
-        .iter()
-        .map(|(name, has_field)| generate_accessor(name, kind, var, *has_field, variants));
+    let methods = EVENT_FIELDS.iter().map(|(name, has_field)| {
+        generate_accessor(name, kind, var, *has_field, variants, import_path)
+    });
 
     Some(quote! {
         impl #ident {
@@ -669,7 +710,7 @@ fn redacted_accessor_methods(
     })
 }
 
-fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
+fn to_event_path(name: &LitStr, struct_name: &Ident, import_path: &TokenStream) -> TokenStream {
     let span = name.span();
     let name = name.value();
 
@@ -693,7 +734,7 @@ fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
             } else {
                 quote! { SyncRedactionEvent }
             };
-            quote! { ::ruma_events::room::redaction::#redaction }
+            quote! { #import_path::room::redaction::#redaction }
         }
         "ToDeviceEvent"
         | "SyncStateEvent"
@@ -701,20 +742,20 @@ fn to_event_path(name: &LitStr, struct_name: &Ident) -> TokenStream {
         | "SyncMessageEvent"
         | "SyncEphemeralRoomEvent" => {
             let content = format_ident!("{}EventContent", event);
-            quote! { ::ruma_events::#struct_name<::ruma_events::#( #path )::*::#content> }
+            quote! { #import_path::#struct_name<#import_path::#( #path )::*::#content> }
         }
         struct_str if struct_str.contains("Redacted") => {
             let content = format_ident!("Redacted{}EventContent", event);
-            quote! { ::ruma_events::#struct_name<::ruma_events::#( #path )::*::#content> }
+            quote! { #import_path::#struct_name<#import_path::#( #path )::*::#content> }
         }
         _ => {
             let event_name = format_ident!("{}Event", event);
-            quote! { ::ruma_events::#( #path )::*::#event_name }
+            quote! { #import_path::#( #path )::*::#event_name }
         }
     }
 }
 
-fn to_event_content_path(name: &LitStr) -> TokenStream {
+fn to_event_content_path(name: &LitStr, import_path: &TokenStream) -> TokenStream {
     let span = name.span();
     let name = name.value();
 
@@ -732,7 +773,7 @@ fn to_event_content_path(name: &LitStr) -> TokenStream {
     let content_str = format_ident!("{}EventContent", event);
     let path = path.iter().map(|s| Ident::new(s, span));
     quote! {
-        ::ruma_events::#( #path )::*::#content_str
+        #import_path::#( #path )::*::#content_str
     }
 }
 
@@ -763,9 +804,10 @@ fn generate_accessor(
     var: &EventKindVariation,
     is_event_kind: EventKindFn,
     variants: &[Ident],
+    import_path: &TokenStream,
 ) -> TokenStream {
     if is_event_kind(kind, var) {
-        let field_type = field_return_type(name, var);
+        let field_type = field_return_type(name, var, import_path);
 
         let name = Ident::new(name, Span::call_site());
         let docs = format!("Returns this events {} field.", name);
@@ -785,7 +827,11 @@ fn generate_accessor(
     }
 }
 
-fn field_return_type(name: &str, var: &EventKindVariation) -> TokenStream {
+fn field_return_type(
+    name: &str,
+    var: &EventKindVariation,
+    import_path: &TokenStream,
+) -> TokenStream {
     match name {
         "origin_server_ts" => quote! { ::std::time::SystemTime },
         "room_id" => quote! { #import_path::exports::ruma_identifiers::RoomId },
@@ -793,12 +839,12 @@ fn field_return_type(name: &str, var: &EventKindVariation) -> TokenStream {
         "sender" => quote! { #import_path::exports::ruma_identifiers::UserId },
         "state_key" => quote! { str },
         "unsigned" if &EventKindVariation::RedactedSync == var => {
-            quote! { ::ruma_events::RedactedSyncUnsigned }
+            quote! { #import_path::RedactedSyncUnsigned }
         }
         "unsigned" if &EventKindVariation::Redacted == var => {
-            quote! { ::ruma_events::RedactedUnsigned }
+            quote! { #import_path::RedactedUnsigned }
         }
-        "unsigned" => quote! { ::ruma_events::Unsigned },
+        "unsigned" => quote! { #import_path::Unsigned },
         _ => panic!("the `ruma_events_macros::event_enum::EVENT_FIELD` const was changed"),
     }
 }
