@@ -76,7 +76,11 @@ impl Parse for MetaAttrs {
 }
 
 /// Create an `EventContent` implementation for a struct.
-pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Result<TokenStream> {
+pub fn expand_event_content(
+    input: &DeriveInput,
+    emit_redacted: bool,
+    import_path: &TokenStream,
+) -> syn::Result<TokenStream> {
     let ident = &input.ident;
 
     let content_attr = input
@@ -147,7 +151,7 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
                     { #( #kept_redacted_fields, )* }
                 },
                 quote! {
-                    Err(::serde::de::Error::custom(
+                    Err(#import_path::exports::serde::de::Error::custom(
                         format!("this redacted event has fields that cannot be constructed")
                     ))
                 },
@@ -155,9 +159,9 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
         };
 
         let has_deserialize_fields = if kept_redacted_fields.is_empty() {
-            quote! { ::ruma_events::HasDeserializeFields::False }
+            quote! { #import_path::HasDeserializeFields::False }
         } else {
-            quote! { ::ruma_events::HasDeserializeFields::True }
+            quote! { #import_path::HasDeserializeFields::True }
         };
 
         let has_serialize_fields = if kept_redacted_fields.is_empty() {
@@ -166,7 +170,8 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
             quote! { true }
         };
 
-        let redacted_event_content = generate_event_content_impl(&redacted_ident, event_type);
+        let redacted_event_content =
+            generate_event_content_impl(&redacted_ident, event_type, import_path);
 
         quote! {
             // this is the non redacted event content's impl
@@ -178,15 +183,20 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
             }
 
             #[doc = #doc]
-            #[derive(Clone, Debug, ::serde::Deserialize, ::serde::Serialize)]
+            #[derive(
+                Clone,
+                Debug,
+                #import_path::exports::serde::Deserialize,
+                #import_path::exports::serde::Serialize
+            )]
             pub struct #redacted_ident #redacted_fields
 
             #redacted_event_content
 
-            impl ::ruma_events::RedactedEventContent for #redacted_ident {
-                fn empty(ev_type: &str) -> Result<Self, ::serde_json::Error> {
+            impl #import_path::RedactedEventContent for #redacted_ident {
+                fn empty(ev_type: &str) -> Result<Self, #import_path::exports::serde_json::Error> {
                     if ev_type != #event_type {
-                        return Err(::serde::de::Error::custom(
+                        return Err(#import_path::exports::serde::de::Error::custom(
                             format!("expected event type `{}`, found `{}`", #event_type, ev_type)
                         ));
                     }
@@ -198,7 +208,7 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
                     #has_serialize_fields
                 }
 
-                fn has_deserialize_fields() -> ::ruma_events::HasDeserializeFields {
+                fn has_deserialize_fields() -> #import_path::HasDeserializeFields {
                     #has_deserialize_fields
                 }
             }
@@ -207,7 +217,7 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
         TokenStream::new()
     };
 
-    let event_content = generate_event_content_impl(ident, event_type);
+    let event_content = generate_event_content_impl(ident, event_type, import_path);
 
     Ok(quote! {
         #event_content
@@ -217,50 +227,62 @@ pub fn expand_event_content(input: &DeriveInput, emit_redacted: bool) -> syn::Re
 }
 
 /// Create a `BasicEventContent` implementation for a struct
-pub fn expand_basic_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_basic_event_content(
+    input: &DeriveInput,
+    import_path: &TokenStream,
+) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let event_content_impl = expand_event_content(input, false)?;
+    let event_content_impl = expand_event_content(input, false, import_path)?;
 
     Ok(quote! {
         #event_content_impl
 
-        impl ::ruma_events::BasicEventContent for #ident { }
+        impl #import_path::BasicEventContent for #ident { }
     })
 }
 
 /// Create a `EphemeralRoomEventContent` implementation for a struct
-pub fn expand_ephemeral_room_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_ephemeral_room_event_content(
+    input: &DeriveInput,
+    import_path: &TokenStream,
+) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let event_content_impl = expand_event_content(input, false)?;
+    let event_content_impl = expand_event_content(input, false, import_path)?;
 
     Ok(quote! {
         #event_content_impl
 
-        impl ::ruma_events::EphemeralRoomEventContent for #ident { }
+        impl #import_path::EphemeralRoomEventContent for #ident { }
     })
 }
 
 /// Create a `RoomEventContent` implementation for a struct.
-pub fn expand_room_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_room_event_content(
+    input: &DeriveInput,
+    import_path: &TokenStream,
+) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let event_content_impl = expand_event_content(input, true)?;
+    let event_content_impl = expand_event_content(input, true, import_path)?;
 
     Ok(quote! {
         #event_content_impl
 
-        impl ::ruma_events::RoomEventContent for #ident { }
+        impl #import_path::RoomEventContent for #ident { }
     })
 }
 
 /// Create a `MessageEventContent` implementation for a struct
-pub fn expand_message_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_message_event_content(
+    input: &DeriveInput,
+    import_path: &TokenStream,
+) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let room_ev_content = expand_room_event_content(input)?;
+    let room_ev_content = expand_room_event_content(input, import_path)?;
 
     let redacted_marker_trait = if needs_redacted_from_input(input) {
         let ident = format_ident!("Redacted{}", &ident);
         quote! {
-            impl ::ruma_events::RedactedMessageEventContent for #ident { }
+            impl #import_path::RedactedMessageEventContent for #ident { }
         }
     } else {
         TokenStream::new()
@@ -269,21 +291,24 @@ pub fn expand_message_event_content(input: &DeriveInput) -> syn::Result<TokenStr
     Ok(quote! {
         #room_ev_content
 
-        impl ::ruma_events::MessageEventContent for #ident { }
+        impl #import_path::MessageEventContent for #ident { }
 
         #redacted_marker_trait
     })
 }
 
 /// Create a `StateEventContent` implementation for a struct
-pub fn expand_state_event_content(input: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn expand_state_event_content(
+    input: &DeriveInput,
+    import_path: &TokenStream,
+) -> syn::Result<TokenStream> {
     let ident = input.ident.clone();
-    let room_ev_content = expand_room_event_content(input)?;
+    let room_ev_content = expand_room_event_content(input, import_path)?;
 
     let redacted_marker_trait = if needs_redacted_from_input(input) {
         let ident = format_ident!("Redacted{}", input.ident);
         quote! {
-            impl ::ruma_events::RedactedStateEventContent for #ident { }
+            impl #import_path::RedactedStateEventContent for #ident { }
         }
     } else {
         TokenStream::new()
@@ -292,30 +317,34 @@ pub fn expand_state_event_content(input: &DeriveInput) -> syn::Result<TokenStrea
     Ok(quote! {
         #room_ev_content
 
-        impl ::ruma_events::StateEventContent for #ident { }
+        impl #import_path::StateEventContent for #ident { }
 
         #redacted_marker_trait
     })
 }
 
-fn generate_event_content_impl(ident: &Ident, event_type: &LitStr) -> TokenStream {
+fn generate_event_content_impl(
+    ident: &Ident,
+    event_type: &LitStr,
+    import_path: &TokenStream,
+) -> TokenStream {
     quote! {
-        impl ::ruma_events::EventContent for #ident {
+        impl #import_path::EventContent for #ident {
             fn event_type(&self) -> &str {
                 #event_type
             }
 
             fn from_parts(
                 ev_type: &str,
-                content: Box<::serde_json::value::RawValue>
-            ) -> Result<Self, ::serde_json::Error> {
+                content: Box<#import_path::exports::serde_json::value::RawValue>
+            ) -> Result<Self, #import_path::exports::serde_json::Error> {
                 if ev_type != #event_type {
-                    return Err(::serde::de::Error::custom(
+                    return Err(#import_path::exports::serde::de::Error::custom(
                         format!("expected event type `{}`, found `{}`", #event_type, ev_type)
                     ));
                 }
 
-                ::serde_json::from_str(content.get())
+                #import_path::exports::serde_json::from_str(content.get())
             }
         }
     }
