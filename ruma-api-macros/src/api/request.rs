@@ -9,7 +9,7 @@ use syn::{spanned::Spanned, Field, Ident, Lifetime};
 use crate::{
     api::{
         attribute::{Meta, MetaNameValue},
-        import_ruma_api, strip_serde_attrs, RawRequest,
+        strip_serde_attrs, RawRequest,
     },
     util,
 };
@@ -382,7 +382,7 @@ impl TryFrom<RawRequest> for Request {
             ));
         }
 
-        Ok(Self { fields, lifetimes, ruma_api_import: import_ruma_api() })
+        Ok(Self { fields, lifetimes, ruma_api_import: util::import_ruma_api() })
     }
 }
 

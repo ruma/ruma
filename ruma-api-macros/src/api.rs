@@ -2,14 +2,13 @@
 
 use std::convert::{TryFrom, TryInto as _};
 
-use proc_macro2::{Span, TokenStream};
-use proc_macro_crate::crate_name;
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     braced,
     parse::{Parse, ParseStream},
     spanned::Spanned,
-    Field, FieldValue, Ident, Token, Type,
+    Field, FieldValue, Token, Type,
 };
 
 pub(crate) mod attribute;
@@ -27,18 +26,6 @@ pub fn strip_serde_attrs(field: &Field) -> Field {
     field
 }
 
-pub fn import_ruma_api() -> TokenStream {
-    if let Ok(possibly_renamed) = crate_name("ruma-api") {
-        let import = Ident::new(&possibly_renamed, Span::call_site());
-        quote! { ::#import }
-    } else if let Ok(possibly_renamed) = crate_name("ruma") {
-        let import = Ident::new(&possibly_renamed, Span::call_site());
-        quote! { ::#import::api }
-    } else {
-        quote! { ::ruma_api }
-    }
-}
-
 /// The result of processing the `ruma_api` macro, ready for output back to source code.
 pub struct Api {
     /// The `metadata` section of the macro.
@@ -48,20 +35,23 @@ pub struct Api {
     /// The `response` section of the macro.
     response: Response,
     /// The `error` section of the macro.
-    error: Type,
+    error: TokenStream,
 }
 
 impl TryFrom<RawApi> for Api {
     type Error = syn::Error;
 
     fn try_from(raw_api: RawApi) -> syn::Result<Self> {
+        let import_path = util::import_ruma_api();
+
         let res = Self {
             metadata: raw_api.metadata.try_into()?,
             request: raw_api.request.try_into()?,
             response: raw_api.response.try_into()?,
-            error: raw_api
-                .error
-                .map_or(syn::parse_str::<Type>("ruma_api::error::Void").unwrap(), |err| err.ty),
+            error: match raw_api.error {
+                Some(raw_err) => raw_err.ty.to_token_stream(),
+                None => quote! { #import_path::error::Void },
+            },
         };
 
         let newtype_body_field = res.request.newtype_body_field();
@@ -96,7 +86,7 @@ impl TryFrom<RawApi> for Api {
 impl ToTokens for Api {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         // Guarantee `ruma_api` is available and named something we can refer to.
-        let ruma_api_import = import_ruma_api();
+        let ruma_api_import = util::import_ruma_api();
 
         let description = &self.metadata.description;
         let method = &self.metadata.method;
@@ -127,11 +117,11 @@ impl ToTokens for Api {
         };
 
         let (request_path_string, parse_request_path) =
-            util::request_path_string_and_parse(&self.request, &self.metadata);
+            util::request_path_string_and_parse(&self.request, &self.metadata, &ruma_api_import);
 
-        let request_query_string = util::build_query_string(&self.request);
+        let request_query_string = util::build_query_string(&self.request, &ruma_api_import);
 
-        let extract_request_query = util::extract_request_query(&self.request);
+        let extract_request_query = util::extract_request_query(&self.request, &ruma_api_import);
 
         let parse_request_query = if let Some(field) = self.request.query_map_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
@@ -194,7 +184,7 @@ impl ToTokens for Api {
             TokenStream::new()
         };
 
-        let request_body = util::build_request_body(&self.request);
+        let request_body = util::build_request_body(&self.request, &ruma_api_import);
 
         let parse_request_body = util::parse_request_body(&self.request);
 
