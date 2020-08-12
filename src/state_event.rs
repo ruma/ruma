@@ -266,7 +266,7 @@ impl<'de> de::Deserialize<'de> for StateEvent {
                 Some(unsigned) if unsigned.redacted_because.is_some() => {
                     panic!("TODO deal with redacted events")
                 }
-                _ => StateEvent::Full(from_raw_json_value(&json)?),
+                _ => StateEvent::Full(Pdu::RoomV1Pdu(from_raw_json_value(&json)?)),
             })
         } else {
             Ok(match unsigned {
