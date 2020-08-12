@@ -5,4 +5,5 @@
 #![allow(clippy::new_without_default)]
 
 pub mod event;
+pub mod query;
 pub mod v1;
