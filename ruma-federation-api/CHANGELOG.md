@@ -3,6 +3,7 @@
 Breaking Changes:
 
 * Replace `directory::get_public_rooms::v1::{PublicRoomsChunk, RoomNetwork}` with types from `ruma_common::directory`
+* Wrap `PduStub`s in `membership::create_join_event` in `Raw`
 
 Improvements:
 
@@ -17,6 +18,7 @@ Improvements:
       query_keys::v1,
   },
   membership::create_invite::{v1, v2},
+  membership::create_join_event::v2,
   ```
 
 # 0.0.3
@@ -31,7 +33,6 @@ Improvements:
 
   ```
   authorization::get_event_authorization::v1,
-  membership::create_join_event::v2,
   openid::get_openid_userinfo::v1,
   query::get_profile_information::v1,
   transactions::send_transaction_message::v1,

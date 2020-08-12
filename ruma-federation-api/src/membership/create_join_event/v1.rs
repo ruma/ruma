@@ -2,6 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_events::pdu::PduStub;
+use ruma_common::Raw;
 use ruma_identifiers::{EventId, RoomId};
 
 use super::RoomState;
@@ -26,11 +27,11 @@ ruma_api! {
 
         /// PDU type without event and room IDs.
         #[ruma_api(body)]
-        pub pdu_stub: PduStub,
+        pub pdu_stub: Raw<PduStub>,
     }
 
     response: {
-        /// Full state of the room.
+        /// Full state and auth chain of the room prior to the join event.
         #[ruma_api(body)]
         #[serde(with = "crate::serde::room_state")]
         pub room_state: RoomState,
