@@ -140,8 +140,8 @@ impl ToTokens for Api {
                 #ruma_api_import::exports::http::header::HeaderValue::from_str(
                     &::std::format!(
                         "Bearer {}",
-                        access_token.ok_or_else(
-                            #ruma_api_import::error::IntoHttpError::needs_authentication
+                        access_token.ok_or(
+                            #ruma_api_import::error::IntoHttpError::NeedsAuthentication
                         )?
                     )
                 )?

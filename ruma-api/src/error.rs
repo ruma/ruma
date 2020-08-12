@@ -28,58 +28,56 @@ impl std::error::Error for Void {}
 /// An error when converting one of ruma's endpoint-specific request or response
 /// types to the corresponding http type.
 #[derive(Debug)]
-pub struct IntoHttpError(InnerIntoHttpError);
-
-impl IntoHttpError {
-    // For usage in macros
-    #[doc(hidden)]
-    pub fn needs_authentication() -> Self {
-        Self(InnerIntoHttpError::NeedsAuthentication)
-    }
+#[non_exhaustive]
+pub enum IntoHttpError {
+    /// Tried to create an authentication request without an access token.
+    NeedsAuthentication,
+    /// JSON serialization failed.
+    Json(serde_json::Error),
+    /// Query parameter serialization failed.
+    Query(ruma_serde::urlencoded::ser::Error),
+    /// Header serialization failed.
+    Header(http::header::InvalidHeaderValue),
+    /// HTTP request construction failed.
+    Http(http::Error),
 }
 
-#[doc(hidden)]
 impl From<serde_json::Error> for IntoHttpError {
     fn from(err: serde_json::Error) -> Self {
-        Self(InnerIntoHttpError::Json(err))
+        Self::Json(err)
     }
 }
 
-#[doc(hidden)]
 impl From<ruma_serde::urlencoded::ser::Error> for IntoHttpError {
     fn from(err: ruma_serde::urlencoded::ser::Error) -> Self {
-        Self(InnerIntoHttpError::Query(err))
+        Self::Query(err)
     }
 }
 
-#[doc(hidden)]
 impl From<http::header::InvalidHeaderValue> for IntoHttpError {
     fn from(err: http::header::InvalidHeaderValue) -> Self {
-        Self(InnerIntoHttpError::Header(err))
+        Self::Header(err)
     }
 }
 
-#[doc(hidden)]
 impl From<http::Error> for IntoHttpError {
     fn from(err: http::Error) -> Self {
-        Self(InnerIntoHttpError::Http(err))
+        Self::Http(err)
     }
 }
 
 impl Display for IntoHttpError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match &self.0 {
-            InnerIntoHttpError::NeedsAuthentication => write!(
+        match &self {
+            Self::NeedsAuthentication => write!(
                 f,
                 "This endpoint has to be converted to http::Request using \
                 try_into_authenticated_http_request"
             ),
-            InnerIntoHttpError::Json(err) => write!(f, "JSON serialization failed: {}", err),
-            InnerIntoHttpError::Query(err) => {
-                write!(f, "Query parameter serialization failed: {}", err)
-            }
-            InnerIntoHttpError::Header(err) => write!(f, "Header serialization failed: {}", err),
-            InnerIntoHttpError::Http(err) => write!(f, "HTTP request construction failed: {}", err),
+            Self::Json(err) => write!(f, "JSON serialization failed: {}", err),
+            Self::Query(err) => write!(f, "Query parameter serialization failed: {}", err),
+            Self::Header(err) => write!(f, "Header serialization failed: {}", err),
+            Self::Http(err) => write!(f, "HTTP request construction failed: {}", err),
         }
     }
 }
@@ -119,9 +117,8 @@ pub struct RequestDeserializationError {
 }
 
 impl RequestDeserializationError {
-    /// This method is public so it is accessible from `ruma_api!` generated
-    /// code. It is not considered part of ruma-api's public API.
-    #[doc(hidden)]
+    /// Creates a new `RequestDeserializationError` from the given deserialization error and http
+    /// request.
     pub fn new(
         inner: impl Into<DeserializationError>,
         http_request: http::Request<Vec<u8>>,
@@ -180,9 +177,8 @@ pub struct ResponseDeserializationError {
 }
 
 impl ResponseDeserializationError {
-    /// This method is public so it is accessible from `ruma_api!` generated
-    /// code. It is not considered part of ruma-api's public API.
-    #[doc(hidden)]
+    /// Creates a new `ResponseDeserializationError` from the given deserialization error and http
+    /// response.
     pub fn new(
         inner: impl Into<DeserializationError>,
         http_response: http::Response<Vec<u8>>,
@@ -190,10 +186,7 @@ impl ResponseDeserializationError {
         Self { inner: Some(inner.into()), http_response }
     }
 
-    /// This method is public so it is accessible from `ruma_api!` generated
-    /// code. It is not considered part of ruma-api's public API.
-    /// Creates an Error from a `http::Response`.
-    #[doc(hidden)]
+    /// Creates a new `ResponseDeserializationError` without an inner deserialization error.
     pub fn from_response(http_response: http::Response<Vec<u8>>) -> Self {
         Self { http_response, inner: None }
     }
@@ -232,27 +225,22 @@ impl<E: Display> Display for ServerError<E> {
 
 impl<E: std::error::Error> std::error::Error for ServerError<E> {}
 
+/// An error when converting a http request / response to one of ruma's endpoint-specific request /
+/// response types.
 #[derive(Debug)]
-enum InnerIntoHttpError {
-    NeedsAuthentication,
-    Json(serde_json::Error),
-    Query(ruma_serde::urlencoded::ser::Error),
-    Header(http::header::InvalidHeaderValue),
-    Http(http::Error),
-}
-
-/// This type is public so it is accessible from `ruma_api!` generated code.
-/// It is not considered part of ruma-api's public API.
-#[doc(hidden)]
-#[derive(Debug)]
+#[non_exhaustive]
 pub enum DeserializationError {
+    /// Encountered invalid UTF-8.
     Utf8(std::str::Utf8Error),
+    /// JSON deserialization failed.
     Json(serde_json::Error),
+    /// Query parameter deserialization failed.
     Query(ruma_serde::urlencoded::de::Error),
+    /// Got an invalid identifier.
     Ident(ruma_identifiers::Error),
-    // String <> Enum conversion failed. This can currently only happen in path
-    // segment deserialization
+    /// Path segment deserialization failed.
     Strum(strum::ParseError),
+    /// Header value deserialization failed.
     Header(http::header::ToStrError),
 }
 
@@ -269,49 +257,42 @@ impl Display for DeserializationError {
     }
 }
 
-#[doc(hidden)]
 impl From<http::header::ToStrError> for DeserializationError {
     fn from(err: http::header::ToStrError) -> Self {
         Self::Header(err)
     }
 }
 
-#[doc(hidden)]
 impl From<std::str::Utf8Error> for DeserializationError {
     fn from(err: std::str::Utf8Error) -> Self {
         Self::Utf8(err)
     }
 }
 
-#[doc(hidden)]
 impl From<serde_json::Error> for DeserializationError {
     fn from(err: serde_json::Error) -> Self {
         Self::Json(err)
     }
 }
 
-#[doc(hidden)]
 impl From<ruma_serde::urlencoded::de::Error> for DeserializationError {
     fn from(err: ruma_serde::urlencoded::de::Error) -> Self {
         Self::Query(err)
     }
 }
 
-#[doc(hidden)]
 impl From<ruma_identifiers::Error> for DeserializationError {
     fn from(err: ruma_identifiers::Error) -> Self {
         Self::Ident(err)
     }
 }
 
-#[doc(hidden)]
 impl From<strum::ParseError> for DeserializationError {
     fn from(err: strum::ParseError) -> Self {
         Self::Strum(err)
     }
 }
 
-#[doc(hidden)]
 impl From<std::convert::Infallible> for DeserializationError {
     fn from(err: std::convert::Infallible) -> Self {
         match err {}
