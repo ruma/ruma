@@ -4,12 +4,14 @@
 
 use std::fmt::{self, Display, Formatter};
 
+use crate::EndpointError;
+
 // FIXME when `!` becomes stable use it
-/// Default `ResponseError` for `ruma_api!` macro
+/// Default `EndpointError` for `ruma_api!` macro
 #[derive(Clone, Copy, Debug)]
 pub enum Void {}
 
-impl crate::EndpointError for Void {
+impl EndpointError for Void {
     fn try_from_response(
         response: http::Response<Vec<u8>>,
     ) -> Result<Self, ResponseDeserializationError> {

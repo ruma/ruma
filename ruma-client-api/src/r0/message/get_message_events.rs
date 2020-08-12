@@ -118,7 +118,7 @@ mod tests {
     use super::{Direction, Request};
 
     use js_int::uint;
-    use ruma_api::Endpoint;
+    use ruma_api::OutgoingRequest;
     use ruma_identifiers::room_id;
 
     use crate::r0::filter::{LazyLoadOptions, RoomEventFilter};

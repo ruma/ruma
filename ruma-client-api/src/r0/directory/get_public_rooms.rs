@@ -56,7 +56,7 @@ mod tests {
     use std::convert::TryInto;
 
     use js_int::uint;
-    use ruma_api::Endpoint as _;
+    use ruma_api::OutgoingRequest as _;
 
     use super::{Request, Response};
 

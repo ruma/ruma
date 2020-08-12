@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use ruma_api::{ruma_api, Endpoint};
+use ruma_api::{ruma_api, OutgoingRequest as _};
 
 ruma_api! {
     metadata: {

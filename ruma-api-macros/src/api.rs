@@ -101,7 +101,7 @@ impl ToTokens for Api {
         let request_type = &self.request;
         let response_type = &self.response;
 
-        let request_try_from_type = if self.request.contains_lifetimes() {
+        let incoming_request_type = if self.request.contains_lifetimes() {
             quote!(IncomingRequest)
         } else {
             quote!(Request)
@@ -227,22 +227,25 @@ impl ToTokens for Api {
 
         let request_lifetimes = self.request.combine_lifetimes();
 
-        let non_auth_endpoint_impl = if requires_authentication.value {
+        let non_auth_endpoint_impls = if requires_authentication.value {
             TokenStream::new()
         } else {
             quote! {
-                impl #request_lifetimes #ruma_api_import::NonAuthEndpoint
+                impl #request_lifetimes #ruma_api_import::OutgoingNonAuthRequest
                     for Request #request_lifetimes
                 {}
+
+                impl #ruma_api_import::IncomingNonAuthRequest for #incoming_request_type {}
             }
         };
 
         let api = quote! {
-
             #[doc = #request_doc]
             #request_type
 
-            impl ::std::convert::TryFrom<#ruma_api_import::exports::http::Request<Vec<u8>>> for #request_try_from_type {
+            impl ::std::convert::TryFrom<#ruma_api_import::exports::http::Request<Vec<u8>>>
+                for #incoming_request_type
+            {
                 type Error = #ruma_api_import::error::FromHttpRequestError;
 
                 #[allow(unused_variables)]
@@ -308,21 +311,24 @@ impl ToTokens for Api {
                 }
             }
 
-            impl #request_lifetimes #ruma_api_import::Endpoint for Request #request_lifetimes {
-                type Response = Response;
-                type ResponseError = #error;
-                type IncomingRequest = <Self as #ruma_api_import::Outgoing>::Incoming;
+            const __METADATA: #ruma_api_import::Metadata = #ruma_api_import::Metadata {
+                description: #description,
+                method: #ruma_api_import::exports::http::Method::#method,
+                name: #name,
+                path: #path,
+                rate_limited: #rate_limited,
+                requires_authentication: #requires_authentication,
+            };
+
+            impl #request_lifetimes #ruma_api_import::OutgoingRequest
+                for Request #request_lifetimes
+            {
+                type EndpointError = #error;
                 type IncomingResponse = <Response as #ruma_api_import::Outgoing>::Incoming;
 
+                // FIXME: Doc string interpolation
                 /// Metadata for the `#name` endpoint.
-                const METADATA: #ruma_api_import::Metadata = #ruma_api_import::Metadata {
-                    description: #description,
-                    method: #ruma_api_import::exports::http::Method::#method,
-                    name: #name,
-                    path: #path,
-                    rate_limited: #rate_limited,
-                    requires_authentication: #requires_authentication,
-                };
+                const METADATA: #ruma_api_import::Metadata = __METADATA;
 
                 #[allow(unused_mut, unused_variables)]
                 fn try_into_http_request(
@@ -333,7 +339,7 @@ impl ToTokens for Api {
                     #ruma_api_import::exports::http::Request<Vec<u8>>,
                     #ruma_api_import::error::IntoHttpError,
                 > {
-                    let metadata = Request::METADATA;
+                    let metadata = <Self as #ruma_api_import::OutgoingRequest>::METADATA;
 
                     let http_request = #ruma_api_import::exports::http::Request::builder()
                         .method(#ruma_api_import::exports::http::Method::#method)
@@ -350,7 +356,16 @@ impl ToTokens for Api {
                 }
             }
 
-            #non_auth_endpoint_impl
+            impl #ruma_api_import::IncomingRequest for #incoming_request_type {
+                type EndpointError = #error;
+                type OutgoingResponse = Response;
+
+                // FIXME: Doc string interpolation
+                /// Metadata for the `#name` endpoint.
+                const METADATA: #ruma_api_import::Metadata = __METADATA;
+            }
+
+            #non_auth_endpoint_impls
         };
 
         api.to_tokens(tokens);

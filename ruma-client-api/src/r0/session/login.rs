@@ -140,7 +140,7 @@ mod user_serde;
 
 #[cfg(test)]
 mod tests {
-    use ruma_api::Endpoint;
+    use ruma_api::OutgoingRequest;
     use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 
     use super::{LoginInfo, Medium, Request, UserInfo};

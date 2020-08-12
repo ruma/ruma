@@ -231,7 +231,7 @@ pub trait Outgoing {
     type Incoming;
 }
 
-/// Gives users the ability to define their own serializable/deserializable errors.
+/// Gives users the ability to define their own serializable / deserializable errors.
 pub trait EndpointError: std::error::Error + Sized {
     /// Tries to construct `Self` from an `http::Response`.
     ///
@@ -242,22 +242,15 @@ pub trait EndpointError: std::error::Error + Sized {
     ) -> Result<Self, error::ResponseDeserializationError>;
 }
 
-/// A Matrix API endpoint.
-///
-/// The type implementing this trait contains any data needed to make a request to the endpoint.
-pub trait Endpoint: Outgoing<Incoming = <Self as Endpoint>::IncomingRequest> {
-    /// Data returned in a successful response from the endpoint.
-    type Response: Outgoing<Incoming = Self::IncomingResponse>
-        + TryInto<http::Response<Vec<u8>>, Error = IntoHttpError>;
-    /// Error type returned when response from endpoint fails.
-    type ResponseError: EndpointError;
+/// A request type for a Matrix API endpoint. (trait used for sending requests)
+pub trait OutgoingRequest {
+    /// A type capturing the expected error conditions the server can return.
+    type EndpointError: EndpointError;
 
-    /// Shorthand for `<Self as Outgoing>::Incoming`.
-    type IncomingRequest: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError>;
-    /// Shorthand for `<Self::Response as Outgoing>::Incoming`.
+    /// Response type returned when the request is successful.
     type IncomingResponse: TryFrom<
         http::Response<Vec<u8>>,
-        Error = FromHttpResponseError<<Self as Endpoint>::ResponseError>,
+        Error = FromHttpResponseError<Self::EndpointError>,
     >;
 
     /// Metadata about the endpoint.
@@ -278,11 +271,23 @@ pub trait Endpoint: Outgoing<Incoming = <Self as Endpoint>::IncomingRequest> {
     ) -> Result<http::Request<Vec<u8>>, IntoHttpError>;
 }
 
-/// A Matrix API endpoint that doesn't require authentication.
-///
-/// This marker trait is to indicate that a type implementing `Endpoint` doesn't require any
-/// authentication.
-pub trait NonAuthEndpoint: Endpoint {}
+/// A request type for a Matrix API endpoint. (trait used for receiving requests)
+pub trait IncomingRequest: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError> {
+    /// A type capturing the error conditions that can be returned in the response.
+    type EndpointError: EndpointError;
+
+    /// Response type to return when the request is successful.
+    type OutgoingResponse: TryInto<http::Response<Vec<u8>>, Error = IntoHttpError>;
+
+    /// Metadata about the endpoint.
+    const METADATA: Metadata;
+}
+
+/// Marker trait for requests that don't require authentication. (for the client side)
+pub trait OutgoingNonAuthRequest: OutgoingRequest {}
+
+/// Marker trait for requests that don't require authentication. (for the server side)
+pub trait IncomingNonAuthRequest: IncomingRequest {}
 
 /// Metadata about an API endpoint.
 #[derive(Clone, Debug)]

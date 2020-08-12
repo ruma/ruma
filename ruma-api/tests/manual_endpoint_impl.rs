@@ -10,7 +10,7 @@ use ruma_api::{
         FromHttpRequestError, FromHttpResponseError, IntoHttpError, RequestDeserializationError,
         ResponseDeserializationError, ServerError, Void,
     },
-    Endpoint, Metadata, Outgoing,
+    IncomingRequest, Metadata, Outgoing, OutgoingRequest,
 };
 
 /// A request to create a new room alias.
@@ -24,35 +24,33 @@ impl Outgoing for Request {
     type Incoming = Self;
 }
 
-impl Endpoint for Request {
-    type Response = Response;
-    type ResponseError = Void;
-    type IncomingRequest = Self;
+const METADATA: Metadata = Metadata {
+    description: "Add an alias to a room.",
+    method: Method::PUT,
+    name: "create_alias",
+    path: "/_matrix/client/r0/directory/room/:room_alias",
+    rate_limited: false,
+    requires_authentication: false,
+};
+
+impl OutgoingRequest for Request {
+    type EndpointError = Void;
     type IncomingResponse = Response;
 
-    const METADATA: Metadata = Metadata {
-        description: "Add an alias to a room.",
-        method: Method::PUT,
-        name: "create_alias",
-        path: "/_matrix/client/r0/directory/room/:room_alias",
-        rate_limited: false,
-        requires_authentication: false,
-    };
+    const METADATA: Metadata = METADATA;
 
     fn try_into_http_request(
         self,
         base_url: &str,
         _access_token: Option<&str>,
     ) -> Result<http::Request<Vec<u8>>, IntoHttpError> {
-        let metadata = Request::METADATA;
-
-        let url = (base_url.to_owned() + metadata.path)
+        let url = (base_url.to_owned() + METADATA.path)
             .replace(":room_alias", &self.room_alias.to_string());
 
         let request_body = RequestBody { room_id: self.room_id };
 
         let http_request = http::Request::builder()
-            .method(metadata.method)
+            .method(METADATA.method)
             .uri(url)
             .body(serde_json::to_vec(&request_body)?)
             // this cannot fail because we don't give user-supplied data to any of the
@@ -61,6 +59,13 @@ impl Endpoint for Request {
 
         Ok(http_request)
     }
+}
+
+impl IncomingRequest for Request {
+    type EndpointError = Void;
+    type OutgoingResponse = Response;
+
+    const METADATA: Metadata = METADATA;
 }
 
 impl TryFrom<http::Request<Vec<u8>>> for Request {

@@ -113,7 +113,7 @@ use http::{uri::Uri, Response as HttpResponse};
 use hyper::{client::HttpConnector, Client as HyperClient};
 #[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
-use ruma_api::Endpoint;
+use ruma_api::OutgoingRequest;
 use ruma_client_api::r0::sync::sync_events::{
     Filter as SyncFilter, Request as SyncRequest, Response as SyncResponse,
 };
@@ -350,19 +350,19 @@ where
     }
 
     /// Makes a request to a Matrix API endpoint.
-    pub async fn request<Request: Endpoint>(
+    pub async fn request<Request: OutgoingRequest>(
         &self,
         request: Request,
-    ) -> Result<Request::IncomingResponse, Error<Request::ResponseError>> {
+    ) -> Result<Request::IncomingResponse, Error<Request::EndpointError>> {
         self.request_with_url_params(request, None).await
     }
 
     /// Makes a request to a Matrix API endpoint including additional URL parameters.
-    pub async fn request_with_url_params<Request: Endpoint>(
+    pub async fn request_with_url_params<Request: OutgoingRequest>(
         &self,
         request: Request,
         extra_params: Option<BTreeMap<String, String>>,
-    ) -> Result<Request::IncomingResponse, Error<Request::ResponseError>> {
+    ) -> Result<Request::IncomingResponse, Error<Request::EndpointError>> {
         let client = self.0.clone();
         let mut http_request = {
             let session;
