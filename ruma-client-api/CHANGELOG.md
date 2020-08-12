@@ -54,6 +54,8 @@ Breaking changes:
   `ruma_identifiers::{DeviceKeyId, DeviceKeyAlgorithm}`, respectively
 * Use `ruma_identifiers::{ServerName, ServerKeyId}` in `signatures` fields of
   `r0::room::membership::ThirdPartySigned`.
+* Move `r0::directory::{Filter, PublicRoomsChunk, RoomNetwork}` to
+  the `ruma-common` crate
 
 Improvements:
 
