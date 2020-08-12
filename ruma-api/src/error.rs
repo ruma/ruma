@@ -7,7 +7,7 @@ use std::fmt::{self, Display, Formatter};
 // FIXME when `!` becomes stable use it
 /// Default `ResponseError` for `ruma_api!` macro
 #[derive(Clone, Copy, Debug)]
-pub struct Void;
+pub enum Void {}
 
 impl crate::EndpointError for Void {
     fn try_from_response(
@@ -19,7 +19,7 @@ impl crate::EndpointError for Void {
 
 impl Display for Void {
     fn fmt(&self, _: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {}
+        match *self {}
     }
 }
 
