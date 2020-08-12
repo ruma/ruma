@@ -30,7 +30,7 @@ Here is a list of helpful resources you can consult:
 # Reporting Issues
 
 If you find any bugs, inconsistencies or other problems, feel free to submit
-a GitHub [issue](issues).
+a GitHub [issue](https://github.com/ruma/ruma/issues/new).
 
 If you have a quick question, it may be easier to leave a message on
 [#ruma:matrix.org](https://matrix.to/#/#ruma:matrix.org).
@@ -171,9 +171,10 @@ guidelines:
 
 ### Tracking Changes
 
-Add your changes to the [change log](CHANGELOG.md). If possible, try to
-find and denote the version of the spec that included the change you are
-making.
+If your changes affect the API of a user-facing crate (all except the `-macros` crates and
+`ruma-identifiers-validation`), add an entry about them to the change log (`CHANGELOG.md`)
+of that crate. Where applicable, try to find and denote the version of the spec that
+included the change you are making.
 
 ## Submitting PRs
 
@@ -186,7 +187,7 @@ merge the request and you're done! 🎉
 If this is your first contribution to the project, we recommend taking a look
 at one of the [open issues][] we've marked for new contributors.
 
-[open issues]: issues?q=is%3Aopen+is%3Aissue+label%3Aeffort%2Feasy
+[open issues]: https://github.com/ruma/ruma/issues?q=is%3Aissue+is%3Aopen+label%3A"help+wanted"
 
 # Testing
 
