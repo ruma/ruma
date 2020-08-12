@@ -25,7 +25,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
     let derive_deserialize = if no_deserialize_in_attrs(&input.attrs) {
         TokenStream::new()
     } else {
-        quote!(::ruma_api::exports::serde::Deserialize)
+        quote! { #import_path::exports::serde::Deserialize }
     };
 
     let input_attrs =

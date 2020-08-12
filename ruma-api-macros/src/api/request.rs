@@ -37,7 +37,7 @@ pub struct Request {
 impl Request {
     /// Produces code to add necessary HTTP headers to an `http::Request`.
     pub fn append_header_kvs(&self) -> Vec<TokenStream> {
-        let ruma_api = &self.ruma_api_import;
+        let import_path = &self.ruma_api_import;
         self.header_fields().map(|request_field| {
             let (field, header_name) = match request_field {
                 RequestField::Header(field, header_name) => (field, header_name),
@@ -47,15 +47,15 @@ impl Request {
             let field_name = &field.ident;
 
             quote! {
-                #ruma_api::exports::http::header::#header_name,
-                #ruma_api::exports::http::header::HeaderValue::from_str(self.#field_name.as_ref())?
+                #import_path::exports::http::header::#header_name,
+                #import_path::exports::http::header::HeaderValue::from_str(self.#field_name.as_ref())?
             }
         }).collect()
     }
 
     /// Produces code to extract fields from the HTTP headers in an `http::Request`.
     pub fn parse_headers_from_request(&self) -> TokenStream {
-        let ruma_api = &self.ruma_api_import;
+        let import_path = &self.ruma_api_import;
         let fields = self.header_fields().map(|request_field| {
             let (field, header_name) = match request_field {
                 RequestField::Header(field, header_name) => (field, header_name),
@@ -67,16 +67,16 @@ impl Request {
 
             quote! {
                 #field_name: match headers
-                    .get(#ruma_api::exports::http::header::#header_name)
+                    .get(#import_path::exports::http::header::#header_name)
                     .and_then(|v| v.to_str().ok()) // FIXME: Should have a distinct error message
                 {
                     Some(header) => header.to_owned(),
                     None => {
-                        use #ruma_api::exports::serde::de::Error as _;
+                        use #import_path::exports::serde::de::Error as _;
 
                         // FIXME: Not a missing json field, a missing header!
-                        return Err(#ruma_api::error::RequestDeserializationError::new(
-                            #ruma_api::exports::serde_json::Error::missing_field(
+                        return Err(#import_path::error::RequestDeserializationError::new(
+                            #import_path::exports::serde_json::Error::missing_field(
                                 #header_name_string
                             ),
                             request,
@@ -388,7 +388,7 @@ impl TryFrom<RawRequest> for Request {
 
 impl ToTokens for Request {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let ruma_api = &self.ruma_api_import;
+        let import_path = &self.ruma_api_import;
         let request_def = if self.fields.is_empty() {
             quote!(;)
         } else {
@@ -409,7 +409,7 @@ impl ToTokens for Request {
                 let (derive_deserialize, lifetimes) = if self.has_body_lifetimes() {
                     (TokenStream::new(), self.body_lifetimes())
                 } else {
-                    (quote!(#ruma_api::exports::serde::Deserialize), TokenStream::new())
+                    (quote!(#import_path::exports::serde::Deserialize), TokenStream::new())
                 };
 
                 Some((derive_deserialize, quote! { #lifetimes (#field); }))
@@ -418,7 +418,7 @@ impl ToTokens for Request {
                 let (derive_deserialize, lifetimes) = if self.has_body_lifetimes() {
                     (TokenStream::new(), self.body_lifetimes())
                 } else {
-                    (quote!(#ruma_api::exports::serde::Deserialize), TokenStream::new())
+                    (quote!(#import_path::exports::serde::Deserialize), TokenStream::new())
                 };
                 let fields = fields.map(RequestField::field);
 
@@ -431,8 +431,8 @@ impl ToTokens for Request {
                     /// Data in the request body.
                     #[derive(
                         Debug,
-                        #ruma_api::Outgoing,
-                        #ruma_api::exports::serde::Serialize,
+                        #import_path::Outgoing,
+                        #import_path::exports::serde::Serialize,
                         #derive_deserialize
                     )]
                     struct RequestBody #def
@@ -444,15 +444,15 @@ impl ToTokens for Request {
             let (derive_deserialize, lifetime) = if self.has_query_lifetimes() {
                 (TokenStream::new(), self.query_lifetimes())
             } else {
-                (quote!(#ruma_api::exports::serde::Deserialize), TokenStream::new())
+                (quote!(#import_path::exports::serde::Deserialize), TokenStream::new())
             };
 
             quote! {
                 /// Data in the request's query string.
                 #[derive(
                     Debug,
-                    #ruma_api::Outgoing,
-                    #ruma_api::exports::serde::Serialize,
+                    #import_path::Outgoing,
+                    #import_path::exports::serde::Serialize,
                     #derive_deserialize
                 )]
                 struct RequestQuery #lifetime (#field);
@@ -462,15 +462,15 @@ impl ToTokens for Request {
             let (derive_deserialize, lifetime) = if self.has_query_lifetimes() {
                 (TokenStream::new(), self.query_lifetimes())
             } else {
-                (quote!(#ruma_api::exports::serde::Deserialize), TokenStream::new())
+                (quote!(#import_path::exports::serde::Deserialize), TokenStream::new())
             };
 
             quote! {
                 /// Data in the request's query string.
                 #[derive(
                     Debug,
-                    #ruma_api::Outgoing,
-                    #ruma_api::exports::serde::Serialize,
+                    #import_path::Outgoing,
+                    #import_path::exports::serde::Serialize,
                     #derive_deserialize
                 )]
                 struct RequestQuery #lifetime {
@@ -482,7 +482,7 @@ impl ToTokens for Request {
         };
 
         let request = quote! {
-            #[derive(Debug, Clone, #ruma_api::Outgoing)]
+            #[derive(Debug, Clone, #import_path::Outgoing)]
             #[incoming_no_deserialize]
             pub struct Request #request_generics #request_def
 
