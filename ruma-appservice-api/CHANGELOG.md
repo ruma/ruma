@@ -1,6 +1,6 @@
 # [unreleased]
 
-Bug fixes:
+Breaking changes:
 
 * Fix endpoint versioning
 
