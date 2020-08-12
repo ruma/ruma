@@ -6,4 +6,4 @@
 
 pub mod event;
 pub mod query;
-pub mod v1;
+pub mod thirdparty;
