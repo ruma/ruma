@@ -23,8 +23,8 @@ thiserror = "1.0.20"
 tracing-subscriber = "0.2.8"
 
 [dependencies.ruma]
-git = "https://github.com/DevinR528/ruma"
-branch = "pdu-deserialize"
+git = "https://github.com/ruma/ruma"
+rev = "d5d2d1d893fa12d27960e4c58d6c09b215d06e95"
 features = ["client-api", "federation-api", "appservice-api"]
 
 [dev-dependencies]
