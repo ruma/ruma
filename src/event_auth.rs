@@ -68,10 +68,7 @@ pub fn auth_check(
     auth_events: StateMap<StateEvent>,
     do_sig_check: bool,
 ) -> Option<bool> {
-    tracing::info!(
-        "auth_check beginning for {}",
-        event.event_id().unwrap().as_str()
-    );
+    tracing::info!("auth_check beginning for {}", event.event_id().as_str());
 
     // don't let power from other rooms be used
     for auth_event in auth_events.values() {
@@ -455,7 +452,7 @@ fn can_send_event(event: &StateEvent, auth_events: &StateMap<StateEvent>) -> Opt
 
     tracing::debug!(
         "{} snd {} usr {}",
-        event.event_id().unwrap().to_string(),
+        event.event_id().to_string(),
         send_level,
         user_level
     );
@@ -630,7 +627,10 @@ fn check_redaction(
     }
 
     if let RoomVersionId::Version1 = room_version {
-        if redaction_event.event_id() == redaction_event.redacts() {
+        // are the redacter and redactee in the same domain
+        if Some(redaction_event.event_id().server_name())
+            == redaction_event.redacts().map(|id| id.server_name())
+        {
             return Some(RedactAllowed::OwnEvent);
         }
     } else {

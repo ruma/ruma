@@ -41,7 +41,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         INITIAL_EVENTS()
             .values()
             .chain(events)
-            .map(|ev| (ev.event_id().unwrap().clone(), ev.clone()))
+            .map(|ev| (ev.event_id(), ev.clone()))
             .collect(),
     ));
 
@@ -53,8 +53,8 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
     // create the DB of events that led up to this point
     // TODO maybe clean up some of these clones it is just tests but...
     for ev in INITIAL_EVENTS().values().chain(events) {
-        graph.insert(ev.event_id().unwrap().clone(), vec![]);
-        fake_event_map.insert(ev.event_id().unwrap().clone(), ev.clone());
+        graph.insert(ev.event_id().clone(), vec![]);
+        fake_event_map.insert(ev.event_id().clone(), ev.clone());
     }
 
     for pair in INITIAL_EDGES().windows(2) {
@@ -78,11 +78,10 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
 
     // resolve the current state and add it to the state_at_event map then continue
     // on in "time"
-    for node in
-        resolver.lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, Some(id.clone())))
+    for node in resolver.lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, id.clone()))
     {
         let fake_event = fake_event_map.get(&node).unwrap();
-        let event_id = fake_event.event_id().unwrap();
+        let event_id = fake_event.event_id();
 
         let prev_events = graph.get(&node).unwrap();
 
@@ -152,9 +151,9 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         // TODO The event is just remade, adding the auth_events and prev_events here
         // UPDATE: the `to_pdu_event` was split into `init` and the fn below, could be better
         let e = fake_event;
-        let ev_id = e.event_id().unwrap();
+        let ev_id = e.event_id();
         let event = to_pdu_event(
-            &e.event_id().unwrap().to_string(),
+            &e.event_id().to_string(),
             e.sender().clone(),
             e.kind(),
             e.state_key().as_deref(),
@@ -168,7 +167,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         // TODO
         // TODO we need to convert the `StateResolution::resolve` to use the event_map
         // because the user of this crate cannot update their DB's state.
-        *store.0.borrow_mut().get_mut(ev_id).unwrap() = event.clone();
+        *store.0.borrow_mut().get_mut(&ev_id).unwrap() = event.clone();
 
         state_at_event.insert(node, state_after);
         event_map.insert(event_id.clone(), event);
@@ -206,7 +205,7 @@ pub struct TestStore(RefCell<BTreeMap<EventId, StateEvent>>);
 
 #[allow(unused)]
 impl StateStore for TestStore {
-    fn get_events(&self, events: &[EventId]) -> Result<Vec<StateEvent>, String> {
+    fn get_events(&self, room_id: &RoomId, events: &[EventId]) -> Result<Vec<StateEvent>, String> {
         Ok(self
             .0
             .borrow()
@@ -217,7 +216,7 @@ impl StateStore for TestStore {
             .collect())
     }
 
-    fn get_event(&self, event_id: &EventId) -> Result<StateEvent, String> {
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent, String> {
         self.0
             .borrow()
             .get(event_id)
@@ -242,7 +241,7 @@ impl StateStore for TestStore {
 
             result.push(ev_id.clone());
 
-            let event = self.get_event(&ev_id).unwrap();
+            let event = self.get_event(room_id, &ev_id).unwrap();
             stack.extend(event.auth_events());
         }
 
@@ -504,7 +503,7 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, StateEvent> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id().unwrap().clone(), ev))
+    .map(|ev| (ev.event_id(), ev))
     .collect()
 }
 
@@ -558,7 +557,7 @@ fn BAN_STATE_SET() -> BTreeMap<EventId, StateEvent> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id().unwrap().clone(), ev))
+    .map(|ev| (ev.event_id(), ev))
     .collect()
 }
 
@@ -599,11 +598,7 @@ fn base_with_auth_chains() {
     let resolved = resolved
         .values()
         .cloned()
-        .chain(
-            INITIAL_EVENTS()
-                .values()
-                .map(|e| e.event_id().unwrap().clone()),
-        )
+        .chain(INITIAL_EVENTS().values().map(|e| e.event_id()))
         .collect::<Vec<_>>();
 
     let expected = vec![
@@ -644,7 +639,7 @@ fn ban_with_auth_chains2() {
         inner.get(&event_id("PA")).unwrap(),
     ]
     .iter()
-    .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().unwrap().clone()))
+    .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id()))
     .collect::<BTreeMap<_, _>>();
 
     let state_set_b = [
@@ -657,7 +652,7 @@ fn ban_with_auth_chains2() {
         inner.get(&event_id("PA")).unwrap(),
     ]
     .iter()
-    .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().unwrap().clone()))
+    .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id()))
     .collect::<StateMap<_>>();
 
     let resolved: StateMap<EventId> = match resolver.resolve(
@@ -725,7 +720,7 @@ fn JOIN_RULE() -> BTreeMap<EventId, StateEvent> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id().unwrap().clone(), ev))
+    .map(|ev| (ev.event_id(), ev))
     .collect()
 }
 

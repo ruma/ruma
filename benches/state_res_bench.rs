@@ -40,8 +40,8 @@ fn lexico_topo_sort(c: &mut Criterion) {
         b.iter(|| {
             let resolver = StateResolution::default();
 
-            let _ = resolver
-                .lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, Some(id.clone())));
+            let _ =
+                resolver.lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, id.clone()));
         })
     });
 }
@@ -92,7 +92,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().unwrap().clone()))
+        .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id()))
         .collect::<StateMap<_>>();
 
         let state_set_b = [
@@ -105,7 +105,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().unwrap().clone()))
+        .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id()))
         .collect::<StateMap<_>>();
 
         b.iter(|| {
@@ -142,7 +142,7 @@ pub struct TestStore(RefCell<BTreeMap<EventId, StateEvent>>);
 
 #[allow(unused)]
 impl StateStore for TestStore {
-    fn get_events(&self, events: &[EventId]) -> Result<Vec<StateEvent>, String> {
+    fn get_events(&self, room_id: &RoomId, events: &[EventId]) -> Result<Vec<StateEvent>, String> {
         Ok(self
             .0
             .borrow()
@@ -153,7 +153,7 @@ impl StateStore for TestStore {
             .collect())
     }
 
-    fn get_event(&self, event_id: &EventId) -> Result<StateEvent, String> {
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent, String> {
         self.0
             .borrow()
             .get(event_id)
@@ -178,7 +178,7 @@ impl StateStore for TestStore {
 
             result.push(ev_id.clone());
 
-            let event = self.get_event(&ev_id).unwrap();
+            let event = self.get_event(room_id, &ev_id).unwrap();
             stack.extend(event.auth_events());
         }
 
@@ -232,7 +232,7 @@ impl TestStore {
             &[],
             &[],
         );
-        let cre = create_event.event_id().unwrap().clone();
+        let cre = create_event.event_id();
         self.0
             .borrow_mut()
             .insert(cre.clone(), create_event.clone());
@@ -248,7 +248,7 @@ impl TestStore {
         );
         self.0
             .borrow_mut()
-            .insert(alice_mem.event_id().unwrap().clone(), alice_mem.clone());
+            .insert(alice_mem.event_id(), alice_mem.clone());
 
         let join_rules = to_pdu_event(
             "IJR",
@@ -256,12 +256,12 @@ impl TestStore {
             EventType::RoomJoinRules,
             Some(""),
             json!({ "join_rule": JoinRule::Public }),
-            &[cre.clone(), alice_mem.event_id().unwrap().clone()],
-            &[alice_mem.event_id().unwrap().clone()],
+            &[cre.clone(), alice_mem.event_id()],
+            &[alice_mem.event_id()],
         );
         self.0
             .borrow_mut()
-            .insert(join_rules.event_id().unwrap().clone(), join_rules.clone());
+            .insert(join_rules.event_id(), join_rules.clone());
 
         // Bob and Charlie join at the same time, so there is a fork
         // this will be represented in the state_sets when we resolve
@@ -271,12 +271,12 @@ impl TestStore {
             EventType::RoomMember,
             Some(bob().to_string().as_str()),
             member_content_join(),
-            &[cre.clone(), join_rules.event_id().unwrap().clone()],
-            &[join_rules.event_id().unwrap().clone()],
+            &[cre.clone(), join_rules.event_id()],
+            &[join_rules.event_id()],
         );
         self.0
             .borrow_mut()
-            .insert(bob_mem.event_id().unwrap().clone(), bob_mem.clone());
+            .insert(bob_mem.event_id(), bob_mem.clone());
 
         let charlie_mem = to_pdu_event(
             "IMC",
@@ -284,21 +284,21 @@ impl TestStore {
             EventType::RoomMember,
             Some(charlie().to_string().as_str()),
             member_content_join(),
-            &[cre, join_rules.event_id().unwrap().clone()],
-            &[join_rules.event_id().unwrap().clone()],
+            &[cre, join_rules.event_id()],
+            &[join_rules.event_id()],
         );
         self.0
             .borrow_mut()
-            .insert(charlie_mem.event_id().unwrap().clone(), charlie_mem.clone());
+            .insert(charlie_mem.event_id(), charlie_mem.clone());
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key()), e.event_id().unwrap().clone()))
+            .map(|e| ((e.kind(), e.state_key()), e.event_id()))
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key()), e.event_id().unwrap().clone()))
+            .map(|e| ((e.kind(), e.state_key()), e.event_id()))
             .collect::<StateMap<_>>();
 
         let expected = [
@@ -309,7 +309,7 @@ impl TestStore {
             &charlie_mem,
         ]
         .iter()
-        .map(|e| ((e.kind(), e.state_key()), e.event_id().unwrap().clone()))
+        .map(|e| ((e.kind(), e.state_key()), e.event_id()))
         .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)
@@ -525,7 +525,7 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, StateEvent> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id().unwrap().clone(), ev))
+    .map(|ev| (ev.event_id(), ev))
     .collect()
 }
 
@@ -571,6 +571,6 @@ fn BAN_STATE_SET() -> BTreeMap<EventId, StateEvent> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id().unwrap().clone(), ev))
+    .map(|ev| (ev.event_id(), ev))
     .collect()
 }

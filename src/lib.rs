@@ -91,6 +91,7 @@ impl StateResolution {
         // gather missing events for the event_map
         let events = store
             .get_events(
+                room_id,
                 &all_conflicted
                     .iter()
                     // we only want the events we don't know about yet
@@ -101,11 +102,7 @@ impl StateResolution {
             .unwrap();
 
         // update event_map to include the fetched events
-        event_map.extend(
-            events
-                .into_iter()
-                .flat_map(|ev| Some((ev.event_id()?.clone(), ev))),
-        );
+        event_map.extend(events.into_iter().map(|ev| (ev.event_id(), ev)));
         // at this point our event_map == store there should be no missing events
 
         tracing::debug!("event map size: {}", event_map.len());
@@ -114,10 +111,7 @@ impl StateResolution {
             if event.room_id() != Some(room_id) {
                 return Err(Error::TempString(format!(
                     "resolving event {} in room {}, when correct room is {}",
-                    event
-                        .event_id()
-                        .map(|id| id.as_str())
-                        .unwrap_or("`unknown`"),
+                    event.event_id(),
                     event.room_id().map(|id| id.as_str()).unwrap_or("`unknown`"),
                     room_id.as_str()
                 )));
@@ -307,7 +301,7 @@ impl StateResolution {
     pub fn reverse_topological_power_sort(
         &self,
         room_id: &RoomId,
-        power_events: &[EventId],
+        events_to_sort: &[EventId],
         event_map: &mut EventMap<StateEvent>,
         store: &dyn StateStore,
         auth_diff: &[EventId],
@@ -315,7 +309,7 @@ impl StateResolution {
         tracing::debug!("reverse topological sort of power events");
 
         let mut graph = BTreeMap::new();
-        for (idx, event_id) in power_events.iter().enumerate() {
+        for (idx, event_id) in events_to_sort.iter().enumerate() {
             self.add_event_and_auth_chain_to_graph(
                 room_id, &mut graph, event_id, event_map, store, auth_diff,
             );
@@ -347,10 +341,7 @@ impl StateResolution {
             let ev = event_map.get(event_id).unwrap();
             let pl = event_to_pl.get(event_id).unwrap();
 
-            tracing::debug!(
-                "{:?}",
-                (-*pl, *ev.origin_server_ts(), ev.event_id().cloned())
-            );
+            tracing::debug!("{:?}", (-*pl, *ev.origin_server_ts(), ev.event_id()));
 
             // count_0.sort_by(|(x, _), (y, _)| {
             //     x.power_level
@@ -361,7 +352,7 @@ impl StateResolution {
             // This return value is the key used for sorting events,
             // events are then sorted by power level, time,
             // and lexically by event_id.
-            (-*pl, *ev.origin_server_ts(), ev.event_id().cloned())
+            (-*pl, *ev.origin_server_ts(), ev.event_id())
         })
     }
 
@@ -374,7 +365,7 @@ impl StateResolution {
         key_fn: F,
     ) -> Vec<EventId>
     where
-        F: Fn(&EventId) -> (i64, SystemTime, Option<EventId>),
+        F: Fn(&EventId) -> (i64, SystemTime, EventId),
     {
         tracing::info!("starting lexicographical topological sort");
         // NOTE: an event that has no incoming edges happened most recently,
@@ -458,8 +449,8 @@ impl StateResolution {
         }
 
         if pl.is_none() {
-            for aid in store.get_event(event_id).unwrap().auth_events() {
-                if let Ok(aev) = store.get_event(&aid) {
+            for aid in store.get_event(room_id, event_id).unwrap().auth_events() {
+                if let Ok(aev) = store.get_event(room_id, &aid) {
                     if aev.is_type_and_key(EventType::RoomCreate, "") {
                         if let Ok(content) = aev
                             .deserialize_content::<ruma::events::room::create::CreateEventContent>()
@@ -541,7 +532,8 @@ impl StateResolution {
                 }
             }
 
-            tracing::debug!("event to check {:?}", event.event_id().unwrap().to_string());
+            tracing::debug!("event to check {:?}", event.event_id().to_string());
+
             if event_auth::auth_check(room_version, &event, auth_events, false)
                 .ok_or("Auth check failed due to deserialization most likely".to_string())
                 .map_err(Error::TempString)?
@@ -657,14 +649,10 @@ impl StateResolution {
         store: &dyn StateStore,
     ) -> usize {
         while let Some(sort_ev) = event {
-            tracing::debug!(
-                "mainline event_id {}",
-                sort_ev.event_id().unwrap().to_string()
-            );
-            if let Some(id) = sort_ev.event_id() {
-                if let Some(depth) = mainline_map.get(id) {
-                    return *depth;
-                }
+            tracing::debug!("mainline event_id {}", sort_ev.event_id().to_string());
+            let id = sort_ev.event_id();
+            if let Some(depth) = mainline_map.get(&id) {
+                return *depth;
             }
 
             let auth_events = sort_ev.auth_events();
@@ -717,14 +705,14 @@ impl StateResolution {
     /// TODO update self if we go that route just as event_map will be updated
     fn _get_event(
         &self,
-        _room_id: &RoomId,
+        room_id: &RoomId,
         ev_id: &EventId,
         event_map: &mut EventMap<StateEvent>,
         store: &dyn StateStore,
     ) -> Option<StateEvent> {
         // TODO can we cut down on the clones?
         if !event_map.contains_key(ev_id) {
-            let event = store.get_event(ev_id).ok()?;
+            let event = store.get_event(room_id, ev_id).ok()?;
             event_map.insert(ev_id.clone(), event.clone());
             Some(event)
         } else {

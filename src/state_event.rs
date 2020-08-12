@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, convert::TryFrom};
 
 use ruma::{
     events::{
@@ -100,14 +100,27 @@ impl StateEvent {
             },
         }
     }
-    pub fn event_id(&self) -> Option<&EventId> {
-        println!("{:?}", self);
+    pub fn event_id(&self) -> EventId {
         match self {
             Self::Full(ev) => match ev {
-                Pdu::RoomV1Pdu(ev) => Some(&ev.event_id),
-                Pdu::RoomV3Pdu(_) => None,
+                Pdu::RoomV1Pdu(ev) => ev.event_id.clone(),
+                Pdu::RoomV3Pdu(_) => EventId::try_from(&*format!(
+                    "${}",
+                    ruma::signatures::reference_hash(
+                        &serde_json::to_value(&ev).expect("event is valid, we just created it")
+                    )
+                    .expect("ruma can calculate reference hashes")
+                ))
+                .expect("ruma's reference hashes are valid event ids"),
             },
-            Self::Sync(_) => None,
+            Self::Sync(ev) => EventId::try_from(&*format!(
+                "${}",
+                ruma::signatures::reference_hash(
+                    &serde_json::to_value(&ev).expect("event is valid, we just created it")
+                )
+                .expect("ruma can calculate reference hashes")
+            ))
+            .expect("ruma's reference hashes are valid event ids"),
         }
     }
 
@@ -210,6 +223,21 @@ impl StateEvent {
             Self::Sync(ev) => match ev {
                 PduStub::RoomV1PduStub(ev) => &ev.content,
                 PduStub::RoomV3PduStub(ev) => &ev.content,
+            },
+        }
+    }
+
+    pub fn unsigned(&self) -> &BTreeMap<String, serde_json::Value> {
+        // CONFIRM: The only way this would fail is if we got bad json, it should fail in ruma
+        // before it fails here.
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => &ev.unsigned,
+                Pdu::RoomV3Pdu(ev) => &ev.unsigned,
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(ev) => &ev.unsigned,
+                PduStub::RoomV3PduStub(ev) => &ev.unsigned,
             },
         }
     }
