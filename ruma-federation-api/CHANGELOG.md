@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking Changes:
+
+* Replace `directory::get_public_rooms::v1::{PublicRoomsChunk, RoomNetwork}` with types from `ruma_common::directory`
+
 Improvements:
 
 * Add endpoints:
