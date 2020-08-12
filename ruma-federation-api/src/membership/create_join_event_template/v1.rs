@@ -1,10 +1,9 @@
 //! [GET /_matrix/federation/v1/make_join/{roomId}/{userId}](https://matrix.org/docs/spec/server_server/r0.1.3#get-matrix-federation-v1-make-join-roomid-userid)
 
-use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_common::Raw;
 use ruma_events::pdu::Pdu;
-use ruma_identifiers::{RoomId, UserId};
+use ruma_identifiers::{RoomId, RoomVersionId, UserId};
 
 ruma_api! {
     metadata: {
@@ -26,12 +25,12 @@ ruma_api! {
         #[ruma_api(query)]
         /// The room versions the sending server has support for. Defaults to 1.
         #[serde(skip_serializing_if = "Vec::is_empty")]
-        pub ver: Vec<UInt>,
+        pub ver: Vec<RoomVersionId>,
     }
 
     response: {
         /// The version of the room where the server is trying to join.
-        pub room_version: Option<UInt>,
+        pub room_version: Option<RoomVersionId>,
         /// An unsigned template event.
         pub event: Raw<Pdu>,
     }
