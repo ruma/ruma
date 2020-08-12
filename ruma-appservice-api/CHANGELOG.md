@@ -1,5 +1,9 @@
 # [unreleased]
 
+Breaking changes:
+
+* Fix endpoint versioning
+
 # 0.2.0
 
 Improvements:

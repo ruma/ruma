@@ -4,4 +4,6 @@
 #![warn(missing_copy_implementations, missing_debug_implementations, missing_docs)]
 #![allow(clippy::new_without_default)]
 
-pub mod v1;
+pub mod event;
+pub mod query;
+pub mod thirdparty;
