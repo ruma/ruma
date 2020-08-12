@@ -101,6 +101,7 @@ impl StateEvent {
         }
     }
     pub fn event_id(&self) -> Option<&EventId> {
+        println!("{:?}", self);
         match self {
             Self::Full(ev) => match ev {
                 Pdu::RoomV1Pdu(ev) => Some(&ev.event_id),

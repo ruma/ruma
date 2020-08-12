@@ -50,26 +50,20 @@ pub struct RoomVersion {
 
 impl RoomVersion {
     pub fn new(version: &RoomVersionId) -> Self {
-        if version.is_version_1() {
-            Self::version_1()
-        } else if version.is_version_2() {
-            Self::version_2()
-        } else if version.is_version_3() {
-            Self::version_3()
-        } else if version.is_version_4() {
-            Self::version_4()
-        } else if version.is_version_5() {
-            Self::version_5()
-        } else if version.is_version_6() {
-            Self::version_6()
-        } else {
-            panic!("this crate needs to be updated with ruma")
+        match version {
+            RoomVersionId::Version1 => Self::version_1(),
+            RoomVersionId::Version2 => Self::version_2(),
+            RoomVersionId::Version3 => Self::version_3(),
+            RoomVersionId::Version4 => Self::version_4(),
+            RoomVersionId::Version5 => Self::version_5(),
+            RoomVersionId::Version6 => Self::version_6(),
+            _ => panic!("unspec'ed room version"),
         }
     }
 
     fn version_1() -> Self {
         Self {
-            version: RoomVersionId::version_1(),
+            version: RoomVersionId::Version1,
             disposition: RoomDisposition::Stable,
             event_format: EventFormatVersion::V1,
             state_res: StateResolutionVersion::V1,
@@ -82,7 +76,7 @@ impl RoomVersion {
 
     fn version_2() -> Self {
         Self {
-            version: RoomVersionId::version_2(),
+            version: RoomVersionId::Version2,
             disposition: RoomDisposition::Stable,
             event_format: EventFormatVersion::V1,
             state_res: StateResolutionVersion::V2,
@@ -95,7 +89,7 @@ impl RoomVersion {
 
     fn version_3() -> Self {
         Self {
-            version: RoomVersionId::version_3(),
+            version: RoomVersionId::Version3,
             disposition: RoomDisposition::Stable,
             event_format: EventFormatVersion::V2,
             state_res: StateResolutionVersion::V2,
@@ -108,7 +102,7 @@ impl RoomVersion {
 
     fn version_4() -> Self {
         Self {
-            version: RoomVersionId::version_4(),
+            version: RoomVersionId::Version4,
             disposition: RoomDisposition::Stable,
             event_format: EventFormatVersion::V3,
             state_res: StateResolutionVersion::V2,
@@ -121,7 +115,7 @@ impl RoomVersion {
 
     fn version_5() -> Self {
         Self {
-            version: RoomVersionId::version_5(),
+            version: RoomVersionId::Version5,
             disposition: RoomDisposition::Stable,
             event_format: EventFormatVersion::V3,
             state_res: StateResolutionVersion::V2,
@@ -134,7 +128,7 @@ impl RoomVersion {
 
     fn version_6() -> Self {
         Self {
-            version: RoomVersionId::version_6(),
+            version: RoomVersionId::Version6,
             disposition: RoomDisposition::Stable,
             event_format: EventFormatVersion::V3,
             state_res: StateResolutionVersion::V2,

@@ -22,35 +22,35 @@ pub enum RedactAllowed {
     No,
 }
 
-pub fn auth_types_for_event(event: &StateEvent) -> Vec<(EventType, String)> {
+pub fn auth_types_for_event(event: &StateEvent) -> Vec<(EventType, Option<String>)> {
     if event.kind() == EventType::RoomCreate {
         return vec![];
     }
 
     let mut auth_types = vec![
-        (EventType::RoomPowerLevels, "".to_string()),
-        (EventType::RoomMember, event.sender().to_string()),
-        (EventType::RoomCreate, "".to_string()),
+        (EventType::RoomPowerLevels, Some("".to_string())),
+        (EventType::RoomMember, Some(event.sender().to_string())),
+        (EventType::RoomCreate, Some("".to_string())),
     ];
 
     if event.kind() == EventType::RoomMember {
         if let Ok(content) = event.deserialize_content::<room::member::MemberEventContent>() {
             if [MembershipState::Join, MembershipState::Invite].contains(&content.membership) {
-                let key = (EventType::RoomJoinRules, "".into());
+                let key = (EventType::RoomJoinRules, Some("".into()));
                 if !auth_types.contains(&key) {
                     auth_types.push(key)
                 }
             }
 
             // TODO what when we don't find a state_key
-            let key = (EventType::RoomMember, event.state_key().unwrap());
+            let key = (EventType::RoomMember, event.state_key());
             if !auth_types.contains(&key) {
                 auth_types.push(key)
             }
 
             if content.membership == MembershipState::Invite {
                 if let Some(t_id) = content.third_party_invite {
-                    let key = (EventType::RoomThirdPartyInvite, t_id.signed.token);
+                    let key = (EventType::RoomThirdPartyInvite, Some(t_id.signed.token));
                     if !auth_types.contains(&key) {
                         auth_types.push(key)
                     }
@@ -137,7 +137,7 @@ pub fn auth_check(
 
     // 3. If event does not have m.room.create in auth_events reject.
     if auth_events
-        .get(&(EventType::RoomCreate, "".into()))
+        .get(&(EventType::RoomCreate, Some("".into())))
         .is_none()
     {
         tracing::warn!("no m.room.create event in auth chain");
@@ -238,7 +238,7 @@ pub fn auth_check(
 // synapse has an `event: &StateEvent` param but it's never used
 /// Can this room federate based on its m.room.create event.
 fn can_federate(auth_events: &StateMap<StateEvent>) -> bool {
-    let creation_event = auth_events.get(&(EventType::RoomCreate, "".into()));
+    let creation_event = auth_events.get(&(EventType::RoomCreate, Some("".into())));
     if let Some(ev) = creation_event {
         if let Some(fed) = ev.content().get("m.federate") {
             fed == "true"
@@ -263,7 +263,7 @@ fn is_membership_change_allowed(
 
     // check if this is the room creator joining
     if event.prev_event_ids().len() == 1 && membership == MembershipState::Join {
-        if let Some(create) = auth_events.get(&(EventType::RoomCreate, "".into())) {
+        if let Some(create) = auth_events.get(&(EventType::RoomCreate, Some("".into()))) {
             if let Ok(create_ev) = create.deserialize_content::<room::create::CreateEventContent>()
             {
                 if event.state_key() == Some(create_ev.creator.to_string()) {
@@ -283,19 +283,19 @@ fn is_membership_change_allowed(
         return Some(false);
     }
 
-    let key = (EventType::RoomMember, event.sender().to_string());
+    let key = (EventType::RoomMember, Some(event.sender().to_string()));
     let caller = auth_events.get(&key);
 
     let caller_in_room = caller.is_some() && check_membership(caller, MembershipState::Join);
     let caller_invited = caller.is_some() && check_membership(caller, MembershipState::Invite);
 
-    let key = (EventType::RoomMember, target_user_id.to_string());
+    let key = (EventType::RoomMember, Some(target_user_id.to_string()));
     let target = auth_events.get(&key);
 
     let target_in_room = target.is_some() && check_membership(target, MembershipState::Join);
     let target_banned = target.is_some() && check_membership(target, MembershipState::Ban);
 
-    let key = (EventType::RoomJoinRules, "".to_string());
+    let key = (EventType::RoomJoinRules, Some("".to_string()));
     let join_rules_event = auth_events.get(&key);
 
     let mut join_rule = JoinRule::Invite;
@@ -436,7 +436,7 @@ fn check_event_sender_in_room(
     event: &StateEvent,
     auth_events: &StateMap<StateEvent>,
 ) -> Option<bool> {
-    let mem = auth_events.get(&(EventType::RoomMember, event.sender().to_string()))?;
+    let mem = auth_events.get(&(EventType::RoomMember, Some(event.sender().to_string())))?;
     // TODO this is check_membership a helper fn in synapse but it does this
     Some(
         mem.deserialize_content::<room::member::MemberEventContent>()
@@ -448,7 +448,7 @@ fn check_event_sender_in_room(
 
 /// Is the user allowed to send a specific event.
 fn can_send_event(event: &StateEvent, auth_events: &StateMap<StateEvent>) -> Option<bool> {
-    let ple = auth_events.get(&(EventType::RoomPowerLevels, "".into()));
+    let ple = auth_events.get(&(EventType::RoomPowerLevels, Some("".into())));
 
     let send_level = get_send_level(event.kind(), event.state_key(), ple);
     let user_level = get_user_power_level(event.sender(), auth_events);
@@ -480,7 +480,7 @@ fn check_power_levels(
 ) -> Option<bool> {
     use itertools::Itertools;
 
-    let key = (power_event.kind(), power_event.state_key().unwrap());
+    let key = (power_event.kind(), power_event.state_key());
 
     let current_state = if let Some(current_state) = auth_events.get(&key) {
         current_state
@@ -629,7 +629,7 @@ fn check_redaction(
         return Some(RedactAllowed::CanRedact);
     }
 
-    if room_version.is_version_1() {
+    if let RoomVersionId::Version1 = room_version {
         if redaction_event.event_id() == redaction_event.redacts() {
             return Some(RedactAllowed::OwnEvent);
         }
@@ -659,7 +659,7 @@ fn check_membership(member_event: Option<&StateEvent>, state: MembershipState) -
 }
 
 fn get_named_level(auth_events: &StateMap<StateEvent>, name: &str, default: i64) -> i64 {
-    let power_level_event = auth_events.get(&(EventType::RoomPowerLevels, "".into()));
+    let power_level_event = auth_events.get(&(EventType::RoomPowerLevels, Some("".into())));
     if let Some(pl) = power_level_event {
         // TODO do this the right way and deserialize
         if let Some(level) = pl.content().get(name) {
@@ -673,7 +673,7 @@ fn get_named_level(auth_events: &StateMap<StateEvent>, name: &str, default: i64)
 }
 
 fn get_user_power_level(user_id: &UserId, auth_events: &StateMap<StateEvent>) -> i64 {
-    if let Some(pl) = auth_events.get(&(EventType::RoomPowerLevels, "".into())) {
+    if let Some(pl) = auth_events.get(&(EventType::RoomPowerLevels, Some("".into()))) {
         if let Ok(content) = pl.deserialize_content::<room::power_levels::PowerLevelsEventContent>()
         {
             if let Some(level) = content.users.get(user_id) {
@@ -686,7 +686,7 @@ fn get_user_power_level(user_id: &UserId, auth_events: &StateMap<StateEvent>) ->
         }
     } else {
         // if no power level event found the creator gets 100 everyone else gets 0
-        let key = (EventType::RoomCreate, "".into());
+        let key = (EventType::RoomCreate, Some("".into()));
         if let Some(create) = auth_events.get(&key) {
             if let Ok(c) = create.deserialize_content::<room::create::CreateEventContent>() {
                 if &c.creator == user_id {

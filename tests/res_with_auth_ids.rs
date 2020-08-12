@@ -102,14 +102,14 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
                     .iter()
                     .map(|map| map
                         .iter()
-                        .map(|((ty, key), id)| format!("(({}{}), {})", ty, key, id))
+                        .map(|((ty, key), id)| format!("(({}{:?}), {})", ty, key, id))
                         .collect::<Vec<_>>())
                     .collect::<Vec<_>>()
             );
 
             let resolved = resolver.resolve(
                 &room_id(),
-                &RoomVersionId::version_1(),
+                &RoomVersionId::Version1,
                 &state_sets,
                 Some(event_map.clone()),
                 &store,
@@ -135,7 +135,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         if fake_event.state_key().is_some() {
             let ty = fake_event.kind().clone();
             // we know there is a state_key unwrap OK
-            let key = fake_event.state_key().unwrap().clone();
+            let key = fake_event.state_key().clone();
             state_after.insert((ty, key), event_id.clone());
         }
 
@@ -173,7 +173,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         event_map.insert(event_id.clone(), event);
     }
 
-    let mut expected_state = BTreeMap::new();
+    let mut expected_state = StateMap::new();
     for node in expected_state_ids {
         let ev = event_map.get(&node).expect(&format!(
             "{} not found in {:?}",
@@ -184,7 +184,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
                 .collect::<Vec<_>>(),
         ));
 
-        let key = (ev.kind(), ev.state_key().unwrap());
+        let key = (ev.kind(), ev.state_key());
 
         expected_state.insert(key, node);
     }
@@ -573,7 +573,7 @@ fn base_with_auth_chains() {
     let store = TestStore(RefCell::new(INITIAL_EVENTS()));
 
     let resolved: BTreeMap<_, EventId> =
-        match resolver.resolve(&room_id(), &RoomVersionId::version_2(), &[], None, &store) {
+        match resolver.resolve(&room_id(), &RoomVersionId::Version2, &[], None, &store) {
             Ok(ResolutionResult::Resolved(state)) => state,
             Err(e) => panic!("{}", e),
             _ => panic!("conflicted state left"),
@@ -627,12 +627,7 @@ fn ban_with_auth_chains2() {
         inner.get(&event_id("PA")).unwrap(),
     ]
     .iter()
-    .map(|ev| {
-        (
-            (ev.kind(), ev.state_key().unwrap()),
-            ev.event_id().unwrap().clone(),
-        )
-    })
+    .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().unwrap().clone()))
     .collect::<BTreeMap<_, _>>();
 
     let state_set_b = [
@@ -645,17 +640,12 @@ fn ban_with_auth_chains2() {
         inner.get(&event_id("PA")).unwrap(),
     ]
     .iter()
-    .map(|ev| {
-        (
-            (ev.kind(), ev.state_key().unwrap()),
-            ev.event_id().unwrap().clone(),
-        )
-    })
-    .collect::<BTreeMap<_, _>>();
+    .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().unwrap().clone()))
+    .collect::<StateMap<_>>();
 
-    let resolved: BTreeMap<_, EventId> = match resolver.resolve(
+    let resolved: StateMap<EventId> = match resolver.resolve(
         &room_id(),
-        &RoomVersionId::version_2(),
+        &RoomVersionId::Version2,
         &[state_set_a, state_set_b],
         None,
         &store,
@@ -669,7 +659,7 @@ fn ban_with_auth_chains2() {
         "{:#?}",
         resolved
             .iter()
-            .map(|((ty, key), id)| format!("(({}{}), {})", ty, key, id))
+            .map(|((ty, key), id)| format!("(({}{:?}), {})", ty, key, id))
             .collect::<Vec<_>>()
     );
 

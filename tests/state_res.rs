@@ -346,14 +346,14 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
                     .iter()
                     .map(|map| map
                         .iter()
-                        .map(|((ty, key), id)| format!("(({}{}), {})", ty, key, id))
+                        .map(|((ty, key), id)| format!("(({}{:?}), {})", ty, key, id))
                         .collect::<Vec<_>>())
                     .collect::<Vec<_>>()
             );
 
             let resolved = resolver.resolve(
                 &room_id(),
-                &RoomVersionId::version_1(),
+                &RoomVersionId::Version1,
                 &state_sets,
                 Some(event_map.clone()),
                 &store,
@@ -379,7 +379,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         if fake_event.state_key().is_some() {
             let ty = fake_event.kind().clone();
             // we know there is a state_key unwrap OK
-            let key = fake_event.state_key().unwrap().clone();
+            let key = fake_event.state_key().clone();
             state_after.insert((ty, key), event_id.clone());
         }
 
@@ -417,7 +417,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         event_map.insert(event_id.clone(), event);
     }
 
-    let mut expected_state = BTreeMap::new();
+    let mut expected_state = StateMap::new();
     for node in expected_state_ids {
         let ev = event_map.get(&node).expect(&format!(
             "{} not found in {:?}",
@@ -428,7 +428,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
                 .collect::<Vec<_>>(),
         ));
 
-        let key = (ev.kind(), ev.state_key().unwrap());
+        let key = (ev.kind(), ev.state_key());
 
         expected_state.insert(key, node);
     }
@@ -700,7 +700,7 @@ fn test_event_map_none() {
 
     let resolved = match resolver.resolve(
         &room_id(),
-        &RoomVersionId::version_2(),
+        &RoomVersionId::Version2,
         &[state_at_bob, state_at_charlie],
         None,
         &store,
@@ -904,23 +904,13 @@ impl TestStore {
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
-            .map(|e| {
-                (
-                    (e.kind(), e.state_key().unwrap()),
-                    e.event_id().unwrap().clone(),
-                )
-            })
-            .collect::<BTreeMap<_, _>>();
+            .map(|e| ((e.kind(), e.state_key()), e.event_id().unwrap().clone()))
+            .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
-            .map(|e| {
-                (
-                    (e.kind(), e.state_key().unwrap()),
-                    e.event_id().unwrap().clone(),
-                )
-            })
-            .collect::<BTreeMap<_, _>>();
+            .map(|e| ((e.kind(), e.state_key()), e.event_id().unwrap().clone()))
+            .collect::<StateMap<_>>();
 
         let expected = [
             &create_event,
@@ -930,13 +920,8 @@ impl TestStore {
             &charlie_mem,
         ]
         .iter()
-        .map(|e| {
-            (
-                (e.kind(), e.state_key().unwrap()),
-                e.event_id().unwrap().clone(),
-            )
-        })
-        .collect::<BTreeMap<_, _>>();
+        .map(|e| ((e.kind(), e.state_key()), e.event_id().unwrap().clone()))
+        .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)
     }

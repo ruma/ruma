@@ -57,7 +57,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
         b.iter(|| {
             let _resolved = match resolver.resolve(
                 &room_id(),
-                &RoomVersionId::version_2(),
+                &RoomVersionId::Version2,
                 &[state_at_bob.clone(), state_at_charlie.clone()],
                 None,
                 &store,
@@ -91,13 +91,8 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| {
-            (
-                (ev.kind(), ev.state_key().unwrap()),
-                ev.event_id().unwrap().clone(),
-            )
-        })
-        .collect::<BTreeMap<_, _>>();
+        .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().unwrap().clone()))
+        .collect::<StateMap<_>>();
 
         let state_set_b = [
             inner.get(&event_id("CREATE")).unwrap(),
@@ -109,18 +104,13 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| {
-            (
-                (ev.kind(), ev.state_key().unwrap()),
-                ev.event_id().unwrap().clone(),
-            )
-        })
-        .collect::<BTreeMap<_, _>>();
+        .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().unwrap().clone()))
+        .collect::<StateMap<_>>();
 
         b.iter(|| {
             let _resolved = match resolver.resolve(
                 &room_id(),
-                &RoomVersionId::version_2(),
+                &RoomVersionId::Version2,
                 &[state_set_a.clone(), state_set_b.clone()],
                 Some(inner.clone()),
                 &store,
@@ -302,23 +292,13 @@ impl TestStore {
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
-            .map(|e| {
-                (
-                    (e.kind(), e.state_key().unwrap()),
-                    e.event_id().unwrap().clone(),
-                )
-            })
-            .collect::<BTreeMap<_, _>>();
+            .map(|e| ((e.kind(), e.state_key()), e.event_id().unwrap().clone()))
+            .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
-            .map(|e| {
-                (
-                    (e.kind(), e.state_key().unwrap()),
-                    e.event_id().unwrap().clone(),
-                )
-            })
-            .collect::<BTreeMap<_, _>>();
+            .map(|e| ((e.kind(), e.state_key()), e.event_id().unwrap().clone()))
+            .collect::<StateMap<_>>();
 
         let expected = [
             &create_event,
@@ -328,13 +308,8 @@ impl TestStore {
             &charlie_mem,
         ]
         .iter()
-        .map(|e| {
-            (
-                (e.kind(), e.state_key().unwrap()),
-                e.event_id().unwrap().clone(),
-            )
-        })
-        .collect::<BTreeMap<_, _>>();
+        .map(|e| ((e.kind(), e.state_key()), e.event_id().unwrap().clone()))
+        .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)
     }

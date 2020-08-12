@@ -34,7 +34,7 @@ pub enum ResolutionResult {
 }
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
-pub type StateMap<T> = BTreeMap<(EventType, String), T>;
+pub type StateMap<T> = BTreeMap<(EventType, Option<String>), T>;
 
 /// A mapping of `EventId` to `T`, usually a `StateEvent`.
 pub type EventMap<T> = BTreeMap<EventId, T>;
@@ -191,7 +191,7 @@ impl StateResolution {
                 .collect::<Vec<_>>()
         );
 
-        let power_event = resolved.get(&(EventType::RoomPowerLevels, "".into()));
+        let power_event = resolved.get(&(EventType::RoomPowerLevels, Some("".into())));
 
         tracing::debug!("PL {:?}", power_event);
 
@@ -526,7 +526,7 @@ impl StateResolution {
                 if let Some(ev) = self._get_event(room_id, &aid, event_map, store) {
                     // TODO what to do when no state_key is found ??
                     // TODO synapse check "rejected_reason", I'm guessing this is redacted_because for ruma ??
-                    auth_events.insert((ev.kind(), ev.state_key().unwrap()), ev);
+                    auth_events.insert((ev.kind(), ev.state_key()), ev);
                 } else {
                     tracing::warn!("auth event id for {} is missing {}", aid, event_id);
                 }
@@ -547,7 +547,7 @@ impl StateResolution {
                 .map_err(Error::TempString)?
             {
                 // add event to resolved state map
-                resolved_state.insert((event.kind(), event.state_key().unwrap()), event_id.clone());
+                resolved_state.insert((event.kind(), event.state_key()), event_id.clone());
             } else {
                 // synapse passes here on AuthError. We do not add this event to resolved_state.
                 tracing::warn!(
