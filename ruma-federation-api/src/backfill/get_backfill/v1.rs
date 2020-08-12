@@ -20,11 +20,11 @@ ruma_api! {
     request: {
         /// The room ID to backfill.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The event IDs to backfill from.
         #[ruma_api(query)]
-        pub v: Vec<EventId>,
+        pub v: &'a [EventId],
 
         /// The maximum number of PDUs to retrieve, including the given events.
         #[ruma_api(query)]
@@ -40,6 +40,26 @@ ruma_api! {
         pub origin_server_ts: SystemTime,
 
         /// List of persistent updates to rooms.
-        pdus: Vec<Pdu>,
+        pub pdus: Vec<Pdu>,
+    }
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with:
+    /// * the given room id.
+    /// * the event IDs to backfill from.
+    /// * the maximum number of PDUs to retrieve, including the given events.
+    pub fn new(room_id: &'a RoomId, v: &'a [EventId], limit: UInt) -> Self {
+        Self { room_id, v, limit }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with:
+    /// * the `server_name` of the homeserver.
+    /// * the timestamp in milliseconds of when this transaction started.
+    /// * the list of persistent updates to rooms.
+    pub fn new(origin: String, origin_server_ts: SystemTime, pdus: Vec<Pdu>) -> Self {
+        Self { origin, origin_server_ts, pdus }
     }
 }
