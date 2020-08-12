@@ -13,8 +13,8 @@ use ruma::{
 };
 
 mod error;
-mod event_auth;
-mod room_version;
+pub mod event_auth;
+pub mod room_version;
 mod state_event;
 mod state_store;
 

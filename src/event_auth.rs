@@ -234,7 +234,7 @@ pub fn auth_check(
 
 // synapse has an `event: &StateEvent` param but it's never used
 /// Can this room federate based on its m.room.create event.
-fn can_federate(auth_events: &StateMap<StateEvent>) -> bool {
+pub fn can_federate(auth_events: &StateMap<StateEvent>) -> bool {
     let creation_event = auth_events.get(&(EventType::RoomCreate, Some("".into())));
     if let Some(ev) = creation_event {
         if let Some(fed) = ev.content().get("m.federate") {
@@ -248,7 +248,7 @@ fn can_federate(auth_events: &StateMap<StateEvent>) -> bool {
 }
 
 /// Dose the user who sent this member event have required power levels to do so.
-fn is_membership_change_allowed(
+pub fn is_membership_change_allowed(
     event: &StateEvent,
     auth_events: &StateMap<StateEvent>,
 ) -> Option<bool> {
@@ -429,7 +429,7 @@ fn is_membership_change_allowed(
 /// Is the event's sender in the room that they sent the event to.
 ///
 /// A return value of None is not a failure
-fn check_event_sender_in_room(
+pub fn check_event_sender_in_room(
     event: &StateEvent,
     auth_events: &StateMap<StateEvent>,
 ) -> Option<bool> {
@@ -444,7 +444,7 @@ fn check_event_sender_in_room(
 }
 
 /// Is the user allowed to send a specific event.
-fn can_send_event(event: &StateEvent, auth_events: &StateMap<StateEvent>) -> Option<bool> {
+pub fn can_send_event(event: &StateEvent, auth_events: &StateMap<StateEvent>) -> Option<bool> {
     let ple = auth_events.get(&(EventType::RoomPowerLevels, Some("".into())));
 
     let send_level = get_send_level(event.kind(), event.state_key(), ple);
@@ -470,7 +470,7 @@ fn can_send_event(event: &StateEvent, auth_events: &StateMap<StateEvent>) -> Opt
 }
 
 /// Confirm that the event sender has the required power levels.
-fn check_power_levels(
+pub fn check_power_levels(
     room_version: &RoomVersionId,
     power_event: &StateEvent,
     auth_events: &StateMap<StateEvent>,
@@ -614,7 +614,7 @@ fn get_deserialize_levels(
 }
 
 /// Does the event redacting come from a user with enough power to redact the given event.
-fn check_redaction(
+pub fn check_redaction(
     room_version: &RoomVersionId,
     redaction_event: &StateEvent,
     auth_events: &StateMap<StateEvent>,
@@ -644,7 +644,7 @@ fn check_redaction(
 /// Check that the member event matches `state`.
 ///
 /// This function returns false instead of failing when deserialization fails.
-fn check_membership(member_event: Option<&StateEvent>, state: MembershipState) -> bool {
+pub fn check_membership(member_event: Option<&StateEvent>, state: MembershipState) -> bool {
     if let Some(event) = member_event {
         if let Ok(content) =
             serde_json::from_value::<room::member::MemberEventContent>(event.content().clone())
@@ -658,7 +658,7 @@ fn check_membership(member_event: Option<&StateEvent>, state: MembershipState) -
     }
 }
 
-fn get_named_level(auth_events: &StateMap<StateEvent>, name: &str, default: i64) -> i64 {
+pub fn get_named_level(auth_events: &StateMap<StateEvent>, name: &str, default: i64) -> i64 {
     let power_level_event = auth_events.get(&(EventType::RoomPowerLevels, Some("".into())));
     if let Some(pl) = power_level_event {
         // TODO do this the right way and deserialize
@@ -672,7 +672,7 @@ fn get_named_level(auth_events: &StateMap<StateEvent>, name: &str, default: i64)
     }
 }
 
-fn get_user_power_level(user_id: &UserId, auth_events: &StateMap<StateEvent>) -> i64 {
+pub fn get_user_power_level(user_id: &UserId, auth_events: &StateMap<StateEvent>) -> i64 {
     if let Some(pl) = auth_events.get(&(EventType::RoomPowerLevels, Some("".into()))) {
         if let Ok(content) = pl.deserialize_content::<room::power_levels::PowerLevelsEventContent>()
         {
@@ -703,7 +703,7 @@ fn get_user_power_level(user_id: &UserId, auth_events: &StateMap<StateEvent>) ->
     }
 }
 
-fn get_send_level(
+pub fn get_send_level(
     e_type: EventType,
     state_key: Option<String>,
     power_lvl: Option<&StateEvent>,
@@ -733,6 +733,7 @@ fn get_send_level(
     }
 }
 
-fn verify_third_party_invite(_event: &StateEvent, _auth_events: &StateMap<StateEvent>) -> bool {
+/// TODO this is unimplemented
+pub fn verify_third_party_invite(_event: &StateEvent, _auth_events: &StateMap<StateEvent>) -> bool {
     unimplemented!("impl third party invites")
 }
