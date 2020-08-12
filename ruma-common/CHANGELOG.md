@@ -7,6 +7,8 @@ Breaking changes:
 Improvements:
 
 * Add the `thirdparty` module
+* Add `directory::{Filter, PublicRoomsChunk, RoomNetwork}` (moved from
+  `ruma_client_api::r0::directory`)
 
 # 0.2.0
 
