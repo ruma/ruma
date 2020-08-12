@@ -5,7 +5,7 @@ use std::time::SystemTime;
 use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_events::pdu::Pdu;
-use ruma_identifiers::{EventId, RoomId};
+use ruma_identifiers::{EventId, RoomId, ServerName};
 
 ruma_api! {
     metadata: {
@@ -33,7 +33,7 @@ ruma_api! {
 
     response: {
         /// The `server_name` of the homeserver sending this transaction.
-        pub origin: String,
+        pub origin: Box<ServerName>,
 
         /// POSIX timestamp in milliseconds on originating homeserver when this transaction started.
         #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
@@ -59,7 +59,7 @@ impl Response {
     /// * the `server_name` of the homeserver.
     /// * the timestamp in milliseconds of when this transaction started.
     /// * the list of persistent updates to rooms.
-    pub fn new(origin: String, origin_server_ts: SystemTime, pdus: Vec<Pdu>) -> Self {
+    pub fn new(origin: Box<ServerName>, origin_server_ts: SystemTime, pdus: Vec<Pdu>) -> Self {
         Self { origin, origin_server_ts, pdus }
     }
 }
