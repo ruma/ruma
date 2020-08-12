@@ -6,6 +6,8 @@ use syn::{
     PathArguments, Type, TypeGenerics, TypePath, TypeReference, TypeSlice, Variant,
 };
 
+use crate::util::import_ruma_api;
+
 enum StructKind {
     Struct,
     Tuple,
@@ -18,10 +20,12 @@ enum DataKind {
 }
 
 pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
+    let import_path = import_ruma_api();
+
     let derive_deserialize = if no_deserialize_in_attrs(&input.attrs) {
         TokenStream::new()
     } else {
-        quote!(::ruma_api::exports::serde::Deserialize)
+        quote! { #import_path::exports::serde::Deserialize }
     };
 
     let input_attrs =
@@ -42,7 +46,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
     };
 
     match data {
-        DataKind::Unit => Ok(impl_outgoing_with_incoming_self(&input)),
+        DataKind::Unit => Ok(impl_outgoing_with_incoming_self(&input, &import_path)),
         DataKind::Enum(mut vars) => {
             let mut found_lifetime = false;
             for var in &mut vars {
@@ -57,7 +61,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
             let (original_impl_gen, original_ty_gen, _) = input.generics.split_for_impl();
 
             if !found_lifetime {
-                return Ok(impl_outgoing_with_incoming_self(&input));
+                return Ok(impl_outgoing_with_incoming_self(&input, &import_path));
             }
 
             let vis = input.vis;
@@ -73,7 +77,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
                 #( #input_attrs )*
                 #vis enum #incoming_ident #ty_gen { #( #vars, )* }
 
-                impl #original_impl_gen ::ruma_api::Outgoing for #original_ident #original_ty_gen {
+                impl #original_impl_gen #import_path::Outgoing for #original_ident #original_ty_gen {
                     type Incoming = #incoming_ident #impl_gen;
                 }
             })
@@ -90,7 +94,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
             let (original_impl_gen, original_ty_gen, _) = input.generics.split_for_impl();
 
             if !found_lifetime {
-                return Ok(impl_outgoing_with_incoming_self(&input));
+                return Ok(impl_outgoing_with_incoming_self(&input, &import_path));
             }
 
             let vis = input.vis;
@@ -111,7 +115,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
                 #( #input_attrs )*
                 #vis struct #incoming_ident #ty_gen #struct_def
 
-                impl #original_impl_gen ::ruma_api::Outgoing for #original_ident #original_ty_gen {
+                impl #original_impl_gen #import_path::Outgoing for #original_ident #original_ty_gen {
                     type Incoming = #incoming_ident #impl_gen;
                 }
             })
@@ -129,12 +133,12 @@ fn no_deserialize_in_attrs(attrs: &[Attribute]) -> bool {
     attrs.iter().any(|attr| attr.path.is_ident("incoming_no_deserialize"))
 }
 
-fn impl_outgoing_with_incoming_self(input: &DeriveInput) -> TokenStream {
+fn impl_outgoing_with_incoming_self(input: &DeriveInput, import_path: &TokenStream) -> TokenStream {
     let ident = &input.ident;
     let (impl_gen, ty_gen, _) = input.generics.split_for_impl();
 
     quote! {
-        impl #impl_gen ::ruma_api::Outgoing for #ident #ty_gen {
+        impl #impl_gen #import_path::Outgoing for #ident #ty_gen {
             type Incoming = Self;
         }
     }

@@ -1,6 +1,7 @@
 //! Functions to aid the `Api::to_tokens` method.
 
 use proc_macro2::{Span, TokenStream};
+use proc_macro_crate::crate_name;
 use quote::quote;
 use std::collections::BTreeSet;
 use syn::{
@@ -150,6 +151,7 @@ pub fn has_lifetime(ty: &Type) -> bool {
 pub(crate) fn request_path_string_and_parse(
     request: &Request,
     metadata: &Metadata,
+    import_path: &TokenStream,
 ) -> (TokenStream, TokenStream) {
     if request.has_path_fields() {
         let path_string = metadata.path.value();
@@ -178,9 +180,9 @@ pub(crate) fn request_path_string_and_parse(
                     Span::call_site(),
                 );
                 format_args.push(quote! {
-                    ::ruma_api::exports::percent_encoding::utf8_percent_encode(
+                    #import_path::exports::percent_encoding::utf8_percent_encode(
                         &self.#path_var.to_string(),
-                        ::ruma_api::exports::percent_encoding::NON_ALPHANUMERIC,
+                        #import_path::exports::percent_encoding::NON_ALPHANUMERIC,
                     )
                 });
                 format_string.replace_range(start_of_segment..end_of_segment, "{}");
@@ -198,16 +200,16 @@ pub(crate) fn request_path_string_and_parse(
                     let path_var_ident = Ident::new(path_var, Span::call_site());
                     quote! {
                         #path_var_ident: {
-                            use ::ruma_api::error::RequestDeserializationError;
+                            use #import_path::error::RequestDeserializationError;
 
                             let segment = path_segments.get(#i).unwrap().as_bytes();
-                            let decoded = ::ruma_api::try_deserialize!(
+                            let decoded = #import_path::try_deserialize!(
                                 request,
-                                ::ruma_api::exports::percent_encoding::percent_decode(segment)
+                                #import_path::exports::percent_encoding::percent_decode(segment)
                                     .decode_utf8(),
                             );
 
-                            ::ruma_api::try_deserialize!(
+                            #import_path::try_deserialize!(
                                 request,
                                 ::std::convert::TryFrom::try_from(&*decoded),
                             )
@@ -224,7 +226,7 @@ pub(crate) fn request_path_string_and_parse(
 
 /// The function determines the type of query string that needs to be built
 /// and then builds it using `ruma_serde::urlencoded::to_string`.
-pub(crate) fn build_query_string(request: &Request) -> TokenStream {
+pub(crate) fn build_query_string(request: &Request, import_path: &TokenStream) -> TokenStream {
     if let Some(field) = request.query_map_field() {
         let field_name = field.ident.as_ref().expect("expected field to have identifier");
 
@@ -249,7 +251,7 @@ pub(crate) fn build_query_string(request: &Request) -> TokenStream {
 
             format_args!(
                 "?{}",
-                ::ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?
+                #import_path::exports::ruma_serde::urlencoded::to_string(request_query)?
             )
         })
     } else if request.has_query_fields() {
@@ -262,7 +264,7 @@ pub(crate) fn build_query_string(request: &Request) -> TokenStream {
 
             format_args!(
                 "?{}",
-                ::ruma_api::exports::ruma_serde::urlencoded::to_string(request_query)?
+                #import_path::exports::ruma_serde::urlencoded::to_string(request_query)?
             )
         })
     } else {
@@ -271,22 +273,22 @@ pub(crate) fn build_query_string(request: &Request) -> TokenStream {
 }
 
 /// Deserialize the query string.
-pub(crate) fn extract_request_query(request: &Request) -> TokenStream {
+pub(crate) fn extract_request_query(request: &Request, import_path: &TokenStream) -> TokenStream {
     if request.query_map_field().is_some() {
         quote! {
-            let request_query = ::ruma_api::try_deserialize!(
+            let request_query = #import_path::try_deserialize!(
                 request,
-                ::ruma_api::exports::ruma_serde::urlencoded::from_str(
+                #import_path::exports::ruma_serde::urlencoded::from_str(
                     &request.uri().query().unwrap_or("")
                 ),
             );
         }
     } else if request.has_query_fields() {
         quote! {
-            let request_query: <RequestQuery as ::ruma_api::Outgoing>::Incoming =
-                ::ruma_api::try_deserialize!(
+            let request_query: <RequestQuery as #import_path::Outgoing>::Incoming =
+                #import_path::try_deserialize!(
                     request,
-                    ::ruma_api::exports::ruma_serde::urlencoded::from_str(
+                    #import_path::exports::ruma_serde::urlencoded::from_str(
                         &request.uri().query().unwrap_or("")
                     ),
                 );
@@ -299,7 +301,7 @@ pub(crate) fn extract_request_query(request: &Request) -> TokenStream {
 /// Generates the code to initialize a `Request`.
 ///
 /// Used to construct an `http::Request`s body.
-pub(crate) fn build_request_body(request: &Request) -> TokenStream {
+pub(crate) fn build_request_body(request: &Request, import_path: &TokenStream) -> TokenStream {
     if let Some(field) = request.newtype_raw_body_field() {
         let field_name = field.ident.as_ref().expect("expected field to have an identifier");
         quote!(self.#field_name)
@@ -315,7 +317,7 @@ pub(crate) fn build_request_body(request: &Request) -> TokenStream {
         quote! {
             {
                 let request_body = RequestBody #request_body_initializers;
-                ::ruma_api::exports::serde_json::to_vec(&request_body)?
+                #import_path::exports::serde_json::to_vec(&request_body)?
             }
         }
     } else {
@@ -379,4 +381,16 @@ pub(crate) fn req_res_name_value<T>(
 
 pub(crate) fn is_valid_endpoint_path(string: &str) -> bool {
     string.as_bytes().iter().all(|b| (0x21..=0x7E).contains(b))
+}
+
+pub fn import_ruma_api() -> TokenStream {
+    if let Ok(possibly_renamed) = crate_name("ruma-api") {
+        let import = Ident::new(&possibly_renamed, Span::call_site());
+        quote! { ::#import }
+    } else if let Ok(possibly_renamed) = crate_name("ruma") {
+        let import = Ident::new(&possibly_renamed, Span::call_site());
+        quote! { ::#import::api }
+    } else {
+        quote! { ::ruma_api }
+    }
 }
