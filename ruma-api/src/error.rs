@@ -19,7 +19,7 @@ impl crate::EndpointError for Void {
 
 impl Display for Void {
     fn fmt(&self, _: &mut fmt::Formatter<'_>) -> fmt::Result {
-        unreachable!()
+        match self {}
     }
 }
 
