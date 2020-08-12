@@ -5,6 +5,7 @@ Improvements:
 * Add endpoints:
 
   ```
+  backfill::get_backfill::v1,
   device::get_devices::v1,
   keys::{
       claim_keys::v1,
