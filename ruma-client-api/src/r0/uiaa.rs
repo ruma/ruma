@@ -119,6 +119,8 @@ impl EndpointError for UiaaResponse {
     }
 }
 
+impl std::error::Error for UiaaResponse {}
+
 impl From<UiaaResponse> for http::Response<Vec<u8>> {
     fn from(uiaa_response: UiaaResponse) -> http::Response<Vec<u8>> {
         match uiaa_response {

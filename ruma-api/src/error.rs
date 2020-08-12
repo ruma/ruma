@@ -17,6 +17,14 @@ impl crate::EndpointError for Void {
     }
 }
 
+impl Display for Void {
+    fn fmt(&self, _: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {}
+    }
+}
+
+impl std::error::Error for Void {}
+
 /// An error when converting one of ruma's endpoint-specific request or response
 /// types to the corresponding http type.
 #[derive(Debug)]
@@ -161,6 +169,8 @@ impl<E> From<ResponseDeserializationError> for FromHttpResponseError<E> {
         Self::Deserialization(err)
     }
 }
+
+impl<E: std::error::Error> std::error::Error for FromHttpResponseError<E> {}
 
 /// An error that occurred when trying to deserialize a response.
 #[derive(Debug)]
