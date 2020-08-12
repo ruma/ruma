@@ -1,0 +1,45 @@
+//! [GET /_matrix/federation/v1/backfill/{roomId}](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-backfill-roomid)
+
+use std::time::SystemTime;
+
+use js_int::UInt;
+use ruma_api::ruma_api;
+use ruma_events::pdu::Pdu;
+use ruma_identifiers::{EventId, RoomId};
+
+ruma_api! {
+    metadata: {
+        description: "Request more history from another homeserver",
+        name: "get_backfill",
+        method: GET,
+        path: "/_matrix/federation/v1/backfill/:roomId",
+        rate_limited: false,
+        requires_authentication: true,
+    }
+
+    request: {
+        /// The room ID to backfill.
+        #[ruma_api(path)]
+        pub room_id: RoomId,
+
+        /// The event IDs to backfill from.
+        #[ruma_api(query)]
+        pub v: Vec<EventId>,
+
+        /// The maximum number of PDUs to retrieve, including the given events.
+        #[ruma_api(query)]
+        pub limit: UInt,
+    }
+
+    response: {
+        /// The `server_name` of the homeserver sending this transaction.
+        pub origin: String,
+
+        /// POSIX timestamp in milliseconds on originating homeserver when this transaction started.
+        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+        pub origin_server_ts: SystemTime,
+
+        /// List of persistent updates to rooms.
+        pdus: Vec<Pdu>,
+    }
+}
