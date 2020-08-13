@@ -435,11 +435,7 @@ pub struct RawRequest {
 
 impl Parse for RawRequest {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        // If there are attributes to parse otherwise instead of failing
-        // emit empty vec.
-        let attributes =
-            if let Ok(attrs) = input.call(Attribute::parse_outer) { attrs } else { vec![] };
-
+        let attributes = input.call(Attribute::parse_outer)?;
         let request_kw = input.parse::<kw::request>()?;
         input.parse::<Token![:]>()?;
         let fields;
@@ -464,9 +460,7 @@ pub struct RawResponse {
 
 impl Parse for RawResponse {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let attributes =
-            if let Ok(attrs) = input.call(Attribute::parse_outer) { attrs } else { vec![] };
-
+        let attributes = input.call(Attribute::parse_outer)?;
         let response_kw = input.parse::<kw::response>()?;
         input.parse::<Token![:]>()?;
         let fields;
