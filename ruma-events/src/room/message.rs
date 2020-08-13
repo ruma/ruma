@@ -228,7 +228,7 @@ pub struct NoticeMessageEventContent {
 }
 
 impl NoticeMessageEventContent {
-    /// A convenience constructor to create a plain text notices.
+    /// A convenience constructor to create a plain text notice.
     pub fn plain(body: impl Into<String>) -> Self {
         Self { body: body.into(), formatted: None, relates_to: None }
     }
