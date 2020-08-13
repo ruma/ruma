@@ -5,7 +5,7 @@ use std::{
     fmt::{self, Display, Formatter},
 };
 
-use ruma_api::{error::ResponseDeserializationError, EndpointError};
+use ruma_api::{error::ResponseDeserializationError, EndpointError, Outgoing};
 use serde::{Deserialize, Serialize};
 use serde_json::{
     from_slice as from_json_slice, to_vec as to_json_vec, value::RawValue as RawJsonValue,
@@ -15,19 +15,19 @@ use serde_json::{
 use crate::error::{Error as MatrixError, ErrorBody};
 
 /// Additional authentication information for the user-interactive authentication API.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Outgoing, Serialize)]
 #[serde(untagged)]
-pub enum AuthData {
+pub enum AuthData<'a> {
     /// Used for sending UIAA authentication requests to the homeserver directly
     /// from the client.
     DirectRequest {
         /// The login type that the client is attempting to complete.
         #[serde(rename = "type")]
-        kind: String,
+        kind: &'a str,
 
         /// The value of the session key given by the homeserver.
         #[serde(skip_serializing_if = "Option::is_none")]
-        session: Option<String>,
+        session: Option<&'a str>,
 
         /// Parameters submitted for a particular authentication stage.
         // FIXME: RawJsonValue doesn't work here, is that a bug?
@@ -39,7 +39,7 @@ pub enum AuthData {
     /// stage through the fallback method.
     FallbackAcknowledgement {
         /// The value of the session key given by the homeserver.
-        session: String,
+        session: &'a str,
     },
 }
 
@@ -145,14 +145,14 @@ mod tests {
         Value as JsonValue,
     };
 
-    use super::{AuthData, AuthFlow, UiaaInfo, UiaaResponse};
+    use super::{AuthData, AuthFlow, IncomingAuthData, UiaaInfo, UiaaResponse};
     use crate::error::{ErrorBody, ErrorKind};
 
     #[test]
     fn test_serialize_authentication_data_direct_request() {
         let authentication_data = AuthData::DirectRequest {
-            kind: "example.type.foo".into(),
-            session: Some("ZXY000".into()),
+            kind: "example.type.foo",
+            session: Some("ZXY000"),
             auth_parameters: btreemap! {
                 "example_credential".to_owned() => json!("verypoorsharedsecret")
             },
@@ -177,8 +177,8 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<AuthData>(json).unwrap(),
-            AuthData::DirectRequest { kind, session: Some(session), auth_parameters }
+            from_json_value(json).unwrap(),
+            IncomingAuthData::DirectRequest { kind, session: Some(session), auth_parameters }
             if kind == "example.type.foo"
                 && session == "opaque_session_id"
                 && auth_parameters == btreemap!{
@@ -189,7 +189,7 @@ mod tests {
 
     #[test]
     fn test_serialize_authentication_data_fallback() {
-        let authentication_data = AuthData::FallbackAcknowledgement { session: "ZXY000".into() };
+        let authentication_data = AuthData::FallbackAcknowledgement { session: "ZXY000" };
 
         assert_eq!(json!({ "session": "ZXY000" }), to_json_value(authentication_data).unwrap());
     }
@@ -199,8 +199,8 @@ mod tests {
         let json = json!({ "session": "opaque_session_id" });
 
         assert_matches!(
-            from_json_value::<AuthData>(json).unwrap(),
-            AuthData::FallbackAcknowledgement { session }
+            from_json_value(json).unwrap(),
+            IncomingAuthData::FallbackAcknowledgement { session }
             if session == "opaque_session_id"
         );
     }

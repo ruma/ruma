@@ -2,7 +2,7 @@
 
 use ruma_api::ruma_api;
 
-use crate::r0::uiaa::{AuthData, UiaaResponse};
+use crate::r0::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
 use super::ThirdPartyIdRemovalStatus;
 
@@ -19,12 +19,12 @@ ruma_api! {
     request: {
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub auth: Option<AuthData>,
+        pub auth: Option<AuthData<'a>>,
 
         /// Identity server from which to unbind the user's third party
         /// identifier.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub id_server: Option<String>,
+        pub id_server: Option<&'a str>,
     }
 
     response: {

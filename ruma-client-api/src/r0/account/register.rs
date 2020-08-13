@@ -4,7 +4,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::{DeviceId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::r0::uiaa::{AuthData, UiaaResponse};
+use crate::r0::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
 ruma_api! {
     metadata: {
@@ -22,26 +22,26 @@ ruma_api! {
         /// May be empty for accounts that should not be able to log in again
         /// with a password, e.g., for guest or application service accounts.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub password: Option<String>,
+        pub password: Option<&'a str>,
 
         /// local part of the desired Matrix ID.
         ///
         /// If omitted, the homeserver MUST generate a Matrix ID local part.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub username: Option<String>,
+        pub username: Option<&'a str>,
 
         /// ID of the client device.
         ///
         /// If this does not correspond to a known client device, a new device will be created.
         /// The server will auto-generate a device_id if this is not specified.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_id: Option<Box<DeviceId>>,
+        pub device_id: Option<&'a DeviceId>,
 
         /// A display name to assign to the newly-created device.
         ///
         /// Ignored if `device_id` corresponds to a known device.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub initial_device_display_name: Option<String>,
+        pub initial_device_display_name: Option<&'a str>,
 
         /// Additional authentication information for the user-interactive authentication API.
         ///
@@ -50,7 +50,7 @@ ruma_api! {
         /// It should be left empty, or omitted, unless an earlier call returned an response
         /// with status code 401.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub auth: Option<AuthData>,
+        pub auth: Option<AuthData<'a>>,
 
         /// Kind of account to register
         ///

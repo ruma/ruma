@@ -282,8 +282,8 @@ where
     /// omitted from this request, the server will generate one.
     pub async fn register_user(
         &self,
-        username: Option<String>,
-        password: String,
+        username: Option<&str>,
+        password: &str,
     ) -> Result<Session, Error<ruma_client_api::r0::uiaa::UiaaResponse>> {
         use ruma_client_api::r0::account::register;
 
