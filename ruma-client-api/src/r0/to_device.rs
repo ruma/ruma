@@ -5,7 +5,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
-use ruma_identifiers::DeviceId;
+use ruma_identifiers::DeviceIdBox;
 use serde::{
     de::{self, Unexpected},
     Deserialize, Deserializer, Serialize, Serializer,
@@ -17,7 +17,7 @@ pub mod send_event_to_device;
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum DeviceIdOrAllDevices {
     /// Represents a device Id for one of a user's devices.
-    DeviceId(Box<DeviceId>),
+    DeviceId(DeviceIdBox),
 
     /// Represents all devices for a user.
     AllDevices,

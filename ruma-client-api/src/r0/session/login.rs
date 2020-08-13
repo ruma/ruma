@@ -2,7 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_common::thirdparty::Medium;
-use ruma_identifiers::{DeviceId, ServerName, UserId};
+use ruma_identifiers::{DeviceIdBox, ServerName, UserId};
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -26,7 +26,7 @@ ruma_api! {
 
         /// ID of the client device
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_id: Option<Box<DeviceId>>,
+        pub device_id: Option<DeviceIdBox>,
 
         /// A display name to assign to the newly-created device. Ignored if device_id corresponds
         /// to a known device.
@@ -52,7 +52,7 @@ ruma_api! {
         ///
         /// Will be the same as the corresponding parameter in the request, if one was
         /// specified.
-        pub device_id: Box<DeviceId>,
+        pub device_id: DeviceIdBox,
 
         /// Client configuration provided by the server.
         ///

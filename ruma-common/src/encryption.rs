@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_identifiers::{DeviceId, DeviceKeyId, EventEncryptionAlgorithm, UserId};
+use ruma_identifiers::{DeviceIdBox, DeviceKeyId, EventEncryptionAlgorithm, UserId};
 use serde::{Deserialize, Serialize};
 
 /// Identity keys for a device.
@@ -14,7 +14,7 @@ pub struct DeviceKeys {
     pub user_id: UserId,
 
     /// The ID of the device these keys belong to. Must match the device ID used when logging in.
-    pub device_id: Box<DeviceId>,
+    pub device_id: DeviceIdBox,
 
     /// The encryption algorithms supported by this device.
     pub algorithms: Vec<EventEncryptionAlgorithm>,

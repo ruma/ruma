@@ -2,7 +2,7 @@
 
 use std::time::SystemTime;
 
-use ruma_identifiers::DeviceId;
+use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 
 pub mod delete_device;
@@ -15,7 +15,7 @@ pub mod update_device;
 #[derive(Clone, Debug, Deserialize, Hash, PartialEq, Serialize)]
 pub struct Device {
     /// Device ID
-    pub device_id: Box<DeviceId>,
+    pub device_id: DeviceIdBox,
 
     /// Public display name of the device.
     pub display_name: Option<String>,

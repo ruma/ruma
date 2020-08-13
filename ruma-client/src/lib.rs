@@ -117,7 +117,7 @@ use ruma_api::OutgoingRequest;
 use ruma_client_api::r0::sync::sync_events::{
     Filter as SyncFilter, Request as SyncRequest, Response as SyncResponse,
 };
-use ruma_identifiers::DeviceId;
+use ruma_identifiers::DeviceIdBox;
 use ruma_serde::urlencoded;
 use std::collections::BTreeMap;
 
@@ -211,7 +211,7 @@ where
         &self,
         user: String,
         password: String,
-        device_id: Option<Box<DeviceId>>,
+        device_id: Option<DeviceIdBox>,
         initial_device_display_name: Option<String>,
     ) -> Result<Session, Error<ruma_client_api::Error>> {
         use ruma_client_api::r0::session::login;

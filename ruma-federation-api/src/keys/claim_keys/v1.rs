@@ -4,7 +4,7 @@
 use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{DeviceId, DeviceKeyAlgorithm, DeviceKeyId, UserId};
+use ruma_identifiers::{DeviceIdBox, DeviceKeyAlgorithm, DeviceKeyId, UserId};
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -29,10 +29,10 @@ ruma_api! {
 }
 
 /// A claim for one time keys
-pub type OneTimeKeyClaims = BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeyAlgorithm>>;
+pub type OneTimeKeyClaims = BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeyAlgorithm>>;
 
 /// One time keys for use in pre-key messages
-pub type OneTimeKeys = BTreeMap<UserId, BTreeMap<Box<DeviceId>, BTreeMap<DeviceKeyId, KeyObject>>>;
+pub type OneTimeKeys = BTreeMap<UserId, BTreeMap<DeviceIdBox, BTreeMap<DeviceKeyId, KeyObject>>>;
 
 /// A key and its signature
 #[non_exhaustive]

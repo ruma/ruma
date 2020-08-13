@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
 use ruma_common::encryption::DeviceKeys;
-use ruma_identifiers::{DeviceId, UserId};
+use ruma_identifiers::{DeviceIdBox, UserId};
 
 ruma_api! {
     metadata: {
@@ -19,25 +19,25 @@ ruma_api! {
     request: {
         /// The keys to be downloaded. Gives all keys for a given user if the list of device ids is
         /// empty.
-        device_keys: BTreeMap<UserId, Vec<Box<DeviceId>>>,
+        device_keys: BTreeMap<UserId, Vec<DeviceIdBox>>,
     }
 
     response: {
         /// Keys from the queried devices.
-        device_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeys>>,
+        device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeys>>,
     }
 }
 
 impl Request {
     /// Creates a new `Request` asking for the given device keys.
-    pub fn new(device_keys: BTreeMap<UserId, Vec<Box<DeviceId>>>) -> Self {
+    pub fn new(device_keys: BTreeMap<UserId, Vec<DeviceIdBox>>) -> Self {
         Self { device_keys }
     }
 }
 
 impl Response {
     /// Creates a new `Response` with the given device keys.
-    pub fn new(device_keys: BTreeMap<UserId, BTreeMap<Box<DeviceId>, DeviceKeys>>) -> Self {
+    pub fn new(device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeys>>) -> Self {
         Self { device_keys }
     }
 }

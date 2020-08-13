@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_events_macros::MessageEventContent;
-use ruma_identifiers::DeviceId;
+use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 
 use crate::MessageEvent;
@@ -80,7 +80,7 @@ pub struct MegolmV1AesSha2Content {
     pub sender_key: String,
 
     /// The ID of the sending device.
-    pub device_id: Box<DeviceId>,
+    pub device_id: DeviceIdBox,
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,
@@ -99,7 +99,7 @@ pub struct MegolmV1AesSha2ContentInit {
     pub sender_key: String,
 
     /// The ID of the sending device.
-    pub device_id: Box<DeviceId>,
+    pub device_id: DeviceIdBox,
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,

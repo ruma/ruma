@@ -3,7 +3,7 @@
 use std::{collections::BTreeMap, convert::TryFrom};
 
 use ruma_events_macros::BasicEventContent;
-use ruma_identifiers::DeviceId;
+use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
@@ -22,7 +22,7 @@ pub type StartEvent = BasicEvent<StartEventContent>;
 #[ruma_event(type = "m.key.verification.start")]
 pub struct StartEventContent {
     /// The device ID which is initiating the process.
-    pub from_device: Box<DeviceId>,
+    pub from_device: DeviceIdBox,
 
     /// An opaque identifier for the verification process.
     ///

@@ -3,7 +3,7 @@
 use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_common::encryption::DeviceKeys;
-use ruma_identifiers::{DeviceId, UserId};
+use ruma_identifiers::{DeviceIdBox, UserId};
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -40,7 +40,7 @@ ruma_api! {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UserDevice {
     /// The device ID.
-    pub device_id: Box<DeviceId>,
+    pub device_id: DeviceIdBox,
 
     /// Identity keys for the device.
     pub keys: DeviceKeys,

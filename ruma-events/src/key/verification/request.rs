@@ -3,7 +3,7 @@
 use std::time::SystemTime;
 
 use ruma_events_macros::BasicEventContent;
-use ruma_identifiers::DeviceId;
+use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 
 use super::VerificationMethod;
@@ -19,7 +19,7 @@ pub type RequestEvent = BasicEvent<RequestEventContent>;
 #[ruma_event(type = "m.key.verification.request")]
 pub struct RequestEventContent {
     /// The device ID which is initiating the request.
-    pub from_device: Box<DeviceId>,
+    pub from_device: DeviceIdBox,
 
     /// An opaque identifier for the verification request.
     ///
