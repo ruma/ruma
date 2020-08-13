@@ -16,9 +16,16 @@ use serde1::de::{self, Deserialize as _, Deserializer, Unexpected};
 
 #[doc(inline)]
 pub use crate::{
-    device_id::DeviceId, device_key_id::DeviceKeyId, event_id::EventId, room_alias_id::RoomAliasId,
-    room_id::RoomId, room_id_or_room_alias_id::RoomIdOrAliasId, room_version_id::RoomVersionId,
-    server_key_id::ServerKeyId, server_name::ServerName, user_id::UserId,
+    device_id::{DeviceId, DeviceIdBox},
+    device_key_id::DeviceKeyId,
+    event_id::EventId,
+    room_alias_id::RoomAliasId,
+    room_id::RoomId,
+    room_id_or_room_alias_id::RoomIdOrAliasId,
+    room_version_id::RoomVersionId,
+    server_key_id::ServerKeyId,
+    server_name::{ServerName, ServerNameBox},
+    user_id::UserId,
 };
 #[doc(inline)]
 pub use ruma_identifiers_validation::{

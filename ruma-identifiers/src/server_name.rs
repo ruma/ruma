@@ -17,6 +17,9 @@ use crate::Error;
 #[cfg_attr(feature = "serde", derive(serde1::Serialize), serde(transparent, crate = "serde1"))]
 pub struct ServerName(str);
 
+/// An owned server name.
+pub type ServerNameBox = Box<ServerName>;
+
 impl ServerName {
     #[allow(clippy::transmute_ptr_to_ptr)]
     fn from_borrowed(s: &str) -> &Self {

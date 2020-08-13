@@ -7,6 +7,7 @@ Breaking changes:
 Improvements:
 
 * Add `DeviceKeyId::from_parts` and `ServerKeyId::from_parts`
+* Add `DeviceIdBox` and `ServerNameBox` type aliases
 
 # 0.17.4
 

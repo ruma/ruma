@@ -17,6 +17,9 @@ use crate::generate_localpart;
 #[cfg_attr(feature = "serde", derive(serde1::Serialize), serde(transparent, crate = "serde1"))]
 pub struct DeviceId(str);
 
+/// An owned device identifier.
+pub type DeviceIdBox = Box<DeviceId>;
+
 impl DeviceId {
     #[allow(clippy::transmute_ptr_to_ptr)]
     fn from_borrowed(s: &str) -> &Self {
