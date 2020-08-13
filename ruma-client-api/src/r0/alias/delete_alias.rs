@@ -13,13 +13,29 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The room alias to remove.
         #[ruma_api(path)]
         pub room_alias: &'a RoomAliasId,
     }
 
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room alias.
+    pub fn new(room_alias: &'a RoomAliasId) -> Self {
+        Self { room_alias }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

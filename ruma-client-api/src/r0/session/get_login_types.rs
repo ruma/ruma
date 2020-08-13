@@ -13,14 +13,30 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[non_exhaustive]
     request: {}
 
+    #[non_exhaustive]
     response: {
         /// The homeserver's supported login types.
         pub flows: Vec<LoginType>
     }
 
     error: crate::Error
+}
+
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given login types.
+    pub fn new(flows: Vec<LoginType>) -> Self {
+        Self { flows }
+    }
 }
 
 /// An authentication mechanism.

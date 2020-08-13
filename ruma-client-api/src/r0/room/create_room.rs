@@ -114,6 +114,13 @@ impl Request {
     }
 }
 
+impl Response {
+    /// Creates a `Response` with the given room id.
+    pub fn new(room_id: RoomId) -> Self {
+        Self { room_id }
+    }
+}
+
 /// Extra options to be added to the `m.room.create` event.
 ///
 /// This is the same as the event content struct for `m.room.create`, but without some fields that

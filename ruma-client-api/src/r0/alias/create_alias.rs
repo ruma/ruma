@@ -13,6 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The room alias to set.
         #[ruma_api(path)]
@@ -22,7 +23,22 @@ ruma_api! {
         pub room_id: &'a RoomId,
     }
 
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room alias and room id.
+    pub fn new(room_alias: &'a RoomAliasId, room_id: &'a RoomId) -> Self {
+        Self { room_alias, room_id }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }
