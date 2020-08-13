@@ -47,7 +47,7 @@ help you on your way:
 
 In general, try to replicate the coding style that is already present. Specifically:
 
-### Common types
+### Common Types
 
 When writing endpoint definitions, use the following mapping from request /
 response field types listed in the specification to Rust types:
