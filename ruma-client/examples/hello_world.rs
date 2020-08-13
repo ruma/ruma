@@ -16,7 +16,7 @@ async fn hello_world(homeserver_url: Uri, room_alias: &RoomAliasId) -> anyhow::R
     let client = Client::new(homeserver_url, None);
 
     client.register_guest().await?;
-    let response = client.request(get_alias::Request { room_alias }).await?;
+    let response = client.request(get_alias::Request::new(room_alias)).await?;
 
     let room_id = response.room_id;
 
