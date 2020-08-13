@@ -34,16 +34,13 @@ tasks:
       cargo test --all-features --verbose
       id_test_2_exit=$?
 
-      # ruma-client_api also has a few features. Make sure it works both with
-      # all of them and none of them being enabled.
+      # ruma-client_api also has a few optional features, but none are enabled
+      # by default. Make sure it works with all of them.
       cd ruma-client-api
 
-      cargo test --no-default-features --verbose
-      id_test_1_exit=$?
+      cargo check --all-features --verbose
+      client_api_exit=$?
 
-      cargo test --all-features --verbose
-      id_test_2_exit=$?
-
-      exit $(( $fmt_exit || $clippy_exit || $test_exit || $id_test_1_exit || $id_test_2_exit ))
+      exit $(( $fmt_exit || $clippy_exit || $test_exit || $id_test_1_exit || $id_test_2_exit || $client_api_exit ))
   # TODO: Add audit task once cargo-audit binary releases are available.
   #       See https://github.com/RustSec/cargo-audit/issues/66
