@@ -10,7 +10,7 @@ ruma_api! {
         name: "whoami",
         path: "/_matrix/client/r0/account/whoami",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]

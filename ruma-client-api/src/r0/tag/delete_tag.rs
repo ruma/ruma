@@ -10,7 +10,7 @@ ruma_api! {
         name: "delete_tag",
         path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/tags/:tag",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

@@ -11,7 +11,7 @@ ruma_api! {
         name: "delete_pushrule",
         path: "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

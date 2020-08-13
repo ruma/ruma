@@ -12,7 +12,7 @@ ruma_api! {
         method: GET,
         path: "/_matrix/federation/v1/event_auth/:room_id/:event_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: ServerSignatures,
     }
 
     request: {

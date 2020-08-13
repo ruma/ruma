@@ -10,7 +10,7 @@ ruma_api! {
         name: "set_read_marker",
         path: "/_matrix/client/r0/rooms/:room_id/read_markers",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

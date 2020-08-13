@@ -12,7 +12,7 @@ ruma_api! {
         name: "create_filter",
         path: "/_matrix/client/r0/user/:user_id/filter",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

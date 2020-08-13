@@ -10,7 +10,7 @@ ruma_api! {
         name: "my_endpoint",
         path: "/_matrix/foo/:bar/:baz",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

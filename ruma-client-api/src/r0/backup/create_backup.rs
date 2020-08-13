@@ -11,7 +11,7 @@ ruma_api! {
         name: "create_backup",
         path: "/_matrix/client/r0/room_keys/version",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

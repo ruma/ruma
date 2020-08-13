@@ -12,7 +12,7 @@ ruma_api! {
         name: "request_password_change_token_via_email",
         path: "/_matrix/client/r0/account/password/email/requestToken",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

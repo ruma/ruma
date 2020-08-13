@@ -30,7 +30,7 @@ use http::Method;
 ///         name: &'static str,
 ///         path: &'static str,
 ///         rate_limited: bool,
-///         requires_authentication: bool,
+///         authentication: ruma_api::AuthScheme,
 ///     }
 ///
 ///     request: {
@@ -69,7 +69,7 @@ use http::Method;
 ///     A corresponding query string parameter will be expected in the request struct (see below
 ///     for details).
 /// *   `rate_limited`: Whether or not the endpoint enforces rate limiting on requests.
-/// *   `requires_authentication`: Whether or not the endpoint requires a valid access token.
+/// *   `authentication`: What authentication scheme the endpoint uses.
 ///
 /// ## Request
 ///
@@ -139,7 +139,7 @@ use http::Method;
 ///             name: "some_endpoint",
 ///             path: "/_matrix/some/endpoint/:baz",
 ///             rate_limited: false,
-///             requires_authentication: false,
+///             authentication: None,
 ///         }
 ///
 ///         request: {
@@ -180,7 +180,7 @@ use http::Method;
 ///             name: "newtype_body_endpoint",
 ///             path: "/_matrix/some/newtype/body/endpoint",
 ///             rate_limited: false,
-///             requires_authentication: false,
+///             authentication: None,
 ///         }
 ///
 ///         request: {
@@ -290,6 +290,20 @@ pub trait OutgoingNonAuthRequest: OutgoingRequest {}
 /// Marker trait for requests that don't require authentication. (for the server side)
 pub trait IncomingNonAuthRequest: IncomingRequest {}
 
+/// Authentication scheme used by the endpoint.
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum AuthScheme {
+    /// No authentication is performed.
+    None,
+    /// Authentication is performed by including an access token in the request headers.
+    AccessToken,
+    /// Authentication is performed by including X-Matrix signatures in the request headers,
+    /// as defined in the federation API.
+    ServerSignatures,
+    /// Authentication is performed by including an access token in the query parameters.
+    QueryOnlyAccessToken,
+}
+
 /// Metadata about an API endpoint.
 #[derive(Clone, Debug)]
 pub struct Metadata {
@@ -309,8 +323,8 @@ pub struct Metadata {
     /// Whether or not this endpoint is rate limited by the server.
     pub rate_limited: bool,
 
-    /// Whether or not the server requires an authenticated user for this endpoint.
-    pub requires_authentication: bool,
+    /// What authentication scheme the server uses for this endpoint.
+    pub authentication: AuthScheme,
 }
 
 #[doc(hidden)]

@@ -12,7 +12,7 @@ ruma_api! {
         name: "search_users",
         path: "/_matrix/client/r0/user_directory/search",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

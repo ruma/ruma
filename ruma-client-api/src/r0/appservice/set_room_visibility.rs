@@ -12,7 +12,7 @@ ruma_api! {
         name: "set_room_visibility",
         path: "/_matrix/client/r0/directory/list/appservice/:network_id/:room_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

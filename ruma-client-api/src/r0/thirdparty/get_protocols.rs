@@ -12,7 +12,7 @@ ruma_api! {
         name: "get_protocols",
         path: "/_matrix/client/r0/thirdparty/protocols",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]

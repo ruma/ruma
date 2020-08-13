@@ -11,7 +11,7 @@ use ruma_api::{
         FromHttpRequestError, FromHttpResponseError, IntoHttpError, RequestDeserializationError,
         ResponseDeserializationError, ServerError, Void,
     },
-    IncomingRequest, Metadata, Outgoing, OutgoingRequest,
+    AuthScheme, IncomingRequest, Metadata, Outgoing, OutgoingRequest,
 };
 
 /// A request to create a new room alias.
@@ -31,7 +31,7 @@ const METADATA: Metadata = Metadata {
     name: "create_alias",
     path: "/_matrix/client/r0/directory/room/:room_alias",
     rate_limited: false,
-    requires_authentication: false,
+    authentication: AuthScheme::None,
 };
 
 impl OutgoingRequest for Request {

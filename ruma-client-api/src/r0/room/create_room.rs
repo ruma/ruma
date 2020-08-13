@@ -23,7 +23,7 @@ ruma_api! {
         name: "create_room",
         path: "/_matrix/client/r0/createRoom",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]

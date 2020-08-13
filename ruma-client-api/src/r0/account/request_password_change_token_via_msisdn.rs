@@ -10,7 +10,7 @@ ruma_api! {
         name: "request_password_change_token_via_msisdn",
         path: "/_matrix/client/r0/account/password/msisdn/requestToken",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

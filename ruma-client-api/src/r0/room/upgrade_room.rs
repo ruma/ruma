@@ -10,7 +10,7 @@ ruma_api! {
         name: "upgrade_room",
         path: "/_matrix/client/r0/rooms/:room_id/upgrade",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

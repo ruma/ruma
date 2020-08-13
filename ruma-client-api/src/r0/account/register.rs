@@ -13,7 +13,7 @@ ruma_api! {
         name: "register",
         path: "/_matrix/client/r0/register",
         rate_limited: true,
-        requires_authentication: false,
+        authentication: None,
     }
 
     #[derive(Default)]

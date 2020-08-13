@@ -12,7 +12,7 @@ ruma_api! {
         name: "get_location_for_protocol",
         path: "/_matrix/client/r0/thirdparty/location/:protocol",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

@@ -11,7 +11,7 @@ ruma_api! {
         name: "get_room_state",
         path: "/_matrix/federation/v1/state/:room_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: ServerSignatures,
     }
 
     request: {

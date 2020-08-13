@@ -11,7 +11,7 @@ ruma_api! {
         name: "report_content",
         path: "/_matrix/client/r0/rooms/:room_id/report/:event_id",
         rate_limited:  false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

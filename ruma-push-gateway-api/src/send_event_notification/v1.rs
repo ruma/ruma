@@ -17,7 +17,7 @@ ruma_api! {
         method: POST,
         path: "/_matrix/push/v1/notify",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

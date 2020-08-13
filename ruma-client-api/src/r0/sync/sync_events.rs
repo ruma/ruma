@@ -21,7 +21,7 @@ ruma_api! {
         name: "sync",
         path: "/_matrix/client/r0/sync",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]

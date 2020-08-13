@@ -12,7 +12,7 @@ ruma_api! {
         path: "/_matrix/client/r0/rooms/:room_id/typing/:user_id",
         name: "create_typing_event",
         description: "Send a typing event to a room.",
-        requires_authentication: true,
+        authentication: AccessToken,
         rate_limited: true,
     }
 

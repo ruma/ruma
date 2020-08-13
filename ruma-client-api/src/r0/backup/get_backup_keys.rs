@@ -11,7 +11,7 @@ ruma_api! {
         name: "get_backup_keys",
         path: "/_matrix/client/r0/room_keys/keys",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

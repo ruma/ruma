@@ -12,7 +12,7 @@ ruma_api! {
         name: "request_3pid_association_token_via_msisdn",
         path: "/_matrix/client/r0/account/3pid/msisdn/requestToken",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

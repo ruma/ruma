@@ -14,7 +14,7 @@ ruma_api! {
         method: GET,
         path: "/_matrix/federation/v1/backfill/:room_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: ServerSignatures,
     }
 
     request: {

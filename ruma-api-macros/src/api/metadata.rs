@@ -18,8 +18,8 @@ pub struct Metadata {
     pub path: LitStr,
     /// The rate_limited field.
     pub rate_limited: LitBool,
-    /// The description field.
-    pub requires_authentication: LitBool,
+    /// The authentication field.
+    pub authentication: Ident,
 }
 
 impl TryFrom<RawMetadata> for Metadata {
@@ -31,7 +31,7 @@ impl TryFrom<RawMetadata> for Metadata {
         let mut name = None;
         let mut path = None;
         let mut rate_limited = None;
-        let mut requires_authentication = None;
+        let mut authentication = None;
 
         for field_value in raw.field_values {
             let identifier = match field_value.member.clone() {
@@ -78,11 +78,11 @@ impl TryFrom<RawMetadata> for Metadata {
                     }
                     _ => return Err(syn::Error::new_spanned(expr, "expected a bool literal")),
                 },
-                "requires_authentication" => match expr {
-                    Expr::Lit(ExprLit { lit: Lit::Bool(literal), .. }) => {
-                        requires_authentication = Some(literal);
+                "authentication" => match expr {
+                    Expr::Path(ExprPath { ref path, .. }) if path.segments.len() == 1 => {
+                        authentication = Some(path.segments[0].ident.clone());
                     }
-                    _ => return Err(syn::Error::new_spanned(expr, "expected a bool literal")),
+                    _ => return Err(syn::Error::new_spanned(expr, "expected an identifier")),
                 },
                 _ => return Err(syn::Error::new_spanned(field_value, "unexpected field")),
             }
@@ -98,8 +98,7 @@ impl TryFrom<RawMetadata> for Metadata {
             name: name.ok_or_else(|| missing_field("name"))?,
             path: path.ok_or_else(|| missing_field("path"))?,
             rate_limited: rate_limited.ok_or_else(|| missing_field("rate_limited"))?,
-            requires_authentication: requires_authentication
-                .ok_or_else(|| missing_field("requires_authentication"))?,
+            authentication: authentication.ok_or_else(|| missing_field("authentication"))?,
         })
     }
 }

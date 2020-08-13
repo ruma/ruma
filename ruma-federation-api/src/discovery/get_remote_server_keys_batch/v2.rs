@@ -14,7 +14,7 @@ ruma_api! {
         name: "get_remote_server_keys_batch",
         path: "/_matrix/key/v2/query",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

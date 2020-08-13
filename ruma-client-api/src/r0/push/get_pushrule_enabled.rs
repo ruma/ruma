@@ -11,7 +11,7 @@ ruma_api! {
         name: "get_pushrule_enabled",
         path: "/_matrix/client/r0/pushrules/:scope/:kind/:rule_id/enabled",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

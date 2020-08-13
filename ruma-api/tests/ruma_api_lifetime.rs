@@ -16,7 +16,7 @@ mod empty_response {
             name: "create_alias",
             path: "/_matrix/client/r0/directory/room/:room_alias",
             rate_limited: false,
-            requires_authentication: true,
+            authentication: AccessToken,
         }
 
         request: {
@@ -43,7 +43,7 @@ mod nested_types {
             name: "create_alias",
             path: "/_matrix/client/r0/directory/room/:room_alias",
             rate_limited: false,
-            requires_authentication: true,
+            authentication: AccessToken,
         }
 
         request: {
@@ -70,7 +70,7 @@ mod full_request_response {
             name: "no_fields",
             path: "/_matrix/my/endpoint/:thing",
             rate_limited: false,
-            requires_authentication: false,
+            authentication: None,
         }
 
         request: {
@@ -102,7 +102,7 @@ mod full_request_response_with_query_map {
             name: "no_fields",
             path: "/_matrix/my/endpoint/:thing",
             rate_limited: false,
-            requires_authentication: false,
+            authentication: None,
         }
 
         request: {
@@ -134,7 +134,7 @@ mod query_fields {
             name: "get_public_rooms",
             path: "/_matrix/client/r0/publicRooms",
             rate_limited: false,
-            requires_authentication: false,
+            authentication: None,
         }
 
         request: {

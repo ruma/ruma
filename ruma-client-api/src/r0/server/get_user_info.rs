@@ -13,7 +13,7 @@ ruma_api! {
         name: "get_user_info",
         path: "/_matrix/client/r0/admin/whois/:user_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

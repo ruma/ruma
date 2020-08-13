@@ -14,7 +14,7 @@ ruma_api! {
         name: "claim_keys",
         path: "/_matrix/federation/v1/user/keys/claim",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: ServerSignatures,
     }
 
     request: {

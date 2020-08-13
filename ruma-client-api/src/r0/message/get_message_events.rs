@@ -16,7 +16,7 @@ ruma_api! {
         name: "get_message_events",
         path: "/_matrix/client/r0/rooms/:room_id/messages",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

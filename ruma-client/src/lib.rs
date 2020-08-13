@@ -113,7 +113,7 @@ use http::{uri::Uri, Response as HttpResponse};
 use hyper::{client::HttpConnector, Client as HyperClient};
 #[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
-use ruma_api::OutgoingRequest;
+use ruma_api::{AuthScheme, OutgoingRequest};
 use ruma_client_api::r0::sync::sync_events::{
     Filter as SyncFilter, Request as SyncRequest, Response as SyncResponse,
 };
@@ -345,7 +345,7 @@ where
         let client = self.0.clone();
         let mut http_request = {
             let session;
-            let access_token = if Request::METADATA.requires_authentication {
+            let access_token = if Request::METADATA.authentication == AuthScheme::AccessToken {
                 session = client.session.lock().unwrap();
                 if let Some(s) = &*session {
                     Some(s.access_token.as_str())

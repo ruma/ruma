@@ -13,7 +13,7 @@ ruma_api! {
         method: POST,
         path: "/_matrix/client/r0/user/:user_id/openid/request_token",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

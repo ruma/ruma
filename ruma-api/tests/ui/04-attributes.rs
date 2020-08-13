@@ -7,7 +7,7 @@ ruma_api! {
         name: "some_endpoint",
         path: "/_matrix/some/endpoint/:baz",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     #[not_a_real_attribute_should_fail]

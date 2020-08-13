@@ -15,7 +15,7 @@ ruma_api! {
         path: "/_matrix/client/r0/rooms/:room_id/context/:event_id",
         name: "get_context",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

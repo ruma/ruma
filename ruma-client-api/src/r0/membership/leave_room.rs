@@ -10,7 +10,7 @@ ruma_api! {
         name: "leave_room",
         path: "/_matrix/client/r0/rooms/:room_id/leave",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

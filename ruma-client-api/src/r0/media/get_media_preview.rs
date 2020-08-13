@@ -13,7 +13,7 @@ ruma_api! {
         method: GET,
         path: "/_matrix/media/r0/preview_url",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

@@ -10,7 +10,7 @@ ruma_api! {
         name: "unban_user",
         path: "/_matrix/client/r0/rooms/:room_id/unban",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

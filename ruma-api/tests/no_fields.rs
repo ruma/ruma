@@ -9,7 +9,7 @@ ruma_api! {
         name: "no_fields",
         path: "/_matrix/my/endpoint",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {}

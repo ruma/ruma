@@ -10,7 +10,7 @@ ruma_api! {
         name: "get_key_changes",
         path: "/_matrix/client/r0/keys/changes",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

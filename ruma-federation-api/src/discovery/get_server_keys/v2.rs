@@ -10,7 +10,7 @@ ruma_api! {
         name: "get_server_keys",
         path: "/_matrix/key/v2/server",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     #[derive(Default)]

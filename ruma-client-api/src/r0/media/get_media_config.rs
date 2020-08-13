@@ -10,7 +10,7 @@ ruma_api! {
         path: "/_matrix/media/r0/config",
         name: "get_media_config",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]

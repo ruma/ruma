@@ -10,7 +10,7 @@ ruma_api! {
         name: "get_protocol",
         path: "/_matrix/app/v1/thirdparty/protocol/:protocol",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: QueryOnlyAccessToken,
     }
 
     request: {

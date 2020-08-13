@@ -12,7 +12,7 @@ ruma_api! {
         name: "unbind_3pid",
         path: "/_matrix/client/r0/account/3pid/unbind",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

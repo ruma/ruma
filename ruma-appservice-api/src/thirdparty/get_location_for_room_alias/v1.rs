@@ -11,7 +11,7 @@ ruma_api! {
         name: "get_location_for_room_alias",
         path: "/_matrix/app/v1/thirdparty/location",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: QueryOnlyAccessToken,
     }
 
     request: {

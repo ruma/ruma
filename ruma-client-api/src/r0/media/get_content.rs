@@ -10,7 +10,7 @@ ruma_api! {
         name: "get_media_content",
         path: "/_matrix/media/r0/download/:server_name/:media_id",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

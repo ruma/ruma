@@ -20,7 +20,7 @@ pub mod some_endpoint {
             name: "some_endpoint",
             path: "/_matrix/some/endpoint/:baz", // Variable path components start with a colon.
             rate_limited: false,
-            requires_authentication: false,
+            authentication: None,
         }
 
         request: {

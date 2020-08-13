@@ -13,7 +13,7 @@ ruma_api! {
         name: "get_capabilities",
         path: "/_matrix/client/r0/capabilities",
         rate_limited: true,
-        requires_authentication: true
+        authentication: AccessToken
     }
 
     #[derive(Default)]

@@ -12,7 +12,7 @@ ruma_api! {
         method: GET,
         path: "/_matrix/client/r0/user/:user_id/rooms/:room_id/account_data/:event_type",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

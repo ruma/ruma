@@ -10,7 +10,7 @@ ruma_api! {
         name: "get_avatar_url",
         path: "/_matrix/client/r0/profile/:user_id/avatar_url",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

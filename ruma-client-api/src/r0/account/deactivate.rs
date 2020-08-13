@@ -13,7 +13,7 @@ ruma_api! {
         name: "deactivate",
         path: "/_matrix/client/r0/account/deactivate",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]

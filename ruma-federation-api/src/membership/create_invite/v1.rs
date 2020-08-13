@@ -15,7 +15,7 @@ ruma_api! {
         name: "create_invite",
         path: "/_matrix/federation/v1/invite/:room_id/:event_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: ServerSignatures,
     }
 
     request: {

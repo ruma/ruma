@@ -11,7 +11,7 @@ ruma_api! {
         name: "get_user_for_user_id",
         path: "/_matrix/app/v1/thirdparty/user",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: QueryOnlyAccessToken,
     }
 
     request: {

@@ -10,7 +10,7 @@ ruma_api! {
         name: "query_user_id",
         path: "/_matrix/app/v1/users/:user_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: QueryOnlyAccessToken,
     }
 
     request: {

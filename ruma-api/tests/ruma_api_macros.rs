@@ -10,7 +10,7 @@ pub mod some_endpoint {
             name: "some_endpoint",
             path: "/_matrix/some/endpoint/:baz",
             rate_limited: false,
-            requires_authentication: false,
+            authentication: None,
         }
 
         request: {
@@ -67,7 +67,7 @@ pub mod newtype_body_endpoint {
             name: "newtype_body_endpoint",
             path: "/_matrix/some/newtype/body/endpoint",
             rate_limited: false,
-            requires_authentication: false,
+            authentication: None,
         }
 
         request: {
@@ -97,7 +97,7 @@ pub mod newtype_raw_body_endpoint {
             name: "newtype_body_endpoint",
             path: "/_matrix/some/newtype/body/endpoint",
             rate_limited: false,
-            requires_authentication: false,
+            authentication: None,
         }
 
         request: {
@@ -122,7 +122,7 @@ pub mod query_map_endpoint {
             name: "newtype_body_endpoint",
             path: "/_matrix/some/query/map/endpoint",
             rate_limited: false,
-            requires_authentication: false,
+            authentication: None,
         }
 
         request: {
