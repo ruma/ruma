@@ -39,7 +39,7 @@ pub fn is_true(b: &bool) -> bool {
 /// formulation in the spec.
 ///
 /// To be used like this:
-/// `#[serde(deserialize_with = "empty_string_as_none"]`
+/// `#[serde(deserialize_with = "empty_string_as_none")]`
 /// Relevant serde issue: https://github.com/serde-rs/serde/issues/1425
 pub fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
 where
