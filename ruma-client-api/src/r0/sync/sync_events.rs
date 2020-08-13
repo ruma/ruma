@@ -3,7 +3,7 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use js_int::UInt;
-use ruma_api::ruma_api;
+use ruma_api::{ruma_api, Outgoing};
 use ruma_common::{presence::PresenceState, Raw};
 use ruma_events::{
     presence::PresenceEvent, AnyBasicEvent, AnyStrippedStateEvent, AnySyncEphemeralRoomEvent,
@@ -28,7 +28,7 @@ ruma_api! {
         /// A filter represented either as its full JSON definition or the ID of a saved filter.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub filter: Option<Filter>,
+        pub filter: Option<Filter<'a>>,
 
         /// A point in time to continue a sync from.
         ///
@@ -36,7 +36,7 @@ ruma_api! {
         /// request.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub since: Option<String>,
+        pub since: Option<&'a str>,
 
         /// Controls whether to include the full state for all rooms the user is a member of.
         #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
@@ -94,10 +94,10 @@ ruma_api! {
 }
 
 /// A filter represented either as its full JSON definition or the ID of a saved filter.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Outgoing, Serialize)]
 #[allow(clippy::large_enum_variant)]
 #[serde(untagged)]
-pub enum Filter {
+pub enum Filter<'a> {
     // The filter definition needs to be (de)serialized twice because it is a URL-encoded JSON
     // string. Since #[ruma_api(query)] only does the latter and this is a very uncommon
     // setup, we implement it through custom serde logic for this specific enum variant rather than
@@ -113,7 +113,7 @@ pub enum Filter {
     FilterDefinition(FilterDefinition),
 
     /// The ID of a filter saved on the server.
-    FilterId(String),
+    FilterId(&'a str),
 }
 
 /// Updates to rooms.
@@ -408,13 +408,13 @@ mod tests {
 
     use matches::assert_matches;
 
-    use super::{Filter, PresenceState, Request, Timeline};
+    use super::{Filter, IncomingFilter, IncomingRequest, PresenceState, Request, Timeline};
 
     #[test]
     fn serialize_all_params() {
         let req: http::Request<Vec<u8>> = Request {
-            filter: Some(Filter::FilterId("66696p746572".into())),
-            since: Some("s72594_4483_1934".into()),
+            filter: Some(Filter::FilterId("66696p746572")),
+            since: Some("s72594_4483_1934"),
             full_state: true,
             set_presence: PresenceState::Offline,
             timeout: Some(Duration::from_millis(30000)),
@@ -449,10 +449,10 @@ mod tests {
             .build()
             .unwrap();
 
-        let req: Request =
+        let req: IncomingRequest =
             http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap().try_into().unwrap();
 
-        assert_matches!(req.filter, Some(Filter::FilterId(id)) if id == "myfilter");
+        assert_matches!(req.filter, Some(IncomingFilter::FilterId(id)) if id == "myfilter");
         assert_eq!(req.since, Some("myts".into()));
         assert_eq!(req.full_state, false);
         assert_eq!(req.set_presence, PresenceState::Offline);
@@ -468,7 +468,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let req: Request =
+        let req: IncomingRequest =
             http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap().try_into().unwrap();
 
         assert_matches!(req.filter, None);
@@ -491,10 +491,10 @@ mod tests {
             .build()
             .unwrap();
 
-        let req: Request =
+        let req: IncomingRequest =
             http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap().try_into().unwrap();
 
-        assert_matches!(req.filter, Some(Filter::FilterId(id)) if id == "EOKFFmdZYF");
+        assert_matches!(req.filter, Some(IncomingFilter::FilterId(id)) if id == "EOKFFmdZYF");
         assert_eq!(req.since, None);
         assert_eq!(req.full_state, false);
         assert_eq!(req.set_presence, PresenceState::Online);

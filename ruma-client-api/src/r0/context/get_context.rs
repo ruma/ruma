@@ -18,14 +18,15 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The room to get events from.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The event to get context around.
         #[ruma_api(path)]
-        pub event_id: EventId,
+        pub event_id: &'a EventId,
 
         /// The maximum number of events to return.
         ///
@@ -44,6 +45,7 @@ ruma_api! {
         pub filter: Option<RoomEventFilter>,
     }
 
+    #[non_exhaustive]
     response: {
         /// A token that can be used to paginate backwards with.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -73,6 +75,27 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room id and event id.
+    pub fn new(room_id: &'a RoomId, event_id: &'a EventId) -> Self {
+        Self { room_id, event_id, limit: default_limit(), filter: None }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self {
+            start: None,
+            end: None,
+            events_before: Vec::new(),
+            event: None,
+            events_after: Vec::new(),
+            state: Vec::new(),
+        }
+    }
 }
 
 fn default_limit() -> UInt {

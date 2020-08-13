@@ -15,22 +15,38 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The ID of the user uploading the filter.
         ///
         /// The access token must be authorized to make requests for this user ID.
         #[ruma_api(path)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
 
         /// The filter definition.
         #[ruma_api(body)]
         pub filter: FilterDefinition,
     }
 
+    #[non_exhaustive]
     response: {
         /// The ID of the filter that was created.
         pub filter_id: String,
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user ID and filter definition.
+    pub fn new(user_id: &'a UserId, filter: FilterDefinition) -> Self {
+        Self { user_id, filter }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given filter ID.
+    pub fn new(filter_id: String) -> Self {
+        Self { filter_id }
+    }
 }

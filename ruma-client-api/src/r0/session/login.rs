@@ -64,7 +64,7 @@ ruma_api! {
 }
 
 /// Identification information for the user.
-#[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Outgoing, Serialize)]
 #[serde(from = "user_serde::IncomingUserInfo", into = "user_serde::UserInfo")]
 pub enum UserInfo<'a> {
     /// Either a fully qualified Matrix user ID, or just the localpart (as part of the 'identifier'
@@ -92,7 +92,7 @@ pub enum UserInfo<'a> {
 }
 
 /// The authentication mechanism.
-#[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Outgoing, Serialize)]
 #[serde(tag = "type")]
 pub enum LoginInfo<'a> {
     /// A password is supplied to authenticate.

@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use js_int::{uint, UInt};
-use ruma_api::ruma_api;
+use ruma_api::{ruma_api, Outgoing};
 use ruma_common::Raw;
 use ruma_events::{AnyEvent, AnyStateEvent};
 use ruma_identifiers::{EventId, RoomId, UserId};
@@ -21,17 +21,19 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The point to return events from.
         ///
         /// If given, this should be a `next_batch` result from a previous call to this endpoint.
         #[ruma_api(query)]
-        pub next_batch: Option<String>,
+        pub next_batch: Option<&'a str>,
 
         /// Describes which categories to search in and their criteria.
-        pub search_categories: Categories,
+        pub search_categories: Categories<'a>,
     }
 
+    #[non_exhaustive]
     response: {
         /// A grouping of search results by category.
         pub search_categories: ResultCategories,
@@ -40,23 +42,45 @@ ruma_api! {
     error: crate::Error
 }
 
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given categories.
+    pub fn new(search_categories: Categories<'a>) -> Self {
+        Self { next_batch: None, search_categories }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given search results.
+    pub fn new(search_categories: ResultCategories) -> Self {
+        Self { search_categories }
+    }
+}
+
 /// Categories of events that can be searched for.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Categories {
-    /// Criteria for searching a category of events.
+#[derive(Clone, Debug, Outgoing, Serialize)]
+#[non_exhaustive]
+pub struct Categories<'a> {
+    /// Criteria for searching room events.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub room_events: Option<Criteria>,
+    pub room_events: Option<Criteria<'a>>,
+}
+
+impl<'a> Categories<'a> {
+    /// Creates an empty `Categories`.
+    pub fn new() -> Self {
+        Self { room_events: None }
+    }
 }
 
 /// Criteria for searching a category of events.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Criteria {
+#[derive(Clone, Debug, Outgoing, Serialize)]
+pub struct Criteria<'a> {
     /// The string to search events for.
-    pub search_term: String,
+    pub search_term: &'a str,
 
     /// The keys to search for. Defaults to all keys.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub keys: Option<Vec<SearchKeys>>,
+    pub keys: Option<&'a [SearchKeys]>,
 
     /// A `Filter` to apply to the search.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -76,7 +100,7 @@ pub struct Criteria {
 
     /// Requests that the server partitions the result set based on the provided list of keys.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub groupings: Option<Groupings>,
+    pub groupings: Option<Groupings<'a>>,
 }
 
 /// Configures whether any context for the events returned are included in the response.
@@ -154,11 +178,11 @@ pub enum GroupingKey {
 }
 
 /// Requests that the server partitions the result set based on the provided list of keys.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Groupings {
+#[derive(Clone, Copy, Debug, Outgoing, Serialize)]
+pub struct Groupings<'a> {
     /// List of groups to request.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub group_by: Vec<Grouping>,
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub group_by: &'a [Grouping],
 }
 
 /// The keys to search for.

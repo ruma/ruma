@@ -15,16 +15,18 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The user ID to download a filter for.
         #[ruma_api(path)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
 
         /// The ID of the filter to download.
         #[ruma_api(path)]
-        pub filter_id: String,
+        pub filter_id: &'a str,
     }
 
+    #[non_exhaustive]
     response: {
         /// The filter definition.
         #[ruma_api(body)]
@@ -32,4 +34,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user ID and filter ID.
+    pub fn new(user_id: &'a UserId, filter_id: &'a str) -> Self {
+        Self { user_id, filter_id }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given filter definition.
+    pub fn new(filter: FilterDefinition) -> Self {
+        Self { filter }
+    }
 }

@@ -16,12 +16,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The user to look up.
         #[ruma_api(path)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
     }
 
+    #[non_exhaustive]
     response: {
         /// The Matrix user ID of the user.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -33,6 +35,20 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user id.
+    pub fn new(user_id: &'a UserId) -> Self {
+        Self { user_id }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self { user_id: None, devices: BTreeMap::new() }
+    }
 }
 
 /// Information about a user's device.

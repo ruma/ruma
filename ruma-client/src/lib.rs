@@ -319,24 +319,25 @@ where
     /// If the since parameter is None, the first Item might take a significant time to arrive and
     /// be deserialized, because it contains all events that have occurred in the whole lifetime of
     /// the logged-in users account and are visible to them.
-    pub fn sync(
+    pub fn sync<'a>(
         &self,
-        filter: Option<SyncFilter>,
+        filter: Option<SyncFilter<'a>>,
         since: Option<String>,
         set_presence: ruma_common::presence::PresenceState,
         timeout: Option<Duration>,
     ) -> impl Stream<Item = Result<SyncResponse, Error<ruma_client_api::Error>>>
-           + TryStream<Ok = SyncResponse, Error = Error<ruma_client_api::Error>> {
+           + TryStream<Ok = SyncResponse, Error = Error<ruma_client_api::Error>>
+           + 'a {
         let client = self.clone();
         stream::try_unfold(since, move |since| {
             let client = client.clone();
-            let filter = filter.clone();
+            let filter = filter.clone(); // FIXME: Remove once `SyncFilter` is `Copy`
 
             async move {
                 let response = client
                     .request(SyncRequest {
                         filter,
-                        since,
+                        since: since.as_deref(),
                         full_state: false,
                         set_presence,
                         timeout,

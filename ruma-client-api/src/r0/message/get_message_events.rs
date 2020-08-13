@@ -23,7 +23,7 @@ ruma_api! {
     request: {
         /// The room to get events from.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The token to start returning events from.
         ///
@@ -31,7 +31,7 @@ ruma_api! {
         /// prev_batch token returned for each room by the sync API, or from a start or end token
         /// returned by a previous request to this endpoint.
         #[ruma_api(query)]
-        pub from: String,
+        pub from: &'a str,
 
         /// The token to stop returning events at.
         ///
@@ -40,7 +40,7 @@ ruma_api! {
         /// by a previous request to this endpoint.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub to: Option<String>,
+        pub to: Option<&'a str>,
 
         /// The direction to return events from.
         #[ruma_api(query)]
@@ -63,6 +63,7 @@ ruma_api! {
         pub filter: Option<RoomEventFilter>,
     }
 
+    #[non_exhaustive]
     response: {
         /// The token the pagination starts from.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -84,12 +85,19 @@ ruma_api! {
     error: crate::Error
 }
 
-impl Request {
+impl<'a> Request<'a> {
     /// Creates a `Request` with the given parameters.
     ///
     /// All other parameters will be defaulted.
-    pub fn new(room_id: RoomId, from: String, dir: Direction) -> Self {
+    pub fn new(room_id: &'a RoomId, from: &'a str, dir: Direction) -> Self {
         Self { room_id, from, to: None, dir, limit: default_limit(), filter: None }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self { start: None, end: None, chunk: Vec::new(), state: Vec::new() }
     }
 }
 
@@ -135,9 +143,9 @@ mod tests {
             ..Default::default()
         };
         let req = Request {
-            room_id,
-            from: "token".into(),
-            to: Some("token2".into()),
+            room_id: &room_id,
+            from: "token",
+            to: Some("token2"),
             dir: Direction::Backward,
             limit: uint!(0),
             filter: Some(filter),
@@ -161,9 +169,9 @@ mod tests {
     fn test_serialize_none_room_event_filter() {
         let room_id = room_id!("!roomid:example.org");
         let req = Request {
-            room_id,
-            from: "token".into(),
-            to: Some("token2".into()),
+            room_id: &room_id,
+            from: "token",
+            to: Some("token2"),
             dir: Direction::Backward,
             limit: uint!(0),
             filter: None,
@@ -178,9 +186,9 @@ mod tests {
     fn test_serialize_default_room_event_filter() {
         let room_id = room_id!("!roomid:example.org");
         let req = Request {
-            room_id,
-            from: "token".into(),
-            to: Some("token2".into()),
+            room_id: &room_id,
+            from: "token",
+            to: Some("token2"),
             dir: Direction::Backward,
             limit: uint!(0),
             filter: Some(RoomEventFilter::default()),
