@@ -26,6 +26,16 @@ Improvements:
 
 * Add `room::MessageFormat` and `room::FormattedBody`
 * Skip serialization of optional values on `room::encryption::EncryptionEventContent`
+* Rename `TextMessageEventContent::new_plain` to `plain` (the old name is still available, but
+  deprecated)
+* Add more constructors for types in `room::message`:
+  * `TextMessageEventContent::html`
+  * `NoticeMessageEventContent::plain`
+  * `NoticeMessageEventContent::html`
+  * `MessageEventContent::text_plain`
+  * `MessageEventContent::text_html`
+  * `MessageEventContent::notice_plain`
+  * `MessageEventContent::notice_html`
 
 # 0.21.3
 
