@@ -3,7 +3,7 @@
 use ruma_api::ruma_api;
 
 use super::CrossSigningKey;
-use crate::r0::uiaa::AuthData;
+use crate::r0::uiaa::{AuthData, IncomingAuthData};
 
 ruma_api! {
     metadata: {
@@ -18,7 +18,7 @@ ruma_api! {
     request: {
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub auth: Option<AuthData>,
+        pub auth: Option<AuthData<'a>>,
 
         /// The user's master key.
         #[serde(skip_serializing_if = "Option::is_none")]
