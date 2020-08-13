@@ -19,7 +19,7 @@ ruma_api! {
     request: {
         /// The server's DNS name to query
         #[ruma_api(path)]
-        pub server_name: Box<ServerName>,
+        pub server_name: &'a ServerName,
 
         /// A millisecond POSIX timestamp in milliseconds indicating when the
         /// returned certificates will need to be valid until to be useful to

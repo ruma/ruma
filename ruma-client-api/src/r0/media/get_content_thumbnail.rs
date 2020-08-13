@@ -36,11 +36,11 @@ ruma_api! {
 
         /// The media ID from the mxc:// URI (the path component).
         #[ruma_api(path)]
-        pub media_id: String,
+        pub media_id: &'a str,
 
         /// The server name from the mxc:// URI (the authoritory component).
         #[ruma_api(path)]
-        pub server_name: Box<ServerName>,
+        pub server_name: &'a ServerName,
 
         /// The *desired* height of the thumbnail. The actual thumbnail may not match the size
         /// specified.

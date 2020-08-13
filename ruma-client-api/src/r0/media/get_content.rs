@@ -16,11 +16,11 @@ ruma_api! {
     request: {
         /// The media ID from the mxc:// URI (the path component).
         #[ruma_api(path)]
-        pub media_id: String,
+        pub media_id: &'a str,
 
         /// The server name from the mxc:// URI (the authoritory component).
         #[ruma_api(path)]
-        pub server_name: Box<ServerName>,
+        pub server_name: &'a ServerName,
 
         /// Whether to fetch media deemed remote.
         /// Used to prevent routing loops. Defaults to `true`.

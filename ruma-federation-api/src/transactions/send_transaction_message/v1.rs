@@ -21,10 +21,10 @@ ruma_api! {
     request: {
         /// A transaction ID unique between sending and receiving homeservers.
         #[ruma_api(path)]
-        pub transaction_id: String,
+        pub transaction_id: &'a str,
 
         /// The server_name of the homeserver sending this transaction.
-        pub origin: Box<ServerName>,
+        pub origin: &'a ServerName,
 
         /// POSIX timestamp in milliseconds on the originating homeserver when this transaction
         /// started.
@@ -34,13 +34,13 @@ ruma_api! {
         /// List of persistent updates to rooms.
         ///
         /// Must not be more than 50 items.
-        pub pdus: Vec<Pdu>,
+        pub pdus: &'a [Pdu],
 
         /// List of ephemeral messages.
         ///
         /// Must not be more than 100 items.
-        #[serde(skip_serializing_if = "Vec::is_empty")]
-        pub edus: Vec<Edu>,
+        #[serde(skip_serializing_if = "<[_]>::is_empty")]
+        pub edus: &'a [Edu],
     }
 
     response: {

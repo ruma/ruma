@@ -13,7 +13,7 @@
 //!     let client = Client::https(homeserver_url, None);
 //!
 //!     let session = client
-//!         .log_in("@alice:example.com".to_string(), "secret".to_string(), None, None)
+//!         .log_in("@alice:example.com", "secret", None, None)
 //!         .await?;
 //!
 //!     // You're now logged in! Write the session to a file if you want to restore it later.
@@ -117,7 +117,7 @@ use ruma_api::OutgoingRequest;
 use ruma_client_api::r0::sync::sync_events::{
     Filter as SyncFilter, Request as SyncRequest, Response as SyncResponse,
 };
-use ruma_identifiers::DeviceIdBox;
+use ruma_identifiers::DeviceId;
 use ruma_serde::urlencoded;
 use std::collections::BTreeMap;
 
@@ -209,10 +209,10 @@ where
     /// returning it.
     pub async fn log_in(
         &self,
-        user: String,
-        password: String,
-        device_id: Option<DeviceIdBox>,
-        initial_device_display_name: Option<String>,
+        user: &str,
+        password: &str,
+        device_id: Option<&DeviceId>,
+        initial_device_display_name: Option<&str>,
     ) -> Result<Session, Error<ruma_client_api::Error>> {
         use ruma_client_api::r0::session::login;
 

@@ -1,8 +1,8 @@
 //! [POST /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-login)
 
-use ruma_api::ruma_api;
+use ruma_api::{ruma_api, Outgoing};
 use ruma_common::thirdparty::Medium;
-use ruma_identifiers::{DeviceIdBox, ServerName, UserId};
+use ruma_identifiers::{DeviceId, DeviceIdBox, ServerName, UserId};
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -18,20 +18,20 @@ ruma_api! {
     request: {
         /// Identification information for the user.
         #[serde(flatten)]
-        pub user: UserInfo,
+        pub user: UserInfo<'a>,
 
         /// The authentication mechanism.
         #[serde(flatten)]
-        pub login_info: LoginInfo,
+        pub login_info: LoginInfo<'a>,
 
         /// ID of the client device
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub device_id: Option<DeviceIdBox>,
+        pub device_id: Option<&'a DeviceId>,
 
         /// A display name to assign to the newly-created device. Ignored if device_id corresponds
         /// to a known device.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub initial_device_display_name: Option<String>,
+        pub initial_device_display_name: Option<&'a str>,
     }
 
     response: {
@@ -64,17 +64,17 @@ ruma_api! {
 }
 
 /// Identification information for the user.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(from = "user_serde::UserInfo", into = "user_serde::UserInfo")]
-pub enum UserInfo {
+#[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
+#[serde(from = "user_serde::IncomingUserInfo", into = "user_serde::UserInfo")]
+pub enum UserInfo<'a> {
     /// Either a fully qualified Matrix user ID, or just the localpart (as part of the 'identifier'
     /// field).
-    MatrixId(String),
+    MatrixId(&'a str),
 
     /// Third party identifier (as part of the 'identifier' field).
     ThirdPartyId {
         /// Third party identifier for the user.
-        address: String,
+        address: &'a str,
 
         /// The medium of the identifier.
         medium: Medium,
@@ -84,29 +84,29 @@ pub enum UserInfo {
     /// phone number.
     PhoneNumber {
         /// The country that the phone number is from.
-        country: String,
+        country: &'a str,
 
         /// The phone number.
-        phone: String,
+        phone: &'a str,
     },
 }
 
 /// The authentication mechanism.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
 #[serde(tag = "type")]
-pub enum LoginInfo {
+pub enum LoginInfo<'a> {
     /// A password is supplied to authenticate.
     #[serde(rename = "m.login.password")]
     Password {
         /// The password.
-        password: String,
+        password: &'a str,
     },
 
     /// Token-based login.
     #[serde(rename = "m.login.token")]
     Token {
         /// The token.
-        token: String,
+        token: &'a str,
     },
 }
 
@@ -140,56 +140,57 @@ mod user_serde;
 
 #[cfg(test)]
 mod tests {
+    use matches::assert_matches;
     use ruma_api::OutgoingRequest;
     use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 
-    use super::{LoginInfo, Medium, Request, UserInfo};
+    use super::{IncomingLoginInfo, IncomingUserInfo, LoginInfo, Medium, Request, UserInfo};
 
     #[test]
     fn deserialize_login_type() {
-        assert_eq!(
-            from_json_value::<LoginInfo>(json!({
+        assert_matches!(
+            from_json_value(json!({
                 "type": "m.login.password",
                 "password": "ilovebananas"
             }))
             .unwrap(),
-            LoginInfo::Password { password: "ilovebananas".into() }
+            IncomingLoginInfo::Password { password }
+            if password == "ilovebananas"
         );
 
-        assert_eq!(
-            from_json_value::<LoginInfo>(json!({
+        assert_matches!(
+            from_json_value(json!({
                 "type": "m.login.token",
                 "token": "1234567890abcdef"
             }))
             .unwrap(),
-            LoginInfo::Token { token: "1234567890abcdef".into() }
+            IncomingLoginInfo::Token { token }
+            if token == "1234567890abcdef"
         );
     }
 
     #[test]
     fn deserialize_user() {
-        assert_eq!(
-            from_json_value::<UserInfo>(json!({
+        assert_matches!(
+            from_json_value(json!({
                 "identifier": {
                     "type": "m.id.user",
                     "user": "cheeky_monkey"
                 }
             }))
             .unwrap(),
-            UserInfo::MatrixId("cheeky_monkey".into())
+            IncomingUserInfo::MatrixId(id)
+            if id == "cheeky_monkey"
         );
     }
 
     #[test]
     fn serialize_login_request_body() {
         let req: http::Request<Vec<u8>> = Request {
-            user: UserInfo::ThirdPartyId {
-                address: "hello@example.com".to_owned(),
-                medium: Medium::Email,
-            },
-            login_info: LoginInfo::Token { token: "0xdeadbeef".to_owned() },
+            user: UserInfo::ThirdPartyId { address: "hello@example.com", medium: Medium::Email },
+            login_info: LoginInfo::Token { token: "0xdeadbeef" },
             device_id: None,
-            initial_device_display_name: Some("test".into()),
+            initial_device_display_name: Some("test"),
         }
         .try_into_http_request("https://homeserver.tld", None)
         .unwrap();
