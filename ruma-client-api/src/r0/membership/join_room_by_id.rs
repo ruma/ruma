@@ -3,7 +3,7 @@
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
 
-use super::ThirdPartySigned;
+use super::{IncomingThirdPartySigned, ThirdPartySigned};
 
 ruma_api! {
     metadata: {
@@ -23,7 +23,7 @@ ruma_api! {
         /// The signature of a `m.third_party_invite` token to prove that this user owns a third
         /// party identity which has been invited to the room.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub third_party_signed: Option<ThirdPartySigned>,
+        pub third_party_signed: Option<ThirdPartySigned<'a>>,
     }
 
     response: {

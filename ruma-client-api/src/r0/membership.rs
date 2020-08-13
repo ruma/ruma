@@ -14,22 +14,23 @@ pub mod unban_user;
 
 use std::collections::BTreeMap;
 
+use ruma_api::Outgoing;
 use ruma_common::thirdparty::Medium;
 use ruma_identifiers::{ServerKeyId, ServerName};
 use serde::{Deserialize, Serialize};
 
 /// A signature of an `m.third_party_invite` token to prove that this user owns a third party
 /// identity which has been invited to the room.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct ThirdPartySigned {
+#[derive(Clone, Debug, Outgoing, Serialize)]
+pub struct ThirdPartySigned<'a> {
     /// The Matrix ID of the user who issued the invite.
-    pub sender: String,
+    pub sender: &'a str,
 
     /// The Matrix ID of the invitee.
-    pub mxid: String,
+    pub mxid: &'a str,
 
     /// The state key of the m.third_party_invite event.
-    pub token: String,
+    pub token: &'a str,
 
     /// A signatures object containing a signature of the entire signed object.
     pub signatures: BTreeMap<Box<ServerName>, BTreeMap<ServerKeyId, String>>,
