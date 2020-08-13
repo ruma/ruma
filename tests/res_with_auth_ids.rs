@@ -28,7 +28,7 @@ static LOGGER: Once = Once::new();
 static mut SERVER_TIMESTAMP: i32 = 0;
 
 fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids: Vec<EventId>) {
-    // to activate logging use `RUST_LOG=debug cargo t one_test_only`
+    // to activate logging use `RUST_LOG=debug cargo t`
     let _ = LOGGER.call_once(|| {
         tracer::fmt()
             .with_env_filter(tracer::EnvFilter::from_default_env())

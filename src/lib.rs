@@ -20,7 +20,7 @@ mod state_store;
 
 pub use error::{Error, Result};
 pub use event_auth::{auth_check, auth_types_for_event};
-pub use state_event::StateEvent;
+pub use state_event::{Requester, StateEvent};
 pub use state_store::StateStore;
 
 // We want to yield to the reactor occasionally during state res when dealing

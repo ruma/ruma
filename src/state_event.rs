@@ -13,6 +13,14 @@ use serde::{de, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 use std::time::SystemTime;
 
+pub struct Requester<'a> {
+    pub prev_event_ids: Vec<EventId>,
+    pub room_id: &'a RoomId,
+    pub content: &'a serde_json::Value,
+    pub state_key: Option<String>,
+    pub sender: &'a UserId,
+}
+
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
 pub enum StateEvent {
@@ -21,6 +29,16 @@ pub enum StateEvent {
 }
 
 impl StateEvent {
+    pub fn to_requester(&self) -> Requester<'_> {
+        Requester {
+            prev_event_ids: self.prev_event_ids(),
+            room_id: self.room_id().unwrap(),
+            content: self.content(),
+            state_key: self.state_key(),
+            sender: self.sender(),
+        }
+    }
+
     pub fn is_power_event(&self) -> bool {
         match self {
             Self::Full(any_event) => match any_event {
