@@ -13,8 +13,10 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[non_exhaustive]
     request: {}
 
+    #[non_exhaustive]
     response: {
         /// Information about the homeserver to connect to.
         #[serde(rename = "m.homeserver")]

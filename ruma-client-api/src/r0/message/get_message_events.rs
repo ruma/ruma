@@ -19,6 +19,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The room to get events from.
         #[ruma_api(path)]

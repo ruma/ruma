@@ -14,8 +14,10 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[non_exhaustive]
     request: {}
 
+    #[non_exhaustive]
     response: {
         /// A list of Matrix client API protocol versions supported by the homeserver.
         pub versions: Vec<String>,

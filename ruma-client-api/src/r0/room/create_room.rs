@@ -27,6 +27,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// Extra keys to be added to the content of the `m.room.create`.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -86,6 +87,7 @@ ruma_api! {
         pub visibility: Option<Visibility>,
     }
 
+    #[non_exhaustive]
     response: {
         /// The created room's ID.
         pub room_id: RoomId,

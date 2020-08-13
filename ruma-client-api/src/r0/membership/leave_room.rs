@@ -13,12 +13,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The room to leave.
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
     }
 
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
