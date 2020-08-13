@@ -1,5 +1,6 @@
 //! Endpoints for account registration and management.
 
+pub mod add_3pid;
 pub mod bind_3pid;
 pub mod change_password;
 pub mod deactivate;
