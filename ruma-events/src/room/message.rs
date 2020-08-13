@@ -61,6 +61,28 @@ pub enum MessageEventContent {
     Video(VideoMessageEventContent),
 }
 
+impl MessageEventContent {
+    /// A convenience constructor to create a plain text message.
+    pub fn text_plain(body: impl Into<String>) -> Self {
+        Self::Text(TextMessageEventContent::plain(body))
+    }
+
+    /// A convenience constructor to create an html message.
+    pub fn text_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self::Text(TextMessageEventContent::html(body, html_body))
+    }
+
+    /// A convenience constructor to create an plain text notice.
+    pub fn notice_plain(body: impl Into<String>) -> Self {
+        Self::Notice(NoticeMessageEventContent::plain(body))
+    }
+
+    /// A convenience constructor to create an html notice.
+    pub fn notice_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self::Notice(NoticeMessageEventContent::html(body, html_body))
+    }
+}
+
 /// The payload for an audio message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AudioMessageEventContent {
