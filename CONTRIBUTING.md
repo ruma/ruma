@@ -61,6 +61,23 @@ Specification type | Rust type
 `[…]`              | `Vec<…>`
 `{string: …}`      | `BTreeMap<String, …>` (or `BTreeMap<SomeId, …>`)
 
+### (Type) Privacy and Forwards Compatiblity
+
+Generally, all `struct`s that are mirroring types defined in the Matrix specification should have
+all their fields `pub`lic. Where there are restrictions to the fields value beyond their type, these
+should generally be implemented by creating or using a more constrained type than the spec uses for
+that field – for example, we have a number of identifier types but the Matrix spec uses `string` for
+fields that hold user IDs / room IDs and so on.
+
+Almost all types in `ruma-events` and the API crates use the `#[non_exhaustive]` attribute, to allow
+us to adapt to new minor releases of the Matrix specification without having a major release of our
+crates. You can generally just apply `#[non_exhaustive]` to everything – it's a backwards compatible
+change to remove it in the rare case it is not warranted.
+
+Due to this combination of public fields and non-exhaustiveness, all `struct`s generally need a
+constructor function or `From` / `TryFrom` implementation to be able to create them in a
+straight-forward way (always going through `Deserialize` would be quite ugly).
+
 ### Import Formatting
 
 Organize your imports into three groups separated by blank lines:
