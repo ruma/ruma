@@ -232,6 +232,15 @@ impl NoticeMessageEventContent {
     pub fn plain(body: impl Into<String>) -> Self {
         Self { body: body.into(), formatted: None, relates_to: None }
     }
+
+    /// A convenience constructor to create an html notice.
+    pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self {
+            body: body.into(),
+            formatted: Some(FormattedBody::html(html_body)),
+            relates_to: None,
+        }
+    }
 }
 
 /// The payload for a server notice message.
@@ -337,6 +346,15 @@ impl TextMessageEventContent {
     /// A convenience constructor to create a plain text message.
     pub fn plain(body: impl Into<String>) -> Self {
         Self { body: body.into(), formatted: None, relates_to: None }
+    }
+
+    /// A convenience constructor to create an html message.
+    pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self {
+            body: body.into(),
+            formatted: Some(FormattedBody::html(html_body)),
+            relates_to: None,
+        }
     }
 
     /// A convenience constructor to create a plain text message.
