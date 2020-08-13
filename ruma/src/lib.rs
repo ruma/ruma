@@ -16,6 +16,8 @@
 pub use ruma_common::*;
 #[doc(inline)]
 pub use ruma_identifiers as identifiers;
+#[doc(inline)]
+pub use ruma_serde as serde;
 
 pub use ruma_identifiers::{
     device_id, device_key_id, event_id, room_alias_id, room_id, room_version_id, server_key_id,
