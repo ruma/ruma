@@ -4,7 +4,7 @@ use std::{collections::BTreeSet, convert::TryFrom, mem};
 
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{spanned::Spanned, Field, Ident, Lifetime};
+use syn::{spanned::Spanned, Attribute, Field, Ident, Lifetime};
 
 use crate::{
     api::{
@@ -24,6 +24,9 @@ pub struct RequestLifetimes {
 
 /// The result of processing the `request` section of the macro.
 pub struct Request {
+    /// The attributes that will be applied to the struct definition.
+    attributes: Vec<Attribute>,
+
     /// The fields of the request.
     fields: Vec<RequestField>,
 
@@ -382,13 +385,21 @@ impl TryFrom<RawRequest> for Request {
             ));
         }
 
-        Ok(Self { fields, lifetimes, ruma_api_import: util::import_ruma_api() })
+        Ok(Self {
+            attributes: raw.attributes,
+            fields,
+            lifetimes,
+            ruma_api_import: util::import_ruma_api(),
+        })
     }
 }
 
 impl ToTokens for Request {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let import_path = &self.ruma_api_import;
+
+        let struct_attributes = &self.attributes;
+
         let request_def = if self.fields.is_empty() {
             quote!(;)
         } else {
@@ -484,6 +495,7 @@ impl ToTokens for Request {
         let request = quote! {
             #[derive(Debug, Clone, #import_path::Outgoing)]
             #[incoming_no_deserialize]
+            #( #struct_attributes )*
             pub struct Request #request_generics #request_def
 
             #request_body_struct

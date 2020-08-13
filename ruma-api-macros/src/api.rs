@@ -8,7 +8,7 @@ use syn::{
     braced,
     parse::{Parse, ParseStream},
     spanned::Spanned,
-    Field, FieldValue, Token, Type,
+    Attribute, Field, FieldValue, Token, Type,
 };
 
 pub(crate) mod attribute;
@@ -428,18 +428,21 @@ impl Parse for RawMetadata {
 }
 
 pub struct RawRequest {
+    pub attributes: Vec<Attribute>,
     pub request_kw: kw::request,
     pub fields: Vec<Field>,
 }
 
 impl Parse for RawRequest {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let attributes = input.call(Attribute::parse_outer)?;
         let request_kw = input.parse::<kw::request>()?;
         input.parse::<Token![:]>()?;
         let fields;
         braced!(fields in input);
 
         Ok(Self {
+            attributes,
             request_kw,
             fields: fields
                 .parse_terminated::<Field, Token![,]>(Field::parse_named)?
@@ -450,18 +453,21 @@ impl Parse for RawRequest {
 }
 
 pub struct RawResponse {
+    pub attributes: Vec<Attribute>,
     pub response_kw: kw::response,
     pub fields: Vec<Field>,
 }
 
 impl Parse for RawResponse {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let attributes = input.call(Attribute::parse_outer)?;
         let response_kw = input.parse::<kw::response>()?;
         input.parse::<Token![:]>()?;
         let fields;
         braced!(fields in input);
 
         Ok(Self {
+            attributes,
             response_kw,
             fields: fields
                 .parse_terminated::<Field, Token![,]>(Field::parse_named)?

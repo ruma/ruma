@@ -4,7 +4,7 @@ use std::{convert::TryFrom, mem};
 
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{spanned::Spanned, Field, Ident};
+use syn::{spanned::Spanned, Attribute, Field, Ident};
 
 use crate::{
     api::{
@@ -16,6 +16,9 @@ use crate::{
 
 /// The result of processing the `response` section of the macro.
 pub struct Response {
+    /// The attributes that will be applied to the struct definition.
+    attributes: Vec<Attribute>,
+
     /// The fields of the response.
     fields: Vec<ResponseField>,
 
@@ -234,13 +237,15 @@ impl TryFrom<RawResponse> for Response {
             ));
         }
 
-        Ok(Self { fields, ruma_api_import: util::import_ruma_api() })
+        Ok(Self { attributes: raw.attributes, fields, ruma_api_import: util::import_ruma_api() })
     }
 }
 
 impl ToTokens for Response {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let import_path = &self.ruma_api_import;
+
+        let struct_attributes = &self.attributes;
 
         let response_def = if self.fields.is_empty() {
             quote!(;)
@@ -279,6 +284,7 @@ impl ToTokens for Response {
         let response = quote! {
             #[derive(Debug, Clone, #import_path::Outgoing)]
             #[incoming_no_deserialize]
+            #( #struct_attributes )*
             pub struct Response #response_def
 
             #response_body_struct
