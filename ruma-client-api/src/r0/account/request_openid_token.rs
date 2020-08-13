@@ -3,7 +3,7 @@
 use std::time::Duration;
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{ServerName, UserId};
+use ruma_identifiers::{ServerNameBox, UserId};
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -30,7 +30,7 @@ ruma_api! {
         pub token_type: TokenType,
 
         /// Homeserver domain for verification of user's identity.
-        pub matrix_server_name: Box<ServerName>,
+        pub matrix_server_name: ServerNameBox,
 
         /// Seconds until token expiration.
         #[serde(with = "ruma_serde::duration::secs")]

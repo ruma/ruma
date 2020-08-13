@@ -2,7 +2,7 @@
 
 use ruma_api::{ruma_api, Outgoing};
 use ruma_common::thirdparty::Medium;
-use ruma_identifiers::{DeviceId, DeviceIdBox, ServerName, UserId};
+use ruma_identifiers::{DeviceId, DeviceIdBox, ServerNameBox, UserId};
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -46,7 +46,7 @@ ruma_api! {
         /// Deprecated: Clients should instead use the `user_id.server_name()`
         /// method if they require it.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub home_server: Option<Box<ServerName>>,
+        pub home_server: Option<ServerNameBox>,
 
         /// ID of the logged-in device.
         ///

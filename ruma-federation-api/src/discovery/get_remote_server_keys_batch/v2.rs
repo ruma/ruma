@@ -4,7 +4,7 @@ use std::{collections::BTreeMap, time::SystemTime};
 
 use crate::discovery::ServerKey;
 use ruma_api::ruma_api;
-use ruma_identifiers::{ServerKeyId, ServerName};
+use ruma_identifiers::{ServerKeyId, ServerNameBox};
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -28,7 +28,7 @@ ruma_api! {
         /// The notary server may return multiple keys regardless of the Key IDs
         /// given.
         #[ruma_api(body)]
-        pub server_keys: BTreeMap<Box<ServerName>, BTreeMap<ServerKeyId, QueryCriteria>>,
+        pub server_keys: BTreeMap<ServerNameBox, BTreeMap<ServerKeyId, QueryCriteria>>,
 
         /// A millisecond POSIX timestamp in milliseconds indicating when the
         /// returned certificates will need to be valid until to be useful to
