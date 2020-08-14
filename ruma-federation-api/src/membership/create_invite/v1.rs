@@ -5,7 +5,8 @@ use ruma_api::ruma_api;
 use ruma_events::{room::member::MemberEventContent, EventType};
 use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+
+use super::{InviteEvent, StrippedState};
 
 ruma_api! {
     metadata: {
@@ -53,7 +54,7 @@ ruma_api! {
         /// The response invite event
         #[ruma_api(body)]
         #[serde(with = "crate::serde::invite_response")]
-        invite_response: InviteResponse,
+        invite_response: InviteEvent,
     }
 }
 
@@ -64,45 +65,6 @@ pub struct UnsignedEventContent {
     /// The recommended events to include are the join rules, canonical alias, avatar, and name of
     /// the room.
     invite_room_state: Vec<StrippedState>,
-}
-
-/// A simplified event that helps the server identify a room.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct StrippedState {
-    /// The `content` for the event.
-    content: Value,
-
-    /// The `state_key` for the event.
-    state_key: String,
-
-    /// The `type` for the event.
-    #[serde(rename = "type")]
-    kind: EventType,
-
-    /// The `sender` for the event.
-    sender: UserId,
-}
-
-/// The invite event sent as a response.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct InviteResponse {
-    /// The matrix ID of the user who sent the original `m.room.third_party_invite`.
-    sender: UserId,
-
-    /// The name of the inviting homeserver.
-    origin: Box<ServerName>,
-
-    /// A timestamp added by the inviting homeserver.
-    origin_server_ts: UInt,
-
-    /// The event type (should always be `m.room.member`).
-    kind: EventType,
-
-    /// The user ID of the invited member.
-    state_key: UserId,
-
-    /// The content of the event. Must include a `membership` of invite.
-    content: MemberEventContent,
 }
 
 /// Initial set of fields of `Request`.
@@ -171,7 +133,7 @@ impl Response {
     /// Creates a new `Response` with the given parameters
     pub fn new(init: ResponseInit) -> Self {
         Self {
-            invite_response: InviteResponse {
+            invite_response: InviteEvent {
                 sender: init.sender,
                 origin: init.origin,
                 origin_server_ts: init.origin_server_ts,

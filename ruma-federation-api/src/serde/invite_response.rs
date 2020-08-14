@@ -1,4 +1,4 @@
-//! Deserialization for `InviteResponse` from incorrectly specified `create_invite` endpoint.
+//! Deserialization for `InviteEvent` from incorrectly specified `create_invite` endpoint.
 //!
 //! See [this GitHub issue][issue] for more information.
 //!
@@ -11,9 +11,9 @@ use serde::{
     ser::{SerializeSeq, Serializer},
 };
 
-use crate::membership::create_invite::v1::InviteResponse;
+use crate::membership::create_invite::InviteEvent;
 
-pub fn serialize<S>(invite_response: &InviteResponse, serializer: S) -> Result<S::Ok, S::Error>
+pub fn serialize<S>(invite_response: &InviteEvent, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -23,17 +23,17 @@ where
     seq.end()
 }
 
-pub fn deserialize<'de, D>(deserializer: D) -> Result<InviteResponse, D::Error>
+pub fn deserialize<'de, D>(deserializer: D) -> Result<InviteEvent, D::Error>
 where
     D: Deserializer<'de>,
 {
-    deserializer.deserialize_seq(InviteResponseVisitor)
+    deserializer.deserialize_seq(InviteEventVisitor)
 }
 
-struct InviteResponseVisitor;
+struct InviteEventVisitor;
 
-impl<'de> Visitor<'de> for InviteResponseVisitor {
-    type Value = InviteResponse;
+impl<'de> Visitor<'de> for InviteEventVisitor {
+    type Value = InviteEvent;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         formatter.write_str("Invite response wrapped in an array.")
@@ -49,12 +49,12 @@ impl<'de> Visitor<'de> for InviteResponseVisitor {
             return Err(A::Error::invalid_length(0, &expected));
         }
 
-        let invite_response =
+        let invite_event =
             seq.next_element()?.ok_or_else(|| A::Error::invalid_length(1, &expected))?;
 
         // Ignore extra elements.
         while let Some(IgnoredAny) = seq.next_element()? {}
 
-        Ok(invite_response)
+        Ok(invite_event)
     }
 }
