@@ -399,7 +399,12 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
             state_after.insert((ty, key), event_id.clone());
         }
 
-        let auth_types = state_res::auth_types_for_event(fake_event);
+        let auth_types = state_res::auth_types_for_event(
+            fake_event.kind(),
+            fake_event.sender(),
+            fake_event.state_key(),
+            fake_event.content().clone(),
+        );
 
         let mut auth_events = vec![];
         for key in auth_types {

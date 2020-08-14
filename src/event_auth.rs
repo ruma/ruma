@@ -26,19 +26,24 @@ pub enum RedactAllowed {
     No,
 }
 
-pub fn auth_types_for_event(event: &StateEvent) -> Vec<(EventType, Option<String>)> {
-    if event.kind() == EventType::RoomCreate {
+pub fn auth_types_for_event(
+    kind: EventType,
+    sender: &UserId,
+    state_key: Option<String>,
+    content: serde_json::Value,
+) -> Vec<(EventType, Option<String>)> {
+    if kind == EventType::RoomCreate {
         return vec![];
     }
 
     let mut auth_types = vec![
         (EventType::RoomPowerLevels, Some("".to_string())),
-        (EventType::RoomMember, Some(event.sender().to_string())),
+        (EventType::RoomMember, Some(sender.to_string())),
         (EventType::RoomCreate, Some("".to_string())),
     ];
 
-    if event.kind() == EventType::RoomMember {
-        if let Ok(content) = event.deserialize_content::<room::member::MemberEventContent>() {
+    if kind == EventType::RoomMember {
+        if let Ok(content) = serde_json::from_value::<room::member::MemberEventContent>(content) {
             if [MembershipState::Join, MembershipState::Invite].contains(&content.membership) {
                 let key = (EventType::RoomJoinRules, Some("".into()));
                 if !auth_types.contains(&key) {
@@ -47,7 +52,7 @@ pub fn auth_types_for_event(event: &StateEvent) -> Vec<(EventType, Option<String
             }
 
             // TODO what when we don't find a state_key
-            let key = (EventType::RoomMember, event.state_key());
+            let key = (EventType::RoomMember, state_key);
             if !auth_types.contains(&key) {
                 auth_types.push(key)
             }

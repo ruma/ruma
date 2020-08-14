@@ -523,7 +523,12 @@ impl StateResolution {
                 }
             }
 
-            for key in event_auth::auth_types_for_event(&event) {
+            for key in event_auth::auth_types_for_event(
+                event.kind(),
+                event.sender(),
+                event.state_key(),
+                event.content().clone(),
+            ) {
                 if let Some(ev_id) = resolved_state.get(&key) {
                     if let Some(event) = self._get_event(room_id, ev_id, event_map, store) {
                         // TODO synapse checks `rejected_reason` is None here
