@@ -1,15 +1,15 @@
-//! [PUT /_matrix/client/r0/directory/room/{roomAlias}](https://matrix.org/docs/spec/client_server/r0.6.0#put-matrix-client-r0-directory-room-roomalias)
+//! [GET /_matrix/client/r0/rooms/{roomId}/aliases](https://matrix.org/docs/spec/client_server/latest#get-matrix-client-r0-rooms-roomid-aliases)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomAliasId, RoomId};
 
 ruma_api! {
     metadata: {
-        description: "Get a list of local aliases on a given room.",
-        method: PUT,
+        description: "Get a list of aliases maintained by the local server for the given room.",
+        method: GET,
         name: "create_alias",
-        path: "/_matrix/client/r0/directory/room/:room_id",
-        rate_limited: false,
+        path: "/_matrix/client/r0/rooms/:room_id/aliases",
+        rate_limited: true,
         requires_authentication: true,
     }
 
