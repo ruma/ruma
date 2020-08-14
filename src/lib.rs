@@ -45,6 +45,19 @@ pub struct StateResolution;
 impl StateResolution {
     /// Resolve sets of state events as they come in. Internally `StateResolution` builds a graph
     /// and an auth chain to allow for state conflict resolution.
+    ///
+    /// ## Arguments
+    ///
+    /// * `state_sets` - The incoming state to resolve. Each `StateMap` represents a possible fork
+    /// in the state of a room.
+    ///
+    /// * `event_map` - The `EventMap` acts as a local cache of state, any event that is not found
+    /// in the `event_map` will be fetched from the `StateStore` and cached in the `event_map`. There
+    /// is no state kept from separate `resolve` calls, although this could be a potential optimization
+    /// in the future.
+    ///
+    /// * `store` - Any type that implements `StateStore` acts as the database. When an event is not
+    /// found in the `event_map` it will be retrieved from the `store`.
     pub fn resolve(
         &self,
         room_id: &RoomId,
@@ -134,7 +147,7 @@ impl StateResolution {
         let mut sorted_power_levels = self.reverse_topological_power_sort(
             room_id,
             &power_events,
-            &mut event_map, // TODO use event_map
+            &mut event_map,
             store,
             &all_conflicted,
         );
@@ -217,7 +230,6 @@ impl StateResolution {
         // add unconflicted state to the resolved state
         resolved_state.extend(clean);
 
-        // TODO return something not a place holder
         Ok(ResolutionResult::Resolved(resolved_state))
     }
 
@@ -275,7 +287,7 @@ impl StateResolution {
         (unconflicted_state, conflicted_state)
     }
 
-    /// Returns a Vec of deduped EventIds that appear in some chains but no others.
+    /// Returns a Vec of deduped EventIds that appear in some chains but not others.
     pub fn get_auth_chain_diff(
         &self,
         room_id: &RoomId,
@@ -298,6 +310,12 @@ impl StateResolution {
             .map_err(Error::TempString)
     }
 
+    /// Events are sorted from "earliest" to "latest". They are compared using
+    /// the negative power level, the origin server timestamp and incase of a
+    /// tie the `EventId`s are compared lexicographically.
+    ///
+    /// The power level is negative because a higher power level is equated to an
+    /// earlier (further back in time) origin server timestamp.
     pub fn reverse_topological_power_sort(
         &self,
         room_id: &RoomId,
@@ -426,6 +444,7 @@ impl StateResolution {
         sorted
     }
 
+    /// Find the power level for the sender of `event_id` or return a default value of zero.
     fn get_power_level_for_sender(
         &self,
         room_id: &RoomId,
@@ -433,14 +452,15 @@ impl StateResolution {
         event_map: &mut EventMap<StateEvent>,
         store: &dyn StateStore,
     ) -> i64 {
-        tracing::info!("fetch event senders ({}) power level", event_id.to_string());
-        let event = self._get_event(room_id, event_id, event_map, store);
+        tracing::info!("fetch event ({}) senders power level", event_id.to_string());
+
+        let event = self.get_or_load_event(room_id, event_id, event_map, store);
         let mut pl = None;
 
         // TODO store.auth_event_ids returns "self" with the event ids is this ok
         // event.auth_event_ids does not include its own event id ?
         for aid in event.as_ref().unwrap().auth_events() {
-            if let Some(aev) = self._get_event(room_id, &aid, event_map, store) {
+            if let Some(aev) = self.get_or_load_event(room_id, &aid, event_map, store) {
                 if aev.is_type_and_key(EventType::RoomPowerLevels, "") {
                     pl = Some(aev);
                     break;
@@ -492,7 +512,7 @@ impl StateResolution {
         room_version: &RoomVersionId,
         power_events: &[EventId],
         unconflicted_state: &StateMap<EventId>,
-        event_map: &mut EventMap<StateEvent>, // TODO use event_map over store ??
+        event_map: &mut EventMap<StateEvent>,
         store: &dyn StateStore,
     ) -> Result<StateMap<EventId>> {
         tracing::info!("starting iterative auth check");
@@ -509,12 +529,12 @@ impl StateResolution {
 
         for (idx, event_id) in power_events.iter().enumerate() {
             let event = self
-                ._get_event(room_id, event_id, event_map, store)
+                .get_or_load_event(room_id, event_id, event_map, store)
                 .unwrap();
 
             let mut auth_events = BTreeMap::new();
             for aid in event.auth_events() {
-                if let Some(ev) = self._get_event(room_id, &aid, event_map, store) {
+                if let Some(ev) = self.get_or_load_event(room_id, &aid, event_map, store) {
                     // TODO what to do when no state_key is found ??
                     // TODO synapse check "rejected_reason", I'm guessing this is redacted_because for ruma ??
                     auth_events.insert((ev.kind(), ev.state_key()), ev);
@@ -530,7 +550,7 @@ impl StateResolution {
                 event.content().clone(),
             ) {
                 if let Some(ev_id) = resolved_state.get(&key) {
-                    if let Some(event) = self._get_event(room_id, ev_id, event_map, store) {
+                    if let Some(event) = self.get_or_load_event(room_id, ev_id, event_map, store) {
                         // TODO synapse checks `rejected_reason` is None here
                         auth_events.insert(key.clone(), event);
                     }
@@ -588,11 +608,15 @@ impl StateResolution {
         while let Some(p) = pl {
             mainline.push(p.clone());
 
-            let event = self._get_event(room_id, &p, event_map, store).unwrap();
+            let event = self
+                .get_or_load_event(room_id, &p, event_map, store)
+                .unwrap();
             let auth_events = event.auth_events();
             pl = None;
             for aid in auth_events {
-                let ev = self._get_event(room_id, &aid, event_map, store).unwrap();
+                let ev = self
+                    .get_or_load_event(room_id, &aid, event_map, store)
+                    .unwrap();
                 if ev.is_type_and_key(EventType::RoomPowerLevels, "") {
                     pl = Some(aid.clone());
                     break;
@@ -616,7 +640,7 @@ impl StateResolution {
 
         let mut order_map = BTreeMap::new();
         for (idx, ev_id) in to_sort.iter().enumerate() {
-            let event = self._get_event(room_id, ev_id, event_map, store);
+            let event = self.get_or_load_event(room_id, ev_id, event_map, store);
             let depth = self.get_mainline_depth(room_id, event, &mainline_map, event_map, store);
             order_map.insert(
                 ev_id,
@@ -663,7 +687,9 @@ impl StateResolution {
             let auth_events = sort_ev.auth_events();
             event = None;
             for aid in auth_events {
-                let aev = self._get_event(room_id, &aid, event_map, store).unwrap();
+                let aev = self
+                    .get_or_load_event(room_id, &aid, event_map, store)
+                    .unwrap();
                 if aev.is_type_and_key(EventType::RoomPowerLevels, "") {
                     event = Some(aev.clone());
                     break;
@@ -691,7 +717,7 @@ impl StateResolution {
             // prefer the store to event as the store filters dedups the events
             // otherwise it seems we can loop forever
             for aid in self
-                ._get_event(room_id, &eid, event_map, store)
+                .get_or_load_event(room_id, &eid, event_map, store)
                 .unwrap()
                 .auth_events()
             {
@@ -707,8 +733,13 @@ impl StateResolution {
         }
     }
 
-    /// TODO update self if we go that route just as event_map will be updated
-    fn _get_event(
+    // TODO having the event_map as a field of self would allow us to keep
+    // cached state from `resolve` to `resolve` calls, good idea or not?
+    /// Uses the `event_map` to return the full PDU or fetches from the `StateStore` implementation
+    /// if the event_map does not have the PDU.
+    ///
+    /// If the PDU is missing from the `event_map` it is added.
+    fn get_or_load_event(
         &self,
         room_id: &RoomId,
         ev_id: &EventId,
@@ -729,6 +760,6 @@ impl StateResolution {
 pub fn is_power_event(event_id: &EventId, event_map: &EventMap<StateEvent>) -> bool {
     match event_map.get(event_id) {
         Some(state) => state.is_power_event(),
-        _ => false, // TODO this shouldn't eat errors?
+        _ => false,
     }
 }
