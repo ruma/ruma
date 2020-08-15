@@ -56,7 +56,7 @@ ruma_api! {
         /// The response invite event
         #[ruma_api(body)]
         #[serde(with = "crate::serde::invite_response")]
-        invite_response: InviteEvent,
+        event: InviteEvent,
     }
 }
 
@@ -116,6 +116,6 @@ impl From<RequestInit> for Request {
 impl Response {
     /// Creates a new `Response` with the given invite event.
     pub fn new(event: InviteEvent) -> Self {
-        Self { invite_response: event }
+        Self { event }
     }
 }

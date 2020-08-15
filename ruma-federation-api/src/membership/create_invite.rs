@@ -4,7 +4,7 @@ use js_int::UInt;
 use ruma_events::{room::member::MemberEventContent, EventType};
 use ruma_identifiers::{ServerName, UserId};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::Value as JsonValue;
 
 pub mod v1;
 pub mod v2;
@@ -13,7 +13,7 @@ pub mod v2;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct StrippedState {
     /// The `content` for the event.
-    pub content: Value,
+    pub content: JsonValue,
 
     /// The `state_key` for the event.
     pub state_key: String,
@@ -27,8 +27,8 @@ pub struct StrippedState {
 }
 
 /// The invite event sent as a response.
-#[non_exhaustive]
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct InviteEvent {
     /// The matrix ID of the user who sent the original `m.room.third_party_invite`.
     pub sender: UserId,
