@@ -260,7 +260,7 @@ impl StateEvent {
         }
     }
 
-    pub fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<String, String>> {
+    pub fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ruma::ServerKeyId, String>> {
         match self {
             Self::Full(ev) => match ev {
                 Pdu::RoomV1Pdu(_) => maplit::btreemap! {},
