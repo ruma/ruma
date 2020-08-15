@@ -39,22 +39,22 @@ pub enum BackupAlgorithm {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct KeyData {
     /// The index of the first message in the session that the key can decrypt.
-    first_message_index: UInt,
+    pub first_message_index: UInt,
     /// The number of times this key has been forwarded via key-sharing between devices.
-    forwarded_count: UInt,
+    pub forwarded_count: UInt,
     /// Whether the device backing up the key verified the device that the key is from.
-    is_verified: bool,
+    pub is_verified: bool,
     /// Data about the session.
-    session_data: SessionData,
+    pub session_data: SessionData,
 }
 
 /// The algorithm used for storing backups.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SessionData {
     /// Unpadded base64-encoded public half of the ephemeral key.
-    ephemeral: String,
+    pub ephemeral: String,
     /// Ciphertext, encrypted using AES-CBC-256 with PKCS#7 padding, encoded in base64.
-    ciphertext: String,
+    pub ciphertext: String,
     /// First 8 bytes of MAC key, encoded in base64.
-    mac: String,
+    pub mac: String,
 }
