@@ -13,13 +13,29 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The room to forget.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
     }
 
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room id.
+    pub fn new(room_id: &'a RoomId) -> Self {
+        Self { room_id }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

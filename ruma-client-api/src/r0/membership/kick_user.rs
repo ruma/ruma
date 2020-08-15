@@ -13,20 +13,36 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The room to kick the user from.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The user to kick.
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
 
         /// The reason for kicking the user.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub reason: Option<String>,
+        pub reason: Option<&'a str>,
     }
 
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room id and room id.
+    pub fn new(room_id: &'a RoomId, user_id: &'a UserId) -> Self {
+        Self { room_id, user_id, reason: None }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }
