@@ -1,9 +1,7 @@
 //! [PUT /_matrix/federation/v2/invite/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v2-invite-roomid-eventid)
 
-use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_events::{room::member::MemberEventContent, EventType};
-use ruma_identifiers::{EventId, RoomId, RoomVersionId, ServerName, UserId};
+use ruma_identifiers::{EventId, RoomId, RoomVersionId};
 
 use super::{InviteEvent, StrippedState};
 
@@ -17,6 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The room ID that the user is being invited to.
         #[ruma_api(path)]
@@ -36,28 +35,11 @@ ruma_api! {
         invite_room_state: StrippedState,
     }
 
+    #[non_exhaustive]
     response: {
         /// An invite event.
         event: InviteEvent,
     }
-}
-
-/// Initial set of fields for `Response`.
-pub struct ResponseInit {
-    /// The matrix ID of the user who sent the original `m.room.third_party_invite`.
-    sender: UserId,
-
-    /// The name of the inviting homeserver.
-    origin: Box<ServerName>,
-
-    /// A timestamp added by the inviting homeserver.
-    origin_server_ts: UInt,
-
-    /// The user ID of the invited member.
-    state_key: UserId,
-
-    /// The content of the event. Must include a `membership` of invite.
-    content: MemberEventContent,
 }
 
 impl Request {
@@ -74,17 +56,8 @@ impl Request {
 }
 
 impl Response {
-    /// Creates a new `Response` with the given inital values
-    pub fn new(init: ResponseInit) -> Self {
-        Self {
-            event: InviteEvent {
-                sender: init.sender,
-                origin: init.origin,
-                origin_server_ts: init.origin_server_ts,
-                kind: EventType::RoomMember,
-                state_key: init.state_key,
-                content: init.content,
-            },
-        }
+    /// Creates a new `Response` with the given invite event.
+    pub fn new(event: InviteEvent) -> Self {
+        Self { event }
     }
 }
