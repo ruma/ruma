@@ -16,6 +16,7 @@ Improvements:
       claim_keys::v1,
       query_keys::v1,
   },
+  membership::create_invite::{v1, v2},
   ```
 
 # 0.0.3
