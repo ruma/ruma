@@ -172,6 +172,14 @@ pub enum ErrorKind {
     #[serde(rename = "M_EXCLUSIVE")]
     #[strum(to_string = "M_EXCLUSIVE")]
     Exclusive,
+
+    /// M_RESOURCE_LIMIT_EXCEEDED
+    #[serde(rename = "M_RESOURCE_LIMIT_EXCEEDED")]
+    #[strum(to_string = "M_RESOURCE_LIMIT_EXCEEDED")]
+    ResourceLimitExceeded {
+        /// A URI giving a contact method for the server administrator.
+        admin_contact: String,
+    },
 }
 
 /// A Matrix Error without a status code
