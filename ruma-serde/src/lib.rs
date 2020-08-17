@@ -47,10 +47,7 @@ where
     T: serde::Deserialize<'de>,
 {
     let opt = Option::<String>::deserialize(de)?;
-    // TODO: Switch to and remove this attribute `opt.as_deref()` once MSRV is >= 1.40
-    #[allow(clippy::option_as_ref_deref, clippy::unknown_clippy_lints)]
-    let opt = opt.as_ref().map(String::as_str);
-    match opt {
+    match opt.as_deref() {
         None | Some("") => Ok(None),
         // If T = String, like in m.room.name, the second deserialize is actually superfluous.
         // TODO: optimize that somehow?
