@@ -24,6 +24,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// A filter represented either as its full JSON definition or the ID of a saved filter.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,6 +59,7 @@ ruma_api! {
         pub timeout: Option<Duration>,
     }
 
+    #[non_exhaustive]
     response: {
         /// The batch token to supply in the `since` param of the next `/sync` request.
         pub next_batch: String,
@@ -91,6 +93,34 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self {
+            filter: None,
+            since: None,
+            full_state: false,
+            set_presence: Default::default(),
+            timeout: None,
+        }
+    }
+}
+
+impl Response {
+    /// Creates a `Response` with the given batch token.
+    pub fn new(next_batch: String) -> Self {
+        Self {
+            next_batch,
+            rooms: Default::default(),
+            presence: Default::default(),
+            account_data: Default::default(),
+            to_device: Default::default(),
+            device_lists: Default::default(),
+            device_one_time_keys_count: BTreeMap::new(),
+        }
+    }
 }
 
 /// A filter represented either as its full JSON definition or the ID of a saved filter.

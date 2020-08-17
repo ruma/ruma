@@ -334,13 +334,12 @@ where
 
             async move {
                 let response = client
-                    .request(SyncRequest {
+                    .request(assign!(SyncRequest::new(), {
                         filter,
                         since: since.as_deref(),
-                        full_state: false,
                         set_presence,
                         timeout,
-                    })
+                    }))
                     .await?;
 
                 let next_batch_clone = response.next_batch.clone();
