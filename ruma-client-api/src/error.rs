@@ -3,12 +3,13 @@
 use std::fmt::{self, Display, Formatter};
 
 use ruma_api::{error::ResponseDeserializationError, EndpointError};
+use ruma_identifiers::RoomVersionId;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_slice as from_json_slice, to_vec as to_json_vec};
-use strum::{AsRefStr, Display, EnumString};
+use strum::{AsRefStr, Display};
 
 /// An enum for the error kind. Items may contain additional information.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, AsRefStr, Display, EnumString)]
+#[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, Display)]
 #[serde(tag = "errcode")]
 #[cfg_attr(test, derive(PartialEq))]
 pub enum ErrorKind {
@@ -127,7 +128,10 @@ pub enum ErrorKind {
     /// M_INCOMPATIBLE_ROOM_VERSION
     #[serde(rename = "M_INCOMPATIBLE_ROOM_VERSION")]
     #[strum(to_string = "M_INCOMPATIBLE_ROOM_VERSION")]
-    IncompatibleRoomVersion,
+    IncompatibleRoomVersion {
+        /// The room's version.
+        room_version: RoomVersionId,
+    },
 
     /// M_BAD_STATE
     #[serde(rename = "M_BAD_STATE")]
