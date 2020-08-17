@@ -2,8 +2,9 @@ use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::{
     parse_quote, AngleBracketedGenericArguments, Attribute, Data, DeriveInput, Field, Fields,
-    GenericArgument, GenericParam, Generics, ImplGenerics, ParenthesizedGenericArguments,
-    PathArguments, Type, TypeGenerics, TypePath, TypeReference, TypeSlice, Variant,
+    GenericArgument, GenericParam, Generics, ImplGenerics, Meta, MetaList,
+    ParenthesizedGenericArguments, PathArguments, Type, TypeGenerics, TypePath, TypeReference,
+    TypeSlice, Variant,
 };
 
 use crate::util::import_ruma_api;
@@ -22,11 +23,30 @@ enum DataKind {
 pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
     let import_path = import_ruma_api();
 
-    let derive_deserialize = if no_deserialize_in_attrs(&input.attrs) {
-        TokenStream::new()
-    } else {
-        quote! { #import_path::exports::serde::Deserialize }
-    };
+    let mut derives = vec![quote! { Debug }];
+    if !no_deserialize_in_attrs(&input.attrs) {
+        derives.push(quote! { #import_path::exports::serde::Deserialize });
+    }
+    derives.extend(
+        input
+            .attrs
+            .iter()
+            .filter(|attr| attr.path.is_ident("incoming_derive"))
+            .map(|attr| {
+                let meta = attr.parse_meta()?;
+                match meta {
+                    Meta::List(MetaList { nested, .. }) => Ok(nested),
+                    _ => Err(syn::Error::new_spanned(
+                        meta,
+                        "incoming_derive should be used as `#[incoming_derive(A, B, C)]`",
+                    )),
+                }
+            })
+            .collect::<syn::Result<Vec<_>>>()?
+            .into_iter()
+            .flatten()
+            .map(|derive_mac| quote! { #derive_mac }),
+    );
 
     let input_attrs =
         input.attrs.iter().filter(|attr| filter_input_attrs(attr)).collect::<Vec<_>>();
@@ -73,7 +93,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
 
             Ok(quote! {
                 #[doc = #doc]
-                #[derive(Debug, #derive_deserialize)]
+                #[derive( #( #derives ),* )]
                 #( #input_attrs )*
                 #vis enum #incoming_ident #ty_gen { #( #vars, )* }
 
@@ -111,7 +131,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
 
             Ok(quote! {
                 #[doc = #doc]
-                #[derive(Debug, #derive_deserialize)]
+                #[derive( #( #derives ),* )]
                 #( #input_attrs )*
                 #vis struct #incoming_ident #ty_gen #struct_def
 
