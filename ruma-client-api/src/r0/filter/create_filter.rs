@@ -3,7 +3,7 @@
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
 
-use super::FilterDefinition;
+use super::{FilterDefinition, IncomingFilterDefinition};
 
 ruma_api! {
     metadata: {
@@ -25,7 +25,7 @@ ruma_api! {
 
         /// The filter definition.
         #[ruma_api(body)]
-        pub filter: FilterDefinition,
+        pub filter: FilterDefinition<'a>,
     }
 
     #[non_exhaustive]
@@ -39,7 +39,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given user ID and filter definition.
-    pub fn new(user_id: &'a UserId, filter: FilterDefinition) -> Self {
+    pub fn new(user_id: &'a UserId, filter: FilterDefinition<'a>) -> Self {
         Self { user_id, filter }
     }
 }

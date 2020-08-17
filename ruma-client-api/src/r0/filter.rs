@@ -6,6 +6,7 @@ pub mod get_filter;
 use std::fmt;
 
 use js_int::UInt;
+use ruma_api::Outgoing;
 use ruma_identifiers::{RoomId, UserId};
 use serde::{
     de::{MapAccess, Visitor},
@@ -184,8 +185,9 @@ impl Filter {
 }
 
 /// A filter definition
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-pub struct FilterDefinition {
+#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[incoming_derive(Clone, Serialize)]
+pub struct FilterDefinition<'a> {
     /// List of event fields to include.
     ///
     /// If this list is absent then all fields are included. The entries may include '.' charaters
@@ -193,7 +195,7 @@ pub struct FilterDefinition {
     /// object. A literal '.' character in a field name may be escaped using a '\'. A server may
     /// include more fields than were requested.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub event_fields: Option<Vec<String>>,
+    pub event_fields: Option<&'a [String]>,
 
     /// The format to use for events.
     ///
@@ -215,7 +217,7 @@ pub struct FilterDefinition {
     pub room: Option<RoomFilter>,
 }
 
-impl FilterDefinition {
+impl<'a> FilterDefinition<'a> {
     /// A filter that can be used to ignore all events
     pub fn ignore_all() -> Self {
         Self {

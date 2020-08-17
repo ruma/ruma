@@ -3,7 +3,7 @@
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
 
-use super::FilterDefinition;
+use super::IncomingFilterDefinition;
 
 ruma_api! {
     metadata: {
@@ -30,7 +30,7 @@ ruma_api! {
     response: {
         /// The filter definition.
         #[ruma_api(body)]
-        pub filter: FilterDefinition,
+        pub filter: IncomingFilterDefinition,
     }
 
     error: crate::Error
@@ -45,7 +45,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given filter definition.
-    pub fn new(filter: FilterDefinition) -> Self {
+    pub fn new(filter: IncomingFilterDefinition) -> Self {
         Self { filter }
     }
 }

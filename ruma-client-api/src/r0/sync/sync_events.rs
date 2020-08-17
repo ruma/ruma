@@ -12,7 +12,7 @@ use ruma_events::{
 use ruma_identifiers::{DeviceKeyAlgorithm, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::r0::filter::FilterDefinition;
+use crate::r0::filter::{FilterDefinition, IncomingFilterDefinition};
 
 ruma_api! {
     metadata: {
@@ -110,7 +110,7 @@ pub enum Filter<'a> {
     // (there are probably some corner cases like leading whitespace)
     #[serde(with = "ruma_serde::json_string")]
     /// A complete filter definition serialized to JSON.
-    FilterDefinition(FilterDefinition),
+    FilterDefinition(FilterDefinition<'a>),
 
     /// The ID of a filter saved on the server.
     FilterId(&'a str),
