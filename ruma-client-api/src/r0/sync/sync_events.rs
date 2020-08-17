@@ -116,6 +116,18 @@ pub enum Filter<'a> {
     FilterId(&'a str),
 }
 
+impl<'a> From<FilterDefinition<'a>> for Filter<'a> {
+    fn from(def: FilterDefinition<'a>) -> Self {
+        Self::FilterDefinition(def)
+    }
+}
+
+impl<'a> From<&'a str> for Filter<'a> {
+    fn from(id: &'a str) -> Self {
+        Self::FilterId(id)
+    }
+}
+
 /// Updates to rooms.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Rooms {
