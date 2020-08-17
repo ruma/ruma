@@ -8,7 +8,13 @@ use crate::event_parse::{EventEnumInput, EventKind, EventKindVariation};
 
 fn is_non_stripped_room_event(kind: &EventKind, var: &EventKindVariation) -> bool {
     matches!(kind, EventKind::Message | EventKind::State)
-        && !matches!(var, EventKindVariation::Stripped | EventKindVariation::RedactedStripped)
+        && matches!(
+            var,
+            EventKindVariation::Full
+                | EventKindVariation::Sync
+                | EventKindVariation::Redacted
+                | EventKindVariation::RedactedSync
+        )
 }
 
 fn has_prev_content_field(kind: &EventKind, var: &EventKindVariation) -> bool {
@@ -28,8 +34,9 @@ const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
             && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
     }),
     ("event_id", is_non_stripped_room_event),
-    ("sender", |kind, _| {
+    ("sender", |kind, &var| {
         matches!(kind, EventKind::Message | EventKind::State | EventKind::ToDevice)
+            && var != EventKindVariation::Initial
     }),
     ("state_key", |kind, _| matches!(kind, EventKind::State)),
     ("unsigned", is_non_stripped_room_event),
@@ -71,6 +78,15 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
         &import_path,
     );
 
+    let initial_event_enum = expand_any_with_deser(
+        name,
+        events,
+        attrs,
+        &variants,
+        &EventKindVariation::Initial,
+        &import_path,
+    );
+
     let redacted_event_enums = expand_any_redacted(name, events, attrs, &variants, &import_path);
 
     let event_content_enum = expand_content_enum(name, events, attrs, &variants, &import_path);
@@ -81,6 +97,8 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
         #sync_event_enum
 
         #stripped_event_enum
+
+        #initial_event_enum
 
         #redacted_event_enums
 
@@ -470,7 +488,14 @@ fn expand_redacted_enum(
     if let EventKind::State | EventKind::Message = kind {
         let ident = format_ident!("AnyPossiblyRedacted{}", kind.to_event_ident(var)?);
 
-        let (regular_enum_ident, redacted_enum_ident) = inner_enum_idents(kind, var)?;
+        // FIXME: Use Option::zip once MSRV >= 1.46
+        let (regular_enum_ident, redacted_enum_ident) = match inner_enum_idents(kind, var) {
+            (Some(regular_enum_ident), Some(redacted_enum_ident)) => {
+                (regular_enum_ident, redacted_enum_ident)
+            }
+            _ => return None,
+        };
+
         Some(quote! {
             /// An enum that holds either regular un-redacted events or redacted events.
             #[derive(Clone, Debug, #import_path::exports::serde::Serialize)]
@@ -671,21 +696,21 @@ fn accessor_methods(
     })
 }
 
-fn inner_enum_idents(kind: &EventKind, var: &EventKindVariation) -> Option<(Ident, Ident)> {
+fn inner_enum_idents(kind: &EventKind, var: &EventKindVariation) -> (Option<Ident>, Option<Ident>) {
     match var {
-        EventKindVariation::Full => Some((
-            kind.to_event_enum_ident(var)?,
-            kind.to_event_enum_ident(&EventKindVariation::Redacted)?,
-        )),
-        EventKindVariation::Sync => Some((
-            kind.to_event_enum_ident(var)?,
-            kind.to_event_enum_ident(&EventKindVariation::RedactedSync)?,
-        )),
-        EventKindVariation::Stripped => Some((
-            kind.to_event_enum_ident(var)?,
-            kind.to_event_enum_ident(&EventKindVariation::RedactedStripped)?,
-        )),
-        _ => None,
+        EventKindVariation::Full => {
+            (kind.to_event_enum_ident(var), kind.to_event_enum_ident(&EventKindVariation::Redacted))
+        }
+        EventKindVariation::Sync => (
+            kind.to_event_enum_ident(var),
+            kind.to_event_enum_ident(&EventKindVariation::RedactedSync),
+        ),
+        EventKindVariation::Stripped => (
+            kind.to_event_enum_ident(var),
+            kind.to_event_enum_ident(&EventKindVariation::RedactedStripped),
+        ),
+        EventKindVariation::Initial => (kind.to_event_enum_ident(var), None),
+        _ => (None, None),
     }
 }
 
@@ -739,6 +764,7 @@ fn to_event_path(name: &LitStr, struct_name: &Ident, import_path: &TokenStream) 
         "ToDeviceEvent"
         | "SyncStateEvent"
         | "StrippedStateEvent"
+        | "InitialStateEvent"
         | "SyncMessageEvent"
         | "SyncEphemeralRoomEvent" => {
             let content = format_ident!("{}EventContent", event);

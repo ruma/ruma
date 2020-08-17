@@ -8,11 +8,10 @@ use ruma_events::{
         create::{CreateEventContent, PreviousRoom},
         power_levels::PowerLevelsEventContent,
     },
-    EventType,
+    AnyInitialStateEvent,
 };
 use ruma_identifiers::{RoomId, RoomVersionId, UserId};
 use serde::{Deserialize, Serialize};
-use serde_json::value::RawValue as RawJsonValue;
 
 use super::Visibility;
 use crate::r0::membership::Invite3pid;
@@ -38,7 +37,7 @@ ruma_api! {
         /// Takes precedence over events set by preset, but gets overriden by
         /// name and topic keys.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub initial_state: Vec<InitialStateEvent>,
+        pub initial_state: Vec<AnyInitialStateEvent>,
 
         /// A list of user IDs to invite to the room.
         ///
@@ -167,21 +166,4 @@ pub enum RoomPreset {
 
     /// Same as `PrivateChat`, but all initial invitees get the same power level as the creator.
     TrustedPrivateChat,
-}
-
-/// Represents content of a state event to be used to initalize new room state.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct InitialStateEvent {
-    /// State event type.
-    // FIXME: This should really only be a subset of the EventType enum.
-    #[serde(rename = "type")]
-    pub event_type: EventType,
-
-    /// `state_key` of the event to be sent.
-    pub state_key: Option<String>,
-
-    /// JSON content of the state event.
-    ///
-    /// To create a `Box<RawJsonValue>`, use `serde_json::value::to_raw_value`.
-    pub content: Box<RawJsonValue>,
 }

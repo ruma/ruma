@@ -56,6 +56,7 @@ Breaking changes:
   `r0::room::membership::ThirdPartySigned`.
 * Move `r0::directory::{Filter, PublicRoomsChunk, RoomNetwork}` to
   the `ruma-common` crate
+* Replace `r0::room::create_room::InitialStateEvent` with `ruma_events::InitialStateEvent`
 
 Improvements:
 

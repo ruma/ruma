@@ -216,6 +216,19 @@ pub struct StrippedStateEvent<C: StateEventContent> {
     pub state_key: String,
 }
 
+/// A minimal state event, used for creating a new room.
+#[derive(Clone, Debug, Event)]
+pub struct InitialStateEvent<C: StateEventContent> {
+    /// Data specific to the event type.
+    pub content: C,
+
+    /// A unique key which defines the overwriting semantics for this piece of room state.
+    ///
+    /// This is often an empty string, but some events send a `UserId` to show
+    /// which user the event affects.
+    pub state_key: String,
+}
+
 /// A redacted state event.
 ///
 /// `RedactedStateEvent` implements the comparison traits using only

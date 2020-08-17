@@ -16,11 +16,12 @@ mod kw {
 }
 
 // If the variants of this enum change `to_event_path` needs to be updated as well.
-#[derive(Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub enum EventKindVariation {
     Full,
     Sync,
     Stripped,
+    Initial,
     Redacted,
     RedactedSync,
     RedactedStripped,
@@ -32,6 +33,7 @@ impl fmt::Display for EventKindVariation {
             EventKindVariation::Full => write!(f, ""),
             EventKindVariation::Sync => write!(f, "Sync"),
             EventKindVariation::Stripped => write!(f, "Stripped"),
+            EventKindVariation::Initial => write!(f, "Initial"),
             EventKindVariation::Redacted => write!(f, "Redacted"),
             EventKindVariation::RedactedSync => write!(f, "RedactedSync"),
             EventKindVariation::RedactedStripped => write!(f, "RedactedStripped"),
@@ -49,9 +51,10 @@ impl EventKindVariation {
             EventKindVariation::Redacted
             | EventKindVariation::RedactedSync
             | EventKindVariation::RedactedStripped => EventKindVariation::Redacted,
-            EventKindVariation::Full | EventKindVariation::Sync | EventKindVariation::Stripped => {
-                EventKindVariation::Full
-            }
+            EventKindVariation::Full
+            | EventKindVariation::Sync
+            | EventKindVariation::Stripped
+            | EventKindVariation::Initial => EventKindVariation::Full,
         }
     }
 }
@@ -101,6 +104,7 @@ impl EventKind {
             | (Self::Message, V::Sync)
             | (Self::State, V::Sync)
             | (Self::State, V::Stripped)
+            | (Self::State, V::Initial)
             | (Self::Message, V::Redacted)
             | (Self::State, V::Redacted)
             | (Self::Message, V::RedactedSync)
@@ -161,6 +165,7 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
         "StateEvent" => Some((EventKind::State, EventKindVariation::Full)),
         "SyncStateEvent" => Some((EventKind::State, EventKindVariation::Sync)),
         "StrippedStateEvent" => Some((EventKind::State, EventKindVariation::Stripped)),
+        "InitialStateEvent" => Some((EventKind::State, EventKindVariation::Initial)),
         "RedactedStateEvent" => Some((EventKind::State, EventKindVariation::Redacted)),
         "RedactedSyncStateEvent" => Some((EventKind::State, EventKindVariation::RedactedSync)),
         "RedactedStrippedStateEvent" => {
