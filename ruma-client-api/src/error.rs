@@ -1,6 +1,9 @@
 //! Errors that can be sent from the homeserver.
 
-use std::fmt::{self, Display, Formatter};
+use std::{
+    fmt::{self, Display, Formatter},
+    time::Duration,
+};
 
 use ruma_api::{error::ResponseDeserializationError, EndpointError};
 use ruma_identifiers::RoomVersionId;
@@ -53,7 +56,11 @@ pub enum ErrorKind {
     /// M_LIMIT_EXCEEDED
     #[serde(rename = "M_LIMIT_EXCEEDED")]
     #[strum(to_string = "M_LIMIT_EXCEEDED")]
-    LimitExceeded,
+    LimitExceeded {
+        /// How long a client should wait in milliseconds before they can try again.
+        #[serde(with = "ruma_serde::duration::opt_ms")]
+        retry_after_ms: Option<Duration>,
+    },
 
     /// M_UNKNOWN
     #[serde(rename = "M_UNKNOWN")]
