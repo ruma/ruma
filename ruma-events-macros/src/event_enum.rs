@@ -62,7 +62,7 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
         &import_path,
     );
 
-    let event_stripped_enum = expand_any_with_deser(
+    let stripped_event_enum = expand_any_with_deser(
         name,
         events,
         attrs,
@@ -80,7 +80,7 @@ pub fn expand_event_enum(input: EventEnumInput) -> syn::Result<TokenStream> {
 
         #sync_event_enum
 
-        #event_stripped_enum
+        #stripped_event_enum
 
         #redacted_event_enums
 
