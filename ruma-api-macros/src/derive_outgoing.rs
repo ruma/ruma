@@ -29,7 +29,7 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
     };
 
     let input_attrs =
-        input.attrs.clone().into_iter().filter(filter_input_attrs).collect::<Vec<_>>();
+        input.attrs.iter().filter(|attr| filter_input_attrs(attr)).collect::<Vec<_>>();
 
     let data = match input.data.clone() {
         Data::Union(_) => panic!("#[derive(Outgoing)] does not support Union types"),
