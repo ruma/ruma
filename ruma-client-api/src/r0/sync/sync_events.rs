@@ -94,7 +94,7 @@ ruma_api! {
 }
 
 /// A filter represented either as its full JSON definition or the ID of a saved filter.
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Copy, Debug, Outgoing, Serialize)]
 #[allow(clippy::large_enum_variant)]
 #[serde(untagged)]
 pub enum Filter<'a> {

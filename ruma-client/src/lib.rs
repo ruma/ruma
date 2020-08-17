@@ -331,7 +331,6 @@ where
         let client = self.clone();
         stream::try_unfold(since, move |since| {
             let client = client.clone();
-            let filter = filter.clone(); // FIXME: Remove once `SyncFilter` is `Copy`
 
             async move {
                 let response = client
