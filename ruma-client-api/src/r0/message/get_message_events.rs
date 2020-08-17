@@ -7,7 +7,7 @@ use ruma_events::{AnyRoomEvent, AnyStateEvent};
 use ruma_identifiers::RoomId;
 use serde::{Deserialize, Serialize};
 
-use crate::r0::filter::RoomEventFilter;
+use crate::r0::filter::{IncomingRoomEventFilter, RoomEventFilter};
 
 ruma_api! {
     metadata: {
@@ -60,7 +60,7 @@ ruma_api! {
             default,
             skip_serializing_if = "Option::is_none"
         )]
-        pub filter: Option<RoomEventFilter>,
+        pub filter: Option<RoomEventFilter<'a>>,
     }
 
     #[non_exhaustive]
@@ -135,11 +135,12 @@ mod tests {
     #[test]
     fn test_serialize_some_room_event_filter() {
         let room_id = room_id!("!roomid:example.org");
+        let rooms = &[room_id.clone()];
         let filter = RoomEventFilter {
             lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: true },
-            rooms: Some(vec![room_id.clone()]),
-            not_rooms: vec!["room".into(), "room2".into(), "room3".into()],
-            not_types: vec!["type".into()],
+            rooms: Some(rooms),
+            not_rooms: &["room".into(), "room2".into(), "room3".into()],
+            not_types: &["type".into()],
             ..Default::default()
         };
         let req = Request {

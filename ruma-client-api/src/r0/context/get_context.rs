@@ -6,7 +6,7 @@ use ruma_common::Raw;
 use ruma_events::{AnyRoomEvent, AnyStateEvent};
 use ruma_identifiers::{EventId, RoomId};
 
-use crate::r0::filter::RoomEventFilter;
+use crate::r0::filter::{IncomingRoomEventFilter, RoomEventFilter};
 
 ruma_api! {
     metadata: {
@@ -42,7 +42,7 @@ ruma_api! {
             default,
             skip_serializing_if = "Option::is_none"
         )]
-        pub filter: Option<RoomEventFilter>,
+        pub filter: Option<RoomEventFilter<'a>>,
     }
 
     #[non_exhaustive]

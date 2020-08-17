@@ -9,7 +9,7 @@ use ruma_events::{AnyEvent, AnyStateEvent};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-use crate::r0::filter::RoomEventFilter;
+use crate::r0::filter::{IncomingRoomEventFilter, RoomEventFilter};
 
 ruma_api! {
     metadata: {
@@ -73,7 +73,7 @@ impl<'a> Categories<'a> {
 }
 
 /// Criteria for searching a category of events.
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Copy, Debug, Outgoing, Serialize)]
 pub struct Criteria<'a> {
     /// The string to search events for.
     pub search_term: &'a str,
@@ -84,7 +84,7 @@ pub struct Criteria<'a> {
 
     /// A `Filter` to apply to the search.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub filter: Option<RoomEventFilter>,
+    pub filter: Option<RoomEventFilter<'a>>,
 
     /// The order in which to search for results.
     #[serde(skip_serializing_if = "Option::is_none")]
