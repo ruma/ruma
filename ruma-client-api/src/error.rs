@@ -180,6 +180,11 @@ pub enum ErrorKind {
         /// A URI giving a contact method for the server administrator.
         admin_contact: String,
     },
+
+    /// M_CANNOT_LEAVE_SERVER_NOTICE_ROOM
+    #[serde(rename = "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM")]
+    #[strum(to_string = "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM")]
+    CannotLeaveServerNoticeRoom,
 }
 
 /// A Matrix Error without a status code
