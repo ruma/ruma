@@ -1,8 +1,10 @@
 use std::{env, process::exit, time::Duration};
 
-use futures_util::stream::{StreamExt as _, TryStreamExt as _};
+use assign::assign;
+use futures_util::stream::TryStreamExt as _;
 use http::Uri;
 use ruma::{
+    api::client::r0::{filter::FilterDefinition, sync::sync_events},
     events::{
         room::message::{MessageEventContent, TextMessageEventContent},
         AnySyncMessageEvent, AnySyncRoomEvent, SyncMessageEvent,
@@ -16,13 +18,18 @@ async fn log_messages(homeserver_url: Uri, username: &str, password: &str) -> an
 
     client.log_in(username, password, None, None).await?;
 
-    let mut sync_stream = Box::pin(
-        client
-            .sync(None, None, PresenceState::Online, Some(Duration::from_secs(30)))
-            // TODO: This is a horrible way to obtain an initial next_batch token that generates way
-            //       too much server load and network traffic. Fix this!
-            .skip(1),
-    );
+    let initial_sync_response = client
+        .request(assign!(sync_events::Request::new(), {
+            filter: Some(FilterDefinition::ignore_all().into()),
+        }))
+        .await?;
+
+    let mut sync_stream = Box::pin(client.sync(
+        None,
+        initial_sync_response.next_batch,
+        PresenceState::Online,
+        Some(Duration::from_secs(30)),
+    ));
 
     while let Some(res) = sync_stream.try_next().await? {
         // Only look at rooms the user hasn't left yet

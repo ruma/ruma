@@ -53,7 +53,7 @@
 //! # async {
 //! let mut sync_stream = Box::pin(client.sync(
 //!     None,
-//!     Some(next_batch_token),
+//!     next_batch_token,
 //!     PresenceState::Online,
 //!     Some(Duration::from_secs(30)),
 //! ));
@@ -315,14 +315,10 @@ where
     }
 
     /// Convenience method that represents repeated calls to the sync_events endpoint as a stream.
-    ///
-    /// If the since parameter is None, the first Item might take a significant time to arrive and
-    /// be deserialized, because it contains all events that have occurred in the whole lifetime of
-    /// the logged-in users account and are visible to them.
     pub fn sync<'a>(
         &self,
         filter: Option<SyncFilter<'a>>,
-        since: Option<String>,
+        since: String,
         set_presence: ruma_common::presence::PresenceState,
         timeout: Option<Duration>,
     ) -> impl Stream<Item = Result<SyncResponse, Error<ruma_client_api::Error>>>
@@ -336,14 +332,14 @@ where
                 let response = client
                     .request(assign!(SyncRequest::new(), {
                         filter,
-                        since: since.as_deref(),
+                        since: Some(&since),
                         set_presence,
                         timeout,
                     }))
                     .await?;
 
                 let next_batch_clone = response.next_batch.clone();
-                Ok(Some((response, Some(next_batch_clone))))
+                Ok(Some((response, next_batch_clone)))
             }
         })
     }
