@@ -19,7 +19,7 @@ use serde_json::value::RawValue as RawJsonValue;
 /// Send a state event to a room associated with a given state key.
 #[derive(Clone, Debug, Outgoing)]
 #[non_exhaustive]
-#[incoming_no_deserialize]
+#[incoming_derive(!Deserialize)]
 pub struct Request<'a> {
     /// The room to set the state in.
     pub room_id: &'a RoomId,
@@ -41,7 +41,7 @@ impl<'a> Request<'a> {
 /// Data in the response from the `send_message_event` API endpoint.
 #[derive(Clone, Debug, Outgoing)]
 #[non_exhaustive]
-#[incoming_no_deserialize]
+#[incoming_derive(!Deserialize)]
 pub struct Response {
     /// A unique identifier for the event.
     pub event_id: EventId,

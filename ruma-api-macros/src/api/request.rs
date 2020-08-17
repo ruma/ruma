@@ -494,7 +494,7 @@ impl ToTokens for Request {
 
         let request = quote! {
             #[derive(Debug, Clone, #import_path::Outgoing)]
-            #[incoming_no_deserialize]
+            #[incoming_derive(!Deserialize)]
             #( #struct_attributes )*
             pub struct Request #request_generics #request_def
 

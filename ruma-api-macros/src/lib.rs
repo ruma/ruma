@@ -76,7 +76,7 @@ struct IncomingMyType {
 ```
 
 */
-#[proc_macro_derive(Outgoing, attributes(incoming_derive, incoming_no_deserialize))]
+#[proc_macro_derive(Outgoing, attributes(incoming_derive))]
 pub fn derive_outgoing(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     expand_derive_outgoing(input).unwrap_or_else(|err| err.to_compile_error()).into()

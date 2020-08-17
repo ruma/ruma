@@ -1,10 +1,12 @@
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::{
-    parse_quote, AngleBracketedGenericArguments, Attribute, Data, DeriveInput, Field, Fields,
-    GenericArgument, GenericParam, Generics, ImplGenerics, Meta, MetaList,
-    ParenthesizedGenericArguments, PathArguments, Type, TypeGenerics, TypePath, TypeReference,
-    TypeSlice, Variant,
+    parse::{Parse, ParseStream},
+    parse_quote,
+    punctuated::Punctuated,
+    AngleBracketedGenericArguments, Attribute, Data, DeriveInput, Field, Fields, GenericArgument,
+    GenericParam, Generics, Ident, ImplGenerics, ParenthesizedGenericArguments, PathArguments,
+    Token, Type, TypeGenerics, TypePath, TypeReference, TypeSlice, Variant,
 };
 
 use crate::util::import_ruma_api;
@@ -24,29 +26,28 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
     let import_path = import_ruma_api();
 
     let mut derives = vec![quote! { Debug }];
-    if !no_deserialize_in_attrs(&input.attrs) {
-        derives.push(quote! { #import_path::exports::serde::Deserialize });
-    }
+    let mut derive_deserialize = true;
+
     derives.extend(
         input
             .attrs
             .iter()
             .filter(|attr| attr.path.is_ident("incoming_derive"))
-            .map(|attr| {
-                let meta = attr.parse_meta()?;
-                match meta {
-                    Meta::List(MetaList { nested, .. }) => Ok(nested),
-                    _ => Err(syn::Error::new_spanned(
-                        meta,
-                        "incoming_derive should be used as `#[incoming_derive(A, B, C)]`",
-                    )),
-                }
-            })
-            .collect::<syn::Result<Vec<_>>>()?
+            .map(|attr| attr.parse_args())
+            .collect::<syn::Result<Vec<Meta>>>()?
             .into_iter()
-            .flatten()
-            .map(|derive_mac| quote! { #derive_mac }),
+            .flat_map(|meta| meta.derive_macs)
+            .filter_map(|derive_mac| match derive_mac {
+                DeriveMac::Regular(id) => Some(quote! { #id }),
+                DeriveMac::NegativeDeserialize => {
+                    derive_deserialize = false;
+                    None
+                }
+            }),
     );
+    if derive_deserialize {
+        derives.push(quote! { #import_path::exports::serde::Deserialize });
+    }
 
     let input_attrs =
         input.attrs.iter().filter(|attr| filter_input_attrs(attr)).collect::<Vec<_>>();
@@ -147,10 +148,6 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
 /// pass them to the Incoming variant.
 fn filter_input_attrs(attr: &Attribute) -> bool {
     attr.path.is_ident("serde") || attr.path.is_ident("non_exhaustive")
-}
-
-fn no_deserialize_in_attrs(attrs: &[Attribute]) -> bool {
-    attrs.iter().any(|attr| attr.path.is_ident("incoming_no_deserialize"))
 }
 
 fn impl_outgoing_with_incoming_self(input: &DeriveInput, import_path: &TokenStream) -> TokenStream {
@@ -281,5 +278,43 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
             has_lifetime
         }
         _ => false,
+    }
+}
+
+pub struct Meta {
+    derive_macs: Vec<DeriveMac>,
+}
+
+impl Parse for Meta {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(Self {
+            derive_macs: Punctuated::<_, Token![,]>::parse_terminated(input)?.into_iter().collect(),
+        })
+    }
+}
+
+pub enum DeriveMac {
+    Regular(Ident),
+    NegativeDeserialize,
+}
+
+impl Parse for DeriveMac {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        if input.peek(Token![!]) {
+            let _: Token![!] = input.parse()?;
+            let mac: Ident = input.parse()?;
+
+            if mac != "Deserialize" {
+                return Err(syn::Error::new_spanned(
+                    mac,
+                    "Negative incoming_derive can only be used for Deserialize",
+                ));
+            }
+
+            Ok(Self::NegativeDeserialize)
+        } else {
+            let mac = input.parse()?;
+            Ok(Self::Regular(mac))
+        }
     }
 }

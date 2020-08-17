@@ -283,7 +283,7 @@ impl ToTokens for Response {
 
         let response = quote! {
             #[derive(Debug, Clone, #import_path::Outgoing)]
-            #[incoming_no_deserialize]
+            #[incoming_derive(!Deserialize)]
             #( #struct_attributes )*
             pub struct Response #response_def
 
