@@ -17,7 +17,7 @@ use std::collections::BTreeMap;
 #[cfg(feature = "unstable-synapse-quirks")]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sessions {
-    ///  A map of session IDs to key data.
+    /// A map of session IDs to key data.
     pub sessions: BTreeMap<String, KeyData>,
 }
 
