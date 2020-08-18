@@ -1,5 +1,6 @@
 use std::{collections::BTreeMap, convert::TryFrom};
 
+use js_int::UInt;
 use ruma::{
     events::{
         from_raw_json_value,
@@ -294,6 +295,19 @@ impl StateEvent {
             Self::Sync(ev) => match ev {
                 PduStub::RoomV1PduStub(ev) => &ev.hashes,
                 PduStub::RoomV3PduStub(ev) => &ev.hashes,
+            },
+        }
+    }
+
+    pub fn depth(&self) -> &UInt {
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => &ev.depth,
+                Pdu::RoomV3Pdu(ev) => &ev.depth,
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(ev) => &ev.depth,
+                PduStub::RoomV3PduStub(ev) => &ev.depth,
             },
         }
     }
