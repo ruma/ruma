@@ -201,6 +201,18 @@ impl StateEvent {
             },
         }
     }
+    pub fn origin(&self) -> String {
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => ev.origin.clone(),
+                Pdu::RoomV3Pdu(ev) => ev.origin.clone(),
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(ev) => ev.origin.clone(),
+                PduStub::RoomV3PduStub(ev) => ev.origin.clone(),
+            },
+        }
+    }
 
     pub fn prev_event_ids(&self) -> Vec<EventId> {
         match self {
