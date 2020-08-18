@@ -281,6 +281,7 @@ pub struct Timeline {
     pub prev_batch: Option<String>,
 
     /// A list of events.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnySyncRoomEvent>>,
 }
 
@@ -295,6 +296,7 @@ impl Timeline {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct State {
     /// A list of state events.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnySyncStateEvent>>,
 }
 
@@ -309,6 +311,7 @@ impl State {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct AccountData {
     /// A list of events.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnyBasicEvent>>,
 }
 
@@ -323,6 +326,7 @@ impl AccountData {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Ephemeral {
     /// A list of events.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnySyncEphemeralRoomEvent>>,
 }
 
@@ -382,6 +386,7 @@ impl InvitedRoom {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct InviteState {
     /// A list of state events.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnyStrippedStateEvent>>,
 }
 
@@ -396,6 +401,7 @@ impl InviteState {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Presence {
     /// A list of events.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<PresenceEvent>>,
 }
 
@@ -410,6 +416,7 @@ impl Presence {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct ToDevice {
     /// A list of to-device events.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnyToDeviceEvent>>,
 }
 
