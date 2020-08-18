@@ -1,4 +1,4 @@
-//! [GET /_matrix/federation/v1/user/devices/](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-user-devices-userid)
+//! [GET /_matrix/federation/v1/user/devices/{userId}](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-user-devices-userid)
 
 use js_int::UInt;
 use ruma_api::ruma_api;
@@ -11,14 +11,14 @@ ruma_api! {
         description: "Gets information on all of the user's devices.",
         name: "get_devices",
         method: GET,
-        path: "/_matrix/federation/v1/user/devices",
+        path: "/_matrix/federation/v1/user/devices/:user_id",
         rate_limited: false,
         requires_authentication: true,
     }
 
     request: {
         /// The user ID to retrieve devices for. Must be a user local to the receiving homeserver.
-        #[ruma_api(query)]
+        #[ruma_api(path)]
         pub user_id: &'a UserId,
     }
 
