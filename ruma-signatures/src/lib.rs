@@ -49,6 +49,8 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
+pub use ring::digest;
+
 pub use functions::{
     canonical_json, content_hash, hash_and_sign_event, redact, reference_hash, sign_json,
     verify_event, verify_json,
