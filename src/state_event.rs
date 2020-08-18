@@ -3,7 +3,7 @@ use std::{collections::BTreeMap, convert::TryFrom};
 use ruma::{
     events::{
         from_raw_json_value,
-        pdu::{Pdu, PduStub},
+        pdu::{EventHash, Pdu, PduStub},
         room::member::{MemberEventContent, MembershipState},
         EventDeHelper, EventType,
     },
@@ -269,6 +269,19 @@ impl StateEvent {
             Self::Sync(ev) => match ev {
                 PduStub::RoomV1PduStub(ev) => ev.signatures.clone(),
                 PduStub::RoomV3PduStub(ev) => ev.signatures.clone(),
+            },
+        }
+    }
+
+    pub fn hashes(&self) -> &EventHash {
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(ev) => &ev.hashes,
+                Pdu::RoomV3Pdu(ev) => &ev.hashes,
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(ev) => &ev.hashes,
+                PduStub::RoomV3PduStub(ev) => &ev.hashes,
             },
         }
     }
