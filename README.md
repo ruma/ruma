@@ -12,20 +12,24 @@ struct StateEvent {
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
 pub type StateMap<T> = BTreeMap<(EventType, String), T>;
 
+/// A mapping of `EventId` to `T`, usually a `StateEvent`.
+pub type EventMap<T> = BTreeMap<EventId, T>;
 
 struct StateResolution {
-    // Should any information be kept or should all of it be fetched from the
-    // StateStore trait?
-    event_map: BTreeMap<EventId, StateEvent>,
-
-    // fields for temp storage during resolution??
-    /// The events that conflict and their auth chains.
-    conflicting_events: StateMap<Vec<EventId>>,
+    // For now the StateResolution struct is empty. If "caching `event_map` between `resolve` calls
+    // ends up being more efficient it may have an `event_map` field.
 }
 
 impl StateResolution {
-    /// The point of this all. Resolve the conflicting set of .
-    fn resolve(&mut self, events: Vec<StateMap<EventId>>) -> StateMap<EventId> { }
+    /// The point of this all, resolve the possibly conflicting sets of events.
+    pub fn resolve(
+        &self,
+        room_id: &RoomId,
+        room_version: &RoomVersionId,
+        state_sets: &[StateMap<EventId>],
+        event_map: Option<EventMap<StateEvent>>,
+        store: &dyn StateStore,
+    ) -> Result<ResolutionResult>;
 
 }
 
@@ -34,11 +38,9 @@ trait StateStore {
     /// Return a single event based on the EventId.
     fn get_event(&self, event_id: &EventId) -> Result<StateEvent, String>;
 
-    /// Returns the events that correspond to the `event_ids` sorted in the same order.
-    fn get_events(&self, event_ids: &[EventId]) -> Result<Vec<StateEvent>, String>;
-
-    /// Returns a Vec of the related auth events to the given `event`.
-    fn auth_event_ids(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<Vec<EventId>, String>;
+    // There are 3 methods that have default implementations `get_events`, `auth_event_ids` and
+    // `auth_chain_diff`. Each could be overridden if the user has an optimization with their database of
+    // choice.
 }
 
 ```

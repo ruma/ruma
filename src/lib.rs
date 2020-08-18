@@ -1,5 +1,3 @@
-#![allow(clippy::or_fun_call)]
-
 use std::{
     cmp::Reverse,
     collections::{BTreeMap, BTreeSet, BinaryHeap},
@@ -266,7 +264,7 @@ impl StateResolution {
                 "SEP {:?}",
                 event_ids
                     .iter()
-                    .map(|i| i.map(ToString::to_string).unwrap_or("None".into()))
+                    .map(|i| i.map(ToString::to_string).unwrap_or_else(|| "None".into()))
                     .collect::<Vec<_>>()
             );
 
@@ -560,7 +558,7 @@ impl StateResolution {
             tracing::debug!("event to check {:?}", event.event_id().to_string());
 
             if event_auth::auth_check(room_version, &event, auth_events, false)
-                .ok_or("Auth check failed due to deserialization most likely".to_string())
+                .ok_or_else(|| "Auth check failed due to deserialization most likely".to_string())
                 .map_err(Error::TempString)?
             {
                 // add event to resolved state map
@@ -713,7 +711,7 @@ impl StateResolution {
         while !state.is_empty() {
             // we just checked if it was empty so unwrap is fine
             let eid = state.pop().unwrap();
-            graph.entry(eid.clone()).or_insert(vec![]);
+            graph.entry(eid.clone()).or_insert_with(Vec::new);
             // prefer the store to event as the store filters dedups the events
             // otherwise it seems we can loop forever
             for aid in self

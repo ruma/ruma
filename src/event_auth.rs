@@ -26,6 +26,8 @@ pub enum RedactAllowed {
     No,
 }
 
+/// For the given event `kind` what are the relevant auth events
+/// that are needed to authenticate this `content`.
 pub fn auth_types_for_event(
     kind: EventType,
     sender: &UserId,
@@ -71,6 +73,10 @@ pub fn auth_types_for_event(
     auth_types
 }
 
+/// Authenticate the incoming `event`. The steps of authentication are:
+/// * check that the event is being authenticated for the correct room
+/// * check that the events signatures are valid
+/// * then there are checks for specific event types
 pub fn auth_check(
     room_version: &RoomVersionId,
     event: &StateEvent,
@@ -107,7 +113,7 @@ pub fn auth_check(
 
     // TODO do_size_check is false when called by `iterative_auth_check`
     // do_size_check is also mostly accomplished by ruma with the exception of checking event_type,
-    // state_key, and json are below a certain size (255 and 65536 respectivly)
+    // state_key, and json are below a certain size (255 and 65536 respectively)
 
     // Implementation of https://matrix.org/docs/spec/rooms/v1#authorization-rules
     //
@@ -129,7 +135,7 @@ pub fn auth_check(
                 .get("room_version")
                 .cloned()
                 // synapse defaults to version 1
-                .unwrap_or(serde_json::json!("1")),
+                .unwrap_or_else(|| serde_json::json!("1")),
         )
         .is_err()
         {
@@ -446,7 +452,7 @@ pub fn check_event_sender_in_room(
     )
 }
 
-/// Is the user allowed to send a specific event.
+/// Is the user allowed to send a specific event based on the rooms power levels.
 pub fn can_send_event(event: &StateEvent, auth_events: &StateMap<StateEvent>) -> Option<bool> {
     let ple = auth_events.get(&(EventType::RoomPowerLevels, Some("".into())));
 
@@ -661,6 +667,8 @@ pub fn check_membership(member_event: Option<&StateEvent>, state: MembershipStat
     }
 }
 
+/// Helper function to fetch a field, `name`, from a "m.room.power_level" event's content.
+/// or return `default` if no power level event is found or zero if no field matches `name`.
 pub fn get_named_level(auth_events: &StateMap<StateEvent>, name: &str, default: i64) -> i64 {
     let power_level_event = auth_events.get(&(EventType::RoomPowerLevels, Some("".into())));
     if let Some(pl) = power_level_event {
@@ -675,6 +683,8 @@ pub fn get_named_level(auth_events: &StateMap<StateEvent>, name: &str, default: 
     }
 }
 
+/// Helper function to fetch a users default power level from a "m.room.power_level" event's `users`
+/// object.
 pub fn get_user_power_level(user_id: &UserId, auth_events: &StateMap<StateEvent>) -> i64 {
     if let Some(pl) = auth_events.get(&(EventType::RoomPowerLevels, Some("".into()))) {
         if let Ok(content) = pl.deserialize_content::<room::power_levels::PowerLevelsEventContent>()
@@ -706,6 +716,8 @@ pub fn get_user_power_level(user_id: &UserId, auth_events: &StateMap<StateEvent>
     }
 }
 
+/// Helper function to fetch the power level needed to send an event of type
+/// `e_type` based on the rooms "m.room.power_level" event.
 pub fn get_send_level(
     e_type: EventType,
     state_key: Option<String>,
@@ -720,7 +732,7 @@ pub fn get_send_level(
                 .events
                 .get(&e_type)
                 .cloned()
-                .unwrap_or(js_int::int!(50))
+                .unwrap_or_else(|| js_int::int!(50))
                 .into();
             let state_def: i64 = content.state_default.into();
             let event_def: i64 = content.events_default.into();
