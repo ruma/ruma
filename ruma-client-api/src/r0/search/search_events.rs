@@ -74,6 +74,7 @@ impl<'a> Categories<'a> {
 
 /// Criteria for searching a category of events.
 #[derive(Clone, Copy, Debug, Outgoing, Serialize)]
+#[non_exhaustive]
 pub struct Criteria<'a> {
     /// The string to search events for.
     pub search_term: &'a str,
@@ -91,20 +92,36 @@ pub struct Criteria<'a> {
     pub order_by: Option<OrderBy>,
 
     /// Configures whether any context for the events returned are included in the response.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub event_context: Option<EventContext>,
+    #[serde(default, skip_serializing_if = "EventContext::is_default")]
+    pub event_context: EventContext,
 
     /// Requests the server return the current state for each room returned.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_state: Option<bool>,
 
     /// Requests that the server partitions the result set based on the provided list of keys.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub groupings: Option<Groupings<'a>>,
+    #[serde(default, skip_serializing_if = "Groupings::is_empty")]
+    pub groupings: Groupings<'a>,
+}
+
+impl<'a> Criteria<'a> {
+    /// Creates a new `Criteria` with the given search term.
+    pub fn new(search_term: &'a str) -> Self {
+        Self {
+            search_term,
+            keys: None,
+            filter: None,
+            order_by: None,
+            event_context: Default::default(),
+            include_state: None,
+            groupings: Default::default(),
+        }
+    }
 }
 
 /// Configures whether any context for the events returned are included in the response.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct EventContext {
     /// How many events before the result are returned.
     #[serde(
@@ -135,8 +152,33 @@ fn is_default_event_context_limit(val: &UInt) -> bool {
     *val == default_event_context_limit()
 }
 
+impl EventContext {
+    /// Creates an `EventContext` with all-default values.
+    pub fn new() -> Self {
+        Self {
+            before_limit: default_event_context_limit(),
+            after_limit: default_event_context_limit(),
+            include_profile: false,
+        }
+    }
+
+    /// Returns whether all fields have their default value.
+    pub fn is_default(&self) -> bool {
+        self.before_limit == default_event_context_limit()
+            && self.after_limit == default_event_context_limit()
+            && !self.include_profile
+    }
+}
+
+impl Default for EventContext {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Context for search results, if requested.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct EventContextResult {
     /// Pagination token for the end of the chunk.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -151,23 +193,53 @@ pub struct EventContextResult {
     pub events_before: Vec<Raw<AnyEvent>>,
 
     /// The historic profile information of the users that sent the events returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub profile_info: Option<BTreeMap<UserId, UserProfile>>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub profile_info: BTreeMap<UserId, UserProfile>,
 
     /// Pagination token for the start of the chunk.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub start: Option<String>,
 }
 
+impl EventContextResult {
+    /// Creates an empty `EventContextResult`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Returns whether all fields are `None` or an empty list.
+    pub fn is_empty(&self) -> bool {
+        self.end.is_none()
+            && self.events_after.is_empty()
+            && self.events_before.is_empty()
+            && self.profile_info.is_empty()
+            && self.start.is_none()
+    }
+}
+
 /// A grouping for partioning the result set.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct Grouping {
     /// The key within events to use for this grouping.
     pub key: Option<GroupingKey>,
 }
 
+impl Grouping {
+    /// Creates an empty `Grouping`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Returns whether `key` is `None`.
+    pub fn is_empty(&self) -> bool {
+        self.key.is_none()
+    }
+}
+
 /// The key within events to use for this grouping.
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 pub enum GroupingKey {
     /// `room_id`
@@ -178,15 +250,30 @@ pub enum GroupingKey {
 }
 
 /// Requests that the server partitions the result set based on the provided list of keys.
-#[derive(Clone, Copy, Debug, Outgoing, Serialize)]
+#[derive(Clone, Copy, Default, Debug, Outgoing, Serialize)]
+#[incoming_derive(Default)]
+#[non_exhaustive]
 pub struct Groupings<'a> {
     /// List of groups to request.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub group_by: &'a [Grouping],
 }
 
+impl<'a> Groupings<'a> {
+    /// Creates an empty `Groupings`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Returns `true` if all fields are empty.
+    pub fn is_empty(&self) -> bool {
+        self.group_by.is_empty()
+    }
+}
+
 /// The keys to search for.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub enum SearchKeys {
     /// content.body
     #[serde(rename = "content.body")]
@@ -203,6 +290,7 @@ pub enum SearchKeys {
 
 /// The order in which to search for results.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 #[serde(rename_all = "snake_case")]
 pub enum OrderBy {
     /// Prioritize recent events.
@@ -214,20 +302,31 @@ pub enum OrderBy {
 }
 
 /// Categories of events that can be searched for.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Default, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct ResultCategories {
     /// Room event results.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub room_events: Option<ResultRoomEvents>,
+    #[serde(default, skip_serializing_if = "ResultRoomEvents::is_empty")]
+    pub room_events: ResultRoomEvents,
+}
+
+impl ResultCategories {
+    /// Creates an empty `ResultCategories`.
+    pub fn new() -> Self {
+        Default::default()
+    }
 }
 
 /// Categories of events that can be searched for.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct ResultRoomEvents {
     /// An approximate count of the total number of results found.
-    pub count: UInt,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub count: Option<UInt>,
 
     /// Any groups that were requested.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub groups: BTreeMap<GroupingKey, BTreeMap<RoomIdOrUserId, ResultGroup>>,
 
     /// Token that can be used to get the next batch of results, by passing as the `next_batch`
@@ -236,6 +335,7 @@ pub struct ResultRoomEvents {
     pub next_batch: Option<String>,
 
     /// List of results in the requested order.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub results: Vec<SearchResult>,
 
     /// The current state for every room in the results. This is included if the request had the
@@ -249,8 +349,26 @@ pub struct ResultRoomEvents {
     pub highlights: Vec<String>,
 }
 
+impl ResultRoomEvents {
+    /// Creates an empty `ResultRoomEvents`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Returns `true` if all fields are empty / `None`.
+    pub fn is_empty(&self) -> bool {
+        self.count.is_none()
+            && self.groups.is_empty()
+            && self.next_batch.is_none()
+            && self.results.is_empty()
+            && self.state.is_empty()
+            && self.highlights.is_empty()
+    }
+}
+
 /// A grouping of results, if requested.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct ResultGroup {
     /// Token that can be used to get the next batch of results in the group, by passing as the
     /// `next_batch` parameter to the next call. If this field is absent, there are no more
@@ -259,18 +377,33 @@ pub struct ResultGroup {
     pub next_batch: Option<String>,
 
     /// Key that can be used to order different groups.
-    pub order: UInt,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub order: Option<UInt>,
 
     /// Which results are in this group.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub results: Vec<EventId>,
 }
 
+impl ResultGroup {
+    /// Creates an empty `ResultGroup`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Returns `true` if all fields are empty / `None`.
+    pub fn is_empty(&self) -> bool {
+        self.next_batch.is_none() && self.order.is_none() && self.results.is_empty()
+    }
+}
+
 /// A search result.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct SearchResult {
     /// Context for result, if requested.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub context: Option<EventContextResult>,
+    #[serde(skip_serializing_if = "EventContextResult::is_empty")]
+    pub context: EventContextResult,
 
     /// A number that describes how closely this result matches the search. Higher is closer.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -281,8 +414,21 @@ pub struct SearchResult {
     pub result: Option<Raw<AnyEvent>>,
 }
 
+impl SearchResult {
+    /// Creates an empty `SearchResult`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Returns `true` if all fields are empty / `None`.
+    pub fn is_empty(&self) -> bool {
+        self.context.is_empty() && self.rank.is_none() && self.result.is_none()
+    }
+}
+
 /// A user profile.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct UserProfile {
     /// The user's avatar URL, if set.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -291,6 +437,18 @@ pub struct UserProfile {
     /// The user's display name, if set.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub displayname: Option<String>,
+}
+
+impl UserProfile {
+    /// Creates an empty `UserProfile`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Returns `true` if all fields are `None`.
+    pub fn is_empty(&self) -> bool {
+        self.avatar_url.is_none() && self.displayname.is_none()
+    }
 }
 
 /// Represents either a room or user ID for returning grouped search results.
