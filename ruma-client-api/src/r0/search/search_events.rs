@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use js_int::{uint, UInt};
 use ruma_api::{ruma_api, Outgoing};
 use ruma_common::Raw;
-use ruma_events::{AnyEvent, AnyStateEvent};
+use ruma_events::{AnyRoomEvent, AnyStateEvent};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
@@ -186,11 +186,11 @@ pub struct EventContextResult {
 
     /// Events just after the result.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub events_after: Vec<Raw<AnyEvent>>,
+    pub events_after: Vec<Raw<AnyRoomEvent>>,
 
     /// Events just before the result.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub events_before: Vec<Raw<AnyEvent>>,
+    pub events_before: Vec<Raw<AnyRoomEvent>>,
 
     /// The historic profile information of the users that sent the events returned.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -411,7 +411,7 @@ pub struct SearchResult {
 
     /// The event that matched.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub result: Option<Raw<AnyEvent>>,
+    pub result: Option<Raw<AnyRoomEvent>>,
 }
 
 impl SearchResult {
