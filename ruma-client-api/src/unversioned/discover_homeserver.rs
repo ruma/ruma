@@ -13,6 +13,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[derive(Default)]
     #[non_exhaustive]
     request: {}
 

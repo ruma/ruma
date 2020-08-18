@@ -45,6 +45,7 @@ ruma_api! {
         pub filter: Option<RoomEventFilter<'a>>,
     }
 
+    #[derive(Default)]
     #[non_exhaustive]
     response: {
         /// A token that can be used to paginate backwards with.
@@ -87,14 +88,7 @@ impl<'a> Request<'a> {
 impl Response {
     /// Creates an empty `Response`.
     pub fn new() -> Self {
-        Self {
-            start: None,
-            end: None,
-            events_before: Vec::new(),
-            event: None,
-            events_after: Vec::new(),
-            state: Vec::new(),
-        }
+        Default::default()
     }
 }
 

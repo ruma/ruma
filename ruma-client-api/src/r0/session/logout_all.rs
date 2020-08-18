@@ -12,9 +12,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
     #[non_exhaustive]
     request: {}
 
+    #[derive(Default)]
     #[non_exhaustive]
     response: {}
 

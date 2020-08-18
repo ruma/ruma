@@ -63,6 +63,7 @@ ruma_api! {
         pub filter: Option<RoomEventFilter<'a>>,
     }
 
+    #[derive(Default)]
     #[non_exhaustive]
     response: {
         /// The token the pagination starts from.
@@ -97,7 +98,7 @@ impl<'a> Request<'a> {
 impl Response {
     /// Creates an empty `Response`.
     pub fn new() -> Self {
-        Self { start: None, end: None, chunk: Vec::new(), state: Vec::new() }
+        Default::default()
     }
 }
 

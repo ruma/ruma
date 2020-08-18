@@ -57,7 +57,7 @@ impl Response {
 }
 
 /// Categories of events that can be searched for.
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Outgoing, Serialize)]
 #[non_exhaustive]
 pub struct Categories<'a> {
     /// Criteria for searching room events.
@@ -68,7 +68,7 @@ pub struct Categories<'a> {
 impl<'a> Categories<'a> {
     /// Creates an empty `Categories`.
     pub fn new() -> Self {
-        Self { room_events: None }
+        Default::default()
     }
 }
 

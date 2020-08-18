@@ -23,6 +23,7 @@ ruma_api! {
         pub user_id: &'a UserId,
     }
 
+    #[derive(Default)]
     #[non_exhaustive]
     response: {
         /// The Matrix user ID of the user.
@@ -47,7 +48,7 @@ impl<'a> Request<'a> {
 impl Response {
     /// Creates an empty `Response`.
     pub fn new() -> Self {
-        Self { user_id: None, devices: BTreeMap::new() }
+        Default::default()
     }
 }
 

@@ -13,12 +13,15 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The user ID being queried.
         #[ruma_api(path)]
         pub user_id: &'a UserId,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 }
 

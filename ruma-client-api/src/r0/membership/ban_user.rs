@@ -27,6 +27,7 @@ ruma_api! {
         pub reason: Option<&'a str>,
     }
 
+    #[derive(Default)]
     #[non_exhaustive]
     response: {}
 

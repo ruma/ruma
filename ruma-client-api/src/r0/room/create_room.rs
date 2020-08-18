@@ -26,6 +26,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
     #[non_exhaustive]
     request: {
         /// Extra keys to be added to the content of the `m.room.create`.
@@ -98,20 +99,7 @@ ruma_api! {
 impl Request {
     /// Creates a `Request` will all-default parameters.
     pub fn new() -> Self {
-        Self {
-            creation_content: None,
-            initial_state: Vec::new(),
-            invite: Vec::new(),
-            invite_3pid: Vec::new(),
-            is_direct: None,
-            name: None,
-            power_level_content_override: None,
-            preset: None,
-            room_alias_name: None,
-            room_version: None,
-            topic: None,
-            visibility: None,
-        }
+        Default::default()
     }
 }
 

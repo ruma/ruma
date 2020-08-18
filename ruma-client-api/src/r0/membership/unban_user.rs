@@ -23,6 +23,7 @@ ruma_api! {
         pub user_id: &'a UserId,
     }
 
+    #[derive(Default)]
     #[non_exhaustive]
     response: {}
 

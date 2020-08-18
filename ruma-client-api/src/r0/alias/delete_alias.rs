@@ -20,6 +20,7 @@ ruma_api! {
         pub room_alias: &'a RoomAliasId,
     }
 
+    #[derive(Default)]
     #[non_exhaustive]
     response: {}
 

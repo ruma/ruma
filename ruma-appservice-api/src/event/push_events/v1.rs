@@ -14,6 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The transaction ID for this set of events.
         ///
@@ -26,6 +27,8 @@ ruma_api! {
         pub events: &'a [Raw<AnyEvent>],
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 }
 

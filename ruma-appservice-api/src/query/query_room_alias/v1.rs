@@ -13,12 +13,15 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The room alias being queried.
         #[ruma_api(path)]
         pub room_alias: &'a RoomAliasId,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 }
 

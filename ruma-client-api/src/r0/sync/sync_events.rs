@@ -24,6 +24,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
     #[non_exhaustive]
     request: {
         /// A filter represented either as its full JSON definition or the ID of a saved filter.
@@ -98,13 +99,7 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Creates an empty `Request`.
     pub fn new() -> Self {
-        Self {
-            filter: None,
-            since: None,
-            full_state: false,
-            set_presence: Default::default(),
-            timeout: None,
-        }
+        Default::default()
     }
 }
 

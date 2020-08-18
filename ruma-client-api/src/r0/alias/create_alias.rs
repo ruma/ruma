@@ -23,6 +23,7 @@ ruma_api! {
         pub room_id: &'a RoomId,
     }
 
+    #[derive(Default)]
     #[non_exhaustive]
     response: {}
 
