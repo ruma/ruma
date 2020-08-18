@@ -635,7 +635,6 @@ mod tests {
 
         let timeline_serialized = json!({
             "limited": true,
-            "events": []
         });
 
         assert_eq!(to_json_value(timeline).unwrap(), timeline_serialized);
@@ -643,11 +642,9 @@ mod tests {
         let timeline_deserialized: Timeline = from_json_value(timeline_serialized).unwrap();
         assert_eq!(timeline_deserialized.limited, true);
 
-        let timeline_default = Timeline { limited: false, prev_batch: None, events: vec![] };
+        let timeline_default = Timeline::default();
 
-        let timeline_default_serialized = json!({
-            "events": []
-        });
+        let timeline_default_serialized = json!({});
 
         assert_eq!(to_json_value(timeline_default).unwrap(), timeline_default_serialized);
 
