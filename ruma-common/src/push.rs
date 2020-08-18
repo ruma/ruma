@@ -18,9 +18,6 @@ pub use self::{
 ///
 /// For example, some rules may only be applied for messages from a particular sender, a particular
 /// room, or by default. The push ruleset contains the entire set of scopes and rules.
-///
-/// To create an instance of this type, use its `Default` implementation and set the fields you
-/// need.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[non_exhaustive]
 pub struct Ruleset {
@@ -43,6 +40,13 @@ pub struct Ruleset {
     /// These rules are identical to override rules, but have a lower priority than `content`,
     /// `room` and `sender` rules.
     pub underride: Vec<ConditionalPushRule>,
+}
+
+impl Ruleset {
+    /// Creates an empty `Ruleset`.
+    pub fn new() -> Self {
+        Default::default()
+    }
 }
 
 /// A push rule is a single rule that states under what conditions an event should be passed onto a

@@ -12,8 +12,12 @@ use serde::{
 
 use serde_json::Value as JsonValue;
 
-/// A chunk of a room list response, describing one room
+/// A chunk of a room list response, describing one room.
+///
+/// To create an instance of this type, first create a `PublicRoomsChunkInit` and convert it via
+/// `PublicRoomsChunk::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct PublicRoomsChunk {
     /// Aliases of the room.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -50,17 +54,66 @@ pub struct PublicRoomsChunk {
     pub avatar_url: Option<String>,
 }
 
+/// Initial set of mandatory fields of `PublicRoomsChunk`.
+///
+/// This struct will not be updated even if additional fields are added to `PublicRoomsChunk` in a
+/// new (non-breaking) release of the Matrix specification.
+#[derive(Debug)]
+pub struct PublicRoomsChunkInit {
+    /// The number of members joined to the room.
+    pub num_joined_members: UInt,
+
+    /// The ID of the room.
+    pub room_id: RoomId,
+
+    /// Whether the room may be viewed by guest users without joining.
+    pub world_readable: bool,
+
+    /// Whether guest users may join the room and participate in it.
+    ///
+    /// If they can, they will be subject to ordinary power level rules like any other user.
+    pub guest_can_join: bool,
+}
+
+impl From<PublicRoomsChunkInit> for PublicRoomsChunk {
+    fn from(init: PublicRoomsChunkInit) -> Self {
+        let PublicRoomsChunkInit { num_joined_members, room_id, world_readable, guest_can_join } =
+            init;
+
+        Self {
+            aliases: Vec::new(),
+            canonical_alias: None,
+            name: None,
+            num_joined_members,
+            room_id,
+            topic: None,
+            world_readable,
+            guest_can_join,
+            avatar_url: None,
+        }
+    }
+}
+
 /// A filter for public rooms lists
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct Filter {
     /// A string to search for in the room metadata, e.g. name, topic, canonical alias etc.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub generic_search_term: Option<String>,
 }
 
+impl Filter {
+    /// Creates an empty `Filter`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
 /// Information about which networks/protocols from application services on the
 /// homeserver from which to request rooms.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum RoomNetwork {
     /// Return rooms from the Matrix network.
     Matrix,
