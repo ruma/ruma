@@ -16,12 +16,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The user ID to retrieve devices for. Must be a user local to the receiving homeserver.
         #[ruma_api(path)]
         pub user_id: &'a UserId,
     }
 
+    #[non_exhaustive]
     response: {
         /// The user ID devices were requested for.
         pub user_id: UserId,
@@ -36,8 +38,25 @@ ruma_api! {
     }
 }
 
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user id.
+    pub fn new(user_id: &'a UserId) -> Self {
+        Self { user_id }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given user id and stream id.
+    ///
+    /// The device list will be empty.
+    pub fn new(user_id: UserId, stream_id: UInt) -> Self {
+        Self { user_id, stream_id, devices: Vec::new() }
+    }
+}
+
 /// Information about a user's device.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct UserDevice {
     /// The device ID.
     pub device_id: DeviceIdBox,
@@ -50,16 +69,9 @@ pub struct UserDevice {
     pub device_display_name: Option<String>,
 }
 
-impl<'a> Request<'a> {
-    /// Creates a new `Request` with the given user id
-    pub fn new(user_id: &'a UserId) -> Self {
-        Self { user_id }
-    }
-}
-
-impl Response {
-    /// Creates a new `Response` with the given user id, stream id and devices.
-    pub fn new(user_id: UserId, stream_id: UInt, devices: Vec<UserDevice>) -> Self {
-        Self { user_id, stream_id, devices }
+impl UserDevice {
+    /// Creates a new `UserDevice` with the given device id and keys.
+    pub fn new(device_id: DeviceIdBox, keys: DeviceKeys) -> Self {
+        Self { device_id, keys, device_display_name: None }
     }
 }

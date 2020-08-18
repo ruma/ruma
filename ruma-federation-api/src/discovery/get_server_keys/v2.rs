@@ -13,11 +13,34 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     request: {}
 
+    #[non_exhaustive]
     response: {
         /// Queried server key, signed by the notary server.
         #[ruma_api(body)]
         pub server_key: ServerKey,
+    }
+}
+
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given server key.
+    pub fn new(server_key: ServerKey) -> Self {
+        Self { server_key }
+    }
+}
+
+impl From<ServerKey> for Response {
+    fn from(server_key: ServerKey) -> Self {
+        Self::new(server_key)
     }
 }

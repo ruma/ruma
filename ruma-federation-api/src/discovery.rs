@@ -13,13 +13,22 @@ pub mod get_server_version;
 
 /// Public key of the homeserver for verifying digital signatures.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct VerifyKey {
     /// The Unpadded Base64 encoded key.
     pub key: String,
 }
 
+impl VerifyKey {
+    /// Creates a new `VerifyKey` from the given key.
+    pub fn new(key: String) -> Self {
+        Self { key }
+    }
+}
+
 /// A key the server used to use, but stopped using.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct OldVerifyKey {
     /// Timestamp when this key expired.
     #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
@@ -28,10 +37,17 @@ pub struct OldVerifyKey {
     pub key: String,
 }
 
-// Spec is wrong, all fields are required (see
-// https://github.com/matrix-org/matrix-doc/issues/2508)
+impl OldVerifyKey {
+    /// Creates a new `OldVerifyKey` with the given expiry time and key.
+    pub fn new(expired_ts: SystemTime, key: String) -> Self {
+        Self { expired_ts, key }
+    }
+}
+
+// Spec is wrong, all fields are required (see https://github.com/matrix-org/matrix-doc/issues/2508)
 /// Queried server key, signed by the notary server.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct ServerKey {
     /// DNS name of the homeserver.
     pub server_name: ServerNameBox,
@@ -46,4 +62,19 @@ pub struct ServerKey {
     /// versions 1, 2, 3, and 4.
     #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
     pub valid_until_ts: SystemTime,
+}
+
+impl ServerKey {
+    /// Creates a new `ServerKey` with the given server name and validity timestamp.
+    ///
+    /// All other fields will be empty.
+    pub fn new(server_name: ServerNameBox, valid_until_ts: SystemTime) -> Self {
+        Self {
+            server_name,
+            verify_keys: BTreeMap::new(),
+            old_verify_keys: BTreeMap::new(),
+            signatures: BTreeMap::new(),
+            valid_until_ts,
+        }
+    }
 }

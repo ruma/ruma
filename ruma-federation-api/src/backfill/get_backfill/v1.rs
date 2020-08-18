@@ -17,6 +17,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The room ID to backfill.
         #[ruma_api(path)]
@@ -31,6 +32,7 @@ ruma_api! {
         pub limit: UInt,
     }
 
+    #[non_exhaustive]
     response: {
         /// The `server_name` of the homeserver sending this transaction.
         pub origin: ServerNameBox,
