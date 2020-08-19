@@ -1,7 +1,7 @@
 //! [GET /_matrix/federation/v1/query/directory](https://matrix.org/docs/spec/server_server/r0.1.3#get-matrix-federation-v1-query-directory)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::RoomId;
+use ruma_identifiers::{RoomAliasId, RoomId};
 
 ruma_api! {
     metadata: {
@@ -16,12 +16,13 @@ ruma_api! {
     request: {
         /// Room alias to query.
         #[ruma_api(query)]
-        pub room_alias: String,
+        pub room_alias: &'a RoomAliasId,
     }
 
     response: {
         /// Room ID mapped to queried alias.
         pub room_id: RoomId,
+
         /// An array of server names that are likely to hold the given room.
         pub servers: Vec<String>,
     }

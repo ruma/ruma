@@ -12,6 +12,7 @@ edition = "2018"
 
 [dependencies]
 js_int = { version = "0.1.9", features = ["serde"] }
+ruma-api = { version = "=0.17.0-alpha.1", path = "../ruma-api" }
 ruma-identifiers = { version = "0.17.4", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.2.3", path = "../ruma-serde" }
 serde = { version = "1.0.114", features = ["derive"] }

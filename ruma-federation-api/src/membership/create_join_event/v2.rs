@@ -21,6 +21,7 @@ ruma_api! {
         /// The room ID that is about to be joined.
         #[ruma_api(path)]
         pub room_id: RoomId,
+
         /// The user ID the join event will be for.
         #[ruma_api(path)]
         pub event_id: EventId,

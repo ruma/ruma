@@ -16,7 +16,7 @@ ruma_api! {
     request: {
         /// The OpenID access token to get information about the owner for.
         #[ruma_api(query)]
-        pub access_token: String,
+        pub access_token: &'a str,
     }
 
     response: {

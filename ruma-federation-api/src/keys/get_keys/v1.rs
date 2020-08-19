@@ -16,12 +16,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The keys to be downloaded. Gives all keys for a given user if the list of device ids is
         /// empty.
         device_keys: BTreeMap<UserId, Vec<DeviceIdBox>>,
     }
 
+    #[non_exhaustive]
     response: {
         /// Keys from the queried devices.
         device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeys>>,

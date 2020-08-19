@@ -55,6 +55,7 @@ ruma_api! {
 pub struct Edu {
     /// Type of the ephemeral message.
     pub edu_type: String,
+
     /// Content of ephemeral message
     pub content: JsonValue,
 }

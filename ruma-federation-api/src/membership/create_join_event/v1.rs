@@ -20,10 +20,11 @@ ruma_api! {
     request: {
         /// The room ID that is about to be joined.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
+
         /// The user ID the join event will be for.
         #[ruma_api(path)]
-        pub event_id: EventId,
+        pub event_id: &'a EventId,
 
         /// PDU type without event and room IDs.
         #[ruma_api(body)]

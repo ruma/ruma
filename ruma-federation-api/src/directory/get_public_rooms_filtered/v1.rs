@@ -2,7 +2,9 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_common::directory::{Filter, PublicRoomsChunk, RoomNetwork};
+use ruma_common::directory::{
+    Filter, IncomingFilter, IncomingRoomNetwork, PublicRoomsChunk, RoomNetwork,
+};
 
 ruma_api! {
     metadata: {
@@ -14,6 +16,8 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     request: {
         /// Limit for the number of results to return.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -25,13 +29,15 @@ ruma_api! {
 
         /// Filter to apply to the results.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub filter: Option<Filter>,
+        pub filter: Option<Filter<'a>>,
 
         /// Network to fetch the public room lists from.
         #[serde(flatten, skip_serializing_if = "ruma_serde::is_default")]
-        pub room_network: RoomNetwork,
+        pub room_network: RoomNetwork<'a>,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {
         /// A paginated chunk of public rooms.
         pub chunk: Vec<PublicRoomsChunk>,
@@ -44,5 +50,19 @@ ruma_api! {
 
         /// An estimate on the total number of public rooms, if the server has an estimate.
         pub total_room_count_estimate: Option<UInt>,
+    }
+}
+
+impl<'a> Request<'a> {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Default::default()
     }
 }

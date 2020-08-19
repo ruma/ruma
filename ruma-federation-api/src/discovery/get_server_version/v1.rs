@@ -13,8 +13,12 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     request: {}
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {
         /// Information about the homeserver implementation
         #[serde(skip_serializing_if = "Option::is_none")]

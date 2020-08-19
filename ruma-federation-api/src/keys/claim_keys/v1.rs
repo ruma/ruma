@@ -17,14 +17,30 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The keys to be claimed.
         one_time_keys: OneTimeKeyClaims,
     }
 
+    #[non_exhaustive]
     response: {
         /// One-time keys for the queried devices
         one_time_keys: OneTimeKeys,
+    }
+}
+
+impl Request {
+    /// Creates a new `Request` with the given one time key claims.
+    pub fn new(one_time_keys: OneTimeKeyClaims) -> Self {
+        Self { one_time_keys }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given one time keys.
+    pub fn new(one_time_keys: OneTimeKeys) -> Self {
+        Self { one_time_keys }
     }
 }
 
@@ -42,18 +58,4 @@ pub struct KeyObject {
     key: String,
     /// Signature of the key object.
     signatures: BTreeMap<UserId, BTreeMap<DeviceKeyId, String>>,
-}
-
-impl Request {
-    /// Creates a new `Request` with the given one time key claims.
-    pub fn new(one_time_keys: OneTimeKeyClaims) -> Self {
-        Self { one_time_keys }
-    }
-}
-
-impl Response {
-    /// Creates a new `Response` with the given one time keys.
-    pub fn new(one_time_keys: OneTimeKeys) -> Self {
-        Self { one_time_keys }
-    }
 }

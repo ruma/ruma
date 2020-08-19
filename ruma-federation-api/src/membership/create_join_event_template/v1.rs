@@ -18,19 +18,22 @@ ruma_api! {
     request: {
         /// The room ID that is about to be joined.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
+
         /// The user ID the join event will be for.
         #[ruma_api(path)]
-        pub user_id: UserId,
-        #[ruma_api(query)]
+        pub user_id: &'a UserId,
+
         /// The room versions the sending server has support for. Defaults to 1.
-        #[serde(skip_serializing_if = "Vec::is_empty")]
-        pub ver: Vec<RoomVersionId>,
+        #[ruma_api(query)]
+        #[serde(skip_serializing_if = "<[_]>::is_empty")]
+        pub ver: &'a [RoomVersionId],
     }
 
     response: {
         /// The version of the room where the server is trying to join.
         pub room_version: Option<RoomVersionId>,
+
         /// An unsigned template event.
         pub event: Raw<Pdu>,
     }

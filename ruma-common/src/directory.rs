@@ -3,6 +3,7 @@
 use std::fmt;
 
 use js_int::UInt;
+use ruma_api::Outgoing;
 use ruma_identifiers::{RoomAliasId, RoomId};
 use serde::{
     de::{Error, MapAccess, Visitor},
@@ -95,15 +96,15 @@ impl From<PublicRoomsChunkInit> for PublicRoomsChunk {
 }
 
 /// A filter for public rooms lists
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Outgoing, Serialize)]
 #[non_exhaustive]
-pub struct Filter {
+pub struct Filter<'a> {
     /// A string to search for in the room metadata, e.g. name, topic, canonical alias etc.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub generic_search_term: Option<String>,
+    pub generic_search_term: Option<&'a str>,
 }
 
-impl Filter {
+impl<'a> Filter<'a> {
     /// Creates an empty `Filter`.
     pub fn new() -> Self {
         Default::default()
@@ -112,9 +113,10 @@ impl Filter {
 
 /// Information about which networks/protocols from application services on the
 /// homeserver from which to request rooms.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Outgoing)]
 #[non_exhaustive]
-pub enum RoomNetwork {
+#[incoming_derive(Clone, PartialEq, Eq, !Deserialize)]
+pub enum RoomNetwork<'a> {
     /// Return rooms from the Matrix network.
     Matrix,
 
@@ -122,16 +124,16 @@ pub enum RoomNetwork {
     All,
 
     /// Return rooms from a specific third party network/protocol.
-    ThirdParty(String),
+    ThirdParty(&'a str),
 }
 
-impl Default for RoomNetwork {
+impl<'a> Default for RoomNetwork<'a> {
     fn default() -> Self {
         RoomNetwork::Matrix
     }
 }
 
-impl Serialize for RoomNetwork {
+impl<'a> Serialize for RoomNetwork<'a> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -154,7 +156,7 @@ impl Serialize for RoomNetwork {
     }
 }
 
-impl<'de> Deserialize<'de> for RoomNetwork {
+impl<'de> Deserialize<'de> for IncomingRoomNetwork {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -165,7 +167,7 @@ impl<'de> Deserialize<'de> for RoomNetwork {
 
 struct RoomNetworkVisitor;
 impl<'de> Visitor<'de> for RoomNetworkVisitor {
-    type Value = RoomNetwork;
+    type Value = IncomingRoomNetwork;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         formatter.write_str("Network selection")
@@ -194,7 +196,7 @@ impl<'de> Visitor<'de> for RoomNetworkVisitor {
 
         if include_all_networks {
             if third_party_instance_id.is_none() {
-                Ok(RoomNetwork::All)
+                Ok(IncomingRoomNetwork::All)
             } else {
                 Err(M::Error::custom(
                     "`include_all_networks = true` and `third_party_instance_id` are mutually exclusive.",
@@ -202,8 +204,8 @@ impl<'de> Visitor<'de> for RoomNetworkVisitor {
             }
         } else {
             Ok(match third_party_instance_id {
-                Some(network) => RoomNetwork::ThirdParty(network),
-                None => RoomNetwork::Matrix,
+                Some(network) => IncomingRoomNetwork::ThirdParty(network),
+                None => IncomingRoomNetwork::Matrix,
             })
         }
     }
@@ -213,7 +215,7 @@ impl<'de> Visitor<'de> for RoomNetworkVisitor {
 mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::RoomNetwork;
+    use super::{IncomingRoomNetwork, RoomNetwork};
 
     #[test]
     fn test_serialize_matrix_network_only() {
@@ -224,7 +226,10 @@ mod tests {
     #[test]
     fn test_deserialize_matrix_network_only() {
         let json = json!({ "include_all_networks": false });
-        assert_eq!(from_json_value::<RoomNetwork>(json).unwrap(), RoomNetwork::Matrix);
+        assert_eq!(
+            from_json_value::<IncomingRoomNetwork>(json).unwrap(),
+            IncomingRoomNetwork::Matrix
+        );
     }
 
     #[test]
@@ -236,7 +241,10 @@ mod tests {
     #[test]
     fn test_deserialize_empty_network_is_default() {
         let json = json!({});
-        assert_eq!(from_json_value::<RoomNetwork>(json).unwrap(), RoomNetwork::default());
+        assert_eq!(
+            from_json_value::<IncomingRoomNetwork>(json).unwrap(),
+            IncomingRoomNetwork::Matrix
+        );
     }
 
     #[test]
@@ -248,21 +256,21 @@ mod tests {
     #[test]
     fn test_deserialize_include_all_networks() {
         let json = json!({ "include_all_networks": true });
-        assert_eq!(from_json_value::<RoomNetwork>(json).unwrap(), RoomNetwork::All);
+        assert_eq!(from_json_value::<IncomingRoomNetwork>(json).unwrap(), IncomingRoomNetwork::All);
     }
 
     #[test]
     fn test_serialize_third_party_network() {
         let json = json!({ "third_party_instance_id": "freenode" });
-        assert_eq!(to_json_value(RoomNetwork::ThirdParty("freenode".into())).unwrap(), json);
+        assert_eq!(to_json_value(RoomNetwork::ThirdParty("freenode")).unwrap(), json);
     }
 
     #[test]
     fn test_deserialize_third_party_network() {
         let json = json!({ "third_party_instance_id": "freenode" });
         assert_eq!(
-            from_json_value::<RoomNetwork>(json).unwrap(),
-            RoomNetwork::ThirdParty("freenode".into())
+            from_json_value::<IncomingRoomNetwork>(json).unwrap(),
+            IncomingRoomNetwork::ThirdParty("freenode".into())
         );
     }
 
@@ -270,7 +278,7 @@ mod tests {
     fn test_deserialize_include_all_networks_and_third_party_exclusivity() {
         let json = json!({ "include_all_networks": true, "third_party_instance_id": "freenode" });
         assert_eq!(
-            from_json_value::<RoomNetwork>(json).unwrap_err().to_string().as_str(),
+            from_json_value::<IncomingRoomNetwork>(json).unwrap_err().to_string().as_str(),
             "`include_all_networks = true` and `third_party_instance_id` are mutually exclusive."
         );
     }
