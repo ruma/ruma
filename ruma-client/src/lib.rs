@@ -114,8 +114,9 @@ use hyper::{client::HttpConnector, Client as HyperClient};
 #[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
 use ruma_api::{AuthScheme, OutgoingRequest};
-use ruma_client_api::r0::sync::sync_events::{
-    Filter as SyncFilter, Request as SyncRequest, Response as SyncResponse,
+use ruma_client_api::r0::{
+    sync::sync_events::{Filter as SyncFilter, Request as SyncRequest, Response as SyncResponse},
+    uiaa::AuthData,
 };
 use ruma_identifiers::DeviceId;
 use ruma_serde::urlencoded;
@@ -280,7 +281,15 @@ where
         use ruma_client_api::r0::account::register;
 
         let response = self
-            .request(assign!(register::Request::new(), { username, password: Some(password) }))
+            .request(assign!(register::Request::new(), {
+                auth: Some(AuthData::DirectRequest {
+                    kind: "m.login.dummy",
+                    session: None,
+                    auth_parameters: BTreeMap::new(),
+                }),
+                username,
+                password: Some(password),
+            }))
             .await?;
 
         let session = Session {
