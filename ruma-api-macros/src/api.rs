@@ -344,7 +344,7 @@ impl ToTokens for Api {
                 > {
                     let metadata = <Self as #ruma_api_import::OutgoingRequest>::METADATA;
 
-                    let mut req_builder = #ruma_api_import::exports::http::Request::builder()
+                    let req_builder = #ruma_api_import::exports::http::Request::builder()
                         .method(#ruma_api_import::exports::http::Method::#method)
                         .uri(::std::format!(
                             "{}{}{}",
