@@ -17,6 +17,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[non_exhaustive]
     request: {
         /// The query criteria. The outer string key on the object is the server
         /// name (eg: matrix.org). The inner string key is the Key ID to query
@@ -41,9 +42,27 @@ ruma_api! {
         pub minimum_valid_until_ts: SystemTime,
     }
 
+    #[non_exhaustive]
     response: {
         /// The queried server's keys, signed by the notary server.
         pub server_keys: Vec<ServerKey>,
+    }
+}
+
+impl Request {
+    /// Creates a new `Request` with the given query criteria and `minimum_valid_until` timestamp.
+    pub fn new(
+        server_keys: BTreeMap<ServerNameBox, BTreeMap<ServerKeyId, QueryCriteria>>,
+        minimum_valid_until_ts: SystemTime,
+    ) -> Self {
+        Self { server_keys, minimum_valid_until_ts }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given keys.
+    pub fn new(server_keys: Vec<ServerKey>) -> Self {
+        Self { server_keys }
     }
 }
 

@@ -15,6 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The room ID that is about to be joined.
         #[ruma_api(path)]
@@ -24,17 +25,43 @@ ruma_api! {
         #[ruma_api(path)]
         pub user_id: &'a UserId,
 
-        /// The room versions the sending server has support for. Defaults to 1.
+        /// The room versions the sending server has support for.
+        ///
+        /// Defaults to `&[RoomVersionId::Version1]`.
         #[ruma_api(query)]
-        #[serde(skip_serializing_if = "<[_]>::is_empty")]
+        #[serde(default = "default_ver", skip_serializing_if = "is_default_ver")]
         pub ver: &'a [RoomVersionId],
     }
 
+    #[non_exhaustive]
     response: {
         /// The version of the room where the server is trying to join.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub room_version: Option<RoomVersionId>,
 
         /// An unsigned template event.
         pub event: Raw<Pdu>,
+    }
+}
+
+fn default_ver() -> Vec<RoomVersionId> {
+    vec![RoomVersionId::Version1]
+}
+
+fn is_default_ver(ver: &&[RoomVersionId]) -> bool {
+    **ver == [RoomVersionId::Version1]
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room id and user id.
+    pub fn new(room_id: &'a RoomId, user_id: &'a UserId) -> Self {
+        Self { room_id, user_id, ver: &[RoomVersionId::Version1] }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given template event.
+    pub fn new(event: Raw<Pdu>) -> Self {
+        Self { room_version: None, event }
     }
 }
