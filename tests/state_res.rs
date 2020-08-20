@@ -295,8 +295,6 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
             .init()
     });
 
-    let resolver = StateResolution::default();
-
     let store = TestStore(RefCell::new(
         INITIAL_EVENTS()
             .values()
@@ -338,7 +336,8 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
 
     // resolve the current state and add it to the state_at_event map then continue
     // on in "time"
-    for node in resolver.lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, id.clone()))
+    for node in
+        StateResolution::lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, id.clone()))
     {
         let fake_event = fake_event_map.get(&node).unwrap();
         let event_id = fake_event.event_id();
@@ -367,7 +366,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
                     .collect::<Vec<_>>()
             );
 
-            let resolved = resolver.resolve(
+            let resolved = StateResolution::resolve(
                 &room_id(),
                 &RoomVersionId::Version1,
                 &state_sets,
@@ -712,14 +711,12 @@ fn topic_setting() {
 
 #[test]
 fn test_event_map_none() {
-    let resolver = StateResolution::default();
-
     let store = TestStore(RefCell::new(btreemap! {}));
 
     // build up the DAG
     let (state_at_bob, state_at_charlie, expected) = store.set_up();
 
-    let resolved = match resolver.resolve(
+    let resolved = match StateResolution::resolve(
         &room_id(),
         &RoomVersionId::Version2,
         &[state_at_bob, state_at_charlie],
@@ -736,8 +733,6 @@ fn test_event_map_none() {
 
 #[test]
 fn test_lexicographical_sort() {
-    let resolver = StateResolution::default();
-
     let graph = btreemap! {
         event_id("l") => vec![event_id("o")],
         event_id("m") => vec![event_id("n"), event_id("o")],
@@ -746,7 +741,8 @@ fn test_lexicographical_sort() {
         event_id("p") => vec![event_id("o")],
     };
 
-    let res = resolver.lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, id.clone()));
+    let res =
+        StateResolution::lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, id.clone()));
 
     assert_eq!(
         vec!["o", "l", "n", "m", "p"],

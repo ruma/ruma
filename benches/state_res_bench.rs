@@ -38,25 +38,22 @@ fn lexico_topo_sort(c: &mut Criterion) {
             event_id("p") => vec![event_id("o")],
         };
         b.iter(|| {
-            let resolver = StateResolution::default();
-
-            let _ =
-                resolver.lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, id.clone()));
+            let _ = StateResolution::lexicographical_topological_sort(&graph, |id| {
+                (0, UNIX_EPOCH, id.clone())
+            });
         })
     });
 }
 
 fn resolution_shallow_auth_chain(c: &mut Criterion) {
     c.bench_function("resolve state of 5 events one fork", |b| {
-        let resolver = StateResolution::default();
-
         let store = TestStore(RefCell::new(btreemap! {}));
 
         // build up the DAG
         let (state_at_bob, state_at_charlie, _) = store.set_up();
 
         b.iter(|| {
-            let _resolved = match resolver.resolve(
+            let _resolved = match StateResolution::resolve(
                 &room_id(),
                 &RoomVersionId::Version2,
                 &[state_at_bob.clone(), state_at_charlie.clone()],
@@ -73,8 +70,6 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
 
 fn resolve_deeper_event_set(c: &mut Criterion) {
     c.bench_function("resolve state of 10 events 3 conflicting", |b| {
-        let resolver = StateResolution::default();
-
         let init = INITIAL_EVENTS();
         let ban = BAN_STATE_SET();
 
@@ -109,7 +104,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         .collect::<StateMap<_>>();
 
         b.iter(|| {
-            let _resolved = match resolver.resolve(
+            let _resolved = match StateResolution::resolve(
                 &room_id(),
                 &RoomVersionId::Version2,
                 &[state_set_a.clone(), state_set_b.clone()],

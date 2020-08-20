@@ -35,8 +35,6 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
             .init()
     });
 
-    let resolver = StateResolution::default();
-
     let store = TestStore(RefCell::new(
         INITIAL_EVENTS()
             .values()
@@ -78,7 +76,8 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
 
     // resolve the current state and add it to the state_at_event map then continue
     // on in "time"
-    for node in resolver.lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, id.clone()))
+    for node in
+        StateResolution::lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, id.clone()))
     {
         let fake_event = fake_event_map.get(&node).unwrap();
         let event_id = fake_event.event_id();
@@ -107,7 +106,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
                     .collect::<Vec<_>>()
             );
 
-            let resolved = resolver.resolve(
+            let resolved = StateResolution::resolve(
                 &room_id(),
                 &RoomVersionId::Version1,
                 &state_sets,
@@ -589,12 +588,10 @@ fn ban_with_auth_chains() {
 
 #[test]
 fn base_with_auth_chains() {
-    let resolver = StateResolution::default();
-
     let store = TestStore(RefCell::new(INITIAL_EVENTS()));
 
     let resolved: BTreeMap<_, EventId> =
-        match resolver.resolve(&room_id(), &RoomVersionId::Version2, &[], None, &store) {
+        match StateResolution::resolve(&room_id(), &RoomVersionId::Version2, &[], None, &store) {
             Ok(ResolutionResult::Resolved(state)) => state,
             Err(e) => panic!("{}", e),
             _ => panic!("conflicted state left"),
@@ -625,8 +622,6 @@ fn base_with_auth_chains() {
 
 #[test]
 fn ban_with_auth_chains2() {
-    let resolver = StateResolution::default();
-
     let init = INITIAL_EVENTS();
     let ban = BAN_STATE_SET();
 
@@ -660,7 +655,7 @@ fn ban_with_auth_chains2() {
     .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id()))
     .collect::<StateMap<_>>();
 
-    let resolved: StateMap<EventId> = match resolver.resolve(
+    let resolved: StateMap<EventId> = match StateResolution::resolve(
         &room_id(),
         &RoomVersionId::Version2,
         &[state_set_a, state_set_b],
