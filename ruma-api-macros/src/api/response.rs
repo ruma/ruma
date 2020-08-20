@@ -58,15 +58,30 @@ impl Response {
                     }
                 }
                 ResponseField::Header(_, header_name) => {
-                    quote_spanned! {span=>
-                        #field_name: #import_path::try_deserialize!(
-                            response,
-                            headers.remove(#import_path::exports::http::header::#header_name)
-                                .expect("response missing expected header")
-                                .to_str()
-                            )
-                            .to_owned()
-                    }
+                    let optional_header = match &field.ty {
+                        syn::Type::Path(syn::TypePath {
+                            path: syn::Path { segments, .. }, ..
+                        }) if segments.iter().any(|seg| seg.ident == "Option") => {
+                            quote! {
+                                #field_name: #import_path::try_deserialize!(
+                                    response,
+                                    headers.remove(#import_path::exports::http::header::#header_name)
+                                        .map(|h| h.to_str().map(|s| s.to_owned()))
+                                        .transpose()
+                                )
+                            }
+                        }
+                        _ => quote! {
+                            #field_name: #import_path::try_deserialize!(
+                                response,
+                                headers.remove(#import_path::exports::http::header::#header_name)
+                                    .expect("response missing expected header")
+                                    .to_str()
+                                )
+                                .to_owned()
+                        },
+                    };
+                    quote_spanned! {span=> #optional_header }
                 }
                 ResponseField::NewtypeBody(_) => {
                     quote_spanned! {span=>
@@ -102,8 +117,31 @@ impl Response {
                     field.ident.as_ref().expect("expected field to have an identifier");
                 let span = field.span();
 
+                let optional_header = match &field.ty {
+                    syn::Type::Path(syn::TypePath { path: syn::Path { segments, .. }, .. })
+                        if segments.iter().any(|seg| seg.ident == "Option") =>
+                    {
+                        quote! {
+                            let resp_builder = if let Some(header) = response.#field_name {
+                                resp_builder.header(
+                                    #import_path::exports::http::header::#header_name,
+                                    header,
+                                )
+                            } else {
+                                resp_builder
+                            };
+                        }
+                    }
+                    _ => quote! {
+                        let resp_builder = resp_builder.header(
+                            #import_path::exports::http::header::#header_name,
+                            response.#field_name,
+                        );
+                    },
+                };
+
                 Some(quote_spanned! {span=>
-                    .header(#import_path::exports::http::header::#header_name, response.#field_name)
+                    #optional_header
                 })
             } else {
                 None

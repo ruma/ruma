@@ -276,13 +276,14 @@ impl ToTokens for Api {
 
                 #[allow(unused_variables)]
                 fn try_from(response: Response) -> ::std::result::Result<Self, Self::Error> {
-                    let response = #ruma_api_import::exports::http::Response::builder()
-                        .header(#ruma_api_import::exports::http::header::CONTENT_TYPE, "application/json")
-                        #serialize_response_headers
-                        .body(#body)
-                        // Since we require header names to come from the `http::header` module,
-                        // this cannot fail.
-                        .unwrap();
+                    let resp_builder = #ruma_api_import::exports::http::Response::builder()
+                        .header(#ruma_api_import::exports::http::header::CONTENT_TYPE, "application/json");
+
+                    #serialize_response_headers
+
+                    // Since we require header names to come from the `http::header` module,
+                    // this cannot fail.
+                    let response = resp_builder.body(#body).unwrap();
                     Ok(response)
                 }
             }

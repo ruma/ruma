@@ -15,6 +15,7 @@ ruma_api! {
         location: Option<String>,
     }
     response: {
-        stuff: String,
+        #[ruma_api(header = LOCATION)]
+        stuff: Option<String>,
     }
 }
