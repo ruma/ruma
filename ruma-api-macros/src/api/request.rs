@@ -49,9 +49,27 @@ impl Request {
 
             let field_name = &field.ident;
 
-            quote! {
-                #import_path::exports::http::header::#header_name,
-                #import_path::exports::http::header::HeaderValue::from_str(self.#field_name.as_ref())?
+            match &field.ty {
+                syn::Type::Path(syn::TypePath { path: syn::Path { segments, .. }, .. })
+                    if segments.iter().any(|seg| seg.ident == "Option") =>
+                {
+                    quote! {
+                        let req_builder = if let Some(header_val) = self.#field_name.as_ref() {
+                            req_builder.header(
+                                #import_path::exports::http::header::#header_name,
+                                #import_path::exports::http::header::HeaderValue::from_str(header_val)?,
+                            )
+                        } else {
+                            req_builder
+                        };
+                    }
+                }
+                _ => quote! {
+                    let req_builder = req_builder.header(
+                        #import_path::exports::http::header::#header_name,
+                        #import_path::exports::http::header::HeaderValue::from_str(self.#field_name.as_ref())?,
+                    );
+                },
             }
         }).collect()
     }
@@ -68,13 +86,20 @@ impl Request {
             let field_name = &field.ident;
             let header_name_string = header_name.to_string();
 
-            quote! {
-                #field_name: match headers
-                    .get(#import_path::exports::http::header::#header_name)
-                    .and_then(|v| v.to_str().ok()) // FIXME: Should have a distinct error message
+            let (some_case, none_case) = match &field.ty {
+                syn::Type::Path(syn::TypePath { path: syn::Path { segments, .. }, .. })
+                    if segments.iter().any(|seg| seg.ident == "Option") =>
                 {
-                    Some(header) => header.to_owned(),
-                    None => {
+                    (
+                        quote! {
+                            Some(header.to_owned()),
+                        },
+                        quote! { None, },
+                    )
+                }
+                _ => (
+                    quote! { header.to_owned(), },
+                    quote! {{
                         use #import_path::exports::serde::de::Error as _;
 
                         // FIXME: Not a missing json field, a missing header!
@@ -85,7 +110,17 @@ impl Request {
                             request,
                         )
                         .into());
-                    }
+                    }},
+                ),
+            };
+
+            quote! {
+                #field_name: match headers
+                    .get(#import_path::exports::http::header::#header_name)
+                    .and_then(|v| v.to_str().ok()) // FIXME: Should have a distinct error message
+                {
+                    Some(header) => #some_case
+                    None => #none_case
                 }
             }
         });

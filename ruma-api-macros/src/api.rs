@@ -136,15 +136,17 @@ impl ToTokens for Api {
         let mut header_kvs = self.request.append_header_kvs();
         if requires_authentication.value {
             header_kvs.push(quote! {
-                #ruma_api_import::exports::http::header::AUTHORIZATION,
-                #ruma_api_import::exports::http::header::HeaderValue::from_str(
-                    &::std::format!(
-                        "Bearer {}",
-                        access_token.ok_or(
-                            #ruma_api_import::error::IntoHttpError::NeedsAuthentication
-                        )?
-                    )
-                )?
+                let req_builder = req_builder.header(
+                    #ruma_api_import::exports::http::header::AUTHORIZATION,
+                    #ruma_api_import::exports::http::header::HeaderValue::from_str(
+                        &::std::format!(
+                            "Bearer {}",
+                            access_token.ok_or(
+                                #ruma_api_import::error::IntoHttpError::NeedsAuthentication
+                            )?
+                        )
+                    )?
+                );
             });
         }
 
@@ -341,16 +343,18 @@ impl ToTokens for Api {
                 > {
                     let metadata = <Self as #ruma_api_import::OutgoingRequest>::METADATA;
 
-                    let http_request = #ruma_api_import::exports::http::Request::builder()
+                    let mut req_builder = #ruma_api_import::exports::http::Request::builder()
                         .method(#ruma_api_import::exports::http::Method::#method)
                         .uri(::std::format!(
                             "{}{}{}",
                             base_url.strip_suffix("/").unwrap_or(base_url),
                             #request_path_string,
                             #request_query_string,
-                        ))
-                        #( .header(#header_kvs) )*
-                        .body(#request_body)?;
+                        ));
+
+                    #( #header_kvs )*
+
+                    let http_request = req_builder.body(#request_body)?;
 
                     Ok(http_request)
                 }
