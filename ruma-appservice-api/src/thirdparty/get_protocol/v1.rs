@@ -13,12 +13,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The name of the protocol.
         #[ruma_api(path)]
         pub protocol: &'a str,
     }
 
+    #[non_exhaustive]
     response: {
         /// Metadata about the protocol.
         #[ruma_api(body)]
