@@ -301,8 +301,9 @@ impl StateResolution {
     }
 
     /// Events are sorted from "earliest" to "latest". They are compared using
-    /// the negative power level, the origin server timestamp and incase of a
-    /// tie the `EventId`s are compared lexicographically.
+    /// the negative power level (reverse topological ordering), the
+    /// origin server timestamp and incase of a tie the `EventId`s
+    /// are compared lexicographically.
     ///
     /// The power level is negative because a higher power level is equated to an
     /// earlier (further back in time) origin server timestamp.
