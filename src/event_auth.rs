@@ -105,8 +105,19 @@ pub fn auth_check(
             false
         };
 
+        // check the event has been signed by the domain of the sender
         if event.signatures().get(sender_domain).is_none() && !is_invite_via_3pid {
             tracing::warn!("event not signed by sender's server");
+            return Some(false);
+        }
+
+        if event.room_version() == RoomVersionId::Version1
+            && event
+                .signatures()
+                .get(event.event_id().server_name().unwrap())
+                .is_none()
+        {
+            tracing::warn!("event not signed by event_id's server");
             return Some(false);
         }
     }
@@ -128,7 +139,6 @@ pub fn auth_check(
         }
 
         // if content.room_version is present and is not a valid version
-        // TODO check this out (what event has this as content?)
         if serde_json::from_value::<RoomVersionId>(
             event
                 .content()

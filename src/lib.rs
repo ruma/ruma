@@ -352,12 +352,6 @@ impl StateResolution {
 
             tracing::debug!("{:?}", (-*pl, *ev.origin_server_ts(), ev.event_id()));
 
-            // count_0.sort_by(|(x, _), (y, _)| {
-            //     x.power_level
-            //         .cmp(&a.power_level)
-            //         .then_with(|| x.origin_server.ts.cmp(&y.origin_server_ts))
-            //         .then_with(|| x.event_id.cmp(&y.event_id))
-
             // This return value is the key used for sorting events,
             // events are then sorted by power level, time,
             // and lexically by event_id.

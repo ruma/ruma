@@ -8,7 +8,7 @@ use ruma::{
         room::member::{MemberEventContent, MembershipState},
         EventDeHelper, EventType,
     },
-    identifiers::{EventId, RoomId, ServerName, UserId},
+    EventId, RoomId, RoomVersionId, ServerName, UserId,
 };
 use serde::{de, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
@@ -329,6 +329,23 @@ impl StateEvent {
                 PduStub::RoomV3PduStub(ev) => {
                     ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
                 }
+            },
+        }
+    }
+
+    /// Returns the room version this event is formatted for.
+    ///
+    /// Currently either version 1 or 3 is returned, 3 represents
+    /// version 3 and above.
+    pub fn room_version(&self) -> RoomVersionId {
+        match self {
+            Self::Full(ev) => match ev {
+                Pdu::RoomV1Pdu(_) => RoomVersionId::Version1,
+                Pdu::RoomV3Pdu(_) => RoomVersionId::Version3,
+            },
+            Self::Sync(ev) => match ev {
+                PduStub::RoomV1PduStub(_) => RoomVersionId::Version1,
+                PduStub::RoomV3PduStub(_) => RoomVersionId::Version3,
             },
         }
     }
