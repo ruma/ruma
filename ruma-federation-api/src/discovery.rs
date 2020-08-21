@@ -2,7 +2,7 @@
 
 use std::{collections::BTreeMap, time::SystemTime};
 
-use ruma_identifiers::{ServerKeyId, ServerNameBox};
+use ruma_identifiers::{ServerNameBox, SigningKeyId};
 use serde::{Deserialize, Serialize};
 
 pub mod discover_homeserver;
@@ -49,19 +49,19 @@ impl OldVerifyKey {
 /// Queried server key, signed by the notary server.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct ServerKey {
+pub struct SigningKey {
     /// DNS name of the homeserver.
     pub server_name: ServerNameBox,
 
     /// Public keys of the homeserver for verifying digital signatures.
-    pub verify_keys: BTreeMap<ServerKeyId, VerifyKey>,
+    pub verify_keys: BTreeMap<SigningKeyId, VerifyKey>,
 
     /// Public keys that the homeserver used to use and when it stopped using them.
-    pub old_verify_keys: BTreeMap<ServerKeyId, OldVerifyKey>,
+    pub old_verify_keys: BTreeMap<SigningKeyId, OldVerifyKey>,
 
     /// Digital signatures of this object signed using the verify_keys. Map of
     /// server name to keys by key ID
-    pub signatures: BTreeMap<ServerNameBox, BTreeMap<ServerKeyId, String>>,
+    pub signatures: BTreeMap<ServerNameBox, BTreeMap<SigningKeyId, String>>,
 
     /// Timestamp when the keys should be refreshed. This field MUST be ignored in room
     /// versions 1, 2, 3, and 4.
@@ -69,8 +69,8 @@ pub struct ServerKey {
     pub valid_until_ts: SystemTime,
 }
 
-impl ServerKey {
-    /// Creates a new `ServerKey` with the given server name and validity timestamp.
+impl SigningKey {
+    /// Creates a new `SigningKey` with the given server name and validity timestamp.
     ///
     /// All other fields will be empty.
     pub fn new(server_name: ServerNameBox, valid_until_ts: SystemTime) -> Self {

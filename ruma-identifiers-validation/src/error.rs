@@ -29,7 +29,7 @@ pub enum Error {
     MissingDeviceKeyDelimiter,
 
     /// The ID is missing the colon delimiter between key algorithm and version.
-    MissingServerKeyDelimiter,
+    MissingSigningKeyDelimiter,
 
     /// The ID is missing the correct leading sigil.
     MissingSigil,
@@ -48,7 +48,7 @@ impl Display for Error {
             Error::MaximumLengthExceeded => "ID exceeds 255 bytes",
             Error::MissingDelimiter => "colon is required between localpart and server name",
             Error::MissingDeviceKeyDelimiter => "colon is required between algorithm and device ID",
-            Error::MissingServerKeyDelimiter => "colon is required between algorithm and version",
+            Error::MissingSigningKeyDelimiter => "colon is required between algorithm and version",
             Error::MissingSigil => "leading sigil is incorrect or missing",
             Error::UnknownKeyAlgorithm => "unknown key algorithm specified",
         };

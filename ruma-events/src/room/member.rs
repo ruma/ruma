@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use ruma_common::StringEnum;
 use ruma_events_macros::StateEventContent;
-use ruma_identifiers::{ServerKeyId, ServerNameBox, UserId};
+use ruma_identifiers::{ServerNameBox, SigningKeyId, UserId};
 use serde::{Deserialize, Serialize};
 
 use crate::{StateEvent, StrippedStateEvent, SyncStateEvent};
@@ -109,7 +109,7 @@ pub struct SignedContent {
 
     /// A single signature from the verifying server, in the format specified by the Signing Events
     /// section of the server-server API.
-    pub signatures: BTreeMap<ServerNameBox, BTreeMap<ServerKeyId, String>>,
+    pub signatures: BTreeMap<ServerNameBox, BTreeMap<SigningKeyId, String>>,
 
     /// The token property of the containing third_party_invite object.
     pub token: String,

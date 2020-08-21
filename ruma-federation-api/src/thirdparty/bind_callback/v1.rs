@@ -2,7 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_common::thirdparty::Medium;
-use ruma_identifiers::{RoomId, ServerKeyId, ServerNameBox, UserId};
+use ruma_identifiers::{RoomId, ServerNameBox, SigningKeyId, UserId};
 use serde::{Deserialize, Serialize};
 
 use std::collections::BTreeMap;
@@ -61,7 +61,7 @@ pub struct ThirdPartyInvite {
     pub sender: UserId,
 
     /// Signature from the identity server using a long-term private key.
-    pub signed: BTreeMap<ServerNameBox, BTreeMap<ServerKeyId, String>>,
+    pub signed: BTreeMap<ServerNameBox, BTreeMap<SigningKeyId, String>>,
 }
 
 impl ThirdPartyInvite {
@@ -71,7 +71,7 @@ impl ThirdPartyInvite {
         mxid: UserId,
         room_id: RoomId,
         sender: UserId,
-        signed: BTreeMap<ServerNameBox, BTreeMap<ServerKeyId, String>>,
+        signed: BTreeMap<ServerNameBox, BTreeMap<SigningKeyId, String>>,
     ) -> Self {
         Self { medium: Medium::Email, address, mxid, room_id, sender, signed }
     }

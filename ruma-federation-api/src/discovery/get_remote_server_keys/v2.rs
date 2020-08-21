@@ -2,7 +2,7 @@
 
 use std::time::SystemTime;
 
-use crate::discovery::ServerKey;
+use crate::discovery::SigningKey;
 use ruma_api::ruma_api;
 use ruma_identifiers::ServerName;
 
@@ -34,7 +34,7 @@ ruma_api! {
 
     response: {
         /// The queried server's keys, signed by the notary server.
-        pub server_keys: Vec<ServerKey>,
+        pub server_keys: Vec<SigningKey>,
     }
 }
 
@@ -47,7 +47,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given keys.
-    pub fn new(server_keys: Vec<ServerKey>) -> Self {
+    pub fn new(server_keys: Vec<SigningKey>) -> Self {
         Self { server_keys }
     }
 }

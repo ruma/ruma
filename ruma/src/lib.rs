@@ -27,7 +27,7 @@ pub use ruma_serde as serde;
 pub use ruma_identifiers::{
     device_id, device_key_id, event_id, room_alias_id, room_id, room_version_id, server_key_id,
     server_name, user_id, DeviceId, DeviceKeyAlgorithm, DeviceKeyId, EventId, RoomAliasId, RoomId,
-    RoomIdOrAliasId, RoomVersionId, ServerKeyAlgorithm, ServerKeyId, ServerName, UserId,
+    RoomIdOrAliasId, RoomVersionId, ServerName, SigningKeyAlgorithm, SigningKeyId, UserId,
 };
 
 #[cfg(feature = "ruma-events")]

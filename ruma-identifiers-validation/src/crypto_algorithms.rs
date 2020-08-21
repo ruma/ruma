@@ -42,17 +42,17 @@ impl TryFrom<String> for DeviceKeyAlgorithm {
     }
 }
 
-/// The server key algorithms defined in the Matrix spec.
+/// The signing key algorithms defined in the Matrix spec.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, Display, EnumString)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize), serde(rename_all = "snake_case"))]
 #[non_exhaustive]
 #[strum(serialize_all = "snake_case")]
-pub enum ServerKeyAlgorithm {
+pub enum SigningKeyAlgorithm {
     /// The Ed25519 signature algorithm.
     Ed25519,
 }
 
-impl TryFrom<&'_ str> for ServerKeyAlgorithm {
+impl TryFrom<&'_ str> for SigningKeyAlgorithm {
     type Error = strum::ParseError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
@@ -60,7 +60,7 @@ impl TryFrom<&'_ str> for ServerKeyAlgorithm {
     }
 }
 
-impl TryFrom<String> for ServerKeyAlgorithm {
+impl TryFrom<String> for SigningKeyAlgorithm {
     type Error = strum::ParseError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -132,7 +132,7 @@ mod tests {
     use ruma_serde::test::serde_json_eq;
     use serde_json::json;
 
-    use super::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, ServerKeyAlgorithm};
+    use super::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, SigningKeyAlgorithm};
 
     #[test]
     fn parse_device_key_algorithm() {
@@ -142,8 +142,8 @@ mod tests {
     }
 
     #[test]
-    fn parse_server_key_algorithm() {
-        assert_eq!("ed25519".parse(), Ok(ServerKeyAlgorithm::Ed25519));
+    fn parse_signing_key_algorithm() {
+        assert_eq!("ed25519".parse(), Ok(SigningKeyAlgorithm::Ed25519));
     }
 
     #[test]

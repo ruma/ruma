@@ -5,10 +5,11 @@ Breaking changes:
 * Update strum dependency to 0.19
 * Remove deprecated constructors
 * Remove deprecated `is_` methods
+* Rename `ServerKeyId` to `SigningKeyId`
 
 Improvements:
 
-* Add `DeviceKeyId::from_parts` and `ServerKeyId::from_parts`
+* Add `DeviceKeyId::from_parts` and `SigningKeyId::from_parts`
 * Add `DeviceIdBox` and `ServerNameBox` type aliases
 
 # 0.17.4

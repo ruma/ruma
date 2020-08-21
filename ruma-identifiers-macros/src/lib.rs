@@ -2,7 +2,7 @@ use proc_macro::TokenStream;
 
 use quote::quote;
 use ruma_identifiers_validation::{
-    device_key_id, event_id, room_alias_id, room_id, room_version_id, server_key_id, server_name,
+    device_key_id, event_id, room_alias_id, room_id, room_version_id, server_name, signing_key_id,
     user_id,
 };
 use syn::{parse::Parse, parse_macro_input, LitStr, Path, Token};
@@ -85,10 +85,10 @@ pub fn room_version_id(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn server_key_id(input: TokenStream) -> TokenStream {
     let Input { dollar_crate, id } = parse_macro_input!(input as Input);
-    assert!(server_key_id::validate(&id.value()).is_ok(), "Invalid server_key_id");
+    assert!(signing_key_id::validate(&id.value()).is_ok(), "Invalid server_key_id");
 
     let output = quote! {
-        <#dollar_crate::ServerKeyId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
+        <#dollar_crate::SigningKeyId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
     };
 
     output.into()
@@ -103,6 +103,18 @@ pub fn server_name(input: TokenStream) -> TokenStream {
         <::std::boxed::Box::<#dollar_crate::ServerName> as ::std::convert::TryFrom<&str>>::try_from(
             #id,
         ).unwrap()
+    };
+
+    output.into()
+}
+
+#[proc_macro]
+pub fn signing_key_id(input: TokenStream) -> TokenStream {
+    let Input { dollar_crate, id } = parse_macro_input!(input as Input);
+    assert!(signing_key_id::validate(&id.value()).is_ok(), "Invalid signing_key_id");
+
+    let output = quote! {
+        <#dollar_crate::SigningKeyId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
     };
 
     output.into()

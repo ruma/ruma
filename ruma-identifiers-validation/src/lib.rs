@@ -6,8 +6,8 @@ pub mod room_alias_id;
 pub mod room_id;
 pub mod room_id_or_alias_id;
 pub mod room_version_id;
-pub mod server_key_id;
 pub mod server_name;
+pub mod signing_key_id;
 pub mod user_id;
 
 use std::num::NonZeroU8;

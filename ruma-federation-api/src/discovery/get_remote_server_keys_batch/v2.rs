@@ -2,9 +2,9 @@
 
 use std::{collections::BTreeMap, time::SystemTime};
 
-use crate::discovery::ServerKey;
+use crate::discovery::SigningKey;
 use ruma_api::ruma_api;
-use ruma_identifiers::{ServerKeyId, ServerNameBox};
+use ruma_identifiers::{ServerNameBox, SigningKeyId};
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -28,7 +28,7 @@ ruma_api! {
         /// The notary server may return multiple keys regardless of the Key IDs
         /// given.
         #[ruma_api(body)]
-        pub server_keys: BTreeMap<ServerNameBox, BTreeMap<ServerKeyId, QueryCriteria>>,
+        pub server_keys: BTreeMap<ServerNameBox, BTreeMap<SigningKeyId, QueryCriteria>>,
 
         /// A millisecond POSIX timestamp in milliseconds indicating when the
         /// returned certificates will need to be valid until to be useful to
@@ -43,14 +43,14 @@ ruma_api! {
 
     response: {
         /// The queried server's keys, signed by the notary server.
-        pub server_keys: Vec<ServerKey>,
+        pub server_keys: Vec<SigningKey>,
     }
 }
 
 impl Request {
     /// Creates a new `Request` with the given query criteria and `minimum_valid_until` timestamp.
     pub fn new(
-        server_keys: BTreeMap<ServerNameBox, BTreeMap<ServerKeyId, QueryCriteria>>,
+        server_keys: BTreeMap<ServerNameBox, BTreeMap<SigningKeyId, QueryCriteria>>,
         minimum_valid_until_ts: SystemTime,
     ) -> Self {
         Self { server_keys, minimum_valid_until_ts }
@@ -59,7 +59,7 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given keys.
-    pub fn new(server_keys: Vec<ServerKey>) -> Self {
+    pub fn new(server_keys: Vec<SigningKey>) -> Self {
         Self { server_keys }
     }
 }
