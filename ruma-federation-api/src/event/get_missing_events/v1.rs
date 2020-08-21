@@ -26,7 +26,7 @@ ruma_api! {
         limit: UInt,
 
         /// The minimum depth of events to retrieve. Defaults to 0.
-        #[serde(default = "default_min_depth", skip_serializing_if = "is_default_min_depth")]
+        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
         min_depth: UInt,
 
         /// The latest event IDs that the sender already has. These are skipped when retrieving the previous events of `latest_events`.
@@ -52,7 +52,7 @@ impl<'a> Request<'a> {
         Self {
             room_id,
             limit: default_limit(),
-            min_depth: default_min_depth(),
+            min_depth: UInt::default(),
             earliest_events,
             latest_events,
         }
@@ -72,12 +72,4 @@ fn default_limit() -> UInt {
 
 fn is_default_limit(val: &UInt) -> bool {
     *val == default_limit()
-}
-
-fn default_min_depth() -> UInt {
-    uint!(0)
-}
-
-fn is_default_min_depth(val: &UInt) -> bool {
-    *val == default_min_depth()
 }
