@@ -13,13 +13,15 @@ ruma_api! {
 
     }
 
+    #[non_exhaustive]
     request: {
         /// URL to which the homeserver should return the user after completing
         /// authentication with the SSO identity provider.
         #[ruma_api(query)]
-        pub redirect_url: String,
+        pub redirect_url: &'a str,
     }
 
+    #[non_exhaustive]
     response: {
         /// Redirect URL to the SSO identity provider.
         #[ruma_api(header = LOCATION)]
@@ -27,4 +29,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given redirect URL.
+    pub fn new(redirect_url: &'a str) -> Self {
+        Self { redirect_url }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given SSO URL.
+    pub fn new(location: String) -> Self {
+        Self { location }
+    }
 }

@@ -15,6 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The term to search for.
         pub search_term: &'a str,
@@ -34,6 +35,7 @@ ruma_api! {
         pub language: Option<String>,
     }
 
+    #[non_exhaustive]
     response: {
         /// Ordered by rank and then whether or not profile info is available.
         pub results: Vec<User>,
@@ -43,6 +45,20 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given search term.
+    pub fn new(search_term: &'a str) -> Self {
+        Self { search_term, limit: default_limit(), language: None }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given results and limited flag
+    pub fn new(results: Vec<User>, limited: bool) -> Self {
+        Self { results, limited }
+    }
 }
 
 fn default_limit() -> UInt {
