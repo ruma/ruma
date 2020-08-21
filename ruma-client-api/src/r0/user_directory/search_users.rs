@@ -24,6 +24,14 @@ ruma_api! {
         /// Defaults to 10.
         #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
         pub limit: UInt,
+
+        /// Language tag to determine the collation to use for the (case-insensitive) search.
+        ///
+        /// See [MDN] for the syntax.
+        ///
+        /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#Syntax
+        #[ruma_api(header = ACCEPT_LANGUAGE)]
+        pub language: Option<String>,
     }
 
     response: {
