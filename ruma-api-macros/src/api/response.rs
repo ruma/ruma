@@ -61,7 +61,7 @@ impl Response {
                     let optional_header = match &field.ty {
                         syn::Type::Path(syn::TypePath {
                             path: syn::Path { segments, .. }, ..
-                        }) if segments.iter().any(|seg| seg.ident == "Option") => {
+                        }) if segments.last().unwrap().ident == "Option" => {
                             quote! {
                                 #field_name: #import_path::try_deserialize!(
                                     response,
@@ -77,8 +77,8 @@ impl Response {
                                 headers.remove(#import_path::exports::http::header::#header_name)
                                     .expect("response missing expected header")
                                     .to_str()
-                                )
-                                .to_owned()
+                            )
+                            .to_owned()
                         },
                     };
                     quote_spanned! {span=> #optional_header }
@@ -119,21 +119,19 @@ impl Response {
 
                 let optional_header = match &field.ty {
                     syn::Type::Path(syn::TypePath { path: syn::Path { segments, .. }, .. })
-                        if segments.iter().any(|seg| seg.ident == "Option") =>
+                        if segments.last().unwrap().ident == "Option" =>
                     {
                         quote! {
-                            let resp_builder = if let Some(header) = response.#field_name {
-                                resp_builder.header(
+                            if let Some(header) = response.#field_name {
+                                resp_builder = resp_builder.header(
                                     #import_path::exports::http::header::#header_name,
                                     header,
-                                )
-                            } else {
-                                resp_builder
-                            };
+                                );
+                            }
                         }
                     }
                     _ => quote! {
-                        let resp_builder = resp_builder.header(
+                        resp_builder = resp_builder.header(
                             #import_path::exports::http::header::#header_name,
                             response.#field_name,
                         );

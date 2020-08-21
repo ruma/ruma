@@ -276,7 +276,7 @@ impl ToTokens for Api {
 
                 #[allow(unused_variables)]
                 fn try_from(response: Response) -> ::std::result::Result<Self, Self::Error> {
-                    let resp_builder = #ruma_api_import::exports::http::Response::builder()
+                    let mut resp_builder = #ruma_api_import::exports::http::Response::builder()
                         .header(#ruma_api_import::exports::http::header::CONTENT_TYPE, "application/json");
 
                     #serialize_response_headers
@@ -344,7 +344,7 @@ impl ToTokens for Api {
                 > {
                     let metadata = <Self as #ruma_api_import::OutgoingRequest>::METADATA;
 
-                    let req_builder = #ruma_api_import::exports::http::Request::builder()
+                    let mut req_builder = #ruma_api_import::exports::http::Request::builder()
                         .method(#ruma_api_import::exports::http::Method::#method)
                         .uri(::std::format!(
                             "{}{}{}",
