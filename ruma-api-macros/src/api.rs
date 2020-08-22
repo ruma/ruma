@@ -133,7 +133,11 @@ impl ToTokens for Api {
             self.request.request_init_query_fields()
         };
 
-        let mut header_kvs = self.request.append_header_kvs();
+        let mut header_kvs = quote! {
+            req_builder = req_builder
+                .header(#ruma_api_import::exports::http::header::CONTENT_TYPE, "application/json");
+        };
+        header_kvs.extend(self.request.append_header_kvs());
         if authentication == "AccessToken" {
             header_kvs.extend(quote! {
                 req_builder = req_builder.header(
