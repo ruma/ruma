@@ -18,6 +18,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// A transaction ID unique between sending and receiving homeservers.
         #[ruma_api(path)]
@@ -43,10 +44,32 @@ ruma_api! {
         pub edus: &'a [Edu],
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {
         /// Map of event IDs and response for each PDU given in the request.
         #[serde(with = "crate::serde::pdu_process_response")]
         pub pdus: BTreeMap<EventId, Result<(), String>>,
+    }
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given transaction ID, origin, timestamp.
+    ///
+    /// The PDU and EDU lists will start off empty.
+    pub fn new(
+        transaction_id: &'a str,
+        origin: &'a ServerName,
+        origin_server_ts: SystemTime,
+    ) -> Self {
+        Self { transaction_id, origin, origin_server_ts, pdus: &[], edus: &[] }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given PDUs.
+    pub fn new(pdus: BTreeMap<EventId, Result<(), String>>) -> Self {
+        Self { pdus }
     }
 }
 

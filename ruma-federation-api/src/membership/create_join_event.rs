@@ -9,12 +9,22 @@ use serde::{Deserialize, Serialize};
 
 /// Full state of the room.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub struct RoomState {
     /// The resident server's DNS name.
     pub origin: String,
+
     /// The full set of authorization events that make up the state of the room,
     /// and their authorization events, recursively.
     pub auth_chain: Vec<Raw<Pdu>>,
+
     /// The room state.
     pub state: Vec<Raw<Pdu>>,
+}
+
+impl RoomState {
+    /// Creates an empty `RoomState` with the given `origin`.
+    pub fn new(origin: String) -> Self {
+        Self { origin, auth_chain: Vec::new(), state: Vec::new() }
+    }
 }

@@ -14,10 +14,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// User ID to query.
         #[ruma_api(query)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
 
         /// Profile field to query.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -25,6 +26,8 @@ ruma_api! {
         pub field: Option<ProfileField>,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {
         /// Display name of the user.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -36,8 +39,22 @@ ruma_api! {
     }
 }
 
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user id.
+    pub fn new(user_id: &'a UserId) -> Self {
+        Self { user_id, field: None }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
 /// Profile fields to specify in query.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub enum ProfileField {
     /// Display name of the user.
     #[serde(rename = "displayname")]

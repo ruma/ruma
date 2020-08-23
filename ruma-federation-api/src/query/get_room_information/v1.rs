@@ -13,17 +13,33 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// Room alias to query.
         #[ruma_api(query)]
         pub room_alias: &'a RoomAliasId,
     }
 
+    #[non_exhaustive]
     response: {
         /// Room ID mapped to queried alias.
         pub room_id: RoomId,
 
         /// An array of server names that are likely to hold the given room.
         pub servers: Vec<String>,
+    }
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room alias ID.
+    pub fn new(room_alias: &'a RoomAliasId) -> Self {
+        Self { room_alias }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given room IDs and servers.
+    pub fn new(room_id: RoomId, servers: Vec<String>) -> Self {
+        Self { room_id, servers }
     }
 }

@@ -17,23 +17,40 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The room ID that is about to be joined.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The user ID the join event will be for.
         #[ruma_api(path)]
-        pub event_id: EventId,
+        pub event_id: &'a EventId,
 
         /// PDU type without event and room IDs.
         #[ruma_api(body)]
         pub pdu_stub: Raw<PduStub>,
     }
 
+    #[non_exhaustive]
     response: {
         /// Full state of the room.
         #[ruma_api(body)]
         pub room_state: RoomState,
+    }
+}
+
+// FIXME: Construct from Pdu, same for similar endpoints
+impl<'a> Request<'a> {
+    /// Creates a `Request` from the given room ID, event ID and `PduStub`.
+    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, pdu_stub: Raw<PduStub>) -> Self {
+        Self { room_id, event_id, pdu_stub }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given room state.
+    pub fn new(room_state: RoomState) -> Self {
+        Self { room_state }
     }
 }

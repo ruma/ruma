@@ -13,14 +13,30 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[non_exhaustive]
     request: {
         /// The OpenID access token to get information about the owner for.
         #[ruma_api(query)]
         pub access_token: &'a str,
     }
 
+    #[non_exhaustive]
     response: {
         /// The Matrix User ID who generated the token.
         pub sub: UserId,
+    }
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given access token.
+    pub fn new(access_token: &'a str) -> Self {
+        Self { access_token }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given user id.
+    pub fn new(sub: UserId) -> Self {
+        Self { sub }
     }
 }

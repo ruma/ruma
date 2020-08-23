@@ -36,8 +36,10 @@ ruma_api! {
         latest_events: &'a [EventId],
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {
-        /// The missing events.
+        /// The missing PDUs.
         events: Vec<Pdu>
     }
 }
