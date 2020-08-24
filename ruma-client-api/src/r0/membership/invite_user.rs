@@ -6,6 +6,7 @@
 //!
 //! [invite-by-user-id]: https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-rooms-roomid-invite
 //! [invite-by-3pid]: https://matrix.org/docs/spec/client_server/r0.6.0#id101
+
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};

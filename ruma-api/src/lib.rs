@@ -9,6 +9,7 @@
 //! input parameters for requests, and the structure of a successful response.
 //! Such types can then be used by client code to make requests, and by server code to fulfill
 //! those requests.
+
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![warn(rust_2018_idioms)]
 #![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]

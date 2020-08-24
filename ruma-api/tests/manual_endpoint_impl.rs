@@ -1,4 +1,5 @@
 //! PUT /_matrix/client/r0/directory/room/:room_alias
+
 use std::{convert::TryFrom, ops::Deref};
 
 use http::{header::CONTENT_TYPE, method::Method};
