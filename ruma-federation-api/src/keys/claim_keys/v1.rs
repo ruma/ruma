@@ -20,13 +20,13 @@ ruma_api! {
     #[non_exhaustive]
     request: {
         /// The keys to be claimed.
-        one_time_keys: OneTimeKeyClaims,
+        pub one_time_keys: OneTimeKeyClaims,
     }
 
     #[non_exhaustive]
     response: {
         /// One-time keys for the queried devices
-        one_time_keys: OneTimeKeys,
+        pub one_time_keys: OneTimeKeys,
     }
 }
 
@@ -51,11 +51,19 @@ pub type OneTimeKeyClaims = BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeyAlgo
 pub type OneTimeKeys = BTreeMap<UserId, BTreeMap<DeviceIdBox, BTreeMap<DeviceKeyId, KeyObject>>>;
 
 /// A key and its signature
-#[non_exhaustive]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct KeyObject {
     /// The key, encoded using unpadded base64.
-    key: String,
+    pub key: String,
+
     /// Signature of the key object.
-    signatures: BTreeMap<UserId, BTreeMap<DeviceKeyId, String>>,
+    pub signatures: BTreeMap<UserId, BTreeMap<DeviceKeyId, String>>,
+}
+
+impl KeyObject {
+    /// Creates a new `KeyObject` with the given key and signatures.
+    pub fn new(key: String, signatures: BTreeMap<UserId, BTreeMap<DeviceKeyId, String>>) -> Self {
+        Self { key, signatures }
+    }
 }
