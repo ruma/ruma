@@ -25,7 +25,7 @@ tasks:
       fmt_exit=$?
 
       if ( rustup component list | grep -q clippy ); then
-        cargo clippy --all --all-targets --all-features -- -D warnings
+        cargo clippy --all --all-targets --all-features --quiet -- -D warnings
       fi
       clippy_exit=$?
 
