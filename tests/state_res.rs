@@ -1,5 +1,3 @@
-#![allow(clippy::or_fun_call, clippy::expect_fun_call)]
-
 use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet},
@@ -317,14 +315,20 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
 
     for pair in INITIAL_EDGES().windows(2) {
         if let [a, b] = &pair {
-            graph.entry(a.clone()).or_insert(vec![]).push(b.clone());
+            graph
+                .entry(a.clone())
+                .or_insert_with(Vec::new)
+                .push(b.clone());
         }
     }
 
     for edge_list in edges {
         for pair in edge_list.windows(2) {
             if let [a, b] = &pair {
-                graph.entry(a.clone()).or_insert(vec![]).push(b.clone());
+                graph
+                    .entry(a.clone())
+                    .or_insert_with(Vec::new)
+                    .push(b.clone());
             }
         }
     }
@@ -439,14 +443,16 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
 
     let mut expected_state = StateMap::new();
     for node in expected_state_ids {
-        let ev = event_map.get(&node).expect(&format!(
-            "{} not found in {:?}",
-            node.to_string(),
-            event_map
-                .keys()
-                .map(ToString::to_string)
-                .collect::<Vec<_>>(),
-        ));
+        let ev = event_map.get(&node).unwrap_or_else(|| {
+            panic!(
+                "{} not found in {:?}",
+                node.to_string(),
+                event_map
+                    .keys()
+                    .map(ToString::to_string)
+                    .collect::<Vec<_>>(),
+            )
+        });
 
         let key = (ev.kind(), ev.state_key());
 

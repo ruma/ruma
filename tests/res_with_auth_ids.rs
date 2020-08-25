@@ -1,12 +1,6 @@
 #![allow(clippy::or_fun_call, clippy::expect_fun_call)]
 
-use std::{
-    cell::RefCell,
-    collections::{BTreeMap, BTreeSet},
-    convert::TryFrom,
-    sync::Once,
-    time::UNIX_EPOCH,
-};
+use std::{cell::RefCell, collections::BTreeMap, convert::TryFrom, sync::Once, time::UNIX_EPOCH};
 
 use ruma::{
     events::{
@@ -153,7 +147,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         }
 
         // TODO The event is just remade, adding the auth_events and prev_events here
-        // UPDATE: the `to_pdu_event` was split into `init` and the fn below, could be better
+        // the `to_pdu_event` was split into `init` and the fn below, could be better
         let e = fake_event;
         let ev_id = e.event_id();
         let event = to_pdu_event(
@@ -165,12 +159,9 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
             &auth_events,
             prev_events,
         );
+
         // we have to update our store, an actual user of this lib would
         // be giving us state from a DB.
-        //
-        // TODO
-        // TODO we need to convert the `StateResolution::resolve` to use the event_map
-        // because the user of this crate cannot update their DB's state.
         *store.0.borrow_mut().get_mut(&ev_id).unwrap() = event.clone();
 
         state_at_event.insert(node, state_after);
@@ -209,82 +200,12 @@ pub struct TestStore(RefCell<BTreeMap<EventId, StateEvent>>);
 
 #[allow(unused)]
 impl StateStore for TestStore {
-    fn get_events(&self, room_id: &RoomId, events: &[EventId]) -> Result<Vec<StateEvent>, String> {
-        Ok(self
-            .0
-            .borrow()
-            .iter()
-            .filter(|e| events.contains(e.0))
-            .map(|(_, s)| s)
-            .cloned()
-            .collect())
-    }
-
     fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent, String> {
         self.0
             .borrow()
             .get(event_id)
             .cloned()
             .ok_or(format!("{} not found", event_id.to_string()))
-    }
-
-    fn auth_event_ids(
-        &self,
-        room_id: &RoomId,
-        event_ids: &[EventId],
-    ) -> Result<Vec<EventId>, String> {
-        let mut result = vec![];
-        let mut stack = event_ids.to_vec();
-
-        // DFS for auth event chain
-        while !stack.is_empty() {
-            let ev_id = stack.pop().unwrap();
-            if result.contains(&ev_id) {
-                continue;
-            }
-
-            result.push(ev_id.clone());
-
-            let event = self.get_event(room_id, &ev_id).unwrap();
-            stack.extend(event.auth_events());
-        }
-
-        Ok(result)
-    }
-
-    fn auth_chain_diff(
-        &self,
-        room_id: &RoomId,
-        event_ids: Vec<Vec<EventId>>,
-    ) -> Result<Vec<EventId>, String> {
-        use itertools::Itertools;
-
-        let mut chains = vec![];
-        for ids in event_ids {
-            // TODO state store `auth_event_ids` returns self in the event ids list
-            // when an event returns `auth_event_ids` self is not contained
-            let chain = self
-                .auth_event_ids(room_id, &ids)?
-                .into_iter()
-                .collect::<BTreeSet<_>>();
-            chains.push(chain);
-        }
-
-        if let Some(chain) = chains.first() {
-            let rest = chains.iter().skip(1).flatten().cloned().collect();
-            let common = chain.intersection(&rest).collect::<Vec<_>>();
-
-            Ok(chains
-                .iter()
-                .flatten()
-                .filter(|id| !common.contains(&id))
-                .cloned()
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect())
-        } else {
-            Ok(vec![])
-        }
     }
 }
 

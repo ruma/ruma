@@ -378,10 +378,14 @@ impl StateResolution {
         // https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm
 
         // TODO make the BTreeSet conversion cleaner ??
+        // outdegree_map is an event referring to the events before it, the
+        // more outdegree's the more recent the event.
         let mut outdegree_map: BTreeMap<EventId, BTreeSet<EventId>> = graph
             .iter()
             .map(|(k, v)| (k.clone(), v.iter().cloned().collect()))
             .collect();
+
+        // The number of events that depend on the given event (the eventId key)
         let mut reverse_graph = BTreeMap::new();
 
         // Vec of nodes that have zero out degree, least recent events.
@@ -389,7 +393,7 @@ impl StateResolution {
 
         for (node, edges) in graph.iter() {
             if edges.is_empty() {
-                // the `Reverse` is because rusts bin heap sorts largest -> smallest we need
+                // the `Reverse` is because rusts `BinaryHeap` sorts largest -> smallest we need
                 // smallest -> largest
                 zero_outdegree.push(Reverse((key_fn(node), node)));
             }
@@ -407,7 +411,7 @@ impl StateResolution {
 
         // we remove the oldest node (most incoming edges) and check against all other
         let mut sorted = vec![];
-        // match out the `Reverse` and take the smallest `node` each time
+        // destructure the `Reverse` and take the smallest `node` each time
         while let Some(Reverse((_, node))) = heap.pop() {
             let node: &EventId = node;
             for parent in reverse_graph.get(node).unwrap() {
