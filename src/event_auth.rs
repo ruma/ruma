@@ -292,7 +292,9 @@ pub fn is_membership_change_allowed(
         if let Some(create) = auth_events.get(&(EventType::RoomCreate, Some("".into()))) {
             if let Ok(create_ev) = create.deserialize_content::<room::create::CreateEventContent>()
             {
-                if user.state_key == Some(create_ev.creator.to_string()) {
+                if user.state_key == Some(create_ev.creator.to_string())
+                    && create.prev_event_ids().is_empty()
+                {
                     tracing::debug!("m.room.member event allowed via m.room.create");
                     return Ok(true);
                 }
