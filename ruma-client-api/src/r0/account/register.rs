@@ -16,6 +16,8 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     request: {
         /// The desired password for the account.
         ///
@@ -24,7 +26,7 @@ ruma_api! {
         #[serde(skip_serializing_if = "Option::is_none")]
         pub password: Option<&'a str>,
 
-        /// local part of the desired Matrix ID.
+        /// Localpart of the desired Matrix ID.
         ///
         /// If omitted, the homeserver MUST generate a Matrix ID local part.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -56,8 +58,8 @@ ruma_api! {
         ///
         /// Defaults to `User` if omitted.
         #[ruma_api(query)]
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub kind: Option<RegistrationKind>,
+        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        pub kind: RegistrationKind,
 
         /// If `true`, an `access_token` and `device_id` should not be returned
         /// from this call, therefore preventing an automatic login.
@@ -65,6 +67,7 @@ ruma_api! {
         pub inhibit_login: bool,
     }
 
+    #[non_exhaustive]
     response: {
         /// An access token for the account.
         ///
@@ -84,8 +87,22 @@ ruma_api! {
     error: UiaaResponse
 }
 
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with all parameters defaulted.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given user ID.
+    pub fn new(user_id: UserId) -> Self {
+        Self { access_token: None, user_id, device_id: None }
+    }
+}
+
 /// The kind of account being registered.
-#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RegistrationKind {
     /// A guest account
@@ -95,4 +112,10 @@ pub enum RegistrationKind {
 
     /// A regular user account
     User,
+}
+
+impl Default for RegistrationKind {
+    fn default() -> Self {
+        Self::User
+    }
 }

@@ -7,11 +7,11 @@
 //! [invite-by-user-id]: https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-rooms-roomid-invite
 //! [invite-by-3pid]: https://matrix.org/docs/spec/client_server/r0.6.0#id101
 
-use ruma_api::ruma_api;
+use ruma_api::{ruma_api, Outgoing};
 use ruma_identifiers::{RoomId, UserId};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-use super::Invite3pid;
+use super::{IncomingInvite3pid, Invite3pid};
 
 ruma_api! {
     metadata: {
@@ -23,33 +23,52 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The room where the user should be invited.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The user to invite.
         #[ruma_api(body)]
-        pub recipient: InvitationRecipient,
+        pub recipient: InvitationRecipient<'a>,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
 }
 
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room ID and invitation recipient.
+    pub fn new(room_id: &'a RoomId, recipient: InvitationRecipient<'a>) -> Self {
+        Self { room_id, recipient }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
 /// Distinguishes between invititations by Matrix or third party identifiers.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Outgoing, Serialize)]
+#[non_exhaustive]
+#[incoming_derive(PartialEq)]
 #[serde(untagged)]
-pub enum InvitationRecipient {
+pub enum InvitationRecipient<'a> {
     /// Used to invite user by their Matrix identifer.
     UserId {
         /// Matrix identifier of user.
-        user_id: UserId,
+        user_id: &'a UserId,
     },
 
     /// Used to invite user by a third party identifer.
-    ThirdPartyId(Invite3pid),
+    ThirdPartyId(Invite3pid<'a>),
 }
 
 #[cfg(test)]
@@ -58,29 +77,30 @@ mod tests {
     use ruma_identifiers::user_id;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::InvitationRecipient;
-    use crate::r0::membership::Invite3pid;
+    use super::IncomingInvitationRecipient;
+    use crate::r0::membership::IncomingInvite3pid;
 
     #[test]
     fn deserialize_invite_by_user_id() {
-        let incoming =
-            from_json_value::<InvitationRecipient>(json!({ "user_id": "@carl:example.org" }))
-                .unwrap();
+        let incoming = from_json_value::<IncomingInvitationRecipient>(
+            json!({ "user_id": "@carl:example.org" }),
+        )
+        .unwrap();
         let user_id = user_id!("@carl:example.org");
-        let recipient = InvitationRecipient::UserId { user_id };
+        let recipient = IncomingInvitationRecipient::UserId { user_id };
         assert_eq!(incoming, recipient);
     }
 
     #[test]
     fn deserialize_invite_by_3pid() {
-        let incoming = from_json_value::<InvitationRecipient>(json!({
+        let incoming = from_json_value::<IncomingInvitationRecipient>(json!({
             "id_server": "example.org",
             "id_access_token": "abcdefghijklmnop",
             "medium": "email",
             "address": "carl@example.org"
         }))
         .unwrap();
-        let recipient = InvitationRecipient::ThirdPartyId(Invite3pid {
+        let recipient = IncomingInvitationRecipient::ThirdPartyId(IncomingInvite3pid {
             id_server: "example.org".into(),
             id_access_token: "abcdefghijklmnop".into(),
             medium: Medium::Email,

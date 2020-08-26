@@ -17,7 +17,7 @@ use std::collections::BTreeMap;
 use ruma_api::Outgoing;
 use ruma_common::thirdparty::Medium;
 use ruma_identifiers::{ServerKeyId, ServerNameBox};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 /// A signature of an `m.third_party_invite` token to prove that this user owns a third party
 /// identity which has been invited to the room.
@@ -37,17 +37,18 @@ pub struct ThirdPartySigned<'a> {
 }
 
 /// Represents third party IDs to invite to the room.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct Invite3pid {
+#[derive(Clone, Debug, PartialEq, Outgoing, Serialize)]
+#[incoming_derive(PartialEq)]
+pub struct Invite3pid<'a> {
     /// Hostname and port of identity server to be used for account lookups.
-    pub id_server: String,
+    pub id_server: &'a str,
 
     /// An access token registered with the identity server.
-    pub id_access_token: String,
+    pub id_access_token: &'a str,
 
     /// Type of third party ID.
     pub medium: Medium,
 
     /// Third party identifier.
-    pub address: String,
+    pub address: &'a str,
 }

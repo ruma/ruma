@@ -14,7 +14,7 @@ use ruma_identifiers::{RoomId, RoomVersionId, UserId};
 use serde::{Deserialize, Serialize};
 
 use super::Visibility;
-use crate::r0::membership::Invite3pid;
+use crate::r0::membership::{IncomingInvite3pid, Invite3pid};
 
 ruma_api! {
     metadata: {
@@ -48,7 +48,7 @@ ruma_api! {
 
         /// List of third party IDs of users to invite.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub invite_3pid: &'a [Invite3pid],
+        pub invite_3pid: &'a [Invite3pid<'a>],
 
         /// If set, this sets the `is_direct` flag on room invites.
         #[serde(default, skip_serializing_if = "ruma_serde::is_default")]

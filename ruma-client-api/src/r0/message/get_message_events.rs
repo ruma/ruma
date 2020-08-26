@@ -87,11 +87,21 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a `Request` with the given parameters.
+    /// Creates a new `Request` with the given parameters.
     ///
     /// All other parameters will be defaulted.
     pub fn new(room_id: &'a RoomId, from: &'a str, dir: Direction) -> Self {
         Self { room_id, from, to: None, dir, limit: default_limit(), filter: None }
+    }
+
+    /// Creates a new `Request` with the given room ID and from token, and `dir` set to `Backward`.
+    pub fn backward(room_id: &'a RoomId, from: &'a str) -> Self {
+        Self::new(room_id, from, Direction::Backward)
+    }
+
+    /// Creates a new `Request` with the given room ID and from token, and `dir` set to `Forward`.
+    pub fn forward(room_id: &'a RoomId, from: &'a str) -> Self {
+        Self::new(room_id, from, Direction::Forward)
     }
 }
 

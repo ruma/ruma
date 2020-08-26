@@ -243,18 +243,10 @@ where
     pub async fn register_guest(
         &self,
     ) -> Result<Session, Error<ruma_client_api::r0::uiaa::UiaaResponse>> {
-        use ruma_client_api::r0::account::register;
+        use ruma_client_api::r0::account::register::{self, RegistrationKind};
 
         let response = self
-            .request(register::Request {
-                auth: None,
-                device_id: None,
-                inhibit_login: false,
-                initial_device_display_name: None,
-                kind: Some(register::RegistrationKind::Guest),
-                password: None,
-                username: None,
-            })
+            .request(assign!(register::Request::new(), { kind: RegistrationKind::Guest }))
             .await?;
 
         let session = Session {
@@ -288,15 +280,7 @@ where
         use ruma_client_api::r0::account::register;
 
         let response = self
-            .request(register::Request {
-                auth: None,
-                device_id: None,
-                inhibit_login: false,
-                initial_device_display_name: None,
-                kind: Some(register::RegistrationKind::User),
-                password: Some(password),
-                username,
-            })
+            .request(assign!(register::Request::new(), { username, password: Some(password) }))
             .await?;
 
         let session = Session {
