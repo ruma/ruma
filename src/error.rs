@@ -17,6 +17,9 @@ pub enum Error {
     #[error(transparent)]
     IntParseError(#[from] ParseIntError),
 
+    #[error("Not found error: {0}")]
+    NotFound(String),
+
     // TODO remove once the correct errors are used
     #[error("an error occured {0}")]
     TempString(String),

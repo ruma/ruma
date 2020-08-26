@@ -553,10 +553,7 @@ impl StateResolution {
 
             tracing::debug!("event to check {:?}", event.event_id().to_string());
 
-            if event_auth::auth_check(room_version, &event, auth_events, false)
-                .ok_or_else(|| "Auth check failed due to deserialization most likely".to_string())
-                .map_err(Error::TempString)?
-            {
+            if event_auth::auth_check(room_version, &event, auth_events, false)? {
                 // add event to resolved state map
                 resolved_state.insert((event.kind(), event.state_key()), event_id.clone());
             } else {

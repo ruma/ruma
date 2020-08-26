@@ -13,7 +13,7 @@ use serde_json::json;
 use crate::{
     room_version::RoomVersion,
     state_event::{Requester, StateEvent},
-    StateMap,
+    Result, StateMap,
 };
 
 /// Represents the 3 event redaction outcomes.
@@ -82,14 +82,14 @@ pub fn auth_check(
     event: &StateEvent,
     auth_events: StateMap<StateEvent>,
     do_sig_check: bool,
-) -> Option<bool> {
+) -> Result<bool> {
     tracing::info!("auth_check beginning for {}", event.event_id().as_str());
 
     // don't let power from other rooms be used
     for auth_event in auth_events.values() {
         if auth_event.room_id() != event.room_id() {
             tracing::warn!("found auth event that did not match event's room_id");
-            return Some(false);
+            return Ok(false);
         }
     }
 
@@ -108,7 +108,7 @@ pub fn auth_check(
         // check the event has been signed by the domain of the sender
         if event.signatures().get(sender_domain).is_none() && !is_invite_via_3pid {
             tracing::warn!("event not signed by sender's server");
-            return Some(false);
+            return Ok(false);
         }
 
         if event.room_version() == RoomVersionId::Version1
@@ -118,7 +118,7 @@ pub fn auth_check(
                 .is_none()
         {
             tracing::warn!("event not signed by event_id's server");
-            return Some(false);
+            return Ok(false);
         }
     }
 
@@ -135,7 +135,7 @@ pub fn auth_check(
         // domain of room_id must match domain of sender.
         if event.room_id().map(|id| id.server_name()) != Some(event.sender().server_name()) {
             tracing::warn!("creation events server does not match sender");
-            return Some(false); // creation events room id does not match senders
+            return Ok(false); // creation events room id does not match senders
         }
 
         // if content.room_version is present and is not a valid version
@@ -150,11 +150,11 @@ pub fn auth_check(
         .is_err()
         {
             tracing::warn!("invalid room version found in m.room.create event");
-            return Some(false);
+            return Ok(false);
         }
 
         tracing::info!("m.room.create event was allowed");
-        return Some(true);
+        return Ok(true);
     }
 
     // 3. If event does not have m.room.create in auth_events reject.
@@ -164,7 +164,7 @@ pub fn auth_check(
     {
         tracing::warn!("no m.room.create event in auth chain");
 
-        return Some(false);
+        return Ok(false);
     }
 
     // check for m.federate
@@ -174,7 +174,7 @@ pub fn auth_check(
         if !can_federate(&auth_events) {
             tracing::warn!("federation not allowed");
 
-            return Some(false);
+            return Ok(false);
         }
     }
 
@@ -184,41 +184,41 @@ pub fn auth_check(
         // TODO && room_version "special case aliases auth" ??
         if event.state_key().is_none() {
             tracing::warn!("no state_key field found for event");
-            return Some(false); // must have state_key
+            return Ok(false); // must have state_key
         }
         if event.state_key().unwrap().is_empty() {
             tracing::warn!("state_key must be non-empty");
-            return Some(false); // and be non-empty state_key (point to a user_id)
+            return Ok(false); // and be non-empty state_key (point to a user_id)
         }
 
         if event.state_key() != Some(event.sender().to_string()) {
             tracing::warn!("no state_key field found for event");
-            return Some(false);
+            return Ok(false);
         }
 
         tracing::info!("m.room.aliases event was allowed");
-        return Some(true);
+        return Ok(true);
     }
 
     if event.kind() == EventType::RoomMember {
         tracing::info!("starting m.room.member check");
 
         if !is_membership_change_allowed(event.to_requester(), &auth_events)? {
-            return Some(false);
+            return Ok(false);
         }
 
         tracing::info!("m.room.member event was allowed");
-        return Some(true);
+        return Ok(true);
     }
 
-    if let Some(in_room) = check_event_sender_in_room(event, &auth_events) {
+    if let Ok(in_room) = check_event_sender_in_room(event, &auth_events) {
         if !in_room {
             tracing::warn!("sender not in room");
-            return Some(false);
+            return Ok(false);
         }
     } else {
         tracing::warn!("sender not in room");
-        return Some(false);
+        return Ok(false);
     }
 
     // Special case to allow m.room.third_party_invite events where ever
@@ -230,7 +230,7 @@ pub fn auth_check(
 
     if !can_send_event(event, &auth_events)? {
         tracing::warn!("user cannot send event");
-        return Some(false);
+        return Ok(false);
     }
 
     if event.kind() == EventType::RoomPowerLevels {
@@ -238,23 +238,23 @@ pub fn auth_check(
         if let Some(required_pwr_lvl) = check_power_levels(room_version, event, &auth_events) {
             if !required_pwr_lvl {
                 tracing::warn!("power level was not allowed");
-                return Some(false);
+                return Ok(false);
             }
         } else {
             tracing::warn!("power level was not allowed");
-            return Some(false);
+            return Ok(false);
         }
         tracing::info!("power levels event allowed");
     }
 
     if event.kind() == EventType::RoomRedaction {
         if let RedactAllowed::No = check_redaction(room_version, event, &auth_events)? {
-            return Some(false);
+            return Ok(false);
         }
     }
 
     tracing::info!("allowing event passed all checks");
-    Some(true)
+    Ok(true)
 }
 
 // synapse has an `event: &StateEvent` param but it's never used
@@ -272,38 +272,35 @@ pub fn can_federate(auth_events: &StateMap<StateEvent>) -> bool {
     }
 }
 
-/// Dose the user who sent this member event have required power levels to do so.
+/// Does the user who sent this member event have required power levels to do so.
+///
+/// If called on it's own the following must be true:
+/// - there must be a valid state_key in `user`
+/// - there must be a membership key in `user.content` i.e. the event is of type "m.room.member"
 pub fn is_membership_change_allowed(
     user: Requester<'_>,
     auth_events: &StateMap<StateEvent>,
-) -> Option<bool> {
+) -> Result<bool> {
     let content =
         // TODO return error
-        serde_json::from_str::<room::member::MemberEventContent>(&user.content.to_string()).ok()?;
+        serde_json::from_str::<room::member::MemberEventContent>(&user.content.to_string())?;
 
     let membership = content.membership;
 
-    // check if this is the room creator joining
+    // If the only previous event is an m.room.create and the state_key is the creator, allow
     if user.prev_event_ids.len() == 1 && membership == MembershipState::Join {
         if let Some(create) = auth_events.get(&(EventType::RoomCreate, Some("".into()))) {
             if let Ok(create_ev) = create.deserialize_content::<room::create::CreateEventContent>()
             {
                 if user.state_key == Some(create_ev.creator.to_string()) {
                     tracing::debug!("m.room.member event allowed via m.room.create");
-                    return Some(true);
+                    return Ok(true);
                 }
             }
         }
     }
 
-    let target_user_id = UserId::try_from(user.state_key.as_deref().unwrap())
-        .ok()
-        .unwrap();
-    // if the server_names are different and federation is NOT allowed
-    if user.room_id.server_name() != target_user_id.server_name() && !can_federate(auth_events) {
-        tracing::warn!("server cannot federate");
-        return Some(false);
-    }
+    let target_user_id = UserId::try_from(user.state_key.as_deref().unwrap()).unwrap();
 
     let key = (EventType::RoomMember, Some(user.sender.to_string()));
     let caller = auth_events.get(&key);
@@ -323,8 +320,7 @@ pub fn is_membership_change_allowed(
     let mut join_rule = JoinRule::Invite;
     if let Some(jr) = join_rules_event {
         join_rule = jr
-            .deserialize_content::<room::join_rules::JoinRulesEventContent>()
-            .ok()? // TODO these are errors? and should be treated as a DB failure?
+            .deserialize_content::<room::join_rules::JoinRulesEventContent>()?
             .join_rule;
     }
 
@@ -354,77 +350,79 @@ pub fn is_membership_change_allowed(
         // TODO this is unimpled
         if !verify_third_party_invite(&user, auth_events) {
             tracing::warn!("not invited to this room",);
-            return Some(false);
+            return Ok(false);
         }
         if target_banned {
             tracing::warn!("banned from this room",);
-            return Some(false);
+            return Ok(false);
         }
         tracing::info!("invite succeded");
-        return Some(true);
-    }
-
-    if membership != MembershipState::Join {
-        if caller_invited && membership == MembershipState::Leave && &target_user_id == user.sender
-        {
-            tracing::warn!("join event succeded");
-            return Some(true);
-        }
-
-        if !caller_in_room {
-            tracing::warn!("user is not in this room {}", user.room_id.as_str(),);
-            return Some(false); // caller is not joined
-        }
+        return Ok(true);
     }
 
     if membership == MembershipState::Invite {
+        if !caller_in_room {
+            tracing::warn!("invite sender not in room they are inviting user to");
+            return Ok(false);
+        }
+
         if target_banned {
             tracing::warn!("target has been banned");
-            return Some(false);
+            return Ok(false);
         } else if target_in_room {
             tracing::warn!("already in room");
-            return Some(false); // already in room
+            return Ok(false); // already in room
         } else {
             let invite_level = get_named_level(auth_events, "invite", 0);
             if user_level < invite_level {
-                return Some(false);
+                return Ok(false);
             }
         }
     } else if membership == MembershipState::Join {
         if user.sender != &target_user_id {
             tracing::warn!("cannot force another user to join");
-            return Some(false); // cannot force another user to join
+            return Ok(false); // cannot force another user to join
         } else if target_banned {
             tracing::warn!("cannot join when banned");
-            return Some(false); // cannot joined when banned
+            return Ok(false); // cannot joined when banned
         } else if join_rule == JoinRule::Public {
             tracing::info!("join rule public")
         // pass
         } else if join_rule == JoinRule::Invite {
             if !caller_in_room && !caller_invited {
                 tracing::warn!("user has not been invited to this room");
-                return Some(false); // you are not invited to this room
+                return Ok(false); // you are not invited to this room
             }
         } else {
             tracing::warn!("the join rule is Private or yet to be spec'ed by Matrix");
             // synapse has 2 TODO's may_join list and private rooms
 
             // the join_rule is Private or Knock which means it is not yet spec'ed
-            return Some(false);
+            return Ok(false);
         }
     } else if membership == MembershipState::Leave {
+        if !caller_in_room {
+            tracing::warn!("sender not in room they are leaving");
+            return Ok(false);
+        }
+
         if target_banned && user_level < ban_level {
             tracing::warn!("not enough power to unban");
-            return Some(false); // you cannot unban this user
+            return Ok(false); // you cannot unban this user
         } else if &target_user_id != user.sender {
             let kick_level = get_named_level(auth_events, "kick", 50);
 
             if user_level < kick_level || user_level <= target_level {
                 tracing::warn!("not enough power to kick user");
-                return Some(false); // you do not have the power to kick user
+                return Ok(false); // you do not have the power to kick user
             }
         }
     } else if membership == MembershipState::Ban {
+        if !caller_in_room {
+            tracing::warn!("ban sender not in room they are banning user from");
+            return Ok(false);
+        }
+
         tracing::debug!(
             "{} < {} || {} <= {}",
             user_level,
@@ -432,17 +430,18 @@ pub fn is_membership_change_allowed(
             user_level,
             target_level
         );
+
         if user_level < ban_level || user_level <= target_level {
             tracing::warn!("not enough power to ban");
-            return Some(false);
+            return Ok(false);
         }
     } else {
         tracing::warn!("unknown membership status");
         // Unknown membership status
-        return Some(false);
+        return Ok(false);
     }
 
-    Some(true)
+    Ok(true)
 }
 
 /// Is the event's sender in the room that they sent the event to.
@@ -451,19 +450,19 @@ pub fn is_membership_change_allowed(
 pub fn check_event_sender_in_room(
     event: &StateEvent,
     auth_events: &StateMap<StateEvent>,
-) -> Option<bool> {
-    let mem = auth_events.get(&(EventType::RoomMember, Some(event.sender().to_string())))?;
+) -> Result<bool> {
+    let mem = auth_events
+        .get(&(EventType::RoomMember, Some(event.sender().to_string())))
+        .ok_or_else(|| crate::Error::NotFound("Authe event was not found".into()))?;
     // TODO this is check_membership a helper fn in synapse but it does this
-    Some(
-        mem.deserialize_content::<room::member::MemberEventContent>()
-            .ok()?
-            .membership
-            == MembershipState::Join,
-    )
+    Ok(mem
+        .deserialize_content::<room::member::MemberEventContent>()?
+        .membership
+        == MembershipState::Join)
 }
 
 /// Is the user allowed to send a specific event based on the rooms power levels.
-pub fn can_send_event(event: &StateEvent, auth_events: &StateMap<StateEvent>) -> Option<bool> {
+pub fn can_send_event(event: &StateEvent, auth_events: &StateMap<StateEvent>) -> Result<bool> {
     let ple = auth_events.get(&(EventType::RoomPowerLevels, Some("".into())));
 
     let send_level = get_send_level(event.kind(), event.state_key(), ple);
@@ -477,15 +476,15 @@ pub fn can_send_event(event: &StateEvent, auth_events: &StateMap<StateEvent>) ->
     );
 
     if user_level < send_level {
-        return Some(false);
+        return Ok(false);
     }
 
     if let Some(sk) = event.state_key() {
         if sk.starts_with('@') && sk != event.sender().as_str() {
-            return Some(false); // permission required to post in this room
+            return Ok(false); // permission required to post in this room
         }
     }
-    Some(true)
+    Ok(true)
 }
 
 /// Confirm that the event sender has the required power levels.
@@ -637,12 +636,12 @@ pub fn check_redaction(
     room_version: &RoomVersionId,
     redaction_event: &StateEvent,
     auth_events: &StateMap<StateEvent>,
-) -> Option<RedactAllowed> {
+) -> Result<RedactAllowed> {
     let user_level = get_user_power_level(redaction_event.sender(), auth_events);
     let redact_level = get_named_level(auth_events, "redact", 50);
 
     if user_level >= redact_level {
-        return Some(RedactAllowed::CanRedact);
+        return Ok(RedactAllowed::CanRedact);
     }
 
     if let RoomVersionId::Version1 = room_version {
@@ -650,14 +649,14 @@ pub fn check_redaction(
         if Some(redaction_event.event_id().server_name())
             == redaction_event.redacts().map(|id| id.server_name())
         {
-            return Some(RedactAllowed::OwnEvent);
+            return Ok(RedactAllowed::OwnEvent);
         }
     } else {
         // TODO synapse has this line also
         // event.internal_metadata.recheck_redaction = True
-        return Some(RedactAllowed::OwnEvent);
+        return Ok(RedactAllowed::OwnEvent);
     }
-    Some(RedactAllowed::No)
+    Ok(RedactAllowed::No)
 }
 
 /// Check that the member event matches `state`.
