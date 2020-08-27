@@ -553,14 +553,16 @@ impl StateResolution {
 
             tracing::debug!("event to check {:?}", event.event_id().to_string());
 
-            let redacted_event = event
-                .redacts()
-                .and_then(|id| StateResolution::get_or_load_event(room_id, id, event_map, store));
+            let most_recent_prev_event = event
+                .prev_event_ids()
+                .iter()
+                .filter_map(|id| StateResolution::get_or_load_event(room_id, id, event_map, store))
+                .next_back();
 
             if event_auth::auth_check(
                 room_version,
                 &event,
-                redacted_event.as_ref(),
+                most_recent_prev_event.as_ref(),
                 auth_events,
                 false,
             )? {

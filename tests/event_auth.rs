@@ -9,12 +9,13 @@ use ruma::{
         },
         EventType,
     },
-    identifiers::{EventId, RoomId, RoomVersionId, UserId},
+    identifiers::{EventId, RoomId, UserId},
 };
 use serde_json::{json, Value as JsonValue};
+#[rustfmt::skip] // this deletes the comments for some reason yay!
 use state_res::{
     event_auth::{
-        auth_check, auth_types_for_event, can_federate, check_power_levels, check_redaction,
+        // auth_check, auth_types_for_event, can_federate, check_power_levels, check_redaction,
         is_membership_change_allowed,
     },
     Requester, StateEvent, StateMap, StateStore,
@@ -243,6 +244,10 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, StateEvent> {
 fn test_ban_pass() {
     let events = INITIAL_EVENTS();
 
+    let prev = events
+        .values()
+        .find(|ev| ev.event_id().as_str().contains("IMC"));
+
     let auth_events = events
         .values()
         .map(|ev| ((ev.kind(), ev.state_key()), ev.clone()))
@@ -256,12 +261,16 @@ fn test_ban_pass() {
         sender: &alice(),
     };
 
-    assert!(is_membership_change_allowed(requester, &auth_events).unwrap())
+    assert!(is_membership_change_allowed(requester, prev, &auth_events).unwrap())
 }
 
 #[test]
 fn test_ban_fail() {
     let events = INITIAL_EVENTS();
+
+    let prev = events
+        .values()
+        .find(|ev| ev.event_id().as_str().contains("IMC"));
 
     let auth_events = events
         .values()
@@ -276,5 +285,5 @@ fn test_ban_fail() {
         sender: &charlie(),
     };
 
-    assert!(!is_membership_change_allowed(requester, &auth_events).unwrap())
+    assert!(!is_membership_change_allowed(requester, prev, &auth_events).unwrap())
 }

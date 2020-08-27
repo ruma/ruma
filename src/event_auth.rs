@@ -80,7 +80,7 @@ pub fn auth_types_for_event(
 pub fn auth_check(
     room_version: &RoomVersionId,
     event: &StateEvent,
-    redacted_event: Option<&StateEvent>,
+    prev_event: Option<&StateEvent>,
     auth_events: StateMap<StateEvent>,
     do_sig_check: bool,
 ) -> Result<bool> {
@@ -197,9 +197,8 @@ pub fn auth_check(
         //     return Ok(false); // and be non-empty state_key (point to a user_id)
         // }
 
-        // TODO what? "sender's domain doesn't matches"
         // If sender's domain doesn't matches state_key, reject
-        if event.state_key() != Some(event.sender().to_string()) {
+        if event.state_key().as_deref() != Some(event.sender().server_name().as_str()) {
             tracing::warn!("state_key does not match sender");
             return Ok(false);
         }
@@ -224,7 +223,7 @@ pub fn auth_check(
             return Ok(false);
         }
 
-        if !is_membership_change_allowed(event.to_requester(), &auth_events)? {
+        if !is_membership_change_allowed(event.to_requester(), prev_event, &auth_events)? {
             return Ok(false);
         }
 
@@ -275,9 +274,7 @@ pub fn auth_check(
     }
 
     if event.kind() == EventType::RoomRedaction {
-        if let RedactAllowed::No =
-            check_redaction(room_version, event, redacted_event, &auth_events)?
-        {
+        if let RedactAllowed::No = check_redaction(room_version, event, &auth_events)? {
             return Ok(false);
         }
     }
@@ -303,6 +300,7 @@ pub fn can_federate(auth_events: &StateMap<StateEvent>) -> bool {
 /// Does the user who sent this member event have required power levels to do so.
 pub fn is_membership_change_allowed(
     user: Requester<'_>,
+    prev_event: Option<&StateEvent>,
     auth_events: &StateMap<StateEvent>,
 ) -> Result<bool> {
     let content =
@@ -312,7 +310,7 @@ pub fn is_membership_change_allowed(
 
     // If the only previous event is an m.room.create and the state_key is the creator, allow
     if user.prev_event_ids.len() == 1 && membership == MembershipState::Join {
-        if let Some(create) = auth_events.get(&(EventType::RoomCreate, Some("".into()))) {
+        if let Some(create) = prev_event {
             if let Ok(create_ev) = create.deserialize_content::<room::create::CreateEventContent>()
             {
                 if user.state_key == Some(create_ev.creator.to_string())
@@ -371,6 +369,7 @@ pub fn is_membership_change_allowed(
         .unwrap(),
     );
 
+    // we already check if the join event was the room creator
     if membership == MembershipState::Invite && content.third_party_invite.is_some() {
         // TODO this is unimpled
         if !verify_third_party_invite(&user, auth_events) {
@@ -383,9 +382,30 @@ pub fn is_membership_change_allowed(
         }
         tracing::info!("invite succeded");
         return Ok(true);
-    }
+    } else if membership == MembershipState::Join {
+        // If the sender does not match state_key, reject.
+        if user.sender != &target_user_id {
+            tracing::warn!("cannot force another user to join");
+            return Ok(false); // cannot force another user to join
+        } else if target_banned {
+            tracing::warn!("cannot join when banned");
+            return Ok(false); // cannot joined when banned
+        } else if join_rule == JoinRule::Invite {
+            if !caller_in_room && !caller_invited {
+                tracing::warn!("user has not been invited to this room");
+                return Ok(false); // you are not invited to this room
+            }
+        } else if join_rule == JoinRule::Public {
+            tracing::info!("join rule public")
+        // pass
+        } else {
+            tracing::warn!("the join rule is Private or yet to be spec'ed by Matrix");
+            // synapse has 2 TODO's may_join list and private rooms
 
-    if membership == MembershipState::Invite {
+            // the join_rule is Private or Knock which means it is not yet spec'ed
+            return Ok(false);
+        }
+    } else if membership == MembershipState::Invite {
         // if senders current membership is not join reject
         if !caller_in_room {
             tracing::warn!("invite sender not in room they are inviting user to");
@@ -406,30 +426,6 @@ pub fn is_membership_change_allowed(
                 tracing::warn!("invite sender does not have power to invite");
                 return Ok(false);
             }
-        }
-    // we already check if the join event was the room creator
-    } else if membership == MembershipState::Join {
-        // If the sender does not match state_key, reject.
-        if user.sender != &target_user_id {
-            tracing::warn!("cannot force another user to join");
-            return Ok(false); // cannot force another user to join
-        } else if target_banned {
-            tracing::warn!("cannot join when banned");
-            return Ok(false); // cannot joined when banned
-        } else if join_rule == JoinRule::Public {
-            tracing::info!("join rule public")
-        // pass
-        } else if join_rule == JoinRule::Invite {
-            if !caller_in_room && !caller_invited {
-                tracing::warn!("user has not been invited to this room");
-                return Ok(false); // you are not invited to this room
-            }
-        } else {
-            tracing::warn!("the join rule is Private or yet to be spec'ed by Matrix");
-            // synapse has 2 TODO's may_join list and private rooms
-
-            // the join_rule is Private or Knock which means it is not yet spec'ed
-            return Ok(false);
         }
     } else if membership == MembershipState::Leave {
         if user.sender == &target_user_id && !(caller_in_room || caller_invited) {}
@@ -670,7 +666,6 @@ fn get_deserialize_levels(
 pub fn check_redaction(
     room_version: &RoomVersionId,
     redaction_event: &StateEvent,
-    redacted_event: Option<&StateEvent>,
     auth_events: &StateMap<StateEvent>,
 ) -> Result<RedactAllowed> {
     let user_level = get_user_power_level(redaction_event.sender(), auth_events);
@@ -689,10 +684,6 @@ pub fn check_redaction(
             tracing::info!("redaction event allowed via room version 1 rules");
             return Ok(RedactAllowed::OwnEvent);
         }
-    // redactions to events where the sender's domains match, allow
-    } else if redacted_event.map(|ev| ev.sender()) == Some(redaction_event.sender()) {
-        tracing::info!("redaction allowed via own redaction");
-        return Ok(RedactAllowed::OwnEvent);
     }
 
     Ok(RedactAllowed::No)
