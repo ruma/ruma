@@ -2,18 +2,14 @@ use std::collections::BTreeSet;
 
 use ruma::identifiers::{EventId, RoomId};
 
-use crate::StateEvent;
+use crate::{Result, StateEvent};
 
 pub trait StateStore {
     /// Return a single event based on the EventId.
-    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent, String>;
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent>;
 
     /// Returns the events that correspond to the `event_ids` sorted in the same order.
-    fn get_events(
-        &self,
-        room_id: &RoomId,
-        event_ids: &[EventId],
-    ) -> Result<Vec<StateEvent>, String> {
+    fn get_events(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<Vec<StateEvent>> {
         let mut events = vec![];
         for id in event_ids {
             events.push(self.get_event(room_id, id)?);
@@ -22,11 +18,7 @@ pub trait StateStore {
     }
 
     /// Returns a Vec of the related auth events to the given `event`.
-    fn auth_event_ids(
-        &self,
-        room_id: &RoomId,
-        event_ids: &[EventId],
-    ) -> Result<Vec<EventId>, String> {
+    fn auth_event_ids(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<Vec<EventId>> {
         let mut result = vec![];
         let mut stack = event_ids.to_vec();
 
@@ -52,7 +44,7 @@ pub trait StateStore {
         &self,
         room_id: &RoomId,
         event_ids: Vec<Vec<EventId>>,
-    ) -> Result<Vec<EventId>, String> {
+    ) -> Result<Vec<EventId>> {
         let mut chains = vec![];
         for ids in event_ids {
             // TODO state store `auth_event_ids` returns self in the event ids list

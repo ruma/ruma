@@ -119,7 +119,7 @@ impl StateResolution {
 
         for event in event_map.values() {
             if event.room_id() != Some(room_id) {
-                return Err(Error::TempString(format!(
+                return Err(Error::InvalidPdu(format!(
                     "resolving event {} in room {}, when correct room is {}",
                     event.event_id(),
                     event.room_id().map(|id| id.as_str()).unwrap_or("`unknown`"),
@@ -288,16 +288,14 @@ impl StateResolution {
 
         tracing::debug!("calculating auth chain difference");
 
-        store
-            .auth_chain_diff(
-                room_id,
-                state_sets
-                    .iter()
-                    .map(|map| map.values().cloned().collect())
-                    .dedup()
-                    .collect::<Vec<_>>(),
-            )
-            .map_err(Error::TempString)
+        store.auth_chain_diff(
+            room_id,
+            state_sets
+                .iter()
+                .map(|map| map.values().cloned().collect())
+                .dedup()
+                .collect::<Vec<_>>(),
+        )
     }
 
     /// Events are sorted from "earliest" to "latest". They are compared using

@@ -20,7 +20,18 @@ pub enum Error {
     #[error("Not found error: {0}")]
     NotFound(String),
 
-    // TODO remove once the correct errors are used
-    #[error("an error occured {0}")]
-    TempString(String),
+    #[error("Invalid PDU: {0}")]
+    InvalidPdu(String),
+
+    #[error("Conversion failed: {0}")]
+    ConversionError(String),
+
+    #[error("{0}")]
+    Custom(Box<dyn std::error::Error>),
+}
+
+impl Error {
+    pub fn custom<E: std::error::Error + 'static>(e: E) -> Self {
+        Self::Custom(Box::new(e))
+    }
 }

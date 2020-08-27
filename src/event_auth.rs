@@ -83,26 +83,26 @@ pub fn auth_types_for_event(
 /// * then there are checks for specific event types
 pub fn auth_check(
     room_version: &RoomVersionId,
-    event: &StateEvent,
+    incoming_event: &StateEvent,
     prev_event: Option<&StateEvent>,
     auth_events: StateMap<StateEvent>,
     do_sig_check: bool,
 ) -> Result<bool> {
-    tracing::info!("auth_check beginning for {}", event.event_id().as_str());
+    tracing::info!("auth_check beginning for {}", incoming_event.kind());
 
     // don't let power from other rooms be used
     for auth_event in auth_events.values() {
-        if auth_event.room_id() != event.room_id() {
+        if auth_event.room_id() != incoming_event.room_id() {
             tracing::warn!("found auth event that did not match event's room_id");
             return Ok(false);
         }
     }
 
     if do_sig_check {
-        let sender_domain = event.sender().server_name();
+        let sender_domain = incoming_event.sender().server_name();
 
-        let is_invite_via_3pid = if event.kind() == EventType::RoomMember {
-            event
+        let is_invite_via_3pid = if incoming_event.kind() == EventType::RoomMember {
+            incoming_event
                 .deserialize_content::<room::member::MemberEventContent>()
                 .map(|c| c.membership == MembershipState::Invite && c.third_party_invite.is_some())
                 .unwrap_or_default()
@@ -111,15 +111,15 @@ pub fn auth_check(
         };
 
         // check the event has been signed by the domain of the sender
-        if event.signatures().get(sender_domain).is_none() && !is_invite_via_3pid {
+        if incoming_event.signatures().get(sender_domain).is_none() && !is_invite_via_3pid {
             tracing::warn!("event not signed by sender's server");
             return Ok(false);
         }
 
-        if event.room_version() == RoomVersionId::Version1
-            && event
+        if incoming_event.room_version() == RoomVersionId::Version1
+            && incoming_event
                 .signatures()
-                .get(event.event_id().server_name().unwrap())
+                .get(incoming_event.event_id().server_name().unwrap())
                 .is_none()
         {
             tracing::warn!("event not signed by event_id's server");
@@ -134,24 +134,26 @@ pub fn auth_check(
     // Implementation of https://matrix.org/docs/spec/rooms/v1#authorization-rules
     //
     // 1. If type is m.room.create:
-    if event.kind() == EventType::RoomCreate {
+    if incoming_event.kind() == EventType::RoomCreate {
         tracing::info!("start m.room.create check");
 
         // If it has any previous events, reject
-        if !event.prev_event_ids().is_empty() {
+        if !incoming_event.prev_event_ids().is_empty() {
             tracing::warn!("the room creation event had previous events");
             return Ok(false);
         }
 
         // If the domain of the room_id does not match the domain of the sender, reject
-        if event.room_id().map(|id| id.server_name()) != Some(event.sender().server_name()) {
+        if incoming_event.room_id().map(|id| id.server_name())
+            != Some(incoming_event.sender().server_name())
+        {
             tracing::warn!("creation events server does not match sender");
             return Ok(false); // creation events room id does not match senders
         }
 
         // If content.room_version is present and is not a recognized version, reject
         if serde_json::from_value::<RoomVersionId>(
-            event
+            incoming_event
                 .content()
                 .get("room_version")
                 .cloned()
@@ -165,7 +167,7 @@ pub fn auth_check(
         }
 
         // If content has no creator field, reject
-        if event.content().get("creator").is_none() {
+        if incoming_event.content().get("creator").is_none() {
             tracing::warn!("no creator field found in room create content");
             return Ok(false);
         }
@@ -187,10 +189,10 @@ pub fn auth_check(
     // [synapse] checks for federation here
 
     // 4. if type is m.room.aliases
-    if event.kind() == EventType::RoomAliases {
+    if incoming_event.kind() == EventType::RoomAliases {
         tracing::info!("starting m.room.aliases check");
         // TODO && room_version "special case aliases auth" ??
-        if event.state_key().is_none() {
+        if incoming_event.state_key().is_none() {
             tracing::warn!("no state_key field found for event");
             return Ok(false); // must have state_key
         }
@@ -202,7 +204,9 @@ pub fn auth_check(
         // }
 
         // If sender's domain doesn't matches state_key, reject
-        if event.state_key().as_deref() != Some(event.sender().server_name().as_str()) {
+        if incoming_event.state_key().as_deref()
+            != Some(incoming_event.sender().server_name().as_str())
+        {
             tracing::warn!("state_key does not match sender");
             return Ok(false);
         }
@@ -211,15 +215,15 @@ pub fn auth_check(
         return Ok(true);
     }
 
-    if event.kind() == EventType::RoomMember {
+    if incoming_event.kind() == EventType::RoomMember {
         tracing::info!("starting m.room.member check");
 
-        if event.state_key().is_none() {
+        if incoming_event.state_key().is_none() {
             tracing::warn!("no state_key found for m.room.member event");
             return Ok(false);
         }
 
-        if event
+        if incoming_event
             .deserialize_content::<room::member::MemberEventContent>()
             .is_err()
         {
@@ -227,7 +231,7 @@ pub fn auth_check(
             return Ok(false);
         }
 
-        if !valid_membership_change(event.to_requester(), prev_event, &auth_events)? {
+        if !valid_membership_change(incoming_event.to_requester(), prev_event, &auth_events)? {
             return Ok(false);
         }
 
@@ -236,7 +240,7 @@ pub fn auth_check(
     }
 
     // If the sender's current membership state is not join, reject
-    match check_event_sender_in_room(event, &auth_events) {
+    match check_event_sender_in_room(incoming_event.sender(), &auth_events) {
         Some(true) => {} // sender in room
         Some(false) => {
             tracing::warn!("sender's membership is not join");
@@ -250,22 +254,24 @@ pub fn auth_check(
 
     // Special case to allow m.room.third_party_invite events where ever
     // a user is allowed to issue invites
-    if event.kind() == EventType::RoomThirdPartyInvite {
+    if incoming_event.kind() == EventType::RoomThirdPartyInvite {
         // TODO impl this
         unimplemented!("third party invite")
     }
 
     // If the event type's required power level is greater than the sender's power level, reject
     // If the event has a state_key that starts with an @ and does not match the sender, reject.
-    if !can_send_event(event, &auth_events)? {
+    if !can_send_event(incoming_event, &auth_events)? {
         tracing::warn!("user cannot send event");
         return Ok(false);
     }
 
-    if event.kind() == EventType::RoomPowerLevels {
+    if incoming_event.kind() == EventType::RoomPowerLevels {
         tracing::info!("starting m.room.power_levels check");
 
-        if let Some(required_pwr_lvl) = check_power_levels(room_version, event, &auth_events) {
+        if let Some(required_pwr_lvl) =
+            check_power_levels(room_version, incoming_event, &auth_events)
+        {
             if !required_pwr_lvl {
                 tracing::warn!("power level was not allowed");
                 return Ok(false);
@@ -277,28 +283,14 @@ pub fn auth_check(
         tracing::info!("power levels event allowed");
     }
 
-    if event.kind() == EventType::RoomRedaction {
-        if let RedactAllowed::No = check_redaction(room_version, event, &auth_events)? {
+    if incoming_event.kind() == EventType::RoomRedaction {
+        if let RedactAllowed::No = check_redaction(room_version, incoming_event, &auth_events)? {
             return Ok(false);
         }
     }
 
     tracing::info!("allowing event passed all checks");
     Ok(true)
-}
-
-/// Can this room federate based on its m.room.create event.
-pub fn can_federate(auth_events: &StateMap<StateEvent>) -> bool {
-    let creation_event = auth_events.get(&(EventType::RoomCreate, Some("".into())));
-    if let Some(ev) = creation_event {
-        if let Some(fed) = ev.content().get("m.federate") {
-            fed == "true"
-        } else {
-            false
-        }
-    } else {
-        false
-    }
 }
 
 /// Does the user who sent this member event have required power levels to do so.
@@ -316,7 +308,7 @@ pub fn valid_membership_change(
     let state_key = if let Some(s) = user.state_key.as_ref() {
         s
     } else {
-        return Err(Error::TempString("State event requires state_key".into()));
+        return Err(Error::InvalidPdu("State event requires state_key".into()));
     };
 
     let content =
@@ -324,8 +316,8 @@ pub fn valid_membership_change(
 
     let target_membership = content.membership;
 
-    let target_user_id =
-        UserId::try_from(state_key.as_str()).map_err(|e| Error::TempString(format!("{}", e)))?;
+    let target_user_id = UserId::try_from(state_key.as_str())
+        .map_err(|e| Error::ConversionError(format!("{}", e)))?;
 
     let key = (EventType::RoomMember, Some(user.sender.to_string()));
     let sender = auth_events.get(&key);
@@ -464,10 +456,10 @@ pub fn valid_membership_change(
 
 /// Is the event's sender in the room that they sent the event to.
 pub fn check_event_sender_in_room(
-    event: &StateEvent,
+    sender: &UserId,
     auth_events: &StateMap<StateEvent>,
 ) -> Option<bool> {
-    let mem = auth_events.get(&(EventType::RoomMember, Some(event.sender().to_string())))?;
+    let mem = auth_events.get(&(EventType::RoomMember, Some(sender.to_string())))?;
     // TODO this is check_membership a helper fn in synapse but it does this
     Some(
         mem.deserialize_content::<room::member::MemberEventContent>()
@@ -684,6 +676,20 @@ pub fn check_membership(member_event: Option<&StateEvent>, state: MembershipStat
             serde_json::from_value::<room::member::MemberEventContent>(event.content().clone())
         {
             content.membership == state
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}
+
+/// Can this room federate based on its m.room.create event.
+pub fn can_federate(auth_events: &StateMap<StateEvent>) -> bool {
+    let creation_event = auth_events.get(&(EventType::RoomCreate, Some("".into())));
+    if let Some(ev) = creation_event {
+        if let Some(fed) = ev.content().get("m.federate") {
+            fed == "true"
         } else {
             false
         }

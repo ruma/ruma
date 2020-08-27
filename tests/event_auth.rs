@@ -18,7 +18,7 @@ use state_res::{
         // auth_check, auth_types_for_event, can_federate, check_power_levels, check_redaction,
         valid_membership_change,
     },
-    Requester, StateEvent, StateMap, StateStore,
+    Requester, StateEvent, StateMap, StateStore, Result, Error
 };
 use tracing_subscriber as tracer;
 
@@ -75,12 +75,12 @@ pub struct TestStore(RefCell<BTreeMap<EventId, StateEvent>>);
 
 #[allow(unused)]
 impl StateStore for TestStore {
-    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent, String> {
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent> {
         self.0
             .borrow()
             .get(event_id)
             .cloned()
-            .ok_or(format!("{} not found", event_id.to_string()))
+            .ok_or_else(|| Error::NotFound(format!("{} not found", event_id.to_string())))
     }
 }
 
