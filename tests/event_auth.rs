@@ -16,7 +16,7 @@ use serde_json::{json, Value as JsonValue};
 use state_res::{
     event_auth::{
         // auth_check, auth_types_for_event, can_federate, check_power_levels, check_redaction,
-        is_membership_change_allowed,
+        valid_membership_change,
     },
     Requester, StateEvent, StateMap, StateStore,
 };
@@ -261,7 +261,7 @@ fn test_ban_pass() {
         sender: &alice(),
     };
 
-    assert!(is_membership_change_allowed(requester, prev, &auth_events).unwrap())
+    assert!(valid_membership_change(requester, prev, &auth_events).unwrap())
 }
 
 #[test]
@@ -285,5 +285,5 @@ fn test_ban_fail() {
         sender: &charlie(),
     };
 
-    assert!(!is_membership_change_allowed(requester, prev, &auth_events).unwrap())
+    assert!(!valid_membership_change(requester, prev, &auth_events).unwrap())
 }
