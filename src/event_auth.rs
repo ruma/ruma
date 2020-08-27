@@ -286,7 +286,6 @@ pub fn auth_check(
     Ok(true)
 }
 
-// synapse has an `event: &StateEvent` param but it's never used
 /// Can this room federate based on its m.room.create event.
 pub fn can_federate(auth_events: &StateMap<StateEvent>) -> bool {
     let creation_event = auth_events.get(&(EventType::RoomCreate, Some("".into())));
@@ -302,10 +301,6 @@ pub fn can_federate(auth_events: &StateMap<StateEvent>) -> bool {
 }
 
 /// Does the user who sent this member event have required power levels to do so.
-///
-/// If called on it's own the following must be true:
-/// - there must be a valid state_key in `user`
-/// - there must be a membership key in `user.content` i.e. the event is of type "m.room.member"
 pub fn is_membership_change_allowed(
     user: Requester<'_>,
     auth_events: &StateMap<StateEvent>,
