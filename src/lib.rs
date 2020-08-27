@@ -553,7 +553,17 @@ impl StateResolution {
 
             tracing::debug!("event to check {:?}", event.event_id().to_string());
 
-            if event_auth::auth_check(room_version, &event, auth_events, false)? {
+            let redacted_event = event
+                .redacts()
+                .and_then(|id| StateResolution::get_or_load_event(room_id, id, event_map, store));
+
+            if event_auth::auth_check(
+                room_version,
+                &event,
+                redacted_event.as_ref(),
+                auth_events,
+                false,
+            )? {
                 // add event to resolved state map
                 resolved_state.insert((event.kind(), event.state_key()), event_id.clone());
             } else {
