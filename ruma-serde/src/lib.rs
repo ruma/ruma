@@ -2,6 +2,7 @@
 
 use serde::de::{Deserialize, IntoDeserializer};
 
+pub mod can_be_empty;
 pub mod duration;
 pub mod empty;
 pub mod json_string;
@@ -9,6 +10,7 @@ pub mod test;
 pub mod time;
 pub mod urlencoded;
 
+pub use can_be_empty::{is_empty, CanBeEmpty};
 pub use empty::vec_as_map_of_empty;
 
 /// Check whether a value is equal to its default value.
