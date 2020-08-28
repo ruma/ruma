@@ -15,6 +15,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[non_exhaustive]
     request: {
         /// Identification information for the user.
         #[serde(flatten)]
@@ -34,6 +35,7 @@ ruma_api! {
         pub initial_device_display_name: Option<&'a str>,
     }
 
+    #[non_exhaustive]
     response: {
         /// The fully-qualified Matrix ID that has been registered.
         pub user_id: UserId,
@@ -61,6 +63,20 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user and login info.
+    pub fn new(user: UserInfo<'a>, login_info: LoginInfo<'a>) -> Self {
+        Self { user, login_info, device_id: None, initial_device_display_name: None }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given user ID, access token and device ID.
+    pub fn new(user_id: UserId, access_token: String, device_id: DeviceIdBox) -> Self {
+        Self { user_id, access_token, home_server: None, device_id, well_known: None }
+    }
 }
 
 /// Identification information for the user.

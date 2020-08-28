@@ -16,6 +16,8 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     request: {
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -27,10 +29,25 @@ ruma_api! {
         pub id_server: Option<&'a str>,
     }
 
+    #[non_exhaustive]
     response: {
         /// Result of unbind operation.
         pub id_server_unbind_result: ThirdPartyIdRemovalStatus,
     }
 
     error: UiaaResponse
+}
+
+impl Request<'_> {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given unbind result.
+    pub fn new(id_server_unbind_result: ThirdPartyIdRemovalStatus) -> Self {
+        Self { id_server_unbind_result }
+    }
 }

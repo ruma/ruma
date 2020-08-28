@@ -15,20 +15,37 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The protocol (network) ID to update the room list for.
         #[ruma_api(path)]
-        pub network_id: String,
+        pub network_id: &'a str,
 
         /// The room ID to add to the directory.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// Whether the room should be visible (public) in the directory or not (private).
         pub visibility: Visibility,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given network ID, room ID and visibility.
+    pub fn new(network_id: &'a str, room_id: &'a RoomId, visibility: Visibility) -> Self {
+        Self { network_id, room_id, visibility }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

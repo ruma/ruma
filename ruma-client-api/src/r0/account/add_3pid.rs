@@ -14,6 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// Additional information for the User-Interactive Authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -26,7 +27,23 @@ ruma_api! {
         pub sid: &'a str,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: UiaaResponse
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given client secret and session identifier.
+    pub fn new(client_secret: &'a str, sid: &'a str) -> Self {
+        Self { auth: None, client_secret, sid }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

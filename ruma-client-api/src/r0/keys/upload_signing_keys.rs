@@ -15,6 +15,8 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     request: {
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -35,7 +37,23 @@ ruma_api! {
         pub user_signing_key: Option<CrossSigningKey>,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
+}
+
+impl Request<'_> {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

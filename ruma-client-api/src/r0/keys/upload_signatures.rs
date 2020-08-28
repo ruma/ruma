@@ -15,13 +15,30 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// Signed keys.
         #[ruma_api(body)]
         pub signed_keys: BTreeMap<UserId, BTreeMap<String, serde_json::Value>>,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
+}
+
+impl Request {
+    /// Creates a new `Request` with the given signed keys.
+    pub fn new(signed_keys: BTreeMap<UserId, BTreeMap<String, serde_json::Value>>) -> Self {
+        Self { signed_keys }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

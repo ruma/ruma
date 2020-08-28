@@ -15,23 +15,31 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// Identity server to delete from.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub id_server: Option<String>,
+        pub id_server: Option<&'a str>,
 
         /// Medium of the 3PID to be removed.
         pub medium: Medium,
 
         /// Third-party address being removed.
-        pub address: String,
+        pub address: &'a str,
     }
 
+    #[non_exhaustive]
     response: {
         /// Result of unbind operation.
         pub id_server_unbind_result: ThirdPartyIdRemovalStatus,
     }
 
     error: crate::Error
+}
 
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given medium and address.
+    pub fn new(medium: Medium, address: &'a str) -> Self {
+        Self { id_server: None, medium, address }
+    }
 }

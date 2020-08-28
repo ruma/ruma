@@ -13,6 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The desired start point of the list.
         ///
@@ -28,6 +29,7 @@ ruma_api! {
         pub to: &'a str,
     }
 
+    #[non_exhaustive]
     response: {
         /// The Matrix User IDs of all users who updated their device identity keys.
         pub changed: Vec<UserId>,
@@ -38,4 +40,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given start and end points.
+    pub fn new(from: &'a str, to: &'a str) -> Self {
+        Self { from, to }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given changed and left user ID lists.
+    pub fn new(changed: Vec<UserId>, left: Vec<UserId>) -> Self {
+        Self { changed, left }
+    }
 }

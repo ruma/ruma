@@ -16,12 +16,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// User ID of authenticated user.
         #[ruma_api(path)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
     }
 
+    #[non_exhaustive]
     response: {
         /// Access token for verifying user's identity.
         pub access_token: String,
@@ -40,8 +42,29 @@ ruma_api! {
     error: crate::Error
 }
 
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user ID.
+    pub fn new(user_id: &'a UserId) -> Self {
+        Self { user_id }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given access token, token type, server name and expiration
+    /// duration.
+    pub fn new(
+        access_token: String,
+        token_type: TokenType,
+        matrix_server_name: ServerNameBox,
+        expires_in: Duration,
+    ) -> Self {
+        Self { access_token, token_type, matrix_server_name, expires_in }
+    }
+}
+
 /// Access token types.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub enum TokenType {
     /// Bearer token type
     Bearer,

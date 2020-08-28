@@ -13,12 +13,29 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     request: {}
 
+    #[non_exhaustive]
     response: {
         /// The id of the user that owns the access token.
         pub user_id: UserId,
     }
 
     error: crate::Error
+}
+
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given user ID.
+    pub fn new(user_id: UserId) -> Self {
+        Self { user_id }
+    }
 }

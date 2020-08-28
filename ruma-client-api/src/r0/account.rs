@@ -18,17 +18,26 @@ pub mod unbind_3pid;
 
 pub mod whoami;
 
+use ruma_api::Outgoing;
 use serde::{Deserialize, Serialize};
 
 /// Additional authentication information for requestToken endpoints.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct IdentityServerInfo {
+#[derive(Clone, Debug, Outgoing, Serialize)]
+#[non_exhaustive]
+pub struct IdentityServerInfo<'a> {
     /// The ID server to send the onward request to as a hostname with an
     /// appended colon and port number if the port is not the default.
-    pub id_server: String,
+    pub id_server: &'a str,
 
     /// Access token previously registered with identity server.
-    pub id_access_token: String,
+    pub id_access_token: &'a str,
+}
+
+impl<'a> IdentityServerInfo<'a> {
+    /// Creates a new `IdentityServerInfo` with the given server name and access token.
+    pub fn new(id_server: &'a str, id_access_token: &'a str) -> Self {
+        Self { id_server, id_access_token }
+    }
 }
 
 /// Possible values for deleting or unbinding 3PIDs

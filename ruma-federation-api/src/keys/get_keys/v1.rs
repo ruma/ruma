@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
-use ruma_common::encryption::DeviceKeys;
+use ruma_common::encryption::IncomingDeviceKeys;
 use ruma_identifiers::{DeviceIdBox, UserId};
 
 ruma_api! {
@@ -26,7 +26,7 @@ ruma_api! {
     #[non_exhaustive]
     response: {
         /// Keys from the queried devices.
-        pub device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeys>>,
+        pub device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, IncomingDeviceKeys>>,
     }
 }
 
@@ -39,7 +39,7 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given device keys.
-    pub fn new(device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeys>>) -> Self {
+    pub fn new(device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, IncomingDeviceKeys>>) -> Self {
         Self { device_keys }
     }
 }

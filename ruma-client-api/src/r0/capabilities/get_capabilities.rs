@@ -16,14 +16,37 @@ ruma_api! {
         requires_authentication: true
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     request: {}
 
+    #[non_exhaustive]
     response: {
         /// The capabilities the server supports
         pub capabilities: Capabilities,
     }
 
     error: crate::Error
+}
+
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given capabilities.
+    pub fn new(capabilities: Capabilities) -> Self {
+        Self { capabilities }
+    }
+}
+
+impl From<Capabilities> for Response {
+    fn from(capabilities: Capabilities) -> Self {
+        Self::new(capabilities)
+    }
 }
 
 /// Contains information about all the capabilities that the server supports.

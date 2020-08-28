@@ -14,9 +14,10 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The new password for the account.
-        pub new_password: String,
+        pub new_password: &'a str,
 
         /// True to revoke the user's other access tokens, and their associated devices if the
         /// request succeeds.
@@ -29,10 +30,27 @@ ruma_api! {
         pub logout_devices: bool,
 
         /// Additional authentication information for the user-interactive authentication API.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub auth: Option<AuthData<'a>>,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: UiaaResponse
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given password.
+    pub fn new(new_password: &'a str) -> Self {
+        Self { new_password, logout_devices: true, auth: None }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

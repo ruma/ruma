@@ -19,6 +19,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// Type of event being sent to each device.
         #[ruma_api(path)]
@@ -37,7 +38,27 @@ ruma_api! {
         pub messages: BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Box<RawJsonValue>>>
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given event type, transaction ID and messages.
+    pub fn new(
+        event_type: EventType,
+        txn_id: &'a str,
+        messages: BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Box<RawJsonValue>>>,
+    ) -> Self {
+        Self { event_type, txn_id, messages }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

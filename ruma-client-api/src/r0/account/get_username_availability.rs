@@ -12,17 +12,33 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[non_exhaustive]
     request: {
         /// The username to check the availability of.
         #[ruma_api(query)]
-        pub username: String,
+        pub username: &'a str,
     }
 
+    #[non_exhaustive]
     response: {
         /// A flag to indicate that the username is available.
         /// This should always be true when the server replies with 200 OK.
-        pub available: bool
+        pub available: bool,
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given username.
+    pub fn new(username: &'a str) -> Self {
+        Self { username }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given availability flag.
+    pub fn new(available: bool) -> Self {
+        Self { available }
+    }
 }

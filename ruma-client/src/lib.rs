@@ -214,15 +214,15 @@ where
         device_id: Option<&DeviceId>,
         initial_device_display_name: Option<&str>,
     ) -> Result<Session, Error<ruma_client_api::Error>> {
-        use ruma_client_api::r0::session::login;
+        use ruma_client_api::r0::session::login::{LoginInfo, Request as LoginRequest, UserInfo};
 
         let response = self
-            .request(login::Request {
-                user: login::UserInfo::MatrixId(user),
-                login_info: login::LoginInfo::Password { password },
-                device_id,
-                initial_device_display_name,
-            })
+            .request(assign!(
+                LoginRequest::new(UserInfo::MatrixId(user), LoginInfo::Password { password }), {
+                    device_id,
+                    initial_device_display_name,
+                }
+            ))
             .await?;
 
         let session = Session {
