@@ -104,7 +104,7 @@ pub struct Filter<'a> {
     pub generic_search_term: Option<&'a str>,
 }
 
-impl<'a> Filter<'a> {
+impl Filter<'_> {
     /// Creates an empty `Filter`.
     pub fn new() -> Self {
         Default::default()

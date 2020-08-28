@@ -87,7 +87,7 @@ ruma_api! {
     error: UiaaResponse
 }
 
-impl<'a> Request<'a> {
+impl Request<'_> {
     /// Creates a new `Request` with all parameters defaulted.
     pub fn new() -> Self {
         Default::default()

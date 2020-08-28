@@ -97,7 +97,7 @@ ruma_api! {
     error: crate::Error
 }
 
-impl<'a> Request<'a> {
+impl Request<'_> {
     /// Creates a `Request` will all-default parameters.
     pub fn new() -> Self {
         Default::default()

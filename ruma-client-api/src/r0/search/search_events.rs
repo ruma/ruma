@@ -65,7 +65,7 @@ pub struct Categories<'a> {
     pub room_events: Option<Criteria<'a>>,
 }
 
-impl<'a> Categories<'a> {
+impl Categories<'_> {
     /// Creates an empty `Categories`.
     pub fn new() -> Self {
         Default::default()
@@ -259,7 +259,7 @@ pub struct Groupings<'a> {
     pub group_by: &'a [Grouping],
 }
 
-impl<'a> Groupings<'a> {
+impl Groupings<'_> {
     /// Creates an empty `Groupings`.
     pub fn new() -> Self {
         Default::default()
