@@ -8,9 +8,19 @@ pub mod get_latest_backup;
 pub mod update_backup;
 
 use js_int::UInt;
-use ruma_identifiers::{DeviceKeyId, UserId};
+use ruma_identifiers::{DeviceKeyId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+
+/// A map from room IDs to session IDs to key data.
+///
+/// Note: synapse has the `sessions: {}` wrapper, the Matrix spec does not.
+#[cfg(not(feature = "unstable-synapse-quirks"))]
+pub type Rooms = BTreeMap<RoomId, BTreeMap<String, KeyData>>;
+
+/// A map from room IDs to session IDs to key data.
+#[cfg(feature = "unstable-synapse-quirks")]
+pub type Rooms = BTreeMap<RoomId, Sessions>;
 
 // TODO: remove
 /// A wrapper around a mapping of session IDs to key data.
@@ -30,6 +40,7 @@ pub enum BackupAlgorithm {
     MegolmBackupV1Curve25519AesSha2 {
         /// The curve25519 public key used to encrypt the backups, encoded in unpadded base64.
         public_key: String,
+
         /// Signatures of the auth_data as Signed JSON.
         signatures: BTreeMap<UserId, BTreeMap<DeviceKeyId, String>>,
     },
@@ -40,10 +51,13 @@ pub enum BackupAlgorithm {
 pub struct KeyData {
     /// The index of the first message in the session that the key can decrypt.
     pub first_message_index: UInt,
+
     /// The number of times this key has been forwarded via key-sharing between devices.
     pub forwarded_count: UInt,
+
     /// Whether the device backing up the key verified the device that the key is from.
     pub is_verified: bool,
+
     /// Data about the session.
     pub session_data: SessionData,
 }
@@ -53,8 +67,10 @@ pub struct KeyData {
 pub struct SessionData {
     /// Unpadded base64-encoded public half of the ephemeral key.
     pub ephemeral: String,
+
     /// Ciphertext, encrypted using AES-CBC-256 with PKCS#7 padding, encoded in base64.
     pub ciphertext: String,
+
     /// First 8 bytes of MAC key, encoded in base64.
     pub mac: String,
 }

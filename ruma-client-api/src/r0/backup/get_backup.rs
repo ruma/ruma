@@ -3,6 +3,8 @@
 use js_int::UInt;
 use ruma_api::ruma_api;
 
+use super::BackupAlgorithm;
+
 ruma_api! {
     metadata: {
         description: "Get information about an existing backup.",
@@ -13,16 +15,18 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The backup version.
         #[ruma_api(path)]
-        pub version: String,
+        pub version: &'a str,
     }
 
+    #[non_exhaustive]
     response: {
         /// The algorithm used for storing backups.
         #[serde(flatten)]
-        pub algorithm: super::BackupAlgorithm,
+        pub algorithm: BackupAlgorithm,
 
         /// The number of keys stored in the backup.
         pub count: UInt,
@@ -36,4 +40,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given version.
+    pub fn new(version: &'a str) -> Self {
+        Self { version }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the gien algorithm, key count, etag and version.
+    pub fn new(algorithm: BackupAlgorithm, count: UInt, etag: String, version: String) -> Self {
+        Self { algorithm, count, etag, version }
+    }
 }

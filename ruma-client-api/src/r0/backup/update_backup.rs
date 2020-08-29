@@ -2,6 +2,8 @@
 
 use ruma_api::ruma_api;
 
+use super::BackupAlgorithm;
+
 ruma_api! {
     metadata: {
         description: "Update information about an existing backup.",
@@ -12,17 +14,34 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The backup version.
         #[ruma_api(path)]
-        pub version: String,
+        pub version: &'a str,
 
         /// The algorithm used for storing backups.
         #[serde(flatten)]
-        pub algorithm: super::BackupAlgorithm,
+        pub algorithm: BackupAlgorithm,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given backup version and algorithm.
+    pub fn new(version: &'a str, algorithm: BackupAlgorithm) -> Self {
+        Self { version, algorithm }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }
