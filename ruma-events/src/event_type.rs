@@ -3,6 +3,9 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 use serde::{Deserialize, Serialize};
 
 /// The type of an event.
+///
+/// This type can hold an arbitrary string. To check for events that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
 #[serde(from = "String", into = "String")]
@@ -136,13 +139,14 @@ pub enum EventType {
     /// m.typing
     Typing,
 
-    /// Any event that is not part of the specification.
-    Custom(String),
+    #[doc(hidden)]
+    _Custom(String),
 }
 
-impl Display for EventType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let event_type_str = match *self {
+impl EventType {
+    /// Creates a string slice from this `EventType`.
+    pub fn as_str(&self) -> &str {
+        match *self {
             EventType::CallAnswer => "m.call.answer",
             EventType::CallCandidates => "m.call.candidates",
             EventType::CallHangup => "m.call.hangup",
@@ -186,10 +190,14 @@ impl Display for EventType {
             EventType::Sticker => "m.sticker",
             EventType::Tag => "m.tag",
             EventType::Typing => "m.typing",
-            EventType::Custom(ref event_type) => event_type,
-        };
+            EventType::_Custom(ref event_type) => event_type,
+        }
+    }
+}
 
-        write!(f, "{}", event_type_str)
+impl Display for EventType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str(self.as_str())
     }
 }
 
@@ -242,7 +250,7 @@ where
             "m.sticker" => EventType::Sticker,
             "m.tag" => EventType::Tag,
             "m.typing" => EventType::Typing,
-            _ => EventType::Custom(s.into()),
+            _ => EventType::_Custom(s.into()),
         }
     }
 }
@@ -306,6 +314,6 @@ mod tests {
         serde_json_eq(EventType::Sticker, json!("m.sticker"));
         serde_json_eq(EventType::Tag, json!("m.tag"));
         serde_json_eq(EventType::Typing, json!("m.typing"));
-        serde_json_eq(EventType::Custom("io.ruma.test".into()), json!("io.ruma.test"));
+        serde_json_eq(EventType::_Custom("io.ruma.test".into()), json!("io.ruma.test"));
     }
 }

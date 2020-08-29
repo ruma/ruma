@@ -21,6 +21,8 @@ Breaking changes:
 * Use `ruma_identifiers::{ServerName, ServerKeyId}` in `signatures` fields of
   `pdu::RoomV1Pdu, RoomV1PduStub, RoomV3Pdu, RoomV3PduStub}` and
   `room::member::SignedContent`.
+* Remove the `EventType::Custom` variant. You can still check for custom event types by going
+  through `.as_str()`. This ensures that new event types doesn't break existing code.
 
 Improvements:
 
