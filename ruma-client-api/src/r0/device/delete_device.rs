@@ -15,6 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The device to delete.
         #[ruma_api(path)]
@@ -25,7 +26,23 @@ ruma_api! {
         pub auth: Option<AuthData<'a>>,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: UiaaResponse
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given device ID.
+    pub fn new(device_id: &'a DeviceId) -> Self {
+        Self { device_id, auth: None }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

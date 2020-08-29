@@ -14,12 +14,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The device to retrieve.
         #[ruma_api(path)]
         pub device_id: &'a DeviceId,
     }
 
+    #[non_exhaustive]
     response: {
         /// Information about the device.
         #[ruma_api(body)]
@@ -27,4 +29,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given device ID.
+    pub fn new(device_id: &'a DeviceId) -> Self {
+        Self { device_id }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given device.
+    pub fn new(device: Device) -> Self {
+        Self { device }
+    }
 }

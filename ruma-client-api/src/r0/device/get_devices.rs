@@ -13,12 +13,29 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     request: {}
 
+    #[non_exhaustive]
     response: {
         /// A list of all registered devices for this user
         pub devices: Vec<Device>,
     }
 
     error: crate::Error
+}
+
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given devices.
+    pub fn new(devices: Vec<Device>) -> Self {
+        Self { devices }
+    }
 }

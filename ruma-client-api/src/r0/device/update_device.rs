@@ -13,6 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The device to update.
         #[ruma_api(path)]
@@ -24,7 +25,23 @@ ruma_api! {
         pub display_name: Option<String>,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given device ID.
+    pub fn new(device_id: &'a DeviceId) -> Self {
+        Self { device_id, display_name: None }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }
