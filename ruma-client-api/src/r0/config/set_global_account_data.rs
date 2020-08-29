@@ -14,6 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// Arbitrary JSON to store as config data.
         ///
@@ -25,16 +26,32 @@ ruma_api! {
         ///
         /// Custom types should be namespaced to avoid clashes.
         #[ruma_api(path)]
-        pub event_type: String,
+        pub event_type: &'a str,
 
         /// The ID of the user to set account_data for.
         ///
         /// The access token must be authorized to make requests for this user ID.
         #[ruma_api(path)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given data, event type and user ID.
+    pub fn new(data: Box<RawJsonValue>, event_type: &'a str, user_id: &'a UserId) -> Self {
+        Self { data, event_type, user_id }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

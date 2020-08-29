@@ -13,35 +13,59 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[non_exhaustive]
     request: {
         /// Client-generated secret string used to protect this session.
-        pub client_secret: String,
+        pub client_secret: &'a str,
 
         /// The email address.
-        pub email: String,
-
-        /// A URL for the identity server to redirect the user to after
-        /// validation is completed.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub next_link: Option<String>,
+        pub email: &'a str,
 
         /// Used to distinguish protocol level retries from requests to re-send
         /// the email.
         pub send_attempt: UInt,
 
+        /// A URL for the identity server to redirect the user to after
+        /// validation is completed.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub next_link: Option<&'a str>,
+
         /// The identity server to send the onward request to as a hostname with
         /// an appended colon and port number if the port is not the default.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub id_server: Option<String>,
+        pub id_server: Option<&'a str>,
 
         /// An access token previously registered with the identity server.
         ///
         /// Required if an `id_server` is supplied.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub id_access_token: Option<String>,
+        pub id_access_token: Option<&'a str>,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given client secret, email and send-attempt counter.
+    pub fn new(client_secret: &'a str, email: &'a str, send_attempt: UInt) -> Self {
+        Self {
+            client_secret,
+            email,
+            send_attempt,
+            next_link: None,
+            id_server: None,
+            id_access_token: None,
+        }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

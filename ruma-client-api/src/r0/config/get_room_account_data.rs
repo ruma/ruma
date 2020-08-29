@@ -15,20 +15,22 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// User ID of user for whom to retrieve data.
         #[ruma_api(path)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
 
         /// Room ID for which to retrieve data.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// Type of data to retrieve.
         #[ruma_api(path)]
-        pub event_type: String,
+        pub event_type: &'a str,
     }
 
+    #[non_exhaustive]
     response: {
         /// Account data content for the given type.
         #[ruma_api(body)]
@@ -36,4 +38,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user ID, room ID and event type.
+    pub fn new(user_id: &'a UserId, room_id: &'a RoomId, event_type: &'a str) -> Self {
+        Self { user_id, room_id, event_type }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given account data.
+    pub fn new(account_data: Raw<AnyBasicEvent>) -> Self {
+        Self { account_data }
+    }
 }

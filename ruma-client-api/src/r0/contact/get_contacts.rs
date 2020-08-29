@@ -16,8 +16,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     request: {}
 
+    #[non_exhaustive]
     response: {
         /// A list of third party identifiers the homeserver has associated with the user's
         /// account.
@@ -28,8 +31,26 @@ ruma_api! {
     error: crate::Error
 }
 
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given third party identifiers.
+    pub fn new(threepids: Vec<ThirdPartyIdentifier>) -> Self {
+        Self { threepids }
+    }
+}
+
 /// An identifier external to Matrix.
+///
+/// To create an instance of this type, first create a `ThirdPartyIdentifierInit` and convert it to
+/// this type using `ThirdPartyIdentifier::Init` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct ThirdPartyIdentifier {
     /// The third party identifier address.
@@ -45,6 +66,32 @@ pub struct ThirdPartyIdentifier {
     /// The time when the homeserver associated the third party identifier with the user.
     #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
     pub added_at: SystemTime,
+}
+
+/// Initial set of fields of `ThirdPartyIdentifier`.
+///
+/// This struct will not be updated even if additional fields are added to `ThirdPartyIdentifier`
+/// in a new (non-breaking) release of the Matrix specification.
+#[derive(Debug)]
+pub struct ThirdPartyIdentifierInit {
+    /// The third party identifier address.
+    pub address: String,
+
+    /// The medium of third party identifier.
+    pub medium: Medium,
+
+    /// The time when the identifier was validated by the identity server.
+    pub validated_at: SystemTime,
+
+    /// The time when the homeserver associated the third party identifier with the user.
+    pub added_at: SystemTime,
+}
+
+impl From<ThirdPartyIdentifierInit> for ThirdPartyIdentifier {
+    fn from(init: ThirdPartyIdentifierInit) -> Self {
+        let ThirdPartyIdentifierInit { address, medium, validated_at, added_at } = init;
+        ThirdPartyIdentifier { address, medium, validated_at, added_at }
+    }
 }
 
 #[cfg(test)]
