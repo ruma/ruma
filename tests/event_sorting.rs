@@ -12,7 +12,7 @@ use ruma::{
     identifiers::{EventId, RoomId, RoomVersionId, UserId},
 };
 use serde_json::{json, Value as JsonValue};
-use state_res::{StateEvent, StateMap, StateStore};
+use state_res::{Error, Result, StateEvent, StateMap, StateStore};
 use tracing_subscriber as tracer;
 
 use std::sync::Once;
@@ -57,12 +57,12 @@ pub struct TestStore(RefCell<BTreeMap<EventId, StateEvent>>);
 
 #[allow(unused)]
 impl StateStore for TestStore {
-    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent, String> {
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent> {
         self.0
             .borrow()
             .get(event_id)
             .cloned()
-            .ok_or(format!("{} not found", event_id.to_string()))
+            .ok_or_else(|| Error::NotFound(format!("{} not found", event_id.to_string())))
     }
 }
 

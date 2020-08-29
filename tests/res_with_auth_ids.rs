@@ -14,7 +14,7 @@ use ruma::{
     identifiers::{EventId, RoomId, RoomVersionId, UserId},
 };
 use serde_json::{json, Value as JsonValue};
-use state_res::{ResolutionResult, StateEvent, StateMap, StateResolution, StateStore};
+use state_res::{Error, Result, StateEvent, StateMap, StateResolution, StateStore};
 use tracing_subscriber as tracer;
 
 static LOGGER: Once = Once::new();
@@ -108,17 +108,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
                 &store,
             );
             match resolved {
-                Ok(ResolutionResult::Resolved(state)) => state,
-                Ok(ResolutionResult::Conflicted(state)) => panic!(
-                    "conflicted: {:?}",
-                    state
-                        .iter()
-                        .map(|map| map
-                            .iter()
-                            .map(|(key, id)| (key, id.to_string()))
-                            .collect::<Vec<_>>())
-                        .collect::<Vec<_>>()
-                ),
+                Ok(state) => state,
                 Err(e) => panic!("resolution for {} failed: {}", node, e),
             }
         };
@@ -200,12 +190,12 @@ pub struct TestStore(RefCell<BTreeMap<EventId, StateEvent>>);
 
 #[allow(unused)]
 impl StateStore for TestStore {
-    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent, String> {
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent> {
         self.0
             .borrow()
             .get(event_id)
             .cloned()
-            .ok_or(format!("{} not found", event_id.to_string()))
+            .ok_or_else(|| Error::NotFound(format!("{} not found", event_id.to_string())))
     }
 }
 
@@ -513,9 +503,8 @@ fn base_with_auth_chains() {
 
     let resolved: BTreeMap<_, EventId> =
         match StateResolution::resolve(&room_id(), &RoomVersionId::Version2, &[], None, &store) {
-            Ok(ResolutionResult::Resolved(state)) => state,
+            Ok(state) => state,
             Err(e) => panic!("{}", e),
-            _ => panic!("conflicted state left"),
         };
 
     let resolved = resolved
@@ -583,9 +572,8 @@ fn ban_with_auth_chains2() {
         None,
         &store,
     ) {
-        Ok(ResolutionResult::Resolved(state)) => state,
+        Ok(state) => state,
         Err(e) => panic!("{}", e),
-        _ => panic!("conflicted state left"),
     };
 
     tracing::debug!(

@@ -26,11 +26,6 @@ pub use state_store::StateStore;
 // yielding to reactor during loops every N iterations.
 const _YIELD_AFTER_ITERATIONS: usize = 100;
 
-pub enum ResolutionResult {
-    Conflicted(Vec<StateMap<EventId>>),
-    Resolved(StateMap<EventId>),
-}
-
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
 pub type StateMap<T> = BTreeMap<(EventType, Option<String>), T>;
 
@@ -63,7 +58,7 @@ impl StateResolution {
         event_map: Option<EventMap<StateEvent>>,
         store: &dyn StateStore,
         // TODO actual error handling (`thiserror`??)
-    ) -> Result<ResolutionResult> {
+    ) -> Result<StateMap<EventId>> {
         tracing::info!("State resolution starting");
 
         let mut event_map = if let Some(ev_map) = event_map {
@@ -78,7 +73,7 @@ impl StateResolution {
 
         if conflicting.is_empty() {
             tracing::info!("no conflicting state found");
-            return Ok(ResolutionResult::Resolved(clean));
+            return Ok(clean);
         }
 
         tracing::info!("{} conflicting events", conflicting.len());
@@ -119,7 +114,7 @@ impl StateResolution {
 
         for event in event_map.values() {
             if event.room_id() != Some(room_id) {
-                return Err(Error::TempString(format!(
+                return Err(Error::InvalidPdu(format!(
                     "resolving event {} in room {}, when correct room is {}",
                     event.event_id(),
                     event.room_id().map(|id| id.as_str()).unwrap_or("`unknown`"),
@@ -227,7 +222,7 @@ impl StateResolution {
         // add unconflicted state to the resolved state
         resolved_state.extend(clean);
 
-        Ok(ResolutionResult::Resolved(resolved_state))
+        Ok(resolved_state)
     }
 
     /// Split the events that have no conflicts from those that are conflicting.
@@ -288,16 +283,14 @@ impl StateResolution {
 
         tracing::debug!("calculating auth chain difference");
 
-        store
-            .auth_chain_diff(
-                room_id,
-                state_sets
-                    .iter()
-                    .map(|map| map.values().cloned().collect())
-                    .dedup()
-                    .collect::<Vec<_>>(),
-            )
-            .map_err(Error::TempString)
+        store.auth_chain_diff(
+            room_id,
+            state_sets
+                .iter()
+                .map(|map| map.values().cloned().collect())
+                .dedup()
+                .collect::<Vec<_>>(),
+        )
     }
 
     /// Events are sorted from "earliest" to "latest". They are compared using
@@ -553,10 +546,19 @@ impl StateResolution {
 
             tracing::debug!("event to check {:?}", event.event_id().to_string());
 
-            if event_auth::auth_check(room_version, &event, auth_events, false)
-                .ok_or_else(|| "Auth check failed due to deserialization most likely".to_string())
-                .map_err(Error::TempString)?
-            {
+            let most_recent_prev_event = event
+                .prev_event_ids()
+                .iter()
+                .filter_map(|id| StateResolution::get_or_load_event(room_id, id, event_map, store))
+                .next_back();
+
+            if event_auth::auth_check(
+                room_version,
+                &event,
+                most_recent_prev_event.as_ref(),
+                auth_events,
+                false,
+            )? {
                 // add event to resolved state map
                 resolved_state.insert((event.kind(), event.state_key()), event_id.clone());
             } else {
