@@ -37,7 +37,7 @@ impl StateResolution {
 // The tricky part, making a good abstraction...
 trait StateStore {
     /// Return a single event based on the EventId.
-    fn get_event(&self, event_id: &EventId) -> Result<StateEvent, String>;
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent, String>;
 
     // There are 3 methods that have default implementations `get_events`,
     // `auth_event_ids` and `auth_chain_diff`. Each could be overridden if
