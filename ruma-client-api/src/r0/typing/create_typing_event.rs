@@ -16,23 +16,40 @@ ruma_api! {
         rate_limited: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The user who has started to type.
         #[ruma_api(path)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
 
         /// The room in which the user is typing.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// Whether the user is typing within a length of time or not.
         #[serde(flatten)]
         pub state: Typing,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user ID, room ID and typing state.
+    pub fn new(user_id: &'a UserId, room_id: &'a RoomId, state: Typing) -> Self {
+        Self { user_id, room_id, state }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }
 
 /// A mark for whether the user is typing within a length of time or not.

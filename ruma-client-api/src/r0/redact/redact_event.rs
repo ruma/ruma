@@ -13,31 +13,47 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The ID of the room of the event to redact.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The ID of the event to redact.
         #[ruma_api(path)]
-        pub event_id: EventId,
+        pub event_id: &'a EventId,
 
         /// The transaction ID for this event.
         ///
         /// Clients should generate a unique ID; it will be used by the server to ensure idempotency
         /// of requests.
         #[ruma_api(path)]
-        pub txn_id: String,
+        pub txn_id: &'a str,
 
         /// The reason for the redaction.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub reason: Option<String>,
+        pub reason: Option<&'a str>,
     }
 
+    #[non_exhaustive]
     response: {
         /// The ID of the redacted event.
         pub event_id: EventId,
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room ID, event ID and transation ID.
+    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, txn_id: &'a str) -> Self {
+        Self { room_id, event_id, txn_id, reason: None }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given event ID.
+    pub fn new(event_id: EventId) -> Self {
+        Self { event_id }
+    }
 }

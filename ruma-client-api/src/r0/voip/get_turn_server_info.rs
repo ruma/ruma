@@ -14,8 +14,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     request: {}
 
+    #[non_exhaustive]
     response: {
         /// The username to use.
         pub username: String,
@@ -32,4 +35,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given username, password, TURN URIs and time-to-live.
+    pub fn new(username: String, password: String, uris: Vec<String>, ttl: Duration) -> Self {
+        Self { username, password, uris, ttl }
+    }
 }

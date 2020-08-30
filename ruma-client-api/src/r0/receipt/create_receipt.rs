@@ -16,10 +16,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The room in which to send the event.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The type of receipt to send.
         #[ruma_api(path)]
@@ -27,16 +28,33 @@ ruma_api! {
 
         /// The event ID to acknowledge up to.
         #[ruma_api(path)]
-        pub event_id: EventId,
+        pub event_id: &'a EventId,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
 }
 
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room ID, receipt type and event ID.
+    pub fn new(room_id: &'a RoomId, receipt_type: ReceiptType, event_id: &'a EventId) -> Self {
+        Self { room_id, receipt_type, event_id }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
 /// The type of receipt.
 #[derive(Clone, Copy, Debug, Display, EnumString)]
+#[non_exhaustive]
 pub enum ReceiptType {
     /// m.read
     #[strum(serialize = "m.read")]
