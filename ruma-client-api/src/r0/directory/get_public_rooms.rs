@@ -14,6 +14,8 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     request: {
         /// Limit for the number of results to return.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -33,21 +35,39 @@ ruma_api! {
         pub server: Option<&'a str>,
     }
 
+    #[non_exhaustive]
     response: {
         /// A paginated chunk of public rooms.
         pub chunk: Vec<PublicRoomsChunk>,
 
         /// A pagination token for the response.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub next_batch: Option<String>,
 
         /// A pagination token that allows fetching previous results.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub prev_batch: Option<String>,
 
         /// An estimate on the total number of public rooms, if the server has an estimate.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub total_room_count_estimate: Option<UInt>,
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given room list chunk.
+    pub fn new(chunk: Vec<PublicRoomsChunk>) -> Self {
+        Self { chunk, next_batch: None, prev_batch: None, total_room_count_estimate: None }
+    }
 }
 
 #[cfg(test)]

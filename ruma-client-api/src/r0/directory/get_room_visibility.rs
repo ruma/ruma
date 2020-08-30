@@ -15,16 +15,32 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[non_exhaustive]
     request: {
         /// The ID of the room of which to request the visibility.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
     }
 
+    #[non_exhaustive]
     response: {
         /// Visibility of the room.
         pub visibility: Visibility,
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room ID.
+    pub fn new(room_id: &'a RoomId) -> Self {
+        Self { room_id }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given visibility.
+    pub fn new(visibility: Visibility) -> Self {
+        Self { visibility }
+    }
 }
