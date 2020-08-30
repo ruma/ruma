@@ -14,16 +14,18 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The user whose tags will be retrieved.
         #[ruma_api(path)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
 
         /// The room from which tags will be retrieved.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
     }
 
+    #[non_exhaustive]
     response: {
         /// The user's tags for the room.
         pub tags: Tags,
@@ -32,19 +34,35 @@ ruma_api! {
     error: crate::Error
 }
 
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user ID and room ID.
+    pub fn new(user_id: &'a UserId, room_id: &'a RoomId) -> Self {
+        Self { user_id, room_id }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given tags.
+    pub fn new(tags: Tags) -> Self {
+        Self { tags }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
+    use assign::assign;
+    use ruma_events::tag::{TagInfo, Tags};
     use serde_json::json;
 
     use super::Response;
-    use ruma_events::tag::{TagInfo, Tags};
-    use std::convert::TryFrom;
 
     #[test]
     fn test_serializing_get_tags_response() {
         let mut tags = Tags::new();
-        tags.insert("m.favourite".into(), TagInfo { order: Some(0.25) });
-        tags.insert("u.user_tag".into(), TagInfo { order: Some(0.11) });
+        tags.insert("m.favourite".into(), assign!(TagInfo::new(), { order: Some(0.25) }));
+        tags.insert("u.user_tag".into(), assign!(TagInfo::new(), { order: Some(0.11) }));
         let response = Response { tags };
 
         let http_response = http::Response::<Vec<u8>>::try_from(response).unwrap();

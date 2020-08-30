@@ -13,21 +13,38 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The user whose tag will be deleted.
         #[ruma_api(path)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
 
         /// The tagged room.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The name of the tag to delete.
         #[ruma_api(path)]
-        pub tag: String,
+        pub tag: &'a str,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user ID, room ID and tag
+    pub fn new(user_id: &'a UserId, room_id: &'a RoomId, tag: &'a str) -> Self {
+        Self { user_id, room_id, tag }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }
