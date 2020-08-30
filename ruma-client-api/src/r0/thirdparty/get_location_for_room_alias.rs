@@ -14,12 +14,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The Matrix room alias to look up.
         #[ruma_api(query)]
-        pub alias: RoomAliasId,
+        pub alias: &'a RoomAliasId,
     }
 
+    #[non_exhaustive]
     response: {
         /// List of matched third party locations.
         #[ruma_api(body)]
@@ -27,4 +29,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room alias ID.
+    pub fn new(alias: &'a RoomAliasId) -> Self {
+        Self { alias }
+    }
+}
+
+impl Response {
+    /// Creates a new `Reponse` with the given locations.
+    pub fn new(locations: Vec<Location>) -> Self {
+        Self { locations }
+    }
 }

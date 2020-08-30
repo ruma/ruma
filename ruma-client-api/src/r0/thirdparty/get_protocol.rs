@@ -13,12 +13,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The name of the protocol.
         #[ruma_api(path)]
-        pub protocol: String,
+        pub protocol: &'a str,
     }
 
+    #[non_exhaustive]
     response: {
         /// Metadata about the protocol.
         #[ruma_api(body)]
@@ -26,4 +28,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given protocol name.
+    pub fn new(protocol: &'a str) -> Self {
+        Self { protocol }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given procotol.
+    pub fn new(protocol: Protocol) -> Self {
+        Self { protocol }
+    }
 }

@@ -15,10 +15,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The protocol used to communicate to the third party network.
         #[ruma_api(path)]
-        pub protocol: String,
+        pub protocol: &'a str,
 
         /// One or more custom fields that are passed to the AS to help identify the user.
         // The specification is incorrect for this parameter. See matrix-org/matrix-doc#2352.
@@ -26,6 +27,7 @@ ruma_api! {
         pub fields: BTreeMap<String, String>,
     }
 
+    #[non_exhaustive]
     response: {
         /// List of matched third party users.
         #[ruma_api(body)]
@@ -33,4 +35,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given protocol.
+    pub fn new(protocol: &'a str) -> Self {
+        Self { protocol, fields: BTreeMap::new() }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given users.
+    pub fn new(users: Vec<User>) -> Self {
+        Self { users }
+    }
 }

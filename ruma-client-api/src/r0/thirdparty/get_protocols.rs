@@ -15,8 +15,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
+    #[non_exhaustive]
     request: {}
 
+    #[non_exhaustive]
     response: {
         /// Metadata about protocols supported by the homeserver.
         #[ruma_api(body)]
@@ -24,4 +27,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given procotols.
+    pub fn new(protocols: BTreeMap<String, Protocol>) -> Self {
+        Self { protocols }
+    }
 }

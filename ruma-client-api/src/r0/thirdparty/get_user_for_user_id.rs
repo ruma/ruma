@@ -14,12 +14,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[non_exhaustive]
     request: {
         /// The Matrix User ID to look up.
         #[ruma_api(query)]
-        pub userid: UserId,
+        pub userid: &'a UserId,
     }
 
+    #[non_exhaustive]
     response: {
         /// List of matched third party users.
         #[ruma_api(body)]
@@ -27,4 +29,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user ID.
+    pub fn new(userid: &'a UserId) -> Self {
+        Self { userid }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given users.
+    pub fn new(users: Vec<User>) -> Self {
+        Self { users }
+    }
 }
