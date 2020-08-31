@@ -90,6 +90,14 @@ pub fn auth_check(
 ) -> Result<bool> {
     tracing::info!("auth_check beginning for {}", incoming_event.kind());
 
+    tracing::debug!(
+        "{:?}",
+        auth_events
+            .values()
+            .map(|id| id.event_id().to_string())
+            .collect::<Vec<_>>()
+    );
+
     // don't let power from other rooms be used
     for auth_event in auth_events.values() {
         if auth_event.room_id() != incoming_event.room_id() {
