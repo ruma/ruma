@@ -261,7 +261,7 @@ fn test_ban_pass() {
         sender: &alice(),
     };
 
-    assert!(valid_membership_change(requester, prev, &auth_events).unwrap())
+    assert!(valid_membership_change(requester, prev, None, &auth_events).unwrap())
 }
 
 #[test]
@@ -285,5 +285,5 @@ fn test_ban_fail() {
         sender: &charlie(),
     };
 
-    assert!(!valid_membership_change(requester, prev, &auth_events).unwrap())
+    assert!(!valid_membership_change(requester, prev, None, &auth_events).unwrap())
 }

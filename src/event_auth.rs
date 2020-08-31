@@ -15,7 +15,6 @@ use ruma::{
 };
 
 use crate::{
-    room_version::RoomVersion,
     state_event::{Requester, StateEvent},
     Error, Result, StateMap,
 };
@@ -86,54 +85,13 @@ pub fn auth_check(
     incoming_event: &StateEvent,
     prev_event: Option<&StateEvent>,
     auth_events: StateMap<StateEvent>,
-    do_sig_check: bool,
+    current_third_party_invite: Option<&StateEvent>,
 ) -> Result<bool> {
     tracing::info!("auth_check beginning for {}", incoming_event.kind());
 
-    tracing::debug!(
-        "{:?}",
-        auth_events
-            .values()
-            .map(|id| id.event_id().to_string())
-            .collect::<Vec<_>>()
-    );
+    // [synapse] check that all the events are in the same room as `incoming_event`
 
-    // don't let power from other rooms be used
-    for auth_event in auth_events.values() {
-        if auth_event.room_id() != incoming_event.room_id() {
-            tracing::warn!("found auth event that did not match event's room_id");
-            return Ok(false);
-        }
-    }
-
-    if do_sig_check {
-        let sender_domain = incoming_event.sender().server_name();
-
-        let is_invite_via_3pid = if incoming_event.kind() == EventType::RoomMember {
-            incoming_event
-                .deserialize_content::<room::member::MemberEventContent>()
-                .map(|c| c.membership == MembershipState::Invite && c.third_party_invite.is_some())
-                .unwrap_or_default()
-        } else {
-            false
-        };
-
-        // check the event has been signed by the domain of the sender
-        if incoming_event.signatures().get(sender_domain).is_none() && !is_invite_via_3pid {
-            tracing::warn!("event not signed by sender's server");
-            return Ok(false);
-        }
-
-        if incoming_event.room_version() == RoomVersionId::Version1
-            && incoming_event
-                .signatures()
-                .get(incoming_event.event_id().server_name().unwrap())
-                .is_none()
-        {
-            tracing::warn!("event not signed by event_id's server");
-            return Ok(false);
-        }
-    }
+    // [synapse] do_sig_check check the event has valid signatures for member events
 
     // TODO do_size_check is false when called by `iterative_auth_check`
     // do_size_check is also mostly accomplished by ruma with the exception of checking event_type,
@@ -184,6 +142,23 @@ pub fn auth_check(
         return Ok(true);
     }
 
+    // 2. Reject if auth_events
+    // a. auth_events cannot have duplicate keys since it's a BTree
+    // b. All entries are valid auth events according to spec
+    let expected_auth = auth_types_for_event(
+        incoming_event.kind(),
+        incoming_event.sender(),
+        incoming_event.state_key(),
+        incoming_event.content().clone(),
+    );
+    for ev_key in auth_events.keys() {
+        // (b)
+        if !expected_auth.contains(ev_key) {
+            tracing::warn!("auth_events contained invalid auth event");
+            return Ok(false);
+        }
+    }
+
     // 3. If event does not have m.room.create in auth_events reject
     if auth_events
         .get(&(EventType::RoomCreate, Some("".into())))
@@ -199,13 +174,13 @@ pub fn auth_check(
     // 4. if type is m.room.aliases
     if incoming_event.kind() == EventType::RoomAliases {
         tracing::info!("starting m.room.aliases check");
-        // TODO && room_version "special case aliases auth" ??
+        // [synapse] adds `&& room_version` "special case aliases auth"
         if incoming_event.state_key().is_none() {
             tracing::warn!("no state_key field found for event");
             return Ok(false); // must have state_key
         }
 
-        // TODO this is not part of the spec
+        // [synapse]
         // if event.state_key().unwrap().is_empty() {
         //     tracing::warn!("state_key must be non-empty");
         //     return Ok(false); // and be non-empty state_key (point to a user_id)
@@ -239,7 +214,12 @@ pub fn auth_check(
             return Ok(false);
         }
 
-        if !valid_membership_change(incoming_event.to_requester(), prev_event, &auth_events)? {
+        if !valid_membership_change(
+            incoming_event.to_requester(),
+            current_third_party_invite,
+            prev_event,
+            &auth_events,
+        )? {
             return Ok(false);
         }
 
@@ -260,11 +240,13 @@ pub fn auth_check(
         }
     }
 
-    // Special case to allow m.room.third_party_invite events where ever
-    // a user is allowed to issue invites
-    if incoming_event.kind() == EventType::RoomThirdPartyInvite {
-        // TODO impl this
-        unimplemented!("third party invite")
+    // Allow if and only if sender's current power level is greater than
+    // or equal to the invite level
+    if incoming_event.kind() == EventType::RoomThirdPartyInvite
+        && !can_send_invite(&incoming_event.to_requester(), &auth_events)?
+    {
+        tracing::warn!("sender's cannot send invites in this room");
+        return Ok(false);
     }
 
     // If the event type's required power level is greater than the sender's power level, reject
@@ -313,6 +295,7 @@ pub fn auth_check(
 pub fn valid_membership_change(
     user: Requester<'_>,
     prev_event: Option<&StateEvent>,
+    current_third_party_invite: Option<&StateEvent>,
     auth_events: &StateMap<StateEvent>,
 ) -> Result<bool> {
     let state_key = if let Some(s) = user.state_key.as_ref() {
@@ -422,12 +405,12 @@ pub fn valid_membership_change(
                 || join_rules == JoinRule::Public
         }
     } else if target_membership == MembershipState::Invite {
-        if let Some(_tp_id) = content.third_party_invite {
+        // If content has third_party_invite key
+        if let Some(tp_id) = content.third_party_invite {
             if current_membership == MembershipState::Ban {
                 false
             } else {
-                // TODO this is not filled out
-                verify_third_party_invite(&user, auth_events)
+                verify_third_party_invite(&user, &tp_id, current_third_party_invite)
             }
         } else if sender_membership != MembershipState::Join
             || current_membership == MembershipState::Join
@@ -470,7 +453,6 @@ pub fn check_event_sender_in_room(
     auth_events: &StateMap<StateEvent>,
 ) -> Option<bool> {
     let mem = auth_events.get(&(EventType::RoomMember, Some(sender.to_string())))?;
-    // TODO this is check_membership a helper fn in synapse but it does this
     Some(
         mem.deserialize_content::<room::member::MemberEventContent>()
             .ok()?
@@ -508,12 +490,11 @@ pub fn can_send_event(event: &StateEvent, auth_events: &StateMap<StateEvent>) ->
 
 /// Confirm that the event sender has the required power levels.
 pub fn check_power_levels(
-    room_version: &RoomVersionId,
+    _: &RoomVersionId,
     power_event: &StateEvent,
     auth_events: &StateMap<StateEvent>,
 ) -> Option<bool> {
     let key = (power_event.kind(), power_event.state_key());
-
     let current_state = if let Some(current_state) = auth_events.get(&key) {
         current_state
     } else {
@@ -555,21 +536,18 @@ pub fn check_power_levels(
 
     tracing::debug!("events to check {:?}", event_levels_to_check);
 
-    // TODO validate MSC2209 depending on room version check "notifications".
-    // synapse does this very differently with the loops (see comments below)
-    // but since we have a validated JSON event we can check the levels directly
-    // I hope...
-    if RoomVersion::new(room_version).limit_notifications_power_levels {
-        let old_level: i64 = current_content.notifications.room.into();
-        let new_level: i64 = user_content.notifications.room.into();
+    // [synapse] validate MSC2209 depending on room version check "notifications".
+    // if RoomVersion::new(room_version).limit_notifications_power_levels {
+    //     let old_level: i64 = current_content.notifications.room.into();
+    //     let new_level: i64 = user_content.notifications.room.into();
 
-        let old_level_too_big = old_level > user_level;
-        let new_level_too_big = new_level > user_level;
-        if old_level_too_big || new_level_too_big {
-            tracing::warn!("m.room.power_level cannot add ops > than own");
-            return Some(false); // cannot add ops greater than own
-        }
-    }
+    //     let old_level_too_big = old_level > user_level;
+    //     let new_level_too_big = new_level > user_level;
+    //     if old_level_too_big || new_level_too_big {
+    //         tracing::warn!("m.room.power_level cannot add ops > than own");
+    //         return Some(false); // cannot add ops greater than own
+    //     }
+    // }
 
     let old_state = &current_content;
     let new_state = &user_content;
@@ -584,11 +562,15 @@ pub fn check_power_levels(
         if old_level.is_some() && new_level.is_some() && old_level == new_level {
             continue;
         }
+
+        // If the current value is equal to the sender's current power level, reject
         if user != power_event.sender() && old_level.map(|int| (*int).into()) == Some(user_level) {
             tracing::warn!("m.room.power_level cannot remove ops == to own");
             return Some(false); // cannot remove ops level == to own
         }
 
+        // If the current value is higher than the sender's current power level, reject
+        // If the new value is higher than the sender's current power level, reject
         let old_level_too_big = old_level.map(|int| (*int).into()) > Some(user_level);
         let new_level_too_big = new_level.map(|int| (*int).into()) > Some(user_level);
         if old_level_too_big || new_level_too_big {
@@ -605,6 +587,8 @@ pub fn check_power_levels(
             continue;
         }
 
+        // If the current value is higher than the sender's current power level, reject
+        // If the new value is higher than the sender's current power level, reject
         let old_level_too_big = old_level.map(|int| (*int).into()) > Some(user_level);
         let new_level_too_big = new_level.map(|int| (*int).into()) > Some(user_level);
         if old_level_too_big || new_level_too_big {
@@ -664,9 +648,17 @@ pub fn check_redaction(
         return Ok(RedactAllowed::CanRedact);
     }
 
+    // FROM SPEC:
+    // Redaction events are always accepted (provided the event is allowed by `events` and
+    // `events_default` in the power levels). However, servers should not apply or send redaction's
+    // to clients until both the redaction event and original event have been seen, and are valid.
+    // Servers should only apply redaction's to events where the sender's domains match,
+    // or the sender of the redaction has the appropriate permissions per the power levels.
+
+    // version 1 check
     if let RoomVersionId::Version1 = room_version {
-        // are the redacter and redactee in the same domain
-        if Some(redaction_event.sender().server_name())
+        // If the domain of the event_id of the event being redacted is the same as the domain of the event_id of the m.room.redaction, allow
+        if redaction_event.event_id().server_name()
             == redaction_event.redacts().and_then(|id| id.server_name())
         {
             tracing::info!("redaction event allowed via room version 1 rules");
@@ -789,10 +781,66 @@ pub fn get_send_level(
     }
 }
 
-/// TODO this is unimplemented
+/// Check user can send invite.
+pub fn can_send_invite(event: &Requester<'_>, auth_events: &StateMap<StateEvent>) -> Result<bool> {
+    let user_level = get_user_power_level(event.sender, auth_events);
+    let key = (EventType::RoomPowerLevels, Some("".into()));
+    let invite_level = auth_events
+        .get(&key)
+        .map_or_else(
+            || Ok::<_, Error>(js_int::int!(50)),
+            |power_levels| {
+                power_levels
+                    .deserialize_content::<PowerLevelsEventContent>()
+                    .map(|pl| pl.invite)
+                    .map_err(Into::into)
+            },
+        )?
+        .into();
+
+    Ok(user_level >= invite_level)
+}
+
 pub fn verify_third_party_invite(
-    _event: &Requester<'_>,
-    _auth_events: &StateMap<StateEvent>,
+    event: &Requester<'_>,
+    tp_id: &member::ThirdPartyInvite,
+    current_third_party_invite: Option<&StateEvent>,
 ) -> bool {
-    unimplemented!("impl third party invites")
+    // 1. check for user being banned happens before this is called
+    // checking for mxid and token keys is done by ruma when deserializing
+
+    if event.state_key != Some(tp_id.signed.mxid.to_string()) {
+        return false;
+    }
+
+    // If there is no m.room.third_party_invite event in the current room state
+    // with state_key matching token, reject
+    if let Some(current_tpid) = current_third_party_invite {
+        if current_tpid.state_key() != Some(tp_id.signed.token.to_string()) {
+            return false;
+        }
+
+        if event.sender != current_tpid.sender() {
+            return false;
+        }
+
+        // If any signature in signed matches any public key in the m.room.third_party_invite event, allow
+        if let Ok(tpid_ev) = serde_json::from_value::<
+            ruma::events::room::third_party_invite::ThirdPartyInviteEventContent,
+        >(current_tpid.content().clone())
+        {
+            // A list of public keys in the public_keys field
+            for key in tpid_ev.public_keys.unwrap_or_default() {
+                if key.public_key == tp_id.signed.token {
+                    return true;
+                }
+            }
+            // A single public key in the public_key field
+            tpid_ev.public_key == tp_id.signed.token
+        } else {
+            false
+        }
+    } else {
+        false
+    }
 }

@@ -546,12 +546,22 @@ impl StateResolution {
                 .filter_map(|id| StateResolution::get_or_load_event(room_id, id, event_map, store))
                 .next_back();
 
+            // The key for this is (eventType + a state_key of the signed token not sender) so search
+            // for it
+            let current_third_party = auth_events.iter().find_map(|(_, pdu)| {
+                if pdu.kind() == EventType::RoomThirdPartyInvite {
+                    Some(pdu.clone()) // TODO no clone, auth_events is borrowed while moved
+                } else {
+                    None
+                }
+            });
+
             if event_auth::auth_check(
                 room_version,
                 &event,
                 most_recent_prev_event.as_ref(),
                 auth_events,
-                false,
+                current_third_party.as_ref(),
             )? {
                 // add event to resolved state map
                 resolved_state.insert((event.kind(), event.state_key()), event_id.clone());
