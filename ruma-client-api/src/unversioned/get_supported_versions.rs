@@ -15,10 +15,10 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {}
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// A list of Matrix client API protocol versions supported by the homeserver.
         pub versions: Vec<String>,

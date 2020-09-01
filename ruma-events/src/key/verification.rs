@@ -14,7 +14,7 @@ pub mod start;
 
 /// A hash algorithm.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Serialize, Deserialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum HashAlgorithm {
@@ -24,7 +24,7 @@ pub enum HashAlgorithm {
 
 /// A key agreement protocol.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Serialize, Deserialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
 pub enum KeyAgreementProtocol {
@@ -36,7 +36,7 @@ pub enum KeyAgreementProtocol {
 
 /// A message authentication code algorithm.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Serialize, Deserialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
 pub enum MessageAuthenticationCode {
@@ -48,7 +48,7 @@ pub enum MessageAuthenticationCode {
 
 /// A Short Authentication String method.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Serialize, Deserialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum ShortAuthenticationString {
@@ -61,7 +61,7 @@ pub enum ShortAuthenticationString {
 
 /// A Short Authentication String (SAS) verification method.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum VerificationMethod {
     /// The *m.sas.v1* verification method.
     #[serde(rename = "m.sas.v1")]

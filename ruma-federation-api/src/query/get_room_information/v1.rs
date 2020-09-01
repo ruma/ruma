@@ -13,14 +13,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// Room alias to query.
         #[ruma_api(query)]
         pub room_alias: &'a RoomAliasId,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Room ID mapped to queried alias.
         pub room_id: RoomId,

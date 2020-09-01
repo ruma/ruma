@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The ID of the user uploading the filter.
         ///
@@ -28,7 +28,7 @@ ruma_api! {
         pub filter: FilterDefinition<'a>,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The ID of the filter that was created.
         pub filter_id: String,

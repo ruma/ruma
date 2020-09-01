@@ -11,7 +11,7 @@ pub type JoinRulesEvent = StateEvent<JoinRulesEventContent>;
 
 /// The payload for `JoinRulesEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.join_rules")]
 pub struct JoinRulesEventContent {
     /// The type of rules used for users wishing to join this room.
@@ -28,7 +28,7 @@ impl JoinRulesEventContent {
 
 /// The rule used for users wishing to join this room.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum JoinRule {

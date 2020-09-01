@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 /// This type can hold an arbitrary string. To check for events that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(from = "String", into = "String")]
 pub enum EventType {
     /// m.call.answer

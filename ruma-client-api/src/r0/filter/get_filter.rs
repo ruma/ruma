@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The user ID to download a filter for.
         #[ruma_api(path)]
@@ -26,7 +26,7 @@ ruma_api! {
         pub filter_id: &'a str,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The filter definition.
         #[ruma_api(body)]

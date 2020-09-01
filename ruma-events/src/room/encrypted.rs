@@ -14,7 +14,7 @@ pub type EncryptedEvent = MessageEvent<EncryptedEventContent>;
 
 /// The payload for `EncryptedEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.encrypted")]
 #[serde(tag = "algorithm")]
 pub enum EncryptedEventContent {
@@ -29,7 +29,7 @@ pub enum EncryptedEventContent {
 
 /// The payload for `EncryptedEvent` using the *m.olm.v1.curve25519-aes-sha2* algorithm.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct OlmV1Curve25519AesSha2Content {
     /// A map from the recipient Curve25519 identity key to ciphertext information.
     pub ciphertext: BTreeMap<String, CiphertextInfo>,
@@ -49,7 +49,7 @@ impl OlmV1Curve25519AesSha2Content {
 ///
 /// Used for messages encrypted with the *m.olm.v1.curve25519-aes-sha2* algorithm.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct CiphertextInfo {
     /// The encrypted payload.
     pub body: String,
@@ -71,7 +71,7 @@ impl CiphertextInfo {
 /// To create an instance of this type, first create a `MegolmV1AesSha2ContentInit` and convert it
 /// via `MegolmV1AesSha2Content::from` / `.into()`.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct MegolmV1AesSha2Content {
     /// The encrypted content of the event.
     pub ciphertext: String,

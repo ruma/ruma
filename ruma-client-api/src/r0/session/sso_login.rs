@@ -13,7 +13,7 @@ ruma_api! {
 
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// URL to which the homeserver should return the user after completing
         /// authentication with the SSO identity provider.
@@ -21,7 +21,7 @@ ruma_api! {
         pub redirect_url: &'a str,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Redirect URL to the SSO identity provider.
         #[ruma_api(header = LOCATION)]

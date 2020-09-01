@@ -14,7 +14,7 @@ pub type GuestAccessEvent = StateEvent<GuestAccessEventContent>;
 
 /// The payload for `GuestAccessEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.guest_access")]
 pub struct GuestAccessEventContent {
     /// A policy for guest user access to a room.
@@ -30,7 +30,7 @@ impl GuestAccessEventContent {
 
 /// A policy for guest user access to a room.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum GuestAccess {

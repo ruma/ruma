@@ -14,7 +14,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The user whose tags will be retrieved.
         #[ruma_api(path)]
@@ -25,7 +25,7 @@ ruma_api! {
         pub room_id: &'a RoomId,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The user's tags for the room.
         pub tags: Tags,

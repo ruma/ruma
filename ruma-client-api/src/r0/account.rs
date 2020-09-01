@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 
 /// Additional authentication information for requestToken endpoints.
 #[derive(Clone, Debug, Outgoing, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct IdentityServerInfo<'a> {
     /// The ID server to send the onward request to as a hostname with an
     /// appended colon and port number if the port is not the default.

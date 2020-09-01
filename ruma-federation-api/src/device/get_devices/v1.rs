@@ -16,14 +16,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The user ID to retrieve devices for. Must be a user local to the receiving homeserver.
         #[ruma_api(path)]
         pub user_id: &'a UserId,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The user ID devices were requested for.
         pub user_id: UserId,
@@ -56,7 +56,7 @@ impl Response {
 
 /// Information about a user's device.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct UserDevice {
     /// The device ID.
     pub device_id: DeviceIdBox,

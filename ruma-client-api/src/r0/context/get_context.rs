@@ -18,7 +18,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room to get events from.
         #[ruma_api(path)]
@@ -46,7 +46,7 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// A token that can be used to paginate backwards with.
         #[serde(skip_serializing_if = "Option::is_none")]

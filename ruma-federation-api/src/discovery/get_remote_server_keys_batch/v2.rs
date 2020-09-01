@@ -17,7 +17,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The query criteria. The outer string key on the object is the server
         /// name (eg: matrix.org). The inner string key is the Key ID to query
@@ -42,7 +42,7 @@ ruma_api! {
         pub minimum_valid_until_ts: SystemTime,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The queried server's keys, signed by the notary server.
         pub server_keys: Vec<ServerKey>,
@@ -68,7 +68,7 @@ impl Response {
 
 /// The query criteria.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct QueryCriteria {
     /// A millisecond POSIX timestamp in milliseconds indicating when the
     /// returned certificates will need to be valid until to be useful to the

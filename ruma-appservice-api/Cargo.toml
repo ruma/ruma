@@ -18,3 +18,6 @@ ruma-events = { version = "=0.22.0-alpha.1", path = "../ruma-events" }
 ruma-identifiers = { version = "0.17.4", path = "../ruma-identifiers" }
 serde = { version = "1.0.114", features = ["derive"] }
 serde_json = "1.0.57"
+
+[features]
+unstable-exhaustive-types = []

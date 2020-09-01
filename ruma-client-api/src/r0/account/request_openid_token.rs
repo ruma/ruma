@@ -16,14 +16,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// User ID of authenticated user.
         #[ruma_api(path)]
         pub user_id: &'a UserId,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Access token for verifying user's identity.
         pub access_token: String,
@@ -64,7 +64,7 @@ impl Response {
 
 /// Access token types.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum TokenType {
     /// Bearer token type
     Bearer,

@@ -27,7 +27,7 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// Extra keys to be added to the content of the `m.room.create`.
         #[serde(default, skip_serializing_if = "CreationContent::is_empty")]
@@ -88,7 +88,7 @@ ruma_api! {
         pub visibility: Visibility,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The created room's ID.
         pub room_id: RoomId,
@@ -116,7 +116,7 @@ impl Response {
 /// This is the same as the event content struct for `m.room.create`, but without some fields that
 /// servers are supposed to ignore.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct CreationContent {
     /// Whether users on other servers can join this room.
     ///
@@ -163,7 +163,7 @@ impl Default for CreationContent {
 
 /// A convenience parameter for setting a few default state events.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "snake_case")]
 pub enum RoomPreset {
     /// `join_rules` is set to `invite` and `history_visibility` is set to `shared`.

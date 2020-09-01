@@ -13,7 +13,7 @@ pub mod get_server_version;
 
 /// Public key of the homeserver for verifying digital signatures.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct VerifyKey {
     /// The Unpadded Base64 encoded key.
     pub key: String,
@@ -28,7 +28,7 @@ impl VerifyKey {
 
 /// A key the server used to use, but stopped using.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct OldVerifyKey {
     /// Timestamp when this key expired.
     #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
@@ -47,7 +47,7 @@ impl OldVerifyKey {
 // Spec is wrong, all fields are required (see https://github.com/matrix-org/matrix-doc/issues/2508)
 /// Queried server key, signed by the notary server.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ServerKey {
     /// DNS name of the homeserver.
     pub server_name: ServerNameBox,

@@ -18,7 +18,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// A transaction ID unique between sending and receiving homeservers.
         #[ruma_api(path)]
@@ -45,7 +45,7 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Map of event IDs and response for each PDU given in the request.
         #[serde(with = "crate::serde::pdu_process_response")]

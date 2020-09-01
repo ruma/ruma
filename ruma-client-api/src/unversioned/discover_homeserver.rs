@@ -14,10 +14,10 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {}
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Information about the homeserver to connect to.
         #[serde(rename = "m.homeserver")]
@@ -47,7 +47,7 @@ impl Response {
 
 /// Information about a discovered homeserver.
 #[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct HomeserverInfo {
     /// The base URL for the homeserver for client-server connections.
     pub base_url: String,
@@ -62,7 +62,7 @@ impl HomeserverInfo {
 
 /// Information about a discovered identity server.
 #[derive(Clone, Debug, Deserialize, Hash, PartialEq, PartialOrd, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct IdentityServerInfo {
     /// The base URL for the identity server for client-server connections.
     pub base_url: String,

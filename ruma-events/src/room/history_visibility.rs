@@ -12,7 +12,7 @@ pub type HistoryVisibilityEvent = StateEvent<HistoryVisibilityEventContent>;
 
 /// The payload for `HistoryVisibilityEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.history_visibility")]
 pub struct HistoryVisibilityEventContent {
     /// Who can see the room history.
@@ -29,7 +29,7 @@ impl HistoryVisibilityEventContent {
 
 /// Who can see a room's history.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum HistoryVisibility {

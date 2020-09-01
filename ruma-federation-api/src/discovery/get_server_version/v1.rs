@@ -14,11 +14,11 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {}
 
     #[derive(Default)]
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Information about the homeserver implementation
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -42,7 +42,7 @@ impl Response {
 
 /// Arbitrary values that identify this implementation.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Server {
     /// Arbitrary name that identifies this implementation.
     #[serde(skip_serializing_if = "Option::is_none")]

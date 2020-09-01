@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room where the user should be invited.
         #[ruma_api(path)]
@@ -27,7 +27,7 @@ ruma_api! {
         pub third_party_signed: Option<ThirdPartySigned<'a>>,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The room that the user joined.
         pub room_id: RoomId,

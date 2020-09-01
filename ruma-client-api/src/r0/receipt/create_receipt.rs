@@ -16,7 +16,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room in which to send the event.
         #[ruma_api(path)]
@@ -32,7 +32,7 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {}
 
     error: crate::Error
@@ -54,7 +54,7 @@ impl Response {
 
 /// The type of receipt.
 #[derive(Clone, Copy, Debug, Display, EnumString)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum ReceiptType {
     /// m.read
     #[strum(serialize = "m.read")]

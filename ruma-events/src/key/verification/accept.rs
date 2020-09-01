@@ -34,7 +34,7 @@ pub struct AcceptEventContent {
 /// An enum representing the different method specific
 /// *m.key.verification.accept* content.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
 pub enum AcceptMethod {
     /// The *m.sas.v1* verification method.
@@ -57,7 +57,7 @@ pub struct CustomContent {
 
 /// The payload of an *m.key.verification.accept* event using the *m.sas.v1* method.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename = "m.sas.v1", tag = "method")]
 pub struct MSasV1Content {
     /// The key agreement protocol the device is choosing to use, out of the

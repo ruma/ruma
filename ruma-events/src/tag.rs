@@ -15,7 +15,7 @@ pub type Tags = BTreeMap<String, TagInfo>;
 
 /// The payload for `TagEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.tag")]
 pub struct TagEventContent {
     /// A map of tag names to tag info.
@@ -37,7 +37,7 @@ impl From<Tags> for TagEventContent {
 
 /// Information about a tag.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct TagInfo {
     /// Value to use for lexicographically ordering rooms with this tag.
     #[serde(skip_serializing_if = "Option::is_none")]

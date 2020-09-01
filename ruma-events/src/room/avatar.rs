@@ -13,7 +13,7 @@ pub type AvatarEvent = StateEvent<AvatarEventContent>;
 
 /// The payload for `AvatarEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.avatar")]
 pub struct AvatarEventContent {
     /// Information about the avatar image.

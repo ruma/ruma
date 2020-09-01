@@ -17,13 +17,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The keys to be claimed.
         pub one_time_keys: OneTimeKeyClaims,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// One-time keys for the queried devices
         pub one_time_keys: OneTimeKeys,
@@ -52,7 +52,7 @@ pub type OneTimeKeys = BTreeMap<UserId, BTreeMap<DeviceIdBox, BTreeMap<DeviceKey
 
 /// A key and its signature
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct KeyObject {
     /// The key, encoded using unpadded base64.
     pub key: String,

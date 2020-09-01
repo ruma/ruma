@@ -15,7 +15,7 @@ pub type FeedbackEvent = MessageEvent<FeedbackEventContent>;
 
 /// The payload for `FeedbackEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.message.feedback")]
 pub struct FeedbackEventContent {
     /// The event that this feedback is related to.
@@ -35,7 +35,7 @@ impl FeedbackEventContent {
 
 /// A type of feedback.
 #[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum FeedbackType {

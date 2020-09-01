@@ -13,14 +13,14 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The OpenID access token to get information about the owner for.
         #[ruma_api(query)]
         pub access_token: &'a str,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The Matrix User ID who generated the token.
         pub sub: UserId,

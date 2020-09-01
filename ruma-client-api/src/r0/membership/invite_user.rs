@@ -23,7 +23,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room where the user should be invited.
         #[ruma_api(path)]
@@ -35,7 +35,7 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {}
 
     error: crate::Error
@@ -57,7 +57,7 @@ impl Response {
 
 /// Distinguishes between invititations by Matrix or third party identifiers.
 #[derive(Clone, Debug, PartialEq, Outgoing, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(PartialEq)]
 #[serde(untagged)]
 pub enum InvitationRecipient<'a> {

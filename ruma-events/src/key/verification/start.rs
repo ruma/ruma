@@ -39,7 +39,7 @@ pub struct StartEventContent {
 /// An enum representing the different method specific
 /// *m.key.verification.start* content.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
 pub enum StartMethod {
     /// The *m.sas.v1* verification method.
@@ -62,7 +62,7 @@ pub struct CustomContent {
 
 /// The payload of an *m.key.verification.start* event using the *m.sas.v1* method.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename = "m.sas.v1", tag = "method")]
 pub struct MSasV1Content {
     /// The key agreement protocols the sending device understands.

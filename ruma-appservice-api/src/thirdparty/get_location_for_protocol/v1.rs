@@ -15,7 +15,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The protocol used to communicate to the third party network.
         #[ruma_api(path)]
@@ -27,7 +27,7 @@ ruma_api! {
         pub fields: BTreeMap<String, String>,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// List of matched third party locations.
         #[ruma_api(body)]

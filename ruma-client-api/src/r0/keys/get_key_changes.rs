@@ -13,7 +13,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The desired start point of the list.
         ///
@@ -29,7 +29,7 @@ ruma_api! {
         pub to: &'a str,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The Matrix User IDs of all users who updated their device identity keys.
         pub changed: Vec<UserId>,

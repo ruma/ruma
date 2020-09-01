@@ -18,7 +18,7 @@ use serde_json::value::RawValue as RawJsonValue;
 ///
 /// Send a message event to a room.
 #[derive(Clone, Debug, Outgoing)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(!Deserialize)]
 pub struct Request<'a> {
     /// The room to send the event to.
@@ -44,7 +44,7 @@ impl<'a> Request<'a> {
 
 /// Data in the response from the `send_message_event` API endpoint.
 #[derive(Clone, Debug, Outgoing)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(!Deserialize)]
 pub struct Response {
     /// A unique identifier for the event.

@@ -28,7 +28,7 @@ pub struct StrippedState {
 
 /// The invite event sent as a response.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct InviteEvent {
     /// The matrix ID of the user who sent the original `m.room.third_party_invite`.
     pub sender: UserId,

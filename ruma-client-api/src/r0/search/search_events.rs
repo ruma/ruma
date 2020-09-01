@@ -21,7 +21,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The point to return events from.
         ///
@@ -33,7 +33,7 @@ ruma_api! {
         pub search_categories: Categories<'a>,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// A grouping of search results by category.
         pub search_categories: ResultCategories,
@@ -58,7 +58,7 @@ impl Response {
 
 /// Categories of events that can be searched for.
 #[derive(Clone, Debug, Default, Outgoing, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Categories<'a> {
     /// Criteria for searching room events.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -74,7 +74,7 @@ impl Categories<'_> {
 
 /// Criteria for searching a category of events.
 #[derive(Clone, Copy, Debug, Outgoing, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Criteria<'a> {
     /// The string to search events for.
     pub search_term: &'a str,
@@ -121,7 +121,7 @@ impl<'a> Criteria<'a> {
 
 /// Configures whether any context for the events returned are included in the response.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct EventContext {
     /// How many events before the result are returned.
     #[serde(
@@ -178,7 +178,7 @@ impl Default for EventContext {
 
 /// Context for search results, if requested.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct EventContextResult {
     /// Pagination token for the end of the chunk.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -219,7 +219,7 @@ impl EventContextResult {
 
 /// A grouping for partioning the result set.
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Grouping {
     /// The key within events to use for this grouping.
     pub key: Option<GroupingKey>,
@@ -239,7 +239,7 @@ impl Grouping {
 
 /// The key within events to use for this grouping.
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "snake_case")]
 pub enum GroupingKey {
     /// `room_id`
@@ -252,7 +252,7 @@ pub enum GroupingKey {
 /// Requests that the server partitions the result set based on the provided list of keys.
 #[derive(Clone, Copy, Default, Debug, Outgoing, Serialize)]
 #[incoming_derive(Default)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Groupings<'a> {
     /// List of groups to request.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
@@ -273,7 +273,7 @@ impl Groupings<'_> {
 
 /// The keys to search for.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum SearchKeys {
     /// content.body
     #[serde(rename = "content.body")]
@@ -290,7 +290,7 @@ pub enum SearchKeys {
 
 /// The order in which to search for results.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "snake_case")]
 pub enum OrderBy {
     /// Prioritize recent events.
@@ -303,7 +303,7 @@ pub enum OrderBy {
 
 /// Categories of events that can be searched for.
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ResultCategories {
     /// Room event results.
     #[serde(default, skip_serializing_if = "ResultRoomEvents::is_empty")]
@@ -319,7 +319,7 @@ impl ResultCategories {
 
 /// Categories of events that can be searched for.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ResultRoomEvents {
     /// An approximate count of the total number of results found.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -368,7 +368,7 @@ impl ResultRoomEvents {
 
 /// A grouping of results, if requested.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ResultGroup {
     /// Token that can be used to get the next batch of results in the group, by passing as the
     /// `next_batch` parameter to the next call. If this field is absent, there are no more
@@ -399,7 +399,7 @@ impl ResultGroup {
 
 /// A search result.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SearchResult {
     /// Context for result, if requested.
     #[serde(skip_serializing_if = "EventContextResult::is_empty")]
@@ -428,7 +428,7 @@ impl SearchResult {
 
 /// A user profile.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct UserProfile {
     /// The user's avatar URL, if set.
     #[serde(skip_serializing_if = "Option::is_none")]

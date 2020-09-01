@@ -18,7 +18,7 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room ID that the user is being invited to.
         #[ruma_api(path)]
@@ -52,7 +52,7 @@ ruma_api! {
         pub unsigned: UnsignedEventContent,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The response invite event
         #[ruma_api(body)]
@@ -63,7 +63,7 @@ ruma_api! {
 
 /// Information included alongside an event that is not signed.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct UnsignedEventContent {
     /// An optional list of simplified events to help the receiver of the invite identify the room.
     /// The recommended events to include are the join rules, canonical alias, avatar, and name of
