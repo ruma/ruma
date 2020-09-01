@@ -19,16 +19,6 @@ use crate::{
     Error, Result, StateMap,
 };
 
-/// Represents the 3 event redaction outcomes.
-pub enum RedactAllowed {
-    /// The event is the users so redaction can take place.
-    OwnEvent,
-    /// The user can easily redact the event.
-    CanRedact,
-    /// The user does not have enough power to redact this event.
-    No,
-}
-
 /// For the given event `kind` what are the relevant auth events
 /// that are needed to authenticate this `content`.
 pub fn auth_types_for_event(
@@ -274,7 +264,7 @@ pub fn auth_check(
     }
 
     if incoming_event.kind() == EventType::RoomRedaction {
-        if let RedactAllowed::No = check_redaction(room_version, incoming_event, &auth_events)? {
+        if !check_redaction(room_version, incoming_event, &auth_events)? {
             return Ok(false);
         }
     }
@@ -639,13 +629,13 @@ pub fn check_redaction(
     room_version: &RoomVersionId,
     redaction_event: &StateEvent,
     auth_events: &StateMap<StateEvent>,
-) -> Result<RedactAllowed> {
+) -> Result<bool> {
     let user_level = get_user_power_level(redaction_event.sender(), auth_events);
     let redact_level = get_named_level(auth_events, "redact", 50);
 
     if user_level >= redact_level {
         tracing::info!("redaction allowed via power levels");
-        return Ok(RedactAllowed::CanRedact);
+        return Ok(true);
     }
 
     // FROM SPEC:
@@ -662,11 +652,11 @@ pub fn check_redaction(
             == redaction_event.redacts().and_then(|id| id.server_name())
         {
             tracing::info!("redaction event allowed via room version 1 rules");
-            return Ok(RedactAllowed::OwnEvent);
+            return Ok(true);
         }
     }
 
-    Ok(RedactAllowed::No)
+    Ok(false)
 }
 
 /// Check that the member event matches `state`.
