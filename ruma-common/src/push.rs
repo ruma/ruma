@@ -212,3 +212,26 @@ impl From<PatternedPushRuleInit> for PatternedPushRule {
         Self { actions, default, enabled, rule_id, pattern }
     }
 }
+
+/// Information for the pusher implementation itself.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PusherData {
+    /// Required if the pusher's kind is http. The URL to use to send notifications to.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+
+    /// The format to use when sending notifications to the Push Gateway.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub format: Option<PushFormat>,
+}
+
+/// A special format that the homeserver should use when sending notifications to a Push Gateway.
+/// Currently, only "event_id_only" is supported as of [Push Gateway API r0.1.1][spec].
+///
+/// [spec]: https://matrix.org/docs/spec/push_gateway/r0.1.1#homeserver-behaviour
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PushFormat {
+    /// Require the homeserver to only send a reduced set of fields in the push.
+    EventIdOnly,
+}
