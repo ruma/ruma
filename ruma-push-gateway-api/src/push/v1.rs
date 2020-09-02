@@ -15,13 +15,13 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// Information about the push notification.
         pub notification: Notification<'a>,
     }
 
-    #[non_exhaustive]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// A list of all pushkeys given in the notification request that are not valid.
         /// These could have been rejected by an upstream gateway because they have expired or
@@ -31,7 +31,7 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new `Request` with the given auth chain.
+    /// Creates a new `Request` with the `Notification`.
     pub fn new(notification: Notification<'a>) -> Self {
         Self { notification }
     }
