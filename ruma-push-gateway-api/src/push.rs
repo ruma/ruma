@@ -1,14 +1,14 @@
 pub mod v1;
 
-use std::time::SystemTime;
+use std::{collections::BTreeMap, time::SystemTime};
 
 use js_int::UInt;
 use ruma_api::Outgoing;
-use ruma_common::push::PusherData;
+use ruma_common::push::{PusherData, Tweak};
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
-use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
+use serde_json::value::RawValue as RawJsonValue;
 use strum::{Display, EnumString};
 
 #[derive(Clone, Debug, Default, Outgoing, Serialize)]
@@ -125,13 +125,91 @@ pub struct Device {
 
     /// A dictionary of customizations made to the way this notification is to be presented.
     /// These are added by push rules.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tweaks: Option<JsonValue>,
+    #[serde(with = "tweak", skip_serializing_if = "BTreeMap::is_empty")]
+    pub tweaks: BTreeMap<String, Tweak>,
 }
 
 impl Device {
     pub fn new(app_id: String, pushkey: String) -> Self {
-        Self { app_id, pushkey, pushkey_ts: None, data: None, tweaks: None }
+        Self { app_id, pushkey, pushkey_ts: None, data: None, tweaks: BTreeMap::new() }
+    }
+}
+
+mod tweak {
+    use std::{collections::BTreeMap, fmt};
+
+    use ruma_common::push::Tweak;
+    use serde::{
+        de::{MapAccess, Visitor},
+        ser::SerializeMap,
+        Deserializer, Serializer,
+    };
+
+    pub fn serialize<S>(
+        tweak: &BTreeMap<String, super::Tweak>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut map = serializer.serialize_map(Some(tweak.len()))?;
+        for item in tweak.values() {
+            match item {
+                Tweak::Highlight(b) => map.serialize_entry("highlight", b)?,
+                Tweak::Sound(value) => map.serialize_entry("sound", value)?,
+                Tweak::Custom { value, name } => map.serialize_entry(name, value)?,
+                _ => unreachable!("variant added to Tweak not covered by Custom"),
+            }
+        }
+        map.end()
+    }
+
+    struct TweaksVisitor;
+
+    impl<'de> Visitor<'de> for TweaksVisitor {
+        type Value = BTreeMap<String, Tweak>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("Lazy load options")
+        }
+
+        fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
+        where
+            M: MapAccess<'de>,
+        {
+            let mut tweaks = BTreeMap::new();
+            while let Some(key) = access.next_key::<String>()? {
+                match &*key {
+                    "sound" => tweaks.insert(key, Tweak::Sound(access.next_value()?)),
+                    // If a highlight tweak is given with no value, its value is defined to be true.
+                    "highlight" => {
+                        let highlight =
+                            if let Ok(highlight) = access.next_value() { highlight } else { true };
+
+                        tweaks.insert(key, Tweak::Highlight(highlight))
+                    }
+                    // TODO should this be an error?
+                    _ => tweaks.insert(
+                        key.clone(),
+                        Tweak::Custom { name: key, value: access.next_value()? },
+                    ),
+                };
+            }
+
+            // If no highlight tweak is given at all then the value of highlight is defined to be false.
+            if !tweaks.contains_key("highlight") {
+                tweaks.insert("highlight".into(), Tweak::Highlight(false));
+            }
+
+            Ok(tweaks)
+        }
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<BTreeMap<String, Tweak>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_map(TweaksVisitor)
     }
 }
 
@@ -141,9 +219,11 @@ mod test {
 
     use ruma_events::EventType;
     use ruma_identifiers::{event_id, room_alias_id, room_id, user_id};
-    use serde_json::{json, to_value as to_json_value};
+    use serde_json::{
+        from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+    };
 
-    use super::{Counts, Device, Notification, Priority};
+    use super::{Counts, Device, Notification, Priority, Tweak};
 
     #[test]
     fn serialize_request() {
@@ -189,11 +269,13 @@ mod test {
             "V2h5IG9uIGVhcnRoIGRpZCB5b3UgZGVjb2RlIHRoaXM/".into(),
         );
         device.pushkey_ts = Some(SystemTime::UNIX_EPOCH + Duration::from_millis(123));
-        device.tweaks = Some(json!( {
-            "highlight": true,
-            "sound": "silence",
-            "custom": "go wild",
-        }));
+        device.tweaks = maplit::btreemap! {
+            "highlight".into() => Tweak::Highlight(true),
+            "sound".into() => Tweak::Sound("silence".into()),
+            "custom".into() => Tweak::Custom {
+                name: "custom".into(),
+                value: from_json_value(JsonValue::String("go wild".into())).unwrap() },
+        };
 
         let devices = vec![device];
 
