@@ -21,7 +21,7 @@ impl DeviceKeyId {
 
         let mut res = String::with_capacity(algorithm.len() + 1 + device_id.len());
         res.push_str(algorithm);
-        res.push_str(":");
+        res.push(':');
         res.push_str(device_id);
 
         let colon_idx =

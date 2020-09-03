@@ -18,7 +18,7 @@ impl ServerKeyId {
 
         let mut res = String::with_capacity(algorithm.len() + 1 + version.len());
         res.push_str(algorithm);
-        res.push_str(":");
+        res.push(':');
         res.push_str(version);
 
         let colon_idx =
