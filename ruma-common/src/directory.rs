@@ -18,7 +18,7 @@ use serde_json::Value as JsonValue;
 /// To create an instance of this type, first create a `PublicRoomsChunkInit` and convert it via
 /// `PublicRoomsChunk::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PublicRoomsChunk {
     /// Aliases of the room.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -97,7 +97,7 @@ impl From<PublicRoomsChunkInit> for PublicRoomsChunk {
 
 /// A filter for public rooms lists
 #[derive(Clone, Debug, Default, Outgoing, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Filter<'a> {
     /// A string to search for in the room metadata, e.g. name, topic, canonical alias etc.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -114,7 +114,7 @@ impl Filter<'_> {
 /// Information about which networks/protocols from application services on the
 /// homeserver from which to request rooms.
 #[derive(Clone, Debug, PartialEq, Eq, Outgoing)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, PartialEq, Eq, !Deserialize)]
 pub enum RoomNetwork<'a> {
     /// Return rooms from the Matrix network.

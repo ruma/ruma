@@ -8,7 +8,7 @@ use serde_json::value::RawValue as RawJsonValue;
 ///
 /// See https://matrix.org/docs/spec/client_server/r0.6.0#actions for details.
 #[derive(Clone, Debug)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum Action {
     /// Causes matching events to generate a notification.
     Notify,
@@ -26,7 +26,7 @@ pub enum Action {
 
 /// The `set_tweak` action.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(from = "tweak_serde::Tweak", into = "tweak_serde::Tweak")]
 pub enum Tweak {
     /// A string representing the sound to be played when this notification arrives.
