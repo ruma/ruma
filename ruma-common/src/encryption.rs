@@ -11,7 +11,7 @@ use serde::Serialize;
 
 /// Identity keys for a device.
 #[derive(Clone, Debug, Outgoing, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Serialize)]
 pub struct DeviceKeys<'a> {
     /// The ID of the user the device belongs to. Must match the user ID used when logging in.
@@ -51,7 +51,7 @@ impl<'a> DeviceKeys<'a> {
 
 /// Additional data added to device key information by intermediate servers.
 #[derive(Clone, Debug, Default, Outgoing, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Serialize)]
 pub struct UnsignedDeviceInfo<'a> {
     /// The display name which the user set on the device.

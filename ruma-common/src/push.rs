@@ -19,7 +19,7 @@ pub use self::{
 /// For example, some rules may only be applied for messages from a particular sender, a particular
 /// room, or by default. The push ruleset contains the entire set of scopes and rules.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Ruleset {
     /// These rules configure behavior for (unencrypted) messages that match certain patterns.
     pub content: Vec<PatternedPushRule>,
@@ -58,7 +58,7 @@ impl Ruleset {
 /// To create an instance of this type, first create a `PushRuleInit` and convert it via
 /// `PushRule::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -106,7 +106,7 @@ impl From<PushRuleInit> for PushRule {
 /// To create an instance of this type, first create a `ConditionalPushRuleInit` and convert it via
 /// `ConditionalPushRule::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ConditionalPushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
@@ -166,7 +166,7 @@ impl From<ConditionalPushRuleInit> for ConditionalPushRule {
 /// To create an instance of this type, first create a `PatternedPushRuleInit` and convert it via
 /// `PatternedPushRule::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PatternedPushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,

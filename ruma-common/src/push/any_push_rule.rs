@@ -16,7 +16,7 @@ use super::{
 ///
 /// To create an instance of this type, use one of its `From` implementations.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct AnyPushRule {
     /// The actions to perform when this rule is matched.
     pub actions: Vec<Action>,
@@ -94,7 +94,7 @@ impl From<AnyPushRule> for PushRule {
 /// An error that happens when `AnyPushRule` cannot
 /// be converted into `PatternedPushRule`
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct MissingPatternError;
 
 impl Display for MissingPatternError {
@@ -122,7 +122,7 @@ impl TryFrom<AnyPushRule> for PatternedPushRule {
 /// An error that happens when `AnyPushRule` cannot
 /// be converted into `ConditionalPushRule`
 #[derive(Debug)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct MissingConditionsError;
 
 impl Display for MissingConditionsError {

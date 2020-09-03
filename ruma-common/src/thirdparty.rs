@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 /// To create an instance of this type, first create a `ProtocolInit` and convert it via
 /// `Protocol::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Protocol {
     /// Fields which may be used to identify a third party user.
     pub user_fields: Vec<String>,
@@ -65,7 +65,7 @@ impl From<ProtocolInit> for Protocol {
 /// To create an instance of this type, first create a `ProtocolInstanceInit` and convert it via
 /// `ProtocolInstance::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ProtocolInstance {
     /// A human-readable description for the protocol, such as the name.
     pub desc: String,
@@ -109,7 +109,7 @@ impl From<ProtocolInstanceInit> for ProtocolInstance {
 /// To create an instance of this type, first create a `FieldTypeInit` and convert it via
 /// `FieldType::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct FieldType {
     /// A regular expression for validation of a field's value.
     pub regexp: String,
@@ -140,7 +140,7 @@ impl From<FieldTypeInit> for FieldType {
 
 /// A third party network location.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Location {
     /// An alias for a matrix room.
     pub alias: RoomAliasId,
@@ -181,7 +181,7 @@ impl User {
 
 /// The medium of a third party identifier.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "lowercase")]
 pub enum Medium {
     /// Email address identifier
