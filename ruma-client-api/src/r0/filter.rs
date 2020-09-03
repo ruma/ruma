@@ -100,9 +100,9 @@ impl<'a> RoomEventFilter<'a> {
 pub struct RoomFilter<'a> {
     /// Include rooms that the user has left in the sync.
     ///
-    /// Defaults to false if not included.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub include_leave: Option<bool>,
+    /// Defaults to `false`.
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    pub include_leave: bool,
 
     /// The per user account data to include for rooms.
     #[serde(skip_serializing_if = "Option::is_none")]
