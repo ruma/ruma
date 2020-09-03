@@ -14,20 +14,37 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The user whose presence state will be updated.
         #[ruma_api(path)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
 
         /// The new presence state.
         pub presence: PresenceState,
 
         /// The status message to attach to this state.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub status_msg: Option<String>,
+        pub status_msg: Option<&'a str>,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user ID and presence state.
+    pub fn new(user_id: &'a UserId, presence: PresenceState) -> Self {
+        Self { user_id, presence, status_msg: None }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }
