@@ -13,12 +13,15 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The user whose profile will be retrieved.
         #[ruma_api(path)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The user's avatar URL, if set.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -30,4 +33,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user ID.
+    pub fn new(user_id: &'a UserId) -> Self {
+        Self { user_id }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given avatar URL and display name.
+    pub fn new(avatar_url: Option<String>, displayname: Option<String>) -> Self {
+        Self { avatar_url, displayname }
+    }
 }

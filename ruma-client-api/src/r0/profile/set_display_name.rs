@@ -13,17 +13,34 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The user whose display name will be set.
         #[ruma_api(path)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
 
         /// The new display name for the user.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub displayname: Option<String>,
+        pub displayname: Option<&'a str>,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user ID and display name.
+    pub fn new(user_id: &'a UserId, displayname: Option<&'a str>) -> Self {
+        Self { user_id, displayname }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

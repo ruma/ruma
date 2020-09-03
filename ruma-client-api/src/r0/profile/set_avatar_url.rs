@@ -13,18 +13,35 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The user whose avatar URL will be set.
         #[ruma_api(path)]
-        pub user_id: UserId,
+        pub user_id: &'a UserId,
 
         /// The new avatar URL for the user.
         ///
         /// `None` is used to unset the avatar.
-        pub avatar_url: Option<String>,
+        pub avatar_url: Option<&'a str>,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given user ID and avatar URL.
+    pub fn new(user_id: &'a UserId, avatar_url: Option<&'a str>) -> Self {
+        Self { user_id, avatar_url }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }
