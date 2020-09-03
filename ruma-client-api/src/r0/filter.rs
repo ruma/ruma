@@ -74,10 +74,11 @@ pub struct RoomEventFilter<'a> {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub types: Option<&'a [String]>,
 
-    /// If `true` include only events with a URL key in their content.
-    /// If `false`, exclude such events.
+    /// Controls whether to include events with a URL key in their content.
     ///
-    /// If this item is absent then all event types are included.
+    /// * `None`: No filtering
+    /// * `Some(true)`: Only events with a URL
+    /// * `Some(false)`: Only events without a URL
     #[serde(skip_serializing_if = "Option::is_none")]
     pub contains_url: Option<bool>,
 
