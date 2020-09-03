@@ -13,8 +13,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {}
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// A list of the rooms the user is in, i.e. the ID of each room in
         /// which the user has joined membership.
@@ -22,4 +25,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given joined rooms.
+    pub fn new(joined_rooms: Vec<RoomId>) -> Self {
+        Self { joined_rooms }
+    }
 }

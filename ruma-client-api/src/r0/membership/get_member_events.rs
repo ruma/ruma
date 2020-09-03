@@ -16,16 +16,17 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room to get the member events for.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The point in time (pagination token) to return members for in the room. This token can
         /// be obtained from a prev_batch token returned for each room by the sync API.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub at: Option<String>,
+        pub at: Option<&'a str>,
 
         /// The kind of memberships to filter for. Defaults to no filtering if unspecified. When
         /// specified alongside not_membership, the two parameters create an 'or' condition: either
@@ -41,6 +42,7 @@ ruma_api! {
         pub not_membership: Option<MembershipEventFilter>,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// A list of member events.
         pub chunk: Vec<Raw<MemberEvent>>
@@ -49,8 +51,23 @@ ruma_api! {
     error: crate::Error
 }
 
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room ID.
+    pub fn new(room_id: &'a RoomId) -> Self {
+        Self { room_id, at: None, membership: None, not_membership: None }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given member event chunk.
+    pub fn new(chunk: Vec<Raw<MemberEvent>>) -> Self {
+        Self { chunk }
+    }
+}
+
 /// The kind of membership events to filter for.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "lowercase")]
 pub enum MembershipEventFilter {
     /// The user has joined.
@@ -72,7 +89,7 @@ mod tests {
 
     use matches::assert_matches;
 
-    use super::{MembershipEventFilter, Request};
+    use super::{IncomingRequest, MembershipEventFilter};
 
     #[test]
     fn deserialization() {
@@ -87,12 +104,12 @@ mod tests {
             .build()
             .unwrap();
 
-        let req: Result<Request, _> =
+        let req: Result<IncomingRequest, _> =
             http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap().try_into();
 
         assert_matches!(
             req,
-            Ok(Request {
+            Ok(IncomingRequest {
                 room_id,
                 at: Some(at),
                 membership: None,

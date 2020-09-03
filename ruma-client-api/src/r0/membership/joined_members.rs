@@ -16,12 +16,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room to get the members of.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// A list of the rooms the user is in, i.e.
         /// the ID of each room in which the user has joined membership.
@@ -31,8 +33,23 @@ ruma_api! {
     error: crate::Error
 }
 
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room ID.
+    pub fn new(room_id: &'a RoomId) -> Self {
+        Self { room_id }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given joined rooms.
+    pub fn new(joined: BTreeMap<UserId, RoomMember>) -> Self {
+        Self { joined }
+    }
+}
+
 /// Information about a room member.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomMember {
     /// The display name of the user.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -41,4 +58,11 @@ pub struct RoomMember {
     /// The mxc avatar url of the user.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar_url: Option<String>,
+}
+
+impl RoomMember {
+    /// Creates an empty `RoomMember`.
+    pub fn new() -> Self {
+        Default::default()
+    }
 }
