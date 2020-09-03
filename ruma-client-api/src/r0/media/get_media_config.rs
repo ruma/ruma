@@ -13,8 +13,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {}
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Maximum size of upload in bytes.
         #[serde(rename = "m.upload.size")]
@@ -22,4 +25,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given maximum upload size.
+    pub fn new(upload_size: UInt) -> Self {
+        Self { upload_size }
+    }
 }

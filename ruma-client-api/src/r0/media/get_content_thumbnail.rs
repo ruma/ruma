@@ -26,14 +26,8 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
-        /// Whether to fetch media deemed remote.
-        ///
-        /// Used to prevent routing loops. Defaults to `true`.
-        #[ruma_api(query)]
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub allow_remote: Option<bool>,
-
         /// The media ID from the mxc:// URI (the path component).
         #[ruma_api(path)]
         pub media_id: &'a str,
@@ -41,11 +35,6 @@ ruma_api! {
         /// The server name from the mxc:// URI (the authoritory component).
         #[ruma_api(path)]
         pub server_name: &'a ServerName,
-
-        /// The *desired* height of the thumbnail. The actual thumbnail may not match the size
-        /// specified.
-        #[ruma_api(query)]
-        pub height: UInt,
 
         /// The desired resizing method.
         #[ruma_api(query)]
@@ -56,8 +45,21 @@ ruma_api! {
         /// specified.
         #[ruma_api(query)]
         pub width: UInt,
+
+        /// The *desired* height of the thumbnail. The actual thumbnail may not match the size
+        /// specified.
+        #[ruma_api(query)]
+        pub height: UInt,
+
+        /// Whether to fetch media deemed remote.
+        ///
+        /// Used to prevent routing loops. Defaults to `true`.
+        #[ruma_api(query)]
+        #[serde(default = "ruma_serde::default_true", skip_serializing_if = "ruma_serde::is_true")]
+        pub allow_remote: bool,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The content type of the thumbnail.
         #[ruma_api(header = CONTENT_TYPE)]
@@ -69,4 +71,19 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given media ID, server name, desired thumbnail width and
+    /// desired thumbnail height.
+    pub fn new(media_id: &'a str, server_name: &'a ServerName, width: UInt, height: UInt) -> Self {
+        Self { media_id, server_name, method: None, width, height, allow_remote: true }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given content type and thumbnail.
+    pub fn new(content_type: String, file: Vec<u8>) -> Self {
+        Self { content_type, file }
+    }
 }

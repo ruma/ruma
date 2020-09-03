@@ -13,6 +13,7 @@ ruma_api! {
         requires_authentication: false,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The media ID from the mxc:// URI (the path component).
         #[ruma_api(path)]
@@ -23,11 +24,14 @@ ruma_api! {
         pub server_name: &'a ServerName,
 
         /// Whether to fetch media deemed remote.
+        ///
         /// Used to prevent routing loops. Defaults to `true`.
         #[ruma_api(query)]
-        pub allow_remote: Option<bool>,
+        #[serde(default = "ruma_serde::default_true", skip_serializing_if = "ruma_serde::is_true")]
+        pub allow_remote: bool,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The content that was previously uploaded.
         #[ruma_api(raw_body)]
@@ -43,4 +47,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given media ID and server name.
+    pub fn new(media_id: &'a str, server_name: &'a ServerName) -> Self {
+        Self { media_id, server_name, allow_remote: true }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given file contents, content type and filename.
+    pub fn new(file: Vec<u8>, content_type: String, content_disposition: String) -> Self {
+        Self { file, content_type, content_disposition }
+    }
 }

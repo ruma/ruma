@@ -3,7 +3,8 @@
 use std::time::SystemTime;
 
 use ruma_api::ruma_api;
-use serde_json::value::RawValue as RawJsonValue;
+use serde::Serialize;
+use serde_json::value::{to_raw_value as to_raw_json_value, RawValue as RawJsonValue};
 
 ruma_api! {
     metadata: {
@@ -15,10 +16,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// URL to get a preview of.
         #[ruma_api(query)]
-        pub url: String,
+        pub url: &'a str,
 
         /// Preferred point in time (in milliseconds) to return a preview for.
         #[ruma_api(query)]
@@ -26,6 +28,8 @@ ruma_api! {
         pub ts: SystemTime,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// OpenGraph-like data for the URL.
         ///
@@ -36,6 +40,30 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given url and timestamp.
+    pub fn new(url: &'a str, ts: SystemTime) -> Self {
+        Self { url, ts }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self { data: None }
+    }
+
+    /// Creates a new `Response` with the given OpenGraph data (in a `serde_json::value::RawValue`).
+    pub fn from_raw_value(data: Box<RawJsonValue>) -> Self {
+        Self { data: Some(data) }
+    }
+
+    /// Creates a new `Response` with the given OpenGraph data (in any kind of serializable object).
+    pub fn from_serialize<T: Serialize>(data: &T) -> serde_json::Result<Self> {
+        Ok(Self { data: Some(to_raw_json_value(data)?) })
+    }
 }
 
 #[cfg(test)]
