@@ -85,7 +85,7 @@ where
 #[macro_export]
 macro_rules! device_id {
     ($s:tt) => {
-        ::std::boxed::Box<$crate::DeviceId>::from($s)
+        ::std::boxed::Box::<$crate::DeviceId>::from($s)
     };
 }
 
