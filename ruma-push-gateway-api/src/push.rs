@@ -1,6 +1,6 @@
 pub mod v1;
 
-use std::{collections::BTreeMap, time::SystemTime};
+use std::time::SystemTime;
 
 use js_int::UInt;
 use ruma_api::Outgoing;
@@ -125,18 +125,18 @@ pub struct Device {
 
     /// A dictionary of customizations made to the way this notification is to be presented.
     /// These are added by push rules.
-    #[serde(with = "tweak", skip_serializing_if = "BTreeMap::is_empty")]
-    pub tweaks: BTreeMap<String, Tweak>,
+    #[serde(with = "tweak", skip_serializing_if = "Vec::is_empty")]
+    pub tweaks: Vec<Tweak>,
 }
 
 impl Device {
     pub fn new(app_id: String, pushkey: String) -> Self {
-        Self { app_id, pushkey, pushkey_ts: None, data: None, tweaks: BTreeMap::new() }
+        Self { app_id, pushkey, pushkey_ts: None, data: None, tweaks: vec![] }
     }
 }
 
 mod tweak {
-    use std::{collections::BTreeMap, fmt};
+    use std::fmt;
 
     use ruma_common::push::Tweak;
     use serde::{
@@ -145,15 +145,12 @@ mod tweak {
         Deserializer, Serializer,
     };
 
-    pub fn serialize<S>(
-        tweak: &BTreeMap<String, super::Tweak>,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error>
+    pub fn serialize<S>(tweak: &[super::Tweak], serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         let mut map = serializer.serialize_map(Some(tweak.len()))?;
-        for item in tweak.values() {
+        for item in tweak {
             match item {
                 Tweak::Highlight(b) => map.serialize_entry("highlight", b)?,
                 Tweak::Sound(value) => map.serialize_entry("sound", value)?,
@@ -167,7 +164,7 @@ mod tweak {
     struct TweaksVisitor;
 
     impl<'de> Visitor<'de> for TweaksVisitor {
-        type Value = BTreeMap<String, Tweak>;
+        type Value = Vec<Tweak>;
 
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
             formatter.write_str("Lazy load options")
@@ -177,35 +174,32 @@ mod tweak {
         where
             M: MapAccess<'de>,
         {
-            let mut tweaks = BTreeMap::new();
+            let mut tweaks = vec![];
             while let Some(key) = access.next_key::<String>()? {
                 match &*key {
-                    "sound" => tweaks.insert(key, Tweak::Sound(access.next_value()?)),
+                    "sound" => tweaks.push(Tweak::Sound(access.next_value()?)),
                     // If a highlight tweak is given with no value, its value is defined to be true.
                     "highlight" => {
                         let highlight =
                             if let Ok(highlight) = access.next_value() { highlight } else { true };
 
-                        tweaks.insert(key, Tweak::Highlight(highlight))
+                        tweaks.push(Tweak::Highlight(highlight))
                     }
                     // TODO should this be an error?
-                    _ => tweaks.insert(
-                        key.clone(),
-                        Tweak::Custom { name: key, value: access.next_value()? },
-                    ),
+                    _ => tweaks.push(Tweak::Custom { name: key, value: access.next_value()? }),
                 };
             }
 
             // If no highlight tweak is given at all then the value of highlight is defined to be false.
-            if !tweaks.contains_key("highlight") {
-                tweaks.insert("highlight".into(), Tweak::Highlight(false));
+            if !tweaks.iter().any(|tw| matches!(tw, Tweak::Highlight(_))) {
+                tweaks.push(Tweak::Highlight(false));
             }
 
             Ok(tweaks)
         }
     }
 
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<BTreeMap<String, Tweak>, D::Error>
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Vec<Tweak>, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -269,13 +263,14 @@ mod test {
             "V2h5IG9uIGVhcnRoIGRpZCB5b3UgZGVjb2RlIHRoaXM/".into(),
         );
         device.pushkey_ts = Some(SystemTime::UNIX_EPOCH + Duration::from_millis(123));
-        device.tweaks = maplit::btreemap! {
-            "highlight".into() => Tweak::Highlight(true),
-            "sound".into() => Tweak::Sound("silence".into()),
-            "custom".into() => Tweak::Custom {
+        device.tweaks = vec![
+            Tweak::Highlight(true),
+            Tweak::Sound("silence".into()),
+            Tweak::Custom {
                 name: "custom".into(),
-                value: from_json_value(JsonValue::String("go wild".into())).unwrap() },
-        };
+                value: from_json_value(JsonValue::String("go wild".into())).unwrap(),
+            },
+        ];
 
         let devices = vec![device];
 
