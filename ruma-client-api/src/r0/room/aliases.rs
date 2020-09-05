@@ -13,15 +13,32 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room ID to get aliases of.
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
-        aliases: Vec<RoomAliasId>,
+        /// The server's local aliases on the room.
+        pub aliases: Vec<RoomAliasId>,
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room ID.
+    pub fn new(room_id: &'a RoomId) -> Self {
+        Self { room_id }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given aliases.
+    pub fn new(aliases: Vec<RoomAliasId>) -> Self {
+        Self { aliases }
+    }
 }

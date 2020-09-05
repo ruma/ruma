@@ -15,21 +15,37 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The ID of the room the event is in.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The ID of the event.
         #[ruma_api(path)]
-        pub event_id: EventId,
+        pub event_id: &'a EventId,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
-        /// Arbitrary JSON of the event body. Returns both room and state events.
+        /// Arbitrary JSON of the event body.
         #[ruma_api(body)]
         pub event: Raw<AnyRoomEvent>,
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room ID and event ID.
+    pub fn new(room_id: &'a RoomId, event_id: &'a EventId) -> Self {
+        Self { room_id, event_id }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given event.
+    pub fn new(event: Raw<AnyRoomEvent>) -> Self {
+        Self { event }
+    }
 }

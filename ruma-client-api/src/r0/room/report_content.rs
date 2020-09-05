@@ -14,23 +14,40 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// Room in which the event to be reported is located.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// Event to report.
         #[ruma_api(path)]
-        pub event_id: EventId,
+        pub event_id: &'a EventId,
 
         /// Integer between -100 and 0 rating offensivness.
         pub score: Int,
 
         /// Reason to report content. May be blank.
-        pub reason: String,
+        pub reason: &'a str,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room ID, event ID, score and reason.
+    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, score: Int, reason: &'a str) -> Self {
+        Self { room_id, event_id, score, reason }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }
