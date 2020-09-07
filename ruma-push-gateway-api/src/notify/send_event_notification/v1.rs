@@ -7,8 +7,7 @@ use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
-use std::collections::BTreeMap;
-use std::time::SystemTime;
+use std::{collections::BTreeMap, time::SystemTime};
 
 ruma_api! {
     metadata: {
