@@ -1,10 +1,10 @@
 //! Endpoint for inviting a remote user to a room
 
-use js_int::UInt;
 use ruma_events::{room::member::MemberEventContent, EventType};
 use ruma_identifiers::{ServerName, UserId};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
+use std::time::SystemTime;
 
 pub mod v1;
 pub mod v2;
@@ -37,7 +37,8 @@ pub struct InviteEvent {
     pub origin: Box<ServerName>,
 
     /// A timestamp added by the inviting homeserver.
-    pub origin_server_ts: UInt,
+    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+    pub origin_server_ts: SystemTime,
 
     /// The event type (should always be `m.room.member`).
     #[serde(rename = "type")]
@@ -59,7 +60,7 @@ pub struct InviteEventInit {
     pub origin: Box<ServerName>,
 
     /// A timestamp added by the inviting homeserver.
-    pub origin_server_ts: UInt,
+    pub origin_server_ts: SystemTime,
 
     /// The user ID of the invited member.
     pub state_key: UserId,
