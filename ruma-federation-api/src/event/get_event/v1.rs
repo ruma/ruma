@@ -1,9 +1,9 @@
 //! [GET /_matrix/federation/v1/event/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-event-eventid)
 
-use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, ServerNameBox};
+use std::time::SystemTime;
 
 ruma_api! {
     metadata: {
@@ -29,9 +29,10 @@ ruma_api! {
 
         /// POSIX timestamp in milliseconds on originating homeserver when this
         /// transaction started.
-        origin_server_ts: UInt,
+        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+        origin_server_ts: SystemTime,
 
-        /// A single PDU.
+        /// An array with a single PDU.
         ///
         /// Note that events have a different format depending on the room
         /// version - check the [room version specification] for precise event
@@ -50,9 +51,11 @@ impl<'a> Request<'a> {
 }
 
 impl Response {
-    /// Creates a new `Response` with the given origin, server timestamp, and
-    /// list containing a single `Pdu`.
-    pub fn new(origin: ServerNameBox, origin_server_ts: UInt, pdus: Vec<Pdu>) -> Self {
+    /// Creates a new `Response` with:
+    /// * the `server_name` of the homeserver.
+    /// * the timestamp in milliseconds of when this transaction started.
+    /// * a list containing the single requested event
+    pub fn new(origin: ServerNameBox, origin_server_ts: SystemTime, pdus: Vec<Pdu>) -> Self {
         Self { origin, origin_server_ts, pdus }
     }
 }
