@@ -69,6 +69,10 @@ impl TryFrom<String> for ServerKeyAlgorithm {
 }
 
 /// An encryption algorithm to be used to encrypt messages sent to a room.
+///
+/// This type can hold an arbitrary string. To check for events that are not
+/// available as a documented variant here, use its string representation,
+/// obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(
     feature = "serde",
@@ -83,19 +87,24 @@ pub enum EventEncryptionAlgorithm {
     /// Megolm version 1 using AES-256 and SHA-256.
     MegolmV1AesSha2,
 
-    /// Any algorithm that is not part of the specification.
-    Custom(String),
+    #[doc(hidden)]
+    _Custom(String),
+}
+
+impl EventEncryptionAlgorithm {
+    /// Creates a string slice from this `EventEncryptionAlgorithm`.
+    pub fn as_str(&self) -> &str {
+        match *self {
+            EventEncryptionAlgorithm::OlmV1Curve25519AesSha2 => "m.olm.v1.curve25519-aes-sha2",
+            EventEncryptionAlgorithm::MegolmV1AesSha2 => "m.megolm.v1.aes-sha2",
+            EventEncryptionAlgorithm::_Custom(ref algorithm) => algorithm,
+        }
+    }
 }
 
 impl Display for EventEncryptionAlgorithm {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let algorithm_str = match *self {
-            EventEncryptionAlgorithm::OlmV1Curve25519AesSha2 => "m.olm.v1.curve25519-aes-sha2",
-            EventEncryptionAlgorithm::MegolmV1AesSha2 => "m.megolm.v1.aes-sha2",
-            EventEncryptionAlgorithm::Custom(ref algorithm) => algorithm,
-        };
-
-        write!(f, "{}", algorithm_str)
+        f.write_str(self.as_str())
     }
 }
 
@@ -107,7 +116,7 @@ where
         match s.as_ref() {
             "m.olm.v1.curve25519-aes-sha2" => EventEncryptionAlgorithm::OlmV1Curve25519AesSha2,
             "m.megolm.v1.aes-sha2" => EventEncryptionAlgorithm::MegolmV1AesSha2,
-            _ => EventEncryptionAlgorithm::Custom(s.into()),
+            _ => EventEncryptionAlgorithm::_Custom(s.into()),
         }
     }
 }
@@ -145,7 +154,7 @@ mod tests {
             json!("m.olm.v1.curve25519-aes-sha2"),
         );
         serde_json_eq(
-            EventEncryptionAlgorithm::Custom("io.ruma.test".into()),
+            EventEncryptionAlgorithm::_Custom("io.ruma.test".into()),
             json!("io.ruma.test"),
         );
     }

@@ -309,6 +309,10 @@ pub enum LimitType {
 }
 
 /// The format for the formatted representation of a message body.
+///
+/// This type can hold an arbitrary string. To check for events that are not
+/// available as a documented variant here, use its string representation,
+/// obtained through `.as_str()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum MessageFormat {
@@ -316,16 +320,23 @@ pub enum MessageFormat {
     #[serde(rename = "org.matrix.custom.html")]
     Html,
 
-    /// A custom message format.
-    Custom(String),
+    #[doc(hidden)]
+    _Custom(String),
+}
+
+impl MessageFormat {
+    /// Creates a string slice from this `MessageFormat`.
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::Html => "org.matrix.custom.html",
+            Self::_Custom(ref message_format) => message_format,
+        }
+    }
 }
 
 impl fmt::Display for MessageFormat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Html => f.write_str("org.matrix.custom.html"),
-            Self::Custom(fmt) => f.write_str(fmt),
-        }
+        f.write_str(self.as_str())
     }
 }
 

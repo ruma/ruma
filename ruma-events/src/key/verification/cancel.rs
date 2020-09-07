@@ -31,6 +31,10 @@ pub struct CancelEventContent {
 /// An error code for why the process/request was cancelled by the user.
 ///
 /// Custom error codes should use the Java package naming convention.
+///
+/// This type can hold an arbitrary string. To check for events that are not
+/// available as a documented variant here, use its string representation,
+/// obtained through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(from = "String", into = "String")]
@@ -70,13 +74,14 @@ pub enum CancelCode {
     /// The device receiving this error can ignore the verification request.
     Accepted,
 
-    /// Any code that is not part of the specification.
-    Custom(String),
+    #[doc(hidden)]
+    _Custom(String),
 }
 
-impl Display for CancelCode {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let cancel_code_str = match *self {
+impl CancelCode {
+    /// Creates a string slice from this `CancelCode`.
+    pub fn as_str(&self) -> &str {
+        match *self {
             CancelCode::User => "m.user",
             CancelCode::Timeout => "m.timeout",
             CancelCode::UnknownTransaction => "m.unknown_transaction",
@@ -86,10 +91,14 @@ impl Display for CancelCode {
             CancelCode::UserMismatch => "m.user_mismatch",
             CancelCode::InvalidMessage => "m.invalid_message",
             CancelCode::Accepted => "m.accepted",
-            CancelCode::Custom(ref cancel_code) => cancel_code,
-        };
+            CancelCode::_Custom(ref cancel_code) => cancel_code,
+        }
+    }
+}
 
-        write!(f, "{}", cancel_code_str)
+impl Display for CancelCode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str(self.as_str())
     }
 }
 
@@ -108,7 +117,7 @@ where
             "m.user_mismatch" => CancelCode::UserMismatch,
             "m.invalid_message" => CancelCode::InvalidMessage,
             "m.accepted" => CancelCode::Accepted,
-            _ => CancelCode::Custom(s.into()),
+            _ => CancelCode::_Custom(s.into()),
         }
     }
 }
@@ -133,7 +142,7 @@ mod tests {
     #[test]
     fn custom_cancel_codes_serialize_to_display_form() {
         assert_eq!(
-            to_json_value(&CancelCode::Custom("io.ruma.test".into())).unwrap(),
+            to_json_value(&CancelCode::_Custom("io.ruma.test".into())).unwrap(),
             json!("io.ruma.test")
         );
     }
@@ -147,7 +156,7 @@ mod tests {
     fn custom_cancel_codes_deserialize_from_display_form() {
         assert_eq!(
             from_json_value::<CancelCode>(json!("io.ruma.test")).unwrap(),
-            CancelCode::Custom("io.ruma.test".into())
+            CancelCode::_Custom("io.ruma.test".into())
         )
     }
 }
