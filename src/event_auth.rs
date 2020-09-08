@@ -263,10 +263,10 @@ pub fn auth_check(
         tracing::info!("power levels event allowed");
     }
 
-    if incoming_event.kind() == EventType::RoomRedaction {
-        if !check_redaction(room_version, incoming_event, &auth_events)? {
-            return Ok(false);
-        }
+    if incoming_event.kind() == EventType::RoomRedaction
+        && !check_redaction(room_version, incoming_event, &auth_events)?
+    {
+        return Ok(false);
     }
 
     tracing::info!("allowing event passed all checks");

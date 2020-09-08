@@ -438,20 +438,6 @@ impl StateResolution {
         }
 
         if pl.is_none() {
-            for aid in store.get_event(room_id, event_id).unwrap().auth_events() {
-                if let Ok(aev) = store.get_event(room_id, &aid) {
-                    if aev.is_type_and_key(EventType::RoomCreate, "") {
-                        if let Ok(content) = aev
-                            .deserialize_content::<ruma::events::room::create::CreateEventContent>()
-                        {
-                            if &content.creator == aev.sender() {
-                                return 100;
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
             return 0;
         }
 
