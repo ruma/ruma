@@ -2,12 +2,13 @@
 
 use js_int::UInt;
 use ruma_api::{ruma_api, Outgoing};
-pub use ruma_common::push::PusherData;
+pub use ruma_common::push::{PusherData, Tweak};
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
-use std::{collections::BTreeMap, time::SystemTime};
+use serde_json::value::RawValue as RawJsonValue;
+use std::time::SystemTime;
+use strum::{Display, EnumString};
 
 ruma_api! {
     metadata: {
@@ -56,7 +57,7 @@ impl Response {
 }
 
 /// Type for passing information about a push notification
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Notification<'a> {
     /// The Matrix event ID of the event being notified about.
@@ -112,7 +113,7 @@ pub struct Notification<'a> {
     /// The `content` field from the event, if present. The pusher may omit this
     /// if the event had no content or for any other reason.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<&'a JsonValue>,
+    pub content: Option<Box<RawJsonValue>>,
 
     /// This is a dictionary of the current number of unacknowledged
     /// communications for the recipient user. Counts whose value is zero should
@@ -138,6 +139,7 @@ impl<'a> Notification<'a> {
     /// * the content of the notification
     /// * the number of unacknowledged communications for the recipient
     /// * the devices to send the notification to
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         event_id: Option<&'a EventId>,
         room_id: Option<&'a RoomId>,
@@ -148,7 +150,7 @@ impl<'a> Notification<'a> {
         room_alias: Option<&'a RoomAliasId>,
         user_is_target: Option<bool>,
         prio: Option<NotificationPriority>,
-        content: Option<&'a JsonValue>,
+        content: Option<Box<RawJsonValue>>,
         counts: Option<NotificationCounts>,
         devices: &'a [Device],
     ) -> Self {
@@ -173,7 +175,9 @@ impl<'a> Notification<'a> {
 ///
 /// This may be used by push gateways to deliver less time-sensitive
 /// notifications in a way that will preserve battery power on mobile devices.
-#[derive(Clone, Debug, Deserialize, Outgoing, Serialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Display, EnumString)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum NotificationPriority {
     /// A high priority notification
@@ -182,25 +186,31 @@ pub enum NotificationPriority {
     Low,
 }
 
+impl Default for NotificationPriority {
+    fn default() -> Self {
+        Self::High
+    }
+}
+
 /// Type for passing information about notification counts.
-#[derive(Clone, Debug, Deserialize, Outgoing, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct NotificationCounts {
     /// The number of unread messages a user has across all of the rooms they
     /// are a member of.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub unread: Option<UInt>,
+    #[serde(skip_serializing_if = "ruma_serde::is_default")]
+    pub unread: UInt,
 
     /// The number of unacknowledged missed calls a user has across all rooms of
     /// which they are a member.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub missed_calls: Option<UInt>,
+    #[serde(skip_serializing_if = "ruma_serde::is_default")]
+    pub missed_calls: UInt,
 }
 
 impl NotificationCounts {
     /// Create new notification counts from the given unread and missed call
     /// counts.
-    pub fn new(unread: Option<UInt>, missed_calls: Option<UInt>) -> Self {
+    pub fn new(unread: UInt, missed_calls: UInt) -> Self {
         NotificationCounts { unread, missed_calls }
     }
 }
@@ -210,9 +220,13 @@ impl NotificationCounts {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Device {
     /// The `app_id` given when the pusher was created.
+    ///
+    /// Max length, 64 chars.
     pub app_id: String,
 
     /// The `pushkey` given when the pusher was created.
+    ///
+    /// Max length, 512 bytes.
     pub pushkey: String,
 
     /// The unix timestamp (in seconds) when the pushkey was last updated.
@@ -230,8 +244,8 @@ pub struct Device {
 
     /// A dictionary of customisations made to the way this notification is to
     /// be presented. These are added by push rules.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tweaks: Option<BTreeMap<String, String>>,
+    #[serde(with = "tweak", skip_serializing_if = "Vec::is_empty")]
+    pub tweaks: Vec<Tweak>,
 }
 
 impl Device {
@@ -246,8 +260,165 @@ impl Device {
         pushkey: String,
         pushkey_ts: Option<SystemTime>,
         data: Option<PusherData>,
-        tweaks: Option<BTreeMap<String, String>>,
+        tweaks: Vec<Tweak>,
     ) -> Self {
         Device { app_id, pushkey, pushkey_ts, data, tweaks }
+    }
+}
+
+mod tweak {
+    use std::fmt;
+
+    use ruma_common::push::Tweak;
+    use serde::{
+        de::{MapAccess, Visitor},
+        ser::SerializeMap,
+        Deserializer, Serializer,
+    };
+
+    pub fn serialize<S>(tweak: &[super::Tweak], serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut map = serializer.serialize_map(Some(tweak.len()))?;
+        for item in tweak {
+            match item {
+                Tweak::Highlight(b) => map.serialize_entry("highlight", b)?,
+                Tweak::Sound(value) => map.serialize_entry("sound", value)?,
+                Tweak::Custom { value, name } => map.serialize_entry(name, value)?,
+                _ => unreachable!("variant added to Tweak not covered by Custom"),
+            }
+        }
+        map.end()
+    }
+
+    struct TweaksVisitor;
+
+    impl<'de> Visitor<'de> for TweaksVisitor {
+        type Value = Vec<Tweak>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("Lazy load options")
+        }
+
+        fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
+        where
+            M: MapAccess<'de>,
+        {
+            let mut tweaks = vec![];
+            while let Some(key) = access.next_key::<String>()? {
+                match &*key {
+                    "sound" => tweaks.push(Tweak::Sound(access.next_value()?)),
+                    // If a highlight tweak is given with no value, its value is defined to be true.
+                    "highlight" => {
+                        let highlight =
+                            if let Ok(highlight) = access.next_value() { highlight } else { true };
+
+                        tweaks.push(Tweak::Highlight(highlight))
+                    }
+                    // TODO should this be an error?
+                    _ => tweaks.push(Tweak::Custom { name: key, value: access.next_value()? }),
+                };
+            }
+
+            // If no highlight tweak is given at all then the value of highlight is defined to be false.
+            if !tweaks.iter().any(|tw| matches!(tw, Tweak::Highlight(_))) {
+                tweaks.push(Tweak::Highlight(false));
+            }
+
+            Ok(tweaks)
+        }
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Vec<Tweak>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_map(TweaksVisitor)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::time::{Duration, SystemTime};
+
+    use ruma_events::EventType;
+    use ruma_identifiers::{event_id, room_alias_id, room_id, user_id};
+    use serde_json::{
+        from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
+    };
+
+    use super::{Device, Notification, NotificationCounts, NotificationPriority, Tweak};
+
+    #[test]
+    fn serialize_request() {
+        let expected = json!({
+            "event_id": "$3957tyerfgewrf384",
+            "room_id": "!slw48wfj34rtnrf:example.com",
+            "type": "m.room.message",
+            "sender": "@exampleuser:matrix.org",
+            "sender_display_name": "Major Tom",
+            "room_alias": "#exampleroom:matrix.org",
+            "prio": "low",
+            "content": {},
+            "counts": {
+              "unread": 2,
+            },
+            "devices": [
+              {
+                "app_id": "org.matrix.matrixConsole.ios",
+                "pushkey": "V2h5IG9uIGVhcnRoIGRpZCB5b3UgZGVjb2RlIHRoaXM/",
+                "pushkey_ts": 123,
+                "tweaks": {
+                  "sound": "silence",
+                  "highlight": true,
+                  "custom": "go wild"
+                }
+              }
+            ]
+        });
+
+        let eid = event_id!("$3957tyerfgewrf384");
+        let rid = room_id!("!slw48wfj34rtnrf:example.com");
+        let uid = user_id!("@exampleuser:matrix.org");
+        let alias = room_alias_id!("#exampleroom:matrix.org");
+
+        let mut count = NotificationCounts::default();
+        count.unread = js_int::uint!(2);
+        // test default values are ignored
+        count.missed_calls = js_int::uint!(0);
+
+        let mut device = Device::new(
+            "org.matrix.matrixConsole.ios".into(),
+            "V2h5IG9uIGVhcnRoIGRpZCB5b3UgZGVjb2RlIHRoaXM/".into(),
+            None,
+            None,
+            Vec::new(),
+        );
+        device.pushkey_ts = Some(SystemTime::UNIX_EPOCH + Duration::from_millis(123));
+        device.tweaks = vec![
+            Tweak::Highlight(true),
+            Tweak::Sound("silence".into()),
+            Tweak::Custom {
+                name: "custom".into(),
+                value: from_json_value(JsonValue::String("go wild".into())).unwrap(),
+            },
+        ];
+
+        let devices = vec![device];
+
+        let mut notice = Notification::default();
+        notice.event_id = Some(&eid);
+        notice.room_id = Some(&rid);
+        notice.event_type = Some(&EventType::RoomMessage);
+        notice.sender = Some(&uid);
+        notice.sender_display_name = Some("Major Tom");
+        notice.room_alias = Some(&alias);
+        notice.content = Some(serde_json::from_str("{}").unwrap());
+        notice.counts = Some(count);
+        notice.prio = Some(NotificationPriority::Low);
+        notice.devices = &devices;
+
+        assert_eq!(expected, to_json_value(notice).unwrap())
     }
 }

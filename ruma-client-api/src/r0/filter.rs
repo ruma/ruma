@@ -194,7 +194,7 @@ impl<'a> Filter<'a> {
 pub struct FilterDefinition<'a> {
     /// List of event fields to include.
     ///
-    /// If this list is absent then all fields are included. The entries may include '.' charaters
+    /// If this list is absent then all fields are included. The entries may include '.' characters
     /// to indicate sub-fields. So ['content.body'] will include the 'body' field of the 'content'
     /// object. A literal '.' character in a field name may be escaped using a '\'. A server may
     /// include more fields than were requested.
