@@ -2,4 +2,4 @@
 
 #![warn(missing_docs)]
 
-pub mod notify;
+pub mod push;
