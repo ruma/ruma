@@ -19,7 +19,7 @@ ruma_api! {
     request: {
         /// The event ID to get.
         #[ruma_api(path)]
-        event_id: &'a EventId,
+        pub event_id: &'a EventId,
     }
 
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -30,16 +30,17 @@ ruma_api! {
         /// POSIX timestamp in milliseconds on originating homeserver when this
         /// transaction started.
         #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-        origin_server_ts: SystemTime,
+        pub origin_server_ts: SystemTime,
 
-        /// An array with a single PDU.
+        /// The event as an array with a single element.
         ///
         /// Note that events have a different format depending on the room
         /// version - check the [room version specification] for precise event
         /// formats.
         ///
         /// [room version specification]: https://matrix.org/docs/spec/index.html#room-versions
-        pdus: Vec<Pdu>
+        #[serde(rename = "pdus", with = "ruma_serde::single_element_seq")]
+        pub pdu: Pdu,
     }
 }
 
@@ -54,8 +55,8 @@ impl Response {
     /// Creates a new `Response` with:
     /// * the `server_name` of the homeserver.
     /// * the timestamp in milliseconds of when this transaction started.
-    /// * a list containing the single requested event
-    pub fn new(origin: ServerNameBox, origin_server_ts: SystemTime, pdus: Vec<Pdu>) -> Self {
-        Self { origin, origin_server_ts, pdus }
+    /// * the requested event
+    pub fn new(origin: ServerNameBox, origin_server_ts: SystemTime, pdu: Pdu) -> Self {
+        Self { origin, origin_server_ts, pdu }
     }
 }

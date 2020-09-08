@@ -18,11 +18,11 @@ ruma_api! {
     request: {
         /// The room ID to get state for.
         #[ruma_api(path)]
-        room_id: &'a RoomId,
+        pub room_id: &'a RoomId,
 
         /// An event ID in the room to retrieve the state at.
         #[ruma_api(query)]
-        event_id: &'a EventId,
+        pub event_id: &'a EventId,
     }
 
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -35,7 +35,7 @@ ruma_api! {
         /// formats.
         ///
         /// [room version specification]: https://matrix.org/docs/spec/index.html#room-versions
-        auth_chain: Vec<Pdu>,
+        pub auth_chain: Vec<Pdu>,
 
 
         /// The fully resolved state of the room at the given event.
@@ -45,7 +45,7 @@ ruma_api! {
         /// formats.
         ///
         /// [room version specification]: https://matrix.org/docs/spec/index.html#room-versions
-        pdus: Vec<Pdu>
+        pub pdus: Vec<Pdu>,
     }
 }
 

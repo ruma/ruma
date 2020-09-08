@@ -17,22 +17,22 @@ ruma_api! {
     request: {
         /// The room ID to get state for.
         #[ruma_api(path)]
-        room_id: &'a RoomId,
+        pub room_id: &'a RoomId,
 
         /// An event ID in the room to retrieve the state at.
         #[ruma_api(query)]
-        event_id: &'a EventId,
+        pub event_id: &'a EventId,
     }
 
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The full set of authorization events that make up the state of the
         /// room, and their authorization events, recursively.
-        auth_chain_ids: Vec<EventId>,
+        pub auth_chain_ids: Vec<EventId>,
 
 
         /// The fully resolved state of the room at the given event.
-        pdu_ids: Vec<EventId>
+        pub pdu_ids: Vec<EventId>,
     }
 }
 
