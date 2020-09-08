@@ -2,7 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::{ruma_api, Outgoing};
-use ruma_client_api::r0::push::PusherData;
+pub use ruma_common::push::PusherData;
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
@@ -22,7 +22,7 @@ ruma_api! {
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// Information about the push notification
-        notification: Notification<'a>,
+        pub notification: Notification<'a>,
     }
 
     #[derive(Default)]
@@ -37,7 +37,7 @@ ruma_api! {
         /// associated pushers. It may not necessarily be the notification in
         /// the request that failed: it could be that a previous notification to
         /// the same pushkey failed. May be empty.
-        rejected: Vec<String>
+        pub rejected: Vec<String>,
     }
 }
 
@@ -57,6 +57,7 @@ impl Response {
 
 /// Type for passing information about a push notification
 #[derive(Clone, Debug, Outgoing, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Notification<'a> {
     /// The Matrix event ID of the event being notified about.
     ///
@@ -123,6 +124,51 @@ pub struct Notification<'a> {
     pub devices: &'a [Device],
 }
 
+impl<'a> Notification<'a> {
+    /// Create a new notification with:
+    /// * the given event id.
+    /// * the given room id.
+    /// * the given event_type.
+    /// * the notification sender
+    /// * the notification sender's display name
+    /// * the room's name
+    /// * the room's alias
+    /// * whether the user is the target of the notification
+    /// * the priority of the notification
+    /// * the content of the notification
+    /// * the number of unacknowledged communications for the recipient
+    /// * the devices to send the notification to
+    pub fn new(
+        event_id: Option<&'a EventId>,
+        room_id: Option<&'a RoomId>,
+        event_type: Option<&'a EventType>,
+        sender: Option<&'a UserId>,
+        sender_display_name: Option<&'a str>,
+        room_name: Option<&'a str>,
+        room_alias: Option<&'a RoomAliasId>,
+        user_is_target: Option<bool>,
+        prio: Option<NotificationPriority>,
+        content: Option<&'a JsonValue>,
+        counts: Option<NotificationCounts>,
+        devices: &'a [Device],
+    ) -> Self {
+        Notification {
+            event_id,
+            room_id,
+            event_type,
+            sender,
+            sender_display_name,
+            room_name,
+            room_alias,
+            user_is_target,
+            prio,
+            content,
+            counts,
+            devices,
+        }
+    }
+}
+
 /// Type for passing information about notification priority.
 ///
 /// This may be used by push gateways to deliver less time-sensitive
@@ -138,6 +184,7 @@ pub enum NotificationPriority {
 
 /// Type for passing information about notification counts.
 #[derive(Clone, Debug, Deserialize, Outgoing, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct NotificationCounts {
     /// The number of unread messages a user has across all of the rooms they
     /// are a member of.
@@ -150,8 +197,17 @@ pub struct NotificationCounts {
     pub missed_calls: Option<UInt>,
 }
 
+impl NotificationCounts {
+    /// Create new notification counts from the given unread and missed call
+    /// counts.
+    pub fn new(unread: Option<UInt>, missed_calls: Option<UInt>) -> Self {
+        NotificationCounts { unread, missed_calls }
+    }
+}
+
 /// Type for passing information about devices.
 #[derive(Clone, Debug, Deserialize, Outgoing, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Device {
     /// The `app_id` given when the pusher was created.
     pub app_id: String,
@@ -160,7 +216,10 @@ pub struct Device {
     pub pushkey: String,
 
     /// The unix timestamp (in seconds) when the pushkey was last updated.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        with = "ruma_serde::time::opt_ms_since_unix_epoch",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub pushkey_ts: Option<SystemTime>,
 
     /// A dictionary of additional pusher-specific data. For 'http' pushers,
@@ -173,4 +232,22 @@ pub struct Device {
     /// be presented. These are added by push rules.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tweaks: Option<BTreeMap<String, String>>,
+}
+
+impl Device {
+    /// Create a new device with:
+    /// * the given app id
+    /// * pushkey given when the pusher was created
+    /// * the timestamp when the pushkey was last updated
+    /// * additional pusher data which must contain a `url` key.
+    /// * customisations made to the way notifications are presented.
+    pub fn new(
+        app_id: String,
+        pushkey: String,
+        pushkey_ts: Option<SystemTime>,
+        data: Option<PusherData>,
+        tweaks: Option<BTreeMap<String, String>>,
+    ) -> Self {
+        Device { app_id, pushkey, pushkey_ts, data, tweaks }
+    }
 }
