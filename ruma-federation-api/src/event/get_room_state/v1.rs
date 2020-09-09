@@ -29,28 +29,16 @@ ruma_api! {
     response: {
         /// The full set of authorization events that make up the state of the
         /// room, and their authorization events, recursively.
-        ///
-        /// Note that events have a different format depending on the room
-        /// version - check the [room version specification] for precise event
-        /// formats.
-        ///
-        /// [room version specification]: https://matrix.org/docs/spec/index.html#room-versions
         pub auth_chain: Vec<Pdu>,
 
 
         /// The fully resolved state of the room at the given event.
-        ///
-        /// Note that events have a different format depending on the room
-        /// version - check the [room version specification] for precise event
-        /// formats.
-        ///
-        /// [room version specification]: https://matrix.org/docs/spec/index.html#room-versions
         pub pdus: Vec<Pdu>,
     }
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new `Request` with the given event id and room id.
+    /// Creates a new `Request` with the given event ID and room ID.
     pub fn new(event_id: &'a EventId, room_id: &'a RoomId) -> Self {
         Self { event_id, room_id }
     }

@@ -29,8 +29,6 @@ ruma_api! {
         /// The full set of authorization events that make up the state of the
         /// room, and their authorization events, recursively.
         pub auth_chain_ids: Vec<EventId>,
-
-
         /// The fully resolved state of the room at the given event.
         pub pdu_ids: Vec<EventId>,
     }
@@ -44,8 +42,7 @@ impl<'a> Request<'a> {
 }
 
 impl Response {
-    /// Creates a new `Response` with the given auth chain ids and room state
-    /// ids.
+    /// Creates a new `Response` with the given auth chain IDs and room state IDs.
     pub fn new(auth_chain_ids: Vec<EventId>, pdu_ids: Vec<EventId>) -> Self {
         Self { auth_chain_ids, pdu_ids }
     }

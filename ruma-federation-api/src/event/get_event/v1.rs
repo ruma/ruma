@@ -25,20 +25,14 @@ ruma_api! {
     #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The `server_name` of the homeserver sending this transaction.
-        origin: ServerNameBox,
+        pub origin: ServerNameBox,
 
         /// POSIX timestamp in milliseconds on originating homeserver when this
         /// transaction started.
         #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
         pub origin_server_ts: SystemTime,
 
-        /// The event as an array with a single element.
-        ///
-        /// Note that events have a different format depending on the room
-        /// version - check the [room version specification] for precise event
-        /// formats.
-        ///
-        /// [room version specification]: https://matrix.org/docs/spec/index.html#room-versions
+        /// The event.
         #[serde(rename = "pdus", with = "ruma_serde::single_element_seq")]
         pub pdu: Pdu,
     }

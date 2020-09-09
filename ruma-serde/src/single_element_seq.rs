@@ -18,8 +18,5 @@ where
     T: DeserializeOwned,
     D: Deserializer<'de>,
 {
-    <[_; 1]>::deserialize(deserializer).map(|array| {
-        let [first] = array;
-        first
-    })
+    <[_; 1]>::deserialize(deserializer).map(|[first]| first)
 }
