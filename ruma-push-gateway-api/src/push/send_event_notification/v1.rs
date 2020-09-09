@@ -249,7 +249,7 @@ mod tweak {
         type Value = Vec<Tweak>;
 
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("Lazy load options")
+            formatter.write_str("List of tweaks")
         }
 
         fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
@@ -267,7 +267,6 @@ mod tweak {
 
                         tweaks.push(Tweak::Highlight(highlight))
                     }
-                    // TODO should this be an error?
                     _ => tweaks.push(Tweak::Custom { name: key, value: access.next_value()? }),
                 };
             }
