@@ -99,15 +99,15 @@ pub struct Notification<'a> {
     /// This is `true` if the user receiving the notification is the subject of
     /// a member event (i.e. the `state_key` of the member event is equal to the
     /// user's Matrix ID).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub user_is_target: Option<bool>,
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    pub user_is_target: bool,
 
     /// The priority of the notification.
     ///
     /// If omitted, `high` is assumed. This may be used by push gateways to
     /// deliver less time-sensitive notifications in a way that will preserve
     /// battery power on mobile devices. One of: ["high", "low"]
-    #[serde(skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     pub prio: NotificationPriority,
 
     /// The `content` field from the event, if present. The pusher may omit this
@@ -118,7 +118,7 @@ pub struct Notification<'a> {
     /// This is a dictionary of the current number of unacknowledged
     /// communications for the recipient user. Counts whose value is zero should
     /// be omitted.
-    #[serde(skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     pub counts: NotificationCounts,
 
     /// This is an array of devices that the notification should be sent to.
@@ -159,12 +159,12 @@ impl Default for NotificationPriority {
 pub struct NotificationCounts {
     /// The number of unread messages a user has across all of the rooms they
     /// are a member of.
-    #[serde(skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     pub unread: UInt,
 
     /// The number of unacknowledged missed calls a user has across all rooms of
     /// which they are a member.
-    #[serde(skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     pub missed_calls: UInt,
 }
 
