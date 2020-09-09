@@ -4,4 +4,4 @@ Improvements:
 
 * Add endpoints:
 
-  `push::v1`
+  `push::send_event_notification::v1`

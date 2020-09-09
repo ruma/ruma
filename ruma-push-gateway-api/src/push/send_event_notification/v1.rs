@@ -107,8 +107,8 @@ pub struct Notification<'a> {
     /// If omitted, `high` is assumed. This may be used by push gateways to
     /// deliver less time-sensitive notifications in a way that will preserve
     /// battery power on mobile devices. One of: ["high", "low"]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub prio: Option<NotificationPriority>,
+    #[serde(skip_serializing_if = "ruma_serde::is_default")]
+    pub prio: NotificationPriority,
 
     /// The `content` field from the event, if present. The pusher may omit this
     /// if the event had no content or for any other reason.
@@ -118,56 +118,17 @@ pub struct Notification<'a> {
     /// This is a dictionary of the current number of unacknowledged
     /// communications for the recipient user. Counts whose value is zero should
     /// be omitted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub counts: Option<NotificationCounts>,
+    #[serde(skip_serializing_if = "ruma_serde::is_default")]
+    pub counts: NotificationCounts,
 
     /// This is an array of devices that the notification should be sent to.
     pub devices: &'a [Device],
 }
 
 impl<'a> Notification<'a> {
-    /// Create a new notification with:
-    /// * the given event id.
-    /// * the given room id.
-    /// * the given event_type.
-    /// * the notification sender
-    /// * the notification sender's display name
-    /// * the room's name
-    /// * the room's alias
-    /// * whether the user is the target of the notification
-    /// * the priority of the notification
-    /// * the content of the notification
-    /// * the number of unacknowledged communications for the recipient
-    /// * the devices to send the notification to
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        event_id: Option<&'a EventId>,
-        room_id: Option<&'a RoomId>,
-        event_type: Option<&'a EventType>,
-        sender: Option<&'a UserId>,
-        sender_display_name: Option<&'a str>,
-        room_name: Option<&'a str>,
-        room_alias: Option<&'a RoomAliasId>,
-        user_is_target: Option<bool>,
-        prio: Option<NotificationPriority>,
-        content: Option<Box<RawJsonValue>>,
-        counts: Option<NotificationCounts>,
-        devices: &'a [Device],
-    ) -> Self {
-        Notification {
-            event_id,
-            room_id,
-            event_type,
-            sender,
-            sender_display_name,
-            room_name,
-            room_alias,
-            user_is_target,
-            prio,
-            content,
-            counts,
-            devices,
-        }
+    /// Create a new notification for the given devices
+    pub fn new(devices: &'a [Device]) -> Self {
+        Notification { devices, ..Default::default() }
     }
 }
 
@@ -175,7 +136,7 @@ impl<'a> Notification<'a> {
 ///
 /// This may be used by push gateways to deliver less time-sensitive
 /// notifications in a way that will preserve battery power on mobile devices.
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, Display, EnumString)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Display, EnumString, PartialEq)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -193,7 +154,7 @@ impl Default for NotificationPriority {
 }
 
 /// Type for passing information about notification counts.
-#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct NotificationCounts {
     /// The number of unread messages a user has across all of the rooms they
@@ -255,14 +216,8 @@ impl Device {
     /// * the timestamp when the pushkey was last updated
     /// * additional pusher data which must contain a `url` key.
     /// * customisations made to the way notifications are presented.
-    pub fn new(
-        app_id: String,
-        pushkey: String,
-        pushkey_ts: Option<SystemTime>,
-        data: Option<PusherData>,
-        tweaks: Vec<Tweak>,
-    ) -> Self {
-        Device { app_id, pushkey, pushkey_ts, data, tweaks }
+    pub fn new(app_id: String, pushkey: String) -> Self {
+        Device { app_id, pushkey, pushkey_ts: None, data: None, tweaks: Vec::new() }
     }
 }
 
@@ -282,6 +237,7 @@ mod tweak {
     {
         let mut map = serializer.serialize_map(Some(tweak.len()))?;
         for item in tweak {
+            #[allow(unreachable_patterns)]
             match item {
                 Tweak::Highlight(b) => map.serialize_entry("highlight", b)?,
                 Tweak::Sound(value) => map.serialize_entry("sound", value)?,
@@ -391,9 +347,6 @@ mod test {
         let mut device = Device::new(
             "org.matrix.matrixConsole.ios".into(),
             "V2h5IG9uIGVhcnRoIGRpZCB5b3UgZGVjb2RlIHRoaXM/".into(),
-            None,
-            None,
-            Vec::new(),
         );
         device.pushkey_ts = Some(SystemTime::UNIX_EPOCH + Duration::from_millis(123));
         device.tweaks = vec![
@@ -415,8 +368,8 @@ mod test {
         notice.sender_display_name = Some("Major Tom");
         notice.room_alias = Some(&alias);
         notice.content = Some(serde_json::from_str("{}").unwrap());
-        notice.counts = Some(count);
-        notice.prio = Some(NotificationPriority::Low);
+        notice.counts = count;
+        notice.prio = NotificationPriority::Low;
         notice.devices = &devices;
 
         assert_eq!(expected, to_json_value(notice).unwrap())
