@@ -1,7 +1,7 @@
 //! De-/serialization functions to and from single element sequences.
 
 use serde::{
-    de::{Deserialize, DeserializeOwned, Deserializer},
+    de::{Deserialize, Deserializer},
     ser::{Serialize, Serializer},
 };
 
@@ -15,7 +15,7 @@ where
 
 pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
 where
-    T: DeserializeOwned,
+    T: Deserialize<'de>,
     D: Deserializer<'de>,
 {
     <[_; 1]>::deserialize(deserializer).map(|[first]| first)

@@ -46,10 +46,7 @@ impl<'a> Request<'a> {
 }
 
 impl Response {
-    /// Creates a new `Response` with:
-    /// * the `server_name` of the homeserver.
-    /// * the timestamp in milliseconds of when this transaction started.
-    /// * the requested event
+    /// Creates a new `Response` with the given server name, timestamp, and event.
     pub fn new(origin: ServerNameBox, origin_server_ts: SystemTime, pdu: Pdu) -> Self {
         Self { origin, origin_server_ts, pdu }
     }
