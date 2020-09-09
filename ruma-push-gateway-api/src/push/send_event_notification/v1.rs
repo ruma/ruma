@@ -210,12 +210,7 @@ pub struct Device {
 }
 
 impl Device {
-    /// Create a new device with:
-    /// * the given app id
-    /// * pushkey given when the pusher was created
-    /// * the timestamp when the pushkey was last updated
-    /// * additional pusher data which must contain a `url` key.
-    /// * customisations made to the way notifications are presented.
+    /// Create a new device with the given app id and pushkey
     pub fn new(app_id: String, pushkey: String) -> Self {
         Device { app_id, pushkey, pushkey_ts: None, data: None, tweaks: Vec::new() }
     }
