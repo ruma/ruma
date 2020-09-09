@@ -31,7 +31,6 @@ ruma_api! {
         /// room, and their authorization events, recursively.
         pub auth_chain: Vec<Pdu>,
 
-
         /// The fully resolved state of the room at the given event.
         pub pdus: Vec<Pdu>,
     }

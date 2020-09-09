@@ -29,6 +29,7 @@ ruma_api! {
         /// The full set of authorization events that make up the state of the
         /// room, and their authorization events, recursively.
         pub auth_chain_ids: Vec<EventId>,
+
         /// The fully resolved state of the room at the given event.
         pub pdu_ids: Vec<EventId>,
     }
