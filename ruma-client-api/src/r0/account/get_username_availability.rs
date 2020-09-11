@@ -12,14 +12,12 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The username to check the availability of.
         #[ruma_api(query)]
         pub username: &'a str,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// A flag to indicate that the username is available.
         /// This should always be true when the server replies with 200 OK.

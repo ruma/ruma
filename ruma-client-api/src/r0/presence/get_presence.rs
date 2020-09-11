@@ -16,14 +16,12 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The user whose presence state will be retrieved.
         #[ruma_api(path)]
         pub user_id: &'a UserId,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The state message for this user if one was set.
         #[serde(skip_serializing_if = "Option::is_none")]

@@ -16,14 +16,12 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The keys to be downloaded. Gives all keys for a given user if the list of device ids is
         /// empty.
         pub device_keys: BTreeMap<UserId, Vec<DeviceIdBox>>,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Keys from the queried devices.
         pub device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, IncomingDeviceKeys>>,

@@ -20,7 +20,6 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// Identity keys for the device. May be absent if no new identity keys are required.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -31,7 +30,6 @@ ruma_api! {
         pub one_time_keys: Option<BTreeMap<DeviceKeyId, OneTimeKey>>,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// For each key algorithm, the number of unclaimed one-time keys of that
         /// type currently held on the server for this device.

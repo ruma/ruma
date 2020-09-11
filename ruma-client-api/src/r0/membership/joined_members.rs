@@ -16,14 +16,12 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room to get the members of.
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// A list of the rooms the user is in, i.e.
         /// the ID of each room in which the user has joined membership.

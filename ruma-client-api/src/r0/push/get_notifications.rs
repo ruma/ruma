@@ -20,7 +20,6 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// Pagination token given to retrieve the next set of events.
         #[ruma_api(query)]
@@ -39,7 +38,6 @@ ruma_api! {
         pub only: Option<&'a str>
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The token to supply in the from param of the next /notifications request in order
         /// to request more events. If this is absent, there are no more results.

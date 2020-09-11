@@ -15,7 +15,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The term to search for.
         pub search_term: &'a str,
@@ -35,7 +34,6 @@ ruma_api! {
         pub language: Option<String>,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Ordered by rank and then whether or not profile info is available.
         pub results: Vec<User>,

@@ -15,14 +15,12 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room to look up the state for.
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// If the user is a member of the room this will be the current state of the room as a
         /// list of events. If the user has left the room then this will be the state of the

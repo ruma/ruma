@@ -19,7 +19,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room to get events from.
         #[ruma_api(path)]
@@ -64,7 +63,6 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The token the pagination starts from.
         #[serde(skip_serializing_if = "Option::is_none")]

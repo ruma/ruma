@@ -14,7 +14,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The scope to fetch a rule from. 'global' to specify global rules.
         #[ruma_api(path)]
@@ -29,7 +28,6 @@ ruma_api! {
         pub rule_id: &'a str,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Whether the push rule is enabled or not.
         pub enabled: bool,

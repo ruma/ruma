@@ -17,7 +17,6 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The desired password for the account.
         ///
@@ -67,7 +66,6 @@ ruma_api! {
         pub inhibit_login: bool,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// An access token for the account.
         ///

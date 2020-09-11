@@ -21,7 +21,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The point to return events from.
         ///
@@ -33,7 +32,6 @@ ruma_api! {
         pub search_categories: Categories<'a>,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// A grouping of search results by category.
         pub search_categories: ResultCategories,

@@ -17,7 +17,6 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// Additional authentication information for the user-interactive authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -29,7 +28,6 @@ ruma_api! {
         pub id_server: Option<&'a str>,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Result of unbind operation.
         pub id_server_unbind_result: ThirdPartyIdRemovalStatus,

@@ -13,7 +13,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The ID of the room of the event to redact.
         #[ruma_api(path)]
@@ -35,7 +34,6 @@ ruma_api! {
         pub reason: Option<&'a str>,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The ID of the redacted event.
         pub event_id: EventId,

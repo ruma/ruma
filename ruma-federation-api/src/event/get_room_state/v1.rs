@@ -14,7 +14,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room ID to get state for.
         #[ruma_api(path)]
@@ -25,7 +24,6 @@ ruma_api! {
         pub event_id: &'a EventId,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The full set of authorization events that make up the state of the
         /// room, and their authorization events, recursively.

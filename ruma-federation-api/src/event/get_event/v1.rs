@@ -15,14 +15,12 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The event ID to get.
         #[ruma_api(path)]
         pub event_id: &'a EventId,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The `server_name` of the homeserver sending this transaction.
         pub origin: ServerNameBox,

@@ -13,7 +13,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// ID of the room to be upgraded.
         #[ruma_api(path)]
@@ -23,7 +22,6 @@ ruma_api! {
         pub new_version: &'a RoomVersionId,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// ID of the new room.
         pub replacement_room: RoomId,

@@ -27,7 +27,6 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// Extra keys to be added to the content of the `m.room.create`.
         #[serde(default, skip_serializing_if = "CreationContent::is_empty")]
@@ -88,7 +87,6 @@ ruma_api! {
         pub visibility: Visibility,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The created room's ID.
         pub room_id: RoomId,

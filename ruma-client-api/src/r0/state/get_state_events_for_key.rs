@@ -15,7 +15,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room to look up the state for.
         #[ruma_api(path)]
@@ -30,7 +29,6 @@ ruma_api! {
         pub state_key: &'a str,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The content of the state event.
         #[ruma_api(body)]

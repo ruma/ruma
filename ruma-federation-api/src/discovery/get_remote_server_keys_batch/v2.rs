@@ -17,7 +17,6 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The query criteria. The outer string key on the object is the server
         /// name (eg: matrix.org). The inner string key is the Key ID to query
@@ -42,7 +41,6 @@ ruma_api! {
         pub minimum_valid_until_ts: SystemTime,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The queried server's keys, signed by the notary server.
         pub server_keys: Vec<ServerKey>,
