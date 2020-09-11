@@ -6,6 +6,7 @@ pub mod can_be_empty;
 pub mod duration;
 pub mod empty;
 pub mod json_string;
+pub mod single_element_seq;
 pub mod test;
 pub mod time;
 pub mod urlencoded;
