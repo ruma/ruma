@@ -202,6 +202,8 @@ impl StateEvent {
             },
         }
     }
+
+    #[cfg(not(feature = "unstable-pre-spec"))]
     pub fn origin(&self) -> String {
         match self {
             Self::Full(ev) => match ev {

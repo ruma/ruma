@@ -22,15 +22,17 @@ maplit = "1.0.2"
 thiserror = "1.0.20"
 tracing-subscriber = "0.2.11"
 
-# [dependencies.ruma]
-# path = "../__forks__/ruma/ruma"
-# features = ["client-api", "federation-api", "appservice-api"]
-
 [dependencies.ruma]
-git = "https://github.com/ruma/ruma"
-rev = "aff914050eb297bd82b8aafb12158c88a9e480e1"
+path = "../ruma/ruma"
 features = ["client-api", "federation-api", "appservice-api"]
 
+#[dependencies.ruma]
+#git = "https://github.com/ruma/ruma"
+#rev = "aff914050eb297bd82b8aafb12158c88a9e480e1"
+#features = ["client-api", "federation-api", "appservice-api"]
+
+[features]
+unstable-pre-spec = ["ruma/unstable-pre-spec"]
 
 [dev-dependencies]
 criterion = "0.3.3"
@@ -39,3 +41,4 @@ rand = "0.7.3"
 [[bench]]
 name = "state_res_bench"
 harness = false
+

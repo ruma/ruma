@@ -2,7 +2,7 @@ use std::{
     cmp::Reverse,
     collections::{BTreeMap, BTreeSet, BinaryHeap},
     time::SystemTime,
-};
+sync::Arc};
 
 use maplit::btreeset;
 use ruma::{
@@ -58,7 +58,7 @@ impl StateResolution {
         room_id: &RoomId,
         room_version: &RoomVersionId,
         state_sets: &[StateMap<EventId>],
-        event_map: Option<EventMap<StateEvent>>,
+        event_map: Option<EventMap<Arc<StateEvent>>>,
         store: &dyn StateStore,
     ) -> Result<StateMap<EventId>> {
         tracing::info!("State resolution starting");
@@ -292,7 +292,7 @@ impl StateResolution {
     pub fn reverse_topological_power_sort(
         room_id: &RoomId,
         events_to_sort: &[EventId],
-        event_map: &mut EventMap<StateEvent>,
+        event_map: &mut EventMap<Arc<StateEvent>>,
         store: &dyn StateStore,
         auth_diff: &[EventId],
     ) -> Vec<EventId> {
@@ -418,7 +418,7 @@ impl StateResolution {
     fn get_power_level_for_sender(
         room_id: &RoomId,
         event_id: &EventId,
-        event_map: &mut EventMap<StateEvent>,
+        event_map: &mut EventMap<Arc<StateEvent>>,
         store: &dyn StateStore,
     ) -> i64 {
         tracing::info!("fetch event ({}) senders power level", event_id.to_string());
@@ -476,7 +476,7 @@ impl StateResolution {
         room_version: &RoomVersionId,
         events_to_check: &[EventId],
         unconflicted_state: &StateMap<EventId>,
-        event_map: &mut EventMap<StateEvent>,
+        event_map: &mut EventMap<Arc<StateEvent>>,
         store: &dyn StateStore,
     ) -> Result<StateMap<EventId>> {
         tracing::info!("starting iterative auth check");
@@ -526,8 +526,8 @@ impl StateResolution {
 
             tracing::debug!("event to check {:?}", event.event_id().as_str());
 
-            let most_recent_prev_event = event
-                .prev_event_ids()
+            let most_recent_prev_event = dbg!(event
+                .prev_event_ids())
                 .iter()
                 .filter_map(|id| StateResolution::get_or_load_event(room_id, id, event_map, store))
                 .next_back();
@@ -545,9 +545,9 @@ impl StateResolution {
             if event_auth::auth_check(
                 room_version,
                 &event,
-                most_recent_prev_event.as_ref(),
+                most_recent_prev_event,
                 auth_events,
-                current_third_party.as_ref(),
+                current_third_party,
             )? {
                 // add event to resolved state map
                 resolved_state.insert((event.kind(), event.state_key()), event_id.clone());
@@ -579,7 +579,7 @@ impl StateResolution {
         room_id: &RoomId,
         to_sort: &[EventId],
         resolved_power_level: Option<&EventId>,
-        event_map: &mut EventMap<StateEvent>,
+        event_map: &mut EventMap<Arc<StateEvent>>,
         store: &dyn StateStore,
     ) -> Vec<EventId> {
         tracing::debug!("mainline sort of events");
@@ -658,14 +658,13 @@ impl StateResolution {
         sort_event_ids
     }
 
-    // TODO make `event` not clone every loop
     /// Get the mainline depth from the `mainline_map` or finds a power_level event
     /// that has an associated mainline depth.
     fn get_mainline_depth(
         room_id: &RoomId,
-        mut event: Option<StateEvent>,
+        mut event: Option<Arc<StateEvent>>,
         mainline_map: &EventMap<usize>,
-        event_map: &mut EventMap<StateEvent>,
+        event_map: &mut EventMap<Arc<StateEvent>>,
         store: &dyn StateStore,
     ) -> usize {
         while let Some(sort_ev) = event {
@@ -681,7 +680,7 @@ impl StateResolution {
                 let aev =
                     StateResolution::get_or_load_event(room_id, &aid, event_map, store).unwrap();
                 if aev.is_type_and_key(EventType::RoomPowerLevels, "") {
-                    event = Some(aev.clone());
+                    event = Some(aev);
                     break;
                 }
             }
@@ -694,7 +693,7 @@ impl StateResolution {
         room_id: &RoomId,
         graph: &mut BTreeMap<EventId, Vec<EventId>>,
         event_id: &EventId,
-        event_map: &mut EventMap<StateEvent>,
+        event_map: &mut EventMap<Arc<StateEvent>>,
         store: &dyn StateStore,
         auth_diff: &[EventId],
     ) {
@@ -730,21 +729,22 @@ impl StateResolution {
     fn get_or_load_event(
         room_id: &RoomId,
         ev_id: &EventId,
-        event_map: &mut EventMap<StateEvent>,
+        event_map: &mut EventMap<Arc<StateEvent>>,
         store: &dyn StateStore,
-    ) -> Option<StateEvent> {
-        // TODO can we cut down on the clones?
-        if !event_map.contains_key(ev_id) {
-            let event = store.get_event(room_id, ev_id).ok()?;
-            event_map.insert(ev_id.clone(), event.clone());
-            Some(event)
-        } else {
-            event_map.get(ev_id).cloned()
+    ) -> Option<Arc<StateEvent>> {
+        if let Some(e) = event_map.get(ev_id) {
+            return Some(Arc::clone(e));
         }
+
+        if let Ok(e) = store.get_event(room_id, ev_id) {
+            return Some(Arc::clone(event_map.entry(ev_id.clone()).or_insert(e)))
+        }
+
+        None
     }
 }
 
-pub fn is_power_event(event_id: &EventId, event_map: &EventMap<StateEvent>) -> bool {
+pub fn is_power_event(event_id: &EventId, event_map: &EventMap<Arc<StateEvent>>) -> bool {
     match event_map.get(event_id) {
         Some(state) => state.is_power_event(),
         _ => false,

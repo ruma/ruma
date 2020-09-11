@@ -3,7 +3,7 @@
 // `cargo bench unknown option --save-baseline`.
 // To pass args to criterion, use this form
 // `cargo bench --bench <name of the bench> -- --save-baseline <name>`.
-use std::{cell::RefCell, collections::BTreeMap, convert::TryFrom, time::UNIX_EPOCH};
+use std::{collections::BTreeMap, convert::TryFrom, time::UNIX_EPOCH, sync::Arc};
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use maplit::btreemap;
@@ -42,7 +42,7 @@ fn lexico_topo_sort(c: &mut Criterion) {
 
 fn resolution_shallow_auth_chain(c: &mut Criterion) {
     c.bench_function("resolve state of 5 events one fork", |b| {
-        let store = TestStore(RefCell::new(btreemap! {}));
+        let mut store = TestStore(btreemap! {});
 
         // build up the DAG
         let (state_at_bob, state_at_charlie, _) = store.set_up();
@@ -69,7 +69,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
 
         let mut inner = init;
         inner.extend(ban);
-        let store = TestStore(RefCell::new(inner.clone()));
+        let store = TestStore(inner.clone());
 
         let state_set_a = [
             inner.get(&event_id("CREATE")).unwrap(),
@@ -126,22 +126,21 @@ criterion_main!(benches);
 //  IMPLEMENTATION DETAILS AHEAD
 //
 /////////////////////////////////////////////////////////////////////*/
-pub struct TestStore(RefCell<BTreeMap<EventId, StateEvent>>);
+pub struct TestStore(BTreeMap<EventId, Arc<StateEvent>>);
 
 #[allow(unused)]
 impl StateStore for TestStore {
-    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent> {
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<StateEvent>> {
         self.0
-            .borrow()
             .get(event_id)
-            .cloned()
+            .map(Arc::clone)
             .ok_or_else(|| Error::NotFound(format!("{} not found", event_id.to_string())))
     }
 }
 
 impl TestStore {
-    pub fn set_up(&self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
-        let create_event = to_pdu_event::<EventId>(
+    pub fn set_up(&mut self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
+        let create_event = Arc::new(to_pdu_event::<EventId>(
             "CREATE",
             alice(),
             EventType::RoomCreate,
@@ -149,11 +148,10 @@ impl TestStore {
             json!({ "creator": alice() }),
             &[],
             &[],
-        );
+        ));
         let cre = create_event.event_id();
         self.0
-            .borrow_mut()
-            .insert(cre.clone(), create_event.clone());
+            .insert(cre.clone(), Arc::clone(&create_event));
 
         let alice_mem = to_pdu_event(
             "IMA",
@@ -165,8 +163,7 @@ impl TestStore {
             &[cre.clone()],
         );
         self.0
-            .borrow_mut()
-            .insert(alice_mem.event_id(), alice_mem.clone());
+            .insert(alice_mem.event_id(), Arc::clone(&alice_mem));
 
         let join_rules = to_pdu_event(
             "IJR",
@@ -178,8 +175,7 @@ impl TestStore {
             &[alice_mem.event_id()],
         );
         self.0
-            .borrow_mut()
-            .insert(join_rules.event_id(), join_rules.clone());
+            .insert(join_rules.event_id(), Arc::clone(&join_rules));
 
         // Bob and Charlie join at the same time, so there is a fork
         // this will be represented in the state_sets when we resolve
@@ -193,8 +189,7 @@ impl TestStore {
             &[join_rules.event_id()],
         );
         self.0
-            .borrow_mut()
-            .insert(bob_mem.event_id(), bob_mem.clone());
+            .insert(bob_mem.event_id(), Arc::clone(&bob_mem));
 
         let charlie_mem = to_pdu_event(
             "IMC",
@@ -206,8 +201,7 @@ impl TestStore {
             &[join_rules.event_id()],
         );
         self.0
-            .borrow_mut()
-            .insert(charlie_mem.event_id(), charlie_mem.clone());
+            .insert(charlie_mem.event_id(), Arc::clone(&charlie_mem));
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
@@ -288,7 +282,7 @@ fn to_pdu_event<S>(
     content: JsonValue,
     auth_events: &[S],
     prev_events: &[S],
-) -> StateEvent
+) -> Arc<StateEvent>
 where
     S: AsRef<str>,
 {
@@ -362,12 +356,12 @@ where
             "signatures": {},
         })
     };
-    serde_json::from_value(json).unwrap()
+    Arc::new(serde_json::from_value(json).unwrap())
 }
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn INITIAL_EVENTS() -> BTreeMap<EventId, StateEvent> {
+fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
     vec![
         to_pdu_event::<EventId>(
             "CREATE",
@@ -449,7 +443,7 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, StateEvent> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> BTreeMap<EventId, StateEvent> {
+fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<StateEvent>> {
     vec![
         to_pdu_event(
             "PA",

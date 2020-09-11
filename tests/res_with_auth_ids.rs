@@ -1,6 +1,6 @@
 #![allow(clippy::or_fun_call, clippy::expect_fun_call)]
 
-use std::{cell::RefCell, collections::BTreeMap, convert::TryFrom, sync::Once, time::UNIX_EPOCH};
+use std::{collections::BTreeMap, convert::TryFrom, sync::Once, time::UNIX_EPOCH, sync::Arc};
 
 use ruma::{
     events::{
@@ -21,7 +21,7 @@ static LOGGER: Once = Once::new();
 
 static mut SERVER_TIMESTAMP: i32 = 0;
 
-fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids: Vec<EventId>) {
+fn do_check(events: &[Arc<StateEvent>], edges: Vec<Vec<EventId>>, expected_state_ids: Vec<EventId>) {
     // to activate logging use `RUST_LOG=debug cargo t`
     let _ = LOGGER.call_once(|| {
         tracer::fmt()
@@ -29,13 +29,13 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
             .init()
     });
 
-    let store = TestStore(RefCell::new(
+    let mut store = TestStore(
         INITIAL_EVENTS()
             .values()
             .chain(events)
             .map(|ev| (ev.event_id(), ev.clone()))
             .collect(),
-    ));
+    );
 
     // This will be lexi_topo_sorted for resolution
     let mut graph = BTreeMap::new();
@@ -64,7 +64,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
     }
 
     // event_id -> StateEvent
-    let mut event_map: BTreeMap<EventId, StateEvent> = BTreeMap::new();
+    let mut event_map: BTreeMap<EventId, Arc<StateEvent>> = BTreeMap::new();
     // event_id -> StateMap<EventId>
     let mut state_at_event: BTreeMap<EventId, StateMap<EventId>> = BTreeMap::new();
 
@@ -152,10 +152,10 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
 
         // we have to update our store, an actual user of this lib would
         // be giving us state from a DB.
-        *store.0.borrow_mut().get_mut(&ev_id).unwrap() = event.clone();
+        store.0.insert(ev_id.clone(), event.clone());
 
         state_at_event.insert(node, state_after);
-        event_map.insert(event_id.clone(), event);
+        event_map.insert(event_id.clone(), Arc::clone(store.0.get(&ev_id).unwrap()));
     }
 
     let mut expected_state = StateMap::new();
@@ -186,15 +186,14 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
 
     assert_eq!(expected_state, end_state);
 }
-pub struct TestStore(RefCell<BTreeMap<EventId, StateEvent>>);
+pub struct TestStore(BTreeMap<EventId, Arc<StateEvent>>);
 
 #[allow(unused)]
 impl StateStore for TestStore {
-    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent> {
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<StateEvent>> {
         self.0
-            .borrow()
             .get(event_id)
-            .cloned()
+            .map(Arc::clone)
             .ok_or_else(|| Error::NotFound(format!("{} not found", event_id.to_string())))
     }
 }
@@ -256,7 +255,7 @@ fn to_pdu_event<S>(
     content: JsonValue,
     auth_events: &[S],
     prev_events: &[S],
-) -> StateEvent
+) -> Arc<StateEvent>
 where
     S: AsRef<str>,
 {
@@ -330,12 +329,12 @@ where
             "signatures": {},
         })
     };
-    serde_json::from_value(json).unwrap()
+    Arc::new(serde_json::from_value(json).unwrap())
 }
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn INITIAL_EVENTS() -> BTreeMap<EventId, StateEvent> {
+fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
     // this is always called so we can init the logger here
     let _ = LOGGER.call_once(|| {
         tracer::fmt()
@@ -432,7 +431,7 @@ fn INITIAL_EDGES() -> Vec<EventId> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> BTreeMap<EventId, StateEvent> {
+fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<StateEvent>> {
     vec![
         to_pdu_event(
             "PA",
@@ -499,7 +498,7 @@ fn ban_with_auth_chains() {
 
 #[test]
 fn base_with_auth_chains() {
-    let store = TestStore(RefCell::new(INITIAL_EVENTS()));
+    let store = TestStore(INITIAL_EVENTS());
 
     let resolved: BTreeMap<_, EventId> =
         match StateResolution::resolve(&room_id(), &RoomVersionId::Version2, &[], None, &store) {
@@ -537,7 +536,7 @@ fn ban_with_auth_chains2() {
 
     let mut inner = init.clone();
     inner.extend(ban);
-    let store = TestStore(RefCell::new(inner.clone()));
+    let store = TestStore(inner.clone());
 
     let state_set_a = [
         inner.get(&event_id("CREATE")).unwrap(),
@@ -607,7 +606,7 @@ fn ban_with_auth_chains2() {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn JOIN_RULE() -> BTreeMap<EventId, StateEvent> {
+fn JOIN_RULE() -> BTreeMap<EventId, Arc<StateEvent>> {
     vec![
         to_pdu_event(
             "JR",

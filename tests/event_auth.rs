@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::BTreeMap, convert::TryFrom};
+use std::{collections::BTreeMap, convert::TryFrom, sync::Arc};
 
 use ruma::{
     events::{
@@ -71,15 +71,14 @@ fn member_content_join() -> JsonValue {
     .unwrap()
 }
 
-pub struct TestStore(RefCell<BTreeMap<EventId, StateEvent>>);
+pub struct TestStore(BTreeMap<EventId, Arc<StateEvent>>);
 
 #[allow(unused)]
 impl StateStore for TestStore {
-    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent> {
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<StateEvent>> {
         self.0
-            .borrow()
             .get(event_id)
-            .cloned()
+            .map(Arc::clone)
             .ok_or_else(|| Error::NotFound(format!("{} not found", event_id.to_string())))
     }
 }
@@ -92,7 +91,7 @@ fn to_pdu_event<S>(
     content: JsonValue,
     auth_events: &[S],
     prev_events: &[S],
-) -> StateEvent
+) -> Arc<StateEvent>
 where
     S: AsRef<str>,
 {
@@ -166,12 +165,12 @@ where
             "signatures": {},
         })
     };
-    serde_json::from_value(json).unwrap()
+    Arc::new(serde_json::from_value(json).unwrap())
 }
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn INITIAL_EVENTS() -> BTreeMap<EventId, StateEvent> {
+fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
     // this is always called so we can init the logger here
     let _ = LOGGER.call_once(|| {
         tracer::fmt()
@@ -246,11 +245,12 @@ fn test_ban_pass() {
 
     let prev = events
         .values()
-        .find(|ev| ev.event_id().as_str().contains("IMC"));
+        .find(|ev| ev.event_id().as_str().contains("IMC"))
+        .map(Arc::clone);
 
     let auth_events = events
         .values()
-        .map(|ev| ((ev.kind(), ev.state_key()), ev.clone()))
+        .map(|ev| ((ev.kind(), ev.state_key()), Arc::clone(ev)))
         .collect::<StateMap<_>>();
 
     let requester = Requester {
@@ -270,11 +270,12 @@ fn test_ban_fail() {
 
     let prev = events
         .values()
-        .find(|ev| ev.event_id().as_str().contains("IMC"));
+        .find(|ev| ev.event_id().as_str().contains("IMC"))
+        .map(Arc::clone);
 
     let auth_events = events
         .values()
-        .map(|ev| ((ev.kind(), ev.state_key()), ev.clone()))
+        .map(|ev| ((ev.kind(), ev.state_key()), Arc::clone(ev)))
         .collect::<StateMap<_>>();
 
     let requester = Requester {

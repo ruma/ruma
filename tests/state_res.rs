@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::BTreeMap, convert::TryFrom, time::UNIX_EPOCH};
+use std::{collections::BTreeMap, convert::TryFrom, time::UNIX_EPOCH, sync::Arc};
 
 use maplit::btreemap;
 use ruma::{
@@ -78,7 +78,7 @@ fn to_pdu_event<S>(
     content: JsonValue,
     auth_events: &[S],
     prev_events: &[S],
-) -> StateEvent
+) -> Arc<StateEvent>
 where
     S: AsRef<str>,
 {
@@ -152,7 +152,7 @@ where
             "signatures": {},
         })
     };
-    serde_json::from_value(json).unwrap()
+    Arc::new(serde_json::from_value(json).unwrap())
 }
 
 fn to_init_pdu_event(
@@ -161,7 +161,7 @@ fn to_init_pdu_event(
     ev_type: EventType,
     state_key: Option<&str>,
     content: JsonValue,
-) -> StateEvent {
+) -> Arc<StateEvent> {
     let ts = unsafe {
         let ts = SERVER_TIMESTAMP;
         // increment the "origin_server_ts" value
@@ -206,12 +206,12 @@ fn to_init_pdu_event(
             "signatures": {},
         })
     };
-    serde_json::from_value(json).unwrap()
+    Arc::new(serde_json::from_value(json).unwrap())
 }
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn INITIAL_EVENTS() -> BTreeMap<EventId, StateEvent> {
+fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
     vec![
         to_init_pdu_event(
             "CREATE",
@@ -280,7 +280,7 @@ fn INITIAL_EDGES() -> Vec<EventId> {
     .collect::<Vec<_>>()
 }
 
-fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids: Vec<EventId>) {
+fn do_check(events: &[Arc<StateEvent>], edges: Vec<Vec<EventId>>, expected_state_ids: Vec<EventId>) {
     // to activate logging use `RUST_LOG=debug cargo t one_test_only`
     let _ = LOGGER.call_once(|| {
         tracer::fmt()
@@ -288,13 +288,13 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
             .init()
     });
 
-    let store = TestStore(RefCell::new(
+    let mut store = TestStore(
         INITIAL_EVENTS()
             .values()
             .chain(events)
             .map(|ev| (ev.event_id(), ev.clone()))
             .collect(),
-    ));
+    );
 
     // This will be lexi_topo_sorted for resolution
     let mut graph = BTreeMap::new();
@@ -329,7 +329,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
     }
 
     // event_id -> StateEvent
-    let mut event_map: BTreeMap<EventId, StateEvent> = BTreeMap::new();
+    let mut event_map: BTreeMap<EventId, Arc<StateEvent>> = BTreeMap::new();
     // event_id -> StateMap<EventId>
     let mut state_at_event: BTreeMap<EventId, StateMap<EventId>> = BTreeMap::new();
 
@@ -420,7 +420,7 @@ fn do_check(events: &[StateEvent], edges: Vec<Vec<EventId>>, expected_state_ids:
         // TODO
         // TODO we need to convert the `StateResolution::resolve` to use the event_map
         // because the user of this crate cannot update their DB's state.
-        *store.0.borrow_mut().get_mut(&ev_id).unwrap() = event.clone();
+        store.0.insert(ev_id.clone(), Arc::clone(&event));
 
         state_at_event.insert(node, state_after);
         event_map.insert(event_id.clone(), event);
@@ -702,7 +702,7 @@ fn topic_setting() {
 
 #[test]
 fn test_event_map_none() {
-    let store = TestStore(RefCell::new(btreemap! {}));
+    let mut store = TestStore(btreemap! {});
 
     // build up the DAG
     let (state_at_bob, state_at_charlie, expected) = store.set_up();
@@ -748,21 +748,20 @@ fn test_lexicographical_sort() {
 //
 
 /// The test state store.
-pub struct TestStore(RefCell<BTreeMap<EventId, StateEvent>>);
+pub struct TestStore(BTreeMap<EventId, Arc<StateEvent>>);
 
 #[allow(unused)]
 impl StateStore for TestStore {
-    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<StateEvent> {
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<StateEvent>> {
         self.0
-            .borrow()
             .get(event_id)
-            .cloned()
+            .map(Arc::clone)
             .ok_or_else(|| Error::NotFound(format!("{} not found", event_id.to_string())))
     }
 }
 
 impl TestStore {
-    pub fn set_up(&self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
+    pub fn set_up(&mut self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
         // to activate logging use `RUST_LOG=debug cargo t one_test_only`
         let _ = LOGGER.call_once(|| {
             tracer::fmt()
@@ -780,8 +779,7 @@ impl TestStore {
         );
         let cre = create_event.event_id();
         self.0
-            .borrow_mut()
-            .insert(cre.clone(), create_event.clone());
+            .insert(cre.clone(), Arc::clone(&create_event));
 
         let alice_mem = to_pdu_event(
             "IMA",
@@ -793,8 +791,7 @@ impl TestStore {
             &[cre.clone()],
         );
         self.0
-            .borrow_mut()
-            .insert(alice_mem.event_id(), alice_mem.clone());
+            .insert(alice_mem.event_id(), Arc::clone(&alice_mem));
 
         let join_rules = to_pdu_event(
             "IJR",
@@ -806,7 +803,6 @@ impl TestStore {
             &[alice_mem.event_id()],
         );
         self.0
-            .borrow_mut()
             .insert(join_rules.event_id(), join_rules.clone());
 
         // Bob and Charlie join at the same time, so there is a fork
@@ -821,7 +817,6 @@ impl TestStore {
             &[join_rules.event_id()],
         );
         self.0
-            .borrow_mut()
             .insert(bob_mem.event_id(), bob_mem.clone());
 
         let charlie_mem = to_pdu_event(
@@ -834,7 +829,6 @@ impl TestStore {
             &[join_rules.event_id()],
         );
         self.0
-            .borrow_mut()
             .insert(charlie_mem.event_id(), charlie_mem.clone());
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
