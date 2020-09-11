@@ -15,12 +15,14 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room to look up the state for.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// If the user is a member of the room this will be the current state of the room as a
         /// list of events. If the user has left the room then this will be the state of the
@@ -30,4 +32,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room ID.
+    pub fn new(room_id: &'a RoomId) -> Self {
+        Self { room_id }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given room state.
+    pub fn new(room_state: Vec<Raw<AnyStateEvent>>) -> Self {
+        Self { room_state }
+    }
 }
