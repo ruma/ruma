@@ -19,11 +19,13 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// Pagination token given to retrieve the next set of events.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub from: Option<String>,
+        pub from: Option<&'a str>,
 
         /// Limit on the number of events to return in this request.
         #[ruma_api(query)]
@@ -34,9 +36,10 @@ ruma_api! {
         /// where the notification had the 'highlight' tweak set.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub only: Option<String>
+        pub only: Option<&'a str>
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The token to supply in the from param of the next /notifications request in order
         /// to request more events. If this is absent, there are no more results.
@@ -51,8 +54,23 @@ ruma_api! {
     error: crate::Error
 }
 
-/// Represents a notification
+impl<'a> Request<'a> {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given notifications.
+    pub fn new(notifications: Vec<Raw<Notification>>) -> Self {
+        Self { next_token: None, notifications }
+    }
+}
+
+/// Represents a notification.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Notification {
     /// The actions to perform when the conditions for this rule are met.
     pub actions: Vec<Action>,
@@ -71,7 +89,21 @@ pub struct Notification {
     /// The ID of the room in which the event was posted.
     pub room_id: RoomId,
 
-    /// The time at which the event notification was sent, in milliseconds.
+    /// The time at which the event notification was sent.
     #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
     pub ts: SystemTime,
+}
+
+impl Notification {
+    /// Creates a new `Notification` with the given actions, event, read flag, room ID and
+    /// timestamp.
+    pub fn new(
+        actions: Vec<Action>,
+        event: Raw<AnyEvent>,
+        read: bool,
+        room_id: RoomId,
+        ts: SystemTime,
+    ) -> Self {
+        Self { actions, event, profile_tag: None, read, room_id, ts }
+    }
 }

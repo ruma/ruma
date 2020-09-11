@@ -13,8 +13,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {}
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The global ruleset.
         #[ruma_api(body)]
@@ -22,4 +25,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given global ruleset.
+    pub fn new(global: Ruleset) -> Self {
+        Self { global }
+    }
 }

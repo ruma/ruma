@@ -14,19 +14,36 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
-        /// The pusher to configure
+        /// The pusher to configure.
         #[serde(flatten)]
         pub pusher: Pusher,
 
         /// Controls if another pusher with the same pushkey and app id should be created.
-        /// See the spec for details.
-        #[serde(default)]
-        pub append: bool
-
+        ///
+        /// Defaults to `false`. See the spec for more details.
+        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        pub append: bool,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {}
 
     error: crate::Error
+}
+
+impl Request {
+    /// Creates a new `Request` with the given pusher.
+    pub fn new(pusher: Pusher) -> Self {
+        Self { pusher, append: false }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

@@ -14,12 +14,29 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {}
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// An array containing the current pushers for the user.
         pub pushers: Vec<Pusher>
     }
 
     error: crate::Error
+}
+
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given pushers.
+    pub fn new(pushers: Vec<Pusher>) -> Self {
+        Self { pushers }
+    }
 }

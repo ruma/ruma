@@ -14,10 +14,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The scope to delete from. 'global' to specify global rules.
         #[ruma_api(path)]
-        pub scope: String,
+        pub scope: &'a str,
 
         /// The kind of rule
         #[ruma_api(path)]
@@ -25,10 +26,26 @@ ruma_api! {
 
         /// The identifier for the rule.
         #[ruma_api(path)]
-        pub rule_id: String,
+        pub rule_id: &'a str,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given scope, kind and rule ID.
+    pub fn new(scope: &'a str, kind: RuleKind, rule_id: &'a str) -> Self {
+        Self { scope, kind, rule_id }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

@@ -15,10 +15,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The scope to fetch a rule from. 'global' to specify global rules.
         #[ruma_api(path)]
-        pub scope: String,
+        pub scope: &'a str,
 
         /// The kind of rule
         #[ruma_api(path)]
@@ -26,13 +27,29 @@ ruma_api! {
 
         /// The identifier for the rule.
         #[ruma_api(path)]
-        pub rule_id: String,
+        pub rule_id: &'a str,
 
         /// The actions to perform for this rule
-        pub actions: Vec<Action>
+        pub actions: Vec<Action>,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given scope, rule kind, rule ID and actions.
+    pub fn new(scope: &'a str, kind: RuleKind, rule_id: &'a str, actions: Vec<Action>) -> Self {
+        Self { scope, kind, rule_id, actions }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

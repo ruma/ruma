@@ -15,10 +15,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The scope to set the rule in. 'global' to specify global rules.
         #[ruma_api(path)]
-        pub scope: String,
+        pub scope: &'a str,
 
         /// The kind of rule
         #[ruma_api(path)]
@@ -26,17 +27,17 @@ ruma_api! {
 
         /// The identifier for the rule.
         #[ruma_api(path)]
-        pub rule_id: String,
+        pub rule_id: &'a str,
 
         /// Use 'before' with a rule_id as its value to make the new rule the next-most important
         /// rule with respect to the given user defined rule.
         #[ruma_api(query)]
-        pub before: Option<String>,
+        pub before: Option<&'a str>,
 
         /// This makes the new rule the next-less important rule relative to the given user defined
         /// rule.
         #[ruma_api(query)]
-        pub after: Option<String>,
+        pub after: Option<&'a str>,
 
         /// The actions to perform when this rule is matched.
         pub actions: Vec<Action>,
@@ -49,10 +50,35 @@ ruma_api! {
 
         /// The glob-style pattern to match against. Only applicable to content rules.
         #[serde(skip_serializing_if = "Option::is_none")]
-        pub pattern: Option<String>,
+        pub pattern: Option<&'a str>,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given scope, rule kind, rule ID and actions.
+    pub fn new(scope: &'a str, kind: RuleKind, rule_id: &'a str, actions: Vec<Action>) -> Self {
+        Self {
+            scope,
+            kind,
+            rule_id,
+            before: None,
+            after: None,
+            actions,
+            conditions: Vec::new(),
+            pattern: None,
+        }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }
