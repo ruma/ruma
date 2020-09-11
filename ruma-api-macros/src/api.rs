@@ -218,6 +218,7 @@ impl ToTokens for Api {
 
         let body = self.response.to_body();
 
+        let metadata_doc = format!("Metadata for the `{}` API endpoint.", name);
         let request_doc = format!(
             "Data for a request to the `{}` API endpoint.\n\n{}",
             name,
@@ -329,8 +330,7 @@ impl ToTokens for Api {
                 type EndpointError = #error;
                 type IncomingResponse = <Response as #ruma_api_import::Outgoing>::Incoming;
 
-                // FIXME: Doc string interpolation
-                /// Metadata for the `#name` endpoint.
+                #[doc = #metadata_doc]
                 const METADATA: #ruma_api_import::Metadata = __METADATA;
 
                 #[allow(unused_mut, unused_variables)]
@@ -365,8 +365,7 @@ impl ToTokens for Api {
                 type EndpointError = #error;
                 type OutgoingResponse = Response;
 
-                // FIXME: Doc string interpolation
-                /// Metadata for the `#name` endpoint.
+                #[doc = #metadata_doc]
                 const METADATA: #ruma_api_import::Metadata = __METADATA;
             }
 
