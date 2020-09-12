@@ -4,24 +4,21 @@
 
 use std::collections::BTreeMap;
 
-use ruma_api::Outgoing;
-use ruma_identifiers::{DeviceId, DeviceKeyId, EventEncryptionAlgorithm, UserId};
-use ruma_serde::CanBeEmpty;
-use serde::Serialize;
+use ruma_identifiers::{DeviceIdBox, DeviceKeyId, EventEncryptionAlgorithm, UserId};
+use serde::{Deserialize, Serialize};
 
 /// Identity keys for a device.
-#[derive(Clone, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[incoming_derive(Clone, Serialize)]
-pub struct DeviceKeys<'a> {
+pub struct DeviceKeys {
     /// The ID of the user the device belongs to. Must match the user ID used when logging in.
-    pub user_id: &'a UserId,
+    pub user_id: UserId,
 
     /// The ID of the device these keys belong to. Must match the device ID used when logging in.
-    pub device_id: &'a DeviceId,
+    pub device_id: DeviceIdBox,
 
     /// The encryption algorithms supported by this device.
-    pub algorithms: &'a [EventEncryptionAlgorithm],
+    pub algorithms: Vec<EventEncryptionAlgorithm>,
 
     /// Public identity keys.
     pub keys: BTreeMap<DeviceKeyId, String>,
@@ -31,17 +28,17 @@ pub struct DeviceKeys<'a> {
 
     /// Additional data added to the device key information by intermediate servers, and
     /// not covered by the signatures.
-    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
-    pub unsigned: UnsignedDeviceInfo<'a>,
+    #[serde(skip_serializing_if = "UnsignedDeviceInfo::is_empty")]
+    pub unsigned: UnsignedDeviceInfo,
 }
 
-impl<'a> DeviceKeys<'a> {
+impl DeviceKeys {
     /// Creates a new `DeviceKeys` from the given user id, device id, algorithms, keys and
     /// signatures.
     pub fn new(
-        user_id: &'a UserId,
-        device_id: &'a DeviceId,
-        algorithms: &'a [EventEncryptionAlgorithm],
+        user_id: UserId,
+        device_id: DeviceIdBox,
+        algorithms: Vec<EventEncryptionAlgorithm>,
         keys: BTreeMap<DeviceKeyId, String>,
         signatures: BTreeMap<UserId, BTreeMap<DeviceKeyId, String>>,
     ) -> Self {
@@ -50,16 +47,15 @@ impl<'a> DeviceKeys<'a> {
 }
 
 /// Additional data added to device key information by intermediate servers.
-#[derive(Clone, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[incoming_derive(Clone, Serialize)]
-pub struct UnsignedDeviceInfo<'a> {
+pub struct UnsignedDeviceInfo {
     /// The display name which the user set on the device.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub device_display_name: Option<&'a str>,
+    pub device_display_name: Option<String>,
 }
 
-impl UnsignedDeviceInfo<'_> {
+impl UnsignedDeviceInfo {
     /// Creates an empty `UnsignedDeviceInfo`.
     pub fn new() -> Self {
         Default::default()
@@ -68,24 +64,5 @@ impl UnsignedDeviceInfo<'_> {
     /// Checks whether all fields are empty / `None`.
     pub fn is_empty(&self) -> bool {
         self.device_display_name.is_none()
-    }
-}
-
-impl IncomingUnsignedDeviceInfo {
-    /// Checks whether all fields are empty / `None`.
-    pub fn is_empty(&self) -> bool {
-        self.device_display_name.is_none()
-    }
-}
-
-impl CanBeEmpty for UnsignedDeviceInfo<'_> {
-    fn is_empty(&self) -> bool {
-        self.is_empty()
-    }
-}
-
-impl CanBeEmpty for IncomingUnsignedDeviceInfo {
-    fn is_empty(&self) -> bool {
-        self.is_empty()
     }
 }

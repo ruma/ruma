@@ -3,7 +3,7 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use ruma_api::ruma_api;
-use ruma_common::encryption::IncomingDeviceKeys;
+use ruma_common::encryption::DeviceKeys;
 use ruma_identifiers::{DeviceIdBox, UserId};
 use serde_json::Value as JsonValue;
 
@@ -54,7 +54,7 @@ ruma_api! {
 
         /// Information on the queried devices.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, IncomingDeviceKeys>>,
+        pub device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeys>>,
 
         /// Information on the master cross-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
