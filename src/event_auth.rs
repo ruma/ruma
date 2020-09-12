@@ -377,7 +377,7 @@ pub fn valid_membership_change(
             .join_rule;
     }
 
-    if let Some(prev) = dbg!(prev_event) {
+    if let Some(prev) = prev_event {
         if prev.kind() == EventType::RoomCreate && prev.prev_event_ids().is_empty() {
             return Ok(true);
         }

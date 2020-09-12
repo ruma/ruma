@@ -109,7 +109,7 @@ impl StateResolution {
             .unwrap();
 
         // update event_map to include the fetched events
-        event_map.extend(events.into_iter().map(|ev| (ev.event_id(), ev)));
+        event_map.extend(events.into_iter().map(|ev| (ev.event_id().clone(), ev)));
         // at this point our event_map == store there should be no missing events
 
         tracing::debug!("event map size: {}", event_map.len());
@@ -337,7 +337,7 @@ impl StateResolution {
             // This return value is the key used for sorting events,
             // events are then sorted by power level, time,
             // and lexically by event_id.
-            (-*pl, *ev.origin_server_ts(), ev.event_id())
+            (-*pl, *ev.origin_server_ts(), ev.event_id().clone())
         })
     }
 
@@ -526,8 +526,8 @@ impl StateResolution {
 
             tracing::debug!("event to check {:?}", event.event_id().as_str());
 
-            let most_recent_prev_event = dbg!(event
-                .prev_event_ids())
+            let most_recent_prev_event = event
+                .prev_event_ids()
                 .iter()
                 .filter_map(|id| StateResolution::get_or_load_event(room_id, id, event_map, store))
                 .next_back();

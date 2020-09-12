@@ -1,17 +1,15 @@
-use std::{collections::BTreeMap, convert::TryFrom};
+use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma::{
     events::{
-        from_raw_json_value,
         pdu::{EventHash, Pdu, PduStub},
         room::member::{MemberEventContent, MembershipState},
-        EventDeHelper, EventType,
+        EventType,
     },
     EventId, RoomId, RoomVersionId, ServerName, UserId,
 };
-use serde::{de, Serialize};
-use serde_json::value::RawValue as RawJsonValue;
+use serde::{Serialize, Deserialize};
 use std::time::SystemTime;
 
 pub struct Requester<'a> {
@@ -22,10 +20,11 @@ pub struct Requester<'a> {
     pub sender: &'a UserId,
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum StateEvent {
     Full(Pdu),
+    #[serde(skip_deserializing)]
     Sync(PduStub),
 }
 
@@ -119,27 +118,13 @@ impl StateEvent {
             },
         }
     }
-    pub fn event_id(&self) -> EventId {
+    pub fn event_id(&self) -> &EventId {
         match self {
             Self::Full(ev) => match ev {
-                Pdu::RoomV1Pdu(ev) => ev.event_id.clone(),
-                Pdu::RoomV3Pdu(_) => EventId::try_from(&*format!(
-                    "${}",
-                    ruma::signatures::reference_hash(
-                        &serde_json::to_value(&ev).expect("event is valid, we just created it")
-                    )
-                    .expect("ruma can calculate reference hashes")
-                ))
-                .expect("ruma's reference hashes are valid event ids"),
+                Pdu::RoomV1Pdu(ev) => &ev.event_id,
+                Pdu::RoomV3Pdu(ev) => ev.event_id.as_ref().expect("RoomV3Pdu did not have an event id"),
             },
-            Self::Sync(ev) => EventId::try_from(&*format!(
-                "${}",
-                ruma::signatures::reference_hash(
-                    &serde_json::to_value(&ev).expect("event is valid, we just created it")
-                )
-                .expect("ruma can calculate reference hashes")
-            ))
-            .expect("ruma's reference hashes are valid event ids"),
+            Self::Sync(_ev) => panic!("Stubs don't have an event id"),
         }
     }
 
@@ -349,36 +334,6 @@ impl StateEvent {
                 PduStub::RoomV1PduStub(_) => RoomVersionId::Version1,
                 PduStub::RoomV3PduStub(_) => RoomVersionId::Version3,
             },
-        }
-    }
-}
-
-impl<'de> de::Deserialize<'de> for StateEvent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EventDeHelper {
-            room_id, unsigned, ..
-        } = from_raw_json_value(&json)?;
-
-        // Determine whether the event is a full or sync
-        // based on the fields present.
-        if room_id.is_some() {
-            Ok(match unsigned {
-                Some(unsigned) if unsigned.redacted_because.is_some() => {
-                    panic!("TODO deal with redacted events")
-                }
-                _ => StateEvent::Full(Pdu::RoomV1Pdu(from_raw_json_value(&json)?)),
-            })
-        } else {
-            Ok(match unsigned {
-                Some(unsigned) if unsigned.redacted_because.is_some() => {
-                    panic!("TODO deal with redacted events")
-                }
-                _ => StateEvent::Sync(from_raw_json_value(&json)?),
-            })
         }
     }
 }
