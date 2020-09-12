@@ -190,7 +190,7 @@ pub struct Device {
 
     /// The unix timestamp (in seconds) when the pushkey was last updated.
     #[serde(
-        with = "ruma_serde::time::opt_ms_since_unix_epoch",
+        with = "ruma_serde::time::opt_s_since_unix_epoch",
         skip_serializing_if = "Option::is_none"
     )]
     pub pushkey_ts: Option<SystemTime>,
@@ -203,7 +203,7 @@ pub struct Device {
 
     /// A dictionary of customisations made to the way this notification is to
     /// be presented. These are added by push rules.
-    #[serde(with = "tweak", skip_serializing_if = "Vec::is_empty")]
+    #[serde(with = "tweak_serde", skip_serializing_if = "Vec::is_empty")]
     pub tweaks: Vec<Tweak>,
 }
 
@@ -214,7 +214,7 @@ impl Device {
     }
 }
 
-mod tweak {
+mod tweak_serde {
     use std::fmt;
 
     use ruma_common::push::Tweak;
@@ -340,7 +340,7 @@ mod test {
             "org.matrix.matrixConsole.ios".into(),
             "V2h5IG9uIGVhcnRoIGRpZCB5b3UgZGVjb2RlIHRoaXM/".into(),
         );
-        device.pushkey_ts = Some(SystemTime::UNIX_EPOCH + Duration::from_millis(123));
+        device.pushkey_ts = Some(SystemTime::UNIX_EPOCH + Duration::from_secs(123));
         device.tweaks = vec![
             Tweak::Highlight(true),
             Tweak::Sound("silence".into()),
