@@ -15,7 +15,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// User ID of user for whom to retrieve data.
         #[ruma_api(path)]
@@ -26,7 +25,6 @@ ruma_api! {
         pub event_type: &'a str,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Account data content for the given type.
         #[ruma_api(body)]

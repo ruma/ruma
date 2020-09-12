@@ -14,10 +14,8 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {}
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// A list of the rooms the user is in, i.e. the ID of each room in
         /// which the user has joined membership.

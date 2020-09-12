@@ -15,7 +15,6 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// Identification information for the user.
         #[serde(flatten)]
@@ -35,7 +34,6 @@ ruma_api! {
         pub initial_device_display_name: Option<&'a str>,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The fully-qualified Matrix ID that has been registered.
         pub user_id: UserId,

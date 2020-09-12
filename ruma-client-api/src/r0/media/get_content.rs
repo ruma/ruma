@@ -13,7 +13,6 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The media ID from the mxc:// URI (the path component).
         #[ruma_api(path)]
@@ -31,7 +30,6 @@ ruma_api! {
         pub allow_remote: bool,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The content that was previously uploaded.
         #[ruma_api(raw_body)]

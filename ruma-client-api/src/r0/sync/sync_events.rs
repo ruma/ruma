@@ -25,7 +25,6 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// A filter represented either as its full JSON definition or the ID of a saved filter.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -60,7 +59,6 @@ ruma_api! {
         pub timeout: Option<Duration>,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The batch token to supply in the `since` param of the next `/sync` request.
         pub next_batch: String,

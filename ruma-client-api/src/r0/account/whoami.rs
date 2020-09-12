@@ -14,10 +14,8 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {}
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The id of the user that owns the access token.
         pub user_id: UserId,

@@ -15,7 +15,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room ID that the user is being invited to.
         #[ruma_api(path)]
@@ -35,7 +34,6 @@ ruma_api! {
         pub invite_room_state: StrippedState,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// An invite event.
         pub event: InviteEvent,

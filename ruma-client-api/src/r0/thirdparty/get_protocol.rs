@@ -13,14 +13,12 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The name of the protocol.
         #[ruma_api(path)]
         pub protocol: &'a str,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Metadata about the protocol.
         #[ruma_api(body)]

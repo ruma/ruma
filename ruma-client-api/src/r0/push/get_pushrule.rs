@@ -18,15 +18,15 @@ ruma_api! {
     request: {
         /// The scope to fetch rules from. 'global' to specify global rules.
         #[ruma_api(path)]
-        pub scope: String,
+        pub scope: &'a str,
 
-        /// The kind of rule
+        /// The kind of rule.
         #[ruma_api(path)]
         pub kind: RuleKind,
 
         /// The identifier for the rule.
         #[ruma_api(path)]
-        pub rule_id: String,
+        pub rule_id: &'a str,
     }
 
     response: {
@@ -36,4 +36,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given scope, rule kind and rule ID.
+    pub fn new(scope: &'a str, kind: RuleKind, rule_id: &'a str) -> Self {
+        Self { scope, kind, rule_id }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given rule.
+    pub fn new(rule: AnyPushRule) -> Self {
+        Self { rule }
+    }
 }

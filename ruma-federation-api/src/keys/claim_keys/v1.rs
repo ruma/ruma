@@ -17,13 +17,11 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The keys to be claimed.
         pub one_time_keys: OneTimeKeyClaims,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// One-time keys for the queried devices
         pub one_time_keys: OneTimeKeys,

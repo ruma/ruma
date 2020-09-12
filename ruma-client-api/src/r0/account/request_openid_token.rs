@@ -16,14 +16,12 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// User ID of authenticated user.
         #[ruma_api(path)]
         pub user_id: &'a UserId,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Access token for verifying user's identity.
         pub access_token: String,

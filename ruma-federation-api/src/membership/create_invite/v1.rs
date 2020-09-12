@@ -1,10 +1,10 @@
 //! [PUT /_matrix/federation/v1/invite/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v1-invite-roomid-eventid)
 
-use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_events::{room::member::MemberEventContent, EventType};
 use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
 use serde::{Deserialize, Serialize};
+use std::time::SystemTime;
 
 use super::{InviteEvent, StrippedState};
 
@@ -18,7 +18,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room ID that the user is being invited to.
         #[ruma_api(path)]
@@ -35,7 +34,8 @@ ruma_api! {
         pub origin: &'a ServerName,
 
         /// A timestamp added by the inviting homeserver.
-        pub origin_server_ts: UInt,
+        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+        pub origin_server_ts: SystemTime,
 
         /// The value `m.room.member`.
         #[serde(rename = "type")]
@@ -52,7 +52,6 @@ ruma_api! {
         pub unsigned: UnsignedEventContent,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The response invite event
         #[ruma_api(body)]
@@ -99,7 +98,7 @@ pub struct RequestInit<'a> {
     pub origin: &'a ServerName,
 
     /// A timestamp added by the inviting homeserver.
-    pub origin_server_ts: UInt,
+    pub origin_server_ts: SystemTime,
 
     /// The user ID of the invited member.
     pub state_key: &'a UserId,

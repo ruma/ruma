@@ -20,7 +20,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The time (in milliseconds) to wait when downloading keys from remote servers.
         /// 10 seconds is the recommended default.
@@ -35,7 +34,6 @@ ruma_api! {
         pub one_time_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeyAlgorithm>>,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// If any remote homeservers could not be reached, they are recorded here.
         /// The names of the properties are the names of the unreachable servers.

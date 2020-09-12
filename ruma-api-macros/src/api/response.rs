@@ -319,6 +319,7 @@ impl ToTokens for Response {
 
         let response = quote! {
             #[derive(Debug, Clone, #import_path::Outgoing)]
+            #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize)]
             #( #struct_attributes )*
             pub struct Response #response_def

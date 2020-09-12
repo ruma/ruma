@@ -3,7 +3,7 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use ruma_api::ruma_api;
-use ruma_common::encryption::IncomingDeviceKeys;
+use ruma_common::encryption::DeviceKeys;
 use ruma_identifiers::{DeviceIdBox, UserId};
 use serde_json::Value as JsonValue;
 
@@ -21,7 +21,6 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The time (in milliseconds) to wait when downloading keys from remote
         /// servers. 10 seconds is the recommended default.
@@ -46,7 +45,6 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// If any remote homeservers could not be reached, they are recorded
         /// here. The names of the properties are the names of the unreachable
@@ -56,7 +54,7 @@ ruma_api! {
 
         /// Information on the queried devices.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-        pub device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, IncomingDeviceKeys>>,
+        pub device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeys>>,
 
         /// Information on the master cross-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]

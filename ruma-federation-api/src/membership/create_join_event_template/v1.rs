@@ -15,7 +15,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room ID that is about to be joined.
         #[ruma_api(path)]
@@ -33,7 +32,6 @@ ruma_api! {
         pub ver: &'a [RoomVersionId],
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The version of the room where the server is trying to join.
         #[serde(skip_serializing_if = "Option::is_none")]

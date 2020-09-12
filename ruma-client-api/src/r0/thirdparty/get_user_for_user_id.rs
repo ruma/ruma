@@ -14,14 +14,12 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The Matrix User ID to look up.
         #[ruma_api(query)]
         pub userid: &'a UserId,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// List of matched third party users.
         #[ruma_api(body)]

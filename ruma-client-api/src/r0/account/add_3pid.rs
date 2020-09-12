@@ -14,7 +14,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// Additional information for the User-Interactive Authentication API.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -28,7 +27,6 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {}
 
     error: UiaaResponse

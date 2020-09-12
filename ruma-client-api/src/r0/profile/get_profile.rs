@@ -13,7 +13,6 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The user whose profile will be retrieved.
         #[ruma_api(path)]
@@ -21,7 +20,6 @@ ruma_api! {
     }
 
     #[derive(Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The user's avatar URL, if set.
         #[serde(skip_serializing_if = "Option::is_none")]

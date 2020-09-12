@@ -12,7 +12,6 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The name of the file being uploaded.
         #[ruma_api(query)]
@@ -29,7 +28,6 @@ ruma_api! {
         pub file: Vec<u8>,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The MXC URI for the uploaded content.
         pub content_uri: String,

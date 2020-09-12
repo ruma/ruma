@@ -18,7 +18,7 @@ ruma_api! {
     request: {
         /// The room to look up the state for.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// The type of state to look up.
         #[ruma_api(path)]
@@ -26,7 +26,7 @@ ruma_api! {
 
         /// The key of the state to look up.
         #[ruma_api(path)]
-        pub state_key: String,
+        pub state_key: &'a str,
     }
 
     response: {
@@ -36,4 +36,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given room ID, event type and state key.
+    pub fn new(room_id: &'a RoomId, event_type: EventType, state_key: &'a str) -> Self {
+        Self { room_id, event_type, state_key }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given content.
+    pub fn new(content: Box<RawJsonValue>) -> Self {
+        Self { content }
+    }
 }

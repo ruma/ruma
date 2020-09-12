@@ -13,12 +13,27 @@ ruma_api! {
         requires_authentication: true,
     }
 
+    #[derive(Default)]
     request: {}
 
     response: {
-        /// The global ruleset
+        /// The global ruleset.
         pub global: Ruleset,
     }
 
     error: crate::Error
+}
+
+impl Request {
+    /// Creates an empty `Request`.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given global ruleset.
+    pub fn new(global: Ruleset) -> Self {
+        Self { global }
+    }
 }

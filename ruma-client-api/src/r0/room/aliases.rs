@@ -13,14 +13,12 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The room ID to get aliases of.
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The server's local aliases on the room.
         pub aliases: Vec<RoomAliasId>,

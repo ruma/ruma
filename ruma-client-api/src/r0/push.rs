@@ -2,7 +2,7 @@
 
 use std::convert::TryFrom;
 
-pub use ruma_common::push::PusherData;
+use ruma_common::push::PusherData;
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 

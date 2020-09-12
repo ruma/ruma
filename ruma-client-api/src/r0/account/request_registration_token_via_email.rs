@@ -15,7 +15,6 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// Client-generated secret string used to protect this session.
         pub client_secret: &'a str,
@@ -36,7 +35,6 @@ ruma_api! {
         pub identity_server_info: Option<IdentityServerInfo<'a>>,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The session identifier given by the identity server.
         pub sid: String,

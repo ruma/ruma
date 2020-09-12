@@ -2,7 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_common::encryption::IncomingDeviceKeys;
+use ruma_common::encryption::DeviceKeys;
 use ruma_identifiers::{DeviceIdBox, UserId};
 use serde::{Deserialize, Serialize};
 
@@ -16,14 +16,12 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The user ID to retrieve devices for. Must be a user local to the receiving homeserver.
         #[ruma_api(path)]
         pub user_id: &'a UserId,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The user ID devices were requested for.
         pub user_id: UserId,
@@ -62,7 +60,7 @@ pub struct UserDevice {
     pub device_id: DeviceIdBox,
 
     /// Identity keys for the device.
-    pub keys: IncomingDeviceKeys,
+    pub keys: DeviceKeys,
 
     /// Optional display name for the device
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -71,7 +69,7 @@ pub struct UserDevice {
 
 impl UserDevice {
     /// Creates a new `UserDevice` with the given device id and keys.
-    pub fn new(device_id: DeviceIdBox, keys: IncomingDeviceKeys) -> Self {
+    pub fn new(device_id: DeviceIdBox, keys: DeviceKeys) -> Self {
         Self { device_id, keys, device_display_name: None }
     }
 }

@@ -14,14 +14,12 @@ ruma_api! {
         requires_authentication: true,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The Matrix room alias to look up.
         #[ruma_api(query)]
         pub alias: &'a RoomAliasId,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// List of matched third party locations.
         #[ruma_api(body)]
