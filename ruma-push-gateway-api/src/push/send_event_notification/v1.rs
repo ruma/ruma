@@ -2,7 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::{ruma_api, Outgoing};
-pub use ruma_common::push::{PusherData, Tweak};
+use ruma_common::push::{PusherData, Tweak};
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
@@ -20,14 +20,12 @@ ruma_api! {
         requires_authentication: false,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// Information about the push notification
         pub notification: Notification<'a>,
     }
 
     #[derive(Default)]
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// A list of all pushkeys given in the notification request that are
         /// not valid.
@@ -106,7 +104,7 @@ pub struct Notification<'a> {
     ///
     /// If omitted, `high` is assumed. This may be used by push gateways to
     /// deliver less time-sensitive notifications in a way that will preserve
-    /// battery power on mobile devices. One of: ["high", "low"]
+    /// battery power on mobile devices.
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     pub prio: NotificationPriority,
 
@@ -126,7 +124,7 @@ pub struct Notification<'a> {
 }
 
 impl<'a> Notification<'a> {
-    /// Create a new notification for the given devices
+    /// Create a new notification for the given devices.
     pub fn new(devices: &'a [Device]) -> Self {
         Notification { devices, ..Default::default() }
     }
@@ -182,12 +180,12 @@ impl NotificationCounts {
 pub struct Device {
     /// The `app_id` given when the pusher was created.
     ///
-    /// Max length, 64 chars.
+    /// Max length: 64 chars.
     pub app_id: String,
 
     /// The `pushkey` given when the pusher was created.
     ///
-    /// Max length, 512 bytes.
+    /// Max length: 512 bytes.
     pub pushkey: String,
 
     /// The unix timestamp (in seconds) when the pushkey was last updated.
