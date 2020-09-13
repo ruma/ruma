@@ -52,9 +52,9 @@ pub struct ServerKey {
     /// DNS name of the homeserver.
     pub server_name: ServerNameBox,
     /// Public keys of the homeserver for verifying digital signatures.
-    pub verify_keys: BTreeMap<String, VerifyKey>,
+    pub verify_keys: BTreeMap<ServerKeyId, VerifyKey>,
     /// Public keys that the homeserver used to use and when it stopped using them.
-    pub old_verify_keys: BTreeMap<String, OldVerifyKey>,
+    pub old_verify_keys: BTreeMap<ServerKeyId, OldVerifyKey>,
     /// Digital signatures of this object signed using the verify_keys. Map of
     /// server name to keys by key ID
     pub signatures: BTreeMap<ServerNameBox, BTreeMap<ServerKeyId, String>>,
