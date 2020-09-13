@@ -132,6 +132,7 @@ pub fn auth_check(
         return Ok(true);
     }
 
+    /*
     // 2. Reject if auth_events
     // a. auth_events cannot have duplicate keys since it's a BTree
     // b. All entries are valid auth events according to spec
@@ -141,6 +142,9 @@ pub fn auth_check(
         incoming_event.state_key(),
         incoming_event.content().clone(),
     );
+
+    dbg!(&expected_auth);
+
     for ev_key in auth_events.keys() {
         // (b)
         if !expected_auth.contains(ev_key) {
@@ -148,6 +152,7 @@ pub fn auth_check(
             return Ok(false);
         }
     }
+    */
 
     // 3. If event does not have m.room.create in auth_events reject
     if auth_events
