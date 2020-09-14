@@ -27,8 +27,8 @@ ruma_api! {
         pub since: Option<&'a str>,
 
         /// Filter to apply to the results.
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub filter: Option<Filter<'a>>,
+        #[serde(default, skip_serializing_if = "Filter::is_empty")]
+        pub filter: Filter<'a>,
 
         /// Network to fetch the public room lists from.
         #[serde(flatten, skip_serializing_if = "ruma_serde::is_default")]

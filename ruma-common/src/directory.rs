@@ -98,6 +98,7 @@ impl From<PublicRoomsChunkInit> for PublicRoomsChunk {
 /// A filter for public rooms lists
 #[derive(Clone, Debug, Default, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[incoming_derive(Default)]
 pub struct Filter<'a> {
     /// A string to search for in the room metadata, e.g. name, topic, canonical alias etc.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -108,6 +109,11 @@ impl Filter<'_> {
     /// Creates an empty `Filter`.
     pub fn new() -> Self {
         Default::default()
+    }
+
+    /// Returns `true` if the filter is empty.
+    pub fn is_empty(&self) -> bool {
+        self.generic_search_term.is_none()
     }
 }
 
