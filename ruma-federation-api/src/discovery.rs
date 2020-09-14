@@ -33,6 +33,7 @@ pub struct OldVerifyKey {
     /// Timestamp when this key expired.
     #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
     pub expired_ts: SystemTime,
+
     /// The Unpadded Base64 encoded key.
     pub key: String,
 }
@@ -51,13 +52,17 @@ impl OldVerifyKey {
 pub struct ServerKey {
     /// DNS name of the homeserver.
     pub server_name: ServerNameBox,
+
     /// Public keys of the homeserver for verifying digital signatures.
     pub verify_keys: BTreeMap<ServerKeyId, VerifyKey>,
+
     /// Public keys that the homeserver used to use and when it stopped using them.
     pub old_verify_keys: BTreeMap<ServerKeyId, OldVerifyKey>,
+
     /// Digital signatures of this object signed using the verify_keys. Map of
     /// server name to keys by key ID
     pub signatures: BTreeMap<ServerNameBox, BTreeMap<ServerKeyId, String>>,
+
     /// Timestamp when the keys should be refreshed. This field MUST be ignored in room
     /// versions 1, 2, 3, and 4.
     #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
