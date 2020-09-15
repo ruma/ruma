@@ -1,8 +1,9 @@
 use std::{
     cmp::Reverse,
     collections::{BTreeMap, BTreeSet, BinaryHeap},
+    sync::Arc,
     time::SystemTime,
-sync::Arc};
+};
 
 use maplit::btreeset;
 use ruma::{
@@ -620,29 +621,32 @@ impl StateResolution {
             .enumerate()
             .map(|(idx, eid)| ((*eid).clone(), idx))
             .collect::<BTreeMap<_, _>>();
-        let mut sort_event_ids = to_sort.to_vec();
 
         let mut order_map = BTreeMap::new();
         for (idx, ev_id) in to_sort.iter().enumerate() {
-            let event = StateResolution::get_or_load_event(room_id, ev_id, event_map, store);
-            let depth = StateResolution::get_mainline_depth(
-                room_id,
-                event,
-                &mainline_map,
-                event_map,
-                store,
-            );
-            order_map.insert(
-                ev_id,
-                (
-                    depth,
-                    event_map
-                        .get(ev_id)
-                        .map(|ev| ev.origin_server_ts())
-                        .cloned(),
-                    ev_id, // TODO should this be a &str to sort lexically??
-                ),
-            );
+            if let Some(event) =
+                StateResolution::get_or_load_event(room_id, ev_id, event_map, store)
+            {
+                if let Ok(depth) = StateResolution::get_mainline_depth(
+                    room_id,
+                    Some(event),
+                    &mainline_map,
+                    event_map,
+                    store,
+                ) {
+                    order_map.insert(
+                        ev_id,
+                        (
+                            depth,
+                            event_map
+                                .get(ev_id)
+                                .map(|ev| ev.origin_server_ts())
+                                .cloned(),
+                            ev_id, // TODO should this be a &str to sort lexically??
+                        ),
+                    );
+                }
+            }
 
             // We yield occasionally when we're working with large data sets to
             // ensure that we don't block the reactor loop for too long.
@@ -653,6 +657,7 @@ impl StateResolution {
 
         // sort the event_ids by their depth, timestamp and EventId
         // unwrap is OK order map and sort_event_ids are from to_sort (the same Vec)
+        let mut sort_event_ids = order_map.keys().map(|&k| k.clone()).collect::<Vec<_>>();
         sort_event_ids.sort_by_key(|sort_id| order_map.get(sort_id).unwrap());
 
         sort_event_ids
@@ -666,19 +671,21 @@ impl StateResolution {
         mainline_map: &EventMap<usize>,
         event_map: &mut EventMap<Arc<StateEvent>>,
         store: &dyn StateStore,
-    ) -> usize {
+    ) -> Result<usize> {
         while let Some(sort_ev) = event {
             tracing::debug!("mainline event_id {}", sort_ev.event_id().to_string());
             let id = sort_ev.event_id();
             if let Some(depth) = mainline_map.get(&id) {
-                return *depth;
+                return Ok(*depth);
             }
 
+            dbg!(&sort_ev);
             let auth_events = sort_ev.auth_events();
             event = None;
             for aid in auth_events {
-                let aev =
-                    StateResolution::get_or_load_event(room_id, &aid, event_map, store).unwrap();
+                dbg!(&aid);
+                let aev = StateResolution::get_or_load_event(room_id, &aid, event_map, store)
+                    .ok_or(Error::NotFound("Auth event not found".to_owned()))?;
                 if aev.is_type_and_key(EventType::RoomPowerLevels, "") {
                     event = Some(aev);
                     break;
@@ -686,7 +693,7 @@ impl StateResolution {
             }
         }
         // Did not find a power level event so we default to zero
-        0
+        Ok(0)
     }
 
     fn add_event_and_auth_chain_to_graph(
@@ -737,7 +744,7 @@ impl StateResolution {
         }
 
         if let Ok(e) = store.get_event(room_id, ev_id) {
-            return Some(Arc::clone(event_map.entry(ev_id.clone()).or_insert(e)))
+            return Some(Arc::clone(event_map.entry(ev_id.clone()).or_insert(e)));
         }
 
         None
