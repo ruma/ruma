@@ -46,7 +46,7 @@ ruma_api! {
 
 
         /// The list of events that triggered notifications.
-        pub notifications: Vec<Raw<Notification>>,
+        pub notifications: Vec<Notification>,
     }
 
     error: crate::Error
@@ -61,7 +61,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given notifications.
-    pub fn new(notifications: Vec<Raw<Notification>>) -> Self {
+    pub fn new(notifications: Vec<Notification>) -> Self {
         Self { next_token: None, notifications }
     }
 }
