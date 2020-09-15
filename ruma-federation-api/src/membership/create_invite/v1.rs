@@ -55,7 +55,7 @@ ruma_api! {
     response: {
         /// The response invite event
         #[ruma_api(body)]
-        #[serde(with = "crate::serde::invite_response")]
+        #[serde(with = "crate::serde::v1_pdu")]
         pub event: InviteEvent,
     }
 }

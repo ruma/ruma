@@ -34,7 +34,7 @@ ruma_api! {
     response: {
         /// Full state and auth chain of the room prior to the join event.
         #[ruma_api(body)]
-        #[serde(with = "crate::serde::room_state")]
+        #[serde(with = "crate::serde::v1_pdu")]
         pub room_state: RoomState,
     }
 }
