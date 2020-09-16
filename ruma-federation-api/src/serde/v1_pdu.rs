@@ -1,42 +1,51 @@
-//! A module to deserialize a RoomState struct from incorrectly specified v1
-//! send_join endpoint.
+//! A module to deserialize a response from incorrectly specified endpoint:
+//!
+//! - [PUT /_matrix/federation/v1/send_join/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.3#put-matrix-federation-v1-send-join-roomid-eventid)
+//! - [PUT /_matrix/federation/v1/invite/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v1-invite-roomid-eventid)
+//! - [PUT /_matrix/federation/v1/send_leave/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v1-send-leave-roomid-eventid)
 //!
 //! For more information, see this [GitHub issue][issue].
 //!
 //! [issue]: https://github.com/matrix-org/matrix-doc/issues/2541
 
-use std::fmt;
+use std::{fmt, marker::PhantomData};
 
 use serde::{
-    de::{Deserializer, Error, IgnoredAny, SeqAccess, Visitor},
-    ser::{SerializeSeq, Serializer},
+    de::{Deserialize, Deserializer, Error, IgnoredAny, SeqAccess, Visitor},
+    ser::{Serialize, SerializeSeq, Serializer},
 };
 
-use crate::membership::create_join_event::RoomState;
-
-pub fn serialize<S>(room_state: &RoomState, serializer: S) -> Result<S::Ok, S::Error>
+pub fn serialize<T, S>(val: &T, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
+    T: Serialize,
 {
     let mut seq = serializer.serialize_seq(Some(2))?;
     seq.serialize_element(&200)?;
-    seq.serialize_element(room_state)?;
+    seq.serialize_element(val)?;
     seq.end()
 }
 
-pub fn deserialize<'de, D>(deserializer: D) -> Result<RoomState, D::Error>
+pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
 where
     D: Deserializer<'de>,
+    T: Deserialize<'de>,
 {
-    deserializer.deserialize_seq(RoomStateVisitor)
+    deserializer.deserialize_seq(PduVisitor { phantom: PhantomData })
 }
 
-struct RoomStateVisitor;
+struct PduVisitor<T> {
+    phantom: PhantomData<T>,
+}
 
-impl<'de> Visitor<'de> for RoomStateVisitor {
-    type Value = RoomState;
+impl<'de, T> Visitor<'de> for PduVisitor<T>
+where
+    T: Deserialize<'de>,
+{
+    type Value = T;
+
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("Room State response wrapped in an array.")
+        formatter.write_str("a PDU wrapped in an array.")
     }
 
     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
@@ -48,14 +57,13 @@ impl<'de> Visitor<'de> for RoomStateVisitor {
             return Err(A::Error::invalid_length(0, &expected));
         }
 
-        let room_state =
-            seq.next_element()?.ok_or_else(|| A::Error::invalid_length(1, &expected))?;
+        let val = seq.next_element()?.ok_or_else(|| A::Error::invalid_length(1, &expected))?;
 
         while let Some(IgnoredAny) = seq.next_element()? {
             // ignore extra elements
         }
 
-        Ok(room_state)
+        Ok(val)
     }
 }
 
@@ -64,7 +72,8 @@ mod tests {
     use matches::assert_matches;
     use serde_json::{json, to_value as to_json_value};
 
-    use super::{deserialize, serialize, RoomState};
+    use super::{deserialize, serialize};
+    use crate::membership::create_join_event::RoomState;
 
     #[test]
     fn test_deserialize_response() {
@@ -112,7 +121,7 @@ mod tests {
     #[test]
     fn test_too_short_array() {
         let json = json!([200]);
-        let failed_room_state = deserialize(json);
+        let failed_room_state = deserialize::<RoomState, _>(json);
         assert_eq!(
             failed_room_state.unwrap_err().to_string(),
             "invalid length 1, expected a two-element list in the response"
@@ -126,11 +135,11 @@ mod tests {
             "auth_chain": [],
             "state": []
         });
-        let failed_room_state = deserialize(json);
+        let failed_room_state = deserialize::<RoomState, _>(json);
 
         assert_eq!(
             failed_room_state.unwrap_err().to_string(),
-            "invalid type: map, expected Room State response wrapped in an array.",
+            "invalid type: map, expected a PDU wrapped in an array.",
         )
     }
 
