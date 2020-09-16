@@ -1,5 +1,8 @@
-//! A module to deserialize a membership struct from incorrectly specified v1
-//! membership endpoint.
+//! A module to deserialize a struct from incorrectly specified endpoint:
+//!
+//! - [PUT /_matrix/federation/v1/send_join/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.3#put-matrix-federation-v1-send-join-roomid-eventid)
+//! - [PUT /_matrix/federation/v1/invite/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v1-invite-roomid-eventid)
+//! - [PUT /_matrix/federation/v1/send_leave/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v1-send-leave-roomid-eventid)
 //!
 //! For more information, see this [GitHub issue][issue].
 //!
@@ -12,14 +15,14 @@ use serde::{
     ser::{Serialize, SerializeSeq, Serializer},
 };
 
-pub fn serialize<T, S>(membership_struct: &T, serializer: S) -> Result<S::Ok, S::Error>
+pub fn serialize<T, S>(val: &T, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
     T: Serialize,
 {
     let mut seq = serializer.serialize_seq(Some(2))?;
     seq.serialize_element(&200)?;
-    seq.serialize_element(membership_struct)?;
+    seq.serialize_element(val)?;
     seq.end()
 }
 
@@ -28,21 +31,21 @@ where
     D: Deserializer<'de>,
     T: Deserialize<'de>,
 {
-    deserializer.deserialize_seq(MembershipStructVisitor { phantom: PhantomData })
+    deserializer.deserialize_seq(PduVisitor { phantom: PhantomData })
 }
 
-struct MembershipStructVisitor<T> {
+struct PduVisitor<T> {
     phantom: PhantomData<T>,
 }
 
-impl<'de, T> Visitor<'de> for MembershipStructVisitor<T>
+impl<'de, T> Visitor<'de> for PduVisitor<T>
 where
     T: Deserialize<'de>,
 {
     type Value = T;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("Membership Struct response wrapped in an array.")
+        formatter.write_str("Struct response wrapped in an array.")
     }
 
     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
@@ -54,14 +57,14 @@ where
             return Err(A::Error::invalid_length(0, &expected));
         }
 
-        let membership_struct =
+        let val =
             seq.next_element()?.ok_or_else(|| A::Error::invalid_length(1, &expected))?;
 
         while let Some(IgnoredAny) = seq.next_element()? {
             // ignore extra elements
         }
 
-        Ok(membership_struct)
+        Ok(val)
     }
 }
 
