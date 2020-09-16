@@ -57,8 +57,7 @@ where
             return Err(A::Error::invalid_length(0, &expected));
         }
 
-        let val =
-            seq.next_element()?.ok_or_else(|| A::Error::invalid_length(1, &expected))?;
+        let val = seq.next_element()?.ok_or_else(|| A::Error::invalid_length(1, &expected))?;
 
         while let Some(IgnoredAny) = seq.next_element()? {
             // ignore extra elements
