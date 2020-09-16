@@ -1,4 +1,4 @@
-//! A module to deserialize a struct from incorrectly specified endpoint:
+//! A module to deserialize a response from incorrectly specified endpoint:
 //!
 //! - [PUT /_matrix/federation/v1/send_join/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.3#put-matrix-federation-v1-send-join-roomid-eventid)
 //! - [PUT /_matrix/federation/v1/invite/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v1-invite-roomid-eventid)
@@ -45,7 +45,7 @@ where
     type Value = T;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("Struct response wrapped in an array.")
+        formatter.write_str("a PDU wrapped in an array.")
     }
 
     fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
@@ -139,7 +139,7 @@ mod tests {
 
         assert_eq!(
             failed_room_state.unwrap_err().to_string(),
-            "invalid type: map, expected Room State response wrapped in an array.",
+            "invalid type: map, expected a PDU wrapped in an array.",
         )
     }
 
