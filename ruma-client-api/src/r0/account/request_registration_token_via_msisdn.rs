@@ -69,3 +69,10 @@ impl<'a> Request<'a> {
         }
     }
 }
+
+impl Response {
+    /// Creates a new `Response` with the given session identifier.
+    pub fn new(sid: String) -> Self {
+        Self { sid, submit_url: None }
+    }
+}

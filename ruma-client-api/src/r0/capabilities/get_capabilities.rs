@@ -48,7 +48,8 @@ impl From<Capabilities> for Response {
 }
 
 /// Contains information about all the capabilities that the server supports.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Capabilities {
     /// Capability to indicate if the user can change their password.
     #[serde(rename = "m.change_password", skip_serializing_if = "Option::is_none")]
@@ -64,25 +65,53 @@ pub struct Capabilities {
     pub custom_capabilities: BTreeMap<String, JsonValue>,
 }
 
+impl Capabilities {
+    /// Creates empty `Capabilities`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
 /// Information about the m.change_password capability
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ChangePasswordCapability {
     /// True if the user can change their password, false otherwise.
     pub enabled: bool,
 }
 
+impl ChangePasswordCapability {
+    /// Creates a new `ChangePasswordCapability` with the given enabled flag.
+    pub fn new(enabled: bool) -> Self {
+        Self { enabled }
+    }
+}
+
 /// Information about the m.room_versions capability
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomVersionsCapability {
     /// The default room version the server is using for new rooms.
-    pub default: String,
+    pub default: RoomVersionId,
 
     /// A detailed description of the room versions the server supports.
     pub available: BTreeMap<RoomVersionId, RoomVersionStability>,
 }
 
+impl RoomVersionsCapability {
+    /// Creates a new `RoomVersionsCapability` with the given default room version ID and room
+    /// version descriptions.
+    pub fn new(
+        default: RoomVersionId,
+        available: BTreeMap<RoomVersionId, RoomVersionStability>,
+    ) -> Self {
+        Self { default, available }
+    }
+}
+
 /// The stability of a room version
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum RoomVersionStability {
     /// Support for the given version is stable.
     #[serde(rename = "stable")]
