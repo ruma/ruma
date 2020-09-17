@@ -1,6 +1,6 @@
 //! Functions for signing and verifying JSON and events.
 
-use std::collections::HashMap;
+use std::{cmp, collections::HashMap, mem};
 
 use base64::{decode_config, encode_config, STANDARD_NO_PAD};
 use ring::digest::{digest, SHA256};
@@ -33,18 +33,25 @@ static ALLOWED_KEYS: &[&str] = &[
     "membership",
 ];
 
-/// The fields of an *m.room.power_levels* event's `content` key that are allowed to remain in an
-/// event during redaction.
-static ALLOWED_POWER_LEVELS_KEYS: &[&str] = &[
-    "ban",
-    "events",
-    "events_default",
-    "kick",
-    "redact",
-    "state_default",
-    "users",
-    "users_default",
-];
+fn allowed_content_keys_for(event_type: &str) -> &'static [&'static str] {
+    match event_type {
+        "m.room.member" => &["membership"],
+        "m.room.create" => &["creator"],
+        "m.room.join_rules" => &["join_rule"],
+        "m.room.power_levels" => &[
+            "ban",
+            "events",
+            "events_default",
+            "kick",
+            "redact",
+            "state_default",
+            "users",
+            "users_default",
+        ],
+        "m.room.history_visibility" => &["history_visibility"],
+        _ => &[],
+    }
+}
 
 /// The fields to remove from a JSON object when converting JSON into the "canonical" form.
 static CANONICAL_JSON_FIELDS_TO_REMOVE: &[&str] = &["signatures", "unsigned"];
@@ -701,59 +708,33 @@ pub fn redact(value: &Value) -> Result<Value, Error> {
         None => return Err(Error::new("field `type` in JSON value must be present")),
     };
 
-    let event_type = match event_type_value.as_str() {
-        Some(event_type) => event_type.to_string(),
+    let allowed_content_keys = match event_type_value.as_str() {
+        Some(event_type) => allowed_content_keys_for(event_type),
         None => return Err(Error::new("field `type` in JSON value must be a JSON string")),
     };
 
     if let Some(content_value) = event.get_mut("content") {
-        let map = match content_value {
+        let content = match content_value {
             Value::Object(ref mut map) => map,
             _ => return Err(Error::new("field `content` in JSON value must be a JSON object")),
         };
 
-        for key in map.clone().keys() {
-            match event_type.as_ref() {
-                "m.room.member" => {
-                    if key != "membership" {
-                        map.remove(key);
-                    }
-                }
-                "m.room.create" => {
-                    if key != "creator" {
-                        map.remove(key);
-                    }
-                }
-                "m.room.join_rules" => {
-                    if key != "join_rules" {
-                        map.remove(key);
-                    }
-                }
-                "m.room.power_levels" => {
-                    if !ALLOWED_POWER_LEVELS_KEYS.contains(&key.as_ref()) {
-                        map.remove(key);
-                    }
-                }
-                "m.room.aliases" => {
-                    if key != "aliases" {
-                        map.remove(key);
-                    }
-                }
-                "m.room.history_visibility" => {
-                    if key != "history_visibility" {
-                        map.remove(key);
-                    }
-                }
-                _ => {
-                    map.remove(key);
-                }
-            };
+        let max_values = cmp::max(content.len(), allowed_content_keys.len());
+        let mut old_content = mem::replace(content, serde_json::Map::with_capacity(max_values));
+
+        for &key in allowed_content_keys {
+            if let Some(value) = old_content.remove(key) {
+                content.insert(key.to_owned(), value);
+            }
         }
     }
 
-    for key in event.clone().keys() {
-        if !ALLOWED_KEYS.contains(&key.as_ref()) {
-            event.remove(key);
+    let max_values = cmp::max(event.len(), ALLOWED_KEYS.len());
+    let mut old_event = mem::replace(event, serde_json::Map::with_capacity(max_values));
+
+    for &key in ALLOWED_KEYS {
+        if let Some(value) = old_event.remove(key) {
+            event.insert(key.to_owned(), value);
         }
     }
 
