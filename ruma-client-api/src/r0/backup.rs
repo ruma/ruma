@@ -1,11 +1,20 @@
 //! Endpoints for server-side key backups.
 
-pub mod add_backup_keys;
 pub mod create_backup;
+pub mod delete_backup;
 pub mod get_backup;
-pub mod get_backup_keys;
 pub mod get_latest_backup;
 pub mod update_backup;
+
+pub mod add_backup_key_session; // PUT /keys/<roomid>/<sessionid>
+pub mod add_backup_key_sessions; // PUT /keys/<roomid>
+pub mod add_backup_keys; // PUT /keys
+pub mod delete_backup_key_session; // DELETE /keys/<roomid>/<sessionid>
+pub mod delete_backup_key_sessions; // DELETE /keys/<roomid>
+pub mod delete_backup_keys; // DELETE /keys
+pub mod get_backup_key_session; // GET /keys/<roomid>/<sessionid>
+pub mod get_backup_key_sessions; // GET /keys/<roomid>
+pub mod get_backup_keys; // GET /keys
 
 use js_int::UInt;
 use ruma_identifiers::{DeviceKeyId, RoomId, UserId};
