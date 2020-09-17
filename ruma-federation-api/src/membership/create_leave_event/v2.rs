@@ -104,8 +104,7 @@ impl<'a> Request<'a> {
 }
 
 impl Response {
-    /// Creates a new `Response` with an empty event,
-    /// to indicate the event was accepted into the
+    /// Creates a new `Response` with an empty event, to indicate the event was accepted into the
     /// graph by the receiving homeserver.
     pub fn new(event: Empty) -> Self {
         Self { event }
