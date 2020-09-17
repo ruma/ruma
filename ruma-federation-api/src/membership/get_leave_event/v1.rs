@@ -39,9 +39,28 @@ ruma_api! {
     }
 }
 
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with:
+    /// * the room ID that is about to be left.
+    /// * the user ID the leave event will be for.
+    pub fn new(room_id: &'a RoomId, user_id: &'a UserId) -> Self {
+        Self { room_id, user_id }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with:
+    /// * the version of the room where the server is trying to leave.
+    /// * an unsigned template event.
+    pub fn new(room_version: Option<RoomVersionId>, event: EventTemplate) -> Self {
+        Self { room_version, event }
+    }
+}
+
 /// An unsigned template event. Note that events have a different format depending on the room
 /// version - check the room version specification for precise event formats.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct EventTemplate {
     /// The user ID of the leaving member.
     pub sender: UserId,
@@ -64,20 +83,17 @@ pub struct EventTemplate {
     pub content: Raw<MemberEventContent>,
 }
 
-impl<'a> Request<'a> {
-    /// Creates a new `Request` with:
-    /// * the room ID that is about to be left.
-    /// * the user ID the leave event will be for.
-    pub fn new(room_id: &'a RoomId, user_id: &'a UserId) -> Self {
-        Self { room_id, user_id }
-    }
-}
-
-impl Response {
-    /// Creates a new `Response` with:
-    /// * the version of the room where the server is trying to leave.
-    /// * an unsigned template event.
-    pub fn new(room_version: Option<RoomVersionId>, event: EventTemplate) -> Self {
-        Self { room_version, event }
+impl EventTemplate {
+    /// Creates a new `EventTemplate` with the given sender, origin, timestamp, state key and
+    /// content.
+    pub fn new(
+        sender: UserId,
+        origin: ServerNameBox,
+        origin_server_ts: SystemTime,
+        event_type: EventType,
+        state_key: String,
+        content: Raw<MemberEventContent>,
+    ) -> Self {
+        Self { sender, origin, origin_server_ts, event_type, state_key, content }
     }
 }
