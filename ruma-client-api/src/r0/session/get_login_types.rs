@@ -49,6 +49,10 @@ pub enum LoginType {
     /// Token-based login.
     #[serde(rename = "m.login.token")]
     Token,
+
+    /// SSO-based login.
+    #[serde(rename = "m.login.sso")]
+    SSO,
 }
 
 #[cfg(test)]
