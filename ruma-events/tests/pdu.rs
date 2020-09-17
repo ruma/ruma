@@ -11,6 +11,7 @@ use ruma_events::{
 use ruma_identifiers::{event_id, room_id, server_key_id, server_name, user_id};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
+#[cfg(not(feature = "unstable-pre-spec"))]
 #[test]
 fn serialize_stub_as_v1() {
     let mut signatures = BTreeMap::new();
@@ -74,6 +75,7 @@ fn serialize_stub_as_v1() {
     assert_eq!(to_json_value(&pdu_stub).unwrap(), json);
 }
 
+#[cfg(not(feature = "unstable-pre-spec"))]
 #[test]
 fn serialize_stub_as_v3() {
     let mut signatures = BTreeMap::new();
@@ -127,6 +129,7 @@ fn serialize_stub_as_v3() {
     assert_eq!(to_json_value(&pdu_stub).unwrap(), json);
 }
 
+#[cfg(not(feature = "unstable-pre-spec"))]
 #[test]
 fn deserialize_stub_as_v1() {
     let json = json!({
@@ -184,6 +187,7 @@ fn deserialize_stub_as_v1() {
     }
 }
 
+#[cfg(not(feature = "unstable-pre-spec"))]
 #[test]
 fn deserialize_stub_as_v3() {
     let json = json!({
@@ -227,6 +231,7 @@ fn deserialize_stub_as_v3() {
     }
 }
 
+#[cfg(not(feature = "unstable-pre-spec"))]
 #[test]
 fn serialize_pdu_as_v1() {
     let mut signatures = BTreeMap::new();
@@ -294,6 +299,7 @@ fn serialize_pdu_as_v1() {
     assert_eq!(to_json_value(&pdu).unwrap(), json);
 }
 
+#[cfg(not(feature = "unstable-pre-spec"))]
 #[test]
 fn serialize_pdu_as_v3() {
     let mut signatures = BTreeMap::new();
@@ -349,6 +355,7 @@ fn serialize_pdu_as_v3() {
     assert_eq!(to_json_value(&pdu_stub).unwrap(), json);
 }
 
+#[cfg(not(feature = "unstable-pre-spec"))]
 #[test]
 fn test_deserialize_pdu_as_v1() {
     let json = json!({
@@ -408,6 +415,7 @@ fn test_deserialize_pdu_as_v1() {
     }
 }
 
+#[cfg(not(feature = "unstable-pre-spec"))]
 #[test]
 fn deserialize_pdu_as_v3() {
     let json = json!({
@@ -452,6 +460,7 @@ fn deserialize_pdu_as_v3() {
     }
 }
 
+#[cfg(not(feature = "unstable-pre-spec"))]
 #[test]
 fn convert_v1_stub_to_pdu() {
     let mut signatures = BTreeMap::new();
@@ -528,6 +537,7 @@ fn convert_v1_stub_to_pdu() {
     );
 }
 
+#[cfg(not(feature = "unstable-pre-spec"))]
 #[test]
 fn convert_v3_stub_to_pdu() {
     let mut signatures = BTreeMap::new();

@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomState {
+    #[cfg(not(feature = "unstable-pre-spec"))]
     /// The resident server's DNS name.
     pub origin: String,
 

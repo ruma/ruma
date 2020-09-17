@@ -38,6 +38,7 @@ pub struct RoomV1Pdu {
     /// The user id of the user who sent this event.
     pub sender: UserId,
 
+    #[cfg(not(feature = "unstable-pre-spec"))]
     /// The `server_name` of the homeserver that created this event.
     pub origin: String,
 
@@ -96,6 +97,7 @@ pub struct RoomV3Pdu {
     /// The user id of the user who sent this event.
     pub sender: UserId,
 
+    #[cfg(not(feature = "unstable-pre-spec"))]
     /// The `server_name` of the homeserver that created this event.
     pub origin: String,
 
@@ -172,6 +174,7 @@ pub struct RoomV1PduStub {
     /// The user id of the user who sent this event.
     pub sender: UserId,
 
+    #[cfg(not(feature = "unstable-pre-spec"))]
     /// The `server_name` of the homeserver that created this event.
     pub origin: String,
 
@@ -226,6 +229,7 @@ impl RoomV1PduStub {
             event_id,
             room_id,
             sender: self.sender,
+            #[cfg(not(feature = "unstable-pre-spec"))]
             origin: self.origin,
             origin_server_ts: self.origin_server_ts,
             kind: self.kind,
@@ -248,6 +252,7 @@ pub struct RoomV3PduStub {
     /// The user id of the user who sent this event.
     pub sender: UserId,
 
+    #[cfg(not(feature = "unstable-pre-spec"))]
     /// The `server_name` of the homeserver that created this event.
     pub origin: String,
 
@@ -301,6 +306,7 @@ impl RoomV3PduStub {
         RoomV3Pdu {
             room_id,
             sender: self.sender,
+            #[cfg(not(feature = "unstable-pre-spec"))]
             origin: self.origin,
             origin_server_ts: self.origin_server_ts,
             kind: self.kind,
