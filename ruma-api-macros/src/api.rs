@@ -135,8 +135,8 @@ impl ToTokens for Api {
 
         let mut header_kvs = self.request.append_header_kvs();
         if requires_authentication.value {
-            header_kvs.push(quote! {
-                let req_builder = req_builder.header(
+            header_kvs.extend(quote! {
+                req_builder = req_builder.header(
                     #ruma_api_import::exports::http::header::AUTHORIZATION,
                     #ruma_api_import::exports::http::header::HeaderValue::from_str(
                         &::std::format!(
@@ -353,7 +353,7 @@ impl ToTokens for Api {
                             #request_query_string,
                         ));
 
-                    #( #header_kvs )*
+                    #header_kvs
 
                     let http_request = req_builder.body(#request_body)?;
 

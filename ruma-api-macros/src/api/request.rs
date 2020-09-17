@@ -39,7 +39,7 @@ pub struct Request {
 
 impl Request {
     /// Produces code to add necessary HTTP headers to an `http::Request`.
-    pub fn append_header_kvs(&self) -> Vec<TokenStream> {
+    pub fn append_header_kvs(&self) -> TokenStream {
         let import_path = &self.ruma_api_import;
         self.header_fields().map(|request_field| {
             let (field, header_name) = match request_field {
