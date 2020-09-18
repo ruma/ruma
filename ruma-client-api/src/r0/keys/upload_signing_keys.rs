@@ -12,7 +12,7 @@ ruma_api! {
         name: "upload_signing_keys",
         path: "/_matrix/client/r0/keys/device_signing/upload",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]

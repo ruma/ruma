@@ -10,7 +10,7 @@ ruma_api! {
         name: "forget_room",
         path: "/_matrix/client/r0/rooms/:room_id/forget",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

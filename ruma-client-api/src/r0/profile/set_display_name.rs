@@ -10,7 +10,7 @@ ruma_api! {
         name: "set_display_name",
         path: "/_matrix/client/r0/profile/:user_id/displayname",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

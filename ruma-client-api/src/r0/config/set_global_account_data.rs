@@ -11,7 +11,7 @@ ruma_api! {
         name: "set_global_account_data",
         path: "/_matrix/client/r0/user/:user_id/account_data/:event_type",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

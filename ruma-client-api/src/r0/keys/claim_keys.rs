@@ -17,7 +17,7 @@ ruma_api! {
         name: "claim_keys",
         path: "/_matrix/client/r0/keys/claim",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

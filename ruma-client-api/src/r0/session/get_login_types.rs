@@ -10,7 +10,7 @@ ruma_api! {
         name: "get_login_types",
         path: "/_matrix/client/r0/login",
         rate_limited: true,
-        requires_authentication: false,
+        authentication: None,
     }
 
     #[derive(Default)]

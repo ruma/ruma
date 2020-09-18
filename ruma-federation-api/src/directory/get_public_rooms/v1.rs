@@ -11,7 +11,7 @@ ruma_api! {
         name: "get_public_rooms",
         path: "/_matrix/federation/v1/publicRooms",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: ServerSignatures,
     }
 
     #[derive(Default)]

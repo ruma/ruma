@@ -12,7 +12,7 @@ ruma_api! {
         name: "get_missing_events",
         path: "/_matrix/federation/v1/get_missing_events/:room_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: ServerSignatures,
     }
 
     request: {

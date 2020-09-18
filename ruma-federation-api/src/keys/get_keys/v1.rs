@@ -13,7 +13,7 @@ ruma_api! {
         name: "get_keys",
         path: "/_matrix/federation/v1/user/keys/query",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: ServerSignatures,
     }
 
     request: {

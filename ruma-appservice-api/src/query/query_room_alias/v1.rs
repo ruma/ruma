@@ -10,7 +10,7 @@ ruma_api! {
         name: "query_room_alias",
         path: "/_matrix/app/v1/rooms/:room_alias",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: QueryOnlyAccessToken,
     }
 
     request: {

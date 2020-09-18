@@ -9,7 +9,7 @@ ruma_api! {
         name: "create_media_content",
         path: "/_matrix/media/r0/upload",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

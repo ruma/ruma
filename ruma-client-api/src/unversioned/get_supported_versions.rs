@@ -11,7 +11,7 @@ ruma_api! {
         name: "api_versions",
         path: "/_matrix/client/versions",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     #[derive(Default)]

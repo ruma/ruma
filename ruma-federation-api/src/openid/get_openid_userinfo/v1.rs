@@ -10,7 +10,7 @@ ruma_api! {
         name: "get_openid_userinfo",
         path: "/_matrix/federation/v1/openid/userinfo",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

@@ -12,7 +12,7 @@ ruma_api! {
         path: "/_matrix/client/r0/delete_devices",
         name: "delete_devices",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

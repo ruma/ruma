@@ -11,7 +11,7 @@ ruma_api! {
         name: "change_password",
         path: "/_matrix/client/r0/account/password",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

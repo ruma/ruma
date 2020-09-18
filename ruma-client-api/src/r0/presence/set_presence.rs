@@ -11,7 +11,7 @@ ruma_api! {
         name: "set_presence",
         path: "/_matrix/client/r0/presence/:user_id/status",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

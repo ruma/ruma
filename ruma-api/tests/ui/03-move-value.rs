@@ -15,7 +15,7 @@ mod newtype_body {
             name: "my_endpoint",
             path: "/_matrix/foo/:bar/",
             rate_limited: false,
-            requires_authentication: false,
+            authentication: None,
         }
 
         request: {
@@ -53,7 +53,7 @@ mod newtype_raw_body {
             name: "my_endpoint",
             path: "/_matrix/foo/:bar/",
             rate_limited: false,
-            requires_authentication: false,
+            authentication: None,
         }
 
         request: {
@@ -94,7 +94,7 @@ mod plain {
             name: "my_endpoint",
             path: "/_matrix/foo/:bar/",
             rate_limited: false,
-            requires_authentication: false,
+            authentication: None,
         }
 
         request: {

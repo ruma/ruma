@@ -10,7 +10,7 @@ ruma_api! {
         name: "get_devices",
         path: "/_matrix/client/r0/devices",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]

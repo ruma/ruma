@@ -11,7 +11,7 @@ ruma_api! {
         name: "push_events",
         path: "/_matrix/app/v1/transactions/:txn_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: QueryOnlyAccessToken,
     }
 
     request: {

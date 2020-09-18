@@ -12,7 +12,7 @@ ruma_api! {
         name: "get_user_for_protocol",
         path: "/_matrix/client/r0/thirdparty/user/:protocol",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

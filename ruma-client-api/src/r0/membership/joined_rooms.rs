@@ -10,7 +10,7 @@ ruma_api! {
         name: "joined_rooms",
         path: "/_matrix/client/r0/joined_rooms",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]

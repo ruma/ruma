@@ -20,7 +20,7 @@ ruma_api! {
         name: "invite_user",
         path: "/_matrix/client/r0/rooms/:room_id/invite",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

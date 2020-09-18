@@ -11,7 +11,7 @@ ruma_api! {
         name: "get_pushers",
         path: "/_matrix/client/r0/pushers",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]

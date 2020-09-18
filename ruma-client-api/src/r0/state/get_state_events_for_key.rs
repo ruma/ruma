@@ -12,7 +12,7 @@ ruma_api! {
         name: "get_state_events_for_key",
         path: "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

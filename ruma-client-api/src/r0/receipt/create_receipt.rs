@@ -13,7 +13,7 @@ ruma_api! {
         name: "create_receipt",
         path: "/_matrix/client/r0/rooms/:room_id/receipt/:receipt_type/:event_id",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

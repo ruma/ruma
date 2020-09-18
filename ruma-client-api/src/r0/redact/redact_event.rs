@@ -10,7 +10,7 @@ ruma_api! {
         name: "redact_event",
         path: "/_matrix/client/r0/rooms/:room_id/redact/:event_id/:txn_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

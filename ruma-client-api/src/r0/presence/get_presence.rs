@@ -13,7 +13,7 @@ ruma_api! {
         name: "get_presence",
         path: "/_matrix/client/r0/presence/:user_id/status",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

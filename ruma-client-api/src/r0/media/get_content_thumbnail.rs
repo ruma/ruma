@@ -23,7 +23,7 @@ ruma_api! {
         name: "get_content_thumbnail",
         path: "/_matrix/media/r0/thumbnail/:server_name/:media_id",
         rate_limited: true,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

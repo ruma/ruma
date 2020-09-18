@@ -11,7 +11,7 @@ ruma_api! {
         name: "bind_3pid",
         path: "/_matrix/client/r0/account/3pid/bind",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

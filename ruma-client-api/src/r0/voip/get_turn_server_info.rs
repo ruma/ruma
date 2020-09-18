@@ -11,7 +11,7 @@ ruma_api! {
         name: "turn_server_info",
         path: "/_matrix/client/r0/voip/turnServer",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]

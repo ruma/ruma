@@ -10,7 +10,7 @@ ruma_api! {
         name: "ban_user",
         path: "/_matrix/client/r0/rooms/:room_id/ban",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

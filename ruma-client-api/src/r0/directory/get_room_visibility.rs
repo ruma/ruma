@@ -12,7 +12,7 @@ ruma_api! {
         method: GET,
         path: "/_matrix/client/r0/directory/list/room/:room_id",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

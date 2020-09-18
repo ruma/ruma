@@ -12,7 +12,7 @@ ruma_api! {
         name: "login",
         path: "/_matrix/client/r0/login",
         rate_limited: true,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

@@ -15,7 +15,7 @@ ruma_api! {
         // support an additional parameter at the end, even if it is ignored.
         path: "/_matrix/key/v2/query/:server_name",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

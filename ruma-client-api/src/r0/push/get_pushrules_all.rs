@@ -10,7 +10,7 @@ ruma_api! {
         name: "get_pushrules_all",
         path: "/_matrix/client/r0/pushrules/",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]

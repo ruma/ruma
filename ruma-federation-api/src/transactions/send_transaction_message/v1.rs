@@ -15,7 +15,7 @@ ruma_api! {
         method: PUT,
         path: "/_matrix/federation/v1/send/:transaction_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: ServerSignatures,
     }
 
     request: {

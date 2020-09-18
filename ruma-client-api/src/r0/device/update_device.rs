@@ -10,7 +10,7 @@ ruma_api! {
         name: "update_device",
         path: "/_matrix/client/r0/devices/:device_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

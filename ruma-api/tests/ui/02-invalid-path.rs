@@ -7,7 +7,7 @@ ruma_api! {
         name: "invalid_path",
         path: "µ/°/§/€",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {
@@ -25,7 +25,7 @@ ruma_api! {
         name: "invalid_path",
         path: "path/to/invalid space/endpoint",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

@@ -9,7 +9,7 @@ ruma_api! {
         name: "logout",
         path: "/_matrix/client/r0/logout",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]

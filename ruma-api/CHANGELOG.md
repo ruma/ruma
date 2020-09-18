@@ -8,6 +8,9 @@ Breaking changes:
 * The `Endpoint` trait has been replaced by two new traits that each capture a subset of its
   previous functionality: `OutgoingRequest` for sending requests and receiving responses and
   `IncomingRequest` for receiving requests and sending responses.
+* Endpoint authentication is now more granularly defined by an enum `AuthScheme`
+  instead of a boolean. The `ruma_api!` macro has been updated to require
+  `authentication` instead of `requires_authentication`.
 
 Improvements:
 

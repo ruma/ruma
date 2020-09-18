@@ -16,7 +16,7 @@ ruma_api! {
         name: "get_notifications",
         path: "/_matrix/client/r0/notifications",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]

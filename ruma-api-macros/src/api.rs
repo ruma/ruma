@@ -96,7 +96,7 @@ impl ToTokens for Api {
         let name = &self.metadata.name.value();
         let path = &self.metadata.path;
         let rate_limited = &self.metadata.rate_limited;
-        let requires_authentication = &self.metadata.requires_authentication;
+        let authentication = &self.metadata.authentication;
 
         let request_type = &self.request;
         let response_type = &self.response;
@@ -134,7 +134,7 @@ impl ToTokens for Api {
         };
 
         let mut header_kvs = self.request.append_header_kvs();
-        if requires_authentication.value {
+        if authentication == "AccessToken" {
             header_kvs.extend(quote! {
                 req_builder = req_builder.header(
                     #ruma_api_import::exports::http::header::AUTHORIZATION,
@@ -230,7 +230,7 @@ impl ToTokens for Api {
 
         let request_lifetimes = self.request.combine_lifetimes();
 
-        let non_auth_endpoint_impls = if requires_authentication.value {
+        let non_auth_endpoint_impls = if authentication != "None" {
             TokenStream::new()
         } else {
             quote! {
@@ -321,7 +321,7 @@ impl ToTokens for Api {
                 name: #name,
                 path: #path,
                 rate_limited: #rate_limited,
-                requires_authentication: #requires_authentication,
+                authentication: #ruma_api_import::AuthScheme::#authentication,
             };
 
             impl #request_lifetimes #ruma_api_import::OutgoingRequest

@@ -12,7 +12,7 @@ ruma_api! {
         name: "upload_signatures",
         path: "/_matrix/client/r0/keys/signatures/upload",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

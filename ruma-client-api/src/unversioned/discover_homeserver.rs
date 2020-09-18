@@ -10,7 +10,7 @@ ruma_api! {
         name: "discover_homeserver",
         path: "/.well-known/matrix/client",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     #[derive(Default)]

@@ -12,7 +12,7 @@ ruma_api! {
         method: PUT,
         path: "/_matrix/client/r0/directory/list/room/:room_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

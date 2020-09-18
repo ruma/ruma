@@ -10,7 +10,7 @@ ruma_api! {
         name: "request_contact_verification_token",
         path: "/_matrix/client/r0/account/3pid/email/requestToken",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

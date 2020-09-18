@@ -7,7 +7,7 @@ use ruma_api::{
         FromHttpRequestError, FromHttpResponseError, IntoHttpError, RequestDeserializationError,
         ResponseDeserializationError, ServerError,
     },
-    EndpointError, Metadata, Outgoing,
+    AuthScheme, EndpointError, Metadata, Outgoing,
 };
 use ruma_events::{AnyMessageEventContent, EventContent as _};
 use ruma_identifiers::{EventId, RoomId};
@@ -64,7 +64,7 @@ const METADATA: Metadata = Metadata {
     name: "send_message_event",
     path: "/_matrix/client/r0/rooms/:room_id/send/:event_type/:txn_id",
     rate_limited: false,
-    requires_authentication: true,
+    authentication: AuthScheme::AccessToken,
 };
 
 impl TryFrom<http::Request<Vec<u8>>> for IncomingRequest {

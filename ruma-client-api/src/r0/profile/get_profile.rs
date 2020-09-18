@@ -10,7 +10,7 @@ ruma_api! {
         name: "get_profile",
         path: "/_matrix/client/r0/profile/:user_id",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

@@ -9,7 +9,7 @@ ruma_api! {
         name: "get_username_availability",
         path: "/_matrix/client/r0/register/available",
         rate_limited: true,
-        requires_authentication: false,
+        authentication: None,
     }
 
     request: {

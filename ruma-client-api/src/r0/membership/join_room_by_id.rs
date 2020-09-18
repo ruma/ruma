@@ -12,7 +12,7 @@ ruma_api! {
         name: "join_room_by_id",
         path: "/_matrix/client/r0/rooms/:room_id/join",
         rate_limited: true,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {

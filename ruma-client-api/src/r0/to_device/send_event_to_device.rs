@@ -16,7 +16,7 @@ ruma_api! {
         name: "send_event_to_device",
         path: "/_matrix/client/r0/sendToDevice/:event_type/:txn_id",
         rate_limited: false,
-        requires_authentication: true,
+        authentication: AccessToken,
     }
 
     request: {
