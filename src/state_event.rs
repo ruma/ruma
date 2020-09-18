@@ -34,7 +34,7 @@ impl StateEvent {
             prev_event_ids: self.prev_event_ids(),
             room_id: self.room_id().unwrap(),
             content: self.content(),
-            state_key: self.state_key(),
+            state_key: Some(self.state_key()),
             sender: self.sender(),
         }
     }
@@ -175,7 +175,7 @@ impl StateEvent {
             },
         }
     }
-    pub fn state_key(&self) -> Option<String> {
+    pub fn state_key(&self) -> String {
         match self {
             Self::Full(ev) => match ev {
                 Pdu::RoomV1Pdu(ev) => ev.state_key.clone(),
@@ -185,7 +185,7 @@ impl StateEvent {
                 PduStub::RoomV1PduStub(ev) => ev.state_key.clone(),
                 PduStub::RoomV3PduStub(ev) => ev.state_key.clone(),
             },
-        }
+        }.expect("All state events have a state key")
     }
 
     #[cfg(not(feature = "unstable-pre-spec"))]

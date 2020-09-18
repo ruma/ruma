@@ -28,7 +28,7 @@ pub use state_store::StateStore;
 const _YIELD_AFTER_ITERATIONS: usize = 100;
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
-pub type StateMap<T> = BTreeMap<(EventType, Option<String>), T>;
+pub type StateMap<T> = BTreeMap<(EventType, String), T>;
 
 /// A mapping of `EventId` to `T`, usually a `StateEvent`.
 pub type EventMap<T> = BTreeMap<EventId, T>;
@@ -185,7 +185,7 @@ impl StateResolution {
                 .collect::<Vec<_>>()
         );
 
-        let power_event = resolved_control.get(&(EventType::RoomPowerLevels, Some("".into())));
+        let power_event = resolved_control.get(&(EventType::RoomPowerLevels, "".into()));
 
         tracing::debug!("PL {:?}", power_event);
 
@@ -512,7 +512,7 @@ impl StateResolution {
             for key in event_auth::auth_types_for_event(
                 event.kind(),
                 event.sender(),
-                event.state_key(),
+                Some(event.state_key()),
                 event.content().clone(),
             ) {
                 if let Some(ev_id) = resolved_state.get(&key) {
