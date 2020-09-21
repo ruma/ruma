@@ -22,6 +22,11 @@ use crate::Error;
 /// # use ruma_identifiers::RoomVersionId;
 /// assert_eq!(RoomVersionId::try_from("1").unwrap().as_ref(), "1");
 /// ```
+///
+/// Any string consisting of at minimum 1, at maximum 32 unicode codepoints is a room version ID.
+/// Custom room versions or ones that were introduced into the specification after this code was
+/// written are represented by a hidden enum variant. You can still construct them the same, and
+/// check for them using one of `RoomVersionId`s `PartialEq` implementations or through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum RoomVersionId {
@@ -43,8 +48,8 @@ pub enum RoomVersionId {
     /// A version 6 room.
     Version6,
 
-    /// A custom room version.
-    Custom(CustomRoomVersion),
+    #[doc(hidden)]
+    _Custom(CustomRoomVersion),
 }
 
 impl RoomVersionId {
@@ -57,7 +62,7 @@ impl RoomVersionId {
             Self::Version4 => "4",
             Self::Version5 => "5",
             Self::Version6 => "6",
-            Self::Custom(version) => version.as_str(),
+            Self::_Custom(version) => version.as_str(),
         }
     }
 
@@ -76,7 +81,7 @@ impl From<RoomVersionId> for String {
             RoomVersionId::Version4 => "4".to_owned(),
             RoomVersionId::Version5 => "5".to_owned(),
             RoomVersionId::Version6 => "6".to_owned(),
-            RoomVersionId::Custom(version) => version.into(),
+            RoomVersionId::_Custom(version) => version.into(),
         }
     }
 }
@@ -149,7 +154,7 @@ where
         "6" => RoomVersionId::Version6,
         custom => {
             ruma_identifiers_validation::room_version_id::validate(custom)?;
-            RoomVersionId::Custom(CustomRoomVersion(room_version_id.into()))
+            RoomVersionId::_Custom(CustomRoomVersion(room_version_id.into()))
         }
     };
 
@@ -205,8 +210,10 @@ impl PartialEq<RoomVersionId> for String {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[doc(hidden)]
 pub struct CustomRoomVersion(Box<str>);
 
+#[doc(hidden)]
 impl CustomRoomVersion {
     /// Creates a string slice from this `CustomRoomVersion`
     pub fn as_str(&self) -> &str {
@@ -214,12 +221,14 @@ impl CustomRoomVersion {
     }
 }
 
+#[doc(hidden)]
 impl From<CustomRoomVersion> for String {
     fn from(v: CustomRoomVersion) -> Self {
         v.0.into()
     }
 }
 
+#[doc(hidden)]
 impl AsRef<str> for CustomRoomVersion {
     fn as_ref(&self) -> &str {
         self.as_str()
