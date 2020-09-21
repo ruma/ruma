@@ -17,23 +17,13 @@ pub use error::Error;
 /// All identifiers must be 255 bytes or less.
 const MAX_BYTES: usize = 255;
 
-/// The minimum number of characters an ID can be.
-///
-/// This is an optimization and not required by the spec. The shortest possible valid ID is a sigil
-/// + a single character local ID + a colon + a single character hostname.
-const MIN_CHARS: usize = 4;
-
 /// Checks if an identifier is valid.
 fn validate_id(id: &str, valid_sigils: &[char]) -> Result<(), Error> {
     if id.len() > MAX_BYTES {
         return Err(Error::MaximumLengthExceeded);
     }
 
-    if id.len() < MIN_CHARS {
-        return Err(Error::MinimumLengthNotSatisfied);
-    }
-
-    if !valid_sigils.contains(&id.chars().next().unwrap()) {
+    if !id.starts_with(valid_sigils) {
         return Err(Error::MissingSigil);
     }
 
@@ -44,13 +34,7 @@ fn validate_id(id: &str, valid_sigils: &[char]) -> Result<(), Error> {
 /// and returns the index of the colon that separates the two.
 fn parse_id(id: &str, valid_sigils: &[char]) -> Result<NonZeroU8, Error> {
     validate_id(id, valid_sigils)?;
-
     let colon_idx = id.find(':').ok_or(Error::MissingDelimiter)?;
-    if colon_idx < 2 {
-        return Err(Error::InvalidLocalPart);
-    }
-
     server_name::validate(&id[colon_idx + 1..])?;
-
     Ok(NonZeroU8::new(colon_idx as u8).unwrap())
 }

@@ -376,7 +376,7 @@ mod tests {
 
     #[test]
     fn empty_room_version_id() {
-        assert_eq!(RoomVersionId::try_from(""), Err(Error::MinimumLengthNotSatisfied));
+        assert_eq!(RoomVersionId::try_from(""), Err(Error::EmptyRoomVersionId));
     }
 
     #[test]

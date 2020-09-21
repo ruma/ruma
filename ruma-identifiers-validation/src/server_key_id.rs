@@ -14,7 +14,7 @@ pub fn validate(s: &str) -> Result<NonZeroU8, Error> {
 
 fn validate_version(version: &str) -> Result<(), Error> {
     if version.is_empty() {
-        return Err(Error::MinimumLengthNotSatisfied);
+        return Err(Error::EmptyRoomVersionId);
     } else if !version.chars().all(|c| c.is_alphanumeric() || c == '_') {
         return Err(Error::InvalidCharacters);
     }

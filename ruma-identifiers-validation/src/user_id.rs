@@ -15,10 +15,6 @@ pub fn validate(s: &str) -> Result<(NonZeroU8, bool), Error> {
 /// Returns an `Err` for invalid user ID localparts, `Ok(false)` for historical user ID localparts
 /// and `Ok(true)` for fully conforming user ID localparts.
 pub fn localpart_is_fully_comforming(localpart: &str) -> Result<bool, Error> {
-    if localpart.is_empty() {
-        return Err(Error::InvalidLocalPart);
-    }
-
     // See https://matrix.org/docs/spec/appendices#user-identifiers
     let is_fully_conforming = localpart
         .bytes()

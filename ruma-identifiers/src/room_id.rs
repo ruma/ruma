@@ -84,6 +84,14 @@ mod tests {
         );
     }
 
+    #[test]
+    fn empty_localpart() {
+        assert_eq!(
+            RoomId::try_from("!:example.com").expect("Failed to create RoomId.").as_ref(),
+            "!:example.com"
+        );
+    }
+
     #[cfg(feature = "rand")]
     #[test]
     fn generate_random_valid_room_id() {

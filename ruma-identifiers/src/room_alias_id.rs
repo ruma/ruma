@@ -68,6 +68,16 @@ mod tests {
         );
     }
 
+    #[test]
+    fn empty_localpart() {
+        assert_eq!(
+            RoomAliasId::try_from("#:myhomeserver.io")
+                .expect("Failed to create RoomAliasId.")
+                .as_ref(),
+            "#:myhomeserver.io"
+        );
+    }
+
     #[cfg(feature = "serde")]
     #[test]
     fn serialize_valid_room_alias_id() {
@@ -129,13 +139,13 @@ mod tests {
     }
 
     #[test]
-    fn missing_localpart() {
-        assert_eq!(RoomAliasId::try_from("#:example.com").unwrap_err(), Error::InvalidLocalPart);
+    fn missing_room_alias_id_delimiter() {
+        assert_eq!(RoomAliasId::try_from("#ruma").unwrap_err(), Error::MissingDelimiter);
     }
 
     #[test]
-    fn missing_room_alias_id_delimiter() {
-        assert_eq!(RoomAliasId::try_from("#ruma").unwrap_err(), Error::MissingDelimiter);
+    fn invalid_leading_sigil() {
+        assert_eq!(RoomAliasId::try_from("!room_id:foo.bar").unwrap_err(), Error::MissingSigil);
     }
 
     #[test]
