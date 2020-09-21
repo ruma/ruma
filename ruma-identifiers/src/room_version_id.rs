@@ -48,42 +48,6 @@ pub enum RoomVersionId {
 }
 
 impl RoomVersionId {
-    /// Creates a version 1 room ID.
-    #[deprecated = "use RoomVersionId::Version1 instead"]
-    pub fn version_1() -> Self {
-        Self::Version1
-    }
-
-    /// Creates a version 2 room ID.
-    #[deprecated = "use RoomVersionId::Version2 instead"]
-    pub fn version_2() -> Self {
-        Self::Version2
-    }
-
-    /// Creates a version 3 room ID.
-    #[deprecated = "use RoomVersionId::Version3 instead"]
-    pub fn version_3() -> Self {
-        Self::Version3
-    }
-
-    /// Creates a version 4 room ID.
-    #[deprecated = "use RoomVersionId::Version4 instead"]
-    pub fn version_4() -> Self {
-        Self::Version4
-    }
-
-    /// Creates a version 5 room ID.
-    #[deprecated = "use RoomVersionId::Version5 instead"]
-    pub fn version_5() -> Self {
-        Self::Version5
-    }
-
-    /// Creates a version 6 room ID.
-    #[deprecated = "use RoomVersionId::Version6 instead"]
-    pub fn version_6() -> Self {
-        Self::Version6
-    }
-
     /// Creates a string slice from this `RoomVersionId`.
     pub fn as_str(&self) -> &str {
         match &self {
@@ -110,42 +74,6 @@ impl RoomVersionId {
     /// Whether or not this is a custom room version.
     pub fn is_custom(&self) -> bool {
         matches!(self, Self::Custom(_))
-    }
-
-    /// Whether or not this is a version 1 room.
-    #[deprecated = "compare to RoomVersionId::Version1 instead"]
-    pub fn is_version_1(&self) -> bool {
-        matches!(self, Self::Version1)
-    }
-
-    /// Whether or not this is a version 2 room.
-    #[deprecated = "compare to RoomVersionId::Version2 instead"]
-    pub fn is_version_2(&self) -> bool {
-        matches!(self, Self::Version2)
-    }
-
-    /// Whether or not this is a version 3 room.
-    #[deprecated = "compare to RoomVersionId::Version3 instead"]
-    pub fn is_version_3(&self) -> bool {
-        matches!(self, Self::Version3)
-    }
-
-    /// Whether or not this is a version 4 room.
-    #[deprecated = "compare to RoomVersionId::Version4 instead"]
-    pub fn is_version_4(&self) -> bool {
-        matches!(self, Self::Version4)
-    }
-
-    /// Whether or not this is a version 5 room.
-    #[deprecated = "compare to RoomVersionId::Version5 instead"]
-    pub fn is_version_5(&self) -> bool {
-        matches!(self, Self::Version5)
-    }
-
-    /// Whether or not this is a version 6 room.
-    #[deprecated = "compare to RoomVersionId::Version6 instead"]
-    pub fn is_version_6(&self) -> bool {
-        matches!(self, Self::Version6)
     }
 }
 
@@ -436,17 +364,6 @@ mod tests {
             deserialized,
             RoomVersionId::try_from("io.ruma.1").expect("Failed to create RoomVersionId.")
         );
-    }
-
-    #[test]
-    #[allow(deprecated)]
-    fn constructors() {
-        assert!(RoomVersionId::version_1().is_version_1());
-        assert!(RoomVersionId::version_2().is_version_2());
-        assert!(RoomVersionId::version_3().is_version_3());
-        assert!(RoomVersionId::version_4().is_version_4());
-        assert!(RoomVersionId::version_5().is_version_5());
-        assert!(RoomVersionId::version_6().is_version_6());
     }
 
     #[test]

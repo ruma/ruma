@@ -3,6 +3,8 @@
 Breaking changes:
 
 * Update strum dependency to 0.19
+* Remove deprecated constructors
+* Remove deprecated `is_` methods
 
 Improvements:
 
