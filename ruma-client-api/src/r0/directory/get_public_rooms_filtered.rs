@@ -2,6 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
+use ruma_identifiers::ServerName;
 use ruma_common::directory::{
     Filter, IncomingFilter, IncomingRoomNetwork, PublicRoomsChunk, RoomNetwork,
 };
@@ -23,7 +24,7 @@ ruma_api! {
         /// `None` means the server this request is sent to.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub server: Option<&'a str>,
+        pub server: Option<&'a ServerName>,
 
         /// Limit for the number of results to return.
         #[serde(skip_serializing_if = "Option::is_none")]

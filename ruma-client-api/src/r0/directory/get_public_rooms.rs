@@ -3,6 +3,7 @@
 use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_common::directory::PublicRoomsChunk;
+use ruma_identifiers::ServerName;
 
 ruma_api! {
     metadata: {
@@ -31,7 +32,7 @@ ruma_api! {
         /// `None` means the server this request is sent to.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub server: Option<&'a str>,
+        pub server: Option<&'a ServerName>,
     }
 
     response: {
@@ -79,10 +80,13 @@ mod tests {
 
     #[test]
     fn construct_request_from_refs() {
-        let req: http::Request<Vec<u8>> =
-            Request { limit: Some(uint!(10)), since: Some("hello"), server: Some("address") }
-                .try_into_http_request("https://homeserver.tld", Some("auth_tok"))
-                .unwrap();
+        let req: http::Request<Vec<u8>> = Request {
+            limit: Some(uint!(10)),
+            since: Some("hello"),
+            server: Some("address".try_into().unwrap()),
+        }
+        .try_into_http_request("https://homeserver.tld", Some("auth_tok"))
+        .unwrap();
 
         let uri = req.uri();
         let query = uri.query().unwrap();
