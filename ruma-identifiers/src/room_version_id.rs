@@ -65,16 +65,6 @@ impl RoomVersionId {
     pub fn as_bytes(&self) -> &[u8] {
         self.as_str().as_bytes()
     }
-
-    /// Whether or not this room version is an official one specified by the Matrix protocol.
-    pub fn is_official(&self) -> bool {
-        !self.is_custom()
-    }
-
-    /// Whether or not this is a custom room version.
-    pub fn is_custom(&self) -> bool {
-        matches!(self, Self::Custom(_))
-    }
 }
 
 impl From<RoomVersionId> for String {
@@ -243,7 +233,7 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_str, to_string};
 
-    use super::{CustomRoomVersion, RoomVersionId};
+    use super::RoomVersionId;
     use crate::Error;
 
     #[test]
@@ -332,7 +322,6 @@ mod tests {
             from_str::<RoomVersionId>(r#""1""#).expect("Failed to convert RoomVersionId to JSON.");
 
         assert_eq!(deserialized, RoomVersionId::Version1);
-        assert!(deserialized.is_official());
 
         assert_eq!(
             deserialized,
@@ -358,33 +347,9 @@ mod tests {
         let deserialized = from_str::<RoomVersionId>(r#""io.ruma.1""#)
             .expect("Failed to convert RoomVersionId to JSON.");
 
-        assert!(deserialized.is_custom());
-
         assert_eq!(
             deserialized,
             RoomVersionId::try_from("io.ruma.1").expect("Failed to create RoomVersionId.")
         );
-    }
-
-    #[test]
-    fn official_versions() {
-        assert!(RoomVersionId::Version1.is_official());
-        assert!(RoomVersionId::Version2.is_official());
-        assert!(RoomVersionId::Version3.is_official());
-        assert!(RoomVersionId::Version4.is_official());
-        assert!(RoomVersionId::Version5.is_official());
-        assert!(RoomVersionId::Version6.is_official());
-        assert!(!RoomVersionId::Custom(CustomRoomVersion("io.ruma.1".into())).is_official());
-    }
-
-    #[test]
-    fn custom_versions() {
-        assert!(!RoomVersionId::Version1.is_custom());
-        assert!(!RoomVersionId::Version2.is_custom());
-        assert!(!RoomVersionId::Version3.is_custom());
-        assert!(!RoomVersionId::Version4.is_custom());
-        assert!(!RoomVersionId::Version5.is_custom());
-        assert!(!RoomVersionId::Version6.is_custom());
-        assert!(RoomVersionId::Custom(CustomRoomVersion("io.ruma.1".into())).is_custom());
     }
 }
