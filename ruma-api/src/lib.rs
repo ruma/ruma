@@ -14,7 +14,10 @@
 #![warn(rust_2018_idioms)]
 #![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
 
-use std::convert::{TryFrom, TryInto};
+use std::{
+    convert::{TryFrom, TryInto},
+    error::Error as StdError,
+};
 
 use http::Method;
 
@@ -233,7 +236,7 @@ pub trait Outgoing {
 }
 
 /// Gives users the ability to define their own serializable / deserializable errors.
-pub trait EndpointError: std::error::Error + Sized {
+pub trait EndpointError: StdError + Sized {
     /// Tries to construct `Self` from an `http::Response`.
     ///
     /// This will always return `Err` variant when no `error` field is defined in

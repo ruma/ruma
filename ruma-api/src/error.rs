@@ -2,7 +2,10 @@
 //! converting between http requests / responses and ruma's representation of
 //! matrix API requests / responses.
 
-use std::fmt::{self, Display, Formatter};
+use std::{
+    error::Error as StdError,
+    fmt::{self, Display, Formatter},
+};
 
 use crate::EndpointError;
 
@@ -25,7 +28,7 @@ impl Display for Void {
     }
 }
 
-impl std::error::Error for Void {}
+impl StdError for Void {}
 
 /// An error when converting one of ruma's endpoint-specific request or response
 /// types to the corresponding http type.
@@ -84,7 +87,7 @@ impl Display for IntoHttpError {
     }
 }
 
-impl std::error::Error for IntoHttpError {}
+impl StdError for IntoHttpError {}
 
 /// An error when converting a http request to one of ruma's endpoint-specific
 /// request types.
@@ -109,7 +112,7 @@ impl From<RequestDeserializationError> for FromHttpRequestError {
     }
 }
 
-impl std::error::Error for FromHttpRequestError {}
+impl StdError for FromHttpRequestError {}
 
 /// An error that occurred when trying to deserialize a request.
 #[derive(Debug)]
@@ -135,7 +138,7 @@ impl Display for RequestDeserializationError {
     }
 }
 
-impl std::error::Error for RequestDeserializationError {}
+impl StdError for RequestDeserializationError {}
 
 /// An error when converting a http response to one of ruma's endpoint-specific
 /// response types.
@@ -169,7 +172,7 @@ impl<E> From<ResponseDeserializationError> for FromHttpResponseError<E> {
     }
 }
 
-impl<E: std::error::Error> std::error::Error for FromHttpResponseError<E> {}
+impl<E: StdError> StdError for FromHttpResponseError<E> {}
 
 /// An error that occurred when trying to deserialize a response.
 #[derive(Debug)]
@@ -204,7 +207,7 @@ impl Display for ResponseDeserializationError {
     }
 }
 
-impl std::error::Error for ResponseDeserializationError {}
+impl StdError for ResponseDeserializationError {}
 
 /// An error was reported by the server (HTTP status code 4xx or 5xx)
 #[derive(Debug)]
@@ -225,7 +228,7 @@ impl<E: Display> Display for ServerError<E> {
     }
 }
 
-impl<E: std::error::Error> std::error::Error for ServerError<E> {}
+impl<E: StdError> StdError for ServerError<E> {}
 
 /// An error when converting a http request / response to one of ruma's endpoint-specific request /
 /// response types.
