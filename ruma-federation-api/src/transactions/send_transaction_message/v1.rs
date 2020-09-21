@@ -3,6 +3,7 @@
 use std::{collections::BTreeMap, time::SystemTime};
 
 use ruma_api::ruma_api;
+use ruma_common::Raw;
 use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, ServerName};
 use serde::{Deserialize, Serialize};
@@ -34,13 +35,13 @@ ruma_api! {
         /// List of persistent updates to rooms.
         ///
         /// Must not be more than 50 items.
-        pub pdus: &'a [Pdu],
+        pub pdus: &'a [Raw<Pdu>],
 
         /// List of ephemeral messages.
         ///
         /// Must not be more than 100 items.
         #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-        pub edus: &'a [Edu],
+        pub edus: &'a [Raw<Edu>],
     }
 
     #[derive(Default)]
