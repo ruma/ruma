@@ -28,7 +28,6 @@ use crate::Error;
 /// written are represented by a hidden enum variant. You can still construct them the same, and
 /// check for them using one of `RoomVersionId`s `PartialEq` implementations or through `.as_str()`.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-#[non_exhaustive]
 pub enum RoomVersionId {
     /// A version 1 room.
     Version1,
