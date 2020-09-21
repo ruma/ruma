@@ -39,7 +39,7 @@ ruma_api! {
         /// List of ephemeral messages.
         ///
         /// Must not be more than 100 items.
-        #[serde(skip_serializing_if = "<[_]>::is_empty")]
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
         pub edus: &'a [Edu],
     }
 
