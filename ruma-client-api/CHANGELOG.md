@@ -8,6 +8,7 @@ Bug fixes:
 
 Breaking changes:
 
+* Update type of `contains_url` in `r0::filter::RoomEventFilter` from `Option<bool>` to `Option<ContainsUrlFilter>`.
 * Borrow strings in outgoing requests and responses.
   * Explicit types may have to be updated from `endpoint::Request` to `endpoint::Request<'_>` on
     clients and `endpoint::IncomingRequest` on servers, the other way around for responses.

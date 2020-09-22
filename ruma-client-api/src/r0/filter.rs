@@ -25,6 +25,39 @@ pub enum EventFormat {
     Federation,
 }
 
+/// Options for the `contains_url` filter.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ContainsUrlFilter {
+    /// Includes only events with a url key in their content.
+    EventsWithUrl,
+    /// Excludes events with a url key in their content.
+    EventsWithoutUrl,
+}
+
+impl Serialize for ContainsUrlFilter {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match *self {
+            ContainsUrlFilter::EventsWithUrl => serializer.serialize_bool(true),
+            ContainsUrlFilter::EventsWithoutUrl => serializer.serialize_bool(false),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for ContainsUrlFilter {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Ok(match bool::deserialize(deserializer)? {
+            true => ContainsUrlFilter::EventsWithUrl,
+            false => ContainsUrlFilter::EventsWithoutUrl,
+        })
+    }
+}
+
 /// Filters to be applied to room events
 #[derive(Clone, Copy, Debug, Default, Outgoing, Serialize)]
 #[incoming_derive(Clone, Serialize)]
@@ -77,10 +110,10 @@ pub struct RoomEventFilter<'a> {
     /// Controls whether to include events with a URL key in their content.
     ///
     /// * `None`: No filtering
-    /// * `Some(true)`: Only events with a URL
-    /// * `Some(false)`: Only events without a URL
+    /// * `EventsWithUrl`: Only events with a URL
+    /// * `EventsWithoutUrl`: Only events without a URL
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub contains_url: Option<bool>,
+    pub contains_url: Option<ContainsUrlFilter>,
 
     /// Options to control lazy-loading of membership events.
     #[serde(flatten)]
@@ -324,7 +357,38 @@ impl<'de> Deserialize<'de> for LazyLoadOptions {
 mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
+    use super::ContainsUrlFilter;
     use super::LazyLoadOptions;
+
+    #[test]
+    fn test_serializing_contains_url_filter_events_with_url() {
+        let events_with_url = ContainsUrlFilter::EventsWithUrl;
+        assert_eq!(to_json_value(events_with_url).unwrap(), json!(true))
+    }
+
+    #[test]
+    fn test_serializing_contains_url_filter_events_without_url() {
+        let events_without_url = ContainsUrlFilter::EventsWithoutUrl;
+        assert_eq!(to_json_value(events_without_url).unwrap(), json!(false))
+    }
+
+    #[test]
+    fn test_deserializing_contains_url_true() {
+        let json = json!(true);
+        assert_eq!(
+            from_json_value::<ContainsUrlFilter>(json).unwrap(),
+            ContainsUrlFilter::EventsWithUrl
+        );
+    }
+
+    #[test]
+    fn test_deserializing_contains_url_false() {
+        let json = json!(false);
+        assert_eq!(
+            from_json_value::<ContainsUrlFilter>(json).unwrap(),
+            ContainsUrlFilter::EventsWithoutUrl
+        );
+    }
 
     #[test]
     fn test_serializing_disabled_lazy_load() {
