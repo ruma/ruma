@@ -46,9 +46,11 @@ fn deserialize_message_event() {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
                     sdp,
+                    ..
                 },
                 call_id,
                 version,
+                ..
             },
             event_id,
             origin_server_ts,

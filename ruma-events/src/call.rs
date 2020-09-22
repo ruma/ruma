@@ -12,6 +12,7 @@ pub mod invite;
 
 /// A VoIP session description.
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct SessionDescription {
     /// The type of session description.
     #[serde(rename = "type")]
@@ -19,6 +20,13 @@ pub struct SessionDescription {
 
     /// The SDP text of the session description.
     pub sdp: String,
+}
+
+impl SessionDescription {
+    /// Creates a new `SessionDescription` with the given session type and SDP text.
+    pub fn new(session_type: SessionDescriptionType, sdp: String) -> Self {
+        Self { session_type, sdp }
+    }
 }
 
 /// The type of VoIP session description.

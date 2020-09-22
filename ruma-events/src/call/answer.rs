@@ -12,6 +12,7 @@ pub type AnswerEvent = MessageEvent<AnswerEventContent>;
 
 /// The payload for `AnswerEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.call.answer")]
 pub struct AnswerEventContent {
     /// The VoIP session description object. The session description type must be *answer*.
@@ -22,4 +23,11 @@ pub struct AnswerEventContent {
 
     /// The version of the VoIP specification this messages adheres to.
     pub version: UInt,
+}
+
+impl AnswerEventContent {
+    /// Creates an `AnswerEventContent` with the gieven answer, call ID and VoIP version.
+    pub fn new(answer: SessionDescription, call_id: String, version: UInt) -> Self {
+        Self { answer, call_id, version }
+    }
 }

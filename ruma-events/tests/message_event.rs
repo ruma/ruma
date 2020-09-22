@@ -89,9 +89,11 @@ fn deserialize_message_call_answer_content() {
             answer: SessionDescription {
                 session_type: SessionDescriptionType::Answer,
                 sdp,
+                ..
             },
             call_id,
             version,
+            ..
         }) if sdp == "Hello" && call_id == "foofoo" && version == UInt::new(1).unwrap()
     );
 }
@@ -124,9 +126,11 @@ fn deserialize_message_call_answer() {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
                     sdp,
+                    ..
                 },
                 call_id,
                 version,
+                ..
             }),
             event_id,
             origin_server_ts,
@@ -255,9 +259,11 @@ fn deserialize_message_then_convert_to_full() {
                 answer: SessionDescription {
                     session_type: SessionDescriptionType::Answer,
                     sdp,
+                    ..
                 },
                 call_id,
                 version,
+                ..
             }),
             event_id,
             origin_server_ts,
