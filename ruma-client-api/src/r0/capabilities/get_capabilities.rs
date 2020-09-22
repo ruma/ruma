@@ -1,5 +1,6 @@
 //! [GET /_matrix/client/r0/capabilities](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-capabilities)
 
+use maplit::btreemap;
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomVersionId;
 use serde::{Deserialize, Serialize};
@@ -52,12 +53,20 @@ impl From<Capabilities> for Response {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Capabilities {
     /// Capability to indicate if the user can change their password.
-    #[serde(rename = "m.change_password", skip_serializing_if = "Option::is_none")]
-    pub change_password: Option<ChangePasswordCapability>,
+    #[serde(
+        rename = "m.change_password",
+        default,
+        skip_serializing_if = "ChangePasswordCapability::is_default"
+    )]
+    pub change_password: ChangePasswordCapability,
 
     /// The room versions the server supports.
-    #[serde(rename = "m.room_versions", skip_serializing_if = "Option::is_none")]
-    pub room_versions: Option<RoomVersionsCapability>,
+    #[serde(
+        rename = "m.room_versions",
+        default,
+        skip_serializing_if = "RoomVersionsCapability::is_default"
+    )]
+    pub room_versions: RoomVersionsCapability,
 
     /// Any other custom capabilities that the server supports outside of the specification,
     /// labeled using the Java package naming convention and stored as arbitrary JSON values.
@@ -85,6 +94,17 @@ impl ChangePasswordCapability {
     pub fn new(enabled: bool) -> Self {
         Self { enabled }
     }
+
+    /// Returns whether all fields have their default value.
+    pub fn is_default(&self) -> bool {
+        self.enabled
+    }
+}
+
+impl Default for ChangePasswordCapability {
+    fn default() -> Self {
+        Self { enabled: true }
+    }
 }
 
 /// Information about the m.room_versions capability
@@ -107,10 +127,30 @@ impl RoomVersionsCapability {
     ) -> Self {
         Self { default, available }
     }
+
+    /// Returns whether all fields have their default value.
+    pub fn is_default(&self) -> bool {
+        self.default == RoomVersionId::Version1
+            && self.available.len() == 1
+            && self
+                .available
+                .get(&RoomVersionId::Version1)
+                .map(|stability| *stability == RoomVersionStability::Stable)
+                .unwrap_or(false)
+    }
+}
+
+impl Default for RoomVersionsCapability {
+    fn default() -> Self {
+        Self {
+            default: RoomVersionId::Version1,
+            available: btreemap! { RoomVersionId::Version1 => RoomVersionStability::Stable },
+        }
+    }
 }
 
 /// The stability of a room version
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum RoomVersionStability {
     /// Support for the given version is stable.
