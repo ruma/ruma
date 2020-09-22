@@ -14,8 +14,7 @@ pub mod unban_user;
 
 use std::collections::BTreeMap;
 
-use ruma_common::thirdparty::Medium;
-use ruma_common::Outgoing;
+use ruma_common::{thirdparty::Medium, Outgoing};
 use ruma_identifiers::{ServerKeyId, ServerNameBox};
 use serde::Serialize;
 
