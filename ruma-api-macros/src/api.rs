@@ -170,7 +170,10 @@ impl ToTokens for Api {
                 TokenStream::new()
             };
             quote! {
-                let request_body: <RequestBody #body_lifetimes as #ruma_api_import::Outgoing>::Incoming =
+                let request_body: <
+                    RequestBody #body_lifetimes
+                    as #ruma_api_import::exports::ruma_common::Outgoing
+                >::Incoming =
                     #ruma_api_import::try_deserialize!(
                         request,
                         #ruma_api_import::exports::serde_json::from_slice(request.body().as_slice())
@@ -202,7 +205,10 @@ impl ToTokens for Api {
             || self.response.newtype_body_field().is_some()
         {
             quote! {
-                let response_body: <ResponseBody as #ruma_api_import::Outgoing>::Incoming =
+                let response_body: <
+                    ResponseBody
+                    as #ruma_api_import::exports::ruma_common::Outgoing
+                >::Incoming =
                     #ruma_api_import::try_deserialize!(
                         response,
                         #ruma_api_import::exports::serde_json::from_slice(response.body().as_slice()),
@@ -328,7 +334,8 @@ impl ToTokens for Api {
                 for Request #request_lifetimes
             {
                 type EndpointError = #error;
-                type IncomingResponse = <Response as #ruma_api_import::Outgoing>::Incoming;
+                type IncomingResponse =
+                    <Response as #ruma_api_import::exports::ruma_common::Outgoing>::Incoming;
 
                 #[doc = #metadata_doc]
                 const METADATA: #ruma_api_import::Metadata = __METADATA;

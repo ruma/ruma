@@ -3,16 +3,16 @@
 use std::{convert::TryFrom, ops::Deref};
 
 use http::{header::CONTENT_TYPE, method::Method};
-use ruma_identifiers::{RoomAliasId, RoomId};
-use serde::{Deserialize, Serialize};
-
 use ruma_api::{
     error::{
         FromHttpRequestError, FromHttpResponseError, IntoHttpError, RequestDeserializationError,
         ResponseDeserializationError, ServerError, Void,
     },
-    AuthScheme, IncomingRequest, Metadata, Outgoing, OutgoingRequest,
+    AuthScheme, IncomingRequest, Metadata, OutgoingRequest,
 };
+use ruma_common::Outgoing;
+use ruma_identifiers::{RoomAliasId, RoomId};
+use serde::{Deserialize, Serialize};
 
 /// A request to create a new room alias.
 #[derive(Debug)]

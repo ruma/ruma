@@ -1,4 +1,4 @@
-use ruma_api::Outgoing;
+use ruma_common::Outgoing;
 use ruma_identifiers::UserId;
 
 #[allow(unused)]

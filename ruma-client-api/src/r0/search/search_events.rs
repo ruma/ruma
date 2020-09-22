@@ -3,8 +3,8 @@
 use std::collections::BTreeMap;
 
 use js_int::{uint, UInt};
-use ruma_api::{ruma_api, Outgoing};
-use ruma_common::Raw;
+use ruma_api::ruma_api;
+use ruma_common::{Outgoing, Raw};
 use ruma_events::{AnyRoomEvent, AnyStateEvent};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};

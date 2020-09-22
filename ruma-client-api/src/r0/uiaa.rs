@@ -5,7 +5,8 @@ use std::{
     fmt::{self, Display, Formatter},
 };
 
-use ruma_api::{error::ResponseDeserializationError, EndpointError, Outgoing};
+use ruma_api::{error::ResponseDeserializationError, EndpointError};
+use ruma_common::Outgoing;
 use serde::{Deserialize, Serialize};
 use serde_json::{
     from_slice as from_json_slice, to_vec as to_json_vec, value::RawValue as RawJsonValue,

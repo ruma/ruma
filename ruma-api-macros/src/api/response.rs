@@ -310,7 +310,7 @@ impl ToTokens for Response {
             /// Data in the response body.
             #[derive(
                 Debug,
-                #import_path::Outgoing,
+                #import_path::exports::ruma_common::Outgoing,
                 #import_path::exports::serde::Deserialize,
                 #import_path::exports::serde::Serialize,
             )]
@@ -318,7 +318,7 @@ impl ToTokens for Response {
         };
 
         let response = quote! {
-            #[derive(Debug, Clone, #import_path::Outgoing)]
+            #[derive(Debug, Clone, #import_path::exports::ruma_common::Outgoing)]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize)]
             #( #struct_attributes )*

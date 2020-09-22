@@ -3,8 +3,8 @@
 use std::{collections::BTreeMap, time::Duration};
 
 use js_int::UInt;
-use ruma_api::{ruma_api, Outgoing};
-use ruma_common::{presence::PresenceState, Raw};
+use ruma_api::ruma_api;
+use ruma_common::{presence::PresenceState, Outgoing, Raw};
 use ruma_events::{
     presence::PresenceEvent, AnyBasicEvent, AnyStrippedStateEvent, AnySyncEphemeralRoomEvent,
     AnySyncRoomEvent, AnySyncStateEvent, AnyToDeviceEvent,

@@ -1,5 +1,5 @@
 #[allow(unused)]
-#[derive(Copy, Clone, Debug, ruma_api::Outgoing, serde::Serialize)]
+#[derive(Copy, Clone, Debug, ruma_common::Outgoing, serde::Serialize)]
 pub struct OtherThing<'t> {
     some: &'t str,
     t: &'t [u8],

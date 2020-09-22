@@ -6,7 +6,7 @@ pub mod get_filter;
 use std::fmt;
 
 use js_int::UInt;
-use ruma_api::Outgoing;
+use ruma_common::Outgoing;
 use ruma_identifiers::{RoomId, UserId};
 use serde::{
     de::{MapAccess, Visitor},

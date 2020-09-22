@@ -285,7 +285,10 @@ pub(crate) fn extract_request_query(request: &Request, import_path: &TokenStream
         }
     } else if request.has_query_fields() {
         quote! {
-            let request_query: <RequestQuery as #import_path::Outgoing>::Incoming =
+            let request_query: <
+                RequestQuery
+                as #import_path::exports::ruma_common::Outgoing
+            >::Incoming =
                 #import_path::try_deserialize!(
                     request,
                     #import_path::exports::ruma_serde::urlencoded::from_str(

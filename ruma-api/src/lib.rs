@@ -204,10 +204,8 @@ use http::Method;
 /// All request and response types also derive [`Outgoing`][Outgoing]. As such, to allow fallible
 /// deserialization, you can use the `#[wrap_incoming]` attribute. For details, see the
 /// documentation for [the derive macro](derive.Outgoing.html).
-// TODO: Explain the concept of fallible deserialization before jumping to `ruma_api::Outgoing`
+// TODO: Explain the concept of fallible deserialization before jumping to `ruma_common::Outgoing`
 pub use ruma_api_macros::ruma_api;
-
-pub use ruma_api_macros::Outgoing;
 
 pub mod error;
 /// This module is used to support the generated code from ruma-api-macros.
@@ -216,24 +214,13 @@ pub mod error;
 pub mod exports {
     pub use http;
     pub use percent_encoding;
+    pub use ruma_common;
     pub use ruma_serde;
     pub use serde;
     pub use serde_json;
 }
 
 use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
-
-/// A type that can be sent to another party that understands the matrix protocol. If any of the
-/// fields of `Self` don't implement serde's `Deserialize`, you can derive this trait to generate a
-/// corresponding 'Incoming' type that supports deserialization. This is useful for things like
-/// ruma_events' `EventResult` type. For more details, see the [derive macro's documentation][doc].
-///
-/// [doc]: derive.Outgoing.html
-// TODO: Better explain how this trait relates to serde's traits
-pub trait Outgoing {
-    /// The 'Incoming' variant of `Self`.
-    type Incoming;
-}
 
 /// Gives users the ability to define their own serializable / deserializable errors.
 pub trait EndpointError: StdError + Sized + 'static {

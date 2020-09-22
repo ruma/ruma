@@ -7,8 +7,9 @@ use ruma_api::{
         FromHttpRequestError, FromHttpResponseError, IntoHttpError, RequestDeserializationError,
         ResponseDeserializationError, ServerError,
     },
-    AuthScheme, EndpointError, Metadata, Outgoing,
+    AuthScheme, EndpointError, Metadata,
 };
+use ruma_common::Outgoing;
 use ruma_events::{AnyMessageEventContent, EventContent as _};
 use ruma_identifiers::{EventId, RoomId};
 use serde::{Deserialize, Serialize};

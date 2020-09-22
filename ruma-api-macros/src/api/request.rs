@@ -470,7 +470,7 @@ impl ToTokens for Request {
                     /// Data in the request body.
                     #[derive(
                         Debug,
-                        #import_path::Outgoing,
+                        #import_path::exports::ruma_common::Outgoing,
                         #import_path::exports::serde::Serialize,
                         #derive_deserialize
                     )]
@@ -490,7 +490,7 @@ impl ToTokens for Request {
                 /// Data in the request's query string.
                 #[derive(
                     Debug,
-                    #import_path::Outgoing,
+                    #import_path::exports::ruma_common::Outgoing,
                     #import_path::exports::serde::Serialize,
                     #derive_deserialize
                 )]
@@ -508,7 +508,7 @@ impl ToTokens for Request {
                 /// Data in the request's query string.
                 #[derive(
                     Debug,
-                    #import_path::Outgoing,
+                    #import_path::exports::ruma_common::Outgoing,
                     #import_path::exports::serde::Serialize,
                     #derive_deserialize
                 )]
@@ -521,7 +521,7 @@ impl ToTokens for Request {
         };
 
         let request = quote! {
-            #[derive(Debug, Clone, #import_path::Outgoing)]
+            #[derive(Debug, Clone, #import_path::exports::ruma_common::Outgoing)]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize)]
             #( #struct_attributes )*
