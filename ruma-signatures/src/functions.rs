@@ -714,15 +714,39 @@ pub fn redact(value: &Value) -> Result<Value, Error> {
 
         for key in map.clone().keys() {
             match event_type.as_ref() {
-                "m.room.member" if key != "membership" => map.remove(key),
-                "m.room.create" if key != "creator" => map.remove(key),
-                "m.room.join_rules" if key != "join_rules" => map.remove(key),
-                "m.room.power_levels" if !ALLOWED_POWER_LEVELS_KEYS.contains(&key.as_ref()) => {
-                    map.remove(key)
+                "m.room.member" => {
+                    if key != "membership" {
+                        map.remove(key);
+                    }
                 }
-                "m.room.aliases" if key != "aliases" => map.remove(key),
-                "m.room.history_visibility" if key != "history_visibility" => map.remove(key),
-                _ => map.remove(key),
+                "m.room.create" => {
+                    if key != "creator" {
+                        map.remove(key);
+                    }
+                }
+                "m.room.join_rules" => {
+                    if key != "join_rules" {
+                        map.remove(key);
+                    }
+                }
+                "m.room.power_levels" => {
+                    if !ALLOWED_POWER_LEVELS_KEYS.contains(&key.as_ref()) {
+                        map.remove(key);
+                    }
+                }
+                "m.room.aliases" => {
+                    if key != "aliases" {
+                        map.remove(key);
+                    }
+                }
+                "m.room.history_visibility" => {
+                    if key != "history_visibility" {
+                        map.remove(key);
+                    }
+                }
+                _ => {
+                    map.remove(key);
+                }
             };
         }
     }
