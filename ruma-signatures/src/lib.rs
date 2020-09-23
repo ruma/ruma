@@ -176,6 +176,7 @@ mod test {
 
     use base64::{decode_config, STANDARD_NO_PAD};
     use ring::signature::{Ed25519KeyPair as RingEd25519KeyPair, KeyPair as _};
+    use ruma_identifiers::RoomVersionId;
     use serde_json::{from_str, json, to_string, to_value, Value};
 
     use super::{
@@ -422,7 +423,7 @@ mod test {
         }"#;
 
         let mut value = from_str::<Value>(json).unwrap();
-        hash_and_sign_event("domain", &key_pair, &mut value).unwrap();
+        hash_and_sign_event("domain", &key_pair, &mut value, &RoomVersionId::Version5).unwrap();
 
         assert_eq!(
             to_string(&value).unwrap(),
@@ -455,7 +456,7 @@ mod test {
         }"#;
 
         let mut value = from_str::<Value>(json).unwrap();
-        hash_and_sign_event("domain", &key_pair, &mut value).unwrap();
+        hash_and_sign_event("domain", &key_pair, &mut value, &RoomVersionId::Version5).unwrap();
 
         assert_eq!(
             to_string(&value).unwrap(),
@@ -496,6 +497,6 @@ mod test {
             }"#
         ).unwrap();
 
-        assert!(verify_event(&public_key_map, &value).is_ok());
+        assert!(verify_event(&public_key_map, &value, &RoomVersionId::Version5).is_ok());
     }
 }
