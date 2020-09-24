@@ -13,6 +13,9 @@
 
 #![deny(missing_docs)]
 
+#[doc(no_inline)]
+pub use js_int::{int, uint, Int, UInt};
+
 pub use ruma_common::*;
 #[doc(inline)]
 pub use ruma_identifiers as identifiers;
