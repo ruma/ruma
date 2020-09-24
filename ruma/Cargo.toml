@@ -23,7 +23,10 @@ unstable-exhaustive-types = [
   "ruma-common/unstable-exhaustive-types",
 ]
 unstable-pre-spec = ["ruma-client-api/unstable-pre-spec", "ruma-events/unstable-pre-spec"]
-unstable-synapse-quirks = ["ruma-client-api/unstable-synapse-quirks"]
+unstable-synapse-quirks = [
+  "ruma-client-api/unstable-synapse-quirks",
+  "ruma-common/unstable-synapse-quirks",
+]
 
 appservice-api = ["ruma-api", "ruma-appservice-api", "ruma-events"]
 client-api = ["ruma-api", "ruma-client-api", "ruma-events"]
