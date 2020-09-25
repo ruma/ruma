@@ -14,4 +14,5 @@ pub mod keys;
 pub mod membership;
 pub mod openid;
 pub mod query;
+pub mod thirdparty;
 pub mod transactions;

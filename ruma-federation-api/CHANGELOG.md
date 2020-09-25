@@ -22,6 +22,7 @@ Improvements:
   membership::create_join_event::v2,
   membership::get_leave_event::v1,
   membership::create_leave_event::{v1, v2},
+  thirdparty::bind_callback::v1,
   ```
 
 # 0.0.3
