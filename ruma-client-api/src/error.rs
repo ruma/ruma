@@ -12,9 +12,8 @@ use serde_json::{from_slice as from_json_slice, to_vec as to_json_vec};
 use strum::{AsRefStr, Display};
 
 /// An enum for the error kind. Items may contain additional information.
-#[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, Display)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, AsRefStr, Display)]
 #[serde(tag = "errcode")]
-#[cfg_attr(test, derive(PartialEq))]
 pub enum ErrorKind {
     /// M_FORBIDDEN
     #[serde(rename = "M_FORBIDDEN")]
