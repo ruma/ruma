@@ -357,8 +357,7 @@ impl<'de> Deserialize<'de> for LazyLoadOptions {
 mod tests {
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::ContainsUrlFilter;
-    use super::LazyLoadOptions;
+    use super::{ContainsUrlFilter, LazyLoadOptions};
 
     #[test]
     fn test_serializing_contains_url_filter_events_with_url() {
