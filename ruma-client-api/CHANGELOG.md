@@ -8,6 +8,8 @@ Bug fixes:
 
 Breaking changes:
 
+* Update `contains_url: Option<bool>` in `r0::filter::RoomEventFilter` to
+  `url_filter: Option<UrlFilter>`.
 * Borrow strings in outgoing requests and responses.
   * Explicit types may have to be updated from `endpoint::Request` to `endpoint::Request<'_>` on
     clients and `endpoint::IncomingRequest` on servers, the other way around for responses.
@@ -31,7 +33,8 @@ Breaking changes:
 * Update type of `user_id` in `r0::account::whoami` from `String` to `ruma_identifiers::UserId`
 * Update type of `limited` in `r0::sync::sync_events::Timeline` from `Option<bool>` to `bool`
 * Use `DeviceId` for `device_id` field of `r0::session::login::Response`
-* Use `ruma_identifiers::ServerName` instead of `String` for `server_name` fields in the following endpoints:
+* Use `ruma_identifiers::ServerName` instead of `String` for `server_name` fields in the following
+  endpoints:
   ```rust
   r0::{
       account::request_openid_token,

@@ -1,9 +1,10 @@
 //! Functions for signing and verifying JSON and events.
 
-use std::collections::HashMap;
+use std::{cmp, collections::HashMap, mem};
 
 use base64::{decode_config, encode_config, STANDARD_NO_PAD};
 use ring::digest::{digest, SHA256};
+use ruma_identifiers::RoomVersionId;
 use serde_json::{from_str, from_value, map::Map, to_string, to_value, Value};
 
 use crate::{
@@ -33,18 +34,35 @@ static ALLOWED_KEYS: &[&str] = &[
     "membership",
 ];
 
-/// The fields of an *m.room.power_levels* event's `content` key that are allowed to remain in an
-/// event during redaction.
-static ALLOWED_POWER_LEVELS_KEYS: &[&str] = &[
-    "ban",
-    "events",
-    "events_default",
-    "kick",
-    "redact",
-    "state_default",
-    "users",
-    "users_default",
-];
+fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'static [&'static str] {
+    match event_type {
+        "m.room.member" => &["membership"],
+        "m.room.create" => &["creator"],
+        "m.room.join_rules" => &["join_rule"],
+        "m.room.power_levels" => &[
+            "ban",
+            "events",
+            "events_default",
+            "kick",
+            "redact",
+            "state_default",
+            "users",
+            "users_default",
+        ],
+        "m.room.aliases" => match version {
+            RoomVersionId::Version1
+            | RoomVersionId::Version2
+            | RoomVersionId::Version3
+            | RoomVersionId::Version4
+            | RoomVersionId::Version5 => &["join_rule"],
+            // All other room versions, including custom ones, are treated by version 6 rules.
+            // TODO: Should we return an error for unknown versions instead?
+            _ => &[],
+        },
+        "m.room.history_visibility" => &["history_visibility"],
+        _ => &[],
+    }
+}
 
 /// The fields to remove from a JSON object when converting JSON into the "canonical" form.
 static CANONICAL_JSON_FIELDS_TO_REMOVE: &[&str] = &["signatures", "unsigned"];
@@ -359,8 +377,8 @@ pub fn content_hash(value: &Value) -> Result<String, Error> {
 /// # Errors
 ///
 /// Returns an error if the provided JSON value is not a JSON object.
-pub fn reference_hash(value: &Value) -> Result<String, Error> {
-    let redacted_value = redact(value)?;
+pub fn reference_hash(value: &Value, version: &RoomVersionId) -> Result<String, Error> {
+    let redacted_value = redact(value, version)?;
 
     let json =
         canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
@@ -396,6 +414,9 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 /// # Examples
 ///
 /// ```rust
+/// # use ruma_identifiers::RoomVersionId;
+/// # use ruma_signatures::{hash_and_sign_event, Ed25519KeyPair};
+/// #
 /// const PKCS8: &str = "\
 ///     MFMCAQEwBQYDK2VwBCIEINjozvdfbsGEt6DD+7Uf4PiJ/YvTNXV2mIPc/\
 ///     tA0T+6toSMDIQDdM+tpNzNWQM9NFpfgr4B9S7LHszOrVRp9NfKmeXS3aQ\
@@ -404,7 +425,7 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 /// let document = base64::decode_config(&PKCS8, base64::STANDARD_NO_PAD).unwrap();
 ///
 /// // Create an Ed25519 key pair.
-/// let key_pair = ruma_signatures::Ed25519KeyPair::new(
+/// let key_pair = Ed25519KeyPair::new(
 ///     &document,
 ///     "1".into(), // The "version" of the key.
 /// ).unwrap();
@@ -430,7 +451,7 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 /// ).unwrap();
 ///
 /// // Hash and sign the JSON with the key pair.
-/// assert!(ruma_signatures::hash_and_sign_event("domain", &key_pair, &mut value).is_ok());
+/// assert!(hash_and_sign_event("domain", &key_pair, &mut value, &RoomVersionId::Version1).is_ok());
 /// ```
 ///
 /// This will modify the JSON from the structure shown to a structure like this:
@@ -461,7 +482,12 @@ pub fn reference_hash(value: &Value) -> Result<String, Error> {
 /// ```
 ///
 /// Notice the addition of `hashes` and `signatures`.
-pub fn hash_and_sign_event<K>(entity_id: &str, key_pair: &K, value: &mut Value) -> Result<(), Error>
+pub fn hash_and_sign_event<K>(
+    entity_id: &str,
+    key_pair: &K,
+    value: &mut Value,
+    version: &RoomVersionId,
+) -> Result<(), Error>
 where
     K: KeyPair,
 {
@@ -483,7 +509,7 @@ where
         };
     }
 
-    let mut redacted = redact(value)?;
+    let mut redacted = redact(value, version)?;
 
     sign_json(entity_id, key_pair, &mut redacted)?;
 
@@ -517,8 +543,10 @@ where
 /// # Examples
 ///
 /// ```rust
-/// use std::collections::HashMap;
-///
+/// # use std::collections::HashMap;
+/// # use ruma_identifiers::RoomVersionId;
+/// # use ruma_signatures::verify_event;
+/// #
 /// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 ///
 /// // Deserialize an event from JSON.
@@ -554,10 +582,14 @@ where
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
-/// assert!(ruma_signatures::verify_event(&public_key_map, &value).is_ok());
+/// assert!(verify_event(&public_key_map, &value, &RoomVersionId::Version6).is_ok());
 /// ```
-pub fn verify_event(public_key_map: &PublicKeyMap, value: &Value) -> Result<Verified, Error> {
-    let redacted = redact(value)?;
+pub fn verify_event(
+    public_key_map: &PublicKeyMap,
+    value: &Value,
+    version: &RoomVersionId,
+) -> Result<Verified, Error> {
+    let redacted = redact(value, version)?;
 
     let map = match redacted {
         Value::Object(ref map) => map,
@@ -687,7 +719,7 @@ fn canonical_json_with_fields_to_remove(value: &Value, fields: &[&str]) -> Resul
 /// * `value` contains a field called `hashes` that is not a JSON object.
 /// * `value` contains a field called `signatures` that is not a JSON object.
 /// * `value` is missing the `type` field or the field is not a JSON string.
-pub fn redact(value: &Value) -> Result<Value, Error> {
+pub fn redact(value: &Value, version: &RoomVersionId) -> Result<Value, Error> {
     if !value.is_object() {
         return Err(Error::new("JSON value must be a JSON object"));
     }
@@ -701,35 +733,33 @@ pub fn redact(value: &Value) -> Result<Value, Error> {
         None => return Err(Error::new("field `type` in JSON value must be present")),
     };
 
-    let event_type = match event_type_value.as_str() {
-        Some(event_type) => event_type.to_string(),
+    let allowed_content_keys = match event_type_value.as_str() {
+        Some(event_type) => allowed_content_keys_for(event_type, version),
         None => return Err(Error::new("field `type` in JSON value must be a JSON string")),
     };
 
     if let Some(content_value) = event.get_mut("content") {
-        let map = match content_value {
+        let content = match content_value {
             Value::Object(ref mut map) => map,
             _ => return Err(Error::new("field `content` in JSON value must be a JSON object")),
         };
 
-        for key in map.clone().keys() {
-            match event_type.as_ref() {
-                "m.room.member" if key != "membership" => map.remove(key),
-                "m.room.create" if key != "creator" => map.remove(key),
-                "m.room.join_rules" if key != "join_rules" => map.remove(key),
-                "m.room.power_levels" if !ALLOWED_POWER_LEVELS_KEYS.contains(&key.as_ref()) => {
-                    map.remove(key)
-                }
-                "m.room.aliases" if key != "aliases" => map.remove(key),
-                "m.room.history_visibility" if key != "history_visibility" => map.remove(key),
-                _ => map.remove(key),
-            };
+        let max_values = cmp::max(content.len(), allowed_content_keys.len());
+        let mut old_content = mem::replace(content, serde_json::Map::with_capacity(max_values));
+
+        for &key in allowed_content_keys {
+            if let Some(value) = old_content.remove(key) {
+                content.insert(key.to_owned(), value);
+            }
         }
     }
 
-    for key in event.clone().keys() {
-        if !ALLOWED_KEYS.contains(&key.as_ref()) {
-            event.remove(key);
+    let max_values = cmp::max(event.len(), ALLOWED_KEYS.len());
+    let mut old_event = mem::replace(event, serde_json::Map::with_capacity(max_values));
+
+    for &key in ALLOWED_KEYS {
+        if let Some(value) = old_event.remove(key) {
+            event.insert(key.to_owned(), value);
         }
     }
 
