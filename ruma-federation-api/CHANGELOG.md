@@ -14,13 +14,13 @@ Improvements:
   device::get_devices::v1,
   directory::get_public_rooms_filtered::v1,
   event::get_missing_events::v1,
-  identification::identifier_bound::v1,
   keys::{
       claim_keys::v1,
       query_keys::v1,
   },
   membership::create_invite::{v1, v2},
   membership::create_join_event::v2,
+  thirdparty::bind_callback::v1,
   ```
 
 # 0.0.3

@@ -1,3 +1,3 @@
 //! Module for dealing with third party identifiers
 
-pub mod identifier_bound;
+pub mod bind_callback;

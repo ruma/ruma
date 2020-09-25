@@ -25,7 +25,7 @@ ruma_api! {
         pub address: &'a str,
 
         /// The user that is now bound to the third party identifier.
-        pub mxid: UserId,
+        pub mxid: &'a UserId,
 
         /// A list of pending invites that the third party identifier has received.
         pub invites: &'a [ThirdPartyInvite],
@@ -36,7 +36,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given address, matrix id and third party invites.
-    pub fn new(address: &'a str, mxid: UserId, invites: &'a [ThirdPartyInvite]) -> Self {
+    pub fn new(address: &'a str, mxid: &'a UserId, invites: &'a [ThirdPartyInvite]) -> Self {
         Self { medium: Medium::Email, address, mxid, invites }
     }
 }
