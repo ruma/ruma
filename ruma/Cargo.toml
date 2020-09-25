@@ -32,6 +32,7 @@ identity-service-api = ["ruma-api", "ruma-identity-service-api"]
 push-gateway-api = ["ruma-api", "ruma-push-gateway-api"]
 
 [dependencies]
+assign = "1.1.0"
 js_int = "0.1.9"
 
 ruma-common = { version = "0.2.0", path = "../ruma-common" }

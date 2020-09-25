@@ -14,6 +14,8 @@
 #![deny(missing_docs)]
 
 #[doc(no_inline)]
+pub use assign::assign;
+#[doc(no_inline)]
 pub use js_int::{int, uint, Int, UInt};
 
 pub use ruma_common::*;
