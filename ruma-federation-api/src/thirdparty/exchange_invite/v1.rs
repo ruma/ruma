@@ -33,6 +33,7 @@ ruma_api! {
         pub content: &'a ThirdPartyInvite,
     }
 
+    #[derive(Default)]
     response: {}
 }
 
@@ -45,5 +46,12 @@ impl<'a> Request<'a> {
         content: &'a ThirdPartyInvite,
     ) -> Self {
         Self { room_id, kind: EventType::RoomMember, sender, state_key, content }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response`.
+    pub fn new() -> Self {
+        Self
     }
 }
