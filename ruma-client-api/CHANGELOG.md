@@ -33,7 +33,8 @@ Breaking changes:
 * Update type of `user_id` in `r0::account::whoami` from `String` to `ruma_identifiers::UserId`
 * Update type of `limited` in `r0::sync::sync_events::Timeline` from `Option<bool>` to `bool`
 * Use `DeviceId` for `device_id` field of `r0::session::login::Response`
-* Use `ruma_identifiers::ServerName` instead of `String` for `server_name` fields in the following endpoints:
+* Use `ruma_identifiers::ServerName` instead of `String` for `server_name` fields in the following
+  endpoints:
   ```rust
   r0::{
       account::request_openid_token,
