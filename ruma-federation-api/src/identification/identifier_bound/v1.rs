@@ -14,10 +14,9 @@ ruma_api! {
         name: "identifier_bound",
         path: "/_matrix/federation/v1/3pid/onbind",
         rate_limited: false,
-        requires_authentication: false,
+        authentication: None,
     }
 
-    #[non_exhaustive]
     request: {
         /// The type of third party identifier. Currently only "email" is a possible value.
         pub medium: Medium,
@@ -32,7 +31,6 @@ ruma_api! {
         pub invites: &'a [ThirdPartyInvite],
     }
 
-    #[non_exhaustive]
     response: {}
 }
 
@@ -45,7 +43,7 @@ impl<'a> Request<'a> {
 
 /// A pending invite the third party identifier has received.
 #[derive(Debug, Clone, Deserialize, Serialize)]
-#[non_exhaustive]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ThirdPartyInvite {
     /// The type of third party invite issues. Currently only "email" is used.
     pub medium: Medium,
