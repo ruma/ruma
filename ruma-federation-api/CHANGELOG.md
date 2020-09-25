@@ -2,7 +2,8 @@
 
 Breaking Changes:
 
-* Replace `directory::get_public_rooms::v1::{PublicRoomsChunk, RoomNetwork}` with types from `ruma_common::directory`
+* Replace `directory::get_public_rooms::v1::{PublicRoomsChunk, RoomNetwork}` with types from
+  `ruma_common::directory`
 * Wrap `PduStub`s in `membership::create_join_event` in `Raw`
 
 Improvements:
@@ -18,10 +19,12 @@ Improvements:
       claim_keys::v1,
       query_keys::v1,
   },
-  membership::create_invite::{v1, v2},
-  membership::create_join_event::v2,
-  membership::get_leave_event::v1,
-  membership::create_leave_event::{v1, v2},
+  membership::{
+      create_invite::{v1, v2},
+      create_join_event::v2,
+      create_leave_event::{v1, v2},
+      get_leave_event::v1,
+  },
   thirdparty::bind_callback::v1,
   ```
 
