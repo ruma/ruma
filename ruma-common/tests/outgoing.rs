@@ -31,7 +31,7 @@ pub struct FakeRequest<'a, T> {
     pub recursive: &'a [Thing<'a, T>],
     pub option: Option<&'a [u8]>,
     pub depth: Option<&'a [(&'a str, &'a str)]>,
-    pub arc_type: std::sync::Arc<&'a str>,
+    pub arc_type: std::sync::Arc<&'a ::ruma_identifiers::ServerName>,
 }
 
 #[derive(Outgoing)]
