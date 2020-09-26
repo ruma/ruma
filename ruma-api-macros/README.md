@@ -61,7 +61,3 @@ pub mod some_endpoint {
 Please refer to the documentation of the `ruma_api!` re-export in [ruma-api][].
 
 [ruma-api]: https://docs.rs/ruma-api
-
-## License
-
-[MIT](http://opensource.org/licenses/MIT)

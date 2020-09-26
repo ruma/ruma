@@ -17,3 +17,7 @@ feature) since it depends on [ring][], which is only guaranteed to work on the
 latest stable.
 
 [ring]: https://github.com/briansmith/ring/
+
+## License
+
+[MIT](http://opensource.org/licenses/MIT)

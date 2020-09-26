@@ -5,7 +5,3 @@
 ## Documentation
 
 ruma-events-macros has [comprehensive documentation](https://docs.rs/ruma-events-macros) available on docs.rs.
-
-## License
-
-[MIT](http://opensource.org/licenses/MIT)
