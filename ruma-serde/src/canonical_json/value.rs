@@ -4,7 +4,7 @@ use std::{
     fmt,
 };
 
-use js_int::UInt;
+use js_int::Int;
 use serde::de::Error;
 use serde_json::Value as JsonValue;
 
@@ -30,7 +30,7 @@ pub enum CanonicalJsonValue {
     /// ```
     Bool(bool),
 
-    /// Represents a JSON number, whether integer or floating point.
+    /// Represents a JSON integer.
     ///
     /// ```
     /// # use serde_json::json;
@@ -38,7 +38,7 @@ pub enum CanonicalJsonValue {
     /// # use ruma_serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!(12).try_into().unwrap();
     /// ```
-    Number(UInt),
+    Integer(Int),
 
     /// Represents a JSON string.
     ///
@@ -74,6 +74,11 @@ pub enum CanonicalJsonValue {
 }
 
 impl CanonicalJsonValue {
+    /// Returns a canonical JSON string according to Matrix specification.
+    ///
+    /// The method should be preferred over `serde_json::to_string` since it
+    /// checks the size of the canonical string. Matrix canonical JSON enforces
+    /// a size limit of less than 65,535 when sending PDU's for the server-server protocol.
     pub fn to_canonical_string(&self) -> Result<String, serde_json::Error> {
         Ok(serde_json::to_string(self).and_then(|s| {
             if s.len() > 65_535 {
@@ -84,12 +89,13 @@ impl CanonicalJsonValue {
         })?)
     }
 }
+
 impl fmt::Debug for CanonicalJsonValue {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             CanonicalJsonValue::Null => formatter.debug_tuple("Null").finish(),
             CanonicalJsonValue::Bool(v) => formatter.debug_tuple("Bool").field(&v).finish(),
-            CanonicalJsonValue::Number(ref v) => fmt::Debug::fmt(v, formatter),
+            CanonicalJsonValue::Integer(ref v) => fmt::Debug::fmt(v, formatter),
             CanonicalJsonValue::String(ref v) => formatter.debug_tuple("String").field(v).finish(),
             CanonicalJsonValue::Array(ref v) => {
                 formatter.write_str("Array(")?;
@@ -113,32 +119,14 @@ impl fmt::Display for CanonicalJsonValue {
     /// #
     /// let json = json!({ "city": "London", "street": "10 Downing Street" });
     ///
-    /// // Compact format:
+    /// // Canonical format:
     /// //
     /// // {"city":"London","street":"10 Downing Street"}
     /// let compact = format!("{}", json);
     /// assert_eq!(compact,
     ///     "{\"city\":\"London\",\"street\":\"10 Downing Street\"}");
-    ///
-    /// // Pretty format:
-    /// //
-    /// // {
-    /// //   "city": "London",
-    /// //   "street": "10 Downing Street"
-    /// // }
-    /// let pretty = format!("{:#}", json);
-    /// assert_eq!(pretty,
-    ///     "{\n  \"city\": \"London\",\n  \"street\": \"10 Downing Street\"\n}");
-    /// ```
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let alternate = f.alternate();
-        if alternate {
-            // {:#}
-            write!(f, "{}", serde_json::to_string_pretty(&self).map_err(|_| fmt::Error)?)
-        } else {
-            // {}
-            write!(f, "{}", serde_json::to_string(&self).map_err(|_| fmt::Error)?)
-        }
+        write!(f, "{}", serde_json::to_string(&self).map_err(|_| fmt::Error)?)
     }
 }
 
@@ -147,9 +135,9 @@ impl TryFrom<JsonValue> for CanonicalJsonValue {
     fn try_from(json: JsonValue) -> Result<Self, Self::Error> {
         Ok(match json {
             JsonValue::Bool(b) => Self::Bool(b),
-            JsonValue::Number(num) => Self::Number(
-                UInt::try_from(num.as_u64().ok_or_else(|| {
-                    serde_json::Error::custom("Invalid number found, expected u64")
+            JsonValue::Number(num) => Self::Integer(
+                Int::try_from(num.as_i64().ok_or_else(|| {
+                    serde_json::Error::custom("Invalid number found, expected i64")
                 })?)
                 .map_err(serde_json::Error::custom)?,
             ),
@@ -176,7 +164,7 @@ impl serde::ser::Serialize for CanonicalJsonValue {
         match *self {
             CanonicalJsonValue::Null => serializer.serialize_unit(),
             CanonicalJsonValue::Bool(b) => serializer.serialize_bool(b),
-            CanonicalJsonValue::Number(ref n) => n.serialize(serializer),
+            CanonicalJsonValue::Integer(ref n) => n.serialize(serializer),
             CanonicalJsonValue::String(ref s) => serializer.serialize_str(s),
             CanonicalJsonValue::Array(ref v) => v.serialize(serializer),
             CanonicalJsonValue::Object(ref m) => {
@@ -201,48 +189,56 @@ impl<'de> serde::Deserialize<'de> for CanonicalJsonValue {
         Ok(val.try_into().map_err(serde::de::Error::custom)?)
     }
 }
-#[test]
-fn serialize_canon() {
-    let json: CanonicalJsonValue = serde_json::json!({
-        "a": [1, 2, 3],
-        "other": { "stuff": "hello" },
-        "string": "Thing"
-    })
-    .try_into()
-    .unwrap();
 
-    let ser = json.to_canonical_string().unwrap();
-    let back = serde_json::from_str::<CanonicalJsonValue>(&ser).unwrap();
+#[cfg(test)]
+mod test {
+    use std::convert::TryInto;
 
-    assert_eq!(json, back);
-}
+    use super::CanonicalJsonValue;
 
-#[test]
-fn check_canonical_sorts_keys() {
-    let json: CanonicalJsonValue = serde_json::json!({
-        "auth": {
-            "success": true,
-            "mxid": "@john.doe:example.com",
-            "profile": {
-                "display_name": "John Doe",
-                "three_pids": [
-                    {
-                        "medium": "email",
-                        "address": "john.doe@example.org"
-                    },
-                    {
-                        "medium": "msisdn",
-                        "address": "123456789"
-                    }
-                ]
+    #[test]
+    fn serialize_canon() {
+        let json: CanonicalJsonValue = serde_json::json!({
+            "a": [1, 2, 3],
+            "other": { "stuff": "hello" },
+            "string": "Thing"
+        })
+        .try_into()
+        .unwrap();
+
+        let ser = json.to_canonical_string().unwrap();
+        let back = serde_json::from_str::<CanonicalJsonValue>(&ser).unwrap();
+
+        assert_eq!(json, back);
+    }
+
+    #[test]
+    fn check_canonical_sorts_keys() {
+        let json: CanonicalJsonValue = serde_json::json!({
+            "auth": {
+                "success": true,
+                "mxid": "@john.doe:example.com",
+                "profile": {
+                    "display_name": "John Doe",
+                    "three_pids": [
+                        {
+                            "medium": "email",
+                            "address": "john.doe@example.org"
+                        },
+                        {
+                            "medium": "msisdn",
+                            "address": "123456789"
+                        }
+                    ]
+                }
             }
-        }
-    })
-    .try_into()
-    .unwrap();
+        })
+        .try_into()
+        .unwrap();
 
-    assert_eq!(
-        serde_json::to_string(&json).unwrap(),
-        r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#
-    )
+        assert_eq!(
+            serde_json::to_string(&json).unwrap(),
+            r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#
+        )
+    }
 }
