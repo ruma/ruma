@@ -2,6 +2,11 @@
 
 *Monorepo for our various Rust + Matrix crates.*
 
+[website] • [chat]
+
+[website]: https://www.ruma.io
+[chat]: https://matrix.to/#/#ruma:matrix.org
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
