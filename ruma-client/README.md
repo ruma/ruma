@@ -2,7 +2,6 @@
 
 [![crates.io page](https://img.shields.io/crates/v/ruma-client.svg)](https://crates.io/crates/ruma-client)
 [![docs.rs page](https://docs.rs/ruma-client/badge.svg)](https://docs.rs/ruma-client/)
-[![build status](https://travis-ci.org/ruma/ruma-client.svg?branch=master)](https://travis-ci.org/ruma/ruma-client)
 ![license: MIT](https://img.shields.io/crates/l/ruma-client.svg)
 
 **ruma-client** is a [Matrix][] client library for [Rust][].
