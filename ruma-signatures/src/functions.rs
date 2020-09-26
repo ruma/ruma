@@ -2,7 +2,7 @@
 
 use std::{cmp, collections::HashMap, mem};
 
-use base64::{decode_config, encode_config, STANDARD_NO_PAD};
+use base64::{decode_config, encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
 use ring::digest::{digest, SHA256};
 use ruma_identifiers::RoomVersionId;
 use serde_json::{from_str, from_value, map::Map, to_string, to_value, Value};
@@ -385,7 +385,16 @@ pub fn reference_hash(value: &Value, version: &RoomVersionId) -> Result<String, 
 
     let hash = digest(&SHA256, json.as_bytes());
 
-    Ok(encode_config(&hash, STANDARD_NO_PAD))
+    Ok(encode_config(
+        &hash,
+        match version {
+            RoomVersionId::Version1 | RoomVersionId::Version2 | RoomVersionId::Version3 => {
+                STANDARD_NO_PAD
+            }
+            // Room versions higher than version 3 are url safe base64 encoded
+            _ => URL_SAFE_NO_PAD,
+        },
+    ))
 }
 
 /// Hashes and signs the JSON representation of an event and adds the hash and signature to objects
@@ -530,7 +539,7 @@ where
 ///
 /// If the `Ok` variant is returned by this function, it will contain a `Verified` value which
 /// distinguishes an event with valid signatures and a matching content hash with an event with
-/// only valid signatures. See the documetation for `Verified` for details.
+/// only valid signatures. See the documentation for `Verified` for details.
 ///
 /// # Parameters
 ///
