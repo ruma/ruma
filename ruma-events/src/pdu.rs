@@ -91,6 +91,10 @@ pub struct RoomV1Pdu {
 /// A 'persistent data unit' (event) for room versions 3 and beyond.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RoomV3Pdu {
+    /// Event ID for the PDU.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub event_id: Option<EventId>,
+
     /// The room this event belongs to.
     pub room_id: RoomId,
 
@@ -304,6 +308,7 @@ impl RoomV3PduStub {
     /// Converts a V3 PDU stub into a full V3 PDU.
     pub fn into_v3_pdu(self, room_id: RoomId) -> RoomV3Pdu {
         RoomV3Pdu {
+            event_id: None,
             room_id,
             sender: self.sender,
             #[cfg(not(feature = "unstable-pre-spec"))]
