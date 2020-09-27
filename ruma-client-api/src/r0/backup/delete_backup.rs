@@ -12,13 +12,30 @@ ruma_api! {
         authentication: AccessToken,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The backup version.
         #[ruma_api(path)]
-        pub version: String,
+        pub version: &'a str,
     }
 
+    #[derive(Default)]
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {}
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given version, room_id, and sessions.
+    pub fn new(version: &'a str) -> Self {
+        Self { version }
+    }
+}
+
+impl Response {
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self
+    }
 }

@@ -6,6 +6,8 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
 
+use super::KeyData;
+
 ruma_api! {
     metadata: {
         description: "Store several sessions in the backup.",
@@ -16,19 +18,21 @@ ruma_api! {
         authentication: AccessToken,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The backup version. Must be the current backup.
         #[ruma_api(query)]
-        pub version: String,
+        pub version: &'a str,
 
         /// Room ID.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
 
         /// A map from session IDs to key data.
-        pub sessions: BTreeMap<String, super::KeyData>,
+        pub sessions: BTreeMap<String, KeyData>,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// An opaque string representing stored keys in the backup. Clients can compare it with
         /// the etag value they received in the request of their last key storage request.
@@ -39,4 +43,18 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given version, room_id, and sessions.
+    pub fn new(version: &'a str, room_id: &'a RoomId, sessions: BTreeMap<String, KeyData>) -> Self {
+        Self { version, room_id, sessions }
+    }
+}
+
+impl Response {
+    /// Creates an new `Response` with the given etag and count.
+    pub fn new(etag: String, count: UInt) -> Self {
+        Self { etag, count }
+    }
 }

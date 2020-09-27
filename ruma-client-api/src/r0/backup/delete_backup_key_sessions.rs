@@ -14,16 +14,18 @@ ruma_api! {
         authentication: AccessToken,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The backup version. Must be the current backup.
         #[ruma_api(query)]
-        pub version: String,
+        pub version: &'a str,
 
         /// Room ID.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// An opaque string representing stored keys in the backup. Clients can compare it with
         /// the etag value they received in the request of their last key storage request.
@@ -34,4 +36,19 @@ ruma_api! {
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+        /// Creates a new `Request` with the given version and room_id.
+
+    pub fn new(version: &'a str, room_id: &'a RoomId) -> Self {
+        Self { version, room_id }
+    }
+}
+
+impl Response {
+    /// Creates an new `Response` with the given etag and count.
+    pub fn new(etag: String, count: UInt) -> Self {
+        Self { etag, count }
+    }
 }

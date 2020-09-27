@@ -3,6 +3,8 @@
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
 
+use super::KeyData;
+
 ruma_api! {
     metadata: {
         description: "Retrieve a key from the backup",
@@ -13,24 +15,40 @@ ruma_api! {
         authentication: AccessToken,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The backup version. Must be the current backup.
         #[ruma_api(query)]
-        pub version: String,
+        pub version: &'a str,
 
         /// Room ID.
         #[ruma_api(path)]
-        pub room_id: RoomId,
+        pub room_id: &'a RoomId,
         /// Session ID.
         #[ruma_api(path)]
-        pub session_id: String,
+        pub session_id: &'a str,
     }
 
+    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// Key data.
         #[ruma_api(body)]
-        pub key_data: Option<super::KeyData>,
+        pub key_data: Option<KeyData>,
     }
 
     error: crate::Error
+}
+
+impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given version, room_id, and session_id.
+    pub fn new(version: &'a str, room_id: &'a RoomId, session_id: &'a str) -> Self {
+        Self { version, room_id, session_id }
+    }
+}
+
+impl Response {
+    /// Creates a new `Response` with the given key_data.
+    pub fn new(key_data: Option<KeyData>) -> Self {
+        Self { key_data }
+    }
 }
