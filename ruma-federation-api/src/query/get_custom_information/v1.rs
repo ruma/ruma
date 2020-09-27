@@ -3,12 +3,14 @@
 use ruma_api::ruma_api;
 use serde_json::Value as JsonValue;
 
+use std::collections::BTreeMap;
+
 ruma_api! {
     metadata: {
         description: "Performs a single query request on the receiving homeserver. The query string arguments are dependent on which type of query is being made.",
         method: GET,
         name: "custom",
-        path: "/_matrix/federation/v1/query/:kind",
+        path: "/_matrix/federation/v1/query/:query_type",
         rate_limited: false,
         authentication: AccessToken,
     }
@@ -16,11 +18,11 @@ ruma_api! {
     request: {
         /// The type of query to make.
         #[ruma_api(path)]
-        pub kind: &'a str,
+        pub query_type: &'a str,
 
         /// The body of the query
-        #[ruma_api(query)]
-        pub body: &'a str,
+        #[ruma_api(query_map)]
+        pub body: BTreeMap<String, String>,
     }
 
     response: {
@@ -31,9 +33,9 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new request of the given kind with the given body
-    pub fn new(kind: &'a str, body: &'a str) -> Self {
-        Self { kind, body }
+    /// Creates a new request of the given type with the given body
+    pub fn new(query_type: &'a str, body: BTreeMap<String, String>) -> Self {
+        Self { query_type, body }
     }
 }
 
