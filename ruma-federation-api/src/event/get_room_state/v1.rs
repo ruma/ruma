@@ -1,6 +1,7 @@
 //! [GET /_matrix/federation/v1/state/{roomId}](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-state-roomid)
 
 use ruma_api::ruma_api;
+use ruma_common::Raw;
 use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, RoomId};
 
@@ -27,10 +28,10 @@ ruma_api! {
     response: {
         /// The full set of authorization events that make up the state of the
         /// room, and their authorization events, recursively.
-        pub auth_chain: Vec<Pdu>,
+        pub auth_chain: Vec<Raw<Pdu>>,
 
         /// The fully resolved state of the room at the given event.
-        pub pdus: Vec<Pdu>,
+        pub pdus: Vec<Raw<Pdu>>,
     }
 }
 
@@ -43,7 +44,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given auth chain and room state.
-    pub fn new(auth_chain: Vec<Pdu>, pdus: Vec<Pdu>) -> Self {
+    pub fn new(auth_chain: Vec<Raw<Pdu>>, pdus: Vec<Raw<Pdu>>) -> Self {
         Self { auth_chain, pdus }
     }
 }
