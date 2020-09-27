@@ -9,7 +9,7 @@ ruma_api! {
     metadata: {
         description: "Performs a single query request on the receiving homeserver. The query string arguments are dependent on which type of query is being made.",
         method: GET,
-        name: "custom",
+        name: "get_custom_information",
         path: "/_matrix/federation/v1/query/:query_type",
         rate_limited: false,
         authentication: AccessToken,
@@ -20,9 +20,9 @@ ruma_api! {
         #[ruma_api(path)]
         pub query_type: &'a str,
 
-        /// The body of the query
+        /// The query parameters.
         #[ruma_api(query_map)]
-        pub body: BTreeMap<String, String>,
+        pub query: BTreeMap<String, String>,
     }
 
     response: {
@@ -33,9 +33,9 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new request of the given type with the given body
-    pub fn new(query_type: &'a str, body: BTreeMap<String, String>) -> Self {
-        Self { query_type, body }
+    /// Creates a new request with the given type and query parameters
+    pub fn new(query_type: &'a str, query: BTreeMap<String, String>) -> Self {
+        Self { query_type, query }
     }
 }
 
