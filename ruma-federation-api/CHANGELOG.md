@@ -25,6 +25,7 @@ Improvements:
       create_leave_event::{v1, v2},
       get_leave_event::v1,
   },
+  query::custom::v1,
   thirdparty::{
       bind_callback::v1,
       exchange_invite::v1,
