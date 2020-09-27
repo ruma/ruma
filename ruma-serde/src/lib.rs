@@ -3,7 +3,7 @@
 use serde::de::{Deserialize, IntoDeserializer};
 
 pub mod can_be_empty;
-pub mod canonical_json;
+mod canonical_json;
 pub mod duration;
 pub mod empty;
 pub mod json_string;
@@ -13,7 +13,7 @@ pub mod time;
 pub mod urlencoded;
 
 pub use can_be_empty::{is_empty, CanBeEmpty};
-pub use canonical_json::value::CanonicalJsonValue;
+pub use canonical_json::value::{CanonicalError, CanonicalJsonValue};
 pub use empty::vec_as_map_of_empty;
 
 /// Check whether a value is equal to its default value.

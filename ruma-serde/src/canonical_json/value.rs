@@ -5,8 +5,43 @@ use std::{
 };
 
 use js_int::Int;
-use serde::de::Error;
-use serde_json::Value as JsonValue;
+use serde::{
+    de::{Deserializer, Error},
+    ser::Serializer,
+    Deserialize, Serialize,
+};
+use serde_json::{to_string as to_json_string, Error as JsonError, Value as JsonValue};
+
+/// The set of possible errors when serializing to canonical JSON.
+#[derive(Debug)]
+pub enum CanonicalError {
+    /// The numeric value had a fractional component.
+    IntDecimal,
+    /// The numeric value overflowed the bounds of js_int::Int.
+    IntSize,
+    /// The `CanonicalJsonValue` being serialized was larger than 65,535 bytes.
+    JsonSize,
+    /// An error occurred while serializing/deserializing.
+    SerDe(JsonError),
+}
+
+impl fmt::Display for CanonicalError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            CanonicalError::IntDecimal => {
+                f.write_str("numbers with decimal contents are not valid")
+            }
+            CanonicalError::IntSize => {
+                f.write_str("number too small or large to fit in target type")
+            }
+            CanonicalError::JsonSize => f.write_str("JSON is larger than 65,535 byte max"),
+            CanonicalError::SerDe(err) => write!(f, "serde Error: {}", err),
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for CanonicalError {}
 
 #[derive(Clone, Eq, PartialEq)]
 pub enum CanonicalJsonValue {
@@ -79,10 +114,10 @@ impl CanonicalJsonValue {
     /// The method should be preferred over `serde_json::to_string` since it
     /// checks the size of the canonical string. Matrix canonical JSON enforces
     /// a size limit of less than 65,535 when sending PDU's for the server-server protocol.
-    pub fn to_canonical_string(&self) -> Result<String, serde_json::Error> {
-        Ok(serde_json::to_string(self).and_then(|s| {
-            if s.len() > 65_535 {
-                Err(serde_json::Error::custom("TOO LARGE"))
+    pub fn to_canonical_string(&self) -> Result<String, CanonicalError> {
+        Ok(to_json_string(self).map_err(CanonicalError::SerDe).and_then(|s| {
+            if s.as_bytes().len() > 65_535 {
+                Err(CanonicalError::JsonSize)
             } else {
                 Ok(s)
             }
@@ -93,16 +128,16 @@ impl CanonicalJsonValue {
 impl fmt::Debug for CanonicalJsonValue {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            CanonicalJsonValue::Null => formatter.debug_tuple("Null").finish(),
-            CanonicalJsonValue::Bool(v) => formatter.debug_tuple("Bool").field(&v).finish(),
-            CanonicalJsonValue::Integer(ref v) => fmt::Debug::fmt(v, formatter),
-            CanonicalJsonValue::String(ref v) => formatter.debug_tuple("String").field(v).finish(),
-            CanonicalJsonValue::Array(ref v) => {
+            Self::Null => formatter.debug_tuple("Null").finish(),
+            Self::Bool(v) => formatter.debug_tuple("Bool").field(&v).finish(),
+            Self::Integer(ref v) => fmt::Debug::fmt(v, formatter),
+            Self::String(ref v) => formatter.debug_tuple("String").field(v).finish(),
+            Self::Array(ref v) => {
                 formatter.write_str("Array(")?;
                 fmt::Debug::fmt(v, formatter)?;
                 formatter.write_str(")")
             }
-            CanonicalJsonValue::Object(ref v) => {
+            Self::Object(ref v) => {
                 formatter.write_str("Object(")?;
                 fmt::Debug::fmt(v, formatter)?;
                 formatter.write_str(")")
@@ -126,20 +161,19 @@ impl fmt::Display for CanonicalJsonValue {
     /// assert_eq!(compact,
     ///     "{\"city\":\"London\",\"street\":\"10 Downing Street\"}");
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", serde_json::to_string(&self).map_err(|_| fmt::Error)?)
+        write!(f, "{}", to_json_string(&self).map_err(|_| fmt::Error)?)
     }
 }
 
 impl TryFrom<JsonValue> for CanonicalJsonValue {
-    type Error = serde_json::Error;
+    type Error = CanonicalError;
+
     fn try_from(json: JsonValue) -> Result<Self, Self::Error> {
         Ok(match json {
             JsonValue::Bool(b) => Self::Bool(b),
             JsonValue::Number(num) => Self::Integer(
-                Int::try_from(num.as_i64().ok_or_else(|| {
-                    serde_json::Error::custom("Invalid number found, expected i64")
-                })?)
-                .map_err(serde_json::Error::custom)?,
+                Int::try_from(num.as_i64().ok_or(CanonicalError::IntDecimal)?)
+                    .map_err(|_| CanonicalError::IntSize)?,
             ),
             JsonValue::Array(vec) => {
                 Self::Array(vec.into_iter().map(TryInto::try_into).collect::<Result<Vec<_>, _>>()?)
@@ -155,19 +189,19 @@ impl TryFrom<JsonValue> for CanonicalJsonValue {
     }
 }
 
-impl serde::ser::Serialize for CanonicalJsonValue {
+impl Serialize for CanonicalJsonValue {
     #[inline]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: ::serde::Serializer,
+        S: Serializer,
     {
-        match *self {
-            CanonicalJsonValue::Null => serializer.serialize_unit(),
-            CanonicalJsonValue::Bool(b) => serializer.serialize_bool(b),
-            CanonicalJsonValue::Integer(ref n) => n.serialize(serializer),
-            CanonicalJsonValue::String(ref s) => serializer.serialize_str(s),
-            CanonicalJsonValue::Array(ref v) => v.serialize(serializer),
-            CanonicalJsonValue::Object(ref m) => {
+        match self {
+            Self::Null => serializer.serialize_unit(),
+            Self::Bool(b) => serializer.serialize_bool(*b),
+            Self::Integer(n) => n.serialize(serializer),
+            Self::String(s) => serializer.serialize_str(s),
+            Self::Array(v) => v.serialize(serializer),
+            Self::Object(m) => {
                 use serde::ser::SerializeMap;
                 let mut map = serializer.serialize_map(Some(m.len()))?;
                 for (k, v) in m {
@@ -179,14 +213,14 @@ impl serde::ser::Serialize for CanonicalJsonValue {
     }
 }
 
-impl<'de> serde::Deserialize<'de> for CanonicalJsonValue {
+impl<'de> Deserialize<'de> for CanonicalJsonValue {
     #[inline]
     fn deserialize<D>(deserializer: D) -> Result<CanonicalJsonValue, D::Error>
     where
-        D: serde::Deserializer<'de>,
+        D: Deserializer<'de>,
     {
-        let val = serde_json::Value::deserialize(deserializer)?;
-        Ok(val.try_into().map_err(serde::de::Error::custom)?)
+        let val = JsonValue::deserialize(deserializer)?;
+        Ok(val.try_into().map_err(Error::custom)?)
     }
 }
 
@@ -195,10 +229,11 @@ mod test {
     use std::convert::TryInto;
 
     use super::CanonicalJsonValue;
+    use serde_json::{from_str as from_json_str, json, to_string as to_json_string};
 
     #[test]
     fn serialize_canon() {
-        let json: CanonicalJsonValue = serde_json::json!({
+        let json: CanonicalJsonValue = json!({
             "a": [1, 2, 3],
             "other": { "stuff": "hello" },
             "string": "Thing"
@@ -207,14 +242,14 @@ mod test {
         .unwrap();
 
         let ser = json.to_canonical_string().unwrap();
-        let back = serde_json::from_str::<CanonicalJsonValue>(&ser).unwrap();
+        let back = from_json_str::<CanonicalJsonValue>(&ser).unwrap();
 
         assert_eq!(json, back);
     }
 
     #[test]
     fn check_canonical_sorts_keys() {
-        let json: CanonicalJsonValue = serde_json::json!({
+        let json: CanonicalJsonValue = json!({
             "auth": {
                 "success": true,
                 "mxid": "@john.doe:example.com",
@@ -237,7 +272,7 @@ mod test {
         .unwrap();
 
         assert_eq!(
-            serde_json::to_string(&json).unwrap(),
+            to_json_string(&json).unwrap(),
             r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#
         )
     }
