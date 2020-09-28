@@ -5,43 +5,31 @@ use std::{
 };
 
 use js_int::Int;
-use serde::{
-    de::{Deserializer, Error},
-    ser::Serializer,
-    Deserialize, Serialize,
-};
+use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
 use serde_json::{to_string as to_json_string, Error as JsonError, Value as JsonValue};
 
 /// The set of possible errors when serializing to canonical JSON.
 #[derive(Debug)]
-pub enum CanonicalError {
-    /// The numeric value had a fractional component.
-    IntDecimal,
-    /// The numeric value overflowed the bounds of js_int::Int.
-    IntSize,
+pub enum Error {
+    /// The numeric value failed conversion to js_int::Int.
+    IntConvert,
     /// The `CanonicalJsonValue` being serialized was larger than 65,535 bytes.
     JsonSize,
     /// An error occurred while serializing/deserializing.
     SerDe(JsonError),
 }
 
-impl fmt::Display for CanonicalError {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            CanonicalError::IntDecimal => {
-                f.write_str("numbers with decimal contents are not valid")
-            }
-            CanonicalError::IntSize => {
-                f.write_str("number too small or large to fit in target type")
-            }
-            CanonicalError::JsonSize => f.write_str("JSON is larger than 65,535 byte max"),
-            CanonicalError::SerDe(err) => write!(f, "serde Error: {}", err),
+            Error::IntConvert => f.write_str("number found is not a valid `js_int::Int`"),
+            Error::JsonSize => f.write_str("JSON is larger than 65,535 byte max"),
+            Error::SerDe(err) => write!(f, "serde Error: {}", err),
         }
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for CanonicalError {}
+impl std::error::Error for Error {}
 
 #[derive(Clone, Eq, PartialEq)]
 pub enum CanonicalJsonValue {
@@ -114,10 +102,10 @@ impl CanonicalJsonValue {
     /// The method should be preferred over `serde_json::to_string` since it
     /// checks the size of the canonical string. Matrix canonical JSON enforces
     /// a size limit of less than 65,535 when sending PDU's for the server-server protocol.
-    pub fn to_canonical_string(&self) -> Result<String, CanonicalError> {
-        Ok(to_json_string(self).map_err(CanonicalError::SerDe).and_then(|s| {
+    pub fn to_canonical_string(&self) -> Result<String, Error> {
+        Ok(to_json_string(self).map_err(Error::SerDe).and_then(|s| {
             if s.as_bytes().len() > 65_535 {
-                Err(CanonicalError::JsonSize)
+                Err(Error::JsonSize)
             } else {
                 Ok(s)
             }
@@ -166,14 +154,14 @@ impl fmt::Display for CanonicalJsonValue {
 }
 
 impl TryFrom<JsonValue> for CanonicalJsonValue {
-    type Error = CanonicalError;
+    type Error = Error;
 
     fn try_from(json: JsonValue) -> Result<Self, Self::Error> {
         Ok(match json {
             JsonValue::Bool(b) => Self::Bool(b),
             JsonValue::Number(num) => Self::Integer(
-                Int::try_from(num.as_i64().ok_or(CanonicalError::IntDecimal)?)
-                    .map_err(|_| CanonicalError::IntSize)?,
+                Int::try_from(num.as_i64().ok_or(Error::IntConvert)?)
+                    .map_err(|_| Error::IntConvert)?,
             ),
             JsonValue::Array(vec) => {
                 Self::Array(vec.into_iter().map(TryInto::try_into).collect::<Result<Vec<_>, _>>()?)
@@ -220,7 +208,7 @@ impl<'de> Deserialize<'de> for CanonicalJsonValue {
         D: Deserializer<'de>,
     {
         let val = JsonValue::deserialize(deserializer)?;
-        Ok(val.try_into().map_err(Error::custom)?)
+        Ok(val.try_into().map_err(serde::de::Error::custom)?)
     }
 }
 
