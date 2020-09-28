@@ -14,14 +14,12 @@ ruma_api! {
         authentication: AccessToken,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The algorithm used for storing backups.
         #[serde(flatten)]
         pub algorithm: BackupAlgorithm,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// The backup version. This is an opaque string.
         pub version: String,

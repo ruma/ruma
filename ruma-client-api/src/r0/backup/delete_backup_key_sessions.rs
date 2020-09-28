@@ -14,7 +14,6 @@ ruma_api! {
         authentication: AccessToken,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The backup version. Must be the current backup.
         #[ruma_api(query)]
@@ -25,7 +24,6 @@ ruma_api! {
         pub room_id: &'a RoomId,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// An opaque string representing stored keys in the backup. Clients can compare it with
         /// the etag value they received in the request of their last key storage request.
@@ -39,7 +37,7 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-        /// Creates a new `Request` with the given version and room_id.
+    /// Creates a new `Request` with the given version and room_id.
 
     pub fn new(version: &'a str, room_id: &'a RoomId) -> Self {
         Self { version, room_id }

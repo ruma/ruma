@@ -17,7 +17,6 @@ ruma_api! {
         authentication: AccessToken,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The backup version. Must be the current backup.
         #[ruma_api(query)]
@@ -28,7 +27,6 @@ ruma_api! {
         pub room_id: &'a RoomId,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// A map of session IDs to key data.
         pub sessions: BTreeMap<String, KeyData>,

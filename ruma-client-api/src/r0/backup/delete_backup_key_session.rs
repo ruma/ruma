@@ -14,7 +14,6 @@ ruma_api! {
         authentication: AccessToken,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     request: {
         /// The backup version. Must be the current backup.
         #[ruma_api(query)]
@@ -23,12 +22,12 @@ ruma_api! {
         /// Room ID.
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
+
         /// Session ID.
         #[ruma_api(path)]
         pub session_id: &'a str,
     }
 
-    #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
     response: {
         /// An opaque string representing stored keys in the backup. Clients can compare it with
         /// the etag value they received in the request of their last key storage request.
