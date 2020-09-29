@@ -19,7 +19,7 @@ ruma_api! {
         #[ruma_api(query)]
         pub version: &'a str,
 
-        /// Room ID.
+        /// The ID of the room that the requested key is for.
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
     }

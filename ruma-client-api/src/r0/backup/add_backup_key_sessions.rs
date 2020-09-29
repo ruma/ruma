@@ -23,7 +23,7 @@ ruma_api! {
         #[ruma_api(query)]
         pub version: &'a str,
 
-        /// Room ID.
+        /// The ID of the room that the requested key is for.
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
 
@@ -44,7 +44,7 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new `Request` with the given version, room_id, and sessions.
+    /// Creates a new `Request` with the given version, room_id and sessions.
     pub fn new(version: &'a str, room_id: &'a RoomId, sessions: BTreeMap<String, KeyData>) -> Self {
         Self { version, room_id, sessions }
     }

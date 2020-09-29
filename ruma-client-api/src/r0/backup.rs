@@ -54,7 +54,7 @@ pub enum BackupAlgorithm {
     },
 }
 
-/// The key data.
+/// Information about the backup key.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct KeyData {
     /// The index of the first message in the session that the key can decrypt.

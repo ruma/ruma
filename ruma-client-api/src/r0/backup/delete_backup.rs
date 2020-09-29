@@ -25,7 +25,7 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new `Request` with the given version, room_id, and sessions.
+    /// Creates a new `Request` with the given version, room_id and sessions.
     pub fn new(version: &'a str) -> Self {
         Self { version }
     }

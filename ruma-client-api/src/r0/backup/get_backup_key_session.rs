@@ -20,17 +20,17 @@ ruma_api! {
         #[ruma_api(query)]
         pub version: &'a str,
 
-        /// Room ID.
+        /// The ID of the room that the requested key is for.
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
 
-        /// Session ID.
+        /// The ID of the megolm session whose key is requested.
         #[ruma_api(path)]
         pub session_id: &'a str,
     }
 
     response: {
-        /// Key data.
+        /// Information about the requested backup key.
         #[ruma_api(body)]
         pub key_data: Option<KeyData>,
     }
@@ -39,7 +39,7 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new `Request` with the given version, room_id, and session_id.
+    /// Creates a new `Request` with the given version, room_id and session_id.
     pub fn new(version: &'a str, room_id: &'a RoomId, session_id: &'a str) -> Self {
         Self { version, room_id, session_id }
     }
