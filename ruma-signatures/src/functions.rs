@@ -134,27 +134,25 @@ where
     let mut signature_map;
     let maybe_unsigned;
 
-    // Pull `signatures` and `unsigned` out of the object, and limit the scope of the mutable
-    // borrow of `value` so we can call `to_string` with it below.
-    {
-        let map = match value {
-            Value::Object(ref mut map) => map,
-            _ => return Err(Error::new("JSON value must be a JSON object")),
-        };
+    // Pull `signatures` and `unsigned` out of the object.
+    let map = match value {
+        Value::Object(map) => map,
+        _ => return Err(Error::new("JSON value must be a JSON object")),
+    };
 
-        signature_map = match map.remove("signatures") {
-            Some(signatures_value) => match signatures_value.as_object() {
-                Some(signatures) => from_value(Value::Object(signatures.clone()))?,
-                None => return Err(Error::new("field `signatures` must be a JSON object")),
-            },
-            None => BTreeMap::new(),
-        };
+    // FIXME: Once MSRV >= 1.45.0, use remove_key and don't allocate new `String`s below.
+    signature_map = match map.remove("signatures") {
+        Some(signatures_value) => match signatures_value.as_object() {
+            Some(signatures) => from_value(Value::Object(signatures.clone()))?,
+            None => return Err(Error::new("field `signatures` must be a JSON object")),
+        },
+        None => BTreeMap::new(),
+    };
 
-        maybe_unsigned = map.remove("unsigned");
-    }
+    maybe_unsigned = map.remove("unsigned");
 
     // Get the canonical JSON.
-    let json = to_string(&value)?;
+    let json = to_string(map)?;
 
     // Sign the canonical JSON.
     let signature = key_pair.sign(json.as_bytes());
@@ -163,9 +161,6 @@ where
     let signature_set = signature_map.entry(entity_id.to_string()).or_insert_with(BTreeMap::new);
 
     signature_set.insert(signature.id(), signature.base64());
-
-    // Safe to unwrap because we did this exact check at the beginning of the function.
-    let map = value.as_object_mut().unwrap();
 
     // Put `signatures` and `unsigned` back in.
     map.insert("signatures".into(), to_value(signature_map)?);
