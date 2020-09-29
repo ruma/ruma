@@ -32,7 +32,7 @@ ruma_api! {
     response: {
         /// Information about the requested backup key.
         #[ruma_api(body)]
-        pub key_data: Option<KeyData>,
+        pub key_data: KeyData,
     }
 
     error: crate::Error
@@ -47,7 +47,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given key_data.
-    pub fn new(key_data: Option<KeyData>) -> Self {
+    pub fn new(key_data: KeyData) -> Self {
         Self { key_data }
     }
 }
