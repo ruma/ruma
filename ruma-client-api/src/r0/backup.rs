@@ -1,8 +1,16 @@
 //! Endpoints for server-side key backups.
 
+pub mod add_backup_key_session;
+pub mod add_backup_key_sessions;
 pub mod add_backup_keys;
 pub mod create_backup;
+pub mod delete_backup;
+pub mod delete_backup_key_session;
+pub mod delete_backup_key_sessions;
+pub mod delete_backup_keys;
 pub mod get_backup;
+pub mod get_backup_key_session;
+pub mod get_backup_key_sessions;
 pub mod get_backup_keys;
 pub mod get_latest_backup;
 pub mod update_backup;
@@ -46,7 +54,7 @@ pub enum BackupAlgorithm {
     },
 }
 
-/// The key data.
+/// Information about the backup key.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct KeyData {
     /// The index of the first message in the session that the key can decrypt.
