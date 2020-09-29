@@ -26,7 +26,7 @@ tasks:
 
       # ruma-identifiers has a bunch of features. Make sure it works both with
       # all of them and none of them being enabled.
-      cd ruma-identifiers
+      pushd ruma-identifiers
 
       cargo test --no-default-features --quiet
       id_test_1_exit=$?
@@ -34,12 +34,16 @@ tasks:
       cargo test --all-features --quiet
       id_test_2_exit=$?
 
+      popd
+
       # ruma-client_api also has a few optional features, but none are enabled
       # by default. Make sure it works with all of them.
-      cd ruma-client-api
+      pushd ruma-client-api
 
       cargo check --all-features --quiet
       client_api_exit=$?
+
+      popd
 
       exit $(( $fmt_exit || $clippy_exit || $test_exit || $id_test_1_exit || $id_test_2_exit || $client_api_exit ))
   # TODO: Add audit task once cargo-audit binary releases are available.
