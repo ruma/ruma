@@ -172,7 +172,7 @@ fn split_id(id: &str) -> Result<(Algorithm, String), SplitError<'_>> {
 
 #[cfg(test)]
 mod test {
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
 
     use base64::{decode_config, STANDARD_NO_PAD};
     use ring::signature::{Ed25519KeyPair as RingEd25519KeyPair, KeyPair as _};
@@ -318,10 +318,10 @@ mod test {
     fn verify_empty_json() {
         let value = from_str(r#"{"signatures":{"domain":{"ed25519:1":"lXjsnvhVlz8t3etR+6AEJ0IT70WujeHC1CFjDDsVx0xSig1Bx7lvoi1x3j/2/GPNjQM4a2gD34UqsXFluaQEBA"}}}"#).unwrap();
 
-        let mut signature_set = HashMap::new();
+        let mut signature_set = BTreeMap::new();
         signature_set.insert("ed25519:1".into(), public_key_string());
 
-        let mut public_key_map = HashMap::new();
+        let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
         assert!(verify_json(&public_key_map, &value).is_ok());
@@ -369,10 +369,10 @@ mod test {
             r#"{"one":1,"signatures":{"domain":{"ed25519:1":"t6Ehmh6XTDz7qNWI0QI5tNPSliWLPQP/+Fzz3LpdCS7q1k2G2/5b5Embs2j4uG3ZeivejrzqSVoBcdocRpa+AQ"}},"two":"Two"}"#
         ).unwrap();
 
-        let mut signature_set = HashMap::new();
+        let mut signature_set = BTreeMap::new();
         signature_set.insert("ed25519:1".into(), public_key_string());
 
-        let mut public_key_map = HashMap::new();
+        let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
         assert!(verify_json(&public_key_map, &value).is_ok());
@@ -388,10 +388,10 @@ mod test {
     fn fail_verify_json() {
         let value = from_str(r#"{"not":"empty","signatures":{"domain":"lXjsnvhVlz8t3etR+6AEJ0IT70WujeHC1CFjDDsVx0xSig1Bx7lvoi1x3j/2/GPNjQM4a2gD34UqsXFluaQEBA"}}"#).unwrap();
 
-        let mut signature_set = HashMap::new();
+        let mut signature_set = BTreeMap::new();
         signature_set.insert("ed25519:1".into(), public_key_string());
 
-        let mut public_key_map = HashMap::new();
+        let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
         assert!(verify_json(&public_key_map, &value).is_err());
@@ -466,10 +466,10 @@ mod test {
 
     #[test]
     fn verify_minimal_event() {
-        let mut signature_set = HashMap::new();
+        let mut signature_set = BTreeMap::new();
         signature_set.insert("ed25519:1".into(), public_key_string());
 
-        let mut public_key_map = HashMap::new();
+        let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
         let value = from_str(

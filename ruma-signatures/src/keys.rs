@@ -1,7 +1,7 @@
 //! Public and private key pairs.
 
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     fmt::{Debug, Formatter, Result as FmtResult},
 };
 
@@ -99,12 +99,12 @@ impl Debug for Ed25519KeyPair {
 /// A map from entity names to sets of public keys for that entity.
 ///
 /// "Entity" is generally a homeserver, e.g. "example.com".
-pub type PublicKeyMap = HashMap<String, PublicKeySet>;
+pub type PublicKeyMap = BTreeMap<String, PublicKeySet>;
 
 /// A set of public keys for a single homeserver.
 ///
 /// This is represented as a map from key ID to Base64-encoded signature.
-pub type PublicKeySet = HashMap<String, String>;
+pub type PublicKeySet = BTreeMap<String, String>;
 
 #[cfg(test)]
 mod tests {

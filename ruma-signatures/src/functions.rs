@@ -1,6 +1,6 @@
 //! Functions for signing and verifying JSON and events.
 
-use std::{cmp, collections::HashMap, mem};
+use std::{cmp, collections::BTreeMap, mem};
 
 use base64::{decode_config, encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
 use ring::digest::{digest, SHA256};
@@ -147,7 +147,7 @@ where
                 Some(signatures) => from_value(Value::Object(signatures.clone()))?,
                 None => return Err(Error::new("field `signatures` must be a JSON object")),
             },
-            None => HashMap::with_capacity(1),
+            None => BTreeMap::new(),
         };
 
         maybe_unsigned = map.remove("unsigned");
@@ -160,8 +160,7 @@ where
     let signature = key_pair.sign(json.as_bytes());
 
     // Insert the new signature in the map we pulled out (or created) previously.
-    let signature_set =
-        signature_map.entry(entity_id.to_string()).or_insert_with(|| HashMap::with_capacity(1));
+    let signature_set = signature_map.entry(entity_id.to_string()).or_insert_with(BTreeMap::new);
 
     signature_set.insert(signature.id(), signature.base64());
 
@@ -225,7 +224,7 @@ pub fn canonical_json(value: &Value) -> Result<String, Error> {
 /// # Examples
 ///
 /// ```rust
-/// use std::collections::HashMap;
+/// use std::collections::BTreeMap;
 ///
 /// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 ///
@@ -241,9 +240,9 @@ pub fn canonical_json(value: &Value) -> Result<String, Error> {
 /// ).unwrap();
 ///
 /// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
-/// let mut public_key_set = HashMap::new();
+/// let mut public_key_set = BTreeMap::new();
 /// public_key_set.insert("ed25519:1".into(), PUBLIC_KEY.to_string());
-/// let mut public_key_map = HashMap::new();
+/// let mut public_key_map = BTreeMap::new();
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
@@ -552,7 +551,7 @@ where
 /// # Examples
 ///
 /// ```rust
-/// # use std::collections::HashMap;
+/// # use std::collections::BTreeMap;
 /// # use ruma_identifiers::RoomVersionId;
 /// # use ruma_signatures::verify_event;
 /// #
@@ -585,9 +584,9 @@ where
 /// ).unwrap();
 ///
 /// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
-/// let mut public_key_set = HashMap::new();
+/// let mut public_key_set = BTreeMap::new();
 /// public_key_set.insert("ed25519:1".into(), PUBLIC_KEY.to_string());
-/// let mut public_key_map = HashMap::new();
+/// let mut public_key_map = BTreeMap::new();
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
