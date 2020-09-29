@@ -22,7 +22,11 @@ pub struct Protocol {
     pub location_fields: Vec<String>,
 
     /// A content URI representing an icon for the third party protocol.
+    #[cfg(not(feature = "unstable-synapse-quirks"))]
     pub icon: String,
+    /// A content URI representing an icon for the third party protocol.
+    #[cfg(feature = "unstable-synapse-quirks")]
+    pub icon: Option<String>,
 
     /// The type definitions for the fields defined in `user_fields` and `location_fields`.
     pub field_types: BTreeMap<String, FieldType>,
@@ -44,7 +48,11 @@ pub struct ProtocolInit {
     pub location_fields: Vec<String>,
 
     /// A content URI representing an icon for the third party protocol.
+    #[cfg(not(feature = "unstable-synapse-quirks"))]
     pub icon: String,
+    /// A content URI representing an icon for the third party protocol.
+    #[cfg(feature = "unstable-synapse-quirks")]
+    pub icon: Option<String>,
 
     /// The type definitions for the fields defined in `user_fields` and `location_fields`.
     pub field_types: BTreeMap<String, FieldType>,
