@@ -171,7 +171,7 @@ where
     map.insert("signatures".into(), to_value(signature_map)?);
 
     if let Some(unsigned) = maybe_unsigned {
-        map.insert("unsigned".into(), to_value(unsigned)?);
+        map.insert("unsigned".into(), unsigned);
     }
 
     Ok(())
