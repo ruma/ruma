@@ -1,6 +1,8 @@
 # ruma-events-macros
 
-**ruma-events-macros** provides a procedural macro for easily generating event types for [ruma-events](https://github.com/ruma/ruma-events).
+**ruma-events-macros** provides a procedural macro for easily generating event types for [ruma-events].
+
+[ruma-events]: https://github.com/ruma/ruma/tree/master/ruma-events
 
 ## Documentation
 

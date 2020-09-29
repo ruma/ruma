@@ -1,7 +1,9 @@
 //! Crate `ruma_events_macros` provides a procedural macro for generating
-//! [ruma-events](https://github.com/ruma/ruma-events) events.
+//! [ruma-events] events.
 //!
 //! See the documentation for the individual macros for usage details.
+//!
+//! [ruma-events]: https://github.com/ruma/ruma/tree/master/ruma-events
 
 #![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
 
