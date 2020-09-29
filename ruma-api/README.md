@@ -6,7 +6,3 @@
 
 **ruma-api** contains core types used to define the requests and responses for each endpoint in the various [Matrix](https://matrix.org/) API specifications.
 These types can be shared by client and server code for all Matrix APIs.
-
-## Documentation
-
-ruma-api has [comprehensive documentation](https://docs.rs/ruma-api) available on docs.rs.

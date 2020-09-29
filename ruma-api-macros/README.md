@@ -57,9 +57,3 @@ pub mod some_endpoint {
     }
 }
 ```
-
-## Documentation
-
-Please refer to the documentation of the `ruma_api!` re-export in [ruma-api][].
-
-[ruma-api]: https://docs.rs/ruma-api

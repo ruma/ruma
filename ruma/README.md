@@ -16,7 +16,3 @@ following features:
 * `client-api` for the client-server API
 * `federation-api` for the server-server (federation) API
 * `appservice-api` for the application service API
-
-## Documentation
-
-ruma has [comprehensive documentation](https://docs.rs/ruma) available on docs.rs.

@@ -5,7 +5,3 @@
 ![license: MIT](https://img.shields.io/crates/l/ruma-identifiers.svg)
 
 **ruma-identifiers** contains types for [Matrix](https://matrix.org/) identifiers for events, rooms, room aliases, and users.
-
-## Documentation
-
-ruma-identifiers has [comprehensive documentation](https://docs.rs/ruma-identifiers) available on docs.rs.

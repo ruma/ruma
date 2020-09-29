@@ -1,11 +1,20 @@
 # Ruma – Your home in Matrix.
 
-*Monorepo for our various Rust + Matrix crates.*
+A set of [Rust] crates (libraries) for interacting with the [Matrix] chat network.
 
 [website] • [chat]
 
-[website]: https://www.ruma.io
+[Rust]: https://rust-lang.org/
+[Matrix]: https://matrix.org/
+[website]: https://www.ruma.io/
 [chat]: https://matrix.to/#/#ruma:matrix.org
+
+## Status
+
+As of 2020-09-29, we support the vast majority of endpoints in all of the various Matrix APIs.
+
+As long as they are still at version 0.x though, only the latest API revision is considered
+supported. This may change after 1.x releases.
 
 ## Contributing
 
