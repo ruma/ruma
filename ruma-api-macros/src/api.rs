@@ -355,7 +355,12 @@ impl ToTokens for Api {
                         .method(#ruma_api_import::exports::http::Method::#method)
                         .uri(::std::format!(
                             "{}{}{}",
-                            base_url.strip_suffix("/").unwrap_or(base_url),
+                            // FIXME: Once MSRV is >= 1.45.0, switch to
+                            // base_url.strip_suffix('/').unwrap_or(base_url),
+                            match base_url.as_bytes().last() {
+                                Some(b'/') => &base_url[..base_url.len() - 1],
+                                _ => base_url,
+                            },
                             #request_path_string,
                             #request_query_string,
                         ));

@@ -164,7 +164,12 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
             .method(http::Method::PUT)
             .uri(format!(
                 "{}/_matrix/client/r0/rooms/{}/state/{}",
-                base_url.strip_suffix("/").unwrap_or(base_url),
+                // FIXME: Once MSRV is >= 1.45.0, switch to
+                // base_url.strip_suffix('/').unwrap_or(base_url),
+                match base_url.as_bytes().last() {
+                    Some(b'/') => &base_url[..base_url.len() - 1],
+                    _ => base_url,
+                },
                 utf8_percent_encode(self.room_id.as_str(), NON_ALPHANUMERIC),
                 utf8_percent_encode(self.content.event_type(), NON_ALPHANUMERIC),
             ))
