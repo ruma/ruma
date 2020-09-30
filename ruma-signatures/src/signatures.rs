@@ -1,6 +1,6 @@
 //! Digital signatures and collections of signatures.
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use base64::{encode_config, STANDARD_NO_PAD};
 
@@ -98,12 +98,12 @@ impl Signature {
 /// A map from entity names to sets of digital signatures created by that entity.
 ///
 /// "Entity" is generally a homeserver, e.g. "example.com".
-pub type SignatureMap = HashMap<String, SignatureSet>;
+pub type SignatureMap = BTreeMap<String, SignatureSet>;
 
 /// A set of digital signatures created by a single homeserver.
 ///
 /// This is represented as a map from signing key ID to Base64-encoded signature.
-pub type SignatureSet = HashMap<String, String>;
+pub type SignatureSet = BTreeMap<String, String>;
 
 #[cfg(test)]
 mod tests {
