@@ -51,7 +51,7 @@ use std::{
 
 pub use functions::{
     canonical_json, content_hash, hash_and_sign_event, redact, reference_hash, sign_json,
-    verify_event, verify_json,
+    verify_event, verify_json, JsonObject,
 };
 pub use keys::{Ed25519KeyPair, KeyPair, PublicKeyMap, PublicKeySet};
 pub use signatures::Signature;
@@ -177,7 +177,7 @@ mod test {
     use base64::{decode_config, STANDARD_NO_PAD};
     use ring::signature::{Ed25519KeyPair as RingEd25519KeyPair, KeyPair as _};
     use ruma_identifiers::RoomVersionId;
-    use serde_json::{from_str, json, to_string, to_value, Value};
+    use serde_json::{from_str, json, to_string, to_value};
 
     use super::{
         canonical_json, hash_and_sign_event, sign_json, verify_event, verify_json, Ed25519KeyPair,
@@ -202,9 +202,8 @@ mod test {
 
     /// Convenience for converting a string of JSON into its canonical form.
     fn test_canonical_json(input: &str) -> String {
-        let value = from_str::<Value>(input).unwrap();
-
-        canonical_json(&value).unwrap()
+        let object = from_str(input).unwrap();
+        canonical_json(&object)
     }
 
     #[test]
@@ -346,7 +345,7 @@ mod test {
         });
 
         let mut alpha_value = to_value(alpha).expect("alpha should serialize");
-        sign_json("domain", &key_pair, &mut alpha_value).unwrap();
+        sign_json("domain", &key_pair, alpha_value.as_object_mut().unwrap()).unwrap();
 
         assert_eq!(
             to_string(&alpha_value).unwrap(),
@@ -355,7 +354,7 @@ mod test {
 
         let mut reverse_alpha_value =
             to_value(reverse_alpha).expect("reverse_alpha should serialize");
-        sign_json("domain", &key_pair, &mut reverse_alpha_value).unwrap();
+        sign_json("domain", &key_pair, reverse_alpha_value.as_object_mut().unwrap()).unwrap();
 
         assert_eq!(
             to_string(&reverse_alpha_value).unwrap(),
@@ -422,11 +421,11 @@ mod test {
             }
         }"#;
 
-        let mut value = from_str::<Value>(json).unwrap();
-        hash_and_sign_event("domain", &key_pair, &mut value, &RoomVersionId::Version5).unwrap();
+        let mut object = from_str(json).unwrap();
+        hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::Version5).unwrap();
 
         assert_eq!(
-            to_string(&value).unwrap(),
+            to_string(&object).unwrap(),
             r#"{"auth_events":[],"content":{},"depth":3,"hashes":{"sha256":"5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"},"origin":"domain","origin_server_ts":1000000,"prev_events":[],"room_id":"!x:domain","sender":"@a:domain","signatures":{"domain":{"ed25519:1":"PxOFMn6ORll8PFSQp0IRF6037MEZt3Mfzu/ROiT/gb/ccs1G+f6Ddoswez4KntLPBI3GKCGIkhctiK37JOy2Aw"}},"type":"X","unsigned":{"age_ts":1000000}}"#
         );
     }
@@ -455,11 +454,11 @@ mod test {
             }
         }"#;
 
-        let mut value = from_str::<Value>(json).unwrap();
-        hash_and_sign_event("domain", &key_pair, &mut value, &RoomVersionId::Version5).unwrap();
+        let mut object = from_str(json).unwrap();
+        hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::Version5).unwrap();
 
         assert_eq!(
-            to_string(&value).unwrap(),
+            to_string(&object).unwrap(),
             r#"{"content":{"body":"Here is the message content"},"event_id":"$0:domain","hashes":{"sha256":"onLKD1bGljeBWQhWZ1kaP9SorVmRQNdN5aM2JYU2n/g"},"origin":"domain","origin_server_ts":1000000,"room_id":"!r:domain","sender":"@u:domain","signatures":{"domain":{"ed25519:1":"D2V+qWBJssVuK/pEUJtwaYMdww2q1fP4PRCo226ChlLz8u8AWmQdLKes19NMjs/X0Hv0HIjU0c1TDKFMtGuoCA"}},"type":"m.room.message","unsigned":{"age_ts":1000000}}"#
         );
     }

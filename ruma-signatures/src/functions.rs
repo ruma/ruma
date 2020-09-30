@@ -73,6 +73,9 @@ static CONTENT_HASH_FIELDS_TO_REMOVE: &[&str] = &["hashes", "signatures", "unsig
 /// The fields to remove from a JSON object when creating a reference hash of an event.
 static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "unsigned"];
 
+/// The inner type of `serde_json::Value::Object`.
+pub type JsonObject = Map<String, Value>;
+
 /// Signs an arbitrary JSON object and adds the signature to an object under the key `signatures`.
 ///
 /// If `signatures` is already present, the new signature will be appended to the existing ones.
@@ -82,14 +85,13 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 /// * entity_id: The identifier of the entity creating the signature. Generally this means a
 /// homeserver, e.g. "example.com".
 /// * key_pair: A cryptographic key pair used to sign the JSON.
-/// * value: A JSON object to sign according and append a signature to.
+/// * object: A JSON object to sign according and append a signature to.
 ///
 /// # Errors
 ///
 /// Returns an error if:
 ///
-/// * `value` is not a JSON object.
-/// * `value` contains a field called `signatures` that is not a JSON object.
+/// * `object` contains a field called `signatures` that is not a JSON object.
 ///
 /// # Examples
 ///
@@ -127,21 +129,15 @@ static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "uns
 ///     }
 /// }
 /// ```
-pub fn sign_json<K>(entity_id: &str, key_pair: &K, value: &mut Value) -> Result<(), Error>
+pub fn sign_json<K>(entity_id: &str, key_pair: &K, object: &mut JsonObject) -> Result<(), Error>
 where
     K: KeyPair,
 {
     let mut signature_map;
     let maybe_unsigned;
 
-    // Pull `signatures` and `unsigned` out of the object.
-    let map = match value {
-        Value::Object(map) => map,
-        _ => return Err(Error::new("JSON value must be a JSON object")),
-    };
-
     // FIXME: Once MSRV >= 1.45.0, use remove_key and don't allocate new `String`s below.
-    signature_map = match map.remove("signatures") {
+    signature_map = match object.remove("signatures") {
         Some(signatures_value) => match signatures_value.as_object() {
             Some(signatures) => from_value(Value::Object(signatures.clone()))?,
             None => return Err(Error::new("field `signatures` must be a JSON object")),
@@ -149,10 +145,10 @@ where
         None => BTreeMap::new(),
     };
 
-    maybe_unsigned = map.remove("unsigned");
+    maybe_unsigned = object.remove("unsigned");
 
     // Get the canonical JSON.
-    let json = to_string(map)?;
+    let json = to_string(object)?;
 
     // Sign the canonical JSON.
     let signature = key_pair.sign(json.as_bytes());
@@ -163,10 +159,10 @@ where
     signature_set.insert(signature.id(), signature.base64());
 
     // Put `signatures` and `unsigned` back in.
-    map.insert("signatures".into(), to_value(signature_map)?);
+    object.insert("signatures".into(), to_value(signature_map)?);
 
     if let Some(unsigned) = maybe_unsigned {
-        map.insert("unsigned".into(), unsigned);
+        object.insert("unsigned".into(), unsigned);
     }
 
     Ok(())
@@ -177,11 +173,7 @@ where
 ///
 /// # Parameters
 ///
-/// * value: The `serde_json::Value` (JSON value) to convert.
-///
-/// # Errors
-///
-/// Returns an error if the provided JSON value is not a JSON object.
+/// * object: The JSON object to convert.
 ///
 /// # Examples
 ///
@@ -192,14 +184,13 @@ where
 ///         "日": 1
 ///     }"#;
 ///
-/// let value = serde_json::from_str::<serde_json::Value>(input).unwrap();
-///
-/// let canonical = ruma_signatures::canonical_json(&value).unwrap();
+/// let object = serde_json::from_str(input).unwrap();
+/// let canonical = ruma_signatures::canonical_json(&object);
 ///
 /// assert_eq!(canonical, r#"{"日":1,"本":2}"#);
 /// ```
-pub fn canonical_json(value: &Value) -> Result<String, Error> {
-    canonical_json_with_fields_to_remove(value, CANONICAL_JSON_FIELDS_TO_REMOVE)
+pub fn canonical_json(object: &JsonObject) -> String {
+    canonical_json_with_fields_to_remove(object, CANONICAL_JSON_FIELDS_TO_REMOVE)
 }
 
 /// Uses a set of public keys to verify a signed JSON object.
@@ -210,7 +201,7 @@ pub fn canonical_json(value: &Value) -> Result<String, Error> {
 /// Generally, entity identifiers are server names—the host/IP/port of a homeserver (e.g.
 /// "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
 /// "ed25519:1") then map to their respective public keys.
-/// * value: The `serde_json::Value` (JSON value) that was signed.
+/// * object: The JSON object that was signed.
 ///
 /// # Errors
 ///
@@ -224,7 +215,7 @@ pub fn canonical_json(value: &Value) -> Result<String, Error> {
 /// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 ///
 /// // Deserialize the signed JSON.
-/// let value = serde_json::from_str(
+/// let object = serde_json::from_str(
 ///     r#"{
 ///         "signatures": {
 ///             "domain": {
@@ -241,15 +232,10 @@ pub fn canonical_json(value: &Value) -> Result<String, Error> {
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
-/// assert!(ruma_signatures::verify_json(&public_key_map, &value).is_ok());
+/// assert!(ruma_signatures::verify_json(&public_key_map, &object).is_ok());
 /// ```
-pub fn verify_json(public_key_map: &PublicKeyMap, value: &Value) -> Result<(), Error> {
-    let map = match value {
-        Value::Object(ref map) => map,
-        _ => return Err(Error::new("JSON value must be a JSON object")),
-    };
-
-    let signature_map: SignatureMap = match map.get("signatures") {
+pub fn verify_json(public_key_map: &PublicKeyMap, object: &JsonObject) -> Result<(), Error> {
+    let signature_map: SignatureMap = match object.get("signatures") {
         Some(signatures_value) => match signatures_value.as_object() {
             Some(signatures) => from_value(Value::Object(signatures.clone()))?,
             None => return Err(Error::new("field `signatures` must be a JSON object")),
@@ -301,7 +287,7 @@ pub fn verify_json(public_key_map: &PublicKeyMap, value: &Value) -> Result<(), E
 
         let public_key_bytes = decode_config(&public_key, STANDARD_NO_PAD)?;
 
-        verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, value)?;
+        verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, object)?;
     }
 
     Ok(())
@@ -314,24 +300,21 @@ pub fn verify_json(public_key_map: &PublicKeyMap, value: &Value) -> Result<(), E
 /// * verifier: A `Verifier` appropriate for the digital signature algorithm that was used.
 /// * public_key: The raw bytes of the public key used to sign the JSON.
 /// * signature: The raw bytes of the signature.
-/// * value: The `serde_json::Value` (JSON value) that was signed.
+/// * object: The JSON object that was signed.
 ///
 /// # Errors
 ///
-/// Returns an error if:
-///
-/// * The provided JSON value is not a JSON object.
-/// * Verification fails.
+/// Returns an error if verification fails.
 fn verify_json_with<V>(
     verifier: &V,
     public_key: &[u8],
     signature: &[u8],
-    value: &Value,
+    object: &JsonObject,
 ) -> Result<(), Error>
 where
     V: Verifier,
 {
-    verifier.verify_json(public_key, signature, canonical_json(value)?.as_bytes())
+    verifier.verify_json(public_key, signature, canonical_json(object).as_bytes())
 }
 
 /// Creates a *content hash* for the JSON representation of an event.
@@ -343,17 +326,12 @@ where
 ///
 /// # Parameters
 ///
-/// value: A JSON object to generate a content hash for.
-///
-/// # Errors
-///
-/// Returns an error if the provided JSON value is not a JSON object.
-pub fn content_hash(value: &Value) -> Result<String, Error> {
-    let json = canonical_json_with_fields_to_remove(value, CONTENT_HASH_FIELDS_TO_REMOVE)?;
-
+/// object: A JSON object to generate a content hash for.
+pub fn content_hash(object: &JsonObject) -> String {
+    let json = canonical_json_with_fields_to_remove(object, CONTENT_HASH_FIELDS_TO_REMOVE);
     let hash = digest(&SHA256, json.as_bytes());
 
-    Ok(encode_config(&hash, STANDARD_NO_PAD))
+    encode_config(&hash, STANDARD_NO_PAD)
 }
 
 /// Creates a *reference hash* for the JSON representation of an event.
@@ -366,16 +344,16 @@ pub fn content_hash(value: &Value) -> Result<String, Error> {
 ///
 /// # Parameters
 ///
-/// value: A JSON object to generate a reference hash for.
+/// object: A JSON object to generate a reference hash for.
 ///
 /// # Errors
 ///
-/// Returns an error if the provided JSON value is not a JSON object.
-pub fn reference_hash(value: &Value, version: &RoomVersionId) -> Result<String, Error> {
-    let redacted_value = redact(value, version)?;
+/// Returns an error if redaction fails.
+pub fn reference_hash(object: &JsonObject, version: &RoomVersionId) -> Result<String, Error> {
+    let redacted_value = redact(object, version)?;
 
     let json =
-        canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE)?;
+        canonical_json_with_fields_to_remove(&redacted_value, REFERENCE_HASH_FIELDS_TO_REMOVE);
 
     let hash = digest(&SHA256, json.as_bytes());
 
@@ -402,17 +380,16 @@ pub fn reference_hash(value: &Value, version: &RoomVersionId) -> Result<String, 
 /// * entity_id: The identifier of the entity creating the signature. Generally this means a
 /// homeserver, e.g. "example.com".
 /// * key_pair: A cryptographic key pair used to sign the event.
-/// * value: A JSON object to be hashed and signed according to the Matrix specification.
+/// * object: A JSON object to be hashed and signed according to the Matrix specification.
 ///
 /// # Errors
 ///
 /// Returns an error if:
 ///
-/// * `value` is not a JSON object.
-/// * `value` contains a field called `content` that is not a JSON object.
-/// * `value` contains a field called `hashes` that is not a JSON object.
-/// * `value` contains a field called `signatures` that is not a JSON object.
-/// * `value` is missing the `type` field or the field is not a JSON string.
+/// * `object` contains a field called `content` that is not a JSON object.
+/// * `object` contains a field called `hashes` that is not a JSON object.
+/// * `object` contains a field called `signatures` that is not a JSON object.
+/// * `object` is missing the `type` field or the field is not a JSON string.
 ///
 /// # Examples
 ///
@@ -434,7 +411,7 @@ pub fn reference_hash(value: &Value, version: &RoomVersionId) -> Result<String, 
 /// ).unwrap();
 ///
 /// // Deserialize an event from JSON.
-/// let mut value = serde_json::from_str(
+/// let mut object = serde_json::from_str(
 ///     r#"{
 ///         "room_id": "!x:domain",
 ///         "sender": "@a:domain",
@@ -454,7 +431,7 @@ pub fn reference_hash(value: &Value, version: &RoomVersionId) -> Result<String, 
 /// ).unwrap();
 ///
 /// // Hash and sign the JSON with the key pair.
-/// assert!(hash_and_sign_event("domain", &key_pair, &mut value, &RoomVersionId::Version1).is_ok());
+/// assert!(hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::Version1).is_ok());
 /// ```
 ///
 /// This will modify the JSON from the structure shown to a structure like this:
@@ -488,38 +465,27 @@ pub fn reference_hash(value: &Value, version: &RoomVersionId) -> Result<String, 
 pub fn hash_and_sign_event<K>(
     entity_id: &str,
     key_pair: &K,
-    value: &mut Value,
+    object: &mut JsonObject,
     version: &RoomVersionId,
 ) -> Result<(), Error>
 where
     K: KeyPair,
 {
-    let hash = content_hash(value)?;
+    let hash = content_hash(object);
 
-    // Limit the scope of the mutable borrow so `value` can be passed immutably to `redact` below.
-    {
-        let map = match value {
-            Value::Object(ref mut map) => map,
-            _ => return Err(Error::new("JSON value must be a JSON object")),
-        };
+    let hashes_value =
+        object.entry("hashes").or_insert_with(|| Value::Object(Map::with_capacity(1)));
 
-        let hashes_value =
-            map.entry("hashes").or_insert_with(|| Value::Object(Map::with_capacity(1)));
+    match hashes_value.as_object_mut() {
+        Some(hashes) => hashes.insert("sha256".into(), Value::String(hash)),
+        None => return Err(Error::new("field `hashes` must be a JSON object")),
+    };
 
-        match hashes_value.as_object_mut() {
-            Some(hashes) => hashes.insert("sha256".into(), Value::String(hash)),
-            None => return Err(Error::new("field `hashes` must be a JSON object")),
-        };
-    }
-
-    let mut redacted = redact(value, version)?;
+    let mut redacted = redact(object, version)?;
 
     sign_json(entity_id, key_pair, &mut redacted)?;
 
-    // Safe to unwrap because we did this exact check at the beginning of the function.
-    let map = value.as_object_mut().unwrap();
-
-    map.insert("signatures".into(), redacted["signatures"].take());
+    object.insert("signatures".into(), redacted["signatures"].take());
 
     Ok(())
 }
@@ -541,7 +507,7 @@ where
 /// Generally, entity identifiers are server names—the host/IP/port of a homeserver (e.g.
 /// "example.com") for which a signature must be verified. Key identifiers for each server (e.g.
 /// "ed25519:1") then map to their respective public keys.
-/// * value: The `serde_json::Value` (JSON value) of the event that was signed.
+/// * object: The JSON object of the event that was signed.
 ///
 /// # Examples
 ///
@@ -553,7 +519,7 @@ where
 /// const PUBLIC_KEY: &str = "XGX0JRS2Af3be3knz2fBiRbApjm2Dh61gXDJA8kcJNI";
 ///
 /// // Deserialize an event from JSON.
-/// let value = serde_json::from_str(
+/// let object = serde_json::from_str(
 ///     r#"{
 ///         "auth_events": [],
 ///         "content": {},
@@ -585,21 +551,16 @@ where
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
 /// // Verify at least one signature for each entity in `public_key_map`.
-/// assert!(verify_event(&public_key_map, &value, &RoomVersionId::Version6).is_ok());
+/// assert!(verify_event(&public_key_map, &object, &RoomVersionId::Version6).is_ok());
 /// ```
 pub fn verify_event(
     public_key_map: &PublicKeyMap,
-    value: &Value,
+    object: &JsonObject,
     version: &RoomVersionId,
 ) -> Result<Verified, Error> {
-    let redacted = redact(value, version)?;
+    let redacted = redact(object, version)?;
 
-    let map = match redacted {
-        Value::Object(ref map) => map,
-        _ => return Err(Error::new("JSON value must be a JSON object")),
-    };
-
-    let hash = match map.get("hashes") {
+    let hash = match object.get("hashes") {
         Some(hashes_value) => match hashes_value.as_object() {
             Some(hashes) => match hashes.get("sha256") {
                 Some(hash_value) => match hash_value.as_str() {
@@ -613,7 +574,7 @@ pub fn verify_event(
         None => return Err(Error::new("field `hashes` must be present")),
     };
 
-    let signature_map: SignatureMap = match map.get("signatures") {
+    let signature_map: SignatureMap = match object.get("signatures") {
         Some(signatures_value) => match signatures_value.as_object() {
             Some(signatures) => from_value(Value::Object(signatures.clone()))?,
             None => return Err(Error::new("field `signatures` must be a JSON object")),
@@ -661,7 +622,7 @@ pub fn verify_event(
             }
         };
 
-        let canonical_json = from_str(&canonical_json(&redacted)?)?;
+        let canonical_json = from_str(&canonical_json(&redacted))?;
 
         let signature_bytes = decode_config(signature, STANDARD_NO_PAD)?;
 
@@ -670,7 +631,7 @@ pub fn verify_event(
         verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, &canonical_json)?;
     }
 
-    let calculated_hash = content_hash(value)?;
+    let calculated_hash = content_hash(object);
 
     if hash == calculated_hash {
         Ok(Verified::All)
@@ -681,22 +642,14 @@ pub fn verify_event(
 
 /// Internal implementation detail of the canonical JSON algorithm. Allows customization of the
 /// fields that will be removed before serializing.
-fn canonical_json_with_fields_to_remove(value: &Value, fields: &[&str]) -> Result<String, Error> {
-    if !value.is_object() {
-        return Err(Error::new("JSON value must be a JSON object"));
+fn canonical_json_with_fields_to_remove(object: &JsonObject, fields: &[&str]) -> String {
+    let mut owned_object = object.clone();
+
+    for field in fields {
+        owned_object.remove(*field);
     }
 
-    let mut owned_value = value.clone();
-
-    {
-        let object = owned_value.as_object_mut().expect("safe since we checked above");
-
-        for field in fields {
-            object.remove(*field);
-        }
-    }
-
-    to_string(&owned_value).map_err(Error::from)
+    to_string(&owned_object).expect("JSON object serialization to succeed")
 }
 
 /// Redacts the JSON representation of an event using the rules specified in the Matrix
@@ -707,29 +660,22 @@ fn canonical_json_with_fields_to_remove(value: &Value, fields: &[&str]) -> Resul
 /// Redaction is also suggested when a verifying an event with `verify_event` returns
 /// `Verified::Signatures`. See the documentation for `Verified` for details.
 ///
-/// Returns a new `serde_json::Value` with all applicable fields redacted.
+/// Returns a new JSON object with all applicable fields redacted.
 ///
 /// # Parameters
 ///
-/// * value: A JSON object to redact.
+/// * object: A JSON object to redact.
 ///
 /// # Errors
 ///
 /// Returns an error if:
 ///
-/// * `value` is not a JSON object.
-/// * `value` contains a field called `content` that is not a JSON object.
-/// * `value` contains a field called `hashes` that is not a JSON object.
-/// * `value` contains a field called `signatures` that is not a JSON object.
-/// * `value` is missing the `type` field or the field is not a JSON string.
-pub fn redact(value: &Value, version: &RoomVersionId) -> Result<Value, Error> {
-    if !value.is_object() {
-        return Err(Error::new("JSON value must be a JSON object"));
-    }
-
-    let mut owned_value = value.clone();
-
-    let event = owned_value.as_object_mut().expect("safe since we checked above");
+/// * `object` contains a field called `content` that is not a JSON object.
+/// * `object` contains a field called `hashes` that is not a JSON object.
+/// * `object` contains a field called `signatures` that is not a JSON object.
+/// * `object` is missing the `type` field or the field is not a JSON string.
+pub fn redact(object: &JsonObject, version: &RoomVersionId) -> Result<JsonObject, Error> {
+    let mut event = object.clone();
 
     let event_type_value = match event.get("type") {
         Some(event_type_value) => event_type_value,
@@ -758,7 +704,7 @@ pub fn redact(value: &Value, version: &RoomVersionId) -> Result<Value, Error> {
     }
 
     let max_values = cmp::max(event.len(), ALLOWED_KEYS.len());
-    let mut old_event = mem::replace(event, serde_json::Map::with_capacity(max_values));
+    let mut old_event = mem::replace(&mut event, serde_json::Map::with_capacity(max_values));
 
     for &key in ALLOWED_KEYS {
         if let Some(value) = old_event.remove(key) {
@@ -766,7 +712,7 @@ pub fn redact(value: &Value, version: &RoomVersionId) -> Result<Value, Error> {
         }
     }
 
-    Ok(owned_value)
+    Ok(event)
 }
 
 #[cfg(test)]
@@ -799,6 +745,6 @@ mod tests {
 
         let canonical = r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#;
 
-        assert_eq!(canonical_json(&data).unwrap(), canonical);
+        assert_eq!(canonical_json(data.as_object().unwrap()), canonical);
     }
 }
