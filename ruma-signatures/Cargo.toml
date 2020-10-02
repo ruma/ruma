@@ -16,5 +16,6 @@ version = "0.6.0-dev.1"
 base64 = "0.12.3"
 ring = "0.16.15"
 ruma-identifiers = { version = "0.17.4", path = "../ruma-identifiers" }
+ruma-serde = { version = "0.2.3", path = "../ruma-serde" }
 serde_json = "1.0.57"
 untrusted = "0.7.1"

@@ -51,7 +51,7 @@ use std::{
 
 pub use functions::{
     canonical_json, content_hash, hash_and_sign_event, redact, reference_hash, sign_json,
-    verify_event, verify_json, JsonObject,
+    verify_event, verify_json, CanonicalJsonObject,
 };
 pub use keys::{Ed25519KeyPair, KeyPair, PublicKeyMap, PublicKeySet};
 pub use signatures::Signature;
@@ -102,6 +102,12 @@ impl From<base64::DecodeError> for Error {
 
 impl From<serde_json::Error> for Error {
     fn from(error: serde_json::Error) -> Self {
+        Self::new(error.to_string())
+    }
+}
+
+impl From<ruma_serde::CanonicalJsonError> for Error {
+    fn from(error: ruma_serde::CanonicalJsonError) -> Self {
         Self::new(error.to_string())
     }
 }
@@ -177,7 +183,7 @@ mod test {
     use base64::{decode_config, STANDARD_NO_PAD};
     use ring::signature::{Ed25519KeyPair as RingEd25519KeyPair, KeyPair as _};
     use ruma_identifiers::RoomVersionId;
-    use serde_json::{from_str, json, to_string, to_value};
+    use serde_json::{from_str, to_string};
 
     use super::{
         canonical_json, hash_and_sign_event, sign_json, verify_event, verify_json, Ed25519KeyPair,
@@ -334,30 +340,20 @@ mod test {
         )
         .unwrap();
 
-        let alpha = json!({
-            "one": 1,
-            "two": "Two",
-        });
-
-        let reverse_alpha = json!({
-            "two": "Two",
-            "one": 1,
-        });
-
-        let mut alpha_value = to_value(alpha).expect("alpha should serialize");
-        sign_json("domain", &key_pair, alpha_value.as_object_mut().unwrap()).unwrap();
+        let mut alpha_object = from_str(r#"{ "one": 1, "two": "Two" }"#).unwrap();
+        sign_json("domain", &key_pair, &mut alpha_object).unwrap();
 
         assert_eq!(
-            to_string(&alpha_value).unwrap(),
+            to_string(&alpha_object).unwrap(),
             r#"{"one":1,"signatures":{"domain":{"ed25519:1":"t6Ehmh6XTDz7qNWI0QI5tNPSliWLPQP/+Fzz3LpdCS7q1k2G2/5b5Embs2j4uG3ZeivejrzqSVoBcdocRpa+AQ"}},"two":"Two"}"#
         );
 
-        let mut reverse_alpha_value =
-            to_value(reverse_alpha).expect("reverse_alpha should serialize");
-        sign_json("domain", &key_pair, reverse_alpha_value.as_object_mut().unwrap()).unwrap();
+        let mut reverse_alpha_object =
+            from_str(r#"{ "two": "Two", "one": 1 }"#).expect("reverse_alpha should serialize");
+        sign_json("domain", &key_pair, &mut reverse_alpha_object).unwrap();
 
         assert_eq!(
-            to_string(&reverse_alpha_value).unwrap(),
+            to_string(&reverse_alpha_object).unwrap(),
             r#"{"one":1,"signatures":{"domain":{"ed25519:1":"t6Ehmh6XTDz7qNWI0QI5tNPSliWLPQP/+Fzz3LpdCS7q1k2G2/5b5Embs2j4uG3ZeivejrzqSVoBcdocRpa+AQ"}},"two":"Two"}"#
         );
     }
