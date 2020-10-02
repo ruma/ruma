@@ -18,27 +18,27 @@ ruma_api! {
     request: {
         /// The room ID to search in.
         #[ruma_api(path)]
-        room_id: &'a RoomId,
+        pub room_id: &'a RoomId,
 
         /// The maximum number of events to retrieve. Defaults to 10.
         #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
-        limit: UInt,
+        pub limit: UInt,
 
         /// The minimum depth of events to retrieve. Defaults to 0.
         #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
-        min_depth: UInt,
+        pub min_depth: UInt,
 
         /// The latest event IDs that the sender already has. These are skipped when retrieving the previous events of `latest_events`.
-        earliest_events: &'a [EventId],
+        pub earliest_events: &'a [EventId],
 
         /// The event IDs to retrieve the previous events for.
-        latest_events: &'a [EventId],
+        pub latest_events: &'a [EventId],
     }
 
     #[derive(Default)]
     response: {
         /// The missing PDUs.
-        events: Vec<Pdu>
+        pub events: Vec<Pdu>
     }
 }
 
