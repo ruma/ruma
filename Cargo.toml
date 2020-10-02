@@ -24,7 +24,7 @@ tracing-subscriber = "0.2.11"
 
 [dependencies.ruma]
 git = "https://github.com/ruma/ruma"
-rev = "648c3f5732db7524d967e472ec587fd33fa992e9"
+rev = "8049631827ab8557cb1010d195dd6468f90effa8"
 features = ["client-api", "federation-api", "appservice-api"]
 
 #[dependencies.ruma]
