@@ -12,10 +12,10 @@ ruma_api! {
 
     request: {
         #[ruma_api(header = LOCATION)]
-        location: Option<String>,
+        pub location: Option<String>,
     }
     response: {
         #[ruma_api(header = LOCATION)]
-        stuff: Option<String>,
+        pub stuff: Option<String>,
     }
 }
