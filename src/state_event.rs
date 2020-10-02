@@ -9,7 +9,7 @@ use ruma::{
     },
     EventId, RoomId, RoomVersionId, ServerName, UserId,
 };
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
 
 pub struct Requester<'a> {
@@ -118,11 +118,21 @@ impl StateEvent {
             },
         }
     }
-    pub fn event_id(&self) -> &EventId {
+    pub fn event_id(&self) -> EventId {
+        use std::convert::TryFrom;
+
         match self {
             Self::Full(ev) => match ev {
-                Pdu::RoomV1Pdu(ev) => &ev.event_id,
-                Pdu::RoomV3Pdu(ev) => ev.event_id.as_ref().expect("RoomV3Pdu did not have an event id"),
+                Pdu::RoomV1Pdu(ev) => ev.event_id.clone(),
+                Pdu::RoomV3Pdu(ev) => {
+                    let value = serde_json::to_value(ev).expect("all ruma pdus are json values");
+                    EventId::try_from(&*format!(
+                        "${}",
+                        ruma::signatures::reference_hash(&value, &self.room_version())
+                            .expect("ruma can calculate reference hashes")
+                    ))
+                    .expect("ruma's reference hashes are valid event ids")
+                }
             },
             Self::Sync(_ev) => panic!("Stubs don't have an event id"),
         }
@@ -337,3 +347,23 @@ impl StateEvent {
         }
     }
 }
+
+// fn process_incoming_pdu(
+//     pdu: &ruma::Raw<ruma::events::pdu::Pdu>,
+//     version: &ruma::RoomVersionId,
+// ) -> (EventId, serde_json::Value) {
+//     let mut value = serde_json::to_value(pdu.json().get()).expect("all ruma pdus are json values");
+//     let event_id = EventId::try_from(&*format!(
+//         "${}",
+//         ruma::signatures::reference_hash(&value, version)
+//             .expect("ruma can calculate reference hashes")
+//     ))
+//     .expect("ruma's reference hashes are valid event ids");
+
+//     value
+//         .as_object_mut()
+//         .expect("ruma pdus are json objects")
+//         .insert("event_id".to_owned(), event_id.to_string().into());
+
+//     (event_id, value)
+// }
