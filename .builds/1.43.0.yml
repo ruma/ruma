@@ -6,7 +6,7 @@ sources:
 tasks:
   - rustup: |
       # We specify --profile minimal because we'd otherwise download docs
-      rustup toolchain install 1.43.0 --profile minimal -c rustfmt -c clippy
+      rustup toolchain install 1.43.0 --profile minimal
       rustup default 1.43.0
   - test: |
       cd ruma

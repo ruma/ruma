@@ -6,7 +6,7 @@ sources:
 tasks:
   - rustup: |
       # We specify --profile minimal because we'd otherwise download docs
-      rustup toolchain install beta --profile minimal -c rustfmt -c clippy
+      rustup toolchain install beta --profile minimal
       rustup default beta
   - test: |
       cd ruma
@@ -14,12 +14,6 @@ tasks:
       # We don't want the build to stop on individual failure of independent
       # tools, so capture tool exit codes and set the task exit code manually
       set +e
-
-      cargo fmt --all -- --check
-      fmt_exit=$?
-
-      cargo clippy --all --all-targets --all-features --quiet -- -D warnings
-      clippy_exit=$?
 
       cargo test --all --quiet
       test_exit=$?
@@ -45,4 +39,4 @@ tasks:
 
       popd
 
-      exit $(( $fmt_exit || $clippy_exit || $test_exit || $id_test_1_exit || $id_test_2_exit || $client_api_exit ))
+      exit $(( $test_exit || $id_test_1_exit || $id_test_2_exit || $client_api_exit ))
