@@ -106,6 +106,9 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
         DataKind::Struct(mut fields, struct_kind) => {
             let mut found_lifetime = false;
             for field in &mut fields {
+                if !matches!(field.vis, syn::Visibility::Public(_)) {
+                    return Err(syn::Error::new_spanned(field, "All fields must be marked `pub`"));
+                }
                 if strip_lifetimes(&mut field.ty) {
                     found_lifetime = true;
                 }
