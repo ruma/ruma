@@ -75,6 +75,12 @@ pub enum CanonicalJsonValue {
     Object(BTreeMap<String, CanonicalJsonValue>),
 }
 
+impl Default for CanonicalJsonValue {
+    fn default() -> Self {
+        Self::Null
+    }
+}
+
 impl fmt::Debug for CanonicalJsonValue {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         match *self {
