@@ -6,30 +6,9 @@ use std::{
 
 use js_int::Int;
 use serde::{de::Deserializer, ser::Serializer, Deserialize, Serialize};
-use serde_json::{to_string as to_json_string, Error as JsonError, Value as JsonValue};
+use serde_json::{to_string as to_json_string, Value as JsonValue};
 
-/// The set of possible errors when serializing to canonical JSON.
-#[derive(Debug)]
-pub enum Error {
-    /// The numeric value failed conversion to js_int::Int.
-    IntConvert,
-    /// The `CanonicalJsonValue` being serialized was larger than 65,535 bytes.
-    JsonSize,
-    /// An error occurred while serializing/deserializing.
-    SerDe(JsonError),
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Error::IntConvert => f.write_str("number found is not a valid `js_int::Int`"),
-            Error::JsonSize => f.write_str("JSON is larger than 65,535 byte max"),
-            Error::SerDe(err) => write!(f, "serde Error: {}", err),
-        }
-    }
-}
-
-impl std::error::Error for Error {}
+use super::Error;
 
 #[derive(Clone, Eq, PartialEq)]
 pub enum CanonicalJsonValue {
@@ -94,23 +73,6 @@ pub enum CanonicalJsonValue {
     /// let v: CanonicalJsonValue = json!({ "an": "object" }).try_into().unwrap();
     /// ```
     Object(BTreeMap<String, CanonicalJsonValue>),
-}
-
-impl CanonicalJsonValue {
-    /// Returns a canonical JSON string according to Matrix specification.
-    ///
-    /// The method should be preferred over `serde_json::to_string` since it
-    /// checks the size of the canonical string. Matrix canonical JSON enforces
-    /// a size limit of less than 65,535 when sending PDU's for the server-server protocol.
-    pub fn to_canonical_string(&self) -> Result<String, Error> {
-        Ok(to_json_string(self).map_err(Error::SerDe).and_then(|s| {
-            if s.as_bytes().len() > 65_535 {
-                Err(Error::JsonSize)
-            } else {
-                Ok(s)
-            }
-        })?)
-    }
 }
 
 impl fmt::Debug for CanonicalJsonValue {
@@ -209,59 +171,5 @@ impl<'de> Deserialize<'de> for CanonicalJsonValue {
     {
         let val = JsonValue::deserialize(deserializer)?;
         Ok(val.try_into().map_err(serde::de::Error::custom)?)
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use std::convert::TryInto;
-
-    use super::CanonicalJsonValue;
-    use serde_json::{from_str as from_json_str, json, to_string as to_json_string};
-
-    #[test]
-    fn serialize_canon() {
-        let json: CanonicalJsonValue = json!({
-            "a": [1, 2, 3],
-            "other": { "stuff": "hello" },
-            "string": "Thing"
-        })
-        .try_into()
-        .unwrap();
-
-        let ser = json.to_canonical_string().unwrap();
-        let back = from_json_str::<CanonicalJsonValue>(&ser).unwrap();
-
-        assert_eq!(json, back);
-    }
-
-    #[test]
-    fn check_canonical_sorts_keys() {
-        let json: CanonicalJsonValue = json!({
-            "auth": {
-                "success": true,
-                "mxid": "@john.doe:example.com",
-                "profile": {
-                    "display_name": "John Doe",
-                    "three_pids": [
-                        {
-                            "medium": "email",
-                            "address": "john.doe@example.org"
-                        },
-                        {
-                            "medium": "msisdn",
-                            "address": "123456789"
-                        }
-                    ]
-                }
-            }
-        })
-        .try_into()
-        .unwrap();
-
-        assert_eq!(
-            to_json_string(&json).unwrap(),
-            r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#
-        )
     }
 }
