@@ -16,8 +16,8 @@ pub struct IncomingThing<T> {
 #[allow(unused)]
 #[derive(Copy, Clone, Debug, Outgoing, serde::Serialize)]
 pub struct OtherThing<'t> {
-    some: &'t str,
-    t: &'t [u8],
+    pub some: &'t str,
+    pub t: &'t [u8],
 }
 
 #[derive(Outgoing)]
