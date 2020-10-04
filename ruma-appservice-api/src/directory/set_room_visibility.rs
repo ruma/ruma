@@ -26,5 +26,5 @@ ruma_api! {
         pub visibility: Visibility,
     }
 
-    response: { }
+    response: {}
 }
