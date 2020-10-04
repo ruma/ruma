@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add room visibility management endpoint
+
 Breaking changes:
 
 * Fix endpoint versioning
