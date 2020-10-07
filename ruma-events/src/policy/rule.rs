@@ -22,6 +22,13 @@ pub struct PolicyRuleEventContent {
     pub reason: String,
 }
 
+impl PolicyRuleEventContent {
+    /// Creates a new `PolicyRuleEventContent` from the given entity, recommendation and reason.
+    pub fn new(entity: String, recommendation: Recommendation, reason: String) -> Self {
+        Self { entity, recommendation, reason }
+    }
+}
+
 /// Rules recommendations
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
