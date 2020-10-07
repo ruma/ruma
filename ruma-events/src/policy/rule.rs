@@ -12,13 +12,13 @@ pub mod user;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PolicyRuleEventContent {
     /// The entity affected by this rule. Glob characters * and ? can be used to match zero or more and one or more characters respectively.
-    entity: String,
+    pub entity: String,
 
     /// The suggested action to take.
-    recommendation: Recommendation,
+    pub recommendation: Recommendation,
 
     /// The human-readable description for the recommendation.
-    reason: String,
+    pub reason: String,
 }
 
 /// Rules recommendations
