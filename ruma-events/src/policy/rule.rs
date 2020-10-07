@@ -10,6 +10,7 @@ pub mod user;
 
 /// The payload for policy rule events.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PolicyRuleEventContent {
     /// The entity affected by this rule. Glob characters * and ? can be used to match zero or more and one or more characters respectively.
     pub entity: String,
@@ -23,6 +24,7 @@ pub struct PolicyRuleEventContent {
 
 /// Rules recommendations
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum Recommendation {
     /// Entities affected by the rule should be banned from participation where possible.
     Ban,
@@ -40,18 +42,6 @@ impl Recommendation {
 impl Display for Recommendation {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         f.write_str(self.as_str())
-    }
-}
-
-impl<T> From<T> for Recommendation
-where
-    T: Into<String> + AsRef<str>,
-{
-    fn from(s: T) -> Recommendation {
-        match s.as_ref() {
-            "m.ban" => Recommendation::Ban,
-            _ => todo!(),
-        }
     }
 }
 
