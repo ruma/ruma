@@ -23,7 +23,7 @@ pub struct PolicyRuleEventContent {
 }
 
 impl PolicyRuleEventContent {
-    /// Creates a new `PolicyRuleEventContent` from the given entity, recommendation and reason.
+    /// Creates a new `PolicyRuleEventContent` with the given entity, recommendation and reason.
     pub fn new(entity: String, recommendation: Recommendation, reason: String) -> Self {
         Self { entity, recommendation, reason }
     }
