@@ -34,6 +34,7 @@ impl PolicyRuleEventContent {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum Recommendation {
     /// Entities affected by the rule should be banned from participation where possible.
+    #[serde(rename = "m.ban")]
     Ban,
 }
 

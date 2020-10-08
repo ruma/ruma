@@ -13,3 +13,79 @@ pub type RoomEvent = StateEvent<RoomEventContent>;
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.policy.rule.room")]
 pub struct RoomEventContent(PolicyRuleEventContent);
+
+#[cfg(test)]
+mod tests {
+    use super::{RoomEvent, RoomEventContent};
+
+    use crate::{
+        policy::rule::{PolicyRuleEventContent, Recommendation},
+        Unsigned,
+    };
+
+    use ruma_common::Raw;
+    use ruma_identifiers::{event_id, room_id, user_id};
+
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+
+    use std::time::{Duration, UNIX_EPOCH};
+
+    #[test]
+    fn serialization() {
+        let room_event = RoomEvent {
+            event_id: event_id!("$143273582443PhrSn:example.org"),
+            sender: user_id!("@example:example.org"),
+            origin_server_ts: UNIX_EPOCH + Duration::from_millis(1_432_735_824_653),
+            room_id: room_id!("!jEsUZKDJdhlrceRyVU:example.org"),
+            state_key: "rule:#*:example.org".to_string(),
+            prev_content: None,
+            unsigned: Unsigned { age: Some(1234.into()), transaction_id: None },
+            content: RoomEventContent(PolicyRuleEventContent {
+                entity: "#*:example.org".to_string(),
+                reason: "undesirable content".to_string(),
+                recommendation: Recommendation::Ban,
+            }),
+        };
+
+        let json = json!({
+            "content": {
+                "entity": "#*:example.org",
+                "reason": "undesirable content",
+                "recommendation": "m.ban"
+            },
+            "event_id": "$143273582443PhrSn:example.org",
+            "origin_server_ts": 1432735824653u64,
+            "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
+            "sender": "@example:example.org",
+            "state_key": "rule:#*:example.org",
+            "type": "m.policy.rule.room",
+            "unsigned": {
+                "age": 1234
+            }
+        });
+
+        assert_eq!(to_json_value(room_event).unwrap(), json);
+    }
+
+    #[test]
+    fn deserialization() {
+        let json = json!({
+            "content": {
+                "entity": "#*:example.org",
+                "reason": "undesirable content",
+                "recommendation": "m.ban"
+            },
+            "event_id": "$143273582443PhrSn:example.org",
+            "origin_server_ts": 1432735824653u64,
+            "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
+            "sender": "@example:example.org",
+            "state_key": "rule:#*:example.org",
+            "type": "m.policy.rule.room",
+            "unsigned": {
+                "age": 1234
+            }
+        });
+
+        assert!(from_json_value::<Raw<RoomEvent>>(json).unwrap().deserialize().is_ok());
+    }
+}
