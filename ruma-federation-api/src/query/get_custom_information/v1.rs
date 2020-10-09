@@ -22,25 +22,25 @@ ruma_api! {
 
         /// The query parameters.
         #[ruma_api(query_map)]
-        pub query: BTreeMap<String, String>,
+        pub params: BTreeMap<String, String>,
     }
 
     response: {
-        /// The body of the response
+        /// The body of the response.
         #[ruma_api(body)]
         pub body: JsonValue,
     }
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new request with the given type and query parameters
-    pub fn new(query_type: &'a str, query: BTreeMap<String, String>) -> Self {
-        Self { query_type, query }
+    /// Creates a new request with the given type and query parameters.
+    pub fn new(query_type: &'a str, params: BTreeMap<String, String>) -> Self {
+        Self { query_type, params }
     }
 }
 
 impl Response {
-    /// Creates a new response with the given body
+    /// Creates a new response with the given body.
     pub fn new(body: JsonValue) -> Self {
         Self { body }
     }
