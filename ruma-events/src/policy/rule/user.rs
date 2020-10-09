@@ -11,4 +11,4 @@ pub type UserEvent = StateEvent<UserEventContent>;
 /// The payload for `UserEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.policy.rule.user")]
-pub struct UserEventContent(PolicyRuleEventContent);
+pub struct UserEventContent(pub PolicyRuleEventContent);

@@ -11,4 +11,4 @@ pub type ServerEvent = StateEvent<ServerEventContent>;
 /// The payload for `ServerEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.policy.rule.server")]
-pub struct ServerEventContent(PolicyRuleEventContent);
+pub struct ServerEventContent(pub PolicyRuleEventContent);

@@ -11,7 +11,7 @@ pub type RoomEvent = StateEvent<RoomEventContent>;
 /// The payload for `RoomEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, StateEventContent)]
 #[ruma_event(type = "m.policy.rule.room")]
-pub struct RoomEventContent(PolicyRuleEventContent);
+pub struct RoomEventContent(pub PolicyRuleEventContent);
 
 #[cfg(test)]
 mod tests {
