@@ -1,7 +1,6 @@
 //! Types for the *m.policy.rule.user* event.
 
 use ruma_events_macros::StateEventContent;
-
 use serde::{Deserialize, Serialize};
 
 use crate::{policy::rule::PolicyRuleEventContent, StateEvent};

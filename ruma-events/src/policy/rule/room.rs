@@ -1,7 +1,6 @@
 //! Types for the *m.policy.rule.room* event.
 
 use ruma_events_macros::StateEventContent;
-
 use serde::{Deserialize, Serialize};
 
 use crate::{policy::rule::PolicyRuleEventContent, StateEvent};
@@ -16,19 +15,17 @@ pub struct RoomEventContent(PolicyRuleEventContent);
 
 #[cfg(test)]
 mod tests {
-    use super::{RoomEvent, RoomEventContent};
+    use std::time::{Duration, UNIX_EPOCH};
 
+    use ruma_common::Raw;
+    use ruma_identifiers::{event_id, room_id, user_id};
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+
+    use super::{RoomEvent, RoomEventContent};
     use crate::{
         policy::rule::{PolicyRuleEventContent, Recommendation},
         Unsigned,
     };
-
-    use ruma_common::Raw;
-    use ruma_identifiers::{event_id, room_id, user_id};
-
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
-
-    use std::time::{Duration, UNIX_EPOCH};
 
     #[test]
     fn serialization() {
