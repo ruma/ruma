@@ -34,12 +34,12 @@ mod tests {
             sender: user_id!("@example:example.org"),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1_432_735_824_653),
             room_id: room_id!("!jEsUZKDJdhlrceRyVU:example.org"),
-            state_key: "rule:#*:example.org".to_string(),
+            state_key: "rule:#*:example.org".into(),
             prev_content: None,
             unsigned: Unsigned { age: Some(1234.into()), transaction_id: None },
             content: RoomEventContent(PolicyRuleEventContent {
-                entity: "#*:example.org".to_string(),
-                reason: "undesirable content".to_string(),
+                entity: "#*:example.org".into(),
+                reason: "undesirable content".into(),
                 recommendation: Recommendation::Ban,
             }),
         };
