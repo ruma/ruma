@@ -55,6 +55,15 @@ pub enum EventType {
     /// m.ignored_user_list
     IgnoredUserList,
 
+    /// m.policy.rule.room
+    PolicyRuleRoom,
+
+    /// m.policy.rule.server
+    PolicyRuleServer,
+
+    /// m.policy.rule.user
+    PolicyRuleUser,
+
     /// m.presence
     Presence,
 
@@ -162,6 +171,9 @@ impl EventType {
             EventType::KeyVerificationRequest => "m.key.verification.request",
             EventType::KeyVerificationStart => "m.key.verification.start",
             EventType::IgnoredUserList => "m.ignored_user_list",
+            EventType::PolicyRuleRoom => "m.policy.rule.room",
+            EventType::PolicyRuleServer => "m.policy.rule.server",
+            EventType::PolicyRuleUser => "m.policy.rule.user",
             EventType::Presence => "m.presence",
             EventType::PushRules => "m.push_rules",
             EventType::Receipt => "m.receipt",
@@ -222,6 +234,9 @@ where
             "m.key.verification.request" => EventType::KeyVerificationRequest,
             "m.key.verification.start" => EventType::KeyVerificationStart,
             "m.ignored_user_list" => EventType::IgnoredUserList,
+            "m.policy.rule.room" => EventType::PolicyRuleRoom,
+            "m.policy.rule.server" => EventType::PolicyRuleServer,
+            "m.policy.rule.user" => EventType::PolicyRuleUser,
             "m.presence" => EventType::Presence,
             "m.push_rules" => EventType::PushRules,
             "m.receipt" => EventType::Receipt,
@@ -286,6 +301,9 @@ mod tests {
         serde_json_eq(EventType::KeyVerificationRequest, json!("m.key.verification.request"));
         serde_json_eq(EventType::KeyVerificationStart, json!("m.key.verification.start"));
         serde_json_eq(EventType::IgnoredUserList, json!("m.ignored_user_list"));
+        serde_json_eq(EventType::PolicyRuleRoom, json!("m.policy.rule.room"));
+        serde_json_eq(EventType::PolicyRuleServer, json!("m.policy.rule.server"));
+        serde_json_eq(EventType::PolicyRuleUser, json!("m.policy.rule.user"));
         serde_json_eq(EventType::Presence, json!("m.presence"));
         serde_json_eq(EventType::PushRules, json!("m.push_rules"));
         serde_json_eq(EventType::Receipt, json!("m.receipt"));

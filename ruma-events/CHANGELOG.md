@@ -38,6 +38,12 @@ Improvements:
   * `MessageEventContent::text_html`
   * `MessageEventContent::notice_plain`
   * `MessageEventContent::notice_html`
+* Add policy rule entities:
+  * `policy::rule::room`
+  * `policy::rule::server`
+  * `policy::rule::user`
+* Add policy rule recommendation:
+  * `Recommendation::Ban`
 
 # 0.21.3
 

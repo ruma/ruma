@@ -167,6 +167,7 @@ pub mod fully_read;
 pub mod ignored_user_list;
 pub mod key;
 pub mod pdu;
+pub mod policy;
 pub mod presence;
 pub mod push_rules;
 pub mod receipt;
