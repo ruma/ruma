@@ -13,6 +13,10 @@ ruma_api! {
     }
 
     request: {
+        /// The file contents to upload.
+        #[ruma_api(raw_body)]
+        pub file: Vec<u8>,
+
         /// The name of the file being uploaded.
         #[ruma_api(query)]
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -21,10 +25,6 @@ ruma_api! {
         /// The content type of the file being uploaded.
         #[ruma_api(header = CONTENT_TYPE)]
         pub content_type: Option<&'a str>,
-
-        /// The file contents to upload.
-        #[ruma_api(raw_body)]
-        pub file: Vec<u8>,
     }
 
     response: {
