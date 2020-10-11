@@ -158,7 +158,7 @@ impl<'de> de::Deserializer<'de> for Deserializer<'de> {
     }
 }
 
-fn group_entries<'de>(parse: UrlEncodedParse<'de>) -> BTreeMap<Part<'de>, ValOrVec<Part<'de>>> {
+fn group_entries(parse: UrlEncodedParse<'_>) -> BTreeMap<Part<'_>, ValOrVec<Part<'_>>> {
     use btree_map::Entry::*;
 
     let mut res = BTreeMap::new();
