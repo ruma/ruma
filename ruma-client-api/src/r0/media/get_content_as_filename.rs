@@ -41,11 +41,12 @@ ruma_api! {
 
         /// The content type of the file that was previously uploaded.
         #[ruma_api(header = CONTENT_TYPE)]
-        pub content_type: String,
+        // Potentially not actually optional – https://github.com/matrix-org/matrix-doc/pull/2818
+        pub content_type: Option<String>,
 
         /// The name of the file that was previously uploaded, if set.
         #[ruma_api(header = CONTENT_DISPOSITION)]
-        pub content_disposition: String,
+        pub content_disposition: Option<String>,
     }
 
     error: crate::Error
@@ -59,8 +60,8 @@ impl<'a> Request<'a> {
 }
 
 impl Response {
-    /// Creates a new `Response` with the given file, content type and filename.
-    pub fn new(file: Vec<u8>, content_type: String, content_disposition: String) -> Self {
-        Self { file, content_type, content_disposition }
+    /// Creates a new `Response` with the given file.
+    pub fn new(file: Vec<u8>) -> Self {
+        Self { file, content_type: None, content_disposition: None }
     }
 }

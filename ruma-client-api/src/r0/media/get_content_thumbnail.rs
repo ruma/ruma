@@ -61,7 +61,7 @@ ruma_api! {
     response: {
         /// The content type of the thumbnail.
         #[ruma_api(header = CONTENT_TYPE)]
-        pub content_type: String,
+        pub content_type: Option<String>,
 
         /// A thumbnail of the requested content.
         #[ruma_api(raw_body)]
@@ -80,8 +80,8 @@ impl<'a> Request<'a> {
 }
 
 impl Response {
-    /// Creates a new `Response` with the given content type and thumbnail.
-    pub fn new(content_type: String, file: Vec<u8>) -> Self {
-        Self { content_type, file }
+    /// Creates a new `Response` with the given thumbnail.
+    pub fn new(file: Vec<u8>) -> Self {
+        Self { file, content_type: None }
     }
 }

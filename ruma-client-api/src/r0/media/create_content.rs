@@ -19,9 +19,8 @@ ruma_api! {
         pub filename: Option<&'a str>,
 
         /// The content type of the file being uploaded.
-        // TODO: This should be optional.
         #[ruma_api(header = CONTENT_TYPE)]
-        pub content_type: &'a str,
+        pub content_type: Option<&'a str>,
 
         /// The file contents to upload.
         #[ruma_api(raw_body)]
@@ -37,9 +36,9 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new `Request` with the given content type and file contents.
-    pub fn new(content_type: &'a str, file: Vec<u8>) -> Self {
-        Self { filename: None, content_type, file }
+    /// Creates a new `Request` with the given file contents.
+    pub fn new(file: Vec<u8>) -> Self {
+        Self { file, filename: None, content_type: None }
     }
 }
 
