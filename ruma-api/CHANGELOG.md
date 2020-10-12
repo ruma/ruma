@@ -183,7 +183,7 @@ Breaking changes:
 
 The crate has been redesign to focus on conversions between an endpoint's request and response types and Hyper request and response types. Implementations are expected to be generated via [ruma-api-macros].
 
-[ruma-api-macros]: https://github.com/ruma/ruma/tree/master/ruma-api-macros
+[ruma-api-macros]: https://github.com/ruma/ruma/tree/main/ruma-api-macros
 
 # 0.3.0
 
