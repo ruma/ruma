@@ -3,7 +3,7 @@
 //!
 //! See the documentation for the individual macros for usage details.
 //!
-//! [ruma-events]: https://github.com/ruma/ruma/tree/master/ruma-events
+//! [ruma-events]: https://github.com/ruma/ruma/tree/main/ruma-events
 
 #![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
 

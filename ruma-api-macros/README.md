@@ -3,7 +3,7 @@
 **ruma-api-macros** provides a procedural macro for easily generating [ruma-api]-compatible API endpoints.
 You define the endpoint's metadata, request fields, and response fields, and the macro generates all the necessary types and implements all the necessary traits.
 
-[ruma-api]: https://github.com/ruma/ruma/tree/master/ruma-api
+[ruma-api]: https://github.com/ruma/ruma/tree/main/ruma-api
 
 ## Usage
 
