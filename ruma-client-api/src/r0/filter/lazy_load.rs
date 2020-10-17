@@ -22,6 +22,13 @@ pub enum LazyLoadOptions {
     },
 }
 
+impl LazyLoadOptions {
+    /// Returns `true` is `self` is `Disabled`.
+    pub fn is_disabled(&self) -> bool {
+        matches!(self, Self::Disabled)
+    }
+}
+
 impl Serialize for LazyLoadOptions {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

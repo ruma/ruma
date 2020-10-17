@@ -14,8 +14,9 @@ use ruma_common::Outgoing;
 use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
-/// Format to use for returned events
-#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+/// Format to use for returned events.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(rename_all = "snake_case")]
 pub enum EventFormat {
     /// Client format, as described in the Client API.
@@ -25,8 +26,15 @@ pub enum EventFormat {
     Federation,
 }
 
-/// Filters to be applied to room events
+impl Default for EventFormat {
+    fn default() -> Self {
+        Self::Client
+    }
+}
+
+/// Filters to be applied to room events.
 #[derive(Clone, Copy, Debug, Default, Outgoing, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Serialize)]
 pub struct RoomEventFilter<'a> {
     /// A list of event types to exclude.
@@ -88,14 +96,50 @@ pub struct RoomEventFilter<'a> {
 }
 
 impl<'a> RoomEventFilter<'a> {
-    /// A filter that can be used to ignore all room events
+    /// Creates an empty `RoomEventFilter`.
+    ///
+    /// You can also use the [`Default`] implementation.
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    /// Creates a `RoomEventFilter` that can be used to ignore all room events.
     pub fn ignore_all() -> Self {
         Self { types: Some(&[]), ..Default::default() }
     }
+
+    /// Returns `true` if all fields are empty.
+    pub fn is_empty(&self) -> bool {
+        self.not_types.is_empty()
+            && self.not_rooms.is_empty()
+            && self.limit.is_none()
+            && self.rooms.is_none()
+            && self.not_senders.is_empty()
+            && self.senders.is_none()
+            && self.types.is_none()
+            && self.url_filter.is_none()
+            && self.lazy_load_options.is_disabled()
+    }
 }
 
-/// Filters to be applied to room data
+impl IncomingRoomEventFilter {
+    /// Returns `true` if all fields are empty.
+    pub fn is_empty(&self) -> bool {
+        self.not_types.is_empty()
+            && self.not_rooms.is_empty()
+            && self.limit.is_none()
+            && self.rooms.is_none()
+            && self.not_senders.is_empty()
+            && self.senders.is_none()
+            && self.types.is_none()
+            && self.url_filter.is_none()
+            && self.lazy_load_options.is_disabled()
+    }
+}
+
+/// Filters to be applied to room data.
 #[derive(Clone, Copy, Debug, Default, Outgoing, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Serialize)]
 pub struct RoomFilter<'a> {
     /// Include rooms that the user has left in the sync.
@@ -105,21 +149,21 @@ pub struct RoomFilter<'a> {
     pub include_leave: bool,
 
     /// The per user account data to include for rooms.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub account_data: Option<RoomEventFilter<'a>>,
+    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
+    pub account_data: RoomEventFilter<'a>,
 
     /// The message and state update events to include for rooms.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timeline: Option<RoomEventFilter<'a>>,
+    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
+    pub timeline: RoomEventFilter<'a>,
 
     /// The events that aren't recorded in the room history, e.g. typing and receipts, to include
     /// for rooms.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ephemeral: Option<RoomEventFilter<'a>>,
+    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
+    pub ephemeral: RoomEventFilter<'a>,
 
     /// The state events to include for rooms.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub state: Option<RoomEventFilter<'a>>,
+    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
+    pub state: RoomEventFilter<'a>,
 
     /// A list of room IDs to exclude.
     ///
@@ -138,14 +182,46 @@ pub struct RoomFilter<'a> {
 }
 
 impl<'a> RoomFilter<'a> {
-    /// A filter that can be used to ignore all room events (of any type)
+    /// Creates an empty `RoomFilter`.
+    ///
+    /// You can also use the [`Default`] implementation.
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    /// Creates a `RoomFilter` that can be used to ignore all room events (of any type).
     pub fn ignore_all() -> Self {
         Self { rooms: Some(&[]), ..Default::default() }
     }
+
+    /// Returns `true` if all fields are empty.
+    pub fn is_empty(&self) -> bool {
+        !self.include_leave
+            && self.account_data.is_empty()
+            && self.timeline.is_empty()
+            && self.ephemeral.is_empty()
+            && self.state.is_empty()
+            && self.not_rooms.is_empty()
+            && self.rooms.is_none()
+    }
 }
 
-/// Filter for not-room data
+impl IncomingRoomFilter {
+    /// Returns `true` if all fields are empty.
+    pub fn is_empty(&self) -> bool {
+        !self.include_leave
+            && self.account_data.is_empty()
+            && self.timeline.is_empty()
+            && self.ephemeral.is_empty()
+            && self.state.is_empty()
+            && self.not_rooms.is_empty()
+            && self.rooms.is_none()
+    }
+}
+
+/// Filter for non-room data.
 #[derive(Clone, Copy, Debug, Default, Outgoing, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Serialize)]
 pub struct Filter<'a> {
     /// A list of event types to exclude.
@@ -182,14 +258,42 @@ pub struct Filter<'a> {
 }
 
 impl<'a> Filter<'a> {
-    /// A filter that can be used to ignore all events
+    /// Creates an empty `Filter`.
+    ///
+    /// You can also use the [`Default`] implementation.
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    /// Creates a `Filter` that can be used to ignore all events.
     pub fn ignore_all() -> Self {
         Self { types: Some(&[]), ..Default::default() }
+    }
+
+    /// Returns `true` if all fields are empty.
+    pub fn is_empty(&self) -> bool {
+        self.not_types.is_empty()
+            && self.limit.is_none()
+            && self.senders.is_none()
+            && self.types.is_none()
+            && self.not_senders.is_empty()
+    }
+}
+
+impl IncomingFilter {
+    /// Returns `true` if all fields are empty.
+    pub fn is_empty(&self) -> bool {
+        self.not_types.is_empty()
+            && self.limit.is_none()
+            && self.senders.is_none()
+            && self.types.is_none()
+            && self.not_senders.is_empty()
     }
 }
 
 /// A filter definition
 #[derive(Clone, Copy, Debug, Default, Outgoing, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Serialize)]
 pub struct FilterDefinition<'a> {
     /// List of event fields to include.
@@ -198,40 +302,87 @@ pub struct FilterDefinition<'a> {
     /// to indicate sub-fields. So ['content.body'] will include the 'body' field of the 'content'
     /// object. A literal '.' character in a field name may be escaped using a '\'. A server may
     /// include more fields than were requested.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub event_fields: Option<&'a [String]>,
 
     /// The format to use for events.
     ///
     /// 'client' will return the events in a format suitable for clients. 'federation' will return
     /// the raw event as received over federation. The default is 'client'.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub event_format: Option<EventFormat>,
+    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    pub event_format: EventFormat,
 
     /// The presence updates to include.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub presence: Option<Filter<'a>>,
+    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
+    pub presence: Filter<'a>,
 
     /// The user account data that isn't associated with rooms to include.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub account_data: Option<Filter<'a>>,
+    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
+    pub account_data: Filter<'a>,
 
     /// Filters to be applied to room data.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub room: Option<RoomFilter<'a>>,
+    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
+    pub room: RoomFilter<'a>,
 }
 
 impl<'a> FilterDefinition<'a> {
-    /// A filter that can be used to ignore all events
+    /// Creates an empty `FilterDefinition`.
+    ///
+    /// You can also use the [`Default`] implementation.
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    /// Creates a `FilterDefinition` that can be used to ignore all events.
     pub fn ignore_all() -> Self {
         Self {
-            account_data: Some(Filter::ignore_all()),
-            room: Some(RoomFilter::ignore_all()),
-            presence: Some(Filter::ignore_all()),
+            account_data: Filter::ignore_all(),
+            room: RoomFilter::ignore_all(),
+            presence: Filter::ignore_all(),
             ..Default::default()
         }
     }
+
+    /// Returns `true` if all fields are empty.
+    pub fn is_empty(&self) -> bool {
+        self.event_fields.is_none()
+            && self.event_format == EventFormat::Client
+            && self.presence.is_empty()
+            && self.account_data.is_empty()
+            && self.room.is_empty()
+    }
 }
+
+impl IncomingFilterDefinition {
+    /// Returns `true` if all fields are empty.
+    pub fn is_empty(&self) -> bool {
+        self.event_fields.is_none()
+            && self.event_format == EventFormat::Client
+            && self.presence.is_empty()
+            && self.account_data.is_empty()
+            && self.room.is_empty()
+    }
+}
+
+macro_rules! can_be_empty {
+    ($ty:ident $(<$gen:tt>)?) => {
+        impl $(<$gen>)? ruma_serde::CanBeEmpty for $ty $(<$gen>)? {
+            fn is_empty(&self) -> bool {
+                self.is_empty()
+            }
+        }
+    };
+}
+
+can_be_empty!(Filter<'a>);
+can_be_empty!(FilterDefinition<'a>);
+can_be_empty!(RoomEventFilter<'a>);
+can_be_empty!(RoomFilter<'a>);
+
+can_be_empty!(IncomingFilter);
+can_be_empty!(IncomingFilterDefinition);
+can_be_empty!(IncomingRoomEventFilter);
+can_be_empty!(IncomingRoomFilter);
 
 #[cfg(test)]
 mod tests {
