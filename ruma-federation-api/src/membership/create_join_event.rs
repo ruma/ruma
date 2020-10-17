@@ -24,8 +24,15 @@ pub struct RoomState {
 }
 
 impl RoomState {
+    #[cfg(not(feature = "unstable-pre-spec"))]
     /// Creates an empty `RoomState` with the given `origin`.
     pub fn new(origin: String) -> Self {
         Self { origin, auth_chain: Vec::new(), state: Vec::new() }
+    }
+
+    #[cfg(feature = "unstable-pre-spec")]
+    /// Creates an empty `RoomState`.
+    pub fn new() -> Self {
+        Self { auth_chain: Vec::new(), state: Vec::new() }
     }
 }

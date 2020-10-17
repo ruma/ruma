@@ -310,6 +310,7 @@ fn serialize_pdu_as_v3() {
     unsigned.insert("somekey".into(), json!({"a": 456}));
 
     let v3_pdu = RoomV3Pdu {
+        event_id: None,
         room_id: room_id!("!n8f893n9:example.com"),
         sender: user_id!("@sender:example.com"),
         origin: "matrix.org".into(),
@@ -564,6 +565,7 @@ fn convert_v3_stub_to_pdu() {
     assert_matches!(
         v3_stub.into_v3_pdu(room_id!("!n8f893n9:example.com")),
         RoomV3Pdu {
+            event_id: None,
             room_id,
             sender,
             origin,
