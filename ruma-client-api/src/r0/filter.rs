@@ -232,3 +232,20 @@ impl<'a> FilterDefinition<'a> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use serde_json::{json, to_value as to_json_value};
+
+    use super::{Filter, FilterDefinition, RoomEventFilter, RoomFilter};
+
+    #[test]
+    fn default_filters_are_empty() -> Result<(), serde_json::Error> {
+        assert_eq!(to_json_value(Filter::default())?, json!({}));
+        assert_eq!(to_json_value(FilterDefinition::default())?, json!({}));
+        assert_eq!(to_json_value(RoomEventFilter::default())?, json!({}));
+        assert_eq!(to_json_value(RoomFilter::default())?, json!({}));
+
+        Ok(())
+    }
+}
