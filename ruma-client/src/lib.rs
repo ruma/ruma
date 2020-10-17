@@ -10,7 +10,7 @@
 //!
 //! let work = async {
 //!     let homeserver_url = "https://example.com".parse().unwrap();
-//!     let client = Client::https(homeserver_url, None);
+//!     let client = Client::new(homeserver_url, None);
 //!
 //!     let session = client
 //!         .log_in("@alice:example.com", "secret", None, None)
@@ -32,7 +32,7 @@
 //! let work = async {
 //!     let homeserver_url = "https://example.com".parse().unwrap();
 //!     let session = Session{access_token: "as_access_token".to_string(), identification: None};
-//!     let client = Client::https(homeserver_url, Some(session));
+//!     let client = Client::new(homeserver_url, Some(session));
 //!
 //!     // make calls to the API
 //! };
@@ -48,7 +48,7 @@
 //! # use ruma_client::Client;
 //! # use ruma::presence::PresenceState;
 //! # let homeserver_url = "https://example.com".parse().unwrap();
-//! # let client = Client::https(homeserver_url, None);
+//! # let client = Client::new(homeserver_url, None);
 //! # let next_batch_token = String::new();
 //! # async {
 //! let mut sync_stream = Box::pin(client.sync(
@@ -78,7 +78,7 @@
 //! ```no_run
 //! # use ruma_client::Client;
 //! # let homeserver_url = "https://example.com".parse().unwrap();
-//! # let client = Client::https(homeserver_url, None);
+//! # let client = Client::new(homeserver_url, None);
 //! use std::convert::TryFrom;
 //!
 //! use ruma::{
@@ -111,8 +111,6 @@ use futures_core::stream::{Stream, TryStream};
 use futures_util::stream;
 use http::{uri::Uri, Response as HttpResponse};
 use hyper::{client::HttpConnector, Client as HyperClient};
-#[cfg(feature = "hyper-tls")]
-use hyper_tls::HttpsConnector;
 use ruma_api::{AuthScheme, OutgoingRequest};
 use ruma_client_api::r0::sync::sync_events::{
     Filter as SyncFilter, Request as SyncRequest, Response as SyncResponse,
@@ -129,68 +127,48 @@ pub use self::{
     session::{Identification, Session},
 };
 
+#[cfg(not(feature = "tls"))]
+type Connector = HttpConnector;
+
+#[cfg(feature = "tls")]
+type Connector = hyper_tls::HttpsConnector<HttpConnector>;
+
 /// A client for the Matrix client-server API.
-#[derive(Debug)]
-pub struct Client<C>(Arc<ClientData<C>>);
+#[derive(Clone, Debug)]
+pub struct Client(Arc<ClientData>);
 
 /// Data contained in Client's Rc
 #[derive(Debug)]
-struct ClientData<C> {
+struct ClientData {
     /// The URL of the homeserver to connect to.
     homeserver_url: Uri,
     /// The underlying HTTP client.
-    hyper: HyperClient<C>,
+    hyper: HyperClient<Connector>,
     /// User session data.
     session: Mutex<Option<Session>>,
 }
 
-/// Non-secured variant of the client (using plain HTTP requests)
-pub type HttpClient = Client<HttpConnector>;
-
-impl HttpClient {
-    /// Creates a new client for making HTTP requests to the given homeserver.
+impl Client {
+    /// Creates a new client.
     pub fn new(homeserver_url: Uri, session: Option<Session>) -> Self {
         Self(Arc::new(ClientData {
             homeserver_url,
-            hyper: HyperClient::builder().build_http(),
+            hyper: HyperClient::builder().build(Connector::new()),
             session: Mutex::new(session),
         }))
     }
-}
 
-/// Secured variant of the client (using HTTPS requests)
-#[cfg(feature = "tls")]
-pub type HttpsClient = Client<HttpsConnector<HttpConnector>>;
-
-#[cfg(feature = "tls")]
-impl HttpsClient {
-    /// Creates a new client for making HTTPS requests to the given homeserver.
-    pub fn https(homeserver_url: Uri, session: Option<Session>) -> Self {
-        let connector = HttpsConnector::new();
-
-        Self(Arc::new(ClientData {
-            homeserver_url,
-            hyper: HyperClient::builder().build(connector),
-            session: Mutex::new(session),
-        }))
-    }
-}
-
-impl<C> Client<C>
-where
-    C: hyper::client::connect::Connect + Clone + Send + Sync + 'static,
-{
-    /// Creates a new client using the given `hyper::Client`.
+    /// Creates a new client using the given `hyper::client::Builder`.
     ///
     /// This allows the user to configure the details of HTTP as desired.
     pub fn custom(
-        hyper_client: HyperClient<C>,
+        client_builder: &hyper::client::Builder,
         homeserver_url: Uri,
         session: Option<Session>,
     ) -> Self {
         Self(Arc::new(ClientData {
             homeserver_url,
-            hyper: hyper_client,
+            hyper: client_builder.build(Connector::new()),
             session: Mutex::new(session),
         }))
     }
@@ -378,11 +356,5 @@ where
         let full_response = HttpResponse::from_parts(head, full_body.as_ref().to_owned());
 
         Ok(Request::IncomingResponse::try_from(full_response)?)
-    }
-}
-
-impl<C> Clone for Client<C> {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
     }
 }

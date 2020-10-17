@@ -11,10 +11,10 @@ use ruma::{
     },
     presence::PresenceState,
 };
-use ruma_client::{self, HttpClient};
+use ruma_client::{self, Client};
 
 async fn log_messages(homeserver_url: Uri, username: &str, password: &str) -> anyhow::Result<()> {
-    let client = HttpClient::new(homeserver_url, None);
+    let client = Client::new(homeserver_url, None);
 
     client.log_in(username, password, None, None).await?;
 
