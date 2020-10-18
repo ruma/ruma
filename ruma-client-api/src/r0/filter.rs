@@ -35,7 +35,7 @@ impl Default for EventFormat {
 /// Filters to be applied to room events.
 #[derive(Clone, Copy, Debug, Default, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[incoming_derive(Clone, Serialize)]
+#[incoming_derive(Clone, Default, Serialize)]
 pub struct RoomEventFilter<'a> {
     /// A list of event types to exclude.
     ///
@@ -140,7 +140,7 @@ impl IncomingRoomEventFilter {
 /// Filters to be applied to room data.
 #[derive(Clone, Copy, Debug, Default, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[incoming_derive(Clone, Serialize)]
+#[incoming_derive(Clone, Default, Serialize)]
 pub struct RoomFilter<'a> {
     /// Include rooms that the user has left in the sync.
     ///
@@ -222,7 +222,7 @@ impl IncomingRoomFilter {
 /// Filter for non-room data.
 #[derive(Clone, Copy, Debug, Default, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[incoming_derive(Clone, Serialize)]
+#[incoming_derive(Clone, Default, Serialize)]
 pub struct Filter<'a> {
     /// A list of event types to exclude.
     ///
@@ -294,7 +294,7 @@ impl IncomingFilter {
 /// A filter definition
 #[derive(Clone, Copy, Debug, Default, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[incoming_derive(Clone, Serialize)]
+#[incoming_derive(Clone, Default, Serialize)]
 pub struct FilterDefinition<'a> {
     /// List of event fields to include.
     ///
