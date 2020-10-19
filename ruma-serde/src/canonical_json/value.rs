@@ -103,19 +103,14 @@ impl fmt::Debug for CanonicalJsonValue {
 }
 
 impl fmt::Display for CanonicalJsonValue {
-    /// Display a JSON value as a string.
+    /// Display this value as a string.
     ///
-    /// ```
-    /// # use serde_json::json;
-    /// #
-    /// let json = json!({ "city": "London", "street": "10 Downing Street" });
+    /// This `Display` implementation is intentionally unaffected by any formatting parameters,
+    /// because adding extra whitespace or otherwise pretty-printing it would make it not the
+    /// canonical form anymore.
     ///
-    /// // Canonical format:
-    /// //
-    /// // {"city":"London","street":"10 Downing Street"}
-    /// let compact = format!("{}", json);
-    /// assert_eq!(compact,
-    ///     "{\"city\":\"London\",\"street\":\"10 Downing Street\"}");
+    /// If you want to pretty-print a `CanonicalJsonValue` for debugging purposes, use
+    /// one of `serde_json::{to_string_pretty, to_vec_pretty, to_writer_pretty}`.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", to_json_string(&self).map_err(|_| fmt::Error)?)
     }
@@ -177,5 +172,25 @@ impl<'de> Deserialize<'de> for CanonicalJsonValue {
     {
         let val = JsonValue::deserialize(deserializer)?;
         Ok(val.try_into().map_err(serde::de::Error::custom)?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::convert::TryInto;
+
+    use serde_json::json;
+
+    use super::CanonicalJsonValue;
+
+    #[test]
+    fn to_string() {
+        const CANONICAL_STR: &str = r#"{"city":"London","street":"10 Downing Street"}"#;
+
+        let json: CanonicalJsonValue =
+            json!({ "city": "London", "street": "10 Downing Street" }).try_into().unwrap();
+
+        assert_eq!(format!("{}", json), CANONICAL_STR);
+        assert_eq!(format!("{:#}", json), CANONICAL_STR);
     }
 }
