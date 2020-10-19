@@ -54,7 +54,7 @@ pub struct CrossSigningKey {
 }
 
 /// The usage of a cross signing key.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum KeyUsage {
     /// Master key.

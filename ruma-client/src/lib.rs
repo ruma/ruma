@@ -98,7 +98,7 @@
 //! ```
 
 #![warn(rust_2018_idioms)]
-#![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
+#![deny(missing_debug_implementations, missing_docs)]
 
 use std::{
     convert::TryFrom,

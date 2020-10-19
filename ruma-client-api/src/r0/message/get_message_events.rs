@@ -120,7 +120,7 @@ fn is_default_limit(val: &UInt) -> bool {
 }
 
 /// The direction to return events from.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum Direction {
     /// Return events backwards in time from the requested `from` token.
     #[serde(rename = "b")]

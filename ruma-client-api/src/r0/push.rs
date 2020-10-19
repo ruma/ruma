@@ -17,30 +17,30 @@ pub mod set_pushrule;
 pub mod set_pushrule_actions;
 pub mod set_pushrule_enabled;
 
-/// The kinds of push rules that are available
+/// The kinds of push rules that are available.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum RuleKind {
-    /// User-configured rules that override all other kinds
+    /// User-configured rules that override all other kinds.
     Override,
 
-    /// Lowest priority user-defined rules
+    /// Lowest priority user-defined rules.
     Underride,
 
-    /// Sender-specific rules
+    /// Sender-specific rules.
     Sender,
 
-    /// Room-specific rules
+    /// Room-specific rules.
     Room,
 
-    /// Content-specific rules
+    /// Content-specific rules.
     Content,
 
     #[doc(hidden)]
     _Custom(String),
 }
 
-/// Defines a pusher
+/// Defines a pusher.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Pusher {
     /// This is a unique identifier for this pusher. Max length, 512 bytes.
@@ -70,7 +70,7 @@ pub struct Pusher {
     pub data: PusherData,
 }
 
-/// Which kind a pusher is
+/// Which kind a pusher is.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum PusherKind {

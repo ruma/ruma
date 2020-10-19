@@ -127,7 +127,7 @@ impl Default for PowerLevelsEventContent {
 }
 
 /// The power level requirements for specific notification types.
-#[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct NotificationPowerLevels {
     /// The level required to trigger an `@room` notification.
     #[cfg_attr(

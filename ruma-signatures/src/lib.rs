@@ -42,7 +42,7 @@
 //! these respective functions for more details and full examples of use.
 
 #![warn(rust_2018_idioms)]
-#![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
+#![deny(missing_debug_implementations, missing_docs)]
 
 use std::{
     error::Error as StdError,
@@ -117,7 +117,7 @@ impl From<ruma_serde::CanonicalJsonError> for Error {
 }
 
 /// The algorithm used for signing data.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, AsRefStr, DisplayAsRefStr)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, AsRefStr, DisplayAsRefStr)]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum Algorithm {
     /// The Ed25519 digital signature algorithm.

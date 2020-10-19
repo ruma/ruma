@@ -118,7 +118,7 @@ impl<'a> Criteria<'a> {
 }
 
 /// Configures whether any context for the events returned are included in the response.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct EventContext {
     /// How many events before the result are returned.
@@ -250,7 +250,7 @@ pub enum GroupingKey {
 }
 
 /// Requests that the server partitions the result set based on the provided list of keys.
-#[derive(Clone, Copy, Default, Debug, Outgoing, Serialize)]
+#[derive(Clone, Default, Debug, Outgoing, Serialize)]
 #[incoming_derive(Default)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Groupings<'a> {

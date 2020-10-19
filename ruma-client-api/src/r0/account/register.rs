@@ -100,7 +100,7 @@ impl Response {
 }
 
 /// The kind of account being registered.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RegistrationKind {
     /// A guest account

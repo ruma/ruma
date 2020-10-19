@@ -83,10 +83,10 @@ impl Capabilities {
 }
 
 /// Information about the m.change_password capability
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ChangePasswordCapability {
-    /// True if the user can change their password, false otherwise.
+    /// `true` if the user can change their password, `false` otherwise.
     pub enabled: bool,
 }
 

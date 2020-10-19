@@ -19,7 +19,7 @@ impl Display for InvalidInput {
 impl Error for InvalidInput {}
 
 /// An error when attempting to create a value from a string via the `FromStr` trait.
-#[derive(Clone, Copy, Eq, Debug, Hash, PartialEq)]
+#[derive(Clone, Eq, Debug, Hash, PartialEq)]
 pub struct FromStrError;
 
 impl Display for FromStrError {

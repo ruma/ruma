@@ -1,12 +1,7 @@
 //! Crate **ruma_identifiers** contains types for [Matrix](https://matrix.org/) identifiers
 //! for events, rooms, room aliases, room versions, and users.
 
-#![warn(
-    rust_2018_idioms,
-    missing_copy_implementations,
-    missing_debug_implementations,
-    missing_docs
-)]
+#![warn(rust_2018_idioms, missing_debug_implementations, missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 // Renamed in `Cargo.toml` so we can have a serde feature.
