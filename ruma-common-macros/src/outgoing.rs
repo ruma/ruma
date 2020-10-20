@@ -240,37 +240,43 @@ fn strip_lifetimes(field_type: &mut Type) -> bool {
 
             has_lifetimes || is_lifetime_generic
         }
-        Type::Reference(TypeReference { elem, .. }) => match &mut **elem {
-            Type::Path(ty_path) => {
-                let TypePath { path, .. } = ty_path;
-                let segs = path
-                    .segments
-                    .clone()
-                    .into_iter()
-                    .map(|seg| seg.ident.to_string())
-                    .collect::<Vec<_>>();
+        Type::Reference(TypeReference { elem, .. }) => {
+            let special_replacement = match &mut **elem {
+                Type::Path(ty) => {
+                    let path = &ty.path;
+                    let last_seg = path.segments.last().unwrap();
 
-                if path.is_ident("str") {
-                    // &str -> String
-                    *field_type = parse_quote! { ::std::string::String };
-                } else if segs.contains(&"DeviceId".into()) || segs.contains(&"ServerName".into()) {
-                    // The identifiers that need to be boxed `Box<T>` since they are DST's.
-                    *field_type = parse_quote! { ::std::boxed::Box<#path> };
-                } else {
-                    // &T -> T
-                    *field_type = Type::Path(ty_path.clone());
+                    if last_seg.ident == "str" {
+                        // &str -> String
+                        Some(parse_quote! { ::std::string::String })
+                    } else if last_seg.ident == "DeviceId" || last_seg.ident == "ServerName" {
+                        // The identifiers that need to be boxed `Box<T>` since they are DST's.
+                        Some(parse_quote! { ::std::boxed::Box<#path> })
+                    } else {
+                        None
+                    }
                 }
-                true
-            }
-            // &[T] -> Vec<T>
-            Type::Slice(TypeSlice { elem, .. }) => {
-                // Recursively strip the lifetimes of the slice's elements.
-                strip_lifetimes(&mut *elem);
-                *field_type = parse_quote! { Vec<#elem> };
-                true
-            }
-            _ => false,
-        },
+                // &[T] -> Vec<T>
+                Type::Slice(TypeSlice { elem, .. }) => {
+                    // Recursively strip the lifetimes of the slice's elements.
+                    strip_lifetimes(&mut *elem);
+                    Some(parse_quote! { Vec<#elem> })
+                }
+                _ => None,
+            };
+
+            *field_type = match special_replacement {
+                Some(ty) => ty,
+                None => {
+                    // Strip lifetimes of `elem`.
+                    strip_lifetimes(elem);
+                    // Replace reference with `elem`.
+                    (**elem).clone()
+                }
+            };
+
+            true
+        }
         Type::Tuple(syn::TypeTuple { elems, .. }) => {
             let mut has_lifetime = false;
             for elem in elems {

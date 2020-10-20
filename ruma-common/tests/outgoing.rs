@@ -32,6 +32,9 @@ pub struct FakeRequest<'a, T> {
     pub option: Option<&'a [u8]>,
     pub depth: Option<&'a [(&'a str, &'a str)]>,
     pub arc_type: std::sync::Arc<&'a ::ruma_identifiers::ServerName>,
+    pub thing_ref: &'a Thing<'a, T>,
+    pub double_ref: &'a &'a u8,
+    pub triple_ref: &'a &'a &'a str,
 }
 
 #[derive(Outgoing)]
