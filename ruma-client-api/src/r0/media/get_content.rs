@@ -39,7 +39,12 @@ ruma_api! {
         #[ruma_api(header = CONTENT_TYPE)]
         pub content_type: Option<String>,
 
-        /// The name of the file that was previously uploaded, if set.
+        /// The value of the `Content-Disposition` HTTP header, possibly containing the name of the
+        /// file that was previously uploaded.
+        ///
+        /// See [MDN] for the syntax.
+        ///
+        /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#Syntax
         #[ruma_api(header = CONTENT_DISPOSITION)]
         pub content_disposition: Option<String>,
     }
