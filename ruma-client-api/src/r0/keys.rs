@@ -49,7 +49,7 @@ pub struct CrossSigningKey {
     pub keys: BTreeMap<String, String>,
 
     /// Signatures of the key. Only optional for master key.
-    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub signatures: BTreeMap<UserId, BTreeMap<String, String>>,
 }
 
