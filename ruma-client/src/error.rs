@@ -10,12 +10,16 @@ use ruma_api::error::{FromHttpResponseError, IntoHttpError};
 pub enum Error<E> {
     /// Queried endpoint requires authentication but was called on an anonymous client.
     AuthenticationRequired,
+
     /// Construction of the HTTP request failed (this should never happen).
     IntoHttp(IntoHttpError),
+
     /// The request's URL is invalid (this should never happen).
     Url(UrlError),
+
     /// Couldn't obtain an HTTP response (e.g. due to network or DNS issues).
     Response(ResponseError),
+
     /// Converting the HTTP response to one of ruma's types failed.
     FromHttpResponse(FromHttpResponseError<E>),
 }

@@ -285,11 +285,14 @@ pub trait IncomingNonAuthRequest: IncomingRequest {}
 pub enum AuthScheme {
     /// No authentication is performed.
     None,
+
     /// Authentication is performed by including an access token in the request headers.
     AccessToken,
+
     /// Authentication is performed by including X-Matrix signatures in the request headers,
     /// as defined in the federation API.
     ServerSignatures,
+
     /// Authentication is performed by including an access token in the query parameters.
     QueryOnlyAccessToken,
 }

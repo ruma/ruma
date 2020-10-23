@@ -25,8 +25,10 @@ pub fn to_string<T: Serialize>(val: &T) -> Result<String, Error> {
 pub enum Error {
     /// The numeric value failed conversion to js_int::Int.
     IntConvert,
+
     /// The `CanonicalJsonValue` being serialized was larger than 65,535 bytes.
     JsonSize,
+
     /// An error occurred while serializing/deserializing.
     SerDe(JsonError),
 }

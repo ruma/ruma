@@ -503,6 +503,7 @@ fn expand_redacted_enum(
             pub enum #ident {
                 /// An un-redacted event.
                 Regular(#regular_enum_ident),
+
                 /// A redacted event.
                 Redacted(#redacted_enum_ident),
             }

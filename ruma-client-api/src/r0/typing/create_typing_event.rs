@@ -56,6 +56,7 @@ impl Response {
 pub enum Typing {
     /// Not typing.
     No,
+
     /// Typing during the specified length of time.
     Yes(Duration),
 }

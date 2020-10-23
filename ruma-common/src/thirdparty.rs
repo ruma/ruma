@@ -24,6 +24,7 @@ pub struct Protocol {
     /// A content URI representing an icon for the third party protocol.
     #[cfg(not(feature = "unstable-synapse-quirks"))]
     pub icon: String,
+
     /// A content URI representing an icon for the third party protocol.
     #[cfg(feature = "unstable-synapse-quirks")]
     pub icon: Option<String>,
@@ -50,6 +51,7 @@ pub struct ProtocolInit {
     /// A content URI representing an icon for the third party protocol.
     #[cfg(not(feature = "unstable-synapse-quirks"))]
     pub icon: String,
+
     /// A content URI representing an icon for the third party protocol.
     #[cfg(feature = "unstable-synapse-quirks")]
     pub icon: Option<String>,

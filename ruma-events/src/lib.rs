@@ -403,8 +403,10 @@ pub trait RedactedStateEventContent: RedactedEventContent {}
 pub enum HasDeserializeFields {
     /// Deserialize the event's content, failing if invalid.
     True,
+
     /// Return the redacted version of this event's content.
     False,
+
     /// `Optional` is used for `RedactedAliasesEventContent` since it has
     /// an empty version and one with content left after redaction that
     /// must be supported together.

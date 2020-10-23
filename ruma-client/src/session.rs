@@ -7,6 +7,7 @@ use ruma_identifiers::{DeviceId, DeviceIdBox, UserId};
 pub struct Session {
     /// The access token used for this session.
     pub access_token: String,
+
     /// Identification information for a user
     pub identification: Option<Identification>,
 }
@@ -17,6 +18,7 @@ pub struct Session {
 pub struct Identification {
     /// The user the access token was issued for.
     pub user_id: UserId,
+
     /// The ID of the client device
     pub device_id: DeviceIdBox,
 }

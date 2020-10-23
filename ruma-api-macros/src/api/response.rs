@@ -335,10 +335,13 @@ impl ToTokens for Response {
 pub enum ResponseField {
     /// JSON data in the body of the response.
     Body(Field),
+
     /// Data in an HTTP header.
     Header(Field, Ident),
+
     /// A specific data type in the body of the response.
     NewtypeBody(Field),
+
     /// Arbitrary bytes in the body of the response.
     NewtypeRawBody(Field),
 }
@@ -398,10 +401,13 @@ impl ResponseField {
 enum ResponseFieldKind {
     /// See the similarly named variant of `ResponseField`.
     Body,
+
     /// See the similarly named variant of `ResponseField`.
     Header,
+
     /// See the similarly named variant of `ResponseField`.
     NewtypeBody,
+
     /// See the similarly named variant of `ResponseField`.
     NewtypeRawBody,
 }

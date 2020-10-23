@@ -144,6 +144,7 @@ impl<'a> Notification<'a> {
 pub enum NotificationPriority {
     /// A high priority notification
     High,
+
     /// A low priority notification
     Low,
 }

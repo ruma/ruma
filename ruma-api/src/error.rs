@@ -95,6 +95,7 @@ impl RequestDeserializationError {
 pub enum FromHttpResponseError<E> {
     /// Deserialization failed
     Deserialization(ResponseDeserializationError),
+
     /// The server returned a non-success status
     Http(ServerError<E>),
 }
@@ -163,6 +164,7 @@ pub enum ServerError<E> {
     /// An error that is expected to happen under certain circumstances and
     /// that has a well-defined structure
     Known(E),
+
     /// An error of unexpected type of structure
     Unknown(ResponseDeserializationError),
 }

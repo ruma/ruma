@@ -7,24 +7,33 @@ use std::fmt::{self, Display, Formatter};
 pub enum Error {
     /// The room version ID is empty.
     EmptyRoomVersionId,
+
     /// The ID's localpart contains invalid characters.
     ///
     /// Only relevant for user IDs.
     InvalidCharacters,
+
     /// The key version contains outside of [a-zA-Z0-9_].
     InvalidKeyVersion,
+
     /// The server name part of the the ID string is not a valid server name.
     InvalidServerName,
+
     /// The ID exceeds 255 bytes (or 32 codepoints for a room version ID).
     MaximumLengthExceeded,
+
     /// The ID is missing the colon delimiter between localpart and server name.
     MissingDelimiter,
+
     /// The ID is missing the colon delimiter between key algorithm and device ID.
     MissingDeviceKeyDelimiter,
+
     /// The ID is missing the colon delimiter between key algorithm and version.
     MissingServerKeyDelimiter,
+
     /// The ID is missing the correct leading sigil.
     MissingSigil,
+
     /// The key algorithm is not recognized.
     UnknownKeyAlgorithm,
 }

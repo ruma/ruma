@@ -22,6 +22,7 @@ use serde_json::Value as JsonValue;
 pub enum Pdu {
     /// PDU for room versions 1 and 2.
     RoomV1Pdu(RoomV1Pdu),
+
     /// PDU for room versions 3 and above.
     RoomV3Pdu(RoomV3Pdu),
 }

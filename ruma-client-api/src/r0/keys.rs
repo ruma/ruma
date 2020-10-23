@@ -59,8 +59,10 @@ pub struct CrossSigningKey {
 pub enum KeyUsage {
     /// Master key.
     Master,
+
     /// Self-signing key.
     SelfSigning,
+
     /// User-signing key.
     UserSigning,
 }

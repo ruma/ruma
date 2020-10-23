@@ -21,6 +21,7 @@ use crate::{Error, ServerName};
 pub struct UserId {
     full_id: Box<str>,
     colon_idx: NonZeroU8,
+
     /// Whether this user id is a historical one.
     ///
     /// A historical user id is one that is not legal per the regular user id rules, but was

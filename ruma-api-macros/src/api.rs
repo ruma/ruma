@@ -30,10 +30,13 @@ pub fn strip_serde_attrs(field: &Field) -> Field {
 pub struct Api {
     /// The `metadata` section of the macro.
     metadata: Metadata,
+
     /// The `request` section of the macro.
     request: Request,
+
     /// The `response` section of the macro.
     response: Response,
+
     /// The `error` section of the macro.
     error: TokenStream,
 }
@@ -402,10 +405,13 @@ mod kw {
 pub struct RawApi {
     /// The `metadata` section of the macro.
     pub metadata: RawMetadata,
+
     /// The `request` section of the macro.
     pub request: RawRequest,
+
     /// The `response` section of the macro.
     pub response: RawResponse,
+
     /// The `error` section of the macro.
     pub error: Option<RawErrorType>,
 }

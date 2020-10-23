@@ -155,6 +155,7 @@ pub enum MembershipChange {
     ProfileChanged {
         /// Whether the `displayname` changed.
         displayname_changed: bool,
+
         /// Whether the `avatar_url` changed.
         avatar_url_changed: bool,
     },

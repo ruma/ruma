@@ -14,12 +14,16 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 pub enum ComparisonOperator {
     /// Equals
     Eq,
+
     /// Less than
     Lt,
+
     /// Greater than
     Gt,
+
     /// Greater or equal
     Ge,
+
     /// Less or equal
     Le,
 }
@@ -60,6 +64,7 @@ impl Default for ComparisonOperator {
 pub struct RoomMemberCountIs {
     /// One of `==`, `<`, `>`, `>=`, `<=`, or no prefix.
     pub prefix: ComparisonOperator,
+
     /// The number of people in the room.
     pub count: UInt,
 }

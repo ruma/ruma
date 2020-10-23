@@ -10,6 +10,7 @@ use syn::{
 pub struct MetaNameValue {
     /// The part left of the equals sign
     pub name: Ident,
+
     /// The part right of the equals sign
     pub value: Ident,
 }
@@ -18,6 +19,7 @@ pub struct MetaNameValue {
 pub enum Meta {
     /// A single word, like `query` in `#[ruma_api(query)]`
     Word(Ident),
+
     /// A name-value pair, like `header = CONTENT_TYPE` in `#[ruma_api(header = CONTENT_TYPE)]`
     NameValue(MetaNameValue),
 }

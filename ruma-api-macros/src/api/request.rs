@@ -540,16 +540,22 @@ impl ToTokens for Request {
 pub enum RequestField {
     /// JSON data in the body of the request.
     Body(Field),
+
     /// Data in an HTTP header.
     Header(Field, Ident),
+
     /// A specific data type in the body of the request.
     NewtypeBody(Field),
+
     /// Arbitrary bytes in the body of the request.
     NewtypeRawBody(Field),
+
     /// Data that appears in the URL path.
     Path(Field),
+
     /// Data that appears in the query string.
     Query(Field),
+
     /// Data that appears in the query string as dynamic key-value pairs.
     QueryMap(Field),
 }
@@ -661,16 +667,22 @@ impl RequestField {
 enum RequestFieldKind {
     /// See the similarly named variant of `RequestField`.
     Body,
+
     /// See the similarly named variant of `RequestField`.
     Header,
+
     /// See the similarly named variant of `RequestField`.
     NewtypeBody,
+
     /// See the similarly named variant of `RequestField`.
     NewtypeRawBody,
+
     /// See the similarly named variant of `RequestField`.
     Path,
+
     /// See the similarly named variant of `RequestField`.
     Query,
+
     /// See the similarly named variant of `RequestField`.
     QueryMap,
 }

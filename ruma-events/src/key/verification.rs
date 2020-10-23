@@ -30,6 +30,7 @@ pub enum HashAlgorithm {
 pub enum KeyAgreementProtocol {
     /// The [Curve25519](https://cr.yp.to/ecdh.html) key agreement protocol.
     Curve25519,
+
     /// The Curve25519 key agreement protocol with check for public keys.
     Curve25519HkdfSha256,
 }
@@ -42,6 +43,7 @@ pub enum KeyAgreementProtocol {
 pub enum MessageAuthenticationCode {
     /// The HKDF-HMAC-SHA256 MAC.
     HkdfHmacSha256,
+
     /// The HMAC-SHA256 MAC.
     HmacSha256,
 }

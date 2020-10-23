@@ -134,8 +134,10 @@ impl Display for Algorithm {
 enum SplitError<'a> {
     /// The signature's ID does not have exactly two components separated by a colon.
     InvalidLength(usize),
+
     /// The signature's ID contains invalid characters in its version.
     InvalidVersion(&'a str),
+
     /// The signature uses an unknown algorithm.
     UnknownAlgorithm(&'a str),
 }

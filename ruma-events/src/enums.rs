@@ -94,14 +94,19 @@ event_enum! {
 pub enum AnyEvent {
     /// Any basic event.
     Basic(AnyBasicEvent),
+
     /// Any ephemeral room event.
     Ephemeral(AnyEphemeralRoomEvent),
+
     /// Any message event.
     Message(AnyMessageEvent),
+
     /// Any state event.
     State(AnyStateEvent),
+
     /// Any message event that has been redacted.
     RedactedMessage(AnyRedactedMessageEvent),
+
     /// Any state event that has been redacted.
     RedactedState(AnyRedactedStateEvent),
 }
@@ -112,10 +117,13 @@ pub enum AnyEvent {
 pub enum AnyRoomEvent {
     /// Any message event.
     Message(AnyMessageEvent),
+
     /// Any state event.
     State(AnyStateEvent),
+
     /// Any message event that has been redacted.
     RedactedMessage(AnyRedactedMessageEvent),
+
     /// Any state event that has been redacted.
     RedactedState(AnyRedactedStateEvent),
 }
@@ -126,10 +134,13 @@ pub enum AnyRoomEvent {
 pub enum AnySyncRoomEvent {
     /// Any sync message event
     Message(AnySyncMessageEvent),
+
     /// Any sync state event
     State(AnySyncStateEvent),
+
     /// Any sync message event that has been redacted.
     RedactedMessage(AnyRedactedSyncMessageEvent),
+
     /// Any sync state event that has been redacted.
     RedactedState(AnyRedactedSyncStateEvent),
 }

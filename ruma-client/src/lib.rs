@@ -142,8 +142,10 @@ pub struct Client(Arc<ClientData>);
 struct ClientData {
     /// The URL of the homeserver to connect to.
     homeserver_url: Uri,
+
     /// The underlying HTTP client.
     hyper: HyperClient<Connector>,
+
     /// User session data.
     session: Mutex<Option<Session>>,
 }

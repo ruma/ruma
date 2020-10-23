@@ -10,14 +10,19 @@ use crate::{api::RawMetadata, util};
 pub struct Metadata {
     /// The description field.
     pub description: LitStr,
+
     /// The method field.
     pub method: Ident,
+
     /// The name field.
     pub name: LitStr,
+
     /// The path field.
     pub path: LitStr,
+
     /// The rate_limited field.
     pub rate_limited: LitBool,
+
     /// The authentication field.
     pub authentication: Ident,
 }
