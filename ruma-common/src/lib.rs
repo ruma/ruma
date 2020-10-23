@@ -9,7 +9,7 @@ pub mod push;
 mod raw;
 pub mod thirdparty;
 
-pub use ruma_common_macros::Outgoing;
+pub use ruma_common_macros::*;
 
 pub use self::raw::Raw;
 
@@ -33,5 +33,6 @@ extern crate self as ruma_common;
 /// It is not considered part of ruma-common's public API.
 #[doc(hidden)]
 pub mod exports {
+    pub use ruma_serde;
     pub use serde;
 }
