@@ -3,14 +3,14 @@
 use ruma_api::ruma_api;
 
 use super::CrossSigningKey;
-use crate::r0::uiaa::{AuthData, IncomingAuthData};
+use crate::r0::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
 ruma_api! {
     metadata: {
         description: "Publishes cross signing keys for the user.",
         method: POST,
         name: "upload_signing_keys",
-        path: "/_matrix/client/r0/keys/device_signing/upload",
+        path: "/_matrix/client/unstable/keys/device_signing/upload",
         rate_limited: false,
         authentication: AccessToken,
     }
@@ -39,7 +39,7 @@ ruma_api! {
     #[derive(Default)]
     response: {}
 
-    error: crate::Error
+    error: UiaaResponse
 }
 
 impl Request<'_> {
