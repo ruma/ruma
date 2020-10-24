@@ -14,7 +14,7 @@ use crate::Error;
 /// A Matrix-spec compliant server name.
 #[repr(transparent)]
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(serde1::Serialize), serde(transparent, crate = "serde1"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent, crate = "serde"))]
 pub struct ServerName(str);
 
 /// An owned server name.
@@ -131,10 +131,10 @@ impl Display for ServerName {
 }
 
 #[cfg(feature = "serde")]
-impl<'de> serde1::Deserialize<'de> for Box<ServerName> {
+impl<'de> serde::Deserialize<'de> for Box<ServerName> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: serde1::Deserializer<'de>,
+        D: serde::Deserializer<'de>,
     {
         crate::deserialize_id(deserializer, "An IP address or hostname")
     }

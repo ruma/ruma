@@ -9,10 +9,15 @@
 )]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+// Renamed in `Cargo.toml` so we can have a serde feature.
+// Rename it back here because `serde1` is ugly.
+#[cfg(feature = "serde")]
+extern crate serde1 as serde;
+
 use std::convert::TryFrom;
 
 #[cfg(feature = "serde")]
-use serde1::de::{self, Deserialize as _, Deserializer, Unexpected};
+use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
 
 #[doc(inline)]
 pub use crate::{

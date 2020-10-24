@@ -110,21 +110,21 @@ macro_rules! common_impls {
             }
         }
 
-        #[cfg(feature = "serde1")]
-        impl ::serde1::Serialize for $id {
+        #[cfg(feature = "serde")]
+        impl ::serde::Serialize for $id {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
-                S: ::serde1::Serializer,
+                S: ::serde::Serializer,
             {
                 serializer.serialize_str(self.as_str())
             }
         }
 
-        #[cfg(feature = "serde1")]
-        impl<'de> ::serde1::Deserialize<'de> for $id {
+        #[cfg(feature = "serde")]
+        impl<'de> ::serde::Deserialize<'de> for $id {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
-                D: ::serde1::Deserializer<'de>,
+                D: ::serde::Deserializer<'de>,
             {
                 crate::deserialize_id(deserializer, $desc)
             }
