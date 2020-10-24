@@ -1,6 +1,7 @@
 //! Errors that can be sent from the homeserver.
 
 use std::{
+    collections::BTreeMap,
     fmt::{self, Display, Formatter},
     time::Duration,
 };
@@ -8,189 +9,174 @@ use std::{
 use ruma_api::{error::ResponseDeserializationError, EndpointError};
 use ruma_identifiers::RoomVersionId;
 use serde::{Deserialize, Serialize};
-use serde_json::{from_slice as from_json_slice, to_vec as to_json_vec};
-use strum::{AsRefStr, Display};
+use serde_json::{from_slice as from_json_slice, to_vec as to_json_vec, Value as JsonValue};
+
+/// Deserialize and Serialize implementations for ErrorKind.
+/// Separate module because it's a lot of code.
+mod kind_serde;
 
 /// An enum for the error kind. Items may contain additional information.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, AsRefStr, Display)]
-#[serde(tag = "errcode")]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ErrorKind {
     /// M_FORBIDDEN
-    #[serde(rename = "M_FORBIDDEN")]
-    #[strum(to_string = "M_FORBIDDEN")]
     Forbidden,
 
     /// M_UNKNOWN_TOKEN
-    #[serde(rename = "M_UNKNOWN_TOKEN")]
-    #[strum(to_string = "M_UNKNOWN_TOKEN")]
     UnknownToken {
         /// If this is `true`, the client can acquire a new access token by specifying the device ID
         /// it is already using to the login API. For more information, see [the spec].
         ///
         /// [the spec]: https://matrix.org/docs/spec/client_server/r0.6.1#soft-logout
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
         soft_logout: bool,
     },
 
     /// M_MISSING_TOKEN
-    #[serde(rename = "M_MISSING_TOKEN")]
-    #[strum(to_string = "M_MISSING_TOKEN")]
     MissingToken,
 
     /// M_BAD_JSON
-    #[serde(rename = "M_BAD_JSON")]
-    #[strum(to_string = "M_BAD_JSON")]
     BadJson,
 
     /// M_NOT_JSON
-    #[serde(rename = "M_NOT_JSON")]
-    #[strum(to_string = "M_NOT_JSON")]
     NotJson,
 
     /// M_NOT_FOUND
-    #[serde(rename = "M_NOT_FOUND")]
-    #[strum(to_string = "M_NOT_FOUND")]
     NotFound,
 
     /// M_LIMIT_EXCEEDED
-    #[serde(rename = "M_LIMIT_EXCEEDED")]
-    #[strum(to_string = "M_LIMIT_EXCEEDED")]
     LimitExceeded {
         /// How long a client should wait in milliseconds before they can try again.
-        #[serde(with = "ruma_serde::duration::opt_ms")]
         retry_after_ms: Option<Duration>,
     },
 
     /// M_UNKNOWN
-    #[serde(rename = "M_UNKNOWN")]
-    #[strum(to_string = "M_UNKNOWN")]
     Unknown,
 
     /// M_UNRECOGNIZED
-    #[serde(rename = "M_UNRECOGNIZED")]
-    #[strum(to_string = "M_UNRECOGNIZED")]
     Unrecognized,
 
     /// M_UNAUTHORIZED
-    #[serde(rename = "M_UNAUTHORIZED")]
-    #[strum(to_string = "M_UNAUTHORIZED")]
     Unauthorized,
 
     /// M_USER_DEACTIVATED
-    #[serde(rename = "M_USER_DEACTIVATED")]
-    #[strum(to_string = "M_USER_DEACTIVATED")]
     UserDeactivated,
 
     /// M_USER_IN_USE
-    #[serde(rename = "M_USER_IN_USE")]
-    #[strum(to_string = "M_USER_IN_USE")]
     UserInUse,
 
     /// M_INVALID_USERNAME
-    #[serde(rename = "M_INVALID_USERNAME")]
-    #[strum(to_string = "M_INVALID_USERNAME")]
     InvalidUsername,
 
     /// M_ROOM_IN_USE
-    #[serde(rename = "M_ROOM_IN_USE")]
-    #[strum(to_string = "M_ROOM_IN_USE")]
     RoomInUse,
 
     /// M_INVALID_ROOM_STATE
-    #[serde(rename = "M_INVALID_ROOM_STATE")]
-    #[strum(to_string = "M_INVALID_ROOM_STATE")]
     InvalidRoomState,
 
     /// M_THREEPID_IN_USE
-    #[serde(rename = "M_THREEPID_IN_USE")]
-    #[strum(to_string = "M_THREEPID_IN_USE")]
     ThreepidInUse,
 
     /// M_THREEPID_NOT_FOUND
-    #[serde(rename = "M_THREEPID_NOT_FOUND")]
-    #[strum(to_string = "M_THREEPID_NOT_FOUND")]
     ThreepidNotFound,
 
     /// M_THREEPID_AUTH_FAILED
-    #[serde(rename = "M_THREEPID_AUTH_FAILED")]
-    #[strum(to_string = "M_THREEPID_AUTH_FAILED")]
     ThreepidAuthFailed,
 
     /// M_THREEPID_DENIED
-    #[serde(rename = "M_THREEPID_DENIED")]
-    #[strum(to_string = "M_THREEPID_DENIED")]
     ThreepidDenied,
 
     /// M_SERVER_NOT_TRUSTED
-    #[serde(rename = "M_SERVER_NOT_TRUSTED")]
-    #[strum(to_string = "M_SERVER_NOT_TRUSTED")]
     ServerNotTrusted,
 
     /// M_UNSUPPORTED_ROOM_VERSION
-    #[serde(rename = "M_UNSUPPORTED_ROOM_VERSION")]
-    #[strum(to_string = "M_UNSUPPORTED_ROOM_VERSION")]
     UnsupportedRoomVersion,
 
     /// M_INCOMPATIBLE_ROOM_VERSION
-    #[serde(rename = "M_INCOMPATIBLE_ROOM_VERSION")]
-    #[strum(to_string = "M_INCOMPATIBLE_ROOM_VERSION")]
     IncompatibleRoomVersion {
         /// The room's version.
         room_version: RoomVersionId,
     },
 
     /// M_BAD_STATE
-    #[serde(rename = "M_BAD_STATE")]
-    #[strum(to_string = "M_BAD_STATE")]
     BadState,
 
     /// M_GUEST_ACCESS_FORBIDDEN
-    #[serde(rename = "M_GUEST_ACCESS_FORBIDDEN")]
-    #[strum(to_string = "M_GUEST_ACCESS_FORBIDDEN")]
     GuestAccessForbidden,
 
     /// M_CAPTCHA_NEEDED
-    #[serde(rename = "M_CAPTCHA_NEEDED")]
-    #[strum(to_string = "M_CAPTCHA_NEEDED")]
     CaptchaNeeded,
 
     /// M_CAPTCHA_INVALID
-    #[serde(rename = "M_CAPTCHA_INVALID")]
-    #[strum(to_string = "M_CAPTCHA_INVALID")]
     CaptchaInvalid,
 
     /// M_MISSING_PARAM
-    #[serde(rename = "M_MISSING_PARAM")]
-    #[strum(to_string = "M_MISSING_PARAM")]
     MissingParam,
 
     /// M_INVALID_PARAM
-    #[serde(rename = "M_INVALID_PARAM")]
-    #[strum(to_string = "M_INVALID_PARAM")]
     InvalidParam,
 
     /// M_TOO_LARGE
-    #[serde(rename = "M_TOO_LARGE")]
-    #[strum(to_string = "M_TOO_LARGE")]
     TooLarge,
 
     /// M_EXCLUSIVE
-    #[serde(rename = "M_EXCLUSIVE")]
-    #[strum(to_string = "M_EXCLUSIVE")]
     Exclusive,
 
     /// M_RESOURCE_LIMIT_EXCEEDED
-    #[serde(rename = "M_RESOURCE_LIMIT_EXCEEDED")]
-    #[strum(to_string = "M_RESOURCE_LIMIT_EXCEEDED")]
     ResourceLimitExceeded {
         /// A URI giving a contact method for the server administrator.
         admin_contact: String,
     },
 
     /// M_CANNOT_LEAVE_SERVER_NOTICE_ROOM
-    #[serde(rename = "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM")]
-    #[strum(to_string = "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM")]
     CannotLeaveServerNoticeRoom,
+
+    #[doc(hidden)]
+    _Custom { errcode: String, extra: BTreeMap<String, JsonValue> },
+}
+
+impl AsRef<str> for ErrorKind {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Forbidden => "M_FORBIDDEN",
+            Self::UnknownToken { .. } => "M_UNKNOWN_TOKEN",
+            Self::MissingToken => "M_MISSING_TOKEN",
+            Self::BadJson => "M_BAD_JSON",
+            Self::NotJson => "M_NOT_JSON",
+            Self::NotFound => "M_NOT_FOUND",
+            Self::LimitExceeded { .. } => "M_LIMIT_EXCEEDED",
+            Self::Unknown => "M_UNKNOWN",
+            Self::Unrecognized => "M_UNRECOGNIZED",
+            Self::Unauthorized => "M_UNAUTHORIZED",
+            Self::UserDeactivated => "M_USER_DEACTIVATED",
+            Self::UserInUse => "M_USER_IN_USE",
+            Self::InvalidUsername => "M_INVALID_USERNAME",
+            Self::RoomInUse => "M_ROOM_IN_USE",
+            Self::InvalidRoomState => "M_INVALID_ROOM_STATE",
+            Self::ThreepidInUse => "M_THREEPID_IN_USE",
+            Self::ThreepidNotFound => "M_THREEPID_NOT_FOUND",
+            Self::ThreepidAuthFailed => "M_THREEPID_AUTH_FAILED",
+            Self::ThreepidDenied => "M_THREEPID_DENIED",
+            Self::ServerNotTrusted => "M_SERVER_NOT_TRUSTED",
+            Self::UnsupportedRoomVersion => "M_UNSUPPORTED_ROOM_VERSION",
+            Self::IncompatibleRoomVersion { .. } => "M_INCOMPATIBLE_ROOM_VERSION",
+            Self::BadState => "M_BAD_STATE",
+            Self::GuestAccessForbidden => "M_GUEST_ACCESS_FORBIDDEN",
+            Self::CaptchaNeeded => "M_CAPTCHA_NEEDED",
+            Self::CaptchaInvalid => "M_CAPTCHA_INVALID",
+            Self::MissingParam => "M_MISSING_PARAM",
+            Self::InvalidParam => "M_INVALID_PARAM",
+            Self::TooLarge => "M_TOO_LARGE",
+            Self::Exclusive => "M_EXCLUSIVE",
+            Self::ResourceLimitExceeded { .. } => "M_RESOURCE_LIMIT_EXCEEDED",
+            Self::CannotLeaveServerNoticeRoom => "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM",
+            Self::_Custom { errcode, .. } => &errcode,
+        }
+    }
+}
+
+impl Display for ErrorKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_ref())
+    }
 }
 
 /// A Matrix Error without a status code
@@ -258,5 +244,29 @@ impl From<Error> for http::Response<Vec<u8>> {
             .status(error.status_code)
             .body(to_json_vec(&ErrorBody::from(error)).unwrap())
             .unwrap()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::{from_value as from_json_value, json};
+
+    use super::{ErrorBody, ErrorKind};
+
+    #[test]
+    fn deserialize_forbidden() {
+        let deserialized: ErrorBody = from_json_value(json!({
+            "errcode": "M_FORBIDDEN",
+            "error": "You are not authorized to ban users in this room.",
+        }))
+        .unwrap();
+
+        assert_eq!(
+            deserialized,
+            ErrorBody {
+                kind: ErrorKind::Forbidden,
+                message: "You are not authorized to ban users in this room.".into(),
+            }
+        );
     }
 }
