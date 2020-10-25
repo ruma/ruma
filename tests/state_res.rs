@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, convert::TryFrom, time::UNIX_EPOCH, sync::Arc};
+use std::{collections::BTreeMap, convert::TryFrom, sync::Arc, time::UNIX_EPOCH};
 
 use maplit::btreemap;
 use ruma::{
@@ -262,8 +262,8 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
             Some(zera().to_string().as_str()),
             member_content_join(),
         ),
-        to_init_pdu_event("START", zera(), EventType::RoomMessage, None, json!({})),
-        to_init_pdu_event("END", zera(), EventType::RoomMessage, None, json!({})),
+        to_init_pdu_event("START", zera(), EventType::RoomTopic, Some(""), json!({})),
+        to_init_pdu_event("END", zera(), EventType::RoomTopic, Some(""), json!({})),
     ]
     .into_iter()
     .map(|ev| (ev.event_id(), ev))
@@ -280,7 +280,11 @@ fn INITIAL_EDGES() -> Vec<EventId> {
     .collect::<Vec<_>>()
 }
 
-fn do_check(events: &[Arc<StateEvent>], edges: Vec<Vec<EventId>>, expected_state_ids: Vec<EventId>) {
+fn do_check(
+    events: &[Arc<StateEvent>],
+    edges: Vec<Vec<EventId>>,
+    expected_state_ids: Vec<EventId>,
+) {
     // to activate logging use `RUST_LOG=debug cargo t one_test_only`
     let _ = LOGGER.call_once(|| {
         tracer::fmt()
@@ -380,17 +384,17 @@ fn do_check(events: &[Arc<StateEvent>], edges: Vec<Vec<EventId>>, expected_state
 
         let mut state_after = state_before.clone();
 
-        if fake_event.state_key().is_some() {
-            let ty = fake_event.kind().clone();
-            // we know there is a state_key unwrap OK
-            let key = fake_event.state_key().clone();
-            state_after.insert((ty, key), event_id.clone());
-        }
+        // if fake_event.state_key().is_some() {
+        let ty = fake_event.kind().clone();
+        // we know there is a state_key unwrap OK
+        let key = fake_event.state_key().clone();
+        state_after.insert((ty, key), event_id.clone());
+        // }
 
         let auth_types = state_res::auth_types_for_event(
             fake_event.kind(),
             fake_event.sender(),
-            fake_event.state_key(),
+            Some(fake_event.state_key()),
             fake_event.content().clone(),
         );
 
@@ -409,7 +413,7 @@ fn do_check(events: &[Arc<StateEvent>], edges: Vec<Vec<EventId>>, expected_state
             &e.event_id().to_string(),
             e.sender().clone(),
             e.kind(),
-            e.state_key().as_deref(),
+            Some(e.state_key()).as_deref(),
             e.content().clone(),
             &auth_events,
             prev_events,
@@ -498,7 +502,7 @@ fn ban_vs_power_level() {
     .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
     .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["PA", "MA", "MB"]
+    let expected_state_ids = vec!["PA", "MA", "MB", "END"]
         .into_iter()
         .map(event_id)
         .collect::<Vec<_>>();
@@ -543,7 +547,7 @@ fn topic_basic() {
     .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
     .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["PA2", "T2"]
+    let expected_state_ids = vec!["PA2", "T2", "END"]
         .into_iter()
         .map(event_id)
         .collect::<Vec<_>>();
@@ -580,7 +584,7 @@ fn topic_reset() {
     .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
     .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["T1", "MB", "PA"]
+    let expected_state_ids = vec!["T1", "MB", "PA", "END"]
         .into_iter()
         .map(event_id)
         .collect::<Vec<_>>();
@@ -612,7 +616,7 @@ fn join_rule_evasion() {
         .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let expected_state_ids = vec![event_id("JR")];
+    let expected_state_ids = vec![event_id("JR"), event_id("END")];
 
     do_check(events, edges, expected_state_ids)
 }
@@ -648,7 +652,10 @@ fn offtopic_power_level() {
         .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["PC"].into_iter().map(event_id).collect::<Vec<_>>();
+    let expected_state_ids = vec!["PC", "END"]
+        .into_iter()
+        .map(event_id)
+        .collect::<Vec<_>>();
 
     do_check(events, edges, expected_state_ids)
 }
@@ -680,7 +687,7 @@ fn topic_setting() {
             json!({"users": {alice(): 100, bob(): 50}}),
         ),
         to_init_pdu_event("T3", bob(), EventType::RoomTopic, Some(""), json!({})),
-        to_init_pdu_event("MZ1", zera(), EventType::RoomMessage, None, json!({})),
+        to_init_pdu_event("MZ1", zera(), EventType::RoomTopic, Some(""), json!({})),
         to_init_pdu_event("T4", alice(), EventType::RoomTopic, Some(""), json!({})),
     ];
 
@@ -692,7 +699,7 @@ fn topic_setting() {
     .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
     .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["T4", "PA2"]
+    let expected_state_ids = vec!["T4", "PA2", "END"]
         .into_iter()
         .map(event_id)
         .collect::<Vec<_>>();
@@ -778,8 +785,7 @@ impl TestStore {
             &[],
         );
         let cre = create_event.event_id();
-        self.0
-            .insert(cre.clone(), Arc::clone(&create_event));
+        self.0.insert(cre.clone(), Arc::clone(&create_event));
 
         let alice_mem = to_pdu_event(
             "IMA",
@@ -790,8 +796,7 @@ impl TestStore {
             &[cre.clone()],
             &[cre.clone()],
         );
-        self.0
-            .insert(alice_mem.event_id(), Arc::clone(&alice_mem));
+        self.0.insert(alice_mem.event_id(), Arc::clone(&alice_mem));
 
         let join_rules = to_pdu_event(
             "IJR",
@@ -802,8 +807,7 @@ impl TestStore {
             &[cre.clone(), alice_mem.event_id()],
             &[alice_mem.event_id()],
         );
-        self.0
-            .insert(join_rules.event_id(), join_rules.clone());
+        self.0.insert(join_rules.event_id(), join_rules.clone());
 
         // Bob and Charlie join at the same time, so there is a fork
         // this will be represented in the state_sets when we resolve
@@ -816,8 +820,7 @@ impl TestStore {
             &[cre.clone(), join_rules.event_id()],
             &[join_rules.event_id()],
         );
-        self.0
-            .insert(bob_mem.event_id(), bob_mem.clone());
+        self.0.insert(bob_mem.event_id(), bob_mem.clone());
 
         let charlie_mem = to_pdu_event(
             "IMC",
@@ -828,8 +831,7 @@ impl TestStore {
             &[cre, join_rules.event_id()],
             &[join_rules.event_id()],
         );
-        self.0
-            .insert(charlie_mem.event_id(), charlie_mem.clone());
+        self.0.insert(charlie_mem.event_id(), charlie_mem.clone());
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()

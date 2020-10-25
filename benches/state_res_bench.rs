@@ -1,9 +1,10 @@
-// `cargo bench` works, but if you use `cargo bench -- --save-baseline <name>`
+// Because of criterion `cargo bench` works,
+// but if you use `cargo bench -- --save-baseline <name>`
 // or pass any other args to it, it fails with the error
 // `cargo bench unknown option --save-baseline`.
 // To pass args to criterion, use this form
 // `cargo bench --bench <name of the bench> -- --save-baseline <name>`.
-use std::{collections::BTreeMap, convert::TryFrom, time::UNIX_EPOCH, sync::Arc};
+use std::{collections::BTreeMap, convert::TryFrom, sync::Arc, time::UNIX_EPOCH};
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use maplit::btreemap;
@@ -150,8 +151,7 @@ impl TestStore {
             &[],
         ));
         let cre = create_event.event_id();
-        self.0
-            .insert(cre.clone(), Arc::clone(&create_event));
+        self.0.insert(cre.clone(), Arc::clone(&create_event));
 
         let alice_mem = to_pdu_event(
             "IMA",
@@ -162,8 +162,7 @@ impl TestStore {
             &[cre.clone()],
             &[cre.clone()],
         );
-        self.0
-            .insert(alice_mem.event_id(), Arc::clone(&alice_mem));
+        self.0.insert(alice_mem.event_id(), Arc::clone(&alice_mem));
 
         let join_rules = to_pdu_event(
             "IJR",
@@ -188,8 +187,7 @@ impl TestStore {
             &[cre.clone(), join_rules.event_id()],
             &[join_rules.event_id()],
         );
-        self.0
-            .insert(bob_mem.event_id(), Arc::clone(&bob_mem));
+        self.0.insert(bob_mem.event_id(), Arc::clone(&bob_mem));
 
         let charlie_mem = to_pdu_event(
             "IMC",
@@ -420,8 +418,8 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
         to_pdu_event::<EventId>(
             "START",
             charlie(),
-            EventType::RoomMessage,
-            None,
+            EventType::RoomTopic,
+            Some(""),
             json!({}),
             &[],
             &[],
@@ -429,8 +427,8 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
         to_pdu_event::<EventId>(
             "END",
             charlie(),
-            EventType::RoomMessage,
-            None,
+            EventType::RoomTopic,
+            Some(""),
             json!({}),
             &[],
             &[],

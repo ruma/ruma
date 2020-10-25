@@ -218,8 +218,8 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
         to_pdu_event::<EventId>(
             "END",
             charlie(),
-            EventType::RoomMessage,
-            None,
+            EventType::RoomTopic,
+            Some(""),
             json!({}),
             &[],
             &[],
@@ -285,7 +285,7 @@ fn test_event_sort() {
 
     shuffle(&mut events_to_sort);
 
-    let power_level = resolved_power.get(&(EventType::RoomPowerLevels, Some("".into())));
+    let power_level = resolved_power.get(&(EventType::RoomPowerLevels, "".into()));
 
     let sorted_event_ids = state_res::StateResolution::mainline_sort(
         &room_id(),

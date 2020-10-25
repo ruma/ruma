@@ -679,11 +679,11 @@ impl StateResolution {
                 return Ok(*depth);
             }
 
-            dbg!(&sort_ev);
+            // dbg!(&sort_ev);
             let auth_events = sort_ev.auth_events();
             event = None;
             for aid in auth_events {
-                dbg!(&aid);
+                // dbg!(&aid);
                 let aev = StateResolution::get_or_load_event(room_id, &aid, event_map, store)
                     .ok_or(Error::NotFound("Auth event not found".to_owned()))?;
                 if aev.is_type_and_key(EventType::RoomPowerLevels, "") {

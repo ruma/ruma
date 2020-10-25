@@ -1,6 +1,6 @@
 #![allow(clippy::or_fun_call, clippy::expect_fun_call)]
 
-use std::{collections::BTreeMap, convert::TryFrom, sync::Once, time::UNIX_EPOCH, sync::Arc};
+use std::{collections::BTreeMap, convert::TryFrom, sync::Arc, sync::Once, time::UNIX_EPOCH};
 
 use ruma::{
     events::{
@@ -21,7 +21,11 @@ static LOGGER: Once = Once::new();
 
 static mut SERVER_TIMESTAMP: i32 = 0;
 
-fn do_check(events: &[Arc<StateEvent>], edges: Vec<Vec<EventId>>, expected_state_ids: Vec<EventId>) {
+fn do_check(
+    events: &[Arc<StateEvent>],
+    edges: Vec<Vec<EventId>>,
+    expected_state_ids: Vec<EventId>,
+) {
     // to activate logging use `RUST_LOG=debug cargo t`
     let _ = LOGGER.call_once(|| {
         tracer::fmt()
@@ -115,17 +119,17 @@ fn do_check(events: &[Arc<StateEvent>], edges: Vec<Vec<EventId>>, expected_state
 
         let mut state_after = state_before.clone();
 
-        if fake_event.state_key().is_some() {
-            let ty = fake_event.kind().clone();
-            // we know there is a state_key unwrap OK
-            let key = fake_event.state_key().clone();
-            state_after.insert((ty, key), event_id.clone());
-        }
+        // if fake_event.state_key().is_some() {
+        let ty = fake_event.kind().clone();
+        // we know there is a state_key unwrap OK
+        let key = fake_event.state_key().clone();
+        state_after.insert((ty, key), event_id.clone());
+        // }
 
         let auth_types = state_res::auth_types_for_event(
             fake_event.kind(),
             fake_event.sender(),
-            fake_event.state_key(),
+            Some(fake_event.state_key()),
             fake_event.content().clone(),
         );
 
@@ -144,7 +148,7 @@ fn do_check(events: &[Arc<StateEvent>], edges: Vec<Vec<EventId>>, expected_state
             &e.event_id().to_string(),
             e.sender().clone(),
             e.kind(),
-            e.state_key().as_deref(),
+            Some(e.state_key()).as_deref(),
             e.content().clone(),
             &auth_events,
             prev_events,
@@ -400,8 +404,8 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
         to_pdu_event::<EventId>(
             "START",
             charlie(),
-            EventType::RoomMessage,
-            None,
+            EventType::RoomTopic,
+            Some(""),
             json!({}),
             &[],
             &[],
@@ -409,8 +413,8 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
         to_pdu_event::<EventId>(
             "END",
             charlie(),
-            EventType::RoomMessage,
-            None,
+            EventType::RoomTopic,
+            Some(""),
             json!({}),
             &[],
             &[],
@@ -484,7 +488,7 @@ fn ban_with_auth_chains() {
         .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["PA", "MB"]
+    let expected_state_ids = vec!["PA", "MB", "END"]
         .into_iter()
         .map(event_id)
         .collect::<Vec<_>>();
@@ -523,7 +527,7 @@ fn base_with_auth_chains() {
         "END",
     ];
     for id in expected.iter().map(|i| event_id(i)) {
-        // make sure our resolved events are equall to the expected list
+        // make sure our resolved events are equal to the expected list
         assert!(resolved.iter().any(|eid| eid == &id), "{}", id)
     }
     assert_eq!(expected.len(), resolved.len())
@@ -641,7 +645,10 @@ fn join_rule_with_auth_chain() {
         .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["JR"].into_iter().map(event_id).collect::<Vec<_>>();
+    let expected_state_ids = vec!["JR", "END"]
+        .into_iter()
+        .map(event_id)
+        .collect::<Vec<_>>();
 
     do_check(
         &join_rule.values().cloned().collect::<Vec<_>>(),

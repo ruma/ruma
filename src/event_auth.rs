@@ -87,7 +87,7 @@ pub fn auth_check(
 
     // TODO do_size_check is false when called by `iterative_auth_check`
     // do_size_check is also mostly accomplished by ruma with the exception of checking event_type,
-    // state_key, and json are below a certain size (255 and 65536 respectively)
+    // state_key, and json are below a certain size (255 and 65_536 respectively)
 
     // Implementation of https://matrix.org/docs/spec/rooms/v1#authorization-rules
     //
@@ -180,9 +180,7 @@ pub fn auth_check(
         // }
 
         // If sender's domain doesn't matches state_key, reject
-        if incoming_event.state_key()
-            != incoming_event.sender().server_name().as_str()
-        {
+        if incoming_event.state_key() != incoming_event.sender().server_name().as_str() {
             tracing::warn!("state_key does not match sender");
             return Ok(false);
         }
@@ -769,7 +767,10 @@ pub fn get_send_level(
 }
 
 /// Check user can send invite.
-pub fn can_send_invite(event: &Requester<'_>, auth_events: &StateMap<Arc<StateEvent>>) -> Result<bool> {
+pub fn can_send_invite(
+    event: &Requester<'_>,
+    auth_events: &StateMap<Arc<StateEvent>>,
+) -> Result<bool> {
     let user_level = get_user_power_level(event.sender, auth_events);
     let key = (EventType::RoomPowerLevels, "".into());
     let invite_level = auth_events
