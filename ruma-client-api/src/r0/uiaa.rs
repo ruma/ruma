@@ -150,7 +150,7 @@ mod tests {
     use crate::error::{ErrorBody, ErrorKind};
 
     #[test]
-    fn test_serialize_authentication_data_direct_request() {
+    fn serialize_authentication_data_direct_request() {
         let authentication_data = AuthData::DirectRequest {
             kind: "example.type.foo",
             session: Some("ZXY000"),
@@ -170,7 +170,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_authentication_data_direct_request() {
+    fn deserialize_authentication_data_direct_request() {
         let json = json!({
             "type": "example.type.foo",
             "session": "opaque_session_id",
@@ -189,14 +189,14 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_authentication_data_fallback() {
+    fn serialize_authentication_data_fallback() {
         let authentication_data = AuthData::FallbackAcknowledgement { session: "ZXY000" };
 
         assert_eq!(json!({ "session": "ZXY000" }), to_json_value(authentication_data).unwrap());
     }
 
     #[test]
-    fn test_deserialize_authentication_data_fallback() {
+    fn deserialize_authentication_data_fallback() {
         let json = json!({ "session": "opaque_session_id" });
 
         assert_matches!(
@@ -207,7 +207,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_uiaa_info() {
+    fn serialize_uiaa_info() {
         let uiaa_info = UiaaInfo {
             flows: vec![AuthFlow {
                 stages: vec!["m.login.password".into(), "m.login.dummy".into()],
@@ -236,7 +236,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_uiaa_info() {
+    fn deserialize_uiaa_info() {
         let json = json!({
             "errcode": "M_FORBIDDEN",
             "error": "Invalid password",
@@ -294,7 +294,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_uiaa_response_into_http_response() {
+    fn try_uiaa_response_into_http_response() {
         let uiaa_info = UiaaInfo {
             flows: vec![AuthFlow {
                 stages: vec!["m.login.password".into(), "m.login.dummy".into()],
@@ -333,7 +333,7 @@ mod tests {
     }
 
     #[test]
-    fn test_try_uiaa_response_from_http_response() {
+    fn try_uiaa_response_from_http_response() {
         let json = serde_json::to_string(&json!({
             "errcode": "M_FORBIDDEN",
             "error": "Invalid password",

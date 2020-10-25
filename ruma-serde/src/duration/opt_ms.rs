@@ -54,7 +54,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_some() {
+    fn deserialize_some() {
         let json = json!({ "timeout": 3000 });
 
         assert_eq!(
@@ -64,7 +64,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_none_by_absence() {
+    fn deserialize_none_by_absence() {
         let json = json!({});
 
         assert_eq!(
@@ -74,7 +74,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_none_by_null() {
+    fn deserialize_none_by_null() {
         let json = json!({ "timeout": null });
 
         assert_eq!(
@@ -84,13 +84,13 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_some() {
+    fn serialize_some() {
         let request = DurationTest { timeout: Some(Duration::new(2, 0)) };
         assert_eq!(serde_json::to_value(&request).unwrap(), json!({ "timeout": 2000 }));
     }
 
     #[test]
-    fn test_serialize_none() {
+    fn serialize_none() {
         let request = DurationTest { timeout: None };
         assert_eq!(serde_json::to_value(&request).unwrap(), json!({}));
     }

@@ -142,7 +142,7 @@ mod tests {
     use crate::r0::filter::{LazyLoadOptions, RoomEventFilter};
 
     #[test]
-    fn test_serialize_some_room_event_filter() {
+    fn serialize_some_room_event_filter() {
         let room_id = room_id!("!roomid:example.org");
         let rooms = &[room_id.clone()];
         let filter = RoomEventFilter {
@@ -176,7 +176,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_none_room_event_filter() {
+    fn serialize_none_room_event_filter() {
         let room_id = room_id!("!roomid:example.org");
         let req = Request {
             room_id: &room_id,
@@ -193,7 +193,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_default_room_event_filter() {
+    fn serialize_default_room_event_filter() {
         let room_id = room_id!("!roomid:example.org");
         let req = Request {
             room_id: &room_id,

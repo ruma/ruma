@@ -57,7 +57,7 @@ mod tests {
     use super::Response;
 
     #[test]
-    fn test_serializing_get_tags_response() {
+    fn serializing_get_tags_response() {
         let mut tags = Tags::new();
         tags.insert("m.favourite".into(), assign!(TagInfo::new(), { order: Some(0.25) }));
         tags.insert("u.user_tag".into(), assign!(TagInfo::new(), { order: Some(0.11) }));

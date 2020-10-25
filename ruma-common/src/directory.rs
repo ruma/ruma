@@ -224,13 +224,13 @@ mod tests {
     use super::{IncomingRoomNetwork, RoomNetwork};
 
     #[test]
-    fn test_serialize_matrix_network_only() {
+    fn serialize_matrix_network_only() {
         let json = json!({});
         assert_eq!(to_json_value(RoomNetwork::Matrix).unwrap(), json);
     }
 
     #[test]
-    fn test_deserialize_matrix_network_only() {
+    fn deserialize_matrix_network_only() {
         let json = json!({ "include_all_networks": false });
         assert_eq!(
             from_json_value::<IncomingRoomNetwork>(json).unwrap(),
@@ -239,13 +239,13 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_default_network_is_empty() {
+    fn serialize_default_network_is_empty() {
         let json = json!({});
         assert_eq!(to_json_value(RoomNetwork::default()).unwrap(), json);
     }
 
     #[test]
-    fn test_deserialize_empty_network_is_default() {
+    fn deserialize_empty_network_is_default() {
         let json = json!({});
         assert_eq!(
             from_json_value::<IncomingRoomNetwork>(json).unwrap(),
@@ -254,25 +254,25 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_include_all_networks() {
+    fn serialize_include_all_networks() {
         let json = json!({ "include_all_networks": true });
         assert_eq!(to_json_value(RoomNetwork::All).unwrap(), json);
     }
 
     #[test]
-    fn test_deserialize_include_all_networks() {
+    fn deserialize_include_all_networks() {
         let json = json!({ "include_all_networks": true });
         assert_eq!(from_json_value::<IncomingRoomNetwork>(json).unwrap(), IncomingRoomNetwork::All);
     }
 
     #[test]
-    fn test_serialize_third_party_network() {
+    fn serialize_third_party_network() {
         let json = json!({ "third_party_instance_id": "freenode" });
         assert_eq!(to_json_value(RoomNetwork::ThirdParty("freenode")).unwrap(), json);
     }
 
     #[test]
-    fn test_deserialize_third_party_network() {
+    fn deserialize_third_party_network() {
         let json = json!({ "third_party_instance_id": "freenode" });
         assert_eq!(
             from_json_value::<IncomingRoomNetwork>(json).unwrap(),
@@ -281,7 +281,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_include_all_networks_and_third_party_exclusivity() {
+    fn deserialize_include_all_networks_and_third_party_exclusivity() {
         let json = json!({ "include_all_networks": true, "third_party_instance_id": "freenode" });
         assert_eq!(
             from_json_value::<IncomingRoomNetwork>(json).unwrap_err().to_string().as_str(),

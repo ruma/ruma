@@ -77,7 +77,7 @@ mod tests {
     use crate::membership::create_join_event::RoomState;
 
     #[test]
-    fn test_deserialize_response() {
+    fn deserialize_response() {
         let response = json!([
             200,
             {
@@ -99,7 +99,7 @@ mod tests {
     }
 
     #[test]
-    fn test_serialize_response() {
+    fn serialize_response() {
         let room_state =
             RoomState { origin: "matrix.org".into(), auth_chain: Vec::new(), state: Vec::new() };
 
@@ -120,7 +120,7 @@ mod tests {
     }
 
     #[test]
-    fn test_too_short_array() {
+    fn too_short_array() {
         let json = json!([200]);
         let failed_room_state = deserialize::<RoomState, _>(json);
         assert_eq!(
@@ -130,7 +130,7 @@ mod tests {
     }
 
     #[test]
-    fn test_not_an_array() {
+    fn not_an_array() {
         let json = json!({
             "origin": "matrix.org",
             "auth_chain": [],
@@ -145,7 +145,7 @@ mod tests {
     }
 
     #[test]
-    fn test_too_long_array() {
+    fn too_long_array() {
         let json = json!([200, {"origin": "", "auth_chain": [], "state": []}, 200]);
         assert_matches!(
             deserialize(json).unwrap(),

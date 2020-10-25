@@ -352,7 +352,7 @@ fn serialize_pdu_as_v3() {
 }
 
 #[test]
-fn test_deserialize_pdu_as_v1() {
+fn deserialize_pdu_as_v1() {
     let json = json!({
         "room_id": "!n8f893n9:example.com",
         "event_id": "$somejoinevent:matrix.org",
