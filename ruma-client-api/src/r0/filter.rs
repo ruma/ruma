@@ -149,20 +149,20 @@ pub struct RoomFilter<'a> {
     pub include_leave: bool,
 
     /// The per user account data to include for rooms.
-    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
     pub account_data: RoomEventFilter<'a>,
 
     /// The message and state update events to include for rooms.
-    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
     pub timeline: RoomEventFilter<'a>,
 
     /// The events that aren't recorded in the room history, e.g. typing and receipts, to include
     /// for rooms.
-    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
     pub ephemeral: RoomEventFilter<'a>,
 
     /// The state events to include for rooms.
-    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
     pub state: RoomEventFilter<'a>,
 
     /// A list of room IDs to exclude.
@@ -313,15 +313,15 @@ pub struct FilterDefinition<'a> {
     pub event_format: EventFormat,
 
     /// The presence updates to include.
-    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
     pub presence: Filter<'a>,
 
     /// The user account data that isn't associated with rooms to include.
-    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
     pub account_data: Filter<'a>,
 
     /// Filters to be applied to room data.
-    #[serde(skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
     pub room: RoomFilter<'a>,
 }
 
@@ -388,7 +388,10 @@ can_be_empty!(IncomingRoomFilter);
 mod tests {
     use serde_json::{json, to_value as to_json_value};
 
-    use super::{Filter, FilterDefinition, RoomEventFilter, RoomFilter};
+    use super::{
+        Filter, FilterDefinition, IncomingFilterDefinition, IncomingRoomFilter, RoomEventFilter,
+        RoomFilter,
+    };
 
     #[test]
     fn default_filters_are_empty() -> Result<(), serde_json::Error> {
@@ -396,6 +399,28 @@ mod tests {
         assert_eq!(to_json_value(FilterDefinition::default())?, json!({}));
         assert_eq!(to_json_value(RoomEventFilter::default())?, json!({}));
         assert_eq!(to_json_value(RoomFilter::default())?, json!({}));
+
+        Ok(())
+    }
+
+    #[test]
+    fn filter_definition_roundtrip() -> Result<(), serde_json::Error> {
+        let filter = FilterDefinition::default();
+        let filter_str = serde_json::to_value(&filter)?;
+
+        let incoming_filter = serde_json::from_value::<IncomingFilterDefinition>(filter_str)?;
+        assert!(incoming_filter.is_empty());
+
+        Ok(())
+    }
+
+    #[test]
+    fn room_filter_definition_roundtrip() -> Result<(), serde_json::Error> {
+        let filter = RoomFilter::default();
+        let room_filter = serde_json::to_value(&filter)?;
+
+        let incoming_room_filter = serde_json::from_value::<IncomingRoomFilter>(room_filter)?;
+        assert!(incoming_room_filter.is_empty());
 
         Ok(())
     }
