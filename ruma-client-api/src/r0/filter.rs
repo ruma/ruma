@@ -388,7 +388,10 @@ can_be_empty!(IncomingRoomFilter);
 mod tests {
     use serde_json::{json, to_value as to_json_value};
 
-    use super::{Filter, FilterDefinition, RoomEventFilter, RoomFilter, IncomingFilterDefinition, IncomingRoomFilter};
+    use super::{
+        Filter, FilterDefinition, IncomingFilterDefinition, IncomingRoomFilter, RoomEventFilter,
+        RoomFilter,
+    };
 
     #[test]
     fn default_filters_are_empty() -> Result<(), serde_json::Error> {
