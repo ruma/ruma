@@ -17,7 +17,7 @@ extern crate serde1 as serde;
 use std::convert::TryFrom;
 
 #[cfg(feature = "serde")]
-use serde::de::{self, Deserialize as _, Deserializer, Unexpected};
+use serde::de::{self, Deserializer, Unexpected};
 
 #[doc(inline)]
 pub use crate::{
@@ -81,7 +81,7 @@ where
     D: Deserializer<'de>,
     T: for<'a> std::convert::TryFrom<&'a str>,
 {
-    std::borrow::Cow::<'_, str>::deserialize(deserializer).and_then(|v| {
+    ruma_serde::deserialize_cow_str(deserializer).and_then(|v| {
         T::try_from(&v).map_err(|_| de::Error::invalid_value(Unexpected::Str(&v), &expected_str))
     })
 }

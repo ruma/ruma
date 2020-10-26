@@ -2,7 +2,7 @@
 //! string.
 
 use serde::{
-    de::{Deserialize, DeserializeOwned, Deserializer, Error as _},
+    de::{DeserializeOwned, Deserializer, Error as _},
     ser::{Error as _, Serialize, Serializer},
 };
 
@@ -20,6 +20,6 @@ where
     T: DeserializeOwned,
     D: Deserializer<'de>,
 {
-    let s = String::deserialize(deserializer)?;
+    let s = crate::deserialize_cow_str(deserializer)?;
     serde_json::from_str(&s).map_err(D::Error::custom)
 }

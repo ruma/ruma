@@ -4,6 +4,7 @@ use serde::de::{Deserialize, IntoDeserializer};
 
 pub mod can_be_empty;
 mod canonical_json;
+mod cow;
 pub mod duration;
 pub mod empty;
 pub mod json_string;
@@ -16,6 +17,7 @@ pub use can_be_empty::{is_empty, CanBeEmpty};
 pub use canonical_json::{
     to_string as to_canonical_json_string, value::CanonicalJsonValue, Error as CanonicalJsonError,
 };
+pub use cow::deserialize_cow_str;
 pub use empty::vec_as_map_of_empty;
 
 /// Check whether a value is equal to its default value.

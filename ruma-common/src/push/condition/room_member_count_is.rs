@@ -151,7 +151,7 @@ impl<'de> Deserialize<'de> for RoomMemberCountIs {
     where
         D: Deserializer<'de>,
     {
-        let s = String::deserialize(deserializer)?;
+        let s = ruma_serde::deserialize_cow_str(deserializer)?;
         FromStr::from_str(&s).map_err(serde::de::Error::custom)
     }
 }

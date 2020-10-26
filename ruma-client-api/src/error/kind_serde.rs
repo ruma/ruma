@@ -249,7 +249,7 @@ impl<'de> Deserialize<'de> for ErrCode {
     where
         D: Deserializer<'de>,
     {
-        let s = Cow::<'de, str>::deserialize(deserializer)?;
+        let s = ruma_serde::deserialize_cow_str(deserializer)?;
         Ok(s.into())
     }
 }
