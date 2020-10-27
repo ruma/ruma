@@ -23,8 +23,9 @@ thiserror = "1.0.20"
 tracing-subscriber = "0.2.11"
 
 [dependencies.ruma]
-# git = "https://github.com/ruma/ruma"
-path = "../__forks__/ruma/ruma"
+git = "https://github.com/DevinR528/ruma"
+branch = "unstable-join"
+# path = "../__forks__/ruma/ruma"
 # rev = "64b9c646d15a359d62ab464a95176ff94adb2554"
 features = ["client-api", "federation-api", "appservice-api", "unstable-pre-spec", "unstable-synapse-quirks"]
 
