@@ -125,7 +125,12 @@ impl StateEvent {
             Self::Full(ev) => match ev {
                 Pdu::RoomV1Pdu(ev) => ev.event_id.clone(),
                 Pdu::RoomV3Pdu(ev) => {
-                    let value = serde_json::to_value(ev).expect("all ruma pdus are json values");
+                    let mut value = serde_json::from_slice::<BTreeMap<_, _>>(
+                        &serde_json::to_vec(ev).expect("all ruma pdus are json values"),
+                    )
+                    .unwrap();
+                    value.remove("event_id");
+
                     EventId::try_from(&*format!(
                         "${}",
                         ruma::signatures::reference_hash(&value, &self.room_version())
@@ -195,7 +200,8 @@ impl StateEvent {
                 PduStub::RoomV1PduStub(ev) => ev.state_key.clone(),
                 PduStub::RoomV3PduStub(ev) => ev.state_key.clone(),
             },
-        }.expect("All state events have a state key")
+        }
+        .expect("All state events have a state key")
     }
 
     #[cfg(not(feature = "unstable-pre-spec"))]

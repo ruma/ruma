@@ -31,7 +31,7 @@ pub trait StateStore {
 
             result.push(ev_id.clone());
 
-            let event = self.get_event(room_id, &ev_id).unwrap();
+            let event = self.get_event(room_id, &ev_id)?;
 
             stack.extend(event.auth_events());
         }
