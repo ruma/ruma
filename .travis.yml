@@ -4,4 +4,4 @@ rust:
   - stable
   - nightly
 script:
-  - cargo test --all
+  - cargo test --features unstable-pre-spec
