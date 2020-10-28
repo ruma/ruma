@@ -429,7 +429,11 @@ impl StateResolution {
 
         // TODO store.auth_event_ids returns "self" with the event ids is this ok
         // event.auth_event_ids does not include its own event id ?
-        for aid in event.as_ref().unwrap().auth_events() {
+        for aid in event
+            .as_ref()
+            .map(|pdu| pdu.auth_events())
+            .unwrap_or_default()
+        {
             if let Some(aev) = StateResolution::get_or_load_event(room_id, &aid, event_map, store) {
                 if aev.is_type_and_key(EventType::RoomPowerLevels, "") {
                     pl = Some(aev);
@@ -685,7 +689,7 @@ impl StateResolution {
             for aid in auth_events {
                 // dbg!(&aid);
                 let aev = StateResolution::get_or_load_event(room_id, &aid, event_map, store)
-                    .ok_or(Error::NotFound("Auth event not found".to_owned()))?;
+                    .ok_or_else(|| Error::NotFound("Auth event not found".to_owned()))?;
                 if aev.is_type_and_key(EventType::RoomPowerLevels, "") {
                     event = Some(aev);
                     break;

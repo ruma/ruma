@@ -129,11 +129,12 @@ impl StateEvent {
                         &serde_json::to_vec(ev).expect("all ruma pdus are json values"),
                     )
                     .unwrap();
+
                     value.remove("event_id");
 
                     EventId::try_from(&*format!(
                         "${}",
-                        ruma::signatures::reference_hash(&value, &self.room_version())
+                        ruma::signatures::reference_hash(&value, &RoomVersionId::Version6)
                             .expect("ruma can calculate reference hashes")
                     ))
                     .expect("ruma's reference hashes are valid event ids")
@@ -341,14 +342,15 @@ impl StateEvent {
     /// Currently either version 1 or 3 is returned, 3 represents
     /// version 3 and above.
     pub fn room_version(&self) -> RoomVersionId {
+        // TODO: We have to know the actual room version this is not sufficient
         match self {
             Self::Full(ev) => match ev {
                 Pdu::RoomV1Pdu(_) => RoomVersionId::Version1,
-                Pdu::RoomV3Pdu(_) => RoomVersionId::Version3,
+                Pdu::RoomV3Pdu(_) => RoomVersionId::Version6,
             },
             Self::Sync(ev) => match ev {
                 PduStub::RoomV1PduStub(_) => RoomVersionId::Version1,
-                PduStub::RoomV3PduStub(_) => RoomVersionId::Version3,
+                PduStub::RoomV3PduStub(_) => RoomVersionId::Version6,
             },
         }
     }
