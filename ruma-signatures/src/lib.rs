@@ -54,6 +54,7 @@ pub use functions::{
     verify_event, verify_json,
 };
 pub use keys::{Ed25519KeyPair, KeyPair, PublicKeyMap, PublicKeySet};
+pub use ruma_serde::{CanonicalJsonError, CanonicalJsonObject, CanonicalJsonValue};
 pub use signatures::Signature;
 
 mod functions;
