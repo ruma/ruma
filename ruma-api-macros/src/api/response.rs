@@ -131,10 +131,17 @@ impl Response {
                         }
                     }
                     _ => quote! {
-                        resp_builder = resp_builder.header(
-                            #import_path::exports::http::header::#header_name,
-                            response.#field_name,
-                        );
+                        resp_builder.headers_mut()
+                            .map(|map| {
+                                match map.entry(#import_path::exports::http::header::#header_name) {
+                                    #import_path::exports::http::header::Entry::Occupied(mut occ) => {
+                                        occ.insert(response.#field_name.parse().unwrap());
+                                    },
+                                    #import_path::exports::http::header::Entry::Vacant(vac) => {
+                                        vac.insert(response.#field_name.parse().unwrap());
+                                    },
+                                };
+                            });
                     },
                 };
 
