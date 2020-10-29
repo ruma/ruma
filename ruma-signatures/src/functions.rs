@@ -174,8 +174,9 @@ where
     Ok(())
 }
 
-/// Converts a JSON object into the
-/// [canonical](https://matrix.org/docs/spec/appendices#canonical-json)  string form.
+/// Converts an event into the [canonical] string form.
+///
+/// [canonical]: https://matrix.org/docs/spec/appendices#canonical-json
 ///
 /// # Parameters
 ///
@@ -326,7 +327,7 @@ where
     verifier.verify_json(public_key, signature, canonical_json(object).as_bytes())
 }
 
-/// Creates a *content hash* for the JSON representation of an event.
+/// Creates a *content hash* for an event.
 ///
 /// Returns the hash as a Base64-encoded string, using the standard character set, without padding.
 ///
@@ -343,7 +344,7 @@ pub fn content_hash(object: &CanonicalJsonObject) -> String {
     encode_config(&hash, STANDARD_NO_PAD)
 }
 
-/// Creates a *reference hash* for the JSON representation of an event.
+/// Creates a *reference hash* for an event.
 ///
 /// Returns the hash as a Base64-encoded string, using the standard character set, without padding.
 ///
@@ -381,8 +382,8 @@ pub fn reference_hash(
     ))
 }
 
-/// Hashes and signs the JSON representation of an event and adds the hash and signature to objects
-/// under the keys `hashes` and `signatures`, respectively.
+/// Hashes and signs an event and adds the hash and signature to objects under the keys `hashes` and
+/// `signatures`, respectively.
 ///
 /// If `hashes` and/or `signatures` are already present, the new data will be appended to the
 /// existing data.
@@ -505,7 +506,7 @@ where
     Ok(())
 }
 
-/// Uses a set of public keys to verify a signed JSON representation of an event.
+/// Uses a set of public keys to verify a signed event.
 ///
 /// Some room versions may require signatures from multiple homeservers, so this function takes a
 /// map from servers to sets of public keys. For each homeserver present in the map, this function
@@ -667,8 +668,7 @@ fn canonical_json_with_fields_to_remove(object: &CanonicalJsonObject, fields: &[
     to_canonical_json_string(&owned_object).expect("JSON object serialization to succeed")
 }
 
-/// Redacts the JSON representation of an event using the rules specified in the Matrix
-/// client-server specification.
+/// Redacts an event using the rules specified in the Matrix client-server specification.
 ///
 /// This is part of the process of signing an event.
 ///
