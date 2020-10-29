@@ -75,7 +75,7 @@ pub enum CanonicalJsonValue {
     /// # use ruma_serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!({ "an": "object" }).try_into().unwrap();
     /// ```
-    Object(BTreeMap<String, CanonicalJsonValue>),
+    Object(Object),
 }
 
 impl Default for CanonicalJsonValue {

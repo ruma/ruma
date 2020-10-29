@@ -124,9 +124,9 @@ mod test {
         expected.insert(
             "bar".into(),
             CanonicalJsonValue::Array(vec![
-                CanonicalJsonValue::Integer(js_int::int!(0)),
-                CanonicalJsonValue::Integer(js_int::int!(1)),
-                CanonicalJsonValue::Integer(js_int::int!(2)),
+                CanonicalJsonValue::Integer(int!(0)),
+                CanonicalJsonValue::Integer(int!(1)),
+                CanonicalJsonValue::Integer(int!(2)),
             ]),
         );
 
