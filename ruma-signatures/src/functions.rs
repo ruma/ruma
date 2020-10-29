@@ -5,7 +5,7 @@ use std::{collections::BTreeMap, mem};
 use base64::{decode_config, encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
 use ring::digest::{digest, SHA256};
 use ruma_identifiers::RoomVersionId;
-use ruma_serde::{to_canonical_json_string, CanonicalJsonValue};
+use ruma_serde::{to_canonical_json_string, CanonicalJsonObject, CanonicalJsonValue};
 use serde_json::from_str as from_json_str;
 
 use crate::{
@@ -72,9 +72,6 @@ static CONTENT_HASH_FIELDS_TO_REMOVE: &[&str] = &["hashes", "signatures", "unsig
 
 /// The fields to remove from a JSON object when creating a reference hash of an event.
 static REFERENCE_HASH_FIELDS_TO_REMOVE: &[&str] = &["age_ts", "signatures", "unsigned"];
-
-/// The inner type of `CanonicalJsonValue::Object`.
-pub type CanonicalJsonObject = BTreeMap<String, CanonicalJsonValue>;
 
 /// Signs an arbitrary JSON object and adds the signature to an object under the key `signatures`.
 ///

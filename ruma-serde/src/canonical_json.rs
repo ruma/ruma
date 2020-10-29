@@ -1,11 +1,11 @@
-use std::{collections::BTreeMap, convert::TryInto, fmt};
+use std::{convert::TryInto, fmt};
 
 use serde::Serialize;
 use serde_json::{Error as JsonError, Map as JsonObject, Value as JsonValue};
 
 pub mod value;
 
-pub type CanonicalJsonObject = BTreeMap<String, value::CanonicalJsonValue>;
+use value::Object as CanonicalJsonObject;
 
 /// Returns a canonical JSON string according to Matrix specification.
 ///
@@ -67,6 +67,8 @@ mod test {
         to_canonical_value, to_string as to_canonical_json_string, try_from_json_map,
         value::CanonicalJsonValue,
     };
+
+    use js_int::int;
     use serde_json::{from_str as from_json_str, json, to_string as to_json_string, Map};
 
     #[test]
@@ -116,7 +118,7 @@ mod test {
     }
 
     #[test]
-    fn check_serialize_map_to_canonical() {
+    fn serialize_map_to_canonical() {
         let mut expected = BTreeMap::new();
         expected.insert("foo".into(), CanonicalJsonValue::String("string".into()));
         expected.insert(
@@ -132,11 +134,11 @@ mod test {
         map.insert("foo".into(), json!("string"));
         map.insert("bar".into(), json!(vec![0, 1, 2,]));
 
-        assert_eq!(try_from_json_map(map).unwrap(), expected)
+        assert_eq!(try_from_json_map(map).unwrap(), expected);
     }
 
     #[test]
-    fn check_to_canonical() {
+    fn to_canonical() {
         #[derive(Debug, serde::Serialize)]
         struct Thing {
             foo: String,
@@ -149,12 +151,12 @@ mod test {
         expected.insert(
             "bar".into(),
             CanonicalJsonValue::Array(vec![
-                CanonicalJsonValue::Integer(js_int::int!(0)),
-                CanonicalJsonValue::Integer(js_int::int!(1)),
-                CanonicalJsonValue::Integer(js_int::int!(2)),
+                CanonicalJsonValue::Integer(int!(0)),
+                CanonicalJsonValue::Integer(int!(1)),
+                CanonicalJsonValue::Integer(int!(2)),
             ]),
         );
 
-        assert_eq!(to_canonical_value(t).unwrap(), CanonicalJsonValue::Object(expected))
+        assert_eq!(to_canonical_value(t).unwrap(), CanonicalJsonValue::Object(expected));
     }
 }

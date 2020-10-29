@@ -10,6 +10,9 @@ use serde_json::{to_string as to_json_string, Value as JsonValue};
 
 use super::Error;
 
+/// The inner type of `CanonicalJsonValue::Object`.
+pub type Object = BTreeMap<String, CanonicalJsonValue>;
+
 #[derive(Clone, Eq, PartialEq)]
 pub enum CanonicalJsonValue {
     /// Represents a JSON null value.
