@@ -1,6 +1,6 @@
 use std::{collections::BTreeMap, convert::TryInto, fmt};
 
-use serde::{ser::Error as _, Serialize};
+use serde::Serialize;
 use serde_json::{Error as JsonError, Map as JsonObject, Value as JsonValue};
 
 pub mod value;
@@ -47,17 +47,16 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
+/// Fallible conversion from a `serde_json::Map` to a `CanonicalJsonObject`.
 pub fn try_from_json_map(
     json: JsonObject<String, JsonValue>,
 ) -> Result<CanonicalJsonObject, Error> {
     json.into_iter().map(|(k, v)| Ok((k, v.try_into()?))).collect()
 }
 
-pub fn to_canonical_obj<T: Serialize>(value: T) -> Result<CanonicalJsonObject, Error> {
-    match serde_json::to_value(value).map_err(Error::SerDe)? {
-        JsonValue::Object(map) => try_from_json_map(map),
-        _ => Err(Error::SerDe(JsonError::custom("`value` must be an object"))),
-    }
+/// Fallible conversion from any value that impl's `Serialize` to a `CanonicalJsonValue`.
+pub fn to_canonical_value<T: Serialize>(value: T) -> Result<value::CanonicalJsonValue, Error> {
+    serde_json::to_value(value).map_err(Error::SerDe)?.try_into()
 }
 
 #[cfg(test)]
@@ -65,9 +64,10 @@ mod test {
     use std::{collections::BTreeMap, convert::TryInto};
 
     use super::{
-        to_canonical_obj, to_string as to_canonical_json_string, value::CanonicalJsonValue,
+        to_canonical_value, to_string as to_canonical_json_string, try_from_json_map,
+        value::CanonicalJsonValue,
     };
-    use serde_json::{from_str as from_json_str, json, to_string as to_json_string};
+    use serde_json::{from_str as from_json_str, json, to_string as to_json_string, Map};
 
     #[test]
     fn serialize_canon() {
@@ -116,16 +116,9 @@ mod test {
     }
 
     #[test]
-    fn check_serialize_to_canonical() {
-        #[derive(Debug, serde::Serialize)]
-        struct Thing {
-            foo: String,
-            bar: Vec<u8>,
-        }
-        let t = Thing { foo: "foo".into(), bar: vec![0, 1, 2] };
-
+    fn check_serialize_map_to_canonical() {
         let mut expected = BTreeMap::new();
-        expected.insert("foo".into(), CanonicalJsonValue::String("foo".into()));
+        expected.insert("foo".into(), CanonicalJsonValue::String("string".into()));
         expected.insert(
             "bar".into(),
             CanonicalJsonValue::Array(vec![
@@ -135,6 +128,33 @@ mod test {
             ]),
         );
 
-        assert_eq!(to_canonical_obj(t).unwrap(), expected)
+        let mut map = Map::new();
+        map.insert("foo".into(), json!("string"));
+        map.insert("bar".into(), json!(vec![0, 1, 2,]));
+
+        assert_eq!(try_from_json_map(map).unwrap(), expected)
+    }
+
+    #[test]
+    fn check_to_canonical() {
+        #[derive(Debug, serde::Serialize)]
+        struct Thing {
+            foo: String,
+            bar: Vec<u8>,
+        }
+        let t = Thing { foo: "string".into(), bar: vec![0, 1, 2] };
+
+        let mut expected = BTreeMap::new();
+        expected.insert("foo".into(), CanonicalJsonValue::String("string".into()));
+        expected.insert(
+            "bar".into(),
+            CanonicalJsonValue::Array(vec![
+                CanonicalJsonValue::Integer(js_int::int!(0)),
+                CanonicalJsonValue::Integer(js_int::int!(1)),
+                CanonicalJsonValue::Integer(js_int::int!(2)),
+            ]),
+        );
+
+        assert_eq!(to_canonical_value(t).unwrap(), CanonicalJsonValue::Object(expected))
     }
 }
