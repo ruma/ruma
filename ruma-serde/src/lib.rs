@@ -15,7 +15,9 @@ pub mod urlencoded;
 
 pub use can_be_empty::{is_empty, CanBeEmpty};
 pub use canonical_json::{
-    to_string as to_canonical_json_string, value::CanonicalJsonValue, Error as CanonicalJsonError,
+    to_canonical_value, to_string as to_canonical_json_string, try_from_json_map,
+    value::{CanonicalJsonValue, Object as CanonicalJsonObject},
+    Error as CanonicalJsonError,
 };
 pub use cow::deserialize_cow_str;
 pub use empty::vec_as_map_of_empty;

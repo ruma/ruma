@@ -10,6 +10,9 @@ use serde_json::{to_string as to_json_string, Value as JsonValue};
 
 use super::Error;
 
+/// The inner type of `CanonicalJsonValue::Object`.
+pub type Object = BTreeMap<String, CanonicalJsonValue>;
+
 #[derive(Clone, Eq, PartialEq)]
 pub enum CanonicalJsonValue {
     /// Represents a JSON null value.
@@ -72,7 +75,7 @@ pub enum CanonicalJsonValue {
     /// # use ruma_serde::CanonicalJsonValue;
     /// let v: CanonicalJsonValue = json!({ "an": "object" }).try_into().unwrap();
     /// ```
-    Object(BTreeMap<String, CanonicalJsonValue>),
+    Object(Object),
 }
 
 impl Default for CanonicalJsonValue {
@@ -133,7 +136,7 @@ impl TryFrom<JsonValue> for CanonicalJsonValue {
             JsonValue::Object(obj) => Self::Object(
                 obj.into_iter()
                     .map(|(k, v)| Ok((k, v.try_into()?)))
-                    .collect::<Result<BTreeMap<_, _>, _>>()?,
+                    .collect::<Result<Object, _>>()?,
             ),
             JsonValue::Null => Self::Null,
         })

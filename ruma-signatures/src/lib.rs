@@ -51,7 +51,7 @@ use std::{
 
 pub use functions::{
     canonical_json, content_hash, hash_and_sign_event, redact, reference_hash, sign_json,
-    verify_event, verify_json, CanonicalJsonObject,
+    verify_event, verify_json,
 };
 pub use keys::{Ed25519KeyPair, KeyPair, PublicKeyMap, PublicKeySet};
 pub use signatures::Signature;

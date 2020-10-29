@@ -1,9 +1,11 @@
-use std::fmt;
+use std::{convert::TryInto, fmt};
 
 use serde::Serialize;
-use serde_json::Error as JsonError;
+use serde_json::{Error as JsonError, Map as JsonObject, Value as JsonValue};
 
 pub mod value;
+
+use value::Object as CanonicalJsonObject;
 
 /// Returns a canonical JSON string according to Matrix specification.
 ///
@@ -45,12 +47,29 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
+/// Fallible conversion from a `serde_json::Map` to a `CanonicalJsonObject`.
+pub fn try_from_json_map(
+    json: JsonObject<String, JsonValue>,
+) -> Result<CanonicalJsonObject, Error> {
+    json.into_iter().map(|(k, v)| Ok((k, v.try_into()?))).collect()
+}
+
+/// Fallible conversion from any value that impl's `Serialize` to a `CanonicalJsonValue`.
+pub fn to_canonical_value<T: Serialize>(value: T) -> Result<value::CanonicalJsonValue, Error> {
+    serde_json::to_value(value).map_err(Error::SerDe)?.try_into()
+}
+
 #[cfg(test)]
 mod test {
-    use std::convert::TryInto;
+    use std::{collections::BTreeMap, convert::TryInto};
 
-    use super::{to_string as to_canonical_json_string, value::CanonicalJsonValue};
-    use serde_json::{from_str as from_json_str, json, to_string as to_json_string};
+    use super::{
+        to_canonical_value, to_string as to_canonical_json_string, try_from_json_map,
+        value::CanonicalJsonValue,
+    };
+
+    use js_int::int;
+    use serde_json::{from_str as from_json_str, json, to_string as to_json_string, Map};
 
     #[test]
     fn serialize_canon() {
@@ -96,5 +115,48 @@ mod test {
             to_json_string(&json).unwrap(),
             r#"{"auth":{"mxid":"@john.doe:example.com","profile":{"display_name":"John Doe","three_pids":[{"address":"john.doe@example.org","medium":"email"},{"address":"123456789","medium":"msisdn"}]},"success":true}}"#
         )
+    }
+
+    #[test]
+    fn serialize_map_to_canonical() {
+        let mut expected = BTreeMap::new();
+        expected.insert("foo".into(), CanonicalJsonValue::String("string".into()));
+        expected.insert(
+            "bar".into(),
+            CanonicalJsonValue::Array(vec![
+                CanonicalJsonValue::Integer(int!(0)),
+                CanonicalJsonValue::Integer(int!(1)),
+                CanonicalJsonValue::Integer(int!(2)),
+            ]),
+        );
+
+        let mut map = Map::new();
+        map.insert("foo".into(), json!("string"));
+        map.insert("bar".into(), json!(vec![0, 1, 2,]));
+
+        assert_eq!(try_from_json_map(map).unwrap(), expected);
+    }
+
+    #[test]
+    fn to_canonical() {
+        #[derive(Debug, serde::Serialize)]
+        struct Thing {
+            foo: String,
+            bar: Vec<u8>,
+        }
+        let t = Thing { foo: "string".into(), bar: vec![0, 1, 2] };
+
+        let mut expected = BTreeMap::new();
+        expected.insert("foo".into(), CanonicalJsonValue::String("string".into()));
+        expected.insert(
+            "bar".into(),
+            CanonicalJsonValue::Array(vec![
+                CanonicalJsonValue::Integer(int!(0)),
+                CanonicalJsonValue::Integer(int!(1)),
+                CanonicalJsonValue::Integer(int!(2)),
+            ]),
+        );
+
+        assert_eq!(to_canonical_value(t).unwrap(), CanonicalJsonValue::Object(expected));
     }
 }
