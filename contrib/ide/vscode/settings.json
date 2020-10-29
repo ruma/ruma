@@ -1,0 +1,6 @@
+{
+    // rust-analyzer can't currently handle macro-generated types
+    "rust-analyzer.diagnostics.disabled": [
+        "unresolved-import"
+    ]
+}
