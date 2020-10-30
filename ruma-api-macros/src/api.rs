@@ -289,6 +289,8 @@ impl ToTokens for Api {
                     let mut resp_builder = #ruma_api_import::exports::http::Response::builder()
                         .header(#ruma_api_import::exports::http::header::CONTENT_TYPE, "application/json");
 
+                    let mut headers =
+                        resp_builder.headers_mut().expect("`http::ResponseBuilder` is in unusable state");
                     #serialize_response_headers
 
                     // Since we require header names to come from the `http::header` module,
