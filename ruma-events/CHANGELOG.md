@@ -23,6 +23,8 @@ Breaking changes:
   `room::member::SignedContent`.
 * Remove the `EventType::Custom` variant. You can still check for custom event types by going
   through `.as_str()`. This ensures that new event types doesn't break existing code.
+* Remove the implementations of `From<EventType>` and `From<key::verification::cancel::CancelCode>`
+  for `String`. Use the `Display` or `ToString` implementations for those types instead.
 
 Improvements:
 

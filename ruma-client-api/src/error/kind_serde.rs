@@ -7,6 +7,7 @@ use std::{
 };
 
 use js_int::UInt;
+use ruma_common::{DeserializeFromCowStr, FromString};
 use serde::{
     de::{self, Deserialize, Deserializer, MapAccess, Visitor},
     ser::{self, Serialize, SerializeMap, Serializer},
@@ -207,94 +208,74 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
     }
 }
 
-// FIXME: Derive FromString once available
+// FIXME: Add `M_FOO_BAR` as a naming scheme in StringEnum and remove rename attributes.
+#[derive(FromString, DeserializeFromCowStr)]
 enum ErrCode {
+    #[ruma_enum(rename = "M_FORBIDDEN")]
     Forbidden,
+    #[ruma_enum(rename = "M_UNKNOWN_TOKEN")]
     UnknownToken,
+    #[ruma_enum(rename = "M_MISSING_TOKEN")]
     MissingToken,
+    #[ruma_enum(rename = "M_BAD_JSON")]
     BadJson,
+    #[ruma_enum(rename = "M_NOT_JSON")]
     NotJson,
+    #[ruma_enum(rename = "M_NOT_FOUND")]
     NotFound,
+    #[ruma_enum(rename = "M_LIMIT_EXCEEDED")]
     LimitExceeded,
+    #[ruma_enum(rename = "M_UNKNOWN")]
     Unknown,
+    #[ruma_enum(rename = "M_UNRECOGNIZED")]
     Unrecognized,
+    #[ruma_enum(rename = "M_UNAUTHORIZED")]
     Unauthorized,
+    #[ruma_enum(rename = "M_USER_DEACTIVATED")]
     UserDeactivated,
+    #[ruma_enum(rename = "M_USER_IN_USE")]
     UserInUse,
+    #[ruma_enum(rename = "M_INVALID_USERNAME")]
     InvalidUsername,
+    #[ruma_enum(rename = "M_ROOM_IN_USE")]
     RoomInUse,
+    #[ruma_enum(rename = "M_INVALID_ROOM_STATE")]
     InvalidRoomState,
+    #[ruma_enum(rename = "M_THREEPID_IN_USE")]
     ThreepidInUse,
+    #[ruma_enum(rename = "M_THREEPID_NOT_FOUND")]
     ThreepidNotFound,
+    #[ruma_enum(rename = "M_THREEPID_AUTH_FAILED")]
     ThreepidAuthFailed,
+    #[ruma_enum(rename = "M_THREEPID_DENIED")]
     ThreepidDenied,
+    #[ruma_enum(rename = "M_SERVER_NOT_TRUSTED")]
     ServerNotTrusted,
+    #[ruma_enum(rename = "M_UNSUPPORTED_ROOM_VERSION")]
     UnsupportedRoomVersion,
+    #[ruma_enum(rename = "M_INCOMPATIBLE_ROOM_VERSION")]
     IncompatibleRoomVersion,
+    #[ruma_enum(rename = "M_BAD_STATE")]
     BadState,
+    #[ruma_enum(rename = "M_GUEST_ACCESS_FORBIDDEN")]
     GuestAccessForbidden,
+    #[ruma_enum(rename = "M_CAPTCHA_NEEDED")]
     CaptchaNeeded,
+    #[ruma_enum(rename = "M_CAPTCHA_INVALID")]
     CaptchaInvalid,
+    #[ruma_enum(rename = "M_MISSING_PARAM")]
     MissingParam,
+    #[ruma_enum(rename = "M_INVALID_PARAM")]
     InvalidParam,
+    #[ruma_enum(rename = "M_TOO_LARGE")]
     TooLarge,
+    #[ruma_enum(rename = "M_EXCLUSIVE")]
     Exclusive,
+    #[ruma_enum(rename = "M_RESOURCE_LIMIT_EXCEEDED")]
     ResourceLimitExceeded,
+    #[ruma_enum(rename = "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM")]
     CannotLeaveServerNoticeRoom,
     _Custom(String),
-}
-
-impl<'de> Deserialize<'de> for ErrCode {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = ruma_serde::deserialize_cow_str(deserializer)?;
-        Ok(s.into())
-    }
-}
-
-impl<T> From<T> for ErrCode
-where
-    T: AsRef<str> + Into<String>,
-{
-    fn from(s: T) -> Self {
-        match s.as_ref() {
-            "M_FORBIDDEN" => Self::Forbidden,
-            "M_UNKNOWN_TOKEN" => Self::UnknownToken,
-            "M_MISSING_TOKEN" => Self::MissingToken,
-            "M_BAD_JSON" => Self::BadJson,
-            "M_NOT_JSON" => Self::NotJson,
-            "M_NOT_FOUND" => Self::NotFound,
-            "M_LIMIT_EXCEEDED" => Self::LimitExceeded,
-            "M_UNKNOWN" => Self::Unknown,
-            "M_UNRECOGNIZED" => Self::Unrecognized,
-            "M_UNAUTHORIZED" => Self::Unauthorized,
-            "M_USER_DEACTIVATED" => Self::UserDeactivated,
-            "M_USER_IN_USE" => Self::UserInUse,
-            "M_INVALID_USERNAME" => Self::InvalidUsername,
-            "M_ROOM_IN_USE" => Self::RoomInUse,
-            "M_INVALID_ROOM_STATE" => Self::InvalidRoomState,
-            "M_THREEPID_IN_USE" => Self::ThreepidInUse,
-            "M_THREEPID_NOT_FOUND" => Self::ThreepidNotFound,
-            "M_THREEPID_AUTH_FAILED" => Self::ThreepidAuthFailed,
-            "M_THREEPID_DENIED" => Self::ThreepidDenied,
-            "M_SERVER_NOT_TRUSTED" => Self::ServerNotTrusted,
-            "M_UNSUPPORTED_ROOM_VERSION" => Self::UnsupportedRoomVersion,
-            "M_INCOMPATIBLE_ROOM_VERSION" => Self::IncompatibleRoomVersion,
-            "M_BAD_STATE" => Self::BadState,
-            "M_GUEST_ACCESS_FORBIDDEN" => Self::GuestAccessForbidden,
-            "M_CAPTCHA_NEEDED" => Self::CaptchaNeeded,
-            "M_CAPTCHA_INVALID" => Self::CaptchaInvalid,
-            "M_MISSING_PARAM" => Self::MissingParam,
-            "M_INVALID_PARAM" => Self::InvalidParam,
-            "M_TOO_LARGE" => Self::TooLarge,
-            "M_EXCLUSIVE" => Self::Exclusive,
-            "M_RESOURCE_LIMIT_EXCEEDED" => Self::ResourceLimitExceeded,
-            "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM" => Self::CannotLeaveServerNoticeRoom,
-            _ => Self::_Custom(s.into()),
-        }
-    }
 }
 
 impl<'de> Deserialize<'de> for ErrorKind {

@@ -1,7 +1,6 @@
 //! Types for the *m.key.verification.cancel* event.
 
-use std::fmt::{Display, Formatter, Result as FmtResult};
-
+use ruma_common::StringEnum;
 use ruma_events_macros::BasicEventContent;
 use serde::{Deserialize, Serialize};
 
@@ -35,43 +34,52 @@ pub struct CancelEventContent {
 /// This type can hold an arbitrary string. To check for events that are not
 /// available as a documented variant here, use its string representation,
 /// obtained through `.as_str()`.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+// FIXME: Add `m.foo_bar` as a naming scheme in StringEnum and remove rename attributes.
+#[derive(Clone, Debug, PartialEq, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(from = "String", into = "String")]
 pub enum CancelCode {
     /// The user cancelled the verification.
+    #[ruma_enum(rename = "m.user")]
     User,
 
     /// The verification process timed out. Verification processes can define their own timeout
     /// parameters.
+    #[ruma_enum(rename = "m.timeout")]
     Timeout,
 
     /// The device does not know about the given transaction ID.
+    #[ruma_enum(rename = "m.unknown_transaction")]
     UnknownTransaction,
 
     /// The device does not know how to handle the requested method.
     ///
     /// This should be sent for *m.key.verification.start* messages and messages defined by
     /// individual verification processes.
+    #[ruma_enum(rename = "m.unknown_method")]
     UnknownMethod,
 
     /// The device received an unexpected message.
     ///
     /// Typically raised when one of the parties is handling the verification out of order.
+    #[ruma_enum(rename = "m.unexpected_message")]
     UnexpectedMessage,
 
     /// The key was not verified.
+    #[ruma_enum(rename = "m.key_mismatch")]
     KeyMismatch,
 
     /// The expected user did not match the user verified.
+    #[ruma_enum(rename = "m.user_mismatch")]
     UserMismatch,
 
     /// The message received was invalid.
+    #[ruma_enum(rename = "m.invalid_message")]
     InvalidMessage,
 
     /// An *m.key.verification.request* was accepted by a different device.
     ///
     /// The device receiving this error can ignore the verification request.
+    #[ruma_enum(rename = "m.accepted")]
     Accepted,
 
     #[doc(hidden)]
@@ -81,50 +89,7 @@ pub enum CancelCode {
 impl CancelCode {
     /// Creates a string slice from this `CancelCode`.
     pub fn as_str(&self) -> &str {
-        match *self {
-            CancelCode::User => "m.user",
-            CancelCode::Timeout => "m.timeout",
-            CancelCode::UnknownTransaction => "m.unknown_transaction",
-            CancelCode::UnknownMethod => "m.unknown_method",
-            CancelCode::UnexpectedMessage => "m.unexpected_message",
-            CancelCode::KeyMismatch => "m.key_mismatch",
-            CancelCode::UserMismatch => "m.user_mismatch",
-            CancelCode::InvalidMessage => "m.invalid_message",
-            CancelCode::Accepted => "m.accepted",
-            CancelCode::_Custom(ref cancel_code) => cancel_code,
-        }
-    }
-}
-
-impl Display for CancelCode {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.as_str())
-    }
-}
-
-impl<T> From<T> for CancelCode
-where
-    T: Into<String> + AsRef<str>,
-{
-    fn from(s: T) -> CancelCode {
-        match s.as_ref() {
-            "m.user" => CancelCode::User,
-            "m.timeout" => CancelCode::Timeout,
-            "m.unknown_transaction" => CancelCode::UnknownTransaction,
-            "m.unknown_method" => CancelCode::UnknownMethod,
-            "m.unexpected_message" => CancelCode::UnexpectedMessage,
-            "m.key_mismatch" => CancelCode::KeyMismatch,
-            "m.user_mismatch" => CancelCode::UserMismatch,
-            "m.invalid_message" => CancelCode::InvalidMessage,
-            "m.accepted" => CancelCode::Accepted,
-            _ => CancelCode::_Custom(s.into()),
-        }
-    }
-}
-
-impl From<CancelCode> for String {
-    fn from(cancel_code: CancelCode) -> String {
-        cancel_code.to_string()
+        self.as_ref()
     }
 }
 

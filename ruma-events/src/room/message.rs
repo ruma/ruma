@@ -1,8 +1,7 @@
 //! Types for the *m.room.message* event.
 
-use std::fmt;
-
 use js_int::UInt;
+use ruma_common::StringEnum;
 use ruma_events_macros::MessageEventContent;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
@@ -313,11 +312,11 @@ pub enum LimitType {
 /// This type can hold an arbitrary string. To check for events that are not
 /// available as a documented variant here, use its string representation,
 /// obtained through `.as_str()`.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum MessageFormat {
     /// HTML.
-    #[serde(rename = "org.matrix.custom.html")]
+    #[ruma_enum(rename = "org.matrix.custom.html")]
     Html,
 
     #[doc(hidden)]
@@ -327,16 +326,7 @@ pub enum MessageFormat {
 impl MessageFormat {
     /// Creates a string slice from this `MessageFormat`.
     pub fn as_str(&self) -> &str {
-        match self {
-            Self::Html => "org.matrix.custom.html",
-            Self::_Custom(ref message_format) => message_format,
-        }
-    }
-}
-
-impl fmt::Display for MessageFormat {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.as_str())
+        self.as_ref()
     }
 }
 

@@ -1,12 +1,8 @@
 //! Matrix room version identifiers.
 
-use std::{
-    cmp::Ordering,
-    convert::TryFrom,
-    fmt::{self, Display, Formatter},
-    str::FromStr,
-};
+use std::{cmp::Ordering, convert::TryFrom, str::FromStr};
 
+use ruma_common_macros::DisplayAsRefStr;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -27,7 +23,7 @@ use crate::Error;
 /// Custom room versions or ones that were introduced into the specification after this code was
 /// written are represented by a hidden enum variant. You can still construct them the same, and
 /// check for them using one of `RoomVersionId`s `PartialEq` implementations or through `.as_str()`.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, DisplayAsRefStr)]
 pub enum RoomVersionId {
     /// A version 1 room.
     Version1,
@@ -54,6 +50,8 @@ pub enum RoomVersionId {
 impl RoomVersionId {
     /// Creates a string slice from this `RoomVersionId`.
     pub fn as_str(&self) -> &str {
+        // FIXME: Add support for non-`str`-deref'ing types for fallback to AsRefStr derive and
+        //        implement this function in terms of `AsRef<str>`
         match &self {
             Self::Version1 => "1",
             Self::Version2 => "2",
@@ -88,12 +86,6 @@ impl From<RoomVersionId> for String {
 impl AsRef<str> for RoomVersionId {
     fn as_ref(&self) -> &str {
         self.as_str()
-    }
-}
-
-impl Display for RoomVersionId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_ref())
     }
 }
 

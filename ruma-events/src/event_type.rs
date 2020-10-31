@@ -1,279 +1,200 @@
-use std::fmt::{Display, Formatter, Result as FmtResult};
-
-use serde::{Deserialize, Serialize};
+use ruma_common::StringEnum;
 
 /// The type of an event.
 ///
 /// This type can hold an arbitrary string. To check for events that are not available as a
 /// documented variant here, use its string representation, obtained through `.as_str()`.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+// FIXME: Add `m.foo.bar` or `m.foo_bar` as a naming scheme in StringEnum and remove most rename
+//        attributes.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(from = "String", into = "String")]
 pub enum EventType {
     /// m.call.answer
+    #[ruma_enum(rename = "m.call.answer")]
     CallAnswer,
 
     /// m.call.candidates
+    #[ruma_enum(rename = "m.call.candidates")]
     CallCandidates,
 
     /// m.call.hangup
+    #[ruma_enum(rename = "m.call.hangup")]
     CallHangup,
 
     /// m.call.invite
+    #[ruma_enum(rename = "m.call.invite")]
     CallInvite,
 
     /// m.direct
+    #[ruma_enum(rename = "m.direct")]
     Direct,
 
     /// m.dummy
+    #[ruma_enum(rename = "m.dummy")]
     Dummy,
 
     /// m.forwarded_room_key
+    #[ruma_enum(rename = "m.forwarded_room_key")]
     ForwardedRoomKey,
 
     /// m.fully_read
+    #[ruma_enum(rename = "m.fully_read")]
     FullyRead,
 
     /// m.key.verification.accept
+    #[ruma_enum(rename = "m.key.verification.accept")]
     KeyVerificationAccept,
 
     /// m.key.verification.cancel
+    #[ruma_enum(rename = "m.key.verification.cancel")]
     KeyVerificationCancel,
 
     /// m.key.verification.key
+    #[ruma_enum(rename = "m.key.verification.key")]
     KeyVerificationKey,
 
     /// m.key.verification.mac
+    #[ruma_enum(rename = "m.key.verification.mac")]
     KeyVerificationMac,
 
     /// m.key.verification.request
+    #[ruma_enum(rename = "m.key.verification.request")]
     KeyVerificationRequest,
 
     /// m.key.verification.start
+    #[ruma_enum(rename = "m.key.verification.start")]
     KeyVerificationStart,
 
     /// m.ignored_user_list
+    #[ruma_enum(rename = "m.ignored_user_list")]
     IgnoredUserList,
 
     /// m.policy.rule.room
+    #[ruma_enum(rename = "m.policy.rule.room")]
     PolicyRuleRoom,
 
     /// m.policy.rule.server
+    #[ruma_enum(rename = "m.policy.rule.server")]
     PolicyRuleServer,
 
     /// m.policy.rule.user
+    #[ruma_enum(rename = "m.policy.rule.user")]
     PolicyRuleUser,
 
     /// m.presence
+    #[ruma_enum(rename = "m.presence")]
     Presence,
 
     /// m.push_rules
+    #[ruma_enum(rename = "m.push_rules")]
     PushRules,
 
     /// m.receipt
+    #[ruma_enum(rename = "m.receipt")]
     Receipt,
 
     /// m.room.aliases
+    #[ruma_enum(rename = "m.room.aliases")]
     RoomAliases,
 
     /// m.room.avatar
+    #[ruma_enum(rename = "m.room.avatar")]
     RoomAvatar,
 
     /// m.room.canonical_alias
+    #[ruma_enum(rename = "m.room.canonical_alias")]
     RoomCanonicalAlias,
 
     /// m.room.create
+    #[ruma_enum(rename = "m.room.create")]
     RoomCreate,
 
     /// m.room.encrypted
+    #[ruma_enum(rename = "m.room.encrypted")]
     RoomEncrypted,
 
     /// m.room.encryption
+    #[ruma_enum(rename = "m.room.encryption")]
     RoomEncryption,
 
     /// m.room.guest_access
+    #[ruma_enum(rename = "m.room.guest_access")]
     RoomGuestAccess,
 
     /// m.room.history_visibility
+    #[ruma_enum(rename = "m.room.history_visibility")]
     RoomHistoryVisibility,
 
     /// m.room.join_rules
+    #[ruma_enum(rename = "m.room.join_rules")]
     RoomJoinRules,
 
     /// m.room.member
+    #[ruma_enum(rename = "m.room.member")]
     RoomMember,
 
     /// m.room.message
+    #[ruma_enum(rename = "m.room.message")]
     RoomMessage,
 
     /// m.room.message.feedback
+    #[ruma_enum(rename = "m.room.message.feedback")]
     RoomMessageFeedback,
 
     /// m.room.name
+    #[ruma_enum(rename = "m.room.name")]
     RoomName,
 
     /// m.room.pinned_events
+    #[ruma_enum(rename = "m.room.pinned_events")]
     RoomPinnedEvents,
 
     /// m.room.power_levels
+    #[ruma_enum(rename = "m.room.power_levels")]
     RoomPowerLevels,
 
     /// m.room.redaction
+    #[ruma_enum(rename = "m.room.redaction")]
     RoomRedaction,
 
     /// m.room.server_acl
+    #[ruma_enum(rename = "m.room.server_acl")]
     RoomServerAcl,
 
     /// m.room.third_party_invite
+    #[ruma_enum(rename = "m.room.third_party_invite")]
     RoomThirdPartyInvite,
 
     /// m.room.tombstone
+    #[ruma_enum(rename = "m.room.tombstone")]
     RoomTombstone,
 
     /// m.room.topic
+    #[ruma_enum(rename = "m.room.topic")]
     RoomTopic,
 
     /// m.room_key
+    #[ruma_enum(rename = "m.room_key")]
     RoomKey,
 
     /// m.room_key_request
+    #[ruma_enum(rename = "m.room_key_request")]
     RoomKeyRequest,
 
     /// m.sticker
+    #[ruma_enum(rename = "m.sticker")]
     Sticker,
 
     /// m.tag
+    #[ruma_enum(rename = "m.tag")]
     Tag,
 
     /// m.typing
+    #[ruma_enum(rename = "m.typing")]
     Typing,
 
     #[doc(hidden)]
     _Custom(String),
-}
-
-impl EventType {
-    /// Creates a string slice from this `EventType`.
-    pub fn as_str(&self) -> &str {
-        match *self {
-            EventType::CallAnswer => "m.call.answer",
-            EventType::CallCandidates => "m.call.candidates",
-            EventType::CallHangup => "m.call.hangup",
-            EventType::CallInvite => "m.call.invite",
-            EventType::Direct => "m.direct",
-            EventType::Dummy => "m.dummy",
-            EventType::ForwardedRoomKey => "m.forwarded_room_key",
-            EventType::FullyRead => "m.fully_read",
-            EventType::KeyVerificationAccept => "m.key.verification.accept",
-            EventType::KeyVerificationCancel => "m.key.verification.cancel",
-            EventType::KeyVerificationKey => "m.key.verification.key",
-            EventType::KeyVerificationMac => "m.key.verification.mac",
-            EventType::KeyVerificationRequest => "m.key.verification.request",
-            EventType::KeyVerificationStart => "m.key.verification.start",
-            EventType::IgnoredUserList => "m.ignored_user_list",
-            EventType::PolicyRuleRoom => "m.policy.rule.room",
-            EventType::PolicyRuleServer => "m.policy.rule.server",
-            EventType::PolicyRuleUser => "m.policy.rule.user",
-            EventType::Presence => "m.presence",
-            EventType::PushRules => "m.push_rules",
-            EventType::Receipt => "m.receipt",
-            EventType::RoomAliases => "m.room.aliases",
-            EventType::RoomAvatar => "m.room.avatar",
-            EventType::RoomCanonicalAlias => "m.room.canonical_alias",
-            EventType::RoomCreate => "m.room.create",
-            EventType::RoomEncrypted => "m.room.encrypted",
-            EventType::RoomEncryption => "m.room.encryption",
-            EventType::RoomGuestAccess => "m.room.guest_access",
-            EventType::RoomHistoryVisibility => "m.room.history_visibility",
-            EventType::RoomJoinRules => "m.room.join_rules",
-            EventType::RoomMember => "m.room.member",
-            EventType::RoomMessage => "m.room.message",
-            EventType::RoomMessageFeedback => "m.room.message.feedback",
-            EventType::RoomName => "m.room.name",
-            EventType::RoomPinnedEvents => "m.room.pinned_events",
-            EventType::RoomPowerLevels => "m.room.power_levels",
-            EventType::RoomRedaction => "m.room.redaction",
-            EventType::RoomServerAcl => "m.room.server_acl",
-            EventType::RoomThirdPartyInvite => "m.room.third_party_invite",
-            EventType::RoomTombstone => "m.room.tombstone",
-            EventType::RoomTopic => "m.room.topic",
-            EventType::RoomKey => "m.room_key",
-            EventType::RoomKeyRequest => "m.room_key_request",
-            EventType::Sticker => "m.sticker",
-            EventType::Tag => "m.tag",
-            EventType::Typing => "m.typing",
-            EventType::_Custom(ref event_type) => event_type,
-        }
-    }
-}
-
-impl Display for EventType {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.as_str())
-    }
-}
-
-impl<T> From<T> for EventType
-where
-    T: Into<String> + AsRef<str>,
-{
-    fn from(s: T) -> EventType {
-        match s.as_ref() {
-            "m.call.answer" => EventType::CallAnswer,
-            "m.call.candidates" => EventType::CallCandidates,
-            "m.call.hangup" => EventType::CallHangup,
-            "m.call.invite" => EventType::CallInvite,
-            "m.direct" => EventType::Direct,
-            "m.dummy" => EventType::Dummy,
-            "m.forwarded_room_key" => EventType::ForwardedRoomKey,
-            "m.fully_read" => EventType::FullyRead,
-            "m.key.verification.accept" => EventType::KeyVerificationAccept,
-            "m.key.verification.cancel" => EventType::KeyVerificationCancel,
-            "m.key.verification.key" => EventType::KeyVerificationKey,
-            "m.key.verification.mac" => EventType::KeyVerificationMac,
-            "m.key.verification.request" => EventType::KeyVerificationRequest,
-            "m.key.verification.start" => EventType::KeyVerificationStart,
-            "m.ignored_user_list" => EventType::IgnoredUserList,
-            "m.policy.rule.room" => EventType::PolicyRuleRoom,
-            "m.policy.rule.server" => EventType::PolicyRuleServer,
-            "m.policy.rule.user" => EventType::PolicyRuleUser,
-            "m.presence" => EventType::Presence,
-            "m.push_rules" => EventType::PushRules,
-            "m.receipt" => EventType::Receipt,
-            "m.room.aliases" => EventType::RoomAliases,
-            "m.room.avatar" => EventType::RoomAvatar,
-            "m.room.canonical_alias" => EventType::RoomCanonicalAlias,
-            "m.room.create" => EventType::RoomCreate,
-            "m.room.encrypted" => EventType::RoomEncrypted,
-            "m.room.encryption" => EventType::RoomEncryption,
-            "m.room.guest_access" => EventType::RoomGuestAccess,
-            "m.room.history_visibility" => EventType::RoomHistoryVisibility,
-            "m.room.join_rules" => EventType::RoomJoinRules,
-            "m.room.member" => EventType::RoomMember,
-            "m.room.message" => EventType::RoomMessage,
-            "m.room.message.feedback" => EventType::RoomMessageFeedback,
-            "m.room.name" => EventType::RoomName,
-            "m.room.pinned_events" => EventType::RoomPinnedEvents,
-            "m.room.power_levels" => EventType::RoomPowerLevels,
-            "m.room.redaction" => EventType::RoomRedaction,
-            "m.room.server_acl" => EventType::RoomServerAcl,
-            "m.room.third_party_invite" => EventType::RoomThirdPartyInvite,
-            "m.room.tombstone" => EventType::RoomTombstone,
-            "m.room.topic" => EventType::RoomTopic,
-            "m.room_key" => EventType::RoomKey,
-            "m.room_key_request" => EventType::RoomKeyRequest,
-            "m.sticker" => EventType::Sticker,
-            "m.tag" => EventType::Tag,
-            "m.typing" => EventType::Typing,
-            _ => EventType::_Custom(s.into()),
-        }
-    }
-}
-
-impl From<EventType> for String {
-    fn from(event_type: EventType) -> String {
-        event_type.to_string()
-    }
 }
 
 #[cfg(test)]

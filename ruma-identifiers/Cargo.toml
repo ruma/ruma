@@ -26,6 +26,7 @@ serde = ["serde1", "ruma-identifiers-validation/serde"]
 [dependencies]
 either = { version = "1.5.3", optional = true }
 rand = { version = "0.7.3", optional = true }
+ruma-common-macros = { version = "0.2.0", path = "../ruma-common-macros" }
 ruma-identifiers-macros = { version = "=0.17.4", path = "../ruma-identifiers-macros" }
 ruma-identifiers-validation = { version = "0.1.1", path = "../ruma-identifiers-validation", default-features = false }
 ruma-serde = { version = "0.2.3", path = "../ruma-serde" }
