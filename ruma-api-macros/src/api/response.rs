@@ -123,18 +123,20 @@ impl Response {
                     {
                         quote! {
                             if let Some(header) = response.#field_name {
-                                resp_builder = resp_builder.header(
-                                    #import_path::exports::http::header::#header_name,
-                                    header,
-                                );
+                                headers
+                                    .insert(
+                                        #import_path::exports::http::header::#header_name,
+                                        header.parse()?,
+                                    );
                             }
                         }
                     }
                     _ => quote! {
-                        resp_builder = resp_builder.header(
-                            #import_path::exports::http::header::#header_name,
-                            response.#field_name,
-                        );
+                        headers
+                            .insert(
+                                #import_path::exports::http::header::#header_name,
+                                response.#field_name.parse()?,
+                            );
                     },
                 };
 

@@ -14,6 +14,7 @@ ruma_api! {
         #[ruma_api(header = LOCATION)]
         pub location: Option<String>,
     }
+
     response: {
         #[ruma_api(header = LOCATION)]
         pub stuff: Option<String>,
