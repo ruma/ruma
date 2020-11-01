@@ -2,7 +2,6 @@
 
 Breaking changes:
 
-* Update strum dependency to 0.19
 * The `EndpointError` trait now requires `std::error::Error`. This allows integrating
   `EndpointError`s in the common rust error ecosystem like `thiserror` and `anyhow`.
 * The `Endpoint` trait has been replaced by two new traits that each capture a subset of its

@@ -1,8 +1,8 @@
 //! [GET /_matrix/federation/v1/query/profile](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-query-profile)
 
 use ruma_api::ruma_api;
+use ruma_common::StringEnum;
 use ruma_identifiers::UserId;
-use serde::{Deserialize, Serialize};
 
 ruma_api! {
     metadata: {
@@ -22,7 +22,7 @@ ruma_api! {
         /// Profile field to query.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub field: Option<ProfileField>,
+        pub field: Option<&'a ProfileField>,
     }
 
     #[derive(Default)]
@@ -52,13 +52,16 @@ impl Response {
 }
 
 /// Profile fields to specify in query.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 pub enum ProfileField {
     /// Display name of the user.
-    #[serde(rename = "displayname")]
+    #[ruma_enum(rename = "displayname")]
     DisplayName,
 
     /// Avatar URL for the user's avatar.
-    #[serde(rename = "avatar_url")]
+    #[ruma_enum(rename = "avatar_url")]
     AvatarUrl,
+
+    #[doc(hidden)]
+    _Custom(String),
 }

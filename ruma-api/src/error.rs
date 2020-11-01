@@ -201,10 +201,6 @@ pub enum DeserializationError {
     #[error("{0}")]
     Ident(#[from] ruma_identifiers::Error),
 
-    /// Path segment deserialization failed.
-    #[error("{0}")]
-    Strum(#[from] strum::ParseError),
-
     /// Header value deserialization failed.
     #[error("{0}")]
     Header(#[from] http::header::ToStrError),

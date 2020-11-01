@@ -1,8 +1,8 @@
 //! Types for the *m.room.join_rules* event.
 
+use ruma_common::StringEnum;
 use ruma_events_macros::StateEventContent;
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
 
 use crate::StateEvent;
 
@@ -27,10 +27,8 @@ impl JoinRulesEventContent {
 }
 
 /// The rule used for users wishing to join this room.
-#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "lowercase")]
-#[strum(serialize_all = "lowercase")]
+#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[ruma_enum(rename_all = "lowercase")]
 pub enum JoinRule {
     /// A user who wishes to join the room must first receive an invite to the room from someone
     /// already inside of the room.
@@ -44,4 +42,7 @@ pub enum JoinRule {
 
     /// Anyone can join the room without any prior action.
     Public,
+
+    #[doc(hidden)]
+    _Custom(String),
 }

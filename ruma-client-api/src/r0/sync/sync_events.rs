@@ -29,7 +29,7 @@ ruma_api! {
         /// A filter represented either as its full JSON definition or the ID of a saved filter.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[ruma_api(query)]
-        pub filter: Option<Filter<'a>>,
+        pub filter: Option<&'a Filter<'a>>,
 
         /// A point in time to continue a sync from.
         ///
@@ -45,9 +45,11 @@ ruma_api! {
         pub full_state: bool,
 
         /// Controls whether the client is automatically marked as online by polling this API.
+        ///
+        /// Defaults to `PresenceState::Online`.
         #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
         #[ruma_api(query)]
-        pub set_presence: PresenceState,
+        pub set_presence: &'a PresenceState,
 
         /// The maximum time to poll in milliseconds before returning this request.
         #[serde(
@@ -117,7 +119,7 @@ impl Response {
 }
 
 /// A filter represented either as its full JSON definition or the ID of a saved filter.
-#[derive(Clone, Copy, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Outgoing, Serialize)]
 #[allow(clippy::large_enum_variant)]
 #[serde(untagged)]
 pub enum Filter<'a> {
@@ -539,10 +541,10 @@ mod tests {
     #[test]
     fn serialize_all_params() {
         let req: http::Request<Vec<u8>> = Request {
-            filter: Some(Filter::FilterId("66696p746572")),
+            filter: Some(&Filter::FilterId("66696p746572")),
             since: Some("s72594_4483_1934"),
             full_state: true,
-            set_presence: PresenceState::Offline,
+            set_presence: &PresenceState::Offline,
             timeout: Some(Duration::from_millis(30000)),
         }
         .try_into_http_request("https://homeserver.tld", Some("auth_tok"))

@@ -2,7 +2,7 @@
 
 use assign::assign;
 use ruma_api::ruma_api;
-use ruma_common::Raw;
+use ruma_common::{Raw, StringEnum};
 use ruma_events::{
     room::{
         create::{CreateEventContent, PreviousRoom},
@@ -160,9 +160,8 @@ impl Default for CreationContent {
 }
 
 /// A convenience parameter for setting a few default state events.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Debug, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum RoomPreset {
     /// `join_rules` is set to `invite` and `history_visibility` is set to `shared`.
     PrivateChat,
@@ -172,4 +171,7 @@ pub enum RoomPreset {
 
     /// Same as `PrivateChat`, but all initial invitees get the same power level as the creator.
     TrustedPrivateChat,
+
+    #[doc(hidden)]
+    _Custom(String),
 }

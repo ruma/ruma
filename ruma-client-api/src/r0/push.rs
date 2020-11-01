@@ -1,10 +1,7 @@
 //! Endpoints for push notifications.
 
-use std::convert::TryFrom;
-
-use ruma_common::push::PusherData;
+use ruma_common::{push::PusherData, StringEnum};
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
 
 pub mod delete_pushrule;
 pub mod get_notifications;
@@ -20,12 +17,8 @@ pub mod set_pushrule_actions;
 pub mod set_pushrule_enabled;
 
 /// The kinds of push rules that are available
-#[derive(
-    Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Display, EnumString,
-)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum RuleKind {
     /// User-configured rules that override all other kinds
     Override,
@@ -41,14 +34,9 @@ pub enum RuleKind {
 
     /// Content-specific rules
     Content,
-}
 
-impl TryFrom<&'_ str> for RuleKind {
-    type Error = strum::ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        s.parse()
-    }
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 /// Defines a pusher
@@ -82,12 +70,15 @@ pub struct Pusher {
 }
 
 /// Which kind a pusher is
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Debug, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum PusherKind {
     /// A pusher that sends HTTP pokes.
     Http,
 
     /// A pusher that emails the user with unread notifications.
     Email,
+
+    #[doc(hidden)]
+    _Custom(String),
 }

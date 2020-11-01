@@ -1,9 +1,9 @@
 //! Types for the *m.room.message.feedback* event.
 
+use ruma_common::StringEnum;
 use ruma_events_macros::MessageEventContent;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
 
 use crate::MessageEvent;
 
@@ -34,14 +34,15 @@ impl FeedbackEventContent {
 }
 
 /// A type of feedback.
-#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
+#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum FeedbackType {
     /// Sent when a message is received.
     Delivered,
 
     /// Sent when a message has been observed by the end user.
     Read,
+
+    #[doc(hidden)]
+    _Custom(String),
 }

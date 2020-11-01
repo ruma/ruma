@@ -1,9 +1,9 @@
 //! Types for the *m.room_key_request* event.
 
+use ruma_common::StringEnum;
 use ruma_events_macros::BasicEventContent;
 use ruma_identifiers::{DeviceIdBox, EventEncryptionAlgorithm, RoomId};
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
 
 use crate::BasicEvent;
 
@@ -35,18 +35,18 @@ pub struct RoomKeyRequestEventContent {
 }
 
 /// A new key request or a cancellation of a previous request.
-#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
+#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum Action {
     /// Request a key.
     Request,
 
     /// Cancel a request for a key.
-    #[serde(rename = "request_cancellation")]
-    #[strum(serialize = "request_cancellation")]
+    #[ruma_enum(rename = "request_cancellation")]
     CancelRequest,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 /// Information about a requested key.

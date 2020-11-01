@@ -1,9 +1,9 @@
 //! Types for the *m.call.hangup* event.
 
 use js_int::UInt;
+use ruma_common::StringEnum;
 use ruma_events_macros::MessageEventContent;
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
 
 use crate::MessageEvent;
 
@@ -31,14 +31,15 @@ pub struct HangupEventContent {
 /// This should not be provided when the user naturally ends or rejects the call. When there was an
 /// error in the call negotiation, this should be `ice_failed` for when ICE negotiation fails or
 /// `invite_timeout` for when the other party did not answer in time.
-#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
+#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum Reason {
     /// ICE negotiation failure.
     IceFailed,
 
     /// Party did not answer in time.
     InviteTimeout,
+
+    #[doc(hidden)]
+    _Custom(String),
 }

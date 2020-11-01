@@ -10,20 +10,22 @@ pub use lazy_load::LazyLoadOptions;
 pub use url::UrlFilter;
 
 use js_int::UInt;
-use ruma_common::Outgoing;
+use ruma_common::{Outgoing, StringEnum};
 use ruma_identifiers::{RoomId, UserId};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 /// Format to use for returned events.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum EventFormat {
     /// Client format, as described in the Client API.
     Client,
 
     /// Raw events from federation.
     Federation,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 impl Default for EventFormat {
@@ -292,7 +294,7 @@ impl IncomingFilter {
 }
 
 /// A filter definition
-#[derive(Clone, Copy, Debug, Default, Outgoing, Serialize)]
+#[derive(Clone, Debug, Default, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[incoming_derive(Clone, Default, Serialize)]
 pub struct FilterDefinition<'a> {

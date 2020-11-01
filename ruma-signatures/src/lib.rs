@@ -49,6 +49,8 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
+use ruma_common::{AsRefStr, DisplayAsRefStr};
+
 pub use functions::{
     canonical_json, content_hash, hash_and_sign_event, redact, reference_hash, sign_json,
     verify_event, verify_json,
@@ -114,20 +116,11 @@ impl From<ruma_serde::CanonicalJsonError> for Error {
 }
 
 /// The algorithm used for signing data.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, AsRefStr, DisplayAsRefStr)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum Algorithm {
     /// The Ed25519 digital signature algorithm.
     Ed25519,
-}
-
-impl Display for Algorithm {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let name = match *self {
-            Self::Ed25519 => "ed25519",
-        };
-
-        write!(f, "{}", name)
-    }
 }
 
 /// An error when trying to extract the algorithm and version from a key identifier.

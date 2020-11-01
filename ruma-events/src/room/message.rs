@@ -287,24 +287,28 @@ pub struct ServerNoticeMessageEventContent {
 }
 
 /// Types of server notices.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, StringEnum)]
 pub enum ServerNoticeType {
     /// The server has exceeded some limit which requires the server administrator to intervene.
-    #[serde(rename = "m.server_notice.usage_limit_reached")]
+    #[ruma_enum(rename = "m.server_notice.usage_limit_reached")]
     UsageLimitReached,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 /// Types of usage limits.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Debug, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum LimitType {
     /// The server's number of active users in the last 30 days has exceeded the maximum.
     ///
     /// New connections are being refused by the server. What defines "active" is left as an
     /// implementation detail, however servers are encouraged to treat syncing users as "active".
     MonthlyActiveUser,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 /// The format for the formatted representation of a message body.
@@ -313,7 +317,6 @@ pub enum LimitType {
 /// available as a documented variant here, use its string representation,
 /// obtained through `.as_str()`.
 #[derive(Clone, Debug, StringEnum)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum MessageFormat {
     /// HTML.
     #[ruma_enum(rename = "org.matrix.custom.html")]

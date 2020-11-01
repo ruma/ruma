@@ -2,6 +2,7 @@
 //!
 //! [push]: https://matrix.org/docs/spec/client_server/r0.6.1#id89
 
+use ruma_common::StringEnum;
 use serde::{Deserialize, Serialize};
 
 mod action;
@@ -237,10 +238,12 @@ impl PusherData {
 /// Currently, only "event_id_only" is supported as of [Push Gateway API r0.1.1][spec].
 ///
 /// [spec]: https://matrix.org/docs/spec/push_gateway/r0.1.1#homeserver-behaviour
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Debug, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum PushFormat {
     /// Require the homeserver to only send a reduced set of fields in the push.
     EventIdOnly,
+
+    #[doc(hidden)]
+    _Custom(String),
 }

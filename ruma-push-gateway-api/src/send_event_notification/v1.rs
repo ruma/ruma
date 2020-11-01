@@ -4,14 +4,13 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_common::{
     push::{PusherData, Tweak},
-    Outgoing,
+    Outgoing, StringEnum,
 };
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 use std::time::SystemTime;
-use strum::{Display, EnumString};
 
 ruma_api! {
     metadata: {
@@ -137,16 +136,17 @@ impl<'a> Notification<'a> {
 ///
 /// This may be used by push gateways to deliver less time-sensitive
 /// notifications in a way that will preserve battery power on mobile devices.
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, Display, EnumString, PartialEq)]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum NotificationPriority {
     /// A high priority notification
     High,
 
     /// A low priority notification
     Low,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 impl Default for NotificationPriority {

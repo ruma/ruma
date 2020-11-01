@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use js_int::{uint, UInt};
 use ruma_api::ruma_api;
-use ruma_common::{Outgoing, Raw};
+use ruma_common::{Outgoing, Raw, StringEnum};
 use ruma_events::{AnyRoomEvent, AnyStateEvent};
 use ruma_identifiers::{EventId, RoomId, UserId};
 use serde::{Deserialize, Serialize};
@@ -71,7 +71,7 @@ impl Categories<'_> {
 }
 
 /// Criteria for searching a category of events.
-#[derive(Clone, Copy, Debug, Outgoing, Serialize)]
+#[derive(Clone, Debug, Outgoing, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Criteria<'a> {
     /// The string to search events for.
@@ -216,7 +216,7 @@ impl EventContextResult {
 }
 
 /// A grouping for partioning the result set.
-#[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
+#[derive(Clone, Default, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Grouping {
     /// The key within events to use for this grouping.
@@ -236,15 +236,17 @@ impl Grouping {
 }
 
 /// The key within events to use for this grouping.
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum GroupingKey {
     /// `room_id`
     RoomId,
 
     /// `sender`
     Sender,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 /// Requests that the server partitions the result set based on the provided list of keys.
@@ -270,26 +272,28 @@ impl Groupings<'_> {
 }
 
 /// The keys to search for.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, StringEnum)]
 pub enum SearchKeys {
     /// content.body
-    #[serde(rename = "content.body")]
+    #[ruma_enum(rename = "content.body")]
     ContentBody,
 
     /// content.name
-    #[serde(rename = "content.name")]
+    #[ruma_enum(rename = "content.name")]
     ContentName,
 
     /// content.topic
-    #[serde(rename = "content.topic")]
+    #[ruma_enum(rename = "content.topic")]
     ContentTopic,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 /// The order in which to search for results.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum OrderBy {
     /// Prioritize recent events.
     Recent,
@@ -297,6 +301,9 @@ pub enum OrderBy {
     /// Prioritize events by a numerical ranking of how closely they matched the search
     /// criteria.
     Rank,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 /// Categories of events that can be searched for.

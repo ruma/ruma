@@ -7,7 +7,6 @@ use ruma_common::StringEnum;
 // FIXME: Add `m.foo.bar` or `m.foo_bar` as a naming scheme in StringEnum and remove most rename
 //        attributes.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, StringEnum)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum EventType {
     /// m.call.answer
     #[ruma_enum(rename = "m.call.answer")]

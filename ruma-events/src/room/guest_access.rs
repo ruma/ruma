@@ -1,8 +1,8 @@
 //! Types for the *m.room.guest_access* event.
 
+use ruma_common::StringEnum;
 use ruma_events_macros::StateEventContent;
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
 
 use crate::StateEvent;
 
@@ -29,14 +29,15 @@ impl GuestAccessEventContent {
 }
 
 /// A policy for guest user access to a room.
-#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
+#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum GuestAccess {
     /// Guests are allowed to join the room.
     CanJoin,
 
     /// Guests are not allowed to join the room.
     Forbidden,
+
+    #[doc(hidden)]
+    _Custom(String),
 }

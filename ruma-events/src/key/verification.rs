@@ -2,8 +2,7 @@
 //!
 //! This module also contains types shared by events in its child namespaces.
 
-use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
+use ruma_common::StringEnum;
 
 pub mod accept;
 pub mod cancel;
@@ -13,62 +12,67 @@ pub mod request;
 pub mod start;
 
 /// A hash algorithm.
-#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
+#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum HashAlgorithm {
     /// The SHA256 hash algorithm.
     Sha256,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 /// A key agreement protocol.
-#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "kebab-case")]
-#[strum(serialize_all = "kebab-case")]
+#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[ruma_enum(rename_all = "kebab-case")]
 pub enum KeyAgreementProtocol {
     /// The [Curve25519](https://cr.yp.to/ecdh.html) key agreement protocol.
     Curve25519,
 
     /// The Curve25519 key agreement protocol with check for public keys.
     Curve25519HkdfSha256,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 /// A message authentication code algorithm.
-#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "kebab-case")]
-#[strum(serialize_all = "kebab-case")]
+#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[ruma_enum(rename_all = "kebab-case")]
 pub enum MessageAuthenticationCode {
     /// The HKDF-HMAC-SHA256 MAC.
     HkdfHmacSha256,
 
     /// The HMAC-SHA256 MAC.
     HmacSha256,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 /// A Short Authentication String method.
-#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
+#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum ShortAuthenticationString {
     /// The decimal method.
     Decimal,
 
     /// The emoji method.
     Emoji,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 /// A Short Authentication String (SAS) verification method.
-#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, PartialEq, StringEnum)]
 pub enum VerificationMethod {
     /// The *m.sas.v1* verification method.
-    #[serde(rename = "m.sas.v1")]
-    #[strum(serialize = "m.sas.v1")]
+    #[ruma_enum(rename = "m.sas.v1")]
     MSasV1,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 #[cfg(test)]

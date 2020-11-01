@@ -2,10 +2,10 @@
 
 use std::collections::BTreeMap;
 
+use ruma_common::StringEnum;
 use ruma_events_macros::StateEventContent;
 use ruma_identifiers::{ServerKeyId, ServerNameBox, UserId};
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
 
 use crate::{StateEvent, StrippedStateEvent, SyncStateEvent};
 
@@ -64,10 +64,8 @@ pub struct MemberEventContent {
 }
 
 /// The membership state of a user.
-#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "lowercase")]
-#[strum(serialize_all = "lowercase")]
+#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[ruma_enum(rename_all = "lowercase")]
 pub enum MembershipState {
     /// The user is banned.
     Ban,
@@ -83,6 +81,9 @@ pub enum MembershipState {
 
     /// The user has left.
     Leave,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 /// Information about a third party invitation.
@@ -187,7 +188,7 @@ fn membership_change(
         }
     };
 
-    match (prev_content.membership, &content.membership) {
+    match (&prev_content.membership, &content.membership) {
         (St::Invite, St::Invite) | (St::Leave, St::Leave) | (St::Ban, St::Ban) => Ch::None,
         (St::Invite, St::Join) | (St::Leave, St::Join) => Ch::Joined,
         (St::Invite, St::Leave) => {
@@ -213,7 +214,7 @@ fn membership_change(
         (St::Join, St::Ban) => Ch::KickedAndBanned,
         (St::Leave, St::Invite) => Ch::Invited,
         (St::Ban, St::Leave) => Ch::Unbanned,
-        (St::Knock, _) | (_, St::Knock) => Ch::NotImplemented,
+        _ => Ch::NotImplemented,
     }
 }
 

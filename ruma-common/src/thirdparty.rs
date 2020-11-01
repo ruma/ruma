@@ -4,6 +4,7 @@
 
 use std::collections::BTreeMap;
 
+use ruma_common::StringEnum;
 use ruma_identifiers::{RoomAliasId, UserId};
 
 use serde::{Deserialize, Serialize};
@@ -190,13 +191,15 @@ impl User {
 }
 
 /// The medium of a third party identifier.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "lowercase")]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[ruma_enum(rename_all = "lowercase")]
 pub enum Medium {
     /// Email address identifier
     Email,
 
     /// Phone number identifier
     MSISDN,
+
+    #[doc(hidden)]
+    _Custom(String),
 }

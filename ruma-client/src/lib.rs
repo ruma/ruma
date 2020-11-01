@@ -54,7 +54,7 @@
 //! let mut sync_stream = Box::pin(client.sync(
 //!     None,
 //!     next_batch_token,
-//!     PresenceState::Online,
+//!     &PresenceState::Online,
 //!     Some(Duration::from_secs(30)),
 //! ));
 //! while let Some(response) = sync_stream.try_next().await? {
@@ -281,9 +281,9 @@ impl Client {
     /// Convenience method that represents repeated calls to the sync_events endpoint as a stream.
     pub fn sync<'a>(
         &self,
-        filter: Option<SyncFilter<'a>>,
+        filter: Option<&'a SyncFilter<'a>>,
         since: String,
-        set_presence: ruma_common::presence::PresenceState,
+        set_presence: &'a ruma_common::presence::PresenceState,
         timeout: Option<Duration>,
     ) -> impl Stream<Item = Result<SyncResponse, Error<ruma_client_api::Error>>>
            + TryStream<Ok = SyncResponse, Error = Error<ruma_client_api::Error>>

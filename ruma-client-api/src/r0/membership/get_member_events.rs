@@ -1,10 +1,9 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/members](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-rooms-roomid-members)
 
 use ruma_api::ruma_api;
-use ruma_common::Raw;
+use ruma_common::{Raw, StringEnum};
 use ruma_events::room::member::MemberEvent;
 use ruma_identifiers::RoomId;
-use serde::{Deserialize, Serialize};
 
 ruma_api! {
     metadata: {
@@ -64,9 +63,8 @@ impl Response {
 }
 
 /// The kind of membership events to filter for.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "lowercase")]
+#[derive(Clone, Debug, StringEnum)]
+#[ruma_enum(rename_all = "lowercase")]
 pub enum MembershipEventFilter {
     /// The user has joined.
     Join,
@@ -79,6 +77,9 @@ pub enum MembershipEventFilter {
 
     /// The user has been banned.
     Ban,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 #[cfg(test)]

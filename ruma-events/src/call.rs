@@ -2,8 +2,8 @@
 //!
 //! This module also contains types shared by events in its child namespaces.
 
+use ruma_common::StringEnum;
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
 
 pub mod answer;
 pub mod candidates;
@@ -30,14 +30,15 @@ impl SessionDescription {
 }
 
 /// The type of VoIP session description.
-#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
+#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum SessionDescriptionType {
     /// An answer.
     Answer,
 
     /// An offer.
     Offer,
+
+    #[doc(hidden)]
+    _Custom(String),
 }

@@ -1,10 +1,8 @@
 //! [POST /_matrix/client/r0/rooms/{roomId}/receipt/{receiptType}/{eventId}](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-rooms-roomid-receipt-receipttype-eventid)
 
-use std::convert::TryFrom;
-
 use ruma_api::ruma_api;
+use ruma_common::{AsRefStr, DisplayAsRefStr, FromString};
 use ruma_identifiers::{EventId, RoomId};
-use strum::{Display, EnumString};
 
 ruma_api! {
     metadata: {
@@ -51,18 +49,12 @@ impl Response {
 }
 
 /// The type of receipt.
-#[derive(Clone, Copy, Debug, Display, EnumString)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, AsRefStr, DisplayAsRefStr, FromString)]
 pub enum ReceiptType {
     /// m.read
-    #[strum(serialize = "m.read")]
+    #[ruma_enum(rename = "m.read")]
     Read,
-}
 
-impl TryFrom<&'_ str> for ReceiptType {
-    type Error = strum::ParseError;
-
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        s.parse()
-    }
+    #[doc(hidden)]
+    _Custom(String),
 }

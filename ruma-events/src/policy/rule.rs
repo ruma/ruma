@@ -1,7 +1,6 @@
 //! Modules and types for events in the *m.policy.rule* namespace.
 
-use std::fmt::{Display, Formatter, Result as FmtResult};
-
+use ruma_common::StringEnum;
 use serde::{Deserialize, Serialize};
 
 pub mod room;
@@ -30,31 +29,19 @@ impl PolicyRuleEventContent {
 }
 
 /// Rules recommendations
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, StringEnum)]
 pub enum Recommendation {
     /// Entities affected by the rule should be banned from participation where possible.
-    #[serde(rename = "m.ban")]
+    #[ruma_enum(rename = "m.ban")]
     Ban,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 impl Recommendation {
     /// Creates a string slice from this `Recommendation`.
     pub fn as_str(&self) -> &str {
-        match *self {
-            Recommendation::Ban => "m.ban",
-        }
-    }
-}
-
-impl Display for Recommendation {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.as_str())
-    }
-}
-
-impl From<Recommendation> for String {
-    fn from(recommendation: Recommendation) -> String {
-        recommendation.to_string()
+        self.as_ref()
     }
 }

@@ -1,8 +1,8 @@
 //! Types for the *m.room.history_visibility* event.
 
+use ruma_common::StringEnum;
 use ruma_events_macros::StateEventContent;
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
 
 use crate::StateEvent;
 
@@ -28,10 +28,8 @@ impl HistoryVisibilityEventContent {
 }
 
 /// Who can see a room's history.
-#[derive(Clone, Copy, Debug, PartialEq, Display, EnumString, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(rename_all = "snake_case")]
-#[strum(serialize_all = "snake_case")]
+#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum HistoryVisibility {
     /// Previous events are accessible to newly joined members from the point they were invited
     /// onwards. Events stop being accessible when the member's state changes to something other
@@ -50,4 +48,7 @@ pub enum HistoryVisibility {
     /// All events while this is the `HistoryVisibility` value may be shared by any
     /// participating homeserver with anyone, regardless of whether they have ever joined the room.
     WorldReadable,
+
+    #[doc(hidden)]
+    _Custom(String),
 }

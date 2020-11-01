@@ -2,6 +2,7 @@
 
 use maplit::btreemap;
 use ruma_api::ruma_api;
+use ruma_common::StringEnum;
 use ruma_identifiers::RoomVersionId;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
@@ -150,14 +151,15 @@ impl Default for RoomVersionsCapability {
 }
 
 /// The stability of a room version
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[ruma_enum(rename_all = "lowercase")]
 pub enum RoomVersionStability {
     /// Support for the given version is stable.
-    #[serde(rename = "stable")]
     Stable,
 
     /// Support for the given version is unstable.
-    #[serde(rename = "unstable")]
     Unstable,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
