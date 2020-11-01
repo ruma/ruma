@@ -2,7 +2,6 @@ use std::{collections::BTreeMap, convert::TryFrom, sync::Arc};
 
 use ruma::{
     events::{
-        pdu::EventHash,
         room::{
             join_rules::JoinRule,
             member::{MemberEventContent, MembershipState},
@@ -110,27 +109,27 @@ where
         .iter()
         .map(AsRef::as_ref)
         .map(event_id)
-        .map(|id| {
-            (
-                id,
-                EventHash {
-                    sha256: "hello".into(),
-                },
-            )
-        })
+        // .map(|id| {
+        //     (
+        //         id,
+        //         EventHash {
+        //             sha256: "hello".into(),
+        //         },
+        //     )
+        // })
         .collect::<Vec<_>>();
     let prev_events = prev_events
         .iter()
         .map(AsRef::as_ref)
         .map(event_id)
-        .map(|id| {
-            (
-                id,
-                EventHash {
-                    sha256: "hello".into(),
-                },
-            )
-        })
+        // .map(|id| {
+        //     (
+        //         id,
+        //         EventHash {
+        //             sha256: "hello".into(),
+        //         },
+        //     )
+        // })
         .collect::<Vec<_>>();
 
     let json = if let Some(state_key) = state_key {

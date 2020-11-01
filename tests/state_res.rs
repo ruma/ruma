@@ -3,7 +3,6 @@ use std::{collections::BTreeMap, convert::TryFrom, sync::Arc, time::UNIX_EPOCH};
 use maplit::btreemap;
 use ruma::{
     events::{
-        pdu::EventHash,
         room::{
             join_rules::JoinRule,
             member::{MemberEventContent, MembershipState},
@@ -97,27 +96,11 @@ where
         .iter()
         .map(AsRef::as_ref)
         .map(event_id)
-        .map(|id| {
-            (
-                id,
-                EventHash {
-                    sha256: "hello".into(),
-                },
-            )
-        })
         .collect::<Vec<_>>();
     let prev_events = prev_events
         .iter()
         .map(AsRef::as_ref)
         .map(event_id)
-        .map(|id| {
-            (
-                id,
-                EventHash {
-                    sha256: "hello".into(),
-                },
-            )
-        })
         .collect::<Vec<_>>();
 
     let json = if let Some(state_key) = state_key {
@@ -496,7 +479,7 @@ fn ban_vs_power_level() {
 
     let edges = vec![
         vec!["END", "MB", "MA", "PA", "START"],
-        vec!["END", "PB", "PA"],
+        vec!["END", "PA", "PB"],
     ]
     .into_iter()
     .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
