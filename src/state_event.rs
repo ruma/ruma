@@ -92,18 +92,18 @@ impl<'de> de::Deserialize<'de> for StateEvent {
     }
 }
 
-// #[cfg(not(test))]
-// fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
-//     use std::convert::TryFrom;
-//     EventId::try_from(format!(
-//         "${}",
-//         reference_hash(&from_raw_json_value(&json)?, &RoomVersionId::Version6)
-//             .map_err(de::Error::custom)?,
-//     ))
-//     .map_err(de::Error::custom)
-// }
+#[cfg(feature = "gen-eventid")]
+fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
+    use std::convert::TryFrom;
+    EventId::try_from(format!(
+        "${}",
+        reference_hash(&from_raw_json_value(&json)?, &RoomVersionId::Version6)
+            .map_err(de::Error::custom)?,
+    ))
+    .map_err(de::Error::custom)
+}
 
-// #[cfg(test)]
+#[cfg(not(feature = "gen-eventid"))]
 fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
     use std::convert::TryFrom;
     Ok(match from_raw_json_value::<EventIdHelper, E>(&json) {

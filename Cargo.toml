@@ -41,6 +41,7 @@ features = ["client-api", "federation-api", "appservice-api", "unstable-pre-spec
 
 [features]
 default = ["unstable-pre-spec"]
+gen-eventid = []
 unstable-pre-spec = ["ruma/unstable-pre-spec"]
 
 [dev-dependencies]
