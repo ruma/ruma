@@ -804,7 +804,7 @@ pub fn verify_third_party_invite(
     // If there is no m.room.third_party_invite event in the current room state
     // with state_key matching token, reject
     if let Some(current_tpid) = current_third_party_invite {
-        if current_tpid.state_key() != tp_id.signed.token.to_string() {
+        if current_tpid.state_key() != tp_id.signed.token {
             return false;
         }
 
