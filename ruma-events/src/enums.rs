@@ -89,6 +89,7 @@ event_enum! {
 }
 
 /// Any event.
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
 pub enum AnyEvent {
@@ -112,6 +113,7 @@ pub enum AnyEvent {
 }
 
 /// Any room event.
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
 pub enum AnyRoomEvent {
@@ -129,6 +131,7 @@ pub enum AnyRoomEvent {
 }
 
 /// Any sync room event (room event without a `room_id`, as returned in `/sync` responses)
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, Serialize)]
 #[serde(untagged)]
 pub enum AnySyncRoomEvent {
