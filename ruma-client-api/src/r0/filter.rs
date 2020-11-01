@@ -28,9 +28,11 @@ pub enum EventFormat {
     _Custom(String),
 }
 
+const DEFAULT_EVENT_FORMAT: EventFormat = EventFormat::Client;
+
 impl Default for EventFormat {
     fn default() -> Self {
-        Self::Client
+        DEFAULT_EVENT_FORMAT
     }
 }
 
@@ -93,6 +95,8 @@ pub struct RoomEventFilter<'a> {
     pub url_filter: Option<UrlFilter>,
 
     /// Options to control lazy-loading of membership events.
+    ///
+    /// Defaults to `LazyLoadOptions::Disabled`.
     #[serde(flatten)]
     pub lazy_load_options: LazyLoadOptions,
 }
@@ -101,25 +105,35 @@ impl<'a> RoomEventFilter<'a> {
     /// Creates an empty `RoomEventFilter`.
     ///
     /// You can also use the [`Default`] implementation.
-    pub fn empty() -> Self {
-        Self::default()
+    pub const fn empty() -> Self {
+        Self {
+            types: None,
+            not_types: &[],
+            rooms: None,
+            not_rooms: &[],
+            senders: None,
+            not_senders: &[],
+            limit: None,
+            url_filter: None,
+            lazy_load_options: LazyLoadOptions::Disabled,
+        }
     }
 
     /// Creates a `RoomEventFilter` that can be used to ignore all room events.
-    pub fn ignore_all() -> Self {
-        Self { types: Some(&[]), ..Default::default() }
+    pub const fn ignore_all() -> Self {
+        Self { types: Some(&[]), ..Self::empty() }
     }
 
     /// Returns `true` if all fields are empty.
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         self.not_types.is_empty()
             && self.not_rooms.is_empty()
-            && self.limit.is_none()
-            && self.rooms.is_none()
+            && matches!(self.limit, None)
+            && matches!(self.rooms, None)
             && self.not_senders.is_empty()
-            && self.senders.is_none()
-            && self.types.is_none()
-            && self.url_filter.is_none()
+            && matches!(self.senders, None)
+            && matches!(self.types, None)
+            && matches!(self.url_filter, None)
             && self.lazy_load_options.is_disabled()
     }
 }
@@ -129,12 +143,12 @@ impl IncomingRoomEventFilter {
     pub fn is_empty(&self) -> bool {
         self.not_types.is_empty()
             && self.not_rooms.is_empty()
-            && self.limit.is_none()
-            && self.rooms.is_none()
+            && matches!(self.limit, None)
+            && matches!(self.rooms, None)
             && self.not_senders.is_empty()
-            && self.senders.is_none()
-            && self.types.is_none()
-            && self.url_filter.is_none()
+            && matches!(self.senders, None)
+            && matches!(self.types, None)
+            && matches!(self.url_filter, None)
             && self.lazy_load_options.is_disabled()
     }
 }
@@ -187,24 +201,32 @@ impl<'a> RoomFilter<'a> {
     /// Creates an empty `RoomFilter`.
     ///
     /// You can also use the [`Default`] implementation.
-    pub fn empty() -> Self {
-        Self::default()
+    pub const fn empty() -> Self {
+        Self {
+            include_leave: false,
+            account_data: RoomEventFilter::empty(),
+            timeline: RoomEventFilter::empty(),
+            ephemeral: RoomEventFilter::empty(),
+            state: RoomEventFilter::empty(),
+            not_rooms: &[],
+            rooms: None,
+        }
     }
 
     /// Creates a `RoomFilter` that can be used to ignore all room events (of any type).
-    pub fn ignore_all() -> Self {
-        Self { rooms: Some(&[]), ..Default::default() }
+    pub const fn ignore_all() -> Self {
+        Self { rooms: Some(&[]), ..Self::empty() }
     }
 
     /// Returns `true` if all fields are empty.
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         !self.include_leave
             && self.account_data.is_empty()
             && self.timeline.is_empty()
             && self.ephemeral.is_empty()
             && self.state.is_empty()
             && self.not_rooms.is_empty()
-            && self.rooms.is_none()
+            && matches!(self.rooms, None)
     }
 }
 
@@ -217,7 +239,7 @@ impl IncomingRoomFilter {
             && self.ephemeral.is_empty()
             && self.state.is_empty()
             && self.not_rooms.is_empty()
-            && self.rooms.is_none()
+            && matches!(self.rooms, None)
     }
 }
 
@@ -263,21 +285,21 @@ impl<'a> Filter<'a> {
     /// Creates an empty `Filter`.
     ///
     /// You can also use the [`Default`] implementation.
-    pub fn empty() -> Self {
-        Self::default()
+    pub const fn empty() -> Self {
+        Self { not_types: &[], limit: None, senders: None, types: None, not_senders: &[] }
     }
 
     /// Creates a `Filter` that can be used to ignore all events.
-    pub fn ignore_all() -> Self {
-        Self { types: Some(&[]), ..Default::default() }
+    pub const fn ignore_all() -> Self {
+        Self { types: Some(&[]), ..Self::empty() }
     }
 
     /// Returns `true` if all fields are empty.
-    pub fn is_empty(&self) -> bool {
+    pub const fn is_empty(&self) -> bool {
         self.not_types.is_empty()
-            && self.limit.is_none()
-            && self.senders.is_none()
-            && self.types.is_none()
+            && matches!(self.limit, None)
+            && matches!(self.senders, None)
+            && matches!(self.types, None)
             && self.not_senders.is_empty()
     }
 }
@@ -286,9 +308,9 @@ impl IncomingFilter {
     /// Returns `true` if all fields are empty.
     pub fn is_empty(&self) -> bool {
         self.not_types.is_empty()
-            && self.limit.is_none()
-            && self.senders.is_none()
-            && self.types.is_none()
+            && matches!(self.limit, None)
+            && matches!(self.senders, None)
+            && matches!(self.types, None)
             && self.not_senders.is_empty()
     }
 }
@@ -331,24 +353,31 @@ impl<'a> FilterDefinition<'a> {
     /// Creates an empty `FilterDefinition`.
     ///
     /// You can also use the [`Default`] implementation.
-    pub fn empty() -> Self {
-        Self::default()
+    pub const fn empty() -> Self {
+        Self {
+            event_fields: None,
+            event_format: DEFAULT_EVENT_FORMAT,
+            presence: Filter::empty(),
+            account_data: Filter::empty(),
+            room: RoomFilter::empty(),
+        }
     }
 
     /// Creates a `FilterDefinition` that can be used to ignore all events.
-    pub fn ignore_all() -> Self {
+    pub const fn ignore_all() -> Self {
         Self {
             account_data: Filter::ignore_all(),
+            event_fields: None,
+            event_format: DEFAULT_EVENT_FORMAT,
             room: RoomFilter::ignore_all(),
             presence: Filter::ignore_all(),
-            ..Default::default()
         }
     }
 
     /// Returns `true` if all fields are empty.
-    pub fn is_empty(&self) -> bool {
-        self.event_fields.is_none()
-            && self.event_format == EventFormat::Client
+    pub const fn is_empty(&self) -> bool {
+        matches!(self.event_fields, None)
+            && matches!(self.event_format, EventFormat::Client)
             && self.presence.is_empty()
             && self.account_data.is_empty()
             && self.room.is_empty()
@@ -358,8 +387,8 @@ impl<'a> FilterDefinition<'a> {
 impl IncomingFilterDefinition {
     /// Returns `true` if all fields are empty.
     pub fn is_empty(&self) -> bool {
-        self.event_fields.is_none()
-            && self.event_format == EventFormat::Client
+        matches!(self.event_fields, None)
+            && matches!(self.event_format, EventFormat::Client)
             && self.presence.is_empty()
             && self.account_data.is_empty()
             && self.room.is_empty()

@@ -24,7 +24,7 @@ pub enum LazyLoadOptions {
 
 impl LazyLoadOptions {
     /// Returns `true` is `self` is `Disabled`.
-    pub fn is_disabled(&self) -> bool {
+    pub const fn is_disabled(&self) -> bool {
         matches!(self, Self::Disabled)
     }
 }
