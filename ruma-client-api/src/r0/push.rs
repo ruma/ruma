@@ -70,7 +70,7 @@ pub struct Pusher {
 }
 
 /// Which kind a pusher is
-#[derive(Clone, Debug, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum PusherKind {
     /// A pusher that sends HTTP pokes.

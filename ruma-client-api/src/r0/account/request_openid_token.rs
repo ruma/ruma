@@ -61,7 +61,7 @@ impl Response {
 }
 
 /// Access token types.
-#[derive(Clone, Debug, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 pub enum TokenType {
     /// Bearer token type
     Bearer,

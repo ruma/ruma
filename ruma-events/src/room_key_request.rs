@@ -35,7 +35,7 @@ pub struct RoomKeyRequestEventContent {
 }
 
 /// A new key request or a cancellation of a previous request.
-#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum Action {
     /// Request a key.

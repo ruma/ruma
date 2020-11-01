@@ -28,7 +28,7 @@ impl HistoryVisibilityEventContent {
 }
 
 /// Who can see a room's history.
-#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum HistoryVisibility {
     /// Previous events are accessible to newly joined members from the point they were invited

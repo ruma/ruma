@@ -34,7 +34,7 @@ impl FeedbackEventContent {
 }
 
 /// A type of feedback.
-#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum FeedbackType {
     /// Sent when a message is received.

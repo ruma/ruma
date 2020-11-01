@@ -238,7 +238,7 @@ impl PusherData {
 /// Currently, only "event_id_only" is supported as of [Push Gateway API r0.1.1][spec].
 ///
 /// [spec]: https://matrix.org/docs/spec/push_gateway/r0.1.1#homeserver-behaviour
-#[derive(Clone, Debug, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum PushFormat {
     /// Require the homeserver to only send a reduced set of fields in the push.

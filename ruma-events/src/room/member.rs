@@ -64,7 +64,7 @@ pub struct MemberEventContent {
 }
 
 /// The membership state of a user.
-#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "lowercase")]
 pub enum MembershipState {
     /// The user is banned.

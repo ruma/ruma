@@ -5,7 +5,7 @@
 use crate::StringEnum;
 
 /// A description of a user's connectivity and availability for chat.
-#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum PresenceState {
     /// Disconnected from the service.

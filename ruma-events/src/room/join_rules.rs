@@ -27,7 +27,7 @@ impl JoinRulesEventContent {
 }
 
 /// The rule used for users wishing to join this room.
-#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "lowercase")]
 pub enum JoinRule {
     /// A user who wishes to join the room must first receive an invite to the room from someone

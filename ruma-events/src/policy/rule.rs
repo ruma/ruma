@@ -29,7 +29,7 @@ impl PolicyRuleEventContent {
 }
 
 /// Rules recommendations
-#[derive(Clone, Debug, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 pub enum Recommendation {
     /// Entities affected by the rule should be banned from participation where possible.
     #[ruma_enum(rename = "m.ban")]

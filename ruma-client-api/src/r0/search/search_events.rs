@@ -272,7 +272,7 @@ impl Groupings<'_> {
 }
 
 /// The keys to search for.
-#[derive(Clone, Debug, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 pub enum SearchKeys {
     /// content.body
     #[ruma_enum(rename = "content.body")]
@@ -291,7 +291,7 @@ pub enum SearchKeys {
 }
 
 /// The order in which to search for results.
-#[derive(Clone, Debug, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum OrderBy {

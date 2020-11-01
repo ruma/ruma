@@ -35,7 +35,7 @@ pub struct CancelEventContent {
 /// available as a documented variant here, use its string representation,
 /// obtained through `.as_str()`.
 // FIXME: Add `m.foo_bar` as a naming scheme in StringEnum and remove rename attributes.
-#[derive(Clone, Debug, PartialEq, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 pub enum CancelCode {
     /// The user cancelled the verification.
     #[ruma_enum(rename = "m.user")]

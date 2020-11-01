@@ -287,7 +287,7 @@ pub struct ServerNoticeMessageEventContent {
 }
 
 /// Types of server notices.
-#[derive(Clone, Debug, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 pub enum ServerNoticeType {
     /// The server has exceeded some limit which requires the server administrator to intervene.
     #[ruma_enum(rename = "m.server_notice.usage_limit_reached")]
@@ -298,7 +298,7 @@ pub enum ServerNoticeType {
 }
 
 /// Types of usage limits.
-#[derive(Clone, Debug, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 #[ruma_enum(rename_all = "snake_case")]
 pub enum LimitType {
     /// The server's number of active users in the last 30 days has exceeded the maximum.
@@ -316,7 +316,7 @@ pub enum LimitType {
 /// This type can hold an arbitrary string. To check for events that are not
 /// available as a documented variant here, use its string representation,
 /// obtained through `.as_str()`.
-#[derive(Clone, Debug, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 pub enum MessageFormat {
     /// HTML.
     #[ruma_enum(rename = "org.matrix.custom.html")]
