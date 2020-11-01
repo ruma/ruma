@@ -126,7 +126,7 @@ impl Response {
                                 headers
                                     .insert(
                                         #import_path::exports::http::header::#header_name,
-                                        header.parse().unwrap(),
+                                        header.parse()?,
                                     );
                             }
                         }
@@ -135,7 +135,7 @@ impl Response {
                         headers
                             .insert(
                                 #import_path::exports::http::header::#header_name,
-                                response.#field_name.parse().unwrap(),
+                                response.#field_name.parse()?,
                             );
                     },
                 };
