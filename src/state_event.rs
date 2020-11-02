@@ -94,6 +94,8 @@ impl<'de> de::Deserialize<'de> for StateEvent {
     }
 }
 
+/// This feature is turned on in conduit but off when the tests run because
+/// we rely on the EventId to check the state-res.
 #[cfg(feature = "gen-eventid")]
 fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
     use std::convert::TryFrom;
@@ -105,6 +107,7 @@ fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
     .map_err(de::Error::custom)
 }
 
+/// Only turned on for testing where we need to keep the ID.
 #[cfg(not(feature = "gen-eventid"))]
 fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
     use std::convert::TryFrom;
@@ -479,9 +482,11 @@ mod test {
         );
 
         // TODO: the `origin` field is left out, though it seems it should be part of the eventId hashing
+        // For testing we must serialize the PDU with the `event_id` field this is probably not correct for production
+        // although without them we get "Invalid bytes in DB" errors in conduit
         assert_eq!(
             ruma::serde::to_canonical_json_string(&pdu).unwrap(),
-            r#"{"auth_events":["$FEKmyWTamMqoL3zkEC3mVPg3qkcXcUShxxaq5BltsCE","$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc","$3ImCSXY6bbWbZ5S2N6BMplHHlP7RkxWZCM9fMbdM2NY","$8Lfs0rVCE9bHQrUztEF9kbsrT4zASnPEtpImZN4L2n8"],"content":{"membership":"join"},"depth":135,"hashes":{"sha256":"Q7OehFJaB32W3NINZKesQZH7+ba7xZVFuyCtuWQ2emk"},"origin_server_ts":1599901756522,"prev_events":["$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc"],"room_id":"!eGNyCFvnKcpsnIZiEV:koesters.xyz","sender":"@timo:pc.koesters.xyz:59003","signatures":{"koesters.xyz":{"ed25519:a_wwQy":"bb8T5haywaEXKNxUUjeNBfjYi/Qe32R/dGliduIs3Ct913WGzXYLjWh7xHqapie7viHPzkDw/KYJacpAYKvMBA"},"pc.koesters.xyz:59003":{"ed25519:key1":"/B3tpaMZKoLNITrup4fbFhbIMWixxEKM49nS4MiKOFfyJjDGuC5nWsurw0m2eYzrffhkF5qQQ8+RlFvkqwqkBw"}},"state_key":"@timo:pc.koesters.xyz:59003","type":"m.room.member","unsigned":{"age":30,"prev_content":{"membership":"join"},"prev_sender":"@timo:pc.koesters.xyz:59003","replaces_state":"$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc"}}"#,
+            r#"{"auth_events":["$FEKmyWTamMqoL3zkEC3mVPg3qkcXcUShxxaq5BltsCE","$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc","$3ImCSXY6bbWbZ5S2N6BMplHHlP7RkxWZCM9fMbdM2NY","$8Lfs0rVCE9bHQrUztEF9kbsrT4zASnPEtpImZN4L2n8"],"content":{"membership":"join"},"depth":135,"event_id":"$Sfx_o8eLfo4idpTO8_IGrKSPKoRMC1CmQugVw9tu_MU","hashes":{"sha256":"Q7OehFJaB32W3NINZKesQZH7+ba7xZVFuyCtuWQ2emk"},"origin_server_ts":1599901756522,"prev_events":["$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc"],"room_id":"!eGNyCFvnKcpsnIZiEV:koesters.xyz","sender":"@timo:pc.koesters.xyz:59003","signatures":{"koesters.xyz":{"ed25519:a_wwQy":"bb8T5haywaEXKNxUUjeNBfjYi/Qe32R/dGliduIs3Ct913WGzXYLjWh7xHqapie7viHPzkDw/KYJacpAYKvMBA"},"pc.koesters.xyz:59003":{"ed25519:key1":"/B3tpaMZKoLNITrup4fbFhbIMWixxEKM49nS4MiKOFfyJjDGuC5nWsurw0m2eYzrffhkF5qQQ8+RlFvkqwqkBw"}},"state_key":"@timo:pc.koesters.xyz:59003","type":"m.room.member","unsigned":{"age":30,"prev_content":{"membership":"join"},"prev_sender":"@timo:pc.koesters.xyz:59003","replaces_state":"$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc"}}"#,
         )
     }
 }
