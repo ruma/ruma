@@ -35,20 +35,22 @@ impl Serialize for StateEvent {
         use std::convert::TryInto;
 
         match self {
-            Self::Full(_id, ev) => {
+            Self::Full(id, ev) => {
                 // TODO: do we want to add the eventId when we
                 // serialize
                 let val: CanonicalJsonValue = serde_json::to_value(ev)
                     .map_err(S::Error::custom)?
                     .try_into()
                     .map_err(S::Error::custom)?;
-                // let val = val
-                //     .as_object_mut()
-                //     .ok_or_else(|| S::Error::custom("PDU is not an object"))?;
-                // val.insert("event_id".into(), serde_json::json!(_id));
 
                 match val {
-                    CanonicalJsonValue::Object(obj) => obj.serialize(serializer),
+                    CanonicalJsonValue::Object(mut obj) => {
+                        obj.insert(
+                            "event_id".into(),
+                            ruma::serde::to_canonical_value(id).map_err(S::Error::custom)?,
+                        );
+                        obj.serialize(serializer)
+                    }
                     _ => panic!("Pdu not an object"),
                 }
             }
@@ -129,6 +131,13 @@ pub struct Requester<'a> {
 }
 
 impl StateEvent {
+    pub fn from_id_value(id: EventId, json: serde_json::Value) -> Result<Self, serde_json::Error> {
+        Ok(Self::Full(
+            id,
+            Pdu::RoomV3Pdu(serde_json::from_value(json)?),
+        ))
+    }
+
     pub fn to_requester(&self) -> Requester<'_> {
         Requester {
             prev_event_ids: self.prev_event_ids(),
