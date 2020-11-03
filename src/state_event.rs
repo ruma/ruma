@@ -20,6 +20,42 @@ struct EventIdHelper {
     event_id: EventId,
 }
 
+#[cfg(feature = "gen-eventid")]
+fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
+    use std::convert::TryFrom;
+    EventId::try_from(format!(
+        "${}",
+        reference_hash(&from_raw_json_value(&json)?, &RoomVersionId::Version6)
+            .map_err(de::Error::custom)?,
+    ))
+    .map_err(de::Error::custom)
+}
+
+#[cfg(not(feature = "gen-eventid"))]
+fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
+    use std::convert::TryFrom;
+    Ok(match from_raw_json_value::<EventIdHelper, E>(&json) {
+        Ok(id) => id.event_id,
+        Err(_) => {
+            // panic!("NOT DURING TESTS");
+            EventId::try_from(format!(
+                "${}",
+                reference_hash(&from_raw_json_value(&json)?, &RoomVersionId::Version6)
+                    .map_err(de::Error::custom)?,
+            ))
+            .map_err(de::Error::custom)?
+        }
+    })
+}
+
+pub struct Requester<'a> {
+    pub prev_event_ids: Vec<EventId>,
+    pub room_id: &'a RoomId,
+    pub content: &'a serde_json::Value,
+    pub state_key: Option<String>,
+    pub sender: &'a UserId,
+}
+
 #[derive(Clone, Debug)]
 pub enum StateEvent {
     Full(EventId, Pdu),
