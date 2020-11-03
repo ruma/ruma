@@ -20,6 +20,8 @@ struct EventIdHelper {
     event_id: EventId,
 }
 
+/// This feature is turned on in conduit but off when the tests run because
+/// we rely on the EventId to check the state-res.
 #[cfg(feature = "gen-eventid")]
 fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
     use std::convert::TryFrom;
@@ -31,6 +33,7 @@ fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
     .map_err(de::Error::custom)
 }
 
+/// Only turned on for testing where we need to keep the ID.
 #[cfg(not(feature = "gen-eventid"))]
 fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
     use std::convert::TryFrom;
@@ -128,45 +131,6 @@ impl<'de> de::Deserialize<'de> for StateEvent {
             }
         })
     }
-}
-
-/// This feature is turned on in conduit but off when the tests run because
-/// we rely on the EventId to check the state-res.
-#[cfg(feature = "gen-eventid")]
-fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
-    use std::convert::TryFrom;
-    EventId::try_from(format!(
-        "${}",
-        reference_hash(&from_raw_json_value(&json)?, &RoomVersionId::Version6)
-            .map_err(de::Error::custom)?,
-    ))
-    .map_err(de::Error::custom)
-}
-
-/// Only turned on for testing where we need to keep the ID.
-#[cfg(not(feature = "gen-eventid"))]
-fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
-    use std::convert::TryFrom;
-    Ok(match from_raw_json_value::<EventIdHelper, E>(&json) {
-        Ok(id) => id.event_id,
-        Err(_) => {
-            // panic!("NOT DURING TESTS");
-            EventId::try_from(format!(
-                "${}",
-                reference_hash(&from_raw_json_value(&json)?, &RoomVersionId::Version6)
-                    .map_err(de::Error::custom)?,
-            ))
-            .map_err(de::Error::custom)?
-        }
-    })
-}
-
-pub struct Requester<'a> {
-    pub prev_event_ids: Vec<EventId>,
-    pub room_id: &'a RoomId,
-    pub content: &'a serde_json::Value,
-    pub state_key: Option<String>,
-    pub sender: &'a UserId,
 }
 
 impl StateEvent {
