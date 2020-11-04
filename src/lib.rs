@@ -185,6 +185,7 @@ impl StateResolution {
                 .collect::<Vec<_>>()
         );
 
+        // This "epochs" power level event
         let power_event = resolved_control.get(&(EventType::RoomPowerLevels, "".into()));
 
         tracing::debug!("PL {:?}", power_event);

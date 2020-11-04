@@ -367,12 +367,9 @@ fn do_check(
 
         let mut state_after = state_before.clone();
 
-        // if fake_event.state_key().is_some() {
         let ty = fake_event.kind().clone();
-        // we know there is a state_key unwrap OK
         let key = fake_event.state_key().clone();
         state_after.insert((ty, key), event_id.clone());
-        // }
 
         let auth_types = state_res::auth_types_for_event(
             fake_event.kind(),
