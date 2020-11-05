@@ -192,28 +192,20 @@ fn deserialize_custom_state_sync_event() {
 fn deserialize_custom_message_sync_event() {
     let json_data = json!({
         "content": {
-            "m.relates_to": {
-                "event_id": "$MDitXXXXXX",
-                "key": "👍",
-                "rel_type": "m.annotation"
-            }
+            "body": "👍"
         },
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 10,
         "room_id": "!room:room.com",
         "sender": "@carl:example.com",
-        "type": "m.reaction",
+        "type": "m.ruma_custom",
         "unsigned": {
             "age": 85
         }
     });
 
     let expected_content = json!({
-        "m.relates_to": {
-            "event_id": "$MDitXXXXXX",
-            "key": "👍",
-            "rel_type": "m.annotation"
-        }
+        "body": "👍",
     });
 
     assert_matches!(
@@ -227,7 +219,7 @@ fn deserialize_custom_message_sync_event() {
             origin_server_ts,
             sender,
             unsigned,
-        })) if json == expected_content && event_type == "m.reaction"
+        })) if json == expected_content && event_type == "m.ruma_custom"
             && event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == UNIX_EPOCH + Duration::from_millis(10)
             && sender == user_id!("@carl:example.com")
