@@ -18,7 +18,6 @@ async fn log_messages(homeserver_url: Uri, username: &str, password: &str) -> an
 
     client.log_in(username, password, None, None).await?;
 
-    // FIXME: Possibly promotable when replacing `.into()` if `ignore_all` is made const.
     let filter = FilterDefinition::ignore_all().into();
     let initial_sync_response = client
         .request(assign!(sync_events::Request::new(), {
