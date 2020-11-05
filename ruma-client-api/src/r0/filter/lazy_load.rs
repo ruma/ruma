@@ -29,6 +29,13 @@ impl LazyLoadOptions {
     }
 }
 
+impl Default for LazyLoadOptions {
+    /// `LazyLoadOptions::Disabled`
+    fn default() -> Self {
+        Self::Disabled
+    }
+}
+
 impl Serialize for LazyLoadOptions {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -50,12 +57,6 @@ impl Serialize for LazyLoadOptions {
             }
         }
         state.end()
-    }
-}
-
-impl Default for LazyLoadOptions {
-    fn default() -> Self {
-        Self::Disabled
     }
 }
 

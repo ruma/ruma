@@ -93,6 +93,8 @@ pub struct RoomEventFilter<'a> {
     pub url_filter: Option<UrlFilter>,
 
     /// Options to control lazy-loading of membership events.
+    ///
+    /// Defaults to `LazyLoadOptions::Disabled`.
     #[serde(flatten)]
     pub lazy_load_options: LazyLoadOptions,
 }
