@@ -3,7 +3,7 @@ use std::{num::NonZeroU8, str::FromStr};
 use crate::{crypto_algorithms::SigningKeyAlgorithm, Error};
 
 pub fn validate(s: &str) -> Result<NonZeroU8, Error> {
-    let colon_idx = NonZeroU8::new(s.find(':').ok_or(Error::MissingSigningKeyDelimiter)? as u8)
+    let colon_idx = NonZeroU8::new(s.find(':').ok_or(Error::MissingDelimiter)? as u8)
         .ok_or(Error::UnknownKeyAlgorithm)?;
 
     validate_signing_key_algorithm(&s[..colon_idx.get() as usize])?;

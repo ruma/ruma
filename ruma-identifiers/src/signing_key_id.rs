@@ -97,7 +97,7 @@ mod tests {
     fn missing_delimiter() {
         assert_eq!(
             ServerSigningKeyId::try_from("ed25519|Abc_1").unwrap_err(),
-            Error::MissingSigningKeyDelimiter,
+            Error::MissingDelimiter,
         );
     }
 }

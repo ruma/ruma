@@ -150,7 +150,7 @@ mod tests {
 
     #[test]
     fn missing_room_id_sigil() {
-        assert_eq!(RoomId::try_from("carl:example.com").unwrap_err(), Error::MissingSigil);
+        assert_eq!(RoomId::try_from("carl:example.com").unwrap_err(), Error::MissingLeadingSigil);
     }
 
     #[test]

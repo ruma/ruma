@@ -7,7 +7,7 @@ pub fn validate(s: &str) -> Result<Option<NonZeroU8>, Error> {
         true => Some(parse_id(s, &['$'])?),
         false => {
             if !s.starts_with('$') {
-                return Err(Error::MissingSigil);
+                return Err(Error::MissingLeadingSigil);
             }
 
             None

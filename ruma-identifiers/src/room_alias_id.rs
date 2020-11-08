@@ -134,7 +134,7 @@ mod tests {
     fn missing_room_alias_id_sigil() {
         assert_eq!(
             RoomAliasId::try_from("39hvsi03hlne:example.com").unwrap_err(),
-            Error::MissingSigil
+            Error::MissingLeadingSigil
         );
     }
 
@@ -145,7 +145,10 @@ mod tests {
 
     #[test]
     fn invalid_leading_sigil() {
-        assert_eq!(RoomAliasId::try_from("!room_id:foo.bar").unwrap_err(), Error::MissingSigil);
+        assert_eq!(
+            RoomAliasId::try_from("!room_id:foo.bar").unwrap_err(),
+            Error::MissingLeadingSigil
+        );
     }
 
     #[test]

@@ -7,6 +7,8 @@ Breaking changes:
 * Remove deprecated `is_` methods
 * Rename `ServerKeyAlgorithm` to `SigningKeyAlgorithm`
 * Rename `ServerKeyId` to `ServerSigningKeyId`
+* Rename `Error::MissingSigil` to `Error::MissingLeadingSigil`
+* Merge all missing delimiter error variants
 
 Improvements:
 

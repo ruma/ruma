@@ -243,14 +243,17 @@ mod tests {
 
     #[test]
     fn missing_original_event_id_sigil() {
-        assert_eq!(EventId::try_from("39hvsi03hlne:example.com").unwrap_err(), Error::MissingSigil);
+        assert_eq!(
+            EventId::try_from("39hvsi03hlne:example.com").unwrap_err(),
+            Error::MissingLeadingSigil
+        );
     }
 
     #[test]
     fn missing_base64_event_id_sigil() {
         assert_eq!(
             EventId::try_from("acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk").unwrap_err(),
-            Error::MissingSigil
+            Error::MissingLeadingSigil
         );
     }
 
@@ -258,7 +261,7 @@ mod tests {
     fn missing_url_safe_base64_event_id_sigil() {
         assert_eq!(
             EventId::try_from("Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg").unwrap_err(),
-            Error::MissingSigil
+            Error::MissingLeadingSigil
         );
     }
 

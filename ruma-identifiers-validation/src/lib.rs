@@ -24,7 +24,7 @@ fn validate_id(id: &str, valid_sigils: &[char]) -> Result<(), Error> {
     }
 
     if !id.starts_with(valid_sigils) {
-        return Err(Error::MissingSigil);
+        return Err(Error::MissingLeadingSigil);
     }
 
     Ok(())

@@ -239,7 +239,7 @@ mod tests {
 
     #[test]
     fn missing_user_id_sigil() {
-        assert_eq!(UserId::try_from("carl:example.com").unwrap_err(), Error::MissingSigil);
+        assert_eq!(UserId::try_from("carl:example.com").unwrap_err(), Error::MissingLeadingSigil);
     }
 
     #[test]

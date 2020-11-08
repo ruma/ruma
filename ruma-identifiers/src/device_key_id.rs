@@ -100,7 +100,7 @@ mod test {
     fn missing_delimiter() {
         assert_eq!(
             DeviceKeyId::try_from("ed25519|JLAFKJWSCS").unwrap_err(),
-            Error::MissingDeviceKeyDelimiter,
+            Error::MissingDelimiter,
         );
     }
 
