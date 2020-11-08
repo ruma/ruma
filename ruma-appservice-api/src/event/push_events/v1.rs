@@ -22,7 +22,6 @@ ruma_api! {
         pub txn_id: &'a str,
 
         /// A list of events.
-        #[ruma_api(body)]
         pub events: &'a [Raw<AnyEvent>],
     }
 
@@ -41,5 +40,36 @@ impl Response {
     /// Creates an empty `Response`.
     pub fn new() -> Self {
         Self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use ruma_api::{exports::http, OutgoingRequest};
+    use ruma_common::Raw;
+    use ruma_events::AnyEvent;
+    use serde_json::json;
+
+    use super::Request;
+
+    #[test]
+    fn decode_request_contains_events_field() {
+        let dummy_event: AnyEvent = serde_json::from_value(json!({
+            "content": {},
+            "type": "m.dummy"
+        }))
+        .unwrap();
+        let dummy_event = Raw::from(dummy_event);
+        let events = vec![dummy_event];
+
+        let req: http::Request<Vec<u8>> = Request { events: &events, txn_id: "any_txn_id" }
+            .try_into_http_request("https://homeserver.tld", Some("auth_tok"))
+            .unwrap();
+        let json_body: serde_json::Value = serde_json::from_slice(&req.body()).unwrap();
+
+        assert_eq!(
+            1,
+            json_body.as_object().unwrap().get("events").unwrap().as_array().unwrap().len()
+        );
     }
 }
