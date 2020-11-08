@@ -5,7 +5,8 @@ Breaking changes:
 * Update strum dependency to 0.19
 * Remove deprecated constructors
 * Remove deprecated `is_` methods
-* Rename `ServerKeyId` to `SigningKeyId`
+* Rename `ServerKeyAlgorithm` to `SigningKeyAlgorithm`
+* Rename `ServerKeyId` to `ServerSigningKeyId`
 
 Improvements:
 

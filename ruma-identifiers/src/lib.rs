@@ -29,7 +29,7 @@ pub use crate::{
     room_id_or_room_alias_id::RoomIdOrAliasId,
     room_version_id::RoomVersionId,
     server_name::{ServerName, ServerNameBox},
-    signing_key_id::SigningKeyId,
+    signing_key_id::ServerSigningKeyId,
     user_id::UserId,
 };
 #[doc(inline)]
@@ -137,7 +137,7 @@ macro_rules! room_version_id {
     };
 }
 
-/// Compile-time checked `SigningKeyId` construction.
+/// Compile-time checked `ServerSigningKeyId` construction.
 #[macro_export]
 macro_rules! server_key_id {
     ($s:literal) => {
