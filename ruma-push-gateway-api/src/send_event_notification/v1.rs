@@ -294,6 +294,7 @@ mod tweak_serde {
 mod test {
     use std::time::{Duration, SystemTime};
 
+    use js_int::uint;
     use ruma_events::EventType;
     use ruma_identifiers::{event_id, room_alias_id, room_id, user_id};
     use serde_json::{
@@ -335,38 +336,38 @@ mod test {
         let uid = user_id!("@exampleuser:matrix.org");
         let alias = room_alias_id!("#exampleroom:matrix.org");
 
-        let mut count = NotificationCounts::default();
-        count.unread = js_int::uint!(2);
-        // test default values are ignored
-        count.missed_calls = js_int::uint!(0);
+        let count = NotificationCounts { unread: uint!(2), ..NotificationCounts::default() };
 
-        let mut device = Device::new(
-            "org.matrix.matrixConsole.ios".into(),
-            "V2h5IG9uIGVhcnRoIGRpZCB5b3UgZGVjb2RlIHRoaXM/".into(),
-        );
-        device.pushkey_ts = Some(SystemTime::UNIX_EPOCH + Duration::from_secs(123));
-        device.tweaks = vec![
-            Tweak::Highlight(true),
-            Tweak::Sound("silence".into()),
-            Tweak::Custom {
-                name: "custom".into(),
-                value: from_json_value(JsonValue::String("go wild".into())).unwrap(),
-            },
-        ];
+        let device = Device {
+            pushkey_ts: Some(SystemTime::UNIX_EPOCH + Duration::from_secs(123)),
+            tweaks: vec![
+                Tweak::Highlight(true),
+                Tweak::Sound("silence".into()),
+                Tweak::Custom {
+                    name: "custom".into(),
+                    value: from_json_value(JsonValue::String("go wild".into())).unwrap(),
+                },
+            ],
+            ..Device::new(
+                "org.matrix.matrixConsole.ios".into(),
+                "V2h5IG9uIGVhcnRoIGRpZCB5b3UgZGVjb2RlIHRoaXM/".into(),
+            )
+        };
+        let devices = &[device];
 
-        let devices = vec![device];
-
-        let mut notice = Notification::default();
-        notice.event_id = Some(&eid);
-        notice.room_id = Some(&rid);
-        notice.event_type = Some(&EventType::RoomMessage);
-        notice.sender = Some(&uid);
-        notice.sender_display_name = Some("Major Tom");
-        notice.room_alias = Some(&alias);
-        notice.content = Some(serde_json::from_str("{}").unwrap());
-        notice.counts = count;
-        notice.prio = NotificationPriority::Low;
-        notice.devices = &devices;
+        let notice = Notification {
+            event_id: Some(&eid),
+            room_id: Some(&rid),
+            event_type: Some(&EventType::RoomMessage),
+            sender: Some(&uid),
+            sender_display_name: Some("Major Tom"),
+            room_alias: Some(&alias),
+            content: Some(serde_json::from_str("{}").unwrap()),
+            counts: count,
+            prio: NotificationPriority::Low,
+            devices,
+            ..Notification::default()
+        };
 
         assert_eq!(expected, to_json_value(notice).unwrap())
     }

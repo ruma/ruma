@@ -149,7 +149,7 @@ fn deserialize_custom_state_event() {
             && origin_server_ts == UNIX_EPOCH + Duration::from_millis(10)
             && sender == user_id!("@carl:example.com")
             && room_id == room_id!("!room:room.com")
-            && state_key == ""
+            && state_key.is_empty()
             && !unsigned.is_empty()
     );
 }
@@ -183,7 +183,7 @@ fn deserialize_custom_state_sync_event() {
             && event_id == event_id!("$h29iv0s8:example.com")
             && origin_server_ts == UNIX_EPOCH + Duration::from_millis(10)
             && sender == user_id!("@carl:example.com")
-            && state_key == ""
+            && state_key.is_empty()
             && !unsigned.is_empty()
     );
 }

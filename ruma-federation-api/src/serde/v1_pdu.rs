@@ -150,7 +150,7 @@ mod tests {
         assert_matches!(
             deserialize(json).unwrap(),
             RoomState { origin, auth_chain, state }
-            if origin == ""
+            if origin.is_empty()
               && auth_chain.is_empty()
               && state.is_empty()
         );

@@ -124,7 +124,7 @@ fn deserialize_aliases_with_prev_content() {
             && prev_content.aliases == vec![room_alias_id!("#inner:localhost")]
             && room_id == room_id!("!roomid:room.com")
             && sender == user_id!("@carl:example.com")
-            && state_key == ""
+            && state_key.is_empty()
             && unsigned.is_empty()
     );
 }
@@ -150,7 +150,7 @@ fn deserialize_aliases_sync_with_room_id() {
             && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
             && prev_content.aliases == vec![room_alias_id!("#inner:localhost")]
             && sender == user_id!("@carl:example.com")
-            && state_key == ""
+            && state_key.is_empty()
             && unsigned.is_empty()
     );
 }
@@ -204,7 +204,7 @@ fn deserialize_avatar_without_prev_content() {
             && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
             && room_id == room_id!("!roomid:room.com")
             && sender == user_id!("@carl:example.com")
-            && state_key == ""
+            && state_key.is_empty()
             && matches!(
                 info.as_ref(),
                 ImageInfo {
@@ -311,7 +311,7 @@ fn deserialize_full_event_convert_to_sync() {
             && origin_server_ts == UNIX_EPOCH + Duration::from_millis(1)
             && prev_content.aliases == vec![room_alias_id!("#inner:localhost")]
             && sender == "@carl:example.com"
-            && state_key == ""
+            && state_key.is_empty()
             && unsigned.is_empty()
     );
 }

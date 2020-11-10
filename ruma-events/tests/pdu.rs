@@ -51,7 +51,7 @@ fn serialize_stub_as_v1() {
     let json = json!({
         "sender": "@sender:example.com",
         "origin": "matrix.org",
-        "origin_server_ts": 1_592_050_773_658 as usize,
+        "origin_server_ts": 1_592_050_773_658usize,
         "type": "m.room.power_levels",
         "content": {
             "testing": 123
@@ -108,7 +108,7 @@ fn serialize_stub_as_v3() {
     let json = json!({
         "sender": "@sender:example.com",
         "origin": "matrix.org",
-        "origin_server_ts": 1_592_050_773_658 as usize,
+        "origin_server_ts": 1_592_050_773_658usize,
         "type": "m.room.power_levels",
         "content": {
             "testing": 123
@@ -271,7 +271,7 @@ fn serialize_pdu_as_v1() {
         "event_id": "$somejoinevent:matrix.org",
         "sender": "@sender:example.com",
         "origin": "matrix.org",
-        "origin_server_ts": 1_592_050_773_658 as usize,
+        "origin_server_ts": 1_592_050_773_658usize,
         "type": "m.room.power_levels",
         "content": {
             "testing": 123
@@ -330,7 +330,7 @@ fn serialize_pdu_as_v3() {
         "room_id": "!n8f893n9:example.com",
         "sender": "@sender:example.com",
         "origin": "matrix.org",
-        "origin_server_ts": 1_592_050_773_658 as usize,
+        "origin_server_ts": 1_592_050_773_658usize,
         "type": "m.room.power_levels",
         "content": {
             "testing": 123
