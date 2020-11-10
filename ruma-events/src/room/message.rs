@@ -3,10 +3,18 @@
 use js_int::UInt;
 use ruma_common::StringEnum;
 use ruma_events_macros::MessageEventContent;
-use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
+use serde_json::Value as JsonValue;
 
-use super::{EncryptedFile, ImageInfo, ThumbnailInfo};
+use super::{
+    relationships::{RelatesToJsonRepr, RelationJsonRepr},
+    EncryptedFile, ImageInfo, ThumbnailInfo,
+};
+
+pub use super::relationships::{Annotation, InReplyTo};
+
+#[cfg(feature = "unstable-pre-spec")]
+pub use super::relationships::{Reference, Replacement};
 
 pub mod feedback;
 
@@ -58,6 +66,65 @@ pub enum MessageEventContent {
     /// A video message.
     #[serde(rename = "m.video")]
     Video(VideoMessageEventContent),
+}
+
+/// Enum modeling the different ways relationships can be expressed in a
+/// `m.relates_to` field of an m.room.message event.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(from = "RelatesToJsonRepr", into = "RelatesToJsonRepr")]
+pub enum Relation {
+    /// A reference to another event.
+    #[cfg(feature = "unstable-pre-spec")]
+    Reference(Reference),
+
+    /// An annotation to an event.
+    Annotation(Annotation),
+
+    /// An event that replaces another event.
+    #[cfg(feature = "unstable-pre-spec")]
+    Replacement(Replacement),
+
+    /// An `m.in_reply_to` relation indicating that the event is a reply to
+    /// another event.
+    Reply {
+        /// Information about another message being replied to.
+        in_reply_to: InReplyTo,
+    },
+
+    /// Custom, unsupported relation.
+    Custom(JsonValue),
+}
+
+impl From<Relation> for RelatesToJsonRepr {
+    fn from(value: Relation) -> Self {
+        match value {
+            Relation::Annotation(r) => RelatesToJsonRepr::Relation(RelationJsonRepr::Annotation(r)),
+            #[cfg(feature = "unstable-pre-spec")]
+            Relation::Reference(r) => RelatesToJsonRepr::Relation(RelationJsonRepr::Reference(r)),
+            #[cfg(feature = "unstable-pre-spec")]
+            Relation::Replacement(r) => {
+                RelatesToJsonRepr::Relation(RelationJsonRepr::Replacement(r))
+            }
+            Relation::Reply { in_reply_to } => RelatesToJsonRepr::Reply { in_reply_to },
+            Relation::Custom(c) => RelatesToJsonRepr::Custom(c),
+        }
+    }
+}
+
+impl From<RelatesToJsonRepr> for Relation {
+    fn from(value: RelatesToJsonRepr) -> Self {
+        match value {
+            RelatesToJsonRepr::Relation(r) => match r {
+                RelationJsonRepr::Annotation(a) => Self::Annotation(a),
+                #[cfg(feature = "unstable-pre-spec")]
+                RelationJsonRepr::Reference(r) => Self::Reference(r),
+                #[cfg(feature = "unstable-pre-spec")]
+                RelationJsonRepr::Replacement(r) => Self::Replacement(r),
+            },
+            RelatesToJsonRepr::Reply { in_reply_to } => Self::Reply { in_reply_to },
+            RelatesToJsonRepr::Custom(v) => Self::Custom(v),
+        }
+    }
 }
 
 impl MessageEventContent {
@@ -245,7 +312,7 @@ pub struct NoticeMessageEventContent {
     /// Information about related messages for
     /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
     #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
-    pub relates_to: Option<RelatesTo>,
+    pub relates_to: Option<Relation>,
 }
 
 impl NoticeMessageEventContent {
@@ -365,7 +432,7 @@ pub struct TextMessageEventContent {
     /// Information about related messages for
     /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
     #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
-    pub relates_to: Option<RelatesTo>,
+    pub relates_to: Option<Relation>,
 }
 
 impl TextMessageEventContent {
@@ -450,22 +517,6 @@ pub struct VideoInfo {
     pub thumbnail_file: Option<Box<EncryptedFile>>,
 }
 
-/// Information about related messages for
-/// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct RelatesTo {
-    /// Information about another message being replied to.
-    #[serde(rename = "m.in_reply_to")]
-    pub in_reply_to: Option<InReplyTo>,
-}
-
-/// Information about the event a "rich reply" is replying to.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct InReplyTo {
-    /// The event being replied to.
-    pub event_id: EventId,
-}
-
 #[cfg(test)]
 mod tests {
     use std::time::{Duration, UNIX_EPOCH};
@@ -475,9 +526,11 @@ mod tests {
     use ruma_identifiers::{event_id, room_id, user_id};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{AudioMessageEventContent, FormattedBody, MessageEventContent, MessageFormat};
+    use super::{
+        AudioMessageEventContent, FormattedBody, MessageEventContent, MessageFormat, Relation,
+    };
     use crate::{
-        room::message::{InReplyTo, RelatesTo, TextMessageEventContent},
+        room::{message::TextMessageEventContent, relationships::InReplyTo},
         MessageEvent, Unsigned,
     };
 
@@ -575,10 +628,8 @@ mod tests {
         let message_event_content = MessageEventContent::Text(TextMessageEventContent {
             body: "> <@test:example.com> test\n\ntest reply".to_owned(),
             formatted: None,
-            relates_to: Some(RelatesTo {
-                in_reply_to: Some(InReplyTo {
-                    event_id: event_id!("$15827405538098VGFWH:example.com"),
-                }),
+            relates_to: Some(Relation::Reply {
+                in_reply_to: InReplyTo { event_id: event_id!("$15827405538098VGFWH:example.com") },
             }),
         });
 
