@@ -151,14 +151,7 @@ fn split_id(id: &str) -> Result<(Algorithm, String), SplitError<'_>> {
 
     let version = signature_id[1];
 
-    let invalid_character_index = version.find(|ch| {
-        !((ch >= 'a' && ch <= 'z')
-            || (ch >= 'A' && ch <= 'Z')
-            || (ch >= '0' && ch <= '9')
-            || ch == '_')
-    });
-
-    if invalid_character_index.is_some() {
+    if !version.bytes().all(|ch| ch.is_ascii_alphanumeric() || ch == b'_') {
         return Err(SplitError::InvalidVersion(version));
     }
 
