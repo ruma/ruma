@@ -170,6 +170,7 @@ pub mod pdu;
 pub mod policy;
 pub mod presence;
 pub mod push_rules;
+pub mod reaction;
 pub mod receipt;
 pub mod room;
 pub mod room_key;

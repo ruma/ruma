@@ -36,6 +36,7 @@ event_enum! {
         "m.call.invite",
         "m.call.hangup",
         "m.call.candidates",
+        "m.reaction",
         "m.room.encrypted",
         "m.room.message",
         "m.room.message.feedback",
