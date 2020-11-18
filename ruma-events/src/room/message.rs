@@ -647,6 +647,28 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(feature = "unstable-pre-spec"))]
+    fn edit_deserialization() {
+        let json_data = json!({
+            "body": "test",
+            "msgtype": "m.text",
+            "m.relates_to": {
+                "rel_type": "m.replace",
+                "event_id": event_id!("$1598361704261elfgc:localhost"),
+            }
+        });
+
+        assert_matches!(
+            from_json_value::<MessageEventContent>(json_data).unwrap(),
+            MessageEventContent::Text(TextMessageEventContent {
+                body,
+                formatted: None,
+                relates_to: Some(Relation::Custom(_)),
+            }) if body == "test"
+        );
+    }
+
+    #[test]
     fn content_deserialization() {
         let json_data = json!({
             "body": "test",
