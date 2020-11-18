@@ -2,7 +2,7 @@
 
 use ruma_api::ruma_api;
 use ruma_common::Raw;
-use ruma_events::pdu::PduStub;
+use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, RoomId};
 
 use super::RoomState;
@@ -26,9 +26,9 @@ ruma_api! {
         #[ruma_api(path)]
         pub event_id: &'a EventId,
 
-        /// PDU type without event and room IDs.
+        /// PDU type
         #[ruma_api(body)]
-        pub pdu_stub: Raw<PduStub>,
+        pub pdu_stub: Raw<Pdu>,
     }
 
     response: {
@@ -38,10 +38,9 @@ ruma_api! {
     }
 }
 
-// FIXME: Construct from Pdu, same for similar endpoints
 impl<'a> Request<'a> {
-    /// Creates a `Request` from the given room ID, event ID and `PduStub`.
-    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, pdu_stub: Raw<PduStub>) -> Self {
+    /// Creates a `Request` from the given room ID, event ID and `Pdu`.
+    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, pdu_stub: Raw<Pdu>) -> Self {
         Self { room_id, event_id, pdu_stub }
     }
 }
