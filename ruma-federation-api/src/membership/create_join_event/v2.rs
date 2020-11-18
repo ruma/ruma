@@ -19,16 +19,18 @@ ruma_api! {
 
     request: {
         /// The room ID that is about to be joined.
+        ///
+        /// Do not use this. Instead, use the `room_id` field inside the PDU.
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
 
-        /// The user ID the join event will be for.
+        /// The event ID for the join event.
         #[ruma_api(path)]
         pub event_id: &'a EventId,
 
-        /// PDU type
+        /// The PDU.
         #[ruma_api(body)]
-        pub pdu_stub: Raw<Pdu>,
+        pub pdu: Raw<Pdu>,
     }
 
     response: {
@@ -40,8 +42,8 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a `Request` from the given room ID, event ID and `Pdu`.
-    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, pdu_stub: Raw<Pdu>) -> Self {
-        Self { room_id, event_id, pdu_stub }
+    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, pdu: Raw<Pdu>) -> Self {
+        Self { room_id, event_id, pdu }
     }
 }
 

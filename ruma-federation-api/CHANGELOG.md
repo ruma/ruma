@@ -5,7 +5,8 @@ Breaking Changes:
 * Replace `directory::get_public_rooms::v1::{PublicRoomsChunk, RoomNetwork}` with types from
   `ruma_common::directory`
 * Wrap `PduStub`s in `membership::create_join_event` in `Raw`
-* Use `Pdu` instead of `PduStub` in `membership::create_join_event` endpoints
+* Remove `PduStub` (it only existed because of the spec being misleading)
+  * Rename `pdu_stub` fields to `pdu`
 
 Improvements:
 
