@@ -1,6 +1,11 @@
 //! De-/serialization helpers for other ruma crates
 
-use serde::de::{Deserialize, IntoDeserializer};
+use js_int::Int;
+use serde::{
+    de::{Error, IntoDeserializer},
+    Deserialize,
+};
+use std::convert::{TryFrom, TryInto};
 
 pub mod can_be_empty;
 mod canonical_json;
@@ -64,4 +69,34 @@ where
         // TODO: optimize that somehow?
         Some(s) => T::deserialize(s.into_deserializer()).map(Some),
     }
+}
+
+// Helper type for deserialize_int_or_string_to_int
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum IntOrString<'a> {
+    Num(Int),
+    Str(&'a str),
+}
+
+impl TryFrom<IntOrString<'_>> for Int {
+    type Error = js_int::ParseIntError;
+
+    fn try_from(input: IntOrString) -> Result<Self, Self::Error> {
+        match input {
+            IntOrString::Num(n) => Ok(n),
+            IntOrString::Str(string) => string.parse(),
+        }
+    }
+}
+
+/// Take either an integer number or a string and deserialize to an integer number.
+///
+/// To be used like this:
+/// `#[serde(deserialize_with = "int_or_string_to_int")]`
+pub fn int_or_string_to_int<'de, D>(de: D) -> Result<Int, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    IntOrString::deserialize(de)?.try_into().map_err(D::Error::custom)
 }
