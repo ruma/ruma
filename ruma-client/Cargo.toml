@@ -39,3 +39,4 @@ tokio = { version = "0.2.22", features = ["macros"] }
 [features]
 default = ["tls"]
 tls = ["hyper-tls"]
+unstable-synapse-quirks = ["ruma-events/unstable-synapse-quirks"]

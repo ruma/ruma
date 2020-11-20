@@ -26,6 +26,7 @@ unstable-pre-spec = ["ruma-client-api/unstable-pre-spec", "ruma-events/unstable-
 unstable-synapse-quirks = [
   "ruma-client-api/unstable-synapse-quirks",
   "ruma-common/unstable-synapse-quirks",
+  "ruma-events/unstable-synapse-quirks",
 ]
 
 appservice-api = ["ruma-api", "ruma-appservice-api", "ruma-events"]
