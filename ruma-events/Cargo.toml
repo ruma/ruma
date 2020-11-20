@@ -31,6 +31,7 @@ trybuild = "1.0.31"
 [features]
 unstable-exhaustive-types = []
 unstable-pre-spec = []
+unstable-synapse-quirks = []
 
 [[bench]]
 name = "event_deserialize"
