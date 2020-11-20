@@ -5,7 +5,10 @@ use serde::{
     de::{Error, IntoDeserializer},
     Deserialize,
 };
-use std::convert::{TryFrom, TryInto};
+use std::{
+    collections::BTreeMap,
+    convert::{TryFrom, TryInto},
+};
 
 pub mod can_be_empty;
 mod canonical_json;
@@ -99,4 +102,20 @@ where
     D: serde::Deserializer<'de>,
 {
     IntOrString::deserialize(de)?.try_into().map_err(D::Error::custom)
+}
+
+/// Take a BTreeMap with values of either an integer number or a string and deserialize
+/// those to integer numbers.
+///
+/// To be used like this:
+/// `#[serde(deserialize_with = "btreemap_int_or_string_to_int_values")]`
+pub fn btreemap_int_or_string_to_int_values<'de, D, T>(de: D) -> Result<BTreeMap<T, Int>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: serde::Deserialize<'de> + Ord,
+{
+    BTreeMap::<T, IntOrString>::deserialize(de)?
+        .into_iter()
+        .map(|(k, v)| v.try_into().map(|n| (k, n)).map_err(D::Error::custom))
+        .collect()
 }
