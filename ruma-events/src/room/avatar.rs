@@ -22,12 +22,20 @@ pub struct AvatarEventContent {
 
     /// Information about the avatar thumbnail image.
     /// URL of the avatar image.
+    #[cfg(not(feature = "unstable-synapse-quirks"))]
     pub url: String,
+    /// Information about the avatar thumbnail image.
+    /// URL of the avatar image.
+    #[cfg(feature = "unstable-synapse-quirks")]
+    pub url: Option<String>,
 }
 
 impl AvatarEventContent {
     /// Create an `AvatarEventContent` from the given image URL.
     pub fn new(url: String) -> Self {
+        #[cfg(feature = "unstable-synapse-quirks")]
+        let url = Some(url);
+
         Self { info: None, url }
     }
 }
