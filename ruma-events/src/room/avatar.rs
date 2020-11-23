@@ -20,7 +20,6 @@ pub struct AvatarEventContent {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub info: Option<Box<ImageInfo>>,
 
-    /// Information about the avatar thumbnail image.
     /// URL of the avatar image.
     pub url: String,
 }
