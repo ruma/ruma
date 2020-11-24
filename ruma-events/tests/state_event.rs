@@ -182,6 +182,11 @@ fn deserialize_avatar_without_prev_content() {
         "type": "m.room.avatar"
     });
 
+    let expected_url = "http://www.matrix.org";
+
+    #[cfg(feature = "unstable-pre-spec")]
+    let expected_url = Some(expected_url.to_owned());
+
     assert_matches!(
         from_json_value::<Raw<StateEvent<AnyStateEventContent>>>(json_data)
             .unwrap()
@@ -233,7 +238,7 @@ fn deserialize_avatar_without_prev_content() {
                             && *thumbnail_url == "mxc://matrix.org"
                     )
             )
-            && url == "http://www.matrix.org"
+            && url == expected_url
             && unsigned.is_empty()
     );
 }
