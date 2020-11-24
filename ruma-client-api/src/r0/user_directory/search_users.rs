@@ -29,7 +29,7 @@ ruma_api! {
         ///
         /// See [MDN] for the syntax.
         ///
-        /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#Syntax
+        /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#Syntax
         #[ruma_api(header = ACCEPT_LANGUAGE)]
         pub language: Option<String>,
     }

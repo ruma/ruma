@@ -4,7 +4,7 @@
 //! adds types to parse the relationship of an event if any exists.
 //!
 //! MSC for all the relates_to types except replies:
-//!     https://github.com/matrix-org/matrix-doc/pull/2674
+//! <https://github.com/matrix-org/matrix-doc/pull/2674>
 
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};

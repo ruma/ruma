@@ -6,7 +6,7 @@ use serde_json::value::RawValue as RawJsonValue;
 /// This represents the different actions that should be taken when a rule is matched, and
 /// controls how notifications are delivered to the client.
 ///
-/// See https://matrix.org/docs/spec/client_server/r0.6.0#actions for details.
+/// See <https://matrix.org/docs/spec/client_server/r0.6.0#actions> for details.
 #[derive(Clone, Debug)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum Action {
