@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 mod action;
 mod any_push_rule;
 mod condition;
+mod predefined;
 
 pub use self::{
     action::{Action, Tweak},
