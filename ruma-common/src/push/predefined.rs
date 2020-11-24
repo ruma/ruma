@@ -16,7 +16,7 @@ impl Ruleset {
     /// # Parameters
     ///
     /// - `user_id`: the user for which to generate the default rules. Some rules depend on the
-    ///   user's ID (for instance those to send notifications when they are mentionned).
+    ///   user's ID (for instance those to send notifications when they are mentioned).
     pub fn server_default(user_id: &UserId) -> Self {
         Self {
             content: vec![PatternedPushRule::contains_user_name(user_id)],
@@ -234,6 +234,7 @@ impl ConditionalPushRule {
             actions: vec![Notify, SetTweak(Tweak::Highlight(false))],
         }
     }
+
     /// Matches all encrypted events. Unlike other push rules,
     /// this rule cannot be matched against the content of the
     /// event by nature of it being encrypted. This causes the
