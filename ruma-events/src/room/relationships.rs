@@ -17,6 +17,7 @@ use serde_json::Value as JsonValue;
 pub(crate) enum RelatesToJsonRepr {
     /// A relation which contains subtypes indicating the type of the
     /// relationship with the `rel_type` field.
+    #[cfg(feature = "unstable-pre-spec")]
     Relation(RelationJsonRepr),
 
     /// An `m.in_reply_to` relationship indicating that the event is a reply to
@@ -33,6 +34,7 @@ pub(crate) enum RelatesToJsonRepr {
 
 /// A relation, which associates new information to an existing event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg(feature = "unstable-pre-spec")]
 #[serde(tag = "rel_type")]
 pub(crate) enum RelationJsonRepr {
     /// An annotation to an event.
@@ -40,12 +42,10 @@ pub(crate) enum RelationJsonRepr {
     Annotation(Annotation),
 
     /// A reference to another event.
-    #[cfg(feature = "unstable-pre-spec")]
     #[serde(rename = "m.reference")]
     Reference(Reference),
 
     /// An event that replaces another event.
-    #[cfg(feature = "unstable-pre-spec")]
     #[serde(rename = "m.replace")]
     Replacement(Replacement),
 }
@@ -142,6 +142,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "unstable-pre-spec")]
     fn annotation_deserialize() {
         let event_id = event_id!("$1598361704261elfgc:localhost");
 

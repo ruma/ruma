@@ -6,15 +6,12 @@ use ruma_events_macros::MessageEventContent;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-use super::{
-    relationships::{RelatesToJsonRepr, RelationJsonRepr},
-    EncryptedFile, ImageInfo, ThumbnailInfo,
-};
-
-pub use super::relationships::{Annotation, InReplyTo};
-
 #[cfg(feature = "unstable-pre-spec")]
-pub use super::relationships::{Reference, Replacement};
+use super::relationships::{Annotation, Reference, RelationJsonRepr, Replacement};
+use super::{relationships::RelatesToJsonRepr, EncryptedFile, ImageInfo, ThumbnailInfo};
+
+// FIXME: Do we want to keep re-exporting this?
+pub use super::relationships::InReplyTo;
 
 pub mod feedback;
 
@@ -78,6 +75,7 @@ pub enum Relation {
     Reference(Reference),
 
     /// An annotation to an event.
+    #[cfg(feature = "unstable-pre-spec")]
     Annotation(Annotation),
 
     /// An event that replaces another event.
@@ -98,6 +96,7 @@ pub enum Relation {
 impl From<Relation> for RelatesToJsonRepr {
     fn from(value: Relation) -> Self {
         match value {
+            #[cfg(feature = "unstable-pre-spec")]
             Relation::Annotation(r) => RelatesToJsonRepr::Relation(RelationJsonRepr::Annotation(r)),
             #[cfg(feature = "unstable-pre-spec")]
             Relation::Reference(r) => RelatesToJsonRepr::Relation(RelationJsonRepr::Reference(r)),
@@ -114,11 +113,10 @@ impl From<Relation> for RelatesToJsonRepr {
 impl From<RelatesToJsonRepr> for Relation {
     fn from(value: RelatesToJsonRepr) -> Self {
         match value {
+            #[cfg(feature = "unstable-pre-spec")]
             RelatesToJsonRepr::Relation(r) => match r {
                 RelationJsonRepr::Annotation(a) => Self::Annotation(a),
-                #[cfg(feature = "unstable-pre-spec")]
                 RelationJsonRepr::Reference(r) => Self::Reference(r),
-                #[cfg(feature = "unstable-pre-spec")]
                 RelationJsonRepr::Replacement(r) => Self::Replacement(r),
             },
             RelatesToJsonRepr::Reply { in_reply_to } => Self::Reply { in_reply_to },

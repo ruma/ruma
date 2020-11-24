@@ -36,6 +36,7 @@ event_enum! {
         "m.call.invite",
         "m.call.hangup",
         "m.call.candidates",
+        #[cfg(feature = "unstable-pre-spec")]
         "m.reaction",
         "m.room.encrypted",
         "m.room.message",
