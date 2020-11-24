@@ -5,8 +5,9 @@ use std::fmt;
 use proc_macro2::Span;
 use quote::format_ident;
 use syn::{
+    bracketed,
     parse::{self, Parse, ParseStream},
-    Attribute, Expr, ExprLit, Ident, Lit, LitStr, Token,
+    Attribute, Ident, LitStr, Token,
 };
 
 /// Custom keywords for the `event_enum!` macro
@@ -193,7 +194,7 @@ pub struct EventEnumInput {
     /// variant in `ruma_events::EventType` for this event (converted to a valid Rust-style type
     /// name by stripping `m.`, replacing the remaining dots by underscores and then converting from
     /// snake_case to CamelCase).
-    pub events: Vec<LitStr>,
+    pub events: Vec<EventEnumEntry>,
 }
 
 impl Parse for EventEnumInput {
@@ -212,20 +213,22 @@ impl Parse for EventEnumInput {
         input.parse::<Token![:]>()?;
 
         // an array of event names `["m.room.whatever", ...]`
-        let ev_array = input.parse::<syn::ExprArray>()?;
-        let events = ev_array
-            .elems
-            .into_iter()
-            .map(|item| {
-                if let Expr::Lit(ExprLit { lit: Lit::Str(lit_str), .. }) = item {
-                    Ok(lit_str)
-                } else {
-                    let msg = "values of field `events` are required to be a string literal";
-                    Err(syn::Error::new_spanned(item, msg))
-                }
-            })
-            .collect::<syn::Result<_>>()?;
+        let content;
+        bracketed!(content in input);
+        let events = content.parse_terminated::<_, Token![,]>(EventEnumEntry::parse)?;
+        let events = events.into_iter().collect();
 
         Ok(Self { attrs, name, events })
+    }
+}
+
+pub struct EventEnumEntry {
+    pub attrs: Vec<Attribute>,
+    pub ev_type: LitStr,
+}
+
+impl Parse for EventEnumEntry {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        Ok(Self { attrs: input.call(Attribute::parse_outer)?, ev_type: input.parse()? })
     }
 }
