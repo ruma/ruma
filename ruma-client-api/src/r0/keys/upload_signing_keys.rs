@@ -1,4 +1,6 @@
-//! [POST /_matrix/client/r0/keys/device_signing/upload](https://13301-24998719-gh.circle-artifacts.com/0/scripts/gen/client_server/unstable.html#post-matrix-client-r0-keys-device-signing-upload)
+//! POST /_matrix/client/r0/keys/device_signing/upload
+//!
+//! Defined in [MSC 1756](https://github.com/matrix-org/matrix-doc/blob/master/proposals/1756-cross-signing.md#uploading-signing-keys)
 
 use ruma_api::ruma_api;
 
