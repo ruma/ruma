@@ -322,11 +322,7 @@ impl NoticeMessageEventContent {
 
     /// A convenience constructor to create an html notice.
     pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self {
-            body: body.into(),
-            formatted: Some(FormattedBody::html(html_body)),
-            relates_to: None,
-        }
+        Self { formatted: Some(FormattedBody::html(html_body)), ..Self::plain(body) }
     }
 }
 
@@ -443,11 +439,7 @@ impl TextMessageEventContent {
 
     /// A convenience constructor to create an html message.
     pub fn html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self {
-            body: body.into(),
-            formatted: Some(FormattedBody::html(html_body)),
-            relates_to: None,
-        }
+        Self { formatted: Some(FormattedBody::html(html_body)), ..Self::plain(body) }
     }
 
     /// A convenience constructor to create a plain text message.
