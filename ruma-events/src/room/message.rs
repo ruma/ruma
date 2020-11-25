@@ -312,12 +312,25 @@ pub struct NoticeMessageEventContent {
     /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
     #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
+
+    /// New content of an edited message.
+    ///
+    /// This should onyl be set if `relates_to` is `Some(Relation::Replacement(_))`.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
+    pub new_content: Option<NewContent>,
 }
 
 impl NoticeMessageEventContent {
     /// A convenience constructor to create a plain text notice.
     pub fn plain(body: impl Into<String>) -> Self {
-        Self { body: body.into(), formatted: None, relates_to: None }
+        Self {
+            body: body.into(),
+            formatted: None,
+            relates_to: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            new_content: None,
+        }
     }
 
     /// A convenience constructor to create an html notice.
@@ -429,12 +442,25 @@ pub struct TextMessageEventContent {
     /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
     #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
     pub relates_to: Option<Relation>,
+
+    /// New content of an edited message.
+    ///
+    /// This should onyl be set if `relates_to` is `Some(Relation::Replacement(_))`.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
+    pub new_content: Option<NewContent>,
 }
 
 impl TextMessageEventContent {
     /// A convenience constructor to create a plain text message.
     pub fn plain(body: impl Into<String>) -> Self {
-        Self { body: body.into(), formatted: None, relates_to: None }
+        Self {
+            body: body.into(),
+            formatted: None,
+            relates_to: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            new_content: None,
+        }
     }
 
     /// A convenience constructor to create an html message.
@@ -507,6 +533,23 @@ pub struct VideoInfo {
     /// Information on the encrypted thumbnail file.  Only present if the thumbnail is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_file: Option<Box<EncryptedFile>>,
+}
+
+/// New content of an edited message.
+#[cfg(feature = "unstable-pre-spec")]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NewContent {
+    /// The new body.
+    pub body: String,
+
+    /// The new formatted body.
+    #[serde(flatten)]
+    pub formatted: Option<FormattedBody>,
+
+    /// Information about related messages for
+    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
+    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
+    pub relates_to: Option<Relation>,
 }
 
 #[cfg(test)]
@@ -587,6 +630,8 @@ mod tests {
                 body: "Hello, <em>World</em>!".into(),
             }),
             relates_to: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            new_content: None,
         });
 
         assert_eq!(
@@ -623,6 +668,8 @@ mod tests {
             relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo { event_id: event_id!("$15827405538098VGFWH:example.com") },
             }),
+            #[cfg(feature = "unstable-pre-spec")]
+            new_content: None,
         });
 
         let json_data = json!({
@@ -640,14 +687,17 @@ mod tests {
 
     #[test]
     #[cfg(not(feature = "unstable-pre-spec"))]
-    fn edit_deserialization() {
+    fn edit_deserialization_061() {
         let json_data = json!({
-            "body": "test",
+            "body": "s/foo/bar",
             "msgtype": "m.text",
             "m.relates_to": {
                 "rel_type": "m.replace",
                 "event_id": event_id!("$1598361704261elfgc:localhost"),
-            }
+            },
+            "m.new_content": {
+                "body": "bar",
+            },
         });
 
         assert_matches!(
@@ -656,7 +706,43 @@ mod tests {
                 body,
                 formatted: None,
                 relates_to: Some(Relation::Custom(_)),
-            }) if body == "test"
+            }) if body == "s/foo/bar"
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-pre-spec")]
+    fn edit_deserialization_future() {
+        use super::NewContent;
+        use crate::room::relationships::Replacement;
+
+        let ev_id = event_id!("$1598361704261elfgc:localhost");
+        let json_data = json!({
+            "body": "s/foo/bar",
+            "msgtype": "m.text",
+            "m.relates_to": {
+                "rel_type": "m.replace",
+                "event_id": ev_id,
+            },
+            "m.new_content": {
+                "body": "bar",
+            },
+        });
+
+        assert_matches!(
+            from_json_value::<MessageEventContent>(json_data).unwrap(),
+            MessageEventContent::Text(TextMessageEventContent {
+                body,
+                formatted: None,
+                relates_to: Some(Relation::Replacement(Replacement { event_id })),
+                new_content: Some(NewContent {
+                    body: new_body,
+                    formatted: None,
+                    relates_to: None,
+                }),
+            }) if body == "s/foo/bar"
+                && event_id == ev_id
+                && new_body == "bar"
         );
     }
 

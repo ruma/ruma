@@ -141,6 +141,7 @@ fn message_event_sync_deserialization() {
                     body,
                     formatted: Some(formatted),
                     relates_to: None,
+                    ..
                 }),
                 ..
             })
@@ -180,6 +181,7 @@ fn message_room_event_deserialization() {
                     body,
                     formatted: Some(formatted),
                     relates_to: None,
+                    ..
                 }),
                 ..
             })
@@ -219,6 +221,7 @@ fn message_event_deserialization() {
                     body,
                     formatted: Some(formatted),
                     relates_to: None,
+                    ..
                 }),
                 ..
             })
