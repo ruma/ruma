@@ -299,6 +299,7 @@ pub struct LocationInfo {
 
 /// The payload for a notice message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct NoticeMessageEventContent {
     /// The notice text to send.
     pub body: String,
@@ -419,6 +420,7 @@ impl FormattedBody {
 
 /// The payload for a text message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct TextMessageEventContent {
     /// The body of the message.
     pub body: String,

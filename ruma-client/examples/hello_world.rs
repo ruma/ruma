@@ -3,10 +3,7 @@ use std::{convert::TryFrom, env, process::exit};
 use http::Uri;
 use ruma::{
     api::client::r0::{alias::get_alias, membership::join_room_by_id, message::send_message_event},
-    events::{
-        room::message::{MessageEventContent, TextMessageEventContent},
-        AnyMessageEventContent,
-    },
+    events::{room::message::MessageEventContent, AnyMessageEventContent},
     RoomAliasId,
 };
 use ruma_client::{self, Client};
@@ -21,13 +18,7 @@ async fn hello_world(homeserver_url: Uri, room_alias: &RoomAliasId) -> anyhow::R
         .request(send_message_event::Request::new(
             &room_id,
             "1",
-            &AnyMessageEventContent::RoomMessage(MessageEventContent::Text(
-                TextMessageEventContent {
-                    body: "Hello World!".to_owned(),
-                    formatted: None,
-                    relates_to: None,
-                },
-            )),
+            &AnyMessageEventContent::RoomMessage(MessageEventContent::text_plain("Hello World!")),
         ))
         .await?;
 
