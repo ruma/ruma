@@ -41,10 +41,8 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         ));
     };
 
-    let serialize_impl = expand_serialize_event(&input, &var, &fields, &import_path)?;
-
-    let deserialize_impl = expand_deserialize_event(&input, &var, &fields, &import_path)?;
-
+    let serialize_impl = expand_serialize_event(&input, &var, &fields, &import_path);
+    let deserialize_impl = expand_deserialize_event(&input, &var, &fields, &import_path);
     let conversion_impl = expand_from_into(&input, &kind, &var, &fields, &import_path);
 
     let eq_impl = expand_eq_ord_event(&input, &fields);
@@ -65,7 +63,7 @@ fn expand_serialize_event(
     var: &EventKindVariation,
     fields: &[Field],
     import_path: &TokenStream,
-) -> syn::Result<TokenStream> {
+) -> TokenStream {
     let ident = &input.ident;
     let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
     let serialize_fields = fields
@@ -109,7 +107,7 @@ fn expand_serialize_event(
         })
         .collect::<Vec<_>>();
 
-    Ok(quote! {
+    quote! {
         impl #impl_gen #import_path::exports::serde::ser::Serialize for #ident #ty_gen #where_clause {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -126,7 +124,7 @@ fn expand_serialize_event(
                 state.end()
             }
         }
-    })
+    }
 }
 
 fn expand_deserialize_event(
@@ -134,7 +132,7 @@ fn expand_deserialize_event(
     var: &EventKindVariation,
     fields: &[Field],
     import_path: &TokenStream,
-) -> syn::Result<TokenStream> {
+) -> TokenStream {
     let ident = &input.ident;
     // we know there is a content field already
     let content_type = fields
@@ -265,7 +263,7 @@ fn expand_deserialize_event(
         quote! {}
     };
 
-    Ok(quote! {
+    quote! {
         impl #deserialize_impl_gen #import_path::exports::serde::de::Deserialize<'de> for #ident #ty_gen #where_clause {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -344,7 +342,7 @@ fn expand_deserialize_event(
                 deserializer.deserialize_map(EventVisitor(#deserialize_phantom_type))
             }
         }
-    })
+    }
 }
 
 fn expand_from_into(

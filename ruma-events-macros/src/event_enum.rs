@@ -754,8 +754,7 @@ fn redacted_accessor_methods(
     variants: &[EventEnumVariant],
     import_path: &TokenStream,
 ) -> Option<TokenStream> {
-    // this will never fail as it is called in `expand_any_with_deser`.
-    let ident = kind.to_event_enum_ident(var).unwrap();
+    let ident = kind.to_event_enum_ident(var)?;
     let methods = EVENT_FIELDS.iter().map(|(name, has_field)| {
         generate_accessor(name, kind, var, *has_field, variants, import_path)
     });
