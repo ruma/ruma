@@ -2,6 +2,8 @@
 //!
 //! [push]: https://matrix.org/docs/spec/client_server/r0.6.1#id89
 
+use std::collections::BTreeSet;
+
 use ruma_common::StringEnum;
 use serde::{Deserialize, Serialize};
 
@@ -16,6 +18,34 @@ pub use self::{
     condition::{ComparisonOperator, PushCondition, RoomMemberCountIs},
 };
 
+macro_rules! ord_by_rule_id {
+    ($t:ty) => {
+        impl Ord for $t {
+            fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+                self.rule_id.cmp(&other.rule_id)
+            }
+        }
+
+        impl PartialOrd for $t {
+            fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+                Some(self.cmp(other))
+            }
+        }
+
+        impl PartialEq for $t {
+            fn eq(&self, other: &Self) -> bool {
+                self.rule_id == other.rule_id
+            }
+        }
+
+        impl Eq for $t {}
+    };
+}
+
+ord_by_rule_id!(PushRule);
+ord_by_rule_id!(ConditionalPushRule);
+ord_by_rule_id!(PatternedPushRule);
+
 /// A push ruleset scopes a set of rules according to some criteria.
 ///
 /// For example, some rules may only be applied for messages from a particular sender, a particular
@@ -24,24 +54,24 @@ pub use self::{
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Ruleset {
     /// These rules configure behavior for (unencrypted) messages that match certain patterns.
-    pub content: Vec<PatternedPushRule>,
+    pub content: BTreeSet<PatternedPushRule>,
 
     /// These user-configured rules are given the highest priority.
     ///
     /// This field is named `override_` instead of `override` because the latter is a reserved
     /// keyword in Rust.
     #[serde(rename = "override")]
-    pub override_: Vec<ConditionalPushRule>,
+    pub override_: BTreeSet<ConditionalPushRule>,
 
     /// These rules change the behavior of all messages for a given room.
-    pub room: Vec<PushRule>,
+    pub room: BTreeSet<PushRule>,
 
     /// These rules configure notification behavior for messages from a specific Matrix user ID.
-    pub sender: Vec<PushRule>,
+    pub sender: BTreeSet<PushRule>,
 
     /// These rules are identical to override rules, but have a lower priority than `content`,
     /// `room` and `sender` rules.
-    pub underride: Vec<ConditionalPushRule>,
+    pub underride: BTreeSet<ConditionalPushRule>,
 }
 
 impl Ruleset {

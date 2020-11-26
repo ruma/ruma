@@ -8,6 +8,21 @@ use super::{
 
 use ruma_identifiers::UserId;
 
+macro_rules! set {
+    ($( $elt:expr ),*) => {
+        {
+            use std::collections::BTreeSet;
+
+            let mut s = BTreeSet::new();
+            $( s.insert( $elt ); )*
+            s
+        }
+    };
+    ($( $elt:expr ),* ,) => {
+        set![ $( $elt ),* ]
+    };
+}
+
 impl Ruleset {
     /// The list of all [predefined push rules].
     ///
@@ -19,8 +34,8 @@ impl Ruleset {
     ///   user's ID (for instance those to send notifications when they are mentioned).
     pub fn server_default(user_id: &UserId) -> Self {
         Self {
-            content: vec![PatternedPushRule::contains_user_name(user_id)],
-            override_: vec![
+            content: set![PatternedPushRule::contains_user_name(user_id)],
+            override_: set![
                 ConditionalPushRule::master(),
                 ConditionalPushRule::suppress_notices(),
                 ConditionalPushRule::invite_for_me(user_id),
@@ -29,7 +44,7 @@ impl Ruleset {
                 ConditionalPushRule::tombstone(),
                 ConditionalPushRule::roomnotif(),
             ],
-            underride: vec![
+            underride: set![
                 ConditionalPushRule::call(),
                 ConditionalPushRule::encrypted_room_one_to_one(),
                 ConditionalPushRule::room_one_to_one(),
