@@ -301,7 +301,7 @@ pub struct LocationInfo {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct NoticeMessageEventContent {
-    /// The notice text to send.
+    /// The notice text.
     pub body: String,
 
     /// Formatted form of the message `body`.
@@ -318,7 +318,7 @@ pub struct NoticeMessageEventContent {
     /// This should onyl be set if `relates_to` is `Some(Relation::Replacement(_))`.
     #[cfg(feature = "unstable-pre-spec")]
     #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
-    pub new_content: Option<NewContent>,
+    pub new_content: Option<Box<MessageEventContent>>,
 }
 
 impl NoticeMessageEventContent {
@@ -448,7 +448,7 @@ pub struct TextMessageEventContent {
     /// This should onyl be set if `relates_to` is `Some(Relation::Replacement(_))`.
     #[cfg(feature = "unstable-pre-spec")]
     #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
-    pub new_content: Option<NewContent>,
+    pub new_content: Option<Box<MessageEventContent>>,
 }
 
 impl TextMessageEventContent {
@@ -533,23 +533,6 @@ pub struct VideoInfo {
     /// Information on the encrypted thumbnail file.  Only present if the thumbnail is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_file: Option<Box<EncryptedFile>>,
-}
-
-/// New content of an edited message.
-#[cfg(feature = "unstable-pre-spec")]
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct NewContent {
-    /// The new body.
-    pub body: String,
-
-    /// The new formatted body.
-    #[serde(flatten)]
-    pub formatted: Option<FormattedBody>,
-
-    /// Information about related messages for
-    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
-    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
-    pub relates_to: Option<Relation>,
 }
 
 #[cfg(test)]
@@ -713,7 +696,6 @@ mod tests {
     #[test]
     #[cfg(feature = "unstable-pre-spec")]
     fn edit_deserialization_future() {
-        use super::NewContent;
         use crate::room::relationships::Replacement;
 
         let ev_id = event_id!("$1598361704261elfgc:localhost");
@@ -726,6 +708,7 @@ mod tests {
             },
             "m.new_content": {
                 "body": "bar",
+                "msgtype": "m.text",
             },
         });
 
@@ -735,14 +718,18 @@ mod tests {
                 body,
                 formatted: None,
                 relates_to: Some(Relation::Replacement(Replacement { event_id })),
-                new_content: Some(NewContent {
-                    body: new_body,
-                    formatted: None,
-                    relates_to: None,
-                }),
+                new_content: Some(new_content),
             }) if body == "s/foo/bar"
                 && event_id == ev_id
-                && new_body == "bar"
+                && matches!(
+                    &*new_content,
+                    MessageEventContent::Text(TextMessageEventContent {
+                        body,
+                        formatted: None,
+                        relates_to: None,
+                        new_content: None,
+                    }) if body == "bar"
+                )
         );
     }
 
