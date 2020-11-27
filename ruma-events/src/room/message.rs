@@ -246,8 +246,9 @@ pub struct FileInfo {
 /// The payload for an image message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ImageMessageEventContent {
-    /// A textual representation of the image. This could be the alt text of the image, the filename
-    /// of the image, or some kind of content description for accessibility e.g. "image attachment."
+    /// A textual representation of the image. This could be the alt text of the image, the
+    /// filename of the image, or some kind of content description for accessibility e.g.
+    /// "image attachment."
     pub body: String,
 
     /// Metadata about the image referred to in `url`.
@@ -267,8 +268,8 @@ pub struct ImageMessageEventContent {
 /// The payload for a location message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct LocationMessageEventContent {
-    /// A description of the location e.g. "Big Ben, London, UK,"or some kind of content description
-    /// for accessibility, e.g. "location attachment."
+    /// A description of the location e.g. "Big Ben, London, UK,"or some kind of content
+    /// description for accessibility, e.g. "location attachment."
     pub body: String,
 
     /// A geo URI representing the location.
@@ -291,8 +292,8 @@ pub struct LocationInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_url: Option<String>,
 
-    /// Information on an encrypted thumbnail of the location being represented. Only present if the
-    /// thumbnail is encrypted.
+    /// Information on an encrypted thumbnail of the location being represented. Only present if
+    /// the thumbnail is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_file: Option<Box<EncryptedFile>>,
 }

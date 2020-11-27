@@ -27,26 +27,25 @@
 //! Matrix defines three "kinds" of events:
 //!
 //! 1.  **Events**, which are arbitrary JSON structures that have two required keys:
-//!     *   `type`, which specifies the event's type
-//!     *   `content`, which is a JSON object containing the "payload" of the event
+//!     * `type`, which specifies the event's type
+//!     * `content`, which is a JSON object containing the "payload" of the event
 //! 2.  **Room events**, which are a superset of events and represent actions that occurred within
 //!     the context of a Matrix room.
 //!     They have at least the following additional keys:
-//!     *   `event_id`, which is a unique identifier for the event
-//!     *   `room_id`, which is a unique identifier for the room in which the event occurred
-//!     *   `sender`, which is the unique identifier of the Matrix user who created the event
-//!     *   Optionally, `unsigned`, which is a JSON object containing arbitrary additional metadata
+//!     * `event_id`, which is a unique identifier for the event
+//!     * `room_id`, which is a unique identifier for the room in which the event occurred
+//!     * `sender`, which is the unique identifier of the Matrix user who created the event
+//!     * Optionally, `unsigned`, which is a JSON object containing arbitrary additional metadata
 //!     that is not digitally signed by Matrix homeservers.
 //! 3.  **State events**, which are a superset of room events and represent persistent state
 //!     specific to a room, such as the room's member list or topic.
 //!     Within a single room, state events of the same type and with the same "state key" will
 //!     effectively "replace" the previous one, updating the room's state.
 //!     They have at least the following additional keys:
-//!     *   `state_key`, a string which serves as a sort of "sub-type."
-//!         The state key allows a room to persist multiple state events of the same type.
-//!         You can think of a room's state events as being a `BTreeMap` where the keys are the
-//!         tuple `(event_type, state_key)`.
-//!     *   Optionally, `prev_content`, a JSON object containing the `content` object from the
+//!     * `state_key`, a string which serves as a sort of "sub-type." The state key allows a room to
+//!       persist multiple state events of the same type. You can think of a room's state events as
+//!       being a `BTreeMap` where the keys are the tuple `(event_type, state_key)`.
+//!     * Optionally, `prev_content`, a JSON object containing the `content` object from the
 //!     previous event of the given `(event_type, state_key)` tuple in the given room.
 //!
 //! ruma-events represents these three event kinds as traits, allowing any Rust type to serve as a

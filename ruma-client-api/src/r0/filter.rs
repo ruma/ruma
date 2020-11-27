@@ -66,8 +66,8 @@ pub struct RoomEventFilter<'a> {
 
     /// A list of sender IDs to exclude.
     ///
-    /// If this list is absent then no senders are excluded. A matching sender will be excluded even
-    /// if it is listed in the 'senders' filter.
+    /// If this list is absent then no senders are excluded. A matching sender will be excluded
+    /// even if it is listed in the 'senders' filter.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub not_senders: &'a [UserId],
 
@@ -79,8 +79,8 @@ pub struct RoomEventFilter<'a> {
 
     /// A list of event types to include.
     ///
-    /// If this list is absent then all event types are included. A '*' can be used as a wildcard to
-    /// match any sequence of characters.
+    /// If this list is absent then all event types are included. A '*' can be used as a wildcard
+    /// to match any sequence of characters.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub types: Option<&'a [String]>,
 
@@ -248,15 +248,15 @@ pub struct Filter<'a> {
 
     /// A list of event types to include.
     ///
-    /// If this list is absent then all event types are included. A '*' can be used as a wildcard to
-    /// match any sequence of characters.
+    /// If this list is absent then all event types are included. A '*' can be used as a wildcard
+    /// to match any sequence of characters.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub types: Option<&'a [String]>,
 
     /// A list of sender IDs to exclude.
     ///
-    /// If this list is absent then no senders are excluded. A matching sender will be excluded even
-    /// if it is listed in the 'senders' filter.
+    /// If this list is absent then no senders are excluded. A matching sender will be excluded
+    /// even if it is listed in the 'senders' filter.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub not_senders: &'a [UserId],
 }

@@ -16,8 +16,8 @@ pub enum PushCondition {
 
         /// The glob-style pattern to match against.
         ///
-        /// Patterns with no special glob characters should be treated as having asterisks prepended
-        /// and appended when testing the condition.
+        /// Patterns with no special glob characters should be treated as having asterisks
+        /// prepended and appended when testing the condition.
         pattern: String,
     },
 

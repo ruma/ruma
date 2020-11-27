@@ -79,13 +79,13 @@ where
 
 /// A deserializer for the `application/x-www-form-urlencoded` format.
 ///
-/// * Supported top-level outputs are structs, maps and sequences of pairs,
-///   with or without a given length.
+/// * Supported top-level outputs are structs, maps and sequences of pairs, with or without a given
+///   length.
 ///
 /// * Main `deserialize` methods defers to `deserialize_map`.
 ///
-/// * Everything else but `deserialize_seq` and `deserialize_seq_fixed_size`
-///   defers to `deserialize`.
+/// * Everything else but `deserialize_seq` and `deserialize_seq_fixed_size` defers to
+///   `deserialize`.
 pub struct Deserializer<'de> {
     inner: MapDeserializer<'de, EntryIterator<'de>, Error>,
 }

@@ -125,8 +125,8 @@ impl Response {
 pub enum Filter<'a> {
     // The filter definition needs to be (de)serialized twice because it is a URL-encoded JSON
     // string. Since #[ruma_api(query)] only does the latter and this is a very uncommon
-    // setup, we implement it through custom serde logic for this specific enum variant rather than
-    // adding another ruma_api attribute.
+    // setup, we implement it through custom serde logic for this specific enum variant rather
+    // than adding another ruma_api attribute.
     //
     // On the deserialization side, because this is an enum with #[serde(untagged)], serde will
     // try the variants in order (https://serde.rs/enum-representations.html). That means because

@@ -34,9 +34,9 @@ impl Ed25519KeyPair {
     /// # Parameters
     ///
     /// * document: PKCS8-formatted bytes containing the private & public keys.
-    /// * version: The "version" of the key used for this signature.
-    ///   Versions are used as an identifier to distinguish signatures generated from different keys
-    ///   but using the same algorithm on the same homeserver.
+    /// * version: The "version" of the key used for this signature. Versions are used as an
+    ///   identifier to distinguish signatures generated from different keys but using the same
+    ///   algorithm on the same homeserver.
     ///
     /// # Errors
     ///

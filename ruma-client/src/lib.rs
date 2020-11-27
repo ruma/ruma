@@ -23,8 +23,8 @@
 //! ```
 //!
 //! You can also pass an existing session to the `Client` constructor to restore a previous session
-//! rather than calling `log_in`. This can also be used to create a session for an application service
-//! that does not need to log in, but uses the access_token directly:
+//! rather than calling `log_in`. This can also be used to create a session for an application
+//! service that does not need to log in, but uses the access_token directly:
 //!
 //! ```no_run
 //! use ruma_client::{Client, Session};

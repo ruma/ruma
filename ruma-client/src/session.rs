@@ -12,8 +12,8 @@ pub struct Session {
     pub identification: Option<Identification>,
 }
 
-/// The identification information about the associated user account if the session is associated with
-/// a single user account.
+/// The identification information about the associated user account if the session is associated
+/// with a single user account.
 #[derive(Clone, Debug, serde::Deserialize, Eq, Hash, PartialEq, serde::Serialize)]
 pub struct Identification {
     /// The user the access token was issued for.

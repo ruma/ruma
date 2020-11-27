@@ -23,8 +23,8 @@ pub enum ErrorKind {
 
     /// M_UNKNOWN_TOKEN
     UnknownToken {
-        /// If this is `true`, the client can acquire a new access token by specifying the device ID
-        /// it is already using to the login API. For more information, see [the spec].
+        /// If this is `true`, the client can acquire a new access token by specifying the device
+        /// ID it is already using to the login API. For more information, see [the spec].
         ///
         /// [the spec]: https://matrix.org/docs/spec/client_server/r0.6.1#soft-logout
         soft_logout: bool,

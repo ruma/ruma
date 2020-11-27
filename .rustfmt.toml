@@ -1,4 +1,6 @@
+comment_width = 100
 edition = "2018"
 merge_imports = true
 newline_style = "Unix"
 use_small_heuristics = "Max"
+wrap_comments = true

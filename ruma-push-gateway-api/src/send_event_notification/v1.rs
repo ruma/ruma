@@ -273,7 +273,8 @@ mod tweak_serde {
                 };
             }
 
-            // If no highlight tweak is given at all then the value of highlight is defined to be false.
+            // If no highlight tweak is given at all then the value of highlight is defined to be
+            // false.
             if !tweaks.iter().any(|tw| matches!(tw, Tweak::Highlight(_))) {
                 tweaks.push(Tweak::Highlight(false));
             }

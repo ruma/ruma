@@ -32,11 +32,11 @@ pub fn to_string<T: ser::Serialize>(input: T) -> Result<String, Error> {
 
 /// A serializer for the `application/x-www-form-urlencoded` format.
 ///
-/// * Supported top-level inputs are structs, maps and sequences of pairs,
-///   with or without a given length.
+/// * Supported top-level inputs are structs, maps and sequences of pairs, with or without a given
+///   length.
 ///
-/// * Supported keys and values are integers, bytes (if convertible to strings),
-///   unit structs and unit variants.
+/// * Supported keys and values are integers, bytes (if convertible to strings), unit structs and
+///   unit variants.
 ///
 /// * Newtype structs defer to their inner values.
 pub struct Serializer<'input, 'output, Target: 'output + UrlEncodedTarget> {

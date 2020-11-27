@@ -26,7 +26,7 @@ pub struct MacEventContent {
     /// The MAC is encoded as unpadded Base64.
     pub mac: BTreeMap<String, String>,
 
-    /// The MAC of the comma-separated, sorted, list of key IDs given in the `mac` property, encoded
-    /// as unpadded Base64.
+    /// The MAC of the comma-separated, sorted, list of key IDs given in the `mac` property,
+    /// encoded as unpadded Base64.
     pub keys: String,
 }
