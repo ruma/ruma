@@ -151,8 +151,10 @@ pub fn has_lifetime(ty: &Type) -> bool {
 pub(crate) fn request_path_string_and_parse(
     request: &Request,
     metadata: &Metadata,
-    import_path: &TokenStream,
+    ruma_api: &TokenStream,
 ) -> (TokenStream, TokenStream) {
+    let percent_encoding = quote! { #ruma_api::exports::percent_encoding };
+
     if request.has_path_fields() {
         let path_string = metadata.path.value();
 
@@ -180,9 +182,9 @@ pub(crate) fn request_path_string_and_parse(
                     Span::call_site(),
                 );
                 format_args.push(quote! {
-                    #import_path::exports::percent_encoding::utf8_percent_encode(
+                    #percent_encoding::utf8_percent_encode(
                         &self.#path_var.to_string(),
-                        #import_path::exports::percent_encoding::NON_ALPHANUMERIC,
+                        #percent_encoding::NON_ALPHANUMERIC,
                     )
                 });
                 format_string.replace_range(start_of_segment..end_of_segment, "{}");
@@ -200,16 +202,16 @@ pub(crate) fn request_path_string_and_parse(
                     let path_var_ident = Ident::new(path_var, Span::call_site());
                     quote! {
                         #path_var_ident: {
-                            use #import_path::error::RequestDeserializationError;
+                            use #ruma_api::error::RequestDeserializationError;
 
                             let segment = path_segments.get(#i).unwrap().as_bytes();
-                            let decoded = #import_path::try_deserialize!(
+                            let decoded = #ruma_api::try_deserialize!(
                                 request,
-                                #import_path::exports::percent_encoding::percent_decode(segment)
+                                #percent_encoding::percent_decode(segment)
                                     .decode_utf8(),
                             );
 
-                            #import_path::try_deserialize!(
+                            #ruma_api::try_deserialize!(
                                 request,
                                 ::std::convert::TryFrom::try_from(&*decoded),
                             )
@@ -226,7 +228,9 @@ pub(crate) fn request_path_string_and_parse(
 
 /// The function determines the type of query string that needs to be built
 /// and then builds it using `ruma_serde::urlencoded::to_string`.
-pub(crate) fn build_query_string(request: &Request, import_path: &TokenStream) -> TokenStream {
+pub(crate) fn build_query_string(request: &Request, ruma_api: &TokenStream) -> TokenStream {
+    let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
+
     if let Some(field) = request.query_map_field() {
         let field_name = field.ident.as_ref().expect("expected field to have identifier");
 
@@ -251,7 +255,7 @@ pub(crate) fn build_query_string(request: &Request, import_path: &TokenStream) -
 
             format_args!(
                 "?{}",
-                #import_path::exports::ruma_serde::urlencoded::to_string(request_query)?
+                #ruma_serde::urlencoded::to_string(request_query)?
             )
         })
     } else if request.has_query_fields() {
@@ -264,7 +268,7 @@ pub(crate) fn build_query_string(request: &Request, import_path: &TokenStream) -
 
             format_args!(
                 "?{}",
-                #import_path::exports::ruma_serde::urlencoded::to_string(request_query)?
+                #ruma_serde::urlencoded::to_string(request_query)?
             )
         })
     } else {
@@ -273,12 +277,15 @@ pub(crate) fn build_query_string(request: &Request, import_path: &TokenStream) -
 }
 
 /// Deserialize the query string.
-pub(crate) fn extract_request_query(request: &Request, import_path: &TokenStream) -> TokenStream {
+pub(crate) fn extract_request_query(request: &Request, ruma_api: &TokenStream) -> TokenStream {
+    let ruma_common = quote! { #ruma_api::exports::ruma_common };
+    let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
+
     if request.query_map_field().is_some() {
         quote! {
-            let request_query = #import_path::try_deserialize!(
+            let request_query = #ruma_api::try_deserialize!(
                 request,
-                #import_path::exports::ruma_serde::urlencoded::from_str(
+                #ruma_serde::urlencoded::from_str(
                     &request.uri().query().unwrap_or("")
                 ),
             );
@@ -287,11 +294,11 @@ pub(crate) fn extract_request_query(request: &Request, import_path: &TokenStream
         quote! {
             let request_query: <
                 RequestQuery
-                as #import_path::exports::ruma_common::Outgoing
+                as #ruma_common::Outgoing
             >::Incoming =
-                #import_path::try_deserialize!(
+                #ruma_api::try_deserialize!(
                     request,
-                    #import_path::exports::ruma_serde::urlencoded::from_str(
+                    #ruma_serde::urlencoded::from_str(
                         &request.uri().query().unwrap_or("")
                     ),
                 );
@@ -304,7 +311,9 @@ pub(crate) fn extract_request_query(request: &Request, import_path: &TokenStream
 /// Generates the code to initialize a `Request`.
 ///
 /// Used to construct an `http::Request`s body.
-pub(crate) fn build_request_body(request: &Request, import_path: &TokenStream) -> TokenStream {
+pub(crate) fn build_request_body(request: &Request, ruma_api: &TokenStream) -> TokenStream {
+    let serde_json = quote! { #ruma_api::exports::serde_json };
+
     if let Some(field) = request.newtype_raw_body_field() {
         let field_name = field.ident.as_ref().expect("expected field to have an identifier");
         quote!(self.#field_name)
@@ -320,7 +329,7 @@ pub(crate) fn build_request_body(request: &Request, import_path: &TokenStream) -
         quote! {
             {
                 let request_body = RequestBody #request_body_initializers;
-                #import_path::exports::serde_json::to_vec(&request_body)?
+                #serde_json::to_vec(&request_body)?
             }
         }
     } else {

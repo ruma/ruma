@@ -39,14 +39,14 @@ pub struct Api {
 
 impl Parse for Api {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let import_path = util::import_ruma_api();
+        let ruma_api = util::import_ruma_api();
 
         let metadata: Metadata = input.parse()?;
         let request: Request = input.parse()?;
         let response: Response = input.parse()?;
         let error_ty = match input.parse::<ErrorType>() {
             Ok(err) => err.ty.to_token_stream(),
-            Err(_) => quote! { #import_path::error::Void },
+            Err(_) => quote! { #ruma_api::error::Void },
         };
 
         let newtype_body_field = request.newtype_body_field();
@@ -263,16 +263,22 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         #[doc = #response_doc]
         #response_type
 
-        impl ::std::convert::TryFrom<Response> for #ruma_api_import::exports::http::Response<Vec<u8>> {
+        impl ::std::convert::TryFrom<Response>
+            for #ruma_api_import::exports::http::Response<Vec<u8>>
+        {
             type Error = #ruma_api_import::error::IntoHttpError;
 
             #[allow(unused_variables)]
             fn try_from(response: Response) -> ::std::result::Result<Self, Self::Error> {
                 let mut resp_builder = #ruma_api_import::exports::http::Response::builder()
-                    .header(#ruma_api_import::exports::http::header::CONTENT_TYPE, "application/json");
+                    .header(
+                        #ruma_api_import::exports::http::header::CONTENT_TYPE,
+                        "application/json",
+                    );
 
-                let mut headers =
-                    resp_builder.headers_mut().expect("`http::ResponseBuilder` is in unusable state");
+                let mut headers = resp_builder
+                    .headers_mut()
+                    .expect("`http::ResponseBuilder` is in unusable state");
                 #serialize_response_headers
 
                 // This cannot fail because we parse each header value
@@ -283,7 +289,9 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             }
         }
 
-        impl ::std::convert::TryFrom<#ruma_api_import::exports::http::Response<Vec<u8>>> for Response {
+        impl ::std::convert::TryFrom<#ruma_api_import::exports::http::Response<Vec<u8>>>
+            for Response
+        {
             type Error = #ruma_api_import::error::FromHttpResponseError<#error>;
 
             #[allow(unused_variables)]
