@@ -1,6 +1,38 @@
 //! Common types for the [push notifications module][push]
 //!
 //! [push]: https://matrix.org/docs/spec/client_server/r0.6.1#id89
+//!
+//! ## Understanding the types of this module
+//!
+//! Push rules are grouped in `RuleSet`s, and are grouped in five kinds (for
+//! more details about the different kind of rules, see the `Ruleset` documentation,
+//! or the specification). These five kinds are:
+//!
+//! - content rules
+//! - override rules
+//! - underride rules
+//! - room rules
+//! - sender rules
+//!
+//! Each of these kind of rule has a corresponding type, that is
+//! just a wrapper arround another type:
+//!
+//! - `PushRule` for room and sender rules
+//! - `ConditionalPushRule` for override and underride rules: push rules that may depend on a
+//!   condition
+//! - `PatternedPushRules` for content rules, that can filter events based on a pattern to trigger
+//!   the rule or not
+//!
+//! Having these wrapper types allows to tell at the type level what kind of rule you are
+//! handling, and makes sure the `Ruleset::add` method adds your rule to the correct field
+//! of `Ruleset`, and that rules that are not of the same kind are never mixed even if they share
+//! the same representation.
+//!
+//! It is still possible to write code that is generic over a representation by manipulating
+//! `PushRule`, `ConditonalPushRule` or `PatternedPushRule` directly, instead of the wrappers.
+//!
+//! There is also the `AnyPushRule` type that is the most generic form of push rule, with all
+//! the possible fields.
 
 use std::collections::BTreeSet;
 
@@ -18,34 +50,6 @@ pub use self::{
     condition::{ComparisonOperator, PushCondition, RoomMemberCountIs},
 };
 
-macro_rules! ord_by_rule_id {
-    ($t:ty) => {
-        impl Ord for $t {
-            fn cmp(&self, other: &Self) -> core::cmp::Ordering {
-                self.rule_id.cmp(&other.rule_id)
-            }
-        }
-
-        impl PartialOrd for $t {
-            fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
-                Some(self.cmp(other))
-            }
-        }
-
-        impl PartialEq for $t {
-            fn eq(&self, other: &Self) -> bool {
-                self.rule_id == other.rule_id
-            }
-        }
-
-        impl Eq for $t {}
-    };
-}
-
-ord_by_rule_id!(PushRule);
-ord_by_rule_id!(ConditionalPushRule);
-ord_by_rule_id!(PatternedPushRule);
-
 /// A push ruleset scopes a set of rules according to some criteria.
 ///
 /// For example, some rules may only be applied for messages from a particular sender, a particular
@@ -54,30 +58,39 @@ ord_by_rule_id!(PatternedPushRule);
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Ruleset {
     /// These rules configure behavior for (unencrypted) messages that match certain patterns.
-    pub content: BTreeSet<PatternedPushRule>,
+    pub content: BTreeSet<ContentPushRule>,
 
     /// These user-configured rules are given the highest priority.
     ///
     /// This field is named `override_` instead of `override` because the latter is a reserved
     /// keyword in Rust.
     #[serde(rename = "override")]
-    pub override_: BTreeSet<ConditionalPushRule>,
+    pub override_: BTreeSet<OverridePushRule>,
 
     /// These rules change the behavior of all messages for a given room.
-    pub room: BTreeSet<PushRule>,
+    pub room: BTreeSet<RoomPushRule>,
 
     /// These rules configure notification behavior for messages from a specific Matrix user ID.
-    pub sender: BTreeSet<PushRule>,
+    pub sender: BTreeSet<SenderPushRule>,
 
     /// These rules are identical to override rules, but have a lower priority than `content`,
     /// `room` and `sender` rules.
-    pub underride: BTreeSet<ConditionalPushRule>,
+    pub underride: BTreeSet<UnderridePushRule>,
 }
 
 impl Ruleset {
     /// Creates an empty `Ruleset`.
     pub fn new() -> Self {
         Default::default()
+    }
+
+    /// Adds a rule to the rule set.
+    ///
+    /// Returns `true` if the new rule was correctly added, and `false`
+    /// if a rule with the same `rule_id` is already present for this kind
+    /// of rule.
+    pub fn add<R: RulesetMember>(&mut self, rule: R) -> bool {
+        rule.add_to(self)
     }
 }
 
@@ -86,14 +99,75 @@ impl IntoIterator for Ruleset {
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.content.into_iter().map(Into::into)
-            .chain(self.override_.into_iter().map(Into::into))
-            .chain(self.room.into_iter().map(Into::into))
-            .chain(self.sender.into_iter().map(Into::into))
-            .chain(self.underride.into_iter().map(Into::into))
-            .collect::<Vec<_>>().into_iter()
+        self.content
+            .into_iter()
+            .map(|x| x.0.into())
+            .chain(self.override_.into_iter().map(|x| x.0.into()))
+            .chain(self.room.into_iter().map(|x| x.0.into()))
+            .chain(self.sender.into_iter().map(|x| x.0.into()))
+            .chain(self.underride.into_iter().map(|x| x.0.into()))
+            .collect::<Vec<_>>()
+            .into_iter()
     }
 }
+
+/// A trait for types that can be added in a Ruleset
+pub trait RulesetMember {
+    /// Adds a value in the correct field of a Ruleset.
+    fn add_to(self, ruleset: &mut Ruleset) -> bool;
+}
+
+/// Creates a new wrapper type around a PushRule type
+/// to make it possible to tell what kind of rule it is
+/// even if the inner type is the same.
+///
+/// For instance, override and underride rules are both
+/// represented as `ConditionalPushRule`s, so it is impossible
+/// to tell if a rule is an override or an underride rule when
+/// all you have is a `ConditionalPushRule`. With these wrapper types
+/// it becomes possible.
+macro_rules! rulekind {
+    ($name:ident, $inner:ty, $field:ident) => {
+        #[derive(Clone, Debug, Serialize, Deserialize)]
+        #[doc = "Wrapper type to disambiguate the kind of the wrapped rule"]
+        pub struct $name(pub $inner);
+
+        impl RulesetMember for $name {
+            fn add_to(self, ruleset: &mut Ruleset) -> bool {
+                ruleset.$field.insert(self)
+            }
+        }
+
+        // The following trait are needed to be able to make
+        // a BTreeSet of the new type
+
+        impl Ord for $name {
+            fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+                self.0.rule_id.cmp(&other.0.rule_id)
+            }
+        }
+
+        impl PartialOrd for $name {
+            fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+                Some(self.cmp(other))
+            }
+        }
+
+        impl PartialEq for $name {
+            fn eq(&self, other: &Self) -> bool {
+                self.0.rule_id == other.0.rule_id
+            }
+        }
+
+        impl Eq for $name {}
+    };
+}
+
+rulekind!(OverridePushRule, ConditionalPushRule, override_);
+rulekind!(UnderridePushRule, ConditionalPushRule, underride);
+rulekind!(RoomPushRule, PushRule, room);
+rulekind!(SenderPushRule, PushRule, sender);
+rulekind!(ContentPushRule, PatternedPushRule, content);
 
 /// A push rule is a single rule that states under what conditions an event should be passed onto a
 /// push gateway and how the notification should be presented.
