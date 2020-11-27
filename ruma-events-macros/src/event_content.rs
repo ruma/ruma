@@ -238,7 +238,7 @@ pub fn expand_basic_event_content(
     Ok(quote! {
         #event_content_impl
 
-        impl #ruma_events::BasicEventContent for #ident { }
+        impl #ruma_events::BasicEventContent for #ident {}
     })
 }
 
@@ -253,7 +253,7 @@ pub fn expand_ephemeral_room_event_content(
     Ok(quote! {
         #event_content_impl
 
-        impl #ruma_events::EphemeralRoomEventContent for #ident { }
+        impl #ruma_events::EphemeralRoomEventContent for #ident {}
     })
 }
 
@@ -268,7 +268,7 @@ pub fn expand_room_event_content(
     Ok(quote! {
         #event_content_impl
 
-        impl #ruma_events::RoomEventContent for #ident { }
+        impl #ruma_events::RoomEventContent for #ident {}
     })
 }
 
@@ -283,7 +283,7 @@ pub fn expand_message_event_content(
     let redacted_marker_trait = if needs_redacted_from_input(input) {
         let ident = format_ident!("Redacted{}", &ident);
         quote! {
-            impl #ruma_events::RedactedMessageEventContent for #ident { }
+            impl #ruma_events::RedactedMessageEventContent for #ident {}
         }
     } else {
         TokenStream::new()
@@ -292,7 +292,7 @@ pub fn expand_message_event_content(
     Ok(quote! {
         #room_ev_content
 
-        impl #ruma_events::MessageEventContent for #ident { }
+        impl #ruma_events::MessageEventContent for #ident {}
 
         #redacted_marker_trait
     })
@@ -309,7 +309,7 @@ pub fn expand_state_event_content(
     let redacted_marker_trait = if needs_redacted_from_input(input) {
         let ident = format_ident!("Redacted{}", input.ident);
         quote! {
-            impl #ruma_events::RedactedStateEventContent for #ident { }
+            impl #ruma_events::RedactedStateEventContent for #ident {}
         }
     } else {
         TokenStream::new()
@@ -318,7 +318,7 @@ pub fn expand_state_event_content(
     Ok(quote! {
         #room_ev_content
 
-        impl #ruma_events::StateEventContent for #ident { }
+        impl #ruma_events::StateEventContent for #ident {}
 
         #redacted_marker_trait
     })

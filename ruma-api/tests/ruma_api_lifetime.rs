@@ -156,6 +156,6 @@ mod query_fields {
             pub server: Option<&'a str>,
         }
 
-        response: { }
+        response: {}
     }
 }

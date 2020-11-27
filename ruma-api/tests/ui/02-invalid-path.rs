@@ -15,7 +15,7 @@ ruma_api! {
         pub fields: Vec<(String, String)>,
     }
 
-    response: { }
+    response: {}
 }
 
 ruma_api! {
@@ -33,7 +33,7 @@ ruma_api! {
         pub fields: Vec<(String, String)>,
     }
 
-    response: { }
+    response: {}
 }
 
 fn main() {}
