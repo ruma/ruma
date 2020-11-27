@@ -1,18 +1,27 @@
 //! Details of the `response` section of the procedural macro.
 
-use std::{convert::TryFrom, mem};
+use std::mem;
 
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{spanned::Spanned, Attribute, Field, Ident};
+use syn::{
+    braced,
+    parse::{Parse, ParseStream},
+    spanned::Spanned,
+    Attribute, Field, Ident, Token,
+};
 
 use crate::{
     api::{
         attribute::{Meta, MetaNameValue},
-        strip_serde_attrs, RawResponse,
+        strip_serde_attrs,
     },
     util,
 };
+
+mod kw {
+    syn::custom_keyword!(response);
+}
 
 /// The result of processing the `response` section of the macro.
 pub struct Response {
@@ -202,14 +211,32 @@ impl Response {
     }
 }
 
-impl TryFrom<RawResponse> for Response {
-    type Error = syn::Error;
+impl Parse for Response {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let attributes = input.call(Attribute::parse_outer)?;
+        let response_kw = input.parse::<kw::response>()?;
+        input.parse::<Token![:]>()?;
+        let fields;
+        braced!(fields in input);
 
-    fn try_from(raw: RawResponse) -> syn::Result<Self> {
+        let fields = fields
+            .parse_terminated::<Field, Token![,]>(Field::parse_named)?
+            .into_iter()
+            .map(|f| {
+                if util::has_lifetime(&f.ty) {
+                    Err(syn::Error::new(
+                        f.ident.span(),
+                        "Lifetimes on Response fields cannot be supported until GAT are stable",
+                    ))
+                } else {
+                    Ok(f)
+                }
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
         let mut newtype_body_field = None;
 
-        let fields = raw
-            .fields
+        let fields = fields
             .into_iter()
             .map(|mut field| {
                 let mut field_kind = None;
@@ -270,12 +297,12 @@ impl TryFrom<RawResponse> for Response {
         if newtype_body_field.is_some() && fields.iter().any(|f| f.is_body()) {
             // TODO: highlight conflicting fields,
             return Err(syn::Error::new_spanned(
-                raw.response_kw,
+                response_kw,
                 "Can't have both a newtype body field and regular body fields",
             ));
         }
 
-        Ok(Self { attributes: raw.attributes, fields, ruma_api_import: util::import_ruma_api() })
+        Ok(Self { attributes, fields, ruma_api_import: util::import_ruma_api() })
     }
 }
 

@@ -1,14 +1,12 @@
 //! Details of the `ruma_api` procedural macro.
 
-use std::convert::{TryFrom, TryInto as _};
+use std::convert::TryFrom;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
-    braced,
     parse::{Parse, ParseStream},
-    spanned::Spanned,
-    Attribute, Field, Token, Type,
+    Field, Token, Type,
 };
 
 pub(crate) mod attribute;
@@ -50,7 +48,7 @@ impl TryFrom<RawApi> for Api {
         let res = Self {
             metadata: raw_api.metadata,
             request: raw_api.request,
-            response: raw_api.response.try_into()?,
+            response: raw_api.response,
             error: match raw_api.error {
                 Some(raw_err) => raw_err.ty.to_token_stream(),
                 None => quote! { #import_path::error::Void },
@@ -399,7 +397,6 @@ impl ToTokens for Api {
 mod kw {
     use syn::custom_keyword;
 
-    custom_keyword!(response);
     custom_keyword!(error);
 }
 
@@ -412,7 +409,7 @@ pub struct RawApi {
     pub request: Request,
 
     /// The `response` section of the macro.
-    pub response: RawResponse,
+    pub response: Response,
 
     /// The `error` section of the macro.
     pub error: Option<RawErrorType>,
@@ -425,41 +422,6 @@ impl Parse for RawApi {
             request: input.parse()?,
             response: input.parse()?,
             error: input.parse().ok(),
-        })
-    }
-}
-
-pub struct RawResponse {
-    pub attributes: Vec<Attribute>,
-    pub response_kw: kw::response,
-    pub fields: Vec<Field>,
-}
-
-impl Parse for RawResponse {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let attributes = input.call(Attribute::parse_outer)?;
-        let response_kw = input.parse::<kw::response>()?;
-        input.parse::<Token![:]>()?;
-        let fields;
-        braced!(fields in input);
-
-        Ok(Self {
-            attributes,
-            response_kw,
-            fields: fields
-                .parse_terminated::<Field, Token![,]>(Field::parse_named)?
-                .into_iter()
-                .map(|f| {
-                    if util::has_lifetime(&f.ty) {
-                        Err(syn::Error::new(
-                            f.ident.span(),
-                            "Lifetimes on Response fields cannot be supported until GAT are stable",
-                        ))
-                    } else {
-                        Ok(f)
-                    }
-                })
-                .collect::<Result<Vec<_>, _>>()?,
         })
     }
 }
