@@ -8,7 +8,7 @@ use syn::{
     braced,
     parse::{Parse, ParseStream},
     spanned::Spanned,
-    Attribute, Field, FieldValue, Token, Type,
+    Attribute, Field, Token, Type,
 };
 
 pub(crate) mod attribute;
@@ -48,7 +48,7 @@ impl TryFrom<RawApi> for Api {
         let import_path = util::import_ruma_api();
 
         let res = Self {
-            metadata: raw_api.metadata.try_into()?,
+            metadata: raw_api.metadata,
             request: raw_api.request.try_into()?,
             response: raw_api.response.try_into()?,
             error: match raw_api.error {
@@ -399,7 +399,6 @@ impl ToTokens for Api {
 mod kw {
     use syn::custom_keyword;
 
-    custom_keyword!(metadata);
     custom_keyword!(request);
     custom_keyword!(response);
     custom_keyword!(error);
@@ -408,7 +407,7 @@ mod kw {
 /// The entire `ruma_api!` macro structure directly as it appears in the source code..
 pub struct RawApi {
     /// The `metadata` section of the macro.
-    pub metadata: RawMetadata,
+    pub metadata: Metadata,
 
     /// The `request` section of the macro.
     pub request: RawRequest,
@@ -427,28 +426,6 @@ impl Parse for RawApi {
             request: input.parse()?,
             response: input.parse()?,
             error: input.parse().ok(),
-        })
-    }
-}
-
-pub struct RawMetadata {
-    pub metadata_kw: kw::metadata,
-    pub field_values: Vec<FieldValue>,
-}
-
-impl Parse for RawMetadata {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let metadata_kw = input.parse::<kw::metadata>()?;
-        input.parse::<Token![:]>()?;
-        let field_values;
-        braced!(field_values in input);
-
-        Ok(Self {
-            metadata_kw,
-            field_values: field_values
-                .parse_terminated::<FieldValue, Token![,]>(FieldValue::parse)?
-                .into_iter()
-                .collect(),
         })
     }
 }

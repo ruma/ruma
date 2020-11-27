@@ -1,10 +1,16 @@
 //! Details of the `metadata` section of the procedural macro.
 
-use std::convert::TryFrom;
+use syn::{
+    braced,
+    parse::{Parse, ParseStream},
+    Expr, ExprLit, ExprPath, FieldValue, Ident, Lit, LitBool, LitStr, Member, Token,
+};
 
-use syn::{Expr, ExprLit, ExprPath, Ident, Lit, LitBool, LitStr, Member};
+use crate::util;
 
-use crate::{api::RawMetadata, util};
+mod kw {
+    syn::custom_keyword!(metadata);
+}
 
 /// The result of processing the `metadata` section of the macro.
 pub struct Metadata {
@@ -27,10 +33,16 @@ pub struct Metadata {
     pub authentication: Ident,
 }
 
-impl TryFrom<RawMetadata> for Metadata {
-    type Error = syn::Error;
+impl Parse for Metadata {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let metadata_kw = input.parse::<kw::metadata>()?;
+        input.parse::<Token![:]>()?;
+        let field_values;
+        braced!(field_values in input);
 
-    fn try_from(raw: RawMetadata) -> syn::Result<Self> {
+        let field_values =
+            field_values.parse_terminated::<FieldValue, Token![,]>(FieldValue::parse)?;
+
         let mut description = None;
         let mut method = None;
         let mut name = None;
@@ -38,7 +50,7 @@ impl TryFrom<RawMetadata> for Metadata {
         let mut rate_limited = None;
         let mut authentication = None;
 
-        for field_value in raw.field_values {
+        for field_value in field_values {
             let identifier = match field_value.member.clone() {
                 Member::Named(identifier) => identifier,
                 _ => panic!("expected Member::Named"),
@@ -93,7 +105,6 @@ impl TryFrom<RawMetadata> for Metadata {
             }
         }
 
-        let metadata_kw = raw.metadata_kw;
         let missing_field =
             |name| syn::Error::new_spanned(metadata_kw, format!("missing field `{}`", name));
 
