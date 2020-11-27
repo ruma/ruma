@@ -13,22 +13,16 @@
 #![allow(clippy::unknown_clippy_lints)]
 #![recursion_limit = "256"]
 
-use std::convert::TryFrom as _;
-
 use proc_macro::TokenStream;
-use quote::ToTokens;
 use syn::parse_macro_input;
 
-use self::api::{Api, RawApi};
+use self::api::Api;
 
 mod api;
 mod util;
 
 #[proc_macro]
 pub fn ruma_api(input: TokenStream) -> TokenStream {
-    let raw_api = parse_macro_input!(input as RawApi);
-    match Api::try_from(raw_api) {
-        Ok(api) => api.into_token_stream().into(),
-        Err(err) => err.to_compile_error().into(),
-    }
+    let api = parse_macro_input!(input as Api);
+    api::expand_all(api).unwrap_or_else(|err| err.to_compile_error()).into()
 }
