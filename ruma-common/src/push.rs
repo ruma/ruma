@@ -34,7 +34,7 @@
 //! There is also the `AnyPushRule` type that is the most generic form of push rule, with all
 //! the possible fields.
 
-use std::collections::BTreeSet;
+use std::collections::btree_set::{BTreeSet, IntoIter as BTreeSetIter};
 
 use ruma_common::StringEnum;
 use serde::{Deserialize, Serialize};
@@ -94,20 +94,41 @@ impl Ruleset {
     }
 }
 
+/// Iterator type for `Ruleset`
+#[derive(Debug)]
+pub struct RulesetIter {
+    content: BTreeSetIter<ContentPushRule>,
+    override_: BTreeSetIter<OverridePushRule>,
+    room: BTreeSetIter<RoomPushRule>,
+    sender: BTreeSetIter<SenderPushRule>,
+    underride: BTreeSetIter<UnderridePushRule>
+}
+
+impl Iterator for RulesetIter {
+    type Item = AnyPushRule;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.content.next().map(|x| x.0.into())
+            .or_else(|| self.override_.next().map(|x| x.0.into()))
+            .or_else(|| self.room.next().map(|x| x.0.into()))
+            .or_else(|| self.sender.next().map(|x| x.0.into()))
+            .or_else(|| self.underride.next().map(|x| x.0.into()))
+
+    }
+}
+
 impl IntoIterator for Ruleset {
     type Item = AnyPushRule;
-    type IntoIter = std::vec::IntoIter<Self::Item>;
+    type IntoIter = RulesetIter;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.content
-            .into_iter()
-            .map(|x| x.0.into())
-            .chain(self.override_.into_iter().map(|x| x.0.into()))
-            .chain(self.room.into_iter().map(|x| x.0.into()))
-            .chain(self.sender.into_iter().map(|x| x.0.into()))
-            .chain(self.underride.into_iter().map(|x| x.0.into()))
-            .collect::<Vec<_>>()
-            .into_iter()
+        RulesetIter {
+            content: self.content.into_iter(),
+            override_: self.override_.into_iter(),
+            room: self.room.into_iter(),
+            sender: self.sender.into_iter(),
+            underride: self.underride.into_iter(),
+        }
     }
 }
 
