@@ -393,13 +393,6 @@ impl ToTokens for Api {
     }
 }
 
-/// Custom keyword macros for syn.
-mod kw {
-    use syn::custom_keyword;
-
-    custom_keyword!(error);
-}
-
 /// The entire `ruma_api!` macro structure directly as it appears in the source code..
 pub struct RawApi {
     /// The `metadata` section of the macro.
@@ -412,7 +405,7 @@ pub struct RawApi {
     pub response: Response,
 
     /// The `error` section of the macro.
-    pub error: Option<RawErrorType>,
+    pub error: Option<ErrorType>,
 }
 
 impl Parse for RawApi {
@@ -426,12 +419,16 @@ impl Parse for RawApi {
     }
 }
 
-pub struct RawErrorType {
+mod kw {
+    syn::custom_keyword!(error);
+}
+
+pub struct ErrorType {
     pub error_kw: kw::error,
     pub ty: Type,
 }
 
-impl Parse for RawErrorType {
+impl Parse for ErrorType {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let error_kw = input.parse::<kw::error>()?;
         input.parse::<Token![:]>()?;
