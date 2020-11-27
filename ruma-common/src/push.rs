@@ -17,7 +17,7 @@
 //! Each of these kind of rule has a corresponding type, that is
 //! just a wrapper arround another type:
 //!
-//! - `PushRule` for room and sender rules
+//! - `SimplePushRule` for room and sender rules
 //! - `ConditionalPushRule` for override and underride rules: push rules that may depend on a
 //!   condition
 //! - `PatternedPushRules` for content rules, that can filter events based on a pattern to trigger
@@ -29,7 +29,7 @@
 //! the same representation.
 //!
 //! It is still possible to write code that is generic over a representation by manipulating
-//! `PushRule`, `ConditonalPushRule` or `PatternedPushRule` directly, instead of the wrappers.
+//! `SimplePushRule`, `ConditonalPushRule` or `PatternedPushRule` directly, instead of the wrappers.
 //!
 //! There is also the `AnyPushRule` type that is the most generic form of push rule, with all
 //! the possible fields.
@@ -117,7 +117,7 @@ pub trait RulesetMember {
     fn add_to(self, ruleset: &mut Ruleset) -> bool;
 }
 
-/// Creates a new wrapper type around a PushRule type
+/// Creates a new wrapper type around a PushRule-like type
 /// to make it possible to tell what kind of rule it is
 /// even if the inner type is the same.
 ///
@@ -173,8 +173,8 @@ macro_rules! rulekind {
 
 rulekind!(OverridePushRule, ConditionalPushRule, override_);
 rulekind!(UnderridePushRule, ConditionalPushRule, underride);
-rulekind!(RoomPushRule, PushRule, room);
-rulekind!(SenderPushRule, PushRule, sender);
+rulekind!(RoomPushRule, SimplePushRule, room);
+rulekind!(SenderPushRule, SimplePushRule, sender);
 rulekind!(ContentPushRule, PatternedPushRule, content);
 
 /// A push rule is a single rule that states under what conditions an event should be passed onto a
@@ -183,11 +183,11 @@ rulekind!(ContentPushRule, PatternedPushRule, content);
 /// These rules are stored on the user's homeserver. They are manually configured by the user, who
 /// can create and view them via the Client/Server API.
 ///
-/// To create an instance of this type, first create a `PushRuleInit` and convert it via
-/// `PushRule::from` / `.into()`.
+/// To create an instance of this type, first create a `SimplePushRuleInit` and convert it via
+/// `SimplePushRule::from` / `.into()`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct PushRule {
+pub struct SimplePushRule {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
 
@@ -201,12 +201,12 @@ pub struct PushRule {
     pub rule_id: String,
 }
 
-/// Initial set of fields of `PushRule`.
+/// Initial set of fields of `SimplePushRule`.
 ///
-/// This struct will not be updated even if additional fields are added to `PushRule` in a new
+/// This struct will not be updated even if additional fields are added to `SimplePushRule` in a new
 /// (non-breaking) release of the Matrix specification.
 #[derive(Debug)]
-pub struct PushRuleInit {
+pub struct SimplePushRuleInit {
     /// Actions to determine if and how a notification is delivered for events matching this rule.
     pub actions: Vec<Action>,
 
@@ -220,14 +220,14 @@ pub struct PushRuleInit {
     pub rule_id: String,
 }
 
-impl From<PushRuleInit> for PushRule {
-    fn from(init: PushRuleInit) -> Self {
-        let PushRuleInit { actions, default, enabled, rule_id } = init;
+impl From<SimplePushRuleInit> for SimplePushRule {
+    fn from(init: SimplePushRuleInit) -> Self {
+        let SimplePushRuleInit { actions, default, enabled, rule_id } = init;
         Self { actions, default, enabled, rule_id }
     }
 }
 
-/// Like `PushRule`, but with an additional `conditions` field.
+/// Like `SimplePushRule`, but with an additional `conditions` field.
 ///
 /// Only applicable to underride and override rules.
 ///
@@ -287,7 +287,7 @@ impl From<ConditionalPushRuleInit> for ConditionalPushRule {
     }
 }
 
-/// Like `PushRule`, but with an additional `pattern` field.
+/// Like `SimplePushRule`, but with an additional `pattern` field.
 ///
 /// Only applicable to content rules.
 ///
