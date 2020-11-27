@@ -1,27 +1,15 @@
 ///! Constructors for [predefined push rules].
 ///!
 ///! [predefined push rules]: https://matrix.org/docs/spec/client_server/r0.6.1#predefined-rules
+
+use maplit::btreeset;
+use ruma_identifiers::UserId;
+
 use super::{
     Action::*, ConditionalPushRule, ContentPushRule, OverridePushRule, PatternedPushRule,
     PushCondition::*, RoomMemberCountIs, Ruleset, Tweak, UnderridePushRule,
 };
 
-use ruma_identifiers::UserId;
-
-macro_rules! set {
-    ($( $elt:expr ),*) => {
-        {
-            use std::collections::BTreeSet;
-
-            let mut s = BTreeSet::new();
-            $( s.insert( $elt ); )*
-            s
-        }
-    };
-    ($( $elt:expr ),* ,) => {
-        set![ $( $elt ),* ]
-    };
-}
 
 impl Ruleset {
     /// The list of all [predefined push rules].
@@ -34,8 +22,8 @@ impl Ruleset {
     ///   user's ID (for instance those to send notifications when they are mentioned).
     pub fn server_default(user_id: &UserId) -> Self {
         Self {
-            content: set![ContentPushRule::contains_user_name(user_id)],
-            override_: set![
+            content: btreeset![ContentPushRule::contains_user_name(user_id)],
+            override_: btreeset![
                 OverridePushRule::master(),
                 OverridePushRule::suppress_notices(),
                 OverridePushRule::invite_for_me(user_id),
@@ -44,7 +32,7 @@ impl Ruleset {
                 OverridePushRule::tombstone(),
                 OverridePushRule::roomnotif(),
             ],
-            underride: set![
+            underride: btreeset![
                 UnderridePushRule::call(),
                 UnderridePushRule::encrypted_room_one_to_one(),
                 UnderridePushRule::room_one_to_one(),

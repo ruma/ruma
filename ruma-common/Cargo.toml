@@ -12,6 +12,7 @@ edition = "2018"
 
 [dependencies]
 js_int = { version = "0.1.9", features = ["serde"] }
+maplit = "1.0.2"
 ruma-common-macros = { version = "=0.2.0", path = "../ruma-common-macros" }
 ruma-identifiers = { version = "0.17.4", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.2.3", path = "../ruma-serde" }

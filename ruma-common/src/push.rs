@@ -14,8 +14,8 @@
 //! - room rules
 //! - sender rules
 //!
-//! Each of these kind of rule has a corresponding type, that is
-//! just a wrapper arround another type:
+//! Each of these kind of rule has a corresponding type that is
+//! just a wrapper around another type:
 //!
 //! - `SimplePushRule` for room and sender rules
 //! - `ConditionalPushRule` for override and underride rules: push rules that may depend on a
@@ -112,9 +112,19 @@ impl IntoIterator for Ruleset {
 }
 
 /// A trait for types that can be added in a Ruleset
-pub trait RulesetMember {
+pub trait RulesetMember: private::Sealed {
     /// Adds a value in the correct field of a Ruleset.
     fn add_to(self, ruleset: &mut Ruleset) -> bool;
+}
+
+mod private {
+    // See <https://rust-lang.github.io/api-guidelines/future-proofing.html>
+    pub trait Sealed {}
+    impl Sealed for super::OverridePushRule {}
+    impl Sealed for super::UnderridePushRule {}
+    impl Sealed for super::ContentPushRule {}
+    impl Sealed for super::RoomPushRule {}
+    impl Sealed for super::SenderPushRule {}
 }
 
 /// Creates a new wrapper type around a PushRule-like type
