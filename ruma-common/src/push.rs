@@ -81,6 +81,20 @@ impl Ruleset {
     }
 }
 
+impl IntoIterator for Ruleset {
+    type Item = AnyPushRule;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.content.into_iter().map(Into::into)
+            .chain(self.override_.into_iter().map(Into::into))
+            .chain(self.room.into_iter().map(Into::into))
+            .chain(self.sender.into_iter().map(Into::into))
+            .chain(self.underride.into_iter().map(Into::into))
+            .collect::<Vec<_>>().into_iter()
+    }
+}
+
 /// A push rule is a single rule that states under what conditions an event should be passed onto a
 /// push gateway and how the notification should be presented.
 ///
