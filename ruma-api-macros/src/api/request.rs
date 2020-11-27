@@ -1,18 +1,27 @@
 //! Details of the `request` section of the procedural macro.
 
-use std::{collections::BTreeSet, convert::TryFrom, mem};
+use std::{collections::BTreeSet, mem};
 
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
-use syn::{spanned::Spanned, Attribute, Field, Ident, Lifetime};
+use syn::{
+    braced,
+    parse::{Parse, ParseStream},
+    spanned::Spanned,
+    Attribute, Field, Ident, Lifetime, Token,
+};
 
 use crate::{
     api::{
         attribute::{Meta, MetaNameValue},
-        strip_serde_attrs, RawRequest,
+        strip_serde_attrs,
     },
     util,
 };
+
+mod kw {
+    syn::custom_keyword!(request);
+}
 
 #[derive(Debug, Default)]
 pub struct RequestLifetimes {
@@ -286,16 +295,21 @@ impl Request {
     }
 }
 
-impl TryFrom<RawRequest> for Request {
-    type Error = syn::Error;
+impl Parse for Request {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let attributes = input.call(Attribute::parse_outer)?;
+        let request_kw = input.parse::<kw::request>()?;
+        input.parse::<Token![:]>()?;
+        let fields;
+        braced!(fields in input);
 
-    fn try_from(raw: RawRequest) -> syn::Result<Self> {
+        let fields = fields.parse_terminated::<Field, Token![,]>(Field::parse_named)?;
+
         let mut newtype_body_field = None;
         let mut query_map_field = None;
         let mut lifetimes = RequestLifetimes::default();
 
-        let fields = raw
-            .fields
+        let fields = fields
             .into_iter()
             .map(|mut field| {
                 let mut field_kind = None;
@@ -392,7 +406,7 @@ impl TryFrom<RawRequest> for Request {
         if newtype_body_field.is_some() && fields.iter().any(|f| f.is_body()) {
             // TODO: highlight conflicting fields,
             return Err(syn::Error::new_spanned(
-                raw.request_kw,
+                request_kw,
                 "Can't have both a newtype body field and regular body fields",
             ));
         }
@@ -400,7 +414,7 @@ impl TryFrom<RawRequest> for Request {
         if query_map_field.is_some() && fields.iter().any(|f| f.is_query()) {
             return Err(syn::Error::new_spanned(
                 // TODO: raw,
-                raw.request_kw,
+                request_kw,
                 "Can't have both a query map field and regular query fields",
             ));
         }
@@ -408,17 +422,12 @@ impl TryFrom<RawRequest> for Request {
         // TODO when/if `&[(&str, &str)]` is supported remove this
         if query_map_field.is_some() && !lifetimes.query.is_empty() {
             return Err(syn::Error::new_spanned(
-                raw.request_kw,
+                request_kw,
                 "Lifetimes are not allowed for query_map fields",
             ));
         }
 
-        Ok(Self {
-            attributes: raw.attributes,
-            fields,
-            lifetimes,
-            ruma_api_import: util::import_ruma_api(),
-        })
+        Ok(Self { attributes, fields, lifetimes, ruma_api_import: util::import_ruma_api() })
     }
 }
 

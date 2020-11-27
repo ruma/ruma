@@ -49,7 +49,7 @@ impl TryFrom<RawApi> for Api {
 
         let res = Self {
             metadata: raw_api.metadata,
-            request: raw_api.request.try_into()?,
+            request: raw_api.request,
             response: raw_api.response.try_into()?,
             error: match raw_api.error {
                 Some(raw_err) => raw_err.ty.to_token_stream(),
@@ -399,7 +399,6 @@ impl ToTokens for Api {
 mod kw {
     use syn::custom_keyword;
 
-    custom_keyword!(request);
     custom_keyword!(response);
     custom_keyword!(error);
 }
@@ -410,7 +409,7 @@ pub struct RawApi {
     pub metadata: Metadata,
 
     /// The `request` section of the macro.
-    pub request: RawRequest,
+    pub request: Request,
 
     /// The `response` section of the macro.
     pub response: RawResponse,
@@ -426,31 +425,6 @@ impl Parse for RawApi {
             request: input.parse()?,
             response: input.parse()?,
             error: input.parse().ok(),
-        })
-    }
-}
-
-pub struct RawRequest {
-    pub attributes: Vec<Attribute>,
-    pub request_kw: kw::request,
-    pub fields: Vec<Field>,
-}
-
-impl Parse for RawRequest {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let attributes = input.call(Attribute::parse_outer)?;
-        let request_kw = input.parse::<kw::request>()?;
-        input.parse::<Token![:]>()?;
-        let fields;
-        braced!(fields in input);
-
-        Ok(Self {
-            attributes,
-            request_kw,
-            fields: fields
-                .parse_terminated::<Field, Token![,]>(Field::parse_named)?
-                .into_iter()
-                .collect(),
         })
     }
 }
