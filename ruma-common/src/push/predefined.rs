@@ -1,7 +1,6 @@
 ///! Constructors for [predefined push rules].
 ///!
 ///! [predefined push rules]: https://matrix.org/docs/spec/client_server/r0.6.1#predefined-rules
-
 use maplit::btreeset;
 use ruma_identifiers::UserId;
 
@@ -9,7 +8,6 @@ use super::{
     Action::*, ConditionalPushRule, ContentPushRule, OverridePushRule, PatternedPushRule,
     PushCondition::*, RoomMemberCountIs, Ruleset, Tweak, UnderridePushRule,
 };
-
 
 impl Ruleset {
     /// The list of all [predefined push rules].

@@ -101,19 +101,20 @@ pub struct RulesetIter {
     override_: BTreeSetIter<OverridePushRule>,
     room: BTreeSetIter<RoomPushRule>,
     sender: BTreeSetIter<SenderPushRule>,
-    underride: BTreeSetIter<UnderridePushRule>
+    underride: BTreeSetIter<UnderridePushRule>,
 }
 
 impl Iterator for RulesetIter {
     type Item = AnyPushRule;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.content.next().map(|x| x.0.into())
+        self.content
+            .next()
+            .map(|x| x.0.into())
             .or_else(|| self.override_.next().map(|x| x.0.into()))
             .or_else(|| self.room.next().map(|x| x.0.into()))
             .or_else(|| self.sender.next().map(|x| x.0.into()))
             .or_else(|| self.underride.next().map(|x| x.0.into()))
-
     }
 }
 
@@ -170,13 +171,13 @@ macro_rules! rulekind {
         }
 
         impl Extend<$name> for Ruleset {
-            fn extend<T: IntoIterator<Item=$name>>(&mut self, iter: T) {
+            fn extend<T: IntoIterator<Item = $name>>(&mut self, iter: T) {
                 for rule in iter {
                     rule.add_to(self);
                 }
             }
         }
-        
+
         // The following trait are needed to be able to make
         // a BTreeSet of the new type
 
