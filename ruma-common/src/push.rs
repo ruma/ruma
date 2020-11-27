@@ -136,6 +136,7 @@ impl IntoIterator for Ruleset {
 /// A trait for types that can be added in a Ruleset
 pub trait RulesetMember: private::Sealed {
     /// Adds a value in the correct field of a Ruleset.
+    #[doc(hidden)]
     fn add_to(self, ruleset: &mut Ruleset) -> bool;
 }
 
