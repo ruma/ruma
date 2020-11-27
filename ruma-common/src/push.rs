@@ -138,6 +138,14 @@ macro_rules! rulekind {
             }
         }
 
+        impl Extend<$name> for Ruleset {
+            fn extend<T: IntoIterator<Item=$name>>(&mut self, iter: T) {
+                for rule in iter {
+                    rule.add_to(self);
+                }
+            }
+        }
+        
         // The following trait are needed to be able to make
         // a BTreeSet of the new type
 
