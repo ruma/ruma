@@ -2,7 +2,7 @@
 
 use std::{collections::BTreeMap, time::SystemTime};
 
-use crate::discovery::SigningKey;
+use crate::discovery::ServerSigningKeys;
 use ruma_api::ruma_api;
 use ruma_identifiers::{ServerNameBox, ServerSigningKeyId};
 use serde::{Deserialize, Serialize};
@@ -43,7 +43,7 @@ ruma_api! {
 
     response: {
         /// The queried server's keys, signed by the notary server.
-        pub server_keys: Vec<SigningKey>,
+        pub server_keys: Vec<ServerSigningKeys>,
     }
 }
 
@@ -59,7 +59,7 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given keys.
-    pub fn new(server_keys: Vec<SigningKey>) -> Self {
+    pub fn new(server_keys: Vec<ServerSigningKeys>) -> Self {
         Self { server_keys }
     }
 }

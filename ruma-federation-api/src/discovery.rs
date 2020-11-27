@@ -49,7 +49,7 @@ impl OldVerifyKey {
 /// Queried server key, signed by the notary server.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub struct SigningKey {
+pub struct ServerSigningKeys {
     /// DNS name of the homeserver.
     pub server_name: ServerNameBox,
 
@@ -69,8 +69,8 @@ pub struct SigningKey {
     pub valid_until_ts: SystemTime,
 }
 
-impl SigningKey {
-    /// Creates a new `SigningKey` with the given server name and validity timestamp.
+impl ServerSigningKeys {
+    /// Creates a new `ServerSigningKeys` with the given server name and validity timestamp.
     ///
     /// All other fields will be empty.
     pub fn new(server_name: ServerNameBox, valid_until_ts: SystemTime) -> Self {

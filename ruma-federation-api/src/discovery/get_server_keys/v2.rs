@@ -1,7 +1,8 @@
 //! [GET /_matrix/key/v2/server](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-key-v2-server-keyid)
 
-use crate::discovery::SigningKey;
 use ruma_api::ruma_api;
+
+use crate::discovery::ServerSigningKeys;
 
 ruma_api! {
     metadata: {
@@ -19,7 +20,7 @@ ruma_api! {
     response: {
         /// Queried server key, signed by the notary server.
         #[ruma_api(body)]
-        pub server_key: SigningKey,
+        pub server_key: ServerSigningKeys,
     }
 }
 
@@ -32,13 +33,13 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given server key.
-    pub fn new(server_key: SigningKey) -> Self {
+    pub fn new(server_key: ServerSigningKeys) -> Self {
         Self { server_key }
     }
 }
 
-impl From<SigningKey> for Response {
-    fn from(server_key: SigningKey) -> Self {
+impl From<ServerSigningKeys> for Response {
+    fn from(server_key: ServerSigningKeys) -> Self {
         Self::new(server_key)
     }
 }
