@@ -327,7 +327,8 @@ impl ToTokens for Api {
                 }
             }
 
-            const __METADATA: #ruma_api_import::Metadata = #ruma_api_import::Metadata {
+            #[doc = #metadata_doc]
+            pub const METADATA: #ruma_api_import::Metadata = #ruma_api_import::Metadata {
                 description: #description,
                 method: #ruma_api_import::exports::http::Method::#method,
                 name: #name,
@@ -344,7 +345,7 @@ impl ToTokens for Api {
                     <Response as #ruma_api_import::exports::ruma_common::Outgoing>::Incoming;
 
                 #[doc = #metadata_doc]
-                const METADATA: #ruma_api_import::Metadata = __METADATA;
+                const METADATA: #ruma_api_import::Metadata = self::METADATA;
 
                 #[allow(unused_mut, unused_variables)]
                 fn try_into_http_request(
@@ -355,7 +356,7 @@ impl ToTokens for Api {
                     #ruma_api_import::exports::http::Request<Vec<u8>>,
                     #ruma_api_import::error::IntoHttpError,
                 > {
-                    let metadata = <Self as #ruma_api_import::OutgoingRequest>::METADATA;
+                    let metadata = self::METADATA;
 
                     let mut req_builder = #ruma_api_import::exports::http::Request::builder()
                         .method(#ruma_api_import::exports::http::Method::#method)
@@ -384,7 +385,7 @@ impl ToTokens for Api {
                 type OutgoingResponse = Response;
 
                 #[doc = #metadata_doc]
-                const METADATA: #ruma_api_import::Metadata = __METADATA;
+                const METADATA: #ruma_api_import::Metadata = self::METADATA;
             }
 
             #non_auth_endpoint_impls
