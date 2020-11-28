@@ -9,9 +9,9 @@ use ruma_api::{
     },
     AuthScheme, EndpointError, Metadata,
 };
-use ruma_common::Outgoing;
 use ruma_events::{AnyStateEventContent, EventContent as _};
 use ruma_identifiers::{EventId, RoomId};
+use ruma_serde::Outgoing;
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 

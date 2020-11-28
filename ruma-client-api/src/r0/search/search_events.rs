@@ -4,9 +4,9 @@ use std::collections::BTreeMap;
 
 use js_int::{uint, UInt};
 use ruma_api::ruma_api;
-use ruma_common::{Outgoing, Raw, StringEnum};
 use ruma_events::{AnyRoomEvent, AnyStateEvent};
 use ruma_identifiers::{EventId, RoomId, UserId};
+use ruma_serde::{Outgoing, Raw, StringEnum};
 use serde::{Deserialize, Serialize};
 
 use crate::r0::filter::{IncomingRoomEventFilter, RoomEventFilter};

@@ -1,8 +1,8 @@
 //! Types for the *m.room.message.feedback* event.
 
-use ruma_common::StringEnum;
 use ruma_events_macros::MessageEventContent;
 use ruma_identifiers::EventId;
+use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
 use crate::MessageEvent;

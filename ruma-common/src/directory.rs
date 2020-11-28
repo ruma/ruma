@@ -4,14 +4,13 @@ use std::fmt;
 
 use js_int::UInt;
 use ruma_identifiers::{RoomAliasId, RoomId};
+use ruma_serde::Outgoing;
 use serde::{
     de::{Error, MapAccess, Visitor},
     ser::SerializeStruct,
     Deserialize, Deserializer, Serialize, Serializer,
 };
 use serde_json::Value as JsonValue;
-
-use crate::Outgoing;
 
 /// A chunk of a room list response, describing one room.
 ///

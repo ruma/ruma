@@ -442,7 +442,7 @@ impl Parse for Request {
 impl ToTokens for Request {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let ruma_api = &self.ruma_api_import;
-        let ruma_common = quote! { #ruma_api::exports::ruma_common };
+        let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
         let serde = quote! { #ruma_api::exports::serde };
 
         let struct_attributes = &self.attributes;
@@ -489,7 +489,7 @@ impl ToTokens for Request {
                     /// Data in the request body.
                     #[derive(
                         Debug,
-                        #ruma_common::Outgoing,
+                        #ruma_serde::Outgoing,
                         #serde::Serialize,
                         #derive_deserialize
                     )]
@@ -509,7 +509,7 @@ impl ToTokens for Request {
                 /// Data in the request's query string.
                 #[derive(
                     Debug,
-                    #ruma_common::Outgoing,
+                    #ruma_serde::Outgoing,
                     #serde::Serialize,
                     #derive_deserialize
                 )]
@@ -527,7 +527,7 @@ impl ToTokens for Request {
                 /// Data in the request's query string.
                 #[derive(
                     Debug,
-                    #ruma_common::Outgoing,
+                    #ruma_serde::Outgoing,
                     #serde::Serialize,
                     #derive_deserialize
                 )]
@@ -540,7 +540,7 @@ impl ToTokens for Request {
         };
 
         let request = quote! {
-            #[derive(Debug, Clone, #ruma_common::Outgoing)]
+            #[derive(Debug, Clone, #ruma_serde::Outgoing)]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize)]
             #( #struct_attributes )*

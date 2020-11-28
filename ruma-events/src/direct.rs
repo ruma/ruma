@@ -38,8 +38,8 @@ impl DerefMut for DirectEventContent {
 mod tests {
     use std::{collections::BTreeMap, convert::TryFrom};
 
-    use ruma_common::Raw;
     use ruma_identifiers::{RoomId, ServerName, UserId};
+    use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{DirectEvent, DirectEventContent};

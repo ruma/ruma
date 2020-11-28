@@ -10,8 +10,8 @@ pub use lazy_load::LazyLoadOptions;
 pub use url::UrlFilter;
 
 use js_int::UInt;
-use ruma_common::{Outgoing, StringEnum};
 use ruma_identifiers::{RoomId, UserId};
+use ruma_serde::{Outgoing, StringEnum};
 use serde::Serialize;
 
 /// Format to use for returned events.

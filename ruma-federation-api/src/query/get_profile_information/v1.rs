@@ -1,8 +1,8 @@
 //! [GET /_matrix/federation/v1/query/profile](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-query-profile)
 
 use ruma_api::ruma_api;
-use ruma_common::StringEnum;
 use ruma_identifiers::UserId;
+use ruma_serde::StringEnum;
 
 ruma_api! {
     metadata: {

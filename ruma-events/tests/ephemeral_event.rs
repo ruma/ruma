@@ -2,8 +2,8 @@ use std::time::{Duration, UNIX_EPOCH};
 
 use maplit::btreemap;
 use matches::assert_matches;
-use ruma_common::Raw;
 use ruma_identifiers::{event_id, room_id, user_id};
+use ruma_serde::Raw;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 use ruma_events::{

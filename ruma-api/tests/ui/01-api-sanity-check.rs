@@ -1,5 +1,5 @@
 use ruma_api::ruma_api;
-use ruma_common::Raw;
+use ruma_serde::Raw;
 use ruma_events::{tag::TagEvent, AnyRoomEvent};
 
 ruma_api! {

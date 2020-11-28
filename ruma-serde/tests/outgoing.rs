@@ -1,5 +1,5 @@
-use ruma_common::Outgoing;
 use ruma_identifiers::UserId;
+use ruma_serde::Outgoing;
 
 #[allow(unused)]
 pub struct Thing<'t, T> {

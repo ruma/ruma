@@ -18,7 +18,7 @@ pub mod unbind_3pid;
 
 pub mod whoami;
 
-use ruma_common::Outgoing;
+use ruma_serde::Outgoing;
 use serde::{Deserialize, Serialize};
 
 /// Additional authentication information for requestToken endpoints.

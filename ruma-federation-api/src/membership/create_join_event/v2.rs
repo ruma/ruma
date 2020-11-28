@@ -1,9 +1,9 @@
 //! [PUT /_matrix/federation/v2/send_join/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v2-send-join-roomid-eventid)
 
 use ruma_api::ruma_api;
-use ruma_common::Raw;
 use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, RoomId};
+use ruma_serde::Raw;
 
 use super::RoomState;
 

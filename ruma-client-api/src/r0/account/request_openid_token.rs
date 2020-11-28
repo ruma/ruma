@@ -3,8 +3,8 @@
 use std::time::Duration;
 
 use ruma_api::ruma_api;
-use ruma_common::StringEnum;
 use ruma_identifiers::{ServerNameBox, UserId};
+use ruma_serde::StringEnum;
 
 ruma_api! {
     metadata: {

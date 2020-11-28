@@ -1,9 +1,9 @@
 //! [GET /_matrix/federation/v1/state/{roomId}](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-state-roomid)
 
 use ruma_api::ruma_api;
-use ruma_common::Raw;
 use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, RoomId};
+use ruma_serde::Raw;
 
 ruma_api! {
     metadata: {

@@ -1,8 +1,8 @@
 //! [PUT /_matrix/app/v1/transactions/{txnId}](https://matrix.org/docs/spec/application_service/r0.1.2#put-matrix-app-v1-transactions-txnid)
 
 use ruma_api::ruma_api;
-use ruma_common::Raw;
 use ruma_events::AnyEvent;
+use ruma_serde::Raw;
 
 ruma_api! {
     metadata: {
@@ -46,8 +46,8 @@ impl Response {
 #[cfg(test)]
 mod tests {
     use ruma_api::{exports::http, OutgoingRequest};
-    use ruma_common::Raw;
     use ruma_events::AnyEvent;
+    use ruma_serde::Raw;
     use serde_json::json;
 
     use super::Request;

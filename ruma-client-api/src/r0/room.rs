@@ -5,7 +5,7 @@ pub mod get_room_event;
 pub mod report_content;
 pub mod upgrade_room;
 
-use ruma_common::StringEnum;
+use ruma_serde::StringEnum;
 
 /// Whether or not a newly created room will be listed in the room directory.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]

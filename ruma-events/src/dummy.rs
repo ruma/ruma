@@ -41,7 +41,7 @@ impl DerefMut for DummyEventContent {
 #[cfg(test)]
 mod tests {
     use super::{DummyEvent, DummyEventContent, Empty};
-    use ruma_common::Raw;
+    use ruma_serde::Raw;
 
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 

@@ -278,7 +278,6 @@ pub(crate) fn build_query_string(request: &Request, ruma_api: &TokenStream) -> T
 
 /// Deserialize the query string.
 pub(crate) fn extract_request_query(request: &Request, ruma_api: &TokenStream) -> TokenStream {
-    let ruma_common = quote! { #ruma_api::exports::ruma_common };
     let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
 
     if request.query_map_field().is_some() {
@@ -292,10 +291,7 @@ pub(crate) fn extract_request_query(request: &Request, ruma_api: &TokenStream) -
         }
     } else if request.has_query_fields() {
         quote! {
-            let request_query: <
-                RequestQuery
-                as #ruma_common::Outgoing
-            >::Incoming =
+            let request_query: <RequestQuery as #ruma_serde::Outgoing>::Incoming =
                 #ruma_api::try_deserialize!(
                     request,
                     #ruma_serde::urlencoded::from_str(

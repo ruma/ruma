@@ -1,7 +1,8 @@
 //! Helper module for the Serialize / Deserialize impl's for the User struct
 //! in the parent module.
 
-use ruma_common::{thirdparty::Medium, Outgoing};
+use ruma_common::thirdparty::Medium;
+use ruma_serde::Outgoing;
 use serde::Serialize;
 
 // The following three structs could just be used in place of the one in the parent module, but

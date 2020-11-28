@@ -1,8 +1,8 @@
 //! Types for the *m.call.hangup* event.
 
 use js_int::UInt;
-use ruma_common::StringEnum;
 use ruma_events_macros::MessageEventContent;
+use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
 use crate::MessageEvent;

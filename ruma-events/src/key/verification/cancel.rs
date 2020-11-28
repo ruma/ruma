@@ -1,7 +1,7 @@
 //! Types for the *m.key.verification.cancel* event.
 
-use ruma_common::StringEnum;
 use ruma_events_macros::BasicEventContent;
+use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
 use crate::BasicEvent;

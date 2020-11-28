@@ -19,7 +19,6 @@ edition = "2018"
 http = "0.2.1"
 percent-encoding = "2.1.0"
 ruma-api-macros = { version = "=0.17.0-alpha.1", path = "../ruma-api-macros" }
-ruma-common = { version = "0.2.0", path = "../ruma-common" }
 ruma-identifiers = { version = "0.17.4", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.2.3", path = "../ruma-serde" }
 serde = { version = "1.0.114", features = ["derive"] }
@@ -27,6 +26,5 @@ serde_json = "1.0.57"
 thiserror = "1.0.20"
 
 [dev-dependencies]
-ruma-common = { version = "0.2.0", path = "../ruma-common" }
 ruma-events = { version = "=0.22.0-alpha.1", path = "../ruma-events" }
 trybuild = "1.0.31"

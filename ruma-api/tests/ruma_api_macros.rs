@@ -1,7 +1,7 @@
 pub mod some_endpoint {
     use ruma_api::ruma_api;
-    use ruma_common::Raw;
     use ruma_events::{tag::TagEvent, AnyRoomEvent};
+    use ruma_serde::Raw;
 
     ruma_api! {
         metadata: {

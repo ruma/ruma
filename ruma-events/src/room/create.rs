@@ -69,8 +69,8 @@ fn default_room_version_id() -> RoomVersionId {
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;
-    use ruma_common::Raw;
     use ruma_identifiers::{user_id, RoomVersionId};
+    use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::CreateEventContent;

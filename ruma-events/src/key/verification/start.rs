@@ -188,7 +188,7 @@ mod tests {
         MessageAuthenticationCode, ShortAuthenticationString, StartEvent, StartEventContent,
         StartMethod,
     };
-    use ruma_common::Raw;
+    use ruma_serde::Raw;
 
     #[test]
     fn invalid_m_sas_v1_content_missing_required_key_agreement_protocols() {

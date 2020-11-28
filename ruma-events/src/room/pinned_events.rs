@@ -32,8 +32,8 @@ mod tests {
         time::{Duration, UNIX_EPOCH},
     };
 
-    use ruma_common::Raw;
     use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
+    use ruma_serde::Raw;
     use serde_json::to_string;
 
     use super::PinnedEventsEventContent;

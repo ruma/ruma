@@ -44,7 +44,7 @@ mod tests {
 
     use super::ServerAclEventContent;
     use crate::StateEvent;
-    use ruma_common::Raw;
+    use ruma_serde::Raw;
 
     #[test]
     fn default_values() {

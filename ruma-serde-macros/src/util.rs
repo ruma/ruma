@@ -8,15 +8,15 @@ use crate::{
     case::RenameRule,
 };
 
-pub fn import_ruma_common() -> TokenStream {
-    if let Ok(possibly_renamed) = crate_name("ruma-common") {
+pub fn import_ruma_serde() -> TokenStream {
+    if let Ok(possibly_renamed) = crate_name("ruma-serde") {
         let import = Ident::new(&possibly_renamed, Span::call_site());
         quote! { ::#import }
     } else if let Ok(possibly_renamed) = crate_name("ruma") {
         let import = Ident::new(&possibly_renamed, Span::call_site());
-        quote! { ::#import }
+        quote! { ::#import::serde }
     } else {
-        quote! { ::ruma_common }
+        quote! { ::ruma_serde }
     }
 }
 

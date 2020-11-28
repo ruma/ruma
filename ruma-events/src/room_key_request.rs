@@ -1,8 +1,8 @@
 //! Types for the *m.room_key_request* event.
 
-use ruma_common::StringEnum;
 use ruma_events_macros::BasicEventContent;
 use ruma_identifiers::{DeviceIdBox, EventEncryptionAlgorithm, RoomId};
+use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
 use crate::BasicEvent;

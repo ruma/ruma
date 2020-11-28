@@ -199,7 +199,7 @@ use http::Method;
 /// fallible deserialization, you can use the `#[wrap_incoming]` attribute. For details, see
 /// the documentation for [the derive macro](derive.Outgoing.html).
 // TODO: Explain the concept of fallible deserialization before jumping to
-// `ruma_common::Outgoing`
+// `ruma_serde::Outgoing`
 pub use ruma_api_macros::ruma_api;
 
 pub mod error;
@@ -209,7 +209,6 @@ pub mod error;
 pub mod exports {
     pub use http;
     pub use percent_encoding;
-    pub use ruma_common;
     pub use ruma_serde;
     pub use serde;
     pub use serde_json;

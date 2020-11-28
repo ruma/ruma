@@ -36,7 +36,7 @@
 
 use std::collections::btree_set::{BTreeSet, IntoIter as BTreeSetIter};
 
-use ruma_common::StringEnum;
+use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
 mod action;

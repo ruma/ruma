@@ -1,8 +1,8 @@
 //! [POST /_matrix/client/r0/rooms/{roomId}/receipt/{receiptType}/{eventId}](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-rooms-roomid-receipt-receipttype-eventid)
 
 use ruma_api::ruma_api;
-use ruma_common::{AsRefStr, DisplayAsRefStr, FromString};
 use ruma_identifiers::{EventId, RoomId};
+use ruma_serde::{AsRefStr, DisplayAsRefStr, FromString};
 
 ruma_api! {
     metadata: {

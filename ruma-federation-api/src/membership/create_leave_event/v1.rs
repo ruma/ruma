@@ -4,10 +4,9 @@ use std::time::SystemTime;
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_common::Raw;
 use ruma_events::{room::member::MemberEventContent, EventType};
 use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
-use ruma_serde::empty::Empty;
+use ruma_serde::{empty::Empty, Raw};
 
 ruma_api! {
     metadata: {

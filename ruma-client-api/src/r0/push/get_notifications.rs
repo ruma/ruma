@@ -4,9 +4,10 @@ use std::time::SystemTime;
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_common::{push::Action, Raw};
+use ruma_common::push::Action;
 use ruma_events::AnyEvent;
 use ruma_identifiers::RoomId;
+use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
 
 ruma_api! {

@@ -4,12 +4,13 @@ use std::{collections::BTreeMap, time::Duration};
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_common::{presence::PresenceState, Outgoing, Raw};
+use ruma_common::presence::PresenceState;
 use ruma_events::{
     presence::PresenceEvent, AnyBasicEvent, AnyStrippedStateEvent, AnySyncEphemeralRoomEvent,
     AnySyncRoomEvent, AnySyncStateEvent, AnyToDeviceEvent,
 };
 use ruma_identifiers::{DeviceKeyAlgorithm, RoomId, UserId};
+use ruma_serde::{Outgoing, Raw};
 use serde::{Deserialize, Serialize};
 
 use crate::r0::filter::{FilterDefinition, IncomingFilterDefinition};

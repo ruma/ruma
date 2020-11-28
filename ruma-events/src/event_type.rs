@@ -1,4 +1,4 @@
-use ruma_common::StringEnum;
+use ruma_serde::StringEnum;
 
 /// The type of an event.
 ///

@@ -2,9 +2,9 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::StringEnum;
 use ruma_events_macros::StateEventContent;
 use ruma_identifiers::{ServerNameBox, ServerSigningKeyId, UserId};
+use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
 use crate::{StateEvent, StrippedStateEvent, SyncStateEvent};
@@ -251,8 +251,8 @@ mod tests {
 
     use maplit::btreemap;
     use matches::assert_matches;
-    use ruma_common::Raw;
     use ruma_identifiers::{server_key_id, server_name};
+    use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json};
 
     use super::{MemberEventContent, MembershipState, SignedContent, ThirdPartyInvite};

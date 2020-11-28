@@ -14,8 +14,9 @@ pub mod unban_user;
 
 use std::collections::BTreeMap;
 
-use ruma_common::{thirdparty::Medium, Outgoing};
+use ruma_common::thirdparty::Medium;
 use ruma_identifiers::{ServerNameBox, ServerSigningKeyId};
+use ruma_serde::Outgoing;
 use serde::Serialize;
 
 /// A signature of an `m.third_party_invite` token to prove that this user owns a third party

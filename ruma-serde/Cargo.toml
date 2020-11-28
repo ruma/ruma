@@ -17,8 +17,10 @@ edition = "2018"
 form_urlencoded = "1.0.0"
 js_int = { version = "0.1.9", features = ["serde"] }
 itoa = "0.4.6"
+ruma-serde-macros = { version = "=0.2.0", path = "../ruma-serde-macros" }
 serde = { version = "1.0.114", features = ["derive"] }
-serde_json = "1.0.57"
+serde_json = { version = "1.0.57", features = ["raw_value"] }
 
 [dev-dependencies]
 matches = "0.1.8"
+ruma-identifiers = { version = "0.17.4", path = "../ruma-identifiers" }

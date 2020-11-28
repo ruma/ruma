@@ -138,7 +138,7 @@ mod tests {
         AcceptEvent, AcceptEventContent, AcceptMethod, CustomContent, HashAlgorithm,
         KeyAgreementProtocol, MSasV1Content, MessageAuthenticationCode, ShortAuthenticationString,
     };
-    use ruma_common::Raw;
+    use ruma_serde::Raw;
 
     #[test]
     fn serialization() {

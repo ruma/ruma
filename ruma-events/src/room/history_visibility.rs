@@ -1,7 +1,7 @@
 //! Types for the *m.room.history_visibility* event.
 
-use ruma_common::StringEnum;
 use ruma_events_macros::StateEventContent;
+use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
 use crate::StateEvent;

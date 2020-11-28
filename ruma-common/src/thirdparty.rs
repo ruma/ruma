@@ -4,8 +4,8 @@
 
 use std::collections::BTreeMap;
 
-use ruma_common::StringEnum;
 use ruma_identifiers::{RoomAliasId, UserId};
+use ruma_serde::StringEnum;
 
 use serde::{Deserialize, Serialize};
 

@@ -2,7 +2,7 @@
 //!
 //! [presence]: https://matrix.org/docs/spec/client_server/r0.6.1#id62
 
-use crate::StringEnum;
+use ruma_serde::StringEnum;
 
 /// A description of a user's connectivity and availability for chat.
 #[derive(Clone, Debug, PartialEq, Eq, StringEnum)]

@@ -7,7 +7,7 @@ use std::{
 };
 
 use js_int::UInt;
-use ruma_common::{DeserializeFromCowStr, FromString};
+use ruma_serde::{DeserializeFromCowStr, FromString};
 use serde::{
     de::{self, Deserialize, Deserializer, MapAccess, Visitor},
     ser::{self, Serialize, SerializeMap, Serializer},

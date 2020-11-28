@@ -2,9 +2,9 @@
 
 use js_int::{uint, UInt};
 use ruma_api::ruma_api;
-use ruma_common::Raw;
 use ruma_events::{AnyRoomEvent, AnyStateEvent};
 use ruma_identifiers::{EventId, RoomId};
+use ruma_serde::Raw;
 
 use crate::r0::filter::{IncomingRoomEventFilter, RoomEventFilter};
 

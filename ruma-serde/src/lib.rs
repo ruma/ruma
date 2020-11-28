@@ -6,6 +6,7 @@ mod cow;
 pub mod duration;
 pub mod empty;
 pub mod json_string;
+mod raw;
 pub mod single_element_seq;
 mod strings;
 pub mod test;
@@ -20,6 +21,7 @@ pub use canonical_json::{
 };
 pub use cow::deserialize_cow_str;
 pub use empty::vec_as_map_of_empty;
+pub use raw::Raw;
 pub use strings::{
     btreemap_int_or_string_to_int_values, empty_string_as_none, int_or_string_to_int,
 };
@@ -42,4 +44,27 @@ pub fn default_true() -> bool {
 #[allow(clippy::trivially_copy_pass_by_ref)]
 pub fn is_true(b: &bool) -> bool {
     *b
+}
+
+/// A type that can be sent to another party that understands the matrix protocol. If any of the
+/// fields of `Self` don't implement serde's `Deserialize`, you can derive this trait to generate a
+/// corresponding 'Incoming' type that supports deserialization. This is useful for things like
+/// ruma_events' `EventResult` type. For more details, see the [derive macro's documentation][doc].
+///
+/// [doc]: derive.Outgoing.html
+// TODO: Better explain how this trait relates to serde's traits
+pub trait Outgoing {
+    /// The 'Incoming' variant of `Self`.
+    type Incoming;
+}
+
+// -- Everything below is macro-related --
+
+pub use ruma_serde_macros::*;
+
+/// This module is used to support the generated code from ruma-serde-macros.
+/// It is not considered part of ruma-serde's public API.
+#[doc(hidden)]
+pub mod exports {
+    pub use serde;
 }

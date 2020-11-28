@@ -1,11 +1,11 @@
 [package]
 authors = ["Jonas Platte <jplatte@posteo.de>",]
 categories = ["api-bindings", "web-programming"]
-description = "Procedural macros for ruma-common."
+description = "Procedural macros for ruma-serde."
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
-name = "ruma-common-macros"
+name = "ruma-serde-macros"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
 version = "0.2.0"

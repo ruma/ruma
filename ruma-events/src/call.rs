@@ -2,7 +2,7 @@
 //!
 //! This module also contains types shared by events in its child namespaces.
 
-use ruma_common::StringEnum;
+use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
 pub mod answer;

@@ -2,8 +2,8 @@
 
 use maplit::btreemap;
 use ruma_api::ruma_api;
-use ruma_common::StringEnum;
 use ruma_identifiers::RoomVersionId;
+use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use std::collections::BTreeMap;

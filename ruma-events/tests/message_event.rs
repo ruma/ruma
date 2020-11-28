@@ -2,7 +2,6 @@ use std::time::{Duration, UNIX_EPOCH};
 
 use js_int::{uint, UInt};
 use matches::assert_matches;
-use ruma_common::Raw;
 use ruma_events::{
     call::{answer::AnswerEventContent, SessionDescription, SessionDescriptionType},
     room::{ImageInfo, ThumbnailInfo},
@@ -10,6 +9,7 @@ use ruma_events::{
     AnyMessageEventContent, AnySyncMessageEvent, MessageEvent, RawExt, Unsigned,
 };
 use ruma_identifiers::{event_id, room_id, user_id};
+use ruma_serde::Raw;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]

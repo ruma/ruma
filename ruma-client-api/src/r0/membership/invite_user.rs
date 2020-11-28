@@ -8,8 +8,8 @@
 //! [invite-by-3pid]: https://matrix.org/docs/spec/client_server/r0.6.0#id101
 
 use ruma_api::ruma_api;
-use ruma_common::Outgoing;
 use ruma_identifiers::{RoomId, UserId};
+use ruma_serde::Outgoing;
 use serde::Serialize;
 
 use super::{IncomingInvite3pid, Invite3pid};

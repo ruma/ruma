@@ -2,7 +2,6 @@
 
 use assign::assign;
 use ruma_api::ruma_api;
-use ruma_common::{Raw, StringEnum};
 use ruma_events::{
     room::{
         create::{CreateEventContent, PreviousRoom},
@@ -11,6 +10,7 @@ use ruma_events::{
     AnyInitialStateEvent,
 };
 use ruma_identifiers::{RoomId, RoomVersionId, UserId};
+use ruma_serde::{Raw, StringEnum};
 use serde::{Deserialize, Serialize};
 
 use super::Visibility;

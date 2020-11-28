@@ -3,8 +3,8 @@
 pub mod v1;
 pub mod v2;
 
-use ruma_common::Raw;
 use ruma_events::pdu::Pdu;
+use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
 
 /// Full state of the room.

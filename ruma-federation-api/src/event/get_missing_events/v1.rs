@@ -2,9 +2,9 @@
 
 use js_int::{uint, UInt};
 use ruma_api::ruma_api;
-use ruma_common::Raw;
 use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, RoomId};
+use ruma_serde::Raw;
 
 ruma_api! {
     metadata: {

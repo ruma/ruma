@@ -1,8 +1,9 @@
 //! [POST /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-login)
 
 use ruma_api::ruma_api;
-use ruma_common::{thirdparty::Medium, Outgoing};
+use ruma_common::thirdparty::Medium;
 use ruma_identifiers::{DeviceId, DeviceIdBox, ServerNameBox, UserId};
+use ruma_serde::Outgoing;
 use serde::{Deserialize, Serialize};
 
 ruma_api! {

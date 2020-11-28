@@ -10,8 +10,8 @@ use ruma_api::{
     },
     AuthScheme, IncomingRequest, Metadata, OutgoingRequest,
 };
-use ruma_common::Outgoing;
 use ruma_identifiers::{RoomAliasId, RoomId};
+use ruma_serde::Outgoing;
 use serde::{Deserialize, Serialize};
 
 /// A request to create a new room alias.

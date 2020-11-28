@@ -49,7 +49,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
 };
 
-use ruma_common::{AsRefStr, DisplayAsRefStr};
+use ruma_serde::{AsRefStr, DisplayAsRefStr};
 
 pub use functions::{
     canonical_json, content_hash, hash_and_sign_event, redact, reference_hash, sign_json,

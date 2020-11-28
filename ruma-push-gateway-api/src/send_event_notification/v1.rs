@@ -2,12 +2,10 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_common::{
-    push::{PusherData, Tweak},
-    Outgoing, StringEnum,
-};
+use ruma_common::push::{PusherData, Tweak};
 use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomAliasId, RoomId, UserId};
+use ruma_serde::{Outgoing, StringEnum};
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
 use std::time::SystemTime;

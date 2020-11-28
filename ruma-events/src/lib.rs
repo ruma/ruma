@@ -119,8 +119,8 @@
 use std::fmt::Debug;
 
 use js_int::Int;
-use ruma_common::Raw;
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
+use ruma_serde::Raw;
 use serde::{
     de::{self, IgnoredAny},
     Deserialize, Serialize,

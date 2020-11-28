@@ -1,6 +1,6 @@
 //! Modules and types for events in the *m.policy.rule* namespace.
 
-use ruma_common::StringEnum;
+use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
 pub mod room;

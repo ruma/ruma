@@ -160,7 +160,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             quote! {
                 let request_body: <
                     RequestBody #body_lifetimes
-                    as #ruma_api_import::exports::ruma_common::Outgoing
+                    as #ruma_api_import::exports::ruma_serde::Outgoing
                 >::Incoming =
                     #ruma_api_import::try_deserialize!(
                         request,
@@ -195,7 +195,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         quote! {
             let response_body: <
                 ResponseBody
-                as #ruma_api_import::exports::ruma_common::Outgoing
+                as #ruma_api_import::exports::ruma_serde::Outgoing
             >::Incoming =
                 #ruma_api_import::try_deserialize!(
                     response,
@@ -332,7 +332,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         {
             type EndpointError = #error;
             type IncomingResponse =
-                <Response as #ruma_api_import::exports::ruma_common::Outgoing>::Incoming;
+                <Response as #ruma_api_import::exports::ruma_serde::Outgoing>::Incoming;
 
             #[doc = #metadata_doc]
             const METADATA: #ruma_api_import::Metadata = self::METADATA;

@@ -3,9 +3,9 @@
 use std::time::SystemTime;
 
 use ruma_api::ruma_api;
-use ruma_common::Raw;
 use ruma_events::{room::member::MemberEventContent, EventType};
 use ruma_identifiers::{RoomId, RoomVersionId, ServerNameBox, UserId};
+use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
 
 ruma_api! {

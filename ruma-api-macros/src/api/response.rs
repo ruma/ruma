@@ -312,7 +312,7 @@ impl Parse for Response {
 impl ToTokens for Response {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let ruma_api = &self.ruma_api_import;
-        let ruma_common = quote! { #ruma_api::exports::ruma_common };
+        let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
         let serde = quote! { #ruma_api::exports::serde };
 
         let struct_attributes = &self.attributes;
@@ -342,12 +342,12 @@ impl ToTokens for Response {
 
         let response_body_struct = quote! {
             /// Data in the response body.
-            #[derive(Debug, #ruma_common::Outgoing, #serde::Deserialize, #serde::Serialize)]
+            #[derive(Debug, #ruma_serde::Outgoing, #serde::Deserialize, #serde::Serialize)]
             struct ResponseBody #def
         };
 
         let response = quote! {
-            #[derive(Debug, Clone, #ruma_common::Outgoing)]
+            #[derive(Debug, Clone, #ruma_serde::Outgoing)]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize)]
             #( #struct_attributes )*
