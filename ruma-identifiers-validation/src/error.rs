@@ -13,6 +13,9 @@ pub enum Error {
     /// Only relevant for user IDs.
     InvalidCharacters,
 
+    /// The key algorithm is invalid (e.g. empty).
+    InvalidKeyAlgorithm,
+
     /// The key version contains outside of [a-zA-Z0-9_].
     InvalidKeyVersion,
 
@@ -28,9 +31,6 @@ pub enum Error {
 
     /// The ID is missing the correct leading sigil.
     MissingLeadingSigil,
-
-    /// The key algorithm is not recognized.
-    UnknownKeyAlgorithm,
 }
 
 impl Display for Error {
@@ -38,12 +38,12 @@ impl Display for Error {
         let message = match self {
             Error::EmptyRoomVersionId => "room version ID is empty",
             Error::InvalidCharacters => "localpart contains invalid characters",
+            Error::InvalidKeyAlgorithm => "unknown key algorithm specified",
             Error::InvalidKeyVersion => "key ID version contains invalid characters",
             Error::InvalidServerName => "server name is not a valid IP address or domain name",
             Error::MaximumLengthExceeded => "ID exceeds 255 bytes",
             Error::MissingDelimiter => "required colon is missing",
             Error::MissingLeadingSigil => "leading sigil is incorrect or missing",
-            Error::UnknownKeyAlgorithm => "unknown key algorithm specified",
         };
 
         write!(f, "{}", message)

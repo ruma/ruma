@@ -2,7 +2,7 @@
 
 use std::{convert::TryInto, num::NonZeroU8, str::FromStr};
 
-use ruma_identifiers_validation::{crypto_algorithms::SigningKeyAlgorithm, Error};
+use crate::{crypto_algorithms::SigningKeyAlgorithm, Error};
 
 /// Key identifiers used for homeserver signing keys.
 #[derive(Clone, Debug)]
@@ -56,10 +56,9 @@ mod tests {
     #[cfg(feature = "serde")]
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use crate::{Error, ServerSigningKeyId};
-
     #[cfg(feature = "serde")]
-    use ruma_identifiers_validation::crypto_algorithms::SigningKeyAlgorithm;
+    use crate::crypto_algorithms::SigningKeyAlgorithm;
+    use crate::{Error, ServerSigningKeyId};
 
     #[cfg(feature = "serde")]
     #[test]
@@ -87,10 +86,7 @@ mod tests {
 
     #[test]
     fn invalid_key_algorithm() {
-        assert_eq!(
-            ServerSigningKeyId::try_from("signed_curve25519:Abc-1").unwrap_err(),
-            Error::UnknownKeyAlgorithm,
-        );
+        assert_eq!(ServerSigningKeyId::try_from(":Abc-1").unwrap_err(), Error::InvalidKeyAlgorithm,);
     }
 
     #[test]

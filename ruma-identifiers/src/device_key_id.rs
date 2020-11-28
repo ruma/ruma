@@ -2,9 +2,7 @@
 
 use std::{convert::TryInto, num::NonZeroU8, str::FromStr};
 
-use ruma_identifiers_validation::{crypto_algorithms::DeviceKeyAlgorithm, Error};
-
-use crate::DeviceId;
+use crate::{crypto_algorithms::DeviceKeyAlgorithm, DeviceId, Error};
 
 /// A key algorithm and a device id, combined with a ':'
 #[derive(Clone, Debug)]
@@ -56,11 +54,11 @@ common_impls!(DeviceKeyId, try_from, "Device key ID with algorithm and device ID
 mod test {
     use std::convert::TryFrom;
 
-    use ruma_identifiers_validation::{crypto_algorithms::DeviceKeyAlgorithm, Error};
     #[cfg(feature = "serde")]
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::DeviceKeyId;
+    use crate::{crypto_algorithms::DeviceKeyAlgorithm, Error};
 
     #[test]
     fn convert_device_key_id() {
@@ -93,7 +91,7 @@ mod test {
 
     #[test]
     fn missing_key_algorithm() {
-        assert_eq!(DeviceKeyId::try_from(":JLAFKJWSCS").unwrap_err(), Error::UnknownKeyAlgorithm);
+        assert_eq!(DeviceKeyId::try_from(":JLAFKJWSCS").unwrap_err(), Error::InvalidKeyAlgorithm);
     }
 
     #[test]
@@ -101,14 +99,6 @@ mod test {
         assert_eq!(
             DeviceKeyId::try_from("ed25519|JLAFKJWSCS").unwrap_err(),
             Error::MissingDelimiter,
-        );
-    }
-
-    #[test]
-    fn unknown_key_algorithm() {
-        assert_eq!(
-            DeviceKeyId::try_from("signed_curve25510:JLAFKJWSCS").unwrap_err(),
-            Error::UnknownKeyAlgorithm,
         );
     }
 
