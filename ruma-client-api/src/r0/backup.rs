@@ -1,4 +1,5 @@
 //! Endpoints for server-side key backups.
+#![cfg(feature = "unstable-pre-spec")]
 
 pub mod add_backup_key_session;
 pub mod add_backup_key_sessions;
