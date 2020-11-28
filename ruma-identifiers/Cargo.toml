@@ -31,6 +31,7 @@ ruma-identifiers-validation = { version = "0.1.1", path = "../ruma-identifiers-v
 ruma-serde = { version = "0.2.3", path = "../ruma-serde" }
 # Renamed so we can have a serde feature.
 serde1 = { package = "serde", version = "1.0.114", optional = true, features = ["derive"] }
+strum = { version = "0.19.2", features = ["derive"] }
 
 [dev-dependencies]
 matches = "0.1.8"

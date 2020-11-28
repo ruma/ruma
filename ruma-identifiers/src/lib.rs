@@ -21,6 +21,7 @@ use serde::de::{self, Deserializer, Unexpected};
 
 #[doc(inline)]
 pub use crate::{
+    crypto_algorithms::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, SigningKeyAlgorithm},
     device_id::{DeviceId, DeviceIdBox},
     device_key_id::DeviceKeyId,
     event_id::EventId,
@@ -33,10 +34,7 @@ pub use crate::{
     user_id::UserId,
 };
 #[doc(inline)]
-pub use ruma_identifiers_validation::{
-    crypto_algorithms::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, SigningKeyAlgorithm},
-    error::Error,
-};
+pub use ruma_identifiers_validation::error::Error;
 
 #[macro_use]
 mod macros;
@@ -44,6 +42,7 @@ mod macros;
 pub mod device_id;
 pub mod user_id;
 
+mod crypto_algorithms;
 mod device_key_id;
 mod event_id;
 mod room_alias_id;

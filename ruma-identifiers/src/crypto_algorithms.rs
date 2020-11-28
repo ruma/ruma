@@ -12,7 +12,11 @@ use strum::{AsRefStr, Display, EnumString};
 
 /// The basic key algorithms in the specification.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, Display, EnumString)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Deserialize, Serialize),
+    serde(rename_all = "snake_case", crate = "serde")
+)]
 #[non_exhaustive]
 #[strum(serialize_all = "snake_case")]
 pub enum DeviceKeyAlgorithm {
@@ -44,7 +48,11 @@ impl TryFrom<String> for DeviceKeyAlgorithm {
 
 /// The signing key algorithms defined in the Matrix spec.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, Display, EnumString)]
-#[cfg_attr(feature = "serde", derive(Deserialize, Serialize), serde(rename_all = "snake_case"))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Deserialize, Serialize),
+    serde(rename_all = "snake_case", crate = "serde")
+)]
 #[non_exhaustive]
 #[strum(serialize_all = "snake_case")]
 pub enum SigningKeyAlgorithm {
@@ -77,7 +85,7 @@ impl TryFrom<String> for SigningKeyAlgorithm {
 #[cfg_attr(
     feature = "serde",
     derive(Deserialize, Serialize),
-    serde(from = "String", into = "String")
+    serde(from = "String", into = "String", crate = "serde")
 )]
 #[non_exhaustive]
 pub enum EventEncryptionAlgorithm {
