@@ -26,10 +26,12 @@ pub use ruma_serde as serde;
 
 pub use ruma_serde::Outgoing;
 
+#[allow(deprecated)] // Allow re-export of deprecated items
 pub use ruma_identifiers::{
     device_id, device_key_id, event_id, room_alias_id, room_id, room_version_id, server_key_id,
-    server_name, user_id, DeviceId, DeviceKeyAlgorithm, DeviceKeyId, EventId, RoomAliasId, RoomId,
-    RoomIdOrAliasId, RoomVersionId, ServerName, ServerSigningKeyId, SigningKeyAlgorithm, UserId,
+    server_name, server_signing_key_id, user_id, DeviceId, DeviceKeyAlgorithm, DeviceKeyId,
+    EventId, RoomAliasId, RoomId, RoomIdOrAliasId, RoomVersionId, ServerName, ServerSigningKeyId,
+    SigningKeyAlgorithm, UserId,
 };
 
 #[cfg(feature = "events")]

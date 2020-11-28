@@ -9,7 +9,7 @@ use ruma_events::{
     pdu::{EventHash, Pdu, RoomV1Pdu, RoomV3Pdu},
     EventType,
 };
-use ruma_identifiers::{event_id, room_id, server_key_id, server_name, user_id};
+use ruma_identifiers::{event_id, room_id, server_name, server_signing_key_id, user_id};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]
@@ -17,7 +17,7 @@ fn serialize_pdu_as_v1() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
     inner_signature.insert(
-        server_key_id!("ed25519:key_version"),
+        server_signing_key_id!("ed25519:key_version"),
         "86BytesOfSignatureOfTheRedactedEvent".into(),
     );
     signatures.insert(server_name!("example.com"), inner_signature);
@@ -84,7 +84,7 @@ fn serialize_pdu_as_v3() {
     let mut signatures = BTreeMap::new();
     let mut inner_signature = BTreeMap::new();
     inner_signature.insert(
-        server_key_id!("ed25519:key_version"),
+        server_signing_key_id!("ed25519:key_version"),
         "86BytesOfSignatureOfTheRedactedEvent".into(),
     );
     signatures.insert(server_name!("example.com"), inner_signature);
