@@ -251,7 +251,7 @@ mod tests {
 
     use maplit::btreemap;
     use matches::assert_matches;
-    use ruma_identifiers::{server_key_id, server_name};
+    use ruma_identifiers::{server_name, server_signing_key_id};
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json};
 
@@ -411,7 +411,7 @@ mod tests {
                 && mxid == "@alice:example.org"
                 && signatures == btreemap! {
                     server_name!("magic.forest") => btreemap! {
-                        server_key_id!("ed25519:3") => "foobar".to_owned()
+                        server_signing_key_id!("ed25519:3") => "foobar".to_owned()
                     }
                 }
                 && token == "abc123"
@@ -497,7 +497,7 @@ mod tests {
                 && mxid == "@alice:example.org"
                 && signatures == btreemap! {
                     server_name!("magic.forest") => btreemap! {
-                        server_key_id!("ed25519:3") => "foobar".to_owned()
+                        server_signing_key_id!("ed25519:3") => "foobar".to_owned()
                     }
                 }
                 && token == "abc123"

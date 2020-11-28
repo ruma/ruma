@@ -22,15 +22,16 @@ use serde::de::{self, Deserializer, Unexpected};
 #[doc(inline)]
 pub use crate::{
     crypto_algorithms::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, SigningKeyAlgorithm},
-    device_id::{DeviceId, DeviceIdBox},
     device_key_id::DeviceKeyId,
     event_id::EventId,
+    key_id::{DeviceSigningKeyId, KeyId, ServerSigningKeyId, SigningKeyId},
+    opaque_ids::{DeviceId, DeviceIdBox, KeyName, KeyNameBox},
     room_alias_id::RoomAliasId,
     room_id::RoomId,
     room_id_or_room_alias_id::RoomIdOrAliasId,
     room_version_id::RoomVersionId,
     server_name::{ServerName, ServerNameBox},
-    signing_key_id::ServerSigningKeyId,
+    signatures::{DeviceSignatures, EntitySignatures, ServerSignatures, Signatures},
     user_id::UserId,
 };
 #[doc(inline)]
@@ -39,18 +40,19 @@ pub use ruma_identifiers_validation::error::Error;
 #[macro_use]
 mod macros;
 
-pub mod device_id;
 pub mod user_id;
 
 mod crypto_algorithms;
 mod device_key_id;
 mod event_id;
+mod key_id;
+mod opaque_ids;
 mod room_alias_id;
 mod room_id;
 mod room_id_or_room_alias_id;
 mod room_version_id;
 mod server_name;
-mod signing_key_id;
+mod signatures;
 
 /// Check whether a given string is a valid server name according to [the specification][].
 ///
@@ -138,9 +140,18 @@ macro_rules! room_version_id {
 
 /// Compile-time checked `ServerSigningKeyId` construction.
 #[macro_export]
+#[deprecated = "use server_signing_key_id!()"]
 macro_rules! server_key_id {
     ($s:literal) => {
-        $crate::_macros::server_key_id!($crate, $s)
+        $crate::_macros::server_signing_key_id!($crate, $s)
+    };
+}
+
+/// Compile-time checked `ServerSigningKeyId` construction.
+#[macro_export]
+macro_rules! server_signing_key_id {
+    ($s:literal) => {
+        $crate::_macros::server_signing_key_id!($crate, $s)
     };
 }
 
