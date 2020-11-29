@@ -32,10 +32,10 @@ pub use ruma_identifiers::{
     RoomIdOrAliasId, RoomVersionId, ServerName, ServerSigningKeyId, SigningKeyAlgorithm, UserId,
 };
 
-#[cfg(feature = "ruma-events")]
+#[cfg(feature = "events")]
 #[doc(inline)]
 pub use ruma_events as events;
-#[cfg(feature = "ruma-signatures")]
+#[cfg(feature = "signatures")]
 #[doc(inline)]
 pub use ruma_signatures as signatures;
 
@@ -45,19 +45,19 @@ pub use ruma_signatures as signatures;
 pub mod api {
     pub use ruma_api::*;
 
-    #[cfg(feature = "ruma-appservice-api")]
+    #[cfg(feature = "appservice-api")]
     #[doc(inline)]
     pub use ruma_appservice_api as appservice;
-    #[cfg(feature = "ruma-client-api")]
+    #[cfg(feature = "client-api")]
     #[doc(inline)]
     pub use ruma_client_api as client;
-    #[cfg(feature = "ruma-federation-api")]
+    #[cfg(feature = "federation-api")]
     #[doc(inline)]
     pub use ruma_federation_api as federation;
     #[cfg(feature = "identity-service-api")]
     #[doc(inline)]
     pub use ruma_identity_service_api as identity_service;
-    #[cfg(feature = "identity-service-api")]
+    #[cfg(feature = "push-gateway-api")]
     #[doc(inline)]
     pub use ruma_push_gateway_api as push_gateway;
 }

@@ -12,29 +12,6 @@ license = "MIT"
 version = "0.0.1"
 edition = "2018"
 
-[features]
-either = ["ruma-identifiers/either"]
-rand = ["ruma-identifiers/rand"]
-unstable-exhaustive-types = [
-  "ruma-events/unstable-exhaustive-types",
-  "ruma-appservice-api/unstable-exhaustive-types",
-  "ruma-client-api/unstable-exhaustive-types",
-  "ruma-federation-api/unstable-exhaustive-types",
-  "ruma-common/unstable-exhaustive-types",
-]
-unstable-pre-spec = ["ruma-client-api/unstable-pre-spec", "ruma-events/unstable-pre-spec", "ruma-federation-api/unstable-pre-spec"]
-unstable-synapse-quirks = [
-  "ruma-client-api/unstable-synapse-quirks",
-  "ruma-common/unstable-synapse-quirks",
-  "ruma-events/unstable-synapse-quirks",
-]
-
-appservice-api = ["ruma-api", "ruma-appservice-api", "ruma-events"]
-client-api = ["ruma-api", "ruma-client-api", "ruma-events"]
-federation-api = ["ruma-api", "ruma-federation-api", "ruma-signatures"]
-identity-service-api = ["ruma-api", "ruma-identity-service-api"]
-push-gateway-api = ["ruma-api", "ruma-push-gateway-api"]
-
 [dependencies]
 assign = "1.1.0"
 js_int = "0.1.9"
@@ -52,3 +29,30 @@ ruma-client-api = { version = "=0.10.0-alpha.1", path = "../ruma-client-api", op
 ruma-federation-api = { version = "0.0.3", path = "../ruma-federation-api", optional = true }
 ruma-identity-service-api = { version = "0.0.0", path = "../ruma-identity-service-api", optional = true }
 ruma-push-gateway-api = { version = "0.0.0", path = "../ruma-push-gateway-api", optional = true }
+
+[features]
+either = ["ruma-identifiers/either"]
+rand = ["ruma-identifiers/rand"]
+
+events = ["ruma-events"]
+signatures = ["ruma-signatures"]
+
+appservice-api = ["ruma-api", "ruma-appservice-api", "events"]
+client-api = ["ruma-api", "ruma-client-api", "events"]
+federation-api = ["ruma-api", "ruma-federation-api", "signatures"]
+identity-service-api = ["ruma-api", "ruma-identity-service-api"]
+push-gateway-api = ["ruma-api", "ruma-push-gateway-api"]
+
+unstable-exhaustive-types = [
+  "ruma-events/unstable-exhaustive-types",
+  "ruma-appservice-api/unstable-exhaustive-types",
+  "ruma-client-api/unstable-exhaustive-types",
+  "ruma-federation-api/unstable-exhaustive-types",
+  "ruma-common/unstable-exhaustive-types",
+]
+unstable-pre-spec = ["ruma-client-api/unstable-pre-spec", "ruma-events/unstable-pre-spec", "ruma-federation-api/unstable-pre-spec"]
+unstable-synapse-quirks = [
+  "ruma-client-api/unstable-synapse-quirks",
+  "ruma-common/unstable-synapse-quirks",
+  "ruma-events/unstable-synapse-quirks",
+]
