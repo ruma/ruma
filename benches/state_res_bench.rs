@@ -10,7 +10,6 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use maplit::btreemap;
 use ruma::{
     events::{
-        pdu::EventHash,
         room::{
             join_rules::JoinRule,
             member::{MemberEventContent, MembershipState},
@@ -51,7 +50,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
         b.iter(|| {
             let _resolved = match StateResolution::resolve(
                 &room_id(),
-                &RoomVersionId::Version2,
+                &RoomVersionId::Version6,
                 &[state_at_bob.clone(), state_at_charlie.clone()],
                 None,
                 &store,
@@ -299,27 +298,11 @@ where
         .iter()
         .map(AsRef::as_ref)
         .map(event_id)
-        .map(|id| {
-            (
-                id,
-                EventHash {
-                    sha256: "hello".into(),
-                },
-            )
-        })
         .collect::<Vec<_>>();
     let prev_events = prev_events
         .iter()
         .map(AsRef::as_ref)
         .map(event_id)
-        .map(|id| {
-            (
-                id,
-                EventHash {
-                    sha256: "hello".into(),
-                },
-            )
-        })
         .collect::<Vec<_>>();
 
     let json = if let Some(state_key) = state_key {

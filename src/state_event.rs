@@ -141,6 +141,17 @@ impl StateEvent {
         ))
     }
 
+    pub fn from_id_canon_obj(
+        id: EventId,
+        json: ruma::serde::CanonicalJsonObject,
+    ) -> Result<Self, serde_json::Error> {
+        Ok(Self::Full(
+            id,
+            // TODO: this is unfortunate (from_value(to_value(json)))...
+            Pdu::RoomV3Pdu(serde_json::from_value(serde_json::to_value(json)?)?),
+        ))
+    }
+
     pub fn to_requester(&self) -> Requester<'_> {
         Requester {
             prev_event_ids: self.prev_event_ids(),
