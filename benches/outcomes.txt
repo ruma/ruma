@@ -1,0 +1,17 @@
+11/29/2020 BRANCH: timo-spec-comp REV: d2a85669cc6056679ce6ca0fde4658a879ad2b08
+lexicographical topological sort                                                                             
+                        time:   [1.7123 us 1.7157 us 1.7199 us]
+                        change: [-1.7584% -1.5433% -1.3205%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 8 outliers among 100 measurements (8.00%)
+  2 (2.00%) low mild
+  5 (5.00%) high mild
+  1 (1.00%) high severe
+
+resolve state of 5 events one fork                                                                             
+                        time:   [10.981 us 10.998 us 11.020 us]
+Found 3 outliers among 100 measurements (3.00%)
+  3 (3.00%) high mild
+
+resolve state of 10 events 3 conflicting                                                                             
+                        time:   [26.858 us 26.946 us 27.037 us]
