@@ -137,10 +137,7 @@ impl From<EventEncryptionAlgorithm> for String {
 
 #[cfg(test)]
 mod tests {
-    use ruma_serde::test::serde_json_eq;
-    use serde_json::json;
-
-    use super::{DeviceKeyAlgorithm, EventEncryptionAlgorithm, SigningKeyAlgorithm};
+    use super::{DeviceKeyAlgorithm, SigningKeyAlgorithm};
 
     #[test]
     fn parse_device_key_algorithm() {
@@ -155,7 +152,13 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "serde")]
     fn event_encryption_algorithm_serde() {
+        use ruma_serde::test::serde_json_eq;
+        use serde_json::json;
+
+        use super::EventEncryptionAlgorithm;
+
         serde_json_eq(EventEncryptionAlgorithm::MegolmV1AesSha2, json!("m.megolm.v1.aes-sha2"));
         serde_json_eq(
             EventEncryptionAlgorithm::OlmV1Curve25519AesSha2,
