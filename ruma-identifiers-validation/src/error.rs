@@ -38,7 +38,7 @@ impl Display for Error {
         let message = match self {
             Error::EmptyRoomVersionId => "room version ID is empty",
             Error::InvalidCharacters => "localpart contains invalid characters",
-            Error::InvalidKeyAlgorithm => "unknown key algorithm specified",
+            Error::InvalidKeyAlgorithm => "invalid key algorithm specified",
             Error::InvalidKeyVersion => "key ID version contains invalid characters",
             Error::InvalidServerName => "server name is not a valid IP address or domain name",
             Error::MaximumLengthExceeded => "ID exceeds 255 bytes",

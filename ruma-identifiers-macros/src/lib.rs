@@ -84,7 +84,7 @@ pub fn room_version_id(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn server_signing_key_id(input: TokenStream) -> TokenStream {
     let Input { dollar_crate, id } = parse_macro_input!(input as Input);
-    assert!(key_id::validate(&id.value()).is_ok(), "Invalid server_key_id");
+    assert!(key_id::validate(&id.value()).is_ok(), "Invalid server_signing_key_id");
 
     let output = quote! {
         <#dollar_crate::ServerSigningKeyId as ::std::convert::TryFrom<&str>>::try_from(#id).unwrap()
