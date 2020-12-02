@@ -18,8 +18,8 @@ pub mod unbind_3pid;
 
 pub mod whoami;
 
-use ruma_serde::Outgoing;
-use serde::{Deserialize, Serialize};
+use ruma_serde::{Outgoing, StringEnum};
+use serde::Serialize;
 
 /// Additional authentication information for requestToken endpoints.
 #[derive(Clone, Debug, Outgoing, Serialize)]
@@ -40,9 +40,9 @@ impl<'a> IdentityServerInfo<'a> {
     }
 }
 
-/// Possible values for deleting or unbinding 3PIDs
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[serde(rename_all = "kebab-case")]
+/// Possible values for deleting or unbinding 3PIDs.
+#[derive(Clone, Debug, StringEnum)]
+#[ruma_enum(rename_all = "kebab-case")]
 pub enum ThirdPartyIdRemovalStatus {
     /// Either the homeserver couldn't determine the right identity server to contact, or the
     /// identity server refused the operation.
@@ -50,4 +50,7 @@ pub enum ThirdPartyIdRemovalStatus {
 
     /// Success.
     Success,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
