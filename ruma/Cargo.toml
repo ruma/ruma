@@ -30,6 +30,9 @@ ruma-federation-api = { version = "0.0.3", path = "../ruma-federation-api", opti
 ruma-identity-service-api = { version = "0.0.0", path = "../ruma-identity-service-api", optional = true }
 ruma-push-gateway-api = { version = "0.0.0", path = "../ruma-push-gateway-api", optional = true }
 
+[dev-dependencies]
+serde = { version = "1.0.117", features = ["derive"] }
+
 [features]
 either = ["ruma-identifiers/either"]
 rand = ["ruma-identifiers/rand"]

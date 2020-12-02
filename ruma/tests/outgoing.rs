@@ -1,5 +1,7 @@
-use ruma_identifiers::UserId;
-use ruma_serde::Outgoing;
+// This test should really be part of ruma_serde, but some tooling doesn't like
+// cyclic dev-dependencies, which are required for this test to be moved there.
+
+use ruma::{Outgoing, UserId};
 
 #[allow(unused)]
 pub struct Thing<'t, T> {
@@ -15,6 +17,7 @@ pub struct IncomingThing<T> {
 
 #[allow(unused)]
 #[derive(Copy, Clone, Debug, Outgoing, serde::Serialize)]
+#[serde(crate = "serde")]
 pub struct OtherThing<'t> {
     pub some: &'t str,
     pub t: &'t [u8],
