@@ -1,10 +1,22 @@
 //! Types for the *m.key.verification.cancel* event.
 
 use ruma_events_macros::BasicEventContent;
+#[cfg(feature = "unstable-pre-spec")]
+use ruma_events_macros::MessageEventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-/// The payload for `CancelEvent`.
+#[cfg(feature = "unstable-pre-spec")]
+use crate::MessageEvent;
+
+#[cfg(feature = "unstable-pre-spec")]
+use super::Relation;
+
+/// Cancels a key verification process/request.
+#[cfg(feature = "unstable-pre-spec")]
+pub type CancelEvent = MessageEvent<CancelEventContent>;
+
+/// The payload for a to-device `CancelEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.key.verification.cancel")]
 pub struct CancelToDeviceEventContent {
@@ -18,6 +30,24 @@ pub struct CancelToDeviceEventContent {
 
     /// The error code for why the process/request was cancelled by the user.
     pub code: CancelCode,
+}
+
+/// The payload for an in-room `CancelEvent`.
+#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
+#[ruma_event(type = "m.key.verification.cancel")]
+#[cfg(feature = "unstable-pre-spec")]
+pub struct CancelEventContent {
+    /// A human readable description of the `code`.
+    ///
+    /// The client should only rely on this string if it does not understand the `code`.
+    pub reason: String,
+
+    /// The error code for why the process/request was cancelled by the user.
+    pub code: CancelCode,
+
+    /// Information about the related event.
+    #[serde(rename = "m.relates_to")]
+    pub relation: Relation,
 }
 
 /// An error code for why the process/request was cancelled by the user.

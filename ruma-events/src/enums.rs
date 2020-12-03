@@ -37,6 +37,16 @@ event_enum! {
         "m.call.hangup",
         "m.call.candidates",
         #[cfg(feature = "unstable-pre-spec")]
+        "m.key.verification.start",
+        #[cfg(feature = "unstable-pre-spec")]
+        "m.key.verification.cancel",
+        #[cfg(feature = "unstable-pre-spec")]
+        "m.key.verification.accept",
+        #[cfg(feature = "unstable-pre-spec")]
+        "m.key.verification.key",
+        #[cfg(feature = "unstable-pre-spec")]
+        "m.key.verification.mac",
+        #[cfg(feature = "unstable-pre-spec")]
         "m.reaction",
         "m.room.encrypted",
         "m.room.message",

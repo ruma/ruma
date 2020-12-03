@@ -3,16 +3,27 @@
 use std::{collections::BTreeMap, convert::TryFrom};
 
 use ruma_events_macros::BasicEventContent;
+#[cfg(feature = "unstable-pre-spec")]
+use ruma_events_macros::MessageEventContent;
 use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
+#[cfg(feature = "unstable-pre-spec")]
+use super::Relation;
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
 };
-use crate::InvalidInput;
 
-/// The payload of an *m.key.verification.start* event.
+use crate::InvalidInput;
+#[cfg(feature = "unstable-pre-spec")]
+use crate::MessageEvent;
+
+/// Begins an SAS key verification process.
+#[cfg(feature = "unstable-pre-spec")]
+pub type StartEvent = MessageEvent<StartEventContent>;
+
+/// The payload of a to-device *m.key.verification.start* event.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.key.verification.start")]
 pub struct StartToDeviceEventContent {
@@ -29,6 +40,23 @@ pub struct StartToDeviceEventContent {
     /// Method specific content.
     #[serde(flatten)]
     pub method: StartMethod,
+}
+
+/// The payload of an in-room *m.key.verification.start* event.
+#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
+#[ruma_event(type = "m.key.verification.start")]
+#[cfg(feature = "unstable-pre-spec")]
+pub struct StartEventContent {
+    /// The device ID which is initiating the process.
+    pub from_device: DeviceIdBox,
+
+    /// Method specific content.
+    #[serde(flatten)]
+    pub method: StartMethod,
+
+    /// Information about the related event.
+    #[serde(rename = "m.relates_to")]
+    pub relation: Relation,
 }
 
 /// An enum representing the different method specific
@@ -174,6 +202,8 @@ mod tests {
     use std::collections::BTreeMap;
 
     use matches::assert_matches;
+    #[cfg(feature = "unstable-pre-spec")]
+    use ruma_identifiers::event_id;
     use ruma_identifiers::user_id;
     use ruma_serde::Raw;
     use serde_json::{
@@ -185,6 +215,8 @@ mod tests {
         MessageAuthenticationCode, ShortAuthenticationString, StartMethod,
         StartToDeviceEventContent,
     };
+    #[cfg(feature = "unstable-pre-spec")]
+    use super::{Relation, StartEventContent};
     use crate::ToDeviceEvent;
 
     #[test]
@@ -311,6 +343,41 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "unstable-pre-spec")]
+    fn in_room_serialization() {
+        let event_id = event_id!("$1598361704261elfgc:localhost");
+
+        let key_verification_start_content = StartEventContent {
+            from_device: "123".into(),
+            relation: Relation { event_id: event_id.clone() },
+            method: StartMethod::MSasV1(
+                MSasV1Content::new(MSasV1ContentInit {
+                    hashes: vec![HashAlgorithm::Sha256],
+                    key_agreement_protocols: vec![KeyAgreementProtocol::Curve25519],
+                    message_authentication_codes: vec![MessageAuthenticationCode::HkdfHmacSha256],
+                    short_authentication_string: vec![ShortAuthenticationString::Decimal],
+                })
+                .unwrap(),
+            ),
+        };
+
+        let json_data = json!({
+            "from_device": "123",
+            "method": "m.sas.v1",
+            "key_agreement_protocols": ["curve25519"],
+            "hashes": ["sha256"],
+            "message_authentication_codes": ["hkdf-hmac-sha256"],
+            "short_authentication_string": ["decimal"],
+            "m.relates_to": {
+                "rel_type": "m.reference",
+                "event_id": event_id,
+            }
+        });
+
+        assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
+    }
+
+    #[test]
     fn deserialization() {
         let json = json!({
             "from_device": "123",
@@ -420,6 +487,50 @@ mod tests {
                 && transaction_id == "456"
                 && method == "m.sas.custom"
                 && fields.get("test").unwrap() == &JsonValue::from("field")
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-pre-spec")]
+    fn in_room_deserialization() {
+        let id = event_id!("$1598361704261elfgc:localhost");
+
+        let json = json!({
+            "from_device": "123",
+            "method": "m.sas.v1",
+            "hashes": ["sha256"],
+            "key_agreement_protocols": ["curve25519"],
+            "message_authentication_codes": ["hkdf-hmac-sha256"],
+            "short_authentication_string": ["decimal"],
+            "m.relates_to": {
+                "rel_type": "m.reference",
+                "event_id": id,
+            }
+        });
+
+        // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
+        assert_matches!(
+            from_json_value::<Raw<StartEventContent>>(json)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
+            StartEventContent {
+                from_device,
+                relation: Relation {
+                    event_id,
+                },
+                method: StartMethod::MSasV1(MSasV1Content {
+                    hashes,
+                    key_agreement_protocols,
+                    message_authentication_codes,
+                    short_authentication_string,
+                })
+            } if from_device == "123"
+                && event_id == id
+                && hashes == vec![HashAlgorithm::Sha256]
+                && key_agreement_protocols == vec![KeyAgreementProtocol::Curve25519]
+                && message_authentication_codes == vec![MessageAuthenticationCode::HkdfHmacSha256]
+                && short_authentication_string == vec![ShortAuthenticationString::Decimal]
         );
     }
 
