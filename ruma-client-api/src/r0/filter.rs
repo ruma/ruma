@@ -61,7 +61,7 @@ pub struct RoomEventFilter<'a> {
     /// A list of room IDs to include.
     ///
     /// If this list is absent then all rooms are included.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub rooms: Option<&'a [RoomId]>,
 
     /// A list of sender IDs to exclude.
@@ -74,14 +74,14 @@ pub struct RoomEventFilter<'a> {
     /// A list of senders IDs to include.
     ///
     /// If this list is absent then all senders are included.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub senders: Option<&'a [UserId]>,
 
     /// A list of event types to include.
     ///
     /// If this list is absent then all event types are included. A '*' can be used as a wildcard
     /// to match any sequence of characters.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub types: Option<&'a [String]>,
 
     /// Controls whether to include events with a URL key in their content.
@@ -181,7 +181,7 @@ pub struct RoomFilter<'a> {
     ///
     /// If this list is absent then all rooms are included. This filter is applied before the
     /// filters in `ephemeral`, `state`, `timeline` or `account_data`.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub rooms: Option<&'a [RoomId]>,
 }
 
@@ -243,14 +243,14 @@ pub struct Filter<'a> {
     /// A list of senders IDs to include.
     ///
     /// If this list is absent then all senders are included.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub senders: Option<&'a [UserId]>,
 
     /// A list of event types to include.
     ///
     /// If this list is absent then all event types are included. A '*' can be used as a wildcard
     /// to match any sequence of characters.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub types: Option<&'a [String]>,
 
     /// A list of sender IDs to exclude.
