@@ -2,9 +2,14 @@
 
 use js_int::UInt;
 use ruma_events_macros::MessageEventContent;
+#[cfg(feature = "unstable-pre-spec")]
+use ruma_identifiers::{DeviceIdBox, UserId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
+
+#[cfg(feature = "unstable-pre-spec")]
+use crate::key::verification::VerificationMethod;
 
 #[cfg(feature = "unstable-pre-spec")]
 use super::relationships::{Annotation, Reference, RelationJsonRepr, Replacement};
@@ -63,6 +68,11 @@ pub enum MessageEventContent {
     /// A video message.
     #[serde(rename = "m.video")]
     Video(VideoMessageEventContent),
+
+    /// A request to initiate a key verification.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[serde(rename = "m.key.verification.request")]
+    VerificationRequest(KeyVerificationRequestEventContent),
 }
 
 /// Enum modeling the different ways relationships can be expressed in a
@@ -536,18 +546,45 @@ pub struct VideoInfo {
     pub thumbnail_file: Option<Box<EncryptedFile>>,
 }
 
+/// The payload for a key verification request message.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg(feature = "unstable-pre-spec")]
+pub struct KeyVerificationRequestEventContent {
+    /// A fallback message to alert users that their client does not support the
+    /// key verification framework
+    pub body: String,
+
+    /// The verification methods supported by the sender.
+    pub methods: Vec<VerificationMethod>,
+
+    /// The device ID which is initiating the request.
+    pub from_device: DeviceIdBox,
+
+    /// The user ID which should receive the request. Users should only respond
+    /// to verification requests if they are named in this field. Users who are
+    /// not named in this field and who did not send this event should ignore
+    /// all other events that have a m.reference relationship with this event.
+    pub to: UserId,
+}
+
 #[cfg(test)]
 mod tests {
     use std::time::{Duration, UNIX_EPOCH};
 
     use matches::assert_matches;
+    #[cfg(feature = "unstable-pre-spec")]
+    use ruma_identifiers::DeviceIdBox;
     use ruma_identifiers::{event_id, room_id, user_id};
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
+    #[cfg(feature = "unstable-pre-spec")]
+    use super::KeyVerificationRequestEventContent;
     use super::{
         AudioMessageEventContent, FormattedBody, MessageEventContent, MessageFormat, Relation,
     };
+    #[cfg(feature = "unstable-pre-spec")]
+    use crate::key::verification::VerificationMethod;
     use crate::{
         room::{message::TextMessageEventContent, relationships::InReplyTo},
         MessageEvent, Unsigned,
@@ -732,6 +769,70 @@ mod tests {
                     }) if body == "bar"
                 )
         );
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-pre-spec")]
+    fn verification_request_deserialization() {
+        let user_id = user_id!("@example2:localhost");
+        let device_id: DeviceIdBox = "XOWLHHFSWM".into();
+
+        let json_data = json!({
+            "body": "@example:localhost is requesting to verify your key, ...",
+            "msgtype": "m.key.verification.request",
+            "to": user_id,
+            "from_device": device_id,
+            "methods": [
+                "m.sas.v1",
+                "m.qr_code.show.v1",
+                "m.reciprocate.v1"
+            ]
+        });
+
+        assert_matches!(
+            from_json_value::<MessageEventContent>(json_data).unwrap(),
+            MessageEventContent::VerificationRequest(KeyVerificationRequestEventContent {
+                body,
+                to,
+                from_device,
+                methods
+            }) if body == "@example:localhost is requesting to verify your key, ..."
+                && to == user_id
+                && from_device == device_id
+                && methods.contains(&VerificationMethod::MSasV1)
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-pre-spec")]
+    fn verification_request_serialization() {
+        let user_id = user_id!("@example2:localhost");
+        let device_id: DeviceIdBox = "XOWLHHFSWM".into();
+        let body = "@example:localhost is requesting to verify your key, ...".to_string();
+
+        let methods = vec![
+            VerificationMethod::MSasV1,
+            VerificationMethod::_Custom("m.qr_code.show.v1".to_string()),
+            VerificationMethod::_Custom("m.reciprocate.v1".to_string()),
+        ];
+
+        let json_data = json!({
+            "body": body,
+            "msgtype": "m.key.verification.request",
+            "to": user_id,
+            "from_device": device_id,
+            "methods": methods
+        });
+
+        let content =
+            MessageEventContent::VerificationRequest(KeyVerificationRequestEventContent {
+                to: user_id,
+                from_device: device_id,
+                body,
+                methods,
+            });
+
+        assert_eq!(to_json_value(&content).unwrap(), json_data,);
     }
 
     #[test]
