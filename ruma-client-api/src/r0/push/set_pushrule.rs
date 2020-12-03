@@ -39,13 +39,13 @@ ruma_api! {
         pub after: Option<&'a str>,
 
         /// The actions to perform when this rule is matched.
-        pub actions: Vec<Action>,
+        pub actions: &'a [Action],
 
         /// The conditions that must hold true for an event in order for a rule to be applied to an
         /// event. A rule with no conditions always matches. Only applicable to underride and
         /// override rules, empty Vec otherwise.
-        #[serde(default)]
-        pub conditions: Vec<PushCondition>,
+        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        pub conditions: &'a [PushCondition],
 
         /// The glob-style pattern to match against. Only applicable to content rules.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -60,7 +60,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given scope, rule kind, rule ID and actions.
-    pub fn new(scope: &'a str, kind: RuleKind, rule_id: &'a str, actions: Vec<Action>) -> Self {
+    pub fn new(scope: &'a str, kind: RuleKind, rule_id: &'a str, actions: &'a [Action]) -> Self {
         Self {
             scope,
             kind,
@@ -68,7 +68,7 @@ impl<'a> Request<'a> {
             before: None,
             after: None,
             actions,
-            conditions: Vec::new(),
+            conditions: &[],
             pattern: None,
         }
     }
