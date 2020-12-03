@@ -4,17 +4,10 @@ use ruma_events_macros::BasicEventContent;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::BasicEvent;
-
-/// Cancels a key verification process/request.
-///
-/// Typically sent as a to-device event.
-pub type CancelEvent = BasicEvent<CancelEventContent>;
-
 /// The payload for `CancelEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.key.verification.cancel")]
-pub struct CancelEventContent {
+pub struct CancelToDeviceEventContent {
     /// The opaque identifier for the verification process/request.
     pub transaction_id: String,
 

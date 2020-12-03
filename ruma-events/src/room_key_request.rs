@@ -5,17 +5,10 @@ use ruma_identifiers::{DeviceIdBox, EventEncryptionAlgorithm, RoomId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::BasicEvent;
-
-/// This event type is used to request keys for end-to-end encryption.
-///
-/// It is sent as an unencrypted to-device event.
-pub type RoomKeyRequestEvent = BasicEvent<RoomKeyRequestEventContent>;
-
 /// The payload for `RoomKeyRequestEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.room_key_request")]
-pub struct RoomKeyRequestEventContent {
+pub struct RoomKeyRequestToDeviceEventContent {
     /// Whether this is a new key request or a cancellation of a previous request.
     pub action: Action,
 

@@ -10,17 +10,12 @@ use serde_json::Value as JsonValue;
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
 };
-use crate::{BasicEvent, InvalidInput};
-
-/// Begins an SAS key verification process.
-///
-/// Typically sent as a to-device event.
-pub type StartEvent = BasicEvent<StartEventContent>;
+use crate::InvalidInput;
 
 /// The payload of an *m.key.verification.start* event.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.key.verification.start")]
-pub struct StartEventContent {
+pub struct StartToDeviceEventContent {
     /// The device ID which is initiating the process.
     pub from_device: DeviceIdBox,
 
@@ -179,16 +174,18 @@ mod tests {
     use std::collections::BTreeMap;
 
     use matches::assert_matches;
+    use ruma_identifiers::user_id;
+    use ruma_serde::Raw;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
 
     use super::{
         CustomContent, HashAlgorithm, KeyAgreementProtocol, MSasV1Content, MSasV1ContentInit,
-        MessageAuthenticationCode, ShortAuthenticationString, StartEvent, StartEventContent,
-        StartMethod,
+        MessageAuthenticationCode, ShortAuthenticationString, StartMethod,
+        StartToDeviceEventContent,
     };
-    use ruma_serde::Raw;
+    use crate::ToDeviceEvent;
 
     #[test]
     fn invalid_m_sas_v1_content_missing_required_key_agreement_protocols() {
@@ -248,7 +245,7 @@ mod tests {
 
     #[test]
     fn serialization() {
-        let key_verification_start_content = StartEventContent {
+        let key_verification_start_content = StartToDeviceEventContent {
             from_device: "123".into(),
             transaction_id: "456".into(),
             method: StartMethod::MSasV1(
@@ -262,7 +259,7 @@ mod tests {
             ),
         };
 
-        let key_verification_start = StartEvent { content: key_verification_start_content };
+        let sender = user_id!("@example:localhost");
 
         let json_data = json!({
             "content": {
@@ -274,10 +271,16 @@ mod tests {
                 "message_authentication_codes": ["hkdf-hmac-sha256"],
                 "short_authentication_string": ["decimal"]
             },
-            "type": "m.key.verification.start"
+            "type": "m.key.verification.start",
+            "sender": sender
         });
 
+        let key_verification_start =
+            ToDeviceEvent { sender, content: key_verification_start_content };
+
         assert_eq!(to_json_value(&key_verification_start).unwrap(), json_data);
+
+        let sender = user_id!("@example:localhost");
 
         let json_data = json!({
             "content": {
@@ -286,10 +289,11 @@ mod tests {
                 "method": "m.sas.custom",
                 "test": "field",
             },
-            "type": "m.key.verification.start"
+            "type": "m.key.verification.start",
+            "sender": sender
         });
 
-        let key_verification_start_content = StartEventContent {
+        let key_verification_start_content = StartToDeviceEventContent {
             from_device: "123".into(),
             transaction_id: "456".into(),
             method: StartMethod::Custom(CustomContent {
@@ -300,7 +304,8 @@ mod tests {
             }),
         };
 
-        let key_verification_start = StartEvent { content: key_verification_start_content };
+        let key_verification_start =
+            ToDeviceEvent { sender, content: key_verification_start_content };
 
         assert_eq!(to_json_value(&key_verification_start).unwrap(), json_data);
     }
@@ -319,11 +324,11 @@ mod tests {
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_matches!(
-            from_json_value::<Raw<StartEventContent>>(json)
+            from_json_value::<Raw<StartToDeviceEventContent>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            StartEventContent {
+            StartToDeviceEventContent {
                 from_device,
                 transaction_id,
                 method: StartMethod::MSasV1(MSasV1Content {
@@ -340,6 +345,8 @@ mod tests {
                 && short_authentication_string == vec![ShortAuthenticationString::Decimal]
         );
 
+        let sender = user_id!("@example:localhost");
+
         let json = json!({
             "content": {
                 "from_device": "123",
@@ -350,16 +357,18 @@ mod tests {
                 "message_authentication_codes": ["hkdf-hmac-sha256"],
                 "short_authentication_string": ["decimal"]
             },
-            "type": "m.key.verification.start"
+            "type": "m.key.verification.start",
+            "sender": sender
         });
 
         assert_matches!(
-            from_json_value::<Raw<StartEvent>>(json)
+            from_json_value::<Raw<ToDeviceEvent<StartToDeviceEventContent>>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            StartEvent {
-                content: StartEventContent {
+            ToDeviceEvent {
+                sender,
+                content: StartToDeviceEventContent {
                     from_device,
                     transaction_id,
                     method: StartMethod::MSasV1(MSasV1Content {
@@ -370,12 +379,15 @@ mod tests {
                     })
                 }
             } if from_device == "123"
+                && sender == user_id!("@example:localhost")
                 && transaction_id == "456"
                 && hashes == vec![HashAlgorithm::Sha256]
                 && key_agreement_protocols == vec![KeyAgreementProtocol::Curve25519]
                 && message_authentication_codes == vec![MessageAuthenticationCode::HkdfHmacSha256]
                 && short_authentication_string == vec![ShortAuthenticationString::Decimal]
         );
+
+        let sender = user_id!("@example:localhost");
 
         let json = json!({
             "content": {
@@ -384,16 +396,18 @@ mod tests {
                 "method": "m.sas.custom",
                 "test": "field",
             },
-            "type": "m.key.verification.start"
+            "type": "m.key.verification.start",
+            "sender": sender,
         });
 
         assert_matches!(
-            from_json_value::<Raw<StartEvent>>(json)
+            from_json_value::<Raw<ToDeviceEvent<StartToDeviceEventContent>>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            StartEvent {
-                content: StartEventContent {
+            ToDeviceEvent {
+                sender,
+                content: StartToDeviceEventContent {
                     from_device,
                     transaction_id,
                     method: StartMethod::Custom(CustomContent {
@@ -402,6 +416,7 @@ mod tests {
                     })
                 }
             } if from_device == "123"
+                && sender == user_id!("@example:localhost")
                 && transaction_id == "456"
                 && method == "m.sas.custom"
                 && fields.get("test").unwrap() == &JsonValue::from("field")
@@ -411,7 +426,7 @@ mod tests {
     #[test]
     fn deserialization_failure() {
         // Ensure that invalid JSON  creates a `serde_json::Error` and not `InvalidEvent`
-        assert!(serde_json::from_str::<Raw<StartEventContent>>("{").is_err());
+        assert!(serde_json::from_str::<Raw<StartToDeviceEventContent>>("{").is_err());
     }
 
     // TODO this fails because the error is a Validation error not deserialization?

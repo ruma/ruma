@@ -7,17 +7,11 @@ use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 
 use super::VerificationMethod;
-use crate::BasicEvent;
-
-/// Requests a key verification with another user's devices.
-///
-/// Typically sent as a to-device event.
-pub type RequestEvent = BasicEvent<RequestEventContent>;
 
 /// The payload for `RequestEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.key.verification.request")]
-pub struct RequestEventContent {
+pub struct RequestToDeviceEventContent {
     /// The device ID which is initiating the request.
     pub from_device: DeviceIdBox,
 

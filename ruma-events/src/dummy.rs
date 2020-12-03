@@ -24,6 +24,9 @@ pub type DummyEvent = BasicEvent<DummyEventContent>;
 #[ruma_event(type = "m.dummy")]
 pub struct DummyEventContent(pub Empty);
 
+/// The to-device version of the payload for the `DummyEvent`.
+pub type DummyToDeviceEventContent = DummyEventContent;
+
 impl Deref for DummyEventContent {
     type Target = Empty;
 

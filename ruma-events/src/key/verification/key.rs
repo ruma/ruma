@@ -3,17 +3,10 @@
 use ruma_events_macros::BasicEventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::BasicEvent;
-
-/// Sends the ephemeral public key for a device to the partner device.
-///
-/// Typically sent as a to-device event.
-pub type KeyEvent = BasicEvent<KeyEventContent>;
-
 /// The payload for `KeyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.key.verification.key")]
-pub struct KeyEventContent {
+pub struct KeyToDeviceEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the *m.key.verification.start* message.
