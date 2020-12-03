@@ -17,7 +17,10 @@ pub struct ServerAclEventContent {
     /// This is strongly recommended to be set to false as servers running with IP literal
     /// names are strongly discouraged in order to require legitimate homeservers to be
     /// backed by a valid registered domain name.
-    #[serde(default = "ruma_serde::default_true", skip_serializing_if = "ruma_serde::is_true")]
+    #[serde(
+        deserialize_with = "ruma_serde::default_true",
+        skip_serializing_if = "ruma_serde::is_true"
+    )]
     pub allow_ip_literals: bool,
 
     /// The server names to allow in the room, excluding any port information. Wildcards may
@@ -26,7 +29,7 @@ pub struct ServerAclEventContent {
     ///
     /// **This defaults to an empty list when not provided, effectively disallowing every
     /// server.**
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub allow: Vec<String>,
 
     /// The server names to disallow in the room, excluding any port information. Wildcards may
@@ -34,7 +37,7 @@ pub struct ServerAclEventContent {
     /// matches exactly one character.
     ///
     /// This defaults to an empty list when not provided.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub deny: Vec<String>,
 }
 

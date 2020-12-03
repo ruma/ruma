@@ -52,7 +52,7 @@ pub struct UiaaInfo {
     pub flows: Vec<AuthFlow>,
 
     /// List of stages in the current flow completed by the client.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub completed: Vec<String>,
 
     /// Authentication parameters required for the client to complete
@@ -76,7 +76,7 @@ pub struct UiaaInfo {
 #[cfg_attr(test, derive(PartialEq))]
 pub struct AuthFlow {
     /// Ordered list of stages required to complete authentication.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub stages: Vec<String>,
 }
 

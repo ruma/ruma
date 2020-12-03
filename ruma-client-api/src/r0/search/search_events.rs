@@ -90,7 +90,10 @@ pub struct Criteria<'a> {
     pub order_by: Option<OrderBy>,
 
     /// Configures whether any context for the events returned are included in the response.
-    #[serde(default, skip_serializing_if = "EventContext::is_default")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "EventContext::is_default"
+    )]
     pub event_context: EventContext,
 
     /// Requests the server return the current state for each room returned.
@@ -98,7 +101,7 @@ pub struct Criteria<'a> {
     pub include_state: Option<bool>,
 
     /// Requests that the server partitions the result set based on the provided list of keys.
-    #[serde(default, skip_serializing_if = "Groupings::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Groupings::is_empty")]
     pub groupings: Groupings<'a>,
 }
 
@@ -123,48 +126,48 @@ impl<'a> Criteria<'a> {
 pub struct EventContext {
     /// How many events before the result are returned.
     #[serde(
-        default = "default_event_context_limit",
+        deserialize_with = "default_event_context_limit",
         skip_serializing_if = "is_default_event_context_limit"
     )]
     pub before_limit: UInt,
 
     /// How many events after the result are returned.
     #[serde(
-        default = "default_event_context_limit",
+        deserialize_with = "default_event_context_limit",
         skip_serializing_if = "is_default_event_context_limit"
     )]
     pub after_limit: UInt,
 
     /// Requests that the server returns the historic profile information for the users that
     /// sent the events that were returned.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ruma_serde::is_default"
+    )]
     pub include_profile: bool,
 }
 
-fn default_event_context_limit() -> UInt {
-    uint!(5)
+fn default_event_context_limit<'de, D>(deserializer: D) -> Result<UInt, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(Option::deserialize(deserializer)?.unwrap_or_else(|| uint!(5)))
 }
 
 #[allow(clippy::trivially_copy_pass_by_ref)]
 fn is_default_event_context_limit(val: &UInt) -> bool {
-    *val == default_event_context_limit()
+    *val == uint!(5)
 }
 
 impl EventContext {
     /// Creates an `EventContext` with all-default values.
     pub fn new() -> Self {
-        Self {
-            before_limit: default_event_context_limit(),
-            after_limit: default_event_context_limit(),
-            include_profile: false,
-        }
+        Self { before_limit: uint!(5), after_limit: uint!(5), include_profile: false }
     }
 
     /// Returns whether all fields have their default value.
     pub fn is_default(&self) -> bool {
-        self.before_limit == default_event_context_limit()
-            && self.after_limit == default_event_context_limit()
-            && !self.include_profile
+        self.before_limit == uint!(5) && self.after_limit == uint!(5) && !self.include_profile
     }
 }
 
@@ -183,15 +186,15 @@ pub struct EventContextResult {
     pub end: Option<String>,
 
     /// Events just after the result.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub events_after: Vec<Raw<AnyRoomEvent>>,
 
     /// Events just before the result.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub events_before: Vec<Raw<AnyRoomEvent>>,
 
     /// The historic profile information of the users that sent the events returned.
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "BTreeMap::is_empty")]
     pub profile_info: BTreeMap<UserId, UserProfile>,
 
     /// Pagination token for the start of the chunk.
@@ -255,7 +258,7 @@ pub enum GroupingKey {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Groupings<'a> {
     /// List of groups to request.
-    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "<[_]>::is_empty")]
     pub group_by: &'a [Grouping],
 }
 
@@ -311,7 +314,10 @@ pub enum OrderBy {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ResultCategories {
     /// Room event results.
-    #[serde(default, skip_serializing_if = "ResultRoomEvents::is_empty")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ResultRoomEvents::is_empty"
+    )]
     pub room_events: ResultRoomEvents,
 }
 
@@ -331,7 +337,7 @@ pub struct ResultRoomEvents {
     pub count: Option<UInt>,
 
     /// Any groups that were requested.
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "BTreeMap::is_empty")]
     pub groups: BTreeMap<GroupingKey, BTreeMap<RoomIdOrUserId, ResultGroup>>,
 
     /// Token that can be used to get the next batch of results, by passing as the `next_batch`
@@ -340,17 +346,17 @@ pub struct ResultRoomEvents {
     pub next_batch: Option<String>,
 
     /// List of results in the requested order.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub results: Vec<SearchResult>,
 
     /// The current state for every room in the results. This is included if the request had the
     /// `include_state` key set with a value of `true`.
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "BTreeMap::is_empty")]
     pub state: BTreeMap<RoomId, Vec<Raw<AnyStateEvent>>>,
 
     /// List of words which should be highlighted, useful for stemming which may
     /// change the query terms.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub highlights: Vec<String>,
 }
 
@@ -386,7 +392,7 @@ pub struct ResultGroup {
     pub order: Option<UInt>,
 
     /// Which results are in this group.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub results: Vec<EventId>,
 }
 

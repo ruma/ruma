@@ -48,7 +48,10 @@ ruma_api! {
         pub content: MemberEventContent,
 
         /// Information included alongside the event that is not signed.
-        #[serde(default, skip_serializing_if = "UnsignedEventContent::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "UnsignedEventContent::is_empty",
+        )]
         pub unsigned: UnsignedEventContent,
     }
 

@@ -35,7 +35,10 @@ ruma_api! {
         pub since: Option<&'a str>,
 
         /// Filter to apply to the results.
-        #[serde(default, skip_serializing_if = "Filter::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "Filter::is_empty",
+        )]
         pub filter: Filter<'a>,
 
         /// Network to fetch the public room lists from.

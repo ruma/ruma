@@ -28,7 +28,10 @@ pub struct DeviceKeys {
 
     /// Additional data added to the device key information by intermediate servers, and
     /// not covered by the signatures.
-    #[serde(default, skip_serializing_if = "UnsignedDeviceInfo::is_empty")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "UnsignedDeviceInfo::is_empty"
+    )]
     pub unsigned: UnsignedDeviceInfo,
 }
 

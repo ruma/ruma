@@ -22,7 +22,7 @@ ruma_api! {
     response: {
         /// A list of third party identifiers the homeserver has associated with the user's
         /// account.
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
         pub threepids: Vec<ThirdPartyIdentifier>,
     }
 

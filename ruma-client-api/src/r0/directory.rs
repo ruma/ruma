@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PublicRoomsChunk {
     /// Aliases of the room.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub aliases: Vec<RoomAliasId>,
 
     /// The canonical alias of the room, if any.

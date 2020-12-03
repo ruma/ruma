@@ -4,6 +4,7 @@ use ruma_api::ruma_api;
 use ruma_events::pdu::Pdu;
 use ruma_identifiers::{RoomId, RoomVersionId, UserId};
 use ruma_serde::Raw;
+use serde::Deserialize;
 
 ruma_api! {
     metadata: {
@@ -28,7 +29,7 @@ ruma_api! {
         ///
         /// Defaults to `&[RoomVersionId::Version1]`.
         #[ruma_api(query)]
-        #[serde(default = "default_ver", skip_serializing_if = "is_default_ver")]
+        #[serde(deserialize_with = "default_ver", skip_serializing_if = "is_default_ver")]
         pub ver: &'a [RoomVersionId],
     }
 
@@ -40,14 +41,6 @@ ruma_api! {
         /// An unsigned template event.
         pub event: Raw<Pdu>,
     }
-}
-
-fn default_ver() -> Vec<RoomVersionId> {
-    vec![RoomVersionId::Version1]
-}
-
-fn is_default_ver(ver: &&[RoomVersionId]) -> bool {
-    **ver == [RoomVersionId::Version1]
 }
 
 impl<'a> Request<'a> {
@@ -62,4 +55,15 @@ impl Response {
     pub fn new(event: Raw<Pdu>) -> Self {
         Self { room_version: None, event }
     }
+}
+
+fn default_ver<'de, D>(deserializer: D) -> Result<Vec<RoomVersionId>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(Option::deserialize(deserializer)?.unwrap_or_else(|| vec![RoomVersionId::Version1]))
+}
+
+fn is_default_ver(ver: &&[RoomVersionId]) -> bool {
+    **ver == [RoomVersionId::Version1]
 }

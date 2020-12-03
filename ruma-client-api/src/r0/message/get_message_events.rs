@@ -49,7 +49,7 @@ ruma_api! {
         ///
         /// Default: 10.
         #[ruma_api(query)]
-        #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
+        #[serde(deserialize_with = "default_limit", skip_serializing_if = "is_default_limit")]
         pub limit: UInt,
 
         /// A RoomEventFilter to filter returned events with.
@@ -73,11 +73,11 @@ ruma_api! {
         pub end: Option<String>,
 
         /// A list of room events.
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
         pub chunk: Vec<Raw<AnyRoomEvent>>,
 
         /// A list of state events relevant to showing the `chunk`.
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
         pub state: Vec<Raw<AnyStateEvent>>,
     }
 
@@ -89,7 +89,7 @@ impl<'a> Request<'a> {
     ///
     /// All other parameters will be defaulted.
     pub fn new(room_id: &'a RoomId, from: &'a str, dir: Direction) -> Self {
-        Self { room_id, from, to: None, dir, limit: default_limit(), filter: None }
+        Self { room_id, from, to: None, dir, limit: uint!(10), filter: None }
     }
 
     /// Creates a new `Request` with the given room ID and from token, and `dir` set to `Backward`.
@@ -110,13 +110,16 @@ impl Response {
     }
 }
 
-fn default_limit() -> UInt {
-    uint!(10)
+fn default_limit<'de, D>(deserializer: D) -> Result<UInt, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(Option::deserialize(deserializer)?.unwrap_or_else(|| uint!(10)))
 }
 
 #[allow(clippy::trivially_copy_pass_by_ref)]
 fn is_default_limit(val: &UInt) -> bool {
-    *val == default_limit()
+    *val == uint!(10)
 }
 
 /// The direction to return events from.

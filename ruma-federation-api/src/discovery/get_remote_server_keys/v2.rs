@@ -29,7 +29,10 @@ ruma_api! {
         ///
         /// If not supplied, the current time as determined by the receiving server is used.
         #[ruma_api(query)]
-        #[serde(default = "SystemTime::now", with = "ruma_serde::time::ms_since_unix_epoch")]
+        #[serde(
+            deserialize_with = "ms_since_unix_epoch_default_now",
+            serialize_with = "ruma_serde::time::ms_since_unix_epoch::serialize",
+        )]
         pub minimum_valid_until_ts: SystemTime,
     }
 
@@ -51,4 +54,12 @@ impl Response {
     pub fn new(server_keys: Vec<ServerSigningKeys>) -> Self {
         Self { server_keys }
     }
+}
+
+fn ms_since_unix_epoch_default_now<'de, D>(deserializer: D) -> Result<SystemTime, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(ruma_serde::time::opt_ms_since_unix_epoch::deserialize(deserializer)?
+        .unwrap_or_else(SystemTime::now))
 }

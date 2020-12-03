@@ -41,7 +41,7 @@ impl DerefMut for ReceiptEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Receipts {
     /// A collection of users who have sent *m.read* receipts for this event.
-    #[serde(default, rename = "m.read")]
+    #[serde(deserialize_with = "ruma_serde::default", rename = "m.read")]
     pub read: Option<UserReceipts>,
 }
 

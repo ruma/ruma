@@ -5,6 +5,7 @@ use ruma_api::ruma_api;
 use ruma_events::{AnyRoomEvent, AnyStateEvent};
 use ruma_identifiers::{EventId, RoomId};
 use ruma_serde::Raw;
+use serde::Deserialize;
 
 use crate::r0::filter::{IncomingRoomEventFilter, RoomEventFilter};
 
@@ -31,7 +32,7 @@ ruma_api! {
         ///
         /// Defaults to 10.
         #[ruma_api(query)]
-        #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
+        #[serde(deserialize_with = "default_limit", skip_serializing_if = "is_default_limit")]
         pub limit: UInt,
 
         /// A RoomEventFilter to filter returned events with.
@@ -56,7 +57,7 @@ ruma_api! {
 
         /// A list of room events that happened just before the requested event,
         /// in reverse-chronological order.
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
         pub events_before: Vec<Raw<AnyRoomEvent>>,
 
         /// Details of the requested event.
@@ -65,11 +66,11 @@ ruma_api! {
 
         /// A list of room events that happened just after the requested event,
         /// in chronological order.
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
         pub events_after: Vec<Raw<AnyRoomEvent>>,
 
         /// The state of the room at the last event returned.
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
         pub state: Vec<Raw<AnyStateEvent>>,
     }
 
@@ -79,7 +80,7 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given room id and event id.
     pub fn new(room_id: &'a RoomId, event_id: &'a EventId) -> Self {
-        Self { room_id, event_id, limit: default_limit(), filter: None }
+        Self { room_id, event_id, limit: uint!(10), filter: None }
     }
 }
 
@@ -90,11 +91,14 @@ impl Response {
     }
 }
 
-fn default_limit() -> UInt {
-    uint!(10)
+fn default_limit<'de, D>(deserializer: D) -> Result<UInt, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(Option::deserialize(deserializer)?.unwrap_or_else(|| uint!(10)))
 }
 
 #[allow(clippy::trivially_copy_pass_by_ref)]
 fn is_default_limit(val: &UInt) -> bool {
-    *val == default_limit()
+    *val == uint!(10)
 }

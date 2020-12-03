@@ -44,7 +44,10 @@ ruma_api! {
         /// The conditions that must hold true for an event in order for a rule to be applied to an
         /// event. A rule with no conditions always matches. Only applicable to underride and
         /// override rules, empty Vec otherwise.
-        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "<[_]>::is_empty",
+        )]
         pub conditions: &'a [PushCondition],
 
         /// The glob-style pattern to match against. Only applicable to content rules.

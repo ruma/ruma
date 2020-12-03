@@ -29,28 +29,43 @@ ruma_api! {
     #[derive(Default)]
     request: {
         /// Extra keys to be added to the content of the `m.room.create`.
-        #[serde(default, skip_serializing_if = "CreationContent::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "CreationContent::is_empty",
+        )]
         pub creation_content: CreationContent,
 
         /// List of state events to send to the new room.
         ///
         /// Takes precedence over events set by preset, but gets overriden by
         /// name and topic keys.
-        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "<[_]>::is_empty",
+        )]
         pub initial_state: &'a [AnyInitialStateEvent],
 
         /// A list of user IDs to invite to the room.
         ///
         /// This will tell the server to invite everyone in the list to the newly created room.
-        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "<[_]>::is_empty",
+        )]
         pub invite: &'a [UserId],
 
         /// List of third party IDs of users to invite.
-        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "<[_]>::is_empty",
+        )]
         pub invite_3pid: &'a [Invite3pid<'a>],
 
         /// If set, this sets the `is_direct` flag on room invites.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "ruma_serde::is_default",
+        )]
         pub is_direct: bool,
 
         /// If this is included, an `m.room.name` event will be sent into the room to indicate
@@ -83,7 +98,10 @@ ruma_api! {
         /// list. A private visibility will hide the room from the published room list.
         ///
         /// Defaults to `Private`.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "ruma_serde::is_default",
+        )]
         pub visibility: Visibility,
     }
 
@@ -121,7 +139,7 @@ pub struct CreationContent {
     /// Defaults to `true` if key does not exist.
     #[serde(
         rename = "m.federate",
-        default = "ruma_serde::default_true",
+        deserialize_with = "ruma_serde::default_true",
         skip_serializing_if = "ruma_serde::is_true"
     )]
     pub federate: bool,

@@ -30,7 +30,10 @@ ruma_api! {
         ///
         /// Used to prevent routing loops. Defaults to `true`.
         #[ruma_api(query)]
-        #[serde(default = "ruma_serde::default_true", skip_serializing_if = "ruma_serde::is_true")]
+        #[serde(
+            deserialize_with = "ruma_serde::default_true",
+            skip_serializing_if = "ruma_serde::is_true",
+        )]
         pub allow_remote: bool,
     }
 

@@ -49,26 +49,41 @@ ruma_api! {
         /// If any remote homeservers could not be reached, they are recorded
         /// here. The names of the properties are the names of the unreachable
         /// servers.
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "BTreeMap::is_empty",
+        )]
         pub failures: BTreeMap<String, JsonValue>,
 
         /// Information on the queried devices.
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "BTreeMap::is_empty",
+        )]
         pub device_keys: BTreeMap<UserId, BTreeMap<DeviceIdBox, DeviceKeys>>,
 
         /// Information on the master cross-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "BTreeMap::is_empty",
+        )]
         pub master_keys: BTreeMap<UserId, CrossSigningKey>,
 
         /// Information on the self-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "BTreeMap::is_empty",
+        )]
         pub self_signing_keys: BTreeMap<UserId, CrossSigningKey>,
 
         /// Information on the user-signing keys of the queried users.
         #[cfg(feature = "unstable-pre-spec")]
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "BTreeMap::is_empty",
+        )]
         pub user_signing_keys: BTreeMap<UserId, CrossSigningKey>,
     }
 

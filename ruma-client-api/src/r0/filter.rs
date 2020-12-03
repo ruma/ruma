@@ -44,14 +44,14 @@ pub struct RoomEventFilter<'a> {
     /// If this list is absent then no event types are excluded. A matching type will be excluded
     /// even if it is listed in the 'types' filter. A '*' can be used as a wildcard to match any
     /// sequence of characters.
-    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "<[_]>::is_empty")]
     pub not_types: &'a [String],
 
     /// A list of room IDs to exclude.
     ///
     /// If this list is absent then no rooms are excluded. A matching room will be excluded even if
     /// it is listed in the 'rooms' filter.
-    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "<[_]>::is_empty")]
     pub not_rooms: &'a [String],
 
     /// The maximum number of events to return.
@@ -68,7 +68,7 @@ pub struct RoomEventFilter<'a> {
     ///
     /// If this list is absent then no senders are excluded. A matching sender will be excluded
     /// even if it is listed in the 'senders' filter.
-    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "<[_]>::is_empty")]
     pub not_senders: &'a [UserId],
 
     /// A list of senders IDs to include.
@@ -149,24 +149,39 @@ pub struct RoomFilter<'a> {
     /// Include rooms that the user has left in the sync.
     ///
     /// Defaults to `false`.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ruma_serde::is_default"
+    )]
     pub include_leave: bool,
 
     /// The per user account data to include for rooms.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ruma_serde::is_empty"
+    )]
     pub account_data: RoomEventFilter<'a>,
 
     /// The message and state update events to include for rooms.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ruma_serde::is_empty"
+    )]
     pub timeline: RoomEventFilter<'a>,
 
     /// The events that aren't recorded in the room history, e.g. typing and receipts, to include
     /// for rooms.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ruma_serde::is_empty"
+    )]
     pub ephemeral: RoomEventFilter<'a>,
 
     /// The state events to include for rooms.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ruma_serde::is_empty"
+    )]
     pub state: RoomEventFilter<'a>,
 
     /// A list of room IDs to exclude.
@@ -174,7 +189,7 @@ pub struct RoomFilter<'a> {
     /// If this list is absent then no rooms are excluded. A matching room will be excluded even if
     /// it is listed in the 'rooms' filter. This filter is applied before the filters in
     /// `ephemeral`, `state`, `timeline` or `account_data`.
-    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "<[_]>::is_empty")]
     pub not_rooms: &'a [RoomId],
 
     /// A list of room IDs to include.
@@ -233,7 +248,7 @@ pub struct Filter<'a> {
     /// If this list is absent then no event types are excluded. A matching type will be excluded
     /// even if it is listed in the 'types' filter. A '*' can be used as a wildcard to match any
     /// sequence of characters.
-    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "<[_]>::is_empty")]
     pub not_types: &'a [String],
 
     /// The maximum number of events to return.
@@ -257,7 +272,7 @@ pub struct Filter<'a> {
     ///
     /// If this list is absent then no senders are excluded. A matching sender will be excluded
     /// even if it is listed in the 'senders' filter.
-    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "<[_]>::is_empty")]
     pub not_senders: &'a [UserId],
 }
 
@@ -313,19 +328,31 @@ pub struct FilterDefinition<'a> {
     ///
     /// 'client' will return the events in a format suitable for clients. 'federation' will return
     /// the raw event as received over federation. The default is 'client'.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ruma_serde::is_default"
+    )]
     pub event_format: EventFormat,
 
     /// The presence updates to include.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ruma_serde::is_empty"
+    )]
     pub presence: Filter<'a>,
 
     /// The user account data that isn't associated with rooms to include.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ruma_serde::is_empty"
+    )]
     pub account_data: Filter<'a>,
 
     /// Filters to be applied to room data.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_empty")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ruma_serde::is_empty"
+    )]
     pub room: RoomFilter<'a>,
 }
 

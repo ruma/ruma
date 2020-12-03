@@ -79,7 +79,7 @@ pub struct RoomV1Pdu {
 
     /// Additional data added by the origin server but not covered by the
     /// signatures.
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "BTreeMap::is_empty")]
     pub unsigned: BTreeMap<String, JsonValue>,
 
     /// Content hashes of the PDU.
@@ -136,7 +136,7 @@ pub struct RoomV3Pdu {
 
     /// Additional data added by the origin server but not covered by the
     /// signatures.
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "BTreeMap::is_empty")]
     pub unsigned: BTreeMap<String, JsonValue>,
 
     /// Content hashes of the PDU.

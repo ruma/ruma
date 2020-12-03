@@ -23,7 +23,10 @@ ruma_api! {
         /// The servers to attempt to join the room through. One of the servers
         /// must be participating in the room.
         #[ruma_api(query)]
-        #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "<[_]>::is_empty",
+        )]
         pub server_name: &'a [ServerNameBox],
 
         /// The signature of a `m.third_party_invite` token to prove that this user owns a third

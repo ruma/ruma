@@ -41,14 +41,20 @@ ruma_api! {
         pub since: Option<&'a str>,
 
         /// Controls whether to include the full state for all rooms the user is a member of.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "ruma_serde::is_default",
+        )]
         #[ruma_api(query)]
         pub full_state: bool,
 
         /// Controls whether the client is automatically marked as online by polling this API.
         ///
         /// Defaults to `PresenceState::Online`.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "ruma_serde::is_default",
+        )]
         #[ruma_api(query)]
         pub set_presence: &'a PresenceState,
 
@@ -67,30 +73,48 @@ ruma_api! {
         pub next_batch: String,
 
         /// Updates to rooms.
-        #[serde(default, skip_serializing_if = "Rooms::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "Rooms::is_empty",
+        )]
         pub rooms: Rooms,
 
         /// Updates to the presence status of other users.
-        #[serde(default, skip_serializing_if = "Presence::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "Presence::is_empty",
+        )]
         pub presence: Presence,
 
         /// The global private data created by this user.
-        #[serde(default, skip_serializing_if = "AccountData::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "AccountData::is_empty",
+        )]
         pub account_data: AccountData,
 
         /// Messages sent dirrectly between devices.
-        #[serde(default, skip_serializing_if = "ToDevice::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "ToDevice::is_empty",
+        )]
         pub to_device: ToDevice,
 
         /// Information on E2E device updates.
         ///
         /// Only present on an incremental sync.
-        #[serde(default, skip_serializing_if = "DeviceLists::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "DeviceLists::is_empty",
+        )]
         pub device_lists: DeviceLists,
 
         /// For each key algorithm, the number of unclaimed one-time keys
         /// currently held on the server for a device.
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "BTreeMap::is_empty",
+        )]
         pub device_one_time_keys_count: BTreeMap<DeviceKeyAlgorithm, UInt>,
     }
 
@@ -159,15 +183,15 @@ impl<'a> From<&'a str> for Filter<'a> {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Rooms {
     /// The rooms that the user has left or been banned from.
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "BTreeMap::is_empty")]
     pub leave: BTreeMap<RoomId, LeftRoom>,
 
     /// The rooms that the user has joined.
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "BTreeMap::is_empty")]
     pub join: BTreeMap<RoomId, JoinedRoom>,
 
     /// The rooms that the user has been invited to.
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "BTreeMap::is_empty")]
     pub invite: BTreeMap<RoomId, InvitedRoom>,
 }
 
@@ -189,15 +213,18 @@ impl Rooms {
 pub struct LeftRoom {
     /// The timeline of messages and state changes in the room up to the point when the user
     /// left.
-    #[serde(default, skip_serializing_if = "Timeline::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Timeline::is_empty")]
     pub timeline: Timeline,
 
     /// The state updates for the room up to the start of the timeline.
-    #[serde(default, skip_serializing_if = "State::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "State::is_empty")]
     pub state: State,
 
     /// The private data that this user has attached to this room.
-    #[serde(default, skip_serializing_if = "AccountData::is_empty")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "AccountData::is_empty"
+    )]
     pub account_data: AccountData,
 }
 
@@ -219,30 +246,39 @@ impl LeftRoom {
 pub struct JoinedRoom {
     /// Information about the room which clients may need to correctly render it
     /// to users.
-    #[serde(default, skip_serializing_if = "RoomSummary::is_empty")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "RoomSummary::is_empty"
+    )]
     pub summary: RoomSummary,
 
     /// Counts of unread notifications for this room.
-    #[serde(default, skip_serializing_if = "UnreadNotificationsCount::is_empty")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "UnreadNotificationsCount::is_empty"
+    )]
     pub unread_notifications: UnreadNotificationsCount,
 
     /// The timeline of messages and state changes in the room.
-    #[serde(default, skip_serializing_if = "Timeline::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Timeline::is_empty")]
     pub timeline: Timeline,
 
     /// Updates to the state, between the time indicated by the `since` parameter, and the start
     /// of the `timeline` (or all state up to the start of the `timeline`, if `since` is not
     /// given, or `full_state` is true).
-    #[serde(default, skip_serializing_if = "State::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "State::is_empty")]
     pub state: State,
 
     /// The private data that this user has attached to this room.
-    #[serde(default, skip_serializing_if = "AccountData::is_empty")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "AccountData::is_empty"
+    )]
     pub account_data: AccountData,
 
     /// The ephemeral events in the room that aren't recorded in the timeline or state of the
     /// room. e.g. typing.
-    #[serde(default, skip_serializing_if = "Ephemeral::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Ephemeral::is_empty")]
     pub ephemeral: Ephemeral,
 }
 
@@ -293,7 +329,10 @@ impl UnreadNotificationsCount {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Timeline {
     /// True if the number of events returned was limited by the `limit` on the filter.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ruma_serde::is_default"
+    )]
     pub limited: bool,
 
     /// A token that can be supplied to to the `from` parameter of the
@@ -302,7 +341,7 @@ pub struct Timeline {
     pub prev_batch: Option<String>,
 
     /// A list of events.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnySyncRoomEvent>>,
 }
 
@@ -323,7 +362,7 @@ impl Timeline {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct State {
     /// A list of state events.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnySyncStateEvent>>,
 }
 
@@ -344,7 +383,7 @@ impl State {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct AccountData {
     /// A list of events.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnyBasicEvent>>,
 }
 
@@ -365,7 +404,7 @@ impl AccountData {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Ephemeral {
     /// A list of events.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnySyncEphemeralRoomEvent>>,
 }
 
@@ -387,7 +426,11 @@ impl Ephemeral {
 pub struct RoomSummary {
     /// Users which can be used to generate a room name if the room does not have
     /// one. Required if room name or canonical aliases are not set or empty.
-    #[serde(rename = "m.heroes", default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(
+        rename = "m.heroes",
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "Vec::is_empty"
+    )]
     pub heroes: Vec<String>,
 
     /// Number of users whose membership status is `join`.
@@ -422,7 +465,10 @@ impl RoomSummary {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct InvitedRoom {
     /// The state of a room that the user has been invited to.
-    #[serde(default, skip_serializing_if = "InviteState::is_empty")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "InviteState::is_empty"
+    )]
     pub invite_state: InviteState,
 }
 
@@ -443,7 +489,7 @@ impl InvitedRoom {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct InviteState {
     /// A list of state events.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnyStrippedStateEvent>>,
 }
 
@@ -464,7 +510,7 @@ impl InviteState {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Presence {
     /// A list of events.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<PresenceEvent>>,
 }
 
@@ -485,7 +531,7 @@ impl Presence {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ToDevice {
     /// A list of to-device events.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnyToDeviceEvent>>,
 }
 
@@ -507,12 +553,12 @@ impl ToDevice {
 pub struct DeviceLists {
     /// List of users who have updated their device identity keys or who now
     /// share an encrypted room with the client since the previous sync
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub changed: Vec<UserId>,
 
     /// List of users who no longer share encrypted rooms since the previous sync
     /// response.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub left: Vec<UserId>,
 }
 

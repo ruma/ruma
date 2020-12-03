@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use js_int::Int;
+use js_int::{int, Int};
 use ruma_events_macros::StateEventContent;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
@@ -21,7 +21,10 @@ pub struct PowerLevelsEventContent {
         feature = "unstable-synapse-quirks",
         serde(deserialize_with = "ruma_serde::int_or_string_to_int")
     )]
-    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
+    #[serde(
+        deserialize_with = "default_power_level",
+        skip_serializing_if = "is_default_power_level"
+    )]
     #[ruma_event(skip_redaction)]
     pub ban: Int,
 
@@ -32,7 +35,7 @@ pub struct PowerLevelsEventContent {
         feature = "unstable-synapse-quirks",
         serde(deserialize_with = "ruma_serde::btreemap_int_or_string_to_int_values")
     )]
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "BTreeMap::is_empty")]
     #[ruma_event(skip_redaction)]
     pub events: BTreeMap<EventType, Int>,
 
@@ -41,7 +44,10 @@ pub struct PowerLevelsEventContent {
         feature = "unstable-synapse-quirks",
         serde(deserialize_with = "ruma_serde::int_or_string_to_int")
     )]
-    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ruma_serde::is_default"
+    )]
     #[ruma_event(skip_redaction)]
     pub events_default: Int,
 
@@ -50,7 +56,10 @@ pub struct PowerLevelsEventContent {
         feature = "unstable-synapse-quirks",
         serde(deserialize_with = "ruma_serde::int_or_string_to_int")
     )]
-    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
+    #[serde(
+        deserialize_with = "default_power_level",
+        skip_serializing_if = "is_default_power_level"
+    )]
     pub invite: Int,
 
     /// The level required to kick a user.
@@ -58,7 +67,10 @@ pub struct PowerLevelsEventContent {
         feature = "unstable-synapse-quirks",
         serde(deserialize_with = "ruma_serde::int_or_string_to_int")
     )]
-    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
+    #[serde(
+        deserialize_with = "default_power_level",
+        skip_serializing_if = "is_default_power_level"
+    )]
     #[ruma_event(skip_redaction)]
     pub kick: Int,
 
@@ -67,7 +79,10 @@ pub struct PowerLevelsEventContent {
         feature = "unstable-synapse-quirks",
         serde(deserialize_with = "ruma_serde::int_or_string_to_int")
     )]
-    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
+    #[serde(
+        deserialize_with = "default_power_level",
+        skip_serializing_if = "is_default_power_level"
+    )]
     #[ruma_event(skip_redaction)]
     pub redact: Int,
 
@@ -76,7 +91,10 @@ pub struct PowerLevelsEventContent {
         feature = "unstable-synapse-quirks",
         serde(deserialize_with = "ruma_serde::int_or_string_to_int")
     )]
-    #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
+    #[serde(
+        deserialize_with = "default_power_level",
+        skip_serializing_if = "is_default_power_level"
+    )]
     #[ruma_event(skip_redaction)]
     pub state_default: Int,
 
@@ -87,7 +105,7 @@ pub struct PowerLevelsEventContent {
         feature = "unstable-synapse-quirks",
         serde(deserialize_with = "ruma_serde::btreemap_int_or_string_to_int_values")
     )]
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "BTreeMap::is_empty")]
     #[ruma_event(skip_redaction)]
     pub users: BTreeMap<UserId, Int>,
 
@@ -96,14 +114,20 @@ pub struct PowerLevelsEventContent {
         feature = "unstable-synapse-quirks",
         serde(deserialize_with = "ruma_serde::int_or_string_to_int")
     )]
-    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ruma_serde::is_default"
+    )]
     #[ruma_event(skip_redaction)]
     pub users_default: Int,
 
     /// The power level requirements for specific notification types.
     ///
     /// This is a mapping from `key` to power level for that notifications key.
-    #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+    #[serde(
+        deserialize_with = "ruma_serde::default",
+        skip_serializing_if = "ruma_serde::is_default"
+    )]
     pub notifications: NotificationPowerLevels,
 }
 
@@ -112,15 +136,15 @@ impl Default for PowerLevelsEventContent {
         // events_default and users_default having a default of 0 while the others have a default
         // of 50 is not an oversight, these defaults are from the Matrix specification.
         Self {
-            ban: default_power_level(),
+            ban: int!(50),
             events: BTreeMap::new(),
-            events_default: Int::default(),
-            invite: default_power_level(),
-            kick: default_power_level(),
-            redact: default_power_level(),
-            state_default: default_power_level(),
+            events_default: int!(0),
+            invite: int!(50),
+            kick: int!(50),
+            redact: int!(50),
+            state_default: int!(50),
             users: BTreeMap::new(),
-            users_default: Int::default(),
+            users_default: int!(0),
             notifications: NotificationPowerLevels::default(),
         }
     }
@@ -134,25 +158,27 @@ pub struct NotificationPowerLevels {
         feature = "unstable-synapse-quirks",
         serde(deserialize_with = "ruma_serde::int_or_string_to_int")
     )]
-    #[serde(default = "default_power_level")]
+    #[serde(deserialize_with = "default_power_level")]
     pub room: Int,
 }
 
 impl Default for NotificationPowerLevels {
     fn default() -> Self {
-        Self { room: default_power_level() }
+        Self { room: int!(50) }
     }
 }
 
-/// Used to default power levels to 50 during deserialization.
-fn default_power_level() -> Int {
-    Int::from(50)
+fn default_power_level<'de, D>(deserializer: D) -> Result<Int, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(Option::deserialize(deserializer)?.unwrap_or_else(|| int!(50)))
 }
 
 /// Used with #[serde(skip_serializing_if)] to omit default power levels.
 #[allow(clippy::trivially_copy_pass_by_ref)]
 fn is_default_power_level(l: &Int) -> bool {
-    *l == Int::from(50)
+    *l == int!(50)
 }
 
 #[cfg(test)]
@@ -162,29 +188,27 @@ mod tests {
         time::{Duration, UNIX_EPOCH},
     };
 
-    use js_int::Int;
+    use js_int::int;
     use maplit::btreemap;
     use ruma_identifiers::{event_id, room_id, user_id};
     use serde_json::{json, to_value as to_json_value};
 
-    use super::{default_power_level, NotificationPowerLevels, PowerLevelsEventContent};
+    use super::{NotificationPowerLevels, PowerLevelsEventContent};
     use crate::{EventType, StateEvent, Unsigned};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {
-        let default = default_power_level();
-
         let power_levels_event = StateEvent {
             content: PowerLevelsEventContent {
-                ban: default,
+                ban: int!(50),
                 events: BTreeMap::new(),
-                events_default: Int::from(0),
-                invite: default,
-                kick: default,
-                redact: default,
-                state_default: default,
+                events_default: int!(0),
+                invite: int!(50),
+                kick: int!(50),
+                redact: int!(50),
+                state_default: int!(50),
                 users: BTreeMap::new(),
-                users_default: Int::from(0),
+                users_default: int!(0),
                 notifications: NotificationPowerLevels::default(),
             },
             event_id: event_id!("$h29iv0s8:example.com"),
@@ -215,42 +239,42 @@ mod tests {
         let user = user_id!("@carl:example.com");
         let power_levels_event = StateEvent {
             content: PowerLevelsEventContent {
-                ban: Int::from(23),
+                ban: int!(23),
                 events: btreemap! {
-                    EventType::Dummy => Int::from(23)
+                    EventType::Dummy => int!(23)
                 },
-                events_default: Int::from(23),
-                invite: Int::from(23),
-                kick: Int::from(23),
-                redact: Int::from(23),
-                state_default: Int::from(23),
+                events_default: int!(23),
+                invite: int!(23),
+                kick: int!(23),
+                redact: int!(23),
+                state_default: int!(23),
                 users: btreemap! {
-                    user.clone() => Int::from(23)
+                    user.clone() => int!(23)
                 },
-                users_default: Int::from(23),
-                notifications: NotificationPowerLevels { room: Int::from(23) },
+                users_default: int!(23),
+                notifications: NotificationPowerLevels { room: int!(23) },
             },
             event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: Some(PowerLevelsEventContent {
                 // Make just one field different so we at least know they're two different objects.
-                ban: Int::from(42),
+                ban: int!(42),
                 events: btreemap! {
-                    EventType::Dummy => Int::from(42)
+                    EventType::Dummy => int!(42)
                 },
-                events_default: Int::from(42),
-                invite: Int::from(42),
-                kick: Int::from(42),
-                redact: Int::from(42),
-                state_default: Int::from(42),
+                events_default: int!(42),
+                invite: int!(42),
+                kick: int!(42),
+                redact: int!(42),
+                state_default: int!(42),
                 users: btreemap! {
-                    user.clone() => Int::from(42)
+                    user.clone() => int!(42)
                 },
-                users_default: Int::from(42),
-                notifications: NotificationPowerLevels { room: Int::from(42) },
+                users_default: int!(42),
+                notifications: NotificationPowerLevels { room: int!(42) },
             }),
             room_id: room_id!("!n8f893n9:example.com"),
-            unsigned: Unsigned { age: Some(Int::from(100)), ..Unsigned::default() },
+            unsigned: Unsigned { age: Some(int!(100)), ..Unsigned::default() },
             sender: user,
             state_key: "".into(),
         };

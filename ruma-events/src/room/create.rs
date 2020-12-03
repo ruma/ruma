@@ -22,13 +22,16 @@ pub struct CreateEventContent {
     /// Whether or not this room's data should be transferred to other homeservers.
     #[serde(
         rename = "m.federate",
-        default = "ruma_serde::default_true",
+        deserialize_with = "ruma_serde::default_true",
         skip_serializing_if = "ruma_serde::is_true"
     )]
     pub federate: bool,
 
     /// The version of the room. Defaults to "1" if the key does not exist.
-    #[serde(default = "default_room_version_id")]
+    #[serde(
+        deserialize_with = "default_room_version_id",
+        skip_serializing_if = "is_default_room_version_id"
+    )]
     pub room_version: RoomVersionId,
 
     /// A reference to the room this room replaces, if the previous room was upgraded.
@@ -39,7 +42,7 @@ pub struct CreateEventContent {
 impl CreateEventContent {
     /// Creates a new `CreateEventContent` with the given creator.
     pub fn new(creator: UserId) -> Self {
-        Self { creator, federate: true, room_version: default_room_version_id(), predecessor: None }
+        Self { creator, federate: true, room_version: RoomVersionId::Version1, predecessor: None }
     }
 }
 
@@ -61,9 +64,15 @@ impl PreviousRoom {
     }
 }
 
-/// Used to default the `room_version` field to room version 1.
-fn default_room_version_id() -> RoomVersionId {
-    RoomVersionId::Version1
+fn default_room_version_id<'de, D>(deserializer: D) -> Result<RoomVersionId, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(Option::deserialize(deserializer)?.unwrap_or(RoomVersionId::Version1))
+}
+
+fn is_default_room_version_id(id: &RoomVersionId) -> bool {
+    *id == RoomVersionId::Version1
 }
 
 #[cfg(test)]

@@ -22,7 +22,7 @@ ruma_api! {
         /// The maximum number of results to return.
         ///
         /// Defaults to 10.
-        #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
+        #[serde(deserialize_with = "default_limit", skip_serializing_if = "is_default_limit")]
         pub limit: UInt,
 
         /// Language tag to determine the collation to use for the (case-insensitive) search.
@@ -48,7 +48,7 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given search term.
     pub fn new(search_term: &'a str) -> Self {
-        Self { search_term, limit: default_limit(), language: None }
+        Self { search_term, limit: uint!(10), language: None }
     }
 }
 
@@ -59,12 +59,16 @@ impl Response {
     }
 }
 
-fn default_limit() -> UInt {
-    uint!(10)
+fn default_limit<'de, D>(deserializer: D) -> Result<UInt, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(Option::deserialize(deserializer)?.unwrap_or_else(|| uint!(10)))
 }
 
-fn is_default_limit(limit: &UInt) -> bool {
-    limit == &default_limit()
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn is_default_limit(val: &UInt) -> bool {
+    *val == uint!(10)
 }
 
 /// User data as result of a search.

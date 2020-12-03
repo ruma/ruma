@@ -25,7 +25,10 @@ ruma_api! {
         ///
         /// When false, the server can still take advantage of the soft logout method for the user's
         /// remaining devices.
-        #[serde(default = "ruma_serde::default_true", skip_serializing_if = "ruma_serde::is_true")]
+        #[serde(
+            deserialize_with = "ruma_serde::default_true",
+            skip_serializing_if = "ruma_serde::is_true",
+        )]
         pub logout_devices: bool,
 
         /// Additional authentication information for the user-interactive authentication API.

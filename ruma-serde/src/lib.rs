@@ -3,6 +3,7 @@
 pub mod can_be_empty;
 mod canonical_json;
 mod cow;
+mod de_with_default;
 pub mod duration;
 pub mod empty;
 pub mod json_string;
@@ -20,6 +21,7 @@ pub use canonical_json::{
     Error as CanonicalJsonError,
 };
 pub use cow::deserialize_cow_str;
+pub use de_with_default::{default, default_true};
 pub use empty::vec_as_map_of_empty;
 pub use raw::Raw;
 pub use strings::{
@@ -29,13 +31,6 @@ pub use strings::{
 /// Check whether a value is equal to its default value.
 pub fn is_default<T: Default + PartialEq>(val: &T) -> bool {
     val == &T::default()
-}
-
-/// Simply returns `true`.
-///
-/// Useful for `#[serde(default = ...)]`.
-pub fn default_true() -> bool {
-    true
 }
 
 /// Simply dereferences the given bool.

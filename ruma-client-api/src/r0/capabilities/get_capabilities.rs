@@ -56,7 +56,7 @@ pub struct Capabilities {
     /// Capability to indicate if the user can change their password.
     #[serde(
         rename = "m.change_password",
-        default,
+        deserialize_with = "ruma_serde::default",
         skip_serializing_if = "ChangePasswordCapability::is_default"
     )]
     pub change_password: ChangePasswordCapability,
@@ -64,7 +64,7 @@ pub struct Capabilities {
     /// The room versions the server supports.
     #[serde(
         rename = "m.room_versions",
-        default,
+        deserialize_with = "ruma_serde::default",
         skip_serializing_if = "RoomVersionsCapability::is_default"
     )]
     pub room_versions: RoomVersionsCapability,

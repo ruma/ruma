@@ -29,7 +29,10 @@ ruma_api! {
         pub user_id: Option<UserId>,
 
         /// A map of the user's device identifiers to information about that device.
-        #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "BTreeMap::is_empty",
+        )]
         pub devices: BTreeMap<String, DeviceInfo>,
     }
 
@@ -54,7 +57,7 @@ impl Response {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct DeviceInfo {
     /// A list of user sessions on this device.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub sessions: Vec<SessionInfo>,
 }
 
@@ -62,7 +65,7 @@ pub struct DeviceInfo {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SessionInfo {
     /// A list of connections in this session.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub connections: Vec<ConnectionInfo>,
 }
 

@@ -116,7 +116,6 @@ pub struct RedactedMessageEvent<C: RedactedMessageEventContent> {
 #[derive(Clone, Debug, Event)]
 pub struct RedactedSyncMessageEvent<C: RedactedMessageEventContent> {
     /// Data specific to the event type.
-    // #[serde(default, skip_serializing_if = "is_zst")]
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.
@@ -269,7 +268,6 @@ pub struct RedactedStateEvent<C: RedactedStateEventContent> {
 #[derive(Clone, Debug, Event)]
 pub struct RedactedSyncStateEvent<C: RedactedStateEventContent> {
     /// Data specific to the event type.
-    // #[serde(default, skip_serializing_if = "is_zst")]
     pub content: C,
 
     /// The globally unique event identifier for the user who sent the event.

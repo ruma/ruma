@@ -26,7 +26,7 @@ pub struct CanonicalAliasEventContent {
     pub alias: Option<RoomAliasId>,
 
     /// List of alternative aliases to the room.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(deserialize_with = "ruma_serde::default", skip_serializing_if = "Vec::is_empty")]
     pub alt_aliases: Vec<RoomAliasId>,
 }
 

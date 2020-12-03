@@ -13,7 +13,7 @@ pub type NameEvent = StateEvent<NameEventContent>;
 #[ruma_event(type = "m.room.name")]
 pub struct NameEventContent {
     /// The name of the room. This MUST NOT exceed 255 bytes.
-    #[serde(default, deserialize_with = "room_name")]
+    #[serde(default, deserialize_with = "room_name", skip_serializing_if = "Option::is_none")]
     pub(crate) name: Option<String>,
 }
 

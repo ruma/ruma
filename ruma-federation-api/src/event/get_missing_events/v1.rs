@@ -5,6 +5,7 @@ use ruma_api::ruma_api;
 use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, RoomId};
 use ruma_serde::Raw;
+use serde::Deserialize;
 
 ruma_api! {
     metadata: {
@@ -22,11 +23,14 @@ ruma_api! {
         pub room_id: &'a RoomId,
 
         /// The maximum number of events to retrieve. Defaults to 10.
-        #[serde(default = "default_limit", skip_serializing_if = "is_default_limit")]
+        #[serde(deserialize_with = "default_limit", skip_serializing_if = "is_default_limit")]
         pub limit: UInt,
 
         /// The minimum depth of events to retrieve. Defaults to 0.
-        #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
+        #[serde(
+            deserialize_with = "ruma_serde::default",
+            skip_serializing_if = "ruma_serde::is_default",
+        )]
         pub min_depth: UInt,
 
         /// The latest event IDs that the sender already has. These are skipped when retrieving the previous events of `latest_events`.
@@ -50,13 +54,7 @@ impl<'a> Request<'a> {
         earliest_events: &'a [EventId],
         latest_events: &'a [EventId],
     ) -> Self {
-        Self {
-            room_id,
-            limit: default_limit(),
-            min_depth: UInt::default(),
-            earliest_events,
-            latest_events,
-        }
+        Self { room_id, limit: uint!(10), min_depth: uint!(0), earliest_events, latest_events }
     }
 }
 
@@ -67,10 +65,14 @@ impl Response {
     }
 }
 
-fn default_limit() -> UInt {
-    uint!(10)
+fn default_limit<'de, D>(deserializer: D) -> Result<UInt, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(Option::deserialize(deserializer)?.unwrap_or_else(|| uint!(10)))
 }
 
+#[allow(clippy::trivially_copy_pass_by_ref)]
 fn is_default_limit(val: &UInt) -> bool {
-    *val == default_limit()
+    *val == uint!(10)
 }

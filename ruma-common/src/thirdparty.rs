@@ -26,7 +26,10 @@ pub struct Protocol {
     ///
     /// If you activate the `unstable-synapse-quirks` feature, this field being absent in JSON will
     /// give you an empty string here.
-    #[cfg_attr(feature = "unstable-synapse-quirks", serde(default))]
+    #[cfg_attr(
+        feature = "unstable-synapse-quirks",
+        serde(deserialize_with = "ruma_serde::default")
+    )]
     pub icon: String,
 
     /// The type definitions for the fields defined in `user_fields` and `location_fields`.
