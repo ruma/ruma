@@ -3,6 +3,8 @@
 use std::collections::BTreeMap;
 
 use ruma_events_macros::BasicEventContent;
+#[cfg(feature = "unstable-pre-spec")]
+use ruma_events_macros::MessageEventContent;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
@@ -10,7 +12,17 @@ use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
 };
 
-/// The payload for `AcceptEvent`.
+#[cfg(feature = "unstable-pre-spec")]
+use super::Relation;
+
+#[cfg(feature = "unstable-pre-spec")]
+use crate::MessageEvent;
+
+/// Accepts a previously sent *m.key.verification.start* message.
+#[cfg(feature = "unstable-pre-spec")]
+pub type AcceptEvent = MessageEvent<AcceptEventContent>;
+
+/// The payload for a to-device `AcceptEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.key.verification.accept")]
 pub struct AcceptToDeviceEventContent {
@@ -23,6 +35,20 @@ pub struct AcceptToDeviceEventContent {
     /// The method specific content.
     #[serde(flatten)]
     pub method: AcceptMethod,
+}
+
+/// The payload for a in-room `AcceptEvent`.
+#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
+#[ruma_event(type = "m.key.verification.accept")]
+#[cfg(feature = "unstable-pre-spec")]
+pub struct AcceptEventContent {
+    /// The method specific content.
+    #[serde(flatten)]
+    pub method: AcceptMethod,
+
+    /// Information about the related event.
+    #[serde(rename = "m.relates_to")]
+    pub relation: Relation,
 }
 
 /// An enum representing the different method specific
@@ -130,10 +156,14 @@ mod tests {
 
     use crate::ToDeviceEvent;
 
+    #[cfg(feature = "unstable-pre-spec")]
+    use super::{AcceptEventContent, Relation};
     use super::{
         AcceptMethod, AcceptToDeviceEventContent, CustomContent, HashAlgorithm,
         KeyAgreementProtocol, MSasV1Content, MessageAuthenticationCode, ShortAuthenticationString,
     };
+    #[cfg(feature = "unstable-pre-spec")]
+    use ruma_identifiers::event_id;
     use ruma_identifiers::user_id;
     use ruma_serde::Raw;
 
@@ -197,6 +227,38 @@ mod tests {
             ToDeviceEvent { sender, content: key_verification_accept_content };
 
         assert_eq!(to_json_value(&key_verification_accept).unwrap(), json_data);
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-pre-spec")]
+    fn in_room_serialization() {
+        let event_id = event_id!("$1598361704261elfgc:localhost");
+
+        let key_verification_accept_content = AcceptEventContent {
+            relation: Relation { event_id: event_id.clone() },
+            method: AcceptMethod::MSasV1(MSasV1Content {
+                hash: HashAlgorithm::Sha256,
+                key_agreement_protocol: KeyAgreementProtocol::Curve25519,
+                message_authentication_code: MessageAuthenticationCode::HkdfHmacSha256,
+                short_authentication_string: vec![ShortAuthenticationString::Decimal],
+                commitment: "test_commitment".into(),
+            }),
+        };
+
+        let json_data = json!({
+            "method": "m.sas.v1",
+            "commitment": "test_commitment",
+            "key_agreement_protocol": "curve25519",
+            "hash": "sha256",
+            "message_authentication_code": "hkdf-hmac-sha256",
+            "short_authentication_string": ["decimal"],
+            "m.relates_to": {
+                "rel_type": "m.reference",
+                "event_id": event_id,
+            }
+        });
+
+        assert_eq!(to_json_value(&key_verification_accept_content).unwrap(), json_data);
     }
 
     #[test]
@@ -307,6 +369,50 @@ mod tests {
                 && sender == user_id!("@example:localhost")
                 && method == "m.sas.custom"
                 && fields.get("test").unwrap() == &JsonValue::from("field")
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-pre-spec")]
+    fn in_room_deserialization() {
+        let id = event_id!("$1598361704261elfgc:localhost");
+
+        let json = json!({
+            "commitment": "test_commitment",
+            "method": "m.sas.v1",
+            "hash": "sha256",
+            "key_agreement_protocol": "curve25519",
+            "message_authentication_code": "hkdf-hmac-sha256",
+            "short_authentication_string": ["decimal"],
+            "m.relates_to": {
+                "rel_type": "m.reference",
+                "event_id": id,
+            }
+        });
+
+        // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
+        assert_matches!(
+            from_json_value::<Raw<AcceptEventContent>>(json)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
+            AcceptEventContent {
+                relation: Relation {
+                    event_id
+                },
+                method: AcceptMethod::MSasV1(MSasV1Content {
+                    commitment,
+                    hash,
+                    key_agreement_protocol,
+                    message_authentication_code,
+                    short_authentication_string,
+                })
+            } if commitment == "test_commitment"
+                && event_id == id
+                && hash == HashAlgorithm::Sha256
+                && key_agreement_protocol == KeyAgreementProtocol::Curve25519
+                && message_authentication_code == MessageAuthenticationCode::HkdfHmacSha256
+                && short_authentication_string == vec![ShortAuthenticationString::Decimal]
         );
     }
 }
