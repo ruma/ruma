@@ -372,7 +372,7 @@ fn expand_content_enum(
     let event_type_str = events;
 
     let content =
-        events.iter().map(|ev| to_event_content_path(ev, ruma_events)).collect::<Vec<_>>();
+        events.iter().map(|ev| to_event_content_path(kind, ev, ruma_events)).collect::<Vec<_>>();
 
     let variant_decls = variants.iter().map(|v| v.decl());
 
@@ -809,13 +809,16 @@ fn to_event_path(name: &LitStr, struct_name: &Ident, ruma_events: &TokenStream) 
             };
             quote! { #ruma_events::room::redaction::#redaction }
         }
-        "ToDeviceEvent"
-        | "SyncStateEvent"
+        "SyncStateEvent"
         | "StrippedStateEvent"
         | "InitialStateEvent"
         | "SyncMessageEvent"
         | "SyncEphemeralRoomEvent" => {
             let content = format_ident!("{}EventContent", event);
+            quote! { #ruma_events::#struct_name<#ruma_events::#( #path )::*::#content> }
+        }
+        "ToDeviceEvent" => {
+            let content = format_ident!("{}ToDeviceEventContent", event);
             quote! { #ruma_events::#struct_name<#ruma_events::#( #path )::*::#content> }
         }
         struct_str if struct_str.contains("Redacted") => {
@@ -829,7 +832,11 @@ fn to_event_path(name: &LitStr, struct_name: &Ident, ruma_events: &TokenStream) 
     }
 }
 
-fn to_event_content_path(name: &LitStr, ruma_events: &TokenStream) -> TokenStream {
+fn to_event_content_path(
+    kind: &EventKind,
+    name: &LitStr,
+    ruma_events: &TokenStream,
+) -> TokenStream {
     let span = name.span();
     let name = name.value();
 
@@ -844,8 +851,13 @@ fn to_event_content_path(name: &LitStr, ruma_events: &TokenStream) -> TokenStrea
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
         .collect::<String>();
 
-    let content_str = format_ident!("{}EventContent", event);
+    let content_str = match kind {
+        EventKind::ToDevice => format_ident!("{}ToDeviceEventContent", event),
+        _ => format_ident!("{}EventContent", event),
+    };
+
     let path = path.iter().map(|s| Ident::new(s, span));
+
     quote! {
         #ruma_events::#( #path )::*::#content_str
     }

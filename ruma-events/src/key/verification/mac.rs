@@ -5,17 +5,10 @@ use std::collections::BTreeMap;
 use ruma_events_macros::BasicEventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::BasicEvent;
-
-/// Sends the MAC of a device's key to the partner device.
-///
-/// Typically sent as a to-device event.
-pub type MacEvent = BasicEvent<MacEventContent>;
-
 /// The payload for `MacEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.key.verification.mac")]
-pub struct MacEventContent {
+pub struct MacToDeviceEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the *m.key.verification.start* message.

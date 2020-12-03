@@ -4,17 +4,10 @@ use ruma_events_macros::BasicEventContent;
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
 use serde::{Deserialize, Serialize};
 
-use crate::BasicEvent;
-
-/// This event type is used to forward keys for end-to-end encryption.
-///
-/// Typically it is encrypted as an *m.room.encrypted* event, then sent as a to-device event.
-pub type ForwardedRoomKeyEvent = BasicEvent<ForwardedRoomKeyEventContent>;
-
 /// The payload for `ForwardedRoomKeyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.forwarded_room_key")]
-pub struct ForwardedRoomKeyEventContent {
+pub struct ForwardedRoomKeyToDeviceEventContent {
     /// The encryption algorithm the key in this event is to be used with.
     pub algorithm: EventEncryptionAlgorithm,
 

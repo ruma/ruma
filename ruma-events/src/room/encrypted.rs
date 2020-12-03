@@ -27,6 +27,9 @@ pub enum EncryptedEventContent {
     MegolmV1AesSha2(MegolmV1AesSha2Content),
 }
 
+/// The to-device version of the payload for the `EncryptedEvent`.
+pub type EncryptedToDeviceEventContent = EncryptedEventContent;
+
 /// The payload for `EncryptedEvent` using the *m.olm.v1.curve25519-aes-sha2* algorithm.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]

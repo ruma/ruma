@@ -6,8 +6,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::BasicEvent;
 
-/// This event type is used to exchange keys for end-to-end encryption.
-///
 /// Typically it is encrypted as an *m.room.encrypted* event, then sent as a to-device event.
 pub type RoomKeyEvent = BasicEvent<RoomKeyEventContent>;
 
@@ -29,6 +27,9 @@ pub struct RoomKeyEventContent {
     /// The key to be exchanged.
     pub session_key: String,
 }
+
+/// The to-device version of the payload for the `RoomKeyEvent`.
+pub type RoomKeyToDeviceEventContent = RoomKeyEventContent;
 
 #[cfg(test)]
 mod tests {

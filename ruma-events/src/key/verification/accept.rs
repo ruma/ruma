@@ -9,17 +9,11 @@ use serde_json::Value as JsonValue;
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
 };
-use crate::BasicEvent;
-
-/// Accepts a previously sent *m.key.verification.start* message.
-///
-/// Typically sent as a to-device event.
-pub type AcceptEvent = BasicEvent<AcceptEventContent>;
 
 /// The payload for `AcceptEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.key.verification.accept")]
-pub struct AcceptEventContent {
+pub struct AcceptToDeviceEventContent {
     /// An opaque identifier for the verification process.
     ///
     /// Must be the same as the one used for the *m.key.verification.start*
@@ -134,15 +128,18 @@ mod tests {
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
     };
 
+    use crate::ToDeviceEvent;
+
     use super::{
-        AcceptEvent, AcceptEventContent, AcceptMethod, CustomContent, HashAlgorithm,
+        AcceptMethod, AcceptToDeviceEventContent, CustomContent, HashAlgorithm,
         KeyAgreementProtocol, MSasV1Content, MessageAuthenticationCode, ShortAuthenticationString,
     };
+    use ruma_identifiers::user_id;
     use ruma_serde::Raw;
 
     #[test]
     fn serialization() {
-        let key_verification_accept_content = AcceptEventContent {
+        let key_verification_accept_content = AcceptToDeviceEventContent {
             transaction_id: "456".into(),
             method: AcceptMethod::MSasV1(MSasV1Content {
                 hash: HashAlgorithm::Sha256,
@@ -153,7 +150,7 @@ mod tests {
             }),
         };
 
-        let key_verification_accept = AcceptEvent { content: key_verification_accept_content };
+        let sender = user_id!("@example:localhost");
 
         let json_data = json!({
             "content": {
@@ -165,10 +162,16 @@ mod tests {
                 "message_authentication_code": "hkdf-hmac-sha256",
                 "short_authentication_string": ["decimal"]
             },
+            "sender": sender,
             "type": "m.key.verification.accept"
         });
 
+        let key_verification_accept =
+            ToDeviceEvent { sender, content: key_verification_accept_content };
+
         assert_eq!(to_json_value(&key_verification_accept).unwrap(), json_data);
+
+        let sender = user_id!("@example:localhost");
 
         let json_data = json!({
             "content": {
@@ -176,10 +179,11 @@ mod tests {
                 "method": "m.sas.custom",
                 "test": "field",
             },
+            "sender": sender,
             "type": "m.key.verification.accept"
         });
 
-        let key_verification_accept_content = AcceptEventContent {
+        let key_verification_accept_content = AcceptToDeviceEventContent {
             transaction_id: "456".into(),
             method: AcceptMethod::Custom(CustomContent {
                 method: "m.sas.custom".to_owned(),
@@ -189,7 +193,8 @@ mod tests {
             }),
         };
 
-        let key_verification_accept = AcceptEvent { content: key_verification_accept_content };
+        let key_verification_accept =
+            ToDeviceEvent { sender, content: key_verification_accept_content };
 
         assert_eq!(to_json_value(&key_verification_accept).unwrap(), json_data);
     }
@@ -208,11 +213,11 @@ mod tests {
 
         // Deserialize the content struct separately to verify `TryFromRaw` is implemented for it.
         assert_matches!(
-            from_json_value::<Raw<AcceptEventContent>>(json)
+            from_json_value::<Raw<AcceptToDeviceEventContent>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            AcceptEventContent {
+            AcceptToDeviceEventContent {
                 transaction_id,
                 method: AcceptMethod::MSasV1(MSasV1Content {
                     commitment,
@@ -229,6 +234,8 @@ mod tests {
                 && short_authentication_string == vec![ShortAuthenticationString::Decimal]
         );
 
+        let sender = user_id!("@example:localhost");
+
         let json = json!({
             "content": {
                 "commitment": "test_commitment",
@@ -239,16 +246,18 @@ mod tests {
                 "message_authentication_code": "hkdf-hmac-sha256",
                 "short_authentication_string": ["decimal"]
             },
-            "type": "m.key.verification.accept"
+            "type": "m.key.verification.accept",
+            "sender": sender,
         });
 
         assert_matches!(
-            from_json_value::<Raw<AcceptEvent>>(json)
+            from_json_value::<Raw<ToDeviceEvent<AcceptToDeviceEventContent>>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            AcceptEvent {
-                content: AcceptEventContent {
+            ToDeviceEvent {
+                sender,
+                content: AcceptToDeviceEventContent {
                     transaction_id,
                     method: AcceptMethod::MSasV1(MSasV1Content {
                         commitment,
@@ -259,12 +268,15 @@ mod tests {
                     })
                 }
             } if commitment == "test_commitment"
+                && sender == user_id!("@example:localhost")
                 && transaction_id == "456"
                 && hash == HashAlgorithm::Sha256
                 && key_agreement_protocol == KeyAgreementProtocol::Curve25519
                 && message_authentication_code == MessageAuthenticationCode::HkdfHmacSha256
                 && short_authentication_string == vec![ShortAuthenticationString::Decimal]
         );
+
+        let sender = user_id!("@example:localhost");
 
         let json = json!({
             "content": {
@@ -273,16 +285,18 @@ mod tests {
                 "method": "m.sas.custom",
                 "test": "field",
             },
-            "type": "m.key.verification.accept"
+            "type": "m.key.verification.accept",
+            "sender": sender
         });
 
         assert_matches!(
-            from_json_value::<Raw<AcceptEvent>>(json)
+            from_json_value::<Raw<ToDeviceEvent<AcceptToDeviceEventContent>>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            AcceptEvent {
-                content: AcceptEventContent {
+            ToDeviceEvent {
+                sender,
+                content: AcceptToDeviceEventContent {
                     transaction_id,
                     method: AcceptMethod::Custom(CustomContent {
                         method,
@@ -290,6 +304,7 @@ mod tests {
                     })
                 }
             } if transaction_id == "456"
+                && sender == user_id!("@example:localhost")
                 && method == "m.sas.custom"
                 && fields.get("test").unwrap() == &JsonValue::from("field")
         );
