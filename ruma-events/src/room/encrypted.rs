@@ -7,9 +7,9 @@ use ruma_events_macros::MessageEventContent;
 use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 
-use crate::MessageEvent;
+use crate::{room::message::Relation, MessageEvent};
 
-/// An event that defines how messages sent in this room should be encrypted.
+/// An event that has been encrypted.
 pub type EncryptedEvent = MessageEvent<EncryptedEventContent>;
 
 /// The payload for `EncryptedEvent`.
@@ -87,6 +87,11 @@ pub struct MegolmV1AesSha2Content {
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,
+
+    /// Information about related messages for
+    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
+    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
+    pub relates_to: Option<Relation>,
 }
 
 /// Mandatory initial set of fields of `MegolmV1AesSha2Content`.
@@ -112,7 +117,7 @@ impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
     /// Creates a new `MegolmV1AesSha2Content` from the given init struct.
     fn from(init: MegolmV1AesSha2ContentInit) -> Self {
         let MegolmV1AesSha2ContentInit { ciphertext, sender_key, device_id, session_id } = init;
-        Self { ciphertext, sender_key, device_id, session_id }
+        Self { ciphertext, sender_key, device_id, session_id, relates_to: None }
     }
 }
 
@@ -132,6 +137,7 @@ mod tests {
                 sender_key: "sender_key".into(),
                 device_id: "device_id".into(),
                 session_id: "session_id".into(),
+                relates_to: None,
             });
 
         let json_data = json!({
@@ -165,6 +171,7 @@ mod tests {
                 sender_key,
                 device_id,
                 session_id,
+                relates_to: None,
             }) if ciphertext == "ciphertext"
                 && sender_key == "sender_key"
                 && device_id == "device_id"
