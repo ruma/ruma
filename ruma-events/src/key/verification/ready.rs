@@ -51,7 +51,7 @@ mod tests {
 
         let content = ReadyEventContent {
             from_device: device,
-            relation: Relation { event_id: event_id.clone() },
+            relation: Relation { event_id },
             methods: vec![VerificationMethod::MSasV1],
         };
 
