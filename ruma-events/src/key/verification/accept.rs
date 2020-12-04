@@ -8,13 +8,11 @@ use ruma_events_macros::MessageEventContent;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
+#[cfg(feature = "unstable-pre-spec")]
+use super::Relation;
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
 };
-
-#[cfg(feature = "unstable-pre-spec")]
-use super::Relation;
-
 #[cfg(feature = "unstable-pre-spec")]
 use crate::MessageEvent;
 

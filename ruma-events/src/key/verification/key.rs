@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-pre-spec")]
 use super::Relation;
-
 #[cfg(feature = "unstable-pre-spec")]
 use crate::MessageEvent;
 

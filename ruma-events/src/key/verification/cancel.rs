@@ -7,10 +7,9 @@ use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-pre-spec")]
-use crate::MessageEvent;
-
-#[cfg(feature = "unstable-pre-spec")]
 use super::Relation;
+#[cfg(feature = "unstable-pre-spec")]
+use crate::MessageEvent;
 
 /// Cancels a key verification process/request.
 #[cfg(feature = "unstable-pre-spec")]

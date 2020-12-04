@@ -14,7 +14,6 @@ use super::Relation;
 use super::{
     HashAlgorithm, KeyAgreementProtocol, MessageAuthenticationCode, ShortAuthenticationString,
 };
-
 use crate::InvalidInput;
 #[cfg(feature = "unstable-pre-spec")]
 use crate::MessageEvent;
