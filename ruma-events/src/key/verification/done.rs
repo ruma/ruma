@@ -40,7 +40,7 @@ mod tests {
             }
         });
 
-        let content = DoneEventContent { relation: Relation { event_id: event_id.clone() } };
+        let content = DoneEventContent { relation: Relation { event_id } };
 
         assert_eq!(to_json_value(&content).unwrap(), json_data);
     }
