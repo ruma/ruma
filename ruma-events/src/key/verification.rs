@@ -21,6 +21,8 @@ pub mod accept;
 pub mod cancel;
 pub mod key;
 pub mod mac;
+#[cfg(feature = "unstable-pre-spec")]
+pub mod ready;
 pub mod request;
 pub mod start;
 
