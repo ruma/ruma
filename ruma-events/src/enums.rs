@@ -49,6 +49,8 @@ event_enum! {
         #[cfg(feature = "unstable-pre-spec")]
         "m.key.verification.mac",
         #[cfg(feature = "unstable-pre-spec")]
+        "m.key.verification.done",
+        #[cfg(feature = "unstable-pre-spec")]
         "m.reaction",
         "m.room.encrypted",
         "m.room.message",

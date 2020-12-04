@@ -19,6 +19,8 @@ use crate::room::relationships::{Reference, RelatesToJsonRepr, RelationJsonRepr}
 
 pub mod accept;
 pub mod cancel;
+#[cfg(feature = "unstable-pre-spec")]
+pub mod done;
 pub mod key;
 pub mod mac;
 #[cfg(feature = "unstable-pre-spec")]
