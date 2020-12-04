@@ -69,6 +69,72 @@
 //! respective event traits whose `content` field is simply a `serde_json::Value` value, which
 //! represents arbitrary JSON.
 //!
+//! ## Extending Ruma with custom events
+//!
+//! For our example we will create a reaction message event. This can be used with ruma-events
+//! structs, for this event we will use a `SyncMessageEvent` struct but any `MessageEvent` struct
+//! would work.
+//!
+//! ```rust
+//! use ruma_events::{macros::MessageEventContent, SyncMessageEvent};
+//! use ruma_identifiers::EventId;
+//! use serde::{Deserialize, Serialize};
+//!
+//! #[derive(Clone, Debug, Deserialize, Serialize)]
+//! #[serde(tag = "rel_type")]
+//! pub enum RelatesTo {
+//!     #[serde(rename = "m.annotation")]
+//!     Annotation {
+//!         /// The event this reaction relates to.
+//!         event_id: EventId,
+//!         /// The displayable content of the reaction.
+//!         key: String,
+//!     },
+//!
+//!     /// Since this event is not fully specified in the Matrix spec
+//!     /// it may change or types may be added, we are ready!
+//!     #[serde(rename = "m.whatever")]
+//!     Whatever,
+//! }
+//!
+//! /// The payload for our reaction event.
+//! #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
+//! #[ruma_event(type = "m.reaction")]
+//! pub struct ReactionEventContent {
+//!     #[serde(rename = "m.relates_to")]
+//!     pub relates_to: RelatesTo,
+//! }
+//!
+//! let json = serde_json::json!({
+//!     "content": {
+//!         "m.relates_to": {
+//!             "event_id": "$xxxx-xxxx",
+//!             "key": "👍",
+//!             "rel_type": "m.annotation"
+//!         }
+//!     },
+//!     "event_id": "$xxxx-xxxx",
+//!     "origin_server_ts": 1,
+//!     "sender": "@someone:example.org",
+//!     "type": "m.reaction",
+//!     "unsigned": {
+//!         "age": 85
+//!     }
+//! });
+//!
+//! // The downside of this event is we cannot use it with the `AnyRoomEvent` or `AnyEvent` enums,
+//! // but could be deserialized from a `Raw<AnyRoomEvent>` that has failed.
+//! matches::assert_matches!(
+//!     serde_json::from_value::<SyncMessageEvent<ReactionEventContent>>(json),
+//!     Ok(SyncMessageEvent {
+//!         content: ReactionEventContent {
+//!             relates_to: RelatesTo::Annotation { key, .. },
+//!         },
+//!         ..
+//!     }) if key == "👍"
+//! );
+//! ```
+//!
 //! # Serialization and deserialization
 //!
 //! All concrete event types in ruma-events can be serialized via the `Serialize` trait from
@@ -82,7 +148,7 @@
 //! collection failing to deserialize due to a single invalid event. The "content" type for each
 //! event also implements `Serialize` and either `TryFromRaw` (enabling usage as
 //! `Raw<ContentType>` for dedicated content types) or `Deserialize` (when the content is a
-//! type alias), allowing content to be converted to and from JSON indepedently of the surrounding
+//! type alias), allowing content to be converted to and from JSON independently of the surrounding
 //! event structure, if needed.
 //!
 //! # Collections

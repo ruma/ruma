@@ -13,6 +13,21 @@ use serde_json::value::RawValue;
 /// A wrapper around `Box<RawValue>`, to be used in place of any type in the Matrix endpoint
 /// definition to allow request and response types to contain that said type represented by
 /// the generic argument `Ev`.
+///
+/// Ruma offers the `Raw` wrapper to enable passing around JSON text that is only partially
+/// validated. This is useful when a client receives events that do not follow the spec perfectly
+/// or a server needs to generate reference hashes with the original canonical JSON string.
+/// All event structs and enums implement `Serialize` / `Deserialize`, `Raw` should be used
+/// to pass around events in a lossless way.
+///
+/// ```ignore
+/// let json = r#"{ "type": "imagine a full event", "content": {...} }"#;
+///
+/// let deser = serde_json::from_str::<Raw<AnyRoomEvent>>(json)
+///     .unwrap() // the first Result from serde_json::from_str, will not fail
+///     .deserialize() // deserialize to the inner type
+///     .unwrap(); // finally get to the AnyRoomEvent
+/// ```
 pub struct Raw<T> {
     json: Box<RawValue>,
     _ev: PhantomData<T>,
