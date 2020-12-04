@@ -26,7 +26,7 @@ tracing-subscriber = "0.2.11"
 git = "https://github.com/ruma/ruma"
 # branch = "dev/unstable-join"
 # path = "../__forks__/ruma/ruma"
-rev = "c15382ca41262058302959eac4029ab4a1ea5889"
+rev = "e8882fe8142d7b55ed4c8ccc6150946945f9e237"
 features = ["client-api", "federation-api", "appservice-api", "unstable-pre-spec", "unstable-synapse-quirks"]
 
 #[dependencies.ruma]

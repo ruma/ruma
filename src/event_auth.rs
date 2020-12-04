@@ -102,9 +102,7 @@ pub fn auth_check(
         }
 
         // If the domain of the room_id does not match the domain of the sender, reject
-        if incoming_event.room_id().map(|id| id.server_name())
-            != Some(incoming_event.sender().server_name())
-        {
+        if incoming_event.room_id().server_name() != incoming_event.sender().server_name() {
             tracing::warn!("creation events server does not match sender");
             return Ok(false); // creation events room id does not match senders
         }

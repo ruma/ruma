@@ -4,7 +4,7 @@ use js_int::UInt;
 use ruma::{
     events::{
         from_raw_json_value,
-        pdu::{EventHash, Pdu, PduStub},
+        pdu::{EventHash, Pdu},
         room::member::{MemberEventContent, MembershipState},
         EventDeHelper, EventType,
     },
@@ -62,7 +62,6 @@ pub struct Requester<'a> {
 #[derive(Clone, Debug)]
 pub enum StateEvent {
     Full(EventId, Pdu),
-    Stub(PduStub),
 }
 
 impl Serialize for StateEvent {
@@ -93,7 +92,6 @@ impl Serialize for StateEvent {
                     _ => panic!("Pdu not an object"),
                 }
             }
-            Self::Stub(_) => panic!("Found PduStub"),
         }
     }
 }
@@ -123,12 +121,7 @@ impl<'de> de::Deserialize<'de> for StateEvent {
                 ),
             }
         } else {
-            match unsigned {
-                Some(unsigned) if unsigned.redacted_because.is_some() => {
-                    panic!("TODO deal with redacted events")
-                }
-                _ => StateEvent::Stub(from_raw_json_value(&json)?),
-            }
+            panic!("Found stub event")
         })
     }
 }
@@ -155,7 +148,7 @@ impl StateEvent {
     pub fn to_requester(&self) -> Requester<'_> {
         Requester {
             prev_event_ids: self.prev_event_ids(),
-            room_id: self.room_id().unwrap(),
+            room_id: self.room_id(),
             content: self.content(),
             state_key: Some(self.state_key()),
             sender: self.sender(),
@@ -189,30 +182,6 @@ impl StateEvent {
                 },
                 Pdu::RoomV3Pdu(event) => event.state_key == Some("".into()),
             },
-            Self::Stub(any_event) => match any_event {
-                PduStub::RoomV1PduStub(event) => match event.kind {
-                    EventType::RoomPowerLevels
-                    | EventType::RoomJoinRules
-                    | EventType::RoomCreate => event.state_key == Some("".into()),
-                    EventType::RoomMember => {
-                        if let Ok(content) =
-                            serde_json::from_value::<MemberEventContent>(event.content.clone())
-                        {
-                            if [MembershipState::Leave, MembershipState::Ban]
-                                .contains(&content.membership)
-                            {
-                                return event.sender.as_str()
-                                    // TODO does None here mean the same as state_key = ""
-                                    != event.state_key.as_deref().unwrap_or("");
-                            }
-                        }
-
-                        false
-                    }
-                    _ => false,
-                },
-                PduStub::RoomV3PduStub(event) => event.state_key == Some("".into()),
-            },
         }
     }
     pub fn deserialize_content<C: serde::de::DeserializeOwned>(
@@ -223,10 +192,6 @@ impl StateEvent {
                 Pdu::RoomV1Pdu(ev) => serde_json::from_value(ev.content.clone()),
                 Pdu::RoomV3Pdu(ev) => serde_json::from_value(ev.content.clone()),
             },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => serde_json::from_value(ev.content.clone()),
-                PduStub::RoomV3PduStub(ev) => serde_json::from_value(ev.content.clone()),
-            },
         }
     }
     pub fn origin_server_ts(&self) -> &SystemTime {
@@ -235,17 +200,12 @@ impl StateEvent {
                 Pdu::RoomV1Pdu(ev) => &ev.origin_server_ts,
                 Pdu::RoomV3Pdu(ev) => &ev.origin_server_ts,
             },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => &ev.origin_server_ts,
-                PduStub::RoomV3PduStub(ev) => &ev.origin_server_ts,
-            },
         }
     }
     pub fn event_id(&self) -> EventId {
         match self {
             // TODO; make this a &EventId
             Self::Full(id, _) => id.clone(),
-            Self::Stub(_) => panic!("Stubs don't have an event id"),
         }
     }
 
@@ -254,10 +214,6 @@ impl StateEvent {
             Self::Full(_, ev) => match ev {
                 Pdu::RoomV1Pdu(ev) => &ev.sender,
                 Pdu::RoomV3Pdu(ev) => &ev.sender,
-            },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => &ev.sender,
-                PduStub::RoomV3PduStub(ev) => &ev.sender,
             },
         }
     }
@@ -268,20 +224,15 @@ impl StateEvent {
                 Pdu::RoomV1Pdu(ev) => ev.redacts.as_ref(),
                 Pdu::RoomV3Pdu(ev) => ev.redacts.as_ref(),
             },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => ev.redacts.as_ref(),
-                PduStub::RoomV3PduStub(ev) => ev.redacts.as_ref(),
-            },
         }
     }
 
-    pub fn room_id(&self) -> Option<&RoomId> {
+    pub fn room_id(&self) -> &RoomId {
         match self {
             Self::Full(_, ev) => match ev {
-                Pdu::RoomV1Pdu(ev) => Some(&ev.room_id),
-                Pdu::RoomV3Pdu(ev) => Some(&ev.room_id),
+                Pdu::RoomV1Pdu(ev) => &ev.room_id,
+                Pdu::RoomV3Pdu(ev) => &ev.room_id,
             },
-            Self::Stub(_) => None,
         }
     }
     pub fn kind(&self) -> EventType {
@@ -290,10 +241,6 @@ impl StateEvent {
                 Pdu::RoomV1Pdu(ev) => ev.kind.clone(),
                 Pdu::RoomV3Pdu(ev) => ev.kind.clone(),
             },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => ev.kind.clone(),
-                PduStub::RoomV3PduStub(ev) => ev.kind.clone(),
-            },
         }
     }
     pub fn state_key(&self) -> String {
@@ -301,10 +248,6 @@ impl StateEvent {
             Self::Full(_, ev) => match ev {
                 Pdu::RoomV1Pdu(ev) => ev.state_key.clone(),
                 Pdu::RoomV3Pdu(ev) => ev.state_key.clone(),
-            },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => ev.state_key.clone(),
-                PduStub::RoomV3PduStub(ev) => ev.state_key.clone(),
             },
         }
         .expect("All state events have a state key")
@@ -317,10 +260,6 @@ impl StateEvent {
                 Pdu::RoomV1Pdu(ev) => ev.origin.clone(),
                 Pdu::RoomV3Pdu(ev) => ev.origin.clone(),
             },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => ev.origin.clone(),
-                PduStub::RoomV3PduStub(ev) => ev.origin.clone(),
-            },
         }
     }
 
@@ -329,12 +268,6 @@ impl StateEvent {
             Self::Full(_, ev) => match ev {
                 Pdu::RoomV1Pdu(ev) => ev.prev_events.iter().map(|(id, _)| id).cloned().collect(),
                 Pdu::RoomV3Pdu(ev) => ev.prev_events.clone(),
-            },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => {
-                    ev.prev_events.iter().map(|(id, _)| id).cloned().collect()
-                }
-                PduStub::RoomV3PduStub(ev) => ev.prev_events.to_vec(),
             },
         }
     }
@@ -345,12 +278,6 @@ impl StateEvent {
                 Pdu::RoomV1Pdu(ev) => ev.auth_events.iter().map(|(id, _)| id).cloned().collect(),
                 Pdu::RoomV3Pdu(ev) => ev.auth_events.to_vec(),
             },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => {
-                    ev.auth_events.iter().map(|(id, _)| id).cloned().collect()
-                }
-                PduStub::RoomV3PduStub(ev) => ev.auth_events.to_vec(),
-            },
         }
     }
 
@@ -359,10 +286,6 @@ impl StateEvent {
             Self::Full(_, ev) => match ev {
                 Pdu::RoomV1Pdu(ev) => &ev.content,
                 Pdu::RoomV3Pdu(ev) => &ev.content,
-            },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => &ev.content,
-                PduStub::RoomV3PduStub(ev) => &ev.content,
             },
         }
     }
@@ -373,22 +296,16 @@ impl StateEvent {
                 Pdu::RoomV1Pdu(ev) => &ev.unsigned,
                 Pdu::RoomV3Pdu(ev) => &ev.unsigned,
             },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => &ev.unsigned,
-                PduStub::RoomV3PduStub(ev) => &ev.unsigned,
-            },
         }
     }
 
-    pub fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ruma::ServerKeyId, String>> {
+    pub fn signatures(
+        &self,
+    ) -> BTreeMap<Box<ServerName>, BTreeMap<ruma::ServerSigningKeyId, String>> {
         match self {
             Self::Full(_, ev) => match ev {
                 Pdu::RoomV1Pdu(_) => maplit::btreemap! {},
                 Pdu::RoomV3Pdu(ev) => ev.signatures.clone(),
-            },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => ev.signatures.clone(),
-                PduStub::RoomV3PduStub(ev) => ev.signatures.clone(),
             },
         }
     }
@@ -399,10 +316,6 @@ impl StateEvent {
                 Pdu::RoomV1Pdu(ev) => &ev.hashes,
                 Pdu::RoomV3Pdu(ev) => &ev.hashes,
             },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => &ev.hashes,
-                PduStub::RoomV3PduStub(ev) => &ev.hashes,
-            },
         }
     }
 
@@ -411,10 +324,6 @@ impl StateEvent {
             Self::Full(_, ev) => match ev {
                 Pdu::RoomV1Pdu(ev) => &ev.depth,
                 Pdu::RoomV3Pdu(ev) => &ev.depth,
-            },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => &ev.depth,
-                PduStub::RoomV3PduStub(ev) => &ev.depth,
             },
         }
     }
@@ -426,14 +335,6 @@ impl StateEvent {
                     ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
                 }
                 Pdu::RoomV3Pdu(ev) => {
-                    ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
-                }
-            },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(ev) => {
-                    ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
-                }
-                PduStub::RoomV3PduStub(ev) => {
                     ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
                 }
             },
@@ -450,10 +351,6 @@ impl StateEvent {
             Self::Full(_, ev) => match ev {
                 Pdu::RoomV1Pdu(_) => RoomVersionId::Version1,
                 Pdu::RoomV3Pdu(_) => RoomVersionId::Version6,
-            },
-            Self::Stub(ev) => match ev {
-                PduStub::RoomV1PduStub(_) => RoomVersionId::Version1,
-                PduStub::RoomV3PduStub(_) => RoomVersionId::Version6,
             },
         }
     }
