@@ -58,6 +58,14 @@ pub struct ImageInfo {
     /// Information on the encrypted thumbnail image. Only present if the thumbnail is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_file: Option<Box<EncryptedFile>>,
+
+    /// The [BlurHash](https://blurha.sh) for this image.
+    ///
+    /// This uses the unstable prefix in MSC2448.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[serde(rename = "xyz.amorgan.blurhash")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blurhash: Option<String>,
 }
 
 /// Metadata about a thumbnail.
