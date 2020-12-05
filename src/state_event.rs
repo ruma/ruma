@@ -1,6 +1,5 @@
 use std::{collections::BTreeMap, time::SystemTime};
 
-use js_int::UInt;
 use ruma::{
     events::{
         from_raw_json_value,
@@ -10,7 +9,7 @@ use ruma::{
     },
     serde::CanonicalJsonValue,
     signatures::reference_hash,
-    EventId, RoomId, RoomVersionId, ServerName, UserId,
+    EventId, RoomId, RoomVersionId, ServerName, UInt, UserId,
 };
 use serde::{de, ser, Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
@@ -59,6 +58,7 @@ pub struct Requester<'a> {
     pub sender: &'a UserId,
 }
 
+// TODO: This no longer needs to be an enum now that PduStub is gone
 #[derive(Clone, Debug)]
 pub enum StateEvent {
     Full(EventId, Pdu),
@@ -369,7 +369,6 @@ mod test {
         assert_eq!(
             match &pdu {
                 StateEvent::Full(id, _) => id,
-                _ => panic!("Stub found"),
             },
             &ruma::event_id!("$Sfx_o8eLfo4idpTO8_IGrKSPKoRMC1CmQugVw9tu_MU")
         );
@@ -384,7 +383,6 @@ mod test {
         assert_eq!(
             match &pdu {
                 StateEvent::Full(id, _) => id,
-                _ => panic!("Stub found"),
             },
             &ruma::event_id!("$Sfx_o8eLfo4idpTO8_IGrKSPKoRMC1CmQugVw9tu_MU")
         );

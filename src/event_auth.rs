@@ -748,7 +748,7 @@ pub fn get_send_level(
                 .events
                 .get(&e_type)
                 .cloned()
-                .unwrap_or_else(|| js_int::int!(50))
+                .unwrap_or_else(|| ruma::int!(50))
                 .into();
             let state_def: i64 = content.state_default.into();
             let event_def: i64 = content.events_default.into();
@@ -774,7 +774,7 @@ pub fn can_send_invite(
     let invite_level = auth_events
         .get(&key)
         .map_or_else(
-            || Ok::<_, Error>(js_int::int!(50)),
+            || Ok::<_, Error>(ruma::int!(50)),
             |power_levels| {
                 power_levels
                     .deserialize_content::<PowerLevelsEventContent>()

@@ -11,16 +11,13 @@ license = "MIT"
 readme = "README.md"
 repository = "https://github.com/ruma/state-res"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 itertools = "0.9.0"
-js_int = "0.1.9"
-serde = { version = "1.0.115", features = ["derive"] }
-serde_json = "1.0.57"
-tracing = "0.1.19"
+serde = { version = "1.0.117", features = ["derive"] }
+serde_json = "1.0.60"
+tracing = "0.1.22"
 maplit = "1.0.2"
-thiserror = "1.0.20"
-tracing-subscriber = "0.2.11"
+thiserror = "1.0.22"
 
 [dependencies.ruma]
 git = "https://github.com/ruma/ruma"
@@ -47,6 +44,7 @@ unstable-pre-spec = ["ruma/unstable-pre-spec"]
 [dev-dependencies]
 criterion = "0.3.3"
 rand = "0.7.3"
+tracing-subscriber = "0.2.15"
 
 [[bench]]
 name = "state_res_bench"
