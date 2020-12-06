@@ -1,9 +1,11 @@
 //! [GET /_matrix/federation/v1/event/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-event-eventid)
 
+use std::time::SystemTime;
+
 use ruma_api::ruma_api;
 use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, ServerNameBox};
-use std::time::SystemTime;
+use ruma_serde::Raw;
 
 ruma_api! {
     metadata: {
@@ -31,7 +33,7 @@ ruma_api! {
 
         /// The event.
         #[serde(rename = "pdus", with = "ruma_serde::single_element_seq")]
-        pub pdu: Pdu,
+        pub pdu: Raw<Pdu>,
     }
 }
 
@@ -44,7 +46,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given server name, timestamp, and event.
-    pub fn new(origin: ServerNameBox, origin_server_ts: SystemTime, pdu: Pdu) -> Self {
+    pub fn new(origin: ServerNameBox, origin_server_ts: SystemTime, pdu: Raw<Pdu>) -> Self {
         Self { origin, origin_server_ts, pdu }
     }
 }
