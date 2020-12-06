@@ -161,11 +161,20 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
                 let request_body: <
                     RequestBody #body_lifetimes
                     as #ruma_api_import::exports::ruma_serde::Outgoing
-                >::Incoming =
+                >::Incoming = {
+                    // If the request body is completely empty, pretend it is an empty JSON object
+                    // instead. This allows requests with only optional body parameters to be
+                    // deserialized in that case.
+                    let json = match request.body().as_slice() {
+                        b"" => b"{}",
+                        body => body,
+                    };
+
                     #ruma_api_import::try_deserialize!(
                         request,
-                        #ruma_api_import::exports::serde_json::from_slice(request.body().as_slice())
-                    );
+                        #ruma_api_import::exports::serde_json::from_slice(json)
+                    )
+                };
             }
         } else {
             TokenStream::new()
@@ -189,22 +198,30 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         TokenStream::new()
     };
 
-    let typed_response_body_decl = if api.response.has_body_fields()
-        || api.response.newtype_body_field().is_some()
-    {
-        quote! {
-            let response_body: <
-                ResponseBody
-                as #ruma_api_import::exports::ruma_serde::Outgoing
-            >::Incoming =
-                #ruma_api_import::try_deserialize!(
-                    response,
-                    #ruma_api_import::exports::serde_json::from_slice(response.body().as_slice()),
-                );
-        }
-    } else {
-        TokenStream::new()
-    };
+    let typed_response_body_decl =
+        if api.response.has_body_fields() || api.response.newtype_body_field().is_some() {
+            quote! {
+                let response_body: <
+                    ResponseBody
+                    as #ruma_api_import::exports::ruma_serde::Outgoing
+                >::Incoming = {
+                    // If the reponse body is completely empty, pretend it is an empty JSON object
+                    // instead. This allows reponses with only optional body parameters to be
+                    // deserialized in that case.
+                    let json = match response.body().as_slice() {
+                        b"" => b"{}",
+                        body => body,
+                    };
+
+                    #ruma_api_import::try_deserialize!(
+                        response,
+                        #ruma_api_import::exports::serde_json::from_slice(json),
+                    )
+                };
+            }
+        } else {
+            TokenStream::new()
+        };
 
     let response_init_fields = api.response.init_fields();
 
