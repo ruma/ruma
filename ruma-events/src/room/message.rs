@@ -326,7 +326,7 @@ pub struct NoticeMessageEventContent {
 
     /// New content of an edited message.
     ///
-    /// This should onyl be set if `relates_to` is `Some(Relation::Replacement(_))`.
+    /// This should only be set if `relates_to` is `Some(Relation::Replacement(_))`.
     #[cfg(feature = "unstable-pre-spec")]
     #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
     pub new_content: Option<Box<MessageEventContent>>,
@@ -456,7 +456,7 @@ pub struct TextMessageEventContent {
 
     /// New content of an edited message.
     ///
-    /// This should onyl be set if `relates_to` is `Some(Relation::Replacement(_))`.
+    /// This should only be set if `relates_to` is `Some(Relation::Replacement(_))`.
     #[cfg(feature = "unstable-pre-spec")]
     #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
     pub new_content: Option<Box<MessageEventContent>>,
