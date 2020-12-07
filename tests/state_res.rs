@@ -354,7 +354,7 @@ fn do_check(
 
             let resolved = StateResolution::resolve(
                 &room_id(),
-                &RoomVersionId::Version1,
+                &RoomVersionId::Version6,
                 &state_sets,
                 Some(event_map.clone()),
                 &store,
@@ -398,6 +398,35 @@ fn do_check(
             &auth_events,
             prev_events,
         );
+
+        // This can be used to sort of test this function
+        // match StateResolution::apply_event(
+        //     &room_id(),
+        //     &RoomVersionId::Version6,
+        //     Arc::clone(&event),
+        //     &state_after,
+        //     Some(event_map.clone()),
+        //     &store,
+        // ) {
+        //     Ok(res) => {
+        //         println!(
+        //             "res contains: {} passed: {} for {}\n{:?}",
+        //             state_after
+        //                 .get(&(event.kind(), event.state_key()))
+        //                 .map(|id| id == &ev_id)
+        //                 .unwrap_or_default(),
+        //             res,
+        //             event.event_id().as_str(),
+        //             event
+        //                 .prev_event_ids()
+        //                 .iter()
+        //                 .map(|id| id.to_string())
+        //                 .collect::<Vec<_>>()
+        //         );
+        //     }
+        //     Err(e) => panic!("resolution for {} failed: {}", node, e),
+        // }
+
         // we have to update our store, an actual user of this lib would
         // be giving us state from a DB.
         //
