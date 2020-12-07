@@ -390,7 +390,7 @@ can_be_empty!(IncomingRoomFilter);
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{json, to_value as to_json_value};
+    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{
         Filter, FilterDefinition, IncomingFilterDefinition, IncomingRoomFilter, RoomEventFilter,
@@ -410,9 +410,9 @@ mod tests {
     #[test]
     fn filter_definition_roundtrip() -> Result<(), serde_json::Error> {
         let filter = FilterDefinition::default();
-        let filter_str = serde_json::to_value(&filter)?;
+        let filter_str = to_json_value(&filter)?;
 
-        let incoming_filter = serde_json::from_value::<IncomingFilterDefinition>(filter_str)?;
+        let incoming_filter = from_json_value::<IncomingFilterDefinition>(filter_str)?;
         assert!(incoming_filter.is_empty());
 
         Ok(())
@@ -421,9 +421,9 @@ mod tests {
     #[test]
     fn room_filter_definition_roundtrip() -> Result<(), serde_json::Error> {
         let filter = RoomFilter::default();
-        let room_filter = serde_json::to_value(&filter)?;
+        let room_filter = to_json_value(&filter)?;
 
-        let incoming_room_filter = serde_json::from_value::<IncomingRoomFilter>(room_filter)?;
+        let incoming_room_filter = from_json_value::<IncomingRoomFilter>(room_filter)?;
         assert!(incoming_room_filter.is_empty());
 
         Ok(())
