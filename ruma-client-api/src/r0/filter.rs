@@ -431,7 +431,7 @@ mod tests {
     }
 
     #[test]
-    fn issue_218() -> Result<(), serde_json::Error> {
+    fn issue_366() -> Result<(), serde_json::Error> {
         let obj = json!({
             "lazy_load_members": true,
             "filter_json": { "contains_url": true, "types": ["m.room.message"] },
