@@ -1,15 +1,11 @@
-use std::fmt;
-
-use serde::{
-    de::{Deserialize, Deserializer, MapAccess, Visitor},
-    ser::{Serialize, SerializeStruct as _, Serializer},
-};
+use serde::{ser::SerializeStruct as _, Deserialize, Serialize, Serializer};
 
 /// Specifies options for [lazy-loading membership events][lazy-loading] on
 /// supported endpoints
 ///
 /// [lazy-loading]: https://matrix.org/docs/spec/client_server/r0.6.0#lazy-loading-room-members
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize)]
+#[serde(from = "LazyLoadJsonRepr")]
 pub enum LazyLoadOptions {
     /// Disables lazy-loading of membership events.
     Disabled,
@@ -52,7 +48,7 @@ impl Serialize for LazyLoadOptions {
                 state = serializer.serialize_struct("LazyLoad", 1)?;
                 state.serialize_field("lazy_load_members", &true)?;
             }
-            _ => {
+            Self::Disabled => {
                 state = serializer.serialize_struct("LazyLoad", 0)?;
             }
         }
@@ -60,43 +56,21 @@ impl Serialize for LazyLoadOptions {
     }
 }
 
-struct LazyLoadOptionsVisitor;
-
-impl<'de> Visitor<'de> for LazyLoadOptionsVisitor {
-    type Value = LazyLoadOptions;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("Lazy load options")
-    }
-
-    fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
-    where
-        M: MapAccess<'de>,
-    {
-        let mut lazy_load_members = false;
-        let mut include_redundant_members = false;
-        while let Some((key, value)) = access.next_entry::<String, bool>()? {
-            match &*key {
-                "lazy_load_members" => lazy_load_members = value,
-                "include_redundant_members" => include_redundant_members = value,
-                _ => {}
-            };
-        }
-
-        Ok(if lazy_load_members {
-            LazyLoadOptions::Enabled { include_redundant_members }
-        } else {
-            LazyLoadOptions::Disabled
-        })
-    }
+#[derive(Deserialize)]
+struct LazyLoadJsonRepr {
+    lazy_load_members: Option<bool>,
+    include_redundant_members: Option<bool>,
 }
 
-impl<'de> Deserialize<'de> for LazyLoadOptions {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_map(LazyLoadOptionsVisitor)
+impl From<LazyLoadJsonRepr> for LazyLoadOptions {
+    fn from(opts: LazyLoadJsonRepr) -> Self {
+        if opts.lazy_load_members.unwrap_or(false) {
+            Self::Enabled {
+                include_redundant_members: opts.include_redundant_members.unwrap_or(false),
+            }
+        } else {
+            Self::Disabled
+        }
     }
 }
 

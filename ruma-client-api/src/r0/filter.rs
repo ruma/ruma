@@ -390,11 +390,12 @@ can_be_empty!(IncomingRoomFilter);
 
 #[cfg(test)]
 mod tests {
+    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{
-        Filter, FilterDefinition, IncomingFilterDefinition, IncomingRoomFilter, RoomEventFilter,
-        RoomFilter,
+        Filter, FilterDefinition, IncomingFilterDefinition, IncomingRoomEventFilter,
+        IncomingRoomFilter, LazyLoadOptions, RoomEventFilter, RoomFilter, UrlFilter,
     };
 
     #[test]
@@ -425,6 +426,41 @@ mod tests {
 
         let incoming_room_filter = from_json_value::<IncomingRoomFilter>(room_filter)?;
         assert!(incoming_room_filter.is_empty());
+
+        Ok(())
+    }
+
+    #[test]
+    fn issue_218() -> Result<(), serde_json::Error> {
+        let obj = json!({
+            "lazy_load_members": true,
+            "filter_json": { "contains_url": true, "types": ["m.room.message"] },
+            "types": ["m.room.message"],
+            "not_types": [],
+            "rooms": null,
+            "not_rooms": [],
+            "senders": null,
+            "not_senders": [],
+            "contains_url": true,
+        });
+
+        assert_matches!(
+            from_json_value(obj)?,
+            IncomingRoomEventFilter {
+                types: Some(types),
+                not_types,
+                rooms: None,
+                not_rooms,
+                senders: None,
+                not_senders,
+                limit: None,
+                url_filter: Some(UrlFilter::EventsWithUrl),
+                lazy_load_options: LazyLoadOptions::Enabled { include_redundant_members: false },
+            } if types == vec!["m.room.message".to_owned()]
+                && not_types.is_empty()
+                && not_rooms.is_empty()
+                && not_senders.is_empty()
+        );
 
         Ok(())
     }
