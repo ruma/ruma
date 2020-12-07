@@ -33,7 +33,8 @@ ruma_api! {
 
         /// The [BlurHash](https://blurha.sh) for the uploaded content.
         ///
-        /// This uses the unstable prefix in MSC2448.
+        /// This uses the unstable prefix in
+        /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
         #[cfg(feature = "unstable-pre-spec")]
         #[serde(rename = "xyz.amorgan.blurhash")]
         #[serde(skip_serializing_if = "Option::is_none")]
