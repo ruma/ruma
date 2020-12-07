@@ -30,6 +30,8 @@ fn message_serialize_sticker() {
                 })),
                 thumbnail_url: Some("mxc://matrix.org".into()),
                 thumbnail_file: None,
+                #[cfg(feature = "unstable-pre-spec")]
+                blurhash: None,
             },
             url: "http://www.matrix.org".into(),
         }),
@@ -189,6 +191,8 @@ fn deserialize_message_sticker() {
                     thumbnail_info: Some(thumbnail_info),
                     thumbnail_url: Some(thumbnail_url),
                     thumbnail_file: None,
+                    #[cfg(feature = "unstable-pre-spec")]
+                    blurhash: None,
                 },
                 url,
             }),
