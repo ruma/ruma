@@ -544,6 +544,15 @@ pub struct VideoInfo {
     /// Information on the encrypted thumbnail file.  Only present if the thumbnail is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumbnail_file: Option<Box<EncryptedFile>>,
+
+    /// The [BlurHash](https://blurha.sh) for this video.
+    ///
+    /// This uses the unstable prefix in
+    /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
+    #[cfg(feature = "unstable-pre-spec")]
+    #[serde(rename = "xyz.amorgan.blurhash")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blurhash: Option<String>,
 }
 
 /// The payload for a key verification request message.

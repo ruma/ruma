@@ -84,6 +84,8 @@ fn serialize_message_event() {
                 })),
                 thumbnail_url: Some("mxc://matrix.org".into()),
                 thumbnail_file: None,
+                #[cfg(feature = "unstable-pre-spec")]
+                blurhash: None,
             },
             url: "http://www.matrix.org".into(),
         },

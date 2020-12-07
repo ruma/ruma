@@ -30,6 +30,15 @@ ruma_api! {
     response: {
         /// The MXC URI for the uploaded content.
         pub content_uri: String,
+
+        /// The [BlurHash](https://blurha.sh) for the uploaded content.
+        ///
+        /// This uses the unstable prefix in
+        /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
+        #[cfg(feature = "unstable-pre-spec")]
+        #[serde(rename = "xyz.amorgan.blurhash")]
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub blurhash: Option<String>,
     }
 
     error: crate::Error
@@ -45,6 +54,10 @@ impl<'a> Request<'a> {
 impl Response {
     /// Creates a new `Response` with the given MXC URI.
     pub fn new(content_uri: String) -> Self {
-        Self { content_uri }
+        Self {
+            content_uri,
+            #[cfg(feature = "unstable-pre-spec")]
+            blurhash: None,
+        }
     }
 }

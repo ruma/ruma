@@ -220,6 +220,8 @@ fn deserialize_avatar_without_prev_content() {
                     thumbnail_info: Some(thumbnail_info),
                     thumbnail_url: Some(thumbnail_url),
                     thumbnail_file: None,
+                    #[cfg(feature = "unstable-pre-spec")]
+                    blurhash: None,
                 } if *height == UInt::new(423)
                     && *width == UInt::new(1011)
                     && *mimetype == "image/png"
