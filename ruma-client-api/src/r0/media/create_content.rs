@@ -53,6 +53,10 @@ impl<'a> Request<'a> {
 impl Response {
     /// Creates a new `Response` with the given MXC URI.
     pub fn new(content_uri: String) -> Self {
-        Self { content_uri }
+        Self {
+            content_uri,
+            #[cfg(feature = "unstable-pre-spec")]
+            blurhash: None,
+        }
     }
 }
