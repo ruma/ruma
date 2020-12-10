@@ -147,10 +147,13 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
     }
 }
 
-/// Keep any `serde` or `non_exhaustive` attributes found and
-/// pass them to the Incoming variant.
+/// Keep any `cfg`, `cfg_attr`, `serde` or `non_exhaustive` attributes found and pass them to the
+/// Incoming variant.
 fn filter_input_attrs(attr: &Attribute) -> bool {
-    attr.path.is_ident("serde") || attr.path.is_ident("non_exhaustive")
+    attr.path.is_ident("cfg")
+        || attr.path.is_ident("cfg_attr")
+        || attr.path.is_ident("serde")
+        || attr.path.is_ident("non_exhaustive")
 }
 
 fn impl_outgoing_with_incoming_self(input: &DeriveInput, ruma_serde: &TokenStream) -> TokenStream {
