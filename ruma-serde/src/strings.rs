@@ -1,8 +1,8 @@
-use std::{collections::BTreeMap, convert::TryInto, fmt};
+use std::{collections::BTreeMap, convert::TryInto, fmt, marker::PhantomData};
 
 use js_int::Int;
 use serde::{
-    de::{self, Deserializer, IntoDeserializer as _, Visitor},
+    de::{self, Deserializer, IntoDeserializer as _, MapAccess, Visitor},
     Deserialize,
 };
 
@@ -117,7 +117,38 @@ where
         }
     }
 
-    Ok(BTreeMap::<T, IntWrap>::deserialize(de)?.into_iter().map(|(k, IntWrap(v))| (k, v)).collect())
+    struct IntMapVisitor<T> {
+        _phantom: PhantomData<T>,
+    }
+
+    impl<T> IntMapVisitor<T> {
+        fn new() -> Self {
+            Self { _phantom: PhantomData }
+        }
+    }
+
+    impl<'de, T> Visitor<'de> for IntMapVisitor<T>
+    where
+        T: Deserialize<'de> + Ord,
+    {
+        type Value = BTreeMap<T, Int>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("a map with integers or stings as values")
+        }
+
+        fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
+            let mut res = BTreeMap::new();
+
+            while let Some((k, IntWrap(v))) = map.next_entry()? {
+                res.insert(k, v);
+            }
+
+            Ok(res)
+        }
+    }
+
+    de.deserialize_map(IntMapVisitor::new())
 }
 
 #[cfg(test)]
