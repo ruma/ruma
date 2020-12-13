@@ -71,7 +71,10 @@ impl Parse for Api {
 
 pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
     // Guarantee `ruma_api` is available and named something we can refer to.
-    let ruma_api_import = util::import_ruma_api();
+    let ruma_api = util::import_ruma_api();
+    let http = quote! { #ruma_api::exports::http };
+    let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
+    let serde_json = quote! { #ruma_api::exports::serde_json };
 
     let description = &api.metadata.description;
     let method = &api.metadata.method;
@@ -99,11 +102,10 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
     };
 
     let (request_path_string, parse_request_path) =
-        util::request_path_string_and_parse(&api.request, &api.metadata, &ruma_api_import);
+        util::request_path_string_and_parse(&api.request, &api.metadata, &ruma_api);
 
-    let request_query_string = util::build_query_string(&api.request, &ruma_api_import);
-
-    let extract_request_query = util::extract_request_query(&api.request, &ruma_api_import);
+    let request_query_string = util::build_query_string(&api.request, &ruma_api);
+    let extract_request_query = util::extract_request_query(&api.request, &ruma_api);
 
     let parse_request_query = if let Some(field) = api.request.query_map_field() {
         let field_name = field.ident.as_ref().expect("expected field to have an identifier");
@@ -119,12 +121,12 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
     if authentication == "AccessToken" {
         header_kvs.extend(quote! {
             req_builder = req_builder.header(
-                #ruma_api_import::exports::http::header::AUTHORIZATION,
-                #ruma_api_import::exports::http::header::HeaderValue::from_str(
+                #http::header::AUTHORIZATION,
+                #http::header::HeaderValue::from_str(
                     &::std::format!(
                         "Bearer {}",
                         access_token.ok_or(
-                            #ruma_api_import::error::IntoHttpError::NeedsAuthentication
+                            #ruma_api::error::IntoHttpError::NeedsAuthentication
                         )?
                     )
                 )?
@@ -153,7 +155,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             quote! {
                 let request_body: <
                     RequestBody #body_lifetimes
-                    as #ruma_api_import::exports::ruma_serde::Outgoing
+                    as #ruma_serde::Outgoing
                 >::Incoming = {
                     // If the request body is completely empty, pretend it is an empty JSON object
                     // instead. This allows requests with only optional body parameters to be
@@ -163,10 +165,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
                         body => body,
                     };
 
-                    #ruma_api_import::try_deserialize!(
-                        request,
-                        #ruma_api_import::exports::serde_json::from_slice(json)
-                    )
+                    #ruma_api::try_deserialize!(request, #serde_json::from_slice(json))
                 };
             }
         } else {
@@ -179,8 +178,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         TokenStream::new()
     };
 
-    let request_body = util::build_request_body(&api.request, &ruma_api_import);
-
+    let request_body = util::build_request_body(&api.request, &ruma_api);
     let parse_request_body = util::parse_request_body(&api.request);
 
     let extract_response_headers = if api.response.has_header_fields() {
@@ -196,7 +194,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             quote! {
                 let response_body: <
                     ResponseBody
-                    as #ruma_api_import::exports::ruma_serde::Outgoing
+                    as #ruma_serde::Outgoing
                 >::Incoming = {
                     // If the reponse body is completely empty, pretend it is an empty JSON object
                     // instead. This allows reponses with only optional body parameters to be
@@ -206,9 +204,9 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
                         body => body,
                     };
 
-                    #ruma_api_import::try_deserialize!(
+                    #ruma_api::try_deserialize!(
                         response,
-                        #ruma_api_import::exports::serde_json::from_slice(json),
+                        #serde_json::from_slice(json),
                     )
                 };
             }
@@ -217,7 +215,6 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         };
 
     let response_init_fields = api.response.init_fields();
-
     let serialize_response_headers = api.response.apply_header_fields();
 
     let body = api.response.to_body();
@@ -228,18 +225,17 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
     let response_doc = format!("Data in the response from the `{}` API endpoint.", name);
 
     let error = &api.error_ty;
-
     let request_lifetimes = api.request.combine_lifetimes();
 
     let non_auth_endpoint_impls = if authentication != "None" {
         TokenStream::new()
     } else {
         quote! {
-            impl #request_lifetimes #ruma_api_import::OutgoingNonAuthRequest
+            impl #request_lifetimes #ruma_api::OutgoingNonAuthRequest
                 for Request #request_lifetimes
             {}
 
-            impl #ruma_api_import::IncomingNonAuthRequest for #incoming_request_type {}
+            impl #ruma_api::IncomingNonAuthRequest for #incoming_request_type {}
         }
     };
 
@@ -247,14 +243,12 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         #[doc = #request_doc]
         #request_type
 
-        impl ::std::convert::TryFrom<#ruma_api_import::exports::http::Request<Vec<u8>>>
-            for #incoming_request_type
-        {
-            type Error = #ruma_api_import::error::FromHttpRequestError;
+        impl ::std::convert::TryFrom<#http::Request<Vec<u8>>> for #incoming_request_type {
+            type Error = #ruma_api::error::FromHttpRequestError;
 
             #[allow(unused_variables)]
             fn try_from(
-                request: #ruma_api_import::exports::http::Request<Vec<u8>>
+                request: #http::Request<Vec<u8>>
             ) -> ::std::result::Result<Self, Self::Error> {
                 #extract_request_path
                 #extract_request_query
@@ -273,18 +267,13 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         #[doc = #response_doc]
         #response_type
 
-        impl ::std::convert::TryFrom<Response>
-            for #ruma_api_import::exports::http::Response<Vec<u8>>
-        {
-            type Error = #ruma_api_import::error::IntoHttpError;
+        impl ::std::convert::TryFrom<Response> for #http::Response<Vec<u8>> {
+            type Error = #ruma_api::error::IntoHttpError;
 
             #[allow(unused_variables)]
             fn try_from(response: Response) -> ::std::result::Result<Self, Self::Error> {
-                let mut resp_builder = #ruma_api_import::exports::http::Response::builder()
-                    .header(
-                        #ruma_api_import::exports::http::header::CONTENT_TYPE,
-                        "application/json",
-                    );
+                let mut resp_builder = #http::Response::builder()
+                    .header(#http::header::CONTENT_TYPE, "application/json");
 
                 let mut headers = resp_builder
                     .headers_mut()
@@ -299,14 +288,12 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             }
         }
 
-        impl ::std::convert::TryFrom<#ruma_api_import::exports::http::Response<Vec<u8>>>
-            for Response
-        {
-            type Error = #ruma_api_import::error::FromHttpResponseError<#error>;
+        impl ::std::convert::TryFrom<#http::Response<Vec<u8>>> for Response {
+            type Error = #ruma_api::error::FromHttpResponseError<#error>;
 
             #[allow(unused_variables)]
             fn try_from(
-                response: #ruma_api_import::exports::http::Response<Vec<u8>>,
+                response: #http::Response<Vec<u8>>,
             ) -> ::std::result::Result<Self, Self::Error> {
                 if response.status().as_u16() < 400 {
                     #extract_response_headers
@@ -317,10 +304,10 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
                         #response_init_fields
                     })
                 } else {
-                    match <#error as #ruma_api_import::EndpointError>::try_from_response(response) {
-                        Ok(err) => Err(#ruma_api_import::error::ServerError::Known(err).into()),
+                    match <#error as #ruma_api::EndpointError>::try_from_response(response) {
+                        Ok(err) => Err(#ruma_api::error::ServerError::Known(err).into()),
                         Err(response_err) => {
-                            Err(#ruma_api_import::error::ServerError::Unknown(response_err).into())
+                            Err(#ruma_api::error::ServerError::Unknown(response_err).into())
                         }
                     }
                 }
@@ -328,38 +315,32 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         }
 
         #[doc = #metadata_doc]
-        pub const METADATA: #ruma_api_import::Metadata = #ruma_api_import::Metadata {
+        pub const METADATA: #ruma_api::Metadata = #ruma_api::Metadata {
             description: #description,
-            method: #ruma_api_import::exports::http::Method::#method,
+            method: #http::Method::#method,
             name: #name,
             path: #path,
             rate_limited: #rate_limited,
-            authentication: #ruma_api_import::AuthScheme::#authentication,
+            authentication: #ruma_api::AuthScheme::#authentication,
         };
 
-        impl #request_lifetimes #ruma_api_import::OutgoingRequest
-            for Request #request_lifetimes
-        {
+        impl #request_lifetimes #ruma_api::OutgoingRequest for Request #request_lifetimes {
             type EndpointError = #error;
-            type IncomingResponse =
-                <Response as #ruma_api_import::exports::ruma_serde::Outgoing>::Incoming;
+            type IncomingResponse = <Response as #ruma_serde::Outgoing>::Incoming;
 
             #[doc = #metadata_doc]
-            const METADATA: #ruma_api_import::Metadata = self::METADATA;
+            const METADATA: #ruma_api::Metadata = self::METADATA;
 
             #[allow(unused_mut, unused_variables)]
             fn try_into_http_request(
                 self,
                 base_url: &::std::primitive::str,
                 access_token: ::std::option::Option<&str>,
-            ) -> ::std::result::Result<
-                #ruma_api_import::exports::http::Request<Vec<u8>>,
-                #ruma_api_import::error::IntoHttpError,
-            > {
+            ) -> ::std::result::Result<#http::Request<Vec<u8>>, #ruma_api::error::IntoHttpError> {
                 let metadata = self::METADATA;
 
-                let mut req_builder = #ruma_api_import::exports::http::Request::builder()
-                    .method(#ruma_api_import::exports::http::Method::#method)
+                let mut req_builder = #http::Request::builder()
+                    .method(#http::Method::#method)
                     .uri(::std::format!(
                         "{}{}{}",
                         // FIXME: Once MSRV is >= 1.45.0, switch to
@@ -380,12 +361,12 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             }
         }
 
-        impl #ruma_api_import::IncomingRequest for #incoming_request_type {
+        impl #ruma_api::IncomingRequest for #incoming_request_type {
             type EndpointError = #error;
             type OutgoingResponse = Response;
 
             #[doc = #metadata_doc]
-            const METADATA: #ruma_api_import::Metadata = self::METADATA;
+            const METADATA: #ruma_api::Metadata = self::METADATA;
         }
 
         #non_auth_endpoint_impls
