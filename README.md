@@ -10,7 +10,7 @@ struct StateEvent {
 }
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
-pub type StateMap<T> = BTreeMap<(EventType, Option<String>), T>;
+pub type StateMap<T> = BTreeMap<(EventType, String), T>;
 
 /// A mapping of `EventId` to `T`, usually a `StateEvent`.
 pub type EventMap<T> = BTreeMap<EventId, T>;

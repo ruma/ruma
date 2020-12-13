@@ -429,10 +429,6 @@ fn do_check(
 
         // we have to update our store, an actual user of this lib would
         // be giving us state from a DB.
-        //
-        // TODO
-        // TODO we need to convert the `StateResolution::resolve` to use the event_map
-        // because the user of this crate cannot update their DB's state.
         store.0.insert(ev_id.clone(), Arc::clone(&event));
 
         state_at_event.insert(node, state_after);
