@@ -125,3 +125,12 @@ pub fn derive_string_enum(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as ItemEnum);
     expand_all(input).unwrap_or_else(|err| err.to_compile_error()).into()
 }
+
+/// A derive macro that generates no code, but registers the serde attribute so both `#[serde(...)]`
+/// and `#[cfg_attr(..., serde(...))]` are accepted on the type, its fields and (in case the input
+/// is an enum) variants fields.
+#[doc(hidden)]
+#[proc_macro_derive(_FakeDeriveSerde, attributes(serde))]
+pub fn fake_derive_serde(_input: TokenStream) -> TokenStream {
+    TokenStream::new()
+}

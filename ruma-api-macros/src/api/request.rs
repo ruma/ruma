@@ -12,10 +12,7 @@ use syn::{
 };
 
 use crate::{
-    api::{
-        attribute::{Meta, MetaNameValue},
-        strip_serde_attrs,
-    },
+    api::attribute::{Meta, MetaNameValue},
     util,
 };
 
@@ -450,8 +447,7 @@ impl ToTokens for Request {
         let request_def = if self.fields.is_empty() {
             quote!(;)
         } else {
-            let fields =
-                self.fields.iter().map(|request_field| strip_serde_attrs(request_field.field()));
+            let fields = self.fields.iter().map(|request_field| request_field.field());
             quote! { { #(#fields),* } }
         };
 
@@ -540,7 +536,7 @@ impl ToTokens for Request {
         };
 
         let request = quote! {
-            #[derive(Debug, Clone, #ruma_serde::Outgoing)]
+            #[derive(Debug, Clone, #ruma_serde::Outgoing, #ruma_serde::_FakeDeriveSerde)]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize)]
             #( #struct_attributes )*

@@ -45,9 +45,12 @@ pub fn expand_derive_outgoing(input: DeriveInput) -> syn::Result<TokenStream> {
                 }
             }),
     );
-    if derive_deserialize {
-        derives.push(quote! { #ruma_serde::exports::serde::Deserialize });
-    }
+
+    derives.push(if derive_deserialize {
+        quote! { #ruma_serde::exports::serde::Deserialize }
+    } else {
+        quote! { #ruma_serde::_FakeDeriveSerde }
+    });
 
     let input_attrs =
         input.attrs.iter().filter(|attr| filter_input_attrs(attr)).collect::<Vec<_>>();
