@@ -231,10 +231,12 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         TokenStream::new()
     } else {
         quote! {
+            #[automatically_derived]
             impl #request_lifetimes #ruma_api::OutgoingNonAuthRequest
                 for Request #request_lifetimes
             {}
 
+            #[automatically_derived]
             impl #ruma_api::IncomingNonAuthRequest for #incoming_request_type {}
         }
     };
@@ -246,10 +248,10 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         #[doc = #response_doc]
         #response_type
 
+        #[automatically_derived]
         impl ::std::convert::TryFrom<Response> for #http::Response<Vec<u8>> {
             type Error = #ruma_api::error::IntoHttpError;
 
-            #[allow(unused_variables)]
             fn try_from(response: Response) -> ::std::result::Result<Self, Self::Error> {
                 let mut resp_builder = #http::Response::builder()
                     .header(#http::header::CONTENT_TYPE, "application/json");
@@ -267,10 +269,10 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             }
         }
 
+        #[automatically_derived]
         impl ::std::convert::TryFrom<#http::Response<Vec<u8>>> for Response {
             type Error = #ruma_api::error::FromHttpResponseError<#error>;
 
-            #[allow(unused_variables)]
             fn try_from(
                 response: #http::Response<Vec<u8>>,
             ) -> ::std::result::Result<Self, Self::Error> {
@@ -303,6 +305,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             authentication: #ruma_api::AuthScheme::#authentication,
         };
 
+        #[automatically_derived]
         impl #request_lifetimes #ruma_api::OutgoingRequest for Request #request_lifetimes {
             type EndpointError = #error;
             type IncomingResponse = <Response as #ruma_serde::Outgoing>::Incoming;
@@ -310,7 +313,6 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             #[doc = #metadata_doc]
             const METADATA: #ruma_api::Metadata = self::METADATA;
 
-            #[allow(unused_mut, unused_variables)]
             fn try_into_http_request(
                 self,
                 base_url: &::std::primitive::str,
@@ -340,6 +342,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             }
         }
 
+        #[automatically_derived]
         impl #ruma_api::IncomingRequest for #incoming_request_type {
             type EndpointError = #error;
             type OutgoingResponse = Response;
@@ -347,7 +350,6 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             #[doc = #metadata_doc]
             const METADATA: #ruma_api::Metadata = self::METADATA;
 
-            #[allow(unused_variables)]
             fn try_from_http_request(
                 request: #http::Request<Vec<u8>>
             ) -> ::std::result::Result<Self, #ruma_api::error::FromHttpRequestError> {

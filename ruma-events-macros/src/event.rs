@@ -108,6 +108,7 @@ fn expand_serialize_event(
         .collect::<Vec<_>>();
 
     quote! {
+        #[automatically_derived]
         impl #impl_gen #serde::ser::Serialize for #ident #ty_gen #where_clause {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
             where
@@ -269,6 +270,7 @@ fn expand_deserialize_event(
     };
 
     quote! {
+        #[automatically_derived]
         impl #deserialize_impl_gen #serde::de::Deserialize<'de> for #ident #ty_gen #where_clause {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
             where
@@ -289,6 +291,7 @@ fn expand_deserialize_event(
                 /// the `content` and `prev_content` fields.
                 struct EventVisitor #impl_generics (#deserialize_phantom_type #ty_gen);
 
+                #[automatically_derived]
                 impl #deserialize_impl_gen #serde::de::Visitor<'de>
                     for EventVisitor #ty_gen #where_clause
                 {
@@ -379,6 +382,7 @@ fn expand_from_into(
     if let EventKindVariation::Sync | EventKindVariation::RedactedSync = var {
         let full_struct = kind.to_event_ident(&var.to_full_variation());
         Some(quote! {
+            #[automatically_derived]
             impl #impl_generics From<#full_struct #ty_gen> for #ident #ty_gen #where_clause {
                 fn from(event: #full_struct #ty_gen) -> Self {
                     let #full_struct {
@@ -388,6 +392,7 @@ fn expand_from_into(
                 }
             }
 
+            #[automatically_derived]
             impl #impl_generics #ident #ty_gen #where_clause {
                 /// Convert this sync event into a full event, one with a room_id field.
                 pub fn into_full_event(
@@ -414,6 +419,7 @@ fn expand_eq_ord_event(input: &DeriveInput, fields: &[Field]) -> Option<TokenStr
         let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
 
         Some(quote! {
+            #[automatically_derived]
             impl #impl_gen ::std::cmp::PartialEq for #ident #ty_gen #where_clause {
                 /// This checks if two `EventId`s are equal.
                 fn eq(&self, other: &Self) -> ::std::primitive::bool {
@@ -421,8 +427,10 @@ fn expand_eq_ord_event(input: &DeriveInput, fields: &[Field]) -> Option<TokenStr
                 }
             }
 
+            #[automatically_derived]
             impl #impl_gen ::std::cmp::Eq for #ident #ty_gen #where_clause {}
 
+            #[automatically_derived]
             impl #impl_gen ::std::cmp::PartialOrd for #ident #ty_gen #where_clause {
                 /// This compares `EventId`s and orders them lexicographically.
                 fn partial_cmp(&self, other: &Self) -> ::std::option::Option<::std::cmp::Ordering> {
@@ -430,6 +438,7 @@ fn expand_eq_ord_event(input: &DeriveInput, fields: &[Field]) -> Option<TokenStr
                 }
             }
 
+            #[automatically_derived]
             impl #impl_gen ::std::cmp::Ord for #ident #ty_gen #where_clause {
                 /// This compares `EventId`s and orders them lexicographically.
                 fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {

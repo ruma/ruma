@@ -49,6 +49,7 @@ pub fn expand_enum_as_ref_str(input: &ItemEnum) -> syn::Result<TokenStream> {
         .collect::<syn::Result<_>>()?;
 
     Ok(quote! {
+        #[automatically_derived]
         impl ::std::convert::AsRef<::std::primitive::str> for #enum_name {
             fn as_ref(&self) -> &::std::primitive::str {
                 match self { #(#branches),* }

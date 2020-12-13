@@ -179,6 +179,7 @@ pub fn expand_event_content(
 
         quote! {
             // this is the non redacted event content's impl
+            #[automatically_derived]
             impl #ident {
                 /// Transforms the full event content into a redacted content according to spec.
                 pub fn redact(self, version: #ruma_identifiers::RoomVersionId) -> #redacted_ident {
@@ -194,6 +195,7 @@ pub fn expand_event_content(
 
             #redacted_event_content
 
+            #[automatically_derived]
             impl #ruma_events::RedactedEventContent for #redacted_ident {
                 fn empty(ev_type: &str) -> Result<Self, #serde_json::Error> {
                     if ev_type != #event_type {
@@ -238,6 +240,7 @@ pub fn expand_basic_event_content(
     Ok(quote! {
         #event_content_impl
 
+        #[automatically_derived]
         impl #ruma_events::BasicEventContent for #ident {}
     })
 }
@@ -253,6 +256,7 @@ pub fn expand_ephemeral_room_event_content(
     Ok(quote! {
         #event_content_impl
 
+        #[automatically_derived]
         impl #ruma_events::EphemeralRoomEventContent for #ident {}
     })
 }
@@ -268,6 +272,7 @@ pub fn expand_room_event_content(
     Ok(quote! {
         #event_content_impl
 
+        #[automatically_derived]
         impl #ruma_events::RoomEventContent for #ident {}
     })
 }
@@ -283,6 +288,7 @@ pub fn expand_message_event_content(
     let redacted_marker_trait = if needs_redacted_from_input(input) {
         let ident = format_ident!("Redacted{}", &ident);
         quote! {
+            #[automatically_derived]
             impl #ruma_events::RedactedMessageEventContent for #ident {}
         }
     } else {
@@ -292,6 +298,7 @@ pub fn expand_message_event_content(
     Ok(quote! {
         #room_ev_content
 
+        #[automatically_derived]
         impl #ruma_events::MessageEventContent for #ident {}
 
         #redacted_marker_trait
@@ -309,6 +316,7 @@ pub fn expand_state_event_content(
     let redacted_marker_trait = if needs_redacted_from_input(input) {
         let ident = format_ident!("Redacted{}", input.ident);
         quote! {
+            #[automatically_derived]
             impl #ruma_events::RedactedStateEventContent for #ident {}
         }
     } else {
@@ -318,6 +326,7 @@ pub fn expand_state_event_content(
     Ok(quote! {
         #room_ev_content
 
+        #[automatically_derived]
         impl #ruma_events::StateEventContent for #ident {}
 
         #redacted_marker_trait
@@ -333,6 +342,7 @@ fn generate_event_content_impl(
     let serde_json = quote! { #ruma_events::exports::serde_json };
 
     quote! {
+        #[automatically_derived]
         impl #ruma_events::EventContent for #ident {
             fn event_type(&self) -> &str {
                 #event_type

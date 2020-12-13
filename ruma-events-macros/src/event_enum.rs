@@ -287,6 +287,7 @@ fn expand_conversion_impl(
             };
 
             Some(quote! {
+                #[automatically_derived]
                 impl #ident {
                     /// Convert this sync event into a full event, one with a room_id field.
                     pub fn into_full_event(
@@ -399,6 +400,7 @@ fn expand_content_enum(
     let variant_ctors = variants.iter().map(|v| v.ctor(quote!(Self)));
 
     let event_content_impl = quote! {
+        #[automatically_derived]
         impl #ruma_events::EventContent for #ident {
             fn event_type(&self) -> &str {
                 match self {
@@ -487,6 +489,7 @@ fn expand_redact(
         let fields = quote! { #( #fields )* };
 
         Some(quote! {
+            #[automatically_derived]
             impl #ident {
                 /// Redacts `Self` given a valid `Redaction[Sync]Event`.
                 pub fn redact(
@@ -663,17 +666,23 @@ fn marker_traits(kind: &EventKind, ruma_events: &TokenStream) -> TokenStream {
     let ident = kind.to_content_enum();
     match kind {
         EventKind::State => quote! {
+            #[automatically_derived]
             impl #ruma_events::RoomEventContent for #ident {}
+            #[automatically_derived]
             impl #ruma_events::StateEventContent for #ident {}
         },
         EventKind::Message => quote! {
+            #[automatically_derived]
             impl #ruma_events::RoomEventContent for #ident {}
+            #[automatically_derived]
             impl #ruma_events::MessageEventContent for #ident {}
         },
         EventKind::Ephemeral => quote! {
+            #[automatically_derived]
             impl #ruma_events::EphemeralRoomEventContent for #ident {}
         },
         EventKind::Basic => quote! {
+            #[automatically_derived]
             impl #ruma_events::BasicEventContent for #ident {}
         },
         _ => TokenStream::new(),
@@ -735,6 +744,7 @@ fn accessor_methods(
     };
 
     Some(quote! {
+        #[automatically_derived]
         impl #ident {
             #content
 
@@ -777,6 +787,7 @@ fn redacted_accessor_methods(
     });
 
     Some(quote! {
+        #[automatically_derived]
         impl #ident {
             #( #methods )*
         }
