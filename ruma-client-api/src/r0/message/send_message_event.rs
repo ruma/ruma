@@ -68,55 +68,6 @@ const METADATA: Metadata = Metadata {
     authentication: AuthScheme::AccessToken,
 };
 
-impl TryFrom<http::Request<Vec<u8>>> for IncomingRequest {
-    type Error = FromHttpRequestError;
-
-    fn try_from(request: http::Request<Vec<u8>>) -> Result<Self, Self::Error> {
-        let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
-
-        let room_id = {
-            let decoded =
-                match percent_encoding::percent_decode(path_segments[4].as_bytes()).decode_utf8() {
-                    Ok(val) => val,
-                    Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-                };
-
-            match RoomId::try_from(&*decoded) {
-                Ok(val) => val,
-                Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-            }
-        };
-
-        let txn_id =
-            match percent_encoding::percent_decode(path_segments[7].as_bytes()).decode_utf8() {
-                Ok(val) => val.into_owned(),
-                Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-            };
-
-        let content = {
-            let request_body: Box<RawJsonValue> =
-                match serde_json::from_slice(request.body().as_slice()) {
-                    Ok(val) => val,
-                    Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-                };
-
-            let event_type = {
-                match percent_encoding::percent_decode(path_segments[6].as_bytes()).decode_utf8() {
-                    Ok(val) => val,
-                    Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-                }
-            };
-
-            match AnyMessageEventContent::from_parts(&event_type, request_body) {
-                Ok(content) => content,
-                Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-            }
-        };
-
-        Ok(Self { room_id, txn_id, content })
-    }
-}
-
 /// Data in the response body.
 #[derive(Debug, Deserialize, Serialize)]
 struct ResponseBody {
@@ -206,4 +157,51 @@ impl ruma_api::IncomingRequest for IncomingRequest {
 
     /// Metadata for the `send_message_event` endpoint.
     const METADATA: Metadata = METADATA;
+
+    fn try_from_http_request(
+        request: http::Request<Vec<u8>>,
+    ) -> Result<Self, FromHttpRequestError> {
+        let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
+
+        let room_id = {
+            let decoded =
+                match percent_encoding::percent_decode(path_segments[4].as_bytes()).decode_utf8() {
+                    Ok(val) => val,
+                    Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
+                };
+
+            match RoomId::try_from(&*decoded) {
+                Ok(val) => val,
+                Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
+            }
+        };
+
+        let txn_id =
+            match percent_encoding::percent_decode(path_segments[7].as_bytes()).decode_utf8() {
+                Ok(val) => val.into_owned(),
+                Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
+            };
+
+        let content = {
+            let request_body: Box<RawJsonValue> =
+                match serde_json::from_slice(request.body().as_slice()) {
+                    Ok(val) => val,
+                    Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
+                };
+
+            let event_type = {
+                match percent_encoding::percent_decode(path_segments[6].as_bytes()).decode_utf8() {
+                    Ok(val) => val,
+                    Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
+                }
+            };
+
+            match AnyMessageEventContent::from_parts(&event_type, request_body) {
+                Ok(content) => content,
+                Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
+            }
+        };
+
+        Ok(Self { room_id, txn_id, content })
+    }
 }

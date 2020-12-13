@@ -530,9 +530,9 @@ impl DeviceLists {
 
 #[cfg(test)]
 mod tests {
-    use std::{convert::TryInto, time::Duration};
+    use std::time::Duration;
 
-    use ruma_api::OutgoingRequest;
+    use ruma_api::{IncomingRequest as _, OutgoingRequest as _};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use matches::assert_matches;
@@ -578,8 +578,10 @@ mod tests {
             .build()
             .unwrap();
 
-        let req: IncomingRequest =
-            http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap().try_into().unwrap();
+        let req = IncomingRequest::try_from_http_request(
+            http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap(),
+        )
+        .unwrap();
 
         assert_matches!(req.filter, Some(IncomingFilter::FilterId(id)) if id == "myfilter");
         assert_eq!(req.since, Some("myts".into()));
@@ -597,8 +599,10 @@ mod tests {
             .build()
             .unwrap();
 
-        let req: IncomingRequest =
-            http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap().try_into().unwrap();
+        let req = IncomingRequest::try_from_http_request(
+            http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap(),
+        )
+        .unwrap();
 
         assert_matches!(req.filter, None);
         assert_eq!(req.since, None);
@@ -620,8 +624,10 @@ mod tests {
             .build()
             .unwrap();
 
-        let req: IncomingRequest =
-            http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap().try_into().unwrap();
+        let req = IncomingRequest::try_from_http_request(
+            http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap(),
+        )
+        .unwrap();
 
         assert_matches!(req.filter, Some(IncomingFilter::FilterId(id)) if id == "EOKFFmdZYF");
         assert_eq!(req.since, None);

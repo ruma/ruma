@@ -67,12 +67,10 @@ impl IncomingRequest for Request {
     type OutgoingResponse = Response;
 
     const METADATA: Metadata = METADATA;
-}
 
-impl TryFrom<http::Request<Vec<u8>>> for Request {
-    type Error = FromHttpRequestError;
-
-    fn try_from(request: http::Request<Vec<u8>>) -> Result<Self, Self::Error> {
+    fn try_from_http_request(
+        request: http::Request<Vec<u8>>,
+    ) -> Result<Self, FromHttpRequestError> {
         let request_body: RequestBody = match serde_json::from_slice(request.body().as_slice()) {
             Ok(body) => body,
             Err(err) => {

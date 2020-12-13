@@ -257,7 +257,7 @@ pub trait OutgoingRequest {
 }
 
 /// A request type for a Matrix API endpoint. (trait used for receiving requests)
-pub trait IncomingRequest: TryFrom<http::Request<Vec<u8>>, Error = FromHttpRequestError> {
+pub trait IncomingRequest: Sized {
     /// A type capturing the error conditions that can be returned in the response.
     type EndpointError: EndpointError;
 
@@ -266,6 +266,9 @@ pub trait IncomingRequest: TryFrom<http::Request<Vec<u8>>, Error = FromHttpReque
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;
+
+    /// Tries to turn the given `http::Request` into this request type.
+    fn try_from_http_request(req: http::Request<Vec<u8>>) -> Result<Self, FromHttpRequestError>;
 }
 
 /// Marker trait for requests that don't require authentication. (for the client side)

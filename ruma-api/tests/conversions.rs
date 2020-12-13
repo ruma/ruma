@@ -1,6 +1,4 @@
-use std::convert::TryFrom;
-
-use ruma_api::{ruma_api, OutgoingRequest as _};
+use ruma_api::{ruma_api, IncomingRequest as _, OutgoingRequest as _};
 use ruma_identifiers::{user_id, UserId};
 
 ruma_api! {
@@ -48,7 +46,7 @@ fn request_serde() -> Result<(), Box<dyn std::error::Error + 'static>> {
     };
 
     let http_req = req.clone().try_into_http_request("https://homeserver.tld", None)?;
-    let req2 = Request::try_from(http_req)?;
+    let req2 = Request::try_from_http_request(http_req)?;
 
     assert_eq!(req.hello, req2.hello);
     assert_eq!(req.world, req2.world);

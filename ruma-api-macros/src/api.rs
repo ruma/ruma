@@ -243,27 +243,6 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         #[doc = #request_doc]
         #request_type
 
-        impl ::std::convert::TryFrom<#http::Request<Vec<u8>>> for #incoming_request_type {
-            type Error = #ruma_api::error::FromHttpRequestError;
-
-            #[allow(unused_variables)]
-            fn try_from(
-                request: #http::Request<Vec<u8>>
-            ) -> ::std::result::Result<Self, Self::Error> {
-                #extract_request_path
-                #extract_request_query
-                #extract_request_headers
-                #extract_request_body
-
-                Ok(Self {
-                    #parse_request_path
-                    #parse_request_query
-                    #parse_request_headers
-                    #parse_request_body
-                })
-            }
-        }
-
         #[doc = #response_doc]
         #response_type
 
@@ -367,6 +346,23 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
 
             #[doc = #metadata_doc]
             const METADATA: #ruma_api::Metadata = self::METADATA;
+
+            #[allow(unused_variables)]
+            fn try_from_http_request(
+                request: #http::Request<Vec<u8>>
+            ) -> ::std::result::Result<Self, #ruma_api::error::FromHttpRequestError> {
+                #extract_request_path
+                #extract_request_query
+                #extract_request_headers
+                #extract_request_body
+
+                Ok(Self {
+                    #parse_request_path
+                    #parse_request_query
+                    #parse_request_headers
+                    #parse_request_body
+                })
+            }
         }
 
         #non_auth_endpoint_impls
