@@ -196,19 +196,20 @@ impl StateResolution {
                 .collect::<Vec<_>>()
         );
 
-        let mut resolved_state = StateResolution::iterative_auth_check(
+        let resolved_state = StateResolution::iterative_auth_check(
             room_id,
             room_version,
             &sorted_left_events,
-            &resolved_control, // the control events are added to the final resolved state
+            &resolved_control, // The control events are added to the final resolved state
             &mut event_map,
             store,
         )?;
 
-        // add unconflicted state to the resolved state
-        resolved_state.extend(unconflicted.clone());
-
-        Ok(resolved_state)
+        // Add unconflicted state to the resolved state
+        // We do it this way so any resolved_state would overwrite unconflicted
+        let mut clean = unconflicted.clone();
+        clean.extend(resolved_state);
+        Ok(clean)
     }
 
     /// Resolve sets of state events as they come in. Internally `StateResolution` builds a graph
@@ -384,14 +385,15 @@ impl StateResolution {
             room_id,
             room_version,
             &sorted_left_events,
-            &resolved_control, // the control events are added to the final resolved state
+            &resolved_control, // The control events are added to the final resolved state
             &mut event_map,
             store,
         )?;
 
         // add unconflicted state to the resolved state
+        // TODO:
+        // CLEAN OVERWRITES ANY DUPLICATE KEYS FROM RESOLVED STATE
         resolved_state.extend(clean);
-
         Ok(resolved_state)
     }
 
