@@ -82,6 +82,135 @@ impl StateResolution {
 
         event_auth::auth_check(room_version, &ev, prev_event, auth_events, None)
     }
+
+    pub fn resolve_incoming(
+        room_id: &RoomId,
+        room_version: &RoomVersionId,
+        unconflicted: &StateMap<EventId>,
+        conflicted: Vec<((EventType, String), EventId)>,
+        event_map: Option<EventMap<Arc<StateEvent>>>,
+        store: &dyn StateStore,
+    ) -> Result<StateMap<EventId>> {
+        let mut event_map = if let Some(ev_map) = event_map {
+            ev_map
+        } else {
+            BTreeMap::new()
+        };
+
+        let all_ids = vec![
+            unconflicted.values().cloned().collect(),
+            // conflicted can contain duplicates no BTreeMaps
+            conflicted.iter().map(|(_, v)| v).cloned().collect(),
+        ];
+        // We use the store here since it takes a Vec<Vec> instead of Vec<Maps> like
+        // `StateResolution::get_auth_chain_diff`
+        let mut auth_diff = store.auth_chain_diff(room_id, all_ids)?;
+
+        tracing::debug!("auth diff size {}", auth_diff.len());
+
+        // add the auth_diff to conflicting now we have a full set of conflicting events
+        auth_diff.extend(conflicted.iter().map(|(_, v)| v).cloned());
+        let mut all_conflicted = auth_diff
+            .into_iter()
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
+
+        tracing::info!("full conflicted set is {} events", all_conflicted.len());
+
+        // gather missing events for the event_map
+        let events = store
+            .get_events(
+                room_id,
+                &all_conflicted
+                    .iter()
+                    // we only want the events we don't know about yet
+                    .filter(|id| !event_map.contains_key(id))
+                    .cloned()
+                    .collect::<Vec<_>>(),
+            )
+            .unwrap();
+
+        // update event_map to include the fetched events
+        event_map.extend(events.into_iter().map(|ev| (ev.event_id(), ev)));
+
+        // Don't honor events we cannot verify.
+        all_conflicted.retain(|id| event_map.contains_key(id));
+
+        // get only the control events with a state_key: "" or ban/kick event (sender != state_key)
+        let control_events = all_conflicted
+            .iter()
+            .filter(|id| is_power_event(id, &event_map))
+            .cloned()
+            .collect::<Vec<_>>();
+
+        // sort the control events based on power_level/clock/event_id and outgoing/incoming edges
+        let mut sorted_control_levels = StateResolution::reverse_topological_power_sort(
+            room_id,
+            &control_events,
+            &mut event_map,
+            store,
+            &all_conflicted,
+        );
+
+        // sequentially auth check each control event.
+        let resolved_control = StateResolution::iterative_auth_check(
+            room_id,
+            room_version,
+            &sorted_control_levels,
+            unconflicted,
+            &mut event_map,
+            store,
+        )?;
+
+        // At this point the control_events have been resolved we now have to
+        // sort the remaining events using the mainline of the resolved power level.
+        sorted_control_levels.dedup();
+        let deduped_power_ev = sorted_control_levels;
+
+        // This removes the control events that passed auth and more importantly those that failed auth
+        let events_to_resolve = all_conflicted
+            .iter()
+            .filter(|id| !deduped_power_ev.contains(id))
+            .cloned()
+            .collect::<Vec<_>>();
+
+        // This "epochs" power level event
+        let power_event = resolved_control.get(&(EventType::RoomPowerLevels, "".into()));
+
+        tracing::debug!("PL {:?}", power_event);
+
+        let sorted_left_events = StateResolution::mainline_sort(
+            room_id,
+            &events_to_resolve,
+            power_event,
+            &mut event_map,
+            store,
+        );
+
+        tracing::debug!(
+            "SORTED LEFT {:?}",
+            sorted_left_events
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+        );
+
+        let mut resolved_state = StateResolution::iterative_auth_check(
+            room_id,
+            room_version,
+            &sorted_left_events,
+            &resolved_control, // the control events are added to the final resolved state
+            &mut event_map,
+            store,
+        )?;
+
+        // add unconflicted state to the resolved state
+        resolved_state.extend(unconflicted.clone());
+
+        Ok(resolved_state)
+    }
+
     /// Resolve sets of state events as they come in. Internally `StateResolution` builds a graph
     /// and an auth chain to allow for state conflict resolution.
     ///
