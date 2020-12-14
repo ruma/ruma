@@ -83,6 +83,12 @@ impl StateResolution {
         event_auth::auth_check(room_version, &ev, prev_event, auth_events, None)
     }
 
+    /// Resolve the conflicted events. This function is similar to
+    /// `StateResolution::resolve` by sorting and iteratively auth checking
+    /// events, but it will not separate state sets into "clean" and "conflicting".
+    ///
+    /// The `conflicted` events can be an incoming pdu and the events needed to fill
+    /// the gap between the incoming event and the last known parent on the receiving server.
     pub fn resolve_incoming(
         room_id: &RoomId,
         room_version: &RoomVersionId,

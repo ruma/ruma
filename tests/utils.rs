@@ -110,7 +110,7 @@ pub fn do_check(
 
             let resolved = StateResolution::resolve(
                 &room_id(),
-                &RoomVersionId::Version1,
+                &RoomVersionId::Version6,
                 &state_sets,
                 Some(event_map.clone()),
                 &store,
