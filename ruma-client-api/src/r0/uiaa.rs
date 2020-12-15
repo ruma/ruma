@@ -19,8 +19,7 @@ use crate::error::{Error as MatrixError, ErrorBody};
 #[derive(Clone, Debug, Outgoing, Serialize)]
 #[serde(untagged)]
 pub enum AuthData<'a> {
-    /// Used for sending UIAA authentication requests to the homeserver directly
-    /// from the client.
+    /// Used for sending UIAA authentication requests to the homeserver directly from the client.
     DirectRequest {
         /// The login type that the client is attempting to complete.
         #[serde(rename = "type")]
@@ -36,16 +35,16 @@ pub enum AuthData<'a> {
         auth_parameters: BTreeMap<String, JsonValue>,
     },
 
-    /// Used by the client to acknowledge that the user has completed a UIAA
-    /// stage through the fallback method.
+    /// Used by the client to acknowledge that the user has completed a UIAA stage through the
+    /// fallback method.
     FallbackAcknowledgement {
         /// The value of the session key given by the homeserver.
         session: &'a str,
     },
 }
 
-/// Information about available authentication flows and status for
-/// User-Interactive Authenticiation API.
+/// Information about available authentication flows and status for User-Interactive Authenticiation
+/// API.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct UiaaInfo {
     /// List of authentication flows available for this endpoint.
@@ -55,8 +54,7 @@ pub struct UiaaInfo {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub completed: Vec<String>,
 
-    /// Authentication parameters required for the client to complete
-    /// authentication.
+    /// Authentication parameters required for the client to complete authentication.
     ///
     /// To create a `Box<RawJsonValue>`, use `serde_json::value::to_raw_value`.
     pub params: Box<RawJsonValue>,
@@ -70,8 +68,7 @@ pub struct UiaaInfo {
     pub auth_error: Option<ErrorBody>,
 }
 
-/// Description of steps required to authenticate via the User-Interactive
-/// Authentication API.
+/// Description of steps required to authenticate via the User-Interactive Authentication API.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct AuthFlow {
@@ -80,8 +77,7 @@ pub struct AuthFlow {
     pub stages: Vec<String>,
 }
 
-/// Contains either a User-Interactive Authentication API response body or a
-/// Matrix error.
+/// Contains either a User-Interactive Authentication API response body or a Matrix error.
 #[derive(Clone, Debug)]
 pub enum UiaaResponse {
     /// User-Interactive Authentication API response
