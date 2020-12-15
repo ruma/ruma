@@ -7,6 +7,12 @@ use serde::{
     Deserialize, Serialize,
 };
 
+#[derive(Deserialize, Serialize)]
+struct WrappedError {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    error: Option<String>,
+}
+
 pub fn serialize<S>(
     response: &BTreeMap<EventId, Result<(), String>>,
     serializer: S,
@@ -33,39 +39,33 @@ pub fn deserialize<'de, D>(
 where
     D: Deserializer<'de>,
 {
-    deserializer.deserialize_map(PduProcessResponseVisitor)
-}
+    struct PduProcessResponseVisitor;
 
-#[derive(Deserialize, Serialize)]
-struct WrappedError {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    error: Option<String>,
-}
+    impl<'de> Visitor<'de> for PduProcessResponseVisitor {
+        type Value = BTreeMap<EventId, Result<(), String>>;
 
-struct PduProcessResponseVisitor;
-
-impl<'de> Visitor<'de> for PduProcessResponseVisitor {
-    type Value = BTreeMap<EventId, Result<(), String>>;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("A map of EventIds to a map of optional errors")
-    }
-
-    fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
-    where
-        M: MapAccess<'de>,
-    {
-        let mut map = BTreeMap::new();
-
-        while let Some((key, value)) = access.next_entry::<EventId, WrappedError>()? {
-            let v = match value.error {
-                None => Ok(()),
-                Some(error) => Err(error),
-            };
-            map.insert(key, v);
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("A map of EventIds to a map of optional errors")
         }
-        Ok(map)
+
+        fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
+        where
+            M: MapAccess<'de>,
+        {
+            let mut map = BTreeMap::new();
+
+            while let Some((key, value)) = access.next_entry::<EventId, WrappedError>()? {
+                let v = match value.error {
+                    None => Ok(()),
+                    Some(error) => Err(error),
+                };
+                map.insert(key, v);
+            }
+            Ok(map)
+        }
     }
+
+    deserializer.deserialize_map(PduProcessResponseVisitor)
 }
 
 #[cfg(test)]
