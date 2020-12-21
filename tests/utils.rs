@@ -71,6 +71,8 @@ pub fn do_check(
         }
     }
 
+    panic!("{}", serde_json::to_string_pretty(&graph).unwrap());
+
     // event_id -> StateEvent
     let mut event_map: BTreeMap<EventId, Arc<StateEvent>> = BTreeMap::new();
     // event_id -> StateMap<EventId>
@@ -125,7 +127,6 @@ pub fn do_check(
 
         // if fake_event.state_key().is_some() {
         let ty = fake_event.kind().clone();
-        // we know there is a state_key unwrap OK
         let key = fake_event.state_key().clone();
         state_after.insert((ty, key), event_id.clone());
         // }

@@ -21,9 +21,9 @@ thiserror = "1.0.22"
 
 [dependencies.ruma]
 git = "https://github.com/ruma/ruma"
-# branch = "dev/unstable-join"
+# branch = "verified-export"
 # path = "../__forks__/ruma/ruma"
-rev = "ee814aa84934530d76f5e4b275d739805b49bdef"
+rev = "45d01011554f9d07739e9a5edf5498d8ac16f273"
 features = ["client-api", "federation-api", "appservice-api", "unstable-pre-spec", "unstable-synapse-quirks"]
 
 #[dependencies.ruma]
