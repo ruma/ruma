@@ -152,3 +152,59 @@ pub struct EventHash {
     /// The SHA-256 hash.
     pub sha256: String,
 }
+
+/// The PDU type that is used by the server. A `ServerPdu` is never sent or received
+/// it is only to make dealing with PDU's during state resolution simpler.
+#[derive(Clone, Deserialize, Serialize, Debug)]
+pub struct ServerPdu {
+    /// Event ID for the PDU. When handling PDU's the server needs to always know
+    /// the event_id for every PDU regardless of room version.
+    pub event_id: EventId,
+
+    /// The room this event belongs to.
+    pub room_id: RoomId,
+
+    /// The user id of the user who sent this event.
+    pub sender: UserId,
+
+    /// Timestamp (milliseconds since the UNIX epoch) on originating homeserver
+    /// of when this event was created.
+    #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
+    pub origin_server_ts: SystemTime,
+
+    /// The event's type.
+    #[serde(rename = "type")]
+    pub kind: EventType,
+
+    /// The content of this event.
+    pub content: serde_json::Value,
+
+    /// The state key if this event is a state event or None.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state_key: Option<String>,
+
+    /// The events that preceded this event.
+    pub prev_events: Vec<EventId>,
+
+    /// The maximum depth of the `prev_events`, plus one.
+    pub depth: UInt,
+
+    /// Event IDs for the authorization events that would allow this event to be
+    /// in the room.
+    pub auth_events: Vec<EventId>,
+
+    /// If this event is a redaction event then this is the ID of the event
+    /// being redacted.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub redacts: Option<EventId>,
+
+    /// Content that is not part of the hash or signature of this event.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub unsigned: BTreeMap<String, JsonValue>,
+
+    /// The content hash of this event.
+    pub hashes: EventHash,
+
+    /// Signatures for this event.
+    pub signatures: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, String>>,
+}
