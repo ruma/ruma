@@ -1,15 +1,18 @@
 use std::{collections::BTreeSet, sync::Arc};
 
-use ruma::identifiers::{EventId, RoomId};
+use ruma::{
+    events::pdu::ServerPdu,
+    identifiers::{EventId, RoomId},
+};
 
-use crate::{Result, StateEvent};
+use crate::Result;
 
 pub trait StateStore {
     /// Return a single event based on the EventId.
-    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<StateEvent>>;
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<ServerPdu>>;
 
     /// Returns the events that correspond to the `event_ids` sorted in the same order.
-    fn get_events(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<Vec<Arc<StateEvent>>> {
+    fn get_events(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<Vec<Arc<ServerPdu>>> {
         let mut events = vec![];
         for id in event_ids {
             events.push(self.get_event(room_id, id)?);
@@ -33,7 +36,7 @@ pub trait StateStore {
 
             let event = self.get_event(room_id, &ev_id)?;
 
-            stack.extend(event.auth_events());
+            stack.extend(event.auth_events.clone());
         }
 
         Ok(result)
