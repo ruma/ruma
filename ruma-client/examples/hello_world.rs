@@ -8,9 +8,14 @@ use ruma::{
 };
 use ruma_client::{self, Client};
 
-async fn hello_world(homeserver_url: Uri, room_alias: &RoomAliasId) -> anyhow::Result<()> {
+async fn hello_world(
+    homeserver_url: Uri,
+    username: &str,
+    password: &str,
+    room_alias: &RoomAliasId,
+) -> anyhow::Result<()> {
     let client = Client::new(homeserver_url, None);
-    client.register_guest().await?;
+    client.log_in(username, password, None, Some("ruma-example-client")).await?;
 
     let room_id = client.request(get_alias::Request::new(room_alias)).await?.room_id;
     client.request(join_room_by_id::Request::new(&room_id)).await?;
@@ -27,13 +32,23 @@ async fn hello_world(homeserver_url: Uri, room_alias: &RoomAliasId) -> anyhow::R
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let (homeserver_url, room) = match (env::args().nth(1), env::args().nth(2)) {
-        (Some(a), Some(b)) => (a, b),
-        _ => {
-            eprintln!("Usage: {} <homeserver_url> <room>", env::args().next().unwrap());
-            exit(1)
-        }
-    };
+    let (homeserver_url, username, password, room) =
+        match (env::args().nth(1), env::args().nth(2), env::args().nth(3), env::args().nth(4)) {
+            (Some(a), Some(b), Some(c), Some(d)) => (a, b, c, d),
+            _ => {
+                eprintln!(
+                    "Usage: {} <homeserver_url> <username> <password> <room>",
+                    env::args().next().unwrap()
+                );
+                exit(1)
+            }
+        };
 
-    hello_world(homeserver_url.parse()?, &RoomAliasId::try_from(room.as_str())?).await
+    hello_world(
+        homeserver_url.parse()?,
+        &username,
+        &password,
+        &RoomAliasId::try_from(room.as_str())?,
+    )
+    .await
 }
