@@ -127,10 +127,10 @@ pub use self::{
     session::{Identification, Session},
 };
 
-#[cfg(not(feature = "tls"))]
+#[cfg(not(feature = "tls-native"))]
 type Connector = HttpConnector;
 
-#[cfg(feature = "tls")]
+#[cfg(feature = "tls-native")]
 type Connector = hyper_tls::HttpsConnector<HttpConnector>;
 
 /// A client for the Matrix client-server API.

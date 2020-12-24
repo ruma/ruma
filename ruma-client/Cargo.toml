@@ -37,6 +37,6 @@ ruma = { version = "0.0.1", path = "../ruma", features = ["client-api"] }
 tokio = { version = "0.2.22", features = ["macros"] }
 
 [features]
-default = ["tls"]
-tls = ["hyper-tls"]
+default = ["tls-native"]
+tls-native = ["hyper-tls"]
 unstable-synapse-quirks = ["ruma-events/unstable-synapse-quirks"]
