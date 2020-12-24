@@ -3,17 +3,20 @@
 use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_identifiers::ServerName;
-use serde::{Deserialize, Serialize};
+use ruma_serde::StringEnum;
 
 /// The desired resizing method.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Clone, Debug, StringEnum)]
+#[ruma_enum(rename_all = "snake_case")]
 pub enum Method {
     /// Crop the original to produce the requested image dimensions.
     Crop,
 
     /// Maintain the original aspect ratio of the source image.
     Scale,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 ruma_api! {
