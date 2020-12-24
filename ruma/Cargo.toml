@@ -31,7 +31,7 @@ ruma-identity-service-api = { version = "0.0.0", path = "../ruma-identity-servic
 ruma-push-gateway-api = { version = "0.0.0", path = "../ruma-push-gateway-api", optional = true }
 
 [dev-dependencies]
-serde = { version = "1.0.117", features = ["derive"] }
+serde = { version = "1.0.118", features = ["derive"] }
 
 [features]
 either = ["ruma-identifiers/either"]

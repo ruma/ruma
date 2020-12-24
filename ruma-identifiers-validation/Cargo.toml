@@ -16,8 +16,8 @@ edition = "2018"
 default = ["serde"]
 
 [dependencies]
-serde = { version = "1.0.114", optional = true, features = ["derive"] }
+serde = { version = "1.0.118", optional = true, features = ["derive"] }
 
 [dev-dependencies]
 ruma-serde = { version = "0.2.3", path = "../ruma-serde" }
-serde_json = "1.0.57"
+serde_json = "1.0.60"

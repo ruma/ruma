@@ -68,6 +68,7 @@ fn generate_localpart(length: usize) -> Box<str> {
     use rand::Rng as _;
     rand::thread_rng()
         .sample_iter(&rand::distributions::Alphanumeric)
+        .map(char::from)
         .take(length)
         .collect::<String>()
         .into_boxed_str()

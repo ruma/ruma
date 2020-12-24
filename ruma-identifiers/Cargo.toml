@@ -24,17 +24,17 @@ default = ["serde"]
 serde = ["ruma-serde", "serde1", "ruma-identifiers-validation/serde"]
 
 [dependencies]
-either = { version = "1.5.3", optional = true }
-paste = "1.0.3"
-rand = { version = "0.7.3", optional = true }
+either = { version = "1.6.1", optional = true }
+paste = "1.0.4"
+rand = { version = "0.8.0", optional = true }
 ruma-identifiers-macros = { version = "=0.17.4", path = "../ruma-identifiers-macros" }
 ruma-identifiers-validation = { version = "0.1.1", path = "../ruma-identifiers-validation", default-features = false }
 ruma-serde = { version = "0.2.3", path = "../ruma-serde", optional = true }
 ruma-serde-macros = { version = "0.2.3", path = "../ruma-serde-macros" }
 # Renamed so we can have a serde feature.
-serde1 = { package = "serde", version = "1.0.114", optional = true, features = ["derive"] }
+serde1 = { package = "serde", version = "1.0.118", optional = true, features = ["derive"] }
 
 [dev-dependencies]
 matches = "0.1.8"
-serde_json = "1.0.57"
-trybuild = "1.0.31"
+serde_json = "1.0.60"
+trybuild = "1.0.38"
