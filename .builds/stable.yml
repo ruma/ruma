@@ -39,6 +39,24 @@ tasks:
 
       popd
 
-      exit $(( $test_exit || $id_test_1_exit || $id_test_2_exit || $client_api_exit ))
+      # Test non-default configurations of ruma-client
+      pushd ruma-client
+
+      cargo check --no-default-features --quiet
+      client_1_exit=$?
+
+      cargo check --no-default-features --features tls-rustls --quiet
+      client_2_exit=$?
+
+      popd
+
+      exit $(( \
+        $test_exit \
+        || $id_test_1_exit \
+        || $id_test_2_exit \
+        || $client_api_exit \
+        || $client_1_exit \
+        || $client_2_exit \
+      ))
   # TODO: Add audit task once cargo-audit binary releases are available.
   #       See https://github.com/RustSec/cargo-audit/issues/66

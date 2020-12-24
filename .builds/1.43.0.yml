@@ -58,4 +58,23 @@ tasks:
 
       popd
 
-      exit $(( $ruma_build_exit || $client_build_exit || $id_build_1_exit || $id_build_2_exit || $client_api_build_exit ))
+      # Test non-default configurations of ruma-client
+      pushd ruma-client
+
+      cargo check --no-default-features --quiet
+      client_1_exit=$?
+
+      cargo check --no-default-features --features tls-rustls --quiet
+      client_2_exit=$?
+
+      popd
+
+      exit $(( \
+        $ruma_build_exit \
+        || $client_build_exit \
+        || $id_build_1_exit \
+        || $id_build_2_exit \
+        || $client_api_build_exit \
+        || $client_1_exit \
+        || $client_2_exit \
+      ))
