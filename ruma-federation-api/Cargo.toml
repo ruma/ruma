@@ -16,7 +16,7 @@ repository = "https://github.com/ruma/ruma"
 version = "0.0.3"
 
 [dependencies]
-js_int = "0.1.9"
+js_int = { version = "0.2.0", features = ["serde"] }
 ruma-api = { version = "=0.17.0-alpha.1", path = "../ruma-api" }
 ruma-common = { version = "0.2.0", path = "../ruma-common" }
 ruma-events = { version = "=0.22.0-alpha.1", path = "../ruma-events" }

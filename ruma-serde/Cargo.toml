@@ -15,7 +15,7 @@ edition = "2018"
 
 [dependencies]
 form_urlencoded = "1.0.0"
-js_int = { version = "0.1.9", features = ["serde"] }
+js_int = { version = "0.2.0", features = ["serde"] }
 itoa = "0.4.6"
 ruma-serde-macros = { version = "=0.2.0", path = "../ruma-serde-macros" }
 serde = { version = "1.0.114", features = ["derive"] }

@@ -19,7 +19,7 @@ edition = "2018"
 [dependencies]
 assign = "1.1.0"
 http = "0.2.1"
-js_int = { version = "0.1.9", features = ["serde"] }
+js_int = { version = "0.2.0", features = ["serde"] }
 maplit = "1.0.2"
 percent-encoding = "2.1.0"
 ruma-api = { version = "=0.17.0-alpha.1", path = "../ruma-api" }
