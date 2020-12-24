@@ -116,7 +116,7 @@ pub struct SignedContent {
 }
 
 /// Translation of the membership change in `m.room.member` event.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum MembershipChange {
     /// No change.

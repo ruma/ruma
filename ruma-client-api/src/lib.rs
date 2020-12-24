@@ -2,7 +2,7 @@
 //! endpoint in the [Matrix](https://matrix.org/) client API specification. These types can be
 //! shared by client and server code.
 
-#![warn(missing_copy_implementations, missing_debug_implementations, missing_docs)]
+#![warn(missing_debug_implementations, missing_docs)]
 
 pub mod error;
 pub mod r0;

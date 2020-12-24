@@ -107,7 +107,7 @@ pub enum UserInfo<'a> {
 }
 
 /// The authentication mechanism.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Outgoing, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
 #[serde(tag = "type")]
 pub enum LoginInfo<'a> {
     /// A password is supplied to authenticate.

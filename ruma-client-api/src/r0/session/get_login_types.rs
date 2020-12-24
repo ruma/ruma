@@ -39,7 +39,7 @@ impl Response {
 }
 
 /// An authentication mechanism.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub enum LoginType {
     /// A password is supplied to authenticate.

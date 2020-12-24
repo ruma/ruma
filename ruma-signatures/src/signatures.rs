@@ -62,8 +62,8 @@ impl Signature {
     }
 
     /// The algorithm used to generate the signature.
-    pub fn algorithm(&self) -> Algorithm {
-        self.algorithm
+    pub fn algorithm(&self) -> &Algorithm {
+        &self.algorithm
     }
 
     /// The raw bytes of the signature.
