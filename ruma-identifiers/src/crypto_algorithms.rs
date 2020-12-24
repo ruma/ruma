@@ -1,24 +1,17 @@
 //! Key algorithms used in Matrix spec.
 
-use std::{
-    convert::TryFrom,
-    fmt::{Display, Formatter, Result as FmtResult},
-};
-
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
-
-use strum::{AsRefStr, Display, EnumString};
+use ruma_serde::{DeserializeFromCowStr, SerializeAsRefStr};
+use ruma_serde_macros::{AsRefStr, DisplayAsRefStr, FromString};
 
 /// The basic key algorithms in the specification.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, Display, EnumString)]
-#[cfg_attr(
-    feature = "serde",
-    derive(Deserialize, Serialize),
-    serde(rename_all = "snake_case", crate = "serde")
-)]
+///
+/// This type can hold an arbitrary string. To check for algorithms that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, DisplayAsRefStr, FromString)]
 #[non_exhaustive]
-#[strum(serialize_all = "snake_case")]
+#[ruma_enum(rename_all = "snake_case")]
+#[cfg_attr(feature = "serde", derive(DeserializeFromCowStr, SerializeAsRefStr))]
 pub enum DeviceKeyAlgorithm {
     /// The Ed25519 signature algorithm.
     Ed25519,
@@ -28,111 +21,45 @@ pub enum DeviceKeyAlgorithm {
 
     /// The Curve25519 ECDH algorithm, but the key also contains signatures
     SignedCurve25519,
-}
-
-impl TryFrom<&'_ str> for DeviceKeyAlgorithm {
-    type Error = strum::ParseError;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        value.parse()
-    }
-}
-
-impl TryFrom<String> for DeviceKeyAlgorithm {
-    type Error = strum::ParseError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        value.parse()
-    }
-}
-
-/// The signing key algorithms defined in the Matrix spec.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, Display, EnumString)]
-#[cfg_attr(
-    feature = "serde",
-    derive(Deserialize, Serialize),
-    serde(rename_all = "snake_case", crate = "serde")
-)]
-#[non_exhaustive]
-#[strum(serialize_all = "snake_case")]
-pub enum SigningKeyAlgorithm {
-    /// The Ed25519 signature algorithm.
-    Ed25519,
-}
-
-impl TryFrom<&'_ str> for SigningKeyAlgorithm {
-    type Error = strum::ParseError;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        value.parse()
-    }
-}
-
-impl TryFrom<String> for SigningKeyAlgorithm {
-    type Error = strum::ParseError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        value.parse()
-    }
-}
-
-/// An encryption algorithm to be used to encrypt messages sent to a room.
-///
-/// This type can hold an arbitrary string. To check for events that are not
-/// available as a documented variant here, use its string representation,
-/// obtained through `.as_str()`.
-#[derive(Clone, Debug, PartialEq)]
-#[cfg_attr(
-    feature = "serde",
-    derive(Deserialize, Serialize),
-    serde(from = "String", into = "String", crate = "serde")
-)]
-#[non_exhaustive]
-pub enum EventEncryptionAlgorithm {
-    /// Olm version 1 using Curve25519, AES-256, and SHA-256.
-    OlmV1Curve25519AesSha2,
-
-    /// Megolm version 1 using AES-256 and SHA-256.
-    MegolmV1AesSha2,
 
     #[doc(hidden)]
     _Custom(String),
 }
 
-impl EventEncryptionAlgorithm {
-    /// Creates a string slice from this `EventEncryptionAlgorithm`.
-    pub fn as_str(&self) -> &str {
-        match *self {
-            EventEncryptionAlgorithm::OlmV1Curve25519AesSha2 => "m.olm.v1.curve25519-aes-sha2",
-            EventEncryptionAlgorithm::MegolmV1AesSha2 => "m.megolm.v1.aes-sha2",
-            EventEncryptionAlgorithm::_Custom(ref algorithm) => algorithm,
-        }
-    }
+/// The signing key algorithms defined in the Matrix spec.
+///
+/// This type can hold an arbitrary string. To check for algorithms that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, DisplayAsRefStr, FromString)]
+#[non_exhaustive]
+#[ruma_enum(rename_all = "snake_case")]
+#[cfg_attr(feature = "serde", derive(DeserializeFromCowStr, SerializeAsRefStr))]
+pub enum SigningKeyAlgorithm {
+    /// The Ed25519 signature algorithm.
+    Ed25519,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
 
-impl Display for EventEncryptionAlgorithm {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        f.write_str(self.as_str())
-    }
-}
+/// An encryption algorithm to be used to encrypt messages sent to a room.
+///
+/// This type can hold an arbitrary string. To check for algorithms that are not available as a
+/// documented variant here, use its string representation, obtained through `.as_str()`.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, AsRefStr, DisplayAsRefStr, FromString)]
+#[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(DeserializeFromCowStr, SerializeAsRefStr))]
+pub enum EventEncryptionAlgorithm {
+    /// Olm version 1 using Curve25519, AES-256, and SHA-256.
+    #[ruma_enum(rename = "m.olm.v1.curve25519-aes-sha2")]
+    OlmV1Curve25519AesSha2,
 
-impl<T> From<T> for EventEncryptionAlgorithm
-where
-    T: Into<String> + AsRef<str>,
-{
-    fn from(s: T) -> EventEncryptionAlgorithm {
-        match s.as_ref() {
-            "m.olm.v1.curve25519-aes-sha2" => EventEncryptionAlgorithm::OlmV1Curve25519AesSha2,
-            "m.megolm.v1.aes-sha2" => EventEncryptionAlgorithm::MegolmV1AesSha2,
-            _ => EventEncryptionAlgorithm::_Custom(s.into()),
-        }
-    }
-}
+    /// Megolm version 1 using AES-256 and SHA-256.
+    #[ruma_enum(rename = "m.megolm.v1.aes-sha2")]
+    MegolmV1AesSha2,
 
-impl From<EventEncryptionAlgorithm> for String {
-    fn from(algorithm: EventEncryptionAlgorithm) -> String {
-        algorithm.to_string()
-    }
+    #[doc(hidden)]
+    _Custom(String),
 }
 
 #[cfg(test)]
@@ -141,14 +68,17 @@ mod tests {
 
     #[test]
     fn parse_device_key_algorithm() {
-        assert_eq!("ed25519".parse(), Ok(DeviceKeyAlgorithm::Ed25519));
-        assert_eq!("curve25519".parse(), Ok(DeviceKeyAlgorithm::Curve25519));
-        assert_eq!("signed_curve25519".parse(), Ok(DeviceKeyAlgorithm::SignedCurve25519));
+        assert_eq!(DeviceKeyAlgorithm::from("ed25519"), DeviceKeyAlgorithm::Ed25519);
+        assert_eq!(DeviceKeyAlgorithm::from("curve25519"), DeviceKeyAlgorithm::Curve25519);
+        assert_eq!(
+            DeviceKeyAlgorithm::from("signed_curve25519"),
+            DeviceKeyAlgorithm::SignedCurve25519
+        );
     }
 
     #[test]
     fn parse_signing_key_algorithm() {
-        assert_eq!("ed25519".parse(), Ok(SigningKeyAlgorithm::Ed25519));
+        assert_eq!(SigningKeyAlgorithm::from("ed25519"), SigningKeyAlgorithm::Ed25519);
     }
 
     #[test]

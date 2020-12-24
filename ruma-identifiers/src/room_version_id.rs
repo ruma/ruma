@@ -2,7 +2,7 @@
 
 use std::{cmp::Ordering, convert::TryFrom, str::FromStr};
 
-use ruma_serde::DisplayAsRefStr;
+use ruma_serde_macros::DisplayAsRefStr;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 

@@ -1,6 +1,6 @@
 //! Identifiers for device keys for end-to-end encryption.
 
-use std::{convert::TryInto, num::NonZeroU8, str::FromStr};
+use std::{convert::TryInto, num::NonZeroU8};
 
 use crate::{crypto_algorithms::DeviceKeyAlgorithm, DeviceId, Error};
 
@@ -31,7 +31,7 @@ impl DeviceKeyId {
 
     /// Returns key algorithm of the device key ID.
     pub fn algorithm(&self) -> DeviceKeyAlgorithm {
-        DeviceKeyAlgorithm::from_str(&self.full_id[..self.colon_idx.get() as usize]).unwrap()
+        self.full_id[..self.colon_idx.get() as usize].into()
     }
 
     /// Returns device ID of the device key ID.
