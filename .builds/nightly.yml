@@ -17,7 +17,19 @@ tasks:
       cargo fmt --all -- --check
       fmt_exit=$?
 
-      cargo clippy --all --all-targets --all-features --quiet -- -D warnings
-      clippy_exit=$?
+      pushd ruma
 
-      exit $(( $fmt_exit || $clippy_exit ))
+      cargo clippy --all-targets --all-features --quiet -- -D warnings
+      clippy_1_exit=$?
+
+      popd
+
+      # Need to run clippy separately on ruma-client to not enable conflicting
+      # features with --all-features.
+      pushd ruma-client
+
+      cargo clippy --all-targets --quiet -- -D warnings
+
+      popd
+
+      exit $(( $fmt_exit || $clippy_1_exit || $clippy_2_exit ))
