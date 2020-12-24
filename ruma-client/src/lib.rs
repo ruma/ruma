@@ -115,6 +115,7 @@ use ruma_api::{AuthScheme, OutgoingRequest};
 use ruma_client_api::r0::sync::sync_events::{
     Filter as SyncFilter, Request as SyncRequest, Response as SyncResponse,
 };
+use ruma_common::presence::PresenceState;
 use ruma_identifiers::DeviceId;
 use ruma_serde::urlencoded;
 use std::collections::BTreeMap;
@@ -286,7 +287,7 @@ impl Client {
         &self,
         filter: Option<&'a SyncFilter<'a>>,
         since: String,
-        set_presence: &'a ruma_common::presence::PresenceState,
+        set_presence: &'a PresenceState,
         timeout: Option<Duration>,
     ) -> impl Stream<Item = Result<SyncResponse, Error<ruma_client_api::Error>>>
            + TryStream<Ok = SyncResponse, Error = Error<ruma_client_api::Error>>
