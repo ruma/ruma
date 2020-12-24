@@ -29,6 +29,7 @@ tasks:
       pushd ruma-client
 
       cargo clippy --all-targets --quiet -- -D warnings
+      clippy_2_exit=$?
 
       popd
 
