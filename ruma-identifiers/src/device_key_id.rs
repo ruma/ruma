@@ -1,14 +1,20 @@
 //! Identifiers for device keys for end-to-end encryption.
 
-use std::{convert::TryInto, num::NonZeroU8};
+use std::{convert::TryInto, fmt, num::NonZeroU8};
 
 use crate::{crypto_algorithms::DeviceKeyAlgorithm, DeviceId, Error};
 
 /// A key algorithm and a device id, combined with a ':'
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct DeviceKeyId {
     full_id: Box<str>,
     colon_idx: NonZeroU8,
+}
+
+impl fmt::Debug for DeviceKeyId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.full_id)
+    }
 }
 
 impl DeviceKeyId {

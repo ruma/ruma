@@ -1,6 +1,6 @@
 //! Matrix room identifiers.
 
-use std::{convert::TryFrom, num::NonZeroU8};
+use std::{convert::TryFrom, fmt, num::NonZeroU8};
 
 use crate::{Error, ServerName};
 
@@ -17,10 +17,16 @@ use crate::{Error, ServerName};
 ///     "!n8f893n9:example.com"
 /// );
 /// ```
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct RoomId {
     pub(crate) full_id: Box<str>,
     pub(crate) colon_idx: NonZeroU8,
+}
+
+impl fmt::Debug for RoomId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.full_id)
+    }
 }
 
 impl RoomId {

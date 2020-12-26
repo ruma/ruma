@@ -146,7 +146,6 @@ macro_rules! opaque_identifier {
     ) => {
         $( #[doc = $docs] )*
         #[repr(transparent)]
-        #[derive(::std::fmt::Debug)]
         pub struct $id(str);
 
         ::paste::paste! {
@@ -182,6 +181,12 @@ macro_rules! opaque_identifier {
                 pub fn as_bytes(&self) -> &[u8] {
                     self.0.as_bytes()
                 }
+            }
+        }
+
+        impl ::std::fmt::Debug for $id {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                f.write_str(self.as_ref())
             }
         }
 

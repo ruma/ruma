@@ -14,6 +14,7 @@ Improvements:
 
 * Add `DeviceKeyId::from_parts` and `SigningKeyId::from_parts`
 * Add `DeviceIdBox` and `ServerNameBox` type aliases
+* Clean up debug logs for identifiers
 
 # 0.17.4
 
