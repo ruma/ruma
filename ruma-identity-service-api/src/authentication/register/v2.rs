@@ -3,7 +3,7 @@
 use std::time::Duration;
 
 use ruma_api::ruma_api;
-use ruma_common::StringEnum;
+use ruma_common::authentication::TokenType;
 use ruma_identifiers::ServerName;
 
 ruma_api! {
@@ -56,14 +56,4 @@ impl Response {
     pub fn new(token: String) -> Self {
         Self { token }
     }
-}
-
-/// Access token types.
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
-pub enum TokenType {
-    /// Bearer token type
-    Bearer,
-
-    #[doc(hidden)]
-    _Custom(String),
 }
