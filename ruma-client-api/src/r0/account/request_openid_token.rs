@@ -3,8 +3,8 @@
 use std::time::Duration;
 
 use ruma_api::ruma_api;
+use ruma_common::authentication::TokenType;
 use ruma_identifiers::{ServerNameBox, UserId};
-use ruma_serde::StringEnum;
 
 ruma_api! {
     metadata: {
@@ -58,14 +58,4 @@ impl Response {
     ) -> Self {
         Self { access_token, token_type, matrix_server_name, expires_in }
     }
-}
-
-/// Access token types.
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
-pub enum TokenType {
-    /// Bearer token type
-    Bearer,
-
-    #[doc(hidden)]
-    _Custom(String),
 }

@@ -62,6 +62,7 @@ Breaking changes:
 * Replace `r0::room::create_room::InitialStateEvent` with `ruma_events::InitialStateEvent`
 * `error::ErrorKind` no longer implements `Copy`, `FromStr`
 * Switch from `AnyEvent` to `AnyRoomEvent` in `r0::search::search_events`
+* Move `r0::account::request_openid_token::TokenType` to `ruma-common` crate
 
 Improvements:
 

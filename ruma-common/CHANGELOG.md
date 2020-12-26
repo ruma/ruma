@@ -10,6 +10,8 @@ Improvements:
 * Add `directory::{Filter, PublicRoomsChunk, RoomNetwork}` (moved from
   `ruma_client_api::r0::directory`)
 * Add `push::{PusherData, PushFormat}` (moved from `ruma_client_api::r0::push`)
+* Add `authentication::TokenType` (moved from
+  `ruma_client_api::r0::account:request_openid_token`)
 
 # 0.2.0
 
