@@ -1,6 +1,6 @@
 //! Matrix identifiers for places where a room ID or room alias ID are used interchangeably.
 
-use std::{convert::TryFrom, hint::unreachable_unchecked, num::NonZeroU8};
+use std::{convert::TryFrom, fmt, hint::unreachable_unchecked, num::NonZeroU8};
 
 use crate::{server_name::ServerName, Error, RoomAliasId, RoomId};
 
@@ -23,10 +23,16 @@ use crate::{server_name::ServerName, Error, RoomAliasId, RoomId};
 ///     "!n8f893n9:example.com"
 /// );
 /// ```
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct RoomIdOrAliasId {
     full_id: Box<str>,
     colon_idx: NonZeroU8,
+}
+
+impl fmt::Debug for RoomIdOrAliasId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.full_id)
+    }
 }
 
 impl RoomIdOrAliasId {

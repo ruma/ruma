@@ -13,7 +13,7 @@ use crate::Error;
 
 /// A Matrix-spec compliant server name.
 #[repr(transparent)]
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize), serde(transparent, crate = "serde"))]
 pub struct ServerName(str);
 
@@ -42,6 +42,12 @@ impl ServerName {
     /// Creates a byte slice from this `ServerName`.
     pub fn as_bytes(&self) -> &[u8] {
         self.0.as_bytes()
+    }
+}
+
+impl fmt::Debug for ServerName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
     }
 }
 

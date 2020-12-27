@@ -1,6 +1,6 @@
 //! Matrix user identifiers.
 
-use std::{convert::TryFrom, num::NonZeroU8};
+use std::{convert::TryFrom, fmt, num::NonZeroU8};
 
 use crate::{Error, ServerName};
 
@@ -17,7 +17,7 @@ use crate::{Error, ServerName};
 ///     "@carl:example.com"
 /// );
 /// ```
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct UserId {
     full_id: Box<str>,
     colon_idx: NonZeroU8,
@@ -28,6 +28,12 @@ pub struct UserId {
     /// accepted by previous versions of the spec and thus has to be supported because users with
     /// these kinds of ids still exist.
     is_historical: bool,
+}
+
+impl fmt::Debug for UserId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.full_id)
+    }
 }
 
 impl UserId {

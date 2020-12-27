@@ -1,6 +1,6 @@
 //! Matrix room alias identifiers.
 
-use std::{convert::TryFrom, num::NonZeroU8};
+use std::{convert::TryFrom, fmt, num::NonZeroU8};
 
 use crate::{server_name::ServerName, Error};
 
@@ -17,10 +17,16 @@ use crate::{server_name::ServerName, Error};
 ///     "#ruma:example.com"
 /// );
 /// ```
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct RoomAliasId {
     pub(crate) full_id: Box<str>,
     pub(crate) colon_idx: NonZeroU8,
+}
+
+impl fmt::Debug for RoomAliasId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.full_id)
+    }
 }
 
 impl RoomAliasId {
