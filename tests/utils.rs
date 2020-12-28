@@ -9,6 +9,7 @@ use std::{
 
 use ruma::{
     events::{
+        pdu::ServerPdu,
         room::{
             join_rules::JoinRule,
             member::{MemberEventContent, MembershipState},
@@ -18,7 +19,7 @@ use ruma::{
     identifiers::{EventId, RoomId, RoomVersionId, UserId},
 };
 use serde_json::{json, Value as JsonValue};
-use state_res::{Error, Result, StateEvent, StateMap, StateResolution, StateStore};
+use state_res::{Error, Result, StateMap, StateResolution, StateStore};
 use tracing_subscriber as tracer;
 
 pub static LOGGER: Once = Once::new();
@@ -26,7 +27,7 @@ pub static LOGGER: Once = Once::new();
 static mut SERVER_TIMESTAMP: i32 = 0;
 
 pub fn do_check(
-    events: &[Arc<StateEvent>],
+    events: &[Arc<ServerPdu>],
     edges: Vec<Vec<EventId>>,
     expected_state_ids: Vec<EventId>,
 ) {
@@ -41,20 +42,20 @@ pub fn do_check(
         INITIAL_EVENTS()
             .values()
             .chain(events)
-            .map(|ev| (ev.event_id(), ev.clone()))
+            .map(|ev| (ev.event_id.clone(), ev.clone()))
             .collect(),
     );
 
     // This will be lexi_topo_sorted for resolution
     let mut graph = BTreeMap::new();
-    // this is the same as in `resolve` event_id -> StateEvent
+    // this is the same as in `resolve` event_id -> ServerPdu
     let mut fake_event_map = BTreeMap::new();
 
     // create the DB of events that led up to this point
     // TODO maybe clean up some of these clones it is just tests but...
     for ev in INITIAL_EVENTS().values().chain(events) {
-        graph.insert(ev.event_id().clone(), vec![]);
-        fake_event_map.insert(ev.event_id().clone(), ev.clone());
+        graph.insert(ev.event_id.clone(), vec![]);
+        fake_event_map.insert(ev.event_id.clone(), ev.clone());
     }
 
     for pair in INITIAL_EDGES().windows(2) {
@@ -71,10 +72,8 @@ pub fn do_check(
         }
     }
 
-    panic!("{}", serde_json::to_string_pretty(&graph).unwrap());
-
-    // event_id -> StateEvent
-    let mut event_map: BTreeMap<EventId, Arc<StateEvent>> = BTreeMap::new();
+    // event_id -> ServerPdu
+    let mut event_map: BTreeMap<EventId, Arc<ServerPdu>> = BTreeMap::new();
     // event_id -> StateMap<EventId>
     let mut state_at_event: BTreeMap<EventId, StateMap<EventId>> = BTreeMap::new();
 
@@ -84,7 +83,7 @@ pub fn do_check(
         StateResolution::lexicographical_topological_sort(&graph, |id| (0, UNIX_EPOCH, id.clone()))
     {
         let fake_event = fake_event_map.get(&node).unwrap();
-        let event_id = fake_event.event_id();
+        let event_id = fake_event.event_id.clone();
 
         let prev_events = graph.get(&node).unwrap();
 
@@ -125,17 +124,17 @@ pub fn do_check(
 
         let mut state_after = state_before.clone();
 
-        // if fake_event.state_key().is_some() {
-        let ty = fake_event.kind().clone();
-        let key = fake_event.state_key().clone();
-        state_after.insert((ty, key), event_id.clone());
-        // }
+        if fake_event.state_key.is_some() {
+            let ty = fake_event.kind.clone();
+            let key = fake_event.state_key.clone();
+            state_after.insert((ty, key), event_id.clone());
+        }
 
         let auth_types = state_res::auth_types_for_event(
-            fake_event.kind(),
-            fake_event.sender(),
-            Some(fake_event.state_key()),
-            fake_event.content().clone(),
+            &fake_event.kind,
+            &fake_event.sender,
+            fake_event.state_key.clone(),
+            fake_event.content.clone(),
         );
 
         let mut auth_events = vec![];
@@ -148,13 +147,13 @@ pub fn do_check(
         // TODO The event is just remade, adding the auth_events and prev_events here
         // the `to_pdu_event` was split into `init` and the fn below, could be better
         let e = fake_event;
-        let ev_id = e.event_id();
+        let ev_id = e.event_id.clone();
         let event = to_pdu_event(
-            &e.event_id().to_string(),
-            e.sender().clone(),
-            e.kind(),
-            Some(e.state_key()).as_deref(),
-            e.content().clone(),
+            &e.event_id.clone().to_string(),
+            e.sender.clone(),
+            e.kind.clone(),
+            e.state_key.as_deref(),
+            e.content.clone(),
             &auth_events,
             prev_events,
         );
@@ -172,11 +171,11 @@ pub fn do_check(
         //         println!(
         //             "res contains: {} passed: {} for {}\n{:?}",
         //             state_after
-        //                 .get(&(event.kind(), event.state_key()))
+        //                 .get(&(event.kind, event.state_key()))
         //                 .map(|id| id == &ev_id)
         //                 .unwrap_or_default(),
         //             res,
-        //             event.event_id().as_str(),
+        //             event.event_id.clone().as_str(),
         //             event
         //                 .prev_event_ids()
         //                 .iter()
@@ -206,7 +205,7 @@ pub fn do_check(
                 .collect::<Vec<_>>(),
         ));
 
-        let key = (ev.kind(), ev.state_key());
+        let key = (ev.kind.clone(), ev.state_key.clone());
 
         expected_state.insert(key, node);
     }
@@ -224,11 +223,11 @@ pub fn do_check(
     assert_eq!(expected_state, end_state);
 }
 
-pub struct TestStore(pub BTreeMap<EventId, Arc<StateEvent>>);
+pub struct TestStore(pub BTreeMap<EventId, Arc<ServerPdu>>);
 
 #[allow(unused)]
 impl StateStore for TestStore {
-    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<StateEvent>> {
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<ServerPdu>> {
         self.0
             .get(event_id)
             .map(Arc::clone)
@@ -291,7 +290,7 @@ pub fn to_init_pdu_event(
     ev_type: EventType,
     state_key: Option<&str>,
     content: JsonValue,
-) -> Arc<StateEvent> {
+) -> Arc<ServerPdu> {
     let ts = unsafe {
         let ts = SERVER_TIMESTAMP;
         // increment the "origin_server_ts" value
@@ -347,7 +346,7 @@ pub fn to_pdu_event<S>(
     content: JsonValue,
     auth_events: &[S],
     prev_events: &[S],
-) -> Arc<StateEvent>
+) -> Arc<ServerPdu>
 where
     S: AsRef<str>,
 {
@@ -410,7 +409,7 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-pub fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
+pub fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<ServerPdu>> {
     // this is always called so we can init the logger here
     let _ = LOGGER.call_once(|| {
         tracer::fmt()
@@ -476,8 +475,8 @@ pub fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
         to_pdu_event::<EventId>(
             "START",
             charlie(),
-            EventType::RoomTopic,
-            Some(""),
+            EventType::RoomMessage,
+            None,
             json!({}),
             &[],
             &[],
@@ -485,15 +484,15 @@ pub fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
         to_pdu_event::<EventId>(
             "END",
             charlie(),
-            EventType::RoomTopic,
-            Some(""),
+            EventType::RoomMessage,
+            None,
             json!({}),
             &[],
             &[],
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id(), ev))
+    .map(|ev| (ev.event_id.clone(), ev))
     .collect()
 }
 

@@ -18,12 +18,12 @@ fn test_ban_pass() {
 
     let prev = events
         .values()
-        .find(|ev| ev.event_id().as_str().contains("IMC"))
+        .find(|ev| ev.event_id.as_str().contains("IMC"))
         .map(Arc::clone);
 
     let auth_events = events
         .values()
-        .map(|ev| ((ev.kind(), ev.state_key()), Arc::clone(ev)))
+        .map(|ev| ((ev.kind.clone(), ev.state_key.clone()), Arc::clone(ev)))
         .collect::<StateMap<_>>();
 
     let requester = Requester {
@@ -43,12 +43,12 @@ fn test_ban_fail() {
 
     let prev = events
         .values()
-        .find(|ev| ev.event_id().as_str().contains("IMC"))
+        .find(|ev| ev.event_id.as_str().contains("IMC"))
         .map(Arc::clone);
 
     let auth_events = events
         .values()
-        .map(|ev| ((ev.kind(), ev.state_key()), Arc::clone(ev)))
+        .map(|ev| ((ev.kind.clone(), ev.state_key.clone()), Arc::clone(ev)))
         .collect::<StateMap<_>>();
 
     let requester = Requester {

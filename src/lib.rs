@@ -64,9 +64,12 @@ impl StateResolution {
         };
 
         let mut auth_events = StateMap::new();
-        for key in
-            event_auth::auth_types_for_event(ev.kind, &ev.sender, ev.state_key, ev.content.clone())
-        {
+        for key in event_auth::auth_types_for_event(
+            &ev.kind,
+            &ev.sender,
+            ev.state_key.clone(),
+            ev.content.clone(),
+        ) {
             if let Some(ev_id) = current_state.get(&key) {
                 if let Some(event) =
                     StateResolution::get_or_load_event(room_id, ev_id, &mut event_map, store)
@@ -170,7 +173,7 @@ impl StateResolution {
         // get only the control events with a state_key: "" or ban/kick event (sender != state_key)
         let control_events = all_conflicted
             .iter()
-            .filter(|id| is_power_event(id, &event_map))
+            .filter(|id| is_power_event_id(id, &event_map))
             .cloned()
             .collect::<Vec<_>>();
 
@@ -378,12 +381,12 @@ impl StateResolution {
             let ev = event_map.get(event_id).unwrap();
             let pl = event_to_pl.get(event_id).unwrap();
 
-            tracing::debug!("{:?}", (-*pl, ev.origin_server_ts, ev.event_id));
+            tracing::debug!("{:?}", (-*pl, ev.origin_server_ts, &ev.event_id));
 
             // This return value is the key used for sorting events,
             // events are then sorted by power level, time,
             // and lexically by event_id.
-            (-*pl, ev.origin_server_ts, ev.event_id)
+            (-*pl, ev.origin_server_ts, ev.event_id.clone())
         })
     }
 
@@ -476,7 +479,7 @@ impl StateResolution {
         // event.auth_event_ids does not include its own event id ?
         for aid in event
             .as_ref()
-            .map(|pdu| pdu.auth_events)
+            .map(|pdu| pdu.auth_events.to_vec())
             .unwrap_or_default()
         {
             if let Some(aev) = StateResolution::get_or_load_event(room_id, &aid, event_map, store) {
@@ -560,9 +563,9 @@ impl StateResolution {
             }
 
             for key in event_auth::auth_types_for_event(
-                event.kind,
+                &event.kind,
                 &event.sender,
-                event.state_key,
+                event.state_key.clone(),
                 event.content.clone(),
             ) {
                 if let Some(ev_id) = resolved_state.get(&key) {
@@ -801,18 +804,18 @@ impl StateResolution {
     }
 }
 
-pub fn is_power_event(event_id: &EventId, event_map: &EventMap<Arc<ServerPdu>>) -> bool {
+pub fn is_power_event_id(event_id: &EventId, event_map: &EventMap<Arc<ServerPdu>>) -> bool {
     match event_map.get(event_id) {
-        Some(state) => _is_power_event(state),
+        Some(state) => is_power_event(state),
         _ => false,
     }
 }
 
-pub fn is_type_and_key(&ev: &Arc<ServerPdu>, ev_type: EventType, state_key: &str) -> bool {
+pub fn is_type_and_key(ev: &Arc<ServerPdu>, ev_type: EventType, state_key: &str) -> bool {
     ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
 }
 
-fn _is_power_event(&event: &Arc<ServerPdu>) -> bool {
+pub fn is_power_event(event: &Arc<ServerPdu>) -> bool {
     use ruma::events::room::member::{MemberEventContent, MembershipState};
     match event.kind {
         EventType::RoomPowerLevels | EventType::RoomJoinRules | EventType::RoomCreate => {
@@ -838,7 +841,7 @@ fn _is_power_event(&event: &Arc<ServerPdu>) -> bool {
 
 pub fn to_requester(event: &Arc<ServerPdu>) -> Requester<'_> {
     Requester {
-        prev_event_ids: event.prev_events,
+        prev_event_ids: event.prev_events.to_vec(),
         room_id: &event.room_id,
         content: &event.content,
         state_key: event.state_key.clone(),

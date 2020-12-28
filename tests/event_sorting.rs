@@ -4,7 +4,7 @@ use ruma::{
     events::EventType,
     identifiers::{EventId, RoomVersionId},
 };
-use state_res::StateMap;
+use state_res::{is_power_event, StateMap};
 
 mod utils;
 use utils::{room_id, TestStore, INITIAL_EVENTS};
@@ -25,15 +25,15 @@ fn test_event_sort() {
 
     let event_map = events
         .values()
-        .map(|ev| ((ev.kind(), ev.state_key()), ev.clone()))
+        .map(|ev| ((ev.kind.clone(), ev.state_key.clone()), ev.clone()))
         .collect::<StateMap<_>>();
 
     let auth_chain = &[] as &[_];
 
     let power_events = event_map
         .values()
-        .filter(|pdu| pdu.is_power_event())
-        .map(|pdu| pdu.event_id())
+        .filter(|pdu| is_power_event(&pdu))
+        .map(|pdu| pdu.event_id.clone())
         .collect::<Vec<_>>();
 
     // This is a TODO in conduit
@@ -64,7 +64,7 @@ fn test_event_sort() {
 
     shuffle(&mut events_to_sort);
 
-    let power_level = resolved_power.get(&(EventType::RoomPowerLevels, "".into()));
+    let power_level = resolved_power.get(&(EventType::RoomPowerLevels, Some("".to_string())));
 
     let sorted_event_ids = state_res::StateResolution::mainline_sort(
         &room_id(),

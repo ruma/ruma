@@ -10,6 +10,7 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use maplit::btreemap;
 use ruma::{
     events::{
+        pdu::ServerPdu,
         room::{
             join_rules::JoinRule,
             member::{MemberEventContent, MembershipState},
@@ -19,7 +20,7 @@ use ruma::{
     identifiers::{EventId, RoomId, RoomVersionId, UserId},
 };
 use serde_json::{json, Value as JsonValue};
-use state_res::{Error, Result, StateEvent, StateMap, StateResolution, StateStore};
+use state_res::{Error, Result, StateMap, StateResolution, StateStore};
 
 static mut SERVER_TIMESTAMP: i32 = 0;
 
@@ -81,7 +82,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id()))
+        .map(|ev| ((ev.kind.clone(), ev.state_key.clone()), ev.event_id.clone()))
         .collect::<StateMap<_>>();
 
         let state_set_b = [
@@ -94,7 +95,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id()))
+        .map(|ev| ((ev.kind.clone(), ev.state_key.clone()), ev.event_id.clone()))
         .collect::<StateMap<_>>();
 
         b.iter(|| {
@@ -114,7 +115,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
 
 criterion_group!(
     benches,
-    lexico_topo_sort,
+    // lexico_topo_sort,
     resolution_shallow_auth_chain,
     resolve_deeper_event_set
 );
@@ -126,11 +127,11 @@ criterion_main!(benches);
 //  IMPLEMENTATION DETAILS AHEAD
 //
 /////////////////////////////////////////////////////////////////////*/
-pub struct TestStore(BTreeMap<EventId, Arc<StateEvent>>);
+pub struct TestStore(BTreeMap<EventId, Arc<ServerPdu>>);
 
 #[allow(unused)]
 impl StateStore for TestStore {
-    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<StateEvent>> {
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<ServerPdu>> {
         self.0
             .get(event_id)
             .map(Arc::clone)
@@ -149,7 +150,7 @@ impl TestStore {
             &[],
             &[],
         ));
-        let cre = create_event.event_id();
+        let cre = create_event.event_id.clone();
         self.0.insert(cre.clone(), Arc::clone(&create_event));
 
         let alice_mem = to_pdu_event(
@@ -161,7 +162,8 @@ impl TestStore {
             &[cre.clone()],
             &[cre.clone()],
         );
-        self.0.insert(alice_mem.event_id(), Arc::clone(&alice_mem));
+        self.0
+            .insert(alice_mem.event_id.clone(), Arc::clone(&alice_mem));
 
         let join_rules = to_pdu_event(
             "IJR",
@@ -169,11 +171,11 @@ impl TestStore {
             EventType::RoomJoinRules,
             Some(""),
             json!({ "join_rule": JoinRule::Public }),
-            &[cre.clone(), alice_mem.event_id()],
-            &[alice_mem.event_id()],
+            &[cre.clone(), alice_mem.event_id.clone()],
+            &[alice_mem.event_id.clone()],
         );
         self.0
-            .insert(join_rules.event_id(), Arc::clone(&join_rules));
+            .insert(join_rules.event_id.clone(), Arc::clone(&join_rules));
 
         // Bob and Charlie join at the same time, so there is a fork
         // this will be represented in the state_sets when we resolve
@@ -183,10 +185,11 @@ impl TestStore {
             EventType::RoomMember,
             Some(bob().to_string().as_str()),
             member_content_join(),
-            &[cre.clone(), join_rules.event_id()],
-            &[join_rules.event_id()],
+            &[cre.clone(), join_rules.event_id.clone()],
+            &[join_rules.event_id.clone()],
         );
-        self.0.insert(bob_mem.event_id(), Arc::clone(&bob_mem));
+        self.0
+            .insert(bob_mem.event_id.clone(), Arc::clone(&bob_mem));
 
         let charlie_mem = to_pdu_event(
             "IMC",
@@ -194,20 +197,20 @@ impl TestStore {
             EventType::RoomMember,
             Some(charlie().to_string().as_str()),
             member_content_join(),
-            &[cre, join_rules.event_id()],
-            &[join_rules.event_id()],
+            &[cre, join_rules.event_id.clone()],
+            &[join_rules.event_id.clone()],
         );
         self.0
-            .insert(charlie_mem.event_id(), Arc::clone(&charlie_mem));
+            .insert(charlie_mem.event_id.clone(), Arc::clone(&charlie_mem));
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key()), e.event_id()))
+            .map(|e| ((e.kind.clone(), e.state_key.clone()), e.event_id.clone()))
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key()), e.event_id()))
+            .map(|e| ((e.kind.clone(), e.state_key.clone()), e.event_id.clone()))
             .collect::<StateMap<_>>();
 
         let expected = [
@@ -218,7 +221,7 @@ impl TestStore {
             &charlie_mem,
         ]
         .iter()
-        .map(|e| ((e.kind(), e.state_key()), e.event_id()))
+        .map(|e| ((e.kind.clone(), e.state_key.clone()), e.event_id.clone()))
         .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)
@@ -279,7 +282,7 @@ fn to_pdu_event<S>(
     content: JsonValue,
     auth_events: &[S],
     prev_events: &[S],
-) -> Arc<StateEvent>
+) -> Arc<ServerPdu>
 where
     S: AsRef<str>,
 {
@@ -342,7 +345,7 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
+fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<ServerPdu>> {
     vec![
         to_pdu_event::<EventId>(
             "CREATE",
@@ -418,13 +421,13 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id(), ev))
+    .map(|ev| (ev.event_id.clone(), ev))
     .collect()
 }
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<StateEvent>> {
+fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<ServerPdu>> {
     vec![
         to_pdu_event(
             "PA",
@@ -464,6 +467,6 @@ fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<StateEvent>> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id(), ev))
+    .map(|ev| (ev.event_id.clone(), ev))
     .collect()
 }

@@ -56,7 +56,7 @@ fn ban_vs_power_level() {
     .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
     .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["PA", "MA", "MB", "END"]
+    let expected_state_ids = vec!["PA", "MA", "MB"]
         .into_iter()
         .map(event_id)
         .collect::<Vec<_>>();
@@ -101,7 +101,7 @@ fn topic_basic() {
     .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
     .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["PA2", "T2", "END"]
+    let expected_state_ids = vec!["PA2", "T2"]
         .into_iter()
         .map(event_id)
         .collect::<Vec<_>>();
@@ -138,7 +138,7 @@ fn topic_reset() {
     .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
     .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["T1", "MB", "PA", "END"]
+    let expected_state_ids = vec!["T1", "MB", "PA"]
         .into_iter()
         .map(event_id)
         .collect::<Vec<_>>();
@@ -170,7 +170,7 @@ fn join_rule_evasion() {
         .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let expected_state_ids = vec![event_id("JR"), event_id("END")];
+    let expected_state_ids = vec![event_id("JR")];
 
     do_check(events, edges, expected_state_ids)
 }
@@ -206,10 +206,7 @@ fn offtopic_power_level() {
         .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["PC", "END"]
-        .into_iter()
-        .map(event_id)
-        .collect::<Vec<_>>();
+    let expected_state_ids = vec!["PC"].into_iter().map(event_id).collect::<Vec<_>>();
 
     do_check(events, edges, expected_state_ids)
 }
@@ -253,7 +250,7 @@ fn topic_setting() {
     .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
     .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["T4", "PA2", "END"]
+    let expected_state_ids = vec!["T4", "PA2"]
         .into_iter()
         .map(event_id)
         .collect::<Vec<_>>();
@@ -324,7 +321,7 @@ impl TestStore {
             &[],
             &[],
         );
-        let cre = create_event.event_id();
+        let cre = create_event.event_id.clone();
         self.0.insert(cre.clone(), Arc::clone(&create_event));
 
         let alice_mem = to_pdu_event(
@@ -336,7 +333,8 @@ impl TestStore {
             &[cre.clone()],
             &[cre.clone()],
         );
-        self.0.insert(alice_mem.event_id(), Arc::clone(&alice_mem));
+        self.0
+            .insert(alice_mem.event_id.clone(), Arc::clone(&alice_mem));
 
         let join_rules = to_pdu_event(
             "IJR",
@@ -344,10 +342,11 @@ impl TestStore {
             EventType::RoomJoinRules,
             Some(""),
             json!({ "join_rule": JoinRule::Public }),
-            &[cre.clone(), alice_mem.event_id()],
-            &[alice_mem.event_id()],
+            &[cre.clone(), alice_mem.event_id.clone()],
+            &[alice_mem.event_id.clone()],
         );
-        self.0.insert(join_rules.event_id(), join_rules.clone());
+        self.0
+            .insert(join_rules.event_id.clone(), join_rules.clone());
 
         // Bob and Charlie join at the same time, so there is a fork
         // this will be represented in the state_sets when we resolve
@@ -357,10 +356,10 @@ impl TestStore {
             EventType::RoomMember,
             Some(bob().to_string().as_str()),
             member_content_join(),
-            &[cre.clone(), join_rules.event_id()],
-            &[join_rules.event_id()],
+            &[cre.clone(), join_rules.event_id.clone()],
+            &[join_rules.event_id.clone()],
         );
-        self.0.insert(bob_mem.event_id(), bob_mem.clone());
+        self.0.insert(bob_mem.event_id.clone(), bob_mem.clone());
 
         let charlie_mem = to_pdu_event(
             "IMC",
@@ -368,19 +367,20 @@ impl TestStore {
             EventType::RoomMember,
             Some(charlie().to_string().as_str()),
             member_content_join(),
-            &[cre, join_rules.event_id()],
-            &[join_rules.event_id()],
+            &[cre, join_rules.event_id.clone()],
+            &[join_rules.event_id.clone()],
         );
-        self.0.insert(charlie_mem.event_id(), charlie_mem.clone());
+        self.0
+            .insert(charlie_mem.event_id.clone(), charlie_mem.clone());
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key()), e.event_id()))
+            .map(|e| ((e.kind.clone(), e.state_key.clone()), e.event_id.clone()))
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key()), e.event_id()))
+            .map(|e| ((e.kind.clone(), e.state_key.clone()), e.event_id.clone()))
             .collect::<StateMap<_>>();
 
         let expected = [
@@ -391,7 +391,7 @@ impl TestStore {
             &charlie_mem,
         ]
         .iter()
-        .map(|e| ((e.kind(), e.state_key()), e.event_id()))
+        .map(|e| ((e.kind.clone(), e.state_key.clone()), e.event_id.clone()))
         .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)

@@ -26,16 +26,6 @@ branch = "server-pdu"
 # rev = "45d01011554f9d07739e9a5edf5498d8ac16f273"
 features = ["client-api", "federation-api", "appservice-api", "unstable-pre-spec", "unstable-synapse-quirks"]
 
-#[dependencies.ruma]
-#path = "../ruma/ruma"
-#features = ["client-api", "federation-api", "appservice-api"]
-
-# [dependencies.ruma]
-# git = "https://github.com/timokoesters/ruma"
-# branch = "timo-fed-fixes"
-# #rev = "aff914050eb297bd82b8aafb12158c88a9e480e1"
-# features = ["client-api", "federation-api", "appservice-api"]
-
 [features]
 default = ["unstable-pre-spec"]
 gen-eventid = []
