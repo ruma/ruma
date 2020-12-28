@@ -12,7 +12,8 @@ use std::{collections::BTreeMap, time::SystemTime};
 
 use js_int::UInt;
 use ruma_events::EventType;
-use ruma_identifiers::{EventId, RoomId, ServerNameBox, ServerSigningKeyId, UserId};
+use ruma_identifiers::{EventId, RoomId, RoomVersionId, ServerNameBox, ServerSigningKeyId, UserId};
+use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
@@ -207,4 +208,51 @@ pub struct ServerPdu {
 
     /// Signatures for this event.
     pub signatures: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, String>>,
+}
+
+impl ServerPdu {
+    /// Convert a `ServerPdu` into a sendable PDU following the spec
+    /// for room version 3 and above.
+    pub fn into_pdu_v3_above(
+        self,
+        #[cfg(not(feature = "unstable-pre-spec"))] origin: String,
+    ) -> Pdu {
+        Pdu::RoomV3Pdu(RoomV3Pdu {
+            room_id: self.room_id,
+            sender: self.sender,
+            #[cfg(not(feature = "unstable-pre-spec"))]
+            origin,
+            origin_server_ts: self.origin_server_ts,
+            kind: self.kind,
+            content: self.content,
+            state_key: self.state_key,
+            prev_events: self.prev_events,
+            depth: self.depth,
+            auth_events: self.auth_events,
+            redacts: self.redacts,
+            unsigned: self.unsigned,
+            hashes: self.hashes,
+            signatures: self.signatures,
+        })
+    }
+
+    /// Convert `ServerPdu` to a PDU that can be sent over federation.
+    pub fn convert_to_outgoing_federation_event(mut self) -> Raw<Pdu> {
+        self.unsigned.remove("transaction_id");
+
+        let mut pdu_json = serde_json::to_value(self).expect("TODO handle errors");
+        pdu_json.as_object_mut().expect("json is object").remove("event_id");
+
+        serde_json::from_value::<Raw<_>>(pdu_json).expect("Raw::from_value always works")
+    }
+
+    /// Convert a `ServerPdu` into a sendable PDU following the spec
+    /// for rooms less than version 3.
+    pub fn to_pdu_less_v3(
+        self,
+        prev: Vec<(EventId, EventHash)>,
+        auth: Vec<(EventId, EventHash)>,
+    ) -> Pdu {
+        todo!()
+    }
 }
