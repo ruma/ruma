@@ -13,17 +13,17 @@ repository = "https://github.com/ruma/state-res"
 
 [dependencies]
 itertools = "0.9.0"
-serde = { version = "1.0.117", features = ["derive"] }
+serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.60"
 tracing = "0.1.22"
 maplit = "1.0.2"
 thiserror = "1.0.22"
 
 [dependencies.ruma]
-git = "https://github.com/DevinR528/ruma"
-branch = "server-pdu"
+git = "https://github.com/ruma/ruma"
+# branch = "server-pdu"
 # path = "../__forks__/ruma/ruma"
-# rev = "45d01011554f9d07739e9a5edf5498d8ac16f273"
+rev = "210b6dd823ba89c5a44c3c9d913d377c4b54c896"
 features = ["client-api", "federation-api", "appservice-api", "unstable-pre-spec", "unstable-synapse-quirks"]
 
 [features]

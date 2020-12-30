@@ -3,7 +3,6 @@ use std::{collections::BTreeMap, convert::TryFrom, sync::Arc};
 use maplit::btreeset;
 use ruma::{
     events::{
-        pdu::ServerPdu,
         room::{
             self,
             join_rules::JoinRule,
@@ -660,10 +659,10 @@ pub fn check_redaction<E: Event>(
 /// Check that the member event matches `state`.
 ///
 /// This function returns false instead of failing when deserialization fails.
-pub fn check_membership(member_event: Option<Arc<ServerPdu>>, state: MembershipState) -> bool {
+pub fn check_membership<E: Event>(member_event: Option<Arc<E>>, state: MembershipState) -> bool {
     if let Some(event) = member_event {
         if let Ok(content) =
-            serde_json::from_value::<room::member::MemberEventContent>(event.content.clone())
+            serde_json::from_value::<room::member::MemberEventContent>(event.content())
         {
             content.membership == state
         } else {
@@ -675,10 +674,10 @@ pub fn check_membership(member_event: Option<Arc<ServerPdu>>, state: MembershipS
 }
 
 /// Can this room federate based on its m.room.create event.
-pub fn can_federate(auth_events: &StateMap<Arc<ServerPdu>>) -> bool {
+pub fn can_federate<E: Event>(auth_events: &StateMap<Arc<E>>) -> bool {
     let creation_event = auth_events.get(&(EventType::RoomCreate, Some("".into())));
     if let Some(ev) = creation_event {
-        if let Some(fed) = ev.content.get("m.federate") {
+        if let Some(fed) = ev.content().get("m.federate") {
             fed == "true"
         } else {
             false

@@ -7,7 +7,7 @@ use std::{
 
 use maplit::btreeset;
 use ruma::{
-    events::{pdu::ServerPdu, EventType},
+    events::EventType,
     identifiers::{EventId, RoomId, RoomVersionId},
 };
 
