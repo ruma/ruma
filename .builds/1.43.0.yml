@@ -58,27 +58,10 @@ tasks:
 
       popd
 
-      # Test non-default configurations of ruma-client
-      pushd ruma-client
-
-      cargo check --no-default-features --quiet
-      client_1_exit=$?
-
-      cargo check --no-default-features --features http1,http2,tls-rustls-native-roots --quiet
-      client_2_exit=$?
-
-      cargo check --no-default-features --features http1,http2,tls-rustls-webpki-roots --quiet
-      client_3_exit=$?
-
-      popd
-
       exit $(( \
         $ruma_build_exit \
         || $client_build_exit \
         || $id_build_1_exit \
         || $id_build_2_exit \
         || $client_api_build_exit \
-        || $client_1_exit \
-        || $client_2_exit \
-        || $client_3_exit \
       ))
