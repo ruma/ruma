@@ -12,7 +12,7 @@ use tracing_subscriber as tracer;
 mod utils;
 use utils::{
     alice, bob, charlie, do_check, ella, event_id, member_content_ban, member_content_join,
-    room_id, to_init_pdu_event, to_pdu_event, zara, TestStore, LOGGER,
+    room_id, to_init_pdu_event, to_pdu_event, zara, StateEvent, TestStore, LOGGER,
 };
 
 #[test]
@@ -260,7 +260,7 @@ fn topic_setting() {
 
 #[test]
 fn test_event_map_none() {
-    let mut store = TestStore(btreemap! {});
+    let mut store = TestStore::<StateEvent>(btreemap! {});
 
     // build up the DAG
     let (state_at_bob, state_at_charlie, expected) = store.set_up();
@@ -304,7 +304,7 @@ fn test_lexicographical_sort() {
 // A StateStore implementation for testing
 //
 //
-impl TestStore {
+impl TestStore<StateEvent> {
     pub fn set_up(&mut self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
         // to activate logging use `RUST_LOG=debug cargo t one_test_only`
         let _ = LOGGER.call_once(|| {
@@ -321,7 +321,7 @@ impl TestStore {
             &[],
             &[],
         );
-        let cre = create_event.event_id.clone();
+        let cre = create_event.event_id().clone();
         self.0.insert(cre.clone(), Arc::clone(&create_event));
 
         let alice_mem = to_pdu_event(
@@ -334,7 +334,7 @@ impl TestStore {
             &[cre.clone()],
         );
         self.0
-            .insert(alice_mem.event_id.clone(), Arc::clone(&alice_mem));
+            .insert(alice_mem.event_id().clone(), Arc::clone(&alice_mem));
 
         let join_rules = to_pdu_event(
             "IJR",
@@ -342,11 +342,11 @@ impl TestStore {
             EventType::RoomJoinRules,
             Some(""),
             json!({ "join_rule": JoinRule::Public }),
-            &[cre.clone(), alice_mem.event_id.clone()],
-            &[alice_mem.event_id.clone()],
+            &[cre.clone(), alice_mem.event_id().clone()],
+            &[alice_mem.event_id().clone()],
         );
         self.0
-            .insert(join_rules.event_id.clone(), join_rules.clone());
+            .insert(join_rules.event_id().clone(), join_rules.clone());
 
         // Bob and Charlie join at the same time, so there is a fork
         // this will be represented in the state_sets when we resolve
@@ -356,10 +356,10 @@ impl TestStore {
             EventType::RoomMember,
             Some(bob().to_string().as_str()),
             member_content_join(),
-            &[cre.clone(), join_rules.event_id.clone()],
-            &[join_rules.event_id.clone()],
+            &[cre.clone(), join_rules.event_id().clone()],
+            &[join_rules.event_id().clone()],
         );
-        self.0.insert(bob_mem.event_id.clone(), bob_mem.clone());
+        self.0.insert(bob_mem.event_id().clone(), bob_mem.clone());
 
         let charlie_mem = to_pdu_event(
             "IMC",
@@ -367,20 +367,20 @@ impl TestStore {
             EventType::RoomMember,
             Some(charlie().to_string().as_str()),
             member_content_join(),
-            &[cre, join_rules.event_id.clone()],
-            &[join_rules.event_id.clone()],
+            &[cre, join_rules.event_id().clone()],
+            &[join_rules.event_id().clone()],
         );
         self.0
-            .insert(charlie_mem.event_id.clone(), charlie_mem.clone());
+            .insert(charlie_mem.event_id().clone(), charlie_mem.clone());
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
-            .map(|e| ((e.kind.clone(), e.state_key.clone()), e.event_id.clone()))
+            .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
-            .map(|e| ((e.kind.clone(), e.state_key.clone()), e.event_id.clone()))
+            .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
         let expected = [
@@ -391,7 +391,7 @@ impl TestStore {
             &charlie_mem,
         ]
         .iter()
-        .map(|e| ((e.kind.clone(), e.state_key.clone()), e.event_id.clone()))
+        .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
         .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)

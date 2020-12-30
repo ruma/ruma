@@ -373,7 +373,7 @@ pub fn valid_membership_change<E: Event>(
     }
 
     Ok(if target_membership == MembershipState::Join {
-        if user.sender() != target_user_id {
+        if user.sender() != &target_user_id {
             false
         } else if let MembershipState::Ban = current_membership {
             false
@@ -402,7 +402,7 @@ pub fn valid_membership_change<E: Event>(
                 .is_some()
         }
     } else if target_membership == MembershipState::Leave {
-        if user.sender() == target_user_id {
+        if user.sender() == &target_user_id {
             current_membership == MembershipState::Join
                 || current_membership == MembershipState::Invite
         } else if sender_membership != MembershipState::Join
@@ -549,7 +549,7 @@ pub fn check_power_levels<E: Event>(
         }
 
         // If the current value is equal to the sender's current power level, reject
-        if user != &power_event.sender() && old_level.map(|int| (*int).into()) == Some(user_level) {
+        if user != power_event.sender() && old_level.map(|int| (*int).into()) == Some(user_level) {
             tracing::warn!("m.room.power_level cannot remove ops == to own");
             return Some(false); // cannot remove ops level == to own
         }

@@ -4,7 +4,7 @@ use ruma::{
     events::EventType,
     identifiers::{EventId, RoomVersionId},
 };
-use state_res::{is_power_event, StateMap};
+use state_res::{is_power_event, Event, StateMap};
 
 mod utils;
 use utils::{room_id, TestStore, INITIAL_EVENTS};
@@ -25,7 +25,7 @@ fn test_event_sort() {
 
     let event_map = events
         .values()
-        .map(|ev| ((ev.kind.clone(), ev.state_key.clone()), ev.clone()))
+        .map(|ev| ((ev.kind(), ev.state_key()), ev.clone()))
         .collect::<StateMap<_>>();
 
     let auth_chain = &[] as &[_];
@@ -33,7 +33,7 @@ fn test_event_sort() {
     let power_events = event_map
         .values()
         .filter(|pdu| is_power_event(&pdu))
-        .map(|pdu| pdu.event_id.clone())
+        .map(|pdu| pdu.event_id().clone())
         .collect::<Vec<_>>();
 
     // This is a TODO in conduit

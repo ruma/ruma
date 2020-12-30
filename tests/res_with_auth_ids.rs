@@ -3,7 +3,7 @@
 use std::{collections::BTreeMap, sync::Arc};
 
 use ruma::{
-    events::{pdu::ServerPdu, EventType},
+    events::EventType,
     identifiers::{EventId, RoomVersionId},
 };
 use serde_json::json;
@@ -12,7 +12,7 @@ use state_res::{StateMap, StateResolution};
 mod utils;
 use utils::{
     alice, bob, do_check, ella, event_id, member_content_ban, member_content_join, room_id,
-    to_pdu_event, zara, TestStore, INITIAL_EVENTS,
+    to_pdu_event, zara, StateEvent, TestStore, INITIAL_EVENTS,
 };
 
 #[test]
@@ -50,7 +50,7 @@ fn base_with_auth_chains() {
     let resolved = resolved
         .values()
         .cloned()
-        .chain(INITIAL_EVENTS().values().map(|e| e.event_id.clone()))
+        .chain(INITIAL_EVENTS().values().map(|e| e.event_id().clone()))
         .collect::<Vec<_>>();
 
     let expected = vec![
@@ -89,7 +89,7 @@ fn ban_with_auth_chains2() {
         inner.get(&event_id("PA")).unwrap(),
     ]
     .iter()
-    .map(|ev| ((ev.kind.clone(), ev.state_key.clone()), ev.event_id.clone()))
+    .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().clone()))
     .collect::<BTreeMap<_, _>>();
 
     let state_set_b = [
@@ -102,7 +102,7 @@ fn ban_with_auth_chains2() {
         inner.get(&event_id("PA")).unwrap(),
     ]
     .iter()
-    .map(|ev| ((ev.kind.clone(), ev.state_key.clone()), ev.event_id.clone()))
+    .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().clone()))
     .collect::<StateMap<_>>();
 
     let resolved: StateMap<EventId> = match StateResolution::resolve(
@@ -164,7 +164,7 @@ fn join_rule_with_auth_chain() {
 }
 
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<ServerPdu>> {
+fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<StateEvent>> {
     vec![
         to_pdu_event(
             "PA",
@@ -204,12 +204,12 @@ fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<ServerPdu>> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id.clone(), ev))
+    .map(|ev| (ev.event_id().clone(), ev))
     .collect()
 }
 
 #[allow(non_snake_case)]
-fn JOIN_RULE() -> BTreeMap<EventId, Arc<ServerPdu>> {
+fn JOIN_RULE() -> BTreeMap<EventId, Arc<StateEvent>> {
     vec![
         to_pdu_event(
             "JR",
@@ -231,6 +231,6 @@ fn JOIN_RULE() -> BTreeMap<EventId, Arc<ServerPdu>> {
         ),
     ]
     .into_iter()
-    .map(|ev| (ev.event_id.clone(), ev))
+    .map(|ev| (ev.event_id().clone(), ev))
     .collect()
 }

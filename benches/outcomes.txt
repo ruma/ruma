@@ -15,3 +15,25 @@ Found 3 outliers among 100 measurements (3.00%)
 
 resolve state of 10 events 3 conflicting                                                                             
                         time:   [26.858 us 26.946 us 27.037 us]
+
+11/29/2020 BRANCH: event-trait REV: f0eb1310efd49d722979f57f20bd1ac3592b0479
+lexicographical topological sort                                                                             
+                        time:   [1.7686 us 1.7738 us 1.7810 us]
+                        change: [-3.2752% -2.4634% -1.7635%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 1 outliers among 100 measurements (1.00%)
+  1 (1.00%) high severe
+
+resolve state of 5 events one fork                                                                             
+                        time:   [10.643 us 10.656 us 10.669 us]
+                        change: [-4.9990% -3.8078% -2.8319%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 1 outliers among 100 measurements (1.00%)
+  1 (1.00%) high severe
+
+resolve state of 10 events 3 conflicting                                                                             
+                        time:   [29.149 us 29.252 us 29.375 us]
+                        change: [-0.8433% -0.3270% +0.2656%] (p = 0.25 > 0.05)
+                        No change in performance detected.
+Found 1 outliers among 100 measurements (1.00%)
+  1 (1.00%) high mild
