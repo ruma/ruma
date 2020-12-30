@@ -42,7 +42,7 @@ tasks:
       # Test non-default configurations of ruma-client
       pushd ruma-client
 
-      cargo check --no-default-features --quiet
+      cargo check --no-default-features --features http1,http2 --quiet
       client_1_exit=$?
 
       cargo check --no-default-features --features http1,http2,tls-rustls-native-roots --quiet

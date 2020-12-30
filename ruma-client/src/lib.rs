@@ -110,7 +110,7 @@ use assign::assign;
 use futures_core::stream::{Stream, TryStream};
 use futures_util::stream;
 use http::{uri::Uri, Response as HttpResponse};
-use hyper::{client::HttpConnector, Client as HyperClient};
+use hyper::client::{Client as HyperClient, HttpConnector};
 use ruma_api::{AuthScheme, OutgoingRequest};
 use ruma_client_api::r0::sync::sync_events::{
     Filter as SyncFilter, Request as SyncRequest, Response as SyncResponse,
@@ -139,7 +139,7 @@ type Connector = hyper_rustls::HttpsConnector<HttpConnector>;
 
 fn create_connector() -> Connector {
     #[cfg(not(feature = "_tls"))]
-    let connector = HttpConnector;
+    let connector = HttpConnector::new();
 
     #[cfg(feature = "tls-native")]
     let connector = hyper_tls::HttpsConnector::new();
