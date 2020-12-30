@@ -5,14 +5,14 @@ use ruma::{
     identifiers::{EventId, RoomId},
 };
 
-use crate::Result;
+use crate::{Event, Result};
 
-pub trait StateStore {
+pub trait StateStore<E: Event> {
     /// Return a single event based on the EventId.
-    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<ServerPdu>>;
+    fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<E>>;
 
     /// Returns the events that correspond to the `event_ids` sorted in the same order.
-    fn get_events(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<Vec<Arc<ServerPdu>>> {
+    fn get_events(&self, room_id: &RoomId, event_ids: &[EventId]) -> Result<Vec<Arc<E>>> {
         let mut events = vec![];
         for id in event_ids {
             events.push(self.get_event(room_id, id)?);
@@ -36,7 +36,7 @@ pub trait StateStore {
 
             let event = self.get_event(room_id, &ev_id)?;
 
-            stack.extend(event.auth_events.clone());
+            stack.extend(event.auth_events().clone());
         }
 
         Ok(result)

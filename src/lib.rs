@@ -19,7 +19,7 @@ mod state_store;
 
 pub use error::{Error, Result};
 pub use event_auth::{auth_check, auth_types_for_event};
-pub use state_event::Requester;
+pub use state_event::{Event, Requester};
 pub use state_store::StateStore;
 
 // We want to yield to the reactor occasionally during state res when dealing
@@ -41,13 +41,13 @@ impl StateResolution {
     ///
     /// This will authenticate the event against the current state of the room. It
     /// is important that the `current_state` argument is accurate and complete.
-    pub fn apply_event(
+    pub fn apply_event<E: Event>(
         room_id: &RoomId,
         room_version: &RoomVersionId,
-        incoming_event: Arc<ServerPdu>,
+        incoming_event: Arc<E>,
         current_state: &StateMap<EventId>,
-        event_map: Option<EventMap<Arc<ServerPdu>>>,
-        store: &dyn StateStore,
+        event_map: Option<EventMap<Arc<E>>>,
+        store: &dyn StateStore<E>,
     ) -> Result<bool> {
         tracing::info!("Applying a single event, state resolution starting");
         let ev = incoming_event;
@@ -57,19 +57,16 @@ impl StateResolution {
         } else {
             EventMap::new()
         };
-        let prev_event = if let Some(id) = ev.prev_events.first() {
+        let prev_event = if let Some(id) = ev.prev_events().first() {
             store.get_event(room_id, id).ok()
         } else {
             None
         };
 
         let mut auth_events = StateMap::new();
-        for key in event_auth::auth_types_for_event(
-            &ev.kind,
-            &ev.sender,
-            ev.state_key.clone(),
-            ev.content.clone(),
-        ) {
+        for key in
+            event_auth::auth_types_for_event(&ev.kind(), &ev.sender(), ev.state_key(), ev.content())
+        {
             if let Some(ev_id) = current_state.get(&key) {
                 if let Some(event) =
                     StateResolution::get_or_load_event(room_id, ev_id, &mut event_map, store)
@@ -101,13 +98,13 @@ impl StateResolution {
     ///
     /// It is up the the caller to check that the events returned from `StateStore::get_event` are
     /// events for the correct room (synapse checks that all events are in the right room).
-    pub fn resolve(
+    pub fn resolve<E: Event>(
         room_id: &RoomId,
         room_version: &RoomVersionId,
         state_sets: &[StateMap<EventId>],
         // TODO: make the `Option<&mut EventMap<Arc<ServerPdu>>>`
-        event_map: Option<EventMap<Arc<ServerPdu>>>,
-        store: &dyn StateStore,
+        event_map: Option<EventMap<Arc<E>>>,
+        store: &dyn StateStore<E>,
     ) -> Result<StateMap<EventId>> {
         tracing::info!("State resolution starting");
 
@@ -157,7 +154,7 @@ impl StateResolution {
             .unwrap();
 
         // update event_map to include the fetched events
-        event_map.extend(events.into_iter().map(|ev| (ev.event_id.clone(), ev)));
+        event_map.extend(events.into_iter().map(|ev| (ev.event_id(), ev)));
         // at this point our event_map == store there should be no missing events
 
         tracing::debug!("event map size: {}", event_map.len());
@@ -312,10 +309,10 @@ impl StateResolution {
     }
 
     /// Returns a Vec of deduped EventIds that appear in some chains but not others.
-    pub fn get_auth_chain_diff(
+    pub fn get_auth_chain_diff<E: Event>(
         room_id: &RoomId,
         state_sets: &[StateMap<EventId>],
-        store: &dyn StateStore,
+        store: &dyn StateStore<E>,
     ) -> Result<Vec<EventId>> {
         use itertools::Itertools;
 
@@ -338,11 +335,11 @@ impl StateResolution {
     ///
     /// The power level is negative because a higher power level is equated to an
     /// earlier (further back in time) origin server timestamp.
-    pub fn reverse_topological_power_sort(
+    pub fn reverse_topological_power_sort<E: Event>(
         room_id: &RoomId,
         events_to_sort: &[EventId],
-        event_map: &mut EventMap<Arc<ServerPdu>>,
-        store: &dyn StateStore,
+        event_map: &mut EventMap<Arc<E>>,
+        store: &dyn StateStore<E>,
         auth_diff: &[EventId],
     ) -> Vec<EventId> {
         tracing::debug!("reverse topological sort of power events");
@@ -381,12 +378,12 @@ impl StateResolution {
             let ev = event_map.get(event_id).unwrap();
             let pl = event_to_pl.get(event_id).unwrap();
 
-            tracing::debug!("{:?}", (-*pl, ev.origin_server_ts, &ev.event_id));
+            tracing::debug!("{:?}", (-*pl, ev.origin_server_ts(), &ev.event_id()));
 
             // This return value is the key used for sorting events,
             // events are then sorted by power level, time,
             // and lexically by event_id.
-            (-*pl, ev.origin_server_ts, ev.event_id.clone())
+            (-*pl, ev.origin_server_ts(), ev.event_id())
         })
     }
 
@@ -464,11 +461,11 @@ impl StateResolution {
     }
 
     /// Find the power level for the sender of `event_id` or return a default value of zero.
-    fn get_power_level_for_sender(
+    fn get_power_level_for_sender<E: Event>(
         room_id: &RoomId,
         event_id: &EventId,
-        event_map: &mut EventMap<Arc<ServerPdu>>,
-        store: &dyn StateStore,
+        event_map: &mut EventMap<Arc<E>>,
+        store: &dyn StateStore<E>,
     ) -> i64 {
         tracing::info!("fetch event ({}) senders power level", event_id.to_string());
 
@@ -479,7 +476,7 @@ impl StateResolution {
         // event.auth_event_ids does not include its own event id ?
         for aid in event
             .as_ref()
-            .map(|pdu| pdu.auth_events.to_vec())
+            .map(|pdu| pdu.auth_events())
             .unwrap_or_default()
         {
             if let Some(aev) = StateResolution::get_or_load_event(room_id, &aid, event_map, store) {
@@ -497,15 +494,15 @@ impl StateResolution {
         if let Some(content) = pl
             .map(|pl| {
                 serde_json::from_value::<ruma::events::room::power_levels::PowerLevelsEventContent>(
-                    pl.content.clone(),
+                    pl.content(),
                 )
                 .ok()
             })
             .flatten()
         {
             if let Some(ev) = event {
-                if let Some(user) = content.users.get(&ev.sender) {
-                    tracing::debug!("found {} at power_level {}", ev.sender.to_string(), user);
+                if let Some(user) = content.users.get(&ev.sender()) {
+                    tracing::debug!("found {} at power_level {}", ev.sender().to_string(), user);
                     return (*user).into();
                 }
             }
@@ -525,13 +522,13 @@ impl StateResolution {
     /// For each `events_to_check` event we gather the events needed to auth it from the
     /// `event_map` or `store` and verify each event using the `event_auth::auth_check`
     /// function.
-    pub fn iterative_auth_check(
+    pub fn iterative_auth_check<E: Event>(
         room_id: &RoomId,
         room_version: &RoomVersionId,
         events_to_check: &[EventId],
         unconflicted_state: &StateMap<EventId>,
-        event_map: &mut EventMap<Arc<ServerPdu>>,
-        store: &dyn StateStore,
+        event_map: &mut EventMap<Arc<E>>,
+        store: &dyn StateStore<E>,
     ) -> Result<StateMap<EventId>> {
         tracing::info!("starting iterative auth check");
 
@@ -550,23 +547,23 @@ impl StateResolution {
                 StateResolution::get_or_load_event(room_id, event_id, event_map, store).unwrap();
 
             let mut auth_events = BTreeMap::new();
-            for aid in &event.auth_events {
+            for aid in &event.auth_events() {
                 if let Some(ev) =
                     StateResolution::get_or_load_event(room_id, &aid, event_map, store)
                 {
                     // TODO what to do when no state_key is found ??
                     // TODO synapse check "rejected_reason", I'm guessing this is redacted_because in ruma ??
-                    auth_events.insert((ev.kind.clone(), ev.state_key.clone()), ev);
+                    auth_events.insert((ev.kind(), ev.state_key()), ev);
                 } else {
                     tracing::warn!("auth event id for {} is missing {}", aid, event_id);
                 }
             }
 
             for key in event_auth::auth_types_for_event(
-                &event.kind,
-                &event.sender,
-                event.state_key.clone(),
-                event.content.clone(),
+                &event.kind(),
+                &event.sender(),
+                event.state_key(),
+                event.content(),
             ) {
                 if let Some(ev_id) = resolved_state.get(&key) {
                     if let Some(event) =
@@ -578,10 +575,10 @@ impl StateResolution {
                 }
             }
 
-            tracing::debug!("event to check {:?}", event.event_id.as_str());
+            tracing::debug!("event to check {:?}", event.event_id().as_str());
 
             let most_recent_prev_event = event
-                .prev_events
+                .prev_events()
                 .iter()
                 .filter_map(|id| StateResolution::get_or_load_event(room_id, id, event_map, store))
                 .next_back();
@@ -589,7 +586,7 @@ impl StateResolution {
             // The key for this is (eventType + a state_key of the signed token not sender) so search
             // for it
             let current_third_party = auth_events.iter().find_map(|(_, pdu)| {
-                if pdu.kind == EventType::RoomThirdPartyInvite {
+                if pdu.kind() == EventType::RoomThirdPartyInvite {
                     Some(pdu.clone()) // TODO no clone, auth_events is borrowed while moved
                 } else {
                     None
@@ -604,10 +601,7 @@ impl StateResolution {
                 current_third_party,
             )? {
                 // add event to resolved state map
-                resolved_state.insert(
-                    (event.kind.clone(), event.state_key.clone()),
-                    event_id.clone(),
-                );
+                resolved_state.insert((event.kind(), event.state_key()), event_id.clone());
             } else {
                 // synapse passes here on AuthError. We do not add this event to resolved_state.
                 tracing::warn!(
@@ -632,12 +626,12 @@ impl StateResolution {
     /// power_level event. If there have been two power events the after the most recent are
     /// depth 0, the events before (with the first power level as a parent) will be marked
     /// as depth 1. depth 1 is "older" than depth 0.
-    pub fn mainline_sort(
+    pub fn mainline_sort<E: Event>(
         room_id: &RoomId,
         to_sort: &[EventId],
         resolved_power_level: Option<&EventId>,
-        event_map: &mut EventMap<Arc<ServerPdu>>,
-        store: &dyn StateStore,
+        event_map: &mut EventMap<Arc<E>>,
+        store: &dyn StateStore<E>,
     ) -> Vec<EventId> {
         tracing::debug!("mainline sort of events");
 
@@ -653,7 +647,7 @@ impl StateResolution {
             mainline.push(p.clone());
 
             let event = StateResolution::get_or_load_event(room_id, &p, event_map, store).unwrap();
-            let auth_events = &event.auth_events;
+            let auth_events = &event.auth_events();
             pl = None;
             for aid in auth_events {
                 let ev =
@@ -694,7 +688,7 @@ impl StateResolution {
                         ev_id,
                         (
                             depth,
-                            event_map.get(ev_id).map(|ev| ev.origin_server_ts),
+                            event_map.get(ev_id).map(|ev| ev.origin_server_ts()),
                             ev_id, // TODO should this be a &str to sort lexically??
                         ),
                     );
@@ -718,22 +712,22 @@ impl StateResolution {
 
     /// Get the mainline depth from the `mainline_map` or finds a power_level event
     /// that has an associated mainline depth.
-    fn get_mainline_depth(
+    fn get_mainline_depth<E: Event>(
         room_id: &RoomId,
-        mut event: Option<Arc<ServerPdu>>,
+        mut event: Option<Arc<E>>,
         mainline_map: &EventMap<usize>,
-        event_map: &mut EventMap<Arc<ServerPdu>>,
-        store: &dyn StateStore,
+        event_map: &mut EventMap<Arc<E>>,
+        store: &dyn StateStore<E>,
     ) -> Result<usize> {
         while let Some(sort_ev) = event {
-            tracing::debug!("mainline event_id {}", sort_ev.event_id.to_string());
-            let id = &sort_ev.event_id;
+            tracing::debug!("mainline event_id {}", sort_ev.event_id().to_string());
+            let id = &sort_ev.event_id();
             if let Some(depth) = mainline_map.get(&id) {
                 return Ok(*depth);
             }
 
             // dbg!(&sort_ev);
-            let auth_events = &sort_ev.auth_events;
+            let auth_events = &sort_ev.auth_events();
             event = None;
             for aid in auth_events {
                 // dbg!(&aid);
@@ -749,12 +743,12 @@ impl StateResolution {
         Ok(0)
     }
 
-    fn add_event_and_auth_chain_to_graph(
+    fn add_event_and_auth_chain_to_graph<E: Event>(
         room_id: &RoomId,
         graph: &mut BTreeMap<EventId, Vec<EventId>>,
         event_id: &EventId,
-        event_map: &mut EventMap<Arc<ServerPdu>>,
-        store: &dyn StateStore,
+        event_map: &mut EventMap<Arc<E>>,
+        store: &dyn StateStore<E>,
         auth_diff: &[EventId],
     ) {
         let mut state = vec![event_id.clone()];
@@ -766,7 +760,7 @@ impl StateResolution {
             // otherwise it seems we can loop forever
             for aid in &StateResolution::get_or_load_event(room_id, &eid, event_map, store)
                 .unwrap()
-                .auth_events
+                .auth_events()
             {
                 if auth_diff.contains(&aid) {
                     if !graph.contains_key(&aid) {
@@ -786,12 +780,12 @@ impl StateResolution {
     /// if the event_map does not have the PDU.
     ///
     /// If the PDU is missing from the `event_map` it is added.
-    fn get_or_load_event(
+    fn get_or_load_event<E: Event>(
         room_id: &RoomId,
         ev_id: &EventId,
-        event_map: &mut EventMap<Arc<ServerPdu>>,
-        store: &dyn StateStore,
-    ) -> Option<Arc<ServerPdu>> {
+        event_map: &mut EventMap<Arc<E>>,
+        store: &dyn StateStore<E>,
+    ) -> Option<Arc<E>> {
         if let Some(e) = event_map.get(ev_id) {
             return Some(Arc::clone(e));
         }
@@ -804,47 +798,37 @@ impl StateResolution {
     }
 }
 
-pub fn is_power_event_id(event_id: &EventId, event_map: &EventMap<Arc<ServerPdu>>) -> bool {
+pub fn is_power_event_id<E: Event>(event_id: &EventId, event_map: &EventMap<Arc<E>>) -> bool {
     match event_map.get(event_id) {
         Some(state) => is_power_event(state),
         _ => false,
     }
 }
 
-pub fn is_type_and_key(ev: &Arc<ServerPdu>, ev_type: EventType, state_key: &str) -> bool {
-    ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
+pub fn is_type_and_key<E: Event>(ev: &Arc<E>, ev_type: EventType, state_key: &str) -> bool {
+    ev.kind() == ev_type && ev.state_key().as_deref() == Some(state_key)
 }
 
-pub fn is_power_event(event: &Arc<ServerPdu>) -> bool {
+pub fn is_power_event<E: Event>(event: &Arc<E>) -> bool {
     use ruma::events::room::member::{MemberEventContent, MembershipState};
-    match event.kind {
+    match event.kind() {
         EventType::RoomPowerLevels | EventType::RoomJoinRules | EventType::RoomCreate => {
-            event.state_key == Some("".into())
+            event.state_key() == Some("".into())
         }
         EventType::RoomMember => {
             if let Ok(content) =
                 // TODO fix clone
-                serde_json::from_value::<MemberEventContent>(event.content.clone())
+                serde_json::from_value::<MemberEventContent>(event.content())
             {
                 if [MembershipState::Leave, MembershipState::Ban].contains(&content.membership) {
-                    return event.sender.as_str()
+                    return event.sender().as_str()
                                 // TODO is None here a failure
-                                != event.state_key.as_deref().unwrap_or("NOT A STATE KEY");
+                                != event.state_key().as_deref().unwrap_or("NOT A STATE KEY");
                 }
             }
 
             false
         }
         _ => false,
-    }
-}
-
-pub fn to_requester(event: &Arc<ServerPdu>) -> Requester<'_> {
-    Requester {
-        prev_event_ids: event.prev_events.to_vec(),
-        room_id: &event.room_id,
-        content: &event.content,
-        state_key: event.state_key.clone(),
-        sender: &event.sender,
     }
 }
