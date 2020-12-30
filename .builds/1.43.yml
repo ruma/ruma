@@ -6,8 +6,8 @@ sources:
 tasks:
   - rustup: |
       # We specify --profile minimal because we'd otherwise download docs
-      rustup toolchain install 1.43.0 --profile minimal
-      rustup default 1.43.0
+      rustup toolchain install 1.43 --profile minimal
+      rustup default 1.43
   - test: |
       cd ruma
 
@@ -15,12 +15,12 @@ tasks:
       # tools, so capture tool exit codes and set the task exit code manually
       set +e
 
-      # We don't want to try building ruma-signatures on 1.43.0, since it
-      # depends on ring (MSRV 'stable') and is exempt from our MSRV policy.
-      # Instead, enable all other dependencies on the ruma crate and try
-      # building that (usually you would enable the higher-level features, but
-      # we're only doing this to have all relevant crates compiled, no to build
-      # a useful crate).
+      # We don't want to try building ruma-signatures on 1.43, since it depends
+      # on ring (MSRV 'stable') and is exempt from our MSRV policy. Instead,
+      # enable all other dependencies on the ruma crate and try building that
+      # (usually you would enable the higher-level features, but we're only
+      # doing this to have all relevant crates compiled, no to build a useful
+      # crate).
       pushd ruma
 
       cargo build \
