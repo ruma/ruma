@@ -128,14 +128,30 @@ pub use self::{
     session::{Identification, Session},
 };
 
-#[cfg(not(any(feature = "tls-native", feature = "tls-rustls")))]
+#[cfg(not(feature = "_tls"))]
 type Connector = HttpConnector;
 
 #[cfg(feature = "tls-native")]
 type Connector = hyper_tls::HttpsConnector<HttpConnector>;
 
-#[cfg(feature = "tls-rustls")]
+#[cfg(feature = "_tls-rustls")]
 type Connector = hyper_rustls::HttpsConnector<HttpConnector>;
+
+fn create_connector() -> Connector {
+    #[cfg(not(feature = "_tls"))]
+    let connector = HttpConnector;
+
+    #[cfg(feature = "tls-native")]
+    let connector = hyper_tls::HttpsConnector::new();
+
+    #[cfg(feature = "tls-rustls-native-roots")]
+    let connector = hyper_rustls::HttpsConnector::with_native_roots();
+
+    #[cfg(feature = "tls-rustls-webpki-roots")]
+    let connector = hyper_rustls::HttpsConnector::with_webpki_roots();
+
+    connector
+}
 
 /// A client for the Matrix client-server API.
 #[derive(Clone, Debug)]
@@ -159,7 +175,7 @@ impl Client {
     pub fn new(homeserver_url: Uri, session: Option<Session>) -> Self {
         Self(Arc::new(ClientData {
             homeserver_url,
-            hyper: HyperClient::builder().build(Connector::new()),
+            hyper: HyperClient::builder().build(create_connector()),
             session: Mutex::new(session),
         }))
     }
@@ -174,7 +190,7 @@ impl Client {
     ) -> Self {
         Self(Arc::new(ClientData {
             homeserver_url,
-            hyper: client_builder.build(Connector::new()),
+            hyper: client_builder.build(create_connector()),
             session: Mutex::new(session),
         }))
     }

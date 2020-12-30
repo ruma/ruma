@@ -1,13 +1,19 @@
 use std::{env, process};
 
 fn main() {
-    let tls_native_active = env::var_os("CARGO_FEATURE_TLS_NATIVE").is_some();
-    let tls_rustls_active = env::var_os("CARGO_FEATURE_TLS_RUSTLS").is_some();
+    let tls_features = [
+        ("tls-native", env::var_os("CARGO_FEATURE_TLS_NATIVE").is_some()),
+        ("tls-rustls-native-roots", env::var_os("CARGO_FEATURE_TLS_RUSTLS_NATIVE_ROOTS").is_some()),
+        ("tls-rustls-webpki-roots", env::var_os("CARGO_FEATURE_TLS_RUSTLS_WEBPKI_ROOTS").is_some()),
+    ];
 
-    if tls_native_active && tls_rustls_active {
-        eprintln!(
-            "error: The tls-native and tls-rustls features can't be activated at the same time."
-        );
+    if tls_features.iter().filter(|(_, a)| *a).count() > 1 {
+        eprintln!("error: Only one tls features can be enabled.");
+
+        for (f, a) in &tls_features {
+            eprintln!("  {}: {}", f, if *a { "enabled" } else { "disabled" });
+        }
+
         process::exit(1);
     }
 }

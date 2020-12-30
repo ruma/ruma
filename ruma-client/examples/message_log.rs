@@ -57,7 +57,7 @@ async fn log_messages(homeserver_url: Uri, username: &str, password: &str) -> an
     Ok(())
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
     let (homeserver_url, username, password) =
         match (env::args().nth(1), env::args().nth(2), env::args().nth(3)) {

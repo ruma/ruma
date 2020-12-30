@@ -45,8 +45,11 @@ tasks:
       cargo check --no-default-features --quiet
       client_1_exit=$?
 
-      cargo check --no-default-features --features tls-rustls --quiet
+      cargo check --no-default-features --features http1,http2,tls-rustls-native-roots --quiet
       client_2_exit=$?
+
+      cargo check --no-default-features --features http1,http2,tls-rustls-webpki-roots --quiet
+      client_3_exit=$?
 
       popd
 
@@ -57,6 +60,7 @@ tasks:
         || $client_api_exit \
         || $client_1_exit \
         || $client_2_exit \
+        || $client_3_exit \
       ))
   # TODO: Add audit task once cargo-audit binary releases are available.
   #       See https://github.com/RustSec/cargo-audit/issues/66

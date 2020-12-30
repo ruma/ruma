@@ -30,7 +30,7 @@ async fn hello_world(
     Ok(())
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
     let (homeserver_url, username, password, room) =
         match (env::args().nth(1), env::args().nth(2), env::args().nth(3), env::args().nth(4)) {
