@@ -114,7 +114,7 @@ pub fn do_check(
                 &room_id(),
                 &RoomVersionId::Version6,
                 &state_sets,
-                Some(event_map.clone()),
+                &mut event_map,
                 &store,
             );
             match resolved {

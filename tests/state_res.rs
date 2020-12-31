@@ -265,11 +265,12 @@ fn test_event_map_none() {
     // build up the DAG
     let (state_at_bob, state_at_charlie, expected) = store.set_up();
 
+    let mut ev_map = state_res::EventMap::default();
     let resolved = match StateResolution::resolve(
         &room_id(),
         &RoomVersionId::Version2,
         &[state_at_bob, state_at_charlie],
-        None,
+        &mut ev_map,
         &store,
     ) {
         Ok(state) => state,

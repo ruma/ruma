@@ -36,7 +36,15 @@ fn test_ban_pass() {
         &vec![event_id("IMC")],
     );
 
-    assert!(valid_membership_change(&requester, prev, None, &auth_events).unwrap())
+    assert!(valid_membership_change(
+        requester.state_key().as_deref(),
+        requester.sender(),
+        requester.content(),
+        prev,
+        None,
+        &auth_events
+    )
+    .unwrap())
 }
 
 #[test]
@@ -63,5 +71,13 @@ fn test_ban_fail() {
         &vec![event_id("IMC")],
     );
 
-    assert!(!valid_membership_change(&requester, prev, None, &auth_events).unwrap())
+    assert!(!valid_membership_change(
+        requester.state_key().as_deref(),
+        requester.sender(),
+        requester.content(),
+        prev,
+        None,
+        &auth_events
+    )
+    .unwrap())
 }

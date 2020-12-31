@@ -48,11 +48,12 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
         let (state_at_bob, state_at_charlie, _) = store.set_up();
 
         b.iter(|| {
+            let mut ev_map = state_res::EventMap::default();
             let _resolved = match StateResolution::resolve(
                 &room_id(),
                 &RoomVersionId::Version6,
                 &[state_at_bob.clone(), state_at_charlie.clone()],
-                None,
+                &mut ev_map,
                 &store,
             ) {
                 Ok(state) => state,
@@ -102,7 +103,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
                 &room_id(),
                 &RoomVersionId::Version6,
                 &[state_set_a.clone(), state_set_b.clone()],
-                Some(inner.clone()),
+                &mut inner,
                 &store,
             ) {
                 Ok(state) => state,

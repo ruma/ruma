@@ -41,11 +41,17 @@ fn ban_with_auth_chains() {
 fn base_with_auth_chains() {
     let store = TestStore(INITIAL_EVENTS());
 
-    let resolved: BTreeMap<_, EventId> =
-        match StateResolution::resolve(&room_id(), &RoomVersionId::Version6, &[], None, &store) {
-            Ok(state) => state,
-            Err(e) => panic!("{}", e),
-        };
+    let mut ev_map = state_res::EventMap::default();
+    let resolved: BTreeMap<_, EventId> = match StateResolution::resolve(
+        &room_id(),
+        &RoomVersionId::Version6,
+        &[],
+        &mut ev_map,
+        &store,
+    ) {
+        Ok(state) => state,
+        Err(e) => panic!("{}", e),
+    };
 
     let resolved = resolved
         .values()
@@ -105,11 +111,12 @@ fn ban_with_auth_chains2() {
     .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().clone()))
     .collect::<StateMap<_>>();
 
+    let mut ev_map = state_res::EventMap::default();
     let resolved: StateMap<EventId> = match StateResolution::resolve(
         &room_id(),
         &RoomVersionId::Version6,
         &[state_set_a, state_set_b],
-        None,
+        &mut ev_map,
         &store,
     ) {
         Ok(state) => state,

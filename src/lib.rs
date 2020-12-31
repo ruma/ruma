@@ -46,17 +46,12 @@ impl StateResolution {
         room_version: &RoomVersionId,
         incoming_event: Arc<E>,
         current_state: &StateMap<EventId>,
-        event_map: Option<EventMap<Arc<E>>>,
+        event_map: &mut EventMap<Arc<E>>,
         store: &dyn StateStore<E>,
     ) -> Result<bool> {
         tracing::info!("Applying a single event, state resolution starting");
         let ev = incoming_event;
 
-        let mut event_map = if let Some(ev_map) = event_map {
-            ev_map
-        } else {
-            EventMap::new()
-        };
         let prev_event = if let Some(id) = ev.prev_events().first() {
             store.get_event(room_id, id).ok()
         } else {
@@ -69,7 +64,7 @@ impl StateResolution {
         {
             if let Some(ev_id) = current_state.get(&key) {
                 if let Some(event) =
-                    StateResolution::get_or_load_event(room_id, ev_id, &mut event_map, store)
+                    StateResolution::get_or_load_event(room_id, ev_id, event_map, store)
                 {
                     // TODO synapse checks `rejected_reason` is None here
                     auth_events.insert(key.clone(), event);
@@ -102,17 +97,11 @@ impl StateResolution {
         room_id: &RoomId,
         room_version: &RoomVersionId,
         state_sets: &[StateMap<EventId>],
-        // TODO: make the `Option<&mut EventMap<Arc<ServerPdu>>>`
-        event_map: Option<EventMap<Arc<E>>>,
+        event_map: &mut EventMap<Arc<E>>,
         store: &dyn StateStore<E>,
     ) -> Result<StateMap<EventId>> {
         tracing::info!("State resolution starting");
 
-        let mut event_map = if let Some(ev_map) = event_map {
-            ev_map
-        } else {
-            EventMap::new()
-        };
         // split non-conflicting and conflicting state
         let (clean, conflicting) = StateResolution::separate(&state_sets);
 
@@ -178,7 +167,7 @@ impl StateResolution {
         let mut sorted_control_levels = StateResolution::reverse_topological_power_sort(
             room_id,
             &control_events,
-            &mut event_map,
+            event_map,
             store,
             &all_conflicted,
         );
@@ -197,7 +186,7 @@ impl StateResolution {
             room_version,
             &sorted_control_levels,
             &clean,
-            &mut event_map,
+            event_map,
             store,
         )?;
 
@@ -238,7 +227,7 @@ impl StateResolution {
             room_id,
             &events_to_resolve,
             power_event,
-            &mut event_map,
+            event_map,
             store,
         );
 
@@ -255,7 +244,7 @@ impl StateResolution {
             room_version,
             &sorted_left_events,
             &resolved_control, // The control events are added to the final resolved state
-            &mut event_map,
+            event_map,
             store,
         )?;
 
