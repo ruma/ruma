@@ -36,7 +36,12 @@ mod tests {
             room_id: room_id!("!jEsUZKDJdhlrceRyVU:example.org"),
             state_key: "rule:#*:example.org".into(),
             prev_content: None,
-            unsigned: Unsigned { age: Some(1234.into()), transaction_id: None },
+            unsigned: Unsigned {
+                age: Some(1234.into()),
+                transaction_id: None,
+                #[cfg(feature = "unstable-pre-spec")]
+                relations: None,
+            },
             content: RoomEventContent(PolicyRuleEventContent {
                 entity: "#*:example.org".into(),
                 reason: "undesirable content".into(),
