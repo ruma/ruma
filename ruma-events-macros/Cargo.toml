@@ -14,10 +14,10 @@ license = "MIT"
 name = "ruma-events-macros"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.22.0-alpha.1"
+version = "0.22.0-alpha.2"
 
 [dependencies]
-syn = { version = "1.0.55", features = ["full"] }
+syn = { version = "1.0.57", features = ["full"] }
 quote = "1.0.8"
 proc-macro2 = "1.0.24"
 proc-macro-crate = "0.1.5"
