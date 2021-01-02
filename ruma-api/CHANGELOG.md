@@ -1,7 +1,9 @@
-# [unreleased]
+# 0.17.0 (unreleased)
 
 Breaking changes:
 
+* Update the syntax of the `ruma_api!` macro. Colons are now required after the keywords `metadata`,
+  `request` and `response`.
 * The `EndpointError` trait now requires `std::error::Error`. This allows integrating
   `EndpointError`s in the common rust error ecosystem like `thiserror` and `anyhow`.
 * The `Endpoint` trait has been replaced by two new traits that each capture a subset of its
@@ -14,13 +16,6 @@ Breaking changes:
 Improvements:
 
 * The `EndpointError`s that come with ruma crates now implement `std::errror::Error`.
-
-# 0.17.0
-
-Breaking changes:
-
-* Update the syntax of the `ruma_api!` macro. Colons are now required after the keywords `metadata`,
-  `request` and `response`.
 
 # 0.16.1
 

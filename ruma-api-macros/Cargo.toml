@@ -1,7 +1,7 @@
 [package]
 authors = [
-  "Jimmy Cuadra <jimmy@jimmycuadra.com>",
-  "Jonas Platte <jplatte@posteo.de>",
+    "Jimmy Cuadra <jimmy@jimmycuadra.com>",
+    "Jonas Platte <jplatte@posteo.de>",
 ]
 categories = ["api-bindings", "web-programming"]
 description = "A procedural macro for generating ruma-api Endpoints."
@@ -12,13 +12,13 @@ license = "MIT"
 name = "ruma-api-macros"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.17.0-alpha.1"
+version = "0.17.0-alpha.2"
 edition = "2018"
 
 [dependencies]
 proc-macro2 = "1.0.24"
 quote = "1.0.8"
-syn = { version = "1.0.55", features = ["full", "extra-traits"] }
+syn = { version = "1.0.57", features = ["full", "extra-traits"] }
 proc-macro-crate = "0.1.5"
 
 [lib]
