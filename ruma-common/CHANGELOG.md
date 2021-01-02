@@ -1,8 +1,10 @@
-# [unreleased]
+# 0.3.0 (unreleased)
 
 Breaking changes:
 
-* Update strum dependency to 0.19
+* Update set of conversion trait implementations for enums
+* … (there's a lot more, but this changelog was not kept up to date; PRs to
+  improve it are welcome)
 
 Improvements:
 
