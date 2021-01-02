@@ -21,7 +21,7 @@ ruma-identifiers = { version = "=0.18.0-alpha.1", path = "../ruma-identifiers", 
 ruma-serde = { version = "0.3.0", path = "../ruma-serde" }
 
 ruma-events = { version = "=0.22.0-alpha.1", path = "../ruma-events", optional = true }
-ruma-signatures = { version = "0.6.0-dev.1", path = "../ruma-signatures", optional = true }
+ruma-signatures = { version = "=0.6.0-alpha.1", path = "../ruma-signatures", optional = true }
 
 ruma-api = { version = "=0.17.0-alpha.1", path = "../ruma-api", optional = true }
 ruma-appservice-api = { version = "=0.2.0-alpha.1", path = "../ruma-appservice-api", optional = true }
@@ -47,19 +47,19 @@ identity-service-api = ["ruma-api", "ruma-identity-service-api"]
 push-gateway-api = ["ruma-api", "ruma-push-gateway-api"]
 
 unstable-exhaustive-types = [
-  "ruma-events/unstable-exhaustive-types",
-  "ruma-appservice-api/unstable-exhaustive-types",
-  "ruma-client-api/unstable-exhaustive-types",
-  "ruma-federation-api/unstable-exhaustive-types",
-  "ruma-common/unstable-exhaustive-types",
+    "ruma-events/unstable-exhaustive-types",
+    "ruma-appservice-api/unstable-exhaustive-types",
+    "ruma-client-api/unstable-exhaustive-types",
+    "ruma-federation-api/unstable-exhaustive-types",
+    "ruma-common/unstable-exhaustive-types",
 ]
 unstable-pre-spec = [
-  "ruma-client-api/unstable-pre-spec",
-  "ruma-events/unstable-pre-spec",
-  "ruma-federation-api/unstable-pre-spec",
+    "ruma-client-api/unstable-pre-spec",
+    "ruma-events/unstable-pre-spec",
+    "ruma-federation-api/unstable-pre-spec",
 ]
 unstable-synapse-quirks = [
-  "ruma-client-api/unstable-synapse-quirks",
-  "ruma-common/unstable-synapse-quirks",
-  "ruma-events/unstable-synapse-quirks",
+    "ruma-client-api/unstable-synapse-quirks",
+    "ruma-common/unstable-synapse-quirks",
+    "ruma-events/unstable-synapse-quirks",
 ]
