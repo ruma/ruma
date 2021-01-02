@@ -1,20 +1,22 @@
-# [unreleased]
+# 0.18.0 (unreleased)
 
 Breaking changes:
 
-* Update strum dependency to 0.19
 * Remove deprecated constructors
 * Remove deprecated `is_` methods
 * Rename `ServerKeyAlgorithm` to `SigningKeyAlgorithm`
 * Rename `ServerKeyId` to `ServerSigningKeyId`
 * Rename `Error::MissingSigil` to `Error::MissingLeadingSigil`
 * Merge all missing delimiter error variants
+* Update the set of conversion trait implementations for crypto algorithms
 
 Improvements:
 
 * Add `DeviceKeyId::from_parts` and `SigningKeyId::from_parts`
 * Add `DeviceIdBox` and `ServerNameBox` type aliases
 * Clean up debug logs for identifiers
+* Allow crypto algorithm enums to contain any string, for forwards compatibility
+  and to allow experimentation with non-specified ones
 
 # 0.17.4
 
