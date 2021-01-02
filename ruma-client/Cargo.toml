@@ -28,7 +28,7 @@ ruma-client-api = { version = "0.10.0-alpha.1", path = "../ruma-client-api" }
 ruma-common = { version = "0.2.0", path = "../ruma-common" }
 ruma-events = { version = "=0.22.0-alpha.1", path = "../ruma-events" }
 ruma-identifiers = { version = "0.17.4", path = "../ruma-identifiers" }
-ruma-serde = { version = "0.2.3", path = "../ruma-serde" }
+ruma-serde = { version = "0.3.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"
 
@@ -43,8 +43,16 @@ default = ["http1", "http2", "tls-native"]
 http1 = ["hyper/http1"]
 http2 = ["hyper/http2"]
 tls-native = ["hyper-tls", "_tls"]
-tls-rustls-native-roots = ["hyper-rustls", "hyper-rustls/native-tokio", "_tls-rustls"]
-tls-rustls-webpki-roots = ["hyper-rustls", "hyper-rustls/webpki-tokio", "_tls-rustls"]
+tls-rustls-native-roots = [
+    "hyper-rustls",
+    "hyper-rustls/native-tokio",
+    "_tls-rustls",
+]
+tls-rustls-webpki-roots = [
+    "hyper-rustls",
+    "hyper-rustls/webpki-tokio",
+    "_tls-rustls",
+]
 
 unstable-synapse-quirks = ["ruma-events/unstable-synapse-quirks"]
 
