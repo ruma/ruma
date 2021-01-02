@@ -17,7 +17,6 @@ Breaking changes:
 * `presence::PresenceState` has been moved. Import it from `ruma` or `ruma-common`.
 * `EventJson` has been moved and renamed. Import it from `ruma` or `ruma-common`.
 * The `in_reply_to` field of `room::message::RelatesTo` is now optional
-* Update strum dependency to 0.19
 * Use `ruma_identifiers::{ServerName, ServerKeyId}` in `signatures` fields of
   `pdu::RoomV1Pdu, RoomV1PduStub, RoomV3Pdu, RoomV3PduStub}` and
   `room::member::SignedContent`.
