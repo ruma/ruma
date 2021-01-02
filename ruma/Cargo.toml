@@ -9,11 +9,11 @@ homepage = "https://www.ruma.io/"
 repository = "https://github.com/ruma/ruma"
 readme = "README.md"
 license = "MIT"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2018"
 
 [dependencies]
-assign = "1.1.0"
+assign = "1.1.1"
 js_int = "0.2.0"
 
 ruma-common = { version = "=0.3.0-alpha.1", path = "../ruma-common" }
