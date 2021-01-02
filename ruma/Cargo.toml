@@ -24,11 +24,11 @@ ruma-events = { version = "=0.22.0-alpha.2", path = "../ruma-events", optional =
 ruma-signatures = { version = "=0.6.0-alpha.1", path = "../ruma-signatures", optional = true }
 
 ruma-api = { version = "=0.17.0-alpha.2", path = "../ruma-api", optional = true }
-ruma-appservice-api = { version = "=0.2.0-alpha.1", path = "../ruma-appservice-api", optional = true }
-ruma-client-api = { version = "=0.10.0-alpha.1", path = "../ruma-client-api", optional = true }
-ruma-federation-api = { version = "0.0.3", path = "../ruma-federation-api", optional = true }
-ruma-identity-service-api = { version = "0.0.0", path = "../ruma-identity-service-api", optional = true }
-ruma-push-gateway-api = { version = "0.0.0", path = "../ruma-push-gateway-api", optional = true }
+ruma-appservice-api = { version = "=0.2.0-alpha.2", path = "../ruma-appservice-api", optional = true }
+ruma-client-api = { version = "=0.10.0-alpha.2", path = "../ruma-client-api", optional = true }
+ruma-federation-api = { version = "=0.1.0-alpha.1", path = "../ruma-federation-api", optional = true }
+ruma-identity-service-api = { version = "0.0.1", path = "../ruma-identity-service-api", optional = true }
+ruma-push-gateway-api = { version = "0.0.1", path = "../ruma-push-gateway-api", optional = true }
 
 [dev-dependencies]
 serde = { version = "1.0.118", features = ["derive"] }

@@ -13,11 +13,11 @@ license = "MIT"
 name = "ruma-client-api"
 readme = "README.md"
 repository = "https://github.com/ruma/ruma"
-version = "0.10.0-alpha.1"
+version = "0.10.0-alpha.2"
 edition = "2018"
 
 [dependencies]
-assign = "1.1.0"
+assign = "1.1.1"
 http = "0.2.2"
 js_int = { version = "0.2.0", features = ["serde"] }
 maplit = "1.0.2"
@@ -28,7 +28,7 @@ ruma-events = { version = "=0.22.0-alpha.2", path = "../ruma-events" }
 ruma-identifiers = { version = "=0.18.0-alpha.1", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.3.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
-serde_json = "1.0.60"
+serde_json = "1.0.61"
 
 [dev-dependencies]
 maplit = "1.0.2"

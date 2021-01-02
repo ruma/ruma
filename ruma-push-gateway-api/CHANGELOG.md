@@ -1,5 +1,5 @@
-# [Unreleased]
+# [unreleased]
 
-Improvements:
+# 0.0.1
 
-* Add `send_event_notification::v1` endpoint
+* Add endpoint `send_event_notification::v1`

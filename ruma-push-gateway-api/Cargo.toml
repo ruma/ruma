@@ -1,6 +1,6 @@
 [package]
 name = "ruma-push-gateway-api"
-version = "0.0.0"
+version = "0.0.1"
 authors = ["Jonas Platte <jplatte@posteo.de>"]
 description = "Types for the endpoints in the Matrix push gateway API."
 homepage = "https://www.ruma.io/"
@@ -18,7 +18,7 @@ ruma-events = { version = "0.22.0-alpha.1", path = "../ruma-events" }
 ruma-identifiers = { version = "=0.18.0-alpha.1", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.3.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
-serde_json = "1.0.60"
+serde_json = "1.0.61"
 
 [features]
 unstable-exhaustive-types = []

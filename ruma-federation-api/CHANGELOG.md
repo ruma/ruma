@@ -1,4 +1,4 @@
-# [unreleased]
+# 0.1.0 (unreleased)
 
 Breaking Changes:
 
@@ -7,6 +7,7 @@ Breaking Changes:
 * Wrap `PduStub`s in `membership::create_join_event` in `Raw`
 * Remove `PduStub` (it only existed because of the spec being misleading)
   * Rename `pdu_stub` fields to `pdu`
+* Upgrade dependencies
 
 Improvements:
 
