@@ -4,7 +4,7 @@ use ruma::{
     events::EventType,
     identifiers::{EventId, RoomVersionId},
 };
-use state_res::{is_power_event, Event, StateMap};
+use state_res::{is_power_event, StateMap};
 
 mod utils;
 use utils::{room_id, TestStore, INITIAL_EVENTS};

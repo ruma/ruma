@@ -71,7 +71,7 @@ pub fn auth_check<E: Event>(
     room_version: &RoomVersionId,
     incoming_event: &Arc<E>,
     prev_event: Option<Arc<E>>,
-    auth_events: StateMap<Arc<E>>,
+    auth_events: &StateMap<Arc<E>>,
     current_third_party_invite: Option<Arc<E>>,
 ) -> Result<bool> {
     tracing::info!("auth_check beginning for {}", incoming_event.kind());
@@ -315,22 +315,7 @@ pub fn valid_membership_change<E: Event>(
 
     let key = (EventType::RoomPowerLevels, Some("".into()));
     let power_levels = auth_events.get(&key).map_or_else(
-        || {
-            Ok::<_, Error>(power_levels::PowerLevelsEventContent {
-                ban: 50.into(),
-                events: BTreeMap::new(),
-                events_default: 0.into(),
-                invite: 50.into(),
-                kick: 50.into(),
-                redact: 50.into(),
-                state_default: 0.into(),
-                users: BTreeMap::new(),
-                users_default: 0.into(),
-                notifications: ruma::events::room::power_levels::NotificationPowerLevels {
-                    room: 50.into(),
-                },
-            })
-        },
+        || Ok::<_, Error>(power_levels::PowerLevelsEventContent::default()),
         |power_levels| {
             serde_json::from_value::<PowerLevelsEventContent>(power_levels.content())
                 .map_err(Into::into)
@@ -458,7 +443,7 @@ pub fn can_send_event<E: Event>(event: &Arc<E>, auth_events: &StateMap<Arc<E>>) 
 
     tracing::debug!(
         "{} ev_type {} usr {}",
-        event.event_id().to_string(),
+        event.event_id().as_str(),
         event_type_power_level,
         user_level
     );
@@ -773,7 +758,7 @@ pub fn get_send_level<E: Event>(
             }
             lvl
         } else {
-            50
+            50 // default power level
         }
     } else {
         0

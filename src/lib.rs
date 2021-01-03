@@ -72,7 +72,7 @@ impl StateResolution {
             }
         }
 
-        event_auth::auth_check(room_version, &ev, prev_event, auth_events, None)
+        event_auth::auth_check(room_version, &ev, prev_event, &auth_events, None)
     }
 
     /// Resolve sets of state events as they come in. Internally `StateResolution` builds a graph
@@ -586,7 +586,7 @@ impl StateResolution {
                 room_version,
                 &event,
                 most_recent_prev_event,
-                auth_events,
+                &auth_events,
                 current_third_party,
             )? {
                 // add event to resolved state map

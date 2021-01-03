@@ -10,7 +10,7 @@ use state_res::{
 };
 
 mod utils;
-use utils::{alice, charlie, event_id, member_content_ban, room_id, to_pdu_event, INITIAL_EVENTS};
+use utils::{alice, charlie, event_id, member_content_ban, to_pdu_event, INITIAL_EVENTS};
 
 #[test]
 fn test_ban_pass() {
@@ -32,8 +32,8 @@ fn test_ban_pass() {
         ruma::events::EventType::RoomMember,
         Some(charlie().as_str()),
         member_content_ban(),
-        &vec![],
-        &vec![event_id("IMC")],
+        &[],
+        &[event_id("IMC")],
     );
 
     assert!(valid_membership_change(
@@ -67,8 +67,8 @@ fn test_ban_fail() {
         ruma::events::EventType::RoomMember,
         Some(alice().as_str()),
         member_content_ban(),
-        &vec![],
-        &vec![event_id("IMC")],
+        &[],
+        &[event_id("IMC")],
     );
 
     assert!(!valid_membership_change(
