@@ -17,7 +17,6 @@ mod kw {
 /// Parses attributes for `*EventContent` derives.
 ///
 /// `#[ruma_event(type = "m.room.alias")]`
-#[derive(Eq, PartialEq)]
 enum EventMeta {
     /// Variant holds the "m.whatever" event type.
     Type(LitStr),
@@ -60,7 +59,7 @@ struct MetaAttrs(Vec<EventMeta>);
 
 impl MetaAttrs {
     fn is_custom(&self) -> bool {
-        self.0.iter().any(|a| a == &EventMeta::CustomRedacted)
+        self.0.iter().any(|a| matches!(a, &EventMeta::CustomRedacted))
     }
 
     fn get_event_type(&self) -> Option<&LitStr> {
@@ -127,8 +126,10 @@ pub fn expand_event_content(
             let mut fields = named
                 .iter()
                 .filter(|f| {
-                    f.attrs.iter().find_map(|a| a.parse_args::<EventMeta>().ok())
-                        == Some(EventMeta::SkipRedacted)
+                    matches!(
+                        f.attrs.iter().find_map(|a| a.parse_args::<EventMeta>().ok()),
+                        Some(EventMeta::SkipRedacted)
+                    )
                 })
                 .cloned()
                 .collect::<Vec<_>>();
