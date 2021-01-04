@@ -107,8 +107,8 @@ use std::{
 };
 
 use assign::assign;
-use futures_core::stream::{Stream, TryStream};
-use futures_util::stream;
+use async_stream::try_stream;
+use futures_core::stream::Stream;
 use http::{uri::Uri, Response as HttpResponse};
 use hyper::client::{Client as HyperClient, HttpConnector};
 use ruma_api::{AuthScheme, OutgoingRequest};
@@ -302,17 +302,13 @@ impl Client {
     pub fn sync<'a>(
         &self,
         filter: Option<&'a SyncFilter<'a>>,
-        since: String,
+        mut since: String,
         set_presence: &'a PresenceState,
         timeout: Option<Duration>,
-    ) -> impl Stream<Item = Result<SyncResponse, Error<ruma_client_api::Error>>>
-           + TryStream<Ok = SyncResponse, Error = Error<ruma_client_api::Error>>
-           + 'a {
+    ) -> impl Stream<Item = Result<SyncResponse, Error<ruma_client_api::Error>>> + 'a {
         let client = self.clone();
-        stream::try_unfold(since, move |since| {
-            let client = client.clone();
-
-            async move {
+        try_stream! {
+            loop {
                 let response = client
                     .request(assign!(SyncRequest::new(), {
                         filter,
@@ -322,10 +318,10 @@ impl Client {
                     }))
                     .await?;
 
-                let next_batch_clone = response.next_batch.clone();
-                Ok(Some((response, next_batch_clone)))
+                since = response.next_batch.clone();
+                yield response;
             }
-        })
+        }
     }
 
     /// Makes a request to a Matrix API endpoint.
