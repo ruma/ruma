@@ -4,6 +4,7 @@ use ruma::identifiers::{EventId, RoomId};
 
 use crate::{Event, Result};
 
+/// TODO: this is only used in testing on this branch now REMOVE
 pub trait StateStore<E: Event> {
     /// Return a single event based on the EventId.
     fn get_event(&self, room_id: &RoomId, event_id: &EventId) -> Result<Arc<E>>;

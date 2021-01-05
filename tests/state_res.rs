@@ -6,7 +6,7 @@ use ruma::{
     identifiers::{EventId, RoomVersionId},
 };
 use serde_json::json;
-use state_res::{StateMap, StateResolution};
+use state_res::{StateMap, StateResolution, StateStore};
 use tracing_subscriber as tracer;
 
 mod utils;
@@ -265,13 +265,21 @@ fn test_event_map_none() {
     // build up the DAG
     let (state_at_bob, state_at_charlie, expected) = store.set_up();
 
-    let mut ev_map = state_res::EventMap::default();
-    let resolved = match StateResolution::resolve(
+    let mut ev_map: state_res::EventMap<Arc<StateEvent>> = store.0.clone();
+    let state_sets = vec![state_at_bob, state_at_charlie];
+    let resolved = match StateResolution::resolve::<StateEvent>(
         &room_id(),
         &RoomVersionId::Version2,
-        &[state_at_bob, state_at_charlie],
+        &state_sets,
+        state_sets
+            .iter()
+            .map(|map| {
+                store
+                    .auth_event_ids(&room_id(), &map.values().cloned().collect::<Vec<_>>())
+                    .unwrap()
+            })
+            .collect(),
         &mut ev_map,
-        &store,
     ) {
         Ok(state) => state,
         Err(e) => panic!("{}", e),

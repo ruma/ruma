@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, convert::TryFrom, sync::Arc};
+use std::{convert::TryFrom, sync::Arc};
 
 use maplit::btreeset;
 use ruma::{
@@ -67,6 +67,10 @@ pub fn auth_types_for_event(
 /// * check that the event is being authenticated for the correct room
 /// * check that the events signatures are valid
 /// * then there are checks for specific event types
+///
+/// The `auth_events` that are passed to this function should be a state snapshot.
+/// We need to know if the event passes auth against some state not a recursive collection
+/// of auth_events fields.
 pub fn auth_check<E: Event>(
     room_version: &RoomVersionId,
     incoming_event: &Arc<E>,

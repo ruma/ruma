@@ -7,7 +7,7 @@ use ruma::{
     identifiers::{EventId, RoomVersionId},
 };
 use serde_json::json;
-use state_res::{StateMap, StateResolution};
+use state_res::{EventMap, StateMap, StateResolution, StateStore};
 
 mod utils;
 use utils::{
@@ -34,46 +34,6 @@ fn ban_with_auth_chains() {
         edges,
         expected_state_ids,
     );
-}
-
-// Sanity check that the store is able to fetch auth chain and such
-#[test]
-fn base_with_auth_chains() {
-    let store = TestStore(INITIAL_EVENTS());
-
-    let mut ev_map = state_res::EventMap::default();
-    let resolved: BTreeMap<_, EventId> = match StateResolution::resolve(
-        &room_id(),
-        &RoomVersionId::Version6,
-        &[],
-        &mut ev_map,
-        &store,
-    ) {
-        Ok(state) => state,
-        Err(e) => panic!("{}", e),
-    };
-
-    let resolved = resolved
-        .values()
-        .cloned()
-        .chain(INITIAL_EVENTS().values().map(|e| e.event_id().clone()))
-        .collect::<Vec<_>>();
-
-    let expected = vec![
-        "$CREATE:foo",
-        "$IJR:foo",
-        "$IPOWER:foo",
-        "$IMA:foo",
-        "$IMB:foo",
-        "$IMC:foo",
-        "START",
-        "END",
-    ];
-    for id in expected.iter().map(|i| event_id(i)) {
-        // make sure our resolved events are equal to the expected list
-        assert!(resolved.iter().any(|eid| eid == &id), "{}", id)
-    }
-    assert_eq!(expected.len(), resolved.len())
 }
 
 #[test]
@@ -111,13 +71,21 @@ fn ban_with_auth_chains2() {
     .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().clone()))
     .collect::<StateMap<_>>();
 
-    let mut ev_map = state_res::EventMap::default();
-    let resolved: StateMap<EventId> = match StateResolution::resolve(
+    let mut ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
+    let state_sets = vec![state_set_a, state_set_b];
+    let resolved = match StateResolution::resolve::<StateEvent>(
         &room_id(),
-        &RoomVersionId::Version6,
-        &[state_set_a, state_set_b],
+        &RoomVersionId::Version2,
+        &state_sets,
+        state_sets
+            .iter()
+            .map(|map| {
+                store
+                    .auth_event_ids(&room_id(), &map.values().cloned().collect::<Vec<_>>())
+                    .unwrap()
+            })
+            .collect(),
         &mut ev_map,
-        &store,
     ) {
         Ok(state) => state,
         Err(e) => panic!("{}", e),

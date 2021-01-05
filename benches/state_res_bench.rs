@@ -48,13 +48,21 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
         let (state_at_bob, state_at_charlie, _) = store.set_up();
 
         b.iter(|| {
-            let mut ev_map = state_res::EventMap::default();
-            let _resolved = match StateResolution::resolve(
+            let mut ev_map: state_res::EventMap<Arc<event::StateEvent>> = store.0.clone();
+            let state_sets = vec![state_at_bob.clone(), state_at_charlie.clone()];
+            let _ = match StateResolution::resolve::<event::StateEvent>(
                 &room_id(),
-                &RoomVersionId::Version6,
-                &[state_at_bob.clone(), state_at_charlie.clone()],
+                &RoomVersionId::Version2,
+                &state_sets,
+                state_sets
+                    .iter()
+                    .map(|map| {
+                        store
+                            .auth_event_ids(&room_id(), &map.values().cloned().collect::<Vec<_>>())
+                            .unwrap()
+                    })
+                    .collect(),
                 &mut ev_map,
-                &store,
             ) {
                 Ok(state) => state,
                 Err(e) => panic!("{}", e),
@@ -99,12 +107,20 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         .collect::<StateMap<_>>();
 
         b.iter(|| {
-            let _resolved = match StateResolution::resolve(
+            let state_sets = vec![state_set_a.clone(), state_set_b.clone()];
+            let _ = match StateResolution::resolve::<event::StateEvent>(
                 &room_id(),
-                &RoomVersionId::Version6,
-                &[state_set_a.clone(), state_set_b.clone()],
+                &RoomVersionId::Version2,
+                &state_sets,
+                state_sets
+                    .iter()
+                    .map(|map| {
+                        store
+                            .auth_event_ids(&room_id(), &map.values().cloned().collect::<Vec<_>>())
+                            .unwrap()
+                    })
+                    .collect(),
                 &mut inner,
-                &store,
             ) {
                 Ok(state) => state,
                 Err(_) => panic!("resolution failed during benchmarking"),
@@ -530,7 +546,9 @@ pub mod event {
         fn hashes(&self) -> &EventHash {
             self.hashes()
         }
-        fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ruma::ServerSigningKeyId, String>> {
+        fn signatures(
+            &self,
+        ) -> BTreeMap<Box<ServerName>, BTreeMap<ruma::ServerSigningKeyId, String>> {
             self.signatures()
         }
         fn unsigned(&self) -> &BTreeMap<String, JsonValue> {
@@ -643,7 +661,10 @@ pub mod event {
     }
 
     impl StateEvent {
-        pub fn from_id_value(id: EventId, json: serde_json::Value) -> Result<Self, serde_json::Error> {
+        pub fn from_id_value(
+            id: EventId,
+            json: serde_json::Value,
+        ) -> Result<Self, serde_json::Error> {
             Ok(Self::Full(
                 id,
                 Pdu::RoomV3Pdu(serde_json::from_value(json)?),
@@ -671,6 +692,7 @@ pub mod event {
                         EventType::RoomMember => {
                             if let Ok(content) =
                                 // TODO fix clone
+                               
                                 serde_json::from_value::<MemberEventContent>(event.content.clone())
                             {
                                 if [MembershipState::Leave, MembershipState::Ban]
@@ -771,7 +793,9 @@ pub mod event {
         pub fn prev_event_ids(&self) -> Vec<EventId> {
             match self {
                 Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => ev.prev_events.iter().map(|(id, _)| id).cloned().collect(),
+                    Pdu::RoomV1Pdu(ev) => {
+                        ev.prev_events.iter().map(|(id, _)| id).cloned().collect()
+                    }
                     Pdu::RoomV3Pdu(ev) => ev.prev_events.clone(),
                 },
             }
@@ -780,7 +804,9 @@ pub mod event {
         pub fn auth_events(&self) -> Vec<EventId> {
             match self {
                 Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => ev.auth_events.iter().map(|(id, _)| id).cloned().collect(),
+                    Pdu::RoomV1Pdu(ev) => {
+                        ev.auth_events.iter().map(|(id, _)| id).cloned().collect()
+                    }
                     Pdu::RoomV3Pdu(ev) => ev.auth_events.to_vec(),
                 },
             }

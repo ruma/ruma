@@ -46,14 +46,13 @@ impl StateResolution {
         room_version: &RoomVersionId,
         incoming_event: Arc<E>,
         current_state: &StateMap<EventId>,
-        event_map: &mut EventMap<Arc<E>>,
-        store: &dyn StateStore<E>,
+        event_map: &EventMap<Arc<E>>,
     ) -> Result<bool> {
         tracing::info!("Applying a single event, state resolution starting");
         let ev = incoming_event;
 
         let prev_event = if let Some(id) = ev.prev_events().first() {
-            store.get_event(room_id, id).ok()
+            event_map.get(id).map(Arc::clone)
         } else {
             None
         };
@@ -63,9 +62,7 @@ impl StateResolution {
             event_auth::auth_types_for_event(&ev.kind(), &ev.sender(), ev.state_key(), ev.content())
         {
             if let Some(ev_id) = current_state.get(&key) {
-                if let Some(event) =
-                    StateResolution::get_or_load_event(room_id, ev_id, event_map, store)
-                {
+                if let Ok(event) = StateResolution::get_or_load_event(room_id, ev_id, event_map) {
                     // TODO synapse checks `rejected_reason` is None here
                     auth_events.insert(key.clone(), event);
                 }
@@ -83,13 +80,12 @@ impl StateResolution {
     /// * `state_sets` - The incoming state to resolve. Each `StateMap` represents a possible fork
     /// in the state of a room.
     ///
+    /// * `auth_events` - The full recursive set of `auth_events` for each event in the `state_sets`.
+    ///
     /// * `event_map` - The `EventMap` acts as a local cache of state, any event that is not found
     /// in the `event_map` will be fetched from the `StateStore` and cached in the `event_map`. There
     /// is no state kept from separate `resolve` calls, although this could be a potential optimization
     /// in the future.
-    ///
-    /// * `store` - Any type that implements `StateStore` acts as the database. When an event is not
-    /// found in the `event_map` it will be retrieved from the `store`.
     ///
     /// It is up the the caller to check that the events returned from `StateStore::get_event` are
     /// events for the correct room (synapse checks that all events are in the right room).
@@ -97,8 +93,8 @@ impl StateResolution {
         room_id: &RoomId,
         room_version: &RoomVersionId,
         state_sets: &[StateMap<EventId>],
+        auth_events: Vec<Vec<EventId>>,
         event_map: &mut EventMap<Arc<E>>,
-        store: &dyn StateStore<E>,
     ) -> Result<StateMap<EventId>> {
         tracing::info!("State resolution starting");
 
@@ -115,9 +111,9 @@ impl StateResolution {
         tracing::info!("{} conflicting events", conflicting.len());
 
         // the set of auth events that are not common across server forks
-        let mut auth_diff = StateResolution::get_auth_chain_diff(room_id, &state_sets, store)?;
+        let mut auth_diff = StateResolution::get_auth_chain_diff(room_id, &auth_events)?;
 
-        tracing::debug!("auth diff size {}", auth_diff.len());
+        tracing::debug!("auth diff size {:?}", auth_diff);
 
         // add the auth_diff to conflicting now we have a full set of conflicting events
         auth_diff.extend(conflicting.values().cloned().flatten());
@@ -128,25 +124,6 @@ impl StateResolution {
             .collect::<Vec<_>>();
 
         tracing::info!("full conflicted set is {} events", all_conflicted.len());
-
-        // gather missing events for the event_map
-        let events = store
-            .get_events(
-                room_id,
-                &all_conflicted
-                    .iter()
-                    // we only want the events we don't know about yet
-                    .filter(|id| !event_map.contains_key(id))
-                    .cloned()
-                    .collect::<Vec<_>>(),
-            )
-            .unwrap();
-
-        // update event_map to include the fetched events
-        event_map.extend(events.into_iter().map(|ev| (ev.event_id().clone(), ev)));
-        // at this point our event_map == store there should be no missing events
-
-        tracing::debug!("event map size: {}", event_map.len());
 
         // we used to check that all events are events from the correct room
         // this is now a check the caller of `resolve` must make.
@@ -168,17 +145,10 @@ impl StateResolution {
             room_id,
             &control_events,
             event_map,
-            store,
             &all_conflicted,
         );
 
-        tracing::debug!(
-            "SRTD {:?}",
-            sorted_control_levels
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<_>>()
-        );
+        tracing::debug!("SRTD {:?}", sorted_control_levels);
 
         // sequentially auth check each control event.
         let resolved_control = StateResolution::iterative_auth_check(
@@ -187,7 +157,6 @@ impl StateResolution {
             &sorted_control_levels,
             &clean,
             event_map,
-            store,
         )?;
 
         tracing::debug!(
@@ -223,13 +192,8 @@ impl StateResolution {
 
         tracing::debug!("PL {:?}", power_event);
 
-        let sorted_left_events = StateResolution::mainline_sort(
-            room_id,
-            &events_to_resolve,
-            power_event,
-            event_map,
-            store,
-        );
+        let sorted_left_events =
+            StateResolution::mainline_sort(room_id, &events_to_resolve, power_event, event_map);
 
         tracing::debug!(
             "SORTED LEFT {:?}",
@@ -245,7 +209,6 @@ impl StateResolution {
             &sorted_left_events,
             &resolved_control, // The control events are added to the final resolved state
             event_map,
-            store,
         )?;
 
         // add unconflicted state to the resolved state
@@ -298,23 +261,34 @@ impl StateResolution {
     }
 
     /// Returns a Vec of deduped EventIds that appear in some chains but not others.
-    pub fn get_auth_chain_diff<E: Event>(
-        room_id: &RoomId,
-        state_sets: &[StateMap<EventId>],
-        store: &dyn StateStore<E>,
+    pub fn get_auth_chain_diff(
+        _room_id: &RoomId,
+        auth_event_ids: &[Vec<EventId>],
     ) -> Result<Vec<EventId>> {
-        use itertools::Itertools;
+        let mut chains = vec![];
 
-        tracing::debug!("calculating auth chain difference");
+        for ids in auth_event_ids {
+            // TODO state store `auth_event_ids` returns self in the event ids list
+            // when an event returns `auth_event_ids` self is not contained
+            let chain = ids.iter().cloned().collect::<BTreeSet<_>>();
+            chains.push(chain);
+        }
 
-        store.auth_chain_diff(
-            room_id,
-            state_sets
+        if let Some(chain) = chains.first() {
+            let rest = chains.iter().skip(1).flatten().cloned().collect();
+            let common = chain.intersection(&rest).collect::<Vec<_>>();
+
+            Ok(chains
                 .iter()
-                .map(|map| map.values().cloned().collect())
-                .dedup()
-                .collect::<Vec<_>>(),
-        )
+                .flatten()
+                .filter(|id| !common.contains(&id))
+                .cloned()
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .collect())
+        } else {
+            Ok(vec![])
+        }
     }
 
     /// Events are sorted from "earliest" to "latest". They are compared using
@@ -328,7 +302,6 @@ impl StateResolution {
         room_id: &RoomId,
         events_to_sort: &[EventId],
         event_map: &mut EventMap<Arc<E>>,
-        store: &dyn StateStore<E>,
         auth_diff: &[EventId],
     ) -> Vec<EventId> {
         tracing::debug!("reverse topological sort of power events");
@@ -336,7 +309,7 @@ impl StateResolution {
         let mut graph = BTreeMap::new();
         for (idx, event_id) in events_to_sort.iter().enumerate() {
             StateResolution::add_event_and_auth_chain_to_graph(
-                room_id, &mut graph, event_id, event_map, store, auth_diff,
+                room_id, &mut graph, event_id, event_map, auth_diff,
             );
 
             // We yield occasionally when we're working with large data sets to
@@ -349,8 +322,7 @@ impl StateResolution {
         // this is used in the `key_fn` passed to the lexico_topo_sort fn
         let mut event_to_pl = BTreeMap::new();
         for (idx, event_id) in graph.keys().enumerate() {
-            let pl =
-                StateResolution::get_power_level_for_sender(room_id, &event_id, event_map, store);
+            let pl = StateResolution::get_power_level_for_sender(room_id, &event_id, event_map);
             tracing::info!("{} power level {}", event_id.to_string(), pl);
 
             event_to_pl.insert(event_id.clone(), pl);
@@ -454,11 +426,10 @@ impl StateResolution {
         room_id: &RoomId,
         event_id: &EventId,
         event_map: &mut EventMap<Arc<E>>,
-        store: &dyn StateStore<E>,
     ) -> i64 {
         tracing::info!("fetch event ({}) senders power level", event_id.to_string());
 
-        let event = StateResolution::get_or_load_event(room_id, event_id, event_map, store);
+        let event = StateResolution::get_or_load_event(room_id, event_id, event_map);
         let mut pl = None;
 
         // TODO store.auth_event_ids returns "self" with the event ids is this ok
@@ -468,7 +439,7 @@ impl StateResolution {
             .map(|pdu| pdu.auth_events())
             .unwrap_or_default()
         {
-            if let Some(aev) = StateResolution::get_or_load_event(room_id, &aid, event_map, store) {
+            if let Ok(aev) = StateResolution::get_or_load_event(room_id, &aid, event_map) {
                 if is_type_and_key(&aev, EventType::RoomPowerLevels, "") {
                     pl = Some(aev);
                     break;
@@ -489,9 +460,9 @@ impl StateResolution {
             })
             .flatten()
         {
-            if let Some(ev) = event {
+            if let Ok(ev) = event {
                 if let Some(user) = content.users.get(&ev.sender()) {
-                    tracing::debug!("found {} at power_level {}", ev.sender().to_string(), user);
+                    tracing::debug!("found {} at power_level {}", ev.sender().as_str(), user);
                     return (*user).into();
                 }
             }
@@ -517,7 +488,6 @@ impl StateResolution {
         events_to_check: &[EventId],
         unconflicted_state: &StateMap<EventId>,
         event_map: &mut EventMap<Arc<E>>,
-        store: &dyn StateStore<E>,
     ) -> Result<StateMap<EventId>> {
         tracing::info!("starting iterative auth check");
 
@@ -532,14 +502,11 @@ impl StateResolution {
         let mut resolved_state = unconflicted_state.clone();
 
         for (idx, event_id) in events_to_check.iter().enumerate() {
-            let event =
-                StateResolution::get_or_load_event(room_id, event_id, event_map, store).unwrap();
+            let event = StateResolution::get_or_load_event(room_id, event_id, event_map)?;
 
             let mut auth_events = BTreeMap::new();
             for aid in &event.auth_events() {
-                if let Some(ev) =
-                    StateResolution::get_or_load_event(room_id, &aid, event_map, store)
-                {
+                if let Ok(ev) = StateResolution::get_or_load_event(room_id, &aid, event_map) {
                     // TODO what to do when no state_key is found ??
                     // TODO synapse check "rejected_reason", I'm guessing this is redacted_because in ruma ??
                     auth_events.insert((ev.kind(), ev.state_key()), ev);
@@ -555,8 +522,7 @@ impl StateResolution {
                 event.content(),
             ) {
                 if let Some(ev_id) = resolved_state.get(&key) {
-                    if let Some(event) =
-                        StateResolution::get_or_load_event(room_id, ev_id, event_map, store)
+                    if let Ok(event) = StateResolution::get_or_load_event(room_id, ev_id, event_map)
                     {
                         // TODO synapse checks `rejected_reason` is None here
                         auth_events.insert(key.clone(), event);
@@ -569,7 +535,7 @@ impl StateResolution {
             let most_recent_prev_event = event
                 .prev_events()
                 .iter()
-                .filter_map(|id| StateResolution::get_or_load_event(room_id, id, event_map, store))
+                .filter_map(|id| StateResolution::get_or_load_event(room_id, id, event_map).ok())
                 .next_back();
 
             // The key for this is (eventType + a state_key of the signed token not sender) so search
@@ -620,7 +586,6 @@ impl StateResolution {
         to_sort: &[EventId],
         resolved_power_level: Option<&EventId>,
         event_map: &mut EventMap<Arc<E>>,
-        store: &dyn StateStore<E>,
     ) -> Vec<EventId> {
         tracing::debug!("mainline sort of events");
 
@@ -635,12 +600,11 @@ impl StateResolution {
         while let Some(p) = pl {
             mainline.push(p.clone());
 
-            let event = StateResolution::get_or_load_event(room_id, &p, event_map, store).unwrap();
+            let event = StateResolution::get_or_load_event(room_id, &p, event_map).unwrap();
             let auth_events = &event.auth_events();
             pl = None;
             for aid in auth_events {
-                let ev =
-                    StateResolution::get_or_load_event(room_id, &aid, event_map, store).unwrap();
+                let ev = StateResolution::get_or_load_event(room_id, &aid, event_map).unwrap();
                 if is_type_and_key(&ev, EventType::RoomPowerLevels, "") {
                     pl = Some(aid.clone());
                     break;
@@ -663,15 +627,12 @@ impl StateResolution {
 
         let mut order_map = BTreeMap::new();
         for (idx, ev_id) in to_sort.iter().enumerate() {
-            if let Some(event) =
-                StateResolution::get_or_load_event(room_id, ev_id, event_map, store)
-            {
+            if let Ok(event) = StateResolution::get_or_load_event(room_id, ev_id, event_map) {
                 if let Ok(depth) = StateResolution::get_mainline_depth(
                     room_id,
                     Some(event),
                     &mainline_map,
                     event_map,
-                    store,
                 ) {
                     order_map.insert(
                         ev_id,
@@ -706,7 +667,6 @@ impl StateResolution {
         mut event: Option<Arc<E>>,
         mainline_map: &EventMap<usize>,
         event_map: &mut EventMap<Arc<E>>,
-        store: &dyn StateStore<E>,
     ) -> Result<usize> {
         while let Some(sort_ev) = event {
             tracing::debug!("mainline event_id {}", sort_ev.event_id().to_string());
@@ -720,8 +680,7 @@ impl StateResolution {
             event = None;
             for aid in auth_events {
                 // dbg!(&aid);
-                let aev = StateResolution::get_or_load_event(room_id, &aid, event_map, store)
-                    .ok_or_else(|| Error::NotFound("Auth event not found".to_owned()))?;
+                let aev = StateResolution::get_or_load_event(room_id, &aid, event_map)?;
                 if is_type_and_key(&aev, EventType::RoomPowerLevels, "") {
                     event = Some(aev);
                     break;
@@ -737,7 +696,6 @@ impl StateResolution {
         graph: &mut BTreeMap<EventId, Vec<EventId>>,
         event_id: &EventId,
         event_map: &mut EventMap<Arc<E>>,
-        store: &dyn StateStore<E>,
         auth_diff: &[EventId],
     ) {
         let mut state = vec![event_id.clone()];
@@ -747,7 +705,7 @@ impl StateResolution {
             graph.entry(eid.clone()).or_insert_with(Vec::new);
             // prefer the store to event as the store filters dedups the events
             // otherwise it seems we can loop forever
-            for aid in &StateResolution::get_or_load_event(room_id, &eid, event_map, store)
+            for aid in &StateResolution::get_or_load_event(room_id, &eid, event_map)
                 .unwrap()
                 .auth_events()
             {
@@ -763,27 +721,16 @@ impl StateResolution {
         }
     }
 
-    // TODO having the event_map as a field of self would allow us to keep
-    // cached state from `resolve` to `resolve` calls, good idea or not?
-    /// Uses the `event_map` to return the full PDU or fetches from the `StateStore` implementation
-    /// if the event_map does not have the PDU.
-    ///
-    /// If the PDU is missing from the `event_map` it is added.
+    /// Uses the `event_map` to return the full PDU or fails.
     fn get_or_load_event<E: Event>(
-        room_id: &RoomId,
+        _room_id: &RoomId,
         ev_id: &EventId,
-        event_map: &mut EventMap<Arc<E>>,
-        store: &dyn StateStore<E>,
-    ) -> Option<Arc<E>> {
-        if let Some(e) = event_map.get(ev_id) {
-            return Some(Arc::clone(e));
-        }
-
-        if let Ok(e) = store.get_event(room_id, ev_id) {
-            return Some(Arc::clone(event_map.entry(ev_id.clone()).or_insert(e)));
-        }
-
-        None
+        event_map: &EventMap<Arc<E>>,
+    ) -> Result<Arc<E>> {
+        event_map.get(ev_id).map_or_else(
+            || Err(Error::NotFound(format!("EventId: {:?} not found", ev_id))),
+            |e| Ok(Arc::clone(e)),
+        )
     }
 }
 

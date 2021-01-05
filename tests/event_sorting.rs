@@ -7,7 +7,7 @@ use ruma::{
 use state_res::{is_power_event, StateMap};
 
 mod utils;
-use utils::{room_id, TestStore, INITIAL_EVENTS};
+use utils::{room_id, INITIAL_EVENTS};
 
 fn shuffle(list: &mut [EventId]) {
     use rand::Rng;
@@ -21,7 +21,6 @@ fn shuffle(list: &mut [EventId]) {
 
 fn test_event_sort() {
     let mut events = INITIAL_EVENTS();
-    let store = TestStore(events.clone());
 
     let event_map = events
         .values()
@@ -43,7 +42,6 @@ fn test_event_sort() {
         &room_id(),
         &power_events,
         &mut events,
-        &store,
         &auth_chain,
     );
 
@@ -55,7 +53,6 @@ fn test_event_sort() {
         &sorted_power_events,
         &BTreeMap::new(), // unconflicted events
         &mut events,
-        &store,
     )
     .expect("iterative auth check failed on resolved events");
 
@@ -71,7 +68,6 @@ fn test_event_sort() {
         &events_to_sort,
         power_level,
         &mut events,
-        &store,
     );
 
     assert_eq!(

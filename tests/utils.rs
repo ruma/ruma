@@ -114,8 +114,15 @@ pub fn do_check(
                 &room_id(),
                 &RoomVersionId::Version6,
                 &state_sets,
+                state_sets
+                    .iter()
+                    .map(|map| {
+                        store
+                            .auth_event_ids(&room_id(), &map.values().cloned().collect::<Vec<_>>())
+                            .unwrap()
+                    })
+                    .collect(),
                 &mut event_map,
-                &store,
             );
             match resolved {
                 Ok(state) => state,
@@ -565,7 +572,9 @@ pub mod event {
         fn hashes(&self) -> &EventHash {
             self.hashes()
         }
-        fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ruma::ServerSigningKeyId, String>> {
+        fn signatures(
+            &self,
+        ) -> BTreeMap<Box<ServerName>, BTreeMap<ruma::ServerSigningKeyId, String>> {
             self.signatures()
         }
         fn unsigned(&self) -> &BTreeMap<String, JsonValue> {
@@ -678,7 +687,10 @@ pub mod event {
     }
 
     impl StateEvent {
-        pub fn from_id_value(id: EventId, json: serde_json::Value) -> Result<Self, serde_json::Error> {
+        pub fn from_id_value(
+            id: EventId,
+            json: serde_json::Value,
+        ) -> Result<Self, serde_json::Error> {
             Ok(Self::Full(
                 id,
                 Pdu::RoomV3Pdu(serde_json::from_value(json)?),
@@ -806,7 +818,9 @@ pub mod event {
         pub fn prev_event_ids(&self) -> Vec<EventId> {
             match self {
                 Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => ev.prev_events.iter().map(|(id, _)| id).cloned().collect(),
+                    Pdu::RoomV1Pdu(ev) => {
+                        ev.prev_events.iter().map(|(id, _)| id).cloned().collect()
+                    }
                     Pdu::RoomV3Pdu(ev) => ev.prev_events.clone(),
                 },
             }
@@ -815,7 +829,9 @@ pub mod event {
         pub fn auth_events(&self) -> Vec<EventId> {
             match self {
                 Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => ev.auth_events.iter().map(|(id, _)| id).cloned().collect(),
+                    Pdu::RoomV1Pdu(ev) => {
+                        ev.auth_events.iter().map(|(id, _)| id).cloned().collect()
+                    }
                     Pdu::RoomV3Pdu(ev) => ev.auth_events.to_vec(),
                 },
             }
@@ -936,5 +952,4 @@ pub mod event {
             )
         }
     }
-
 }
