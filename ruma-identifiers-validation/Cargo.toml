@@ -11,9 +11,3 @@ authors = [
 license = "MIT"
 version = "0.2.0"
 edition = "2018"
-
-[features]
-default = ["serde"]
-
-[dependencies]
-serde = { version = "1.0.118", optional = true, features = ["derive"] }
