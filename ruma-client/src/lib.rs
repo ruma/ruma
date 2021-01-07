@@ -44,9 +44,9 @@
 //! ```no_run
 //! use std::time::Duration;
 //!
-//! # use futures_util::stream::{StreamExt as _, TryStreamExt as _};
 //! # use ruma_client::Client;
 //! # use ruma::presence::PresenceState;
+//! # use tokio_stream::{StreamExt as _};
 //! # let homeserver_url = "https://example.com".parse().unwrap();
 //! # let client = Client::new(homeserver_url, None);
 //! # let next_batch_token = String::new();

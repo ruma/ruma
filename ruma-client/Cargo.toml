@@ -34,9 +34,9 @@ serde_json = "1.0.61"
 
 [dev-dependencies]
 anyhow = "1.0.37"
-futures-util = "0.3.8"
 ruma = { version = "0.0.2", path = "../ruma", features = ["client-api"] }
 tokio = { version = "1.0.1", features = ["macros", "rt"] }
+tokio-stream = { version = "0.1.1", default-features = false }
 
 [features]
 default = ["http1", "http2", "tls-native"]

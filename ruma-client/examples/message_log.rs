@@ -1,7 +1,7 @@
 use std::{env, process::exit, time::Duration};
 
 use assign::assign;
-use futures_util::stream::TryStreamExt as _;
+use tokio_stream::StreamExt as _;
 use http::Uri;
 use ruma::{
     api::client::r0::{filter::FilterDefinition, sync::sync_events},
