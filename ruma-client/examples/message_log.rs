@@ -1,7 +1,6 @@
 use std::{env, process::exit, time::Duration};
 
 use assign::assign;
-use tokio_stream::StreamExt as _;
 use http::Uri;
 use ruma::{
     api::client::r0::{filter::FilterDefinition, sync::sync_events},
@@ -12,6 +11,7 @@ use ruma::{
     presence::PresenceState,
 };
 use ruma_client::{self, Client};
+use tokio_stream::StreamExt as _;
 
 async fn log_messages(homeserver_url: Uri, username: &str, password: &str) -> anyhow::Result<()> {
     let client = Client::new(homeserver_url, None);
