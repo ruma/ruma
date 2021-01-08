@@ -142,7 +142,7 @@ handle those before comitting as well.
 ¹ To install the tools, run `rustup component add rustfmt clippy`.  
 ² If you modified feature-gated code (`#[cfg(feature = "something")]`), you will
 have to pass `--all-features` or `--features something` to clippy for it to
-check that code
+check that code.
 
 ### Commit Messages
 
