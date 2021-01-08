@@ -133,13 +133,16 @@ Also, `serde_json::Value` should be imported as `JsonValue`.
 
 ### Code Formatting and Linting
 
-Use `rustfmt` to format your code and `clippy` to lint your code. Before
-committing your changes, go ahead and run `cargo fmt` and
-`cargo clippy --all-targets --all-features` on the repository to make sure that
-the formatting and linting checks pass in CI. Note that `clippy` warnings are
-reported as errors in CI builds, so make sure to handle those before
-comitting as well. (To install the tools, run `rustup component add rustfmt
-clippy`.)
+Use `rustfmt` to format your code and `clippy` to lint your code¹. Before
+committing your changes, go ahead and run `cargo fmt` and `cargo clippy`² on the
+repository to make sure that the formatting and linting checks pass in CI. Note
+that `clippy` warnings are reported as errors in CI builds, so make sure to
+handle those before comitting as well.
+
+¹ To install the tools, run `rustup component add rustfmt clippy`.  
+² If you modified feature-gated code (`#[cfg(feature = "something")]`), you will
+have to pass `--all-features` or `--features something` to clippy for it to
+check that code
 
 ### Commit Messages
 
