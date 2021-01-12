@@ -71,6 +71,9 @@ pub fn auth_types_for_event(
 /// The `auth_events` that are passed to this function should be a state snapshot.
 /// We need to know if the event passes auth against some state not a recursive collection
 /// of auth_events fields.
+///
+/// ## Returns
+/// This returns an `Error` only when serialization fails or some other fatal outcome.
 pub fn auth_check<E: Event>(
     room_version: &RoomVersionId,
     incoming_event: &Arc<E>,
