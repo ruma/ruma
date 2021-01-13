@@ -450,11 +450,10 @@ impl StateResolution {
             // The key for this is (eventType + a state_key of the signed token not sender) so
             // search for it
             let current_third_party = auth_events.iter().find_map(|(_, pdu)| {
-                if pdu.kind() == EventType::RoomThirdPartyInvite {
-                    Some(pdu.clone()) // TODO no clone, auth_events is borrowed while moved
-                } else {
-                    None
-                }
+                (pdu.kind() == EventType::RoomThirdPartyInvite).then(|| {
+                    // TODO no clone, auth_events is borrowed while moved
+                    pdu.clone()
+                })
             });
 
             if auth_check(

@@ -183,8 +183,8 @@ impl Request {
             quote! { <T as ::std::default::Default>::default() }
         };
 
-        let non_auth_impls = metadata.authentication.iter().map(|auth| {
-            if auth.value == "None" {
+        let non_auth_impls = metadata.authentication.iter().filter_map(|auth| {
+            (auth.value == "None").then(|| {
                 let attrs = &auth.attrs;
                 quote! {
                     #( #attrs )*
@@ -192,9 +192,7 @@ impl Request {
                     #[cfg(feature = "client")]
                     impl #lifetimes #ruma_api::OutgoingNonAuthRequest for Request #lifetimes {}
                 }
-            } else {
-                TokenStream::new()
-            }
+            })
         });
 
         quote! {

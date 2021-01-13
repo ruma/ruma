@@ -144,36 +144,34 @@ impl Request {
             (TokenStream::new(), TokenStream::new())
         };
 
-        let extract_body = if self.has_body_fields() || self.newtype_body_field().is_some() {
-            let body_lifetimes = if self.has_body_lifetimes() {
-                // duplicate the anonymous lifetime as many times as needed
-                let lifetimes = std::iter::repeat(quote! { '_ }).take(self.lifetimes.body.len());
-                quote! { < #( #lifetimes, )* > }
-            } else {
-                TokenStream::new()
-            };
+        let extract_body =
+            (self.has_body_fields() || self.newtype_body_field().is_some()).then(|| {
+                let body_lifetimes = self.has_body_lifetimes().then(|| {
+                    // duplicate the anonymous lifetime as many times as needed
+                    let lifetimes =
+                        std::iter::repeat(quote! { '_ }).take(self.lifetimes.body.len());
+                    quote! { < #( #lifetimes, )* > }
+                });
 
-            quote! {
-                let request_body: <
-                    RequestBody #body_lifetimes
-                    as #ruma_serde::Outgoing
-                >::Incoming = {
-                    let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
-                        request.body(),
-                    );
+                quote! {
+                    let request_body: <
+                        RequestBody #body_lifetimes
+                        as #ruma_serde::Outgoing
+                    >::Incoming = {
+                        let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
+                            request.body(),
+                        );
 
-                    #serde_json::from_slice(match body {
-                        // If the request body is completely empty, pretend it is an empty JSON
-                        // object instead. This allows requests with only optional body parameters
-                        // to be deserialized in that case.
-                        [] => b"{}",
-                        b => b,
-                    })?
-                };
-            }
-        } else {
-            TokenStream::new()
-        };
+                        #serde_json::from_slice(match body {
+                            // If the request body is completely empty, pretend it is an empty JSON
+                            // object instead. This allows requests with only optional body parameters
+                            // to be deserialized in that case.
+                            [] => b"{}",
+                            b => b,
+                        })?
+                    };
+                }
+            });
 
         let (parse_body, body_vars) = if let Some(field) = self.newtype_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
@@ -194,8 +192,8 @@ impl Request {
             self.vars(RequestFieldKind::Body, quote!(request_body))
         };
 
-        let non_auth_impls = metadata.authentication.iter().map(|auth| {
-            if auth.value == "None" {
+        let non_auth_impls = metadata.authentication.iter().filter_map(|auth| {
+            (auth.value == "None").then(|| {
                 let attrs = &auth.attrs;
                 quote! {
                     #( #attrs )*
@@ -203,9 +201,7 @@ impl Request {
                     #[cfg(feature = "server")]
                     impl #ruma_api::IncomingNonAuthRequest for #incoming_request_type {}
                 }
-            } else {
-                TokenStream::new()
-            }
+            })
         });
 
         quote! {
