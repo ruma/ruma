@@ -83,12 +83,7 @@ impl StateResolution {
     /// * `auth_events` - The full recursive set of `auth_events` for each event in the `state_sets`.
     ///
     /// * `event_map` - The `EventMap` acts as a local cache of state, any event that is not found
-    /// in the `event_map` will be fetched from the `StateStore` and cached in the `event_map`. There
-    /// is no state kept from separate `resolve` calls, although this could be a potential optimization
-    /// in the future.
-    ///
-    /// It is up the the caller to check that the events returned from `StateStore::get_event` are
-    /// events for the correct room (synapse checks that all events are in the right room).
+    /// in the `event_map` will cause an unrecoverable `Error` in `resolve`.
     pub fn resolve<E: Event>(
         room_id: &RoomId,
         room_version: &RoomVersionId,
