@@ -341,24 +341,12 @@ pub fn valid_membership_change<E: Event>(
     )?;
 
     let sender_power = power_levels.users.get(user_sender).map_or_else(
-        || {
-            if sender_membership != MembershipState::Join {
-                None
-            } else {
-                Some(&power_levels.users_default)
-            }
-        },
+        || (sender_membership == MembershipState::Join).then(|| &power_levels.users_default),
         // If it's okay, wrap with Some(_)
         Some,
     );
     let target_power = power_levels.users.get(&target_user_id).map_or_else(
-        || {
-            if target_membership != MembershipState::Join {
-                None
-            } else {
-                Some(&power_levels.users_default)
-            }
-        },
+        || (target_membership == MembershipState::Join).then(|| &power_levels.users_default),
         // If it's okay, wrap with Some(_)
         Some,
     );
