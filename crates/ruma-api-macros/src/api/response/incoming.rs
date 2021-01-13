@@ -9,16 +9,14 @@ impl Response {
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
         let serde_json = quote! { #ruma_api::exports::serde_json };
 
-        let extract_response_headers = if self.has_header_fields() {
+        let extract_response_headers = self.has_header_fields().then(|| {
             quote! {
                 let mut headers = response.headers().clone();
             }
-        } else {
-            TokenStream::new()
-        };
+        });
 
         let typed_response_body_decl =
-            if self.has_body_fields() || self.newtype_body_field().is_some() {
+            (self.has_body_fields() || self.newtype_body_field().is_some()).then(|| {
                 quote! {
                     let response_body: <
                         ResponseBody
@@ -37,9 +35,7 @@ impl Response {
                         })?
                     };
                 }
-            } else {
-                TokenStream::new()
-            };
+            });
 
         let response_init_fields = {
             let mut fields = vec![];

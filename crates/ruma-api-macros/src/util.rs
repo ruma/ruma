@@ -12,12 +12,12 @@ pub(crate) fn unique_lifetimes_to_tokens<'a, I: IntoIterator<Item = &'a Lifetime
     lifetimes: I,
 ) -> TokenStream {
     let lifetimes = lifetimes.into_iter().collect::<BTreeSet<_>>();
-    if lifetimes.is_empty() {
-        TokenStream::new()
-    } else {
-        let lifetimes = quote! { #( #lifetimes ),* };
-        quote! { < #lifetimes > }
-    }
+    (!lifetimes.is_empty())
+        .then(|| {
+            let lifetimes = quote! { #( #lifetimes ),* };
+            quote! { < #lifetimes > }
+        })
+        .unwrap_or_default()
 }
 
 pub(crate) fn is_valid_endpoint_path(string: &str) -> bool {

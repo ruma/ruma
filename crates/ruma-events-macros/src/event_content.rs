@@ -275,9 +275,7 @@ pub fn expand_event_content(
 
     Ok(quote! {
         #event_content
-
         #event_content_derive
-
         #redacted
     })
 }
