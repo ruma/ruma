@@ -747,11 +747,7 @@ impl FormattedBody {
 
         pulldown_cmark::html::push_html(&mut html_body, pulldown_cmark::Parser::new(body));
 
-        if html_body == format!("<p>{}</p>\n", body) {
-            None
-        } else {
-            Some(Self::html(html_body))
-        }
+        (html_body != format!("<p>{}</p>\n", body)).then(|| Self::html(html_body))
     }
 }
 

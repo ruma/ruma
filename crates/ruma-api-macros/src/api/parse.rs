@@ -49,15 +49,15 @@ impl Parse for Api {
             None
         };
 
-        // TODO: Use `bool::then` when MSRV >= 1.50
-        let error_ty = if input.peek(kw::error) {
-            let _: kw::error = input.parse()?;
-            let _: Token![:] = input.parse()?;
+        let error_ty = input
+            .peek(kw::error)
+            .then(|| {
+                let _: kw::error = input.parse()?;
+                let _: Token![:] = input.parse()?;
 
-            Some(input.parse()?)
-        } else {
-            None
-        };
+                input.parse()
+            })
+            .transpose()?;
 
         if let Some(req) = &request {
             let newtype_body_field = req.newtype_body_field();

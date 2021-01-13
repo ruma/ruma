@@ -395,11 +395,11 @@ fn expand_from_into(
 }
 
 fn expand_eq_ord_event(input: &DeriveInput, fields: &[Field]) -> Option<TokenStream> {
-    if fields.iter().flat_map(|f| f.ident.as_ref()).any(|f| f == "event_id") {
+    fields.iter().flat_map(|f| f.ident.as_ref()).any(|f| f == "event_id").then(|| {
         let ident = &input.ident;
         let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
 
-        Some(quote! {
+        quote! {
             #[automatically_derived]
             impl #impl_gen ::std::cmp::PartialEq for #ident #ty_gen #where_clause {
                 /// This checks if two `EventId`s are equal.
@@ -426,10 +426,8 @@ fn expand_eq_ord_event(input: &DeriveInput, fields: &[Field]) -> Option<TokenStr
                     self.event_id.cmp(&other.event_id)
                 }
             }
-        })
-    } else {
-        None
-    }
+        }
+    })
 }
 
 /// CamelCase's a field ident like "foo_bar" to "FooBar".
