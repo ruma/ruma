@@ -12,7 +12,7 @@ ruma_api! {
         name: "get_public_rooms",
         path: "/_matrix/client/r0/publicRooms",
         rate_limited: false,
-        authentication: None,
+        authentication: AccessToken,
     }
 
     #[derive(Default)]
