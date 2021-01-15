@@ -502,7 +502,6 @@ impl StateResolution {
             let mut auth_events = BTreeMap::new();
             for aid in &event.auth_events() {
                 if let Ok(ev) = StateResolution::get_or_load_event(room_id, &aid, event_map) {
-                    // TODO what to do when no state_key is found ??
                     // TODO synapse check "rejected_reason", I'm guessing this is redacted_because in ruma ??
                     auth_events.insert((ev.kind(), ev.state_key()), ev);
                 } else {
@@ -747,14 +746,9 @@ pub fn is_power_event<E: Event>(event: &Arc<E>) -> bool {
             event.state_key() == Some("".into())
         }
         EventType::RoomMember => {
-            if let Ok(content) =
-                // TODO fix clone
-                serde_json::from_value::<MemberEventContent>(event.content())
-            {
+            if let Ok(content) = serde_json::from_value::<MemberEventContent>(event.content()) {
                 if [MembershipState::Leave, MembershipState::Ban].contains(&content.membership) {
-                    return event.sender().as_str()
-                                // TODO is None here a failure
-                                != event.state_key().as_deref().unwrap_or("NOT A STATE KEY");
+                    return Some(event.sender().as_str()) != event.state_key().as_deref();
                 }
             }
 

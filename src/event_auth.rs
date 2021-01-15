@@ -43,7 +43,6 @@ pub fn auth_types_for_event(
                 }
             }
 
-            // TODO what when we don't find a state_key
             let key = (EventType::RoomMember, state_key);
             if !auth_types.contains(&key) {
                 auth_types.push(key)
