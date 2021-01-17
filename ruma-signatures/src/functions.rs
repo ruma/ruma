@@ -513,9 +513,9 @@ where
 /// Verifies that the signed event contains all the required valid signatures.
 ///
 /// Some room versions may require signatures from multiple homeservers, so this function takes a
-/// map from servers to sets of public keys. For each required homeserver, this function will
-/// require a valid signature. All known public keys for a homeserver should be provided. The
-/// first one found on the given event will be used.
+/// map from servers to sets of public keys. Signatures are verified for each required homeserver.
+/// All known public keys for a homeserver should be provided. The first one found on the given
+/// event will be used.
 ///
 /// If the `Ok` variant is returned by this function, it will contain a `Verified` value which
 /// distinguishes an event with valid signatures and a matching content hash with an event with
