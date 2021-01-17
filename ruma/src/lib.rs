@@ -42,7 +42,7 @@ pub use ruma_events as events;
 pub use ruma_signatures as signatures;
 
 /// Rust types for various Matrix APIs requests and responses and abstractions for them.
-#[cfg(feature = "ruma-api")]
+#[cfg(feature = "api")]
 #[doc(inline)]
 pub mod api {
     pub use ruma_api::*;

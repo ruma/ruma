@@ -36,14 +36,15 @@ serde = { version = "1.0.118", features = ["derive"] }
 either = ["ruma-identifiers/either"]
 rand = ["ruma-identifiers/rand"]
 
+api = ["ruma-api"]
 events = ["ruma-events"]
 signatures = ["ruma-signatures"]
 
-appservice-api = ["ruma-api", "ruma-appservice-api", "events"]
-client-api = ["ruma-api", "ruma-client-api", "events"]
-federation-api = ["ruma-api", "ruma-federation-api", "signatures"]
-identity-service-api = ["ruma-api", "ruma-identity-service-api"]
-push-gateway-api = ["ruma-api", "ruma-push-gateway-api"]
+appservice-api = ["api", "events", "ruma-appservice-api"]
+client-api = ["api", "events", "ruma-client-api"]
+federation-api = ["api", "signatures", "ruma-federation-api"]
+identity-service-api = ["api", "ruma-identity-service-api"]
+push-gateway-api = ["api", "ruma-push-gateway-api"]
 
 unstable-exhaustive-types = [
     "ruma-events/unstable-exhaustive-types",
