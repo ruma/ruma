@@ -6,6 +6,7 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, RoomId, ServerNameBox};
+use ruma_serde::Raw;
 
 ruma_api! {
     metadata: {
@@ -40,7 +41,7 @@ ruma_api! {
         pub origin_server_ts: SystemTime,
 
         /// List of persistent updates to rooms.
-        pub pdus: Vec<Pdu>,
+        pub pdus: Vec<Raw<Pdu>>,
     }
 }
 
@@ -59,7 +60,7 @@ impl Response {
     /// * the `server_name` of the homeserver.
     /// * the timestamp in milliseconds of when this transaction started.
     /// * the list of persistent updates to rooms.
-    pub fn new(origin: ServerNameBox, origin_server_ts: SystemTime, pdus: Vec<Pdu>) -> Self {
+    pub fn new(origin: ServerNameBox, origin_server_ts: SystemTime, pdus: Vec<Raw<Pdu>>) -> Self {
         Self { origin, origin_server_ts, pdus }
     }
 }

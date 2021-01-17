@@ -8,6 +8,7 @@ Breaking Changes:
 * Remove `PduStub` (it only existed because of the spec being misleading)
   * Rename `pdu_stub` fields to `pdu`
 * Upgrade dependencies
+* Wrap `Pdu`s in `backfill::get_backfill` in `Raw`
 
 Improvements:
 
