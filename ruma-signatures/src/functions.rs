@@ -1,14 +1,14 @@
 //! Functions for signing and verifying JSON and events.
 
 use std::{
-    collections::{BTreeMap, HashSet},
+    collections::{BTreeMap, BTreeSet},
     mem,
     str::FromStr,
 };
 
 use base64::{decode_config, encode_config, STANDARD_NO_PAD, URL_SAFE_NO_PAD};
 use ring::digest::{digest, SHA256};
-use ruma_identifiers::{EventId, RoomVersionId, UserId};
+use ruma_identifiers::{EventId, RoomVersionId, ServerNameBox, UserId};
 use ruma_serde::{to_canonical_json_string, CanonicalJsonObject, CanonicalJsonValue};
 use serde_json::from_str as from_json_str;
 
@@ -608,7 +608,7 @@ pub fn verify_event(
     let canonical_json = from_json_str(&canonical_json(&redacted))?;
 
     for entity_id in servers_to_check {
-        let signature_set = match signature_map.get(&entity_id) {
+        let signature_set = match signature_map.get(entity_id.as_str()) {
             Some(CanonicalJsonValue::Object(set)) => set,
             Some(_) => return Err(Error::new("signatures sets must be JSON objects")),
             None => {
@@ -620,7 +620,7 @@ pub fn verify_event(
         let mut maybe_public_key = None;
 
         let public_keys = public_key_map
-            .get(&entity_id)
+            .get(entity_id.as_str())
             .ok_or_else(|| Error::new(format!("missing public keys for server {}", entity_id)))?;
 
         for (key_id, public_key) in public_keys {
@@ -749,8 +749,8 @@ pub fn redact(
 fn servers_to_check_signatures(
     object: &CanonicalJsonObject,
     version: &RoomVersionId,
-) -> Result<HashSet<String>, Error> {
-    let mut servers_to_check = HashSet::new();
+) -> Result<BTreeSet<ServerNameBox>, Error> {
+    let mut servers_to_check = BTreeSet::new();
 
     if !is_third_party_invite(object)? {
         match object.get("sender") {
@@ -758,7 +758,7 @@ fn servers_to_check_signatures(
                 let user_id = UserId::from_str(raw_sender)
                     .map_err(|_| Error::new("could not parse user id"))?;
 
-                servers_to_check.insert(user_id.server_name().to_string());
+                servers_to_check.insert(user_id.server_name().to_owned());
             }
             _ => return Err(Error::new("field `sender` must be a JSON string")),
         };
@@ -775,7 +775,7 @@ fn servers_to_check_signatures(
                     .ok_or_else(|| {
                         Error::new("Event id should have a server name for the given room version")
                     })?
-                    .to_string();
+                    .to_owned();
 
                 servers_to_check.insert(server_name);
             }
