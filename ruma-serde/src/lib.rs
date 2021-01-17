@@ -1,5 +1,6 @@
 //! De-/serialization helpers for other ruma crates
 
+pub mod boolean;
 pub mod can_be_empty;
 mod canonical_json;
 mod cow;
