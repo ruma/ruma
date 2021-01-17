@@ -4,7 +4,6 @@ authors = ["Jonas Platte <jplatte@posteo.de>"]
 categories = ["api-bindings", "web-programming"]
 keywords = ["matrix", "chat", "messaging", "ruma"]
 description = "Types and traits for working with the Matrix protocol."
-documentation = "https://docs.rs/ruma-client-api"
 homepage = "https://www.ruma.io/"
 repository = "https://github.com/ruma/ruma"
 readme = "README.md"

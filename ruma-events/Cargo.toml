@@ -2,7 +2,6 @@
 authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
 categories = ["api-bindings"]
 description = "Serializable types for the events in the Matrix specification."
-documentation = "https://docs.rs/ruma-events"
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"

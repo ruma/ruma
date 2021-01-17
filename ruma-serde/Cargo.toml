@@ -1,7 +1,6 @@
 [package]
 name = "ruma-serde"
 description = "De-/serialization helpers for other ruma crates"
-documentation = "https://docs.rs/ruma-serde"
 license = "MIT"
 authors = [
     "Jonas Platte <jplatte@posteo.de>",

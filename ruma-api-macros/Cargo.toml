@@ -5,7 +5,6 @@ authors = [
 ]
 categories = ["api-bindings", "web-programming"]
 description = "A procedural macro for generating ruma-api Endpoints."
-documentation = "https://docs.rs/ruma-api-macros"
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"

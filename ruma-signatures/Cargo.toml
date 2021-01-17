@@ -2,7 +2,6 @@
 authors = ["Jimmy Cuadra <jimmy@jimmycuadra.com>"]
 categories = ["api-bindings", "cryptography"]
 description = "Digital signatures according to the Matrix specification."
-documentation = "https://docs.rs/ruma-signatures"
 edition = "2018"
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma", "cryptography"]

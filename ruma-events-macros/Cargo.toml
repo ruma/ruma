@@ -6,7 +6,6 @@ authors = [
 ]
 categories = ["api-bindings", "web-programming"]
 description = "A procedural macro used by the ruma-events crate."
-documentation = "https://docs.rs/ruma-events-macros"
 edition = "2018"
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]

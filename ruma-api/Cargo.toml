@@ -5,7 +5,6 @@ authors = [
 ]
 categories = ["api-bindings", "web-programming"]
 description = "An abstraction for Matrix API endpoints."
-documentation = "https://docs.rs/ruma-api"
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"

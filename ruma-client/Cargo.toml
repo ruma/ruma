@@ -5,7 +5,6 @@ authors = [
 ]
 categories = ["api-bindings", "web-programming"]
 description = "A Matrix client library."
-documentation = "https://docs.rs/ruma-client"
 edition = "2018"
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]

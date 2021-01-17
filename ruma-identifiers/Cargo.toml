@@ -5,7 +5,6 @@ authors = [
 ]
 categories = ["api-bindings"]
 description = "Resource identifiers for Matrix."
-documentation = "https://docs.rs/ruma-identifiers"
 homepage = "https://www.ruma.io/"
 keywords = ["matrix", "chat", "messaging", "ruma"]
 license = "MIT"
