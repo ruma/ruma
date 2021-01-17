@@ -12,6 +12,7 @@
 //! * `appservice-api` for the application service API
 
 #![deny(missing_docs)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[doc(no_inline)]
 pub use assign::assign;
@@ -35,30 +36,38 @@ pub use ruma_identifiers::{
 };
 
 #[cfg(feature = "events")]
+#[cfg_attr(docsrs, doc(cfg(feature = "events")))]
 #[doc(inline)]
 pub use ruma_events as events;
 #[cfg(feature = "signatures")]
+#[cfg_attr(docsrs, doc(cfg(feature = "signatures")))]
 #[doc(inline)]
 pub use ruma_signatures as signatures;
 
 /// Rust types for various Matrix APIs requests and responses and abstractions for them.
 #[cfg(feature = "api")]
+#[cfg_attr(docsrs, doc(cfg(feature = "api")))]
 pub mod api {
     pub use ruma_api::*;
 
     #[cfg(feature = "appservice-api")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "appservice-api")))]
     #[doc(inline)]
     pub use ruma_appservice_api as appservice;
     #[cfg(feature = "client-api")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "client-api")))]
     #[doc(inline)]
     pub use ruma_client_api as client;
     #[cfg(feature = "federation-api")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "federation-api")))]
     #[doc(inline)]
     pub use ruma_federation_api as federation;
     #[cfg(feature = "identity-service-api")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "identity-service-api")))]
     #[doc(inline)]
     pub use ruma_identity_service_api as identity_service;
     #[cfg(feature = "push-gateway-api")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "push-gateway-api")))]
     #[doc(inline)]
     pub use ruma_push_gateway_api as push_gateway;
 }
