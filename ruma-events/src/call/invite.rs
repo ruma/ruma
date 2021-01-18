@@ -14,7 +14,7 @@ pub type InviteEvent = MessageEvent<InviteEventContent>;
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.call.invite")]
 pub struct InviteEventContent {
-    /// A unique identifer for the call.
+    /// A unique identifier for the call.
     pub call_id: String,
 
     /// The time in milliseconds that the invite is valid for. Once the invite age exceeds this

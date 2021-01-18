@@ -149,7 +149,7 @@ fn default_power_level() -> Int {
     Int::from(50)
 }
 
-/// Used with #[serde(skip_serializing_if)] to omit default power levels.
+/// Used with `#[serde(skip_serializing_if)]` to omit default power levels.
 #[allow(clippy::trivially_copy_pass_by_ref)]
 fn is_default_power_level(l: &Int) -> bool {
     *l == Int::from(50)

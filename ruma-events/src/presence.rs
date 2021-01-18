@@ -1,6 +1,6 @@
 //! A presence event is represented by a struct with a set content field.
 //!
-//! The only content valid for this event is `PresenceEventContent.
+//! The only content valid for this event is `PresenceEventContent`.
 
 use js_int::UInt;
 use ruma_common::presence::PresenceState;
