@@ -4,3 +4,4 @@
 /ruma-federation-api/           @DevinR528
 /ruma-identifiers-macros/       @ruma/macro-owners
 /ruma-serde-macros/             @ruma/macro-owners
+/ruma-signatures/               @gnieto
