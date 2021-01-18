@@ -180,7 +180,6 @@
 #![allow(clippy::new_without_default)]
 // Remove this once https://github.com/rust-lang/rust/issues/54883 becomes stable
 #![allow(clippy::unnested_or_patterns)]
-#![allow(clippy::unknown_clippy_lints)]
 
 use std::fmt::Debug;
 
