@@ -1,0 +1,6 @@
+*                               @jplatte
+/ruma-api-macros/               @ruma/macro-owners
+/ruma-events-macros/            @ruma/macro-owners
+/ruma-federation-api/           @DevinR528
+/ruma-identifiers-macros/       @ruma/macro-owners
+/ruma-serde-macros/             @ruma/macro-owners
