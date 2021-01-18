@@ -121,7 +121,7 @@ pub struct JsonWebKey {
     /// Required. Algorithm. Must be `A256CTR`.
     pub alg: String,
 
-    /// The key, encoded as urlsafe unpadded base64.
+    /// The key, encoded as url-safe unpadded base64.
     pub k: String,
 
     /// Extractable. Must be `true`. This is a

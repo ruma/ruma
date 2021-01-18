@@ -67,7 +67,7 @@ use http::Method;
 /// * `name`: A unique name for the endpoint. Generally this will be the same as the containing
 ///   module.
 /// * `path`: The path component of the URL for the endpoint, e.g. "/foo/bar". Components of
-///   the path that are parameterized can indicate a varible by using a Rust identifier
+///   the path that are parameterized can indicate a variable by using a Rust identifier
 ///   prefixed with a colon, e.g. `/foo/:some_parameter`. A corresponding query string
 ///   parameter will be expected in the request struct (see below for details).
 /// * `rate_limited`: Whether or not the endpoint enforces rate limiting on requests.

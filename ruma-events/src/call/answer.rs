@@ -26,7 +26,7 @@ pub struct AnswerEventContent {
 }
 
 impl AnswerEventContent {
-    /// Creates an `AnswerEventContent` with the gieven answer, call ID and VoIP version.
+    /// Creates an `AnswerEventContent` with the given answer, call ID and VoIP version.
     pub fn new(answer: SessionDescription, call_id: String, version: UInt) -> Self {
         Self { answer, call_id, version }
     }

@@ -162,7 +162,7 @@
 //! The collection types are enums which effectively "wrap" each possible event type of a
 //! particular event "kind."
 //!
-//! Because of the hierarchical nature of event kinds in Matrix, these collection types are divied
+//! Because of the hierarchical nature of event kinds in Matrix, these collection types are divided
 //! into two modules, `ruma_events::collections::all` and `ruma_events::collections::only`.
 //! The "all" versions include every event type that implements the relevant event trait as well as
 //! more specific event traits.
@@ -497,7 +497,7 @@ pub struct UnsignedDeHelper {
     pub redacted_because: Option<IgnoredAny>,
 }
 
-/// Helper struct to determine the event kind from a serde_json::value::RawValue.
+/// Helper struct to determine the event kind from a `serde_json::value::RawValue`.
 #[doc(hidden)]
 #[derive(Debug, Deserialize)]
 pub struct EventDeHelper {
@@ -516,12 +516,12 @@ pub struct EventDeHelper {
     /// the event will be deserialized as a ephemeral event.
     pub room_id: Option<IgnoredAny>,
 
-    /// If this `UnsignedData` contains a redacted_because key the event is
+    /// If this `UnsignedData` contains a `redacted_because` key the event is
     /// immediately deserialized as a redacted event.
     pub unsigned: Option<UnsignedDeHelper>,
 }
 
-/// Helper function for serde_json::value::RawValue deserialization.
+/// Helper function for `serde_json::value::RawValue` deserialization.
 #[doc(hidden)]
 pub fn from_raw_json_value<T, E>(val: &RawJsonValue) -> Result<T, E>
 where
