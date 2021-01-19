@@ -11,10 +11,11 @@ A set of [Rust] crates (libraries) for interacting with the [Matrix] chat networ
 
 ## Status
 
-As of 2020-09-29, we support the vast majority of endpoints in all of the various Matrix APIs.
+As of 2021-01-19, we support the vast majority of endpoints in all of the various Matrix APIs
+except the identity service API (if you want to help with that, have a look at the
+[crate/ruma-identity-service-api][id-api] label).
 
-As long as they are still at version 0.x though, only the latest API revision is considered
-supported. This may change after 1.x releases.
+[id-api]: https://github.com/ruma/ruma/issues?q=is%3Aissue+is%3Aopen+label%3Acrate%2Fruma-identity-service-api
 
 ## Contributing
 
