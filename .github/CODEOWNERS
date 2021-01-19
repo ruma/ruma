@@ -1,7 +1,11 @@
 *                               @jplatte
 /ruma-api-macros/               @ruma/macro-owners
+/ruma-common/                   @iinuwa
 /ruma-events-macros/            @ruma/macro-owners
 /ruma-federation-api/           @DevinR528
+/ruma-identifiers/              @iinuwa
 /ruma-identifiers-macros/       @ruma/macro-owners
+/ruma-identifiers-validation/   @iinuwa
+/ruma-identity-service-api/     @iinuwa
 /ruma-serde-macros/             @ruma/macro-owners
 /ruma-signatures/               @gnieto
