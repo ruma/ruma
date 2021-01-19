@@ -174,7 +174,7 @@ impl<'de> Deserialize<'de> for CanonicalJsonValue {
         D: Deserializer<'de>,
     {
         let val = JsonValue::deserialize(deserializer)?;
-        Ok(val.try_into().map_err(serde::de::Error::custom)?)
+        val.try_into().map_err(serde::de::Error::custom)
     }
 }
 
