@@ -23,7 +23,7 @@ thiserror = "1.0.22"
 git = "https://github.com/ruma/ruma"
 # branch = "server-pdu"
 # path = "../__forks__/ruma/ruma"
-rev = "210b6dd823ba89c5a44c3c9d913d377c4b54c896"
+rev = "0635b407290abf5f34d726e1e690c92c07c738e5"
 features = ["client-api", "federation-api", "appservice-api", "unstable-pre-spec", "unstable-synapse-quirks"]
 
 [features]
