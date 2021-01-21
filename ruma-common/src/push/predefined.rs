@@ -21,6 +21,18 @@ impl Ruleset {
     pub fn server_default(user_id: &UserId) -> Self {
         Self {
             content: btreeset![ContentPushRule::contains_user_name(user_id)],
+            #[cfg(feature = "unstable-pre-spec")]
+            override_: btreeset![
+                OverridePushRule::master(),
+                OverridePushRule::suppress_notices(),
+                OverridePushRule::invite_for_me(user_id),
+                OverridePushRule::member_event(),
+                OverridePushRule::contains_display_name(),
+                OverridePushRule::tombstone(),
+                OverridePushRule::roomnotif(),
+                OverridePushRule::reaction(),
+            ],
+            #[cfg(not(feature = "unstable-pre-spec"))]
             override_: btreeset![
                 OverridePushRule::master(),
                 OverridePushRule::suppress_notices(),
@@ -147,6 +159,7 @@ impl OverridePushRule {
         })
     }
 
+    /// Matches emoji reactions to a message
     /// MSC2677: Annotations and Reactions
     #[cfg(feature = "unstable-pre-spec")]
     pub fn reaction() -> Self {
