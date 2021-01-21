@@ -479,6 +479,15 @@ impl TextMessageEventContent {
         Self { formatted: Some(FormattedBody::html(html_body)), ..Self::plain(body) }
     }
 
+    /// A convenience constructor to create a markdown message.
+    #[cfg(feature = "markdown")]
+    pub fn markdown(body: impl Into<String>) -> Self {
+        let body = body.into();
+        let mut html_body = String::new();
+        pulldown_cmark::html::push_html(&mut html_body, pulldown_cmark::Parser::new(&body));
+        Self::html(body, html_body)
+    }
+
     /// A convenience constructor to create a plain text message.
     #[deprecated = "Renamed to plain"]
     pub fn new_plain(body: impl Into<String>) -> Self {

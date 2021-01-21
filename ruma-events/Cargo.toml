@@ -20,6 +20,7 @@ ruma-identifiers = { version = "=0.18.0-alpha.1", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.3.0", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.60", features = ["raw_value"] }
+pulldown-cmark = { version = "0.8", default-features = false, optional = true }
 
 [dev-dependencies]
 maplit = "1.0.2"
@@ -31,6 +32,7 @@ trybuild = "1.0.38"
 unstable-exhaustive-types = []
 unstable-pre-spec = []
 unstable-synapse-quirks = []
+markdown = ["pulldown-cmark"]
 
 [[bench]]
 name = "event_deserialize"
