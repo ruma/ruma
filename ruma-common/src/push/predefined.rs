@@ -146,6 +146,18 @@ impl OverridePushRule {
             ],
         })
     }
+
+    /// MSC2677: Annotations and Reactions
+    #[cfg(feature = "unstable-pre-spec")]
+    pub fn reaction() -> Self {
+        Self(ConditionalPushRule {
+            actions: vec![DontNotify],
+            default: true,
+            enabled: true,
+            rule_id: ".m.rule.reaction".into(),
+            conditions: vec![EventMatch { key: "type".into(), pattern: "m.reaction".into() }],
+        })
+    }
 }
 
 /// Default content push rules
