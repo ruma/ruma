@@ -30,7 +30,7 @@ trybuild = "1.0.38"
 
 [features]
 unstable-exhaustive-types = []
-unstable-pre-spec = []
+unstable-pre-spec = ["ruma-common/unstable-pre-spec"]
 unstable-synapse-quirks = []
 markdown = ["pulldown-cmark"]
 

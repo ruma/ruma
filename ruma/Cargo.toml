@@ -57,6 +57,7 @@ unstable-pre-spec = [
     "ruma-client-api/unstable-pre-spec",
     "ruma-events/unstable-pre-spec",
     "ruma-federation-api/unstable-pre-spec",
+    "ruma-common/unstable-pre-spec",
 ]
 unstable-synapse-quirks = [
     "ruma-client-api/unstable-synapse-quirks",
