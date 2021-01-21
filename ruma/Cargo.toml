@@ -63,3 +63,4 @@ unstable-synapse-quirks = [
     "ruma-common/unstable-synapse-quirks",
     "ruma-events/unstable-synapse-quirks",
 ]
+markdown = ["ruma-events/markdown"]
