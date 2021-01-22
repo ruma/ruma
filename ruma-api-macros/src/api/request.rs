@@ -64,7 +64,7 @@ impl Request {
                     {
                         quote! {
                             if let Some(header_val) = self.#field_name.as_ref() {
-                                req_builder = req_builder.header(
+                                req_headers.insert(
                                     #http::header::#header_name,
                                     #http::header::HeaderValue::from_str(header_val)?,
                                 );
@@ -72,7 +72,7 @@ impl Request {
                         }
                     }
                     _ => quote! {
-                        req_builder = req_builder.header(
+                        req_headers.insert(
                             #http::header::#header_name,
                             #http::header::HeaderValue::from_str(self.#field_name.as_ref())?,
                         );
