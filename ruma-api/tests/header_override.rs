@@ -16,6 +16,7 @@ ruma_api! {
     request: {
         #[ruma_api(header = LOCATION)]
         pub location: Option<String>,
+
         #[ruma_api(header = CONTENT_TYPE)]
         pub stuff: String,
     }
