@@ -120,7 +120,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
     let mut header_kvs = api.request.append_header_kvs();
     if authentication == "AccessToken" {
         header_kvs.extend(quote! {
-            req_builder = req_builder.header(
+            req_headers.insert(
                 #http::header::AUTHORIZATION,
                 #http::header::HeaderValue::from_str(
                     &::std::format!(
@@ -332,7 +332,12 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
                         },
                         #request_path_string,
                         #request_query_string,
-                    ));
+                    ))
+                    .header(#ruma_api::exports::http::header::CONTENT_TYPE, "application/json");
+
+                let mut req_headers = req_builder
+                    .headers_mut()
+                    .expect("`http::RequestBuilder` is in unusable state");
 
                 #header_kvs
 
