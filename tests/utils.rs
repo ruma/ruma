@@ -99,7 +99,7 @@ pub fn do_check(
                 .cloned()
                 .collect::<Vec<_>>();
 
-            tracing::info!(
+            log::info!(
                 "{:#?}",
                 state_sets
                     .iter()

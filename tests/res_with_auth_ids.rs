@@ -91,7 +91,7 @@ fn ban_with_auth_chains2() {
         Err(e) => panic!("{}", e),
     };
 
-    tracing::debug!(
+    log::debug!(
         "{:#?}",
         resolved
             .iter()
