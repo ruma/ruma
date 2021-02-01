@@ -10,7 +10,7 @@ use ruma::{
     },
     presence::PresenceState,
 };
-use ruma_client::{self, Client};
+use ruma_client::Client;
 use tokio_stream::StreamExt as _;
 
 async fn log_messages(homeserver_url: Uri, username: &str, password: &str) -> anyhow::Result<()> {
