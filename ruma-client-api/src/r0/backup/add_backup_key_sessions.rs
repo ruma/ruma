@@ -6,7 +6,7 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
 
-use super::KeyData;
+use super::KeyBackupData;
 
 ruma_api! {
     metadata: {
@@ -28,7 +28,7 @@ ruma_api! {
         pub room_id: &'a RoomId,
 
         /// A map from session IDs to key data.
-        pub sessions: BTreeMap<String, KeyData>,
+        pub sessions: BTreeMap<String, KeyBackupData>,
     }
 
     response: {
@@ -45,7 +45,11 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given version, room_id and sessions.
-    pub fn new(version: &'a str, room_id: &'a RoomId, sessions: BTreeMap<String, KeyData>) -> Self {
+    pub fn new(
+        version: &'a str,
+        room_id: &'a RoomId,
+        sessions: BTreeMap<String, KeyBackupData>,
+    ) -> Self {
         Self { version, room_id, sessions }
     }
 }

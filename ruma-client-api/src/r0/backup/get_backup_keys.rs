@@ -1,8 +1,11 @@
 //! [GET /_matrix/client/r0/room_keys/keys](https://matrix.org/docs/spec/client_server/unstable#get-matrix-client-r0-room-keys-keys)
 
-use ruma_api::ruma_api;
+use std::collections::BTreeMap;
 
-use super::Rooms;
+use ruma_api::ruma_api;
+use ruma_identifiers::RoomId;
+
+use super::RoomKeyBackup;
 
 ruma_api! {
     metadata: {
@@ -22,9 +25,7 @@ ruma_api! {
 
     response: {
         /// A map from room IDs to session IDs to key data.
-        ///
-        /// Note: synapse has the `sessions: {}` wrapper, the Matrix spec does not.
-        pub rooms: Rooms,
+        pub rooms: BTreeMap<RoomId, RoomKeyBackup>,
     }
 
     error: crate::Error
@@ -38,8 +39,8 @@ impl<'a> Request<'a> {
 }
 
 impl Response {
-    /// Creates a new `Response` with the given rooms.
-    pub fn new(rooms: Rooms) -> Self {
+    /// Creates a new `Response` with the given room key backups.
+    pub fn new(rooms: BTreeMap<RoomId, RoomKeyBackup>) -> Self {
         Self { rooms }
     }
 }
