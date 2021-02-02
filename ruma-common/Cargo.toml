@@ -22,6 +22,6 @@ serde_json = { version = "1.0.60", features = ["raw_value"] }
 matches = "0.1.8"
 
 [features]
+compat = []
 unstable-exhaustive-types = []
-unstable-synapse-quirks = []
 unstable-pre-spec = []

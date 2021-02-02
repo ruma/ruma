@@ -33,9 +33,6 @@ ruma-push-gateway-api = { version = "0.0.1", path = "../ruma-push-gateway-api", 
 serde = { version = "1.0.118", features = ["derive"] }
 
 [features]
-either = ["ruma-identifiers/either"]
-rand = ["ruma-identifiers/rand"]
-
 api = ["ruma-api"]
 events = ["ruma-events"]
 signatures = ["ruma-signatures"]
@@ -46,22 +43,34 @@ federation-api = ["api", "signatures", "ruma-federation-api"]
 identity-service-api = ["api", "ruma-identity-service-api"]
 push-gateway-api = ["api", "ruma-push-gateway-api"]
 
+# Concenience features
+either = ["ruma-identifiers/either"]
+rand = ["ruma-identifiers/rand"]
+markdown = ["ruma-events/markdown"]
+
+# Increase compatibility with other parts of the Matrix ecosystem, at the
+# expense of weird behaviour where things deviate from the specification.
+#
+# For example, some mandatory string fields are defaulted to an empty string if
+# missing with this feature.
+compat = ["ruma-common/compat", "ruma-events/compat"]
+
+# unstable: by using any of these, you opt out of all semver guarantees Ruma
+#           otherwise provides!
 unstable-exhaustive-types = [
+    "ruma-common/unstable-exhaustive-types",
     "ruma-events/unstable-exhaustive-types",
     "ruma-appservice-api/unstable-exhaustive-types",
     "ruma-client-api/unstable-exhaustive-types",
     "ruma-federation-api/unstable-exhaustive-types",
-    "ruma-common/unstable-exhaustive-types",
+    "ruma-identity-service-api/unstable-exhaustive-types",
+    "ruma-push-gateway-api/unstable-exhaustive-types",
 ]
 unstable-pre-spec = [
+    "ruma-common/unstable-pre-spec",
     "ruma-client-api/unstable-pre-spec",
     "ruma-events/unstable-pre-spec",
     "ruma-federation-api/unstable-pre-spec",
-    "ruma-common/unstable-pre-spec",
+    #"ruma-identity-service-api/unstable-pre-spec",
+    #"ruma-push-gateway-api/unstable-pre-spec",
 ]
-unstable-synapse-quirks = [
-    "ruma-client-api/unstable-synapse-quirks",
-    "ruma-common/unstable-synapse-quirks",
-    "ruma-events/unstable-synapse-quirks",
-]
-markdown = ["ruma-events/markdown"]

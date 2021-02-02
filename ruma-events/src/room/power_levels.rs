@@ -17,10 +17,7 @@ pub type PowerLevelsEvent = StateEvent<PowerLevelsEventContent>;
 #[ruma_event(type = "m.room.power_levels")]
 pub struct PowerLevelsEventContent {
     /// The level required to ban a user.
-    #[cfg_attr(
-        feature = "unstable-synapse-quirks",
-        serde(deserialize_with = "ruma_serde::int_or_string_to_int")
-    )]
+    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
     pub ban: Int,
@@ -29,7 +26,7 @@ pub struct PowerLevelsEventContent {
     ///
     /// This is a mapping from event type to power level required.
     #[cfg_attr(
-        feature = "unstable-synapse-quirks",
+        feature = "compat",
         serde(deserialize_with = "ruma_serde::btreemap_int_or_string_to_int_values")
     )]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -37,45 +34,30 @@ pub struct PowerLevelsEventContent {
     pub events: BTreeMap<EventType, Int>,
 
     /// The default level required to send message events.
-    #[cfg_attr(
-        feature = "unstable-synapse-quirks",
-        serde(deserialize_with = "ruma_serde::int_or_string_to_int")
-    )]
+    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     #[ruma_event(skip_redaction)]
     pub events_default: Int,
 
     /// The level required to invite a user.
-    #[cfg_attr(
-        feature = "unstable-synapse-quirks",
-        serde(deserialize_with = "ruma_serde::int_or_string_to_int")
-    )]
+    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     pub invite: Int,
 
     /// The level required to kick a user.
-    #[cfg_attr(
-        feature = "unstable-synapse-quirks",
-        serde(deserialize_with = "ruma_serde::int_or_string_to_int")
-    )]
+    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
     pub kick: Int,
 
     /// The level required to redact an event.
-    #[cfg_attr(
-        feature = "unstable-synapse-quirks",
-        serde(deserialize_with = "ruma_serde::int_or_string_to_int")
-    )]
+    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
     pub redact: Int,
 
     /// The default level required to send state events.
-    #[cfg_attr(
-        feature = "unstable-synapse-quirks",
-        serde(deserialize_with = "ruma_serde::int_or_string_to_int")
-    )]
+    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
     pub state_default: Int,
@@ -84,7 +66,7 @@ pub struct PowerLevelsEventContent {
     ///
     /// This is a mapping from `user_id` to power level for that user.
     #[cfg_attr(
-        feature = "unstable-synapse-quirks",
+        feature = "compat",
         serde(deserialize_with = "ruma_serde::btreemap_int_or_string_to_int_values")
     )]
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -92,10 +74,7 @@ pub struct PowerLevelsEventContent {
     pub users: BTreeMap<UserId, Int>,
 
     /// The default power level for every user in the room.
-    #[cfg_attr(
-        feature = "unstable-synapse-quirks",
-        serde(deserialize_with = "ruma_serde::int_or_string_to_int")
-    )]
+    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     #[ruma_event(skip_redaction)]
     pub users_default: Int,
@@ -130,10 +109,7 @@ impl Default for PowerLevelsEventContent {
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct NotificationPowerLevels {
     /// The level required to trigger an `@room` notification.
-    #[cfg_attr(
-        feature = "unstable-synapse-quirks",
-        serde(deserialize_with = "ruma_serde::int_or_string_to_int")
-    )]
+    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default = "default_power_level")]
     pub room: Int,
 }

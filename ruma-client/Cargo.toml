@@ -54,8 +54,6 @@ tls-rustls-webpki-roots = [
     "_tls-rustls",
 ]
 
-unstable-synapse-quirks = ["ruma-events/unstable-synapse-quirks"]
-
 # Internal, not meant to be used directly
 _tls = []
 _tls-rustls = ["_tls"]
