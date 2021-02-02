@@ -167,7 +167,7 @@ fn split_id(id: &str) -> Result<(Algorithm, String), SplitError<'_>> {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use std::collections::BTreeMap;
 
     use base64::{decode_config, STANDARD_NO_PAD};

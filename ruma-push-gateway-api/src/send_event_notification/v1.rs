@@ -290,7 +290,7 @@ mod tweak_serde {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use std::time::{Duration, SystemTime};
 
     use js_int::uint;
