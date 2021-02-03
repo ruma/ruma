@@ -83,8 +83,32 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
     // with only the literal's value from here on.
     let name = &api.metadata.name.value();
     let path = &api.metadata.path;
-    let rate_limited = &api.metadata.rate_limited;
-    let authentication = &api.metadata.authentication;
+    let rate_limited = &api
+        .metadata
+        .rate_limited
+        .iter()
+        .map(|r| {
+            let attrs = &r.attrs;
+            let value = &r.value;
+            quote! {
+                #( #attrs )*
+                rate_limited: #value,
+            }
+        })
+        .collect::<Vec<_>>();
+    let authentication = &api
+        .metadata
+        .authentication
+        .iter()
+        .map(|r| {
+            let attrs = &r.attrs;
+            let value = &r.value;
+            quote! {
+                #( #attrs )*
+                authentication: #ruma_api::AuthScheme::#value,
+            }
+        })
+        .collect::<Vec<_>>();
 
     let request_type = &api.request;
     let response_type = &api.response;
@@ -133,6 +157,21 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             );
         });
     }
+    // if authentication == "AccessToken" {
+    //     header_kvs.extend(quote! {
+    //         req_headers.insert(
+    //             #http::header::AUTHORIZATION,
+    //             #http::header::HeaderValue::from_str(
+    //                 &::std::format!(
+    //                     "Bearer {}",
+    //                     access_token.ok_or(
+    //                         #ruma_api::error::IntoHttpError::NeedsAuthentication
+    //                     )?
+    //                 )
+    //             )?
+    //         );
+    //     });
+    // }
 
     let extract_request_headers = if api.request.has_header_fields() {
         quote! {
@@ -227,19 +266,19 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
     let error = &api.error_ty;
     let request_lifetimes = api.request.combine_lifetimes();
 
-    let non_auth_endpoint_impls = if authentication != "None" {
-        TokenStream::new()
-    } else {
-        quote! {
-            #[automatically_derived]
-            impl #request_lifetimes #ruma_api::OutgoingNonAuthRequest
-                for Request #request_lifetimes
-            {}
+    // let non_auth_endpoint_impls = if authentication != "None" {
+    //     TokenStream::new()
+    // } else {
+    //     quote! {
+    //         #[automatically_derived]
+    //         impl #request_lifetimes #ruma_api::OutgoingNonAuthRequest
+    //             for Request #request_lifetimes
+    //         {}
 
-            #[automatically_derived]
-            impl #ruma_api::IncomingNonAuthRequest for #incoming_request_type {}
-        }
-    };
+    //         #[automatically_derived]
+    //         impl #ruma_api::IncomingNonAuthRequest for #incoming_request_type {}
+    //     }
+    // };
 
     Ok(quote! {
         #[doc = #request_doc]
@@ -301,8 +340,8 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             method: #http::Method::#method,
             name: #name,
             path: #path,
-            rate_limited: #rate_limited,
-            authentication: #ruma_api::AuthScheme::#authentication,
+            #( #rate_limited )*
+            #( #authentication )*
         };
 
         #[automatically_derived]
@@ -367,7 +406,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             }
         }
 
-        #non_auth_endpoint_impls
+        // #non_auth_endpoint_impls
     })
 }
 
