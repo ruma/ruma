@@ -63,13 +63,8 @@ fn set_field<T: ToTokens>(field: &mut Option<T>, value: T) -> syn::Result<()> {
     }
 }
 
-fn add_field<T: ToTokens>(
-    field: &mut Vec<MetadataField<T>>,
-    value: T,
-    attrs: Vec<Attribute>,
-) -> syn::Result<()> {
+fn add_field<T: ToTokens>(field: &mut Vec<MetadataField<T>>, value: T, attrs: Vec<Attribute>) {
     field.push(MetadataField { value, attrs });
-    Ok(())
 }
 
 impl Parse for Metadata {
@@ -96,8 +91,8 @@ impl Parse for Metadata {
                 FieldValue::Method(m) => set_field(&mut method, m)?,
                 FieldValue::Name(n) => set_field(&mut name, n)?,
                 FieldValue::Path(p) => set_field(&mut path, p)?,
-                FieldValue::RateLimited(rl, attrs) => add_field(&mut rate_limited, rl, attrs)?,
-                FieldValue::Authentication(a, attrs) => add_field(&mut authentication, a, attrs)?,
+                FieldValue::RateLimited(rl, attrs) => add_field(&mut rate_limited, rl, attrs),
+                FieldValue::Authentication(a, attrs) => add_field(&mut authentication, a, attrs),
             }
         }
 
