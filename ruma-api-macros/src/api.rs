@@ -96,19 +96,6 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             }
         })
         .collect::<Vec<_>>();
-    let authentication = &api
-        .metadata
-        .authentication
-        .iter()
-        .map(|r| {
-            let attrs = &r.attrs;
-            let value = &r.value;
-            quote! {
-                #( #attrs )*
-                authentication: #ruma_api::AuthScheme::#value,
-            }
-        })
-        .collect::<Vec<_>>();
 
     let request_type = &api.request;
     let response_type = &api.response;
@@ -142,36 +129,25 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
     };
 
     let mut header_kvs = api.request.append_header_kvs();
-    if authentication == "AccessToken" {
-        header_kvs.extend(quote! {
-            req_builder = req_builder.header(
-                #http::header::AUTHORIZATION,
-                #http::header::HeaderValue::from_str(
-                    &::std::format!(
-                        "Bearer {}",
-                        access_token.ok_or(
-                            #ruma_api::error::IntoHttpError::NeedsAuthentication
-                        )?
-                    )
-                )?
-            );
-        });
+    for auth in &api.metadata.authentication {
+        if auth.value == "AccessToken" {
+            let attrs = &auth.attrs;
+            header_kvs.extend(quote! {
+                #( #attrs )*
+                req_headers.insert(
+                    #http::header::AUTHORIZATION,
+                    #http::header::HeaderValue::from_str(
+                        &::std::format!(
+                            "Bearer {}",
+                            access_token.ok_or(
+                                #ruma_api::error::IntoHttpError::NeedsAuthentication
+                            )?
+                        )
+                    )?
+                );
+            });
+        }
     }
-    // if authentication == "AccessToken" {
-    //     header_kvs.extend(quote! {
-    //         req_headers.insert(
-    //             #http::header::AUTHORIZATION,
-    //             #http::header::HeaderValue::from_str(
-    //                 &::std::format!(
-    //                     "Bearer {}",
-    //                     access_token.ok_or(
-    //                         #ruma_api::error::IntoHttpError::NeedsAuthentication
-    //                     )?
-    //                 )
-    //             )?
-    //         );
-    //     });
-    // }
 
     let extract_request_headers = if api.request.has_header_fields() {
         quote! {
@@ -266,19 +242,32 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
     let error = &api.error_ty;
     let request_lifetimes = api.request.combine_lifetimes();
 
-    // let non_auth_endpoint_impls = if authentication != "None" {
-    //     TokenStream::new()
-    // } else {
-    //     quote! {
-    //         #[automatically_derived]
-    //         impl #request_lifetimes #ruma_api::OutgoingNonAuthRequest
-    //             for Request #request_lifetimes
-    //         {}
+    let mut non_auth_endpoint_impls = vec![];
+    for auth in &api.metadata.authentication {
+        non_auth_endpoint_impls.push(if auth.value != "None" {
+            TokenStream::new()
+        } else {
+            let attrs = &auth.attrs;
+            quote! {
+                #( #attrs )*
+                #[automatically_derived]
+                impl #request_lifetimes #ruma_api::OutgoingNonAuthRequest
+                    for Request #request_lifetimes
+                    {}
 
-    //         #[automatically_derived]
-    //         impl #ruma_api::IncomingNonAuthRequest for #incoming_request_type {}
-    //     }
-    // };
+    let authentication = &api
+        .metadata
+        .authentication
+        .iter()
+        .map(|r| {
+            let attrs = &r.attrs;
+            let value = &r.value;
+            quote! {
+                #( #attrs )*
+                authentication: #ruma_api::AuthScheme::#value,
+            }
+        })
+        .collect::<Vec<_>>();
 
     Ok(quote! {
         #[doc = #request_doc]
@@ -406,7 +395,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             }
         }
 
-        // #non_auth_endpoint_impls
+        #( #non_auth_endpoint_impls )*
     })
 }
 

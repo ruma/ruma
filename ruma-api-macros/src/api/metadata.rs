@@ -172,6 +172,14 @@ enum FieldValue {
 impl Parse for FieldValue {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let attrs: Vec<Attribute> = input.call(Attribute::parse_outer)?;
+        for attr in attrs.iter() {
+            if !util::is_cfg_attribute(attr) {
+                return Err(syn::Error::new_spanned(
+                    &attr,
+                    "attributes may only be `cfg` attributes",
+                ));
+            }
+        }
         let field: Field = input.parse()?;
         let _: Token![:] = input.parse()?;
 

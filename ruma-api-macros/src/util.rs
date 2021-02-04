@@ -5,7 +5,7 @@ use proc_macro_crate::crate_name;
 use quote::quote;
 use std::collections::BTreeSet;
 use syn::{
-    AngleBracketedGenericArguments, GenericArgument, Ident, Lifetime,
+    AngleBracketedGenericArguments, AttrStyle, Attribute, GenericArgument, Ident, Lifetime,
     ParenthesizedGenericArguments, PathArguments, Type, TypeArray, TypeBareFn, TypeGroup,
     TypeParen, TypePath, TypePtr, TypeReference, TypeSlice, TypeTuple,
 };
@@ -401,4 +401,8 @@ pub fn import_ruma_api() -> TokenStream {
     } else {
         quote! { ::ruma_api }
     }
+}
+
+pub(crate) fn is_cfg_attribute(attr: &Attribute) -> bool {
+    attr.style == AttrStyle::Outer && attr.path.is_ident("cfg")
 }
