@@ -15,7 +15,7 @@ pub type TombstoneEvent = StateEvent<TombstoneEventContent>;
 #[ruma_event(type = "m.room.tombstone")]
 pub struct TombstoneEventContent {
     /// A server-defined message.
-    #[cfg_attr(feature = "unstable-synapse-quirks", serde(default))]
+    #[cfg_attr(feature = "compat", serde(default))]
     pub body: String,
 
     /// The new room the client should be visiting.

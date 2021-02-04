@@ -15,7 +15,6 @@ pub mod request_password_change_token_via_msisdn;
 pub mod request_registration_token_via_email;
 pub mod request_registration_token_via_msisdn;
 pub mod unbind_3pid;
-
 pub mod whoami;
 
 use ruma_serde::{Outgoing, StringEnum};

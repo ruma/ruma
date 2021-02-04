@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
 
-use super::KeyData;
+use super::KeyBackupData;
 
 ruma_api! {
     metadata: {
@@ -29,7 +29,7 @@ ruma_api! {
 
     response: {
         /// A map of session IDs to key data.
-        pub sessions: BTreeMap<String, KeyData>,
+        pub sessions: BTreeMap<String, KeyBackupData>,
     }
 
     error: crate::Error
@@ -44,7 +44,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given sessions.
-    pub fn new(sessions: BTreeMap<String, KeyData>) -> Self {
+    pub fn new(sessions: BTreeMap<String, KeyBackupData>) -> Self {
         Self { sessions }
     }
 }

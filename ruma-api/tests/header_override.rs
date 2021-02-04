@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 
 use http::header::{Entry, CONTENT_TYPE};
-use ruma_api::ruma_api;
+use ruma_api::{ruma_api, OutgoingRequest as _};
 
 ruma_api! {
     metadata: {
@@ -16,6 +16,9 @@ ruma_api! {
     request: {
         #[ruma_api(header = LOCATION)]
         pub location: Option<String>,
+
+        #[ruma_api(header = CONTENT_TYPE)]
+        pub stuff: String,
     }
 
     response: {
@@ -25,7 +28,7 @@ ruma_api! {
 }
 
 #[test]
-fn content_type_override() {
+fn response_content_type_override() {
     let res = Response { stuff: "magic".into() };
     let mut http_res = http::Response::<Vec<u8>>::try_from(res).unwrap();
 
@@ -39,4 +42,19 @@ fn content_type_override() {
         1
     );
     assert_eq!(http_res.headers().get("content-type").unwrap(), "magic");
+}
+
+#[test]
+fn request_content_type_override() {
+    let req = Request { location: None, stuff: "magic".into() };
+    let mut http_req = req.try_into_http_request("https://homeserver.tld", None).unwrap();
+
+    assert_eq!(
+        match http_req.headers_mut().entry(CONTENT_TYPE) {
+            Entry::Occupied(occ) => occ.iter().count(),
+            _ => 0,
+        },
+        1
+    );
+    assert_eq!(http_req.headers().get("content-type").unwrap(), "magic");
 }

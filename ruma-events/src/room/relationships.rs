@@ -84,7 +84,7 @@ pub struct Replacement {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use crate::room::message::Relation;
     use matches::assert_matches;
     use ruma_identifiers::event_id;

@@ -29,5 +29,4 @@ matches = "0.1.8"
 
 [features]
 unstable-exhaustive-types = []
-unstable-pre-spec = ["ruma-common/unstable-pre-spec"]
-unstable-synapse-quirks = ["ruma-events/unstable-synapse-quirks"]
+unstable-pre-spec = []

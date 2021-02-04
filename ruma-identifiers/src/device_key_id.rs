@@ -57,7 +57,7 @@ where
 common_impls!(DeviceKeyId, try_from, "Device key ID with algorithm and device ID");
 
 #[cfg(test)]
-mod test {
+mod tests {
     use std::convert::TryFrom;
 
     #[cfg(feature = "serde")]

@@ -17,27 +17,15 @@ pub mod get_latest_backup;
 pub mod update_backup;
 
 use js_int::UInt;
-use ruma_identifiers::{DeviceKeyId, RoomId, UserId};
+use ruma_identifiers::{DeviceKeyId, UserId};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-/// A map from room IDs to session IDs to key data.
-///
-/// Note: synapse has the `sessions: {}` wrapper, the Matrix spec does not.
-#[cfg(not(feature = "unstable-synapse-quirks"))]
-pub type Rooms = BTreeMap<RoomId, BTreeMap<String, KeyData>>;
-
-/// A map from room IDs to session IDs to key data.
-#[cfg(feature = "unstable-synapse-quirks")]
-pub type Rooms = BTreeMap<RoomId, Sessions>;
-
-// TODO: remove
 /// A wrapper around a mapping of session IDs to key data.
-#[cfg(feature = "unstable-synapse-quirks")]
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Sessions {
+pub struct RoomKeyBackup {
     /// A map of session IDs to key data.
-    pub sessions: BTreeMap<String, KeyData>,
+    pub sessions: BTreeMap<String, KeyBackupData>,
 }
 
 /// The algorithm used for storing backups.
@@ -57,7 +45,7 @@ pub enum BackupAlgorithm {
 
 /// Information about the backup key.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct KeyData {
+pub struct KeyBackupData {
     /// The index of the first message in the session that the key can decrypt.
     pub first_message_index: UInt,
 

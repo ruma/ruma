@@ -124,7 +124,7 @@ pub enum VerificationMethod {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::{KeyAgreementProtocol, MessageAuthenticationCode};
 
     use serde_json::{from_value as from_json_value, json};

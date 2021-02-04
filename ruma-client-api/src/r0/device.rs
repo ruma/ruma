@@ -13,6 +13,7 @@ pub mod update_device;
 
 /// Information about a registered device.
 #[derive(Clone, Debug, Deserialize, Hash, PartialEq, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Device {
     /// Device ID
     pub device_id: DeviceIdBox,
@@ -30,4 +31,11 @@ pub struct Device {
         skip_serializing_if = "Option::is_none"
     )]
     pub last_seen_ts: Option<SystemTime>,
+}
+
+impl Device {
+    /// Creates a new `Device` with the given device ID.
+    pub fn new(device_id: DeviceIdBox) -> Self {
+        Self { device_id, display_name: None, last_seen_ip: None, last_seen_ts: None }
+    }
 }

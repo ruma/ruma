@@ -4,7 +4,7 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomId;
 
-use super::KeyData;
+use super::KeyBackupData;
 
 ruma_api! {
     metadata: {
@@ -31,7 +31,7 @@ ruma_api! {
 
         /// The key information to backup.
         #[ruma_api(body)]
-        pub session_data: KeyData,
+        pub session_data: KeyBackupData,
     }
 
     response: {
@@ -52,7 +52,7 @@ impl<'a> Request<'a> {
         version: &'a str,
         room_id: &'a RoomId,
         session_id: &'a str,
-        session_data: KeyData,
+        session_data: KeyBackupData,
     ) -> Self {
         Self { version, room_id, session_id, session_data }
     }
