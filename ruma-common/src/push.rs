@@ -108,10 +108,10 @@ impl Iterator for RulesetIter {
     type Item = AnyPushRule;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.content
+        self.override_
             .next()
             .map(|x| x.0.into())
-            .or_else(|| self.override_.next().map(|x| x.0.into()))
+            .or_else(|| self.content.next().map(|x| x.0.into()))
             .or_else(|| self.room.next().map(|x| x.0.into()))
             .or_else(|| self.sender.next().map(|x| x.0.into()))
             .or_else(|| self.underride.next().map(|x| x.0.into()))

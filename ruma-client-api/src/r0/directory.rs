@@ -5,12 +5,13 @@ pub mod get_public_rooms_filtered;
 pub mod get_room_visibility;
 pub mod set_room_visibility;
 
-use js_int::UInt;
+use js_int::{uint, UInt};
 use ruma_identifiers::{RoomAliasId, RoomId};
 use serde::{Deserialize, Serialize};
 
 /// A chunk of a room list response, describing one room
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct PublicRoomsChunk {
     /// Aliases of the room.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -45,4 +46,25 @@ pub struct PublicRoomsChunk {
     /// The URL for the room's avatar, if one is set.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar_url: Option<String>,
+}
+
+impl PublicRoomsChunk {
+    /// Creates a `PublicRoomsChunk` with the given room ID.
+    ///
+    /// All other fields will be propagated with default values (an empty list of aliases, `None`
+    /// for all `Option`al fields and `false` for all boolean fields), which should be overriden;
+    /// the `assign!` macro from the `assign` crate can simplify this.
+    pub fn new(room_id: RoomId) -> Self {
+        Self {
+            room_id,
+            aliases: Vec::new(),
+            canonical_alias: None,
+            name: None,
+            num_joined_members: uint!(0),
+            topic: None,
+            world_readable: false,
+            guest_can_join: false,
+            avatar_url: None,
+        }
+    }
 }

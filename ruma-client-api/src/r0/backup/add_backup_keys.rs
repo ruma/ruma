@@ -1,9 +1,12 @@
 //! [PUT /_matrix/client/r0/room_keys/keys](https://matrix.org/docs/spec/client_server/unstable#put-matrix-client-r0-room-keys-keys)
 
+use std::collections::BTreeMap;
+
 use js_int::UInt;
 use ruma_api::ruma_api;
+use ruma_identifiers::RoomId;
 
-use super::Rooms;
+use super::RoomKeyBackup;
 
 ruma_api! {
     metadata: {
@@ -21,9 +24,7 @@ ruma_api! {
         pub version: &'a str,
 
         /// A map from room IDs to session IDs to key data.
-        ///
-        /// Note: synapse has the `sessions: {}` wrapper, the Matrix spec does not.
-        pub rooms: Rooms,
+        pub rooms: BTreeMap<RoomId, RoomKeyBackup>,
     }
 
     response: {
@@ -39,8 +40,8 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new `Request` with the given version.
-    pub fn new(version: &'a str, rooms: Rooms) -> Self {
+    /// Creates a new `Request` with the given version and room key backups.
+    pub fn new(version: &'a str, rooms: BTreeMap<RoomId, RoomKeyBackup>) -> Self {
         Self { version, rooms }
     }
 }

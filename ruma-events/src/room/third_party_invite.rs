@@ -17,15 +17,15 @@ pub type ThirdPartyInviteEvent = StateEvent<ThirdPartyInviteEventContent>;
 #[ruma_event(type = "m.room.third_party_invite")]
 pub struct ThirdPartyInviteEventContent {
     /// A user-readable string which represents the user who has been invited.
-    #[cfg_attr(feature = "unstable-synapse-quirks", serde(default))]
+    #[cfg_attr(feature = "compat", serde(default))]
     pub display_name: String,
 
     /// A URL which can be fetched to validate whether the key has been revoked.
-    #[cfg_attr(feature = "unstable-synapse-quirks", serde(default))]
+    #[cfg_attr(feature = "compat", serde(default))]
     pub key_validity_url: String,
 
     /// A Base64-encoded Ed25519 key with which the token must be signed.
-    #[cfg_attr(feature = "unstable-synapse-quirks", serde(default))]
+    #[cfg_attr(feature = "compat", serde(default))]
     pub public_key: String,
 
     /// Keys with which the token may be signed.

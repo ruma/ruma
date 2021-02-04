@@ -24,9 +24,9 @@ pub struct Protocol {
 
     /// A content URI representing an icon for the third party protocol.
     ///
-    /// If you activate the `unstable-synapse-quirks` feature, this field being absent in JSON will
-    /// give you an empty string here.
-    #[cfg_attr(feature = "unstable-synapse-quirks", serde(default))]
+    /// If you activate the `compat` feature, this field being absent in JSON will give you an
+    /// empty string here.
+    #[cfg_attr(feature = "compat", serde(default))]
     pub icon: String,
 
     /// The type definitions for the fields defined in `user_fields` and `location_fields`.

@@ -6,7 +6,7 @@ use ruma::{
     events::{room::message::MessageEventContent, AnyMessageEventContent},
     RoomAliasId,
 };
-use ruma_client::{self, Client};
+use ruma_client::Client;
 
 async fn hello_world(
     homeserver_url: Uri,

@@ -60,7 +60,7 @@ pub fn to_canonical_value<T: Serialize>(value: T) -> Result<value::CanonicalJson
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use std::{collections::BTreeMap, convert::TryInto};
 
     use super::{

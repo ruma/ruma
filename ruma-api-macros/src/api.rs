@@ -360,7 +360,12 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
                         },
                         #request_path_string,
                         #request_query_string,
-                    ));
+                    ))
+                    .header(#ruma_api::exports::http::header::CONTENT_TYPE, "application/json");
+
+                let mut req_headers = req_builder
+                    .headers_mut()
+                    .expect("`http::RequestBuilder` is in unusable state");
 
                 #header_kvs
 

@@ -36,6 +36,17 @@ impl<T> ValOrVec<T> {
             ValOrVec::Vec(vec) => vec.push(new_val),
         }
     }
+
+    fn deserialize_val<U, E, F>(self, f: F) -> Result<U, E>
+    where
+        F: FnOnce(T) -> Result<U, E>,
+        E: de::Error,
+    {
+        match self {
+            ValOrVec::Val(val) => f(val),
+            ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
+        }
+    }
 }
 
 impl<T> IntoIterator for ValOrVec<T> {
@@ -89,10 +100,7 @@ macro_rules! forward_to_part {
             fn $method<V>(self, visitor: V) -> Result<V::Value, Self::Error>
                 where V: de::Visitor<'de>
             {
-                match self {
-                    ValOrVec::Val(val) => val.$method(visitor),
-                    ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
-                }
+                self.deserialize_val(move |val| val.$method(visitor))
             }
         )*
     }
@@ -130,20 +138,14 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self {
-            ValOrVec::Val(val) => val.deserialize_enum(name, variants, visitor),
-            ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
-        }
+        self.deserialize_val(move |val| val.deserialize_enum(name, variants, visitor))
     }
 
     fn deserialize_tuple<V>(self, len: usize, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        match self {
-            ValOrVec::Val(val) => val.deserialize_tuple(len, visitor),
-            ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
-        }
+        self.deserialize_val(move |val| val.deserialize_tuple(len, visitor))
     }
 
     fn deserialize_struct<V>(
@@ -155,10 +157,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self {
-            ValOrVec::Val(val) => val.deserialize_struct(name, fields, visitor),
-            ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
-        }
+        self.deserialize_val(move |val| val.deserialize_struct(name, fields, visitor))
     }
 
     fn deserialize_unit_struct<V>(
@@ -169,10 +168,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self {
-            ValOrVec::Val(val) => val.deserialize_unit_struct(name, visitor),
-            ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
-        }
+        self.deserialize_val(move |val| val.deserialize_unit_struct(name, visitor))
     }
 
     fn deserialize_tuple_struct<V>(
@@ -184,10 +180,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self {
-            ValOrVec::Val(val) => val.deserialize_tuple_struct(name, len, visitor),
-            ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
-        }
+        self.deserialize_val(move |val| val.deserialize_tuple_struct(name, len, visitor))
     }
 
     fn deserialize_newtype_struct<V>(
@@ -198,10 +191,7 @@ where
     where
         V: de::Visitor<'de>,
     {
-        match self {
-            ValOrVec::Val(val) => val.deserialize_newtype_struct(name, visitor),
-            ValOrVec::Vec(_) => Err(de::Error::custom("unsupported value")),
-        }
+        self.deserialize_val(move |val| val.deserialize_newtype_struct(name, visitor))
     }
 
     forward_to_part! {
