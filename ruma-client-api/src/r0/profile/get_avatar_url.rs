@@ -10,7 +10,10 @@ ruma_api! {
         name: "get_avatar_url",
         path: "/_matrix/client/r0/profile/:user_id/avatar_url",
         rate_limited: false,
+        #[cfg(not(feature = "unstable-synapse-quirks"))]
         authentication: None,
+        #[cfg(feature = "unstable-synapse-quirks")]
+        authentication: AccessToken,
     }
 
     request: {

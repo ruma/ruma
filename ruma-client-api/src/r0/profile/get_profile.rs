@@ -10,7 +10,10 @@ ruma_api! {
         name: "get_profile",
         path: "/_matrix/client/r0/profile/:user_id",
         rate_limited: false,
+        #[cfg(not(feature = "unstable-synapse-quirks"))]
         authentication: None,
+        #[cfg(feature = "unstable-synapse-quirks")]
+        authentication: AccessToken,
     }
 
     request: {
