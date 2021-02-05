@@ -74,3 +74,6 @@ unstable-pre-spec = [
     #"ruma-identity-service-api/unstable-pre-spec",
     #"ruma-push-gateway-api/unstable-pre-spec",
 ]
+unstable-synapse-quirks = [
+    "ruma-client-api/unstable-synapse-quirks",
+]
