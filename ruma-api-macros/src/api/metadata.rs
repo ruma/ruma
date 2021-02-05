@@ -4,7 +4,7 @@ use quote::ToTokens;
 use syn::{
     braced,
     parse::{Parse, ParseStream},
-    Ident, LitBool, LitStr, Token,
+    Attribute, Ident, LitBool, LitStr, Token,
 };
 
 use crate::util;
@@ -17,6 +17,15 @@ mod kw {
     syn::custom_keyword!(path);
     syn::custom_keyword!(rate_limited);
     syn::custom_keyword!(authentication);
+}
+
+/// A field of Metadata that contains attribute macros
+pub struct MetadataField<T> {
+    /// attributes over the field
+    pub attrs: Vec<Attribute>,
+
+    /// the field itself
+    pub value: T,
 }
 
 /// The result of processing the `metadata` section of the macro.
@@ -34,10 +43,10 @@ pub struct Metadata {
     pub path: LitStr,
 
     /// The rate_limited field.
-    pub rate_limited: LitBool,
+    pub rate_limited: Vec<MetadataField<LitBool>>,
 
     /// The authentication field.
-    pub authentication: Ident,
+    pub authentication: Vec<MetadataField<Ident>>,
 }
 
 fn set_field<T: ToTokens>(field: &mut Option<T>, value: T) -> syn::Result<()> {
@@ -69,8 +78,8 @@ impl Parse for Metadata {
         let mut method = None;
         let mut name = None;
         let mut path = None;
-        let mut rate_limited = None;
-        let mut authentication = None;
+        let mut rate_limited = vec![];
+        let mut authentication = vec![];
 
         for field_value in field_values {
             match field_value {
@@ -78,8 +87,12 @@ impl Parse for Metadata {
                 FieldValue::Method(m) => set_field(&mut method, m)?,
                 FieldValue::Name(n) => set_field(&mut name, n)?,
                 FieldValue::Path(p) => set_field(&mut path, p)?,
-                FieldValue::RateLimited(rl) => set_field(&mut rate_limited, rl)?,
-                FieldValue::Authentication(a) => set_field(&mut authentication, a)?,
+                FieldValue::RateLimited(value, attrs) => {
+                    rate_limited.push(MetadataField { value, attrs })
+                }
+                FieldValue::Authentication(value, attrs) => {
+                    authentication.push(MetadataField { value, attrs })
+                }
             }
         }
 
@@ -91,8 +104,16 @@ impl Parse for Metadata {
             method: method.ok_or_else(|| missing_field("method"))?,
             name: name.ok_or_else(|| missing_field("name"))?,
             path: path.ok_or_else(|| missing_field("path"))?,
-            rate_limited: rate_limited.ok_or_else(|| missing_field("rate_limited"))?,
-            authentication: authentication.ok_or_else(|| missing_field("authentication"))?,
+            rate_limited: if rate_limited.is_empty() {
+                return Err(missing_field("rate_limited"));
+            } else {
+                rate_limited
+            },
+            authentication: if authentication.is_empty() {
+                return Err(missing_field("authentication"));
+            } else {
+                authentication
+            },
         })
     }
 }
@@ -139,12 +160,21 @@ enum FieldValue {
     Method(Ident),
     Name(LitStr),
     Path(LitStr),
-    RateLimited(LitBool),
-    Authentication(Ident),
+    RateLimited(LitBool, Vec<Attribute>),
+    Authentication(Ident, Vec<Attribute>),
 }
 
 impl Parse for FieldValue {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        let attrs: Vec<Attribute> = input.call(Attribute::parse_outer)?;
+        for attr in attrs.iter() {
+            if !util::is_cfg_attribute(attr) {
+                return Err(syn::Error::new_spanned(
+                    &attr,
+                    "only `cfg` attributes may appear here",
+                ));
+            }
+        }
         let field: Field = input.parse()?;
         let _: Token![:] = input.parse()?;
 
@@ -164,8 +194,8 @@ impl Parse for FieldValue {
 
                 Self::Path(path)
             }
-            Field::RateLimited => Self::RateLimited(input.parse()?),
-            Field::Authentication => Self::Authentication(input.parse()?),
+            Field::RateLimited => Self::RateLimited(input.parse()?, attrs),
+            Field::Authentication => Self::Authentication(input.parse()?, attrs),
         })
     }
 }
