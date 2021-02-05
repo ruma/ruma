@@ -63,10 +63,6 @@ fn set_field<T: ToTokens>(field: &mut Option<T>, value: T) -> syn::Result<()> {
     }
 }
 
-fn add_field<T: ToTokens>(field: &mut Vec<MetadataField<T>>, value: T, attrs: Vec<Attribute>) {
-    field.push(MetadataField { value, attrs });
-}
-
 impl Parse for Metadata {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let metadata_kw: kw::metadata = input.parse()?;
@@ -91,8 +87,12 @@ impl Parse for Metadata {
                 FieldValue::Method(m) => set_field(&mut method, m)?,
                 FieldValue::Name(n) => set_field(&mut name, n)?,
                 FieldValue::Path(p) => set_field(&mut path, p)?,
-                FieldValue::RateLimited(rl, attrs) => add_field(&mut rate_limited, rl, attrs),
-                FieldValue::Authentication(a, attrs) => add_field(&mut authentication, a, attrs),
+                FieldValue::RateLimited(value, attrs) => {
+                    rate_limited.push(MetadataField { value, attrs })
+                }
+                FieldValue::Authentication(value, attrs) => {
+                    authentication.push(MetadataField { value, attrs })
+                }
             }
         }
 
@@ -105,15 +105,15 @@ impl Parse for Metadata {
             name: name.ok_or_else(|| missing_field("name"))?,
             path: path.ok_or_else(|| missing_field("path"))?,
             rate_limited: if rate_limited.is_empty() {
-                Err(missing_field("rate_limited"))
+                return Err(missing_field("rate_limited"));
             } else {
-                Ok(rate_limited)
-            }?,
+                rate_limited
+            },
             authentication: if authentication.is_empty() {
-                Err(missing_field("authentication"))
+                return Err(missing_field("authentication"));
             } else {
-                Ok(authentication)
-            }?,
+                authentication
+            },
         })
     }
 }
@@ -171,7 +171,7 @@ impl Parse for FieldValue {
             if !util::is_cfg_attribute(attr) {
                 return Err(syn::Error::new_spanned(
                     &attr,
-                    "attributes may only be `cfg` attributes",
+                    "only `cfg` attributes may appear here",
                 ));
             }
         }

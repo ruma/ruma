@@ -83,7 +83,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
     // with only the literal's value from here on.
     let name = &api.metadata.name.value();
     let path = &api.metadata.path;
-    let rate_limited = &api
+    let rate_limited: TokenStream = api
         .metadata
         .rate_limited
         .iter()
@@ -95,7 +95,20 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
                 rate_limited: #value,
             }
         })
-        .collect::<Vec<_>>();
+        .collect();
+    let authentication: TokenStream = api
+        .metadata
+        .authentication
+        .iter()
+        .map(|r| {
+            let attrs = &r.attrs;
+            let value = &r.value;
+            quote! {
+                #( #attrs )*
+                authentication: #ruma_api::AuthScheme::#value,
+            }
+        })
+        .collect();
 
     let request_type = &api.request;
     let response_type = &api.response;
@@ -242,32 +255,29 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
     let error = &api.error_ty;
     let request_lifetimes = api.request.combine_lifetimes();
 
-    let mut non_auth_endpoint_impls = vec![];
-    for auth in &api.metadata.authentication {
-        non_auth_endpoint_impls.push(if auth.value != "None" {
-            TokenStream::new()
-        } else {
-            let attrs = &auth.attrs;
-            quote! {
-                #( #attrs )*
-                #[automatically_derived]
-                impl #request_lifetimes #ruma_api::OutgoingNonAuthRequest
-                    for Request #request_lifetimes
-                    {}
-
-    let authentication = &api
+    let non_auth_endpoint_impls: TokenStream = api
         .metadata
         .authentication
         .iter()
-        .map(|r| {
-            let attrs = &r.attrs;
-            let value = &r.value;
-            quote! {
-                #( #attrs )*
-                authentication: #ruma_api::AuthScheme::#value,
+        .map(|auth| {
+            if auth.value != "None" {
+                TokenStream::new()
+            } else {
+                let attrs = &auth.attrs;
+                quote! {
+                    #( #attrs )*
+                    #[automatically_derived]
+                    impl #request_lifetimes #ruma_api::OutgoingNonAuthRequest
+                        for Request #request_lifetimes
+                        {}
+
+                    #( #attrs )*
+                    #[automatically_derived]
+                    impl #ruma_api::IncomingNonAuthRequest for #incoming_request_type {}
+                }
             }
         })
-        .collect::<Vec<_>>();
+        .collect();
 
     Ok(quote! {
         #[doc = #request_doc]
@@ -329,8 +339,8 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             method: #http::Method::#method,
             name: #name,
             path: #path,
-            #( #rate_limited )*
-            #( #authentication )*
+            #rate_limited
+            #authentication
         };
 
         #[automatically_derived]
@@ -400,7 +410,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             }
         }
 
-        #( #non_auth_endpoint_impls )*
+        #non_auth_endpoint_impls
     })
 }
 
