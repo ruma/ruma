@@ -54,7 +54,7 @@ impl Parse for EventMeta {
             input.parse::<kw::custom_redacted>()?;
             Ok(EventMeta::CustomRedacted)
         } else {
-            Err(syn::Error::new(input.span(), "not a recognized `ruma_event` attribute"))
+            Err(lookahead.error())
         }
     }
 }
