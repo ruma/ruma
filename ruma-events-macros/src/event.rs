@@ -2,7 +2,9 @@
 
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, Ident};
+use syn::{
+    Data, DataStruct, DeriveInput, Field, Fields, FieldsNamed, Ident, Meta, MetaList, NestedMeta,
+};
 
 use crate::{
     event_parse::{to_kind_variation, EventKind, EventKindVariation},
@@ -42,7 +44,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
     };
 
     let serialize_impl = expand_serialize_event(&input, &var, &fields, &ruma_events);
-    let deserialize_impl = expand_deserialize_event(&input, &var, &fields, &ruma_events);
+    let deserialize_impl = expand_deserialize_event(&input, &var, &fields, &ruma_events)?;
     let conversion_impl = expand_from_into(&input, &kind, &var, &fields, &ruma_events);
 
     let eq_impl = expand_eq_ord_event(&input, &fields);
@@ -133,7 +135,7 @@ fn expand_deserialize_event(
     var: &EventKindVariation,
     fields: &[Field],
     ruma_events: &TokenStream,
-) -> TokenStream {
+) -> syn::Result<TokenStream> {
     let js_int = quote! { #ruma_events::exports::js_int };
     let serde = quote! { #ruma_events::exports::serde };
     let serde_json = quote! { #ruma_events::exports::serde_json };
@@ -181,7 +183,7 @@ fn expand_deserialize_event(
         .iter()
         .map(|field| {
             let name = field.ident.as_ref().unwrap();
-            if name == "content" {
+            Ok(if name == "content" {
                 if is_generic && var.is_redacted() {
                     quote! {
                         let content = match C::has_deserialize_fields() {
@@ -246,14 +248,37 @@ fn expand_deserialize_event(
             } else if name == "unsigned" {
                 quote! { let unsigned = unsigned.unwrap_or_default(); }
             } else {
-                quote! {
-                    let #name = #name.ok_or_else(|| {
-                        #serde::de::Error::missing_field(stringify!(#name))
-                    })?;
+                let attrs: Vec<_> = field
+                    .attrs
+                    .iter()
+                    .filter(|a| a.path.is_ident("ruma_event"))
+                    .map(|a| a.parse_meta())
+                    .collect::<syn::Result<_>>()?;
+
+                let has_default_attr = attrs.iter().any(|a| {
+                    matches!(
+                        a,
+                        Meta::List(MetaList { nested, .. })
+                        if nested.iter().any(|n| {
+                            matches!(n, NestedMeta::Meta(Meta::Path(p)) if p.is_ident("default"))
+                        })
+                    )
+                });
+
+                if has_default_attr {
+                    quote! {
+                        let #name = #name.unwrap_or_default();
+                    }
+                } else {
+                    quote! {
+                        let #name = #name.ok_or_else(|| {
+                            #serde::de::Error::missing_field(stringify!(#name))
+                        })?;
+                    }
                 }
-            }
+            })
         })
-        .collect();
+        .collect::<syn::Result<_>>()?;
 
     let field_names: Vec<_> = fields.iter().flat_map(|f| &f.ident).collect();
 
@@ -269,7 +294,7 @@ fn expand_deserialize_event(
         quote! {}
     };
 
-    quote! {
+    Ok(quote! {
         #[automatically_derived]
         impl #deserialize_impl_gen #serde::de::Deserialize<'de> for #ident #ty_gen #where_clause {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -350,7 +375,7 @@ fn expand_deserialize_event(
                 deserializer.deserialize_map(EventVisitor(#deserialize_phantom_type))
             }
         }
-    }
+    })
 }
 
 fn expand_from_into(

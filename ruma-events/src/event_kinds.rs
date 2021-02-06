@@ -226,6 +226,9 @@ pub struct InitialStateEvent<C: StateEventContent> {
     ///
     /// This is often an empty string, but some events send a `UserId` to show
     /// which user the event affects.
+    ///
+    /// Defaults to the empty string.
+    #[ruma_event(default)]
     pub state_key: String,
 }
 
