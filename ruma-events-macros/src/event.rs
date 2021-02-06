@@ -18,7 +18,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
         syn::Error::new(Span::call_site(), "not a valid ruma event struct identifier")
     })?;
 
-    let fields = if let Data::Struct(DataStruct { fields, .. }) = input.data.clone() {
+    let fields: Vec<_> = if let Data::Struct(DataStruct { fields, .. }) = input.data.clone() {
         if let Fields::Named(FieldsNamed { named, .. }) = fields {
             if !named.iter().any(|f| f.ident.as_ref().unwrap() == "content") {
                 return Err(syn::Error::new(
@@ -27,7 +27,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
                 ));
             }
 
-            named.into_iter().collect::<Vec<_>>()
+            named.into_iter().collect()
         } else {
             return Err(syn::Error::new_spanned(
                 fields,
@@ -66,7 +66,7 @@ fn expand_serialize_event(
 
     let ident = &input.ident;
     let (impl_gen, ty_gen, where_clause) = input.generics.split_for_impl();
-    let serialize_fields = fields
+    let serialize_fields: Vec<_> = fields
         .iter()
         .map(|field| {
             let name = field.ident.as_ref().unwrap();
@@ -105,7 +105,7 @@ fn expand_serialize_event(
                 }
             }
         })
-        .collect::<Vec<_>>();
+        .collect();
 
     quote! {
         #[automatically_derived]
@@ -150,15 +150,15 @@ fn expand_deserialize_event(
     let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
     let is_generic = !input.generics.params.is_empty();
 
-    let enum_variants = fields
+    let enum_variants: Vec<_> = fields
         .iter()
         .map(|field| {
             let name = field.ident.as_ref().unwrap();
             to_camel_case(name)
         })
-        .collect::<Vec<_>>();
+        .collect();
 
-    let deserialize_var_types = fields
+    let deserialize_var_types: Vec<_> = fields
         .iter()
         .map(|field| {
             let name = field.ident.as_ref().unwrap();
@@ -175,9 +175,9 @@ fn expand_deserialize_event(
                 quote! { #ty }
             }
         })
-        .collect::<Vec<_>>();
+        .collect();
 
-    let ok_or_else_fields = fields
+    let ok_or_else_fields: Vec<_> = fields
         .iter()
         .map(|field| {
             let name = field.ident.as_ref().unwrap();
@@ -253,9 +253,9 @@ fn expand_deserialize_event(
                 }
             }
         })
-        .collect::<Vec<_>>();
+        .collect();
 
-    let field_names = fields.iter().flat_map(|f| &f.ident).collect::<Vec<_>>();
+    let field_names: Vec<_> = fields.iter().flat_map(|f| &f.ident).collect();
 
     let deserialize_impl_gen = if is_generic {
         let gen = &input.generics.params;
@@ -366,10 +366,10 @@ fn expand_from_into(
 
     let (impl_generics, ty_gen, where_clause) = input.generics.split_for_impl();
 
-    let fields = fields.iter().flat_map(|f| &f.ident).collect::<Vec<_>>();
+    let fields: Vec<_> = fields.iter().flat_map(|f| &f.ident).collect();
 
-    let fields_without_unsigned =
-        fields.iter().filter(|id| id.to_string().as_str() != "unsigned").collect::<Vec<_>>();
+    let fields_without_unsigned: Vec<_> =
+        fields.iter().filter(|id| id.to_string().as_str() != "unsigned").collect();
 
     let (into, into_full_event) = if var.is_redacted() {
         (quote! { unsigned: unsigned.into(), }, quote! { unsigned: unsigned.into_full(room_id), })

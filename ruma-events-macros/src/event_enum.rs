@@ -123,10 +123,8 @@ fn expand_any_with_deser(
     // a valid event enum.
     let (event_struct, ident) = generate_event_idents(kind, var)?;
 
-    let content = events
-        .iter()
-        .map(|event| to_event_path(event, &event_struct, ruma_events))
-        .collect::<Vec<_>>();
+    let content: Vec<_> =
+        events.iter().map(|event| to_event_path(event, &event_struct, ruma_events)).collect();
 
     let variant_decls = variants.iter().map(|v| v.decl());
     let self_variants = variants.iter().map(|v| v.ctor(quote!(Self)));
@@ -211,7 +209,7 @@ fn expand_conversion_impl(
     let ruma_identifiers = quote! { #ruma_events::exports::ruma_identifiers };
 
     let ident = kind.to_event_enum_ident(var)?;
-    let variants = &variants
+    let variants: Vec<_> = variants
         .iter()
         .filter(|v| {
             // We filter this variant out only for non redacted events.
@@ -220,7 +218,7 @@ fn expand_conversion_impl(
             !(v.ident == "RoomRedaction"
                 && matches!(var, EventKindVariation::Full | EventKindVariation::Sync))
         })
-        .collect::<Vec<_>>();
+        .collect();
 
     match var {
         EventKindVariation::Full | EventKindVariation::Redacted => {
@@ -372,8 +370,8 @@ fn expand_content_enum(
     let ident = kind.to_content_enum();
     let event_type_str = events;
 
-    let content =
-        events.iter().map(|ev| to_event_content_path(kind, ev, ruma_events)).collect::<Vec<_>>();
+    let content: Vec<_> =
+        events.iter().map(|ev| to_event_content_path(kind, ev, ruma_events)).collect();
 
     let variant_decls = variants.iter().map(|v| v.decl());
 
@@ -801,7 +799,7 @@ fn to_event_path(name: &LitStr, struct_name: &Ident, ruma_events: &TokenStream) 
     // There is no need to give a good compiler error as `to_camel_case` is called first.
     assert_eq!(&name[..2], "m.");
 
-    let path = name[2..].split('.').collect::<Vec<_>>();
+    let path: Vec<_> = name[2..].split('.').collect();
 
     let event_str = path.last().unwrap();
     let event = event_str
@@ -854,7 +852,7 @@ fn to_event_content_path(
     // There is no need to give a good compiler error as `to_camel_case` is called first.
     assert_eq!(&name[..2], "m.");
 
-    let path = name[2..].split('.').collect::<Vec<_>>();
+    let path: Vec<_> = name[2..].split('.').collect();
 
     let event_str = path.last().unwrap();
     let event = event_str

@@ -123,7 +123,7 @@ pub fn expand_event_content(
                 })
                 .unwrap_or(Ok(()))?;
 
-            let mut fields = named
+            let mut fields: Vec<_> = named
                 .iter()
                 .filter(|f| {
                     matches!(
@@ -132,7 +132,7 @@ pub fn expand_event_content(
                     )
                 })
                 .cloned()
-                .collect::<Vec<_>>();
+                .collect();
 
             // don't re-emit our `ruma_event` attributes
             for f in &mut fields {
