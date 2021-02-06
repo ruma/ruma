@@ -42,15 +42,19 @@ impl EventMeta {
 
 impl Parse for EventMeta {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        if input.parse::<Token![type]>().is_ok() {
+        let lookahead = input.lookahead1();
+        if lookahead.peek(Token![type]) {
+            input.parse::<Token![type]>()?;
             input.parse::<Token![=]>()?;
-            Ok(EventMeta::Type(input.parse::<LitStr>()?))
-        } else if input.parse::<kw::skip_redaction>().is_ok() {
+            input.parse().map(EventMeta::Type)
+        } else if lookahead.peek(kw::skip_redaction) {
+            input.parse::<kw::skip_redaction>()?;
             Ok(EventMeta::SkipRedacted)
-        } else if input.parse::<kw::custom_redacted>().is_ok() {
+        } else if lookahead.peek(kw::custom_redacted) {
+            input.parse::<kw::custom_redacted>()?;
             Ok(EventMeta::CustomRedacted)
         } else {
-            Err(syn::Error::new(input.span(), "not a recognized `ruma_event` attribute"))
+            Err(lookahead.error())
         }
     }
 }

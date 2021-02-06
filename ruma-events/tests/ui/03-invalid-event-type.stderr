@@ -1,4 +1,4 @@
-error: not a recognized `ruma_event` attribute
+error: expected one of: `type`, `skip_redaction`, `custom_redacted`
   --> $DIR/03-invalid-event-type.rs:11:14
    |
 11 | #[ruma_event(event = "m.macro.test")]
