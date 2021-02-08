@@ -43,7 +43,7 @@ federation-api = ["api", "signatures", "ruma-federation-api"]
 identity-service-api = ["api", "ruma-identity-service-api"]
 push-gateway-api = ["api", "ruma-push-gateway-api"]
 
-# Concenience features
+# Convenience features
 either = ["ruma-identifiers/either"]
 rand = ["ruma-identifiers/rand"]
 markdown = ["ruma-events/markdown"]
