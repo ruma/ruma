@@ -9,6 +9,36 @@ A set of [Rust] crates (libraries) for interacting with the [Matrix] chat networ
 [website]: https://www.ruma.io/
 [chat]: https://matrix.to/#/#ruma:matrix.org
 
+## Getting started
+
+If you want to build a Matrix client or bot, have a look at [matrix-rust-sdk].
+It builds on Ruma and includes handling of state storage, end-to-end encryption
+and many other useful things.
+
+For homeservers, bridges and harder-to-categorize software that works with
+Matrix, you're at the right place. To get started, add `ruma` to your
+dependencies (as a git dependency if you want all of the latest improvements),
+enable all [Cargo features][feat] that seem relevant and run
+`cargo doc -p ruma --open`. The `ruma` crate re-exports all relevant things,
+except for `ruma-client`, which you can use to make client-API calls to a Matrix
+homeserver¹.
+
+If you use the crates through crates.io, make sure to choose versions of `ruma`
+and `ruma-client` that depend on the same / compatible versions of the other
+crates (checking one, for example `ruma-common`, is enough though). At the time
+of writing the latest versions are `ruma 0.0.2` and `ruma-client 0.5.0-alpha.1`,
+which can be used together.
+
+If you're using the crates through git, just use the same `rev` (or `branch` if
+you want to control the exact version only through `Cargo.lock`) for both.
+
+This may seem a little convoluted, that's because it is. We're working on it.
+
+¹ (better) support for the other APIs is planned
+
+[matrix-rust-sdk]: https://github.com/matrix-org/matrix-rust-sdk#readme
+[feat]: https://github.com/ruma/ruma/blob/1166af5a354210dcbced1eaf4a11f795c381d2ec/ruma/Cargo.toml#L35
+
 ## Status
 
 As of 2021-01-19, we support the vast majority of endpoints in all of the various Matrix APIs
