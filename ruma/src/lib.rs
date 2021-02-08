@@ -10,6 +10,12 @@
 //! * `client-api` for the client-server API
 //! * `federation-api` for the server-server (federation) API
 //! * `appservice-api` for the application service API
+//!
+//! There's also the features `api`, `events` and `signatures` for the
+//! submodules of the same names. Usually they are activated by one of the
+//! other features when needed. If you are viewing this on `docs.rs`, you can
+//! have a look at the feature dependencies by clicking 'Feature flags' in the
+//! toolbar at the top.
 
 #![deny(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
