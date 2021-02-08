@@ -49,7 +49,7 @@ ruma_api! {
         ///
         /// See [MDN] for the syntax.
         ///
-        /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#Syntax
+        /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition#Syntax
         #[ruma_api(header = CONTENT_DISPOSITION)]
         pub content_disposition: Option<String>,
     }
