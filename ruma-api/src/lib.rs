@@ -195,9 +195,9 @@ use http::Method;
 ///
 /// ## Fallible deserialization
 ///
-/// All request and response types also derive [`Outgoing`][trait@ruma_serde::Outgoing]. As such,
-/// to allow fallible deserialization, you can use the `#[wrap_incoming]` attribute. For details,
-/// see the documentation for [the derive macro](derive@ruma_serde::Outgoing).
+/// All request and response types also derive [`Outgoing`][trait@ruma_serde::Outgoing]. As
+/// such, to allow fallible deserialization, you can use the `#[wrap_incoming]` attribute. For
+/// details, see the documentation for [the derive macro](derive@ruma_serde::Outgoing).
 // TODO: Explain the concept of fallible deserialization before jumping to
 // `ruma_serde::Outgoing`
 pub use ruma_api_macros::ruma_api;
