@@ -192,7 +192,7 @@ pub enum Medium {
     Email,
 
     /// Phone number identifier
-    MSISDN,
+    Msisdn,
 
     #[doc(hidden)]
     _Custom(String),
