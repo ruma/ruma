@@ -6,6 +6,7 @@ use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
+use serde_json::Value as JsonValue;
 
 ruma_api! {
     metadata: {
@@ -20,7 +21,7 @@ ruma_api! {
     request: {
         /// Signed keys.
         #[ruma_api(body)]
-        pub signed_keys: BTreeMap<UserId, BTreeMap<String, serde_json::Value>>,
+        pub signed_keys: BTreeMap<UserId, BTreeMap<String, JsonValue>>,
     }
 
     #[derive(Default)]
@@ -31,7 +32,7 @@ ruma_api! {
 
 impl Request {
     /// Creates a new `Request` with the given signed keys.
-    pub fn new(signed_keys: BTreeMap<UserId, BTreeMap<String, serde_json::Value>>) -> Self {
+    pub fn new(signed_keys: BTreeMap<UserId, BTreeMap<String, JsonValue>>) -> Self {
         Self { signed_keys }
     }
 }
