@@ -712,7 +712,7 @@ fn accessor_methods(
     let content_variants: Vec<_> = variants.iter().map(|v| v.ctor(&content_enum)).collect();
 
     let event_type = quote! {
-        /// Returns the event type of this event's content
+        /// Returns the `type` of this event.
         pub fn event_type(&self) -> &str {
             match self {
                 #( #self_variants(event) =>
