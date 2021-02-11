@@ -711,6 +711,18 @@ fn accessor_methods(
     let self_variants: Vec<_> = variants.iter().map(|v| v.match_arm(quote!(Self))).collect();
     let content_variants: Vec<_> = variants.iter().map(|v| v.ctor(&content_enum)).collect();
 
+    let event_type = quote! {
+        /// Returns the event type of this event's content
+        pub fn event_type(&self) -> &str {
+            match self {
+                #( #self_variants(event) =>
+                    #ruma_events::EventContent::event_type(&event.content), )*
+                Self::Custom(event) =>
+                    #ruma_events::EventContent::event_type(&event.content),
+            }
+        }
+    };
+
     let content = quote! {
         /// Returns the any content enum for this event.
         pub fn content(&self) -> #content_enum {
@@ -745,6 +757,8 @@ fn accessor_methods(
         #[automatically_derived]
         impl #ident {
             #content
+
+            #event_type
 
             #prev_content
 
