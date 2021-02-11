@@ -269,4 +269,5 @@ fn alias_event_field_access() {
     } else {
         panic!("the `Any*Event` enum's accessor methods may have been altered")
     }
+    assert_eq!(deser.event_type(), "m.room.aliases");
 }
