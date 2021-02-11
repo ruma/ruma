@@ -1,7 +1,7 @@
 use std::{convert::TryInto, fmt};
 
 use serde::Serialize;
-use serde_json::{Error as JsonError, Map as JsonObject, Value as JsonValue};
+use serde_json::{Error as JsonError, Value as JsonValue};
 
 pub mod value;
 
@@ -49,7 +49,7 @@ impl std::error::Error for Error {}
 
 /// Fallible conversion from a `serde_json::Map` to a `CanonicalJsonObject`.
 pub fn try_from_json_map(
-    json: JsonObject<String, JsonValue>,
+    json: serde_json::Map<String, JsonValue>,
 ) -> Result<CanonicalJsonObject, Error> {
     json.into_iter().map(|(k, v)| Ok((k, v.try_into()?))).collect()
 }
@@ -69,7 +69,7 @@ mod tests {
     };
 
     use js_int::int;
-    use serde_json::{from_str as from_json_str, json, to_string as to_json_string, Map};
+    use serde_json::{from_str as from_json_str, json, to_string as to_json_string};
 
     #[test]
     fn serialize_canon() {
@@ -130,7 +130,7 @@ mod tests {
             ]),
         );
 
-        let mut map = Map::new();
+        let mut map = serde_json::Map::new();
         map.insert("foo".into(), json!("string"));
         map.insert("bar".into(), json!(vec![0, 1, 2,]));
 
