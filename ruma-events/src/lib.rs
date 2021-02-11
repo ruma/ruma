@@ -181,6 +181,7 @@
 // Remove this once https://github.com/rust-lang/rust/issues/54883 becomes stable
 #![allow(clippy::unnested_or_patterns)]
 
+use std::collections::HashMap;
 use std::fmt::Debug;
 
 use js_int::Int;
@@ -190,7 +191,7 @@ use serde::{
     de::{self, IgnoredAny},
     Deserialize, Serialize,
 };
-use serde_json::value::RawValue as RawJsonValue;
+use serde_json::value::{RawValue as RawJsonValue, Value as JsonValue};
 
 use self::room::redaction::{RedactionEvent, SyncRedactionEvent};
 
@@ -518,6 +519,18 @@ pub struct EventDeHelper {
     /// If this `UnsignedData` contains a `redacted_because` key the event is
     /// immediately deserialized as a redacted event.
     pub unsigned: Option<UnsignedDeHelper>,
+}
+
+/// Helper struct to determine the msgtype from a `serde_json::value::RawValue`
+#[doc(hidden)]
+#[derive(Debug, Deserialize)]
+pub struct MessageDeHelper {
+    /// The message type field
+    pub msgtype: String,
+
+    /// Everything else in the json object
+    #[serde(flatten)]
+    pub remaining: HashMap<String, JsonValue>,
 }
 
 /// Helper function for `serde_json::value::RawValue` deserialization.
