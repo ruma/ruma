@@ -32,47 +32,37 @@ pub type MessageEvent = OuterMessageEvent<MessageEventContent>;
 #[derive(Clone, Debug, Serialize, MessageEventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.message")]
-#[serde(tag = "msgtype")]
+#[serde(untagged)]
 pub enum MessageEventContent {
     /// An audio message.
-    #[serde(rename = "m.audio")]
     Audio(AudioMessageEventContent),
 
     /// An emote message.
-    #[serde(rename = "m.emote")]
     Emote(EmoteMessageEventContent),
 
     /// A file message.
-    #[serde(rename = "m.file")]
     File(FileMessageEventContent),
 
     /// An image message.
-    #[serde(rename = "m.image")]
     Image(ImageMessageEventContent),
 
     /// A location message.
-    #[serde(rename = "m.location")]
     Location(LocationMessageEventContent),
 
     /// A notice message.
-    #[serde(rename = "m.notice")]
     Notice(NoticeMessageEventContent),
 
     /// A server notice message.
-    #[serde(rename = "m.server_notice")]
     ServerNotice(ServerNoticeMessageEventContent),
 
     /// A text message.
-    #[serde(rename = "m.text")]
     Text(TextMessageEventContent),
 
     /// A video message.
-    #[serde(rename = "m.video")]
     Video(VideoMessageEventContent),
 
     /// A request to initiate a key verification.
     #[cfg(feature = "unstable-pre-spec")]
-    #[serde(rename = "m.key.verification.request")]
     VerificationRequest(KeyVerificationRequestEventContent),
 }
 
@@ -160,6 +150,7 @@ impl MessageEventContent {
 
 /// The payload for an audio message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(tag = "msgtype", rename = "m.audio")]
 pub struct AudioMessageEventContent {
     /// The textual representation of this message.
     pub body: String,
@@ -196,6 +187,7 @@ pub struct AudioInfo {
 
 /// The payload for an emote message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(tag = "msgtype", rename = "m.emote")]
 pub struct EmoteMessageEventContent {
     /// The emote action to perform.
     pub body: String,
@@ -207,6 +199,7 @@ pub struct EmoteMessageEventContent {
 
 /// The payload for a file message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(tag = "msgtype", rename = "m.file")]
 pub struct FileMessageEventContent {
     /// A human-readable description of the file. This is recommended to be the filename of the
     /// original upload.
@@ -256,6 +249,7 @@ pub struct FileInfo {
 
 /// The payload for an image message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(tag = "msgtype", rename = "m.image")]
 pub struct ImageMessageEventContent {
     /// A textual representation of the image. This could be the alt text of the image, the
     /// filename of the image, or some kind of content description for accessibility e.g.
@@ -278,6 +272,7 @@ pub struct ImageMessageEventContent {
 
 /// The payload for a location message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(tag = "msgtype", rename = "m.location")]
 pub struct LocationMessageEventContent {
     /// A description of the location e.g. "Big Ben, London, UK,"or some kind of content
     /// description for accessibility, e.g. "location attachment."
@@ -312,6 +307,7 @@ pub struct LocationInfo {
 /// The payload for a notice message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "msgtype", rename = "m.notice")]
 pub struct NoticeMessageEventContent {
     /// The notice text.
     pub body: String,
@@ -353,6 +349,7 @@ impl NoticeMessageEventContent {
 
 /// The payload for a server notice message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(tag = "msgtype", rename = "m.server_notice")]
 pub struct ServerNoticeMessageEventContent {
     /// A human-readable description of the notice.
     pub body: String,
@@ -442,6 +439,7 @@ impl FormattedBody {
 /// The payload for a text message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "msgtype", rename = "m.text")]
 pub struct TextMessageEventContent {
     /// The body of the message.
     pub body: String,
@@ -498,6 +496,7 @@ impl TextMessageEventContent {
 
 /// The payload for a video message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(tag = "msgtype", rename = "m.video")]
 pub struct VideoMessageEventContent {
     /// A description of the video, e.g. "Gangnam Style," or some kind of content description for
     /// accessibility, e.g. "video attachment."
@@ -568,6 +567,7 @@ pub struct VideoInfo {
 /// The payload for a key verification request message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
+#[serde(tag = "msgtype", rename = "m.key.verification.request")]
 pub struct KeyVerificationRequestEventContent {
     /// A fallback message to alert users that their client does not support the key verification
     /// framework.
