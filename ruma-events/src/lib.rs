@@ -181,7 +181,7 @@
 // Remove this once https://github.com/rust-lang/rust/issues/54883 becomes stable
 #![allow(clippy::unnested_or_patterns)]
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fmt::Debug;
 
 use js_int::Int;
@@ -530,7 +530,7 @@ pub struct MessageDeHelper {
 
     /// Everything else in the json object
     #[serde(flatten)]
-    pub remaining: HashMap<String, JsonValue>,
+    pub remaining: BTreeMap<String, JsonValue>,
 }
 
 /// Helper function for `serde_json::value::RawValue` deserialization.

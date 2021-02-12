@@ -29,7 +29,7 @@ use crate::{from_raw_json_value, MessageDeHelper};
 pub type MessageEvent = OuterMessageEvent<MessageEventContent>;
 
 /// The payload for `MessageEvent`.
-#[derive(Clone, Debug, MessageEventContent, Serialize)]
+#[derive(Clone, Debug, Serialize, MessageEventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.message")]
 #[serde(untagged)]
