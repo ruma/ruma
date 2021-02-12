@@ -10,12 +10,12 @@ use ruma_events::{
 use ruma_events::{
     room::{
         message::{
-            AudioMessageEventContent, CustomEventContent, MessageEventContent, Relation,
-            TextMessageEventContent,
+            AudioMessageEventContent, CustomEventContent, MessageEvent, MessageEventContent,
+            Relation, TextMessageEventContent,
         },
         relationships::InReplyTo,
     },
-    MessageEvent, Unsigned,
+    Unsigned,
 };
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::DeviceIdBox;
