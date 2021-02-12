@@ -18,6 +18,7 @@ use super::{relationships::RelatesToJsonRepr, EncryptedFile, ImageInfo, Thumbnai
 // FIXME: Do we want to keep re-exporting this?
 pub use super::relationships::InReplyTo;
 
+mod content_serde;
 pub mod feedback;
 
 use crate::MessageEvent as OuterMessageEvent;
@@ -28,7 +29,7 @@ use crate::MessageEvent as OuterMessageEvent;
 pub type MessageEvent = OuterMessageEvent<MessageEventContent>;
 
 /// The payload for `MessageEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
+#[derive(Clone, Debug, Serialize, MessageEventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.message")]
 #[serde(tag = "msgtype")]
