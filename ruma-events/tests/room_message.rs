@@ -11,7 +11,7 @@ use ruma_events::{
     room::{
         message::{
             AudioMessageEventContent, CustomEventContent, MessageEvent, MessageEventContent,
-            Relation, TextMessageEventContent,
+            MessageType, Relation, TextMessageEventContent,
         },
         relationships::InReplyTo,
     },
@@ -26,11 +26,14 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 #[test]
 fn serialization() {
     let ev = MessageEvent {
-        content: MessageEventContent::Audio(AudioMessageEventContent {
-            body: "test".into(),
-            info: None,
-            url: Some("http://example.com/audio.mp3".into()),
-            file: None,
+        content: assign!(MessageEventContent::text_plain(""), {
+            msgtype: MessageType::Audio(AudioMessageEventContent {
+                body: "test".into(),
+                info: None,
+                url: Some("http://example.com/audio.mp3".into()),
+                file: None,
+            }),
+            relates_to: None,
         }),
         event_id: event_id!("$143273582443PhrSn:example.org"),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(10_000),
@@ -58,11 +61,14 @@ fn serialization() {
 
 #[test]
 fn content_serialization() {
-    let message_event_content = MessageEventContent::Audio(AudioMessageEventContent {
-        body: "test".into(),
-        info: None,
-        url: Some("http://example.com/audio.mp3".into()),
-        file: None,
+    let message_event_content = assign!(MessageEventContent::text_plain(""), {
+        msgtype: MessageType::Audio(AudioMessageEventContent {
+            body: "test".into(),
+            info: None,
+            url: Some("http://example.com/audio.mp3".into()),
+            file: None,
+        }),
+        relates_to: None,
     });
 
     assert_eq!(
@@ -124,10 +130,8 @@ fn custom_content_deserialization() {
 
 #[test]
 fn formatted_body_serialization() {
-    let message_event_content = MessageEventContent::Text(TextMessageEventContent::html(
-        "Hello, World!",
-        "Hello, <em>World</em>!",
-    ));
+    let message_event_content =
+        MessageEventContent::text_html("Hello, World!", "Hello, <em>World</em>!");
 
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
@@ -142,9 +146,8 @@ fn formatted_body_serialization() {
 
 #[test]
 fn plain_text_content_serialization() {
-    let message_event_content = MessageEventContent::Text(TextMessageEventContent::plain(
-        "> <@test:example.com> test\n\ntest reply",
-    ));
+    let message_event_content =
+        MessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply");
 
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
@@ -157,13 +160,13 @@ fn plain_text_content_serialization() {
 
 #[test]
 fn relates_to_content_serialization() {
-    let message_event_content = MessageEventContent::Text(
-        assign!(TextMessageEventContent::plain("> <@test:example.com> test\n\ntest reply"), {
-            relates_to: Some(Relation::Reply {
-                in_reply_to: InReplyTo { event_id: event_id!("$15827405538098VGFWH:example.com") },
-            }),
+    // TODO: this should fail once relates_to + new_content are merged, then fix test
+    let message_event_content =
+        assign!(MessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply"), {
+        relates_to: Some(Relation::Reply {
+            in_reply_to: InReplyTo { event_id: event_id!("$15827405538098VGFWH:example.com") },
         }),
-    );
+    });
 
     let json_data = json!({
         "body": "> <@test:example.com> test\n\ntest reply",
@@ -195,12 +198,15 @@ fn edit_deserialization_061() {
 
     assert_matches!(
         from_json_value::<MessageEventContent>(json_data).unwrap(),
-        MessageEventContent::Text(TextMessageEventContent {
-            body,
-            formatted: None,
+        MessageEventContent {
+            msgtype: MessageType::Text(TextMessageEventContent {
+                body,
+                formatted: None,
+                ..
+            }),
             relates_to: Some(Relation::Custom(_)),
             ..
-        }) if body == "s/foo/bar"
+        } if body == "s/foo/bar"
     );
 }
 
@@ -225,22 +231,20 @@ fn edit_deserialization_future() {
 
     assert_matches!(
         from_json_value::<MessageEventContent>(json_data).unwrap(),
-        MessageEventContent::Text(TextMessageEventContent {
-            body,
-            formatted: None,
+        MessageEventContent {
+            msgtype: MessageType::Text(TextMessageEventContent {
+                body,
+                formatted: None,
+            }),
             relates_to: Some(Relation::Replacement(Replacement { event_id })),
             new_content: Some(new_content),
-            ..
-        }) if body == "s/foo/bar"
+        } if body == "s/foo/bar"
             && event_id == ev_id
             && matches!(
                 &*new_content,
                 MessageEventContent::Text(TextMessageEventContent {
                     body,
                     formatted: None,
-                    relates_to: None,
-                    new_content: None,
-                    ..
                 }) if body == "bar"
             )
     );
@@ -322,12 +326,15 @@ fn content_deserialization() {
             .unwrap()
             .deserialize()
             .unwrap(),
-        MessageEventContent::Audio(AudioMessageEventContent {
-            body,
-            info: None,
-            url: Some(url),
-            file: None,
-        }) if body == "test" && url == "http://example.com/audio.mp3"
+        MessageEventContent {
+            msgtype: MessageType::Audio(AudioMessageEventContent {
+                body,
+                info: None,
+                url: Some(url),
+                file: None,
+            }),
+            ..
+        } if body == "test" && url == "http://example.com/audio.mp3"
     );
 }
 

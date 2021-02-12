@@ -5,7 +5,7 @@ use http::Uri;
 use ruma::{
     api::client::r0::{filter::FilterDefinition, sync::sync_events},
     events::{
-        room::message::{MessageEventContent, TextMessageEventContent},
+        room::message::{MessageEventContent, MessageType, TextMessageEventContent},
         AnySyncMessageEvent, AnySyncRoomEvent, SyncMessageEvent,
     },
     presence::PresenceState,
@@ -40,9 +40,13 @@ async fn log_messages(homeserver_url: Uri, username: &str, password: &str) -> an
                 if let AnySyncRoomEvent::Message(AnySyncMessageEvent::RoomMessage(
                     SyncMessageEvent {
                         content:
-                            MessageEventContent::Text(TextMessageEventContent {
-                                body: msg_body, ..
-                            }),
+                            MessageEventContent {
+                                msgtype:
+                                    MessageType::Text(TextMessageEventContent {
+                                        body: msg_body, ..
+                                    }),
+                                ..
+                            },
                         sender,
                         ..
                     },

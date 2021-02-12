@@ -7,11 +7,16 @@ use ruma_events_macros::MessageEventContent;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::{DeviceIdBox, UserId};
 use ruma_serde::StringEnum;
-use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
+use serde::{
+    de::{self, Error},
+    Deserialize, Serialize,
+};
+use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
 
 #[cfg(feature = "unstable-pre-spec")]
 use crate::key::verification::VerificationMethod;
+
+use crate::from_raw_json_value;
 
 #[cfg(feature = "unstable-pre-spec")]
 use super::relationships::{Annotation, Reference, RelationJsonRepr, Replacement};
@@ -34,8 +39,73 @@ pub type MessageEvent = OuterMessageEvent<MessageEventContent>;
 #[derive(Clone, Debug, Serialize, MessageEventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.message")]
-#[serde(untagged)]
-pub enum MessageEventContent {
+pub struct MessageEventContent {
+    /// A key which identifies the type of message being sent.
+    ///
+    /// This also holds the specific content of each message.
+    #[serde(flatten)]
+    pub msgtype: MessageType,
+
+    /// Information about related messages for
+    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
+    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
+    pub relates_to: Option<Relation>,
+
+    /// New content of an edited message.
+    ///
+    /// This should only be set if `relates_to` is `Some(Relation::Replacement(_))`.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
+    pub new_content: Option<Box<MessageEventContent>>,
+}
+
+impl MessageEventContent {
+    /// A convenience constructor to create a plain text message.
+    pub fn text_plain(body: impl Into<String>) -> Self {
+        Self {
+            msgtype: MessageType::Text(TextMessageEventContent::plain(body)),
+            relates_to: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            new_content: None,
+        }
+    }
+
+    /// A convenience constructor to create an html message.
+    pub fn text_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self {
+            msgtype: MessageType::Text(TextMessageEventContent::html(body, html_body)),
+            relates_to: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            new_content: None,
+        }
+    }
+
+    /// A convenience constructor to create an plain text notice.
+    pub fn notice_plain(body: impl Into<String>) -> Self {
+        Self {
+            msgtype: MessageType::Notice(NoticeMessageEventContent::plain(body)),
+            relates_to: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            new_content: None,
+        }
+    }
+
+    /// A convenience constructor to create an html notice.
+    pub fn notice_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self {
+            msgtype: MessageType::Notice(NoticeMessageEventContent::html(body, html_body)),
+            relates_to: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            new_content: None,
+        }
+    }
+}
+
+/// The content that is specific to each message type variant.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "msgtype")]
+pub enum MessageType {
     /// An audio message.
     Audio(AudioMessageEventContent),
 
@@ -129,28 +199,6 @@ impl From<RelatesToJsonRepr> for Relation {
             RelatesToJsonRepr::Reply { in_reply_to } => Self::Reply { in_reply_to },
             RelatesToJsonRepr::Custom(v) => Self::Custom(v),
         }
-    }
-}
-
-impl MessageEventContent {
-    /// A convenience constructor to create a plain text message.
-    pub fn text_plain(body: impl Into<String>) -> Self {
-        Self::Text(TextMessageEventContent::plain(body))
-    }
-
-    /// A convenience constructor to create an html message.
-    pub fn text_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self::Text(TextMessageEventContent::html(body, html_body))
-    }
-
-    /// A convenience constructor to create an plain text notice.
-    pub fn notice_plain(body: impl Into<String>) -> Self {
-        Self::Notice(NoticeMessageEventContent::plain(body))
-    }
-
-    /// A convenience constructor to create an html notice.
-    pub fn notice_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self::Notice(NoticeMessageEventContent::html(body, html_body))
     }
 }
 
@@ -321,30 +369,12 @@ pub struct NoticeMessageEventContent {
     /// Formatted form of the message `body`.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
-
-    /// Information about related messages for
-    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
-    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
-    pub relates_to: Option<Relation>,
-
-    /// New content of an edited message.
-    ///
-    /// This should only be set if `relates_to` is `Some(Relation::Replacement(_))`.
-    #[cfg(feature = "unstable-pre-spec")]
-    #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
-    pub new_content: Option<Box<MessageEventContent>>,
 }
 
 impl NoticeMessageEventContent {
     /// A convenience constructor to create a plain text notice.
     pub fn plain(body: impl Into<String>) -> Self {
-        Self {
-            body: body.into(),
-            formatted: None,
-            relates_to: None,
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
-        }
+        Self { body: body.into(), formatted: None }
     }
 
     /// A convenience constructor to create an html notice.
@@ -453,30 +483,12 @@ pub struct TextMessageEventContent {
     /// Formatted form of the message `body`.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
-
-    /// Information about related messages for
-    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
-    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
-    pub relates_to: Option<Relation>,
-
-    /// New content of an edited message.
-    ///
-    /// This should only be set if `relates_to` is `Some(Relation::Replacement(_))`.
-    #[cfg(feature = "unstable-pre-spec")]
-    #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
-    pub new_content: Option<Box<MessageEventContent>>,
 }
 
 impl TextMessageEventContent {
     /// A convenience constructor to create a plain text message.
     pub fn plain(body: impl Into<String>) -> Self {
-        Self {
-            body: body.into(),
-            formatted: None,
-            relates_to: None,
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
-        }
+        Self { body: body.into(), formatted: None }
     }
 
     /// A convenience constructor to create an html message.
@@ -603,4 +615,96 @@ pub struct CustomEventContent {
     /// Remaining event content
     #[serde(flatten)]
     pub data: BTreeMap<String, JsonValue>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Deserialize)]
+pub struct MessageDeHelper {
+    /// the Matrix message type string "m.whatever".
+    pub msgtype: String,
+
+    #[serde(rename = "m.relates_to")]
+    relates_to: Option<Box<RawJsonValue>>,
+
+    #[cfg(feature = "unstable-pre-spec")]
+    #[serde(rename = "m.new_content")]
+    new_content: Option<Box<RawJsonValue>>,
+}
+
+impl<'de> de::Deserialize<'de> for MessageEventContent {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+        #[cfg(feature = "unstable-pre-spec")]
+        let MessageDeHelper { msgtype, relates_to, new_content } = from_raw_json_value(&json)?;
+        #[cfg(not(feature = "unstable-pre-spec"))]
+        let MessageDeHelper { msgtype, relates_to } = from_raw_json_value(&json)?;
+
+        Ok(match msgtype.as_str() {
+            "m.audio" => Self {
+                msgtype: MessageType::Audio(from_raw_json_value(&json)?),
+                relates_to: relates_to.map(|json| from_raw_json_value(&json)).transpose()?,
+                #[cfg(feature = "unstable-pre-spec")]
+                new_content: new_content.map(|json| from_raw_json_value(&json)).transpose()?,
+            },
+            "m.emote" => Self {
+                msgtype: MessageType::Emote(from_raw_json_value(&json)?),
+                relates_to: relates_to.map(|json| from_raw_json_value(&json)).transpose()?,
+                #[cfg(feature = "unstable-pre-spec")]
+                new_content: new_content.map(|json| from_raw_json_value(&json)).transpose()?,
+            },
+            "m.file" => Self {
+                msgtype: MessageType::File(from_raw_json_value(&json)?),
+                relates_to: relates_to.map(|json| from_raw_json_value(&json)).transpose()?,
+                #[cfg(feature = "unstable-pre-spec")]
+                new_content: new_content.map(|json| from_raw_json_value(&json)).transpose()?,
+            },
+            "m.image" => Self {
+                msgtype: MessageType::Image(from_raw_json_value(&json)?),
+                relates_to: relates_to.map(|json| from_raw_json_value(&json)).transpose()?,
+                #[cfg(feature = "unstable-pre-spec")]
+                new_content: new_content.map(|json| from_raw_json_value(&json)).transpose()?,
+            },
+            "m.location" => Self {
+                msgtype: MessageType::Location(from_raw_json_value(&json)?),
+                relates_to: relates_to.map(|json| from_raw_json_value(&json)).transpose()?,
+                #[cfg(feature = "unstable-pre-spec")]
+                new_content: new_content.map(|json| from_raw_json_value(&json)).transpose()?,
+            },
+            "m.notice" => Self {
+                msgtype: MessageType::Notice(from_raw_json_value(&json)?),
+                relates_to: relates_to.map(|json| from_raw_json_value(&json)).transpose()?,
+                #[cfg(feature = "unstable-pre-spec")]
+                new_content: new_content.map(|json| from_raw_json_value(&json)).transpose()?,
+            },
+            "m.server_notice" => Self {
+                msgtype: MessageType::ServerNotice(from_raw_json_value(&json)?),
+                relates_to: relates_to.map(|json| from_raw_json_value(&json)).transpose()?,
+                #[cfg(feature = "unstable-pre-spec")]
+                new_content: new_content.map(|json| from_raw_json_value(&json)).transpose()?,
+            },
+            "m.text" => Self {
+                msgtype: MessageType::Text(from_raw_json_value(&json)?),
+                relates_to: relates_to.map(|json| from_raw_json_value(&json)).transpose()?,
+                #[cfg(feature = "unstable-pre-spec")]
+                new_content: new_content.map(|json| from_raw_json_value(&json)).transpose()?,
+            },
+            "m.video" => Self {
+                msgtype: MessageType::Video(from_raw_json_value(&json)?),
+                relates_to: relates_to.map(|json| from_raw_json_value(&json)).transpose()?,
+                #[cfg(feature = "unstable-pre-spec")]
+                new_content: new_content.map(|json| from_raw_json_value(&json)).transpose()?,
+            },
+            #[cfg(feature = "unstable-pre-spec")]
+            "m.key.verification.request" => Self {
+                msgtype: MessageType::VerificationRequest(from_raw_json_value(&json)?),
+                relates_to: relates_to.map(|json| from_raw_json_value(&json)).transpose()?,
+                #[cfg(feature = "unstable-pre-spec")]
+                new_content: new_content.map(|json| from_raw_json_value(&json)).transpose()?,
+            },
+            _ => return Err(D::Error::custom("Invalid msgtype found")),
+        })
+    }
 }
