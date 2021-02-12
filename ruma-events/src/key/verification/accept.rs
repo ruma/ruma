@@ -70,7 +70,7 @@ pub struct CustomContent {
 
     /// The additional fields that the method contains.
     #[serde(flatten)]
-    pub fields: BTreeMap<String, JsonValue>,
+    pub data: BTreeMap<String, JsonValue>,
 }
 
 /// The payload of an *m.key.verification.accept* event using the *m.sas.v1* method.
@@ -214,7 +214,7 @@ mod tests {
             transaction_id: "456".into(),
             method: AcceptMethod::Custom(CustomContent {
                 method: "m.sas.custom".to_owned(),
-                fields: vec![("test".to_string(), JsonValue::from("field"))]
+                data: vec![("test".to_string(), JsonValue::from("field"))]
                     .into_iter()
                     .collect::<BTreeMap<String, JsonValue>>(),
             }),
@@ -359,13 +359,13 @@ mod tests {
                     transaction_id,
                     method: AcceptMethod::Custom(CustomContent {
                         method,
-                        fields,
+                        data,
                     })
                 }
             } if transaction_id == "456"
                 && sender == user_id!("@example:localhost")
                 && method == "m.sas.custom"
-                && fields.get("test").unwrap() == &JsonValue::from("field")
+                && data.get("test").unwrap() == &JsonValue::from("field")
         );
     }
 

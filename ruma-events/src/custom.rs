@@ -1,5 +1,7 @@
 //! Types for custom events outside of the Matrix specification.
 
+use std::collections::BTreeMap;
+
 use ruma_identifiers::RoomVersionId;
 use serde::Serialize;
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
@@ -19,7 +21,7 @@ pub struct CustomEventContent {
 
     /// The actual `content` JSON object.
     #[serde(flatten)]
-    pub json: JsonValue,
+    pub data: BTreeMap<String, JsonValue>,
 }
 
 impl CustomEventContent {
@@ -35,8 +37,8 @@ impl EventContent for CustomEventContent {
     }
 
     fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, serde_json::Error> {
-        let json = serde_json::from_str(content.get())?;
-        Ok(Self { event_type: event_type.to_string(), json })
+        let data = serde_json::from_str(content.get())?;
+        Ok(Self { event_type: event_type.to_string(), data })
     }
 }
 
