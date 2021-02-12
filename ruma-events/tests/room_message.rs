@@ -26,13 +26,14 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 #[test]
 fn serialization() {
     let ev = MessageEvent {
-        content: assign!(MessageEventContent::text_plain(""), {
-            msgtype: MessageType::Audio(AudioMessageEventContent {
+        content: assign!(MessageEventContent::new(
+            MessageType::Audio(AudioMessageEventContent {
                 body: "test".into(),
                 info: None,
                 url: Some("http://example.com/audio.mp3".into()),
                 file: None,
             }),
+        ), {
             relates_to: None,
         }),
         event_id: event_id!("$143273582443PhrSn:example.org"),
@@ -61,13 +62,14 @@ fn serialization() {
 
 #[test]
 fn content_serialization() {
-    let message_event_content = assign!(MessageEventContent::text_plain(""), {
-        msgtype: MessageType::Audio(AudioMessageEventContent {
+    let message_event_content = assign!(MessageEventContent::new(
+        MessageType::Audio(AudioMessageEventContent {
             body: "test".into(),
             info: None,
             url: Some("http://example.com/audio.mp3".into()),
             file: None,
         }),
+    ), {
         relates_to: None,
     });
 
@@ -87,7 +89,7 @@ fn custom_content_serialization() {
         "custom_field".into() => json!("baba"),
         "another_one".into() => json!("abab"),
     };
-    let custom_event_content = MessageEventContent::_Custom(CustomEventContent {
+    let custom_event_content = MessageType::_Custom(CustomEventContent {
         msgtype: "my_custom_msgtype".into(),
         data: json_data,
     });
@@ -116,11 +118,11 @@ fn custom_content_deserialization() {
     };
 
     assert_matches!(
-        from_json_value::<Raw<MessageEventContent>>(json_data)
+        from_json_value::<Raw<MessageType>>(json_data)
             .unwrap()
             .deserialize()
             .unwrap(),
-        MessageEventContent::_Custom(CustomEventContent {
+        MessageType::_Custom(CustomEventContent {
             msgtype,
             data
         }) if msgtype == "my_custom_msgtype"
@@ -160,7 +162,6 @@ fn plain_text_content_serialization() {
 
 #[test]
 fn relates_to_content_serialization() {
-    // TODO: this should fail once relates_to + new_content are merged, then fix test
     let message_event_content =
         assign!(MessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply"), {
         relates_to: Some(Relation::Reply {
