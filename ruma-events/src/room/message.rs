@@ -55,8 +55,7 @@ pub struct MessageEventContent {
 }
 
 impl MessageEventContent {
-    /// A convenience constructor to create a `MessageEventContent` with the given
-    /// `MessageType`.
+    /// Create a `MessageEventContent` with the given `MessageType`.
     pub fn new(msgtype: MessageType) -> Self {
         Self {
             msgtype,
@@ -66,7 +65,7 @@ impl MessageEventContent {
         }
     }
 
-    /// A convenience constructor to create a plain text message.
+    /// A constructor to create a plain text message.
     pub fn text_plain(body: impl Into<String>) -> Self {
         Self {
             msgtype: MessageType::Text(TextMessageEventContent::plain(body)),
@@ -76,7 +75,7 @@ impl MessageEventContent {
         }
     }
 
-    /// A convenience constructor to create an html message.
+    /// A constructor to create an html message.
     pub fn text_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
         Self {
             msgtype: MessageType::Text(TextMessageEventContent::html(body, html_body)),
@@ -86,7 +85,7 @@ impl MessageEventContent {
         }
     }
 
-    /// A convenience constructor to create a plain text notice.
+    /// A constructor to create a plain text notice.
     pub fn notice_plain(body: impl Into<String>) -> Self {
         Self {
             msgtype: MessageType::Notice(NoticeMessageEventContent::plain(body)),
@@ -96,7 +95,7 @@ impl MessageEventContent {
         }
     }
 
-    /// A convenience constructor to create an html notice.
+    /// A constructor to create an html notice.
     pub fn notice_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
         Self {
             msgtype: MessageType::Notice(NoticeMessageEventContent::html(body, html_body)),
@@ -150,12 +149,7 @@ pub enum MessageType {
 
 impl From<MessageType> for MessageEventContent {
     fn from(msgtype: MessageType) -> Self {
-        Self {
-            msgtype,
-            relates_to: None,
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
-        }
+        Self::new(msgtype)
     }
 }
 

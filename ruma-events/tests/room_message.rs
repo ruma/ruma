@@ -26,16 +26,12 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 #[test]
 fn serialization() {
     let ev = MessageEvent {
-        content: assign!(MessageEventContent::new(
-            MessageType::Audio(AudioMessageEventContent {
-                body: "test".into(),
-                info: None,
-                url: Some("http://example.com/audio.mp3".into()),
-                file: None,
-            }),
-        ), {
-            relates_to: None,
-        }),
+        content: MessageEventContent::new(MessageType::Audio(AudioMessageEventContent {
+            body: "test".into(),
+            info: None,
+            url: Some("http://example.com/audio.mp3".into()),
+            file: None,
+        })),
         event_id: event_id!("$143273582443PhrSn:example.org"),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(10_000),
         room_id: room_id!("!testroomid:example.org"),
@@ -62,16 +58,13 @@ fn serialization() {
 
 #[test]
 fn content_serialization() {
-    let message_event_content = assign!(MessageEventContent::new(
-        MessageType::Audio(AudioMessageEventContent {
+    let message_event_content =
+        MessageEventContent::new(MessageType::Audio(AudioMessageEventContent {
             body: "test".into(),
             info: None,
             url: Some("http://example.com/audio.mp3".into()),
             file: None,
-        }),
-    ), {
-        relates_to: None,
-    });
+        }));
 
     assert_eq!(
         to_json_value(&message_event_content).unwrap(),
@@ -164,10 +157,10 @@ fn plain_text_content_serialization() {
 fn relates_to_content_serialization() {
     let message_event_content =
         assign!(MessageEventContent::text_plain("> <@test:example.com> test\n\ntest reply"), {
-        relates_to: Some(Relation::Reply {
-            in_reply_to: InReplyTo { event_id: event_id!("$15827405538098VGFWH:example.com") },
-        }),
-    });
+            relates_to: Some(Relation::Reply {
+                in_reply_to: InReplyTo { event_id: event_id!("$15827405538098VGFWH:example.com") },
+            }),
+        });
 
     let json_data = json!({
         "body": "> <@test:example.com> test\n\ntest reply",
