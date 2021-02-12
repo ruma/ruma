@@ -32,7 +32,7 @@ impl<'de> de::Deserialize<'de> for MessageEventContent {
             "m.video" => Self::Video(from_raw_json_value(&json)?),
             #[cfg(feature = "unstable-pre-spec")]
             "m.key.verification.request" => Self::VerificationRequest(from_raw_json_value(&json)?),
-            _ => return Err(de::Error::custom("unknown msgtype")),
+            _ => Self::_Custom(from_raw_json_value(&json)?),
         })
     }
 }

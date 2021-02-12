@@ -1,6 +1,7 @@
 use std::time::{Duration, UNIX_EPOCH};
 
 use assign::assign;
+use maplit::btreemap;
 use matches::assert_matches;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_events::{
@@ -9,7 +10,8 @@ use ruma_events::{
 use ruma_events::{
     room::{
         message::{
-            AudioMessageEventContent, MessageEventContent, Relation, TextMessageEventContent,
+            AudioMessageEventContent, CustomEventContent, MessageEventContent, Relation,
+            TextMessageEventContent,
         },
         relationships::InReplyTo,
     },
@@ -70,6 +72,53 @@ fn content_serialization() {
             "msgtype": "m.audio",
             "url": "http://example.com/audio.mp3"
         })
+    );
+}
+
+#[test]
+fn custom_content_serialization() {
+    let json_data = btreemap! {
+        "custom_field".into() => json!("baba"),
+        "another_one".into() => json!("abab"),
+    };
+    let custom_event_content = MessageEventContent::_Custom(CustomEventContent {
+        msgtype: "my_custom_msgtype".into(),
+        data: json_data,
+    });
+
+    assert_eq!(
+        to_json_value(&custom_event_content).unwrap(),
+        json!({
+            "msgtype": "my_custom_msgtype",
+            "custom_field": "baba",
+            "another_one": "abab",
+        })
+    );
+}
+
+#[test]
+fn custom_content_deserialization() {
+    let json_data = json!({
+        "msgtype": "my_custom_msgtype",
+        "custom_field": "baba",
+        "another_one": "abab",
+    });
+
+    let expected_json_data = btreemap! {
+        "custom_field".into() => json!("baba"),
+        "another_one".into() => json!("abab"),
+    };
+
+    assert_matches!(
+        from_json_value::<Raw<MessageEventContent>>(json_data)
+            .unwrap()
+            .deserialize()
+            .unwrap(),
+        MessageEventContent::_Custom(CustomEventContent {
+            msgtype,
+            data
+        }) if msgtype == "my_custom_msgtype"
+            && data == expected_json_data
     );
 }
 

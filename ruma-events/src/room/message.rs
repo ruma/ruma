@@ -1,5 +1,7 @@
 //! Types for the *m.room.message* event.
 
+use std::collections::BTreeMap;
+
 use js_int::UInt;
 use ruma_events_macros::MessageEventContent;
 #[cfg(feature = "unstable-pre-spec")]
@@ -64,6 +66,10 @@ pub enum MessageEventContent {
     /// A request to initiate a key verification.
     #[cfg(feature = "unstable-pre-spec")]
     VerificationRequest(KeyVerificationRequestEventContent),
+
+    /// A custom message.
+    #[doc(hidden)]
+    _Custom(CustomEventContent),
 }
 
 /// Enum modeling the different ways relationships can be expressed in a
@@ -585,4 +591,16 @@ pub struct KeyVerificationRequestEventContent {
     /// who are not named in this field and who did not send this event should ignore all other
     /// events that have a m.reference relationship with this event.
     pub to: UserId,
+}
+
+/// The payload for a custom message event.
+#[doc(hidden)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CustomEventContent {
+    /// A custom msgtype
+    pub msgtype: String,
+
+    /// Remaining event content
+    #[serde(flatten)]
+    pub data: BTreeMap<String, JsonValue>,
 }
