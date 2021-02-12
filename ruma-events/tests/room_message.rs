@@ -1,6 +1,7 @@
 use std::time::{Duration, UNIX_EPOCH};
 
 use assign::assign;
+use maplit::btreemap;
 use matches::assert_matches;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_events::{
@@ -76,10 +77,12 @@ fn content_serialization() {
 
 #[test]
 fn custom_content_serialization() {
-    let json_data = vec![("custom_field", "baba"), ("another_one", "abab")]
-        .into_iter()
-        .map(|(k, v)| (k.to_string(), json!(v)))
-        .collect();
+    let json_data = btreemap! {
+        "custom_field".into() => json!("baba"),
+        "another_one".into() => json!("abab"),
+    }
+    .into_iter()
+    .collect();
     let custom_event_content = MessageEventContent::_Custom(CustomEventContent {
         msgtype: "my_custom_msgtype".into(),
         data: json_data,
@@ -103,10 +106,12 @@ fn custom_content_deserialization() {
         "another_one": "abab",
     });
 
-    let expected_json_data = vec![("custom_field", "baba"), ("another_one", "abab")]
-        .into_iter()
-        .map(|(k, v)| (k.to_string(), json!(v)))
-        .collect();
+    let expected_json_data = btreemap! {
+        "custom_field".into() => json!("baba"),
+        "another_one".into() => json!("abab"),
+    }
+    .into_iter()
+    .collect();
 
     assert_matches!(
         from_json_value::<Raw<MessageEventContent>>(json_data)

@@ -5,8 +5,8 @@ use ruma_events_macros::MessageEventContent;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::{DeviceIdBox, UserId};
 use ruma_serde::StringEnum;
-use serde::{de, Deserialize, Serialize};
-use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
+use serde::{Deserialize, Serialize};
+use serde_json::Value as JsonValue;
 
 #[cfg(feature = "unstable-pre-spec")]
 use crate::key::verification::VerificationMethod;
@@ -18,10 +18,10 @@ use super::{relationships::RelatesToJsonRepr, EncryptedFile, ImageInfo, Thumbnai
 // FIXME: Do we want to keep re-exporting this?
 pub use super::relationships::InReplyTo;
 
+pub mod content_serde;
 pub mod feedback;
 
 use crate::MessageEvent as OuterMessageEvent;
-use crate::{from_raw_json_value, MessageDeHelper};
 
 /// This event is used when sending messages in a room.
 ///
@@ -149,31 +149,6 @@ impl MessageEventContent {
     /// A convenience constructor to create an html notice.
     pub fn notice_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
         Self::Notice(NoticeMessageEventContent::html(body, html_body))
-    }
-}
-
-impl<'de> de::Deserialize<'de> for MessageEventContent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        use MessageEventContent::*;
-        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let MessageDeHelper { msgtype, remaining } = from_raw_json_value(&json)?;
-        Ok(match msgtype.as_ref() {
-            "m.audio" => Audio(from_raw_json_value(&json)?),
-            "m.emote" => Emote(from_raw_json_value(&json)?),
-            "m.file" => File(from_raw_json_value(&json)?),
-            "m.image" => Image(from_raw_json_value(&json)?),
-            "m.location" => Location(from_raw_json_value(&json)?),
-            "m.notice" => Notice(from_raw_json_value(&json)?),
-            "m.server_notice" => ServerNotice(from_raw_json_value(&json)?),
-            "m.text" => Text(from_raw_json_value(&json)?),
-            "m.video" => Video(from_raw_json_value(&json)?),
-            #[cfg(feature = "unstable-pre-spec")]
-            "m.key.verification.request" => VerificationRequest(from_raw_json_value(&json)?),
-            s => _Custom(CustomEventContent { msgtype: s.to_string(), data: remaining }),
-        })
     }
 }
 
