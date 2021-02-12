@@ -5,7 +5,7 @@ use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 use ruma_events::{
     room::{
         aliases::AliasesEventContent,
-        message::{MessageEventContent, TextMessageEventContent},
+        message::{MessageEventContent, MessageType, TextMessageEventContent},
         power_levels::PowerLevelsEventContent,
     },
     AnyEvent, AnyMessageEvent, AnyRoomEvent, AnyStateEvent, AnyStateEventContent,
@@ -137,12 +137,14 @@ fn message_event_sync_deserialization() {
         from_json_value::<AnySyncRoomEvent>(json_data),
         Ok(AnySyncRoomEvent::Message(
             AnySyncMessageEvent::RoomMessage(SyncMessageEvent {
-                content: MessageEventContent::Text(TextMessageEventContent {
-                    body,
-                    formatted: Some(formatted),
-                    relates_to: None,
+                content: MessageEventContent {
+                    msgtype: MessageType::Text(TextMessageEventContent {
+                        body,
+                        formatted: Some(formatted),
+                        ..
+                    }),
                     ..
-                }),
+                },
                 ..
             })
         ))
@@ -177,12 +179,14 @@ fn message_room_event_deserialization() {
         from_json_value::<AnyRoomEvent>(json_data),
         Ok(AnyRoomEvent::Message(
             AnyMessageEvent::RoomMessage(MessageEvent {
-                content: MessageEventContent::Text(TextMessageEventContent {
-                    body,
-                    formatted: Some(formatted),
-                    relates_to: None,
+                content: MessageEventContent {
+                    msgtype: MessageType::Text(TextMessageEventContent {
+                        body,
+                        formatted: Some(formatted),
+                        ..
+                    }),
                     ..
-                }),
+                },
                 ..
             })
         ))
@@ -217,12 +221,14 @@ fn message_event_deserialization() {
         from_json_value::<AnyEvent>(json_data),
         Ok(AnyEvent::Message(
             AnyMessageEvent::RoomMessage(MessageEvent {
-                content: MessageEventContent::Text(TextMessageEventContent {
-                    body,
-                    formatted: Some(formatted),
-                    relates_to: None,
+                content: MessageEventContent {
+                    msgtype: MessageType::Text(TextMessageEventContent {
+                        body,
+                        formatted: Some(formatted),
+                        ..
+                    }),
                     ..
-                }),
+                },
                 ..
             })
         ))

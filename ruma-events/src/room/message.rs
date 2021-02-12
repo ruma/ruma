@@ -34,8 +34,63 @@ pub type MessageEvent = OuterMessageEvent<MessageEventContent>;
 #[derive(Clone, Debug, Serialize, MessageEventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.message")]
-#[serde(untagged)]
-pub enum MessageEventContent {
+pub struct MessageEventContent {
+    /// A key which identifies the type of message being sent.
+    ///
+    /// This also holds the specific content of each message.
+    #[serde(flatten)]
+    pub msgtype: MessageType,
+
+    /// Information about related messages for
+    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
+    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
+    pub relates_to: Option<Relation>,
+
+    /// New content of an edited message.
+    ///
+    /// This should only be set if `relates_to` is `Some(Relation::Replacement(_))`.
+    #[cfg(feature = "unstable-pre-spec")]
+    #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
+    pub new_content: Option<Box<MessageEventContent>>,
+}
+
+impl MessageEventContent {
+    /// Create a `MessageEventContent` with the given `MessageType`.
+    pub fn new(msgtype: MessageType) -> Self {
+        Self {
+            msgtype,
+            relates_to: None,
+            #[cfg(feature = "unstable-pre-spec")]
+            new_content: None,
+        }
+    }
+
+    /// A constructor to create a plain text message.
+    pub fn text_plain(body: impl Into<String>) -> Self {
+        Self::new(MessageType::Text(TextMessageEventContent::plain(body)))
+    }
+
+    /// A constructor to create an html message.
+    pub fn text_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self::new(MessageType::Text(TextMessageEventContent::html(body, html_body)))
+    }
+
+    /// A constructor to create a plain text notice.
+    pub fn notice_plain(body: impl Into<String>) -> Self {
+        Self::new(MessageType::Notice(NoticeMessageEventContent::plain(body)))
+    }
+
+    /// A constructor to create an html notice.
+    pub fn notice_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
+        Self::new(MessageType::Notice(NoticeMessageEventContent::html(body, html_body)))
+    }
+}
+
+/// The content that is specific to each message type variant.
+#[derive(Clone, Debug, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "msgtype")]
+pub enum MessageType {
     /// An audio message.
     Audio(AudioMessageEventContent),
 
@@ -70,6 +125,12 @@ pub enum MessageEventContent {
     /// A custom message.
     #[doc(hidden)]
     _Custom(CustomEventContent),
+}
+
+impl From<MessageType> for MessageEventContent {
+    fn from(msgtype: MessageType) -> Self {
+        Self::new(msgtype)
+    }
 }
 
 /// Enum modeling the different ways relationships can be expressed in a
@@ -129,28 +190,6 @@ impl From<RelatesToJsonRepr> for Relation {
             RelatesToJsonRepr::Reply { in_reply_to } => Self::Reply { in_reply_to },
             RelatesToJsonRepr::Custom(v) => Self::Custom(v),
         }
-    }
-}
-
-impl MessageEventContent {
-    /// A convenience constructor to create a plain text message.
-    pub fn text_plain(body: impl Into<String>) -> Self {
-        Self::Text(TextMessageEventContent::plain(body))
-    }
-
-    /// A convenience constructor to create an html message.
-    pub fn text_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self::Text(TextMessageEventContent::html(body, html_body))
-    }
-
-    /// A convenience constructor to create an plain text notice.
-    pub fn notice_plain(body: impl Into<String>) -> Self {
-        Self::Notice(NoticeMessageEventContent::plain(body))
-    }
-
-    /// A convenience constructor to create an html notice.
-    pub fn notice_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self::Notice(NoticeMessageEventContent::html(body, html_body))
     }
 }
 
@@ -321,30 +360,12 @@ pub struct NoticeMessageEventContent {
     /// Formatted form of the message `body`.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
-
-    /// Information about related messages for
-    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
-    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
-    pub relates_to: Option<Relation>,
-
-    /// New content of an edited message.
-    ///
-    /// This should only be set if `relates_to` is `Some(Relation::Replacement(_))`.
-    #[cfg(feature = "unstable-pre-spec")]
-    #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
-    pub new_content: Option<Box<MessageEventContent>>,
 }
 
 impl NoticeMessageEventContent {
     /// A convenience constructor to create a plain text notice.
     pub fn plain(body: impl Into<String>) -> Self {
-        Self {
-            body: body.into(),
-            formatted: None,
-            relates_to: None,
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
-        }
+        Self { body: body.into(), formatted: None }
     }
 
     /// A convenience constructor to create an html notice.
@@ -453,30 +474,12 @@ pub struct TextMessageEventContent {
     /// Formatted form of the message `body`.
     #[serde(flatten)]
     pub formatted: Option<FormattedBody>,
-
-    /// Information about related messages for
-    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
-    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
-    pub relates_to: Option<Relation>,
-
-    /// New content of an edited message.
-    ///
-    /// This should only be set if `relates_to` is `Some(Relation::Replacement(_))`.
-    #[cfg(feature = "unstable-pre-spec")]
-    #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
-    pub new_content: Option<Box<MessageEventContent>>,
 }
 
 impl TextMessageEventContent {
     /// A convenience constructor to create a plain text message.
     pub fn plain(body: impl Into<String>) -> Self {
-        Self {
-            body: body.into(),
-            formatted: None,
-            relates_to: None,
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
-        }
+        Self { body: body.into(), formatted: None }
     }
 
     /// A convenience constructor to create an html message.
