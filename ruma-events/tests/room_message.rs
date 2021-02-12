@@ -158,7 +158,7 @@ fn edit_deserialization_061() {
 #[test]
 #[cfg(feature = "unstable-pre-spec")]
 fn edit_deserialization_future() {
-    use crate::room::relationships::Replacement;
+    use ruma_events::room::relationships::Replacement;
 
     let ev_id = event_id!("$1598361704261elfgc:localhost");
     let json_data = json!({
@@ -181,6 +181,7 @@ fn edit_deserialization_future() {
             formatted: None,
             relates_to: Some(Relation::Replacement(Replacement { event_id })),
             new_content: Some(new_content),
+            ..
         }) if body == "s/foo/bar"
             && event_id == ev_id
             && matches!(
@@ -190,6 +191,7 @@ fn edit_deserialization_future() {
                     formatted: None,
                     relates_to: None,
                     new_content: None,
+                    ..
                 }) if body == "bar"
             )
     );
@@ -219,7 +221,7 @@ fn verification_request_deserialization() {
             body,
             to,
             from_device,
-            methods
+            methods,
         }) if body == "@example:localhost is requesting to verify your key, ..."
             && to == user_id
             && from_device == device_id
