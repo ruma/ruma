@@ -67,42 +67,22 @@ impl MessageEventContent {
 
     /// A constructor to create a plain text message.
     pub fn text_plain(body: impl Into<String>) -> Self {
-        Self {
-            msgtype: MessageType::Text(TextMessageEventContent::plain(body)),
-            relates_to: None,
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
-        }
+        Self::new(MessageType::Text(TextMessageEventContent::plain(body)))
     }
 
     /// A constructor to create an html message.
     pub fn text_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self {
-            msgtype: MessageType::Text(TextMessageEventContent::html(body, html_body)),
-            relates_to: None,
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
-        }
+        Self::new(MessageType::Text(TextMessageEventContent::html(body, html_body)))
     }
 
     /// A constructor to create a plain text notice.
     pub fn notice_plain(body: impl Into<String>) -> Self {
-        Self {
-            msgtype: MessageType::Notice(NoticeMessageEventContent::plain(body)),
-            relates_to: None,
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
-        }
+        Self::new(MessageType::Notice(NoticeMessageEventContent::plain(body)))
     }
 
     /// A constructor to create an html notice.
     pub fn notice_html(body: impl Into<String>, html_body: impl Into<String>) -> Self {
-        Self {
-            msgtype: MessageType::Notice(NoticeMessageEventContent::html(body, html_body)),
-            relates_to: None,
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
-        }
+        Self::new(MessageType::Notice(NoticeMessageEventContent::html(body, html_body)))
     }
 }
 

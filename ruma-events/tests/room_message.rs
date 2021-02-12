@@ -229,17 +229,23 @@ fn edit_deserialization_future() {
             msgtype: MessageType::Text(TextMessageEventContent {
                 body,
                 formatted: None,
+                ..
             }),
             relates_to: Some(Relation::Replacement(Replacement { event_id })),
             new_content: Some(new_content),
+            ..
         } if body == "s/foo/bar"
             && event_id == ev_id
             && matches!(
                 &*new_content,
-                MessageEventContent::Text(TextMessageEventContent {
-                    body,
-                    formatted: None,
-                }) if body == "bar"
+                MessageEventContent {
+                    msgtype: MessageType::Text(TextMessageEventContent {
+                        body,
+                        formatted: None,
+                        ..
+                    }),
+                    ..
+                } if body == "bar"
             )
     );
 }
@@ -264,12 +270,15 @@ fn verification_request_deserialization() {
 
     assert_matches!(
         from_json_value::<MessageEventContent>(json_data).unwrap(),
-        MessageEventContent::VerificationRequest(KeyVerificationRequestEventContent {
-            body,
-            to,
-            from_device,
-            methods,
-        }) if body == "@example:localhost is requesting to verify your key, ..."
+        MessageEventContent {
+            msgtype: MessageType::VerificationRequest(KeyVerificationRequestEventContent {
+                body,
+                to,
+                from_device,
+                methods,
+            }),
+            ..
+        } if body == "@example:localhost is requesting to verify your key, ..."
             && to == user_id
             && from_device == device_id
             && methods.contains(&VerificationMethod::MSasV1)
@@ -297,7 +306,7 @@ fn verification_request_serialization() {
         "methods": methods
     });
 
-    let content = MessageEventContent::VerificationRequest(KeyVerificationRequestEventContent {
+    let content = MessageType::VerificationRequest(KeyVerificationRequestEventContent {
         to: user_id,
         from_device: device_id,
         body,

@@ -1,4 +1,4 @@
-// //! `Deserialize` implementation for MessageEventContent
+//! `Deserialize` implementation for MessageEventContent and MessageType.
 
 use serde::{de, Deserialize};
 use serde_json::value::RawValue as RawJsonValue;
@@ -17,7 +17,7 @@ struct MessageContentDeHelper {
 
     #[cfg(feature = "unstable-pre-spec")]
     #[serde(rename = "m.new_content")]
-    new_content: Option<MessageEventContent>,
+    new_content: Option<Box<MessageEventContent>>,
 }
 
 impl<'de> de::Deserialize<'de> for MessageEventContent {
@@ -32,7 +32,7 @@ impl<'de> de::Deserialize<'de> for MessageEventContent {
             msgtype: from_raw_json_value(&json)?,
             relates_to: helper.relates_to,
             #[cfg(feature = "unstable-pre-spec")]
-            new_content: helper.relates_to,
+            new_content: helper.new_content,
         })
     }
 }
