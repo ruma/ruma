@@ -181,7 +181,6 @@
 // Remove this once https://github.com/rust-lang/rust/issues/54883 becomes stable
 #![allow(clippy::unnested_or_patterns)]
 
-use std::collections::BTreeMap;
 use std::fmt::Debug;
 
 use js_int::Int;
@@ -191,7 +190,7 @@ use serde::{
     de::{self, IgnoredAny},
     Deserialize, Serialize,
 };
-use serde_json::value::{RawValue as RawJsonValue, Value as JsonValue};
+use serde_json::value::{Map as JsonObject, RawValue as RawJsonValue, Value as JsonValue};
 
 use self::room::redaction::{RedactionEvent, SyncRedactionEvent};
 
@@ -530,7 +529,7 @@ pub struct MessageDeHelper {
 
     /// Everything else in the json object
     #[serde(flatten)]
-    pub remaining: BTreeMap<String, JsonValue>,
+    pub remaining: JsonObject<String, JsonValue>,
 }
 
 /// Helper function for `serde_json::value::RawValue` deserialization.

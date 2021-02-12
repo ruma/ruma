@@ -64,6 +64,10 @@ pub enum MessageEventContent {
     /// A request to initiate a key verification.
     #[cfg(feature = "unstable-pre-spec")]
     VerificationRequest(KeyVerificationRequestEventContent),
+
+    /// A custom message.
+    #[doc(hidden)]
+    _Custom(CustomEventContent),
 }
 
 /// Enum modeling the different ways relationships can be expressed in a
@@ -155,7 +159,7 @@ impl<'de> de::Deserialize<'de> for MessageEventContent {
     {
         use MessageEventContent::*;
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let MessageDeHelper { msgtype, .. } = from_raw_json_value(&json)?;
+        let MessageDeHelper { msgtype, remaining } = from_raw_json_value(&json)?;
         Ok(match msgtype.as_ref() {
             "m.audio" => Audio(from_raw_json_value(&json)?),
             "m.emote" => Emote(from_raw_json_value(&json)?),
@@ -168,7 +172,7 @@ impl<'de> de::Deserialize<'de> for MessageEventContent {
             "m.video" => Video(from_raw_json_value(&json)?),
             #[cfg(feature = "unstable-pre-spec")]
             "m.key.verification.request" => VerificationRequest(from_raw_json_value(&json)?),
-            _ => unreachable!("TODO: handle custom msgtypes"),
+            s => _Custom(CustomEventContent { msgtype: s.to_string(), data: remaining }),
         })
     }
 }
@@ -610,4 +614,16 @@ pub struct KeyVerificationRequestEventContent {
     /// who are not named in this field and who did not send this event should ignore all other
     /// events that have a m.reference relationship with this event.
     pub to: UserId,
+}
+
+/// The payload for a custom message event.
+#[doc(hidden)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CustomEventContent {
+    /// A custom msgtype
+    pub msgtype: String,
+
+    /// Remaining event content
+    #[serde(flatten)]
+    pub data: serde_json::Map<String, JsonValue>,
 }
