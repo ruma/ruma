@@ -1,5 +1,7 @@
 //! Types for the *m.room.message* event.
 
+use std::collections::BTreeMap;
+
 use js_int::UInt;
 use ruma_events_macros::MessageEventContent;
 #[cfg(feature = "unstable-pre-spec")]
@@ -18,6 +20,7 @@ use super::{relationships::RelatesToJsonRepr, EncryptedFile, ImageInfo, Thumbnai
 // FIXME: Do we want to keep re-exporting this?
 pub use super::relationships::InReplyTo;
 
+#[doc(hidden)]
 pub mod content_serde;
 pub mod feedback;
 
@@ -600,5 +603,5 @@ pub struct CustomEventContent {
 
     /// Remaining event content
     #[serde(flatten)]
-    pub data: serde_json::Map<String, JsonValue>,
+    pub data: BTreeMap<String, JsonValue>,
 }

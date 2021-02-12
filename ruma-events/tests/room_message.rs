@@ -80,9 +80,7 @@ fn custom_content_serialization() {
     let json_data = btreemap! {
         "custom_field".into() => json!("baba"),
         "another_one".into() => json!("abab"),
-    }
-    .into_iter()
-    .collect();
+    };
     let custom_event_content = MessageEventContent::_Custom(CustomEventContent {
         msgtype: "my_custom_msgtype".into(),
         data: json_data,
@@ -109,9 +107,7 @@ fn custom_content_deserialization() {
     let expected_json_data = btreemap! {
         "custom_field".into() => json!("baba"),
         "another_one".into() => json!("abab"),
-    }
-    .into_iter()
-    .collect();
+    };
 
     assert_matches!(
         from_json_value::<Raw<MessageEventContent>>(json_data)

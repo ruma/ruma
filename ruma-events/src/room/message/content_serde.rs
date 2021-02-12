@@ -1,4 +1,5 @@
 //! `Deserialize` implementation for MessageEventContent
+
 use std::collections::BTreeMap;
 
 use serde::{de, Deserialize};
@@ -12,7 +13,7 @@ use crate::{
 /// Helper struct to determine the msgtype from a `serde_json::value::RawValue`
 #[doc(hidden)]
 #[derive(Debug, Deserialize)]
-pub struct MessageDeHelper {
+struct MessageDeHelper {
     /// The message type field
     msgtype: String,
 
@@ -41,10 +42,7 @@ impl<'de> de::Deserialize<'de> for MessageEventContent {
             "m.video" => Video(from_raw_json_value(&json)?),
             #[cfg(feature = "unstable-pre-spec")]
             "m.key.verification.request" => VerificationRequest(from_raw_json_value(&json)?),
-            s => {
-                let remaining = remaining.into_iter().collect::<serde_json::Map<_, _>>();
-                _Custom(CustomEventContent { msgtype: s.to_string(), data: remaining })
-            }
+            s => _Custom(CustomEventContent { msgtype: s.to_string(), data: remaining }),
         })
     }
 }
