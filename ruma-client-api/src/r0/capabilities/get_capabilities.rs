@@ -5,8 +5,8 @@ use ruma_api::ruma_api;
 use ruma_identifiers::RoomVersionId;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
-use std::collections::BTreeMap;
+use serde_json::{from_value, to_value, Error, Value as JsonValue};
+use std::{borrow::Cow, collections::BTreeMap};
 
 ruma_api! {
     metadata: {
@@ -72,13 +72,41 @@ pub struct Capabilities {
     /// Any other custom capabilities that the server supports outside of the specification,
     /// labeled using the Java package naming convention and stored as arbitrary JSON values.
     #[serde(flatten)]
-    pub custom_capabilities: BTreeMap<String, JsonValue>,
+    custom_capabilities: BTreeMap<String, JsonValue>,
 }
 
 impl Capabilities {
     /// Creates empty `Capabilities`.
     pub fn new() -> Self {
         Default::default()
+    }
+
+    /// Returns value of the required capability
+    pub fn get(&self, capability: &str) -> Result<Cow<'_, JsonValue>, Error> {
+        let value = match capability {
+            "m.change_password" => Cow::Owned(to_value(self.change_password)?),
+            "m.room_versions" => Cow::Owned(to_value(self.room_versions)?),
+            _ => match self.custom_capabilities.get(capability) {
+                Some(value) => Cow::Borrowed(value),
+                // How should we handle this condition?
+                None => Err("Capability not found")?,
+            },
+        };
+        Ok(value)
+    }
+
+    /// Sets the given value to a capability
+    pub fn set(&mut self, capability: JsonValue) {
+        match from_value::<ChangePasswordCapability>(capability) {
+            Ok(change_password_capability) => self.change_password = change_password_capability,
+            Err(_) => match from_value::<RoomVersionsCapability>(capability) {
+                Ok(room_versions_capability) => self.room_versions = room_versions_capability,
+                Err(_) => {
+                    // add the capability to self.custom_capabilities
+                    // but what should be its label?
+                }
+            },
+        };
     }
 }
 
