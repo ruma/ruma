@@ -82,31 +82,34 @@ impl Capabilities {
     }
 
     /// Returns value of the required capability
-    pub fn get(&self, capability: &str) -> Result<Cow<'_, JsonValue>, Error> {
+    pub fn get(&self, capability: &str) -> Result<Option<Cow<'_, JsonValue>>, Error> {
         let value = match capability {
-            "m.change_password" => Cow::Owned(to_value(self.change_password)?),
-            "m.room_versions" => Cow::Owned(to_value(self.room_versions)?),
+            "m.change_password" => Some(Cow::Owned(to_value(self.change_password.clone())?)),
+            "m.room_versions" => Some(Cow::Owned(to_value(self.room_versions.clone())?)),
             _ => match self.custom_capabilities.get(capability) {
-                Some(value) => Cow::Borrowed(value),
-                // How should we handle this condition?
-                None => Err("Capability not found")?,
+                Some(value) => Some(Cow::Borrowed(value)),
+                None => None,
             },
         };
         Ok(value)
     }
 
     /// Sets the given value to a capability
-    pub fn set(&mut self, capability: JsonValue) {
-        match from_value::<ChangePasswordCapability>(capability) {
-            Ok(change_password_capability) => self.change_password = change_password_capability,
-            Err(_) => match from_value::<RoomVersionsCapability>(capability) {
-                Ok(room_versions_capability) => self.room_versions = room_versions_capability,
-                Err(_) => {
-                    // add the capability to self.custom_capabilities
-                    // but what should be its label?
-                }
-            },
-        };
+    pub fn set(&mut self, capability_label: &str, capability: JsonValue) -> Result<(), Error> {
+        match capability_label {
+            "m.change_password" => {
+                let change_password_capability: ChangePasswordCapability = from_value(capability)?;
+                self.change_password = change_password_capability;
+            }
+            "m.room_versions" => {
+                let room_versions_capability: RoomVersionsCapability = from_value(capability)?;
+                self.room_versions = room_versions_capability;
+            }
+            _ => {
+                self.custom_capabilities.insert(capability_label.to_owned(), capability);
+            }
+        }
+        Ok(())
     }
 }
 
