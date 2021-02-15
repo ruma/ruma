@@ -17,9 +17,12 @@ use crate::error::{Error as MatrixError, ErrorBody};
 
 /// Additional authentication information for the user-interactive authentication API.
 #[derive(Clone, Debug, Outgoing, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
 pub enum AuthData<'a> {
     /// Used for sending UIAA authentication requests to the homeserver directly from the client.
+    // Could be made non-exhaustive by creating a separate struct and making auth_parameters
+    // private, but probably not worth the hassle.
     DirectRequest {
         /// The login type that the client is attempting to complete.
         #[serde(rename = "type")]
@@ -30,13 +33,15 @@ pub enum AuthData<'a> {
         session: Option<&'a str>,
 
         /// Parameters submitted for a particular authentication stage.
-        // FIXME: RawJsonValue doesn't work here, is that a bug?
         #[serde(flatten)]
         auth_parameters: BTreeMap<String, JsonValue>,
     },
 
     /// Used by the client to acknowledge that the user has completed a UIAA stage through the
     /// fallback method.
+    // Exhaustiveness is correct here since this variant is a fallback that explicitly only has a
+    // single field. TODO: #[serde(deny_unknown_fields)] not supported on enum variants
+    // https://github.com/serde-rs/serde/issues/1982
     FallbackAcknowledgement {
         /// The value of the session key given by the homeserver.
         session: &'a str,
@@ -46,6 +51,7 @@ pub enum AuthData<'a> {
 /// Information about available authentication flows and status for User-Interactive Authenticiation
 /// API.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct UiaaInfo {
     /// List of authentication flows available for this endpoint.
     pub flows: Vec<AuthFlow>,
@@ -68,13 +74,28 @@ pub struct UiaaInfo {
     pub auth_error: Option<ErrorBody>,
 }
 
+impl UiaaInfo {
+    /// Creates a new `UiaaInfo` with the given flows and parameters.
+    pub fn new(flows: Vec<AuthFlow>, params: Box<RawJsonValue>) -> Self {
+        Self { flows, completed: Vec::new(), params, session: None, auth_error: None }
+    }
+}
+
 /// Description of steps required to authenticate via the User-Interactive Authentication API.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[cfg_attr(test, derive(PartialEq))]
 pub struct AuthFlow {
     /// Ordered list of stages required to complete authentication.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub stages: Vec<String>,
+}
+
+impl AuthFlow {
+    /// Creates an empty `AuthFlow`.
+    pub fn new() -> Self {
+        Self { stages: Vec::new() }
+    }
 }
 
 /// Contains either a User-Interactive Authentication API response body or a Matrix error.
