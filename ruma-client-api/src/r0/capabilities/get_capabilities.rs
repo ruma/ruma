@@ -7,9 +7,7 @@ use ruma_api::ruma_api;
 use ruma_identifiers::RoomVersionId;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
-use serde_json::{
-    from_value as from_json_value, to_value as to_json_value, Error, Value as JsonValue,
-};
+use serde_json::{from_value as from_json_value, to_value as to_json_value, Value as JsonValue};
 
 ruma_api! {
     metadata: {
@@ -85,7 +83,7 @@ impl Capabilities {
     }
 
     /// Returns value of the given capability.
-    pub fn get(&self, capability: &str) -> Result<Option<Cow<'_, JsonValue>>, Error> {
+    pub fn get(&self, capability: &str) -> serde_json::Result<Option<Cow<'_, JsonValue>>> {
         let value = match capability {
             "m.change_password" => Some(Cow::Owned(to_json_value(&self.change_password)?)),
             "m.room_versions" => Some(Cow::Owned(to_json_value(&self.room_versions)?)),
@@ -98,7 +96,7 @@ impl Capabilities {
     }
 
     /// Sets the given value to a capability.
-    pub fn set(&mut self, capability_label: &str, capability: JsonValue) -> Result<(), Error> {
+    pub fn set(&mut self, capability_label: &str, capability: JsonValue) -> serde_json::Result<()> {
         match capability_label {
             "m.change_password" => self.change_password = from_json_value(capability)?,
             "m.room_versions" => self.room_versions = from_json_value(capability)?,
