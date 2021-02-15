@@ -82,7 +82,10 @@ impl Capabilities {
         Default::default()
     }
 
-    /// Returns value of the given capability.
+    /// Returns the value of the given capability.
+    ///
+    /// Prefer to use the public fields of `Capabilities` where possible; this method is meant to be
+    /// used for unsupported capabilities only.
     pub fn get(&self, capability: &str) -> serde_json::Result<Option<Cow<'_, JsonValue>>> {
         Ok(match capability {
             "m.change_password" => Some(Cow::Owned(to_json_value(&self.change_password)?)),
@@ -92,6 +95,10 @@ impl Capabilities {
     }
 
     /// Sets a capability to the given value.
+    ///
+    /// Prefer to use the public fields of `Capabilities` where possible; this method is meant to be
+    /// used for unsupported capabilities only and does not allow setting arbitrary data for
+    /// supported ones.
     pub fn set(&mut self, capability: &str, value: JsonValue) -> serde_json::Result<()> {
         match capability {
             "m.change_password" => self.change_password = from_json_value(value)?,
