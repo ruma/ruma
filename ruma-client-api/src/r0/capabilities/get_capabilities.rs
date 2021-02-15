@@ -84,15 +84,11 @@ impl Capabilities {
 
     /// Returns value of the given capability.
     pub fn get(&self, capability: &str) -> serde_json::Result<Option<Cow<'_, JsonValue>>> {
-        let value = match capability {
+        Ok(match capability {
             "m.change_password" => Some(Cow::Owned(to_json_value(&self.change_password)?)),
             "m.room_versions" => Some(Cow::Owned(to_json_value(&self.room_versions)?)),
-            _ => match self.custom_capabilities.get(capability) {
-                Some(value) => Some(Cow::Borrowed(value)),
-                None => None,
-            },
-        };
-        Ok(value)
+            _ => self.custom_capabilities.get(capability).map(Cow::Borrowed),
+        })
     }
 
     /// Sets the given value to a capability.
