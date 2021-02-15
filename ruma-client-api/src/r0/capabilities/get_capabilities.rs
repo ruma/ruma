@@ -91,15 +91,16 @@ impl Capabilities {
         })
     }
 
-    /// Sets the given value to a capability.
-    pub fn set(&mut self, capability_label: &str, capability: JsonValue) -> serde_json::Result<()> {
-        match capability_label {
-            "m.change_password" => self.change_password = from_json_value(capability)?,
-            "m.room_versions" => self.room_versions = from_json_value(capability)?,
+    /// Sets a capability to the given value.
+    pub fn set(&mut self, capability: &str, value: JsonValue) -> serde_json::Result<()> {
+        match capability {
+            "m.change_password" => self.change_password = from_json_value(value)?,
+            "m.room_versions" => self.room_versions = from_json_value(value)?,
             _ => {
-                self.custom_capabilities.insert(capability_label.to_owned(), capability);
+                self.custom_capabilities.insert(capability.to_owned(), value);
             }
         }
+
         Ok(())
     }
 }
