@@ -1,12 +1,15 @@
 //! [GET /_matrix/client/r0/capabilities](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-capabilities)
 
+use std::{borrow::Cow, collections::BTreeMap};
+
 use maplit::btreemap;
 use ruma_api::ruma_api;
 use ruma_identifiers::RoomVersionId;
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
-use serde_json::{from_value, to_value, Error, Value as JsonValue};
-use std::{borrow::Cow, collections::BTreeMap};
+use serde_json::{
+    from_value as from_json_value, to_value as to_json_value, Error, Value as JsonValue,
+};
 
 ruma_api! {
     metadata: {
@@ -81,11 +84,11 @@ impl Capabilities {
         Default::default()
     }
 
-    /// Returns value of the required capability
+    /// Returns value of the given capability.
     pub fn get(&self, capability: &str) -> Result<Option<Cow<'_, JsonValue>>, Error> {
         let value = match capability {
-            "m.change_password" => Some(Cow::Owned(to_value(self.change_password.clone())?)),
-            "m.room_versions" => Some(Cow::Owned(to_value(self.room_versions.clone())?)),
+            "m.change_password" => Some(Cow::Owned(to_json_value(&self.change_password)?)),
+            "m.room_versions" => Some(Cow::Owned(to_json_value(&self.room_versions)?)),
             _ => match self.custom_capabilities.get(capability) {
                 Some(value) => Some(Cow::Borrowed(value)),
                 None => None,
@@ -94,17 +97,11 @@ impl Capabilities {
         Ok(value)
     }
 
-    /// Sets the given value to a capability
+    /// Sets the given value to a capability.
     pub fn set(&mut self, capability_label: &str, capability: JsonValue) -> Result<(), Error> {
         match capability_label {
-            "m.change_password" => {
-                let change_password_capability: ChangePasswordCapability = from_value(capability)?;
-                self.change_password = change_password_capability;
-            }
-            "m.room_versions" => {
-                let room_versions_capability: RoomVersionsCapability = from_value(capability)?;
-                self.room_versions = room_versions_capability;
-            }
+            "m.change_password" => self.change_password = from_json_value(capability)?,
+            "m.room_versions" => self.room_versions = from_json_value(capability)?,
             _ => {
                 self.custom_capabilities.insert(capability_label.to_owned(), capability);
             }
