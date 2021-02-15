@@ -48,6 +48,18 @@ pub enum AuthData<'a> {
     },
 }
 
+impl<'a> AuthData<'a> {
+    /// Creates a new `AuthData::DirectRequest` with the given login type.
+    pub fn direct_request(kind: &'a str) -> Self {
+        Self::DirectRequest { kind, session: None, auth_parameters: BTreeMap::new() }
+    }
+
+    /// Creates a new `AuthData::FallbackAcknowledgement` with the given session key.
+    pub fn fallback_acknowledgement(session: &'a str) -> Self {
+        Self::FallbackAcknowledgement { session }
+    }
+}
+
 /// Information about available authentication flows and status for User-Interactive Authenticiation
 /// API.
 #[derive(Clone, Debug, Deserialize, Serialize)]
