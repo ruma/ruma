@@ -86,12 +86,16 @@ impl Capabilities {
     ///
     /// Prefer to use the public fields of `Capabilities` where possible; this method is meant to be
     /// used for unsupported capabilities only.
-    pub fn get(&self, capability: &str) -> serde_json::Result<Option<Cow<'_, JsonValue>>> {
-        Ok(match capability {
-            "m.change_password" => Some(Cow::Owned(to_json_value(&self.change_password)?)),
-            "m.room_versions" => Some(Cow::Owned(to_json_value(&self.room_versions)?)),
+    pub fn get(&self, capability: &str) -> Option<Cow<'_, JsonValue>> {
+        fn serialize<T: Serialize>(cap: &T) -> JsonValue {
+            to_json_value(cap).expect("capability serialization to succeed")
+        }
+
+        match capability {
+            "m.change_password" => Some(Cow::Owned(serialize(&self.change_password))),
+            "m.room_versions" => Some(Cow::Owned(serialize(&self.room_versions))),
             _ => self.custom_capabilities.get(capability).map(Cow::Borrowed),
-        })
+        }
     }
 
     /// Sets a capability to the given value.
