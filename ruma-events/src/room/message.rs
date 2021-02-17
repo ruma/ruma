@@ -89,7 +89,7 @@ impl MessageEventContent {
 /// The content that is specific to each message type variant.
 #[derive(Clone, Debug, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[serde(tag = "msgtype")]
+#[serde(untagged)]
 pub enum MessageType {
     /// An audio message.
     Audio(AudioMessageEventContent),
