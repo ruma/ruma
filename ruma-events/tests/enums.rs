@@ -1,3 +1,5 @@
+use std::time::UNIX_EPOCH;
+
 use matches::assert_matches;
 use ruma_identifiers::{event_id, room_alias_id, room_id, user_id};
 use serde_json::{from_value as from_json_value, json, Value as JsonValue};
@@ -10,7 +12,7 @@ use ruma_events::{
     },
     AnyEvent, AnyMessageEvent, AnyRoomEvent, AnyStateEvent, AnyStateEventContent,
     AnySyncMessageEvent, AnySyncRoomEvent, AnySyncStateEvent, MessageEvent, StateEvent,
-    SyncMessageEvent, SyncStateEvent,
+    SyncMessageEvent, SyncStateEvent, Unsigned,
 };
 
 fn message_event() -> JsonValue {
@@ -192,6 +194,23 @@ fn message_room_event_deserialization() {
         ))
         if body == "baba" && formatted.body == "<strong>baba</strong>"
     );
+}
+
+#[test]
+fn message_event_serialization() {
+    let event = MessageEvent {
+        content: MessageEventContent::text_plain("test"),
+        event_id: event_id!("$1234:example.com"),
+        origin_server_ts: UNIX_EPOCH,
+        room_id: room_id!("!roomid:example.com"),
+        sender: user_id!("@test:example.com"),
+        unsigned: Unsigned::default(),
+    };
+
+    assert_eq!(
+        serde_json::to_string(&event).expect("Failed to serialize message event"),
+        r#"{"type":"m.room.message","content":{"msgtype":"m.text","body":"test"},"event_id":"$1234:example.com","sender":"@test:example.com","origin_server_ts":0,"room_id":"!roomid:example.com"}"#
+    )
 }
 
 #[test]
