@@ -21,6 +21,7 @@ ruma_api! {
         /// The new avatar URL for the user.
         ///
         /// `None` is used to unset the avatar.
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub avatar_url: Option<&'a str>,
     }
 
