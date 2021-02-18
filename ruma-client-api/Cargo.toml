@@ -34,6 +34,7 @@ maplit = "1.0.2"
 matches = "0.1.8"
 
 [features]
+compat = []
 unstable-exhaustive-types = []
 unstable-pre-spec = []
 unstable-synapse-quirks = []

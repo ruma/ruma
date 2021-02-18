@@ -57,7 +57,7 @@ markdown = ["ruma-events/markdown"]
 #
 # For example, some mandatory string fields are defaulted to an empty string if
 # missing with this feature.
-compat = ["ruma-common/compat", "ruma-events/compat"]
+compat = ["ruma-common/compat", "ruma-events/compat", "ruma-client-api/compat"]
 
 # unstable: by using any of these, you opt out of all semver guarantees Ruma
 #           otherwise provides!

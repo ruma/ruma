@@ -22,6 +22,10 @@ ruma_api! {
         ///
         /// `None` is used to unset the avatar.
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(
+            feature = "compat",
+            serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+        )]
         pub avatar_url: Option<&'a str>,
     }
 
@@ -42,5 +46,39 @@ impl Response {
     /// Creates an empty `Response`.
     pub fn new() -> Self {
         Self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use matches::assert_matches;
+    use ruma_api::IncomingRequest as _;
+
+    use super::IncomingRequest;
+
+    #[test]
+    fn deserialize_unset_request() -> Result<(), Box<dyn std::error::Error>> {
+        assert_matches!(
+            IncomingRequest::try_from_http_request(
+                http::Request::builder()
+                    .method("PUT")
+                    .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
+                    .body(Vec::<u8>::new())?,
+            )?,
+            IncomingRequest { user_id, avatar_url: None } if user_id == "@foo:bar.org"
+        );
+
+        #[cfg(feature = "compat")]
+        assert_matches!(
+            IncomingRequest::try_from_http_request(
+                http::Request::builder()
+                    .method("PUT")
+                    .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
+                    .body(serde_json::to_vec(&serde_json::json!({ "avatar_url": "" }))?)?,
+            )?,
+            IncomingRequest { user_id, avatar_url: None } if user_id == "@foo:bar.org"
+        );
+
+        Ok(())
     }
 }
