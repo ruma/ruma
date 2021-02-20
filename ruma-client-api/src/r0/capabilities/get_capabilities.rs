@@ -120,7 +120,7 @@ impl Capabilities {
     }
 
     /// Returns an iterator over the capabilities
-    pub fn iter<'a>(&'a self) -> CapabilitiesIter<'a> {
+    pub fn iter(&self) -> CapabilitiesIter {
         CapabilitiesIter::new(self)
     }
 }
