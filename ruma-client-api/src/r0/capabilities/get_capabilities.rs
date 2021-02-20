@@ -9,6 +9,10 @@ use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_value as from_json_value, to_value as to_json_value, Value as JsonValue};
 
+use iter::CapabilitiesIter;
+
+mod iter;
+
 ruma_api! {
     metadata: {
         description: "Gets information about the server's supported feature set and other relevant capabilities.",
@@ -113,6 +117,11 @@ impl Capabilities {
         }
 
         Ok(())
+    }
+
+    /// Returns an iterator over the capabilities
+    pub fn iter<'a>(&'a self) -> CapabilitiesIter<'a> {
+        CapabilitiesIter::new(self)
     }
 }
 
