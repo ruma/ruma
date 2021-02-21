@@ -215,3 +215,41 @@ pub enum RoomVersionStability {
     #[doc(hidden)]
     _Custom(String),
 }
+
+#[cfg(test)]
+mod tests {
+
+    use std::borrow::Cow;
+
+    use serde_json::json;
+
+    use super::Capabilities;
+
+    #[test]
+    fn capabilities_iter() -> serde_json::Result<()> {
+        let mut caps = Capabilities::new();
+        let custom_cap = json!({
+            "key": "value"
+        });
+        caps.set("m.some_random_capability", custom_cap)?;
+        let mut caps_iter = caps.iter();
+
+        let iter_res = caps_iter.next().unwrap();
+        assert_eq!(iter_res.name(), "m.change_password");
+        assert_eq!(iter_res.value(), Cow::Borrowed(&json!({"enabled": true})));
+
+        let iter_res = caps_iter.next().unwrap();
+        assert_eq!(iter_res.name(), "m.room_versions");
+        assert_eq!(
+            iter_res.value(),
+            Cow::Borrowed(&json!({"available": {"1": "stable"},"default" :"1"}))
+        );
+
+        let iter_res = caps_iter.next().unwrap();
+        assert_eq!(iter_res.name(), "m.some_random_capability");
+        assert_eq!(iter_res.value(), Cow::Borrowed(&json!({"key": "value"})));
+
+        assert!(caps_iter.next().is_none());
+        Ok(())
+    }
+}
