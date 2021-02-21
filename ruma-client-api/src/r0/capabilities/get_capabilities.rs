@@ -9,7 +9,7 @@ use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_value as from_json_value, to_value as to_json_value, Value as JsonValue};
 
-use iter::CapabilitiesIter;
+use iter::{CapabilitiesIter, CapabilityRef};
 
 mod iter;
 
@@ -122,6 +122,15 @@ impl Capabilities {
     /// Returns an iterator over the capabilities
     pub fn iter(&self) -> CapabilitiesIter {
         CapabilitiesIter::new(self)
+    }
+}
+
+impl<'a> IntoIterator for &'a Capabilities {
+    type Item = CapabilityRef<'a>;
+    type IntoIter = CapabilitiesIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
     }
 }
 

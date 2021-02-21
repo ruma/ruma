@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::btree_map::Iter};
+use std::{borrow::Cow, collections::btree_map};
 
 use serde_json::Value as JsonValue;
 
@@ -32,7 +32,7 @@ impl<'a> CapabilityRef<'a> {
 pub struct CapabilitiesIter<'a> {
     caps: &'a Capabilities,
     pos: usize,
-    custom_caps_iterator: Iter<'a, String, JsonValue>,
+    custom_caps_iterator: btree_map::Iter<'a, String, JsonValue>,
 }
 
 impl<'a> CapabilitiesIter<'a> {
