@@ -4,7 +4,7 @@ use serde_json::Value as JsonValue;
 
 use super::Capabilities;
 
-/// Reference to a capability
+/// Reference to a capability.
 #[derive(Debug)]
 pub struct CapabilityRef<'a> {
     name: &'a str,
@@ -27,7 +27,7 @@ impl<'a> CapabilityRef<'a> {
     }
 }
 
-/// An iterator over capabilities
+/// An iterator over capabilities.
 #[derive(Debug)]
 pub struct CapabilitiesIter<'a> {
     caps: &'a Capabilities,
@@ -54,9 +54,10 @@ impl<'a> Iterator for CapabilitiesIter<'a> {
                 self.pos += 1;
                 Some(CapabilityRef { name: "m.room_versions", value: None, caps: self.caps })
             }
-            _ => self.custom_caps_iterator.next().map(|(name, value)| {
-                self.pos += 1;
-                CapabilityRef { name, value: Some(value), caps: self.caps }
+            _ => self.custom_caps_iterator.next().map(|(name, value)| CapabilityRef {
+                name,
+                value: Some(value),
+                caps: self.caps,
             }),
         }
     }
