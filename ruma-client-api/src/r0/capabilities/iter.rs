@@ -2,7 +2,7 @@ use std::{borrow::Cow, collections::btree_map};
 
 use serde_json::Value as JsonValue;
 
-use super::Capabilities;
+use super::get_capabilities::Capabilities;
 
 /// Reference to a capability.
 #[derive(Debug)]
@@ -30,15 +30,9 @@ impl<'a> CapabilityRef<'a> {
 /// An iterator over capabilities.
 #[derive(Debug)]
 pub struct CapabilitiesIter<'a> {
-    caps: &'a Capabilities,
-    pos: usize,
-    custom_caps_iterator: btree_map::Iter<'a, String, JsonValue>,
-}
-
-impl<'a> CapabilitiesIter<'a> {
-    pub fn new(caps: &'a Capabilities) -> Self {
-        Self { caps, pos: 0, custom_caps_iterator: caps.custom_capabilities.iter() }
-    }
+    pub(super) caps: &'a Capabilities,
+    pub(super) pos: usize,
+    pub(super) custom_caps_iterator: btree_map::Iter<'a, String, JsonValue>,
 }
 
 impl<'a> Iterator for CapabilitiesIter<'a> {
