@@ -35,11 +35,11 @@ impl<'a> CapabilityRef<'a> {
 #[derive(Debug)]
 pub struct CapabilitiesIter<'a> {
     /// Reference to Capabilities
-    pub caps: &'a Capabilities,
+    caps: &'a Capabilities,
     /// Current position of the iterator
-    pub pos: usize,
+    pos: usize,
     /// Iterator for custom capabilities
-    pub custom_caps_iterator: btree_map::Iter<'a, String, JsonValue>,
+    custom_caps_iterator: btree_map::Iter<'a, String, JsonValue>,
 }
 
 impl<'a> CapabilitiesIter<'a> {
