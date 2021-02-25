@@ -1,5 +1,4 @@
 comment_width = 100
-edition = "2018"
 imports_granularity = "Crate"
 newline_style = "Unix"
 use_small_heuristics = "Max"
