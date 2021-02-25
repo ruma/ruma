@@ -1,8 +1,6 @@
 //! [POST /_matrix/client/r0/keys/claim](https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-keys-claim)
 
-use std::collections::BTreeMap;
-
-use std::time::Duration;
+use std::{collections::BTreeMap, time::Duration};
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{DeviceIdBox, DeviceKeyAlgorithm, DeviceKeyId, UserId};

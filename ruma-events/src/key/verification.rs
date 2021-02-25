@@ -6,13 +6,13 @@
 //! [here](https://github.com/matrix-org/matrix-doc/pull/2241).
 
 #[cfg(feature = "unstable-pre-spec")]
-use serde::{Deserialize, Serialize};
-#[cfg(feature = "unstable-pre-spec")]
 use std::convert::TryFrom;
 
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::EventId;
 use ruma_serde::StringEnum;
+#[cfg(feature = "unstable-pre-spec")]
+use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "unstable-pre-spec")]
 use crate::room::relationships::{Reference, RelatesToJsonRepr, RelationJsonRepr};
@@ -125,9 +125,9 @@ pub enum VerificationMethod {
 
 #[cfg(test)]
 mod tests {
-    use super::{KeyAgreementProtocol, MessageAuthenticationCode};
-
     use serde_json::{from_value as from_json_value, json};
+
+    use super::{KeyAgreementProtocol, MessageAuthenticationCode};
 
     #[test]
     fn serialize_key_agreement() {

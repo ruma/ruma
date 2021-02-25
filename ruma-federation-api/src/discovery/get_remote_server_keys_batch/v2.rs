@@ -2,10 +2,11 @@
 
 use std::{collections::BTreeMap, time::SystemTime};
 
-use crate::discovery::ServerSigningKeys;
 use ruma_api::ruma_api;
 use ruma_identifiers::{ServerNameBox, ServerSigningKeyId};
 use serde::{Deserialize, Serialize};
+
+use crate::discovery::ServerSigningKeys;
 
 ruma_api! {
     metadata: {

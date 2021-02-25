@@ -1,9 +1,9 @@
 //! [GET /_matrix/federation/v1/query/{queryType}](https://matrix.org/docs/spec/server_server/r0.1.4#get-matrix-federation-v1-query-querytype)
 
+use std::collections::BTreeMap;
+
 use ruma_api::ruma_api;
 use serde_json::Value as JsonValue;
-
-use std::collections::BTreeMap;
 
 ruma_api! {
     metadata: {

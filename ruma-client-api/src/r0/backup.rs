@@ -16,10 +16,11 @@ pub mod get_backup_keys;
 pub mod get_latest_backup;
 pub mod update_backup;
 
+use std::collections::BTreeMap;
+
 use js_int::UInt;
 use ruma_identifiers::{DeviceKeyId, UserId};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 
 /// A wrapper around a mapping of session IDs to key data.
 #[derive(Clone, Debug, Serialize, Deserialize)]

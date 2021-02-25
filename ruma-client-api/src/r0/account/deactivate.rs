@@ -2,9 +2,8 @@
 
 use ruma_api::ruma_api;
 
-use crate::r0::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
-
 use super::ThirdPartyIdRemovalStatus;
+use crate::r0::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
 ruma_api! {
     metadata: {

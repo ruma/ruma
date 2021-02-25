@@ -67,9 +67,8 @@ mod tests {
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use crate::{StateEvent, Unsigned};
-
     use super::NameEventContent;
+    use crate::{StateEvent, Unsigned};
 
     #[test]
     fn serialization_with_optional_fields_as_none() {

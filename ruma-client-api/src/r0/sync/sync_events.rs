@@ -532,10 +532,9 @@ impl DeviceLists {
 mod tests {
     use std::time::Duration;
 
+    use matches::assert_matches;
     use ruma_api::{IncomingRequest as _, OutgoingRequest as _};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
-
-    use matches::assert_matches;
 
     use super::{Filter, IncomingFilter, IncomingRequest, PresenceState, Request, Timeline};
 

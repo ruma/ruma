@@ -40,11 +40,11 @@ pub struct ServerAclEventContent {
 
 #[cfg(test)]
 mod tests {
+    use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json};
 
     use super::ServerAclEventContent;
     use crate::StateEvent;
-    use ruma_serde::Raw;
 
     #[test]
     fn default_values() {

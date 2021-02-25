@@ -1,10 +1,11 @@
 //! [PUT /_matrix/federation/v1/invite/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v1-invite-roomid-eventid)
 
+use std::time::SystemTime;
+
 use ruma_api::ruma_api;
 use ruma_events::{room::member::MemberEventContent, EventType};
 use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
 use serde::{Deserialize, Serialize};
-use std::time::SystemTime;
 
 use super::{InviteEvent, StrippedState};
 

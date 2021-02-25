@@ -11,11 +11,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 #[cfg(feature = "unstable-pre-spec")]
-use crate::key::verification::VerificationMethod;
-
-#[cfg(feature = "unstable-pre-spec")]
 use super::relationships::{Annotation, Reference, RelationJsonRepr, Replacement};
 use super::{relationships::RelatesToJsonRepr, EncryptedFile, ImageInfo, ThumbnailInfo};
+#[cfg(feature = "unstable-pre-spec")]
+use crate::key::verification::VerificationMethod;
 
 // FIXME: Do we want to keep re-exporting this?
 pub use super::relationships::InReplyTo;

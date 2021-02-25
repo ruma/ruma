@@ -63,13 +63,13 @@ pub fn to_canonical_value<T: Serialize>(value: T) -> Result<value::CanonicalJson
 mod tests {
     use std::{collections::BTreeMap, convert::TryInto};
 
+    use js_int::int;
+    use serde_json::{from_str as from_json_str, json, to_string as to_json_string};
+
     use super::{
         to_canonical_value, to_string as to_canonical_json_string, try_from_json_map,
         value::CanonicalJsonValue,
     };
-
-    use js_int::int;
-    use serde_json::{from_str as from_json_str, json, to_string as to_json_string};
 
     #[test]
     fn serialize_canon() {

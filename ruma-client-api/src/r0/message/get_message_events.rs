@@ -133,12 +133,11 @@ pub enum Direction {
 
 #[cfg(test)]
 mod tests {
-    use super::{Direction, Request};
-
     use js_int::uint;
     use ruma_api::OutgoingRequest;
     use ruma_identifiers::room_id;
 
+    use super::{Direction, Request};
     use crate::r0::filter::{LazyLoadOptions, RoomEventFilter};
 
     #[test]

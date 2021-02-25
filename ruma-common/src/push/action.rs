@@ -167,10 +167,10 @@ mod tweak_serde {
 
 #[cfg(test)]
 mod tests {
-    use super::{Action, Tweak};
-
     use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+
+    use super::{Action, Tweak};
 
     #[test]
     fn serialize_string() {

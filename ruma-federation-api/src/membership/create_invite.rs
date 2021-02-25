@@ -1,10 +1,11 @@
 //! Endpoint for inviting a remote user to a room
 
+use std::time::SystemTime;
+
 use ruma_events::{room::member::MemberEventContent, EventType};
 use ruma_identifiers::{ServerName, UserId};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
-use std::time::SystemTime;
 
 pub mod v1;
 pub mod v2;

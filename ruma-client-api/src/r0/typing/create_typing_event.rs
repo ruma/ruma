@@ -1,10 +1,10 @@
 //! [PUT /_matrix/client/r0/rooms/{roomId}/typing/{userId}](https://matrix.org/docs/spec/client_server/r0.6.0#put-matrix-client-r0-rooms-roomid-typing-userid)
 
-use serde::{de::Error, Deserialize, Deserializer, Serialize};
 use std::time::Duration;
 
 use ruma_api::ruma_api;
 use ruma_identifiers::{RoomId, UserId};
+use serde::{de::Error, Deserialize, Deserializer, Serialize};
 
 ruma_api! {
     metadata: {

@@ -85,10 +85,11 @@ pub struct Replacement {
 
 #[cfg(test)]
 mod tests {
-    use crate::room::message::Relation;
     use matches::assert_matches;
     use ruma_identifiers::event_id;
     use serde_json::{from_value as from_json_value, json};
+
+    use crate::room::message::Relation;
 
     #[test]
     fn reply_deserialize() {

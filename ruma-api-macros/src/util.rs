@@ -1,9 +1,10 @@
 //! Functions to aid the `Api::to_tokens` method.
 
+use std::collections::BTreeSet;
+
 use proc_macro2::{Span, TokenStream};
 use proc_macro_crate::crate_name;
 use quote::quote;
-use std::collections::BTreeSet;
 use syn::{
     AngleBracketedGenericArguments, AttrStyle, Attribute, GenericArgument, Ident, Lifetime,
     ParenthesizedGenericArguments, PathArguments, Type, TypeArray, TypeBareFn, TypeGroup,

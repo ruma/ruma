@@ -101,6 +101,7 @@
 #![deny(missing_debug_implementations, missing_docs)]
 
 use std::{
+    collections::BTreeMap,
     convert::TryFrom,
     sync::{Arc, Mutex},
     time::Duration,
@@ -118,7 +119,6 @@ use ruma_client_api::r0::sync::sync_events::{
 use ruma_common::presence::PresenceState;
 use ruma_identifiers::DeviceId;
 use ruma_serde::urlencoded;
-use std::collections::BTreeMap;
 
 mod error;
 mod session;

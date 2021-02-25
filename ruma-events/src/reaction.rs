@@ -2,13 +2,14 @@
 
 use std::convert::TryFrom;
 
+use ruma_events_macros::MessageEventContent;
+use ruma_identifiers::EventId;
+use serde::{Deserialize, Serialize};
+
 use crate::{
     room::relationships::{Annotation, RelatesToJsonRepr, RelationJsonRepr},
     MessageEvent,
 };
-use ruma_events_macros::MessageEventContent;
-use ruma_identifiers::EventId;
-use serde::{Deserialize, Serialize};
 
 /// A reaction to another event.
 pub type ReactionEvent = MessageEvent<ReactionEventContent>;

@@ -1,11 +1,11 @@
 //! [PUT /_matrix/federation/v1/3pid/onbind](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v1-3pid-onbind)
 
+use std::collections::BTreeMap;
+
 use ruma_api::ruma_api;
 use ruma_common::thirdparty::Medium;
 use ruma_identifiers::{RoomId, ServerNameBox, ServerSigningKeyId, UserId};
 use serde::{Deserialize, Serialize};
-
-use std::collections::BTreeMap;
 
 ruma_api! {
     metadata: {
