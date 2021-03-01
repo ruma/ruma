@@ -338,21 +338,21 @@ impl From<RedactedUnsigned> for RedactedSyncUnsigned {
     fn from(redacted: RedactedUnsigned) -> Self {
         match redacted.redacted_because.map(|b| *b) {
             Some(RedactionEvent {
-                sender,
-                event_id,
-                origin_server_ts,
-                redacts,
-                unsigned,
                 content,
+                redacts,
+                event_id,
+                sender,
+                origin_server_ts,
+                unsigned,
                 ..
             }) => Self {
                 redacted_because: Some(Box::new(SyncRedactionEvent {
-                    sender,
-                    event_id,
-                    origin_server_ts,
-                    redacts,
-                    unsigned,
                     content,
+                    redacts,
+                    event_id,
+                    sender,
+                    origin_server_ts,
+                    unsigned,
                 })),
             },
             _ => Self { redacted_because: None },
@@ -376,21 +376,21 @@ impl RedactedSyncUnsigned {
     pub fn into_full(self, room_id: RoomId) -> RedactedUnsigned {
         match self.redacted_because.map(|b| *b) {
             Some(SyncRedactionEvent {
-                sender,
-                event_id,
-                origin_server_ts,
-                redacts,
-                unsigned,
                 content,
+                redacts,
+                event_id,
+                sender,
+                origin_server_ts,
+                unsigned,
             }) => RedactedUnsigned {
                 redacted_because: Some(Box::new(RedactionEvent {
-                    room_id,
-                    sender,
-                    event_id,
-                    origin_server_ts,
-                    redacts,
-                    unsigned,
                     content,
+                    redacts,
+                    event_id,
+                    sender,
+                    origin_server_ts,
+                    room_id,
+                    unsigned,
                 })),
             },
             _ => RedactedUnsigned { redacted_because: None },

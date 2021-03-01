@@ -88,10 +88,10 @@ impl Parse for Metadata {
                 FieldValue::Name(n) => set_field(&mut name, n)?,
                 FieldValue::Path(p) => set_field(&mut path, p)?,
                 FieldValue::RateLimited(value, attrs) => {
-                    rate_limited.push(MetadataField { value, attrs })
+                    rate_limited.push(MetadataField { attrs, value })
                 }
                 FieldValue::Authentication(value, attrs) => {
-                    authentication.push(MetadataField { value, attrs })
+                    authentication.push(MetadataField { attrs, value })
                 }
             }
         }
