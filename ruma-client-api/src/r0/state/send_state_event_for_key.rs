@@ -117,7 +117,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
         base_url: &str,
         access_token: Option<&str>,
     ) -> Result<http::Request<Vec<u8>>, IntoHttpError> {
-        use http::header::{HeaderValue, AUTHORIZATION};
+        use http::header::{HeaderValue, AUTHORIZATION, CONTENT_TYPE};
         use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
         let http_request = http::Request::builder()
@@ -141,6 +141,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
                     access_token.ok_or(IntoHttpError::NeedsAuthentication)?
                 ))?,
             )
+            .header(CONTENT_TYPE, "application/json")
             .body(serde_json::to_vec(&self.content)?)?;
 
         Ok(http_request)
