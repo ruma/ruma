@@ -41,11 +41,25 @@ api = ["ruma-api"]
 events = ["ruma-events"]
 signatures = ["ruma-signatures"]
 
-appservice-api = ["api", "events", "ruma-appservice-api"]
-client-api = ["api", "events", "ruma-client-api"]
-federation-api = ["api", "signatures", "ruma-federation-api"]
-identity-service-api = ["api", "ruma-identity-service-api"]
-push-gateway-api = ["api", "ruma-push-gateway-api"]
+appservice-api-c = ["api", "events", "ruma-appservice-api/client"]
+appservice-api-s = ["api", "events", "ruma-appservice-api/server"]
+appservice-api = ["appservice-api-c", "appservice-api-s"]
+
+client-api-c = ["api", "events", "ruma-client-api/client"]
+client-api-s = ["api", "events", "ruma-client-api/server"]
+client-api = ["client-api-c", "client-api-s"]
+
+federation-api-c = ["api", "signatures", "ruma-federation-api/client"]
+federation-api-s = ["api", "signatures", "ruma-federation-api/server"]
+federation-api = ["federation-api-c", "federation-api-s"]
+
+identity-service-api-c = ["api", "ruma-identity-service-api/client"]
+identity-service-api-s = ["api", "ruma-identity-service-api/server"]
+identity-service-api = ["identity-service-api-c", "identity-service-api-s"]
+
+push-gateway-api-c = ["api", "ruma-push-gateway-api/client"]
+push-gateway-api-s = ["api", "ruma-push-gateway-api/server"]
+push-gateway-api = ["push-gateway-api-c", "push-gateway-api-s"]
 
 # Convenience features
 either = ["ruma-identifiers/either"]

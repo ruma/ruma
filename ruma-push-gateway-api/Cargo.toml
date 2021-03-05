@@ -22,3 +22,5 @@ serde_json = "1.0.61"
 
 [features]
 unstable-exhaustive-types = []
+client = []
+server = []
