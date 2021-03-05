@@ -16,6 +16,7 @@ ruma_api! {
     response: {}
 }
 
+#[cfg(feature = "client")]
 #[test]
 fn empty_request_http_repr() {
     let req = Request {};
@@ -24,6 +25,7 @@ fn empty_request_http_repr() {
     assert!(http_req.body().is_empty());
 }
 
+#[cfg(feature = "server")]
 #[test]
 fn empty_response_http_repr() {
     let res = Response {};

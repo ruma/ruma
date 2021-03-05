@@ -34,6 +34,7 @@ ruma_api! {
     }
 }
 
+#[cfg(all(feature = "client", feature = "server"))]
 #[test]
 fn request_serde() -> Result<(), Box<dyn std::error::Error + 'static>> {
     let req = Request {

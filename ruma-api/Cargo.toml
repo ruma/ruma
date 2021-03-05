@@ -31,3 +31,9 @@ thiserror = "1.0.23"
 [dev-dependencies]
 ruma-events = { version = "=0.22.0-alpha.2", path = "../ruma-events" }
 trybuild = "1.0.38"
+
+# These feature gates exist as a workaround to pass tests.
+# Any crate that invokes the `ruma-api!` macro should include these features.
+[features]
+client = []
+server = []

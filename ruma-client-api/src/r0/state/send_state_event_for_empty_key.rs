@@ -68,6 +68,7 @@ struct ResponseBody {
     event_id: EventId,
 }
 
+#[cfg(feature = "server")]
 impl TryFrom<Response> for http::Response<Vec<u8>> {
     type Error = IntoHttpError;
 
@@ -81,6 +82,7 @@ impl TryFrom<Response> for http::Response<Vec<u8>> {
     }
 }
 
+#[cfg(feature = "client")]
 impl TryFrom<http::Response<Vec<u8>>> for Response {
     type Error = FromHttpResponseError<crate::Error>;
 
@@ -102,6 +104,7 @@ impl TryFrom<http::Response<Vec<u8>>> for Response {
     }
 }
 
+#[cfg(feature = "client")]
 impl<'a> ruma_api::OutgoingRequest for Request<'a> {
     type EndpointError = crate::Error;
     type IncomingResponse = Response;
@@ -144,6 +147,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
     }
 }
 
+#[cfg(feature = "server")]
 impl ruma_api::IncomingRequest for IncomingRequest {
     type EndpointError = crate::Error;
     type OutgoingResponse = Response;

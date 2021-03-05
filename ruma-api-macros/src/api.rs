@@ -267,12 +267,14 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
                 quote! {
                     #( #attrs )*
                     #[automatically_derived]
+                    #[cfg(feature = "client")]
                     impl #request_lifetimes #ruma_api::OutgoingNonAuthRequest
                         for Request #request_lifetimes
                         {}
 
                     #( #attrs )*
                     #[automatically_derived]
+                    #[cfg(feature = "server")]
                     impl #ruma_api::IncomingNonAuthRequest for #incoming_request_type {}
                 }
             }
@@ -287,6 +289,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         #response_type
 
         #[automatically_derived]
+        #[cfg(feature = "server")]
         impl ::std::convert::TryFrom<Response> for #http::Response<Vec<u8>> {
             type Error = #ruma_api::error::IntoHttpError;
 
@@ -308,6 +311,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         }
 
         #[automatically_derived]
+        #[cfg(feature = "client")]
         impl ::std::convert::TryFrom<#http::Response<Vec<u8>>> for Response {
             type Error = #ruma_api::error::FromHttpResponseError<#error>;
 
@@ -344,6 +348,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         };
 
         #[automatically_derived]
+        #[cfg(feature = "client")]
         impl #request_lifetimes #ruma_api::OutgoingRequest for Request #request_lifetimes {
             type EndpointError = #error;
             type IncomingResponse = <Response as #ruma_serde::Outgoing>::Incoming;
@@ -386,6 +391,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         }
 
         #[automatically_derived]
+        #[cfg(feature = "server")]
         impl #ruma_api::IncomingRequest for #incoming_request_type {
             type EndpointError = #error;
             type OutgoingResponse = Response;

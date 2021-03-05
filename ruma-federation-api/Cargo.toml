@@ -30,3 +30,5 @@ matches = "0.1.8"
 [features]
 unstable-exhaustive-types = []
 unstable-pre-spec = []
+client = []
+server = []

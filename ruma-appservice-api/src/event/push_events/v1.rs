@@ -43,6 +43,7 @@ impl Response {
     }
 }
 
+#[cfg(feature = "server")]
 #[cfg(test)]
 mod tests {
     use ruma_api::{exports::http, OutgoingRequest};
