@@ -48,7 +48,7 @@ mod event_parse;
 #[proc_macro]
 pub fn event_enum(input: TokenStream) -> TokenStream {
     let event_enum_input = syn::parse_macro_input!(input as EventEnumInput);
-    expand_event_enum(event_enum_input).unwrap_or_else(|err| err.to_compile_error()).into()
+    expand_event_enum(event_enum_input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Generates an implementation of `ruma_events::EventContent`.
@@ -58,7 +58,7 @@ pub fn derive_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     expand_event_content(&input, true, &ruma_events)
-        .unwrap_or_else(|err| err.to_compile_error())
+        .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
 
@@ -69,7 +69,7 @@ pub fn derive_basic_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     expand_basic_event_content(&input, &ruma_events)
-        .unwrap_or_else(|err| err.to_compile_error())
+        .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
 
@@ -80,7 +80,7 @@ pub fn derive_room_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     expand_room_event_content(&input, &ruma_events)
-        .unwrap_or_else(|err| err.to_compile_error())
+        .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
 
@@ -91,7 +91,7 @@ pub fn derive_message_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     expand_message_event_content(&input, &ruma_events)
-        .unwrap_or_else(|err| err.to_compile_error())
+        .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
 
@@ -102,7 +102,7 @@ pub fn derive_state_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     expand_state_event_content(&input, &ruma_events)
-        .unwrap_or_else(|err| err.to_compile_error())
+        .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
 
@@ -113,7 +113,7 @@ pub fn derive_ephemeral_room_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     expand_ephemeral_room_event_content(&input, &ruma_events)
-        .unwrap_or_else(|err| err.to_compile_error())
+        .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
 
@@ -121,7 +121,7 @@ pub fn derive_ephemeral_room_event_content(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(Event, attributes(ruma_event))]
 pub fn derive_state_event(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    expand_event(input).unwrap_or_else(|err| err.to_compile_error()).into()
+    expand_event(input).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 pub(crate) fn import_ruma_events() -> pm2::TokenStream {

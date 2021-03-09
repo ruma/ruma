@@ -23,5 +23,5 @@ mod util;
 #[proc_macro]
 pub fn ruma_api(input: TokenStream) -> TokenStream {
     let api = parse_macro_input!(input as Api);
-    api::expand_all(api).unwrap_or_else(|err| err.to_compile_error()).into()
+    api::expand_all(api).unwrap_or_else(syn::Error::into_compile_error).into()
 }
