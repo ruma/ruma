@@ -27,7 +27,6 @@ ruma_api! {
     }
 }
 
-#[cfg(all(feature = "client", feature = "server"))]
 #[test]
 fn response_content_type_override() {
     let res = Response { stuff: "magic".into() };
@@ -45,7 +44,6 @@ fn response_content_type_override() {
     assert_eq!(http_res.headers().get("content-type").unwrap(), "magic");
 }
 
-#[cfg(feature = "client")]
 #[test]
 fn request_content_type_override() {
     let req = Request { location: None, stuff: "magic".into() };

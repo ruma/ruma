@@ -14,6 +14,9 @@
 #![warn(rust_2018_idioms)]
 #![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
 
+#[cfg(not(all(feature = "client", feature = "server")))]
+compile_error!("ruma_api's Cargo features only exist as a workaround are not meant to be disabled");
+
 use std::{
     convert::{TryFrom, TryInto},
     error::Error as StdError,
