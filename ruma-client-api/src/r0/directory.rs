@@ -45,6 +45,10 @@ pub struct PublicRoomsChunk {
 
     /// The URL for the room's avatar, if one is set.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(
+        feature = "compat",
+        serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+    )]
     pub avatar_url: Option<String>,
 }
 

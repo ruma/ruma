@@ -27,6 +27,10 @@ pub struct PresenceEvent {
 pub struct PresenceEventContent {
     /// The current avatar URL for this user.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(
+        feature = "compat",
+        serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+    )]
     pub avatar_url: Option<String>,
 
     /// Whether or not the user is currently active.
@@ -116,6 +120,34 @@ mod tests {
                 sender,
             } if avatar_url == "mxc://localhost:wefuiwegh8742w"
                 && status_msg == "Making cupcakes"
+                && sender == "@example:localhost"
+                && last_active_ago == uint!(2_478_593)
+        );
+
+        #[cfg(feature = "compat")]
+        assert_matches!(
+            from_json_value::<PresenceEvent>(json!({
+                "content": {
+                    "avatar_url": "",
+                    "currently_active": false,
+                    "last_active_ago": 2_478_593,
+                    "presence": "online",
+                    "status_msg": "Making cupcakes"
+                },
+                "sender": "@example:localhost",
+                "type": "m.presence"
+            })).unwrap(),
+            PresenceEvent {
+                content: PresenceEventContent {
+                    avatar_url: None,
+                    currently_active: Some(false),
+                    displayname: None,
+                    last_active_ago: Some(last_active_ago),
+                    presence: PresenceState::Online,
+                    status_msg: Some(status_msg),
+                },
+                sender,
+            } if status_msg == "Making cupcakes"
                 && sender == "@example:localhost"
                 && last_active_ago == uint!(2_478_593)
         );

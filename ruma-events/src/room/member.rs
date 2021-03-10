@@ -42,6 +42,10 @@ pub type MemberEvent = StateEvent<MemberEventContent>;
 pub struct MemberEventContent {
     /// The avatar URL for this user, if any. This is added by the homeserver.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(
+        feature = "compat",
+        serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+    )]
     pub avatar_url: Option<String>,
 
     /// The display name for this user, if any. This is added by the homeserver.
@@ -492,6 +496,81 @@ mod tests {
                 && state_key == "@alice:example.org"
                 && unsigned.is_empty()
                 && avatar_url == "mxc://example.org/SEsfnsuifSDFSSEF"
+                && displayname == "Alice Margatroid"
+                && third_party_displayname == "alice"
+                && mxid == "@alice:example.org"
+                && signatures == btreemap! {
+                    server_name!("magic.forest") => btreemap! {
+                        server_signing_key_id!("ed25519:3") => "foobar".to_owned()
+                    }
+                }
+                && token == "abc123"
+        );
+
+        #[cfg(feature = "compat")]
+        assert_matches!(
+            from_json_value::<Raw<StateEvent<MemberEventContent>>>(json!({
+                "type": "m.room.member",
+                "content": {
+                    "membership": "join"
+                },
+                "event_id": "$143273582443PhrSn:example.org",
+                "origin_server_ts": 233,
+                "prev_content": {
+                    "avatar_url": "",
+                    "displayname": "Alice Margatroid",
+                    "is_direct": true,
+                    "membership": "invite",
+                    "third_party_invite": {
+                        "display_name": "alice",
+                        "signed": {
+                            "mxid": "@alice:example.org",
+                            "signatures": {
+                                "magic.forest": {
+                                    "ed25519:3": "foobar"
+                                }
+                            },
+                            "token": "abc123"
+                        }
+                    }
+                },
+                "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
+                "sender": "@alice:example.org",
+                "state_key": "@alice:example.org"
+            }))
+                .unwrap()
+                .deserialize()
+                .unwrap(),
+            StateEvent::<MemberEventContent> {
+                content: MemberEventContent {
+                    avatar_url: None,
+                    displayname: None,
+                    is_direct: None,
+                    membership: MembershipState::Join,
+                    third_party_invite: None,
+                },
+                event_id,
+                origin_server_ts,
+                room_id,
+                sender,
+                state_key,
+                unsigned,
+                prev_content: Some(MemberEventContent {
+                    avatar_url: None,
+                    displayname: Some(displayname),
+                    is_direct: Some(true),
+                    membership: MembershipState::Invite,
+                    third_party_invite: Some(ThirdPartyInvite {
+                        display_name: third_party_displayname,
+                        signed: SignedContent { mxid, signatures, token },
+                    }),
+                }),
+            } if event_id == "$143273582443PhrSn:example.org"
+                && origin_server_ts == UNIX_EPOCH + Duration::from_millis(233)
+                && room_id == "!jEsUZKDJdhlrceRyVU:example.org"
+                && sender == "@alice:example.org"
+                && state_key == "@alice:example.org"
+                && unsigned.is_empty()
                 && displayname == "Alice Margatroid"
                 && third_party_displayname == "alice"
                 && mxid == "@alice:example.org"
