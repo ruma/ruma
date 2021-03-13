@@ -58,7 +58,7 @@ fn allowed_content_keys_for(event_type: &str, version: &RoomVersionId) -> &'stat
             | RoomVersionId::Version2
             | RoomVersionId::Version3
             | RoomVersionId::Version4
-            | RoomVersionId::Version5 => &["join_rule"],
+            | RoomVersionId::Version5 => &["aliases"],
             // All other room versions, including custom ones, are treated by version 6 rules.
             // TODO: Should we return an error for unknown versions instead?
             _ => &[],

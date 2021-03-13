@@ -9,3 +9,4 @@ Breaking changes:
 Bug fixes:
 
 * Verify only the required signatures on `verify_event`
+* Fix redactions for aliases events
