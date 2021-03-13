@@ -1,7 +1,7 @@
 //! [GET /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-login)
 
 use ruma_api::ruma_api;
-use serde::{Deserialize, Serialize};
+use ruma_serde::StringEnum;
 
 ruma_api! {
     metadata: {
@@ -18,7 +18,8 @@ ruma_api! {
 
     response: {
         /// The homeserver's supported login types.
-        pub flows: Vec<LoginType>
+        #[serde(with = "login_type_list_serde")]
+        pub flows: Vec<LoginType>,
     }
 
     error: crate::Error
@@ -39,33 +40,51 @@ impl Response {
 }
 
 /// An authentication mechanism.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(tag = "type")]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
 pub enum LoginType {
     /// A password is supplied to authenticate.
-    #[serde(rename = "m.login.password")]
+    #[ruma_enum(rename = "m.login.password")]
     Password,
 
     /// Token-based login.
-    #[serde(rename = "m.login.token")]
+    #[ruma_enum(rename = "m.login.token")]
     Token,
 
     /// SSO-based login.
-    #[serde(rename = "m.login.sso")]
+    #[ruma_enum(rename = "m.login.sso")]
     Sso,
+
+    #[doc(hidden)]
+    _Custom(String),
 }
+
+mod login_type_list_serde;
 
 #[cfg(test)]
 mod tests {
+    use matches::assert_matches;
+    use serde::Deserialize;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::LoginType;
+    use super::{login_type_list_serde, LoginType};
+
+    #[derive(Debug, Deserialize)]
+    struct Foo {
+        #[serde(with = "login_type_list_serde")]
+        pub flows: Vec<LoginType>,
+    }
 
     #[test]
     fn deserialize_login_type() {
-        assert_eq!(
-            from_json_value::<LoginType>(json!({ "type": "m.login.password" })).unwrap(),
-            LoginType::Password,
+        assert_matches!(
+            from_json_value::<Foo>(json!({
+                "flows": [
+                    { "type": "m.login.password" }
+                ],
+            })),
+            Ok(Foo { flows })
+            if flows.len() == 1
+                && flows[0] == LoginType::Password
         );
     }
 }
