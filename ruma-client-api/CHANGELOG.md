@@ -62,6 +62,9 @@ Breaking changes:
 * `error::ErrorKind` no longer implements `Copy`, `FromStr`
 * Switch from `AnyEvent` to `AnyRoomEvent` in `r0::search::search_events`
 * Move `r0::account::request_openid_token::TokenType` to `ruma-common` crate
+* Move `user: UserInfo` in `r0::session::login::Request` to `identifier: UserIdentifier` in
+  `r0::session::login::LoginInfo::Password`
+  * `r0::session::login::Request::new` takes only `login_info: LoginInfo` as a param
 
 Improvements:
 

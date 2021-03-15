@@ -214,11 +214,13 @@ impl Client {
         device_id: Option<&DeviceId>,
         initial_device_display_name: Option<&str>,
     ) -> Result<Session, Error<ruma_client_api::Error>> {
-        use ruma_client_api::r0::session::login::{LoginInfo, Request as LoginRequest, UserInfo};
+        use ruma_client_api::r0::session::login::{
+            LoginInfo, Request as LoginRequest, UserIdentifier,
+        };
 
         let response = self
             .request(assign!(
-                LoginRequest::new(UserInfo::MatrixId(user), LoginInfo::Password { password }), {
+                LoginRequest::new(LoginInfo::Password { identifier: UserIdentifier::MatrixId(user), password }), {
                     device_id,
                     initial_device_display_name,
                 }
