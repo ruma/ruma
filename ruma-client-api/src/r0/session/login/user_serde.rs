@@ -5,13 +5,8 @@ use ruma_common::thirdparty::Medium;
 use ruma_serde::Outgoing;
 use serde::Serialize;
 
-// The following three structs could just be used in place of the one in the parent module, but
+// The following structs could just be used in place of the one in the parent module, but
 // that one is arguably much easier to deal with.
-#[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
-pub(crate) struct UserInfo<'a> {
-    pub identifier: UserIdentifier<'a>,
-}
-
 #[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
 #[serde(tag = "type")]
 pub(crate) enum UserIdentifier<'a> {
@@ -23,32 +18,28 @@ pub(crate) enum UserIdentifier<'a> {
     PhoneNumber { country: &'a str, phone: &'a str },
 }
 
-impl<'a> From<super::UserInfo<'a>> for UserInfo<'a> {
-    fn from(info: super::UserInfo<'a>) -> Self {
-        use super::UserInfo as Info;
-        use UserIdentifier as Id;
+impl<'a> From<super::UserIdentifier<'a>> for UserIdentifier<'a> {
+    fn from(id: super::UserIdentifier<'a>) -> Self {
+        use super::UserIdentifier as SuperId;
+        use UserIdentifier as SerdeId;
 
-        match info {
-            Info::MatrixId(user) => UserInfo { identifier: Id::MatrixId { user } },
-            Info::ThirdPartyId { address, medium } => {
-                UserInfo { identifier: Id::ThirdPartyId { address, medium } }
-            }
-            Info::PhoneNumber { country, phone } => {
-                UserInfo { identifier: Id::PhoneNumber { country, phone } }
-            }
+        match id {
+            SuperId::MatrixId(user) => SerdeId::MatrixId { user },
+            SuperId::ThirdPartyId { address, medium } => SerdeId::ThirdPartyId { address, medium },
+            SuperId::PhoneNumber { country, phone } => SerdeId::PhoneNumber { country, phone },
         }
     }
 }
 
-impl From<IncomingUserInfo> for super::IncomingUserInfo {
-    fn from(info: IncomingUserInfo) -> super::IncomingUserInfo {
-        use super::IncomingUserInfo as Info;
-        use IncomingUserIdentifier as Id;
+impl From<IncomingUserIdentifier> for super::IncomingUserIdentifier {
+    fn from(id: IncomingUserIdentifier) -> super::IncomingUserIdentifier {
+        use super::IncomingUserIdentifier as SuperId;
+        use IncomingUserIdentifier as SerdeId;
 
-        match info.identifier {
-            Id::MatrixId { user } => Info::MatrixId(user),
-            Id::ThirdPartyId { address, medium } => Info::ThirdPartyId { address, medium },
-            Id::PhoneNumber { country, phone } => Info::PhoneNumber { country, phone },
+        match id {
+            SerdeId::MatrixId { user } => SuperId::MatrixId(user),
+            SerdeId::ThirdPartyId { address, medium } => SuperId::ThirdPartyId { address, medium },
+            SerdeId::PhoneNumber { country, phone } => SuperId::PhoneNumber { country, phone },
         }
     }
 }

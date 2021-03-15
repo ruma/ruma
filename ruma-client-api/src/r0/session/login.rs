@@ -17,10 +17,6 @@ ruma_api! {
     }
 
     request: {
-        /// Identification information for the user.
-        #[serde(flatten)]
-        pub user: UserInfo<'a>,
-
         /// The authentication mechanism.
         #[serde(flatten)]
         pub login_info: LoginInfo<'a>,
@@ -65,9 +61,9 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new `Request` with the given user and login info.
-    pub fn new(user: UserInfo<'a>, login_info: LoginInfo<'a>) -> Self {
-        Self { user, login_info, device_id: None, initial_device_display_name: None }
+    /// Creates a new `Request` with the given login info.
+    pub fn new(login_info: LoginInfo<'a>) -> Self {
+        Self { login_info, device_id: None, initial_device_display_name: None }
     }
 }
 
@@ -80,8 +76,8 @@ impl Response {
 
 /// Identification information for the user.
 #[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
-#[serde(from = "user_serde::IncomingUserInfo", into = "user_serde::UserInfo")]
-pub enum UserInfo<'a> {
+#[serde(from = "user_serde::IncomingUserIdentifier", into = "user_serde::UserIdentifier")]
+pub enum UserIdentifier<'a> {
     /// Either a fully qualified Matrix user ID, or just the localpart (as part of the 'identifier'
     /// field).
     MatrixId(&'a str),
@@ -110,9 +106,11 @@ pub enum UserInfo<'a> {
 #[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
 #[serde(tag = "type")]
 pub enum LoginInfo<'a> {
-    /// A password is supplied to authenticate.
+    /// An identifier and password are supplied to authenticate.
     #[serde(rename = "m.login.password")]
     Password {
+        /// Identification information for the user.
+        identifier: UserIdentifier<'a>,
         /// The password.
         password: &'a str,
     },
@@ -159,18 +157,24 @@ mod tests {
     use ruma_api::OutgoingRequest;
     use serde_json::{from_value as from_json_value, json, Value as JsonValue};
 
-    use super::{IncomingLoginInfo, IncomingUserInfo, LoginInfo, Medium, Request, UserInfo};
+    use super::{
+        IncomingLoginInfo, IncomingUserIdentifier, LoginInfo, Medium, Request, UserIdentifier,
+    };
 
     #[test]
     fn deserialize_login_type() {
         assert_matches!(
             from_json_value(json!({
                 "type": "m.login.password",
+                "identifier": {
+                    "type": "m.id.user",
+                    "user": "cheeky_monkey"
+                },
                 "password": "ilovebananas"
             }))
             .unwrap(),
-            IncomingLoginInfo::Password { password }
-            if password == "ilovebananas"
+            IncomingLoginInfo::Password { identifier: IncomingUserIdentifier::MatrixId(user), password }
+            if user == "cheeky_monkey" && password == "ilovebananas"
         );
 
         assert_matches!(
@@ -188,13 +192,11 @@ mod tests {
     fn deserialize_user() {
         assert_matches!(
             from_json_value(json!({
-                "identifier": {
-                    "type": "m.id.user",
-                    "user": "cheeky_monkey"
-                }
+                "type": "m.id.user",
+                "user": "cheeky_monkey"
             }))
             .unwrap(),
-            IncomingUserInfo::MatrixId(id)
+            IncomingUserIdentifier::MatrixId(id)
             if id == "cheeky_monkey"
         );
     }
@@ -202,8 +204,31 @@ mod tests {
     #[test]
     fn serialize_login_request_body() {
         let req: http::Request<Vec<u8>> = Request {
-            user: UserInfo::ThirdPartyId { address: "hello@example.com", medium: Medium::Email },
             login_info: LoginInfo::Token { token: "0xdeadbeef" },
+            device_id: None,
+            initial_device_display_name: Some("test"),
+        }
+        .try_into_http_request("https://homeserver.tld", None)
+        .unwrap();
+
+        let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();
+        assert_eq!(
+            req_body_value,
+            json!({
+                "type": "m.login.token",
+                "token": "0xdeadbeef",
+                "initial_device_display_name": "test",
+            })
+        );
+
+        let req: http::Request<Vec<u8>> = Request {
+            login_info: LoginInfo::Password {
+                identifier: UserIdentifier::ThirdPartyId {
+                    address: "hello@example.com",
+                    medium: Medium::Email,
+                },
+                password: "deadbeef",
+            },
             device_id: None,
             initial_device_display_name: Some("test"),
         }
@@ -219,10 +244,10 @@ mod tests {
                     "medium": "email",
                     "address": "hello@example.com"
                 },
-                "type": "m.login.token",
-                "token": "0xdeadbeef",
+                "type": "m.login.password",
+                "password": "deadbeef",
                 "initial_device_display_name": "test",
             })
-        )
+        );
     }
 }
