@@ -37,6 +37,10 @@ ruma_api! {
 
         /// URL to submit validation token to. If omitted, verification happens without client.
         #[serde(skip_serializing_if = "Option::is_none")]
+        #[cfg_attr(
+            feature = "compat",
+            serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+        )]
         pub submit_url: Option<String>
     }
 
