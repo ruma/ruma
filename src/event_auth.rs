@@ -747,28 +747,21 @@ pub fn get_send_level<E: Event>(
     power_lvl: Option<&Arc<E>>,
 ) -> i64 {
     log::debug!("{:?} {:?}", e_type, state_key);
-    if let Some(ple) = power_lvl {
-        if let Ok(content) =
+    power_lvl
+        .and_then(|ple| {
             serde_json::from_value::<room::power_levels::PowerLevelsEventContent>(ple.content())
-        {
-            let mut lvl: i64 = content
-                .events
-                .get(&e_type)
-                .cloned()
-                .unwrap_or_else(|| ruma::int!(50))
-                .into();
-            let state_def: i64 = content.state_default.into();
-            let event_def: i64 = content.events_default.into();
-            if (state_key.is_some() && state_def > lvl) || event_def > lvl {
-                lvl = event_def;
-            }
-            lvl
-        } else {
-            50 // default power level
-        }
-    } else {
-        0
-    }
+                .map(|content| {
+                    content.events.get(&e_type).cloned().unwrap_or_else(|| {
+                        if state_key.is_some() {
+                            content.state_default
+                        } else {
+                            content.events_default
+                        }
+                    })
+                }).ok()
+        })
+        .map(|int| i64::from(int))
+        .unwrap_or_else(|| if state_key.is_some() { 50 } else { 0 })
 }
 
 /// Check user can send invite.
