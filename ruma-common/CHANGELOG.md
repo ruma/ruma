@@ -3,6 +3,7 @@
 Breaking changes:
 
 * Update set of conversion trait implementations for enums
+* Replace `BTreeSet` by `IndexSet` in `push::Ruleset`.
 * … (there's a lot more, but this changelog was not kept up to date; PRs to
   improve it are welcome)
 

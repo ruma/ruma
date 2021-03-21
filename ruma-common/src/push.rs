@@ -6,13 +6,13 @@
 //!
 //! Push rules are grouped in `RuleSet`s, and are grouped in five kinds (for
 //! more details about the different kind of rules, see the `Ruleset` documentation,
-//! or the specification). These five kinds are:
+//! or the specification). These five kinds are, by order of priority:
 //!
-//! - content rules
 //! - override rules
-//! - underride rules
+//! - content rules
 //! - room rules
 //! - sender rules
+//! - underride rules
 //!
 //! Each of these kind of rule has a corresponding type that is
 //! just a wrapper around another type:
@@ -34,8 +34,12 @@
 //! There is also the `AnyPushRule` type that is the most generic form of push rule, with all
 //! the possible fields.
 
-use std::collections::btree_set::{BTreeSet, IntoIter as BTreeSetIter};
+use std::hash::{Hash, Hasher};
 
+use indexmap::{
+    set::{IndexSet, IntoIter as IndexSetIter},
+    Equivalent,
+};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
@@ -58,24 +62,24 @@ pub use self::{
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Ruleset {
     /// These rules configure behavior for (unencrypted) messages that match certain patterns.
-    pub content: BTreeSet<ContentPushRule>,
+    pub content: IndexSet<ContentPushRule>,
 
     /// These user-configured rules are given the highest priority.
     ///
     /// This field is named `override_` instead of `override` because the latter is a reserved
     /// keyword in Rust.
     #[serde(rename = "override")]
-    pub override_: BTreeSet<OverridePushRule>,
+    pub override_: IndexSet<OverridePushRule>,
 
     /// These rules change the behavior of all messages for a given room.
-    pub room: BTreeSet<RoomPushRule>,
+    pub room: IndexSet<RoomPushRule>,
 
     /// These rules configure notification behavior for messages from a specific Matrix user ID.
-    pub sender: BTreeSet<SenderPushRule>,
+    pub sender: IndexSet<SenderPushRule>,
 
     /// These rules are identical to override rules, but have a lower priority than `content`,
     /// `room` and `sender` rules.
-    pub underride: BTreeSet<UnderridePushRule>,
+    pub underride: IndexSet<UnderridePushRule>,
 }
 
 impl Ruleset {
@@ -97,11 +101,11 @@ impl Ruleset {
 /// Iterator type for `Ruleset`
 #[derive(Debug)]
 pub struct RulesetIter {
-    content: BTreeSetIter<ContentPushRule>,
-    override_: BTreeSetIter<OverridePushRule>,
-    room: BTreeSetIter<RoomPushRule>,
-    sender: BTreeSetIter<SenderPushRule>,
-    underride: BTreeSetIter<UnderridePushRule>,
+    content: IndexSetIter<ContentPushRule>,
+    override_: IndexSetIter<OverridePushRule>,
+    room: IndexSetIter<RoomPushRule>,
+    sender: IndexSetIter<SenderPushRule>,
+    underride: IndexSetIter<UnderridePushRule>,
 }
 
 impl Iterator for RulesetIter {
@@ -180,17 +184,11 @@ macro_rules! rulekind {
         }
 
         // The following trait are needed to be able to make
-        // a BTreeSet of the new type
+        // an IndexSet of the new type
 
-        impl Ord for $name {
-            fn cmp(&self, other: &Self) -> core::cmp::Ordering {
-                self.0.rule_id.cmp(&other.0.rule_id)
-            }
-        }
-
-        impl PartialOrd for $name {
-            fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
-                Some(self.cmp(other))
+        impl Hash for $name {
+            fn hash<H: Hasher>(&self, state: &mut H) {
+                self.0.rule_id.hash(state);
             }
         }
 
@@ -201,6 +199,12 @@ macro_rules! rulekind {
         }
 
         impl Eq for $name {}
+
+        impl Equivalent<$name> for str {
+            fn equivalent(&self, key: &$name) -> bool {
+                self == key.0.rule_id
+            }
+        }
     };
 }
 
