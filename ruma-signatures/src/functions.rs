@@ -138,17 +138,14 @@ pub fn sign_json<K>(
 where
     K: KeyPair,
 {
-    let mut signature_map;
-    let maybe_unsigned;
-
     // FIXME: Once MSRV >= 1.45.0, use remove_key and don't allocate new `String`s below.
-    signature_map = match object.remove("signatures") {
+    let mut signature_map = match object.remove("signatures") {
         Some(CanonicalJsonValue::Object(signatures)) => signatures,
         Some(_) => return Err(Error::new("field `signatures` must be a JSON object")),
         None => BTreeMap::new(),
     };
 
-    maybe_unsigned = object.remove("unsigned");
+    let maybe_unsigned = object.remove("unsigned");
 
     // Get the canonical JSON string.
     let json = to_canonical_json_string(object)?;
