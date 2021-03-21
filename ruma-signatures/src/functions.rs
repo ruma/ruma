@@ -1,6 +1,7 @@
 //! Functions for signing and verifying JSON and events.
 
 use std::{
+    borrow::Cow,
     collections::{BTreeMap, BTreeSet},
     mem,
     str::FromStr,
@@ -138,14 +139,13 @@ pub fn sign_json<K>(
 where
     K: KeyPair,
 {
-    // FIXME: Once MSRV >= 1.45.0, use remove_key and don't allocate new `String`s below.
-    let mut signature_map = match object.remove("signatures") {
-        Some(CanonicalJsonValue::Object(signatures)) => signatures,
+    let (signatures_key, mut signature_map) = match object.remove_entry("signatures") {
+        Some((key, CanonicalJsonValue::Object(signatures))) => (Cow::Owned(key), signatures),
         Some(_) => return Err(Error::new("field `signatures` must be a JSON object")),
-        None => BTreeMap::new(),
+        None => (Cow::Borrowed("signatures"), BTreeMap::new()),
     };
 
-    let maybe_unsigned = object.remove("unsigned");
+    let maybe_unsigned_entry = object.remove_entry("unsigned");
 
     // Get the canonical JSON string.
     let json = to_canonical_json_string(object)?;
@@ -166,10 +166,10 @@ where
     signature_set.insert(signature.id(), CanonicalJsonValue::String(signature.base64()));
 
     // Put `signatures` and `unsigned` back in.
-    object.insert("signatures".into(), CanonicalJsonValue::Object(signature_map));
+    object.insert(signatures_key.into(), CanonicalJsonValue::Object(signature_map));
 
-    if let Some(unsigned) = maybe_unsigned {
-        object.insert("unsigned".into(), unsigned);
+    if let Some((k, v)) = maybe_unsigned_entry {
+        object.insert(k, v);
     }
 
     Ok(())
