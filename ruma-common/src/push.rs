@@ -141,14 +141,14 @@ pub enum AnyPushRule {
 }
 
 impl AnyPushRule {
-    /// The `rule_id` of the push rule
-    pub fn rule_id(&self) -> String {
+    /// Get the `rule_id` of the push rule.
+    pub fn rule_id(&self) -> &str {
         match self {
-            Self::Override(rule) => rule.rule_id.clone(),
-            Self::Underride(rule) => rule.rule_id.clone(),
-            Self::Content(rule) => rule.rule_id.clone(),
-            Self::Room(rule) => rule.rule_id.clone(),
-            Self::Sender(rule) => rule.rule_id.clone(),
+            Self::Override(rule) => &rule.rule_id,
+            Self::Underride(rule) => &rule.rule_id,
+            Self::Content(rule) => &rule.rule_id,
+            Self::Room(rule) => &rule.rule_id,
+            Self::Sender(rule) => &rule.rule_id,
         }
     }
 }
