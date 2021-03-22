@@ -13,23 +13,6 @@
 //! - room rules
 //! - sender rules
 //! - underride rules
-//!
-//! Each of these kind of rule has a corresponding type that is
-//! just a wrapper around another type:
-//!
-//! - `SimplePushRule` for room and sender rules
-//! - `ConditionalPushRule` for override and underride rules: push rules that may depend on a
-//!   condition
-//! - `PatternedPushRules` for content rules, that can filter events based on a pattern to trigger
-//!   the rule or not
-//!
-//! Having these wrapper types allows to tell at the type level what kind of rule you are
-//! handling, and makes sure the `Ruleset::add` method adds your rule to the correct field
-//! of `Ruleset`, and that rules that are not of the same kind are never mixed even if they share
-//! the same representation.
-//!
-//! It is still possible to write code that is generic over a representation by manipulating
-//! `SimplePushRule`, `ConditonalPushRule` or `PatternedPushRule` directly, instead of the wrappers.
 
 use std::hash::{Hash, Hasher};
 
@@ -57,24 +40,24 @@ pub use self::{
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct Ruleset {
     /// These rules configure behavior for (unencrypted) messages that match certain patterns.
-    pub content: IndexSet<ContentPushRule>,
+    pub content: IndexSet<PatternedPushRule>,
 
     /// These user-configured rules are given the highest priority.
     ///
     /// This field is named `override_` instead of `override` because the latter is a reserved
     /// keyword in Rust.
     #[serde(rename = "override")]
-    pub override_: IndexSet<OverridePushRule>,
+    pub override_: IndexSet<ConditionalPushRule>,
 
     /// These rules change the behavior of all messages for a given room.
-    pub room: IndexSet<RoomPushRule>,
+    pub room: IndexSet<SimplePushRule>,
 
     /// These rules configure notification behavior for messages from a specific Matrix user ID.
-    pub sender: IndexSet<SenderPushRule>,
+    pub sender: IndexSet<SimplePushRule>,
 
     /// These rules are identical to override rules, but have a lower priority than `content`,
     /// `room` and `sender` rules.
-    pub underride: IndexSet<UnderridePushRule>,
+    pub underride: IndexSet<ConditionalPushRule>,
 }
 
 impl Ruleset {
@@ -88,126 +71,98 @@ impl Ruleset {
     /// Returns `true` if the new rule was correctly added, and `false`
     /// if a rule with the same `rule_id` is already present for this kind
     /// of rule.
-    pub fn add<R: RulesetMember>(&mut self, rule: R) -> bool {
-        rule.add_to(self)
+    pub fn add(&mut self, rule: AnyPushRule) -> bool {
+        match rule {
+            AnyPushRule::Override(r) => self.override_.insert(r),
+            AnyPushRule::Underride(r) => self.underride.insert(r),
+            AnyPushRule::Content(r) => self.content.insert(r),
+            AnyPushRule::Room(r) => self.room.insert(r),
+            AnyPushRule::Sender(r) => self.sender.insert(r),
+        }
     }
 }
 
 /// Iterator type for `Ruleset`
 #[derive(Debug)]
 pub struct RulesetIter {
-    content: IndexSetIter<ContentPushRule>,
-    override_: IndexSetIter<OverridePushRule>,
-    room: IndexSetIter<RoomPushRule>,
-    sender: IndexSetIter<SenderPushRule>,
-    underride: IndexSetIter<UnderridePushRule>,
+    content: IndexSetIter<PatternedPushRule>,
+    override_: IndexSetIter<ConditionalPushRule>,
+    room: IndexSetIter<SimplePushRule>,
+    sender: IndexSetIter<SimplePushRule>,
+    underride: IndexSetIter<ConditionalPushRule>,
 }
 
-// impl Iterator for RulesetIter {
-//     type Item = AnyPushRule;
+impl Iterator for RulesetIter {
+    type Item = AnyPushRule;
 
-//     fn next(&mut self) -> Option<Self::Item> {
-//         self.override_
-//             .next()
-//             .map(|x| x.0.into())
-//             .or_else(|| self.content.next().map(|x| x.0.into()))
-//             .or_else(|| self.room.next().map(|x| x.0.into()))
-//             .or_else(|| self.sender.next().map(|x| x.0.into()))
-//             .or_else(|| self.underride.next().map(|x| x.0.into()))
-//     }
-// }
-
-// impl IntoIterator for Ruleset {
-//     type Item = AnyPushRule;
-//     type IntoIter = RulesetIter;
-
-//     fn into_iter(self) -> Self::IntoIter {
-//         RulesetIter {
-//             content: self.content.into_iter(),
-//             override_: self.override_.into_iter(),
-//             room: self.room.into_iter(),
-//             sender: self.sender.into_iter(),
-//             underride: self.underride.into_iter(),
-//         }
-//     }
-// }
-
-/// A trait for types that can be added in a Ruleset
-pub trait RulesetMember: private::Sealed {
-    /// Adds a value in the correct field of a Ruleset.
-    #[doc(hidden)]
-    fn add_to(self, ruleset: &mut Ruleset) -> bool;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.override_
+            .next()
+            .map(AnyPushRule::Override)
+            .or_else(|| self.content.next().map(AnyPushRule::Content))
+            .or_else(|| self.room.next().map(AnyPushRule::Room))
+            .or_else(|| self.sender.next().map(AnyPushRule::Sender))
+            .or_else(|| self.underride.next().map(AnyPushRule::Underride))
+    }
 }
 
-mod private {
-    // See <https://rust-lang.github.io/api-guidelines/future-proofing.html>
-    pub trait Sealed {}
-    impl Sealed for super::OverridePushRule {}
-    impl Sealed for super::UnderridePushRule {}
-    impl Sealed for super::ContentPushRule {}
-    impl Sealed for super::RoomPushRule {}
-    impl Sealed for super::SenderPushRule {}
+impl IntoIterator for Ruleset {
+    type Item = AnyPushRule;
+    type IntoIter = RulesetIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        RulesetIter {
+            content: self.content.into_iter(),
+            override_: self.override_.into_iter(),
+            room: self.room.into_iter(),
+            sender: self.sender.into_iter(),
+            underride: self.underride.into_iter(),
+        }
+    }
 }
 
-/// Creates a new wrapper type around a PushRule-like type
-/// to make it possible to tell what kind of rule it is
-/// even if the inner type is the same.
-///
-/// For instance, override and underride rules are both
-/// represented as `ConditionalPushRule`s, so it is impossible
-/// to tell if a rule is an override or an underride rule when
-/// all you have is a `ConditionalPushRule`. With these wrapper types
-/// it becomes possible.
-macro_rules! rulekind {
-    ($name:ident, $inner:ty, $field:ident) => {
-        #[derive(Clone, Debug, Serialize, Deserialize)]
-        #[doc = "Wrapper type to disambiguate the kind of the wrapped rule"]
-        pub struct $name(pub $inner);
+/// The kinds of push rules that are available.
+#[derive(Clone, Debug)]
+pub enum AnyPushRule {
+    /// Rules that override all other kinds.
+    Override(ConditionalPushRule),
 
-        impl RulesetMember for $name {
-            fn add_to(self, ruleset: &mut Ruleset) -> bool {
-                ruleset.$field.insert(self)
-            }
-        }
+    /// Content-specific rules.
+    Content(PatternedPushRule),
 
-        impl Extend<$name> for Ruleset {
-            fn extend<T: IntoIterator<Item = $name>>(&mut self, iter: T) {
-                for rule in iter {
-                    rule.add_to(self);
-                }
-            }
-        }
+    /// Room-specific rules.
+    Room(SimplePushRule),
 
-        // The following trait are needed to be able to make
-        // an IndexSet of the new type
+    /// Sender-specific rules.
+    Sender(SimplePushRule),
 
-        impl Hash for $name {
-            fn hash<H: Hasher>(&self, state: &mut H) {
-                self.0.rule_id.hash(state);
-            }
-        }
-
-        impl PartialEq for $name {
-            fn eq(&self, other: &Self) -> bool {
-                self.0.rule_id == other.0.rule_id
-            }
-        }
-
-        impl Eq for $name {}
-
-        impl Equivalent<$name> for str {
-            fn equivalent(&self, key: &$name) -> bool {
-                self == key.0.rule_id
-            }
-        }
-    };
+    /// Lowest priority rules.
+    Underride(ConditionalPushRule),
 }
 
-rulekind!(OverridePushRule, ConditionalPushRule, override_);
-rulekind!(UnderridePushRule, ConditionalPushRule, underride);
-rulekind!(RoomPushRule, SimplePushRule, room);
-rulekind!(SenderPushRule, SimplePushRule, sender);
-rulekind!(ContentPushRule, PatternedPushRule, content);
+impl AnyPushRule {
+    /// The `rule_id` of the push rule
+    pub fn rule_id(&self) -> String {
+        match self {
+            Self::Override(rule) => rule.rule_id.clone(),
+            Self::Underride(rule) => rule.rule_id.clone(),
+            Self::Content(rule) => rule.rule_id.clone(),
+            Self::Room(rule) => rule.rule_id.clone(),
+            Self::Sender(rule) => rule.rule_id.clone(),
+        }
+    }
+}
+
+impl Extend<AnyPushRule> for Ruleset {
+    fn extend<T>(&mut self, iter: T)
+    where
+        T: IntoIterator<Item = AnyPushRule>,
+    {
+        for rule in iter {
+            self.add(rule);
+        }
+    }
+}
 
 /// A push rule is a single rule that states under what conditions an event should be passed onto a
 /// push gateway and how the notification should be presented.
@@ -256,6 +211,29 @@ impl From<SimplePushRuleInit> for SimplePushRule {
     fn from(init: SimplePushRuleInit) -> Self {
         let SimplePushRuleInit { actions, default, enabled, rule_id } = init;
         Self { actions, default, enabled, rule_id }
+    }
+}
+
+// The following trait are needed to be able to make
+// an IndexSet of the type
+
+impl Hash for SimplePushRule {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.rule_id.hash(state);
+    }
+}
+
+impl PartialEq for SimplePushRule {
+    fn eq(&self, other: &Self) -> bool {
+        self.rule_id == other.rule_id
+    }
+}
+
+impl Eq for SimplePushRule {}
+
+impl Equivalent<SimplePushRule> for str {
+    fn equivalent(&self, key: &SimplePushRule) -> bool {
+        self == key.rule_id
     }
 }
 
@@ -319,6 +297,29 @@ impl From<ConditionalPushRuleInit> for ConditionalPushRule {
     }
 }
 
+// The following trait are needed to be able to make
+// an IndexSet of the type
+
+impl Hash for ConditionalPushRule {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.rule_id.hash(state);
+    }
+}
+
+impl PartialEq for ConditionalPushRule {
+    fn eq(&self, other: &Self) -> bool {
+        self.rule_id == other.rule_id
+    }
+}
+
+impl Eq for ConditionalPushRule {}
+
+impl Equivalent<ConditionalPushRule> for str {
+    fn equivalent(&self, key: &ConditionalPushRule) -> bool {
+        self == key.rule_id
+    }
+}
+
 /// Like `SimplePushRule`, but with an additional `pattern` field.
 ///
 /// Only applicable to content rules.
@@ -370,6 +371,29 @@ impl From<PatternedPushRuleInit> for PatternedPushRule {
     fn from(init: PatternedPushRuleInit) -> Self {
         let PatternedPushRuleInit { actions, default, enabled, rule_id, pattern } = init;
         Self { actions, default, enabled, rule_id, pattern }
+    }
+}
+
+// The following trait are needed to be able to make
+// an IndexSet of the type
+
+impl Hash for PatternedPushRule {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.rule_id.hash(state);
+    }
+}
+
+impl PartialEq for PatternedPushRule {
+    fn eq(&self, other: &Self) -> bool {
+        self.rule_id == other.rule_id
+    }
+}
+
+impl Eq for PatternedPushRule {}
+
+impl Equivalent<PatternedPushRule> for str {
+    fn equivalent(&self, key: &PatternedPushRule) -> bool {
+        self == key.rule_id
     }
 }
 

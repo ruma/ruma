@@ -17,6 +17,7 @@ Improvements:
 * Add `push::{PusherData, PushFormat}` (moved from `ruma_client_api::r0::push`)
 * Add `authentication::TokenType` (moved from
   `ruma_client_api::r0::account:request_openid_token`)
+* Add `push::AnyPushRule` and `push::Ruleset::into_iter`
 
 # 0.2.0
 
