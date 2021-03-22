@@ -3,9 +3,10 @@
 Breaking changes:
 
 * Update set of conversion trait implementations for enums
-* Replace `BTreeSet` by `IndexSet` in `push::Ruleset`.
-* Remove `push::AnyPushRule`. Use `r0::push::PushRule`
-  from `ruma-client-api`.
+* Replace `Vec` by `IndexSet` in `push::Ruleset`
+* Add an `IntoIterator` implementation for `Ruleset`
+* Replace `push::AnyPushRule` with an enum (the original struct still exists as
+  just `PushRule` in `ruma-client-api`)
 * … (there's a lot more, but this changelog was not kept up to date; PRs to
   improve it are welcome)
 
@@ -17,7 +18,6 @@ Improvements:
 * Add `push::{PusherData, PushFormat}` (moved from `ruma_client_api::r0::push`)
 * Add `authentication::TokenType` (moved from
   `ruma_client_api::r0::account:request_openid_token`)
-* Add `push::AnyPushRule` and `push::Ruleset::into_iter`
 
 # 0.2.0
 
