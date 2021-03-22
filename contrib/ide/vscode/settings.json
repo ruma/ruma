@@ -1,4 +1,0 @@
-{
-    // enable proc-macro support in rust-analyzer
-    "rust-analyzer.procMacro.enable": true
-}
