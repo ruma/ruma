@@ -4,6 +4,8 @@ Breaking changes:
 
 * Update set of conversion trait implementations for enums
 * Replace `BTreeSet` by `IndexSet` in `push::Ruleset`.
+* Remove `push::AnyPushRule`. Use `r0::push::PushRule`
+  from `ruma-client-api`.
 * … (there's a lot more, but this changelog was not kept up to date; PRs to
   improve it are welcome)
 

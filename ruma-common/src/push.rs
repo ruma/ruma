@@ -30,9 +30,6 @@
 //!
 //! It is still possible to write code that is generic over a representation by manipulating
 //! `SimplePushRule`, `ConditonalPushRule` or `PatternedPushRule` directly, instead of the wrappers.
-//!
-//! There is also the `AnyPushRule` type that is the most generic form of push rule, with all
-//! the possible fields.
 
 use std::hash::{Hash, Hasher};
 
@@ -44,13 +41,11 @@ use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
 mod action;
-mod any_push_rule;
 mod condition;
 mod predefined;
 
 pub use self::{
     action::{Action, Tweak},
-    any_push_rule::{AnyPushRule, MissingConditionsError, MissingPatternError},
     condition::{ComparisonOperator, PushCondition, RoomMemberCountIs},
 };
 
@@ -108,34 +103,34 @@ pub struct RulesetIter {
     underride: IndexSetIter<UnderridePushRule>,
 }
 
-impl Iterator for RulesetIter {
-    type Item = AnyPushRule;
+// impl Iterator for RulesetIter {
+//     type Item = AnyPushRule;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        self.override_
-            .next()
-            .map(|x| x.0.into())
-            .or_else(|| self.content.next().map(|x| x.0.into()))
-            .or_else(|| self.room.next().map(|x| x.0.into()))
-            .or_else(|| self.sender.next().map(|x| x.0.into()))
-            .or_else(|| self.underride.next().map(|x| x.0.into()))
-    }
-}
+//     fn next(&mut self) -> Option<Self::Item> {
+//         self.override_
+//             .next()
+//             .map(|x| x.0.into())
+//             .or_else(|| self.content.next().map(|x| x.0.into()))
+//             .or_else(|| self.room.next().map(|x| x.0.into()))
+//             .or_else(|| self.sender.next().map(|x| x.0.into()))
+//             .or_else(|| self.underride.next().map(|x| x.0.into()))
+//     }
+// }
 
-impl IntoIterator for Ruleset {
-    type Item = AnyPushRule;
-    type IntoIter = RulesetIter;
+// impl IntoIterator for Ruleset {
+//     type Item = AnyPushRule;
+//     type IntoIter = RulesetIter;
 
-    fn into_iter(self) -> Self::IntoIter {
-        RulesetIter {
-            content: self.content.into_iter(),
-            override_: self.override_.into_iter(),
-            room: self.room.into_iter(),
-            sender: self.sender.into_iter(),
-            underride: self.underride.into_iter(),
-        }
-    }
-}
+//     fn into_iter(self) -> Self::IntoIter {
+//         RulesetIter {
+//             content: self.content.into_iter(),
+//             override_: self.override_.into_iter(),
+//             room: self.room.into_iter(),
+//             sender: self.sender.into_iter(),
+//             underride: self.underride.into_iter(),
+//         }
+//     }
+// }
 
 /// A trait for types that can be added in a Ruleset
 pub trait RulesetMember: private::Sealed {

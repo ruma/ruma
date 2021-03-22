@@ -1,9 +1,8 @@
 //! [GET /_matrix/client/r0/pushrules/{scope}/{kind}/{ruleId}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-pushrules-scope-kind-ruleid)
 
 use ruma_api::ruma_api;
-use ruma_common::push::AnyPushRule;
 
-use super::RuleKind;
+use super::{PushRule, RuleKind};
 
 ruma_api! {
     metadata: {
@@ -32,7 +31,7 @@ ruma_api! {
     response: {
         /// The specific push rule.
         #[ruma_api(body)]
-        pub rule: AnyPushRule,
+        pub rule: PushRule,
     }
 
     error: crate::Error
@@ -47,7 +46,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given rule.
-    pub fn new(rule: AnyPushRule) -> Self {
+    pub fn new(rule: PushRule) -> Self {
         Self { rule }
     }
 }
