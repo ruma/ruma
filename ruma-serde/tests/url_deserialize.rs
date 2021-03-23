@@ -89,6 +89,7 @@ fn deserialize_struct() {
     let de = Params { a: 10, b: "Hello", c: None };
     assert_eq!(urlencoded::from_str("a=10&b=Hello"), Ok(de));
     assert_eq!(urlencoded::from_str("b=Hello&a=10"), Ok(de));
+    assert_eq!(urlencoded::from_str("a=10&b=Hello&d=1&d=2"), Ok(de));
 }
 
 #[test]
