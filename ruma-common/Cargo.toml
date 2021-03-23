@@ -14,7 +14,7 @@ edition = "2018"
 js_int = { version = "0.2.0", features = ["serde"] }
 maplit = "1.0.2"
 ruma-identifiers = { version = "=0.18.0-alpha.1", path = "../ruma-identifiers" }
-ruma-serde = { version = "0.3.0", path = "../ruma-serde" }
+ruma-serde = { version = "0.3.1", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.60", features = ["raw_value"] }
 indexmap = { version = "1.6.2", features = ["serde-1"] }
