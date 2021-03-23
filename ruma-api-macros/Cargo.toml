@@ -18,7 +18,7 @@ edition = "2018"
 proc-macro2 = "1.0.24"
 quote = "1.0.8"
 syn = { version = "1.0.57", features = ["full", "extra-traits"] }
-proc-macro-crate = "0.1.5"
+proc-macro-crate = "1.0.0"
 
 [lib]
 proc-macro = true

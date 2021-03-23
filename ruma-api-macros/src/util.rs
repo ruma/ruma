@@ -3,7 +3,7 @@
 use std::collections::BTreeSet;
 
 use proc_macro2::{Span, TokenStream};
-use proc_macro_crate::crate_name;
+use proc_macro_crate::{crate_name, FoundCrate};
 use quote::quote;
 use syn::{
     AngleBracketedGenericArguments, AttrStyle, Attribute, GenericArgument, Ident, Lifetime,
@@ -393,10 +393,10 @@ pub(crate) fn is_valid_endpoint_path(string: &str) -> bool {
 }
 
 pub fn import_ruma_api() -> TokenStream {
-    if let Ok(possibly_renamed) = crate_name("ruma-api") {
+    if let Ok(FoundCrate::Name(possibly_renamed)) = crate_name("ruma-api") {
         let import = Ident::new(&possibly_renamed, Span::call_site());
         quote! { ::#import }
-    } else if let Ok(possibly_renamed) = crate_name("ruma") {
+    } else if let Ok(FoundCrate::Name(possibly_renamed)) = crate_name("ruma") {
         let import = Ident::new(&possibly_renamed, Span::call_site());
         quote! { ::#import::api }
     } else {

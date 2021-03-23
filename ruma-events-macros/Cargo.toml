@@ -19,7 +19,7 @@ version = "0.22.0-alpha.2"
 syn = { version = "1.0.57", features = ["full"] }
 quote = "1.0.8"
 proc-macro2 = "1.0.24"
-proc-macro-crate = "0.1.5"
+proc-macro-crate = "1.0.0"
 
 [lib]
 proc-macro = true

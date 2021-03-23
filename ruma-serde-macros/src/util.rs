@@ -1,5 +1,5 @@
 use proc_macro2::{Ident, Span, TokenStream};
-use proc_macro_crate::crate_name;
+use proc_macro_crate::{crate_name, FoundCrate};
 use quote::quote;
 use syn::{ItemEnum, LitStr, Variant};
 
@@ -9,10 +9,10 @@ use crate::{
 };
 
 pub fn import_ruma_serde() -> TokenStream {
-    if let Ok(possibly_renamed) = crate_name("ruma-serde") {
+    if let Ok(FoundCrate::Name(possibly_renamed)) = crate_name("ruma-serde") {
         let import = Ident::new(&possibly_renamed, Span::call_site());
         quote! { ::#import }
-    } else if let Ok(possibly_renamed) = crate_name("ruma") {
+    } else if let Ok(FoundCrate::Name(possibly_renamed)) = crate_name("ruma") {
         let import = Ident::new(&possibly_renamed, Span::call_site());
         quote! { ::#import::serde }
     } else {

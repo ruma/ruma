@@ -9,7 +9,7 @@
 
 use proc_macro::TokenStream;
 use proc_macro2 as pm2;
-use proc_macro_crate::crate_name;
+use proc_macro_crate::{crate_name, FoundCrate};
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Ident};
 
@@ -125,10 +125,10 @@ pub fn derive_state_event(input: TokenStream) -> TokenStream {
 }
 
 pub(crate) fn import_ruma_events() -> pm2::TokenStream {
-    if let Ok(possibly_renamed) = crate_name("ruma-events") {
+    if let Ok(FoundCrate::Name(possibly_renamed)) = crate_name("ruma-events") {
         let import = Ident::new(&possibly_renamed, pm2::Span::call_site());
         quote! { ::#import }
-    } else if let Ok(possibly_renamed) = crate_name("ruma") {
+    } else if let Ok(FoundCrate::Name(possibly_renamed)) = crate_name("ruma") {
         let import = Ident::new(&possibly_renamed, pm2::Span::call_site());
         quote! { ::#import::events }
     } else {
