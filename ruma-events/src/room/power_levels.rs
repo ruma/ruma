@@ -3,11 +3,14 @@
 use std::collections::BTreeMap;
 
 use js_int::Int;
+use ruma_common::power_levels::default_power_level;
 use ruma_events_macros::StateEventContent;
 use ruma_identifiers::UserId;
 use serde::{Deserialize, Serialize};
 
 use crate::{EventType, StateEvent};
+
+pub use ruma_common::power_levels::NotificationPowerLevels;
 
 /// Defines the power levels (privileges) of users in the room.
 pub type PowerLevelsEvent = StateEvent<PowerLevelsEventContent>;
@@ -103,26 +106,6 @@ impl Default for PowerLevelsEventContent {
             notifications: NotificationPowerLevels::default(),
         }
     }
-}
-
-/// The power level requirements for specific notification types.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
-pub struct NotificationPowerLevels {
-    /// The level required to trigger an `@room` notification.
-    #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
-    #[serde(default = "default_power_level")]
-    pub room: Int,
-}
-
-impl Default for NotificationPowerLevels {
-    fn default() -> Self {
-        Self { room: default_power_level() }
-    }
-}
-
-/// Used to default power levels to 50 during deserialization.
-fn default_power_level() -> Int {
-    Int::from(50)
 }
 
 /// Used with `#[serde(skip_serializing_if)]` to omit default power levels.

@@ -5,6 +5,7 @@
 pub mod authentication;
 pub mod directory;
 pub mod encryption;
+pub mod power_levels;
 pub mod presence;
 pub mod push;
 pub mod thirdparty;
