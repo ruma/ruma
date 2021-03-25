@@ -19,6 +19,9 @@ pub enum Error {
     /// The key version contains outside of [a-zA-Z0-9_].
     InvalidKeyVersion,
 
+    /// The mxc:// isn't a valid Matrix Content URI.
+    InvalidMxcUri,
+
     /// The server name part of the the ID string is not a valid server name.
     InvalidServerName,
 
@@ -40,6 +43,7 @@ impl Display for Error {
             Error::InvalidCharacters => "localpart contains invalid characters",
             Error::InvalidKeyAlgorithm => "invalid key algorithm specified",
             Error::InvalidKeyVersion => "key ID version contains invalid characters",
+            Error::InvalidMxcUri => "the mxc:// isn't a valid Matrix Content URI",
             Error::InvalidServerName => "server name is not a valid IP address or domain name",
             Error::MaximumLengthExceeded => "ID exceeds 255 bytes",
             Error::MissingDelimiter => "required colon is missing",
