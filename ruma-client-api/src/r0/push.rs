@@ -1,9 +1,5 @@
 //! Endpoints for push notifications.
-use std::{
-    convert::TryFrom,
-    error::Error,
-    fmt::{self, Display, Formatter},
-};
+use std::{convert::TryFrom, error::Error, fmt};
 
 use ruma_common::push::{
     Action, ConditionalPushRule, ConditionalPushRuleInit, PatternedPushRule, PatternedPushRuleInit,
@@ -111,8 +107,8 @@ impl From<PushRule> for SimplePushRule {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct MissingPatternError;
 
-impl Display for MissingPatternError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+impl fmt::Display for MissingPatternError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Push rule does not have a pattern.")
     }
 }
@@ -139,8 +135,8 @@ impl TryFrom<PushRule> for PatternedPushRule {
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct MissingConditionsError;
 
-impl Display for MissingConditionsError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+impl fmt::Display for MissingConditionsError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Push rule has no conditions.")
     }
 }

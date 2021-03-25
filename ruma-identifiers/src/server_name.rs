@@ -1,11 +1,6 @@
 //! Matrix-spec compliant server names.
 
-use std::{
-    convert::TryFrom,
-    fmt::{self, Display},
-    mem,
-    str::FromStr,
-};
+use std::{convert::TryFrom, fmt, mem, str::FromStr};
 
 use ruma_identifiers_validation::server_name::validate;
 
@@ -130,7 +125,7 @@ impl TryFrom<String> for Box<ServerName> {
     }
 }
 
-impl Display for ServerName {
+impl fmt::Display for ServerName {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.as_str())
     }

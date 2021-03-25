@@ -1,10 +1,6 @@
 //! Errors that can be sent from the homeserver.
 
-use std::{
-    collections::BTreeMap,
-    fmt::{self, Display, Formatter},
-    time::Duration,
-};
+use std::{collections::BTreeMap, fmt, time::Duration};
 
 use ruma_api::{error::ResponseDeserializationError, EndpointError};
 use ruma_identifiers::RoomVersionId;
@@ -173,8 +169,8 @@ impl AsRef<str> for ErrorKind {
     }
 }
 
-impl Display for ErrorKind {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+impl fmt::Display for ErrorKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.as_ref())
     }
 }
@@ -216,8 +212,8 @@ impl EndpointError for Error {
     }
 }
 
-impl Display for Error {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "[{} / {}] {}", self.status_code.as_u16(), self.kind, self.message)
     }
 }

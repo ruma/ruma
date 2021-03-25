@@ -1,6 +1,6 @@
 //! Error conditions.
 
-use std::fmt::{self, Display, Formatter};
+use std::fmt;
 
 /// An error encountered when trying to parse an invalid ID string.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
@@ -36,8 +36,8 @@ pub enum Error {
     MissingLeadingSigil,
 }
 
-impl Display for Error {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let message = match self {
             Error::EmptyRoomVersionId => "room version ID is empty",
             Error::InvalidCharacters => "localpart contains invalid characters",

@@ -1,10 +1,6 @@
 //! Matrix-spec compliant mxc:// urls.
 
-use std::{
-    convert::TryFrom,
-    fmt::{self, Display},
-    str::FromStr,
-};
+use std::{convert::TryFrom, fmt, str::FromStr};
 
 use ruma_identifiers_validation::mxc_uri::validate;
 
@@ -39,7 +35,7 @@ impl fmt::Debug for MxcUri {
     }
 }
 
-impl Display for MxcUri {
+impl fmt::Display for MxcUri {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.mxc_uri_fmt(f)
     }

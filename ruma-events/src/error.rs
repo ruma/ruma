@@ -1,7 +1,4 @@
-use std::{
-    error::Error,
-    fmt::{self, Display, Formatter},
-};
+use std::{error::Error, fmt};
 
 /// An error returned when attempting to create an event with data that would make it invalid.
 ///
@@ -10,8 +7,8 @@ use std::{
 #[derive(Clone, Debug, PartialEq)]
 pub struct InvalidInput(pub(crate) String);
 
-impl Display for InvalidInput {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+impl fmt::Display for InvalidInput {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
@@ -22,8 +19,8 @@ impl Error for InvalidInput {}
 #[derive(Clone, Eq, Debug, Hash, PartialEq)]
 pub struct FromStrError;
 
-impl Display for FromStrError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+impl fmt::Display for FromStrError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "failed to parse type from string")
     }
 }

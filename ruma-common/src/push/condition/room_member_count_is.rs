@@ -1,5 +1,5 @@
 use std::{
-    fmt::{self, Display, Formatter},
+    fmt,
     ops::{Bound, RangeBounds, RangeFrom, RangeTo, RangeToInclusive},
     str::FromStr,
 };
@@ -101,8 +101,8 @@ impl From<RangeToInclusive<UInt>> for RoomMemberCountIs {
     }
 }
 
-impl Display for RoomMemberCountIs {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+impl fmt::Display for RoomMemberCountIs {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use ComparisonOperator as Op;
 
         let prefix = match self.prefix {
