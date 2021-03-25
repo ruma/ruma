@@ -1,6 +1,7 @@
 //! [POST /_matrix/media/r0/upload](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-media-r0-upload)
 
 use ruma_api::ruma_api;
+use ruma_identifiers::MxcUri;
 
 ruma_api! {
     metadata: {
@@ -29,7 +30,7 @@ ruma_api! {
 
     response: {
         /// The MXC URI for the uploaded content.
-        pub content_uri: String,
+        pub content_uri: MxcUri,
 
         /// The [BlurHash](https://blurha.sh) for the uploaded content.
         ///
@@ -53,7 +54,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given MXC URI.
-    pub fn new(content_uri: String) -> Self {
+    pub fn new(content_uri: MxcUri) -> Self {
         Self {
             content_uri,
             #[cfg(feature = "unstable-pre-spec")]

@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use js_int::{uint, UInt};
 use ruma_api::ruma_api;
 use ruma_events::{AnyRoomEvent, AnyStateEvent};
-use ruma_identifiers::{EventId, RoomId, UserId};
+use ruma_identifiers::{EventId, MxcUri, RoomId, UserId};
 use ruma_serde::{Outgoing, Raw, StringEnum};
 use serde::{Deserialize, Serialize};
 
@@ -441,7 +441,7 @@ pub struct UserProfile {
         feature = "compat",
         serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<String>,
+    pub avatar_url: Option<MxcUri>,
 
     /// The user's display name, if set.
     #[serde(skip_serializing_if = "Option::is_none")]

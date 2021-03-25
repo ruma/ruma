@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use ruma_api::ruma_api;
-use ruma_identifiers::{RoomId, UserId};
+use ruma_identifiers::{MxcUri, RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -59,7 +59,7 @@ pub struct RoomMember {
         feature = "compat",
         serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<String>,
+    pub avatar_url: Option<MxcUri>,
 }
 
 impl RoomMember {
@@ -80,13 +80,13 @@ mod test {
         assert_matches!(
             from_json_value::<RoomMember>(json!({
                 "display_name": "alice",
-                "avatar_url": "mxc://localhost:wefuiwegh8742w",
+                "avatar_url": "mxc://localhost/wefuiwegh8742w",
             })).unwrap(),
             RoomMember {
                 display_name: Some(display_name),
                 avatar_url: Some(avatar_url),
             } if display_name == "alice"
-                && avatar_url == "mxc://localhost:wefuiwegh8742w"
+                && avatar_url.to_string() == "mxc://localhost/wefuiwegh8742w"
         );
 
         #[cfg(feature = "compat")]
