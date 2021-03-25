@@ -2,7 +2,7 @@
 
 use js_int::{uint, UInt};
 use ruma_api::ruma_api;
-use ruma_identifiers::UserId;
+use ruma_identifiers::{MxcUri, UserId};
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
@@ -83,5 +83,5 @@ pub struct User {
         feature = "compat",
         serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<String>,
+    pub avatar_url: Option<MxcUri>,
 }

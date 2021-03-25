@@ -1,7 +1,7 @@
 //! [GET /_matrix/client/r0/profile/{userId}/avatar_url](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-profile-userid-avatar-url)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::UserId;
+use ruma_identifiers::{MxcUri, UserId};
 
 ruma_api! {
     metadata: {
@@ -30,7 +30,7 @@ ruma_api! {
             feature = "compat",
             serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<String>
+        pub avatar_url: Option<MxcUri>
     }
 
     error: crate::Error
@@ -45,7 +45,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given avatar URL.
-    pub fn new(avatar_url: Option<String>) -> Self {
+    pub fn new(avatar_url: Option<MxcUri>) -> Self {
         Self { avatar_url }
     }
 }

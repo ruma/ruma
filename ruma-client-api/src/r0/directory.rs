@@ -6,7 +6,7 @@ pub mod get_room_visibility;
 pub mod set_room_visibility;
 
 use js_int::{uint, UInt};
-use ruma_identifiers::{RoomAliasId, RoomId};
+use ruma_identifiers::{MxcUri, RoomAliasId, RoomId};
 use serde::{Deserialize, Serialize};
 
 /// A chunk of a room list response, describing one room
@@ -49,7 +49,7 @@ pub struct PublicRoomsChunk {
         feature = "compat",
         serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<String>,
+    pub avatar_url: Option<MxcUri>,
 }
 
 impl PublicRoomsChunk {

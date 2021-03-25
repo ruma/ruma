@@ -1,7 +1,7 @@
 //! [PUT /_matrix/client/r0/profile/{userId}/avatar_url](https://matrix.org/docs/spec/client_server/r0.6.0#put-matrix-client-r0-profile-userid-avatar-url)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::UserId;
+use ruma_identifiers::{MxcUri, UserId};
 
 ruma_api! {
     metadata: {
@@ -26,7 +26,7 @@ ruma_api! {
             feature = "compat",
             serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<&'a str>,
+        pub avatar_url: Option<&'a MxcUri>,
     }
 
     #[derive(Default)]
@@ -37,7 +37,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given user ID and avatar URL.
-    pub fn new(user_id: &'a UserId, avatar_url: Option<&'a str>) -> Self {
+    pub fn new(user_id: &'a UserId, avatar_url: Option<&'a MxcUri>) -> Self {
         Self { user_id, avatar_url }
     }
 }
