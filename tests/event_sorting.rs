@@ -61,7 +61,7 @@ fn test_event_sort() {
 
     shuffle(&mut events_to_sort);
 
-    let power_level = resolved_power.get(&(EventType::RoomPowerLevels, Some("".to_string())));
+    let power_level = resolved_power.get(&(EventType::RoomPowerLevels, "".to_string()));
 
     let sorted_event_ids = state_res::StateResolution::mainline_sort(
         &room_id(),

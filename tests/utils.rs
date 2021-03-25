@@ -132,16 +132,14 @@ pub fn do_check(
 
         let mut state_after = state_before.clone();
 
-        if fake_event.state_key().is_some() {
-            let ty = fake_event.kind();
-            let key = fake_event.state_key();
-            state_after.insert((ty, key), event_id.clone());
-        }
+        let ty = fake_event.kind();
+        let key = fake_event.state_key();
+        state_after.insert((ty, key), event_id.clone());
 
         let auth_types = state_res::auth_types_for_event(
             &fake_event.kind(),
             fake_event.sender(),
-            fake_event.state_key(),
+            Some(fake_event.state_key()),
             fake_event.content(),
         );
 
@@ -160,7 +158,7 @@ pub fn do_check(
             e.event_id().as_str(),
             e.sender().clone(),
             e.kind().clone(),
-            e.state_key().as_deref(),
+            Some(&e.state_key()),
             e.content(),
             &auth_events,
             prev_events,
@@ -555,7 +553,7 @@ pub mod event {
         }
 
         fn state_key(&self) -> Option<String> {
-            self.state_key()
+            Some(self.state_key())
         }
         fn prev_events(&self) -> Vec<EventId> {
             self.prev_event_ids()
@@ -796,11 +794,11 @@ pub mod event {
                 },
             }
         }
-        pub fn state_key(&self) -> Option<String> {
+        pub fn state_key(&self) -> String {
             match self {
                 Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => ev.state_key.clone(),
-                    Pdu::RoomV3Pdu(ev) => ev.state_key.clone(),
+                    Pdu::RoomV1Pdu(ev) => ev.state_key.clone().unwrap(),
+                    Pdu::RoomV3Pdu(ev) => ev.state_key.clone().unwrap(),
                 },
             }
         }
