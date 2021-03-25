@@ -2,7 +2,8 @@ use proc_macro::TokenStream;
 
 use quote::quote;
 use ruma_identifiers_validation::{
-    device_key_id, event_id, key_id, room_alias_id, room_id, room_version_id, server_name, user_id,
+    device_key_id, event_id, key_id, mxc_uri, room_alias_id, room_id, room_version_id, server_name,
+    user_id,
 };
 use syn::{parse::Parse, parse_macro_input, LitStr, Path, Token};
 
@@ -100,6 +101,20 @@ pub fn server_name(input: TokenStream) -> TokenStream {
 
     let output = quote! {
         <::std::boxed::Box::<#dollar_crate::ServerName> as ::std::convert::TryFrom<&str>>::try_from(
+            #id,
+        ).unwrap()
+    };
+
+    output.into()
+}
+
+#[proc_macro]
+pub fn mxc_uri(input: TokenStream) -> TokenStream {
+    let Input { dollar_crate, id } = parse_macro_input!(input as Input);
+    assert!(mxc_uri::validate(&id.value()).is_ok(), "Invalid mxc://");
+
+    let output = quote! {
+        <#dollar_crate::MxcUri as ::std::convert::TryFrom<&str>>::try_from(
             #id,
         ).unwrap()
     };

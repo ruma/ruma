@@ -20,6 +20,7 @@ pub use crate::{
     device_key_id::DeviceKeyId,
     event_id::EventId,
     key_id::{DeviceSigningKeyId, KeyId, ServerSigningKeyId, SigningKeyId},
+    mxc_uri::MxcUri,
     opaque_ids::{DeviceId, DeviceIdBox, KeyName, KeyNameBox},
     room_alias_id::RoomAliasId,
     room_id::RoomId,
@@ -41,6 +42,7 @@ mod crypto_algorithms;
 mod device_key_id;
 mod event_id;
 mod key_id;
+mod mxc_uri;
 mod opaque_ids;
 mod room_alias_id;
 mod room_id;
@@ -156,6 +158,14 @@ macro_rules! server_signing_key_id {
 macro_rules! server_name {
     ($s:literal) => {
         $crate::_macros::server_name!($crate, $s)
+    };
+}
+
+/// Compile-time checked `MxcUri` construction.
+#[macro_export]
+macro_rules! mxc_uri {
+    ($s:literal) => {
+        $crate::_macros::mxc_uri!($crate, $s)
     };
 }
 
