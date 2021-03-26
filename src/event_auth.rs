@@ -171,9 +171,8 @@ pub fn auth_check<E: Event>(
     // [synapse] checks for federation here
 
     // 4. if type is m.room.aliases
-    if incoming_event.kind() == EventType::RoomAliases {
+    if incoming_event.kind() == EventType::RoomAliases && room_version < &RoomVersionId::Version6 {
         log::info!("starting m.room.aliases check");
-        // [synapse] adds `&& room_version` "special case aliases auth"
 
         // If sender's domain doesn't matches state_key, reject
         if incoming_event.state_key() != Some(incoming_event.sender().server_name().to_string()) {
@@ -263,7 +262,14 @@ pub fn auth_check<E: Event>(
         log::info!("power levels event allowed");
     }
 
-    if incoming_event.kind() == EventType::RoomRedaction
+    // Room version 3: Redaction events are always accepted (provided the event is allowed by `events` and
+    // `events_default` in the power levels). However, servers should not apply or send redaction's
+    // to clients until both the redaction event and original event have been seen, and are valid.
+    // Servers should only apply redaction's to events where the sender's domains match,
+    // or the sender of the redaction has the appropriate permissions per the power levels.
+
+    if room_version >= &RoomVersionId::Version3
+        && incoming_event.kind() == EventType::RoomRedaction
         && !check_redaction(room_version, incoming_event, &auth_events)?
     {
         return Ok(false);
@@ -470,7 +476,7 @@ pub fn can_send_event<E: Event>(event: &Arc<E>, auth_events: &StateMap<Arc<E>>) 
 
 /// Confirm that the event sender has the required power levels.
 pub fn check_power_levels<E: Event>(
-    _: &RoomVersionId,
+    room_version: &RoomVersionId,
     power_event: &Arc<E>,
     auth_events: &StateMap<Arc<E>>,
 ) -> Option<bool> {
@@ -491,6 +497,7 @@ pub fn check_power_levels<E: Event>(
         power_event.content(),
     )
     .unwrap();
+
     let current_content = serde_json::from_value::<room::power_levels::PowerLevelsEventContent>(
         current_state.content(),
     )
@@ -520,19 +527,6 @@ pub fn check_power_levels<E: Event>(
     }
 
     log::debug!("events to check {:?}", event_levels_to_check);
-
-    // [synapse] validate MSC2209 depending on room version check "notifications".
-    // if RoomVersion::new(room_version).limit_notifications_power_levels {
-    //     let old_level: i64 = current_content.notifications.room.into();
-    //     let new_level: i64 = user_content.notifications.room.into();
-
-    //     let old_level_too_big = old_level > user_level;
-    //     let new_level_too_big = new_level > user_level;
-    //     if old_level_too_big || new_level_too_big {
-    //         log::warn!("m.room.power_level cannot add ops > than own");
-    //         return Some(false); // cannot add ops greater than own
-    //     }
-    // }
 
     let old_state = &current_content;
     let new_state = &user_content;
@@ -579,6 +573,22 @@ pub fn check_power_levels<E: Event>(
         if old_level_too_big || new_level_too_big {
             log::warn!("m.room.power_level failed to add ops > than own");
             return Some(false); // cannot add ops greater than own
+        }
+    }
+
+    // Notifications, currently there is only @room
+    if room_version >= &RoomVersionId::Version6 {
+        let old_level = old_state.notifications.room;
+        let new_level = new_state.notifications.room;
+        if old_level != new_level {
+            // If the current value is higher than the sender's current power level, reject
+            // If the new value is higher than the sender's current power level, reject
+            let old_level_too_big = i64::from(old_level) > user_level;
+            let new_level_too_big = i64::from(new_level) > user_level;
+            if old_level_too_big || new_level_too_big {
+                log::warn!("m.room.power_level failed to add ops > than own");
+                return Some(false); // cannot add ops greater than own
+            }
         }
     }
 
@@ -632,13 +642,6 @@ pub fn check_redaction<E: Event>(
         log::info!("redaction allowed via power levels");
         return Ok(true);
     }
-
-    // FROM SPEC:
-    // Redaction events are always accepted (provided the event is allowed by `events` and
-    // `events_default` in the power levels). However, servers should not apply or send redaction's
-    // to clients until both the redaction event and original event have been seen, and are valid.
-    // Servers should only apply redaction's to events where the sender's domains match,
-    // or the sender of the redaction has the appropriate permissions per the power levels.
 
     // If the domain of the event_id of the event being redacted is the same as the domain of the event_id of the m.room.redaction, allow
     if redaction_event.event_id().server_name()
