@@ -561,21 +561,6 @@ pub mod event {
         event_id: EventId,
     }
 
-    /// This feature is turned on in conduit but off when the tests run because
-    /// we rely on the EventId to check the state-res.
-    #[cfg(feature = "gen-eventid")]
-    fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
-        use std::convert::TryFrom;
-        EventId::try_from(format!(
-            "${}",
-            reference_hash(&from_raw_json_value(&json)?, &RoomVersionId::Version6)
-                .map_err(de::Error::custom)?,
-        ))
-        .map_err(de::Error::custom)
-    }
-
-    /// Only turned on for testing where we need to keep the ID.
-    #[cfg(not(feature = "gen-eventid"))]
     fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
         use std::convert::TryFrom;
         Ok(match from_raw_json_value::<EventIdHelper, E>(&json) {

@@ -222,7 +222,14 @@ pub fn do_check(
         .get(&event_id("$END:foo"))
         .unwrap()
         .iter()
-        .filter(|(k, v)| expected_state.contains_key(k) || start_state.get(k) != Some(*v))
+        .filter(|(k, v)| {
+            expected_state.contains_key(k)
+                || start_state.get(k) != Some(*v)
+                // Filter out the dummy messages events.
+                // These act as points in time where there should be a known state to
+                // test against.
+                && k != &&(EventType::RoomMessage, "dummy".to_string())
+        })
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect::<StateMap<EventId>>();
 
@@ -482,7 +489,7 @@ pub fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
             "START",
             charlie(),
             EventType::RoomMessage,
-            None,
+            Some("dummy"),
             json!({}),
             &[],
             &[],
@@ -491,7 +498,7 @@ pub fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
             "END",
             charlie(),
             EventType::RoomMessage,
-            None,
+            Some("dummy"),
             json!({}),
             &[],
             &[],
@@ -585,21 +592,6 @@ pub mod event {
         event_id: EventId,
     }
 
-    /// This feature is turned on in conduit but off when the tests run because
-    /// we rely on the EventId to check the state-res.
-    #[cfg(feature = "gen-eventid")]
-    fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
-        use std::convert::TryFrom;
-        EventId::try_from(format!(
-            "${}",
-            reference_hash(&from_raw_json_value(&json)?, &RoomVersionId::Version6)
-                .map_err(de::Error::custom)?,
-        ))
-        .map_err(de::Error::custom)
-    }
-
-    /// Only turned on for testing where we need to keep the ID.
-    #[cfg(not(feature = "gen-eventid"))]
     fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
         use std::convert::TryFrom;
         Ok(match from_raw_json_value::<EventIdHelper, E>(&json) {

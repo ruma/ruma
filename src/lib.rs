@@ -48,7 +48,9 @@ impl StateResolution {
         current_state: &StateMap<EventId>,
         event_map: &EventMap<Arc<E>>,
     ) -> Result<bool> {
-        let state_key = incoming_event.state_key().ok_or_else(|| Error::InvalidPdu("State event had no state key".to_owned()))?;
+        let state_key = incoming_event
+            .state_key()
+            .ok_or_else(|| Error::InvalidPdu("State event had no state key".to_owned()))?;
 
         log::info!("Applying a single event, state resolution starting");
         let ev = incoming_event;
@@ -60,9 +62,12 @@ impl StateResolution {
         };
 
         let mut auth_events = StateMap::new();
-        for key in
-            event_auth::auth_types_for_event(&ev.kind(), &ev.sender(), Some(state_key), ev.content())
-        {
+        for key in event_auth::auth_types_for_event(
+            &ev.kind(),
+            &ev.sender(),
+            Some(state_key),
+            ev.content(),
+        ) {
             if let Some(ev_id) = current_state.get(&key) {
                 if let Ok(event) = StateResolution::get_or_load_event(room_id, ev_id, event_map) {
                     // TODO synapse checks `rejected_reason` is None here
@@ -500,7 +505,9 @@ impl StateResolution {
 
         for (idx, event_id) in events_to_check.iter().enumerate() {
             let event = StateResolution::get_or_load_event(room_id, event_id, event_map)?;
-            let state_key = event.state_key().ok_or_else(|| Error::InvalidPdu("State event had no state key".to_owned()))?;
+            let state_key = event
+                .state_key()
+                .ok_or_else(|| Error::InvalidPdu("State event had no state key".to_owned()))?;
 
             let mut auth_events = BTreeMap::new();
             for aid in &event.auth_events() {
