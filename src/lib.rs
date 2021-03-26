@@ -28,7 +28,7 @@ pub use state_store::StateStore;
 const _YIELD_AFTER_ITERATIONS: usize = 100;
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
-pub type StateMap<T> = BTreeMap<(EventType, Option<String>), T>;
+pub type StateMap<T> = BTreeMap<(EventType, String), T>;
 
 /// A mapping of `EventId` to `T`, usually a `ServerPdu`.
 pub type EventMap<T> = BTreeMap<EventId, T>;
@@ -48,6 +48,10 @@ impl StateResolution {
         current_state: &StateMap<EventId>,
         event_map: &EventMap<Arc<E>>,
     ) -> Result<bool> {
+        let state_key = incoming_event
+            .state_key()
+            .ok_or_else(|| Error::InvalidPdu("State event had no state key".to_owned()))?;
+
         log::info!("Applying a single event, state resolution starting");
         let ev = incoming_event;
 
@@ -58,9 +62,12 @@ impl StateResolution {
         };
 
         let mut auth_events = StateMap::new();
-        for key in
-            event_auth::auth_types_for_event(&ev.kind(), &ev.sender(), ev.state_key(), ev.content())
-        {
+        for key in event_auth::auth_types_for_event(
+            &ev.kind(),
+            &ev.sender(),
+            Some(state_key),
+            ev.content(),
+        ) {
             if let Some(ev_id) = current_state.get(&key) {
                 if let Ok(event) = StateResolution::get_or_load_event(room_id, ev_id, event_map) {
                     // TODO synapse checks `rejected_reason` is None here
@@ -183,7 +190,7 @@ impl StateResolution {
         );
 
         // This "epochs" power level event
-        let power_event = resolved_control.get(&(EventType::RoomPowerLevels, Some("".into())));
+        let power_event = resolved_control.get(&(EventType::RoomPowerLevels, "".into()));
 
         log::debug!("PL {:?}", power_event);
 
@@ -498,12 +505,15 @@ impl StateResolution {
 
         for (idx, event_id) in events_to_check.iter().enumerate() {
             let event = StateResolution::get_or_load_event(room_id, event_id, event_map)?;
+            let state_key = event
+                .state_key()
+                .ok_or_else(|| Error::InvalidPdu("State event had no state key".to_owned()))?;
 
             let mut auth_events = BTreeMap::new();
             for aid in &event.auth_events() {
                 if let Ok(ev) = StateResolution::get_or_load_event(room_id, &aid, event_map) {
                     // TODO synapse check "rejected_reason", I'm guessing this is redacted_because in ruma ??
-                    auth_events.insert((ev.kind(), ev.state_key()), ev);
+                    auth_events.insert((ev.kind(), state_key.clone()), ev);
                 } else {
                     log::warn!("auth event id for {} is missing {}", aid, event_id);
                 }
@@ -512,7 +522,7 @@ impl StateResolution {
             for key in event_auth::auth_types_for_event(
                 &event.kind(),
                 &event.sender(),
-                event.state_key(),
+                Some(state_key.clone()),
                 event.content(),
             ) {
                 if let Some(ev_id) = resolved_state.get(&key) {
@@ -550,7 +560,7 @@ impl StateResolution {
                 current_third_party,
             )? {
                 // add event to resolved state map
-                resolved_state.insert((event.kind(), event.state_key()), event_id.clone());
+                resolved_state.insert((event.kind(), state_key), event_id.clone());
             } else {
                 // synapse passes here on AuthError. We do not add this event to resolved_state.
                 log::warn!(

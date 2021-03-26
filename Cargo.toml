@@ -21,14 +21,13 @@ log = "0.4.11"
 
 [dependencies.ruma]
 git = "https://github.com/ruma/ruma"
-# branch = "server-pdu"
-# path = "../__forks__/ruma/ruma"
-rev = "0a10afe6dacc2b7a50a8002c953d10b7fb4e37bc"
+#branch = "server-pdu"
+#path = "../ruma/ruma"
+rev = "f196f5b6f164973d6b343af31ab4e0457f743675"
 features = ["client-api", "federation-api", "appservice-api", "unstable-pre-spec", "unstable-synapse-quirks"]
 
 [features]
 default = ["unstable-pre-spec"]
-gen-eventid = []
 unstable-pre-spec = ["ruma/unstable-pre-spec"]
 
 [dev-dependencies]

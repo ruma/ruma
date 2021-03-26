@@ -37,7 +37,7 @@ fn test_ban_pass() {
     );
 
     assert!(valid_membership_change(
-        requester.state_key().as_deref(),
+        &requester.state_key(),
         requester.sender(),
         requester.content(),
         prev,
@@ -72,7 +72,7 @@ fn test_ban_fail() {
     );
 
     assert!(!valid_membership_change(
-        requester.state_key().as_deref(),
+        &requester.state_key(),
         requester.sender(),
         requester.content(),
         prev,

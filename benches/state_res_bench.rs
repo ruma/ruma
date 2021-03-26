@@ -90,7 +90,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().clone()))
+        .map(|ev| ((ev.kind(), ev.state_key().unwrap()), ev.event_id().clone()))
         .collect::<StateMap<_>>();
 
         let state_set_b = [
@@ -103,7 +103,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
             inner.get(&event_id("PA")).unwrap(),
         ]
         .iter()
-        .map(|ev| ((ev.kind(), ev.state_key()), ev.event_id().clone()))
+        .map(|ev| ((ev.kind(), ev.state_key().unwrap()), ev.event_id().clone()))
         .collect::<StateMap<_>>();
 
         b.iter(|| {
@@ -220,12 +220,12 @@ impl TestStore<event::StateEvent> {
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
+            .map(|e| ((e.kind(), e.state_key().unwrap()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
         let state_at_charlie = [&create_event, &alice_mem, &join_rules, &charlie_mem]
             .iter()
-            .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
+            .map(|e| ((e.kind(), e.state_key().unwrap()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
         let expected = [
@@ -236,7 +236,7 @@ impl TestStore<event::StateEvent> {
             &charlie_mem,
         ]
         .iter()
-        .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
+        .map(|e| ((e.kind(), e.state_key().unwrap()), e.event_id().clone()))
         .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)
@@ -561,21 +561,6 @@ pub mod event {
         event_id: EventId,
     }
 
-    /// This feature is turned on in conduit but off when the tests run because
-    /// we rely on the EventId to check the state-res.
-    #[cfg(feature = "gen-eventid")]
-    fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
-        use std::convert::TryFrom;
-        EventId::try_from(format!(
-            "${}",
-            reference_hash(&from_raw_json_value(&json)?, &RoomVersionId::Version6)
-                .map_err(de::Error::custom)?,
-        ))
-        .map_err(de::Error::custom)
-    }
-
-    /// Only turned on for testing where we need to keep the ID.
-    #[cfg(not(feature = "gen-eventid"))]
     fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
         use std::convert::TryFrom;
         Ok(match from_raw_json_value::<EventIdHelper, E>(&json) {

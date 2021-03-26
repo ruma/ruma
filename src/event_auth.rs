@@ -23,36 +23,39 @@ pub fn auth_types_for_event(
     sender: &UserId,
     state_key: Option<String>,
     content: serde_json::Value,
-) -> Vec<(EventType, Option<String>)> {
+) -> Vec<(EventType, String)> {
     if kind == &EventType::RoomCreate {
         return vec![];
     }
 
     let mut auth_types = vec![
-        (EventType::RoomPowerLevels, Some("".to_string())),
-        (EventType::RoomMember, Some(sender.to_string())),
-        (EventType::RoomCreate, Some("".to_string())),
+        (EventType::RoomPowerLevels, "".to_string()),
+        (EventType::RoomMember, sender.to_string()),
+        (EventType::RoomCreate, "".to_string()),
     ];
 
     if kind == &EventType::RoomMember {
-        if let Ok(content) = serde_json::from_value::<room::member::MemberEventContent>(content) {
-            if [MembershipState::Join, MembershipState::Invite].contains(&content.membership) {
-                let key = (EventType::RoomJoinRules, Some("".into()));
+        if let Some(state_key) = state_key {
+            if let Ok(content) = serde_json::from_value::<room::member::MemberEventContent>(content)
+            {
+                if [MembershipState::Join, MembershipState::Invite].contains(&content.membership) {
+                    let key = (EventType::RoomJoinRules, "".to_string());
+                    if !auth_types.contains(&key) {
+                        auth_types.push(key)
+                    }
+                }
+
+                let key = (EventType::RoomMember, state_key);
                 if !auth_types.contains(&key) {
                     auth_types.push(key)
                 }
-            }
 
-            let key = (EventType::RoomMember, state_key);
-            if !auth_types.contains(&key) {
-                auth_types.push(key)
-            }
-
-            if content.membership == MembershipState::Invite {
-                if let Some(t_id) = content.third_party_invite {
-                    let key = (EventType::RoomThirdPartyInvite, Some(t_id.signed.token));
-                    if !auth_types.contains(&key) {
-                        auth_types.push(key)
+                if content.membership == MembershipState::Invite {
+                    if let Some(t_id) = content.third_party_invite {
+                        let key = (EventType::RoomThirdPartyInvite, t_id.signed.token);
+                        if !auth_types.contains(&key) {
+                            auth_types.push(key)
+                        }
                     }
                 }
             }
@@ -157,7 +160,7 @@ pub fn auth_check<E: Event>(
 
     // 3. If event does not have m.room.create in auth_events reject
     if auth_events
-        .get(&(EventType::RoomCreate, Some("".into())))
+        .get(&(EventType::RoomCreate, "".to_string()))
         .is_none()
     {
         log::warn!("no m.room.create event in auth chain");
@@ -168,15 +171,8 @@ pub fn auth_check<E: Event>(
     // [synapse] checks for federation here
 
     // 4. if type is m.room.aliases
-    if incoming_event.kind() == EventType::RoomAliases {
+    if incoming_event.kind() == EventType::RoomAliases && room_version < &RoomVersionId::Version6 {
         log::info!("starting m.room.aliases check");
-        // [synapse] adds `&& room_version` "special case aliases auth"
-
-        // [synapse]
-        // if event.state_key.unwrap().is_empty() {
-        //     log::warn!("state_key must be non-empty");
-        //     return Ok(false); // and be non-empty state_key (point to a user_id)
-        // }
 
         // If sender's domain doesn't matches state_key, reject
         if incoming_event.state_key() != Some(incoming_event.sender().server_name().to_string()) {
@@ -190,6 +186,13 @@ pub fn auth_check<E: Event>(
 
     if incoming_event.kind() == EventType::RoomMember {
         log::info!("starting m.room.member check");
+        let state_key = match incoming_event.state_key() {
+            None => {
+                log::warn!("no statekey in member event");
+                return Ok(false);
+            }
+            Some(s) => s,
+        };
 
         if serde_json::from_value::<room::member::MemberEventContent>(incoming_event.content())
             .is_err()
@@ -199,7 +202,7 @@ pub fn auth_check<E: Event>(
         }
 
         if !valid_membership_change(
-            incoming_event.state_key().as_deref(),
+            &state_key,
             incoming_event.sender(),
             incoming_event.content(),
             prev_event,
@@ -259,7 +262,14 @@ pub fn auth_check<E: Event>(
         log::info!("power levels event allowed");
     }
 
-    if incoming_event.kind() == EventType::RoomRedaction
+    // Room version 3: Redaction events are always accepted (provided the event is allowed by `events` and
+    // `events_default` in the power levels). However, servers should not apply or send redaction's
+    // to clients until both the redaction event and original event have been seen, and are valid.
+    // Servers should only apply redaction's to events where the sender's domains match,
+    // or the sender of the redaction has the appropriate permissions per the power levels.
+
+    if room_version >= &RoomVersionId::Version3
+        && incoming_event.kind() == EventType::RoomRedaction
         && !check_redaction(room_version, incoming_event, &auth_events)?
     {
         return Ok(false);
@@ -279,19 +289,13 @@ pub fn auth_check<E: Event>(
 /// this is generated by calling `auth_types_for_event` with the membership event and
 /// the current State.
 pub fn valid_membership_change<E: Event>(
-    user_state_key: Option<&str>,
+    state_key: &str,
     user_sender: &UserId,
     content: serde_json::Value,
     prev_event: Option<Arc<E>>,
     current_third_party_invite: Option<Arc<E>>,
     auth_events: &StateMap<Arc<E>>,
 ) -> Result<bool> {
-    let state_key = if let Some(s) = user_state_key {
-        s
-    } else {
-        return Err(Error::InvalidPdu("State event requires state_key".into()));
-    };
-
     let content = serde_json::from_value::<room::member::MemberEventContent>(content)?;
 
     let target_membership = content.membership;
@@ -299,7 +303,7 @@ pub fn valid_membership_change<E: Event>(
     let target_user_id =
         UserId::try_from(state_key).map_err(|e| Error::ConversionError(format!("{}", e)))?;
 
-    let key = (EventType::RoomMember, Some(user_sender.to_string()));
+    let key = (EventType::RoomMember, user_sender.to_string());
     let sender = auth_events.get(&key);
     let sender_membership =
         sender.map_or(Ok::<_, Error>(member::MembershipState::Leave), |pdu| {
@@ -309,7 +313,7 @@ pub fn valid_membership_change<E: Event>(
             )
         })?;
 
-    let key = (EventType::RoomMember, Some(target_user_id.to_string()));
+    let key = (EventType::RoomMember, target_user_id.to_string());
     let current = auth_events.get(&key);
     let current_membership =
         current.map_or(Ok::<_, Error>(member::MembershipState::Leave), |pdu| {
@@ -319,7 +323,7 @@ pub fn valid_membership_change<E: Event>(
             )
         })?;
 
-    let key = (EventType::RoomPowerLevels, Some("".into()));
+    let key = (EventType::RoomPowerLevels, "".into());
     let power_levels = auth_events.get(&key).map_or_else(
         || Ok::<_, Error>(power_levels::PowerLevelsEventContent::default()),
         |power_levels| {
@@ -351,7 +355,7 @@ pub fn valid_membership_change<E: Event>(
         Some,
     );
 
-    let key = (EventType::RoomJoinRules, Some("".into()));
+    let key = (EventType::RoomJoinRules, "".into());
     let join_rules_event = auth_events.get(&key);
     let mut join_rules = JoinRule::Invite;
     if let Some(jr) = join_rules_event {
@@ -430,7 +434,7 @@ pub fn check_event_sender_in_room<E: Event>(
     sender: &UserId,
     auth_events: &StateMap<Arc<E>>,
 ) -> Option<bool> {
-    let mem = auth_events.get(&(EventType::RoomMember, Some(sender.to_string())))?;
+    let mem = auth_events.get(&(EventType::RoomMember, sender.to_string()))?;
     Some(
         serde_json::from_value::<room::member::MemberEventContent>(mem.content())
             .ok()?
@@ -442,7 +446,7 @@ pub fn check_event_sender_in_room<E: Event>(
 /// Is the user allowed to send a specific event based on the rooms power levels. Does the event
 /// have the correct userId as it's state_key if it's not the "" state_key.
 pub fn can_send_event<E: Event>(event: &Arc<E>, auth_events: &StateMap<Arc<E>>) -> bool {
-    let ple = auth_events.get(&(EventType::RoomPowerLevels, Some("".into())));
+    let ple = auth_events.get(&(EventType::RoomPowerLevels, "".into()));
 
     let event_type_power_level = get_send_level(&event.kind(), event.state_key(), ple);
     let user_level = get_user_power_level(&event.sender(), auth_events);
@@ -472,11 +476,14 @@ pub fn can_send_event<E: Event>(event: &Arc<E>, auth_events: &StateMap<Arc<E>>) 
 
 /// Confirm that the event sender has the required power levels.
 pub fn check_power_levels<E: Event>(
-    _: &RoomVersionId,
+    room_version: &RoomVersionId,
     power_event: &Arc<E>,
     auth_events: &StateMap<Arc<E>>,
 ) -> Option<bool> {
-    let key = (power_event.kind(), power_event.state_key());
+    let power_event_state_key = power_event
+        .state_key()
+        .expect("power events have state keys");
+    let key = (power_event.kind(), power_event_state_key);
     let current_state = if let Some(current_state) = auth_events.get(&key) {
         current_state
     } else {
@@ -490,6 +497,7 @@ pub fn check_power_levels<E: Event>(
         power_event.content(),
     )
     .unwrap();
+
     let current_content = serde_json::from_value::<room::power_levels::PowerLevelsEventContent>(
         current_state.content(),
     )
@@ -519,19 +527,6 @@ pub fn check_power_levels<E: Event>(
     }
 
     log::debug!("events to check {:?}", event_levels_to_check);
-
-    // [synapse] validate MSC2209 depending on room version check "notifications".
-    // if RoomVersion::new(room_version).limit_notifications_power_levels {
-    //     let old_level: i64 = current_content.notifications.room.into();
-    //     let new_level: i64 = user_content.notifications.room.into();
-
-    //     let old_level_too_big = old_level > user_level;
-    //     let new_level_too_big = new_level > user_level;
-    //     if old_level_too_big || new_level_too_big {
-    //         log::warn!("m.room.power_level cannot add ops > than own");
-    //         return Some(false); // cannot add ops greater than own
-    //     }
-    // }
 
     let old_state = &current_content;
     let new_state = &user_content;
@@ -581,6 +576,22 @@ pub fn check_power_levels<E: Event>(
         }
     }
 
+    // Notifications, currently there is only @room
+    if room_version >= &RoomVersionId::Version6 {
+        let old_level = old_state.notifications.room;
+        let new_level = new_state.notifications.room;
+        if old_level != new_level {
+            // If the current value is higher than the sender's current power level, reject
+            // If the new value is higher than the sender's current power level, reject
+            let old_level_too_big = i64::from(old_level) > user_level;
+            let new_level_too_big = i64::from(new_level) > user_level;
+            if old_level_too_big || new_level_too_big {
+                log::warn!("m.room.power_level failed to add ops > than own");
+                return Some(false); // cannot add ops greater than own
+            }
+        }
+    }
+
     let levels = [
         "users_default",
         "events_default",
@@ -620,7 +631,7 @@ fn get_deserialize_levels(
 
 /// Does the event redacting come from a user with enough power to redact the given event.
 pub fn check_redaction<E: Event>(
-    room_version: &RoomVersionId,
+    _room_version: &RoomVersionId,
     redaction_event: &Arc<E>,
     auth_events: &StateMap<Arc<E>>,
 ) -> Result<bool> {
@@ -632,25 +643,15 @@ pub fn check_redaction<E: Event>(
         return Ok(true);
     }
 
-    // FROM SPEC:
-    // Redaction events are always accepted (provided the event is allowed by `events` and
-    // `events_default` in the power levels). However, servers should not apply or send redaction's
-    // to clients until both the redaction event and original event have been seen, and are valid.
-    // Servers should only apply redaction's to events where the sender's domains match,
-    // or the sender of the redaction has the appropriate permissions per the power levels.
-
-    // version 1 check
-    if let RoomVersionId::Version1 = room_version {
-        // If the domain of the event_id of the event being redacted is the same as the domain of the event_id of the m.room.redaction, allow
-        if redaction_event.event_id().server_name()
-            == redaction_event
-                .redacts()
-                .as_ref()
-                .and_then(|id| id.server_name())
-        {
-            log::info!("redaction event allowed via room version 1 rules");
-            return Ok(true);
-        }
+    // If the domain of the event_id of the event being redacted is the same as the domain of the event_id of the m.room.redaction, allow
+    if redaction_event.event_id().server_name()
+        == redaction_event
+            .redacts()
+            .as_ref()
+            .and_then(|id| id.server_name())
+    {
+        log::info!("redaction event allowed via room version 1 rules");
+        return Ok(true);
     }
 
     Ok(false)
@@ -675,7 +676,7 @@ pub fn check_membership<E: Event>(member_event: Option<Arc<E>>, state: Membershi
 
 /// Can this room federate based on its m.room.create event.
 pub fn can_federate<E: Event>(auth_events: &StateMap<Arc<E>>) -> bool {
-    let creation_event = auth_events.get(&(EventType::RoomCreate, Some("".into())));
+    let creation_event = auth_events.get(&(EventType::RoomCreate, "".into()));
     if let Some(ev) = creation_event {
         if let Some(fed) = ev.content().get("m.federate") {
             fed == "true"
@@ -690,7 +691,7 @@ pub fn can_federate<E: Event>(auth_events: &StateMap<Arc<E>>) -> bool {
 /// Helper function to fetch a field, `name`, from a "m.room.power_level" event's content.
 /// or return `default` if no power level event is found or zero if no field matches `name`.
 pub fn get_named_level<E: Event>(auth_events: &StateMap<Arc<E>>, name: &str, default: i64) -> i64 {
-    let power_level_event = auth_events.get(&(EventType::RoomPowerLevels, Some("".into())));
+    let power_level_event = auth_events.get(&(EventType::RoomPowerLevels, "".into()));
     if let Some(pl) = power_level_event {
         // TODO do this the right way and deserialize
         if let Some(level) = pl.content().get(name) {
@@ -706,7 +707,7 @@ pub fn get_named_level<E: Event>(auth_events: &StateMap<Arc<E>>, name: &str, def
 /// Helper function to fetch a users default power level from a "m.room.power_level" event's `users`
 /// object.
 pub fn get_user_power_level<E: Event>(user_id: &UserId, auth_events: &StateMap<Arc<E>>) -> i64 {
-    if let Some(pl) = auth_events.get(&(EventType::RoomPowerLevels, Some("".into()))) {
+    if let Some(pl) = auth_events.get(&(EventType::RoomPowerLevels, "".into())) {
         if let Ok(content) =
             serde_json::from_value::<room::power_levels::PowerLevelsEventContent>(pl.content())
         {
@@ -720,7 +721,7 @@ pub fn get_user_power_level<E: Event>(user_id: &UserId, auth_events: &StateMap<A
         }
     } else {
         // if no power level event found the creator gets 100 everyone else gets 0
-        let key = (EventType::RoomCreate, Some("".into()));
+        let key = (EventType::RoomCreate, "".into());
         if let Some(create) = auth_events.get(&key) {
             if let Ok(c) =
                 serde_json::from_value::<room::create::CreateEventContent>(create.content())
@@ -747,34 +748,28 @@ pub fn get_send_level<E: Event>(
     power_lvl: Option<&Arc<E>>,
 ) -> i64 {
     log::debug!("{:?} {:?}", e_type, state_key);
-    if let Some(ple) = power_lvl {
-        if let Ok(content) =
+    power_lvl
+        .and_then(|ple| {
             serde_json::from_value::<room::power_levels::PowerLevelsEventContent>(ple.content())
-        {
-            let mut lvl: i64 = content
-                .events
-                .get(&e_type)
-                .cloned()
-                .unwrap_or_else(|| ruma::int!(50))
-                .into();
-            let state_def: i64 = content.state_default.into();
-            let event_def: i64 = content.events_default.into();
-            if (state_key.is_some() && state_def > lvl) || event_def > lvl {
-                lvl = event_def;
-            }
-            lvl
-        } else {
-            50 // default power level
-        }
-    } else {
-        0
-    }
+                .map(|content| {
+                    content.events.get(&e_type).cloned().unwrap_or_else(|| {
+                        if state_key.is_some() {
+                            content.state_default
+                        } else {
+                            content.events_default
+                        }
+                    })
+                })
+                .ok()
+        })
+        .map(|int| i64::from(int))
+        .unwrap_or_else(|| if state_key.is_some() { 50 } else { 0 })
 }
 
 /// Check user can send invite.
 pub fn can_send_invite<E: Event>(event: &Arc<E>, auth_events: &StateMap<Arc<E>>) -> Result<bool> {
     let user_level = get_user_power_level(&event.sender(), auth_events);
-    let key = (EventType::RoomPowerLevels, Some("".into()));
+    let key = (EventType::RoomPowerLevels, "".into());
     let invite_level = auth_events
         .get(&key)
         .map_or_else(

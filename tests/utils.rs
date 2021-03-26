@@ -132,16 +132,14 @@ pub fn do_check(
 
         let mut state_after = state_before.clone();
 
-        if fake_event.state_key().is_some() {
-            let ty = fake_event.kind();
-            let key = fake_event.state_key();
-            state_after.insert((ty, key), event_id.clone());
-        }
+        let ty = fake_event.kind();
+        let key = fake_event.state_key();
+        state_after.insert((ty, key), event_id.clone());
 
         let auth_types = state_res::auth_types_for_event(
             &fake_event.kind(),
             fake_event.sender(),
-            fake_event.state_key(),
+            Some(fake_event.state_key()),
             fake_event.content(),
         );
 
@@ -160,7 +158,7 @@ pub fn do_check(
             e.event_id().as_str(),
             e.sender().clone(),
             e.kind().clone(),
-            e.state_key().as_deref(),
+            Some(&e.state_key()),
             e.content(),
             &auth_events,
             prev_events,
@@ -224,7 +222,14 @@ pub fn do_check(
         .get(&event_id("$END:foo"))
         .unwrap()
         .iter()
-        .filter(|(k, v)| expected_state.contains_key(k) || start_state.get(k) != Some(*v))
+        .filter(|(k, v)| {
+            expected_state.contains_key(k)
+                || start_state.get(k) != Some(*v)
+                // Filter out the dummy messages events.
+                // These act as points in time where there should be a known state to
+                // test against.
+                && k != &&(EventType::RoomMessage, "dummy".to_string())
+        })
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect::<StateMap<EventId>>();
 
@@ -484,7 +489,7 @@ pub fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
             "START",
             charlie(),
             EventType::RoomMessage,
-            None,
+            Some("dummy"),
             json!({}),
             &[],
             &[],
@@ -493,7 +498,7 @@ pub fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
             "END",
             charlie(),
             EventType::RoomMessage,
-            None,
+            Some("dummy"),
             json!({}),
             &[],
             &[],
@@ -555,7 +560,7 @@ pub mod event {
         }
 
         fn state_key(&self) -> Option<String> {
-            self.state_key()
+            Some(self.state_key())
         }
         fn prev_events(&self) -> Vec<EventId> {
             self.prev_event_ids()
@@ -587,21 +592,6 @@ pub mod event {
         event_id: EventId,
     }
 
-    /// This feature is turned on in conduit but off when the tests run because
-    /// we rely on the EventId to check the state-res.
-    #[cfg(feature = "gen-eventid")]
-    fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
-        use std::convert::TryFrom;
-        EventId::try_from(format!(
-            "${}",
-            reference_hash(&from_raw_json_value(&json)?, &RoomVersionId::Version6)
-                .map_err(de::Error::custom)?,
-        ))
-        .map_err(de::Error::custom)
-    }
-
-    /// Only turned on for testing where we need to keep the ID.
-    #[cfg(not(feature = "gen-eventid"))]
     fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
         use std::convert::TryFrom;
         Ok(match from_raw_json_value::<EventIdHelper, E>(&json) {
@@ -796,11 +786,11 @@ pub mod event {
                 },
             }
         }
-        pub fn state_key(&self) -> Option<String> {
+        pub fn state_key(&self) -> String {
             match self {
                 Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => ev.state_key.clone(),
-                    Pdu::RoomV3Pdu(ev) => ev.state_key.clone(),
+                    Pdu::RoomV1Pdu(ev) => ev.state_key.clone().unwrap(),
+                    Pdu::RoomV3Pdu(ev) => ev.state_key.clone().unwrap(),
                 },
             }
         }
