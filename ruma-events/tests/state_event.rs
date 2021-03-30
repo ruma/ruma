@@ -3,7 +3,11 @@ use std::time::{Duration, UNIX_EPOCH};
 use js_int::UInt;
 use matches::assert_matches;
 use ruma_events::{
-    room::{aliases::AliasesEventContent, avatar::AvatarEventContent, ImageInfo, ThumbnailInfo},
+    room::{
+        aliases::AliasesEventContent,
+        avatar::{AvatarEventContent, ImageInfo},
+        ThumbnailInfo,
+    },
     AnyRoomEvent, AnyStateEvent, AnyStateEventContent, AnySyncStateEvent, RawExt, StateEvent,
     SyncStateEvent, Unsigned,
 };
@@ -219,7 +223,6 @@ fn deserialize_avatar_without_prev_content() {
                     size,
                     thumbnail_info: Some(thumbnail_info),
                     thumbnail_url: Some(thumbnail_url),
-                    thumbnail_file: None,
                     #[cfg(feature = "unstable-pre-spec")]
                     blurhash: None,
                 } if *height == UInt::new(423)
