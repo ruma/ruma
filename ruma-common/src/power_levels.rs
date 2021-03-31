@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 /// The power level requirements for specific notification types.
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct NotificationPowerLevels {
     /// The level required to trigger an `@room` notification.
     #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
@@ -15,6 +16,11 @@ pub struct NotificationPowerLevels {
 }
 
 impl NotificationPowerLevels {
+    /// Create a new `NotificationPowerLevels` with all-default values.
+    pub fn new() -> Self {
+        Self { room: default_power_level() }
+    }
+
     /// Value associated with the given `key`.
     pub fn get(&self, key: &str) -> Option<&Int> {
         match key {
@@ -26,7 +32,7 @@ impl NotificationPowerLevels {
 
 impl Default for NotificationPowerLevels {
     fn default() -> Self {
-        Self { room: default_power_level() }
+        Self::new()
     }
 }
 
