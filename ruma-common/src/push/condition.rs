@@ -465,7 +465,7 @@ mod tests {
         let first_sender = user_id!("@worthy_whale:server.name");
 
         let mut users_power_levels = BTreeMap::new();
-        users_power_levels.insert(first_sender.clone(), 25.into());
+        users_power_levels.insert(first_sender, 25.into());
 
         let context = PushConditionRoomCtx {
             room_id: "!room:server.name".into(),

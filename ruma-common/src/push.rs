@@ -1200,8 +1200,7 @@ mod tests {
         });
         set.add(three_conditions);
 
-        let test_set = set.clone();
-        let mut actions = test_set.get_actions(&message, context_one_to_one);
+        let mut actions = set.get_actions(&message, context_one_to_one);
         assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Sound(sound))) if sound == "content");
 
         let new_message = serde_json::from_str::<Raw<JsonValue>>(
@@ -1216,7 +1215,7 @@ mod tests {
         )
         .unwrap();
 
-        let mut actions = test_set.get_actions(&new_message, context_one_to_one);
+        let mut actions = set.get_actions(&new_message, context_one_to_one);
         assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Sound(sound))) if sound == "three");
     }
 }
