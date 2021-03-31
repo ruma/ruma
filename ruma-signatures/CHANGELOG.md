@@ -1,4 +1,6 @@
-# 0.6.0 (unreleased)
+# [unreleased]
+
+# 0.6.0
 
 Breaking changes:
 
