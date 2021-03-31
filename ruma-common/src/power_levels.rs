@@ -14,6 +14,16 @@ pub struct NotificationPowerLevels {
     pub room: Int,
 }
 
+impl NotificationPowerLevels {
+    /// Value associated with the given `key`.
+    pub fn get(&self, key: &str) -> Option<&Int> {
+        match key {
+            "room" => Some(&self.room),
+            _ => None,
+        }
+    }
+}
+
 impl Default for NotificationPowerLevels {
     fn default() -> Self {
         Self { room: default_power_level() }
