@@ -121,6 +121,7 @@ mod tests {
         time::{Duration, UNIX_EPOCH},
     };
 
+    use assign::assign;
     use js_int::int;
     use maplit::btreemap;
     use ruma_identifiers::{event_id, room_id, user_id};
@@ -187,7 +188,7 @@ mod tests {
                     user.clone() => int!(23)
                 },
                 users_default: int!(23),
-                notifications: NotificationPowerLevels { room: int!(23) },
+                notifications: assign!(NotificationPowerLevels::new(), { room: int!(23) }),
             },
             event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
@@ -206,7 +207,7 @@ mod tests {
                     user.clone() => int!(42)
                 },
                 users_default: int!(42),
-                notifications: NotificationPowerLevels { room: int!(42) },
+                notifications: assign!(NotificationPowerLevels::new(), { room: int!(42) }),
             }),
             room_id: room_id!("!n8f893n9:example.com"),
             unsigned: Unsigned { age: Some(int!(100)), ..Unsigned::default() },
