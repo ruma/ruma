@@ -2,7 +2,7 @@
 //!
 //! [power_levels]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-power-levels
 
-use js_int::Int;
+use js_int::{int, Int};
 use serde::{Deserialize, Serialize};
 
 /// The power level requirements for specific notification types.
@@ -38,5 +38,5 @@ impl Default for NotificationPowerLevels {
 
 /// Used to default power levels to 50 during deserialization.
 pub fn default_power_level() -> Int {
-    Int::from(50)
+    int!(50)
 }

@@ -61,7 +61,7 @@ mod tests {
         time::{Duration, UNIX_EPOCH},
     };
 
-    use js_int::Int;
+    use js_int::int;
     use matches::assert_matches;
     use ruma_identifiers::{event_id, room_id, user_id};
     use ruma_serde::Raw;
@@ -109,7 +109,7 @@ mod tests {
             room_id: room_id!("!n8f893n9:example.com"),
             sender: user_id!("@carl:example.com"),
             state_key: "".into(),
-            unsigned: Unsigned { age: Some(Int::from(100)), ..Unsigned::default() },
+            unsigned: Unsigned { age: Some(int!(100)), ..Unsigned::default() },
         };
 
         let actual = to_json_value(&name_event).unwrap();

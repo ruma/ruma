@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use js_int::Int;
+use js_int::{int, Int};
 use ruma_common::power_levels::default_power_level;
 use ruma_events_macros::StateEventContent;
 use ruma_identifiers::UserId;
@@ -111,7 +111,7 @@ impl Default for PowerLevelsEventContent {
 /// Used with `#[serde(skip_serializing_if)]` to omit default power levels.
 #[allow(clippy::trivially_copy_pass_by_ref)]
 fn is_default_power_level(l: &Int) -> bool {
-    *l == Int::from(50)
+    *l == int!(50)
 }
 
 #[cfg(test)]
@@ -121,7 +121,7 @@ mod tests {
         time::{Duration, UNIX_EPOCH},
     };
 
-    use js_int::Int;
+    use js_int::int;
     use maplit::btreemap;
     use ruma_identifiers::{event_id, room_id, user_id};
     use serde_json::{json, to_value as to_json_value};
@@ -137,13 +137,13 @@ mod tests {
             content: PowerLevelsEventContent {
                 ban: default,
                 events: BTreeMap::new(),
-                events_default: Int::from(0),
+                events_default: int!(0),
                 invite: default,
                 kick: default,
                 redact: default,
                 state_default: default,
                 users: BTreeMap::new(),
-                users_default: Int::from(0),
+                users_default: int!(0),
                 notifications: NotificationPowerLevels::default(),
             },
             event_id: event_id!("$h29iv0s8:example.com"),
@@ -174,42 +174,42 @@ mod tests {
         let user = user_id!("@carl:example.com");
         let power_levels_event = StateEvent {
             content: PowerLevelsEventContent {
-                ban: Int::from(23),
+                ban: int!(23),
                 events: btreemap! {
-                    EventType::Dummy => Int::from(23)
+                    EventType::Dummy => int!(23)
                 },
-                events_default: Int::from(23),
-                invite: Int::from(23),
-                kick: Int::from(23),
-                redact: Int::from(23),
-                state_default: Int::from(23),
+                events_default: int!(23),
+                invite: int!(23),
+                kick: int!(23),
+                redact: int!(23),
+                state_default: int!(23),
                 users: btreemap! {
-                    user.clone() => Int::from(23)
+                    user.clone() => int!(23)
                 },
-                users_default: Int::from(23),
-                notifications: NotificationPowerLevels { room: Int::from(23) },
+                users_default: int!(23),
+                notifications: NotificationPowerLevels { room: int!(23) },
             },
             event_id: event_id!("$h29iv0s8:example.com"),
             origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
             prev_content: Some(PowerLevelsEventContent {
                 // Make just one field different so we at least know they're two different objects.
-                ban: Int::from(42),
+                ban: int!(42),
                 events: btreemap! {
-                    EventType::Dummy => Int::from(42)
+                    EventType::Dummy => int!(42)
                 },
-                events_default: Int::from(42),
-                invite: Int::from(42),
-                kick: Int::from(42),
-                redact: Int::from(42),
-                state_default: Int::from(42),
+                events_default: int!(42),
+                invite: int!(42),
+                kick: int!(42),
+                redact: int!(42),
+                state_default: int!(42),
                 users: btreemap! {
-                    user.clone() => Int::from(42)
+                    user.clone() => int!(42)
                 },
-                users_default: Int::from(42),
-                notifications: NotificationPowerLevels { room: Int::from(42) },
+                users_default: int!(42),
+                notifications: NotificationPowerLevels { room: int!(42) },
             }),
             room_id: room_id!("!n8f893n9:example.com"),
-            unsigned: Unsigned { age: Some(Int::from(100)), ..Unsigned::default() },
+            unsigned: Unsigned { age: Some(int!(100)), ..Unsigned::default() },
             sender: user,
             state_key: "".into(),
         };
