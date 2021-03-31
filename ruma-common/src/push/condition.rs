@@ -306,6 +306,7 @@ mod tests {
 
     use js_int::uint;
     use matches::assert_matches;
+    use maplit::btreemap;
     use ruma_identifiers::user_id;
     use ruma_serde::Raw;
     use serde_json::{
@@ -559,13 +560,15 @@ mod tests {
         )
         .unwrap();
 
-        let mut map = BTreeMap::new();
-        map.insert("string".into(), "Hello World".into());
-        map.insert("number".into(), "10".into());
-        map.insert("boolean".into(), "true".into());
-
         let flattened = FlattenedJson::from_raw(&raw);
-        assert_eq!(flattened.map, map);
+        assert_eq!(
+            flattened.map,
+            btreemap! {
+                "string".into() => "Hello World".into(),
+                "number".into() => "10".into(),
+                "boolean".into() => "true".into(),
+            },
+        );
     }
 
     #[test]
@@ -583,12 +586,14 @@ mod tests {
         )
         .unwrap();
 
-        let mut map = BTreeMap::new();
-        map.insert("desc".into(), "Level 0".into());
-        map.insert("up.desc".into(), "Level 1".into());
-        map.insert("up.up.desc".into(), "Level 2".into());
-
         let flattened = FlattenedJson::from_raw(&raw);
-        assert_eq!(flattened.map, map);
+        assert_eq!(
+            flattened.map,
+            btreemap! {
+                "desc".into() => "Level 0".into(),
+                "up.desc".into() => "Level 1".into(),
+                "up.up.desc".into() => "Level 2".into(),
+            },
+        );
     }
 }
