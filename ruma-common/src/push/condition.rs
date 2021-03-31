@@ -305,8 +305,8 @@ mod tests {
     use std::collections::BTreeMap;
 
     use js_int::uint;
-    use matches::assert_matches;
     use maplit::btreemap;
+    use matches::assert_matches;
     use ruma_identifiers::user_id;
     use ruma_serde::Raw;
     use serde_json::{
