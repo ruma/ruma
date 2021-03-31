@@ -17,39 +17,6 @@
 //! JSON strings in [reverse domain name
 //! notation](https://en.wikipedia.org/wiki/Reverse_domain_name_notation), although the core event
 //! types all use the special "m" TLD, e.g. *m.room.message*.
-//! `EventType` also includes a variant called `Custom`, which is a catch-all that stores a string
-//! containing the name of any event type that isn't part of the specification.
-//! `EventType` is used throughout ruma-events to identify and differentiate between events of
-//! different types.
-//!
-//! # Event kinds
-//!
-//! Matrix defines three "kinds" of events:
-//!
-//! 1.  **Events**, which are arbitrary JSON structures that have two required keys:
-//!     * `type`, which specifies the event's type
-//!     * `content`, which is a JSON object containing the "payload" of the event
-//! 2.  **Room events**, which are a superset of events and represent actions that occurred within
-//!     the context of a Matrix room.
-//!     They have at least the following additional keys:
-//!     * `event_id`, which is a unique identifier for the event
-//!     * `room_id`, which is a unique identifier for the room in which the event occurred
-//!     * `sender`, which is the unique identifier of the Matrix user who created the event
-//!     * Optionally, `unsigned`, which is a JSON object containing arbitrary additional metadata
-//!     that is not digitally signed by Matrix homeservers.
-//! 3.  **State events**, which are a superset of room events and represent persistent state
-//!     specific to a room, such as the room's member list or topic.
-//!     Within a single room, state events of the same type and with the same "state key" will
-//!     effectively "replace" the previous one, updating the room's state.
-//!     They have at least the following additional keys:
-//!     * `state_key`, a string which serves as a sort of "sub-type." The state key allows a room to
-//!       persist multiple state events of the same type. You can think of a room's state events as
-//!       being a `BTreeMap` where the keys are the tuple `(event_type, state_key)`.
-//!     * Optionally, `prev_content`, a JSON object containing the `content` object from the
-//!     previous event of the given `(event_type, state_key)` tuple in the given room.
-//!
-//! ruma-events represents these three event kinds as traits, allowing any Rust type to serve as a
-//! Matrix event so long as it upholds the contract expected of its kind.
 //!
 //! # Core event types
 //!
@@ -60,16 +27,7 @@
 //! Each type's module also contains a Rust type for that event type's `content` field, and any
 //! other supporting types required by the event's other fields.
 //!
-//! # Custom event types
-//!
-//! Although any Rust type that implements `Event`, `RoomEvent`, or `StateEvent` can serve as a
-//! Matrix event type, ruma-events also includes a few convenience types for representing events
-//! that are not covered by the spec and not otherwise known by the application.
-//! `CustomEvent`, `CustomRoomEvent`, and `CustomStateEvent` are simple implementations of their
-//! respective event traits whose `content` field is simply a `serde_json::Value` value, which
-//! represents arbitrary JSON.
-//!
-//! ## Extending Ruma with custom events
+//! # Extending Ruma with custom events
 //!
 //! For our example we will create a reaction message event. This can be used with ruma-events
 //! structs, for this event we will use a `SyncMessageEvent` struct but any `MessageEvent` struct
@@ -150,29 +108,6 @@
 //! `Raw<ContentType>` for dedicated content types) or `Deserialize` (when the content is a
 //! type alias), allowing content to be converted to and from JSON independently of the surrounding
 //! event structure, if needed.
-//!
-//! # Collections
-//!
-//! With the trait-based approach to events, it's easy to write generic collection types like
-//! `Vec<Box<R: RoomEvent>>`.
-//! However, there are APIs in the Matrix specification that involve heterogeneous collections of
-//! events, i.e. a list of events of different event types.
-//! Because Rust does not have a facility for arrays, vectors, or slices containing multiple
-//! concrete types, ruma-events provides special collection types for this purpose.
-//! The collection types are enums which effectively "wrap" each possible event type of a
-//! particular event "kind."
-//!
-//! Because of the hierarchical nature of event kinds in Matrix, these collection types are divided
-//! into two modules, `ruma_events::collections::all` and `ruma_events::collections::only`.
-//! The "all" versions include every event type that implements the relevant event trait as well as
-//! more specific event traits.
-//! The "only" versions include only the event types that implement "at most" the relevant event
-//! trait.
-//!
-//! For example, the `ruma_events::collections::all::Event` enum includes *m.room.message*, because
-//! that event type is both an event and a room event.
-//! However, the `ruma_events::collections::only::Event` enum does *not* include *m.room.message*,
-//! because *m.room.message* implements a *more specific* event trait than `Event`.
 
 #![recursion_limit = "1024"]
 #![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
