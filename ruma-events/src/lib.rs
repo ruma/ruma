@@ -178,7 +178,7 @@
 #![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
 // This lint is no good
 #![allow(clippy::new_without_default)]
-// Remove this once https://github.com/rust-lang/rust/issues/54883 becomes stable
+// Remove this once our MSRV is >= 1.53
 #![allow(clippy::unnested_or_patterns)]
 
 use std::fmt::Debug;
