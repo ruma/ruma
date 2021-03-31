@@ -18,8 +18,9 @@ Improvements:
 * Add `push::{PusherData, PushFormat}` (moved from `ruma_client_api::r0::push`)
 * Add `authentication::TokenType` (moved from
   `ruma_client_api::r0::account:request_openid_token`)
-* Add `push::PushCondition::applies` and
-  `push::{FlattenedJson, PushConditionRoomCtx}`
+* Add `push::Ruleset::get_actions`
+  * Add `push::PushCondition::applies`
+  * Add `push::{FlattenedJson, PushConditionRoomCtx}`
 
 # 0.2.0
 

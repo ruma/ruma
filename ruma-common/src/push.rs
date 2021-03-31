@@ -20,7 +20,7 @@ use indexmap::{
     set::{IndexSet, IntoIter as IndexSetIter},
     Equivalent,
 };
-use ruma_serde::StringEnum;
+use ruma_serde::{Raw, StringEnum};
 use serde::{Deserialize, Serialize};
 
 mod action;
@@ -29,7 +29,9 @@ mod predefined;
 
 pub use self::{
     action::{Action, Tweak},
-    condition::{ComparisonOperator, PushCondition, RoomMemberCountIs},
+    condition::{
+        ComparisonOperator, FlattenedJson, PushCondition, PushConditionRoomCtx, RoomMemberCountIs,
+    },
 };
 
 /// A push ruleset scopes a set of rules according to some criteria.
@@ -79,6 +81,64 @@ impl Ruleset {
             AnyPushRule::Room(r) => self.room.insert(r),
             AnyPushRule::Sender(r) => self.sender.insert(r),
         }
+    }
+
+    /// Get the push actions that apply to this event.
+    ///
+    /// Returns an empty iterator if no push rule applies.
+    ///
+    /// # Arguments
+    ///
+    /// * `event` - The raw JSON of a room message event.
+    /// * `context` - The context of the message and room at the time of the event.
+    pub fn get_actions<'a, T>(
+        &'a self,
+        event: &Raw<T>,
+        context: &PushConditionRoomCtx,
+    ) -> impl Iterator<Item = &'a Action>
+    where
+        T: Serialize,
+    {
+        let event_map = &FlattenedJson::from_raw(event);
+
+        for rule in self.override_.iter().filter(|r| r.enabled) {
+            if rule.applies(event_map, context) {
+                return rule.actions.iter();
+            }
+        }
+        for rule in self.content.iter().filter(|r| r.enabled) {
+            let condition = PushCondition::EventMatch {
+                key: "content.body".into(),
+                pattern: rule.pattern.clone(),
+            };
+
+            if condition.applies(event_map, context) {
+                return rule.actions.iter();
+            }
+        }
+        for rule in self.room.iter().filter(|r| r.enabled) {
+            let condition =
+                PushCondition::EventMatch { key: "room_id".into(), pattern: rule.rule_id.clone() };
+
+            if condition.applies(event_map, context) {
+                return rule.actions.iter();
+            }
+        }
+        for rule in self.sender.iter().filter(|r| r.enabled) {
+            let condition =
+                PushCondition::EventMatch { key: "sender".into(), pattern: rule.rule_id.clone() };
+
+            if condition.applies(event_map, context) {
+                return rule.actions.iter();
+            }
+        }
+        for rule in self.underride.iter().filter(|r| r.enabled) {
+            if rule.applies(event_map, context) {
+                return rule.actions.iter();
+            }
+        }
+
+        [].iter()
     }
 }
 
@@ -297,6 +357,18 @@ impl From<ConditionalPushRuleInit> for ConditionalPushRule {
     }
 }
 
+impl ConditionalPushRule {
+    /// Check if the push rule applies to the event.
+    ///
+    /// # Arguments
+    ///
+    /// * `event` - The flattened JSON representation of a room message event.
+    /// * `context` - The context of the room at the time of the event.
+    pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
+        self.conditions.iter().all(|cond| cond.applies(event, context))
+    }
+}
+
 // The following trait are needed to be able to make
 // an IndexSet of the type
 
@@ -433,16 +505,22 @@ pub enum PushFormat {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
+
     use js_int::uint;
     use matches::assert_matches;
+    use ruma_identifiers::user_id;
+    use ruma_serde::Raw;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value,
         value::RawValue as RawJsonValue, Value as JsonValue,
     };
 
+    use crate::power_levels::NotificationPowerLevels;
+
     use super::{
         action::{Action, Tweak},
-        condition::{PushCondition, RoomMemberCountIs},
+        condition::{PushCondition, PushConditionRoomCtx, RoomMemberCountIs},
         AnyPushRule, ConditionalPushRule, PatternedPushRule, Ruleset, SimplePushRule,
     };
 
@@ -924,5 +1002,221 @@ mod tests {
         );
 
         assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn default_ruleset_applies() {
+        let set = Ruleset::server_default(&user_id!("@jolly_jumper:server.name"));
+
+        let context_one_to_one = &PushConditionRoomCtx {
+            room_id: "!dm:server.name".into(),
+            member_count: 2u32.into(),
+            user_display_name: "Jolly Jumper".into(),
+            users_power_levels: BTreeMap::new(),
+            default_power_level: 50.into(),
+            notification_power_levels: NotificationPowerLevels { room: 50.into() },
+        };
+
+        let context_public_room = &PushConditionRoomCtx {
+            room_id: "!far_west:server.name".into(),
+            member_count: 100u32.into(),
+            user_display_name: "Jolly Jumper".into(),
+            users_power_levels: BTreeMap::new(),
+            default_power_level: 50.into(),
+            notification_power_levels: NotificationPowerLevels { room: 50.into() },
+        };
+
+        let message = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "type": "m.room.message"
+            }"#,
+        )
+        .unwrap();
+        let mut actions_one_to_one = set.get_actions(&message, context_one_to_one);
+        assert_matches!(actions_one_to_one.next(), Some(Action::Notify));
+        assert_matches!(actions_one_to_one.next(), Some(Action::SetTweak(Tweak::Sound(_))));
+        assert_matches!(actions_one_to_one.next(), Some(Action::SetTweak(Tweak::Highlight(false))));
+
+        let mut actions_public_room = set.get_actions(&message, context_public_room);
+        assert_matches!(actions_public_room.next(), Some(Action::Notify));
+        assert_matches!(
+            actions_public_room.next(),
+            Some(Action::SetTweak(Tweak::Highlight(false)))
+        );
+
+        let user_name = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "type": "m.room.message",
+                "content": {
+                    "body": "Hi jolly_jumper!"
+                }
+            }"#,
+        )
+        .unwrap();
+        let mut actions_one_to_one = set.get_actions(&user_name, context_one_to_one);
+        assert_matches!(actions_one_to_one.next(), Some(Action::Notify));
+        assert_matches!(actions_one_to_one.next(), Some(Action::SetTweak(Tweak::Sound(_))));
+        assert_matches!(actions_one_to_one.next(), Some(Action::SetTweak(Tweak::Highlight(true))));
+
+        let mut actions_public_room = set.get_actions(&user_name, context_public_room);
+        assert_matches!(actions_public_room.next(), Some(Action::Notify));
+        assert_matches!(actions_public_room.next(), Some(Action::SetTweak(Tweak::Sound(_))));
+        assert_matches!(actions_public_room.next(), Some(Action::SetTweak(Tweak::Highlight(true))));
+
+        let notice = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "type": "m.room.message",
+                "content": {
+                    "msgtype": "m.notice"
+                }
+            }"#,
+        )
+        .unwrap();
+        let mut actions = set.get_actions(&notice, context_one_to_one);
+        assert_matches!(actions.next(), Some(Action::DontNotify));
+
+        let at_room = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "type": "m.room.message",
+                "sender": "@rantanplan:server.name",
+                "content": {
+                    "body": "@room Attention please!",
+                    "msgtype": "m.text"
+                }
+            }"#,
+        )
+        .unwrap();
+        let mut actions = set.get_actions(&at_room, context_public_room);
+        assert_matches!(actions.next(), Some(Action::Notify));
+        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Highlight(true))));
+
+        let empty = serde_json::from_str::<Raw<JsonValue>>(r#"{}"#).unwrap();
+        let mut actions = set.get_actions(&empty, context_one_to_one);
+        assert_matches!(actions.next(), None);
+    }
+
+    #[test]
+    fn custom_ruleset_applies() {
+        let context_one_to_one = &PushConditionRoomCtx {
+            room_id: "!dm:server.name".into(),
+            member_count: 2u32.into(),
+            user_display_name: "Jolly Jumper".into(),
+            users_power_levels: BTreeMap::new(),
+            default_power_level: 50.into(),
+            notification_power_levels: NotificationPowerLevels { room: 50.into() },
+        };
+
+        let message = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "sender": "@rantanplan:server.name",
+                "type": "m.room.message",
+                "content": {
+                    "msgtype": "m.text",
+                    "body": "Great joke!"
+                }
+            }"#,
+        )
+        .unwrap();
+
+        let mut set = Ruleset::new();
+        let disabled = AnyPushRule::Underride(ConditionalPushRule {
+            actions: vec![Action::Notify],
+            default: false,
+            enabled: false,
+            rule_id: "disabled".into(),
+            conditions: vec![PushCondition::RoomMemberCount {
+                is: RoomMemberCountIs::from(uint!(2)),
+            }],
+        });
+        set.add(disabled);
+
+        let test_set = set.clone();
+        let mut actions = test_set.get_actions(&message, context_one_to_one);
+        assert_matches!(actions.next(), None);
+
+        let no_conditions = AnyPushRule::Underride(ConditionalPushRule {
+            actions: vec![Action::SetTweak(Tweak::Highlight(true))],
+            default: false,
+            enabled: true,
+            rule_id: "no.conditions".into(),
+            conditions: vec![],
+        });
+        set.add(no_conditions);
+
+        let test_set = set.clone();
+        let mut actions = test_set.get_actions(&message, context_one_to_one);
+        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Highlight(true))));
+
+        let sender = AnyPushRule::Sender(SimplePushRule {
+            actions: vec![Action::Notify],
+            default: false,
+            enabled: true,
+            rule_id: "@rantanplan:server.name".into(),
+        });
+        set.add(sender);
+
+        let test_set = set.clone();
+        let mut actions = test_set.get_actions(&message, context_one_to_one);
+        assert_matches!(actions.next(), Some(Action::Notify));
+
+        let room = AnyPushRule::Room(SimplePushRule {
+            actions: vec![Action::DontNotify],
+            default: false,
+            enabled: true,
+            rule_id: "!dm:server.name".into(),
+        });
+        set.add(room);
+
+        let test_set = set.clone();
+        let mut actions = test_set.get_actions(&message, context_one_to_one);
+        assert_matches!(actions.next(), Some(Action::DontNotify));
+
+        let content = AnyPushRule::Content(PatternedPushRule {
+            actions: vec![Action::SetTweak(Tweak::Sound("content".into()))],
+            default: false,
+            enabled: true,
+            rule_id: "content".into(),
+            pattern: "joke".into(),
+        });
+        set.add(content);
+
+        let test_set = set.clone();
+        let mut actions = test_set.get_actions(&message, context_one_to_one);
+        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Sound(sound))) if sound == "content");
+
+        let three_conditions = AnyPushRule::Override(ConditionalPushRule {
+            actions: vec![Action::SetTweak(Tweak::Sound("three".into()))],
+            default: false,
+            enabled: true,
+            rule_id: "three.conditions".into(),
+            conditions: vec![
+                PushCondition::RoomMemberCount { is: RoomMemberCountIs::from(uint!(2)) },
+                PushCondition::ContainsDisplayName,
+                PushCondition::EventMatch {
+                    key: "room_id".into(),
+                    pattern: "!dm:server.name".into(),
+                },
+            ],
+        });
+        set.add(three_conditions);
+
+        let test_set = set.clone();
+        let mut actions = test_set.get_actions(&message, context_one_to_one);
+        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Sound(sound))) if sound == "content");
+
+        let new_message = serde_json::from_str::<Raw<JsonValue>>(
+            r#"{
+                "sender": "@rantanplan:server.name",
+                "type": "m.room.message",
+                "content": {
+                    "msgtype": "m.text",
+                    "body": "Tell me another one, Jolly Jumper!"
+                }
+            }"#,
+        )
+        .unwrap();
+
+        let mut actions = test_set.get_actions(&new_message, context_one_to_one);
+        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Sound(sound))) if sound == "three");
     }
 }
