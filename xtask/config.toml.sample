@@ -1,6 +1,4 @@
 [github]
-# The local name of the git remote to push to.
-remote = "origin"
 # The username to use for authentication.
 user = ""
 # The personal access token to use for authentication. Needs 'repo' scope.

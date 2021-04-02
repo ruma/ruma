@@ -8,7 +8,7 @@ xflags::xflags! {
             optional -h, --help
         }
 
-        /// Create a new GitHub release of the given crate.
+        /// Create a new release of the given crate.
         cmd release
             required name: String
         {}

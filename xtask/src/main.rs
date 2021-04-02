@@ -8,7 +8,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use xshell::read_file;
+use serde::Deserialize;
+use serde_json::from_str as from_json_str;
+use toml::from_str as from_toml_str;
+use xshell::{cmd, read_file};
 
 mod flags;
 mod release;
@@ -32,17 +35,43 @@ fn try_main() -> Result<()> {
         flags::XtaskCmd::Release(cmd) => cmd.run(),
     }
 }
-
-fn project_root() -> PathBuf {
-    Path::new(&env!("CARGO_MANIFEST_DIR")).ancestors().nth(1).unwrap().to_path_buf()
+#[derive(Debug, Deserialize)]
+struct CargoMetadata {
+    workspace_root: PathBuf,
 }
 
-fn config() -> Result<String> {
-    let path = project_root().join("xtask/config.toml");
-    match read_file(path) {
-        Ok(c) => Ok(c),
-        Err(err) => {
-            return Err(err)?;
-        }
+/// Get the project workspace root.
+fn project_root() -> Result<PathBuf> {
+    let metadata_json = cmd!("cargo metadata --format-version 1").read()?;
+    let metadata: CargoMetadata = from_json_str(&metadata_json)?;
+    Ok(metadata.workspace_root)
+}
+
+#[derive(Debug, Deserialize)]
+struct Config {
+    /// Credentials to authenticate to GitHub.
+    github: GithubConfig,
+}
+
+#[derive(Debug, Deserialize)]
+struct GithubConfig {
+    /// The username to use for authentication.
+    user: String,
+
+    /// The personal access token to use for authentication.
+    token: String,
+}
+
+impl GithubConfig {
+    /// Get the GitHub credentials formatted as `user:token`
+    fn credentials(&self) -> String {
+        format!("{}:{}", self.user, self.token)
     }
+}
+
+/// Load the config from `config.toml`.
+fn config() -> Result<Config> {
+    let path = Path::new(&env!("CARGO_MANIFEST_DIR")).join("config.toml");
+    let config = read_file(path)?;
+    Ok(from_toml_str(&config)?)
 }
