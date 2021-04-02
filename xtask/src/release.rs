@@ -16,7 +16,7 @@ impl flags::Release {
         let remote = &self.get_remote()?;
 
         if !cmd!("git status -s -uno").read()?.is_empty() {
-            Err("This git repository contains untracked files")?
+            return Err("This git repository contains untracked files".into());
         }
 
         let version = &self.get_version()?;
@@ -61,7 +61,7 @@ impl flags::Release {
         let start = match lines.position(|l| l.starts_with(&format!("# {}", version))) {
             Some(p) => p + 1,
             None => {
-                return Err("Could not find version title in changelog")?;
+                return Err("Could not find version title in changelog".into());
             }
         };
 
@@ -81,7 +81,7 @@ impl flags::Release {
         let remote = cmd!("git config branch.{branch}.remote").read()?;
 
         if remote.is_empty() {
-            Err("Could not get current git remote")?
+            return Err("Could not get current git remote".into());
         }
 
         Ok(remote)
