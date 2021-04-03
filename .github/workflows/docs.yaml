@@ -1,7 +1,6 @@
 on:
   push:
-    # docs-deployment is temporary
-    branches: [main, docs-deployment]
+    branches: [main]
 
 jobs:
   build-deploy:
