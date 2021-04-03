@@ -15,6 +15,7 @@ jobs:
         profile: minimal
         # Needed for use of '-Zunstable-options' since '--enable-index-page' is unstable
         toolchain: nightly
+        override: true
     - name: Build docs
       uses: actions-rs/cargo@v1
       env:
