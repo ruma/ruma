@@ -1,0 +1,29 @@
+on:
+  push:
+    # docs-deployment is temporary
+    branches: [main, docs-deployment]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@master
+    - name: Install nightly rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        # Needed for use of '-Zunstable-options' since '--enable-index-page' is unstable
+        toolchain: nightly
+    - name: Build docs
+      uses: actions-rs/cargo@v1
+      env:
+       RUSTDOCFLAGS: "--enable-index-page -Zunstable-options"
+      with:
+        command: doc
+        args: --no-deps --workspace
+    - name: Deploy to gh-pages branch
+      uses: JamesIves/github-pages-deploy-action@4.1.0
+      with:
+        branch: docs
+        folder: target/doc
