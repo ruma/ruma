@@ -35,6 +35,7 @@ fn try_main() -> Result<()> {
         flags::XtaskCmd::Release(cmd) => cmd.run(),
     }
 }
+
 #[derive(Debug, Deserialize)]
 struct CargoMetadata {
     workspace_root: PathBuf,

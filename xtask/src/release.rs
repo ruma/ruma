@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use itertools::Itertools;
 use serde::Deserialize;
 use serde_json::json;
@@ -6,27 +8,28 @@ use xshell::{cmd, pushd, read_file};
 
 use crate::{config, flags, project_root, Result};
 
-const GITHUB_API_RELEASES: &str = "https://api.github.com/repos/ruma/ruma/releases";
+const GITHUB_API_RELEASES: &str = "https://api.github.com/repos/zecakeh/ruma/releases";
 
 impl flags::Release {
     /// Run the release command to effectively create a release.
     pub(crate) fn run(self) -> Result<()> {
-        let _dir = pushd(project_root()?.join(&self.name))?;
+        let project_root = &project_root()?;
+        let _dir = pushd(project_root.join(&self.name))?;
 
         let remote = &self.get_remote()?;
 
-        if !cmd!("git status -s -uno").read()?.is_empty() {
-            return Err("This git repository contains untracked files".into());
-        }
+        // if !cmd!("git status -s -uno").read()?.is_empty() {
+        //     return Err("This git repository contains untracked files".into());
+        // }
 
-        let version = &self.get_version()?;
+        let version = &self.get_version(project_root)?;
         println!("Making release for {} {}…", self.name, version);
 
-        cmd!("cargo publish").run()?;
+        // cmd!("cargo publish").run()?;
 
         let credentials = &config()?.github.credentials();
 
-        let changes = &self.get_changes(&version)?;
+        let changes = &self.get_changes(project_root, &version)?;
 
         let tag = &format!("{}-{}", self.name, version);
         let name = &format!("{} {}", self.name, version);
@@ -53,8 +56,8 @@ impl flags::Release {
     }
 
     /// Get the changes of the given version from the changelog.
-    fn get_changes(&self, version: &str) -> Result<String> {
-        let changelog = read_file(project_root()?.join(&self.name).join("CHANGELOG.md"))?;
+    fn get_changes(&self, project_root: &Path, version: &str) -> Result<String> {
+        let changelog = read_file(project_root.join(&self.name).join("CHANGELOG.md"))?;
         let lines_nb = changelog.lines().count();
         let mut lines = changelog.lines();
 
@@ -88,8 +91,8 @@ impl flags::Release {
     }
 
     /// Get the current version of the crate from the manifest.
-    fn get_version(&self) -> Result<String> {
-        let manifest_toml = read_file(project_root()?.join(&self.name).join("Cargo.toml"))?;
+    fn get_version(&self, project_root: &Path) -> Result<String> {
+        let manifest_toml = read_file(project_root.join(&self.name).join("Cargo.toml"))?;
         let manifest: CargoManifest = from_toml_str(&manifest_toml)?;
 
         Ok(manifest.package.version)
@@ -112,7 +115,7 @@ struct CargoPackage {
 
 /// String manipulations for crate release.
 trait StrExt {
-    /// Remove soft line breaks.
+    /// Remove soft line breaks as defined in CommonMark spec.
     fn trim_softbreaks(&self) -> String;
 }
 
@@ -125,14 +128,19 @@ impl StrExt for str {
         while let Some(p) = self[current..].find('\n') {
             let pos = current + p;
             string.push_str(&self[current..pos]);
-            // Keep hard line breaks (multiple `\n`s).
+
             if self[pos..].starts_with("\n\n") {
+                // Keep new paragraphs (multiple `\n`s).
                 let next = self[pos..].find(|c: char| c != '\n').unwrap_or(0);
                 string.push_str(&self[pos..(pos + next)]);
                 current = pos + next;
+            } else if self[current..pos].ends_with("  ") || self[current..pos].ends_with('\\') {
+                // Keep hard line breaks (two spaces or a backslash before the line break)
+                string.push('\n');
+                current = pos + 1;
             } else if let Some(p) = self[pos..].find(|c: char| !c.is_ascii_whitespace()) {
                 // Keep line break before list items (`\n` + whitespaces + `*` + whitespaces).
-                // Remove line break and keep one whitespace otherwise.
+                // Remove line break and keep one space otherwise.
                 let (_, char) = chars.find(|(i, _)| *i == pos + p).unwrap();
                 if char == '*' {
                     match chars.next() {
@@ -145,12 +153,10 @@ impl StrExt for str {
                     }
                 }
                 string.push(' ');
-                current = pos + p
+                current = pos + p;
             }
         }
 
-        string.push_str(&self[(current..self.len())]);
-
-        string
+        string + &self[(current..self.len())]
     }
 }
