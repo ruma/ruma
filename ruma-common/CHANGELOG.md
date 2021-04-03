@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.3.1
+
 Bug fixes:
 
 * Fix `push::PushCondition::applies` for empty value and pattern
