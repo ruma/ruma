@@ -198,10 +198,6 @@ impl StrExt for str {
     }
 
     fn matches_pattern(&self, pattern: &str, match_words: bool) -> bool {
-        if self.is_empty() || pattern.is_empty() {
-            return false;
-        }
-
         let value = &self.to_lowercase();
         let pattern = &pattern.to_lowercase();
 
@@ -213,6 +209,13 @@ impl StrExt for str {
     }
 
     fn matches_word(&self, pattern: &str) -> bool {
+        if self == pattern {
+            return true;
+        }
+        if pattern.is_empty() {
+            return false;
+        }
+
         match self.find(pattern) {
             Some(start) => {
                 let end = start + pattern.len();
@@ -448,6 +451,8 @@ mod tests {
         assert!("Foo bar".matches_pattern("foo", true));
         assert!(!"foobar".matches_pattern("foo", true));
         assert!(!"foo bar".matches_pattern("foo*", true));
+        assert!("".matches_pattern("", true));
+        assert!(!"foo".matches_pattern("", true));
 
         // Glob matching
         assert!(!"foo bar".matches_pattern("foo", false));
@@ -458,6 +463,9 @@ mod tests {
         assert!(!"foo".matches_pattern("foo?", false));
         assert!("foo".matches_pattern("fo?", false));
         assert!("FOO".matches_pattern("foo", false));
+        assert!("".matches_pattern("", false));
+        assert!("".matches_pattern("*", false));
+        assert!(!"foo".matches_pattern("", false));
     }
 
     #[test]
