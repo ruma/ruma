@@ -1,4 +1,4 @@
-//! See https://github.com/matklad/cargo-xtask/.
+//! See <https://github.com/matklad/cargo-xtask/>.
 //!
 //! This binary is integrated into the `cargo` command line by using an alias in
 //! `.cargo/config`. Run commands as `cargo xtask [command]`.

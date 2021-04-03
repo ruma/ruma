@@ -8,7 +8,7 @@ use xshell::{cmd, pushd, read_file};
 
 use crate::{config, flags, project_root, Result};
 
-const GITHUB_API_RELEASES: &str = "https://api.github.com/repos/zecakeh/ruma/releases";
+const GITHUB_API_RELEASES: &str = "https://api.github.com/repos/ruma/ruma/releases";
 
 impl flags::Release {
     /// Run the release command to effectively create a release.
@@ -18,14 +18,14 @@ impl flags::Release {
 
         let remote = &self.get_remote()?;
 
-        // if !cmd!("git status -s -uno").read()?.is_empty() {
-        //     return Err("This git repository contains untracked files".into());
-        // }
+        if !cmd!("git status -s -uno").read()?.is_empty() {
+            return Err("This git repository contains untracked files".into());
+        }
 
         let version = &self.get_version(project_root)?;
         println!("Making release for {} {}…", self.name, version);
 
-        // cmd!("cargo publish").run()?;
+        cmd!("cargo publish").run()?;
 
         let credentials = &config()?.github.credentials();
 
@@ -121,42 +121,46 @@ trait StrExt {
 
 impl StrExt for str {
     fn trim_softbreaks(&self) -> String {
-        let mut string = "".to_owned();
-        let mut current = 0;
-        let mut chars = self.char_indices();
+        let mut string = String::new();
+        let mut s = self;
 
-        while let Some(p) = self[current..].find('\n') {
-            let pos = current + p;
-            string.push_str(&self[current..pos]);
+        while let Some(pos) = s.find('\n') {
+            string.push_str(&s[..pos]);
+            let pos_s = &s[pos..];
 
-            if self[pos..].starts_with("\n\n") {
+            if pos_s.starts_with("\n\n") {
                 // Keep new paragraphs (multiple `\n`s).
-                let next = self[pos..].find(|c: char| c != '\n').unwrap_or(0);
-                string.push_str(&self[pos..(pos + next)]);
-                current = pos + next;
-            } else if self[current..pos].ends_with("  ") || self[current..pos].ends_with('\\') {
-                // Keep hard line breaks (two spaces or a backslash before the line break)
+                let next = pos_s.find(|c: char| c != '\n').unwrap_or(0);
+                let (push, next_s) = pos_s.split_at(next);
+
+                string.push_str(push);
+                s = next_s;
+            } else if s[..pos].ends_with("  ") || s[..pos].ends_with('\\') {
+                // Keep hard line breaks (two spaces or a backslash before the line break).
                 string.push('\n');
-                current = pos + 1;
-            } else if let Some(p) = self[pos..].find(|c: char| !c.is_ascii_whitespace()) {
+                s = &pos_s[1..];
+            } else if let Some(p) = pos_s.find(|c: char| !c.is_ascii_whitespace()) {
                 // Keep line break before list items (`\n` + whitespaces + `*` + whitespaces).
                 // Remove line break and keep one space otherwise.
-                let (_, char) = chars.find(|(i, _)| *i == pos + p).unwrap();
-                if char == '*' {
+                let mut chars = pos_s.char_indices();
+                let (_, char) = chars.find(|(i, _)| *i == p).unwrap();
+
+                if char == '*' || char == '-' {
                     match chars.next() {
                         Some((_, next_char)) if next_char.is_ascii_whitespace() => {
                             string.push('\n');
-                            current = pos + 1;
+                            s = &pos_s[1..];
                             continue;
                         }
                         _ => {}
                     }
                 }
+
                 string.push(' ');
-                current = pos + p;
+                s = &pos_s[p..];
             }
         }
 
-        string + &self[(current..self.len())]
+        string + s
     }
 }
