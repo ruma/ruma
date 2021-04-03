@@ -10,7 +10,7 @@ version = "0.18.0"
 edition = "2018"
 
 [dependencies]
-ruma-identifiers-validation = { version = "0.2.1", path = "../ruma-identifiers-validation", default-features = false }
+ruma-identifiers-validation = { version = "0.2.2", path = "../ruma-identifiers-validation", default-features = false }
 quote = "1.0.8"
 proc-macro2 = "1.0.24"
 syn = "1.0.55"
