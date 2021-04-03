@@ -1,3 +1,11 @@
+# [unreleased]
+
+# 0.18.1
+
+Improvements:
+
+* Add `MxcUri` type for `mxc://` URIs
+
 # 0.18.0
 
 Breaking changes:
