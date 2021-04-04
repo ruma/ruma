@@ -33,10 +33,14 @@ Finally, commit these changes as `Release {crate} {version}`.
 
 ## Publishing to crates.io and creating a release tag
 
-*Note: only do this for final release, i.e. not alpha or beta releases, and not
-for `ruma-identifiers-validation` or one of the macro crates.*
+For `ruma-identifiers-validation` or one of the macro crates, only publish them
+to crates.io without creating a release tag:
 
-All you have to do is run the corresponding `xtask` command:
+```
+cargo publish
+```
+
+For all others, the corresponding `xtask` command does both:
 
 ```
 cargo xtask release {crate}
