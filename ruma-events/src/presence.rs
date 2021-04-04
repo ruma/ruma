@@ -5,7 +5,7 @@
 use js_int::UInt;
 use ruma_common::presence::PresenceState;
 use ruma_events_macros::{Event, EventContent};
-use ruma_identifiers::UserId;
+use ruma_identifiers::{MxcUri, UserId};
 use serde::{Deserialize, Serialize};
 
 /// Presence event.
@@ -31,7 +31,7 @@ pub struct PresenceEventContent {
         feature = "compat",
         serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<String>,
+    pub avatar_url: Option<MxcUri>,
 
     /// Whether or not the user is currently active.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,7 +58,7 @@ mod tests {
     use js_int::uint;
     use matches::assert_matches;
     use ruma_common::presence::PresenceState;
-    use ruma_identifiers::user_id;
+    use ruma_identifiers::{mxc_uri, user_id};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::{PresenceEvent, PresenceEventContent};
@@ -67,7 +67,7 @@ mod tests {
     fn serialization() {
         let event = PresenceEvent {
             content: PresenceEventContent {
-                avatar_url: Some("mxc://localhost:wefuiwegh8742w".into()),
+                avatar_url: Some(mxc_uri!("mxc://localhost/wefuiwegh8742w")),
                 currently_active: Some(false),
                 displayname: None,
                 last_active_ago: Some(uint!(2_478_593)),
@@ -79,7 +79,7 @@ mod tests {
 
         let json = json!({
             "content": {
-                "avatar_url": "mxc://localhost:wefuiwegh8742w",
+                "avatar_url": "mxc://localhost/wefuiwegh8742w",
                 "currently_active": false,
                 "last_active_ago": 2_478_593,
                 "presence": "online",
@@ -96,7 +96,7 @@ mod tests {
     fn deserialization() {
         let json = json!({
             "content": {
-                "avatar_url": "mxc://localhost:wefuiwegh8742w",
+                "avatar_url": "mxc://localhost/wefuiwegh8742w",
                 "currently_active": false,
                 "last_active_ago": 2_478_593,
                 "presence": "online",
@@ -118,7 +118,7 @@ mod tests {
                     status_msg: Some(status_msg),
                 },
                 sender,
-            } if avatar_url == "mxc://localhost:wefuiwegh8742w"
+            } if avatar_url.to_string() == "mxc://localhost/wefuiwegh8742w"
                 && status_msg == "Making cupcakes"
                 && sender == "@example:localhost"
                 && last_active_ago == uint!(2_478_593)

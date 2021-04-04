@@ -5,6 +5,7 @@
 use std::collections::BTreeMap;
 
 use js_int::UInt;
+use ruma_identifiers::MxcUri;
 use serde::{Deserialize, Serialize};
 
 pub mod aliases;
@@ -53,7 +54,7 @@ pub struct ImageInfo {
 
     /// The URL to the thumbnail of the image. Only present if the thumbnail is unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<String>,
+    pub thumbnail_url: Option<MxcUri>,
 
     /// Information on the encrypted thumbnail image. Only present if the thumbnail is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -93,7 +94,7 @@ pub struct ThumbnailInfo {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct EncryptedFile {
     /// The URL to the file.
-    pub url: String,
+    pub url: MxcUri,
 
     /// A [JSON Web Key](https://tools.ietf.org/html/rfc7517#appendix-A.3) object.
     pub key: JsonWebKey,

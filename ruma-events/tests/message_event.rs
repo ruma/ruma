@@ -8,7 +8,7 @@ use ruma_events::{
     sticker::StickerEventContent,
     AnyMessageEventContent, AnySyncMessageEvent, MessageEvent, RawExt, Unsigned,
 };
-use ruma_identifiers::{event_id, room_id, user_id};
+use ruma_identifiers::{event_id, mxc_uri, room_id, user_id};
 use ruma_serde::Raw;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -28,12 +28,12 @@ fn message_serialize_sticker() {
                     mimetype: Some("image/png".into()),
                     size: UInt::new(82595),
                 })),
-                thumbnail_url: Some("mxc://matrix.org".into()),
+                thumbnail_url: Some(mxc_uri!("mxc://matrix.org/irsns989Rrsn")),
                 thumbnail_file: None,
                 #[cfg(feature = "unstable-pre-spec")]
                 blurhash: None,
             },
-            url: "http://www.matrix.org".into(),
+            url: mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs"),
         }),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
@@ -56,10 +56,10 @@ fn message_serialize_sticker() {
                   "size": 82595,
                   "w": 800
                 },
-                "thumbnail_url": "mxc://matrix.org",
+                "thumbnail_url": "mxc://matrix.org/irsns989Rrsn",
                 "w": 1011
               },
-            "url": "http://www.matrix.org"
+            "url": "mxc://matrix.org/rnsldl8srs98IRrs"
         },
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 1,
@@ -163,10 +163,10 @@ fn deserialize_message_sticker() {
                   "size": 82595,
                   "w": 800
                 },
-                "thumbnail_url": "mxc://matrix.org",
+                "thumbnail_url": "mxc://matrix.org/irnsNRS2879",
                 "w": 1011
               },
-            "url": "http://www.matrix.org"
+            "url": "mxc://matrix.org/jxPXTKpyydzdHJkdFNZjTZrD"
         },
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 1,
@@ -210,7 +210,7 @@ fn deserialize_message_sticker() {
             && width == UInt::new(1011)
             && mimetype == "image/png"
             && size == UInt::new(84242)
-            && thumbnail_url == "mxc://matrix.org"
+            && thumbnail_url.to_string() == "mxc://matrix.org/irnsNRS2879"
             && matches!(
                 thumbnail_info.as_ref(),
                 ThumbnailInfo {
@@ -223,7 +223,7 @@ fn deserialize_message_sticker() {
                     && *thumb_mimetype == Some("image/png".into())
                     && *thumb_size == UInt::new(82595)
             )
-            && url == "http://www.matrix.org"
+            && url.to_string() == "mxc://matrix.org/jxPXTKpyydzdHJkdFNZjTZrD"
             && unsigned.is_empty()
     );
 }

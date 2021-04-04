@@ -25,6 +25,21 @@ Breaking changes:
 * Remove the implementations of `From<EventType>` and `From<key::verification::cancel::CancelCode>`
   for `String`. Use the `Display` or `ToString` implementations for those types instead.
 * Remove `PduStub`, `RoomV1PduStub` and `RoomV3PduStub` types
+* Use `ruma_identifiers::MxcUri` instead of `String` for `avatar_url`, `thumbnail_url` or `url`
+  fields in the following types:
+  ```rust
+  presence::PresenceEventContent,
+  room::{
+      avatar::{AvatarEventContent, ImageInfo},
+      member::MemberEventContent,
+      message::{
+        AudioMessageEventContent, FileMessageEventContent, ImageMessageEventContent,
+        VideoMessageEventContent
+      }
+      EncryptedFile, ImageInfo,
+  },
+  sticker::StickerEventContent
+  ```
 
 Improvements:
 

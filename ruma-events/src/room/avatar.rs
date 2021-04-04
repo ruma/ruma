@@ -2,6 +2,7 @@
 
 use js_int::UInt;
 use ruma_events_macros::StateEventContent;
+use ruma_identifiers::MxcUri;
 use serde::{Deserialize, Serialize};
 
 use super::ThumbnailInfo;
@@ -24,17 +25,17 @@ pub struct AvatarEventContent {
 
     /// URL of the avatar image.
     #[cfg(not(feature = "unstable-pre-spec"))]
-    pub url: String,
+    pub url: MxcUri,
 
     /// URL of the avatar image.
     #[cfg(feature = "unstable-pre-spec")]
-    pub url: Option<String>,
+    pub url: Option<MxcUri>,
 }
 
 impl AvatarEventContent {
     /// Create an `AvatarEventContent` from the given image URL.
     #[cfg(not(feature = "unstable-pre-spec"))]
-    pub fn new(url: String) -> Self {
+    pub fn new(url: MxcUri) -> Self {
         Self { info: None, url }
     }
 
@@ -70,7 +71,7 @@ pub struct ImageInfo {
 
     /// The URL to the thumbnail of the image.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<String>,
+    pub thumbnail_url: Option<MxcUri>,
 
     /// The [BlurHash](https://blurha.sh) for this image.
     ///
