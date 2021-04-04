@@ -3,7 +3,7 @@
 use std::fmt;
 
 use js_int::UInt;
-use ruma_identifiers::{RoomAliasId, RoomId};
+use ruma_identifiers::{MxcUri, RoomAliasId, RoomId};
 use ruma_serde::Outgoing;
 use serde::{
     de::{Error, MapAccess, Visitor},
@@ -55,7 +55,7 @@ pub struct PublicRoomsChunk {
         feature = "compat",
         serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
     )]
-    pub avatar_url: Option<String>,
+    pub avatar_url: Option<MxcUri>,
 }
 
 /// Initial set of mandatory fields of `PublicRoomsChunk`.

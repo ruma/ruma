@@ -1,5 +1,10 @@
 # [unreleased]
 
+Breaking changes:
+
+* Use `ruma_identifiers::MxcUri` instead of `String` for `avatar_url` field in
+  `directory::PublicRoomsChunk`
+
 # 0.3.1
 
 Bug fixes:
