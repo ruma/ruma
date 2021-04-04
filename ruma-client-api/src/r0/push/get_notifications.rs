@@ -5,7 +5,7 @@ use std::time::SystemTime;
 use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_common::push::Action;
-use ruma_events::AnyEvent;
+use ruma_events::AnySyncRoomEvent;
 use ruma_identifiers::RoomId;
 use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
@@ -75,7 +75,7 @@ pub struct Notification {
     pub actions: Vec<Action>,
 
     /// The event that triggered the notification.
-    pub event: Raw<AnyEvent>,
+    pub event: Raw<AnySyncRoomEvent>,
 
     /// The profile tag of the rule that matched this event.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -98,7 +98,7 @@ impl Notification {
     /// timestamp.
     pub fn new(
         actions: Vec<Action>,
-        event: Raw<AnyEvent>,
+        event: Raw<AnySyncRoomEvent>,
         read: bool,
         room_id: RoomId,
         ts: SystemTime,
