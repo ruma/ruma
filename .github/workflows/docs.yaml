@@ -1,7 +1,6 @@
 on:
   push:
-    # TODO: remove docs-deployment
-    branches: [main, docs-deployment]
+    branches: [main]
 
 jobs:
   build-deploy:
