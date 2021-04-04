@@ -65,6 +65,8 @@ Breaking changes:
 * Move `user: UserInfo` in `r0::session::login::Request` to `identifier: UserIdentifier` in
   `r0::session::login::LoginInfo::Password`
   * `r0::session::login::Request::new` takes only `login_info: LoginInfo` as a param
+* Change `ruma_events::AnyEvent` to `ruma_events::AnySyncRoomEvent` in
+  `push::get_notifications::Notification`
 
 Improvements:
 
@@ -129,8 +131,6 @@ Breaking changes:
 * Update `r0::search::search_events` to r0.6.0
 * Add `account_data` field to `r0::sync::sync_events`
 * Rename `r0::client_exchange` to `r0::to_device`
-* Change `ruma_events::AnyEvent` to `ruma_events::AnySyncRoomEvent` in
-  `push::get_notifications::Notification`
 
 Improvements:
 
