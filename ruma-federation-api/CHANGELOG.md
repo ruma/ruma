@@ -9,6 +9,8 @@ Breaking Changes:
   * Rename `pdu_stub` fields to `pdu`
 * Upgrade dependencies
 * Wrap `Pdu`s in `backfill::get_backfill` in `Raw`
+* Use `ruma_identifiers::MxcUri` instead of `String` for `avatar_url` in
+  `query::get_profile_information::v1`
 
 Improvements:
 
