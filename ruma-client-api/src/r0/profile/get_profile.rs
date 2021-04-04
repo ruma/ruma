@@ -1,7 +1,7 @@
 //! [GET /_matrix/client/r0/profile/{userId}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-profile-userid)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::UserId;
+use ruma_identifiers::{MxcUri, UserId};
 
 ruma_api! {
     metadata: {
@@ -30,7 +30,7 @@ ruma_api! {
             feature = "compat",
             serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
         )]
-        pub avatar_url: Option<String>,
+        pub avatar_url: Option<MxcUri>,
 
         /// The user's display name, if set.
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -49,7 +49,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given avatar URL and display name.
-    pub fn new(avatar_url: Option<String>, displayname: Option<String>) -> Self {
+    pub fn new(avatar_url: Option<MxcUri>, displayname: Option<String>) -> Self {
         Self { avatar_url, displayname }
     }
 }

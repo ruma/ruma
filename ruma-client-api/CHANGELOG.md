@@ -67,6 +67,17 @@ Breaking changes:
   * `r0::session::login::Request::new` takes only `login_info: LoginInfo` as a param
 * Change `ruma_events::AnyEvent` to `ruma_events::AnySyncRoomEvent` in
   `push::get_notifications::Notification`
+* Use `ruma_identifiers::MxcUri` instead of `String` for `avatar_url` fields in the following
+  endpoints:
+  ```rust
+  r0::{
+      directory,
+      media::create_content,
+      membership::joined_members,
+      profile::{get_avatar_url, get_profile, set_avatar_url},
+      search::{search_events, search_users}
+  }
+  ```
 
 Improvements:
 
