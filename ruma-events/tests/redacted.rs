@@ -329,7 +329,7 @@ fn redact_method_properly_redacts() {
         "content": {
             "body": "test",
             "msgtype": "m.audio",
-            "url": "http://example.com/audio.mp3",
+            "url": "mxc://example.com/AuDi0",
         }
     });
 

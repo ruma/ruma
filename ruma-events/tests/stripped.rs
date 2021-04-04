@@ -3,7 +3,7 @@ use ruma_events::{
     room::{join_rules::JoinRule, topic::TopicEventContent},
     AnyStateEventContent, AnyStrippedStateEvent, StrippedStateEvent,
 };
-use ruma_identifiers::user_id;
+use ruma_identifiers::{mxc_uri, user_id};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 #[test]
@@ -80,7 +80,7 @@ fn deserialize_stripped_state_events() {
                     "mimetype": "image/jpeg",
                     "size": 32
                 },
-                "thumbnail_url": "https://example.com/image-thumbnail.jpg"
+                "thumbnail_url": "mxc://example.com/THumbNa1l"
             },
             "thumbnail_info": {
                 "h": 16,
@@ -88,8 +88,8 @@ fn deserialize_stripped_state_events() {
                 "mimetype": "image/jpeg",
                 "size": 32
             },
-            "thumbnail_url": "https://example.com/image-thumbnail.jpg",
-            "url": "https://example.com/image.jpg"
+            "thumbnail_url": "mxc://example.com/THumbNa1l",
+            "url": "mxc://example.com/iMag3"
         }
     });
 
@@ -117,10 +117,10 @@ fn deserialize_stripped_state_events() {
     match event {
         AnyStrippedStateEvent::RoomAvatar(event) => {
             let image_info = event.content.info.unwrap();
-            let expected_url = "https://example.com/image.jpg";
+            let expected_url = mxc_uri!("mxc://example.com/iMag3");
 
             #[cfg(feature = "unstable-pre-spec")]
-            let expected_url = Some(expected_url.to_owned());
+            let expected_url = Some(expected_url);
 
             assert_eq!(image_info.height.unwrap(), uint!(128));
             assert_eq!(image_info.width.unwrap(), uint!(128));

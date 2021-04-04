@@ -1,6 +1,7 @@
 //! Types for the *m.sticker* event.
 
 use ruma_events_macros::MessageEventContent;
+use ruma_identifiers::MxcUri;
 use serde::{Deserialize, Serialize};
 
 use crate::{room::ImageInfo, MessageEvent};
@@ -21,5 +22,5 @@ pub struct StickerEventContent {
     pub info: ImageInfo,
 
     /// The URL to the sticker image. This must be a valid `mxc://` URI.
-    pub url: String,
+    pub url: MxcUri,
 }

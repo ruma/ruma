@@ -2,7 +2,7 @@ use std::time::{Duration, UNIX_EPOCH};
 
 use js_int::UInt;
 use matches::assert_matches;
-use ruma_identifiers::{event_id, room_id, user_id};
+use ruma_identifiers::{event_id, mxc_uri, room_id, user_id};
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 use ruma_events::{
@@ -82,12 +82,12 @@ fn serialize_message_event() {
                     mimetype: Some("image/png".into()),
                     size: UInt::new(82595),
                 })),
-                thumbnail_url: Some("mxc://matrix.org".into()),
+                thumbnail_url: Some(mxc_uri!("mxc://matrix.org/mnrsnsRRS787TSts")),
                 thumbnail_file: None,
                 #[cfg(feature = "unstable-pre-spec")]
                 blurhash: None,
             },
-            url: "http://www.matrix.org".into(),
+            url: mxc_uri!("mxc://matrix.org/arsrns98rsRSR"),
         },
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
@@ -110,10 +110,10 @@ fn serialize_message_event() {
                 "size": 82595,
                 "w": 800
                 },
-                "thumbnail_url": "mxc://matrix.org",
+                "thumbnail_url": "mxc://matrix.org/mnrsnsRRS787TSts",
                 "w": 1011
             },
-            "url": "http://www.matrix.org"
+            "url": "mxc://matrix.org/arsrns98rsRSR"
         },
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 1,

@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_events_macros::MessageEventContent;
+use ruma_identifiers::MxcUri;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::{DeviceIdBox, UserId};
 use ruma_serde::StringEnum;
@@ -206,7 +207,7 @@ pub struct AudioMessageEventContent {
     /// The URL to the audio clip. Required if the file is unencrypted. The URL (typically
     /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri)) to the audio clip.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<String>,
+    pub url: Option<MxcUri>,
 
     /// Required if the audio clip is encrypted. Information on the encrypted audio clip.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -260,7 +261,7 @@ pub struct FileMessageEventContent {
     /// The URL to the file. Required if the file is unencrypted. The URL (typically
     /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri)) to the file.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<String>,
+    pub url: Option<MxcUri>,
 
     /// Required if file is encrypted. Information on the encrypted file.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -284,7 +285,7 @@ pub struct FileInfo {
 
     /// The URL to the thumbnail of the file. Only present if the thumbnail is unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<String>,
+    pub thumbnail_url: Option<MxcUri>,
 
     /// Information on the encrypted thumbnail file. Only present if the thumbnail is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -307,7 +308,7 @@ pub struct ImageMessageEventContent {
     /// The URL to the image. Required if the file is unencrypted. The URL (typically
     /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri)) to the image.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<String>,
+    pub url: Option<MxcUri>,
 
     /// Required if image is encrypted. Information on the encrypted image.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -340,7 +341,7 @@ pub struct LocationInfo {
     /// The URL to a thumbnail of the location being represented. Only present if the thumbnail is
     /// unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<String>,
+    pub thumbnail_url: Option<MxcUri>,
 
     /// Information on an encrypted thumbnail of the location being represented. Only present if
     /// the thumbnail is encrypted.
@@ -517,7 +518,7 @@ pub struct VideoMessageEventContent {
     /// The URL to the video clip.  Required if the file is unencrypted. The URL (typically
     /// [MXC URI](https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri)) to the video clip.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<String>,
+    pub url: Option<MxcUri>,
 
     /// Required if video clip is encrypted. Information on the encrypted video clip.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -556,7 +557,7 @@ pub struct VideoInfo {
     /// The URL (typically [MXC URI](https://matrix.org/docs/spec/client_server/r0.6.1#mxc-uri)) to
     /// an image thumbnail of the video clip. Only present if the thumbnail is unencrypted.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail_url: Option<String>,
+    pub thumbnail_url: Option<MxcUri>,
 
     /// Information on the encrypted thumbnail file.  Only present if the thumbnail is encrypted.
     #[serde(skip_serializing_if = "Option::is_none")]

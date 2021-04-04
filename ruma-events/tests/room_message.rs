@@ -19,7 +19,7 @@ use ruma_events::{
 };
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::DeviceIdBox;
-use ruma_identifiers::{event_id, room_id, user_id};
+use ruma_identifiers::{event_id, mxc_uri, room_id, user_id};
 use ruma_serde::Raw;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
@@ -29,7 +29,7 @@ fn serialization() {
         content: MessageEventContent::new(MessageType::Audio(AudioMessageEventContent {
             body: "test".into(),
             info: None,
-            url: Some("http://example.com/audio.mp3".into()),
+            url: Some(mxc_uri!("mxc://example.org/ffed755USFFxlgbQYZGtryd")),
             file: None,
         })),
         event_id: event_id!("$143273582443PhrSn:example.org"),
@@ -50,7 +50,7 @@ fn serialization() {
             "content": {
                 "body": "test",
                 "msgtype": "m.audio",
-                "url": "http://example.com/audio.mp3",
+                "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd",
             }
         })
     );
@@ -62,7 +62,7 @@ fn content_serialization() {
         MessageEventContent::new(MessageType::Audio(AudioMessageEventContent {
             body: "test".into(),
             info: None,
-            url: Some("http://example.com/audio.mp3".into()),
+            url: Some(mxc_uri!("mxc://example.org/ffed755USFFxlgbQYZGtryd")),
             file: None,
         }));
 
@@ -71,7 +71,7 @@ fn content_serialization() {
         json!({
             "body": "test",
             "msgtype": "m.audio",
-            "url": "http://example.com/audio.mp3"
+            "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd"
         })
     );
 }
@@ -321,7 +321,7 @@ fn content_deserialization() {
     let json_data = json!({
         "body": "test",
         "msgtype": "m.audio",
-        "url": "http://example.com/audio.mp3"
+        "url": "mxc://example.org/ffed755USFFxlgbQYZGtryd"
     });
 
     assert_matches!(
@@ -337,7 +337,7 @@ fn content_deserialization() {
                 file: None,
             }),
             ..
-        } if body == "test" && url == "http://example.com/audio.mp3"
+        } if body == "test" && url.to_string() == "mxc://example.org/ffed755USFFxlgbQYZGtryd"
     );
 }
 

@@ -11,7 +11,7 @@ use ruma_events::{
     AnyRoomEvent, AnyStateEvent, AnyStateEventContent, AnySyncStateEvent, RawExt, StateEvent,
     SyncStateEvent, Unsigned,
 };
-use ruma_identifiers::{event_id, room_alias_id, room_id, user_id};
+use ruma_identifiers::{event_id, mxc_uri, room_alias_id, room_id, user_id};
 use ruma_serde::Raw;
 use serde_json::{
     from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
@@ -173,10 +173,10 @@ fn deserialize_avatar_without_prev_content() {
                   "size": 82595,
                   "w": 800
                 },
-                "thumbnail_url": "mxc://matrix.org",
+                "thumbnail_url": "mxc://matrix.org/98irRSS23srs",
                 "w": 1011
               },
-            "url": "http://www.matrix.org"
+            "url": "mxc://matrix.org/rnsldl8srs98IRrs"
         },
         "event_id": "$h29iv0s8:example.com",
         "origin_server_ts": 1,
@@ -186,7 +186,7 @@ fn deserialize_avatar_without_prev_content() {
         "type": "m.room.avatar"
     });
 
-    let expected_url = "http://www.matrix.org";
+    let expected_url = "mxc://matrix.org/rnsldl8srs98IRrs";
 
     #[cfg(feature = "unstable-pre-spec")]
     let expected_url = Some(expected_url.to_owned());
@@ -240,10 +240,10 @@ fn deserialize_avatar_without_prev_content() {
                             && *thumb_height == UInt::new(334)
                             && *thumb_mimetype == Some("image/png".into())
                             && *thumb_size == UInt::new(82595)
-                            && *thumbnail_url == "mxc://matrix.org"
+                            && *thumbnail_url == mxc_uri!("mxc://matrix.org/98irRSS23srs")
                     )
             )
-            && url == expected_url
+            && url.to_string() == expected_url
             && unsigned.is_empty()
     );
 }
