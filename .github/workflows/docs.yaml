@@ -22,7 +22,7 @@ jobs:
       with:
         command: doc
         args: --no-deps --workspace
-    - name: Deploy to gh-pages branch
+    - name: Deploy to docs branch
       uses: JamesIves/github-pages-deploy-action@4.1.0
       with:
         branch: docs
