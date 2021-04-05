@@ -18,10 +18,10 @@ jobs:
     - name: Build docs
       uses: actions-rs/cargo@v1
       env:
-       RUSTDOCFLAGS: "--enable-index-page -Zunstable-options -Zrustdoc-map"
+       RUSTDOCFLAGS: "--enable-index-page -Zunstable-options"
       with:
         command: doc
-        args: --no-deps --workspace --exclude xtask --features api,events,signatures,appservice-api,client-api,federation-api,identity-service-api,push-gateway-api,either,rand,markdown,compat,unstable-pre-spec
+        args: --no-deps --workspace --exclude xtask --features api,events,signatures,appservice-api,client-api,federation-api,identity-service-api,push-gateway-api,either,rand,markdown,compat,unstable-pre-spec -Zrustdoc-map
     - name: Deploy to docs branch
       uses: JamesIves/github-pages-deploy-action@4.1.0
       with:
