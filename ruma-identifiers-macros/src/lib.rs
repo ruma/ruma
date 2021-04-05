@@ -18,7 +18,7 @@ struct Input {
 impl Parse for Input {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let dollar_crate = input.parse()?;
-        input.parse::<Token![,]>()?;
+        let _: Token![,] = input.parse()?;
         let id = input.parse()?;
 
         Ok(Self { dollar_crate, id })

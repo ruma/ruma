@@ -44,14 +44,14 @@ impl Parse for EventMeta {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
         if lookahead.peek(Token![type]) {
-            input.parse::<Token![type]>()?;
-            input.parse::<Token![=]>()?;
+            let _: Token![type] = input.parse()?;
+            let _: Token![=] = input.parse()?;
             input.parse().map(EventMeta::Type)
         } else if lookahead.peek(kw::skip_redaction) {
-            input.parse::<kw::skip_redaction>()?;
+            let _: kw::skip_redaction = input.parse()?;
             Ok(EventMeta::SkipRedacted)
         } else if lookahead.peek(kw::custom_redacted) {
-            input.parse::<kw::custom_redacted>()?;
+            let _: kw::custom_redacted = input.parse()?;
             Ok(EventMeta::CustomRedacted)
         } else {
             Err(lookahead.error())

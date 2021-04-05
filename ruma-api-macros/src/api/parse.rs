@@ -69,8 +69,8 @@ impl Parse for Api {
 impl Parse for Request {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let attributes = input.call(Attribute::parse_outer)?;
-        let request_kw = input.parse::<kw::request>()?;
-        input.parse::<Token![:]>()?;
+        let request_kw: kw::request = input.parse()?;
+        let _: Token![:] = input.parse()?;
         let fields;
         braced!(fields in input);
 
@@ -201,8 +201,8 @@ impl Parse for Request {
 impl Parse for Response {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let attributes = input.call(Attribute::parse_outer)?;
-        let response_kw = input.parse::<kw::response>()?;
-        input.parse::<Token![:]>()?;
+        let response_kw: kw::response = input.parse()?;
+        let _: Token![:] = input.parse()?;
         let fields;
         braced!(fields in input);
 

@@ -481,9 +481,9 @@ fn to_camel_case(name: &Ident) -> Ident {
     let span = name.span();
     let name = name.to_string();
 
-    let s = name
+    let s: String = name
         .split('_')
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
-        .collect::<String>();
+        .collect();
     Ident::new(&s, span)
 }

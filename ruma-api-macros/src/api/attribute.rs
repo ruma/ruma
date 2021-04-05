@@ -40,7 +40,7 @@ impl Parse for Meta {
         let ident = input.parse()?;
 
         if input.peek(Token![=]) {
-            let _ = input.parse::<Token![=]>();
+            let _: Token![=] = input.parse()?;
             Ok(Meta::NameValue(MetaNameValue { name: ident, value: input.parse()? }))
         } else {
             Ok(Meta::Word(ident))

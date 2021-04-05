@@ -129,7 +129,7 @@ impl EventKind {
 
 impl Parse for EventKind {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let ident = input.parse::<Ident>()?;
+        let ident: Ident = input.parse()?;
         Ok(match ident.to_string().as_str() {
             "Basic" => EventKind::Basic,
             "EphemeralRoom" => EventKind::Ephemeral,
@@ -201,16 +201,16 @@ impl Parse for EventEnumInput {
     fn parse(input: ParseStream<'_>) -> parse::Result<Self> {
         let attrs = input.call(Attribute::parse_outer)?;
         // "name" field
-        input.parse::<kw::kind>()?;
-        input.parse::<Token![:]>()?;
+        let _: kw::kind = input.parse()?;
+        let _: Token![:] = input.parse()?;
 
         // the name of our event enum
-        let name = input.parse::<EventKind>()?;
-        input.parse::<Token![,]>()?;
+        let name: EventKind = input.parse()?;
+        let _: Token![,] = input.parse()?;
 
         // "events" field
-        input.parse::<kw::events>()?;
-        input.parse::<Token![:]>()?;
+        let _: kw::events = input.parse()?;
+        let _: Token![:] = input.parse()?;
 
         // an array of event names `["m.room.whatever", ...]`
         let content;

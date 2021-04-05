@@ -816,10 +816,10 @@ fn to_event_path(name: &LitStr, struct_name: &Ident, ruma_events: &TokenStream) 
     let path: Vec<_> = name[2..].split('.').collect();
 
     let event_str = path.last().unwrap();
-    let event = event_str
+    let event: String = event_str
         .split('_')
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
-        .collect::<String>();
+        .collect();
 
     let path = path.iter().map(|s| Ident::new(s, span));
 
@@ -869,10 +869,10 @@ fn to_event_content_path(
     let path: Vec<_> = name[2..].split('.').collect();
 
     let event_str = path.last().unwrap();
-    let event = event_str
+    let event: String = event_str
         .split('_')
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
-        .collect::<String>();
+        .collect();
 
     let content_str = match kind {
         EventKind::ToDevice => format_ident!("{}ToDeviceEventContent", event),
@@ -899,10 +899,10 @@ fn to_camel_case(name: &LitStr) -> syn::Result<Ident> {
         ));
     }
 
-    let s = name[2..]
+    let s: String = name[2..]
         .split(&['.', '_'] as &[char])
         .map(|s| s.chars().next().unwrap().to_uppercase().to_string() + &s[1..])
-        .collect::<String>();
+        .collect();
 
     Ok(Ident::new(&s, span))
 }
