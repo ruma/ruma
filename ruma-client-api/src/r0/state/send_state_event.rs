@@ -129,11 +129,15 @@ impl ruma_api::IncomingRequest for IncomingRequest {
             }
         };
 
-        let state_key =
-            match percent_encoding::percent_decode(path_segments[7].as_bytes()).decode_utf8() {
-                Ok(val) => val.into_owned(),
-                Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-            };
+        let state_key = match path_segments.get(7) {
+            Some(segment) => {
+                match percent_encoding::percent_decode(segment.as_bytes()).decode_utf8() {
+                    Ok(val) => val.into_owned(),
+                    Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
+                }
+            }
+            None => "".into(),
+        };
 
         let content = {
             let request_body: Box<RawJsonValue> =

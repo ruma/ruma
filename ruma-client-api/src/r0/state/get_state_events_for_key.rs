@@ -142,17 +142,21 @@ impl ruma_api::IncomingRequest for IncomingRequest {
             }
         };
 
-        let state_key = {
-            let decoded =
-                match percent_encoding::percent_decode(path_segments[7].as_bytes()).decode_utf8() {
+        let state_key = match path_segments.get(7) {
+            Some(segment) => {
+                let decoded = match percent_encoding::percent_decode(segment.as_bytes())
+                    .decode_utf8()
+                {
                     Ok(val) => val,
                     Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
                 };
 
-            match String::try_from(&*decoded) {
-                Ok(val) => val,
-                Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
+                match String::try_from(&*decoded) {
+                    Ok(val) => val,
+                    Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
+                }
             }
+            None => "".into(),
         };
 
         Ok(Self { room_id, event_type, state_key })
