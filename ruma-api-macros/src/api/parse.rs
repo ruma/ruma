@@ -4,9 +4,8 @@ use syn::{
     braced,
     parse::{Parse, ParseStream},
     spanned::Spanned,
-    AngleBracketedGenericArguments, Attribute, BoundLifetimes, Field, GenericArgument, Ident,
-    Lifetime, LifetimeDef, ParenthesizedGenericArguments, PathArguments, Token, Type, TypeArray,
-    TypeBareFn, TypeGroup, TypeParen, TypePath, TypePtr, TypeReference, TypeSlice, TypeTuple,
+    visit::Visit,
+    Attribute, Field, Ident, Lifetime, Token, Type,
 };
 
 use super::{
@@ -18,9 +17,11 @@ use super::{
 use crate::util;
 
 mod kw {
-    syn::custom_keyword!(error);
-    syn::custom_keyword!(request);
-    syn::custom_keyword!(response);
+    use syn::custom_keyword;
+
+    custom_keyword!(error);
+    custom_keyword!(request);
+    custom_keyword!(response);
 }
 
 impl Parse for Api {
@@ -74,13 +75,12 @@ impl Parse for Request {
         let fields;
         braced!(fields in input);
 
-        let fields = fields.parse_terminated::<Field, Token![,]>(Field::parse_named)?;
-
         let mut newtype_body_field = None;
         let mut query_map_field = None;
         let mut lifetimes = RequestLifetimes::default();
 
-        let fields = fields
+        let fields: Vec<_> = fields
+            .parse_terminated::<Field, Token![,]>(Field::parse_named)?
             .into_iter()
             .map(|mut field| {
                 let mut field_kind = None;
@@ -145,31 +145,31 @@ impl Parse for Request {
 
                 match field_kind.unwrap_or(RequestFieldKind::Body) {
                     RequestFieldKind::Header => {
-                        collect_lifetime_ident(&mut lifetimes.header, &field.ty)
+                        collect_lifetime_idents(&mut lifetimes.header, &field.ty)
                     }
                     RequestFieldKind::Body => {
-                        collect_lifetime_ident(&mut lifetimes.body, &field.ty)
+                        collect_lifetime_idents(&mut lifetimes.body, &field.ty)
                     }
                     RequestFieldKind::NewtypeBody => {
-                        collect_lifetime_ident(&mut lifetimes.body, &field.ty)
+                        collect_lifetime_idents(&mut lifetimes.body, &field.ty)
                     }
                     RequestFieldKind::NewtypeRawBody => {
-                        collect_lifetime_ident(&mut lifetimes.body, &field.ty)
+                        collect_lifetime_idents(&mut lifetimes.body, &field.ty)
                     }
                     RequestFieldKind::Path => {
-                        collect_lifetime_ident(&mut lifetimes.path, &field.ty)
+                        collect_lifetime_idents(&mut lifetimes.path, &field.ty)
                     }
                     RequestFieldKind::Query => {
-                        collect_lifetime_ident(&mut lifetimes.query, &field.ty)
+                        collect_lifetime_idents(&mut lifetimes.query, &field.ty)
                     }
                     RequestFieldKind::QueryMap => {
-                        collect_lifetime_ident(&mut lifetimes.query, &field.ty)
+                        collect_lifetime_idents(&mut lifetimes.query, &field.ty)
                     }
                 }
 
                 Ok(RequestField::new(field_kind.unwrap_or(RequestFieldKind::Body), field, header))
             })
-            .collect::<syn::Result<Vec<_>>>()?;
+            .collect::<syn::Result<_>>()?;
 
         if newtype_body_field.is_some() && fields.iter().any(|f| f.is_body()) {
             // TODO: highlight conflicting fields,
@@ -207,26 +207,19 @@ impl Parse for Response {
         let fields;
         braced!(fields in input);
 
-        let fields = fields
-            .parse_terminated::<Field, Token![,]>(Field::parse_named)?
-            .into_iter()
-            .map(|f| {
-                if has_lifetime(&f.ty) {
-                    Err(syn::Error::new(
-                        f.ident.span(),
-                        "Lifetimes on Response fields cannot be supported until GAT are stable",
-                    ))
-                } else {
-                    Ok(f)
-                }
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-
         let mut newtype_body_field = None;
 
-        let fields = fields
+        let fields: Vec<_> = fields
+            .parse_terminated::<Field, Token![,]>(Field::parse_named)?
             .into_iter()
             .map(|mut field| {
+                if has_lifetime(&field.ty) {
+                    return Err(syn::Error::new(
+                        field.ident.span(),
+                        "Lifetimes on Response fields cannot be supported until GAT are stable",
+                    ));
+                }
+
                 let mut field_kind = None;
                 let mut header = None;
 
@@ -277,7 +270,7 @@ impl Parse for Response {
                     ResponseFieldKind::NewtypeRawBody => ResponseField::NewtypeRawBody(field),
                 })
             })
-            .collect::<syn::Result<Vec<_>>>()?;
+            .collect::<syn::Result<_>>()?;
 
         if newtype_body_field.is_some() && fields.iter().any(|f| f.is_body()) {
             // TODO: highlight conflicting fields,
@@ -292,118 +285,20 @@ impl Parse for Response {
 }
 
 fn has_lifetime(ty: &Type) -> bool {
-    match ty {
-        Type::Path(TypePath { path, .. }) => {
-            let mut found = false;
-            for seg in &path.segments {
-                match &seg.arguments {
-                    PathArguments::AngleBracketed(AngleBracketedGenericArguments {
-                        args, ..
-                    }) => {
-                        for gen in args {
-                            if let GenericArgument::Type(ty) = gen {
-                                if has_lifetime(&ty) {
-                                    found = true;
-                                };
-                            } else if let GenericArgument::Lifetime(_) = gen {
-                                return true;
-                            }
-                        }
-                    }
-                    PathArguments::Parenthesized(ParenthesizedGenericArguments {
-                        inputs, ..
-                    }) => {
-                        for ty in inputs {
-                            if has_lifetime(ty) {
-                                found = true;
-                            }
-                        }
-                    }
-                    _ => {}
-                }
-            }
-            found
-        }
-        Type::Reference(TypeReference { elem, lifetime, .. }) => {
-            if lifetime.is_some() {
-                true
-            } else {
-                has_lifetime(&elem)
-            }
-        }
-        Type::Tuple(TypeTuple { elems, .. }) => {
-            let mut found = false;
-            for ty in elems {
-                if has_lifetime(ty) {
-                    found = true;
-                }
-            }
-            found
-        }
-        Type::Paren(TypeParen { elem, .. }) => has_lifetime(&elem),
-        Type::Group(TypeGroup { elem, .. }) => has_lifetime(&*elem),
-        Type::Ptr(TypePtr { elem, .. }) => has_lifetime(&*elem),
-        Type::Slice(TypeSlice { elem, .. }) => has_lifetime(&*elem),
-        Type::Array(TypeArray { elem, .. }) => has_lifetime(&*elem),
-        Type::BareFn(TypeBareFn { lifetimes: Some(BoundLifetimes { .. }), .. }) => true,
-        _ => false,
-    }
+    let mut lifetimes = BTreeSet::new();
+    collect_lifetime_idents(&mut lifetimes, ty);
+    !lifetimes.is_empty()
 }
 
-fn collect_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
-    match ty {
-        Type::Path(TypePath { path, .. }) => {
-            for seg in &path.segments {
-                match &seg.arguments {
-                    PathArguments::AngleBracketed(AngleBracketedGenericArguments {
-                        args, ..
-                    }) => {
-                        for gen in args {
-                            if let GenericArgument::Type(ty) = gen {
-                                collect_lifetime_ident(lifetimes, &ty);
-                            } else if let GenericArgument::Lifetime(lt) = gen {
-                                lifetimes.insert(lt.clone());
-                            }
-                        }
-                    }
-                    PathArguments::Parenthesized(ParenthesizedGenericArguments {
-                        inputs, ..
-                    }) => {
-                        for ty in inputs {
-                            collect_lifetime_ident(lifetimes, ty);
-                        }
-                    }
-                    _ => {}
-                }
-            }
+fn collect_lifetime_idents(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
+    struct Visitor<'lt>(&'lt mut BTreeSet<Lifetime>);
+    impl<'ast> Visit<'ast> for Visitor<'_> {
+        fn visit_lifetime(&mut self, lt: &'ast Lifetime) {
+            self.0.insert(lt.clone());
         }
-        Type::Reference(TypeReference { elem, lifetime, .. }) => {
-            collect_lifetime_ident(lifetimes, &*elem);
-            if let Some(lt) = lifetime {
-                lifetimes.insert(lt.clone());
-            }
-        }
-        Type::Tuple(TypeTuple { elems, .. }) => {
-            for ty in elems {
-                collect_lifetime_ident(lifetimes, ty);
-            }
-        }
-        Type::Paren(TypeParen { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
-        Type::Group(TypeGroup { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
-        Type::Ptr(TypePtr { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
-        Type::Slice(TypeSlice { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
-        Type::Array(TypeArray { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
-        Type::BareFn(TypeBareFn {
-            lifetimes: Some(BoundLifetimes { lifetimes: fn_lifetimes, .. }),
-            ..
-        }) => {
-            for lt in fn_lifetimes {
-                let LifetimeDef { lifetime, .. } = lt;
-                lifetimes.insert(lifetime.clone());
-            }
-        }
-        _ => {}
     }
+
+    Visitor(lifetimes).visit_type(ty)
 }
 
 fn req_res_meta_word<T>(
