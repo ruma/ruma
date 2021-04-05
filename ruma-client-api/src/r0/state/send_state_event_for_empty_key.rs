@@ -3,17 +3,31 @@
 use std::convert::TryFrom;
 
 use ruma_api::{
-    error::{
-        FromHttpRequestError, FromHttpResponseError, IntoHttpError, RequestDeserializationError,
-        ResponseDeserializationError, ServerError,
-    },
-    AuthScheme, EndpointError, Metadata,
+    error::{FromHttpRequestError, IntoHttpError, RequestDeserializationError},
+    ruma_api, Metadata,
 };
 use ruma_events::{AnyStateEventContent, EventContent as _};
 use ruma_identifiers::{EventId, RoomId};
 use ruma_serde::Outgoing;
-use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJsonValue;
+
+ruma_api! {
+    metadata: {
+        description: "Send a state event to a room associated with the empty state key.",
+        method: PUT,
+        name: "send_state_event_for_empty_key",
+        path: "/_matrix/client/r0/rooms/:room_id/state/:event_type",
+        rate_limited: false,
+        authentication: AccessToken,
+    }
+
+    response: {
+        /// A unique identifier for the event.
+        pub event_id: EventId,
+    }
+
+    error: crate::Error
+}
 
 /// Data for a request to the `send_state_event_for_empty_key` API endpoint.
 ///
@@ -36,71 +50,10 @@ impl<'a> Request<'a> {
     }
 }
 
-/// Data in the response from the `send_state_event_for_empty_key` API endpoint.
-#[derive(Clone, Debug, Outgoing)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[incoming_derive(!Deserialize)]
-pub struct Response {
-    /// A unique identifier for the event.
-    pub event_id: EventId,
-}
-
 impl Response {
     /// Creates a new `Response` with the given event id.
     pub fn new(event_id: EventId) -> Self {
         Self { event_id }
-    }
-}
-
-const METADATA: Metadata = Metadata {
-    description: "Send a state event to a room associated with the empty state key.",
-    method: http::Method::PUT,
-    name: "send_state_event_for_empty_key",
-    path: "/_matrix/client/r0/rooms/:room_id/state/:event_type",
-    rate_limited: false,
-    authentication: AuthScheme::AccessToken,
-};
-
-/// Data in the response body.
-#[derive(Debug, Deserialize, Serialize)]
-struct ResponseBody {
-    /// A unique identifier for the event.
-    event_id: EventId,
-}
-
-#[cfg(feature = "server")]
-impl TryFrom<Response> for http::Response<Vec<u8>> {
-    type Error = IntoHttpError;
-
-    fn try_from(response: Response) -> Result<Self, Self::Error> {
-        let response = http::Response::builder()
-            .header(http::header::CONTENT_TYPE, "application/json")
-            .body(serde_json::to_vec(&ResponseBody { event_id: response.event_id })?)
-            .unwrap();
-
-        Ok(response)
-    }
-}
-
-#[cfg(feature = "client")]
-impl TryFrom<http::Response<Vec<u8>>> for Response {
-    type Error = FromHttpResponseError<crate::Error>;
-
-    fn try_from(response: http::Response<Vec<u8>>) -> Result<Self, Self::Error> {
-        if response.status().as_u16() < 400 {
-            let response_body: ResponseBody =
-                match serde_json::from_slice(response.body().as_slice()) {
-                    Ok(val) => val,
-                    Err(err) => return Err(ResponseDeserializationError::new(err, response).into()),
-                };
-
-            Ok(Self { event_id: response_body.event_id })
-        } else {
-            match <crate::Error as EndpointError>::try_from_response(response) {
-                Ok(err) => Err(ServerError::Known(err).into()),
-                Err(response_err) => Err(ServerError::Unknown(response_err).into()),
-            }
-        }
     }
 }
 
@@ -109,7 +62,6 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
     type EndpointError = crate::Error;
     type IncomingResponse = Response;
 
-    /// Metadata for the `send_message_event` endpoint.
     const METADATA: Metadata = METADATA;
 
     fn try_into_http_request(
@@ -147,7 +99,6 @@ impl ruma_api::IncomingRequest for IncomingRequest {
     type EndpointError = crate::Error;
     type OutgoingResponse = Response;
 
-    /// Metadata for the `send_message_event` endpoint.
     const METADATA: Metadata = METADATA;
 
     fn try_from_http_request(
