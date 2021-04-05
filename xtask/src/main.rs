@@ -11,10 +11,12 @@ use std::{
 use serde::Deserialize;
 use serde_json::from_str as from_json_str;
 use toml::from_str as from_toml_str;
-use xshell::{cmd, read_file};
+use xshell::read_file;
 
 mod flags;
 mod release;
+
+use self::release::ReleaseTask;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -26,13 +28,18 @@ fn main() {
 }
 
 fn try_main() -> Result<()> {
+    let project_root = project_root()?;
+
     let flags = flags::Xtask::from_env()?;
     match flags.subcommand {
         flags::XtaskCmd::Help(_) => {
             println!("{}", flags::Xtask::HELP);
             Ok(())
         }
-        flags::XtaskCmd::Release(cmd) => cmd.run(),
+        flags::XtaskCmd::Release(cmd) => {
+            let task = ReleaseTask::new(cmd.name, project_root)?;
+            task.run()
+        }
     }
 }
 
@@ -63,16 +70,16 @@ struct GithubConfig {
     token: String,
 }
 
-impl GithubConfig {
-    /// Get the GitHub credentials formatted as `user:token`
-    fn credentials(&self) -> String {
-        format!("{}:{}", self.user, self.token)
-    }
-}
-
 /// Load the config from `config.toml`.
 fn config() -> Result<Config> {
     let path = Path::new(&env!("CARGO_MANIFEST_DIR")).join("config.toml");
     let config = read_file(path)?;
     Ok(from_toml_str(&config)?)
+}
+
+#[macro_export]
+macro_rules! cmd {
+    ($cmd:tt) => {
+        xshell::cmd!($cmd).echo_cmd(false)
+    };
 }

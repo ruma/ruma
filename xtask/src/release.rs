@@ -1,67 +1,140 @@
-use std::path::Path;
+use std::{
+    io::{stdin, stdout, BufRead, Write},
+    path::{Path, PathBuf},
+};
 
+use isahc::{
+    auth::{Authentication, Credentials},
+    config::Configurable,
+    http::StatusCode,
+    HttpClient, ReadResponseExt, Request,
+};
 use itertools::Itertools;
-use serde::Deserialize;
+use semver::Version;
+use serde::{de::IgnoredAny, Deserialize};
 use serde_json::json;
 use toml::from_str as from_toml_str;
-use xshell::{cmd, pushd, read_file};
+use xshell::{pushd, read_file};
 
-use crate::{config, flags, project_root, Result};
+use crate::{cmd, config, Result};
 
-const GITHUB_API_RELEASES: &str = "https://api.github.com/repos/ruma/ruma/releases";
+const CRATESIO_API: &str = "https://crates.io/api/v1/crates";
+const GITHUB_API_RUMA: &str = "https://api.github.com/repos/ruma/ruma";
 
-impl flags::Release {
-    /// Run the release command to effectively create a release.
+/// Task to create a new release of the given crate.
+pub struct ReleaseTask {
+    /// The crate to release.
+    name: String,
+
+    /// The root of the workspace.
+    project_root: PathBuf,
+
+    /// The version to release.
+    version: Version,
+
+    /// The http client to use for requests.
+    client: HttpClient,
+}
+
+impl ReleaseTask {
+    /// Create a new `ReleaseTask` with the given `name` and `project_root`.
+    pub(crate) fn new(name: String, project_root: PathBuf) -> Result<Self> {
+        let path = project_root.join(&name);
+
+        let version = Self::get_version(&path)?;
+
+        Ok(Self { name, project_root, version, client: HttpClient::new()? })
+    }
+
+    /// Run the task to effectively create a release.
     pub(crate) fn run(self) -> Result<()> {
-        let project_root = &project_root()?;
-        let _dir = pushd(project_root.join(&self.name))?;
+        println!("Starting release for {} {}…", self.name, self.version);
 
-        let remote = &self.get_remote()?;
-
-        if !cmd!("git status -s -uno").read()?.is_empty() {
-            return Err("This git repository contains untracked files".into());
+        if self.is_released()? {
+            return Err("This version is already released".into());
         }
 
-        let version = &self.get_version(project_root)?;
-        println!("Making release for {} {}…", self.name, version);
+        let _dir = pushd(self.crate_path())?;
 
-        cmd!("cargo publish").run()?;
+        let remote = Self::git_remote()?;
 
-        let credentials = &config()?.github.credentials();
+        println!("Checking status of git repository…");
+        if !cmd!("git status -s -uno").read()?.is_empty()
+            && !Self::ask_continue("This git repository contains untracked files. Continue?")?
+        {
+            return Ok(());
+        }
 
-        let changes = &self.get_changes(project_root, &version)?;
+        println!("Publishing the package on crates.io…");
+        if self.is_published()?
+            && !Self::ask_continue(
+                "This version is already published. Skip this step and continue?",
+            )?
+        {
+            return Ok(());
+        } else {
+            cmd!("cargo publish").run()?;
+        }
 
-        let tag = &format!("{}-{}", self.name, version);
-        let name = &format!("{} {}", self.name, version);
+        let changes = &self.get_changes()?;
 
-        cmd!("git tag -s {tag} -m {name} -m {changes}").secret(true).run()?;
+        let tag = &self.tag_name();
+        let title = &self.title();
 
-        cmd!("git push {remote} {tag}").run()?;
+        println!("Creating git tag…");
+        if cmd!("git tag -l {tag}").read()?.is_empty() {
+            cmd!("git tag -s {tag} -m {title} -m {changes}").read()?;
+        } else if !Self::ask_continue("This tag already exists. Skip this step and continue?")? {
+            return Ok(());
+        }
 
+        println!("Pushing tag to remote repository…");
+        if cmd!("git ls-remote --tags {remote} {tag}").read()?.is_empty() {
+            cmd!("git push {remote} {tag}").run()?;
+        } else if !Self::ask_continue(
+            "This tag has already been pushed. Skip this step and continue?",
+        )? {
+            return Ok(());
+        }
+
+        println!("Creating release on GitHub…");
         let request_body = &json!({
             "tag_name": tag,
-            "name": name,
+            "name": title,
             "body": changes.trim_softbreaks(),
         })
         .to_string();
 
-        cmd!(
-            "curl -u {credentials} -X POST -H 'Accept: application/vnd.github.v3+json'
-            {GITHUB_API_RELEASES} -d {request_body}"
-        )
-        .secret(true)
-        .run()?;
+        self.release(request_body)?;
+
+        println!("Release created successfully!");
 
         Ok(())
     }
 
+    /// Ask the user if he wants to skip this step and continue. Returns `true` for yes.
+    fn ask_continue(message: &str) -> Result<bool> {
+        let mut input = String::new();
+        let stdin = stdin();
+
+        print!("{} [y/N]: ", message);
+        stdout().flush()?;
+
+        let mut handle = stdin.lock();
+        handle.read_line(&mut input)?;
+
+        input = input.trim().to_ascii_lowercase();
+
+        Ok(input == "y" || input == "yes")
+    }
+
     /// Get the changes of the given version from the changelog.
-    fn get_changes(&self, project_root: &Path, version: &str) -> Result<String> {
-        let changelog = read_file(project_root.join(&self.name).join("CHANGELOG.md"))?;
+    fn get_changes(&self) -> Result<String> {
+        let changelog = read_file(self.crate_path().join("CHANGELOG.md"))?;
         let lines_nb = changelog.lines().count();
         let mut lines = changelog.lines();
 
-        let start = match lines.position(|l| l.starts_with(&format!("# {}", version))) {
+        let start = match lines.position(|l| l.starts_with(&format!("# {}", self.version))) {
             Some(p) => p + 1,
             None => {
                 return Err("Could not find version title in changelog".into());
@@ -78,8 +151,18 @@ impl flags::Release {
         Ok(changes.trim().to_owned())
     }
 
+    /// Get the title of this release.
+    fn title(&self) -> String {
+        format!("{} {}", self.name, self.version)
+    }
+
+    /// Get the path of the crate for this release.
+    fn crate_path(&self) -> PathBuf {
+        self.project_root.join(&self.name)
+    }
+
     /// Load the GitHub config from the config file.
-    fn get_remote(&self) -> Result<String> {
+    fn git_remote() -> Result<String> {
         let branch = cmd!("git rev-parse --abbrev-ref HEAD").read()?;
         let remote = cmd!("git config branch.{branch}.remote").read()?;
 
@@ -90,12 +173,52 @@ impl flags::Release {
         Ok(remote)
     }
 
-    /// Get the current version of the crate from the manifest.
-    fn get_version(&self, project_root: &Path) -> Result<String> {
-        let manifest_toml = read_file(project_root.join(&self.name).join("Cargo.toml"))?;
+    /// Get the tag name for this release.
+    fn tag_name(&self) -> String {
+        format!("{}-{}", self.name, self.version)
+    }
+
+    /// Get the current version of the crate at `path` from its manifest.
+    fn get_version(path: &Path) -> Result<Version> {
+        let manifest_toml = read_file(path.join("Cargo.toml"))?;
         let manifest: CargoManifest = from_toml_str(&manifest_toml)?;
 
         Ok(manifest.package.version)
+    }
+
+    /// Check if the current version of the crate is published on crates.io.
+    fn is_published(&self) -> Result<bool> {
+        let response: CratesIoCrate =
+            self.client.get(format!("{}/{}/{}", CRATESIO_API, self.name, self.version))?.json()?;
+
+        Ok(response.version.is_some())
+    }
+
+    /// Check if the tag for the current version of the crate has been pushed on GitHub.
+    fn is_released(&self) -> Result<bool> {
+        let response =
+            self.client.get(format!("{}/releases/tags/{}", GITHUB_API_RUMA, self.tag_name()))?;
+
+        Ok(response.status() == StatusCode::OK)
+    }
+
+    /// Create the release on GitHub with the given `config` and `credentials`.
+    fn release(&self, body: &str) -> Result<()> {
+        let config = config()?.github;
+
+        let request = Request::post(format!("{}/releases", GITHUB_API_RUMA))
+            .authentication(Authentication::basic())
+            .credentials(Credentials::new(config.user, config.token))
+            .header("Accept", "application/vnd.github.v3+json")
+            .body(body)?;
+
+        let mut response = self.client.send(request)?;
+
+        if response.status() == StatusCode::CREATED {
+            Ok(())
+        } else {
+            Err(format!("{}: {}", response.status(), response.text()?).into())
+        }
     }
 }
 
@@ -110,7 +233,20 @@ struct CargoManifest {
 #[derive(Debug, Deserialize)]
 struct CargoPackage {
     /// The package version.
-    version: String,
+    version: Version,
+}
+
+/// A crate from the `GET /crates/{crate}` endpoint of crates.io.
+#[derive(Deserialize)]
+struct CratesIoCrate {
+    version: Option<IgnoredAny>,
+}
+
+/// A tag from the `GET /repos/{owner}/{repo}/tags` endpoint of GitHub REST API.
+#[derive(Debug, Deserialize)]
+struct GithubTag {
+    /// The name of the tag.
+    name: String,
 }
 
 /// String manipulations for crate release.
