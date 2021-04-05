@@ -509,7 +509,7 @@ mod tests {
 
     use js_int::uint;
     use matches::assert_matches;
-    use ruma_identifiers::user_id;
+    use ruma_identifiers::{room_id, user_id};
     use ruma_serde::Raw;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value,
@@ -1009,7 +1009,7 @@ mod tests {
         let set = Ruleset::server_default(&user_id!("@jolly_jumper:server.name"));
 
         let context_one_to_one = &PushConditionRoomCtx {
-            room_id: "!dm:server.name".into(),
+            room_id: room_id!("!dm:server.name"),
             member_count: 2u32.into(),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
@@ -1018,7 +1018,7 @@ mod tests {
         };
 
         let context_public_room = &PushConditionRoomCtx {
-            room_id: "!far_west:server.name".into(),
+            room_id: room_id!("!far_west:server.name"),
             member_count: 100u32.into(),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
@@ -1098,7 +1098,7 @@ mod tests {
     #[test]
     fn custom_ruleset_applies() {
         let context_one_to_one = &PushConditionRoomCtx {
-            room_id: "!dm:server.name".into(),
+            room_id: room_id!("!dm:server.name"),
             member_count: 2u32.into(),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),

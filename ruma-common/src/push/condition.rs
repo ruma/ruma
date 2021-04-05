@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, convert::TryFrom, ops::RangeBounds, str::FromStr};
 
 use js_int::{Int, UInt};
-use ruma_identifiers::UserId;
+use ruma_identifiers::{RoomId, UserId};
 use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
 use serde_json::{to_value as to_json_value, value::Value as JsonValue};
@@ -63,7 +63,7 @@ impl PushCondition {
         match self {
             Self::EventMatch { key, pattern } => {
                 let value = match key.as_str() {
-                    "room_id" => &context.room_id,
+                    "room_id" => context.room_id.as_str(),
                     _ => match event.get(key) {
                         Some(v) => v,
                         None => return false,
@@ -107,8 +107,8 @@ impl PushCondition {
 /// The context of the room associated to an event to be able to test all push conditions.
 #[derive(Clone, Debug)]
 pub struct PushConditionRoomCtx {
-    /// The roomId of the room.
-    pub room_id: String,
+    /// The ID of the room.
+    pub room_id: RoomId,
 
     /// The number of members in the room.
     pub member_count: UInt,
@@ -310,7 +310,7 @@ mod tests {
     use js_int::uint;
     use maplit::btreemap;
     use matches::assert_matches;
-    use ruma_identifiers::user_id;
+    use ruma_identifiers::{room_id, user_id};
     use ruma_serde::Raw;
     use serde_json::{
         from_value as from_json_value, json, to_value as to_json_value, Value as JsonValue,
@@ -476,7 +476,7 @@ mod tests {
         users_power_levels.insert(first_sender, 25.into());
 
         let context = PushConditionRoomCtx {
-            room_id: "!room:server.name".into(),
+            room_id: room_id!("!room:server.name"),
             member_count: 3u8.into(),
             user_display_name: "Groovy Gorilla".into(),
             users_power_levels,
