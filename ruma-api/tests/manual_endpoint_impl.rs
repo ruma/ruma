@@ -1,14 +1,14 @@
 //! PUT /_matrix/client/r0/directory/room/:room_alias
 
-use std::{convert::TryFrom, ops::Deref};
+use std::convert::TryFrom;
 
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_api::{
     error::{
-        FromHttpRequestError, FromHttpResponseError, IntoHttpError, RequestDeserializationError,
-        ResponseDeserializationError, ServerError, Void,
+        FromHttpRequestError, FromHttpResponseError, IntoHttpError, ResponseDeserializationError,
+        ServerError, Void,
     },
-    AuthScheme, IncomingRequest, Metadata, OutgoingRequest,
+    try_deserialize, AuthScheme, IncomingRequest, Metadata, OutgoingRequest,
 };
 use ruma_identifiers::{RoomAliasId, RoomId};
 use ruma_serde::Outgoing;
@@ -71,25 +71,19 @@ impl IncomingRequest for Request {
     fn try_from_http_request(
         request: http::Request<Vec<u8>>,
     ) -> Result<Self, FromHttpRequestError> {
-        let request_body: RequestBody = match serde_json::from_slice(request.body().as_slice()) {
-            Ok(body) => body,
-            Err(err) => {
-                return Err(RequestDeserializationError::new(err, request).into());
-            }
-        };
+        let request_body: RequestBody =
+            try_deserialize!(request, serde_json::from_slice(request.body().as_slice()));
         let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
+
         Ok(Request {
             room_id: request_body.room_id,
             room_alias: {
-                let segment = path_segments.get(5).unwrap().as_bytes();
-                let decoded = match percent_encoding::percent_decode(segment).decode_utf8() {
-                    Ok(x) => x,
-                    Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-                };
-                match serde_json::from_str(decoded.deref()) {
-                    Ok(id) => id,
-                    Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-                }
+                let decoded = try_deserialize!(
+                    request,
+                    percent_encoding::percent_decode(path_segments[5].as_bytes()).decode_utf8(),
+                );
+
+                try_deserialize!(request, TryFrom::try_from(&*decoded))
             },
         })
     }

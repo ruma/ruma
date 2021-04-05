@@ -3,8 +3,8 @@
 use std::{borrow::Cow, convert::TryFrom};
 
 use ruma_api::{
-    error::{FromHttpRequestError, IntoHttpError, RequestDeserializationError},
-    ruma_api, Metadata,
+    error::{FromHttpRequestError, IntoHttpError},
+    ruma_api, try_deserialize, Metadata,
 };
 use ruma_events::EventType;
 use ruma_identifiers::RoomId;
@@ -117,44 +117,31 @@ impl ruma_api::IncomingRequest for IncomingRequest {
         let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
 
         let room_id = {
-            let decoded =
-                match percent_encoding::percent_decode(path_segments[4].as_bytes()).decode_utf8() {
-                    Ok(val) => val,
-                    Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-                };
+            let decoded = try_deserialize!(
+                request,
+                percent_encoding::percent_decode(path_segments[4].as_bytes()).decode_utf8()
+            );
 
-            match RoomId::try_from(&*decoded) {
-                Ok(val) => val,
-                Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-            }
+            try_deserialize!(request, RoomId::try_from(&*decoded))
         };
 
         let event_type = {
-            let decoded =
-                match percent_encoding::percent_decode(path_segments[6].as_bytes()).decode_utf8() {
-                    Ok(val) => val,
-                    Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-                };
+            let decoded = try_deserialize!(
+                request,
+                percent_encoding::percent_decode(path_segments[6].as_bytes()).decode_utf8()
+            );
 
-            match EventType::try_from(&*decoded) {
-                Ok(val) => val,
-                Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-            }
+            try_deserialize!(request, EventType::try_from(&*decoded))
         };
 
         let state_key = match path_segments.get(7) {
             Some(segment) => {
-                let decoded = match percent_encoding::percent_decode(segment.as_bytes())
-                    .decode_utf8()
-                {
-                    Ok(val) => val,
-                    Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-                };
+                let decoded = try_deserialize!(
+                    request,
+                    percent_encoding::percent_decode(segment.as_bytes()).decode_utf8()
+                );
 
-                match String::try_from(&*decoded) {
-                    Ok(val) => val,
-                    Err(err) => return Err(RequestDeserializationError::new(err, request).into()),
-                }
+                try_deserialize!(request, String::try_from(&*decoded))
             }
             None => "".into(),
         };
