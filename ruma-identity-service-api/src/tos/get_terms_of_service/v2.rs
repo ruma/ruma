@@ -6,24 +6,24 @@ use ruma_api::ruma_api;
 use serde::{Deserialize, Serialize};
 
 ruma_api! {
-        metadata: {
-            description: "Gets all the terms of service offered by the server.",
-            method: GET,
-            name: "get_terms_of_service",
-            path: "/_matrix/identity/v2/terms",
-            authentication: None,
-            rate_limited: false,
-        }
+    metadata: {
+        description: "Gets all the terms of service offered by the server.",
+        method: GET,
+        name: "get_terms_of_service",
+        path: "/_matrix/identity/v2/terms",
+        authentication: None,
+        rate_limited: false,
+    }
 
-        #[derive(Default)]
-        request: {}
+    #[derive(Default)]
+    request: {}
 
-        response: {
-            /// The policies the server offers.
-            ///
-            /// Mapped from arbitrary ID (unused in this version of the specification) to a Policy Object.
-            pub policies: BTreeMap<String, Policies>
-        }
+    response: {
+        /// The policies the server offers.
+        ///
+        /// Mapped from arbitrary ID (unused in this version of the specification) to a Policy Object.
+        pub policies: BTreeMap<String, Policies>
+    }
 }
 
 impl Request {

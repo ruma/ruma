@@ -3,24 +3,24 @@
 use ruma_api::ruma_api;
 
 ruma_api! {
-        metadata: {
-            description: "Called by a client to indicate that the user has accepted/agreed to the included set of URLs.",
-            method: POST,
-            name: "accept_terms_of_service",
-            path: "/_matrix/identity/v2/terms",
-            authentication: AccessToken,
-            rate_limited: false,
-        }
+    metadata: {
+        description: "Called by a client to indicate that the user has accepted/agreed to the included set of URLs.",
+        method: POST,
+        name: "accept_terms_of_service",
+        path: "/_matrix/identity/v2/terms",
+        authentication: AccessToken,
+        rate_limited: false,
+    }
 
-        request: {
-            /// The URLs the user is accepting in this request.
-            ///
-            /// An example is "https://example.org/somewhere/terms-2.0-en.html".
-            pub user_accepts: Vec<String>,
-        }
+    request: {
+        /// The URLs the user is accepting in this request.
+        ///
+        /// An example is "https://example.org/somewhere/terms-2.0-en.html".
+        pub user_accepts: Vec<String>,
+    }
 
-        #[derive(Default)]
-        response: {}
+    #[derive(Default)]
+    response: {}
 }
 
 impl Request {
