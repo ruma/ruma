@@ -2,14 +2,14 @@
 //! the UNIX epoch. Delegates to `js_int::UInt` to ensure integer size is within bounds.
 
 use std::{
-    convert::TryFrom,
+    convert::TryInto,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 use js_int::UInt;
 use serde::{
-    de::{Deserialize, Deserializer},
-    ser::{Error, Serialize, Serializer},
+    de::{self, Deserialize, Deserializer},
+    ser::{self, Serialize, Serializer},
 };
 
 /// Serialize a SystemTime.
@@ -20,12 +20,10 @@ pub fn serialize<S>(time: &SystemTime, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    // If this unwrap fails, the system this is executed is completely broken.
-    let time_since_epoch = time.duration_since(UNIX_EPOCH).unwrap();
-    match UInt::try_from(time_since_epoch.as_secs()) {
-        Ok(uint) => uint.serialize(serializer),
-        Err(err) => Err(S::Error::custom(err)),
-    }
+    let time_since_epoch = time.duration_since(UNIX_EPOCH).map_err(ser::Error::custom)?;
+    let uint: UInt = time_since_epoch.as_secs().try_into().map_err(ser::Error::custom)?;
+
+    uint.serialize(serializer)
 }
 
 /// Deserializes a SystemTime.
@@ -37,7 +35,9 @@ where
     D: Deserializer<'de>,
 {
     let secs = UInt::deserialize(deserializer)?;
-    Ok(UNIX_EPOCH + Duration::from_secs(secs.into()))
+    UNIX_EPOCH
+        .checked_add(Duration::from_secs(secs.into()))
+        .ok_or_else(|| de::Error::custom("input too large for SystemTime"))
 }
 
 #[cfg(test)]

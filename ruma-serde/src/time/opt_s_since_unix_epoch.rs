@@ -6,7 +6,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use js_int::UInt;
 use serde::{
-    de::{Deserialize, Deserializer},
+    de::{self, Deserialize, Deserializer},
     ser::{Serialize, Serializer},
 };
 
@@ -32,8 +32,13 @@ pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<SystemTime>, D::Err
 where
     D: Deserializer<'de>,
 {
-    Ok(Option::<UInt>::deserialize(deserializer)?
-        .map(|secs| UNIX_EPOCH + Duration::from_secs(secs.into())))
+    Option::<UInt>::deserialize(deserializer)?
+        .map(|secs| {
+            UNIX_EPOCH
+                .checked_add(Duration::from_secs(secs.into()))
+                .ok_or_else(|| de::Error::custom("input too large for SystemTime"))
+        })
+        .transpose()
 }
 
 #[cfg(test)]
