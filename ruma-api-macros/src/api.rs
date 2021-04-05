@@ -19,10 +19,10 @@ pub struct Api {
     metadata: Metadata,
 
     /// The `request` section of the macro.
-    request: Request,
+    request: Option<Request>,
 
     /// The `response` section of the macro.
-    response: Response,
+    response: Option<Response>,
 
     /// The `error` section of the macro.
     error_ty: Option<Type>,
@@ -32,12 +32,12 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
     let ruma_api = util::import_ruma_api();
     let http = quote! { #ruma_api::exports::http };
 
-    let description = &api.metadata.description;
-    let method = &api.metadata.method;
-    let name = &api.metadata.name;
-    let path = &api.metadata.path;
-    let rate_limited: TokenStream = api
-        .metadata
+    let metadata = &api.metadata;
+    let description = &metadata.description;
+    let method = &metadata.method;
+    let name = &metadata.name;
+    let path = &metadata.path;
+    let rate_limited: TokenStream = metadata
         .rate_limited
         .iter()
         .map(|r| {
@@ -66,8 +66,8 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
     let error_ty =
         api.error_ty.map_or_else(|| quote! { #ruma_api::error::Void }, |err_ty| quote! { #err_ty });
 
-    let request = api.request.expand(&api.metadata, &error_ty, &ruma_api);
-    let response = api.response.expand(&api.metadata, &error_ty, &ruma_api);
+    let request = api.request.map(|req| req.expand(metadata, &error_ty, &ruma_api));
+    let response = api.response.map(|res| res.expand(metadata, &error_ty, &ruma_api));
 
     let metadata_doc = format!("Metadata for the `{}` API endpoint.", name.value());
 
