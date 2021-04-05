@@ -10,6 +10,7 @@ xflags::xflags! {
 
         /// Create a new release of the given crate.
         cmd release
+            /// The crate to release
             required name: String
         {}
     }
