@@ -196,6 +196,18 @@ pub enum EventType {
     _Custom(String),
 }
 
+impl EventType {
+    /// Creates a string slice from this `EventType`.
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+
+    /// Creates a byte slice from this `EventType`.
+    pub fn as_bytes(&self) -> &[u8] {
+        self.as_str().as_bytes()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use ruma_serde::test::serde_json_eq;
