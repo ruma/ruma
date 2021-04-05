@@ -807,9 +807,7 @@ pub(crate) fn path_string_and_parse(
                     let path_var_ident = Ident::new(path_var, Span::call_site());
                     quote! {
                         #path_var_ident: {
-                            use #ruma_api::error::RequestDeserializationError;
-
-                            let segment = path_segments.get(#i).unwrap().as_bytes();
+                            let segment = path_segments[#i].as_bytes();
                             let decoded = #ruma_api::try_deserialize!(
                                 request,
                                 #percent_encoding::percent_decode(segment)
