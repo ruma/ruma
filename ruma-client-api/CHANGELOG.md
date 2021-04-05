@@ -78,6 +78,15 @@ Breaking changes:
       search::{search_events, search_users}
   }
   ```
+* Use `ruma_identifiers::MxcUri` instead of `media_id` and `server_name` params in `Request::new` 
+  for the following endpoints:
+  ```rust
+  r0::media::{
+      get_content,
+      get_content_as_filename,
+      get_content_thumbnail
+  }
+  ```
 
 Improvements:
 

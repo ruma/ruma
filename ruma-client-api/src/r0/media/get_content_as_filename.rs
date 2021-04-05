@@ -1,7 +1,7 @@
 //! [GET /_matrix/media/r0/download/{serverName}/{mediaId}/{fileName}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-media-r0-download-servername-mediaid-filename)
 
 use ruma_api::ruma_api;
-use ruma_identifiers::ServerName;
+use ruma_identifiers::{MxcUri, ServerName};
 
 ruma_api! {
     metadata: {
@@ -58,9 +58,14 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new `Request` with the given media ID, server name and filename.
-    pub fn new(media_id: &'a str, server_name: &'a ServerName, filename: &'a str) -> Self {
-        Self { media_id, server_name, filename, allow_remote: true }
+    /// Creates a new `Request` with the given url and filename.
+    pub fn new(url: &'a MxcUri, filename: &'a str) -> Self {
+        Self {
+            media_id: url.media_id(),
+            server_name: url.server_name(),
+            filename,
+            allow_remote: true,
+        }
     }
 }
 

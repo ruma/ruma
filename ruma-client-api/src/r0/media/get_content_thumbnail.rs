@@ -2,7 +2,7 @@
 
 use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_identifiers::ServerName;
+use ruma_identifiers::{MxcUri, ServerName};
 use ruma_serde::StringEnum;
 
 /// The desired resizing method.
@@ -75,10 +75,17 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new `Request` with the given media ID, server name, desired thumbnail width and
+    /// Creates a new `Request` with the given url, desired thumbnail width and
     /// desired thumbnail height.
-    pub fn new(media_id: &'a str, server_name: &'a ServerName, width: UInt, height: UInt) -> Self {
-        Self { media_id, server_name, method: None, width, height, allow_remote: true }
+    pub fn new(url: &'a MxcUri, width: UInt, height: UInt) -> Self {
+        Self {
+            media_id: url.media_id(),
+            server_name: url.server_name(),
+            method: None,
+            width,
+            height,
+            allow_remote: true,
+        }
     }
 }
 
