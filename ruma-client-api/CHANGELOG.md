@@ -89,6 +89,14 @@ Improvements:
   * `r0::message::get_message_events`
 * Add `logout_devices` field to `r0::account::change_password`
 * Add `r0::room::aliases` (introduced in r0.6.1)
+* Add constructors that use `ruma_identifiers::MxcUri` for `Request` in the following endpoints:
+  ```rust
+  r0::media::{
+      get_content,
+      get_content_as_filename,
+      get_content_thumbnail
+  }
+  ```
 
 # 0.9.0
 
