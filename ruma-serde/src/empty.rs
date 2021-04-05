@@ -1,45 +1,32 @@
-use std::fmt::{self, Formatter};
+use std::fmt;
 
 use serde::{
-    de::{Deserialize, Deserializer, MapAccess, Visitor},
-    ser::{Serialize, SerializeMap, Serializer},
+    de::{self, Deserialize},
+    Serialize,
 };
 
-/// A meaningless value that serializes to an empty JSON object.
-///
-/// This type is used in a few places where the Matrix specification requires an empty JSON object,
-/// but it's wasteful to represent it as a `BTreeMap` in Rust code.
-#[derive(Clone, Debug, PartialEq)]
-pub struct Empty;
-
-impl Serialize for Empty {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_map(Some(0))?.end()
-    }
-}
+#[derive(Clone, Debug, Serialize)]
+pub struct Empty {}
 
 impl<'de> Deserialize<'de> for Empty {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: Deserializer<'de>,
+        D: de::Deserializer<'de>,
     {
         struct EmptyMapVisitor;
 
-        impl<'de> Visitor<'de> for EmptyMapVisitor {
+        impl<'de> de::Visitor<'de> for EmptyMapVisitor {
             type Value = Empty;
 
-            fn expecting(&self, f: &mut Formatter<'_>) -> fmt::Result {
+            fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, "an object/map")
             }
 
             fn visit_map<A>(self, _map: A) -> Result<Self::Value, A::Error>
             where
-                A: MapAccess<'de>,
+                A: de::MapAccess<'de>,
             {
-                Ok(Empty)
+                Ok(Empty {})
             }
         }
 
@@ -69,7 +56,7 @@ pub mod vec_as_map_of_empty {
         S: Serializer,
         T: Serialize + Eq + Ord,
     {
-        vec.iter().map(|v| (v, Empty)).collect::<BTreeMap<_, _>>().serialize(serializer)
+        vec.iter().map(|v| (v, Empty {})).collect::<BTreeMap<_, _>>().serialize(serializer)
     }
 
     pub fn deserialize<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>

@@ -6,7 +6,8 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_events::{room::member::MemberEventContent, EventType};
 use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
-use ruma_serde::{empty::Empty, Raw};
+use ruma_serde::Raw;
+use serde::{Deserialize, Serialize};
 
 ruma_api! {
     metadata: {
@@ -58,11 +59,14 @@ ruma_api! {
         pub depth: UInt,
     }
 
+    #[derive(Default)]
     response: {
-        /// - no description -
+        /// An empty object.
+        ///
+        /// Indicates that the event was accepted into the event graph.
         #[ruma_api(body)]
         #[serde(with = "crate::serde::v1_pdu")]
-        pub event: Empty,
+        pub empty: Empty,
     }
 }
 
@@ -104,9 +108,12 @@ impl<'a> Request<'a> {
 }
 
 impl Response {
-    /// Creates a new `Response` with an empty event, to indicate the event was accepted into the
-    /// graph by the receiving homeserver.
-    pub fn new(event: Empty) -> Self {
-        Self { event }
+    /// Creates an empty `Response`.
+    pub fn new() -> Self {
+        Self { empty: Empty {} }
     }
 }
+
+/// An empty object.
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+pub struct Empty {}

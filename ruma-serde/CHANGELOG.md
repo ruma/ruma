@@ -1,3 +1,9 @@
+# 0.4.0 (unreleased)
+
+Breaking changes:
+
+* Remove the `empty` module from the public API
+
 # 0.3.1
 
 Bug fixes:

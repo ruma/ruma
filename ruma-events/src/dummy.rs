@@ -1,9 +1,6 @@
 //! Types for the *m.dummy* event.
 
-use std::ops::{Deref, DerefMut};
-
 use ruma_events_macros::BasicEventContent;
-use ruma_serde::empty::Empty;
 use serde::{Deserialize, Serialize};
 
 use crate::BasicEvent;
@@ -22,35 +19,21 @@ pub type DummyEvent = BasicEvent<DummyEventContent>;
 /// The payload for `DummyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.dummy")]
-pub struct DummyEventContent(pub Empty);
+pub struct DummyEventContent {}
 
 /// The to-device version of the payload for the `DummyEvent`.
 pub type DummyToDeviceEventContent = DummyEventContent;
-
-impl Deref for DummyEventContent {
-    type Target = Empty;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for DummyEventContent {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
 
 #[cfg(test)]
 mod tests {
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{DummyEvent, DummyEventContent, Empty};
+    use super::{DummyEvent, DummyEventContent};
 
     #[test]
     fn serialization() {
-        let dummy_event = DummyEvent { content: DummyEventContent(Empty) };
+        let dummy_event = DummyEvent { content: DummyEventContent {} };
         let actual = to_json_value(dummy_event).unwrap();
 
         let expected = json!({

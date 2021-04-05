@@ -6,7 +6,7 @@ pub mod can_be_empty;
 mod canonical_json;
 mod cow;
 pub mod duration;
-pub mod empty;
+mod empty;
 pub mod json_string;
 mod raw;
 pub mod single_element_seq;
