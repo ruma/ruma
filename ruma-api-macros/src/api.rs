@@ -1,7 +1,7 @@
 //! Details of the `ruma_api` procedural macro.
 
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::{
     parse::{Parse, ParseStream},
     Token, Type,
@@ -27,19 +27,27 @@ pub struct Api {
     response: Response,
 
     /// The `error` section of the macro.
-    error_ty: TokenStream,
+    error_ty: Option<Type>,
+}
+
+mod kw {
+    syn::custom_keyword!(error);
 }
 
 impl Parse for Api {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let ruma_api = util::import_ruma_api();
-
         let metadata: Metadata = input.parse()?;
         let request: Request = input.parse()?;
         let response: Response = input.parse()?;
-        let error_ty = match input.parse::<ErrorType>() {
-            Ok(err) => err.ty.to_token_stream(),
-            Err(_) => quote! { #ruma_api::error::Void },
+
+        // TODO: Use `bool::then` when MSRV >= 1.50
+        let error_ty = if input.peek(kw::error) {
+            let _: kw::error = input.parse()?;
+            let _: Token![:] = input.parse()?;
+
+            Some(input.parse()?)
+        } else {
+            None
         };
 
         let newtype_body_field = request.newtype_body_field();
@@ -252,7 +260,9 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         format!("Data for a request to the `{}` API endpoint.\n\n{}", name, description.value());
     let response_doc = format!("Data in the response from the `{}` API endpoint.", name);
 
-    let error = &api.error_ty;
+    let error_ty =
+        api.error_ty.map_or_else(|| quote! { #ruma_api::error::Void }, |err_ty| quote! { #err_ty });
+
     let request_lifetimes = api.request.combine_lifetimes();
 
     let non_auth_endpoint_impls: TokenStream = api
@@ -313,7 +323,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         #[automatically_derived]
         #[cfg(feature = "client")]
         impl ::std::convert::TryFrom<#http::Response<Vec<u8>>> for Response {
-            type Error = #ruma_api::error::FromHttpResponseError<#error>;
+            type Error = #ruma_api::error::FromHttpResponseError<#error_ty>;
 
             fn try_from(
                 response: #http::Response<Vec<u8>>,
@@ -327,7 +337,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
                         #response_init_fields
                     })
                 } else {
-                    match <#error as #ruma_api::EndpointError>::try_from_response(response) {
+                    match <#error_ty as #ruma_api::EndpointError>::try_from_response(response) {
                         Ok(err) => Err(#ruma_api::error::ServerError::Known(err).into()),
                         Err(response_err) => {
                             Err(#ruma_api::error::ServerError::Unknown(response_err).into())
@@ -350,7 +360,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         #[automatically_derived]
         #[cfg(feature = "client")]
         impl #request_lifetimes #ruma_api::OutgoingRequest for Request #request_lifetimes {
-            type EndpointError = #error;
+            type EndpointError = #error_ty;
             type IncomingResponse = <Response as #ruma_serde::Outgoing>::Incoming;
 
             #[doc = #metadata_doc]
@@ -388,7 +398,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         #[automatically_derived]
         #[cfg(feature = "server")]
         impl #ruma_api::IncomingRequest for #incoming_request_type {
-            type EndpointError = #error;
+            type EndpointError = #error_ty;
             type OutgoingResponse = Response;
 
             #[doc = #metadata_doc]
@@ -413,23 +423,4 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
 
         #non_auth_endpoint_impls
     })
-}
-
-mod kw {
-    syn::custom_keyword!(error);
-}
-
-pub struct ErrorType {
-    pub error_kw: kw::error,
-    pub ty: Type,
-}
-
-impl Parse for ErrorType {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let error_kw = input.parse::<kw::error>()?;
-        input.parse::<Token![:]>()?;
-        let ty = input.parse()?;
-
-        Ok(Self { error_kw, ty })
-    }
 }
