@@ -833,7 +833,7 @@ pub(crate) fn path_string_and_parse(
 
 /// The function determines the type of query string that needs to be built
 /// and then builds it using `ruma_serde::urlencoded::to_string`.
-pub(crate) fn build_query_string(request: &Request, ruma_api: &TokenStream) -> TokenStream {
+fn build_query_string(request: &Request, ruma_api: &TokenStream) -> TokenStream {
     let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
 
     if let Some(field) = request.query_map_field() {
@@ -882,7 +882,7 @@ pub(crate) fn build_query_string(request: &Request, ruma_api: &TokenStream) -> T
 }
 
 /// Deserialize the query string.
-pub(crate) fn extract_request_query(request: &Request, ruma_api: &TokenStream) -> TokenStream {
+fn extract_request_query(request: &Request, ruma_api: &TokenStream) -> TokenStream {
     let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
 
     if request.query_map_field().is_some() {
@@ -912,7 +912,7 @@ pub(crate) fn extract_request_query(request: &Request, ruma_api: &TokenStream) -
 /// Generates the code to initialize a `Request`.
 ///
 /// Used to construct an `http::Request`s body.
-pub(crate) fn build_request_body(request: &Request, ruma_api: &TokenStream) -> TokenStream {
+fn build_request_body(request: &Request, ruma_api: &TokenStream) -> TokenStream {
     let serde_json = quote! { #ruma_api::exports::serde_json };
 
     if let Some(field) = request.newtype_raw_body_field() {
@@ -938,7 +938,7 @@ pub(crate) fn build_request_body(request: &Request, ruma_api: &TokenStream) -> T
     }
 }
 
-pub(crate) fn parse_request_body(request: &Request) -> TokenStream {
+fn parse_request_body(request: &Request) -> TokenStream {
     if let Some(field) = request.newtype_body_field() {
         let field_name = field.ident.as_ref().expect("expected field to have an identifier");
         quote! {
