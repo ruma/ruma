@@ -14,7 +14,6 @@ use super::{
     response::{ResponseField, ResponseFieldKind},
     Api, Metadata, Request, Response,
 };
-use crate::util;
 
 mod kw {
     use syn::custom_keyword;
@@ -195,7 +194,7 @@ impl Parse for Request {
             ));
         }
 
-        Ok(Self { attributes, fields, lifetimes, ruma_api_import: util::import_ruma_api() })
+        Ok(Self { attributes, fields, lifetimes })
     }
 }
 
@@ -280,7 +279,7 @@ impl Parse for Response {
             ));
         }
 
-        Ok(Self { attributes, fields, ruma_api_import: util::import_ruma_api() })
+        Ok(Self { attributes, fields })
     }
 }
 

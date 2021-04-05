@@ -1,7 +1,7 @@
 //! Details of the `response` section of the procedural macro.
 
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote, quote_spanned};
 use syn::{spanned::Spanned, Attribute, Field, Ident};
 
 /// The result of processing the `response` section of the macro.
@@ -11,9 +11,6 @@ pub(crate) struct Response {
 
     /// The fields of the response.
     pub fields: Vec<ResponseField>,
-
-    // Guarantee `ruma_api` is available and named something we can refer to.
-    pub ruma_api_import: TokenStream,
 }
 
 impl Response {
@@ -28,8 +25,7 @@ impl Response {
     }
 
     /// Produces code for a response struct initializer.
-    pub fn init_fields(&self) -> TokenStream {
-        let ruma_api = &self.ruma_api_import;
+    pub fn init_fields(&self, ruma_api: &TokenStream) -> TokenStream {
         let http = quote! { #ruma_api::exports::http };
 
         let mut fields = vec![];
@@ -99,8 +95,7 @@ impl Response {
     }
 
     /// Produces code to add necessary HTTP headers to an `http::Response`.
-    pub fn apply_header_fields(&self) -> TokenStream {
-        let ruma_api = &self.ruma_api_import;
+    pub fn apply_header_fields(&self, ruma_api: &TokenStream) -> TokenStream {
         let http = quote! { #ruma_api::exports::http };
 
         let header_calls = self.fields.iter().filter_map(|response_field| {
@@ -144,8 +139,7 @@ impl Response {
     }
 
     /// Produces code to initialize the struct that will be used to create the response body.
-    pub fn to_body(&self) -> TokenStream {
-        let ruma_api = &self.ruma_api_import;
+    pub fn to_body(&self, ruma_api: &TokenStream) -> TokenStream {
         let serde_json = quote! { #ruma_api::exports::serde_json };
 
         if let Some(field) = self.newtype_raw_body_field() {
@@ -193,11 +187,8 @@ impl Response {
     pub fn newtype_raw_body_field(&self) -> Option<&Field> {
         self.fields.iter().find_map(ResponseField::as_newtype_raw_body_field)
     }
-}
 
-impl ToTokens for Response {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let ruma_api = &self.ruma_api_import;
+    pub(super) fn expand_type_def(&self, ruma_api: &TokenStream) -> TokenStream {
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
         let serde = quote! { #ruma_api::exports::serde };
 
@@ -230,7 +221,7 @@ impl ToTokens for Response {
             struct ResponseBody #def
         };
 
-        let response = quote! {
+        quote! {
             #[derive(Debug, Clone, #ruma_serde::Outgoing, #ruma_serde::_FakeDeriveSerde)]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize)]
@@ -238,9 +229,7 @@ impl ToTokens for Response {
             pub struct Response #response_def
 
             #response_body_struct
-        };
-
-        response.to_tokens(tokens);
+        }
     }
 }
 

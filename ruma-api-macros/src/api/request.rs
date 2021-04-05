@@ -3,7 +3,7 @@
 use std::collections::BTreeSet;
 
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned, ToTokens};
+use quote::{quote, quote_spanned};
 use syn::{spanned::Spanned, Attribute, Field, Ident, Lifetime};
 
 use crate::util;
@@ -26,15 +26,11 @@ pub(crate) struct Request {
 
     /// The collected lifetime identifiers from the declared fields.
     pub(super) lifetimes: RequestLifetimes,
-
-    // Guarantee `ruma_api` is available and named something we can refer to.
-    pub(super) ruma_api_import: TokenStream,
 }
 
 impl Request {
     /// Produces code to add necessary HTTP headers to an `http::Request`.
-    pub fn append_header_kvs(&self) -> TokenStream {
-        let ruma_api = &self.ruma_api_import;
+    pub fn append_header_kvs(&self, ruma_api: &TokenStream) -> TokenStream {
         let http = quote! { #ruma_api::exports::http };
 
         self.header_fields()
@@ -71,8 +67,7 @@ impl Request {
     }
 
     /// Produces code to extract fields from the HTTP headers in an `http::Request`.
-    pub fn parse_headers_from_request(&self) -> TokenStream {
-        let ruma_api = &self.ruma_api_import;
+    pub fn parse_headers_from_request(&self, ruma_api: &TokenStream) -> TokenStream {
         let http = quote! { #ruma_api::exports::http };
         let serde = quote! { #ruma_api::exports::serde };
         let serde_json = quote! { #ruma_api::exports::serde_json };
@@ -286,11 +281,8 @@ impl Request {
 
         quote! { #(#fields,)* }
     }
-}
 
-impl ToTokens for Request {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let ruma_api = &self.ruma_api_import;
+    pub(super) fn expand_type_def(&self, ruma_api: &TokenStream) -> TokenStream {
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
         let serde = quote! { #ruma_api::exports::serde };
 
@@ -387,7 +379,7 @@ impl ToTokens for Request {
             TokenStream::new()
         };
 
-        let request = quote! {
+        quote! {
             #[derive(Debug, Clone, #ruma_serde::Outgoing, #ruma_serde::_FakeDeriveSerde)]
             #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
             #[incoming_derive(!Deserialize)]
@@ -397,9 +389,7 @@ impl ToTokens for Request {
             #request_body_struct
 
             #request_query_struct
-        };
-
-        request.to_tokens(tokens);
+        }
     }
 }
 

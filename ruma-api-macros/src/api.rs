@@ -69,8 +69,8 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         })
         .collect();
 
-    let request_type = &api.request;
-    let response_type = &api.response;
+    let request_type = api.request.expand_type_def(&ruma_api);
+    let response_type = api.response.expand_type_def(&ruma_api);
 
     let incoming_request_type =
         if api.request.contains_lifetimes() { quote!(IncomingRequest) } else { quote!(Request) };
@@ -100,7 +100,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         api.request.request_init_query_fields()
     };
 
-    let mut header_kvs = api.request.append_header_kvs();
+    let mut header_kvs = api.request.append_header_kvs(&ruma_api);
     for auth in &api.metadata.authentication {
         if auth.value == "AccessToken" {
             let attrs = &auth.attrs;
@@ -160,7 +160,7 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         };
 
     let parse_request_headers = if api.request.has_header_fields() {
-        api.request.parse_headers_from_request()
+        api.request.parse_headers_from_request(&ruma_api)
     } else {
         TokenStream::new()
     };
@@ -201,10 +201,10 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
             TokenStream::new()
         };
 
-    let response_init_fields = api.response.init_fields();
-    let serialize_response_headers = api.response.apply_header_fields();
+    let response_init_fields = api.response.init_fields(&ruma_api);
+    let serialize_response_headers = api.response.apply_header_fields(&ruma_api);
 
-    let body = api.response.to_body();
+    let body = api.response.to_body(&ruma_api);
 
     let metadata_doc = format!("Metadata for the `{}` API endpoint.", name);
     let request_doc =
