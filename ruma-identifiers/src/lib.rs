@@ -1,3 +1,5 @@
+#![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
+#![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 //! Crate **ruma_identifiers** contains types for [Matrix](https://matrix.org/) identifiers
 //! for events, rooms, room aliases, room versions, and users.
 

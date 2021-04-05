@@ -1,3 +1,5 @@
+#![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
+#![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 //! Crate ruma_appservice_api contains serializable types for the requests and responses for each
 //! endpoint in the [Matrix](https://matrix.org/) application service API specification. These
 //! types can be shared by application service and server code.

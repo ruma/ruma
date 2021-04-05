@@ -1,3 +1,6 @@
+#![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
+#![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
+
 pub mod device_key_id;
 pub mod error;
 pub mod event_id;

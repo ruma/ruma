@@ -1,3 +1,5 @@
+#![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
+#![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 //! Crate ruma-api-macros provides a procedural macro for easily generating
 //! [ruma-api]-compatible endpoints.
 //!

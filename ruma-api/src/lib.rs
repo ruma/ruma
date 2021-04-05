@@ -1,3 +1,5 @@
+#![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
+#![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 //! Crate `ruma_api` contains core types used to define the requests and responses for each endpoint
 //! in the various [Matrix](https://matrix.org) API specifications.
 //! These types can be shared by client and server code for all Matrix APIs.

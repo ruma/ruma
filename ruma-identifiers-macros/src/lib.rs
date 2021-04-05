@@ -1,3 +1,6 @@
+#![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
+#![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
+
 use proc_macro::TokenStream;
 
 use quote::quote;

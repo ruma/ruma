@@ -1,3 +1,5 @@
+#![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
+#![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 //! Types and traits for working with the Matrix protocol.
 //!
 //! This crate re-exports things from all of the other ruma crates so you don't

@@ -1,3 +1,5 @@
+#![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
+#![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 //! Crate ruma_client_api contains serializable types for the requests and responses for each
 //! endpoint in the [Matrix](https://matrix.org/) client API specification. These types can be
 //! shared by client and server code.
