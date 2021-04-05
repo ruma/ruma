@@ -59,21 +59,19 @@ impl ReleaseTask {
         let remote = Self::git_remote()?;
 
         println!("Checking status of git repository…");
-        if !cmd!("git status -s -uno").read()?.is_empty() {
-            print!("This git repository contains untracked files.");
-
-            if !Self::ask_continue()? {
-                return Ok(());
-            }
+        if !cmd!("git status -s -uno").read()?.is_empty()
+            && !Self::ask_continue("This git repository contains untracked files. Continue?")?
+        {
+            return Ok(());
         }
 
         println!("Publishing the package on crates.io…");
-        if self.is_published()? {
-            print!("This version is already published.");
-
-            if !Self::ask_continue()? {
-                return Ok(());
-            }
+        if self.is_published()?
+            && !Self::ask_continue(
+                "This version is already published. Skip this step and continue?",
+            )?
+        {
+            return Ok(());
         } else {
             cmd!("cargo publish").run()?;
         }
@@ -86,23 +84,17 @@ impl ReleaseTask {
         println!("Creating git tag…");
         if cmd!("git tag -l {tag}").read()?.is_empty() {
             cmd!("git tag -s {tag} -m {title} -m {changes}").read()?;
-        } else {
-            print!("This tag already exists.");
-
-            if !Self::ask_continue()? {
-                return Ok(());
-            }
+        } else if !Self::ask_continue("This tag already exists. Skip this step and continue?")? {
+            return Ok(());
         }
 
         println!("Pushing tag to remote repository…");
         if cmd!("git ls-remote --tags {remote} {tag}").read()?.is_empty() {
             cmd!("git push {remote} {tag}").run()?;
-        } else {
-            print!("This tag has already been pushed.");
-
-            if !Self::ask_continue()? {
-                return Ok(());
-            }
+        } else if !Self::ask_continue(
+            "This tag has already been pushed. Skip this step and continue?",
+        )? {
+            return Ok(());
         }
 
         println!("Creating release on GitHub…");
@@ -121,11 +113,11 @@ impl ReleaseTask {
     }
 
     /// Ask the user if he wants to skip this step and continue. Returns `true` for yes.
-    fn ask_continue() -> Result<bool> {
+    fn ask_continue(message: &str) -> Result<bool> {
         let mut input = String::new();
         let stdin = stdin();
 
-        print!(" Skip this step and continue? [y/N]: ");
+        print!("{} [y/N]: ", message);
         stdout().flush()?;
 
         let mut handle = stdin.lock();
@@ -196,7 +188,7 @@ impl ReleaseTask {
 
     /// Check if the current version of the crate is published on crates.io.
     fn is_published(&self) -> Result<bool> {
-        let response: CratesioCrate =
+        let response: CratesIoCrate =
             self.client.get(format!("{}/{}/{}", CRATESIO_API, self.name, self.version))?.json()?;
 
         Ok(response.version.is_some())
@@ -246,7 +238,7 @@ struct CargoPackage {
 
 /// A crate from the `GET /crates/{crate}` endpoint of crates.io.
 #[derive(Deserialize)]
-struct CratesioCrate {
+struct CratesIoCrate {
     version: Option<IgnoredAny>,
 }
 
