@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [main, docs-deployment]
+    branches: [main]
 
 jobs:
   build-deploy:
