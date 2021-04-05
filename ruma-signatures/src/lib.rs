@@ -175,7 +175,7 @@ mod tests {
     use base64::{decode_config, STANDARD_NO_PAD};
     use ring::signature::{Ed25519KeyPair as RingEd25519KeyPair, KeyPair as _};
     use ruma_identifiers::RoomVersionId;
-    use serde_json::{from_str, to_string};
+    use serde_json::{from_str as from_json_str, to_string as to_json_string};
 
     use super::{
         canonical_json, hash_and_sign_event, sign_json, verify_event, verify_json, Ed25519KeyPair,
@@ -200,7 +200,7 @@ mod tests {
 
     /// Convenience for converting a string of JSON into its canonical form.
     fn test_canonical_json(input: &str) -> String {
-        let object = from_str(input).unwrap();
+        let object = from_json_str(input).unwrap();
         canonical_json(&object)
     }
 
@@ -301,19 +301,19 @@ mod tests {
         )
         .unwrap();
 
-        let mut value = from_str("{}").unwrap();
+        let mut value = from_json_str("{}").unwrap();
 
         sign_json("domain", &key_pair, &mut value).unwrap();
 
         assert_eq!(
-            to_string(&value).unwrap(),
+            to_json_string(&value).unwrap(),
             r#"{"signatures":{"domain":{"ed25519:1":"lXjsnvhVlz8t3etR+6AEJ0IT70WujeHC1CFjDDsVx0xSig1Bx7lvoi1x3j/2/GPNjQM4a2gD34UqsXFluaQEBA"}}}"#
         );
     }
 
     #[test]
     fn verify_empty_json() {
-        let value = from_str(r#"{"signatures":{"domain":{"ed25519:1":"lXjsnvhVlz8t3etR+6AEJ0IT70WujeHC1CFjDDsVx0xSig1Bx7lvoi1x3j/2/GPNjQM4a2gD34UqsXFluaQEBA"}}}"#).unwrap();
+        let value = from_json_str(r#"{"signatures":{"domain":{"ed25519:1":"lXjsnvhVlz8t3etR+6AEJ0IT70WujeHC1CFjDDsVx0xSig1Bx7lvoi1x3j/2/GPNjQM4a2gD34UqsXFluaQEBA"}}}"#).unwrap();
 
         let mut signature_set = BTreeMap::new();
         signature_set.insert("ed25519:1".into(), public_key_string());
@@ -332,27 +332,27 @@ mod tests {
         )
         .unwrap();
 
-        let mut alpha_object = from_str(r#"{ "one": 1, "two": "Two" }"#).unwrap();
+        let mut alpha_object = from_json_str(r#"{ "one": 1, "two": "Two" }"#).unwrap();
         sign_json("domain", &key_pair, &mut alpha_object).unwrap();
 
         assert_eq!(
-            to_string(&alpha_object).unwrap(),
+            to_json_string(&alpha_object).unwrap(),
             r#"{"one":1,"signatures":{"domain":{"ed25519:1":"t6Ehmh6XTDz7qNWI0QI5tNPSliWLPQP/+Fzz3LpdCS7q1k2G2/5b5Embs2j4uG3ZeivejrzqSVoBcdocRpa+AQ"}},"two":"Two"}"#
         );
 
         let mut reverse_alpha_object =
-            from_str(r#"{ "two": "Two", "one": 1 }"#).expect("reverse_alpha should serialize");
+            from_json_str(r#"{ "two": "Two", "one": 1 }"#).expect("reverse_alpha should serialize");
         sign_json("domain", &key_pair, &mut reverse_alpha_object).unwrap();
 
         assert_eq!(
-            to_string(&reverse_alpha_object).unwrap(),
+            to_json_string(&reverse_alpha_object).unwrap(),
             r#"{"one":1,"signatures":{"domain":{"ed25519:1":"t6Ehmh6XTDz7qNWI0QI5tNPSliWLPQP/+Fzz3LpdCS7q1k2G2/5b5Embs2j4uG3ZeivejrzqSVoBcdocRpa+AQ"}},"two":"Two"}"#
         );
     }
 
     #[test]
     fn verify_minimal_json() {
-        let value = from_str(
+        let value = from_json_str(
             r#"{"one":1,"signatures":{"domain":{"ed25519:1":"t6Ehmh6XTDz7qNWI0QI5tNPSliWLPQP/+Fzz3LpdCS7q1k2G2/5b5Embs2j4uG3ZeivejrzqSVoBcdocRpa+AQ"}},"two":"Two"}"#
         ).unwrap();
 
@@ -364,7 +364,7 @@ mod tests {
 
         assert!(verify_json(&public_key_map, &value).is_ok());
 
-        let reverse_value = from_str(
+        let reverse_value = from_json_str(
             r#"{"two":"Two","signatures":{"domain":{"ed25519:1":"t6Ehmh6XTDz7qNWI0QI5tNPSliWLPQP/+Fzz3LpdCS7q1k2G2/5b5Embs2j4uG3ZeivejrzqSVoBcdocRpa+AQ"}},"one":1}"#
         ).unwrap();
 
@@ -373,7 +373,7 @@ mod tests {
 
     #[test]
     fn fail_verify_json() {
-        let value = from_str(r#"{"not":"empty","signatures":{"domain":"lXjsnvhVlz8t3etR+6AEJ0IT70WujeHC1CFjDDsVx0xSig1Bx7lvoi1x3j/2/GPNjQM4a2gD34UqsXFluaQEBA"}}"#).unwrap();
+        let value = from_json_str(r#"{"not":"empty","signatures":{"domain":"lXjsnvhVlz8t3etR+6AEJ0IT70WujeHC1CFjDDsVx0xSig1Bx7lvoi1x3j/2/GPNjQM4a2gD34UqsXFluaQEBA"}}"#).unwrap();
 
         let mut signature_set = BTreeMap::new();
         signature_set.insert("ed25519:1".into(), public_key_string());
@@ -409,11 +409,11 @@ mod tests {
             }
         }"#;
 
-        let mut object = from_str(json).unwrap();
+        let mut object = from_json_str(json).unwrap();
         hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::Version5).unwrap();
 
         assert_eq!(
-            to_string(&object).unwrap(),
+            to_json_string(&object).unwrap(),
             r#"{"auth_events":[],"content":{},"depth":3,"hashes":{"sha256":"5jM4wQpv6lnBo7CLIghJuHdW+s2CMBJPUOGOC89ncos"},"origin":"domain","origin_server_ts":1000000,"prev_events":[],"room_id":"!x:domain","sender":"@a:domain","signatures":{"domain":{"ed25519:1":"PxOFMn6ORll8PFSQp0IRF6037MEZt3Mfzu/ROiT/gb/ccs1G+f6Ddoswez4KntLPBI3GKCGIkhctiK37JOy2Aw"}},"type":"X","unsigned":{"age_ts":1000000}}"#
         );
     }
@@ -442,11 +442,11 @@ mod tests {
             }
         }"#;
 
-        let mut object = from_str(json).unwrap();
+        let mut object = from_json_str(json).unwrap();
         hash_and_sign_event("domain", &key_pair, &mut object, &RoomVersionId::Version5).unwrap();
 
         assert_eq!(
-            to_string(&object).unwrap(),
+            to_json_string(&object).unwrap(),
             r#"{"content":{"body":"Here is the message content"},"event_id":"$0:domain","hashes":{"sha256":"onLKD1bGljeBWQhWZ1kaP9SorVmRQNdN5aM2JYU2n/g"},"origin":"domain","origin_server_ts":1000000,"room_id":"!r:domain","sender":"@u:domain","signatures":{"domain":{"ed25519:1":"D2V+qWBJssVuK/pEUJtwaYMdww2q1fP4PRCo226ChlLz8u8AWmQdLKes19NMjs/X0Hv0HIjU0c1TDKFMtGuoCA"}},"type":"m.room.message","unsigned":{"age_ts":1000000}}"#
         );
     }
@@ -459,7 +459,7 @@ mod tests {
         let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
-        let value = from_str(
+        let value = from_json_str(
             r#"{
                 "auth_events": [],
                 "content": {},

@@ -60,9 +60,6 @@ common_impls!(DeviceKeyId, try_from, "Device key ID with algorithm and device ID
 mod tests {
     use std::convert::TryFrom;
 
-    #[cfg(feature = "serde")]
-    use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
-
     use super::DeviceKeyId;
     use crate::{crypto_algorithms::DeviceKeyAlgorithm, Error};
 
@@ -80,16 +77,16 @@ mod tests {
     #[test]
     fn serialize_device_key_id() {
         let device_key_id = DeviceKeyId::try_from("ed25519:JLAFKJWSCS").unwrap();
-        let serialized = to_json_value(device_key_id).unwrap();
+        let serialized = serde_json::to_value(device_key_id).unwrap();
 
-        let expected = json!("ed25519:JLAFKJWSCS");
-        assert_eq!(serialized, expected);
+        assert_eq!(serialized, serde_json::json!("ed25519:JLAFKJWSCS"));
     }
 
     #[cfg(feature = "serde")]
     #[test]
     fn deserialize_device_key_id() {
-        let deserialized: DeviceKeyId = from_json_value(json!("ed25519:JLAFKJWSCS")).unwrap();
+        let deserialized: DeviceKeyId =
+            serde_json::from_value(serde_json::json!("ed25519:JLAFKJWSCS")).unwrap();
 
         let expected = DeviceKeyId::try_from("ed25519:JLAFKJWSCS").unwrap();
         assert_eq!(deserialized, expected);

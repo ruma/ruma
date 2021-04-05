@@ -144,9 +144,6 @@ impl TryFrom<RoomIdOrAliasId> for RoomAliasId {
 mod tests {
     use std::convert::TryFrom;
 
-    #[cfg(feature = "serde")]
-    use serde_json::{from_str, to_string};
-
     use super::RoomIdOrAliasId;
     use crate::Error;
 
@@ -182,7 +179,7 @@ mod tests {
     #[test]
     fn serialize_valid_room_id_or_alias_id_with_a_room_alias_id() {
         assert_eq!(
-            to_string(
+            serde_json::to_string(
                 &RoomIdOrAliasId::try_from("#ruma:example.com")
                     .expect("Failed to create RoomAliasId.")
             )
@@ -195,7 +192,7 @@ mod tests {
     #[test]
     fn serialize_valid_room_id_or_alias_id_with_a_room_id() {
         assert_eq!(
-            to_string(
+            serde_json::to_string(
                 &RoomIdOrAliasId::try_from("!29fhd83h92h0:example.com")
                     .expect("Failed to create RoomId.")
             )
@@ -208,7 +205,7 @@ mod tests {
     #[test]
     fn deserialize_valid_room_id_or_alias_id_with_a_room_alias_id() {
         assert_eq!(
-            from_str::<RoomIdOrAliasId>(r##""#ruma:example.com""##)
+            serde_json::from_str::<RoomIdOrAliasId>(r##""#ruma:example.com""##)
                 .expect("Failed to convert JSON to RoomAliasId"),
             RoomIdOrAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
         );
@@ -218,7 +215,7 @@ mod tests {
     #[test]
     fn deserialize_valid_room_id_or_alias_id_with_a_room_id() {
         assert_eq!(
-            from_str::<RoomIdOrAliasId>(r##""!29fhd83h92h0:example.com""##)
+            serde_json::from_str::<RoomIdOrAliasId>(r##""!29fhd83h92h0:example.com""##)
                 .expect("Failed to convert JSON to RoomId"),
             RoomIdOrAliasId::try_from("!29fhd83h92h0:example.com")
                 .expect("Failed to create RoomAliasId.")

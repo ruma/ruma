@@ -115,9 +115,6 @@ pub use ruma_identifiers_validation::user_id::localpart_is_fully_comforming;
 mod tests {
     use std::convert::TryFrom;
 
-    #[cfg(feature = "serde")]
-    use serde_json::{from_str, to_string};
-
     use super::UserId;
     use crate::{Error, ServerName};
 
@@ -208,8 +205,10 @@ mod tests {
     #[test]
     fn serialize_valid_user_id() {
         assert_eq!(
-            to_string(&UserId::try_from("@carl:example.com").expect("Failed to create UserId."))
-                .expect("Failed to convert UserId to JSON."),
+            serde_json::to_string(
+                &UserId::try_from("@carl:example.com").expect("Failed to create UserId.")
+            )
+            .expect("Failed to convert UserId to JSON."),
             r#""@carl:example.com""#
         );
     }
@@ -218,7 +217,8 @@ mod tests {
     #[test]
     fn deserialize_valid_user_id() {
         assert_eq!(
-            from_str::<UserId>(r#""@carl:example.com""#).expect("Failed to convert JSON to UserId"),
+            serde_json::from_str::<UserId>(r#""@carl:example.com""#)
+                .expect("Failed to convert JSON to UserId"),
             UserId::try_from("@carl:example.com").expect("Failed to create UserId.")
         );
     }

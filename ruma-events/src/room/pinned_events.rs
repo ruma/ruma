@@ -34,7 +34,6 @@ mod tests {
 
     use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
     use ruma_serde::Raw;
-    use serde_json::to_string;
 
     use super::PinnedEventsEventContent;
     use crate::{StateEvent, Unsigned};
@@ -58,7 +57,7 @@ mod tests {
             unsigned: Unsigned::default(),
         };
 
-        let serialized_event = to_string(&event).unwrap();
+        let serialized_event = serde_json::to_string(&event).unwrap();
         let parsed_event =
             serde_json::from_str::<Raw<StateEvent<PinnedEventsEventContent>>>(&serialized_event)
                 .unwrap()

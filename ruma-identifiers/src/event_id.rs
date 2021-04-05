@@ -107,9 +107,6 @@ common_impls!(EventId, try_from, "a Matrix event ID");
 mod tests {
     use std::convert::TryFrom;
 
-    #[cfg(feature = "serde")]
-    use serde_json::{from_str, to_string};
-
     use super::EventId;
     use crate::Error;
 
@@ -161,7 +158,7 @@ mod tests {
     #[test]
     fn serialize_valid_original_event_id() {
         assert_eq!(
-            to_string(
+            serde_json::to_string(
                 &EventId::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
             )
             .expect("Failed to convert EventId to JSON."),
@@ -173,7 +170,7 @@ mod tests {
     #[test]
     fn serialize_valid_base64_event_id() {
         assert_eq!(
-            to_string(
+            serde_json::to_string(
                 &EventId::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
                     .expect("Failed to create EventId.")
             )
@@ -186,7 +183,7 @@ mod tests {
     #[test]
     fn serialize_valid_url_safe_base64_event_id() {
         assert_eq!(
-            to_string(
+            serde_json::to_string(
                 &EventId::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
                     .expect("Failed to create EventId.")
             )
@@ -199,7 +196,7 @@ mod tests {
     #[test]
     fn deserialize_valid_original_event_id() {
         assert_eq!(
-            from_str::<EventId>(r#""$39hvsi03hlne:example.com""#)
+            serde_json::from_str::<EventId>(r#""$39hvsi03hlne:example.com""#)
                 .expect("Failed to convert JSON to EventId"),
             EventId::try_from("$39hvsi03hlne:example.com").expect("Failed to create EventId.")
         );
@@ -209,7 +206,7 @@ mod tests {
     #[test]
     fn deserialize_valid_base64_event_id() {
         assert_eq!(
-            from_str::<EventId>(r#""$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk""#)
+            serde_json::from_str::<EventId>(r#""$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk""#)
                 .expect("Failed to convert JSON to EventId"),
             EventId::try_from("$acR1l0raoZnm60CBwAVgqbZqoO/mYU81xysh1u7XcJk")
                 .expect("Failed to create EventId.")
@@ -220,7 +217,7 @@ mod tests {
     #[test]
     fn deserialize_valid_url_safe_base64_event_id() {
         assert_eq!(
-            from_str::<EventId>(r#""$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg""#)
+            serde_json::from_str::<EventId>(r#""$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg""#)
                 .expect("Failed to convert JSON to EventId"),
             EventId::try_from("$Rqnc-F-dvnEYJTyHq_iKxU2bZ1CI92-kuZq3a5lr5Zg")
                 .expect("Failed to create EventId.")

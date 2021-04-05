@@ -230,9 +230,6 @@ impl AsRef<str> for CustomRoomVersion {
 mod tests {
     use std::convert::TryFrom;
 
-    #[cfg(feature = "serde")]
-    use serde_json::{from_str, to_string};
-
     use super::RoomVersionId;
     use crate::Error;
 
@@ -309,8 +306,10 @@ mod tests {
     #[test]
     fn serialize_official_room_id() {
         assert_eq!(
-            to_string(&RoomVersionId::try_from("1").expect("Failed to create RoomVersionId."))
-                .expect("Failed to convert RoomVersionId to JSON."),
+            serde_json::to_string(
+                &RoomVersionId::try_from("1").expect("Failed to create RoomVersionId.")
+            )
+            .expect("Failed to convert RoomVersionId to JSON."),
             r#""1""#
         );
     }
@@ -318,8 +317,8 @@ mod tests {
     #[cfg(feature = "serde")]
     #[test]
     fn deserialize_official_room_id() {
-        let deserialized =
-            from_str::<RoomVersionId>(r#""1""#).expect("Failed to convert RoomVersionId to JSON.");
+        let deserialized = serde_json::from_str::<RoomVersionId>(r#""1""#)
+            .expect("Failed to convert RoomVersionId to JSON.");
 
         assert_eq!(deserialized, RoomVersionId::Version1);
 
@@ -333,7 +332,7 @@ mod tests {
     #[test]
     fn serialize_custom_room_id() {
         assert_eq!(
-            to_string(
+            serde_json::to_string(
                 &RoomVersionId::try_from("io.ruma.1").expect("Failed to create RoomVersionId.")
             )
             .expect("Failed to convert RoomVersionId to JSON."),
@@ -344,7 +343,7 @@ mod tests {
     #[cfg(feature = "serde")]
     #[test]
     fn deserialize_custom_room_id() {
-        let deserialized = from_str::<RoomVersionId>(r#""io.ruma.1""#)
+        let deserialized = serde_json::from_str::<RoomVersionId>(r#""io.ruma.1""#)
             .expect("Failed to convert RoomVersionId to JSON.");
 
         assert_eq!(

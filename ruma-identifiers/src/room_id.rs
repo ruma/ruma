@@ -74,9 +74,6 @@ common_impls!(RoomId, try_from, "a Matrix room ID");
 mod tests {
     use std::convert::TryFrom;
 
-    #[cfg(feature = "serde")]
-    use serde_json::{from_str, to_string};
-
     use super::RoomId;
     use crate::Error;
 
@@ -116,7 +113,7 @@ mod tests {
     #[test]
     fn serialize_valid_room_id() {
         assert_eq!(
-            to_string(
+            serde_json::to_string(
                 &RoomId::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
             )
             .expect("Failed to convert RoomId to JSON."),
@@ -128,7 +125,7 @@ mod tests {
     #[test]
     fn deserialize_valid_room_id() {
         assert_eq!(
-            from_str::<RoomId>(r#""!29fhd83h92h0:example.com""#)
+            serde_json::from_str::<RoomId>(r#""!29fhd83h92h0:example.com""#)
                 .expect("Failed to convert JSON to RoomId"),
             RoomId::try_from("!29fhd83h92h0:example.com").expect("Failed to create RoomId.")
         );

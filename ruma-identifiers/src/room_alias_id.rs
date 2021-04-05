@@ -58,9 +58,6 @@ common_impls!(RoomAliasId, try_from, "a Matrix room alias ID");
 mod tests {
     use std::convert::TryFrom;
 
-    #[cfg(feature = "serde")]
-    use serde_json::{from_str, to_string};
-
     use super::RoomAliasId;
     use crate::Error;
 
@@ -88,7 +85,7 @@ mod tests {
     #[test]
     fn serialize_valid_room_alias_id() {
         assert_eq!(
-            to_string(
+            serde_json::to_string(
                 &RoomAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
             )
             .expect("Failed to convert RoomAliasId to JSON."),
@@ -100,7 +97,7 @@ mod tests {
     #[test]
     fn deserialize_valid_room_alias_id() {
         assert_eq!(
-            from_str::<RoomAliasId>(r##""#ruma:example.com""##)
+            serde_json::from_str::<RoomAliasId>(r##""#ruma:example.com""##)
                 .expect("Failed to convert JSON to RoomAliasId"),
             RoomAliasId::try_from("#ruma:example.com").expect("Failed to create RoomAliasId.")
         );
