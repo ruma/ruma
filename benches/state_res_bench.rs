@@ -16,7 +16,7 @@ use ruma::{
         },
         EventType,
     },
-    identifiers::{EventId, RoomId, RoomVersionId, UserId},
+    EventId, RoomId, RoomVersionId, UserId,
 };
 use serde_json::{json, Value as JsonValue};
 use state_res::{Error, Event, Result, StateMap, StateResolution, StateStore};
@@ -498,7 +498,7 @@ pub mod event {
         },
         serde::CanonicalJsonValue,
         signatures::reference_hash,
-        EventId, RoomId, RoomVersionId, ServerName, UInt, UserId,
+        EventId, RoomId, RoomVersionId, ServerName, ServerSigningKeyId, UInt, UserId,
     };
     use serde::{de, ser, Deserialize, Serialize};
     use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
@@ -546,9 +546,7 @@ pub mod event {
         fn hashes(&self) -> &EventHash {
             self.hashes()
         }
-        fn signatures(
-            &self,
-        ) -> BTreeMap<Box<ServerName>, BTreeMap<ruma::ServerSigningKeyId, String>> {
+        fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>> {
             self.signatures()
         }
         fn unsigned(&self) -> &BTreeMap<String, JsonValue> {
@@ -675,9 +673,8 @@ pub mod event {
                         | EventType::RoomJoinRules
                         | EventType::RoomCreate => event.state_key == Some("".into()),
                         EventType::RoomMember => {
+                            // TODO fix clone
                             if let Ok(content) =
-                                // TODO fix clone
-                               
                                 serde_json::from_value::<MemberEventContent>(event.content.clone())
                             {
                                 if [MembershipState::Leave, MembershipState::Ban]
@@ -817,7 +814,7 @@ pub mod event {
 
         pub fn signatures(
             &self,
-        ) -> BTreeMap<Box<ServerName>, BTreeMap<ruma::ServerSigningKeyId, String>> {
+        ) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>> {
             match self {
                 Self::Full(_, ev) => match ev {
                     Pdu::RoomV1Pdu(_) => maplit::btreemap! {},

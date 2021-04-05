@@ -1,4 +1,4 @@
-use ruma::identifiers::RoomVersionId;
+use ruma::RoomVersionId;
 
 pub enum RoomDisposition {
     /// A room version that has a stable specification.

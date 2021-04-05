@@ -3,7 +3,7 @@ use std::{sync::Arc, time::UNIX_EPOCH};
 use maplit::btreemap;
 use ruma::{
     events::{room::join_rules::JoinRule, EventType},
-    identifiers::{EventId, RoomVersionId},
+    EventId, RoomVersionId,
 };
 use serde_json::json;
 use state_res::{StateMap, StateResolution, StateStore};

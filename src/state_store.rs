@@ -1,6 +1,6 @@
 use std::{collections::BTreeSet, sync::Arc};
 
-use ruma::identifiers::{EventId, RoomId};
+use ruma::{EventId, RoomId};
 
 use crate::{Event, Result};
 

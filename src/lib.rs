@@ -6,10 +6,7 @@ use std::{
 };
 
 use maplit::btreeset;
-use ruma::{
-    events::EventType,
-    identifiers::{EventId, RoomId, RoomVersionId},
-};
+use ruma::{events::EventType, EventId, RoomId, RoomVersionId};
 
 mod error;
 pub mod event_auth;

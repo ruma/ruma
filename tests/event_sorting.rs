@@ -1,9 +1,6 @@
 use std::collections::BTreeMap;
 
-use ruma::{
-    events::EventType,
-    identifiers::{EventId, RoomVersionId},
-};
+use ruma::{events::EventType, EventId, RoomVersionId};
 use state_res::{is_power_event, StateMap};
 
 mod utils;

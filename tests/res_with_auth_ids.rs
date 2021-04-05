@@ -2,10 +2,7 @@
 
 use std::{collections::BTreeMap, sync::Arc};
 
-use ruma::{
-    events::EventType,
-    identifiers::{EventId, RoomVersionId},
-};
+use ruma::{events::EventType, EventId, RoomVersionId};
 use serde_json::json;
 use state_res::{EventMap, StateMap, StateResolution, StateStore};
 

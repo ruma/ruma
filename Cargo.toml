@@ -19,16 +19,13 @@ maplit = "1.0.2"
 thiserror = "1.0.22"
 log = "0.4.11"
 
+[features]
+unstable-pre-spec = ["ruma/unstable-pre-spec"]
+
 [dependencies.ruma]
 git = "https://github.com/ruma/ruma"
-#branch = "server-pdu"
-#path = "../ruma/ruma"
-rev = "f196f5b6f164973d6b343af31ab4e0457f743675"
-features = ["client-api", "federation-api", "appservice-api", "unstable-pre-spec", "unstable-synapse-quirks"]
-
-[features]
-default = ["unstable-pre-spec"]
-unstable-pre-spec = ["ruma/unstable-pre-spec"]
+rev = "d883debe072086efffd4255dcca0a1a0d6fcd9ce"
+features = ["events", "signatures"]
 
 [dev-dependencies]
 criterion = "0.3.3"

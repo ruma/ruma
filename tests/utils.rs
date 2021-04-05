@@ -15,7 +15,7 @@ use ruma::{
         },
         EventType,
     },
-    identifiers::{EventId, RoomId, RoomVersionId, UserId},
+    EventId, RoomId, RoomVersionId, UserId,
 };
 use serde_json::{json, Value as JsonValue};
 use state_res::{Error, Event, Result, StateMap, StateResolution, StateStore};
@@ -706,8 +706,8 @@ pub mod event {
                         | EventType::RoomJoinRules
                         | EventType::RoomCreate => event.state_key == Some("".into()),
                         EventType::RoomMember => {
+                            // TODO fix clone
                             if let Ok(content) =
-                                // TODO fix clone
                                 serde_json::from_value::<MemberEventContent>(event.content.clone())
                             {
                                 if [MembershipState::Leave, MembershipState::Ban]
@@ -921,6 +921,7 @@ pub mod event {
         }
 
         #[test]
+        #[cfg_attr(not(feature = "unstable-pre-spec"), ignore)]
         fn serialize_pdu() {
             let non_canonical_json = r#"{"auth_events": ["$FEKmyWTamMqoL3zkEC3mVPg3qkcXcUShxxaq5BltsCE", "$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc", "$3ImCSXY6bbWbZ5S2N6BMplHHlP7RkxWZCM9fMbdM2NY", "$8Lfs0rVCE9bHQrUztEF9kbsrT4zASnPEtpImZN4L2n8"], "content": {"membership": "join"}, "depth": 135, "hashes": {"sha256": "Q7OehFJaB32W3NINZKesQZH7+ba7xZVFuyCtuWQ2emk"}, "origin": "pc.koesters.xyz:59003", "origin_server_ts": 1599901756522, "prev_events": ["$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc"], "prev_state": [], "room_id": "!eGNyCFvnKcpsnIZiEV:koesters.xyz", "sender": "@timo:pc.koesters.xyz:59003", "state_key": "@timo:pc.koesters.xyz:59003", "type": "m.room.member", "signatures": {"koesters.xyz": {"ed25519:a_wwQy": "bb8T5haywaEXKNxUUjeNBfjYi/Qe32R/dGliduIs3Ct913WGzXYLjWh7xHqapie7viHPzkDw/KYJacpAYKvMBA"}, "pc.koesters.xyz:59003": {"ed25519:key1": "/B3tpaMZKoLNITrup4fbFhbIMWixxEKM49nS4MiKOFfyJjDGuC5nWsurw0m2eYzrffhkF5qQQ8+RlFvkqwqkBw"}}, "unsigned": {"age": 30, "replaces_state": "$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc", "prev_content": {"membership": "join"}, "prev_sender": "@timo:pc.koesters.xyz:59003"}}"#;
 

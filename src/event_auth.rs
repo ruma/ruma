@@ -11,7 +11,7 @@ use ruma::{
         },
         EventType,
     },
-    identifiers::{RoomVersionId, UserId},
+    RoomVersionId, UserId,
 };
 
 use crate::{Error, Event, Result, StateMap};
@@ -762,7 +762,7 @@ pub fn get_send_level<E: Event>(
                 })
                 .ok()
         })
-        .map(|int| i64::from(int))
+        .map(i64::from)
         .unwrap_or_else(|| if state_key.is_some() { 50 } else { 0 })
 }
 
