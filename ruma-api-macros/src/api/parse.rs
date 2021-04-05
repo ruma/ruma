@@ -1,10 +1,12 @@
-use std::mem;
+use std::{collections::BTreeSet, mem};
 
 use syn::{
     braced,
     parse::{Parse, ParseStream},
     spanned::Spanned,
-    Attribute, Field, Token,
+    AngleBracketedGenericArguments, Attribute, BoundLifetimes, Field, GenericArgument, Ident,
+    Lifetime, LifetimeDef, ParenthesizedGenericArguments, PathArguments, Token, Type, TypeArray,
+    TypeBareFn, TypeGroup, TypeParen, TypePath, TypePtr, TypeReference, TypeSlice, TypeTuple,
 };
 
 use super::{
@@ -102,7 +104,7 @@ impl Parse for Request {
 
                     field_kind = Some(match meta {
                         Meta::Word(ident) => match &ident.to_string()[..] {
-                            attr @ "body" | attr @ "raw_body" => util::req_res_meta_word(
+                            attr @ "body" | attr @ "raw_body" => req_res_meta_word(
                                 attr,
                                 &field,
                                 &mut newtype_body_field,
@@ -135,36 +137,33 @@ impl Parse for Request {
                                 ));
                             }
                         },
-                        Meta::NameValue(MetaNameValue { name, value }) => util::req_res_name_value(
-                            name,
-                            value,
-                            &mut header,
-                            RequestFieldKind::Header,
-                        )?,
+                        Meta::NameValue(MetaNameValue { name, value }) => {
+                            req_res_name_value(name, value, &mut header, RequestFieldKind::Header)?
+                        }
                     });
                 }
 
                 match field_kind.unwrap_or(RequestFieldKind::Body) {
                     RequestFieldKind::Header => {
-                        util::collect_lifetime_ident(&mut lifetimes.header, &field.ty)
+                        collect_lifetime_ident(&mut lifetimes.header, &field.ty)
                     }
                     RequestFieldKind::Body => {
-                        util::collect_lifetime_ident(&mut lifetimes.body, &field.ty)
+                        collect_lifetime_ident(&mut lifetimes.body, &field.ty)
                     }
                     RequestFieldKind::NewtypeBody => {
-                        util::collect_lifetime_ident(&mut lifetimes.body, &field.ty)
+                        collect_lifetime_ident(&mut lifetimes.body, &field.ty)
                     }
                     RequestFieldKind::NewtypeRawBody => {
-                        util::collect_lifetime_ident(&mut lifetimes.body, &field.ty)
+                        collect_lifetime_ident(&mut lifetimes.body, &field.ty)
                     }
                     RequestFieldKind::Path => {
-                        util::collect_lifetime_ident(&mut lifetimes.path, &field.ty)
+                        collect_lifetime_ident(&mut lifetimes.path, &field.ty)
                     }
                     RequestFieldKind::Query => {
-                        util::collect_lifetime_ident(&mut lifetimes.query, &field.ty)
+                        collect_lifetime_ident(&mut lifetimes.query, &field.ty)
                     }
                     RequestFieldKind::QueryMap => {
-                        util::collect_lifetime_ident(&mut lifetimes.query, &field.ty)
+                        collect_lifetime_ident(&mut lifetimes.query, &field.ty)
                     }
                 }
 
@@ -212,7 +211,7 @@ impl Parse for Response {
             .parse_terminated::<Field, Token![,]>(Field::parse_named)?
             .into_iter()
             .map(|f| {
-                if util::has_lifetime(&f.ty) {
+                if has_lifetime(&f.ty) {
                     Err(syn::Error::new(
                         f.ident.span(),
                         "Lifetimes on Response fields cannot be supported until GAT are stable",
@@ -249,7 +248,7 @@ impl Parse for Response {
 
                     field_kind = Some(match meta {
                         Meta::Word(ident) => match &ident.to_string()[..] {
-                            s @ "body" | s @ "raw_body" => util::req_res_meta_word(
+                            s @ "body" | s @ "raw_body" => req_res_meta_word(
                                 s,
                                 &field,
                                 &mut newtype_body_field,
@@ -263,12 +262,9 @@ impl Parse for Response {
                                 ));
                             }
                         },
-                        Meta::NameValue(MetaNameValue { name, value }) => util::req_res_name_value(
-                            name,
-                            value,
-                            &mut header,
-                            ResponseFieldKind::Header,
-                        )?,
+                        Meta::NameValue(MetaNameValue { name, value }) => {
+                            req_res_name_value(name, value, &mut header, ResponseFieldKind::Header)?
+                        }
                     });
                 }
 
@@ -293,4 +289,157 @@ impl Parse for Response {
 
         Ok(Self { attributes, fields, ruma_api_import: util::import_ruma_api() })
     }
+}
+
+fn has_lifetime(ty: &Type) -> bool {
+    match ty {
+        Type::Path(TypePath { path, .. }) => {
+            let mut found = false;
+            for seg in &path.segments {
+                match &seg.arguments {
+                    PathArguments::AngleBracketed(AngleBracketedGenericArguments {
+                        args, ..
+                    }) => {
+                        for gen in args {
+                            if let GenericArgument::Type(ty) = gen {
+                                if has_lifetime(&ty) {
+                                    found = true;
+                                };
+                            } else if let GenericArgument::Lifetime(_) = gen {
+                                return true;
+                            }
+                        }
+                    }
+                    PathArguments::Parenthesized(ParenthesizedGenericArguments {
+                        inputs, ..
+                    }) => {
+                        for ty in inputs {
+                            if has_lifetime(ty) {
+                                found = true;
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            found
+        }
+        Type::Reference(TypeReference { elem, lifetime, .. }) => {
+            if lifetime.is_some() {
+                true
+            } else {
+                has_lifetime(&elem)
+            }
+        }
+        Type::Tuple(TypeTuple { elems, .. }) => {
+            let mut found = false;
+            for ty in elems {
+                if has_lifetime(ty) {
+                    found = true;
+                }
+            }
+            found
+        }
+        Type::Paren(TypeParen { elem, .. }) => has_lifetime(&elem),
+        Type::Group(TypeGroup { elem, .. }) => has_lifetime(&*elem),
+        Type::Ptr(TypePtr { elem, .. }) => has_lifetime(&*elem),
+        Type::Slice(TypeSlice { elem, .. }) => has_lifetime(&*elem),
+        Type::Array(TypeArray { elem, .. }) => has_lifetime(&*elem),
+        Type::BareFn(TypeBareFn { lifetimes: Some(BoundLifetimes { .. }), .. }) => true,
+        _ => false,
+    }
+}
+
+fn collect_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
+    match ty {
+        Type::Path(TypePath { path, .. }) => {
+            for seg in &path.segments {
+                match &seg.arguments {
+                    PathArguments::AngleBracketed(AngleBracketedGenericArguments {
+                        args, ..
+                    }) => {
+                        for gen in args {
+                            if let GenericArgument::Type(ty) = gen {
+                                collect_lifetime_ident(lifetimes, &ty);
+                            } else if let GenericArgument::Lifetime(lt) = gen {
+                                lifetimes.insert(lt.clone());
+                            }
+                        }
+                    }
+                    PathArguments::Parenthesized(ParenthesizedGenericArguments {
+                        inputs, ..
+                    }) => {
+                        for ty in inputs {
+                            collect_lifetime_ident(lifetimes, ty);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+        Type::Reference(TypeReference { elem, lifetime, .. }) => {
+            collect_lifetime_ident(lifetimes, &*elem);
+            if let Some(lt) = lifetime {
+                lifetimes.insert(lt.clone());
+            }
+        }
+        Type::Tuple(TypeTuple { elems, .. }) => {
+            for ty in elems {
+                collect_lifetime_ident(lifetimes, ty);
+            }
+        }
+        Type::Paren(TypeParen { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
+        Type::Group(TypeGroup { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
+        Type::Ptr(TypePtr { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
+        Type::Slice(TypeSlice { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
+        Type::Array(TypeArray { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
+        Type::BareFn(TypeBareFn {
+            lifetimes: Some(BoundLifetimes { lifetimes: fn_lifetimes, .. }),
+            ..
+        }) => {
+            for lt in fn_lifetimes {
+                let LifetimeDef { lifetime, .. } = lt;
+                lifetimes.insert(lifetime.clone());
+            }
+        }
+        _ => {}
+    }
+}
+
+fn req_res_meta_word<T>(
+    attr_kind: &str,
+    field: &syn::Field,
+    newtype_body_field: &mut Option<syn::Field>,
+    body_field_kind: T,
+    raw_field_kind: T,
+) -> syn::Result<T> {
+    if let Some(f) = &newtype_body_field {
+        let mut error = syn::Error::new_spanned(field, "There can only be one newtype body field");
+        error.combine(syn::Error::new_spanned(f, "Previous newtype body field"));
+        return Err(error);
+    }
+
+    *newtype_body_field = Some(field.clone());
+    Ok(match attr_kind {
+        "body" => body_field_kind,
+        "raw_body" => raw_field_kind,
+        _ => unreachable!(),
+    })
+}
+
+fn req_res_name_value<T>(
+    name: Ident,
+    value: Ident,
+    header: &mut Option<Ident>,
+    field_kind: T,
+) -> syn::Result<T> {
+    if name != "header" {
+        return Err(syn::Error::new_spanned(
+            name,
+            "Invalid #[ruma_api] argument with value, expected `header`",
+        ));
+    }
+
+    *header = Some(value);
+    Ok(field_kind)
 }

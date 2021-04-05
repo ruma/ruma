@@ -5,69 +5,9 @@ use std::collections::BTreeSet;
 use proc_macro2::{Span, TokenStream};
 use proc_macro_crate::{crate_name, FoundCrate};
 use quote::quote;
-use syn::{
-    AngleBracketedGenericArguments, AttrStyle, Attribute, GenericArgument, Ident, Lifetime,
-    ParenthesizedGenericArguments, PathArguments, Type, TypeArray, TypeBareFn, TypeGroup,
-    TypeParen, TypePath, TypePtr, TypeReference, TypeSlice, TypeTuple,
-};
+use syn::{AttrStyle, Attribute, Ident, Lifetime};
 
 use crate::api::{metadata::Metadata, request::Request};
-
-pub fn collect_lifetime_ident(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
-    match ty {
-        Type::Path(TypePath { path, .. }) => {
-            for seg in &path.segments {
-                match &seg.arguments {
-                    PathArguments::AngleBracketed(AngleBracketedGenericArguments {
-                        args, ..
-                    }) => {
-                        for gen in args {
-                            if let GenericArgument::Type(ty) = gen {
-                                collect_lifetime_ident(lifetimes, &ty);
-                            } else if let GenericArgument::Lifetime(lt) = gen {
-                                lifetimes.insert(lt.clone());
-                            }
-                        }
-                    }
-                    PathArguments::Parenthesized(ParenthesizedGenericArguments {
-                        inputs, ..
-                    }) => {
-                        for ty in inputs {
-                            collect_lifetime_ident(lifetimes, ty);
-                        }
-                    }
-                    _ => {}
-                }
-            }
-        }
-        Type::Reference(TypeReference { elem, lifetime, .. }) => {
-            collect_lifetime_ident(lifetimes, &*elem);
-            if let Some(lt) = lifetime {
-                lifetimes.insert(lt.clone());
-            }
-        }
-        Type::Tuple(TypeTuple { elems, .. }) => {
-            for ty in elems {
-                collect_lifetime_ident(lifetimes, ty);
-            }
-        }
-        Type::Paren(TypeParen { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
-        Type::Group(TypeGroup { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
-        Type::Ptr(TypePtr { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
-        Type::Slice(TypeSlice { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
-        Type::Array(TypeArray { elem, .. }) => collect_lifetime_ident(lifetimes, &*elem),
-        Type::BareFn(TypeBareFn {
-            lifetimes: Some(syn::BoundLifetimes { lifetimes: fn_lifetimes, .. }),
-            ..
-        }) => {
-            for lt in fn_lifetimes {
-                let syn::LifetimeDef { lifetime, .. } = lt;
-                lifetimes.insert(lifetime.clone());
-            }
-        }
-        _ => {}
-    }
-}
 
 /// Generates a `TokenStream` of lifetime identifiers `<'lifetime>`.
 pub fn unique_lifetimes_to_tokens<'a, I: Iterator<Item = &'a Lifetime>>(
@@ -79,65 +19,6 @@ pub fn unique_lifetimes_to_tokens<'a, I: Iterator<Item = &'a Lifetime>>(
     } else {
         let lifetimes = quote! { #( #lifetimes ),* };
         quote! { < #lifetimes > }
-    }
-}
-
-pub fn has_lifetime(ty: &Type) -> bool {
-    match ty {
-        Type::Path(TypePath { path, .. }) => {
-            let mut found = false;
-            for seg in &path.segments {
-                match &seg.arguments {
-                    PathArguments::AngleBracketed(AngleBracketedGenericArguments {
-                        args, ..
-                    }) => {
-                        for gen in args {
-                            if let GenericArgument::Type(ty) = gen {
-                                if has_lifetime(&ty) {
-                                    found = true;
-                                };
-                            } else if let GenericArgument::Lifetime(_) = gen {
-                                return true;
-                            }
-                        }
-                    }
-                    PathArguments::Parenthesized(ParenthesizedGenericArguments {
-                        inputs, ..
-                    }) => {
-                        for ty in inputs {
-                            if has_lifetime(ty) {
-                                found = true;
-                            }
-                        }
-                    }
-                    _ => {}
-                }
-            }
-            found
-        }
-        Type::Reference(TypeReference { elem, lifetime, .. }) => {
-            if lifetime.is_some() {
-                true
-            } else {
-                has_lifetime(&elem)
-            }
-        }
-        Type::Tuple(TypeTuple { elems, .. }) => {
-            let mut found = false;
-            for ty in elems {
-                if has_lifetime(ty) {
-                    found = true;
-                }
-            }
-            found
-        }
-        Type::Paren(TypeParen { elem, .. }) => has_lifetime(&elem),
-        Type::Group(TypeGroup { elem, .. }) => has_lifetime(&*elem),
-        Type::Ptr(TypePtr { elem, .. }) => has_lifetime(&*elem),
-        Type::Slice(TypeSlice { elem, .. }) => has_lifetime(&*elem),
-        Type::Array(TypeArray { elem, .. }) => has_lifetime(&*elem),
-        Type::BareFn(TypeBareFn { lifetimes: Some(syn::BoundLifetimes { .. }), .. }) => true,
-        _ => false,
     }
 }
 
@@ -348,44 +229,6 @@ pub(crate) fn parse_request_body(request: &Request) -> TokenStream {
     } else {
         request.request_init_body_fields()
     }
-}
-
-pub(crate) fn req_res_meta_word<T>(
-    attr_kind: &str,
-    field: &syn::Field,
-    newtype_body_field: &mut Option<syn::Field>,
-    body_field_kind: T,
-    raw_field_kind: T,
-) -> syn::Result<T> {
-    if let Some(f) = &newtype_body_field {
-        let mut error = syn::Error::new_spanned(field, "There can only be one newtype body field");
-        error.combine(syn::Error::new_spanned(f, "Previous newtype body field"));
-        return Err(error);
-    }
-
-    *newtype_body_field = Some(field.clone());
-    Ok(match attr_kind {
-        "body" => body_field_kind,
-        "raw_body" => raw_field_kind,
-        _ => unreachable!(),
-    })
-}
-
-pub(crate) fn req_res_name_value<T>(
-    name: Ident,
-    value: Ident,
-    header: &mut Option<Ident>,
-    field_kind: T,
-) -> syn::Result<T> {
-    if name != "header" {
-        return Err(syn::Error::new_spanned(
-            name,
-            "Invalid #[ruma_api] argument with value, expected `header`",
-        ));
-    }
-
-    *header = Some(value);
-    Ok(field_kind)
 }
 
 pub(crate) fn is_valid_endpoint_path(string: &str) -> bool {
