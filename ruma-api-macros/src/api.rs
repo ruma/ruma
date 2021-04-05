@@ -2,13 +2,11 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{
-    parse::{Parse, ParseStream},
-    Token, Type,
-};
+use syn::Type;
 
 pub(crate) mod attribute;
 pub(crate) mod metadata;
+pub(crate) mod parse;
 pub(crate) mod request;
 pub(crate) mod response;
 
@@ -28,53 +26,6 @@ pub struct Api {
 
     /// The `error` section of the macro.
     error_ty: Option<Type>,
-}
-
-mod kw {
-    syn::custom_keyword!(error);
-}
-
-impl Parse for Api {
-    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let metadata: Metadata = input.parse()?;
-        let request: Request = input.parse()?;
-        let response: Response = input.parse()?;
-
-        // TODO: Use `bool::then` when MSRV >= 1.50
-        let error_ty = if input.peek(kw::error) {
-            let _: kw::error = input.parse()?;
-            let _: Token![:] = input.parse()?;
-
-            Some(input.parse()?)
-        } else {
-            None
-        };
-
-        let newtype_body_field = request.newtype_body_field();
-        if metadata.method == "GET" && (request.has_body_fields() || newtype_body_field.is_some()) {
-            let mut combined_error: Option<syn::Error> = None;
-            let mut add_error = |field| {
-                let error = syn::Error::new_spanned(field, "GET endpoints can't have body fields");
-                if let Some(combined_error_ref) = &mut combined_error {
-                    combined_error_ref.combine(error);
-                } else {
-                    combined_error = Some(error);
-                }
-            };
-
-            for field in request.body_fields() {
-                add_error(field);
-            }
-
-            if let Some(field) = newtype_body_field {
-                add_error(field);
-            }
-
-            return Err(combined_error.unwrap());
-        }
-
-        Ok(Self { metadata, request, response, error_ty })
-    }
 }
 
 pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
