@@ -58,8 +58,13 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
+    /// Creates a new `Request` with the given media ID, server name and filename.
+    pub fn new(media_id: &'a str, server_name: &'a ServerName, filename: &'a str) -> Self {
+        Self { media_id, server_name, filename, allow_remote: true }
+    }
+
     /// Creates a new `Request` with the given url and filename.
-    pub fn new(url: &'a MxcUri, filename: &'a str) -> Self {
+    pub fn from_url(url: &'a MxcUri, filename: &'a str) -> Self {
         Self {
             media_id: url.media_id(),
             server_name: url.server_name(),
