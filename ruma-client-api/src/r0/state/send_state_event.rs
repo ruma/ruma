@@ -1,6 +1,6 @@
 //! [PUT /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}](https://matrix.org/docs/spec/client_server/r0.6.1#put-matrix-client-r0-rooms-roomid-state-eventtype-statekey)
 
-use std::convert::TryFrom;
+use std::{borrow::Cow, convert::TryFrom};
 
 use ruma_api::{
     error::{FromHttpRequestError, IntoHttpError, RequestDeserializationError},
@@ -15,7 +15,7 @@ ruma_api! {
     metadata: {
         description: "Send a state event to a room associated with a given state key.",
         method: PUT,
-        name: "send_state_event_for_key",
+        name: "send_state_event",
         path: "/_matrix/client/r0/rooms/:room_id/state/:event_type/:state_key",
         rate_limited: false,
         authentication: AccessToken,
@@ -29,7 +29,7 @@ ruma_api! {
     error: crate::Error
 }
 
-/// Data for a request to the `send_state_event_for_key` API endpoint.
+/// Data for a request to the `send_state_event` API endpoint.
 ///
 /// Send a state event to a room associated with a given state key.
 #[derive(Clone, Debug, Outgoing)]
@@ -39,7 +39,7 @@ pub struct Request<'a> {
     /// The room to set the state in.
     pub room_id: &'a RoomId,
 
-    /// The state_key for the state to send. Defaults to the empty string.
+    /// The state_key for the state to send.
     pub state_key: &'a str,
 
     /// The event content to send.
@@ -75,15 +75,22 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
         use http::header::{HeaderValue, AUTHORIZATION, CONTENT_TYPE};
         use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
+        let mut url = format!(
+            "{}/_matrix/client/r0/rooms/{}/state/{}",
+            base_url.strip_suffix('/').unwrap_or(base_url),
+            utf8_percent_encode(self.room_id.as_str(), NON_ALPHANUMERIC),
+            utf8_percent_encode(self.content.event_type(), NON_ALPHANUMERIC),
+        );
+
+        if !self.state_key.is_empty() {
+            url.push('/');
+            url.push_str(&Cow::from(utf8_percent_encode(&self.state_key, NON_ALPHANUMERIC)));
+        }
+
         let http_request = http::Request::builder()
             .method(http::Method::PUT)
-            .uri(format!(
-                "{}/_matrix/client/r0/rooms/{}/state/{}/{}",
-                base_url.strip_suffix('/').unwrap_or(base_url),
-                utf8_percent_encode(self.room_id.as_str(), NON_ALPHANUMERIC),
-                utf8_percent_encode(self.content.event_type(), NON_ALPHANUMERIC),
-                utf8_percent_encode(&self.state_key, NON_ALPHANUMERIC),
-            ))
+            .uri(url)
+            .header(CONTENT_TYPE, "application/json")
             .header(
                 AUTHORIZATION,
                 HeaderValue::from_str(&format!(
@@ -91,7 +98,6 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
                     access_token.ok_or(IntoHttpError::NeedsAuthentication)?
                 ))?,
             )
-            .header(CONTENT_TYPE, "application/json")
             .body(serde_json::to_vec(&self.content)?)?;
 
         Ok(http_request)

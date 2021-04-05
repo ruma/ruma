@@ -88,6 +88,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
                 utf8_percent_encode(self.content.event_type(), NON_ALPHANUMERIC),
                 utf8_percent_encode(&self.txn_id, NON_ALPHANUMERIC),
             ))
+            .header(CONTENT_TYPE, "application/json")
             .header(
                 AUTHORIZATION,
                 HeaderValue::from_str(&format!(
@@ -95,7 +96,6 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
                     access_token.ok_or(IntoHttpError::NeedsAuthentication)?
                 ))?,
             )
-            .header(CONTENT_TYPE, "application/json")
             .body(serde_json::to_vec(&self.content)?)?;
 
         Ok(http_request)
