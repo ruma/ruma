@@ -721,7 +721,7 @@ pub fn redact(
             _ => return Err(Error::new("field `content` in JSON value must be a JSON object")),
         };
 
-        let mut old_content = mem::replace(content, BTreeMap::new());
+        let mut old_content = mem::take(content);
 
         for &key in allowed_content_keys {
             if let Some(value) = old_content.remove(key) {
@@ -730,7 +730,7 @@ pub fn redact(
         }
     }
 
-    let mut old_event = mem::replace(&mut event, BTreeMap::new());
+    let mut old_event = mem::take(&mut event);
 
     for &key in ALLOWED_KEYS {
         if let Some(value) = old_event.remove(key) {

@@ -84,7 +84,7 @@ impl Parse for Request {
                 let mut field_kind = None;
                 let mut header = None;
 
-                for attr in mem::replace(&mut field.attrs, Vec::new()) {
+                for attr in mem::take(&mut field.attrs) {
                     let meta = match Meta::from_attribute(&attr)? {
                         Some(m) => m,
                         None => {
@@ -231,7 +231,7 @@ impl Parse for Response {
                 let mut field_kind = None;
                 let mut header = None;
 
-                for attr in mem::replace(&mut field.attrs, Vec::new()) {
+                for attr in mem::take(&mut field.attrs) {
                     let meta = match Meta::from_attribute(&attr)? {
                         Some(m) => m,
                         None => {
