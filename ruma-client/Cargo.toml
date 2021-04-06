@@ -23,7 +23,7 @@ hyper = { version = "0.14.2", features = ["client", "tcp"] }
 hyper-tls = { version = "0.5.0", optional = true }
 hyper-rustls = { version = "0.22.1", optional = true, default-features = false }
 ruma-api = { version = "=0.17.0-alpha.2", path = "../ruma-api" }
-ruma-client-api = { version = "=0.10.0-alpha.2", path = "../ruma-client-api" }
+ruma-client-api = { version = "=0.10.0-alpha.2", path = "../ruma-client-api", features = ["client"] }
 ruma-common = { version = "0.3.1", path = "../ruma-common" }
 ruma-events = { version = "=0.22.0-alpha.2", path = "../ruma-events" }
 ruma-identifiers = { version = "0.18.1", path = "../ruma-identifiers" }
@@ -33,7 +33,7 @@ serde_json = "1.0.61"
 
 [dev-dependencies]
 anyhow = "1.0.37"
-ruma = { version = "0.0.2", path = "../ruma", features = ["client-api"] }
+ruma = { version = "0.0.2", path = "../ruma", features = ["client-api-c"] }
 tokio = { version = "1.0.1", features = ["macros", "rt"] }
 tokio-stream = { version = "0.1.1", default-features = false }
 
