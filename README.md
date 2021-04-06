@@ -2,12 +2,13 @@
 
 A set of [Rust] crates (libraries) for interacting with the [Matrix] chat network.
 
-[website] • [chat]
+[website] • [chat] • [unstable documentation][docs]
 
 [Rust]: https://rust-lang.org/
 [Matrix]: https://matrix.org/
 [website]: https://www.ruma.io/
 [chat]: https://matrix.to/#/#ruma:matrix.org
+[docs]: https://docs.ruma.io/
 
 ## Getting started
 
