@@ -95,8 +95,12 @@ macro_rules! device_id {
     };
 }
 
+// A plain re-export shows up in rustdoc despite doc(hidden). Use a module instead.
+// Bug report: https://github.com/rust-lang/rust/issues/83939
 #[doc(hidden)]
-pub use ruma_identifiers_macros as _macros;
+pub mod _macros {
+    pub use ruma_identifiers_macros::*;
+}
 
 /// Compile-time checked `DeviceKeyId` construction.
 #[macro_export]
