@@ -1,15 +1,9 @@
 //! [PUT /_matrix/client/r0/rooms/{roomId}/send/{eventType}/{txnId}](https://matrix.org/docs/spec/client_server/r0.6.1#put-matrix-client-r0-rooms-roomid-send-eventtype-txnid)
 
-use std::convert::TryFrom;
-
-use ruma_api::{
-    error::{FromHttpRequestError, IntoHttpError},
-    ruma_api, try_deserialize, Metadata,
-};
+use ruma_api::{ruma_api, Metadata};
 use ruma_events::{AnyMessageEventContent, EventContent as _};
 use ruma_identifiers::{EventId, RoomId};
 use ruma_serde::Outgoing;
-use serde_json::value::RawValue as RawJsonValue;
 
 ruma_api! {
     metadata: {
@@ -75,7 +69,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
         self,
         base_url: &str,
         access_token: Option<&str>,
-    ) -> Result<http::Request<Vec<u8>>, IntoHttpError> {
+    ) -> Result<http::Request<Vec<u8>>, ruma_api::error::IntoHttpError> {
         use http::header::{HeaderValue, AUTHORIZATION, CONTENT_TYPE};
         use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
@@ -93,7 +87,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
                 AUTHORIZATION,
                 HeaderValue::from_str(&format!(
                     "Bearer {}",
-                    access_token.ok_or(IntoHttpError::NeedsAuthentication)?
+                    access_token.ok_or(ruma_api::error::IntoHttpError::NeedsAuthentication)?
                 ))?,
             )
             .body(serde_json::to_vec(&self.content)?)?;
@@ -111,7 +105,12 @@ impl ruma_api::IncomingRequest for IncomingRequest {
 
     fn try_from_http_request(
         request: http::Request<Vec<u8>>,
-    ) -> Result<Self, FromHttpRequestError> {
+    ) -> Result<Self, ruma_api::error::FromHttpRequestError> {
+        use std::convert::TryFrom;
+
+        use ruma_api::try_deserialize;
+        use serde_json::value::RawValue as RawJsonValue;
+
         let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
 
         let room_id = {

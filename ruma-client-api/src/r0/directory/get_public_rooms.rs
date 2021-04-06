@@ -76,11 +76,10 @@ mod tests {
     use js_int::uint;
     use ruma_api::OutgoingRequest as _;
 
-    use super::{Request, Response};
-
+    #[cfg(feature = "client")]
     #[test]
     fn construct_request_from_refs() {
-        let req: http::Request<Vec<u8>> = Request {
+        let req: http::Request<Vec<u8>> = super::Request {
             limit: Some(uint!(10)),
             since: Some("hello"),
             server: Some("address".try_into().unwrap()),
@@ -97,9 +96,10 @@ mod tests {
         assert!(query.contains("server=address"));
     }
 
+    #[cfg(feature = "server")]
     #[test]
     fn construct_response_from_refs() {
-        let res: http::Response<Vec<u8>> = Response {
+        let res: http::Response<Vec<u8>> = super::Response {
             chunk: vec![],
             next_batch: Some("next_batch_token".into()),
             prev_batch: Some("prev_batch_token".into()),

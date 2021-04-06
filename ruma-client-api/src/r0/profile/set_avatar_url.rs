@@ -49,7 +49,7 @@ impl Response {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "server"))]
 mod tests {
     use matches::assert_matches;
     use ruma_api::IncomingRequest as _;

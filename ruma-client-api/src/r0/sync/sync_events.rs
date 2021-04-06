@@ -530,13 +530,42 @@ impl DeviceLists {
 
 #[cfg(test)]
 mod tests {
-    use std::time::Duration;
-
-    use matches::assert_matches;
-    use ruma_api::{IncomingRequest as _, OutgoingRequest as _};
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{Filter, IncomingFilter, IncomingRequest, PresenceState, Request, Timeline};
+    use super::Timeline;
+
+    #[test]
+    fn timeline_serde() {
+        let timeline = Timeline { limited: true, prev_batch: None, events: vec![] };
+
+        let timeline_serialized = json!({
+            "limited": true,
+        });
+
+        assert_eq!(to_json_value(timeline).unwrap(), timeline_serialized);
+
+        let timeline_deserialized: Timeline = from_json_value(timeline_serialized).unwrap();
+        assert_eq!(timeline_deserialized.limited, true);
+
+        let timeline_default = Timeline::default();
+
+        let timeline_default_serialized = json!({});
+
+        assert_eq!(to_json_value(timeline_default).unwrap(), timeline_default_serialized);
+
+        let timeline_default_deserialized: Timeline =
+            from_json_value(timeline_default_serialized).unwrap();
+        assert_eq!(timeline_default_deserialized.limited, false);
+    }
+}
+
+#[cfg(all(test, feature = "client"))]
+mod client_tests {
+    use std::time::Duration;
+
+    use ruma_api::OutgoingRequest as _;
+
+    use super::{Filter, PresenceState, Request};
 
     #[test]
     fn serialize_all_params() {
@@ -560,6 +589,17 @@ mod tests {
         assert!(query.contains("set_presence=offline"));
         assert!(query.contains("timeout=30000"))
     }
+}
+
+#[cfg(all(test, feature = "server"))]
+mod server_tests {
+    use std::time::Duration;
+
+    use matches::assert_matches;
+    use ruma_api::IncomingRequest as _;
+    use ruma_common::presence::PresenceState;
+
+    use super::{IncomingFilter, IncomingRequest};
 
     #[test]
     fn deserialize_all_query_params() {
@@ -633,29 +673,5 @@ mod tests {
         assert_eq!(req.full_state, false);
         assert_eq!(req.set_presence, PresenceState::Online);
         assert_eq!(req.timeout, Some(Duration::from_millis(0)));
-    }
-
-    #[test]
-    fn timeline_serde() {
-        let timeline = Timeline { limited: true, prev_batch: None, events: vec![] };
-
-        let timeline_serialized = json!({
-            "limited": true,
-        });
-
-        assert_eq!(to_json_value(timeline).unwrap(), timeline_serialized);
-
-        let timeline_deserialized: Timeline = from_json_value(timeline_serialized).unwrap();
-        assert_eq!(timeline_deserialized.limited, true);
-
-        let timeline_default = Timeline::default();
-
-        let timeline_default_serialized = json!({});
-
-        assert_eq!(to_json_value(timeline_default).unwrap(), timeline_default_serialized);
-
-        let timeline_default_deserialized: Timeline =
-            from_json_value(timeline_default_serialized).unwrap();
-        assert_eq!(timeline_default_deserialized.limited, false);
     }
 }

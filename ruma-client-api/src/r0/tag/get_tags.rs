@@ -46,8 +46,8 @@ impl Response {
     }
 }
 
-#[cfg(test)]
-mod tests {
+#[cfg(all(test, feature = "server"))]
+mod server_tests {
     use std::convert::TryFrom;
 
     use assign::assign;

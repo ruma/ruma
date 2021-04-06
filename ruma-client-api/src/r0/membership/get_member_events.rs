@@ -82,7 +82,7 @@ pub enum MembershipEventFilter {
     _Custom(String),
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "server"))]
 mod tests {
     use matches::assert_matches;
     use ruma_api::IncomingRequest as _;
