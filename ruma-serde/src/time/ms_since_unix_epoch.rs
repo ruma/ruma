@@ -44,6 +44,7 @@ where
 mod tests {
     use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+    use matches::assert_matches;
     use serde::{Deserialize, Serialize};
     use serde_json::json;
 
@@ -57,15 +58,19 @@ mod tests {
     fn deserialize() {
         let json = json!({ "timestamp": 3000 });
 
-        assert_eq!(
-            serde_json::from_value::<SystemTimeTest>(json).unwrap(),
-            SystemTimeTest { timestamp: UNIX_EPOCH + Duration::from_millis(3000) },
+        assert_matches!(
+            serde_json::from_value::<SystemTimeTest>(json),
+            Ok(SystemTimeTest { timestamp })
+            if timestamp == UNIX_EPOCH + Duration::from_millis(3000)
         );
     }
 
     #[test]
     fn serialize() {
         let request = SystemTimeTest { timestamp: UNIX_EPOCH + Duration::new(2, 0) };
-        assert_eq!(serde_json::to_value(&request).unwrap(), json!({ "timestamp": 2000 }));
+        assert_matches!(
+            serde_json::to_value(&request),
+            Ok(value) if value == json!({ "timestamp": 2000 })
+        );
     }
 }
