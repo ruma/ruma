@@ -15,6 +15,9 @@ pub type TombstoneEvent = StateEvent<TombstoneEventContent>;
 #[ruma_event(type = "m.room.tombstone")]
 pub struct TombstoneEventContent {
     /// A server-defined message.
+    ///
+    /// If you activate the `compat` feature, this field being absent in JSON will give you an
+    /// empty string here.
     #[cfg_attr(feature = "compat", serde(default))]
     pub body: String,
 

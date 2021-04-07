@@ -43,6 +43,9 @@ ruma_api! {
         pub sid: String,
 
         /// URL to submit validation token to. If omitted, verification happens without client.
+        ///
+        /// If you activate the `compat` feature, this field being an empty string in JSON will give
+        /// you `None` here.
         #[serde(skip_serializing_if = "Option::is_none")]
         #[cfg_attr(
             feature = "compat",

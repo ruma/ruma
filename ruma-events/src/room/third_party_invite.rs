@@ -17,14 +17,23 @@ pub type ThirdPartyInviteEvent = StateEvent<ThirdPartyInviteEventContent>;
 #[ruma_event(type = "m.room.third_party_invite")]
 pub struct ThirdPartyInviteEventContent {
     /// A user-readable string which represents the user who has been invited.
+    ///
+    /// If you activate the `compat` feature, this field being absent in JSON will give you an
+    /// empty string here.
     #[cfg_attr(feature = "compat", serde(default))]
     pub display_name: String,
 
     /// A URL which can be fetched to validate whether the key has been revoked.
+    ///
+    /// If you activate the `compat` feature, this field being absent in JSON will give you an
+    /// empty string here.
     #[cfg_attr(feature = "compat", serde(default))]
     pub key_validity_url: String,
 
     /// A Base64-encoded Ed25519 key with which the token must be signed.
+    ///
+    /// If you activate the `compat` feature, this field being absent in JSON will give you an
+    /// empty string here.
     #[cfg_attr(feature = "compat", serde(default))]
     pub public_key: String,
 

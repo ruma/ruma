@@ -78,6 +78,9 @@ pub struct User {
     pub display_name: Option<String>,
 
     /// The avatar url, as an MXC, if one exists.
+    ///
+    /// If you activate the `compat` feature, this field being an empty string in JSON will give
+    /// you `None` here.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[cfg_attr(
         feature = "compat",
