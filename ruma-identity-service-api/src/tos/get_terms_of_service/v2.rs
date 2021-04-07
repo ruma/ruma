@@ -67,7 +67,7 @@ pub struct LocalizedPolicy {
 
     /// The URL at wich the policy is available.
     ///
-    /// Examples are "https://example.org/somewhere/terms-2.0-en.html"
-    /// and "https://example.org/somewhere/terms-2.0-fr.html".
+    /// Examples are `https://example.org/somewhere/terms-2.0-en.html`
+    /// and `https://example.org/somewhere/terms-2.0-fr.html`.
     pub url: String,
 }

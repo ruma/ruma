@@ -15,7 +15,7 @@ ruma_api! {
     request: {
         /// The URLs the user is accepting in this request.
         ///
-        /// An example is "https://example.org/somewhere/terms-2.0-en.html".
+        /// An example is `https://example.org/somewhere/terms-2.0-en.html`.
         pub user_accepts: Vec<String>,
     }
 
