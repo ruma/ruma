@@ -1,23 +1,64 @@
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
-//! Types and traits for working with the Matrix protocol.
+//! Types and traits for working with the [Matrix](https://matrix.org) protocol.
 //!
 //! This crate re-exports things from all of the other ruma crates so you don't
 //! have to manually keep all the versions in sync.
 //!
 //! Which crates are re-exported can be configured through cargo features.
-//! Depending on which parts of Matrix are relevant to you, activate the
-//! following features:
 //!
-//! * `client-api` for the client-server API
-//! * `federation-api` for the server-server (federation) API
-//! * `appservice-api` for the application service API
+//! > ⚠ Some details might be missing because of the re-exports so you may need to refer to the
+//!   other crates' documentations.
 //!
-//! There's also the features `api`, `events` and `signatures` for the
-//! submodules of the same names. Usually they are activated by one of the
-//! other features when needed. If you are viewing this on `docs.rs`, you can
-//! have a look at the feature dependencies by clicking 'Feature flags' in the
-//! toolbar at the top.
+//! # API features
+//!
+//! Depending on which parts of Matrix are relevant to you, activate the following features:
+//!
+//! * `appservice-api` -- Application Service API.
+//! * `client-api` -- Client-Server API.
+//! * `federation-api` -- Server-Server (Federation) API.
+//! * `identity-service-api` -- Identity Service API.
+//! * `push-gateway-api` -- Push Gateway API.
+//!
+//! These features have `client`- and `server`-optimized variants that are enabled respectively
+//! with the `-c` and `-s` suffixes. For example:
+//!   * `client-api-c` -- The Client-Server API optimized for the client side.
+//!   * `client-api-s` -- The Client-Server API optimized for the server side.
+//!
+//! # Compatibility feature
+//!
+//! * `compat` increases compatibility with other parts of the Matrix ecosystem, at the expense of
+//! deviating from the specification.
+//!
+//! # Convenience features
+//!
+//! These features are only useful if you want to use a method that requires it:
+//!
+//! * `either`
+//! * `rand`
+//! * `markdown`
+//!
+//! # Unstable features
+//!
+//! By using these features, you opt out of all semver guarantees Ruma otherwise provides:
+//!
+//! * `unstable-exhaustive-types` -- The events in Ruma are marked as non-exhaustive to avoid
+//!   breaking changes when new fields are added in the specification. This feature compiles all
+//!   types as exhaustive.
+//! * `unstable-pre-spec` -- Upcoming Matrix features that may be subject to change or removal.
+//! * `unstable-synapse-quirks` -- Improve compatibility with Synapse homeservers where it deviates
+//!   from the specification.
+//!
+//! # Common features
+//!
+//! These submodules are usually activated by the API features when needed:
+//!
+//! * `api`
+//! * `events`
+//! * `signatures`
+//!
+//! If you are viewing this on `docs.rs`, you can have a look at the feature dependencies by
+//! clicking **Feature flags** in the toolbar at the top.
 
 #![deny(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
@@ -52,7 +93,10 @@ pub use ruma_events as events;
 #[doc(inline)]
 pub use ruma_signatures as signatures;
 
-/// Rust types for various Matrix APIs requests and responses and abstractions for them.
+/// (De)serializable types for various [Matrix APIs][apis] requests and responses and abstractions
+/// for them.
+///
+/// [apis]: https://matrix.org/docs/spec/#matrix-apis
 #[cfg(feature = "api")]
 #[cfg_attr(docsrs, doc(cfg(feature = "api")))]
 pub mod api {
