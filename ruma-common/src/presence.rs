@@ -1,4 +1,4 @@
-//! Common types for the [presence module][presence]
+//! Common types for the [presence module][presence].
 //!
 //! [presence]: https://matrix.org/docs/spec/client_server/r0.6.1#id62
 

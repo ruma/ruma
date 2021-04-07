@@ -1,4 +1,4 @@
-//! Common types for the [push notifications module][push]
+//! Common types for the [push notifications module][push].
 //!
 //! [push]: https://matrix.org/docs/spec/client_server/r0.6.1#id89
 //!

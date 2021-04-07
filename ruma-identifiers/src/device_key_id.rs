@@ -4,7 +4,7 @@ use std::{convert::TryInto, fmt, num::NonZeroU8};
 
 use crate::{crypto_algorithms::DeviceKeyAlgorithm, DeviceId, Error};
 
-/// A key algorithm and a device id, combined with a ':'
+/// A key algorithm and a device id, combined with a ':'.
 #[derive(Clone)]
 pub struct DeviceKeyId {
     full_id: Box<str>,

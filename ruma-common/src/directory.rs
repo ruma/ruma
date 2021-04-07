@@ -1,4 +1,4 @@
-//! Common types for room directory endpoints
+//! Common types for room directory endpoints.
 
 use std::fmt;
 

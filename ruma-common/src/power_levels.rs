@@ -1,4 +1,4 @@
-//! Common types for the [`m.room.power_levels` event][power_levels]
+//! Common types for the [`m.room.power_levels` event][power_levels].
 //!
 //! [power_levels]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-power-levels
 

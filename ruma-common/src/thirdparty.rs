@@ -1,4 +1,4 @@
-//! Common types for the [third party networks module][thirdparty]
+//! Common types for the [third party networks module][thirdparty].
 //!
 //! [thirdparty]: https://matrix.org/docs/spec/client_server/r0.6.1#id153
 
