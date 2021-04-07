@@ -1,7 +1,6 @@
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
-//! Crate `ruma_signatures` implements digital signatures according to the
-//! [Matrix](https://matrix.org/) specification.
+//! Digital signatures according to the [Matrix](https://matrix.org/) specification.
 //!
 //! Digital signatures are used by Matrix homeservers to verify the authenticity of events in the
 //! Matrix system, as well as requests between homeservers for federation. Each homeserver has one

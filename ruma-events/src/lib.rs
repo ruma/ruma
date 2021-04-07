@@ -1,7 +1,7 @@
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
-//! Crate `ruma_events` contains serializable types for the events in the
-//! [Matrix](https://matrix.org) specification that can be shared by client and server code.
+//! (De)serializable types for the events in the [Matrix](https://matrix.org) specification.
+//! These types are used by other ruma crates.
 //!
 //! All data exchanged over Matrix is expressed as an event.
 //! Different event types represent different actions, such as joining a room or sending a message.

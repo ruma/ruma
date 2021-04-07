@@ -1,7 +1,6 @@
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
-//! Crate `ruma_events_macros` provides a procedural macro for generating
-//! [ruma-events] events.
+//! A procedural macro for generating [ruma-events] events.
 //!
 //! See the documentation for the individual macros for usage details.
 //!

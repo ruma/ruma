@@ -1,6 +1,6 @@
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
-//! De-/serialization helpers for other ruma crates
+//! (De)serialization helpers for other ruma crates.
 
 pub mod can_be_empty;
 mod canonical_json;
@@ -48,10 +48,12 @@ pub fn is_true(b: &bool) -> bool {
     *b
 }
 
-/// A type that can be sent to another party that understands the matrix protocol. If any of the
-/// fields of `Self` don't implement serde's `Deserialize`, you can derive this trait to generate a
-/// corresponding 'Incoming' type that supports deserialization. This is useful for things like
-/// ruma_events' `EventResult` type. For more details, see the [derive macro's documentation][doc].
+/// A type that can be sent to another party that understands the matrix protocol.
+///
+/// If any of the fields of `Self` don't implement serde's `Deserialize`, you can derive this trait
+/// to generate a corresponding 'Incoming' type that supports deserialization. This is useful for
+/// things like ruma_events' `EventResult` type. For more details, see the
+/// [derive macro's documentation][doc].
 ///
 /// [doc]: derive.Outgoing.html
 // TODO: Better explain how this trait relates to serde's traits

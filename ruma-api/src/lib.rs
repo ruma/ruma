@@ -1,8 +1,7 @@
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
-//! Crate `ruma_api` contains core types used to define the requests and responses for each endpoint
-//! in the various [Matrix](https://matrix.org) API specifications.
-//! These types can be shared by client and server code for all Matrix APIs.
+//! Core types used to define the requests and responses for each endpoint in the various
+//! [Matrix API specifications][apis].
 //!
 //! When implementing a new Matrix API, each endpoint has a request type which implements
 //! `Endpoint`, and a response type connected via an associated type.
@@ -11,6 +10,8 @@
 //! input parameters for requests, and the structure of a successful response.
 //! Such types can then be used by client code to make requests, and by server code to fulfill
 //! those requests.
+//!
+//! [apis]: https://matrix.org/docs/spec/#matrix-apis
 
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![warn(rust_2018_idioms)]
@@ -232,7 +233,7 @@ pub trait EndpointError: StdError + Sized + 'static {
     ) -> Result<Self, error::ResponseDeserializationError>;
 }
 
-/// A request type for a Matrix API endpoint. (trait used for sending requests)
+/// A request type for a Matrix API endpoint, used for sending requests.
 pub trait OutgoingRequest {
     /// A type capturing the expected error conditions the server can return.
     type EndpointError: EndpointError;
@@ -261,7 +262,7 @@ pub trait OutgoingRequest {
     ) -> Result<http::Request<Vec<u8>>, IntoHttpError>;
 }
 
-/// A request type for a Matrix API endpoint. (trait used for receiving requests)
+/// A request type for a Matrix API endpoint, used for receiving requests.
 pub trait IncomingRequest: Sized {
     /// A type capturing the error conditions that can be returned in the response.
     type EndpointError: EndpointError;
@@ -276,10 +277,10 @@ pub trait IncomingRequest: Sized {
     fn try_from_http_request(req: http::Request<Vec<u8>>) -> Result<Self, FromHttpRequestError>;
 }
 
-/// Marker trait for requests that don't require authentication. (for the client side)
+/// Marker trait for requests that don't require authentication, for the client side.
 pub trait OutgoingNonAuthRequest: OutgoingRequest {}
 
-/// Marker trait for requests that don't require authentication. (for the server side)
+/// Marker trait for requests that don't require authentication, for the server side.
 pub trait IncomingNonAuthRequest: IncomingRequest {}
 
 /// Authentication scheme used by the endpoint.
