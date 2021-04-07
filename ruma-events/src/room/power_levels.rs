@@ -21,8 +21,8 @@ pub type PowerLevelsEvent = StateEvent<PowerLevelsEventContent>;
 pub struct PowerLevelsEventContent {
     /// The level required to ban a user.
     ///
-    /// If you activate the `compat` feature, this field being a string in JSON will give
-    /// you an `Int` here.
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
     #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
@@ -32,8 +32,8 @@ pub struct PowerLevelsEventContent {
     ///
     /// This is a mapping from event type to power level required.
     ///
-    /// If you activate the `compat` feature, the value being a string in JSON will give
-    /// you an `Int` here.
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
     #[cfg_attr(
         feature = "compat",
         serde(deserialize_with = "ruma_serde::btreemap_int_or_string_to_int_values")
@@ -44,8 +44,8 @@ pub struct PowerLevelsEventContent {
 
     /// The default level required to send message events.
     ///
-    /// If you activate the `compat` feature, this field being a string in JSON will give
-    /// you an `Int` here.
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
     #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     #[ruma_event(skip_redaction)]
@@ -53,16 +53,16 @@ pub struct PowerLevelsEventContent {
 
     /// The level required to invite a user.
     ///
-    /// If you activate the `compat` feature, this field being a string in JSON will give
-    /// you an `Int` here.
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
     #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     pub invite: Int,
 
     /// The level required to kick a user.
     ///
-    /// If you activate the `compat` feature, this field being a string in JSON will give
-    /// you an `Int` here.
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
     #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
@@ -70,8 +70,8 @@ pub struct PowerLevelsEventContent {
 
     /// The level required to redact an event.
     ///
-    /// If you activate the `compat` feature, this field being a string in JSON will give
-    /// you an `Int` here.
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
     #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
@@ -79,8 +79,8 @@ pub struct PowerLevelsEventContent {
 
     /// The default level required to send state events.
     ///
-    /// If you activate the `compat` feature, this field being a string in JSON will give
-    /// you an `Int` here.
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
     #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default = "default_power_level", skip_serializing_if = "is_default_power_level")]
     #[ruma_event(skip_redaction)]
@@ -90,8 +90,8 @@ pub struct PowerLevelsEventContent {
     ///
     /// This is a mapping from `user_id` to power level for that user.
     ///
-    /// If you activate the `compat` feature, the value being a string in JSON will give
-    /// you an `Int` here.
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
     #[cfg_attr(
         feature = "compat",
         serde(deserialize_with = "ruma_serde::btreemap_int_or_string_to_int_values")
@@ -102,8 +102,8 @@ pub struct PowerLevelsEventContent {
 
     /// The default power level for every user in the room.
     ///
-    /// If you activate the `compat` feature, this field being a string in JSON will give
-    /// you an `Int` here.
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
     #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     #[ruma_event(skip_redaction)]

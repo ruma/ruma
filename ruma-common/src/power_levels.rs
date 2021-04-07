@@ -11,8 +11,8 @@ use serde::{Deserialize, Serialize};
 pub struct NotificationPowerLevels {
     /// The level required to trigger an `@room` notification.
     ///
-    /// If you activate the `compat` feature, this field being a string in JSON will give
-    /// you an `Int` here.
+    /// If you activate the `compat` feature, deserialization will work for stringified
+    /// integers too.
     #[cfg_attr(feature = "compat", serde(deserialize_with = "ruma_serde::int_or_string_to_int"))]
     #[serde(default = "default_power_level")]
     pub room: Int,

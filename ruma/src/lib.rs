@@ -7,8 +7,8 @@
 //!
 //! Which crates are re-exported can be configured through cargo features.
 //!
-//! > ⚠ Some details might be missing because of the re-exports so you may need to refer to the
-//!   other crates' documentations.
+//! > ⚠ Some details might be missing because rustdoc has trouble with re-exports so you may need
+//!   to refer to other crates' documentations.
 //!
 //! # API features
 //!
@@ -42,12 +42,12 @@
 //!
 //! By using these features, you opt out of all semver guarantees Ruma otherwise provides:
 //!
-//! * `unstable-exhaustive-types` -- The events in Ruma are marked as non-exhaustive to avoid
+//! * `unstable-exhaustive-types` -- Most types in Ruma are marked as non-exhaustive to avoid
 //!   breaking changes when new fields are added in the specification. This feature compiles all
 //!   types as exhaustive.
 //! * `unstable-pre-spec` -- Upcoming Matrix features that may be subject to change or removal.
-//! * `unstable-synapse-quirks` -- Improve compatibility with Synapse homeservers where it deviates
-//!   from the specification.
+//! * `unstable-synapse-quirks` -- Fix issues for clients expecting to connect to Synapse
+//!   homeservers, at the expense of being less compatible with other homeservers.
 //!
 //! # Common features
 //!
