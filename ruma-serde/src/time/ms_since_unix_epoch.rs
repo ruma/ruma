@@ -66,6 +66,17 @@ mod tests {
     }
 
     #[test]
+    fn issue_446() {
+        let json = json!({ "timestamp": 15159743990000u64 });
+
+        assert_matches!(
+            serde_json::from_value::<SystemTimeTest>(json),
+            Ok(SystemTimeTest { timestamp })
+            if timestamp == UNIX_EPOCH + Duration::from_millis(15159743990000)
+        );
+    }
+
+    #[test]
     fn serialize() {
         let request = SystemTimeTest { timestamp: UNIX_EPOCH + Duration::new(2, 0) };
         assert_matches!(
