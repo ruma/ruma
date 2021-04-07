@@ -113,6 +113,7 @@
 
 #![recursion_limit = "1024"]
 #![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 // This lint is no good
 #![allow(clippy::new_without_default)]
 // Remove this once our MSRV is >= 1.53

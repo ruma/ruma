@@ -489,6 +489,7 @@ impl TextMessageEventContent {
 
     /// A convenience constructor to create a markdown message.
     #[cfg(feature = "markdown")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "markdown")))]
     pub fn markdown(body: impl Into<String>) -> Self {
         let body = body.into();
         let mut html_body = String::new();
