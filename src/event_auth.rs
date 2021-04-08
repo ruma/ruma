@@ -36,9 +36,11 @@ pub fn auth_types_for_event(
 
     if kind == &EventType::RoomMember {
         if let Some(state_key) = state_key {
-            if let Ok(content) = serde_json::from_value::<room::member::MemberEventContent>(content)
+            if let Some(Ok(membership)) = content
+                .get("membership")
+                .map(|m| serde_json::from_value::<room::member::MembershipState>(m.clone()))
             {
-                if [MembershipState::Join, MembershipState::Invite].contains(&content.membership) {
+                if [MembershipState::Join, MembershipState::Invite].contains(&membership) {
                     let key = (EventType::RoomJoinRules, "".to_string());
                     if !auth_types.contains(&key) {
                         auth_types.push(key)
@@ -50,8 +52,10 @@ pub fn auth_types_for_event(
                     auth_types.push(key)
                 }
 
-                if content.membership == MembershipState::Invite {
-                    if let Some(t_id) = content.third_party_invite {
+                if membership == MembershipState::Invite {
+                    if let Some(Ok(t_id)) = content.get("third_party_invite").map(|t| {
+                        serde_json::from_value::<room::member::ThirdPartyInvite>(t.clone())
+                    }) {
                         let key = (EventType::RoomThirdPartyInvite, t_id.signed.token);
                         if !auth_types.contains(&key) {
                             auth_types.push(key)
@@ -194,10 +198,13 @@ pub fn auth_check<E: Event>(
             Some(s) => s,
         };
 
-        if serde_json::from_value::<room::member::MemberEventContent>(incoming_event.content())
-            .is_err()
-        {
-            log::warn!("no membership filed found for m.room.member event content");
+        let membership = incoming_event
+            .content()
+            .get("membership")
+            .map(|m| serde_json::from_value::<room::member::MembershipState>(m.clone()));
+
+        if !matches!(membership, Some(Ok(_))) {
+            log::warn!("no valid membership field found for m.room.member event content");
             return Ok(false);
         }
 
@@ -296,9 +303,16 @@ pub fn valid_membership_change<E: Event>(
     current_third_party_invite: Option<Arc<E>>,
     auth_events: &StateMap<Arc<E>>,
 ) -> Result<bool> {
-    let content = serde_json::from_value::<room::member::MemberEventContent>(content)?;
+    let target_membership = serde_json::from_value::<room::member::MembershipState>(
+        content
+            .get("membership")
+            .expect("we should test before that this field exists")
+            .clone(),
+    )?;
 
-    let target_membership = content.membership;
+    let third_party_invite = content
+        .get("third_party_invite")
+        .map(|t| serde_json::from_value::<room::member::ThirdPartyInvite>(t.clone()));
 
     let target_user_id =
         UserId::try_from(state_key).map_err(|e| Error::ConversionError(format!("{}", e)))?;
@@ -307,20 +321,24 @@ pub fn valid_membership_change<E: Event>(
     let sender = auth_events.get(&key);
     let sender_membership =
         sender.map_or(Ok::<_, Error>(member::MembershipState::Leave), |pdu| {
-            Ok(
-                serde_json::from_value::<room::member::MemberEventContent>(pdu.content())?
-                    .membership,
-            )
+            Ok(serde_json::from_value::<room::member::MembershipState>(
+                pdu.content()
+                    .get("membership")
+                    .expect("we assume existing events are valid")
+                    .clone(),
+            )?)
         })?;
 
     let key = (EventType::RoomMember, target_user_id.to_string());
     let current = auth_events.get(&key);
     let current_membership =
         current.map_or(Ok::<_, Error>(member::MembershipState::Leave), |pdu| {
-            Ok(
-                serde_json::from_value::<room::member::MemberEventContent>(pdu.content())?
-                    .membership,
-            )
+            Ok(serde_json::from_value::<room::member::MembershipState>(
+                pdu.content()
+                    .get("membership")
+                    .expect("we assume existing events are valid")
+                    .clone(),
+            )?)
         })?;
 
     let key = (EventType::RoomPowerLevels, "".into());
@@ -383,7 +401,7 @@ pub fn valid_membership_change<E: Event>(
         }
     } else if target_membership == MembershipState::Invite {
         // If content has third_party_invite key
-        if let Some(tp_id) = content.third_party_invite {
+        if let Some(Ok(tp_id)) = third_party_invite {
             if current_membership == MembershipState::Ban {
                 false
             } else {
@@ -435,12 +453,16 @@ pub fn check_event_sender_in_room<E: Event>(
     auth_events: &StateMap<Arc<E>>,
 ) -> Option<bool> {
     let mem = auth_events.get(&(EventType::RoomMember, sender.to_string()))?;
-    Some(
-        serde_json::from_value::<room::member::MemberEventContent>(mem.content())
-            .ok()?
-            .membership
-            == MembershipState::Join,
+
+    let membership = serde_json::from_value::<room::member::MembershipState>(
+        mem.content()
+            .get("membership")
+            .expect("we should test before that this field exists")
+            .clone(),
     )
+    .ok()?;
+
+    Some(membership == MembershipState::Join)
 }
 
 /// Is the user allowed to send a specific event based on the rooms power levels. Does the event
@@ -662,10 +684,12 @@ pub fn check_redaction<E: Event>(
 /// This function returns false instead of failing when deserialization fails.
 pub fn check_membership<E: Event>(member_event: Option<Arc<E>>, state: MembershipState) -> bool {
     if let Some(event) = member_event {
-        if let Ok(content) =
-            serde_json::from_value::<room::member::MemberEventContent>(event.content())
+        if let Some(Ok(membership)) = event
+            .content()
+            .get("membership")
+            .map(|m| serde_json::from_value::<room::member::MembershipState>(m.clone()))
         {
-            content.membership == state
+            membership == state
         } else {
             false
         }
