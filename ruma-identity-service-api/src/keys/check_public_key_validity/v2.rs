@@ -1,4 +1,4 @@
-//! [GET /_matrix/identity/v2/pubkey/isvalid](https://matrix.org/docs/spec/identity_service/0.3.0#get-matrix-identity-v2-pubkey-isvalid)
+//! [GET /_matrix/identity/v2/pubkey/isvalid](https://matrix.org/docs/spec/identity_service/r0.3.0#get-matrix-identity-v2-pubkey-isvalid)
 
 use ruma_api::ruma_api;
 
