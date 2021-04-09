@@ -20,12 +20,10 @@
 #[cfg(not(all(feature = "client", feature = "server")))]
 compile_error!("ruma_api's Cargo features only exist as a workaround are not meant to be disabled");
 
-use std::{
-    convert::{TryFrom, TryInto},
-    error::Error as StdError,
-};
+use std::{convert::TryInto, error::Error as StdError};
 
-use http::{uri::PathAndQuery, Method};
+use bytes::Buf;
+use http::Method;
 use ruma_identifiers::UserId;
 
 /// Generates a `ruma_api::Endpoint` from a concise definition.
@@ -206,6 +204,7 @@ pub mod error;
 /// It is not considered part of ruma-api's public API.
 #[doc(hidden)]
 pub mod exports {
+    pub use bytes;
     pub use http;
     pub use percent_encoding;
     pub use ruma_serde;
@@ -221,8 +220,8 @@ pub trait EndpointError: StdError + Sized + 'static {
     ///
     /// This will always return `Err` variant when no `error` field is defined in
     /// the `ruma_api` macro.
-    fn try_from_response(
-        response: http::Response<Vec<u8>>,
+    fn try_from_response<T: Buf>(
+        response: http::Response<T>,
     ) -> Result<Self, error::ResponseDeserializationError>;
 }
 
@@ -232,10 +231,7 @@ pub trait OutgoingRequest: Sized {
     type EndpointError: EndpointError;
 
     /// Response type returned when the request is successful.
-    type IncomingResponse: TryFrom<
-        http::Response<Vec<u8>>,
-        Error = FromHttpResponseError<Self::EndpointError>,
-    >;
+    type IncomingResponse: IncomingResponse<EndpointError = Self::EndpointError>;
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;
@@ -253,6 +249,17 @@ pub trait OutgoingRequest: Sized {
         base_url: &str,
         access_token: Option<&str>,
     ) -> Result<http::Request<Vec<u8>>, IntoHttpError>;
+}
+
+/// A response type for a Matrix API endpoint, used for receiving responses.
+pub trait IncomingResponse: Sized {
+    /// A type capturing the expected error conditions the server can return.
+    type EndpointError: EndpointError;
+
+    /// Tries to convert the given `http::Response` into this response type.
+    fn try_from_http_response<T: Buf>(
+        response: http::Response<T>,
+    ) -> Result<Self, FromHttpResponseError<Self::EndpointError>>;
 }
 
 /// An extension to `OutgoingRequest` which provides Appservice specific methods
@@ -283,7 +290,7 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
         };
 
         parts.path_and_query =
-            Some(PathAndQuery::try_from(path_and_query_with_user_id).map_err(http::Error::from)?);
+            Some(path_and_query_with_user_id.try_into().map_err(http::Error::from)?);
 
         *http_request.uri_mut() = parts.try_into().map_err(http::Error::from)?;
 

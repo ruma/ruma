@@ -2,11 +2,12 @@
 
 use std::{collections::BTreeMap, fmt};
 
+use bytes::Buf;
 use ruma_api::{error::ResponseDeserializationError, EndpointError};
 use ruma_serde::Outgoing;
 use serde::{Deserialize, Serialize};
 use serde_json::{
-    from_slice as from_json_slice, to_vec as to_json_vec, value::RawValue as RawJsonValue,
+    from_reader as from_json_reader, to_vec as to_json_vec, value::RawValue as RawJsonValue,
     Value as JsonValue,
 };
 
@@ -133,16 +134,14 @@ impl From<MatrixError> for UiaaResponse {
 }
 
 impl EndpointError for UiaaResponse {
-    fn try_from_response(
-        response: http::Response<Vec<u8>>,
+    fn try_from_response<T: Buf>(
+        response: http::Response<T>,
     ) -> Result<Self, ResponseDeserializationError> {
         if response.status() == http::StatusCode::UNAUTHORIZED {
-            if let Ok(authentication_info) = from_json_slice::<UiaaInfo>(response.body()) {
-                return Ok(UiaaResponse::AuthResponse(authentication_info));
-            }
+            Ok(UiaaResponse::AuthResponse(from_json_reader(response.into_body().reader())?))
+        } else {
+            MatrixError::try_from_response(response).map(From::from)
         }
-
-        MatrixError::try_from_response(response).map(From::from)
     }
 }
 
@@ -383,7 +382,7 @@ mod tests {
 
         let http_response = http::Response::builder()
             .status(http::StatusCode::UNAUTHORIZED)
-            .body(json.into())
+            .body(json.as_bytes())
             .unwrap();
 
         let parsed_uiaa_info = match UiaaResponse::try_from_response(http_response).unwrap() {

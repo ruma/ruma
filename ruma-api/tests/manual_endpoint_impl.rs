@@ -2,10 +2,12 @@
 
 use std::convert::TryFrom;
 
+use bytes::Buf;
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_api::{
     error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, ServerError, Void},
-    try_deserialize, AuthScheme, EndpointError, IncomingRequest, Metadata, OutgoingRequest,
+    try_deserialize, AuthScheme, EndpointError, IncomingRequest, IncomingResponse, Metadata,
+    OutgoingRequest,
 };
 use ruma_identifiers::{RoomAliasId, RoomId};
 use ruma_serde::Outgoing;
@@ -99,10 +101,12 @@ impl Outgoing for Response {
     type Incoming = Self;
 }
 
-impl TryFrom<http::Response<Vec<u8>>> for Response {
-    type Error = FromHttpResponseError<Void>;
+impl IncomingResponse for Response {
+    type EndpointError = Void;
 
-    fn try_from(http_response: http::Response<Vec<u8>>) -> Result<Response, Self::Error> {
+    fn try_from_http_response<T: Buf>(
+        http_response: http::Response<T>,
+    ) -> Result<Self, FromHttpResponseError<Void>> {
         if http_response.status().as_u16() < 400 {
             Ok(Response)
         } else {

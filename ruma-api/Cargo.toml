@@ -19,6 +19,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
+bytes = "1.0.1"
 http = "0.2.2"
 percent-encoding = "2.1.0"
 ruma-api-macros = { version = "=0.17.0-alpha.2", path = "../ruma-api-macros" }
