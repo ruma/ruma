@@ -541,7 +541,10 @@ impl Request {
                     self,
                     base_url: &::std::primitive::str,
                     access_token: ::std::option::Option<&str>,
-                ) -> ::std::result::Result<#http::Request<Vec<u8>>, #ruma_api::error::IntoHttpError> {
+                ) -> ::std::result::Result<
+                    #http::Request<Vec<u8>>,
+                    #ruma_api::error::IntoHttpError,
+                > {
                     let metadata = self::METADATA;
 
                     let mut req_builder = #http::Request::builder()
@@ -686,20 +689,20 @@ impl Request {
             let field_name = field.ident.as_ref().expect("expected field to have identifier");
 
             quote!({
-                // This function exists so that the compiler will throw an
-                // error when the type of the field with the query_map
-                // attribute doesn't implement IntoIterator<Item = (String, String)>
+                // This function exists so that the compiler will throw an error when the type of
+                // the field with the query_map attribute doesn't implement
+                // `IntoIterator<Item = (String, String)>`.
                 //
-                // This is necessary because the ruma_serde::urlencoded::to_string
-                // call will result in a runtime error when the type cannot be
-                // encoded as a list key-value pairs (?key1=value1&key2=value2)
+                // This is necessary because the `ruma_serde::urlencoded::to_string` call will
+                // result in a runtime error when the type cannot be encoded as a list key-value
+                // pairs (?key1=value1&key2=value2).
                 //
-                // By asserting that it implements the iterator trait, we can
-                // ensure that it won't fail.
+                // By asserting that it implements the iterator trait, we can ensure that it won't
+                // fail.
                 fn assert_trait_impl<T>(_: &T)
                 where
                     T: ::std::iter::IntoIterator<
-                        Item = (::std::string::String, ::std::string::String)
+                        Item = (::std::string::String, ::std::string::String),
                     >,
                 {}
 
@@ -729,14 +732,13 @@ impl Request {
         }
     }
 
-    /// The first item in the tuple generates code for the request path from
-    /// the `Metadata` and `Request` structs. The second item in the returned tuple
-    /// is the code to generate a Request struct field created from any segments
-    /// of the path that start with ":".
+    /// The first item in the tuple generates code for the request path from the `Metadata` and
+    /// `Request` structs. The second item in the returned tuple is the code to generate a Request
+    /// struct field created from any segments of the path that start with ":".
     ///
     /// The first `TokenStream` returned is the constructed url path. The second `TokenStream` is
-    /// used for implementing `TryFrom<http::Request<Vec<u8>>>`, from path strings deserialized to Ruma
-    /// types.
+    /// used for implementing `TryFrom<http::Request<Vec<u8>>>`, from path strings deserialized to
+    /// Ruma types.
     pub(crate) fn path_string_and_parse(
         &self,
         metadata: &Metadata,
