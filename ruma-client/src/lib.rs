@@ -222,7 +222,9 @@ impl Client {
 
         let response = self
             .request(assign!(
-                LoginRequest::new(LoginInfo::Password { identifier: UserIdentifier::MatrixId(user), password }), {
+                LoginRequest::new(
+                    LoginInfo::Password { identifier: UserIdentifier::MatrixId(user), password }
+                ), {
                     device_id,
                     initial_device_display_name,
                 }
