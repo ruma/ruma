@@ -554,7 +554,7 @@ impl Request {
                         ))
                         .header(
                             #ruma_api::exports::http::header::CONTENT_TYPE,
-                            "application/json"
+                            "application/json",
                         );
 
                     let mut req_headers = req_builder
@@ -600,9 +600,7 @@ impl Request {
     fn extract_request_query(&self, ruma_api: &TokenStream) -> TokenStream {
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
 
-        let request = self;
-
-        if request.query_map_field().is_some() {
+        if self.query_map_field().is_some() {
             quote! {
                 let request_query = #ruma_api::try_deserialize!(
                     request,
@@ -611,7 +609,7 @@ impl Request {
                     ),
                 );
             }
-        } else if request.has_query_fields() {
+        } else if self.has_query_fields() {
             quote! {
                 let request_query: <RequestQuery as #ruma_serde::Outgoing>::Incoming =
                     #ruma_api::try_deserialize!(
@@ -657,20 +655,18 @@ impl Request {
     }
 
     fn parse_request_body(&self) -> TokenStream {
-        let request = self;
-
-        if let Some(field) = request.newtype_body_field() {
+        if let Some(field) = self.newtype_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             quote! {
                 #field_name: request_body.0,
             }
-        } else if let Some(field) = request.newtype_raw_body_field() {
+        } else if let Some(field) = self.newtype_raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             quote! {
                 #field_name: request.into_body(),
             }
         } else {
-            request.request_init_body_fields()
+            self.request_init_body_fields()
         }
     }
 
@@ -679,37 +675,37 @@ impl Request {
     fn build_query_string(&self, ruma_api: &TokenStream) -> TokenStream {
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
 
-        let request = self;
-
-        if let Some(field) = request.query_map_field() {
+        if let Some(field) = self.query_map_field() {
             let field_name = field.ident.as_ref().expect("expected field to have identifier");
 
             quote!({
-            // This function exists so that the compiler will throw an
-            // error when the type of the field with the query_map
-            // attribute doesn't implement IntoIterator<Item = (String, String)>
-            //
-            // This is necessary because the ruma_serde::urlencoded::to_string
-            // call will result in a runtime error when the type cannot be
-            // encoded as a list key-value pairs (?key1=value1&key2=value2)
-            //
-            // By asserting that it implements the iterator trait, we can
-            // ensure that it won't fail.
-            fn assert_trait_impl<T>(_: &T)
-            where
-                T: ::std::iter::IntoIterator<Item = (::std::string::String, ::std::string::String)>,
-            {}
+                // This function exists so that the compiler will throw an
+                // error when the type of the field with the query_map
+                // attribute doesn't implement IntoIterator<Item = (String, String)>
+                //
+                // This is necessary because the ruma_serde::urlencoded::to_string
+                // call will result in a runtime error when the type cannot be
+                // encoded as a list key-value pairs (?key1=value1&key2=value2)
+                //
+                // By asserting that it implements the iterator trait, we can
+                // ensure that it won't fail.
+                fn assert_trait_impl<T>(_: &T)
+                where
+                    T: ::std::iter::IntoIterator<
+                        Item = (::std::string::String, ::std::string::String)
+                    >,
+                {}
 
-            let request_query = RequestQuery(self.#field_name);
-            assert_trait_impl(&request_query.0);
+                let request_query = RequestQuery(self.#field_name);
+                assert_trait_impl(&request_query.0);
 
-            format_args!(
-                "?{}",
-                #ruma_serde::urlencoded::to_string(request_query)?
-            )
-        })
-        } else if request.has_query_fields() {
-            let request_query_init_fields = request.request_query_init_fields();
+                format_args!(
+                    "?{}",
+                    #ruma_serde::urlencoded::to_string(request_query)?
+                )
+            })
+        } else if self.has_query_fields() {
+            let request_query_init_fields = self.request_query_init_fields();
 
             quote!({
                 let request_query = RequestQuery {
