@@ -1,8 +1,9 @@
 use std::convert::TryFrom;
 
+use bytes::Buf;
 use ruma_api::{
     error::{FromHttpResponseError, IntoHttpError, Void},
-    ruma_api,
+    ruma_api, IncomingResponse,
 };
 use ruma_serde::Outgoing;
 
@@ -26,10 +27,12 @@ ruma_api! {
 #[derive(Outgoing)]
 pub struct Response;
 
-impl TryFrom<http::Response<Vec<u8>>> for Response {
-    type Error = FromHttpResponseError<Void>;
+impl IncomingResponse for Response {
+    type EndpointError = Void;
 
-    fn try_from(_: http::Response<Vec<u8>>) -> Result<Self, Self::Error> {
+    fn try_from_http_response<T: Buf>(
+        _: http::Response<T>,
+    ) -> Result<Self, FromHttpResponseError<Void>> {
         todo!()
     }
 }

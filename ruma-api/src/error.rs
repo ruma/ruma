@@ -4,6 +4,7 @@
 
 use std::{error::Error as StdError, fmt};
 
+use bytes::Buf;
 use thiserror::Error;
 
 use crate::EndpointError;
@@ -14,8 +15,8 @@ use crate::EndpointError;
 pub enum Void {}
 
 impl EndpointError for Void {
-    fn try_from_response(
-        _response: http::Response<Vec<u8>>,
+    fn try_from_response<T: Buf>(
+        _response: http::Response<T>,
     ) -> Result<Self, ResponseDeserializationError> {
         Err(ResponseDeserializationError::none())
     }
@@ -121,18 +122,12 @@ impl<E> From<ServerError<E>> for FromHttpResponseError<E> {
     }
 }
 
-impl<E> From<ResponseDeserializationError> for FromHttpResponseError<E> {
-    fn from(err: ResponseDeserializationError) -> Self {
-        Self::Deserialization(err)
-    }
-}
-
 impl<E, T> From<T> for FromHttpResponseError<E>
 where
-    T: Into<DeserializationError>,
+    T: Into<ResponseDeserializationError>,
 {
     fn from(err: T) -> Self {
-        Self::Deserialization(ResponseDeserializationError::new(err))
+        Self::Deserialization(err.into())
     }
 }
 
@@ -145,14 +140,17 @@ pub struct ResponseDeserializationError {
 }
 
 impl ResponseDeserializationError {
-    /// Creates a new `ResponseDeserializationError` from the given deserialization error and http
-    /// response.
-    pub fn new(inner: impl Into<DeserializationError>) -> Self {
-        Self { inner: Some(inner.into()) }
-    }
-
     fn none() -> Self {
         Self { inner: None }
+    }
+}
+
+impl<T> From<T> for ResponseDeserializationError
+where
+    T: Into<DeserializationError>,
+{
+    fn from(err: T) -> Self {
+        Self { inner: Some(err.into()) }
     }
 }
 

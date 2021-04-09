@@ -28,6 +28,7 @@ impl Response {
 
     /// Produces code for a response struct initializer.
     fn init_fields(&self, ruma_api: &TokenStream) -> TokenStream {
+        let bytes = quote! { #ruma_api::exports::bytes };
         let http = quote! { #ruma_api::exports::http };
 
         let mut fields = vec![];
@@ -79,7 +80,13 @@ impl Response {
                 // We are guaranteed only one new body field because of a check in `try_from`.
                 ResponseField::NewtypeRawBody(_) => {
                     new_type_raw_body = Some(quote_spanned! {span=>
-                        #field_name: response.into_body()
+                        #field_name: {
+                            let mut reader = #bytes::Buf::reader(response.into_body());
+                            let mut vec = ::std::vec::Vec::new();
+                            ::std::io::Read::read_to_end(&mut reader, &mut vec)
+                                .expect("reading from a bytes::Buf never fails");
+                            vec
+                        }
                     });
                     // skip adding to the vec
                     continue;
@@ -194,6 +201,7 @@ impl Response {
         error_ty: &TokenStream,
         ruma_api: &TokenStream,
     ) -> TokenStream {
+        let bytes = quote! { #ruma_api::exports::bytes };
         let http = quote! { #ruma_api::exports::http };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
         let serde = quote! { #ruma_api::exports::serde };
@@ -218,15 +226,15 @@ impl Response {
                         ResponseBody
                         as #ruma_serde::Outgoing
                     >::Incoming = {
-                        // If the reponse body is completely empty, pretend it is an empty JSON object
-                        // instead. This allows reponses with only optional body parameters to be
-                        // deserialized in that case.
-                        let json = match response.body().as_slice() {
-                            b"" => b"{}",
-                            body => body,
-                        };
-
-                        #serde_json::from_slice(json)?
+                        let body = response.into_body();
+                        if #bytes::Buf::has_remaining(&body) {
+                            #serde_json::from_reader(#bytes::Buf::reader(body))?
+                        } else {
+                            // If the reponse body is completely empty, pretend it is an empty JSON
+                            // object instead. This allows reponses with only optional body
+                            // parameters to be deserialized in that case.
+                            #serde_json::from_str("{}")?
+                        }
                     };
                 }
             } else {
@@ -299,12 +307,15 @@ impl Response {
 
             #[automatically_derived]
             #[cfg(feature = "client")]
-            impl ::std::convert::TryFrom<#http::Response<Vec<u8>>> for Response {
-                type Error = #ruma_api::error::FromHttpResponseError<#error_ty>;
+            impl #ruma_api::IncomingResponse for Response {
+                type EndpointError = #error_ty;
 
-                fn try_from(
-                    response: #http::Response<Vec<u8>>,
-                ) -> ::std::result::Result<Self, Self::Error> {
+                fn try_from_http_response<T: #bytes::Buf>(
+                    response: #http::Response<T>,
+                ) -> ::std::result::Result<
+                    Self,
+                    #ruma_api::error::FromHttpResponseError<#error_ty>,
+                > {
                     if response.status().as_u16() < 400 {
                         #extract_response_headers
 

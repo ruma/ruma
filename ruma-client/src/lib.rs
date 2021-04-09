@@ -104,7 +104,6 @@
 
 use std::{
     collections::BTreeMap,
-    convert::TryFrom,
     sync::{Arc, Mutex},
     time::Duration,
 };
@@ -374,11 +373,9 @@ impl Client {
         let hyper_response = client.hyper.request(http_request.map(hyper::Body::from)).await?;
         let (head, body) = hyper_response.into_parts();
 
-        // FIXME: We read the response into a contiguous buffer here (not actually required for
-        // deserialization) and then copy the whole thing to convert from Bytes to Vec<u8>.
-        let full_body = hyper::body::to_bytes(body).await?;
-        let full_response = HttpResponse::from_parts(head, full_body.as_ref().to_owned());
+        let full_body = hyper::body::aggregate(body).await?;
+        let full_response = HttpResponse::from_parts(head, full_body);
 
-        Ok(Request::IncomingResponse::try_from(full_response)?)
+        Ok(ruma_api::IncomingResponse::try_from_http_response(full_response)?)
     }
 }
