@@ -207,7 +207,7 @@ impl EndpointError for Error {
     ) -> Result<Self, ResponseDeserializationError> {
         match from_json_slice::<ErrorBody>(response.body()) {
             Ok(error_body) => Ok(error_body.into_error(response.status())),
-            Err(de_error) => Err(ResponseDeserializationError::new(de_error, response)),
+            Err(de_error) => Err(ResponseDeserializationError::new(de_error)),
         }
     }
 }

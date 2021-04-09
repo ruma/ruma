@@ -15,9 +15,9 @@ pub enum Void {}
 
 impl EndpointError for Void {
     fn try_from_response(
-        response: http::Response<Vec<u8>>,
+        _response: http::Response<Vec<u8>>,
     ) -> Result<Self, ResponseDeserializationError> {
-        Err(ResponseDeserializationError::from_response(response))
+        Err(ResponseDeserializationError::none())
     }
 }
 
@@ -127,28 +127,32 @@ impl<E> From<ResponseDeserializationError> for FromHttpResponseError<E> {
     }
 }
 
+impl<E, T> From<T> for FromHttpResponseError<E>
+where
+    T: Into<DeserializationError>,
+{
+    fn from(err: T) -> Self {
+        Self::Deserialization(ResponseDeserializationError::new(err))
+    }
+}
+
 impl<E: StdError> StdError for FromHttpResponseError<E> {}
 
 /// An error that occurred when trying to deserialize a response.
 #[derive(Debug)]
 pub struct ResponseDeserializationError {
     inner: Option<DeserializationError>,
-    http_response: http::Response<Vec<u8>>,
 }
 
 impl ResponseDeserializationError {
     /// Creates a new `ResponseDeserializationError` from the given deserialization error and http
     /// response.
-    pub fn new(
-        inner: impl Into<DeserializationError>,
-        http_response: http::Response<Vec<u8>>,
-    ) -> Self {
-        Self { inner: Some(inner.into()), http_response }
+    pub fn new(inner: impl Into<DeserializationError>) -> Self {
+        Self { inner: Some(inner.into()) }
     }
 
-    /// Creates a new `ResponseDeserializationError` without an inner deserialization error.
-    pub fn from_response(http_response: http::Response<Vec<u8>>) -> Self {
-        Self { http_response, inner: None }
+    fn none() -> Self {
+        Self { inner: None }
     }
 }
 

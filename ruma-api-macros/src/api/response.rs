@@ -52,22 +52,20 @@ impl Response {
                             path: syn::Path { segments, .. }, ..
                         }) if segments.last().unwrap().ident == "Option" => {
                             quote! {
-                                #field_name: #ruma_api::try_deserialize!(
-                                    response,
+                                #field_name: {
                                     headers.remove(#http::header::#header_name)
                                         .map(|h| h.to_str().map(|s| s.to_owned()))
-                                        .transpose()
-                                )
+                                        .transpose()?
+                                }
                             }
                         }
                         _ => quote! {
-                            #field_name: #ruma_api::try_deserialize!(
-                                response,
+                            #field_name: {
                                 headers.remove(#http::header::#header_name)
                                     .expect("response missing expected header")
-                                    .to_str()
-                            )
-                            .to_owned()
+                                    .to_str()?
+                                    .to_owned()
+                            }
                         },
                     };
                     quote_spanned! {span=> #optional_header }
@@ -228,10 +226,7 @@ impl Response {
                             body => body,
                         };
 
-                        #ruma_api::try_deserialize!(
-                            response,
-                            #serde_json::from_slice(json),
-                        )
+                        #serde_json::from_slice(json)?
                     };
                 }
             } else {

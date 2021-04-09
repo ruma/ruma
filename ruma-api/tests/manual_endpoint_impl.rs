@@ -4,11 +4,8 @@ use std::convert::TryFrom;
 
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_api::{
-    error::{
-        FromHttpRequestError, FromHttpResponseError, IntoHttpError, ResponseDeserializationError,
-        ServerError, Void,
-    },
-    try_deserialize, AuthScheme, IncomingRequest, Metadata, OutgoingRequest,
+    error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, ServerError, Void},
+    try_deserialize, AuthScheme, EndpointError, IncomingRequest, Metadata, OutgoingRequest,
 };
 use ruma_identifiers::{RoomAliasId, RoomId};
 use ruma_serde::Outgoing;
@@ -109,8 +106,8 @@ impl TryFrom<http::Response<Vec<u8>>> for Response {
         if http_response.status().as_u16() < 400 {
             Ok(Response)
         } else {
-            Err(FromHttpResponseError::Http(ServerError::Unknown(
-                ResponseDeserializationError::from_response(http_response),
+            Err(FromHttpResponseError::Http(ServerError::Known(
+                <Void as EndpointError>::try_from_response(http_response)?,
             )))
         }
     }

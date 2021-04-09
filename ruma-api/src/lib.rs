@@ -369,10 +369,4 @@ macro_rules! try_deserialize {
             Err(err) => return Err($crate::error::RequestDeserializationError::new(err, $kind).into()),
         }
     };
-    (@response, $kind:ident, $call:expr) => {
-        match $call {
-            Ok(val) => val,
-            Err(err) => return Err($crate::error::ResponseDeserializationError::new(err, $kind).into()),
-        }
-    };
 }
