@@ -2,10 +2,7 @@
 //! converting between http requests / responses and ruma's representation of
 //! matrix API requests / responses.
 
-use std::{
-    error::Error as StdError,
-    fmt::{self, Debug, Display, Formatter},
-};
+use std::{error::Error as StdError, fmt};
 
 use thiserror::Error;
 
@@ -24,7 +21,7 @@ impl EndpointError for Void {
     }
 }
 
-impl Display for Void {
+impl fmt::Display for Void {
     fn fmt(&self, _: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {}
     }
@@ -100,8 +97,8 @@ pub enum FromHttpResponseError<E> {
     Http(ServerError<E>),
 }
 
-impl<E: Display> Display for FromHttpResponseError<E> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+impl<E: fmt::Display> fmt::Display for FromHttpResponseError<E> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Deserialization(err) => write!(f, "deserialization failed: {}", err),
             Self::Http(err) => write!(f, "the server returned an error: {}", err),
@@ -146,12 +143,12 @@ impl ResponseDeserializationError {
     }
 }
 
-impl Display for ResponseDeserializationError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+impl fmt::Display for ResponseDeserializationError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(ref inner) = self.inner {
-            Display::fmt(inner, f)
+            fmt::Display::fmt(inner, f)
         } else {
-            Display::fmt("deserialization error, no error specified", f)
+            fmt::Display::fmt("deserialization error, no error specified", f)
         }
     }
 }
@@ -169,11 +166,11 @@ pub enum ServerError<E> {
     Unknown(ResponseDeserializationError),
 }
 
-impl<E: Display> Display for ServerError<E> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+impl<E: fmt::Display> fmt::Display for ServerError<E> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ServerError::Known(e) => Display::fmt(e, f),
-            ServerError::Unknown(res_err) => Display::fmt(res_err, f),
+            ServerError::Known(e) => fmt::Display::fmt(e, f),
+            ServerError::Unknown(res_err) => fmt::Display::fmt(res_err, f),
         }
     }
 }
