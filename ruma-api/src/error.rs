@@ -68,6 +68,15 @@ pub enum FromHttpRequestError {
     /// Deserialization failed
     #[error("deserialization failed: {0}")]
     Deserialization(#[from] RequestDeserializationError),
+
+    /// HTTP method mismatch
+    #[error("http method mismatch: expected {expected}, received: {received}")]
+    MethodMismatch {
+        /// expected http method
+        expected: http::method::Method,
+        /// received http method
+        received: http::method::Method,
+    },
 }
 
 /// An error that occurred when trying to deserialize a request.
