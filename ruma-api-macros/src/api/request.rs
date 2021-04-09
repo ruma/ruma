@@ -577,6 +577,12 @@ impl Request {
                                 fn try_from_http_request(
                                     request: #http::Request<Vec<u8>>
                                 ) -> ::std::result::Result<Self, #ruma_api::error::FromHttpRequestError> {
+                                    if request.method() != #http::Method::#method {
+                                        return Err(#ruma_api::error::FromHttpRequestError::MethodMismatch {
+                                            expected: #http::Method::#method,
+                                            received: request.method().clone(),
+                                        });
+                                    }
                                     #extract_request_path
                                     #extract_request_query
                                     #extract_request_headers
