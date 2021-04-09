@@ -324,7 +324,7 @@ impl Request {
         };
 
         let (request_path_string, parse_request_path) =
-            path_string_and_parse(self, metadata, &ruma_api);
+            self.path_string_and_parse(metadata, &ruma_api);
 
         let request_query_string = self.build_query_string(&ruma_api);
         let extract_request_query = self.extract_request_query(&ruma_api);
@@ -721,6 +721,90 @@ impl Request {
             quote! { "" }
         }
     }
+
+    /// The first item in the tuple generates code for the request path from
+    /// the `Metadata` and `Request` structs. The second item in the returned tuple
+    /// is the code to generate a Request struct field created from any segments
+    /// of the path that start with ":".
+    ///
+    /// The first `TokenStream` returned is the constructed url path. The second `TokenStream` is
+    /// used for implementing `TryFrom<http::Request<Vec<u8>>>`, from path strings deserialized to Ruma
+    /// types.
+    pub(crate) fn path_string_and_parse(
+        &self,
+        metadata: &Metadata,
+        ruma_api: &TokenStream,
+    ) -> (TokenStream, TokenStream) {
+        let percent_encoding = quote! { #ruma_api::exports::percent_encoding };
+
+        if self.has_path_fields() {
+            let path_string = metadata.path.value();
+
+            assert!(path_string.starts_with('/'), "path needs to start with '/'");
+            assert!(
+                path_string.chars().filter(|c| *c == ':').count() == self.path_field_count(),
+                "number of declared path parameters needs to match amount of placeholders in path"
+            );
+
+            let format_call = {
+                let mut format_string = path_string.clone();
+                let mut format_args = Vec::new();
+
+                while let Some(start_of_segment) = format_string.find(':') {
+                    // ':' should only ever appear at the start of a segment
+                    assert_eq!(&format_string[start_of_segment - 1..start_of_segment], "/");
+
+                    let end_of_segment = match format_string[start_of_segment..].find('/') {
+                        Some(rel_pos) => start_of_segment + rel_pos,
+                        None => format_string.len(),
+                    };
+
+                    let path_var = Ident::new(
+                        &format_string[start_of_segment + 1..end_of_segment],
+                        Span::call_site(),
+                    );
+                    format_args.push(quote! {
+                        #percent_encoding::utf8_percent_encode(
+                            &self.#path_var.to_string(),
+                            #percent_encoding::NON_ALPHANUMERIC,
+                        )
+                    });
+                    format_string.replace_range(start_of_segment..end_of_segment, "{}");
+                }
+
+                quote! {
+                    format_args!(#format_string, #(#format_args),*)
+                }
+            };
+
+            let path_fields =
+                path_string[1..].split('/').enumerate().filter(|(_, s)| s.starts_with(':')).map(
+                    |(i, segment)| {
+                        let path_var = &segment[1..];
+                        let path_var_ident = Ident::new(path_var, Span::call_site());
+                        quote! {
+                            #path_var_ident: {
+                                let segment = path_segments[#i].as_bytes();
+                                let decoded = #ruma_api::try_deserialize!(
+                                    request,
+                                    #percent_encoding::percent_decode(segment)
+                                        .decode_utf8(),
+                                );
+
+                                #ruma_api::try_deserialize!(
+                                    request,
+                                    ::std::convert::TryFrom::try_from(&*decoded),
+                                )
+                            }
+                        }
+                    },
+                );
+
+            (format_call, quote! { #(#path_fields,)* })
+        } else {
+            (quote! { metadata.path.to_owned() }, TokenStream::new())
+        }
+    }
 }
 
 /// The types of fields that a request can have.
@@ -872,88 +956,4 @@ pub(crate) enum RequestFieldKind {
 
     /// See the similarly named variant of `RequestField`.
     QueryMap,
-}
-
-/// The first item in the tuple generates code for the request path from
-/// the `Metadata` and `Request` structs. The second item in the returned tuple
-/// is the code to generate a Request struct field created from any segments
-/// of the path that start with ":".
-///
-/// The first `TokenStream` returned is the constructed url path. The second `TokenStream` is
-/// used for implementing `TryFrom<http::Request<Vec<u8>>>`, from path strings deserialized to Ruma
-/// types.
-pub(crate) fn path_string_and_parse(
-    request: &Request,
-    metadata: &Metadata,
-    ruma_api: &TokenStream,
-) -> (TokenStream, TokenStream) {
-    let percent_encoding = quote! { #ruma_api::exports::percent_encoding };
-
-    if request.has_path_fields() {
-        let path_string = metadata.path.value();
-
-        assert!(path_string.starts_with('/'), "path needs to start with '/'");
-        assert!(
-            path_string.chars().filter(|c| *c == ':').count() == request.path_field_count(),
-            "number of declared path parameters needs to match amount of placeholders in path"
-        );
-
-        let format_call = {
-            let mut format_string = path_string.clone();
-            let mut format_args = Vec::new();
-
-            while let Some(start_of_segment) = format_string.find(':') {
-                // ':' should only ever appear at the start of a segment
-                assert_eq!(&format_string[start_of_segment - 1..start_of_segment], "/");
-
-                let end_of_segment = match format_string[start_of_segment..].find('/') {
-                    Some(rel_pos) => start_of_segment + rel_pos,
-                    None => format_string.len(),
-                };
-
-                let path_var = Ident::new(
-                    &format_string[start_of_segment + 1..end_of_segment],
-                    Span::call_site(),
-                );
-                format_args.push(quote! {
-                    #percent_encoding::utf8_percent_encode(
-                        &self.#path_var.to_string(),
-                        #percent_encoding::NON_ALPHANUMERIC,
-                    )
-                });
-                format_string.replace_range(start_of_segment..end_of_segment, "{}");
-            }
-
-            quote! {
-                format_args!(#format_string, #(#format_args),*)
-            }
-        };
-
-        let path_fields =
-            path_string[1..].split('/').enumerate().filter(|(_, s)| s.starts_with(':')).map(
-                |(i, segment)| {
-                    let path_var = &segment[1..];
-                    let path_var_ident = Ident::new(path_var, Span::call_site());
-                    quote! {
-                        #path_var_ident: {
-                            let segment = path_segments[#i].as_bytes();
-                            let decoded = #ruma_api::try_deserialize!(
-                                request,
-                                #percent_encoding::percent_decode(segment)
-                                    .decode_utf8(),
-                            );
-
-                            #ruma_api::try_deserialize!(
-                                request,
-                                ::std::convert::TryFrom::try_from(&*decoded),
-                            )
-                        }
-                    }
-                },
-            );
-
-        (format_call, quote! { #(#path_fields,)* })
-    } else {
-        (quote! { metadata.path.to_owned() }, TokenStream::new())
-    }
 }
