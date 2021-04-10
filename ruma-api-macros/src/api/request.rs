@@ -304,7 +304,7 @@ impl Request {
                         body => body,
                     };
 
-                    #ruma_api::try_deserialize!(request, #serde_json::from_slice(json))
+                    #serde_json::from_slice(json)?
                 };
             }
         } else {
@@ -330,14 +330,11 @@ impl Request {
                     _ => (
                         quote! { str_value.to_owned() },
                         quote! {
-                            // FIXME: Not a missing json field, a missing header!
-                            return Err(#ruma_api::error::RequestDeserializationError::new(
+                            return Err(
                                 #ruma_api::error::HeaderDeserializationError::MissingHeader(
                                     #header_name_string.into()
-                                ),
-                                request,
+                                ).into(),
                             )
-                            .into())
                         },
                     ),
                 };
@@ -345,8 +342,7 @@ impl Request {
                 quote! {
                     #field_name: match headers.get(#http::header::#header_name) {
                         Some(header_value) => {
-                            let str_value =
-                                #ruma_api::try_deserialize!(request, header_value.to_str());
+                            let str_value = header_value.to_str()?;
                             #some_case
                         }
                         None => #none_case,
@@ -604,22 +600,16 @@ impl Request {
 
         if self.query_map_field().is_some() {
             quote! {
-                let request_query = #ruma_api::try_deserialize!(
-                    request,
-                    #ruma_serde::urlencoded::from_str(
-                        &request.uri().query().unwrap_or("")
-                    ),
-                );
+                let request_query = #ruma_serde::urlencoded::from_str(
+                    &request.uri().query().unwrap_or(""),
+                )?;
             }
         } else if self.has_query_fields() {
             quote! {
                 let request_query: <RequestQuery as #ruma_serde::Outgoing>::Incoming =
-                    #ruma_api::try_deserialize!(
-                        request,
-                        #ruma_serde::urlencoded::from_str(
-                            &request.uri().query().unwrap_or("")
-                        ),
-                    );
+                    #ruma_serde::urlencoded::from_str(
+                        &request.uri().query().unwrap_or("")
+                    )?;
             }
         } else {
             TokenStream::new()
@@ -741,16 +731,10 @@ impl Request {
                         quote! {
                             #path_var_ident: {
                                 let segment = path_segments[#i].as_bytes();
-                                let decoded = #ruma_api::try_deserialize!(
-                                    request,
-                                    #percent_encoding::percent_decode(segment)
-                                        .decode_utf8(),
-                                );
+                                let decoded =
+                                    #percent_encoding::percent_decode(segment).decode_utf8()?;
 
-                                #ruma_api::try_deserialize!(
-                                    request,
-                                    ::std::convert::TryFrom::try_from(&*decoded),
-                                )
+                                ::std::convert::TryFrom::try_from(&*decoded)?
                             }
                         }
                     },

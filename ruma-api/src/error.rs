@@ -65,7 +65,7 @@ pub enum IntoHttpError {
 pub enum FromHttpRequestError {
     /// Deserialization failed
     #[error("deserialization failed: {0}")]
-    Deserialization(#[from] RequestDeserializationError),
+    Deserialization(RequestDeserializationError),
 
     /// HTTP method mismatch
     #[error("http method mismatch: expected {expected}, received: {received}")]
@@ -77,22 +77,28 @@ pub enum FromHttpRequestError {
     },
 }
 
+impl<T> From<T> for FromHttpRequestError
+where
+    T: Into<RequestDeserializationError>,
+{
+    fn from(err: T) -> Self {
+        Self::Deserialization(err.into())
+    }
+}
+
 /// An error that occurred when trying to deserialize a request.
 #[derive(Debug, Error)]
 #[error("{inner}")]
 pub struct RequestDeserializationError {
     inner: DeserializationError,
-    http_request: http::Request<Vec<u8>>,
 }
 
-impl RequestDeserializationError {
-    /// Creates a new `RequestDeserializationError` from the given deserialization error and http
-    /// request.
-    pub fn new(
-        inner: impl Into<DeserializationError>,
-        http_request: http::Request<Vec<u8>>,
-    ) -> Self {
-        Self { inner: inner.into(), http_request }
+impl<T> From<T> for RequestDeserializationError
+where
+    T: Into<DeserializationError>,
+{
+    fn from(err: T) -> Self {
+        Self { inner: err.into() }
     }
 }
 

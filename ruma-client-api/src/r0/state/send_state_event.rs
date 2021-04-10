@@ -111,42 +111,35 @@ impl ruma_api::IncomingRequest for IncomingRequest {
     fn try_from_http_request(
         request: http::Request<Vec<u8>>,
     ) -> Result<Self, ruma_api::error::FromHttpRequestError> {
-        use std::convert::TryFrom;
+        use std::{borrow::Cow, convert::TryFrom};
 
-        use ruma_api::try_deserialize;
         use ruma_events::EventContent;
         use serde_json::value::RawValue as RawJsonValue;
 
         let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
 
         let room_id = {
-            let decoded = try_deserialize!(
-                request,
-                percent_encoding::percent_decode(path_segments[4].as_bytes()).decode_utf8()
-            );
+            let decoded =
+                percent_encoding::percent_decode(path_segments[4].as_bytes()).decode_utf8()?;
 
-            try_deserialize!(request, RoomId::try_from(&*decoded))
+            RoomId::try_from(&*decoded)?
         };
 
-        let state_key = match path_segments.get(7) {
-            Some(segment) => try_deserialize!(
-                request,
-                percent_encoding::percent_decode(segment.as_bytes()).decode_utf8()
-            )
-            .into_owned(),
-            None => "".into(),
-        };
+        let state_key = path_segments
+            .get(7)
+            .map(|segment| percent_encoding::percent_decode(segment.as_bytes()).decode_utf8())
+            .transpose()?
+            .unwrap_or(Cow::Borrowed(""))
+            .into_owned();
 
         let content = {
             let request_body: Box<RawJsonValue> =
-                try_deserialize!(request, serde_json::from_slice(request.body().as_slice()));
+                serde_json::from_slice(request.body().as_slice())?;
 
-            let event_type = try_deserialize!(
-                request,
-                percent_encoding::percent_decode(path_segments[6].as_bytes()).decode_utf8()
-            );
+            let event_type =
+                percent_encoding::percent_decode(path_segments[6].as_bytes()).decode_utf8()?;
 
-            try_deserialize!(request, AnyStateEventContent::from_parts(&event_type, request_body))
+            AnyStateEventContent::from_parts(&event_type, request_body)?
         };
 
         Ok(Self { room_id, state_key, content })
