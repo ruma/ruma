@@ -13,6 +13,15 @@ xflags::xflags! {
             /// The crate to release
             required name: String
         {}
+
+        /// Run the CI tests
+        cmd ci
+            /// The crate to test
+            optional crates: String
+        {
+            /// The version of compiler to use, from "1.45", "nightly" and "stable"
+            optional -v, --version version: String
+        }
     }
 }
 // generated start
@@ -27,6 +36,7 @@ pub struct Xtask {
 pub enum XtaskCmd {
     Help(Help),
     Release(Release),
+    Ci(Ci),
 }
 
 #[derive(Debug)]
@@ -39,11 +49,22 @@ pub struct Release {
     pub name: String,
 }
 
+#[derive(Debug)]
+pub struct Ci {
+    pub crates: Option<String>,
+
+    pub version: Option<String>,
+}
+
 impl Xtask {
     pub const HELP: &'static str = Self::HELP_;
 
     pub fn from_env() -> xflags::Result<Self> {
         Self::from_env_()
+    }
+
+    pub fn from_vec(args: Vec<std::ffi::OsString>) -> xflags::Result<Self> {
+        Self::from_vec_(args)
     }
 }
 // generated end

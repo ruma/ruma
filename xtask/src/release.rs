@@ -204,7 +204,7 @@ impl ReleaseTask {
 
     /// Create the release on GitHub with the given `config` and `credentials`.
     fn release(&self, body: &str) -> Result<()> {
-        let config = config()?.github;
+        let config = config()?.github.expect("No Github configuration found in config.toml");
 
         let request = Request::post(format!("{}/releases", GITHUB_API_RUMA))
             .authentication(Authentication::basic())

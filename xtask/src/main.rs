@@ -6,6 +6,7 @@
 use std::{
     env,
     path::{Path, PathBuf},
+    collections::HashMap
 };
 
 use serde::Deserialize;
@@ -13,10 +14,12 @@ use serde_json::from_str as from_json_str;
 use toml::from_str as from_toml_str;
 use xshell::read_file;
 
+mod ci;
 mod flags;
 mod release;
 
 use self::release::ReleaseTask;
+use self::ci::CiTask;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -40,6 +43,16 @@ fn try_main() -> Result<()> {
             let task = ReleaseTask::new(cmd.name, project_root)?;
             task.run()
         }
+        flags::XtaskCmd::Ci(ci) => {
+            println!(
+                "CI Tests are running on {} using {}...",
+                ci.crates.as_ref().unwrap_or(&"all".to_string()),
+                ci.version.as_ref().unwrap_or(&"all".to_string()),
+            );
+
+            let task = CiTask::new(ci.crates, project_root, ci.version)?;
+            task.run()
+        }
     }
 }
 
@@ -58,7 +71,10 @@ fn project_root() -> Result<PathBuf> {
 #[derive(Debug, Deserialize)]
 struct Config {
     /// Credentials to authenticate to GitHub.
-    github: GithubConfig,
+    github: Option<GithubConfig>,
+
+    /// Keep information about CI.
+    ci: CiInfo
 }
 
 #[derive(Debug, Deserialize)]
@@ -70,9 +86,24 @@ struct GithubConfig {
     token: String,
 }
 
+#[derive(Debug, Deserialize)]
+struct CiInfo {
+    versions: Vec<String>,
+    /// Commands to run for the CI tests. Keys are the crate names and values are structs that
+    /// store the command to run.
+    tests: HashMap<String, CrateCommands>
+}
+
+#[derive(Debug, Deserialize)]
+struct CrateCommands {
+    /// The command to compile.
+    command: String,
+}
+
 /// Load the config from `config.toml`.
 fn config() -> Result<Config> {
     let path = Path::new(&env!("CARGO_MANIFEST_DIR")).join("config.toml");
+    println!("{:?}", path);
     let config = read_file(path)?;
     Ok(from_toml_str(&config)?)
 }
