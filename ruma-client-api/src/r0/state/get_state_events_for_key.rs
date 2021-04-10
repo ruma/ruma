@@ -113,36 +113,27 @@ impl ruma_api::IncomingRequest for IncomingRequest {
     ) -> Result<Self, ruma_api::error::FromHttpRequestError> {
         use std::convert::TryFrom;
 
-        use ruma_api::try_deserialize;
-
         let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
 
         let room_id = {
-            let decoded = try_deserialize!(
-                request,
-                percent_encoding::percent_decode(path_segments[4].as_bytes()).decode_utf8()
-            );
+            let decoded =
+                percent_encoding::percent_decode(path_segments[4].as_bytes()).decode_utf8()?;
 
-            try_deserialize!(request, RoomId::try_from(&*decoded))
+            RoomId::try_from(&*decoded)?
         };
 
         let event_type = {
-            let decoded = try_deserialize!(
-                request,
-                percent_encoding::percent_decode(path_segments[6].as_bytes()).decode_utf8()
-            );
+            let decoded =
+                percent_encoding::percent_decode(path_segments[6].as_bytes()).decode_utf8()?;
 
-            try_deserialize!(request, EventType::try_from(&*decoded))
+            EventType::try_from(&*decoded)?
         };
 
         let state_key = match path_segments.get(7) {
             Some(segment) => {
-                let decoded = try_deserialize!(
-                    request,
-                    percent_encoding::percent_decode(segment.as_bytes()).decode_utf8()
-                );
+                let decoded = percent_encoding::percent_decode(segment.as_bytes()).decode_utf8()?;
 
-                try_deserialize!(request, String::try_from(&*decoded))
+                String::try_from(&*decoded)?
             }
             None => "".into(),
         };

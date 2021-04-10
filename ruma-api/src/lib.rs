@@ -363,17 +363,3 @@ pub struct Metadata {
     /// What authentication scheme the server uses for this endpoint.
     pub authentication: AuthScheme,
 }
-
-#[doc(hidden)]
-#[macro_export]
-macro_rules! try_deserialize {
-    ($kind:ident, $call:expr $(,)?) => {
-        $crate::try_deserialize!(@$kind, $kind, $call)
-    };
-    (@request, $kind:ident, $call:expr) => {
-        match $call {
-            Ok(val) => val,
-            Err(err) => return Err($crate::error::RequestDeserializationError::new(err, $kind).into()),
-        }
-    };
-}

@@ -6,8 +6,7 @@ use bytes::Buf;
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_api::{
     error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, ServerError, Void},
-    try_deserialize, AuthScheme, EndpointError, IncomingRequest, IncomingResponse, Metadata,
-    OutgoingRequest,
+    AuthScheme, EndpointError, IncomingRequest, IncomingResponse, Metadata, OutgoingRequest,
 };
 use ruma_identifiers::{RoomAliasId, RoomId};
 use ruma_serde::Outgoing;
@@ -70,19 +69,16 @@ impl IncomingRequest for Request {
     fn try_from_http_request(
         request: http::Request<Vec<u8>>,
     ) -> Result<Self, FromHttpRequestError> {
-        let request_body: RequestBody =
-            try_deserialize!(request, serde_json::from_slice(request.body().as_slice()));
+        let request_body: RequestBody = serde_json::from_slice(request.body().as_slice())?;
         let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
 
         Ok(Request {
             room_id: request_body.room_id,
             room_alias: {
-                let decoded = try_deserialize!(
-                    request,
-                    percent_encoding::percent_decode(path_segments[5].as_bytes()).decode_utf8(),
-                );
+                let decoded =
+                    percent_encoding::percent_decode(path_segments[5].as_bytes()).decode_utf8()?;
 
-                try_deserialize!(request, TryFrom::try_from(&*decoded))
+                TryFrom::try_from(&*decoded)?
             },
         })
     }
