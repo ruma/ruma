@@ -20,7 +20,7 @@
 #[cfg(not(all(feature = "client", feature = "server")))]
 compile_error!("ruma_api's Cargo features only exist as a workaround are not meant to be disabled");
 
-use std::{convert::TryInto, error::Error as StdError};
+use std::{convert::TryInto as _, error::Error as StdError};
 
 use bytes::Buf;
 use http::Method;
@@ -306,13 +306,22 @@ pub trait IncomingRequest: Sized {
     type EndpointError: EndpointError;
 
     /// Response type to return when the request is successful.
-    type OutgoingResponse: TryInto<http::Response<Vec<u8>>, Error = IntoHttpError>;
+    type OutgoingResponse: OutgoingResponse;
 
     /// Metadata about the endpoint.
     const METADATA: Metadata;
 
     /// Tries to turn the given `http::Request` into this request type.
     fn try_from_http_request(req: http::Request<Vec<u8>>) -> Result<Self, FromHttpRequestError>;
+}
+
+/// A request type for a Matrix API endpoint, used for sending responses.
+pub trait OutgoingResponse {
+    /// Tries to convert this response into an `http::Response`.
+    ///
+    /// This method should only fail when when invalid header values are specified. It may also
+    /// fail with a serialization error in case of bugs in Ruma though.
+    fn try_into_http_response(self) -> Result<http::Response<Vec<u8>>, IntoHttpError>;
 }
 
 /// Marker trait for requests that don't require authentication, for the client side.

@@ -1,6 +1,4 @@
-use std::convert::TryFrom;
-
-use ruma_api::{ruma_api, OutgoingRequest as _};
+use ruma_api::{ruma_api, OutgoingRequest as _, OutgoingResponse as _};
 
 ruma_api! {
     metadata: {
@@ -27,7 +25,7 @@ fn empty_request_http_repr() {
 #[test]
 fn empty_response_http_repr() {
     let res = Response {};
-    let http_res = http::Response::<Vec<u8>>::try_from(res).unwrap();
+    let http_res = res.try_into_http_response().unwrap();
 
     assert_eq!(http_res.body(), b"{}");
 }
