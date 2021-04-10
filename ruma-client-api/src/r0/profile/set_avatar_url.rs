@@ -66,7 +66,7 @@ mod tests {
                 http::Request::builder()
                     .method("PUT")
                     .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
-                    .body(Vec::<u8>::new())?,
+                    .body(&[] as &[u8])?,
             )?,
             IncomingRequest { user_id, avatar_url: None } if user_id == "@foo:bar.org"
         );
@@ -77,7 +77,9 @@ mod tests {
                 http::Request::builder()
                     .method("PUT")
                     .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
-                    .body(serde_json::to_vec(&serde_json::json!({ "avatar_url": "" }))?)?,
+                    .body(std::io::Cursor::new(
+                        serde_json::to_vec(&serde_json::json!({ "avatar_url": "" }))?,
+                    ))?,
             )?,
             IncomingRequest { user_id, avatar_url: None } if user_id == "@foo:bar.org"
         );

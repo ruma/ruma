@@ -618,7 +618,7 @@ mod server_tests {
             .unwrap();
 
         let req = IncomingRequest::try_from_http_request(
-            http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap(),
+            http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
         )
         .unwrap();
 
@@ -639,7 +639,7 @@ mod server_tests {
             .unwrap();
 
         let req = IncomingRequest::try_from_http_request(
-            http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap(),
+            http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
         )
         .unwrap();
 
@@ -664,7 +664,7 @@ mod server_tests {
             .unwrap();
 
         let req = IncomingRequest::try_from_http_request(
-            http::Request::builder().uri(uri).body(Vec::<u8>::new()).unwrap(),
+            http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
         )
         .unwrap();
 

@@ -104,15 +104,16 @@ impl ruma_api::IncomingRequest for IncomingRequest {
 
     const METADATA: ruma_api::Metadata = METADATA;
 
-    fn try_from_http_request(
-        request: http::Request<Vec<u8>>,
+    fn try_from_http_request<T: bytes::Buf>(
+        request: http::Request<T>,
     ) -> Result<Self, ruma_api::error::FromHttpRequestError> {
         use std::convert::TryFrom;
 
         use ruma_events::EventContent as _;
         use serde_json::value::RawValue as RawJsonValue;
 
-        let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
+        let (parts, body) = request.into_parts();
+        let path_segments: Vec<&str> = parts.uri.path()[1..].split('/').collect();
 
         let room_id = {
             let decoded =
@@ -126,13 +127,11 @@ impl ruma_api::IncomingRequest for IncomingRequest {
             .into_owned();
 
         let content = {
-            let request_body: Box<RawJsonValue> =
-                serde_json::from_slice(request.body().as_slice())?;
-
             let event_type =
                 percent_encoding::percent_decode(path_segments[6].as_bytes()).decode_utf8()?;
+            let body: Box<RawJsonValue> = serde_json::from_reader(body.reader())?;
 
-            AnyMessageEventContent::from_parts(&event_type, request_body)?
+            AnyMessageEventContent::from_parts(&event_type, body)?
         };
 
         Ok(Self { room_id, txn_id, content })

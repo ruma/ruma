@@ -48,9 +48,8 @@ impl Response {
 
 #[cfg(all(test, feature = "server"))]
 mod server_tests {
-    use std::convert::TryFrom;
-
     use assign::assign;
+    use ruma_api::OutgoingResponse;
     use ruma_events::tag::{TagInfo, Tags};
     use serde_json::json;
 
@@ -63,7 +62,7 @@ mod server_tests {
         tags.insert("u.user_tag".into(), assign!(TagInfo::new(), { order: Some(0.11) }));
         let response = Response { tags };
 
-        let http_response = http::Response::<Vec<u8>>::try_from(response).unwrap();
+        let http_response = response.try_into_http_response().unwrap();
 
         let json_response: serde_json::Value =
             serde_json::from_slice(http_response.body()).unwrap();

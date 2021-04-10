@@ -312,7 +312,7 @@ pub trait IncomingRequest: Sized {
     const METADATA: Metadata;
 
     /// Tries to turn the given `http::Request` into this request type.
-    fn try_from_http_request(req: http::Request<Vec<u8>>) -> Result<Self, FromHttpRequestError>;
+    fn try_from_http_request<T: Buf>(req: http::Request<T>) -> Result<Self, FromHttpRequestError>;
 }
 
 /// A request type for a Matrix API endpoint, used for sending responses.
