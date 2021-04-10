@@ -4,3 +4,61 @@ user = ""
 # The personal access token to use for authentication. Needs 'repo' scope.
 # See: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
 token = ""
+
+[ci]
+versions = ["stable", "1.45", "nightly"]
+default = ["ruma", "ruma-client", "ruma-identifiers", "ruma-client-api"]
+
+[ci.tests.ruma]
+commands = ["--features=ruma-events,ruma-api,ruma-appservice-api,ruma-client-api,ruma-federation-api,ruma-identity-service-api,ruma-push-gateway-api"]
+
+[ci.tests.ruma-api]
+commands = ["--all-features"]
+
+[ci.tests.ruma-api-macros]
+commands = ["--all-features"]
+
+[ci.tests.ruma-appservice-api]
+commands = ["--all-features"]
+
+[ci.tests.ruma-client]
+commands = ["--quiet"]
+
+[ci.tests.ruma-client-api]
+commands = ["--all-features --verbose"]
+
+[ci.tests.ruma-common]
+commands = ["--all-features"]
+
+[ci.tests.ruma-event]
+commands = ["--all-features"]
+
+[ci.tests.ruma-event-macros]
+commands = ["--all-features"]
+
+[ci.tests.ruma-federation-api]
+commands = ["--all-features"]
+
+[ci.tests.ruma-identifiers]
+commands = ["--no-default-features", "--all-features"]
+
+[ci.tests.ruma-identifiers-macros]
+commands = ["--all-features"]
+
+[ci.tests.ruma-identifiers-validation]
+commands = ["--all-features"]
+
+[ci.tests.ruma-identity-service-api]
+commands = ["--all-features"]
+
+[ci.tests.ruma-push-gateway-api]
+commands = ["--all-features"]
+
+[ci.tests.ruma-serde]
+commands = ["--all-features"]
+
+[ci.tests.ruma-serde-macros]
+commands = ["--all-features"]
+
+[ci.tests.ruma-signatures]
+commands = ["--all-features"]

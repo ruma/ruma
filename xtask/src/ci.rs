@@ -1,17 +1,9 @@
 #![allow(dead_code)]
 use std::{collections::HashMap, path::PathBuf};
 
-use super::{config, CiInfo, CrateCommands, Result};
+use xshell::{pushd, cmd};
 
-macro_rules! cmd {
-    ($cmd:tt) => {
-        super::cmd!($cmd)
-    };
-    ($dir:expr, $cmd:tt) => {{
-        let _p = xshell::pushd($dir);
-        super::cmd!($cmd)
-    }};
-}
+use super::{config, CiInfo, CrateCommands, Result};
 
 /// Task to run CI Tests
 pub struct CiTask {
@@ -38,13 +30,13 @@ impl CiTask {
         rust_version: Option<String>,
     ) -> Result<Self> {
         let config = config()?.ci;
-        let CiInfo { versions: valid_versions, tests } = config;
+        let CiInfo { versions: valid_versions, tests, default } = config;
 
         let rust_versions = if let Some(version) = rust_version {
             if valid_versions.contains(&version) {
-                return Err("Invalid rust version provided".into());
-            } else {
                 vec![version]
+            } else {
+                return Err("Invalid rust version provided".into());
             }
         } else {
             valid_versions
@@ -56,7 +48,7 @@ impl CiTask {
         Ok(Self {
             tests: match crates {
                 Some(crates) => tests.into_iter().filter(|(k, _)| crates.contains(k)).collect(),
-                None => tests,
+                None => tests.into_iter().filter(|(k, _)| default.contains(k)).collect(),
             },
             project_root,
             rust_versions,
@@ -65,9 +57,11 @@ impl CiTask {
     pub(crate) fn run(self) -> Result<()> {
         for version in self.rust_versions {
             cmd!("rustup default {version}").run()?;
-            for (dir, CrateCommands { command }) in self.tests.iter() {
-                let command = command.as_str();
-                cmd!(dir, "cargo build {command}").run()?;
+            for (dir, CrateCommands { commands }) in self.tests.iter() {
+                let _p = pushd(dir)?;
+                for command in commands {
+                    cmd!("cargo build {command}").run()?;
+                }
             }
         }
 

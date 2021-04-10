@@ -88,7 +88,12 @@ struct GithubConfig {
 
 #[derive(Debug, Deserialize)]
 struct CiInfo {
+    /// Versions of rust that are allowed.
     versions: Vec<String>,
+
+    /// Default set of crates to compile when using xtask.
+    default: Vec<String>,
+
     /// Commands to run for the CI tests. Keys are the crate names and values are structs that
     /// store the command to run.
     tests: HashMap<String, CrateCommands>
@@ -97,7 +102,7 @@ struct CiInfo {
 #[derive(Debug, Deserialize)]
 struct CrateCommands {
     /// The command to compile.
-    command: String,
+    commands: Vec<String>,
 }
 
 /// Load the config from `config.toml`.
