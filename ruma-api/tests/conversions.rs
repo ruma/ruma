@@ -8,7 +8,7 @@ ruma_api! {
         description: "Does something.",
         method: POST,
         name: "my_endpoint",
-        path: "/_matrix/foo/:bar/:baz",
+        path: "/_matrix/foo/:bar/:user",
         rate_limited: false,
         authentication: None,
     }
@@ -24,7 +24,7 @@ ruma_api! {
         #[ruma_api(path)]
         pub bar: String,
         #[ruma_api(path)]
-        pub baz: UserId,
+        pub user: UserId,
     }
 
     response: {
@@ -44,7 +44,7 @@ fn request_serde() -> Result<(), Box<dyn std::error::Error + 'static>> {
         q1: "query_param_special_chars %/&@!".to_owned(),
         q2: 55,
         bar: "barVal".to_owned(),
-        baz: user_id!("@bazme:ruma.io"),
+        user: user_id!("@bazme:ruma.io"),
     };
 
     let http_req = req.clone().try_into_http_request("https://homeserver.tld", None)?;
@@ -55,7 +55,7 @@ fn request_serde() -> Result<(), Box<dyn std::error::Error + 'static>> {
     assert_eq!(req.q1, req2.q1);
     assert_eq!(req.q2, req2.q2);
     assert_eq!(req.bar, req2.bar);
-    assert_eq!(req.baz, req2.baz);
+    assert_eq!(req.user, req2.user);
 
     Ok(())
 }
@@ -68,12 +68,12 @@ fn request_with_user_id_serde() -> Result<(), Box<dyn std::error::Error + 'stati
         q1: "query_param_special_chars %/&@!".to_owned(),
         q2: 55,
         bar: "barVal".to_owned(),
-        baz: user_id!("@bazme:ruma.io"),
+        user: user_id!("@bazme:ruma.io"),
     };
 
     let user_id = user_id!("@_virtual_:ruma.io");
     let http_req =
-        req.clone().try_into_http_request_with_user_id("https://homeserver.tld", None, user_id)?;
+        req.try_into_http_request_with_user_id("https://homeserver.tld", None, user_id)?;
 
     let query = http_req.uri().query().unwrap();
 
@@ -93,7 +93,7 @@ mod without_query {
             description: "Does something without query.",
             method: POST,
             name: "my_endpoint",
-            path: "/_matrix/foo/:bar/:baz",
+            path: "/_matrix/foo/:bar/:user",
             rate_limited: false,
             authentication: None,
         }
@@ -105,7 +105,7 @@ mod without_query {
             #[ruma_api(path)]
             pub bar: String,
             #[ruma_api(path)]
-            pub baz: UserId,
+            pub user: UserId,
         }
 
         response: {
@@ -124,15 +124,12 @@ mod without_query {
             hello: "hi".to_owned(),
             world: "test".to_owned(),
             bar: "barVal".to_owned(),
-            baz: user_id!("@bazme:ruma.io"),
+            user: user_id!("@bazme:ruma.io"),
         };
 
         let user_id = user_id!("@_virtual_:ruma.io");
-        let http_req = req.clone().try_into_http_request_with_user_id(
-            "https://homeserver.tld",
-            None,
-            user_id,
-        )?;
+        let http_req =
+            req.try_into_http_request_with_user_id("https://homeserver.tld", None, user_id)?;
 
         let query = http_req.uri().query().unwrap();
 
