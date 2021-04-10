@@ -231,7 +231,7 @@ impl Response {
                             #serde_json::from_reader(#bytes::Buf::reader(body))?
                         } else {
                             // If the reponse body is completely empty, pretend it is an empty JSON
-                            // object instead. This allows reponses with only optional body
+                            // object instead. This allows responses with only optional body
                             // parameters to be deserialized in that case.
                             #serde_json::from_str("{}")?
                         }
