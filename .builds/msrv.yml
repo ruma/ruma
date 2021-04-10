@@ -53,7 +53,7 @@ tasks:
       # by default. Make sure it works with all of them.
       pushd ruma-client-api
 
-      cargo build --all-features --verbose
+      cargo build --all-features --quiet
       client_api_build_exit=$?
 
       popd
