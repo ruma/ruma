@@ -4,9 +4,9 @@
 //! `.cargo/config`. Run commands as `cargo xtask [command]`.
 
 use std::{
+    collections::HashMap,
     env,
     path::{Path, PathBuf},
-    collections::HashMap
 };
 
 use serde::Deserialize;
@@ -18,8 +18,7 @@ mod ci;
 mod flags;
 mod release;
 
-use self::release::ReleaseTask;
-use self::ci::CiTask;
+use self::{ci::CiTask, release::ReleaseTask};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -46,8 +45,8 @@ fn try_main() -> Result<()> {
         flags::XtaskCmd::Ci(ci) => {
             println!(
                 "CI Tests are running on {} using {}...",
-                ci.crates.as_ref().unwrap_or(&"all".to_string()),
-                ci.version.as_ref().unwrap_or(&"all".to_string()),
+                ci.crates.as_deref().unwrap_or(&"all"),
+                ci.version.as_deref().unwrap_or(&"all"),
             );
 
             let task = CiTask::new(ci.crates, project_root, ci.version)?;
@@ -74,7 +73,7 @@ struct Config {
     github: Option<GithubConfig>,
 
     /// Keep information about CI.
-    ci: CiInfo
+    ci: CiInfo,
 }
 
 #[derive(Debug, Deserialize)]
@@ -96,7 +95,7 @@ struct CiInfo {
 
     /// Commands to run for the CI tests. Keys are the crate names and values are structs that
     /// store the command to run.
-    tests: HashMap<String, CrateCommands>
+    tests: HashMap<String, CrateCommands>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -106,8 +105,8 @@ struct CrateCommands {
 }
 
 /// Load the config from `config.toml`.
-fn config() -> Result<Config> {
-    let path = Path::new(&env!("CARGO_MANIFEST_DIR")).join("config.toml");
+fn config<P: AsRef<Path>>(src: P) -> Result<Config> {
+    let path = Path::new(&env!("CARGO_MANIFEST_DIR")).join(src);
     println!("{:?}", path);
     let config = read_file(path)?;
     Ok(from_toml_str(&config)?)

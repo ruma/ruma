@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use std::{collections::HashMap, path::PathBuf};
 
-use xshell::{pushd, cmd};
+use xshell::{cmd, pushd};
 
 use super::{config, CiInfo, CrateCommands, Result};
 
@@ -14,12 +14,7 @@ pub struct CiTask {
     /// The root of the workspace.
     project_root: PathBuf,
 
-    /// The version of rust. Valid options are:
-    /// - "1.45"
-    /// - "nightly"
-    /// - "stable"
-    ///
-    /// `None` means run all versions.
+    /// The version of rust. `None` means run all versions.
     rust_versions: Vec<String>,
 }
 
@@ -29,7 +24,7 @@ impl CiTask {
         project_root: PathBuf,
         rust_version: Option<String>,
     ) -> Result<Self> {
-        let config = config()?.ci;
+        let config = config("test.toml")?.ci;
         let CiInfo { versions: valid_versions, tests, default } = config;
 
         let rust_versions = if let Some(version) = rust_version {
@@ -56,11 +51,10 @@ impl CiTask {
     }
     pub(crate) fn run(self) -> Result<()> {
         for version in self.rust_versions {
-            cmd!("rustup default {version}").run()?;
-            for (dir, CrateCommands { commands }) in self.tests.iter() {
+            for (dir, CrateCommands { commands }) in &self.tests {
                 let _p = pushd(dir)?;
                 for command in commands {
-                    cmd!("cargo build {command}").run()?;
+                    cmd!("rustup run {version} cargo build {command}").run()?;
                 }
             }
         }
