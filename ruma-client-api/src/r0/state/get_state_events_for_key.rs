@@ -108,8 +108,8 @@ impl ruma_api::IncomingRequest for IncomingRequest {
 
     const METADATA: ruma_api::Metadata = METADATA;
 
-    fn try_from_http_request(
-        request: http::Request<Vec<u8>>,
+    fn try_from_http_request<T: bytes::Buf>(
+        request: http::Request<T>,
     ) -> Result<Self, ruma_api::error::FromHttpRequestError> {
         use std::convert::TryFrom;
 

@@ -152,8 +152,6 @@ impl Request {
         quote! { #(#fields,)* }
     }
 
-    /// Produces code for a struct initializer for the given field kind to be accessed through the
-    /// given variable name.
     fn vars(
         &self,
         request_field_kind: RequestFieldKind,
@@ -190,6 +188,7 @@ impl Request {
         error_ty: &TokenStream,
         ruma_api: &TokenStream,
     ) -> TokenStream {
+        let bytes = quote! { #ruma_api::exports::bytes };
         let http = quote! { #ruma_api::exports::http };
         let percent_encoding = quote! { #ruma_api::exports::percent_encoding };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
@@ -484,15 +483,15 @@ impl Request {
                     RequestBody #body_lifetimes
                     as #ruma_serde::Outgoing
                 >::Incoming = {
-                    // If the request body is completely empty, pretend it is an empty JSON object
-                    // instead. This allows requests with only optional body parameters to be
-                    // deserialized in that case.
-                    let json = match request.body().as_slice() {
-                        b"" => b"{}",
-                        body => body,
-                    };
-
-                    #serde_json::from_slice(json)?
+                    let body = request.into_body();
+                    if #bytes::Buf::has_remaining(&body) {
+                        #serde_json::from_reader(#bytes::Buf::reader(body))?
+                    } else {
+                        // If the request body is completely empty, pretend it is an empty JSON
+                        // object instead. This allows requests with only optional body parameters
+                        // to be deserialized in that case.
+                        #serde_json::from_str("{}")?
+                    }
                 };
             }
         } else {
@@ -532,7 +531,13 @@ impl Request {
         } else if let Some(field) = self.newtype_raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let parse = quote! {
-                let #field_name = request.into_body();
+                let #field_name = {
+                    let mut reader = #bytes::Buf::reader(request.into_body());
+                    let mut vec = ::std::vec::Vec::new();
+                    ::std::io::Read::read_to_end(&mut reader, &mut vec)
+                        .expect("reading from a bytes::Buf never fails");
+                    vec
+                };
             };
 
             (parse, quote! { #field_name, })
@@ -714,8 +719,8 @@ impl Request {
 
                 const METADATA: #ruma_api::Metadata = self::METADATA;
 
-                fn try_from_http_request(
-                    request: #http::Request<Vec<u8>>
+                fn try_from_http_request<T: #bytes::Buf>(
+                    request: #http::Request<T>
                 ) -> ::std::result::Result<Self, #ruma_api::error::FromHttpRequestError> {
                     if request.method() != #http::Method::#method {
                         return Err(#ruma_api::error::FromHttpRequestError::MethodMismatch {
