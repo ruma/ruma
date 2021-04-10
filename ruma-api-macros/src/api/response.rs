@@ -116,7 +116,7 @@ impl Response {
                         if segments.last().unwrap().ident == "Option" =>
                     {
                         quote! {
-                            if let Some(header) = response.#field_name {
+                            if let Some(header) = self.#field_name {
                                 headers
                                     .insert(
                                         #http::header::#header_name,
@@ -129,7 +129,7 @@ impl Response {
                         headers
                             .insert(
                                 #http::header::#header_name,
-                                response.#field_name.parse()?,
+                                self.#field_name.parse()?,
                             );
                     },
                 };
@@ -152,13 +152,13 @@ impl Response {
         if let Some(field) = self.newtype_raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let span = field.span();
-            return quote_spanned!(span=> response.#field_name);
+            return quote_spanned!(span=> self.#field_name);
         }
 
         let body = if let Some(field) = self.newtype_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let span = field.span();
-            quote_spanned!(span=> response.#field_name)
+            quote_spanned!(span=> self.#field_name)
         } else {
             let fields = self.fields.iter().filter_map(|response_field| {
                 if let ResponseField::Body(ref field) = *response_field {
@@ -170,7 +170,7 @@ impl Response {
 
                     Some(quote_spanned! {span=>
                         #( #cfg_attrs )*
-                        #field_name: response.#field_name
+                        #field_name: self.#field_name
                     })
                 } else {
                     None
@@ -285,10 +285,13 @@ impl Response {
 
             #[automatically_derived]
             #[cfg(feature = "server")]
-            impl ::std::convert::TryFrom<Response> for #http::Response<Vec<u8>> {
-                type Error = #ruma_api::error::IntoHttpError;
-
-                fn try_from(response: Response) -> ::std::result::Result<Self, Self::Error> {
+            impl #ruma_api::OutgoingResponse for Response {
+                fn try_into_http_response(
+                    self,
+                ) -> ::std::result::Result<
+                    #http::Response<::std::vec::Vec<u8>>,
+                    #ruma_api::error::IntoHttpError,
+                > {
                     let mut resp_builder = #http::Response::builder()
                         .header(#http::header::CONTENT_TYPE, "application/json");
 
@@ -300,8 +303,7 @@ impl Response {
                     // This cannot fail because we parse each header value
                     // checking for errors as each value is inserted and
                     // we only allow keys from the `http::header` module.
-                    let response = resp_builder.body(#body).unwrap();
-                    Ok(response)
+                    Ok(resp_builder.body(#body).unwrap())
                 }
             }
 

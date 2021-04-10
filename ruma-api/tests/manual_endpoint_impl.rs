@@ -7,6 +7,7 @@ use http::{header::CONTENT_TYPE, method::Method};
 use ruma_api::{
     error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, ServerError, Void},
     AuthScheme, EndpointError, IncomingRequest, IncomingResponse, Metadata, OutgoingRequest,
+    OutgoingResponse,
 };
 use ruma_identifiers::{RoomAliasId, RoomId};
 use ruma_serde::Outgoing;
@@ -113,10 +114,8 @@ impl IncomingResponse for Response {
     }
 }
 
-impl TryFrom<Response> for http::Response<Vec<u8>> {
-    type Error = IntoHttpError;
-
-    fn try_from(_: Response) -> Result<http::Response<Vec<u8>>, Self::Error> {
+impl OutgoingResponse for Response {
+    fn try_into_http_response(self) -> Result<http::Response<Vec<u8>>, IntoHttpError> {
         let response = http::Response::builder()
             .header(CONTENT_TYPE, "application/json")
             .body(b"{}".to_vec())
