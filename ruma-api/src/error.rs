@@ -209,11 +209,30 @@ pub enum DeserializationError {
 
     /// Header value deserialization failed.
     #[error("{0}")]
-    Header(#[from] http::header::ToStrError),
+    Header(#[from] HeaderDeserializationError),
 }
 
 impl From<std::convert::Infallible> for DeserializationError {
     fn from(err: std::convert::Infallible) -> Self {
         match err {}
     }
+}
+
+impl From<http::header::ToStrError> for DeserializationError {
+    fn from(err: http::header::ToStrError) -> Self {
+        Self::Header(HeaderDeserializationError::ToStrError(err))
+    }
+}
+
+/// An error with the http headers.
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum HeaderDeserializationError {
+    /// Failed to convert `http::header::HeaderValue` to `str`.
+    #[error("{0}")]
+    ToStrError(http::header::ToStrError),
+
+    /// The given required header is missing.
+    #[error("Missing header `{0}`")]
+    MissingHeader(String),
 }

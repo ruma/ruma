@@ -8,10 +8,10 @@ use quote::quote;
 use syn::{AttrStyle, Attribute, Ident, Lifetime};
 
 /// Generates a `TokenStream` of lifetime identifiers `<'lifetime>`.
-pub(crate) fn unique_lifetimes_to_tokens<'a, I: Iterator<Item = &'a Lifetime>>(
+pub(crate) fn unique_lifetimes_to_tokens<'a, I: IntoIterator<Item = &'a Lifetime>>(
     lifetimes: I,
 ) -> TokenStream {
-    let lifetimes = lifetimes.collect::<BTreeSet<_>>();
+    let lifetimes = lifetimes.into_iter().collect::<BTreeSet<_>>();
     if lifetimes.is_empty() {
         TokenStream::new()
     } else {
