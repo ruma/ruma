@@ -1,5 +1,12 @@
 # [unreleased]
 
+Breaking changes:
+
+* Make `MxcUri` accept any string
+  * `TryFrom` trait methods were changed to `From` trait
+  * Use `MxcUri::is_valid` to make sure it is spec-compliant
+  * `MxcUri::{media_id, server_name}` return `Some({value})` only if the URI is spec-compliant
+
 # 0.18.1
 
 Improvements:
