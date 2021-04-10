@@ -1,6 +1,7 @@
 pub mod some_endpoint {
     use ruma_api::ruma_api;
     use ruma_events::{tag::TagEvent, AnyRoomEvent};
+    use ruma_identifiers::UserId;
     use ruma_serde::Raw;
 
     ruma_api! {
@@ -8,7 +9,7 @@ pub mod some_endpoint {
             description: "Does something.",
             method: POST, // An `http::Method` constant. No imports required.
             name: "some_endpoint",
-            path: "/_matrix/some/endpoint/:baz",
+            path: "/_matrix/some/endpoint/:user",
 
             #[cfg(all())]
             rate_limited: true,
@@ -23,7 +24,7 @@ pub mod some_endpoint {
 
         request: {
             // With no attribute on the field, it will be put into the body of the request.
-            pub foo: String,
+            pub a_field: String,
 
             // This value will be put into the "Content-Type" HTTP header.
             #[ruma_api(header = CONTENT_TYPE)]
@@ -34,9 +35,9 @@ pub mod some_endpoint {
             pub bar: String,
 
             // This value will be inserted into the request's URL in place of the
-            // ":baz" path component.
+            // ":user" path component.
             #[ruma_api(path)]
-            pub baz: String,
+            pub user: UserId,
         }
 
         response: {
@@ -65,7 +66,7 @@ pub mod newtype_body_endpoint {
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
     pub struct MyCustomType {
-        pub foo: String,
+        pub a_field: String,
     }
 
     ruma_api! {
@@ -95,7 +96,7 @@ pub mod newtype_raw_body_endpoint {
 
     #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
     pub struct MyCustomType {
-        pub foo: String,
+        pub a_field: String,
     }
 
     ruma_api! {
