@@ -24,7 +24,7 @@ unstable-pre-spec = ["ruma/unstable-pre-spec"]
 
 [dependencies.ruma]
 git = "https://github.com/ruma/ruma"
-rev = "a310ccc318a4eb51062923d570d5a86c1468e8a1"
+rev = "c1693569f15920e408aa6a26b7f3cc7fc6693a63"
 features = ["events", "signatures"]
 
 [dev-dependencies]
