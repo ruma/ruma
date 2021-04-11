@@ -1,6 +1,6 @@
 //! Types for the *m.room.message* event.
 
-use std::collections::BTreeMap;
+use std::borrow::Cow;
 
 use js_int::UInt;
 use ruma_events_macros::MessageEventContent;
@@ -8,7 +8,7 @@ use ruma_identifiers::MxcUri;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_identifiers::{DeviceIdBox, UserId};
 use ruma_serde::StringEnum;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 #[cfg(feature = "unstable-pre-spec")]
@@ -23,12 +23,12 @@ pub use super::relationships::InReplyTo;
 mod content_serde;
 pub mod feedback;
 
-use crate::MessageEvent as OuterMessageEvent;
+type JsonObject = serde_json::Map<String, JsonValue>;
 
 /// This event is used when sending messages in a room.
 ///
 /// Messages are not limited to be text.
-pub type MessageEvent = OuterMessageEvent<MessageEventContent>;
+pub type MessageEvent = crate::MessageEvent<MessageEventContent>;
 
 /// The payload for `MessageEvent`.
 #[derive(Clone, Debug, Serialize, MessageEventContent)]
@@ -125,6 +125,80 @@ pub enum MessageType {
     /// A custom message.
     #[doc(hidden)]
     _Custom(CustomEventContent),
+}
+
+impl MessageType {
+    /// Creates a `MessageType` with the given `msgtype` string and data.
+    ///
+    /// Prefer to use the public variants of `MessageType` where possible; this constructor is meant
+    /// be used for unsupported message types only and does not allow setting arbitrary data for
+    /// supported ones.
+    pub fn new(msgtype: &str, data: JsonObject) -> serde_json::Result<Self> {
+        fn from_json_object<T: DeserializeOwned>(obj: JsonObject) -> serde_json::Result<T> {
+            serde_json::from_value(JsonValue::Object(obj))
+        }
+
+        Ok(match msgtype {
+            "m.audio" => Self::Audio(from_json_object(data)?),
+            "m.emote" => Self::Emote(from_json_object(data)?),
+            "m.file" => Self::File(from_json_object(data)?),
+            "m.image" => Self::Image(from_json_object(data)?),
+            "m.location" => Self::Location(from_json_object(data)?),
+            "m.notice" => Self::Notice(from_json_object(data)?),
+            "m.server_notice" => Self::ServerNotice(from_json_object(data)?),
+            "m.text" => Self::Text(from_json_object(data)?),
+            "m.video" => Self::Video(from_json_object(data)?),
+            #[cfg(feature = "unstable-pre-spec")]
+            "m.key.verification.request" => Self::VerificationRequest(from_json_object(data)?),
+            _ => Self::_Custom(CustomEventContent { msgtype: msgtype.to_owned(), data }),
+        })
+    }
+
+    /// Returns a reference to the `msgtype` string.
+    pub fn msgtype(&self) -> &str {
+        match self {
+            Self::Audio(_) => "m.audio",
+            Self::Emote(_) => "m.emote",
+            Self::File(_) => "m.file",
+            Self::Image(_) => "m.image",
+            Self::Location(_) => "m.location",
+            Self::Notice(_) => "m.notice",
+            Self::ServerNotice(_) => "m.server_notice",
+            Self::Text(_) => "m.text",
+            Self::Video(_) => "m.video",
+            #[cfg(feature = "unstable-pre-spec")]
+            Self::VerificationRequest(_) => "m.key.verification.request",
+            Self::_Custom(c) => &c.msgtype,
+        }
+    }
+
+    /// Returns the associated data.
+    ///
+    /// Prefer to use the public variants of `MessageType` where possible; this method is meant to
+    /// be used for unsupported message types only.
+    pub fn data(&self) -> Cow<'_, JsonObject> {
+        fn serialize<T: Serialize>(obj: &T) -> JsonObject {
+            match serde_json::to_value(obj).expect("message type serialization to succeed") {
+                JsonValue::Object(obj) => obj,
+                _ => panic!("all message types must serialize to objects"),
+            }
+        }
+
+        match self {
+            Self::Audio(d) => Cow::Owned(serialize(d)),
+            Self::Emote(d) => Cow::Owned(serialize(d)),
+            Self::File(d) => Cow::Owned(serialize(d)),
+            Self::Image(d) => Cow::Owned(serialize(d)),
+            Self::Location(d) => Cow::Owned(serialize(d)),
+            Self::Notice(d) => Cow::Owned(serialize(d)),
+            Self::ServerNotice(d) => Cow::Owned(serialize(d)),
+            Self::Text(d) => Cow::Owned(serialize(d)),
+            Self::Video(d) => Cow::Owned(serialize(d)),
+            #[cfg(feature = "unstable-pre-spec")]
+            Self::VerificationRequest(d) => Cow::Owned(serialize(d)),
+            Self::_Custom(c) => Cow::Borrowed(&c.data),
+        }
+    }
 }
 
 impl From<MessageType> for MessageEventContent {
@@ -606,5 +680,5 @@ pub struct CustomEventContent {
 
     /// Remaining event content
     #[serde(flatten)]
-    pub data: BTreeMap<String, JsonValue>,
+    pub data: JsonObject,
 }

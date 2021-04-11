@@ -1,7 +1,6 @@
 use std::time::{Duration, UNIX_EPOCH};
 
 use assign::assign;
-use maplit::btreemap;
 use matches::assert_matches;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_events::{
@@ -22,6 +21,18 @@ use ruma_identifiers::DeviceIdBox;
 use ruma_identifiers::{event_id, mxc_uri, room_id, user_id};
 use ruma_serde::Raw;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
+
+macro_rules! json_object {
+    ( $($key:expr => $value:expr),* $(,)? ) => {
+        {
+            let mut _map = serde_json::Map::<String, serde_json::Value>::new();
+            $(
+                let _ = _map.insert($key, $value);
+            )*
+            _map
+        }
+    };
+}
 
 #[test]
 fn serialization() {
@@ -78,7 +89,7 @@ fn content_serialization() {
 
 #[test]
 fn custom_content_serialization() {
-    let json_data = btreemap! {
+    let json_data = json_object! {
         "custom_field".into() => json!("baba"),
         "another_one".into() => json!("abab"),
     };
@@ -105,7 +116,7 @@ fn custom_content_deserialization() {
         "another_one": "abab",
     });
 
-    let expected_json_data = btreemap! {
+    let expected_json_data = json_object! {
         "custom_field".into() => json!("baba"),
         "another_one".into() => json!("abab"),
     };
