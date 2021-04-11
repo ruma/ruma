@@ -25,6 +25,11 @@ impl MxcUri {
             .map(|idx| <&ServerName>::try_from(&self.full_uri[6..idx.get() as usize]).unwrap())
     }
 
+    /// If this is a valid MXC URI, returns a `(server_name, media_id)` tuple.
+    pub fn parts(&self) -> Option<(&ServerName, &str)> {
+        self.slash_idx.map(|_| (self.server_name().unwrap(), self.media_id().unwrap()))
+    }
+
     /// Returns if this is a spec-compliant MXC URI.
     pub fn is_valid(&self) -> bool {
         self.slash_idx.is_some()

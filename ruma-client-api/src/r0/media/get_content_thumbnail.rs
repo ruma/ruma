@@ -84,7 +84,7 @@ impl<'a> Request<'a> {
     /// Creates a new `Request` with the given url, desired thumbnail width and
     /// desired thumbnail height.
     pub fn from_url(url: &'a MxcUri, width: UInt, height: UInt) -> Result<Self, Error> {
-        if let (Some(media_id), Some(server_name)) = (url.media_id(), url.server_name()) {
+        if let Some((server_name, media_id)) = url.parts() {
             Ok(Self { media_id, server_name, method: None, width, height, allow_remote: true })
         } else {
             Err(Error::InvalidMxcUri)
