@@ -1,4 +1,6 @@
-use std::{path::PathBuf, process::Command};
+use std::path::PathBuf;
+
+use xshell::pushd;
 
 use crate::{cmd, Result};
 
@@ -33,59 +35,55 @@ impl CiTask {
     }
 
     fn build_msrv(&self) -> Result<()> {
-        self.run_in_dir(
-            "ruma",
-            format!("rustup run {} {}", MSRV,
-            r#"cargo build \
---features ruma-events,ruma-api,ruma-appservice-api,ruma-client-api,ruma-federation-api,ruma-identity-service-api,ruma-push-gateway-api \
---quiet"#).as_str(),
-        )?;
-        self.run_in_dir(
-            "ruma-client",
-            format!("rustup run {} {}", MSRV, "cargo build --quiet").as_str(),
-        )?;
-        self.run_in_dir(
-            "ruma-identifiers",
-            format!("rustup run {} {}", MSRV, "cargo build --no-default-features --quiet").as_str(),
-        )?;
-        self.run_in_dir(
-            "ruma-identifiers",
-            format!("rustup run {} {}", MSRV, "cargo build --all-features --quiet").as_str(),
-        )?;
-        self.run_in_dir(
-            "ruma-client-api",
-            format!("rustup run {} {}", MSRV, "cargo build --all-features --quiet").as_str(),
-        )
+        {
+            let _p = pushd(self.project_root.join("ruma"))?;
+            cmd!("rustup run {MSRV} cargo build --features ruma-events,ruma-api,ruma-appservice-api,ruma-client-api,ruma-federation-api,ruma-identity-service-api,ruma-push-gateway-api --quiet").run()?;
+        }
+        {
+            let _p = pushd(self.project_root.join("ruma-client"))?;
+            cmd!("rustup run {MSRV} cargo build --quiet").run()?;
+        }
+        {
+            let _p = pushd(self.project_root.join("ruma-identifiers"))?;
+            cmd!("rustup run {MSRV} cargo build --no-default-features --quiet").run()?;
+        }
+        {
+            let _p = pushd(self.project_root.join("ruma-identifiers"))?;
+            cmd!("rustup run {MSRV} cargo build --all-features --quiet").run()?;
+        }
+        {
+            let _p = pushd(self.project_root.join("ruma-client-api"))?;
+            cmd!("rustup run {MSRV} cargo build --all-features --quiet").run()?;
+        }
+        Ok(())
     }
 
     fn build_stable(&self) -> Result<()> {
-        self.run_in_dir("", "cargo test --all --quiet")?;
-        self.run_in_dir("ruma-identifiers", "cargo test --no-default-features --quiet")?;
-        self.run_in_dir("ruma-identifiers", "cargo test --all-features --quiet")?;
-        self.run_in_dir("ruma-client-api", "cargo check --all-targets --quiet")?;
-        self.run_in_dir(
-            "ruma-client",
-            "cargo check --no-default-features --features http1,http2 --quiet",
-        )?;
-        self.run_in_dir(
-            "ruma-client",
-            "cargo check --no-default-features --features http1,http2,tls-rustls-native-roots --quiet",
-        )?;
-        self.run_in_dir(
-            "ruma-client",
-            "cargo check --no-default-features --features http1,http2,tls-rustls-webpki-roots --quiet",
-        )
+        cmd!("cargo test --all --quiet").run()?;
+        {
+            let _p = pushd(self.project_root.join("ruma-identifiers"))?;
+            cmd!("cargo test --no-default-features --quiet").run()?;
+            cmd!("cargo test --all-features --quiet").run()?;
+        }
+        {
+            let _p = pushd(self.project_root.join("ruma-client-api"))?;
+            cmd!("cargo check --no-default-features --features http1,http2 --quiet").run()?;
+            cmd!("cargo check --no-default-features --features http1,http2,tls-rustls-native-roots --quiet").run()?;
+            cmd!("cargo check --no-default-features --features http1,http2,tls-rustls-webpki-roots --quiet").run()?;
+        }
+        Ok(())
     }
 
     fn build_nightly(&self) -> Result<()> {
-        self.run_in_dir("", "cargo fmt --all --check")?;
-        self.run_in_dir("ruma", "cargo clippy --all-targets --all-features --quiet -- D warnings")?;
-        self.run_in_dir("ruma-client", "cargo clippy --all-targets --quiet -- D warnings")
-    }
-
-    fn run_in_dir(&self, crate_name: &str, command: &str) -> Result<()> {
-        let _p = xshell::pushd(self.project_root.join(crate_name))?;
-        cmd!("{command}").run()?;
+        cmd!("cargo fmt --all --check").run()?;
+        {
+            let _p = pushd("ruma")?;
+            cmd!("cargo clippy --all-targets --all-features --quiet -- D warnings").run()?;
+        }
+        {
+            let _p = pushd("ruma-client")?;
+            cmd!("cargo clippy --all-targets --quiet -- D warnings").run()?;
+        }
         Ok(())
     }
 }
