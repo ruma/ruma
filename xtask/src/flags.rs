@@ -1,3 +1,5 @@
+#![allow(dead_code)] // silence never-used warning for from_vec in generated code
+
 xflags::xflags! {
     src "./src/flags.rs"
 

@@ -42,7 +42,7 @@ impl CiTask {
     fn build_msrv(&self) -> Result<()> {
         cmd_in!(
             self.project_root.join("ruma"),
-            "rustup run {MSRV} cargo build --features ruma-events,ruma-api,ruma-appservice-api,ruma-client-api,ruma-federation-api,ruma-identity-service-api,ruma-push-gateway-api --quiet",
+            "rustup run {MSRV} cargo build --features full --quiet",
         );
         cmd_in!(self.project_root.join("ruma-client"), "rustup run {MSRV} cargo build --quiet");
         cmd_in!(

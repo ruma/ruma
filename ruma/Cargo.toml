@@ -66,6 +66,21 @@ either = ["ruma-identifiers/either"]
 rand = ["ruma-identifiers/rand"]
 markdown = ["ruma-events/markdown"]
 
+# Everything except compat and unstable features
+full = [
+    "api",
+    "events",
+    "signatures",
+    "appservice-api",
+    "client-api",
+    "federation-api",
+    "identity-service-api",
+    "push-gateway-api",
+    "either",
+    "rand",
+    "markdown",
+]
+
 # Increase compatibility with other parts of the Matrix ecosystem, at the
 # expense of weird behaviour where things deviate from the specification.
 #

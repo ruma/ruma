@@ -23,9 +23,7 @@ tasks:
       # crate).
       pushd ruma
 
-      cargo build \
-        --features ruma-events,ruma-api,ruma-appservice-api,ruma-client-api,ruma-federation-api,ruma-identity-service-api,ruma-push-gateway-api \
-        --quiet
+      cargo build --features full --quiet
       ruma_build_exit=$?
 
       # ruma-client isn't re-exported by ruma right now, so it needs to be built
