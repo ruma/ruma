@@ -42,7 +42,7 @@ fn try_main() -> Result<()> {
             task.run()
         }
         flags::XtaskCmd::Ci(ci) => {
-            let task = CiTask::new(ci.version , project_root);
+            let task = CiTask::new(ci.version, project_root);
             task.run()
         }
     }
