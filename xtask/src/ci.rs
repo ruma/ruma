@@ -4,12 +4,16 @@ use crate::{cmd, Result};
 
 const MSRV: &str = "1.45";
 
-macro_rules! cmd_in {
+macro_rules! run_in {
     ($dir:expr, $($c:tt),+ $(,)?) => {{
         let _p = xshell::pushd($dir)?;
         $(super::cmd!($c).run()?;)+
     }};
 }
+
+//macro_rules! rustup_cmd {
+//
+//}
 
 /// Task to run CI tests.
 pub struct CiTask {
@@ -26,6 +30,8 @@ impl CiTask {
     }
 
     pub(crate) fn run(self) -> Result<()> {
+        let _p = xshell::pushd(&self.project_root)?;
+
         match self.version.as_deref() {
             Some("msrv") => self.build_msrv(),
             Some("stable") => self.build_stable(),
@@ -40,46 +46,46 @@ impl CiTask {
     }
 
     fn build_msrv(&self) -> Result<()> {
-        cmd_in!(
-            self.project_root.join("ruma"),
-            "rustup run {MSRV} cargo build --features full --quiet",
-        );
-        cmd_in!(self.project_root.join("ruma-client"), "rustup run {MSRV} cargo build --quiet");
-        cmd_in!(
-            self.project_root.join("ruma-identifiers"),
-            "rustup run {MSRV} cargo build --no-default-features --quiet"
-        );
-        cmd_in!(
-            self.project_root.join("ruma-identifiers"),
-            "rustup run {MSRV} cargo build --all-features --quiet"
-        );
-        cmd_in!(
-            self.project_root.join("ruma-client-api"),
-            "rustup run {MSRV} cargo build --all-features --quiet"
-        );
+        run_in!("ruma", "rustup run {MSRV} cargo build --features full --quiet");
+
         Ok(())
     }
 
     fn build_stable(&self) -> Result<()> {
-        cmd!("cargo test --all --quiet").run()?;
+        cmd!("rustup run stable cargo test --workspace --quiet").run()?;
+
         {
-            let _p = xshell::pushd(self.project_root.join("ruma-identifiers"))?;
-            cmd!("cargo test --no-default-features --quiet").run()?;
-            cmd!("cargo test --all-features --quiet").run()?;
+            let _p = xshell::pushd("ruma-identifiers")?;
+            cmd!("rustup run stable cargo test --no-default-features --quiet").run()?;
+            cmd!("rustup run stable cargo test --all-features --quiet").run()?;
         }
+
+        run_in!("ruma-client-api", "rustup run stable cargo test --all-features --quiet");
+
         {
-            let _p = xshell::pushd(self.project_root.join("ruma-client-api"))?;
-            cmd!("cargo check --no-default-features --features http1,http2 --quiet").run()?;
-            cmd!("cargo check --no-default-features --features http1,http2,tls-rustls-native-roots --quiet").run()?;
-            cmd!("cargo check --no-default-features --features http1,http2,tls-rustls-webpki-roots --quiet").run()?;
+            let _p = xshell::pushd("ruma-client")?;
+            cmd!("rustup run stable cargo check --no-default-features --features http1,http2 --quiet")
+                .run()?;
+            cmd!("rustup run stable cargo check --no-default-features --features http1,http2,tls-rustls-native-roots --quiet")
+                .run()?;
+            cmd!("rustup run stable cargo check --no-default-features --features http1,http2,tls-rustls-webpki-roots --quiet")
+                .run()?;
         }
+
         Ok(())
     }
 
     fn build_nightly(&self) -> Result<()> {
-        cmd!("cargo fmt --all").run()?;
-        cmd_in!("ruma", "cargo clippy --all-targets --all-features --quiet -- -D warnings");
-        cmd_in!("ruma-client", "cargo clippy --all-targets --quiet -- -D warnings");
+        cmd!("rustup run nightly cargo fmt --all").run()?;
+        run_in!(
+            "ruma",
+            "rustup run nightly cargo clippy --all-targets --all-features --quiet -- -D warnings"
+        );
+        run_in!(
+            "ruma-client",
+            "rustup run nightly cargo clippy --all-targets --quiet -- -D warnings"
+        );
+
         Ok(())
     }
 }

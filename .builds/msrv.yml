@@ -9,57 +9,12 @@ tasks:
       rustup toolchain install 1.45 --profile minimal
       rustup default 1.45
   - test: |
-      cd ruma
-
-      # We don't want the build to stop on individual failure of independent
-      # tools, so capture tool exit codes and set the task exit code manually
-      set +e
-
       # We don't want to try building ruma-signatures on 1.45, since it depends
       # on ring (MSRV 'stable') and is exempt from our MSRV policy. Instead,
       # enable all other dependencies on the ruma crate and try building that
       # (usually you would enable the higher-level features, but we're only
       # doing this to have all relevant crates compiled, no to build a useful
       # crate).
-      pushd ruma
+      cd ruma/ruma
 
       cargo build --features full --quiet
-      ruma_build_exit=$?
-
-      # ruma-client isn't re-exported by ruma right now, so it needs to be built
-      # separately
-      pushd ruma-client
-
-      cargo build --quiet
-      client_build_exit=$?
-
-      popd
-
-      # ruma-identifiers has a bunch of features. Make sure it works both with
-      # all of them and none of them being enabled.
-      pushd ruma-identifiers
-
-      cargo build --no-default-features --quiet
-      id_build_1_exit=$?
-
-      cargo build --all-features --quiet
-      id_build_2_exit=$?
-
-      popd
-
-      # ruma-client_api also has a few optional features, but none are enabled
-      # by default. Make sure it works with all of them.
-      pushd ruma-client-api
-
-      cargo build --all-features --quiet
-      client_api_build_exit=$?
-
-      popd
-
-      exit $(( \
-        $ruma_build_exit \
-        || $client_build_exit \
-        || $id_build_1_exit \
-        || $id_build_2_exit \
-        || $client_api_build_exit \
-      ))

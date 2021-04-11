@@ -15,7 +15,7 @@ tasks:
       # tools, so capture tool exit codes and set the task exit code manually
       set +e
 
-      cargo test --all --quiet
+      cargo test --workspace --quiet
       test_exit=$?
 
       # ruma-identifiers has a bunch of features. Make sure it works both with
@@ -34,7 +34,7 @@ tasks:
       # by default. Make sure it works with all of them.
       pushd ruma-client-api
 
-      cargo check --all-features --quiet
+      cargo test --all-features --quiet
       client_api_exit=$?
 
       popd
@@ -62,5 +62,3 @@ tasks:
         || $client_2_exit \
         || $client_3_exit \
       ))
-  # TODO: Add audit task once cargo-audit binary releases are available.
-  #       See https://github.com/RustSec/cargo-audit/issues/66

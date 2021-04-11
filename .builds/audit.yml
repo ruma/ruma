@@ -1,0 +1,9 @@
+image: archlinux
+packages:
+  - cargo-audit
+sources:
+  - https://github.com/ruma/ruma
+tasks:
+  - audit: |
+      cd ruma
+      cargo audit
