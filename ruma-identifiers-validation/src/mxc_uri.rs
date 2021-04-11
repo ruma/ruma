@@ -1,8 +1,10 @@
+use std::num::NonZeroU8;
+
 use crate::{server_name, Error};
 
 const PROTOCOL: &str = "mxc://";
 
-pub fn validate(uri: &str) -> Result<(&str, &str), Error> {
+pub fn validate(uri: &str) -> Result<NonZeroU8, Error> {
     let uri = match uri.strip_prefix(PROTOCOL) {
         Some(uri) => uri,
         None => return Err(Error::InvalidMxcUri),
@@ -20,7 +22,7 @@ pub fn validate(uri: &str) -> Result<(&str, &str), Error> {
         media_id.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'z' | b'A'..=b'Z' | b'-' ));
 
     if media_id_is_valid && server_name::validate(server_name).is_ok() {
-        Ok((media_id, server_name))
+        Ok(NonZeroU8::new((index + 6) as u8).unwrap())
     } else {
         Err(Error::InvalidMxcUri)
     }
