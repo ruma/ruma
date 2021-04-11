@@ -13,10 +13,11 @@ use serde_json::from_str as from_json_str;
 use toml::from_str as from_toml_str;
 use xshell::read_file;
 
+mod ci;
 mod flags;
 mod release;
 
-use self::release::ReleaseTask;
+use self::{ci::CiTask, release::ReleaseTask};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -38,6 +39,10 @@ fn try_main() -> Result<()> {
         }
         flags::XtaskCmd::Release(cmd) => {
             let task = ReleaseTask::new(cmd.name, project_root)?;
+            task.run()
+        }
+        flags::XtaskCmd::Ci(ci) => {
+            let task = CiTask::new(ci.version, project_root);
             task.run()
         }
     }

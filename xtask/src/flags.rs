@@ -13,6 +13,11 @@ xflags::xflags! {
             /// The crate to release
             required name: String
         {}
+
+        /// Run CI tests.
+        cmd ci
+            optional version: String
+        {}
     }
 }
 // generated start
@@ -27,6 +32,7 @@ pub struct Xtask {
 pub enum XtaskCmd {
     Help(Help),
     Release(Release),
+    Ci(Ci),
 }
 
 #[derive(Debug)]
@@ -39,11 +45,20 @@ pub struct Release {
     pub name: String,
 }
 
+#[derive(Debug)]
+pub struct Ci {
+    pub version: Option<String>,
+}
+
 impl Xtask {
     pub const HELP: &'static str = Self::HELP_;
 
     pub fn from_env() -> xflags::Result<Self> {
         Self::from_env_()
+    }
+
+    pub fn from_vec(args: Vec<std::ffi::OsString>) -> xflags::Result<Self> {
+        Self::from_vec_(args)
     }
 }
 // generated end
