@@ -1,10 +1,13 @@
 //! Details of the `response` section of the procedural macro.
 
 use proc_macro2::TokenStream;
-use quote::{quote, quote_spanned};
-use syn::{spanned::Spanned, Attribute, Field, Ident};
+use quote::quote;
+use syn::{Attribute, Field, Ident};
 
 use super::metadata::Metadata;
+
+mod incoming;
+mod outgoing;
 
 /// The result of processing the `response` section of the macro.
 pub(crate) struct Response {
@@ -26,165 +29,6 @@ impl Response {
         self.fields.iter().any(|field| field.is_header())
     }
 
-    /// Produces code for a response struct initializer.
-    fn init_fields(&self, ruma_api: &TokenStream) -> TokenStream {
-        let bytes = quote! { #ruma_api::exports::bytes };
-        let http = quote! { #ruma_api::exports::http };
-
-        let mut fields = vec![];
-        let mut new_type_raw_body = None;
-        for response_field in &self.fields {
-            let field = response_field.field();
-            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            let span = field.span();
-            let cfg_attrs =
-                field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
-
-            fields.push(match response_field {
-                ResponseField::Body(_) => {
-                    quote_spanned! {span=>
-                        #( #cfg_attrs )*
-                        #field_name: response_body.#field_name
-                    }
-                }
-                ResponseField::Header(_, header_name) => {
-                    let optional_header = match &field.ty {
-                        syn::Type::Path(syn::TypePath {
-                            path: syn::Path { segments, .. }, ..
-                        }) if segments.last().unwrap().ident == "Option" => {
-                            quote! {
-                                #field_name: {
-                                    headers.remove(#http::header::#header_name)
-                                        .map(|h| h.to_str().map(|s| s.to_owned()))
-                                        .transpose()?
-                                }
-                            }
-                        }
-                        _ => quote! {
-                            #field_name: {
-                                headers.remove(#http::header::#header_name)
-                                    .expect("response missing expected header")
-                                    .to_str()?
-                                    .to_owned()
-                            }
-                        },
-                    };
-                    quote_spanned! {span=> #optional_header }
-                }
-                ResponseField::NewtypeBody(_) => {
-                    quote_spanned! {span=>
-                        #field_name: response_body.0
-                    }
-                }
-                // This field must be instantiated last to avoid `use of move value` error.
-                // We are guaranteed only one new body field because of a check in `try_from`.
-                ResponseField::NewtypeRawBody(_) => {
-                    new_type_raw_body = Some(quote_spanned! {span=>
-                        #field_name: {
-                            let mut reader = #bytes::Buf::reader(response.into_body());
-                            let mut vec = ::std::vec::Vec::new();
-                            ::std::io::Read::read_to_end(&mut reader, &mut vec)
-                                .expect("reading from a bytes::Buf never fails");
-                            vec
-                        }
-                    });
-                    // skip adding to the vec
-                    continue;
-                }
-            });
-        }
-
-        fields.extend(new_type_raw_body);
-
-        quote! {
-            #(#fields,)*
-        }
-    }
-
-    /// Produces code to add necessary HTTP headers to an `http::Response`.
-    fn apply_header_fields(&self, ruma_api: &TokenStream) -> TokenStream {
-        let http = quote! { #ruma_api::exports::http };
-
-        let header_calls = self.fields.iter().filter_map(|response_field| {
-            if let ResponseField::Header(ref field, ref header_name) = *response_field {
-                let field_name =
-                    field.ident.as_ref().expect("expected field to have an identifier");
-                let span = field.span();
-
-                let optional_header = match &field.ty {
-                    syn::Type::Path(syn::TypePath { path: syn::Path { segments, .. }, .. })
-                        if segments.last().unwrap().ident == "Option" =>
-                    {
-                        quote! {
-                            if let Some(header) = self.#field_name {
-                                headers
-                                    .insert(
-                                        #http::header::#header_name,
-                                        header.parse()?,
-                                    );
-                            }
-                        }
-                    }
-                    _ => quote! {
-                        headers
-                            .insert(
-                                #http::header::#header_name,
-                                self.#field_name.parse()?,
-                            );
-                    },
-                };
-
-                Some(quote_spanned! {span=>
-                    #optional_header
-                })
-            } else {
-                None
-            }
-        });
-
-        quote! { #(#header_calls)* }
-    }
-
-    /// Produces code to initialize the struct that will be used to create the response body.
-    fn to_body(&self, ruma_api: &TokenStream) -> TokenStream {
-        let serde_json = quote! { #ruma_api::exports::serde_json };
-
-        if let Some(field) = self.newtype_raw_body_field() {
-            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            let span = field.span();
-            return quote_spanned!(span=> self.#field_name);
-        }
-
-        let body = if let Some(field) = self.newtype_body_field() {
-            let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            let span = field.span();
-            quote_spanned!(span=> self.#field_name)
-        } else {
-            let fields = self.fields.iter().filter_map(|response_field| {
-                if let ResponseField::Body(ref field) = *response_field {
-                    let field_name =
-                        field.ident.as_ref().expect("expected field to have an identifier");
-                    let span = field.span();
-                    let cfg_attrs =
-                        field.attrs.iter().filter(|a| a.path.is_ident("cfg")).collect::<Vec<_>>();
-
-                    Some(quote_spanned! {span=>
-                        #( #cfg_attrs )*
-                        #field_name: self.#field_name
-                    })
-                } else {
-                    None
-                }
-            });
-
-            quote! {
-                ResponseBody { #(#fields),* }
-            }
-        };
-
-        quote!(#serde_json::to_vec(&#body)?)
-    }
-
     /// Gets the newtype body field, if this response has one.
     fn newtype_body_field(&self) -> Option<&Field> {
         self.fields.iter().find_map(ResponseField::as_newtype_body_field)
@@ -201,50 +45,12 @@ impl Response {
         error_ty: &TokenStream,
         ruma_api: &TokenStream,
     ) -> TokenStream {
-        let bytes = quote! { #ruma_api::exports::bytes };
-        let http = quote! { #ruma_api::exports::http };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
         let serde = quote! { #ruma_api::exports::serde };
-        let serde_json = quote! { #ruma_api::exports::serde_json };
 
         let docs =
             format!("Data in the response from the `{}` API endpoint.", metadata.name.value());
         let struct_attributes = &self.attributes;
-
-        let extract_response_headers = if self.has_header_fields() {
-            quote! {
-                let mut headers = response.headers().clone();
-            }
-        } else {
-            TokenStream::new()
-        };
-
-        let typed_response_body_decl =
-            if self.has_body_fields() || self.newtype_body_field().is_some() {
-                quote! {
-                    let response_body: <
-                        ResponseBody
-                        as #ruma_serde::Outgoing
-                    >::Incoming = {
-                        let body = response.into_body();
-                        if #bytes::Buf::has_remaining(&body) {
-                            #serde_json::from_reader(#bytes::Buf::reader(body))?
-                        } else {
-                            // If the reponse body is completely empty, pretend it is an empty JSON
-                            // object instead. This allows responses with only optional body
-                            // parameters to be deserialized in that case.
-                            #serde_json::from_str("{}")?
-                        }
-                    };
-                }
-            } else {
-                TokenStream::new()
-            };
-
-        let response_init_fields = self.init_fields(&ruma_api);
-        let serialize_response_headers = self.apply_header_fields(&ruma_api);
-
-        let body = self.to_body(&ruma_api);
 
         let response_def = if self.fields.is_empty() {
             quote!(;)
@@ -273,6 +79,9 @@ impl Response {
             struct ResponseBody #def
         };
 
+        let outgoing_response_impl = self.expand_outgoing(ruma_api);
+        let incoming_response_impl = self.expand_incoming(error_ty, ruma_api);
+
         quote! {
             #[doc = #docs]
             #[derive(Debug, Clone, #ruma_serde::Outgoing, #ruma_serde::_FakeDeriveSerde)]
@@ -283,59 +92,8 @@ impl Response {
 
             #response_body_struct
 
-            #[automatically_derived]
-            #[cfg(feature = "server")]
-            impl #ruma_api::OutgoingResponse for Response {
-                fn try_into_http_response(
-                    self,
-                ) -> ::std::result::Result<
-                    #http::Response<::std::vec::Vec<u8>>,
-                    #ruma_api::error::IntoHttpError,
-                > {
-                    let mut resp_builder = #http::Response::builder()
-                        .header(#http::header::CONTENT_TYPE, "application/json");
-
-                    let mut headers = resp_builder
-                        .headers_mut()
-                        .expect("`http::ResponseBuilder` is in unusable state");
-                    #serialize_response_headers
-
-                    // This cannot fail because we parse each header value
-                    // checking for errors as each value is inserted and
-                    // we only allow keys from the `http::header` module.
-                    Ok(resp_builder.body(#body).unwrap())
-                }
-            }
-
-            #[automatically_derived]
-            #[cfg(feature = "client")]
-            impl #ruma_api::IncomingResponse for Response {
-                type EndpointError = #error_ty;
-
-                fn try_from_http_response<T: #bytes::Buf>(
-                    response: #http::Response<T>,
-                ) -> ::std::result::Result<
-                    Self,
-                    #ruma_api::error::FromHttpResponseError<#error_ty>,
-                > {
-                    if response.status().as_u16() < 400 {
-                        #extract_response_headers
-
-                        #typed_response_body_decl
-
-                        Ok(Self {
-                            #response_init_fields
-                        })
-                    } else {
-                        match <#error_ty as #ruma_api::EndpointError>::try_from_response(response) {
-                            Ok(err) => Err(#ruma_api::error::ServerError::Known(err).into()),
-                            Err(response_err) => {
-                                Err(#ruma_api::error::ServerError::Unknown(response_err).into())
-                            }
-                        }
-                    }
-                }
-            }
+            #outgoing_response_impl
+            #incoming_response_impl
         }
     }
 }
@@ -408,15 +166,8 @@ impl ResponseField {
 
 /// The types of fields that a response can have, without their values.
 pub(crate) enum ResponseFieldKind {
-    /// See the similarly named variant of `ResponseField`.
     Body,
-
-    /// See the similarly named variant of `ResponseField`.
     Header,
-
-    /// See the similarly named variant of `ResponseField`.
     NewtypeBody,
-
-    /// See the similarly named variant of `ResponseField`.
     NewtypeRawBody,
 }
