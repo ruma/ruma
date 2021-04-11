@@ -4,7 +4,7 @@ use xshell::pushd;
 
 use crate::{cmd, Result};
 
-const MSRV: &'static str = "1.45";
+const MSRV: &str = "1.45";
 
 /// Task to run CI tests.
 pub struct CiTask {
@@ -21,7 +21,7 @@ impl CiTask {
     }
 
     pub(crate) fn run(self) -> Result<()> {
-        match self.version.as_ref().map(|s| s.as_str()) {
+        match self.version.as_deref() {
             Some("msrv") => self.build_msrv(),
             Some("stable") => self.build_stable(),
             Some("nightly") => self.build_nightly(),
