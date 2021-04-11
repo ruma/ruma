@@ -16,18 +16,22 @@ pub struct MxcUri {
 impl MxcUri {
     /// If this is a valid MXC URI, returns the media ID.
     pub fn media_id(&self) -> Option<&str> {
-        self.slash_idx.map(|idx| &self.full_uri[idx.get() as usize + 1..])
+        self.parts().map(|(_, s)| s)
     }
 
     /// If this is a valid MXC URI, returns the server name.
     pub fn server_name(&self) -> Option<&ServerName> {
-        self.slash_idx
-            .map(|idx| <&ServerName>::try_from(&self.full_uri[6..idx.get() as usize]).unwrap())
+        self.parts().map(|(s, _)| s)
     }
 
     /// If this is a valid MXC URI, returns a `(server_name, media_id)` tuple.
     pub fn parts(&self) -> Option<(&ServerName, &str)> {
-        self.slash_idx.map(|_| (self.server_name().unwrap(), self.media_id().unwrap()))
+        self.slash_idx.map(|idx| {
+            (
+                <&ServerName>::try_from(&self.full_uri[6..idx.get() as usize]).unwrap(),
+                &self.full_uri[idx.get() as usize + 1..],
+            )
+        })
     }
 
     /// Returns if this is a spec-compliant MXC URI.
