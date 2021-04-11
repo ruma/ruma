@@ -39,11 +39,6 @@ impl MxcUri {
     pub fn as_str(&self) -> &str {
         &self.full_uri
     }
-
-    /// Create a string slice from this MXC URI.
-    pub fn as_ref(&self) -> &str {
-        self.as_str()
-    }
 }
 
 impl fmt::Debug for MxcUri {
@@ -86,7 +81,7 @@ impl<'de> serde::Deserialize<'de> for MxcUri {
     where
         D: serde::Deserializer<'de>,
     {
-        <String>::deserialize(deserializer).map(Into::into)
+        String::deserialize(deserializer).map(Into::into)
     }
 }
 
@@ -102,31 +97,37 @@ impl serde::Serialize for MxcUri {
 
 #[cfg(test)]
 mod tests {
-    use matches::assert_matches;
+    use std::convert::TryFrom;
+
+    use crate::ServerName;
 
     use super::MxcUri;
 
     #[test]
     fn parse_mxc_uri() {
-        let mxc = <MxcUri>::from("mxc://127.0.0.1/asd32asdfasdsd");
+        let mxc = MxcUri::from("mxc://127.0.0.1/asd32asdfasdsd");
 
         assert!(mxc.is_valid());
-        assert_matches!(mxc.media_id(), Some("asd32asdfasdsd"));
-        assert_matches!(mxc.server_name(), Some(name) if name.as_str() == "127.0.0.1")
+        assert_eq!(
+            mxc.parts(),
+            Some((
+                <&ServerName>::try_from("127.0.0.1").expect("Failed to create ServerName"),
+                "asd32asdfasdsd"
+            ))
+        );
     }
 
     #[test]
     fn parse_mxc_uri_without_media_id() {
-        let mxc = <MxcUri>::from("mxc://127.0.0.1");
+        let mxc = MxcUri::from("mxc://127.0.0.1");
 
         assert!(!mxc.is_valid());
-        assert_matches!(mxc.media_id(), None);
-        assert_matches!(mxc.server_name(), None)
+        assert_eq!(mxc.parts(), None);
     }
 
     #[test]
     fn parse_mxc_uri_without_protocol() {
-        assert!(!<MxcUri>::from("127.0.0.1/asd32asdfasdsd").is_valid());
+        assert!(!MxcUri::from("127.0.0.1/asd32asdfasdsd").is_valid());
     }
 
     #[cfg(feature = "serde")]
@@ -147,7 +148,12 @@ mod tests {
 
         assert_eq!(mxc.as_str(), "mxc://server/1234id");
         assert!(mxc.is_valid());
-        assert_matches!(mxc.media_id(), Some("1234id"));
-        assert_matches!(mxc.server_name(), Some(name) if name.as_str() == "server")
+        assert_eq!(
+            mxc.parts(),
+            Some((
+                <&ServerName>::try_from("server").expect("Failed to create ServerName"),
+                "1234id"
+            ))
+        );
     }
 }
