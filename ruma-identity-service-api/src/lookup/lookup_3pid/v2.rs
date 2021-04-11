@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_api::{ruma_api, IncomingRequest};
+use ruma_api::ruma_api;
 
 ruma_api! {
     metadata: {
@@ -26,7 +26,7 @@ ruma_api! {
         /// The addresses to look up. The format of the entries here depend on the `algorithm`
         /// used. Note that queries which have been incorrectly hashed or formatted will lead to no
         /// matches.
-        addresses: Vec<String>
+        pub addresses: Vec<String>
     }
 
     response: {
