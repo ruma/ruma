@@ -108,13 +108,13 @@ impl Response {
 
 #[cfg(all(test, feature = "server"))]
 mod tests {
-    use std::convert::TryInto;
+    use ruma_api::OutgoingResponse;
 
     use super::Response;
 
     #[test]
     fn response_body() {
-        let res: http::Response<Vec<u8>> = Response::new().try_into().unwrap();
+        let res = Response::new().try_into_http_response().unwrap();
 
         assert_eq!(res.body(), b"{}");
     }
