@@ -154,15 +154,9 @@ mod user_serde;
 #[cfg(test)]
 mod tests {
     use matches::assert_matches;
-    #[cfg(feature = "client")]
-    use ruma_api::OutgoingRequest;
-    #[cfg(feature = "client")]
-    use serde_json::Value as JsonValue;
     use serde_json::{from_value as from_json_value, json};
 
     use super::{IncomingLoginInfo, IncomingUserIdentifier};
-    #[cfg(feature = "client")]
-    use super::{LoginInfo, Medium, Request, UserIdentifier};
 
     #[test]
     fn deserialize_login_type() {
@@ -207,6 +201,11 @@ mod tests {
     #[test]
     #[cfg(feature = "client")]
     fn serialize_login_request_body() {
+        use ruma_api::OutgoingRequest;
+        use serde_json::Value as JsonValue;
+
+        use super::{LoginInfo, Medium, Request, UserIdentifier};
+
         let req: http::Request<Vec<u8>> = Request {
             login_info: LoginInfo::Token { token: "0xdeadbeef" },
             device_id: None,

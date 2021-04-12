@@ -74,12 +74,12 @@ mod tests {
     use std::convert::TryInto;
 
     use js_int::uint;
-    #[cfg(feature = "client")]
-    use ruma_api::OutgoingRequest as _;
 
     #[cfg(feature = "client")]
     #[test]
     fn construct_request_from_refs() {
+        use ruma_api::OutgoingRequest;
+
         let req: http::Request<Vec<u8>> = super::Request {
             limit: Some(uint!(10)),
             since: Some("hello"),

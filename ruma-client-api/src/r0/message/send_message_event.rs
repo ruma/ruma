@@ -1,11 +1,7 @@
 //! [PUT /_matrix/client/r0/rooms/{roomId}/send/{eventType}/{txnId}](https://matrix.org/docs/spec/client_server/r0.6.1#put-matrix-client-r0-rooms-roomid-send-eventtype-txnid)
 
 use ruma_api::ruma_api;
-#[cfg(any(feature = "client", feature = "server"))]
-use ruma_api::Metadata;
 use ruma_events::AnyMessageEventContent;
-#[cfg(any(feature = "client", feature = "server"))]
-use ruma_events::EventContent as _;
 use ruma_identifiers::{EventId, RoomId};
 use ruma_serde::Outgoing;
 
@@ -67,7 +63,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
     type EndpointError = crate::Error;
     type IncomingResponse = Response;
 
-    const METADATA: Metadata = METADATA;
+    const METADATA: ruma_api::Metadata = METADATA;
 
     fn try_into_http_request(
         self,
@@ -76,6 +72,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
     ) -> Result<http::Request<Vec<u8>>, ruma_api::error::IntoHttpError> {
         use http::header::{HeaderValue, AUTHORIZATION, CONTENT_TYPE};
         use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+        use ruma_events::EventContent;
 
         let http_request = http::Request::builder()
             .method(http::Method::PUT)
@@ -105,7 +102,7 @@ impl ruma_api::IncomingRequest for IncomingRequest {
     type EndpointError = crate::Error;
     type OutgoingResponse = Response;
 
-    const METADATA: Metadata = METADATA;
+    const METADATA: ruma_api::Metadata = METADATA;
 
     fn try_from_http_request(
         request: http::Request<Vec<u8>>,
@@ -113,6 +110,7 @@ impl ruma_api::IncomingRequest for IncomingRequest {
         use std::convert::TryFrom;
 
         use ruma_api::try_deserialize;
+        use ruma_events::EventContent;
         use serde_json::value::RawValue as RawJsonValue;
 
         let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
