@@ -27,14 +27,15 @@ impl Parse for Api {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let metadata: Metadata = input.parse()?;
 
-        let attributes = input.call(Attribute::parse_outer)?;
+        let req_attrs = input.call(Attribute::parse_outer)?;
         let (request, attributes) = if input.peek(kw::request) {
-            let request = parse_request(input, attributes)?;
-            let attributes = input.call(Attribute::parse_outer)?;
+            let request = parse_request(input, req_attrs)?;
+            let after_req_attrs = input.call(Attribute::parse_outer)?;
 
-            (Some(request), attributes)
+            (Some(request), after_req_attrs)
         } else {
-            (None, attributes)
+            // There was no `request` field so the attributes are for `response`
+            (None, req_attrs)
         };
 
         let response = if input.peek(kw::response) {
