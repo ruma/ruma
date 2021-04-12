@@ -20,6 +20,7 @@ use crate::MessageEvent;
 
 /// Begins an SAS key verification process.
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub type StartEvent = MessageEvent<StartEventContent>;
 
 /// The payload of a to-device *m.key.verification.start* event.
@@ -45,6 +46,7 @@ pub struct StartToDeviceEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.key.verification.start")]
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub struct StartEventContent {
     /// The device ID which is initiating the process.
     pub from_device: DeviceIdBox,

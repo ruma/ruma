@@ -18,6 +18,7 @@ use crate::MessageEvent;
 
 /// Accepts a previously sent *m.key.verification.start* message.
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub type AcceptEvent = MessageEvent<AcceptEventContent>;
 
 /// The payload for a to-device `AcceptEvent`.
@@ -39,6 +40,7 @@ pub struct AcceptToDeviceEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.key.verification.accept")]
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub struct AcceptEventContent {
     /// The method specific content.
     #[serde(flatten)]

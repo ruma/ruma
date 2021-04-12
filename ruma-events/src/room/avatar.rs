@@ -24,22 +24,30 @@ pub struct AvatarEventContent {
     pub info: Option<Box<ImageInfo>>,
 
     /// URL of the avatar image.
+    ///
+    /// With the `unstable-pre-spec` feature, this field is optional.
     #[cfg(not(feature = "unstable-pre-spec"))]
     pub url: MxcUri,
 
     /// URL of the avatar image.
+    ///
+    /// Without the `unstable-pre-spec` feature, this field is not optional.
     #[cfg(feature = "unstable-pre-spec")]
     pub url: Option<MxcUri>,
 }
 
 impl AvatarEventContent {
     /// Create an `AvatarEventContent` from the given image URL.
+    ///
+    /// With the `unstable-pre-spec` feature, this method takes no parameters.
     #[cfg(not(feature = "unstable-pre-spec"))]
     pub fn new(url: MxcUri) -> Self {
         Self { info: None, url }
     }
 
     /// Create an empty `AvatarEventContent`.
+    ///
+    /// With the `unstable-pre-spec` feature, this method takes an `MxcUri`.
     #[cfg(feature = "unstable-pre-spec")]
     pub fn new() -> Self {
         Self::default()
@@ -78,6 +86,7 @@ pub struct ImageInfo {
     /// This uses the unstable prefix in
     /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
     #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     #[serde(rename = "xyz.amorgan.blurhash")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,

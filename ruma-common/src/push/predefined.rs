@@ -162,6 +162,7 @@ impl ConditionalPushRule {
     /// Matches emoji reactions to a message
     /// MSC2677: Annotations and Reactions
     #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     pub fn reaction() -> Self {
         Self {
             actions: vec![DontNotify],

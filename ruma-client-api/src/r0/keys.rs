@@ -11,8 +11,10 @@ pub mod get_keys;
 pub mod upload_keys;
 
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub mod upload_signatures;
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub mod upload_signing_keys;
 
 /// Signatures for a `SignedKey` object.
