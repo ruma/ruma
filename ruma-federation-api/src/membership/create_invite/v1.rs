@@ -3,11 +3,10 @@
 use std::time::SystemTime;
 
 use ruma_api::ruma_api;
-use ruma_events::{room::member::MemberEventContent, EventType};
+use ruma_events::{pdu::Pdu, room::member::MemberEventContent, AnyStrippedStateEvent, EventType};
 use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
+use ruma_serde::Raw;
 use serde::{Deserialize, Serialize};
-
-use super::{InviteEvent, StrippedState};
 
 ruma_api! {
     metadata: {
@@ -54,10 +53,10 @@ ruma_api! {
     }
 
     response: {
-        /// The response invite event
+        /// The signed invite event.
         #[ruma_api(body)]
         #[serde(with = "crate::serde::v1_pdu")]
-        pub event: InviteEvent,
+        pub event: Raw<Pdu>,
     }
 }
 
@@ -69,7 +68,7 @@ pub struct UnsignedEventContent {
     /// The recommended events to include are the join rules, canonical alias, avatar, and name of
     /// the room.
     #[serde(skip_serializing_if = "<[_]>::is_empty")]
-    pub invite_room_state: Vec<StrippedState>,
+    pub invite_room_state: Vec<Raw<AnyStrippedStateEvent>>,
 }
 
 impl UnsignedEventContent {
@@ -130,7 +129,7 @@ impl<'a> From<RequestInit<'a>> for Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given invite event.
-    pub fn new(event: InviteEvent) -> Self {
+    pub fn new(event: Raw<Pdu>) -> Self {
         Self { event }
     }
 }
