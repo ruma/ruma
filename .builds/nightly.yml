@@ -14,7 +14,7 @@ tasks:
       # tools, so capture tool exit codes and set the task exit code manually
       set +e
 
-      cargo fmt --all -- --check
+      cargo fmt -- --check
       fmt_exit=$?
 
       pushd ruma
