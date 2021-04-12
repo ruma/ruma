@@ -84,5 +84,8 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
 
         #request
         #response
+
+        #[cfg(not(any(feature = "client", feature = "server")))]
+        type _SilenceUnusedError = #error_ty;
     })
 }

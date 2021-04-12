@@ -1,6 +1,6 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-rooms-roomid-state-eventtype-statekey)
 
-use ruma_api::{ruma_api, Metadata};
+use ruma_api::ruma_api;
 use ruma_events::EventType;
 use ruma_identifiers::RoomId;
 use ruma_serde::Outgoing;
@@ -61,7 +61,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
     type EndpointError = crate::Error;
     type IncomingResponse = <Response as ruma_serde::Outgoing>::Incoming;
 
-    const METADATA: Metadata = METADATA;
+    const METADATA: ruma_api::Metadata = METADATA;
 
     fn try_into_http_request(
         self,
@@ -106,7 +106,7 @@ impl ruma_api::IncomingRequest for IncomingRequest {
     type EndpointError = crate::Error;
     type OutgoingResponse = Response;
 
-    const METADATA: Metadata = METADATA;
+    const METADATA: ruma_api::Metadata = METADATA;
 
     fn try_from_http_request(
         request: http::Request<Vec<u8>>,
