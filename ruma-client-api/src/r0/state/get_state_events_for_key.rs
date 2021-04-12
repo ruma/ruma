@@ -1,6 +1,8 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-rooms-roomid-state-eventtype-statekey)
 
-use ruma_api::{ruma_api, Metadata};
+use ruma_api::ruma_api;
+#[cfg(any(feature = "client", feature = "server"))]
+use ruma_api::Metadata;
 use ruma_events::EventType;
 use ruma_identifiers::RoomId;
 use ruma_serde::Outgoing;

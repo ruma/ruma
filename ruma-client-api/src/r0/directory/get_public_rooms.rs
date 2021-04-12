@@ -70,10 +70,12 @@ impl Response {
 }
 
 #[cfg(test)]
+#[cfg(any(feature = "client", feature = "server"))]
 mod tests {
     use std::convert::TryInto;
 
     use js_int::uint;
+    #[cfg(feature = "client")]
     use ruma_api::OutgoingRequest as _;
 
     #[cfg(feature = "client")]
