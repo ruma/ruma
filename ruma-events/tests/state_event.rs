@@ -186,10 +186,10 @@ fn deserialize_avatar_without_prev_content() {
         "type": "m.room.avatar"
     });
 
-    let expected_url = "mxc://matrix.org/rnsldl8srs98IRrs";
+    let expected_url = "mxc://matrix.org/rnsldl8srs98IRrs".into();
 
     #[cfg(feature = "unstable-pre-spec")]
-    let expected_url = Some(expected_url.to_owned());
+    let expected_url = Some(expected_url);
 
     assert_matches!(
         from_json_value::<Raw<StateEvent<AnyStateEventContent>>>(json_data)
@@ -243,7 +243,7 @@ fn deserialize_avatar_without_prev_content() {
                             && *thumbnail_url == mxc_uri!("mxc://matrix.org/98irRSS23srs")
                     )
             )
-            && url.to_string() == expected_url
+            && url == expected_url
             && unsigned.is_empty()
     );
 }
