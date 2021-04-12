@@ -3,9 +3,7 @@
 use ruma_api::ruma_api;
 use ruma_identifiers::DeviceIdBox;
 
-#[cfg(any(feature = "client", feature = "server"))]
-use crate::r0::uiaa::UiaaResponse;
-use crate::r0::uiaa::{AuthData, IncomingAuthData};
+use crate::r0::uiaa::{AuthData, IncomingAuthData, UiaaResponse};
 
 ruma_api! {
     metadata: {

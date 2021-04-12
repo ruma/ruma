@@ -131,8 +131,7 @@ pub enum Direction {
     Forward,
 }
 
-#[cfg(test)]
-#[cfg(feature = "client")]
+#[cfg(all(test, feature = "client"))]
 mod tests {
     use js_int::uint;
     use ruma_api::OutgoingRequest;

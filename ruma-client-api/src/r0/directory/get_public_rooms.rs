@@ -69,8 +69,7 @@ impl Response {
     }
 }
 
-#[cfg(test)]
-#[cfg(any(feature = "client", feature = "server"))]
+#[cfg(all(test, any(feature = "client", feature = "server")))]
 mod tests {
     use std::convert::TryInto;
 
