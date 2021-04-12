@@ -190,6 +190,7 @@ impl Request {
         quote! {
             #[automatically_derived]
             #[cfg(feature = "client")]
+            #[allow(clippy::inconsistent_struct_constructor)]
             impl #lifetimes #ruma_api::OutgoingRequest for Request #lifetimes {
                 type EndpointError = #error_ty;
                 type IncomingResponse = <Response as #ruma_serde::Outgoing>::Incoming;

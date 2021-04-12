@@ -70,6 +70,7 @@ impl Response {
         quote! {
             #[automatically_derived]
             #[cfg(feature = "server")]
+            #[allow(clippy::inconsistent_struct_constructor)]
             impl #ruma_api::OutgoingResponse for Response {
                 fn try_into_http_response(
                     self,
