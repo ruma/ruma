@@ -1,7 +1,16 @@
 //! [GET /_matrix/client/r0/login](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-login)
 
+use std::borrow::Cow;
+
 use ruma_api::ruma_api;
+#[cfg(feature = "unstable-pre-spec")]
+use ruma_identifiers::MxcUri;
+#[cfg(feature = "unstable-pre-spec")]
 use ruma_serde::StringEnum;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde_json::Value as JsonValue;
+
+type JsonObject = serde_json::Map<String, JsonValue>;
 
 ruma_api! {
     metadata: {
@@ -18,7 +27,6 @@ ruma_api! {
 
     response: {
         /// The homeserver's supported login types.
-        #[serde(with = "login_type_list_serde")]
         pub flows: Vec<LoginType>,
     }
 
@@ -40,51 +48,345 @@ impl Response {
 }
 
 /// An authentication mechanism.
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(untagged)]
 pub enum LoginType {
     /// A password is supplied to authenticate.
-    #[ruma_enum(rename = "m.login.password")]
-    Password,
+    Password(PasswordLoginType),
 
     /// Token-based login.
-    #[ruma_enum(rename = "m.login.token")]
-    Token,
+    Token(TokenLoginType),
 
     /// SSO-based login.
-    #[ruma_enum(rename = "m.login.sso")]
-    Sso,
+    Sso(SsoLoginType),
 
+    /// Custom login type.
+    #[doc(hidden)]
+    _Custom(CustomLoginType),
+}
+
+impl LoginType {
+    /// Creates a `LoginType` with the given `login_type` string and data.
+    ///
+    /// Prefer to use the public variants of `LoginType` where possible; this constructor is meant
+    /// be used for unsupported login types only and does not allow setting arbitrary data for
+    /// supported ones.
+    pub fn new(login_type: &str, data: JsonObject) -> serde_json::Result<Self> {
+        fn from_json_object<T: DeserializeOwned>(obj: JsonObject) -> serde_json::Result<T> {
+            serde_json::from_value(JsonValue::Object(obj))
+        }
+
+        Ok(match login_type {
+            "m.login.password" => Self::Password(from_json_object(data)?),
+            "m.login.token" => Self::Token(from_json_object(data)?),
+            "m.login.sso" => Self::Sso(from_json_object(data)?),
+            _ => Self::_Custom(CustomLoginType { type_: login_type.to_owned(), data }),
+        })
+    }
+
+    /// Returns a reference to the `login_type` string.
+    pub fn login_type(&self) -> &str {
+        match self {
+            Self::Password(_) => "m.login.password",
+            Self::Token(_) => "m.login.token",
+            Self::Sso(_) => "m.login.sso",
+            Self::_Custom(c) => &c.type_,
+        }
+    }
+
+    /// Returns the associated data.
+    ///
+    /// Prefer to use the public variants of `LoginType` where possible; this method is meant to
+    /// be used for unsupported login types only.
+    pub fn data(&self) -> Cow<'_, JsonObject> {
+        fn serialize<T: Serialize>(obj: &T) -> JsonObject {
+            match serde_json::to_value(obj).expect("login type serialization to succeed") {
+                JsonValue::Object(obj) => obj,
+                _ => panic!("all login types must serialize to objects"),
+            }
+        }
+
+        match self {
+            Self::Password(d) => Cow::Owned(serialize(d)),
+            Self::Token(d) => Cow::Owned(serialize(d)),
+            Self::Sso(d) => Cow::Owned(serialize(d)),
+            Self::_Custom(c) => Cow::Borrowed(&c.data),
+        }
+    }
+}
+
+/// The payload for password login.
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "type", rename = "m.login.password")]
+pub struct PasswordLoginType {}
+
+impl PasswordLoginType {
+    /// Creates a new `PasswordLoginType`.
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Default for PasswordLoginType {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// The payload for token-based login.
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "type", rename = "m.login.token")]
+pub struct TokenLoginType {}
+
+impl TokenLoginType {
+    /// Creates a new `PasswordLoginType`.
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Default for TokenLoginType {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// The payload for SSO login.
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[serde(tag = "type", rename = "m.login.sso")]
+pub struct SsoLoginType {
+    /// The identity provider choices.
+    ///
+    /// This uses the unstable prefix in
+    /// [MSC2858](https://github.com/matrix-org/matrix-doc/pull/2858).
+    #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+    #[serde(rename = "org.matrix.msc2858.identity_providers")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub identity_providers: Option<Vec<IdentityProvider>>,
+}
+
+impl SsoLoginType {
+    /// Creates a new `PasswordLoginType`.
+    pub fn new() -> Self {
+        Self {
+            #[cfg(feature = "unstable-pre-spec")]
+            identity_providers: None,
+        }
+    }
+}
+
+impl Default for SsoLoginType {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// An SSO login identity provider.
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub struct IdentityProvider {
+    /// The ID of the provider.
+    id: String,
+
+    /// The display name of the provider.
+    name: String,
+
+    /// The icon for the provider.
+    icon: Option<MxcUri>,
+
+    /// The brand identifier for the provider.
+    brand: Option<IdentityProviderBrand>,
+}
+
+#[cfg(feature = "unstable-pre-spec")]
+impl IdentityProvider {
+    /// Creates an `IdentityProvider` with the given `id` and `name`.
+    pub fn new(id: &str, name: &str) -> Self {
+        Self { id: id.into(), name: name.into(), icon: None, brand: None }
+    }
+}
+
+/// An SSO login identity provider brand identifier.
+///
+/// This uses the unstable prefix in
+/// [MSC2858](https://github.com/matrix-org/matrix-doc/pull/2858).
+#[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum IdentityProviderBrand {
+    /// The [Apple] brand.
+    ///
+    /// [Apple]: https://developer.apple.com/design/human-interface-guidelines/sign-in-with-apple/overview/buttons/
+    #[ruma_enum(rename = "org.matrix.apple")]
+    Apple,
+
+    /// The [Facebook](https://developers.facebook.com/docs/facebook-login/web/login-button/) brand.
+    #[ruma_enum(rename = "org.matrix.facebook")]
+    Facebook,
+
+    /// The [GitHub](https://github.com/logos) brand.
+    #[ruma_enum(rename = "org.matrix.github")]
+    Github,
+
+    /// The [GitLab](https://about.gitlab.com/press/press-kit/) brand.
+    #[ruma_enum(rename = "org.matrix.gitlab")]
+    Gitlab,
+
+    /// The [Google](https://developers.google.com/identity/branding-guidelines) brand.
+    #[ruma_enum(rename = "org.matrix.google")]
+    Google,
+
+    /// The [Twitter] brand.
+    ///
+    /// [Twitter]: https://developer.twitter.com/en/docs/authentication/guides/log-in-with-twitter#tab1
+    #[ruma_enum(rename = "org.matrix.twitter")]
+    Twitter,
+
+    /// A custom brand.
     #[doc(hidden)]
     _Custom(String),
+}
+
+/// A custom login payload.
+#[doc(hidden)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub struct CustomLoginType {
+    /// A custom type
+    ///
+    /// This field is named `type_` instead of `typee` because the latter is a reserved
+    /// keyword in Rust.
+    #[serde(rename = "override")]
+    pub type_: String,
+
+    /// Remaining type content
+    #[serde(flatten)]
+    pub data: JsonObject,
 }
 
 mod login_type_list_serde;
 
 #[cfg(test)]
 mod tests {
-    use matches::assert_matches;
-    use serde::Deserialize;
+    use serde::{Deserialize, Serialize};
+    #[cfg(feature = "unstable-pre-spec")]
+    use serde_json::to_value as to_json_value;
     use serde_json::{from_value as from_json_value, json};
 
-    use super::{login_type_list_serde, LoginType};
+    #[cfg(feature = "unstable-pre-spec")]
+    use super::{IdentityProvider, IdentityProviderBrand, SsoLoginType, TokenLoginType};
+    use super::{LoginType, PasswordLoginType};
 
-    #[derive(Debug, Deserialize)]
+    #[derive(Debug, Eq, PartialEq, Deserialize, Serialize)]
     struct Foo {
-        #[serde(with = "login_type_list_serde")]
         pub flows: Vec<LoginType>,
     }
 
     #[test]
-    fn deserialize_login_type() {
-        assert_matches!(
+    fn deserialize_password_login_type() {
+        assert_eq!(
             from_json_value::<Foo>(json!({
                 "flows": [
                     { "type": "m.login.password" }
                 ],
-            })),
-            Ok(Foo { flows })
-            if flows.len() == 1
-                && flows[0] == LoginType::Password
+            }))
+            .unwrap(),
+            Foo { flows: vec![LoginType::Password(PasswordLoginType {})] }
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-pre-spec")]
+    fn deserialize_sso_login_type() {
+        let foo = from_json_value::<Foo>(json!({
+            "flows": [
+                {
+                    "type": "m.login.sso",
+                    "org.matrix.msc2858.identity_providers": [
+                        {
+                            "id": "oidc-gitlab",
+                            "name": "GitLab",
+                            "icon": "mxc://localhost/gitlab-icon",
+                            "brand": "org.matrix.gitlab"
+                        },
+                        {
+                            "id": "custom",
+                            "name": "Custom",
+                        }
+                    ]
+                }
+            ],
+        }))
+        .unwrap();
+
+        assert_eq!(
+            foo,
+            Foo {
+                flows: vec![LoginType::Sso(SsoLoginType {
+                    identity_providers: Some(vec![
+                        IdentityProvider {
+                            id: "oidc-gitlab".into(),
+                            name: "GitLab".into(),
+                            icon: Some("mxc://localhost/gitlab-icon".into()),
+                            brand: Some(IdentityProviderBrand::Gitlab)
+                        },
+                        IdentityProvider {
+                            id: "custom".into(),
+                            name: "Custom".into(),
+                            icon: None,
+                            brand: None
+                        }
+                    ])
+                })]
+            }
+        )
+    }
+
+    #[test]
+    #[cfg(feature = "unstable-pre-spec")]
+    fn serialize_sso_login_type() {
+        let foo = to_json_value(Foo {
+            flows: vec![
+                LoginType::Token(TokenLoginType {}),
+                LoginType::Sso(SsoLoginType {
+                    identity_providers: Some(vec![IdentityProvider {
+                        id: "oidc-github".into(),
+                        name: "GitHub".into(),
+                        icon: Some("mxc://localhost/github-icon".into()),
+                        brand: Some(IdentityProviderBrand::Github),
+                    }]),
+                }),
+            ],
+        })
+        .unwrap();
+
+        assert_eq!(
+            foo,
+            json!({
+                "flows": [
+                    {
+                        "type": "m.login.token"
+                    },
+                    {
+                        "type": "m.login.sso",
+                        "org.matrix.msc2858.identity_providers": [
+                            {
+                                "id": "oidc-github",
+                                "name": "GitHub",
+                                "icon": "mxc://localhost/github-icon",
+                                "brand": "org.matrix.github"
+                            },
+                        ]
+                    }
+                ],
+            })
         );
     }
 }

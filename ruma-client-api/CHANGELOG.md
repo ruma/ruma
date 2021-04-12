@@ -78,6 +78,7 @@ Breaking changes:
       search::{search_events, search_users}
   }
   ```
+* Change `r0::session::get_login_types::LoginType` to a non-exhaustive enum of structs.
 
 Improvements:
 
@@ -97,6 +98,9 @@ Improvements:
       get_content_thumbnail
   }
   ```
+* Implement MSC2858 - Multiple SSO Identity Providers under the `unstable-pre-spec` feature flag:
+  * Add the `r0::session::get_login_types::{IdentityProvider, IdentityProviderBrand}` types
+  * Add the `r0::session::sso_login_with_provider` endpoint
 
 # 0.9.0
 

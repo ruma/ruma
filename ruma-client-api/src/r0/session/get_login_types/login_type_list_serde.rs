@@ -1,31 +1,31 @@
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de, Deserialize};
+use serde_json::value::RawValue as RawJsonValue;
+
+use ruma_events::from_raw_json_value;
 
 use super::LoginType;
 
-pub fn serialize<S>(login_types: &[LoginType], serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    #[derive(Serialize)]
-    struct Wrap<'a> {
-        #[serde(rename = "type")]
-        inner: &'a LoginType,
-    }
-
-    serializer.collect_seq(login_types.iter().map(|ty| Wrap { inner: ty }))
+/// Helper struct to determine the type from a `serde_json::value::RawValue`
+#[derive(Debug, Deserialize)]
+struct LoginTypeDeHelper {
+    /// The login type field
+    #[serde(rename = "type")]
+    type_: String,
 }
 
-pub fn deserialize<'de, D>(deserializer: D) -> Result<Vec<LoginType>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    #[derive(Deserialize)]
-    struct Wrap {
-        #[serde(rename = "type")]
-        inner: LoginType,
-    }
+impl<'de> de::Deserialize<'de> for LoginType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        let json = Box::<RawJsonValue>::deserialize(deserializer)?;
+        let LoginTypeDeHelper { type_ } = from_raw_json_value(&json)?;
 
-    // Could be optimized by using a visitor, but that's a bunch of extra code
-    let vec = Vec::<Wrap>::deserialize(deserializer)?;
-    Ok(vec.into_iter().map(|w| w.inner).collect())
+        Ok(match type_.as_ref() {
+            "m.login.password" => Self::Password(from_raw_json_value(&json)?),
+            "m.login.token" => Self::Token(from_raw_json_value(&json)?),
+            "m.login.sso" => Self::Sso(from_raw_json_value(&json)?),
+            _ => Self::_Custom(from_raw_json_value(&json)?),
+        })
+    }
 }
