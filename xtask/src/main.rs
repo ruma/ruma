@@ -16,6 +16,7 @@ use xshell::read_file;
 mod ci;
 mod flags;
 mod release;
+mod util;
 
 use self::{ci::CiTask, release::ReleaseTask};
 

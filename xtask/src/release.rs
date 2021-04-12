@@ -1,7 +1,4 @@
-use std::{
-    io::{stdin, stdout, BufRead, Write},
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use isahc::{
     auth::{Authentication, Credentials},
@@ -16,21 +13,19 @@ use serde_json::json;
 use toml::from_str as from_toml_str;
 use xshell::{pushd, read_file};
 
-use crate::{cmd, config, Result};
+use crate::{cmd, config, util::ask_yes_no, Result};
 
 const CRATESIO_API: &str = "https://crates.io/api/v1/crates";
 const GITHUB_API_RUMA: &str = "https://api.github.com/repos/ruma/ruma";
 
 /// Task to create a new release of the given crate.
+#[derive(Debug)]
 pub struct ReleaseTask {
     /// The crate to release.
-    name: String,
+    local_crate: LocalCrate,
 
     /// The root of the workspace.
     project_root: PathBuf,
-
-    /// The version to release.
-    version: Version,
 
     /// The http client to use for requests.
     client: HttpClient,
@@ -39,61 +34,55 @@ pub struct ReleaseTask {
 impl ReleaseTask {
     /// Create a new `ReleaseTask` with the given `name` and `project_root`.
     pub(crate) fn new(name: String, project_root: PathBuf) -> Result<Self> {
-        let path = project_root.join(&name);
+        let local_crate = LocalCrate::new(name, &project_root)?;
 
-        let version = Self::get_version(&path)?;
-
-        Ok(Self { name, project_root, version, client: HttpClient::new()? })
+        Ok(Self { local_crate, project_root, client: HttpClient::new()? })
     }
 
     /// Run the task to effectively create a release.
     pub(crate) fn run(self) -> Result<()> {
-        println!("Starting release for {} {}…", self.name, self.version);
+        let title = &self.title();
+        println!("Starting release for {}…", title);
 
         if self.is_released()? {
-            return Err("This version is already released".into());
+            return Err("This crate version is already released".into());
         }
-
-        let _dir = pushd(self.crate_path())?;
 
         let remote = Self::git_remote()?;
 
         println!("Checking status of git repository…");
         if !cmd!("git status -s -uno").read()?.is_empty()
-            && !Self::ask_continue("This git repository contains untracked files. Continue?")?
+            && !ask_yes_no("This git repository contains untracked files. Continue?")?
         {
             return Ok(());
         }
 
-        println!("Publishing the package on crates.io…");
-        if self.is_published()?
-            && !Self::ask_continue(
-                "This version is already published. Skip this step and continue?",
-            )?
-        {
-            return Ok(());
-        } else {
-            cmd!("cargo publish").run()?;
+        if let Some(macros) = self.macros() {
+            print!("Found macros crate. ");
+            let _dir = pushd(&macros.path)?;
+            macros.publish(&self.client)?;
+            println!("Resuming release of {}…", self.title());
         }
 
-        let changes = &self.get_changes()?;
+        let _dir = pushd(&self.local_crate.path)?;
+
+        self.local_crate.publish(&self.client)?;
+
+        let changes = &self.local_crate.changes()?;
 
         let tag = &self.tag_name();
-        let title = &self.title();
 
         println!("Creating git tag…");
         if cmd!("git tag -l {tag}").read()?.is_empty() {
             cmd!("git tag -s {tag} -m {title} -m {changes}").read()?;
-        } else if !Self::ask_continue("This tag already exists. Skip this step and continue?")? {
+        } else if !ask_yes_no("This tag already exists. Skip this step and continue?")? {
             return Ok(());
         }
 
         println!("Pushing tag to remote repository…");
         if cmd!("git ls-remote --tags {remote} {tag}").read()?.is_empty() {
             cmd!("git push {remote} {tag}").run()?;
-        } else if !Self::ask_continue(
-            "This tag has already been pushed. Skip this step and continue?",
-        )? {
+        } else if !ask_yes_no("This tag has already been pushed. Skip this step and continue?")? {
             return Ok(());
         }
 
@@ -112,53 +101,14 @@ impl ReleaseTask {
         Ok(())
     }
 
-    /// Ask the user if he wants to skip this step and continue. Returns `true` for yes.
-    fn ask_continue(message: &str) -> Result<bool> {
-        let mut input = String::new();
-        let stdin = stdin();
-
-        print!("{} [y/N]: ", message);
-        stdout().flush()?;
-
-        let mut handle = stdin.lock();
-        handle.read_line(&mut input)?;
-
-        input = input.trim().to_ascii_lowercase();
-
-        Ok(input == "y" || input == "yes")
-    }
-
-    /// Get the changes of the given version from the changelog.
-    fn get_changes(&self) -> Result<String> {
-        let changelog = read_file(self.crate_path().join("CHANGELOG.md"))?;
-        let lines_nb = changelog.lines().count();
-        let mut lines = changelog.lines();
-
-        let start = match lines.position(|l| l.starts_with(&format!("# {}", self.version))) {
-            Some(p) => p + 1,
-            None => {
-                return Err("Could not find version title in changelog".into());
-            }
-        };
-
-        let length = match lines.position(|l| l.starts_with("# ")) {
-            Some(p) => p,
-            None => lines_nb,
-        };
-
-        let changes = changelog.lines().skip(start).take(length).join("\n");
-
-        Ok(changes.trim().to_owned())
+    /// Get the associated `-macros` crate of the current crate, if any.
+    fn macros(&self) -> Option<LocalCrate> {
+        LocalCrate::new(format!("{}-macros", self.local_crate.name), &self.project_root).ok()
     }
 
     /// Get the title of this release.
     fn title(&self) -> String {
-        format!("{} {}", self.name, self.version)
-    }
-
-    /// Get the path of the crate for this release.
-    fn crate_path(&self) -> PathBuf {
-        self.project_root.join(&self.name)
+        format!("{} {}", self.local_crate.name, self.local_crate.version)
     }
 
     /// Load the GitHub config from the config file.
@@ -175,23 +125,7 @@ impl ReleaseTask {
 
     /// Get the tag name for this release.
     fn tag_name(&self) -> String {
-        format!("{}-{}", self.name, self.version)
-    }
-
-    /// Get the current version of the crate at `path` from its manifest.
-    fn get_version(path: &Path) -> Result<Version> {
-        let manifest_toml = read_file(path.join("Cargo.toml"))?;
-        let manifest: CargoManifest = from_toml_str(&manifest_toml)?;
-
-        Ok(manifest.package.version)
-    }
-
-    /// Check if the current version of the crate is published on crates.io.
-    fn is_published(&self) -> Result<bool> {
-        let response: CratesIoCrate =
-            self.client.get(format!("{}/{}/{}", CRATESIO_API, self.name, self.version))?.json()?;
-
-        Ok(response.version.is_some())
+        format!("{}-{}", self.local_crate.name, self.local_crate.version)
     }
 
     /// Check if the tag for the current version of the crate has been pushed on GitHub.
@@ -218,6 +152,83 @@ impl ReleaseTask {
             Ok(())
         } else {
             Err(format!("{}: {}", response.status(), response.text()?).into())
+        }
+    }
+}
+
+/// A local Rust crate.
+#[derive(Debug)]
+struct LocalCrate {
+    /// The name of the crate.
+    name: String,
+
+    /// The version of the crate.
+    version: Version,
+
+    /// The local path of the crate.
+    path: PathBuf,
+}
+
+impl LocalCrate {
+    /// Creates a new `Crate` with the given name and project root.
+    pub fn new(name: String, project_root: &PathBuf) -> Result<Self> {
+        let path = project_root.join(&name);
+
+        let version = Self::version(&path)?;
+
+        Ok(Self { name, version, path })
+    }
+
+    /// The current version of the crate at `path` from its manifest.
+    fn version(path: &Path) -> Result<Version> {
+        let manifest_toml = read_file(path.join("Cargo.toml"))?;
+        let manifest: CargoManifest = from_toml_str(&manifest_toml)?;
+
+        Ok(manifest.package.version)
+    }
+
+    /// The changes of the given version from the changelog.
+    fn changes(&self) -> Result<String> {
+        let changelog = read_file(self.path.join("CHANGELOG.md"))?;
+        let lines_nb = changelog.lines().count();
+        let mut lines = changelog.lines();
+
+        let start = match lines.position(|l| l.starts_with(&format!("# {}", self.version))) {
+            Some(p) => p + 1,
+            None => {
+                return Err("Could not find version title in changelog".into());
+            }
+        };
+
+        let length = match lines.position(|l| l.starts_with("# ")) {
+            Some(p) => p,
+            None => lines_nb,
+        };
+
+        let changes = changelog.lines().skip(start).take(length).join("\n");
+
+        Ok(changes.trim().to_owned())
+    }
+
+    /// Check if the current version of the crate is published on crates.io.
+    fn is_published(&self, client: &HttpClient) -> Result<bool> {
+        let response: CratesIoCrate =
+            client.get(format!("{}/{}/{}", CRATESIO_API, self.name, self.version))?.json()?;
+
+        Ok(response.version.is_some())
+    }
+
+    /// Publish this package on crates.io.
+    fn publish(&self, client: &HttpClient) -> Result<()> {
+        println!("Publishing {} {} on crates.io…", self.name, self.version);
+        if self.is_published(client)? {
+            if ask_yes_no("This version is already published. Skip this step and continue?")? {
+                Ok(())
+            } else {
+                Err("Release interrupted by user.")?
+            }
+        } else {
+            Ok(cmd!("cargo publish").run()?)
         }
     }
 }
