@@ -42,7 +42,15 @@ impl ReleaseTask {
     /// Run the task to effectively create a release.
     pub(crate) fn run(self) -> Result<()> {
         let title = &self.title();
-        println!("Starting release for {}…", title);
+        let prerelease = self.local_crate.version.is_prerelease();
+        println!(
+            "Starting {} for {}…",
+            match prerelease {
+                true => "pre-release",
+                false => "release",
+            },
+            title
+        );
 
         if self.is_released()? {
             return Err("This crate version is already released".into());
@@ -67,6 +75,11 @@ impl ReleaseTask {
         let _dir = pushd(&self.local_crate.path)?;
 
         self.local_crate.publish(&self.client)?;
+
+        if prerelease {
+            println!("Pre-release created successfully!");
+            return Ok(());
+        }
 
         let changes = &self.local_crate.changes()?;
 
