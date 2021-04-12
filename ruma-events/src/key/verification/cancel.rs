@@ -13,6 +13,7 @@ use crate::MessageEvent;
 
 /// Cancels a key verification process/request.
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub type CancelEvent = MessageEvent<CancelEventContent>;
 
 /// The payload for a to-device `CancelEvent`.
@@ -35,6 +36,7 @@ pub struct CancelToDeviceEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.key.verification.cancel")]
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub struct CancelEventContent {
     /// A human readable description of the `code`.
     ///

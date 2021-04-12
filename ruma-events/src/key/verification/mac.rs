@@ -14,6 +14,7 @@ use crate::MessageEvent;
 
 /// Sends the MAC of a device's key to the partner device.
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub type MacEvent = MessageEvent<MacEventContent>;
 
 /// The payload for a to-device `MacEvent`.
@@ -39,6 +40,7 @@ pub struct MacToDeviceEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.key.verification.mac")]
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub struct MacEventContent {
     /// A map of the key ID to the MAC of the key, using the algorithm in the verification process.
     ///

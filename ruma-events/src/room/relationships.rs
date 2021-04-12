@@ -60,6 +60,7 @@ pub struct InReplyTo {
 /// A reference to another event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub struct Reference {
     /// The event we are referencing.
     pub event_id: EventId,
@@ -78,6 +79,7 @@ pub struct Annotation {
 /// An event replacing another event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub struct Replacement {
     /// The event this event is replacing.
     pub event_id: EventId,

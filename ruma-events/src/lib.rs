@@ -173,9 +173,11 @@ pub mod policy;
 pub mod presence;
 pub mod push_rules;
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub mod reaction;
 pub mod receipt;
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub mod relation;
 pub mod room;
 pub mod room_key;
@@ -185,6 +187,7 @@ pub mod tag;
 pub mod typing;
 
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub use self::relation::Relations;
 pub use self::{
     enums::{
@@ -226,6 +229,7 @@ pub struct Unsigned {
 
     /// Server-compiled information from other events relating to this event.
     #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     #[serde(rename = "m.relations", skip_serializing_if = "Option::is_none")]
     pub relations: Option<Relations>,
 }

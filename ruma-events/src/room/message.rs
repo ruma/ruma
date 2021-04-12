@@ -50,6 +50,7 @@ pub struct MessageEventContent {
     ///
     /// This should only be set if `relates_to` is `Some(Relation::Replacement(_))`.
     #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     #[serde(rename = "m.new_content", skip_serializing_if = "Option::is_none")]
     pub new_content: Option<Box<MessageEventContent>>,
 }
@@ -120,6 +121,7 @@ pub enum MessageType {
 
     /// A request to initiate a key verification.
     #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     VerificationRequest(KeyVerificationRequestEventContent),
 
     /// A custom message.
@@ -214,14 +216,17 @@ impl From<MessageType> for MessageEventContent {
 pub enum Relation {
     /// A reference to another event.
     #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     Reference(Reference),
 
     /// An annotation to an event.
     #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     Annotation(Annotation),
 
     /// An event that replaces another event.
     #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     Replacement(Replacement),
 
     /// An `m.in_reply_to` relation indicating that the event is a reply to
@@ -643,6 +648,7 @@ pub struct VideoInfo {
     /// This uses the unstable prefix in
     /// [MSC2448](https://github.com/matrix-org/matrix-doc/pull/2448).
     #[cfg(feature = "unstable-pre-spec")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
     #[serde(rename = "xyz.amorgan.blurhash")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blurhash: Option<String>,
@@ -651,6 +657,7 @@ pub struct VideoInfo {
 /// The payload for a key verification request message.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[serde(tag = "msgtype", rename = "m.key.verification.request")]
 pub struct KeyVerificationRequestEventContent {
     /// A fallback message to alert users that their client does not support the key verification

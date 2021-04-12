@@ -20,10 +20,12 @@ use crate::room::relationships::{Reference, RelatesToJsonRepr, RelationJsonRepr}
 pub mod accept;
 pub mod cancel;
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub mod done;
 pub mod key;
 pub mod mac;
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub mod ready;
 pub mod request;
 pub mod start;
@@ -85,6 +87,7 @@ pub enum ShortAuthenticationString {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(try_from = "RelatesToJsonRepr", into = "RelatesToJsonRepr")]
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub struct Relation {
     /// The event that is being referenced.
     pub event_id: EventId,

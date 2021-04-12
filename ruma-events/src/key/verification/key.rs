@@ -12,6 +12,7 @@ use crate::MessageEvent;
 
 /// Sends the ephemeral public key for a device to the partner device.
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub type KeyEvent = MessageEvent<KeyEventContent>;
 
 /// The payload for a to-device `KeyEvent`.
@@ -31,6 +32,7 @@ pub struct KeyToDeviceEventContent {
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.key.verification.key")]
 #[cfg(feature = "unstable-pre-spec")]
+#[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 pub struct KeyEventContent {
     /// The device's ephemeral public key, encoded as unpadded Base64.
     pub key: String,
