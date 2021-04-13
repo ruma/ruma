@@ -1,4 +1,3 @@
-use bytes::Buf;
 use ruma_api::{
     error::{FromHttpResponseError, IntoHttpError, Void},
     ruma_api, IncomingResponse, OutgoingResponse,
@@ -28,7 +27,7 @@ pub struct Response;
 impl IncomingResponse for Response {
     type EndpointError = Void;
 
-    fn try_from_http_response<T: Buf>(
+    fn try_from_http_response<T: AsRef<[u8]>>(
         _: http::Response<T>,
     ) -> Result<Self, FromHttpResponseError<Void>> {
         todo!()

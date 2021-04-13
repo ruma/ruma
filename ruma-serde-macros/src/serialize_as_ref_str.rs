@@ -13,8 +13,7 @@ pub fn expand_serialize_as_ref_str(ident: &Ident) -> syn::Result<TokenStream> {
             where
                 S: #ruma_serde::exports::serde::ser::Serializer,
             {
-                <Self as ::std::convert::AsRef<::std::primitive::str>>::as_ref(self)
-                    .serialize(serializer)
+                ::std::convert::AsRef::<::std::primitive::str>::as_ref(self).serialize(serializer)
             }
         }
     })

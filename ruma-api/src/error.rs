@@ -4,7 +4,6 @@
 
 use std::{error::Error as StdError, fmt};
 
-use bytes::Buf;
 use thiserror::Error;
 
 use crate::{EndpointError, OutgoingResponse};
@@ -21,7 +20,7 @@ impl OutgoingResponse for Void {
 }
 
 impl EndpointError for Void {
-    fn try_from_http_response<T: Buf>(
+    fn try_from_http_response<T: AsRef<[u8]>>(
         _response: http::Response<T>,
     ) -> Result<Self, ResponseDeserializationError> {
         Err(ResponseDeserializationError::none())

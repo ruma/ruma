@@ -104,7 +104,7 @@ impl ruma_api::IncomingRequest for IncomingRequest {
 
     const METADATA: ruma_api::Metadata = METADATA;
 
-    fn try_from_http_request<T: bytes::Buf>(
+    fn try_from_http_request<T: AsRef<[u8]>>(
         request: http::Request<T>,
     ) -> Result<Self, ruma_api::error::FromHttpRequestError> {
         use std::convert::TryFrom;
@@ -129,7 +129,7 @@ impl ruma_api::IncomingRequest for IncomingRequest {
         let content = {
             let event_type =
                 percent_encoding::percent_decode(path_segments[6].as_bytes()).decode_utf8()?;
-            let body: Box<RawJsonValue> = serde_json::from_reader(body.reader())?;
+            let body: Box<RawJsonValue> = serde_json::from_slice(body.as_ref())?;
 
             AnyMessageEventContent::from_parts(&event_type, body)?
         };

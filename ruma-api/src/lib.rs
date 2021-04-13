@@ -22,7 +22,6 @@ compile_error!("ruma_api's Cargo features only exist as a workaround are not mea
 
 use std::{convert::TryInto as _, error::Error as StdError};
 
-use bytes::Buf;
 use http::Method;
 use ruma_identifiers::UserId;
 
@@ -204,7 +203,6 @@ pub mod error;
 /// It is not considered part of ruma-api's public API.
 #[doc(hidden)]
 pub mod exports {
-    pub use bytes;
     pub use http;
     pub use percent_encoding;
     pub use ruma_serde;
@@ -246,7 +244,7 @@ pub trait IncomingResponse: Sized {
     type EndpointError: EndpointError;
 
     /// Tries to convert the given `http::Response` into this response type.
-    fn try_from_http_response<T: Buf>(
+    fn try_from_http_response<T: AsRef<[u8]>>(
         response: http::Response<T>,
     ) -> Result<Self, FromHttpResponseError<Self::EndpointError>>;
 }
@@ -301,7 +299,9 @@ pub trait IncomingRequest: Sized {
     const METADATA: Metadata;
 
     /// Tries to turn the given `http::Request` into this request type.
-    fn try_from_http_request<T: Buf>(req: http::Request<T>) -> Result<Self, FromHttpRequestError>;
+    fn try_from_http_request<T: AsRef<[u8]>>(
+        req: http::Request<T>,
+    ) -> Result<Self, FromHttpRequestError>;
 }
 
 /// A request type for a Matrix API endpoint, used for sending responses.
@@ -319,7 +319,7 @@ pub trait EndpointError: OutgoingResponse + StdError + Sized + 'static {
     ///
     /// This will always return `Err` variant when no `error` field is defined in
     /// the `ruma_api` macro.
-    fn try_from_http_response<T: Buf>(
+    fn try_from_http_response<T: AsRef<[u8]>>(
         response: http::Response<T>,
     ) -> Result<Self, error::ResponseDeserializationError>;
 }

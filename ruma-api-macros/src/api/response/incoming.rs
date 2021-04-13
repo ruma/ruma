@@ -5,7 +5,6 @@ use super::{Response, ResponseField};
 
 impl Response {
     pub fn expand_incoming(&self, error_ty: &TokenStream, ruma_api: &TokenStream) -> TokenStream {
-        let bytes = quote! { #ruma_api::exports::bytes };
         let http = quote! { #ruma_api::exports::http };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
         let serde_json = quote! { #ruma_api::exports::serde_json };
@@ -25,15 +24,17 @@ impl Response {
                         ResponseBody
                         as #ruma_serde::Outgoing
                     >::Incoming = {
-                        let body = response.into_body();
-                        if #bytes::Buf::has_remaining(&body) {
-                            #serde_json::from_reader(#bytes::Buf::reader(body))?
-                        } else {
+                        let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
+                            response.body(),
+                        );
+
+                        #serde_json::from_slice(match body {
                             // If the response body is completely empty, pretend it is an empty
                             // JSON object instead. This allows responses with only optional body
                             // parameters to be deserialized in that case.
-                            #serde_json::from_str("{}")?
-                        }
+                            [] => b"{}",
+                            b => b,
+                        })?
                     };
                 }
             } else {
@@ -93,11 +94,10 @@ impl Response {
                     ResponseField::NewtypeRawBody(_) => {
                         new_type_raw_body = Some(quote! {
                             #field_name: {
-                                let mut reader = #bytes::Buf::reader(response.into_body());
-                                let mut vec = ::std::vec::Vec::new();
-                                ::std::io::Read::read_to_end(&mut reader, &mut vec)
-                                    .expect("reading from a bytes::Buf never fails");
-                                vec
+                                ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
+                                    response.body(),
+                                )
+                                .to_vec()
                             }
                         });
                         // skip adding to the vec
@@ -120,7 +120,7 @@ impl Response {
             impl #ruma_api::IncomingResponse for Response {
                 type EndpointError = #error_ty;
 
-                fn try_from_http_response<T: #bytes::Buf>(
+                fn try_from_http_response<T: ::std::convert::AsRef<[::std::primitive::u8]>>(
                     response: #http::Response<T>,
                 ) -> ::std::result::Result<
                     Self,
@@ -130,15 +130,17 @@ impl Response {
                         #extract_response_headers
                         #typed_response_body_decl
 
-                        Ok(Self {
+                        ::std::result::Result::Ok(Self {
                             #response_init_fields
                         })
                     } else {
                         match <#error_ty as #ruma_api::EndpointError>::try_from_http_response(
                             response
                         ) {
-                            Ok(err) => Err(#ruma_api::error::ServerError::Known(err).into()),
-                            Err(response_err) => {
+                            ::std::result::Result::Ok(err) => {
+                                Err(#ruma_api::error::ServerError::Known(err).into())
+                            }
+                            ::std::result::Result::Err(response_err) => {
                                 Err(#ruma_api::error::ServerError::Unknown(response_err).into())
                             }
                         }

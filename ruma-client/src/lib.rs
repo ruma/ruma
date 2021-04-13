@@ -373,7 +373,9 @@ impl Client {
         let hyper_response = client.hyper.request(http_request.map(hyper::Body::from)).await?;
         let (head, body) = hyper_response.into_parts();
 
-        let full_body = hyper::body::aggregate(body).await?;
+        // FIXME: Use aggregate instead of to_bytes once serde_json can parse from a reader at a
+        // comparable speed as reading from a slice: https://github.com/serde-rs/json/issues/160
+        let full_body = hyper::body::to_bytes(body).await?;
         let full_response = HttpResponse::from_parts(head, full_body);
 
         Ok(ruma_api::IncomingResponse::try_from_http_response(full_response)?)

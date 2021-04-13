@@ -2,7 +2,6 @@
 
 use std::{collections::BTreeMap, fmt};
 
-use bytes::Buf;
 use ruma_api::{
     error::{IntoHttpError, ResponseDeserializationError},
     EndpointError, OutgoingResponse,
@@ -10,7 +9,7 @@ use ruma_api::{
 use ruma_serde::Outgoing;
 use serde::{Deserialize, Serialize};
 use serde_json::{
-    from_reader as from_json_reader, to_vec as to_json_vec, value::RawValue as RawJsonValue,
+    from_slice as from_json_slice, to_vec as to_json_vec, value::RawValue as RawJsonValue,
     Value as JsonValue,
 };
 
@@ -137,11 +136,11 @@ impl From<MatrixError> for UiaaResponse {
 }
 
 impl EndpointError for UiaaResponse {
-    fn try_from_http_response<T: Buf>(
+    fn try_from_http_response<T: AsRef<[u8]>>(
         response: http::Response<T>,
     ) -> Result<Self, ResponseDeserializationError> {
         if response.status() == http::StatusCode::UNAUTHORIZED {
-            Ok(UiaaResponse::AuthResponse(from_json_reader(response.into_body().reader())?))
+            Ok(UiaaResponse::AuthResponse(from_json_slice(response.body().as_ref())?))
         } else {
             MatrixError::try_from_http_response(response).map(From::from)
         }

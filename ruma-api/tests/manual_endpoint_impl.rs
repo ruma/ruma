@@ -2,7 +2,6 @@
 
 use std::convert::TryFrom;
 
-use bytes::Buf;
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_api::{
     error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, ServerError, Void},
@@ -67,7 +66,7 @@ impl IncomingRequest for Request {
 
     const METADATA: Metadata = METADATA;
 
-    fn try_from_http_request<T: Buf>(
+    fn try_from_http_request<T: AsRef<[u8]>>(
         request: http::Request<T>,
     ) -> Result<Self, FromHttpRequestError> {
         let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
@@ -78,7 +77,7 @@ impl IncomingRequest for Request {
             TryFrom::try_from(&*decoded)?
         };
 
-        let request_body: RequestBody = serde_json::from_reader(request.into_body().reader())?;
+        let request_body: RequestBody = serde_json::from_slice(request.body().as_ref())?;
 
         Ok(Request { room_id: request_body.room_id, room_alias })
     }
@@ -100,7 +99,7 @@ impl Outgoing for Response {
 impl IncomingResponse for Response {
     type EndpointError = Void;
 
-    fn try_from_http_response<T: Buf>(
+    fn try_from_http_response<T: AsRef<[u8]>>(
         http_response: http::Response<T>,
     ) -> Result<Self, FromHttpResponseError<Void>> {
         if http_response.status().as_u16() < 400 {

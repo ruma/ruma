@@ -10,7 +10,6 @@ impl Request {
         error_ty: &TokenStream,
         ruma_api: &TokenStream,
     ) -> TokenStream {
-        let bytes = quote! { #ruma_api::exports::bytes };
         let http = quote! { #ruma_api::exports::http };
         let percent_encoding = quote! { #ruma_api::exports::percent_encoding };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
@@ -159,15 +158,17 @@ impl Request {
                     RequestBody #body_lifetimes
                     as #ruma_serde::Outgoing
                 >::Incoming = {
-                    let body = request.into_body();
-                    if #bytes::Buf::has_remaining(&body) {
-                        #serde_json::from_reader(#bytes::Buf::reader(body))?
-                    } else {
+                    let body = ::std::convert::AsRef::<[::std::primitive::u8]>::as_ref(
+                        request.body(),
+                    );
+
+                    #serde_json::from_slice(match body {
                         // If the request body is completely empty, pretend it is an empty JSON
                         // object instead. This allows requests with only optional body parameters
                         // to be deserialized in that case.
-                        #serde_json::from_str("{}")?
-                    }
+                        [] => b"{}",
+                        b => b,
+                    })?
                 };
             }
         } else {
@@ -184,13 +185,8 @@ impl Request {
         } else if let Some(field) = self.newtype_raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             let parse = quote! {
-                let #field_name = {
-                    let mut reader = #bytes::Buf::reader(request.into_body());
-                    let mut vec = ::std::vec::Vec::new();
-                    ::std::io::Read::read_to_end(&mut reader, &mut vec)
-                        .expect("reading from a bytes::Buf never fails");
-                    vec
-                };
+                let #field_name =
+                    ::std::convert::AsRef::<[u8]>::as_ref(request.body()).to_vec();
             };
 
             (parse, quote! { #field_name, })
