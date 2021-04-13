@@ -222,7 +222,7 @@ impl Request {
 
                 const METADATA: #ruma_api::Metadata = self::METADATA;
 
-                fn try_from_http_request<T: #bytes::Buf>(
+                fn try_from_http_request<T: ::std::convert::AsRef<[::std::primitive::u8]>>(
                     request: #http::Request<T>
                 ) -> ::std::result::Result<Self, #ruma_api::error::FromHttpRequestError> {
                     if request.method() != #http::Method::#method {
@@ -239,7 +239,7 @@ impl Request {
                     #extract_body
                     #parse_body
 
-                    Ok(Self {
+                    ::std::result::Result::Ok(Self {
                         #path_vars
                         #query_vars
                         #header_vars

@@ -408,19 +408,20 @@ fn expand_content_enum(
             }
 
             fn from_parts(
-                event_type: &str, input: Box<#serde_json::value::RawValue>,
-            ) -> Result<Self, #serde_json::Error> {
+                event_type: &::std::primitive::str,
+                input: ::std::boxed::Box<#serde_json::value::RawValue>,
+            ) -> ::std::result::Result<Self, #serde_json::Error> {
                 match event_type {
                     #(
                         #variant_attrs #event_type_str => {
                             let content = #content::from_parts(event_type, input)?;
-                            Ok(#variant_ctors(content))
+                            ::std::result::Result::Ok(#variant_ctors(content))
                         },
                     )*
                     ev_type => {
                         let content =
                             #ruma_events::custom::CustomEventContent::from_parts(ev_type, input)?;
-                        Ok(Self::Custom(content))
+                        ::std::result::Result::Ok(Self::Custom(content))
                     },
                 }
             }
@@ -713,7 +714,7 @@ fn accessor_methods(
 
     let event_type = quote! {
         /// Returns the `type` of this event.
-        pub fn event_type(&self) -> &str {
+        pub fn event_type(&self) -> &::std::primitive::str {
             match self {
                 #( #self_variants(event) =>
                     #ruma_events::EventContent::event_type(&event.content), )*

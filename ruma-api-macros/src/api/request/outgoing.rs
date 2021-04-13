@@ -200,9 +200,9 @@ impl Request {
                 fn try_into_http_request(
                     self,
                     base_url: &::std::primitive::str,
-                    access_token: ::std::option::Option<&str>,
+                    access_token: ::std::option::Option<&::std::primitive::str>,
                 ) -> ::std::result::Result<
-                    #http::Request<Vec<u8>>,
+                    #http::Request<::std::vec::Vec<::std::primitive::u8>>,
                     #ruma_api::error::IntoHttpError,
                 > {
                     let metadata = self::METADATA;

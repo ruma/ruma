@@ -75,7 +75,7 @@ impl Response {
                 fn try_into_http_response(
                     self,
                 ) -> ::std::result::Result<
-                    #http::Response<::std::vec::Vec<u8>>,
+                    #http::Response<::std::vec::Vec<::std::primitive::u8>>,
                     #ruma_api::error::IntoHttpError,
                 > {
                     let mut resp_builder = #http::Response::builder()
@@ -88,7 +88,7 @@ impl Response {
 
                     // This cannot fail because we parse each header value checking for errors as
                     // each value is inserted and we only allow keys from the `http::header` module.
-                    Ok(resp_builder.body(#body).unwrap())
+                    ::std::result::Result::Ok(resp_builder.body(#body).unwrap())
                 }
             }
         }
