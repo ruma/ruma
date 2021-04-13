@@ -1,5 +1,6 @@
 use std::{convert::TryFrom, sync::Arc};
 
+use log::warn;
 use maplit::btreeset;
 use ruma::{
     events::{
@@ -87,7 +88,11 @@ pub fn auth_check<E: Event>(
     auth_events: &StateMap<Arc<E>>,
     current_third_party_invite: Option<Arc<E>>,
 ) -> Result<bool> {
-    log::info!("auth_check beginning for {}", incoming_event.kind());
+    log::info!(
+        "auth_check beginning for {} ({})",
+        incoming_event.event_id(),
+        incoming_event.kind()
+    );
 
     // [synapse] check that all the events are in the same room as `incoming_event`
 
@@ -390,59 +395,93 @@ pub fn valid_membership_change<E: Event>(
 
     Ok(if target_membership == MembershipState::Join {
         if user_sender != &target_user_id {
+            warn!("Can't make other user join");
             false
         } else if let MembershipState::Ban = current_membership {
+            warn!("Banned user can't join");
             false
         } else {
-            join_rules == JoinRule::Invite
+            let allow = join_rules == JoinRule::Invite
                 && (current_membership == MembershipState::Join
                     || current_membership == MembershipState::Invite)
-                || join_rules == JoinRule::Public
+                || join_rules == JoinRule::Public;
+
+            if !allow {
+                warn!("Can't join if join rules is not public and user is not invited/joined")
+            }
+            allow
         }
     } else if target_membership == MembershipState::Invite {
         // If content has third_party_invite key
         if let Some(Ok(tp_id)) = third_party_invite {
             if current_membership == MembershipState::Ban {
+                warn!("Can't invite banned user");
                 false
             } else {
-                verify_third_party_invite(
+                let allow = verify_third_party_invite(
                     Some(state_key),
                     user_sender,
                     &tp_id,
                     current_third_party_invite,
-                )
+                );
+                if !allow {
+                    warn!("Third party invite invalid");
+                }
+                allow
             }
         } else if sender_membership != MembershipState::Join
             || current_membership == MembershipState::Join
             || current_membership == MembershipState::Ban
         {
+            warn!(
+                "Can't invite user if sender not joined or the user is currently joined or banned"
+            );
             false
         } else {
-            sender_power
+            let allow = sender_power
                 .filter(|&p| p >= &power_levels.invite)
-                .is_some()
+                .is_some();
+            if !allow {
+                warn!("User does not have enough power to invite");
+            }
+            allow
         }
     } else if target_membership == MembershipState::Leave {
         if user_sender == &target_user_id {
-            current_membership == MembershipState::Join
-                || current_membership == MembershipState::Invite
+            let allow = current_membership == MembershipState::Join
+                || current_membership == MembershipState::Invite;
+            if !allow {
+                warn!("Can't leave if not invited or joined");
+            }
+            allow
         } else if sender_membership != MembershipState::Join
             || current_membership == MembershipState::Ban
                 && sender_power.filter(|&p| p < &power_levels.ban).is_some()
         {
+            warn!("Can't kick if sender not joined or user is already banned");
             false
         } else {
-            sender_power.filter(|&p| p >= &power_levels.kick).is_some()
-                && target_power < sender_power
+            let allow = sender_power.filter(|&p| p >= &power_levels.kick).is_some()
+                && target_power < sender_power;
+            if !allow {
+                warn!("User does not have enough power to kick");
+            }
+            allow
         }
     } else if target_membership == MembershipState::Ban {
         if sender_membership != MembershipState::Join {
+            warn!("Can't ban user if sender is not joined");
             false
         } else {
-            sender_power.filter(|&p| p >= &power_levels.ban).is_some()
-                && target_power < sender_power
+            let allow = sender_power.filter(|&p| p >= &power_levels.ban).is_some()
+                && target_power < sender_power;
+            if !allow {
+                warn!("User does not have enough power to ban");
+            }
+            allow
         }
     } else {
+        warn!("Unknown membership transition");
         false
     })
 }
