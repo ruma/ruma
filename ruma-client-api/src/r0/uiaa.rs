@@ -337,7 +337,7 @@ mod tests {
             session: None,
             auth_error: None,
         };
-        let uiaa_response = UiaaResponse::AuthResponse(uiaa_info).try_into_http_response();
+        let uiaa_response = UiaaResponse::AuthResponse(uiaa_info).try_into_http_response().unwrap();
 
         assert_matches!(
             from_json_slice::<UiaaInfo>(uiaa_response.body()).unwrap(),
