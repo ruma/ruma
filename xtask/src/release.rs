@@ -1,4 +1,8 @@
-use std::path::{Path, PathBuf};
+use std::{
+    path::{Path, PathBuf},
+    thread::sleep,
+    time::Duration,
+};
 
 use isahc::{
     auth::{Authentication, Credentials},
@@ -69,6 +73,10 @@ impl ReleaseTask {
             print!("Found macros crate. ");
             let _dir = pushd(&macros.path)?;
             macros.publish(&self.client)?;
+
+            println!("Waiting 10 seconds for the release to make it into the crates.io index…");
+            sleep(Duration::from_secs(10));
+
             println!("Resuming release of {}…", self.title());
         }
 
