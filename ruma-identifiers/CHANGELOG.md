@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.19.0
+
 Breaking changes:
 
 * Make `MxcUri` accept any string
