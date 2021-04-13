@@ -209,7 +209,7 @@ fn edit_deserialization_061() {
                 formatted: None,
                 ..
             }),
-            relates_to: Some(Relation::Custom(_)),
+            relates_to: Some(Relation::_Custom(_)),
             ..
         } if body == "s/foo/bar"
     );
