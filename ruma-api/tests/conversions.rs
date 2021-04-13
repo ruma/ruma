@@ -37,7 +37,7 @@ ruma_api! {
 }
 
 #[test]
-fn request_serde() -> Result<(), Box<dyn std::error::Error + 'static>> {
+fn request_serde() {
     let req = Request {
         hello: "hi".to_owned(),
         world: "test".to_owned(),
@@ -47,8 +47,8 @@ fn request_serde() -> Result<(), Box<dyn std::error::Error + 'static>> {
         user: user_id!("@bazme:ruma.io"),
     };
 
-    let http_req = req.clone().try_into_http_request("https://homeserver.tld", None)?;
-    let req2 = Request::try_from_http_request(http_req.map(std::io::Cursor::new))?;
+    let http_req = req.clone().try_into_http_request("https://homeserver.tld", None).unwrap();
+    let req2 = Request::try_from_http_request(http_req.map(std::io::Cursor::new)).unwrap();
 
     assert_eq!(req.hello, req2.hello);
     assert_eq!(req.world, req2.world);
@@ -56,12 +56,10 @@ fn request_serde() -> Result<(), Box<dyn std::error::Error + 'static>> {
     assert_eq!(req.q2, req2.q2);
     assert_eq!(req.bar, req2.bar);
     assert_eq!(req.user, req2.user);
-
-    Ok(())
 }
 
 #[test]
-fn request_with_user_id_serde() -> Result<(), Box<dyn std::error::Error + 'static>> {
+fn request_with_user_id_serde() {
     let req = Request {
         hello: "hi".to_owned(),
         world: "test".to_owned(),
@@ -73,7 +71,7 @@ fn request_with_user_id_serde() -> Result<(), Box<dyn std::error::Error + 'stati
 
     let user_id = user_id!("@_virtual_:ruma.io");
     let http_req =
-        req.try_into_http_request_with_user_id("https://homeserver.tld", None, user_id)?;
+        req.try_into_http_request_with_user_id("https://homeserver.tld", None, user_id).unwrap();
 
     let query = http_req.uri().query().unwrap();
 
@@ -81,8 +79,6 @@ fn request_with_user_id_serde() -> Result<(), Box<dyn std::error::Error + 'stati
         query,
         "q1=query_param_special_chars+%25%2F%26%40%21&q2=55&user_id=%40_virtual_%3Aruma.io"
     );
-
-    Ok(())
 }
 
 mod without_query {
@@ -118,8 +114,7 @@ mod without_query {
     }
 
     #[test]
-    fn request_without_query_with_user_id_serde() -> Result<(), Box<dyn std::error::Error + 'static>>
-    {
+    fn request_without_query_with_user_id_serde() {
         let req = Request {
             hello: "hi".to_owned(),
             world: "test".to_owned(),
@@ -128,13 +123,12 @@ mod without_query {
         };
 
         let user_id = user_id!("@_virtual_:ruma.io");
-        let http_req =
-            req.try_into_http_request_with_user_id("https://homeserver.tld", None, user_id)?;
+        let http_req = req
+            .try_into_http_request_with_user_id("https://homeserver.tld", None, user_id)
+            .unwrap();
 
         let query = http_req.uri().query().unwrap();
 
         assert_eq!(query, "user_id=%40_virtual_%3Aruma.io");
-
-        Ok(())
     }
 }

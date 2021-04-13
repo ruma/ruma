@@ -60,14 +60,14 @@ mod tests {
     use super::IncomingRequest;
 
     #[test]
-    fn deserialize_unset_request() -> Result<(), Box<dyn std::error::Error>> {
+    fn deserialize_unset_request() {
         assert_matches!(
             IncomingRequest::try_from_http_request(
                 http::Request::builder()
                     .method("PUT")
                     .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
-                    .body(&[] as &[u8])?,
-            )?,
+                    .body(&[] as &[u8]).unwrap(),
+            ).unwrap(),
             IncomingRequest { user_id, avatar_url: None } if user_id == "@foo:bar.org"
         );
 
@@ -78,9 +78,9 @@ mod tests {
                     .method("PUT")
                     .uri("https://bar.org/_matrix/client/r0/profile/@foo:bar.org/avatar_url")
                     .body(std::io::Cursor::new(
-                        serde_json::to_vec(&serde_json::json!({ "avatar_url": "" }))?,
-                    ))?,
-            )?,
+                        serde_json::to_vec(&serde_json::json!({ "avatar_url": "" })).unwrap(),
+                    )).unwrap(),
+            ).unwrap(),
             IncomingRequest { user_id, avatar_url: None } if user_id == "@foo:bar.org"
         );
 
