@@ -107,7 +107,7 @@ impl IncomingResponse for Response {
             Ok(Response)
         } else {
             Err(FromHttpResponseError::Http(ServerError::Known(
-                <Void as EndpointError>::try_from_response(http_response)?,
+                <Void as EndpointError>::try_from_http_response(http_response)?,
             )))
         }
     }

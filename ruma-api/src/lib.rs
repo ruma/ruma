@@ -214,17 +214,6 @@ pub mod exports {
 
 use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
 
-/// Gives users the ability to define their own serializable / deserializable errors.
-pub trait EndpointError: StdError + Sized + 'static {
-    /// Tries to construct `Self` from an `http::Response`.
-    ///
-    /// This will always return `Err` variant when no `error` field is defined in
-    /// the `ruma_api` macro.
-    fn try_from_response<T: Buf>(
-        response: http::Response<T>,
-    ) -> Result<Self, error::ResponseDeserializationError>;
-}
-
 /// A request type for a Matrix API endpoint, used for sending requests.
 pub trait OutgoingRequest: Sized {
     /// A type capturing the expected error conditions the server can return.
@@ -322,6 +311,17 @@ pub trait OutgoingResponse {
     /// This method should only fail when when invalid header values are specified. It may also
     /// fail with a serialization error in case of bugs in Ruma though.
     fn try_into_http_response(self) -> Result<http::Response<Vec<u8>>, IntoHttpError>;
+}
+
+/// Gives users the ability to define their own serializable / deserializable errors.
+pub trait EndpointError: OutgoingResponse + StdError + Sized + 'static {
+    /// Tries to construct `Self` from an `http::Response`.
+    ///
+    /// This will always return `Err` variant when no `error` field is defined in
+    /// the `ruma_api` macro.
+    fn try_from_http_response<T: Buf>(
+        response: http::Response<T>,
+    ) -> Result<Self, error::ResponseDeserializationError>;
 }
 
 /// Marker trait for requests that don't require authentication, for the client side.

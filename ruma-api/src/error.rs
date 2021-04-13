@@ -7,15 +7,21 @@ use std::{error::Error as StdError, fmt};
 use bytes::Buf;
 use thiserror::Error;
 
-use crate::EndpointError;
+use crate::{EndpointError, OutgoingResponse};
 
 // FIXME when `!` becomes stable use it
 /// Default `EndpointError` for `ruma_api!` macro
 #[derive(Clone, Copy, Debug)]
 pub enum Void {}
 
+impl OutgoingResponse for Void {
+    fn try_into_http_response(self) -> Result<http::Response<Vec<u8>>, IntoHttpError> {
+        match self {}
+    }
+}
+
 impl EndpointError for Void {
-    fn try_from_response<T: Buf>(
+    fn try_from_http_response<T: Buf>(
         _response: http::Response<T>,
     ) -> Result<Self, ResponseDeserializationError> {
         Err(ResponseDeserializationError::none())

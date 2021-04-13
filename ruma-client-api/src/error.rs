@@ -3,7 +3,10 @@
 use std::{collections::BTreeMap, fmt, time::Duration};
 
 use bytes::Buf;
-use ruma_api::{error::ResponseDeserializationError, EndpointError};
+use ruma_api::{
+    error::{IntoHttpError, ResponseDeserializationError},
+    EndpointError, OutgoingResponse,
+};
 use ruma_identifiers::RoomVersionId;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_reader as from_json_reader, to_vec as to_json_vec, Value as JsonValue};
@@ -203,7 +206,7 @@ pub struct Error {
 }
 
 impl EndpointError for Error {
-    fn try_from_response<T: Buf>(
+    fn try_from_http_response<T: Buf>(
         response: http::Response<T>,
     ) -> Result<Self, ResponseDeserializationError> {
         let status = response.status();
@@ -233,13 +236,13 @@ impl ErrorBody {
     }
 }
 
-impl From<Error> for http::Response<Vec<u8>> {
-    fn from(error: Error) -> http::Response<Vec<u8>> {
+impl OutgoingResponse for Error {
+    fn try_into_http_response(self) -> Result<http::Response<Vec<u8>>, IntoHttpError> {
         http::Response::builder()
             .header(http::header::CONTENT_TYPE, "application/json")
-            .status(error.status_code)
-            .body(to_json_vec(&ErrorBody::from(error)).unwrap())
-            .unwrap()
+            .status(self.status_code)
+            .body(to_json_vec(&ErrorBody::from(self))?)
+            .map_err(Into::into)
     }
 }
 

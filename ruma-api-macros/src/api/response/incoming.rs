@@ -134,7 +134,9 @@ impl Response {
                             #response_init_fields
                         })
                     } else {
-                        match <#error_ty as #ruma_api::EndpointError>::try_from_response(response) {
+                        match <#error_ty as #ruma_api::EndpointError>::try_from_http_response(
+                            response
+                        ) {
                             Ok(err) => Err(#ruma_api::error::ServerError::Known(err).into()),
                             Err(response_err) => {
                                 Err(#ruma_api::error::ServerError::Unknown(response_err).into())

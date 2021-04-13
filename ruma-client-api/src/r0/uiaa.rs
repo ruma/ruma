@@ -3,7 +3,10 @@
 use std::{collections::BTreeMap, fmt};
 
 use bytes::Buf;
-use ruma_api::{error::ResponseDeserializationError, EndpointError};
+use ruma_api::{
+    error::{IntoHttpError, ResponseDeserializationError},
+    EndpointError, OutgoingResponse,
+};
 use ruma_serde::Outgoing;
 use serde::{Deserialize, Serialize};
 use serde_json::{
@@ -134,28 +137,28 @@ impl From<MatrixError> for UiaaResponse {
 }
 
 impl EndpointError for UiaaResponse {
-    fn try_from_response<T: Buf>(
+    fn try_from_http_response<T: Buf>(
         response: http::Response<T>,
     ) -> Result<Self, ResponseDeserializationError> {
         if response.status() == http::StatusCode::UNAUTHORIZED {
             Ok(UiaaResponse::AuthResponse(from_json_reader(response.into_body().reader())?))
         } else {
-            MatrixError::try_from_response(response).map(From::from)
+            MatrixError::try_from_http_response(response).map(From::from)
         }
     }
 }
 
 impl std::error::Error for UiaaResponse {}
 
-impl From<UiaaResponse> for http::Response<Vec<u8>> {
-    fn from(uiaa_response: UiaaResponse) -> http::Response<Vec<u8>> {
-        match uiaa_response {
+impl OutgoingResponse for UiaaResponse {
+    fn try_into_http_response(self) -> Result<http::Response<Vec<u8>>, IntoHttpError> {
+        match self {
             UiaaResponse::AuthResponse(authentication_info) => http::Response::builder()
                 .header(http::header::CONTENT_TYPE, "application/json")
                 .status(&http::StatusCode::UNAUTHORIZED)
-                .body(to_json_vec(&authentication_info).unwrap())
-                .unwrap(),
-            UiaaResponse::MatrixError(error) => http::Response::from(error),
+                .body(to_json_vec(&authentication_info)?)
+                .map_err(Into::into),
+            UiaaResponse::MatrixError(error) => error.try_into_http_response(),
         }
     }
 }
@@ -164,7 +167,7 @@ impl From<UiaaResponse> for http::Response<Vec<u8>> {
 mod tests {
     use maplit::btreemap;
     use matches::assert_matches;
-    use ruma_api::EndpointError;
+    use ruma_api::{EndpointError, OutgoingResponse};
     use serde_json::{
         from_slice as from_json_slice, from_str as from_json_str, from_value as from_json_value,
         json, to_value as to_json_value, value::to_raw_value as to_raw_json_value,
@@ -334,7 +337,7 @@ mod tests {
             session: None,
             auth_error: None,
         };
-        let uiaa_response: http::Response<Vec<u8>> = UiaaResponse::AuthResponse(uiaa_info).into();
+        let uiaa_response = UiaaResponse::AuthResponse(uiaa_info).try_into_http_response();
 
         assert_matches!(
             from_json_slice::<UiaaInfo>(uiaa_response.body()).unwrap(),
@@ -385,7 +388,7 @@ mod tests {
             .body(json.as_bytes())
             .unwrap();
 
-        let parsed_uiaa_info = match UiaaResponse::try_from_response(http_response).unwrap() {
+        let parsed_uiaa_info = match UiaaResponse::try_from_http_response(http_response).unwrap() {
             UiaaResponse::AuthResponse(uiaa_info) => uiaa_info,
             _ => panic!("Expected UiaaResponse::AuthResponse"),
         };
