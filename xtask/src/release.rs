@@ -77,10 +77,14 @@ impl ReleaseTask {
         if let Some(macros) = self.macros() {
             print!("Found macros crate. ");
             let _dir = pushd(&macros.path)?;
-            macros.publish(&self.http_client)?;
+            let published = macros.publish(&self.http_client)?;
 
-            println!("Waiting 10 seconds for the release to make it into the crates.io index…");
-            sleep(Duration::from_secs(10));
+            if published {
+                // Crate was published, instead of publishing skipped (because release already
+                // existed).
+                println!("Waiting 10 seconds for the release to make it into the crates.io index…");
+                sleep(Duration::from_secs(10));
+            }
 
             println!("Resuming release of {}…", self.title());
         }
@@ -246,16 +250,17 @@ impl LocalCrate {
     }
 
     /// Publish this package on crates.io.
-    fn publish(&self, client: &HttpClient) -> Result<()> {
+    fn publish(&self, client: &HttpClient) -> Result<bool> {
         println!("Publishing {} {} on crates.io…", self.name, self.version);
         if self.is_published(client)? {
             if ask_yes_no("This version is already published. Skip this step and continue?")? {
-                Ok(())
+                Ok(false)
             } else {
                 Err("Release interrupted by user.".into())
             }
         } else {
-            Ok(cmd!("cargo publish").run()?)
+            cmd!("cargo publish").run()?;
+            Ok(true)
         }
     }
 }
