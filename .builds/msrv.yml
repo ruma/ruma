@@ -7,7 +7,7 @@ tasks:
   - rustup: |
       # Install stable for compiling xtask, which then uses 1.45
       # We specify --profile minimal because we'd otherwise download docs
-      rustup toolchain install stable,1.45 --profile minimal
+      rustup toolchain install stable 1.45 --profile minimal
       rustup default stable
   - test: |
       cd ruma
