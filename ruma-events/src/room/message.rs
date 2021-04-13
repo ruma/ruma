@@ -237,7 +237,8 @@ pub enum Relation {
     },
 
     /// Custom, unsupported relation.
-    Custom(JsonValue),
+    #[doc(hidden)]
+    _Custom(JsonValue),
 }
 
 impl From<Relation> for RelatesToJsonRepr {
@@ -252,7 +253,7 @@ impl From<Relation> for RelatesToJsonRepr {
                 RelatesToJsonRepr::Relation(RelationJsonRepr::Replacement(r))
             }
             Relation::Reply { in_reply_to } => RelatesToJsonRepr::Reply { in_reply_to },
-            Relation::Custom(c) => RelatesToJsonRepr::Custom(c),
+            Relation::_Custom(c) => RelatesToJsonRepr::Custom(c),
         }
     }
 }
@@ -267,7 +268,7 @@ impl From<RelatesToJsonRepr> for Relation {
                 RelationJsonRepr::Replacement(r) => Self::Replacement(r),
             },
             RelatesToJsonRepr::Reply { in_reply_to } => Self::Reply { in_reply_to },
-            RelatesToJsonRepr::Custom(v) => Self::Custom(v),
+            RelatesToJsonRepr::Custom(v) => Self::_Custom(v),
         }
     }
 }
