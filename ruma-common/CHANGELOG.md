@@ -1,11 +1,14 @@
 # [unreleased]
 
+# 0.4.0
+
 Breaking changes:
 
 * Use `ruma_identifiers::MxcUri` instead of `String` for `avatar_url` field in
   `directory::PublicRoomsChunk`
 * Use `ruma_identifiers::RoomId` instead of `String` for `room_id` field in
   `push::PushConditionRoomCtx`
+* Upgrade ruma-identifiers dependency to 0.19.0
 
 # 0.3.1
 
