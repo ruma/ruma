@@ -8,5 +8,8 @@ authors = [
     "Jonas Platte <jplatte@posteo.de>",
 ]
 license = "MIT"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2018"
+
+[features]
+compat = []

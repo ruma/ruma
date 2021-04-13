@@ -239,6 +239,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(feature = "compat"))]
     fn invalid_characters_in_user_id_localpart() {
         assert_eq!(UserId::try_from("@te\nst:example.com").unwrap_err(), Error::InvalidCharacters);
     }

@@ -7,6 +7,12 @@ Breaking changes:
   * Use `MxcUri::is_valid` to make sure it is spec-compliant
   * `MxcUri::{media_id, server_name}` return `Some({value})` only if the URI is spec-compliant
 
+Improvements
+
+* Add a `compat` feature
+  * Under this feature, more user IDs are accepted that exist in the while but are not
+    spec-compliant
+
 # 0.18.1
 
 Improvements:
