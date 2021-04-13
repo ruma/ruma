@@ -17,7 +17,7 @@ use serde_json::json;
 use toml::from_str as from_toml_str;
 use xshell::{pushd, read_file};
 
-use crate::{cmd, config, util::ask_yes_no, Result};
+use crate::{cmd, util::ask_yes_no, GithubConfig, Result};
 
 const CRATESIO_API: &str = "https://crates.io/api/v1/crates";
 const GITHUB_API_RUMA: &str = "https://api.github.com/repos/ruma/ruma";
@@ -32,15 +32,20 @@ pub struct ReleaseTask {
     project_root: PathBuf,
 
     /// The http client to use for requests.
-    client: HttpClient,
+    http_client: HttpClient,
+
+    /// The github configuration required to publish a release.
+    config: GithubConfig,
 }
 
 impl ReleaseTask {
     /// Create a new `ReleaseTask` with the given `name` and `project_root`.
     pub(crate) fn new(name: String, project_root: PathBuf) -> Result<Self> {
         let local_crate = LocalCrate::new(name, &project_root)?;
+        let config = crate::config()?.github;
+        let http_client = HttpClient::new()?;
 
-        Ok(Self { local_crate, project_root, client: HttpClient::new()? })
+        Ok(Self { local_crate, project_root, http_client, config })
     }
 
     /// Run the task to effectively create a release.
@@ -72,7 +77,7 @@ impl ReleaseTask {
         if let Some(macros) = self.macros() {
             print!("Found macros crate. ");
             let _dir = pushd(&macros.path)?;
-            macros.publish(&self.client)?;
+            macros.publish(&self.http_client)?;
 
             println!("Waiting 10 seconds for the release to make it into the crates.io index…");
             sleep(Duration::from_secs(10));
@@ -82,7 +87,7 @@ impl ReleaseTask {
 
         let _dir = pushd(&self.local_crate.path)?;
 
-        self.local_crate.publish(&self.client)?;
+        self.local_crate.publish(&self.http_client)?;
 
         if prerelease {
             println!("Pre-release created successfully!");
@@ -151,23 +156,24 @@ impl ReleaseTask {
 
     /// Check if the tag for the current version of the crate has been pushed on GitHub.
     fn is_released(&self) -> Result<bool> {
-        let response =
-            self.client.get(format!("{}/releases/tags/{}", GITHUB_API_RUMA, self.tag_name()))?;
+        let response = self.http_client.get(format!(
+            "{}/releases/tags/{}",
+            GITHUB_API_RUMA,
+            self.tag_name()
+        ))?;
 
         Ok(response.status() == StatusCode::OK)
     }
 
     /// Create the release on GitHub with the given `config` and `credentials`.
     fn release(&self, body: &str) -> Result<()> {
-        let config = config()?.github;
-
         let request = Request::post(format!("{}/releases", GITHUB_API_RUMA))
             .authentication(Authentication::basic())
-            .credentials(Credentials::new(config.user, config.token))
+            .credentials(Credentials::new(&self.config.user, &self.config.token))
             .header("Accept", "application/vnd.github.v3+json")
             .body(body)?;
 
-        let mut response = self.client.send(request)?;
+        let mut response = self.http_client.send(request)?;
 
         if response.status() == StatusCode::CREATED {
             Ok(())
