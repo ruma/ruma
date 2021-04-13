@@ -30,14 +30,14 @@ pub enum Edu {
     Typing(TypingContent),
 
     /// An EDU that lets servers push details to each other when one of their users adds
-    // a new device to their account, required for E2E encryption to correctly target the
-    // current set of devices for a given user.
+    /// a new device to their account, required for E2E encryption to correctly target the
+    /// current set of devices for a given user.
     #[serde(rename = "m.device_list_update")]
     DeviceListUpdate(DeviceListUpdateContent),
 
     /// An EDU that lets servers push send events directly to a specific device on a
-    // remote server - for instance, to maintain an Olm E2E encrypted message channel
-    // between a local and remote device.
+    /// remote server - for instance, to maintain an Olm E2E encrypted message channel
+    /// between a local and remote device.
     #[serde(rename = "m.direct_to_device")]
     DirectToDevice(DirectDeviceContent),
 
@@ -102,7 +102,7 @@ pub struct PresenceUpdate {
 /// The content for "m.receipt" Edu.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ReceiptContent {
-    ///  Receipts for a particular room.
+    /// Receipts for a particular room.
     #[serde(flatten)]
     pub receipts: BTreeMap<RoomId, ReceiptMap>,
 }
@@ -196,14 +196,15 @@ pub struct DirectDeviceContent {
 
 #[cfg(test)]
 mod test {
+    use js_int::uint;
     use matches::assert_matches;
-    use ruma_identifiers::{room_id, user_id};
+    use ruma_identifiers::{device_id, room_id, user_id};
     use serde_json::json;
 
     use super::*;
 
     #[test]
-    fn device_list_update() {
+    fn device_list_update_edu() {
         let json = json!({
                 "content": {
                     "deleted": false,
@@ -244,7 +245,12 @@ mod test {
                 deleted,
                 keys
             }) if user_id == &user_id!("@john:example.com")
+                && device_id == &device_id!("QBUAZIFURK")
+                && device_display_name == "Mobile"
+                && stream_id == &uint!(6)
                 && prev_id.is_empty()
+                && deleted == &Some(false)
+                && keys.is_some()
         );
 
         assert_eq!(
