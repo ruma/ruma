@@ -210,7 +210,7 @@ impl From<MessageType> for MessageEventContent {
 }
 
 /// Enum modeling the different ways relationships can be expressed in a
-/// `m.relates_to` field of an m.room.message event.
+/// `m.relates_to` field of an `m.room.message` event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(from = "RelatesToJsonRepr", into = "RelatesToJsonRepr")]
 pub enum Relation {

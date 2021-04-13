@@ -1,7 +1,7 @@
 //! Types for event relationships.
 //!
-//! Events in Matrix can relate to one another in a couple of ways, this module
-//! adds types to parse the relationship of an event if any exists.
+//! Events in Matrix can relate to one another in a couple of ways, this module adds types to parse
+//! the relationship of an event if any exists.
 //!
 //! MSC for all the relates_to types except replies:
 //! <https://github.com/matrix-org/matrix-doc/pull/2674>
@@ -10,18 +10,17 @@ use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-/// Enum modeling the different ways relationships can be expressed in a
-/// `m.relates_to` field of an event.
+/// Enum modeling the different ways relationships can be expressed in a `m.relates_to` field of an
+/// event.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(untagged)]
 pub(crate) enum RelatesToJsonRepr {
-    /// A relation which contains subtypes indicating the type of the
-    /// relationship with the `rel_type` field.
+    /// A relation which contains subtypes indicating the type of the relationship with the
+    /// `rel_type` field.
     #[cfg(feature = "unstable-pre-spec")]
     Relation(RelationJsonRepr),
 
-    /// An `m.in_reply_to` relationship indicating that the event is a reply to
-    /// another event.
+    /// An `m.in_reply_to` relationship indicating that the event is a reply to another event.
     Reply {
         /// Information about another message being replied to.
         #[serde(rename = "m.in_reply_to")]
