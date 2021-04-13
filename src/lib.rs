@@ -510,7 +510,15 @@ impl StateResolution {
             for aid in &event.auth_events() {
                 if let Ok(ev) = StateResolution::get_or_load_event(room_id, &aid, event_map) {
                     // TODO synapse check "rejected_reason", I'm guessing this is redacted_because in ruma ??
-                    auth_events.insert((ev.kind(), state_key.clone()), ev);
+                    auth_events.insert(
+                        (
+                            ev.kind(),
+                            ev.state_key().ok_or_else(|| {
+                                Error::InvalidPdu("State event had no state key".to_owned())
+                            })?,
+                        ),
+                        ev,
+                    );
                 } else {
                     log::warn!("auth event id for {} is missing {}", aid, event_id);
                 }

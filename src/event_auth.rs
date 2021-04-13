@@ -336,6 +336,7 @@ pub fn valid_membership_change<E: Event>(
 
     let key = (EventType::RoomMember, target_user_id.to_string());
     let current = auth_events.get(&key);
+
     let current_membership =
         current.map_or(Ok::<_, Error>(member::MembershipState::Leave), |pdu| {
             Ok(serde_json::from_value::<room::member::MembershipState>(
