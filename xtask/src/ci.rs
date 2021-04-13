@@ -11,10 +11,6 @@ macro_rules! run_in {
     }};
 }
 
-//macro_rules! rustup_cmd {
-//
-//}
-
 /// Task to run CI tests.
 pub struct CiTask {
     /// Which version of Rust to test against.

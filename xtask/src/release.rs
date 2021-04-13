@@ -184,7 +184,7 @@ struct LocalCrate {
 
 impl LocalCrate {
     /// Creates a new `Crate` with the given name and project root.
-    pub fn new(name: String, project_root: &PathBuf) -> Result<Self> {
+    pub fn new(name: String, project_root: &Path) -> Result<Self> {
         let path = project_root.join(&name);
 
         let version = Self::version(&path)?;
@@ -238,7 +238,7 @@ impl LocalCrate {
             if ask_yes_no("This version is already published. Skip this step and continue?")? {
                 Ok(())
             } else {
-                Err("Release interrupted by user.")?
+                Err("Release interrupted by user.".into())
             }
         } else {
             Ok(cmd!("cargo publish").run()?)
