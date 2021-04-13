@@ -5,32 +5,9 @@ sources:
   - https://github.com/ruma/ruma
 tasks:
   - rustup: |
+      # We specify --profile minimal because we'd otherwise download docs
       rustup toolchain install nightly --profile minimal -c rustfmt,clippy
       rustup default nightly
   - test: |
       cd ruma
-
-      # We don't want the build to stop on individual failure of independent
-      # tools, so capture tool exit codes and set the task exit code manually
-      set +e
-
-      cargo fmt -- --check
-      fmt_exit=$?
-
-      pushd ruma
-
-      cargo clippy --all-targets --all-features --quiet -- -D warnings
-      clippy_1_exit=$?
-
-      popd
-
-      # Need to run clippy separately on ruma-client to not enable conflicting
-      # features with --all-features.
-      pushd ruma-client
-
-      cargo clippy --all-targets --quiet -- -D warnings
-      clippy_2_exit=$?
-
-      popd
-
-      exit $(( $fmt_exit || $clippy_1_exit || $clippy_2_exit ))
+      cargo xtask ci nightly
