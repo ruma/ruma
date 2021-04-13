@@ -228,7 +228,7 @@ fn membership_change(
 impl MemberEvent {
     /// Helper function for membership change. Check [the specification][spec] for details.
     ///
-    /// [spec]: https://matrix.org/docs/spec/client_server/latest#m-room-member
+    /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
     pub fn membership_change(&self) -> MembershipChange {
         membership_change(&self.content, self.prev_content.as_ref(), &self.sender, &self.state_key)
     }
@@ -237,7 +237,7 @@ impl MemberEvent {
 impl SyncStateEvent<MemberEventContent> {
     /// Helper function for membership change. Check [the specification][spec] for details.
     ///
-    /// [spec]: https://matrix.org/docs/spec/client_server/latest#m-room-member
+    /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
     pub fn membership_change(&self) -> MembershipChange {
         membership_change(&self.content, self.prev_content.as_ref(), &self.sender, &self.state_key)
     }
@@ -246,7 +246,7 @@ impl SyncStateEvent<MemberEventContent> {
 impl StrippedStateEvent<MemberEventContent> {
     /// Helper function for membership change. Check [the specification][spec] for details.
     ///
-    /// [spec]: https://matrix.org/docs/spec/client_server/latest#m-room-member
+    /// [spec]: https://matrix.org/docs/spec/client_server/r0.6.1#m-room-member
     pub fn membership_change(&self) -> MembershipChange {
         membership_change(&self.content, None, &self.sender, &self.state_key)
     }

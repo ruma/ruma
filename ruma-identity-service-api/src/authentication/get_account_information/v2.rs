@@ -1,4 +1,4 @@
-//! [GET /_matrix/identity/v2/account](https://matrix.org/docs/spec/identity_service/latest#get-matrix-identity-v2-account)
+//! [GET /_matrix/identity/v2/account](https://matrix.org/docs/spec/identity_service/r0.3.0#get-matrix-identity-v2-account)
 
 use ruma_api::ruma_api;
 use ruma_identifiers::UserId;
