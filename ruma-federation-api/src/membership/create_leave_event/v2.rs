@@ -1,11 +1,8 @@
 //! [PUT /_matrix/federation/v2/send_leave/{roomId}/{eventId}](https://matrix.org/docs/spec/server_server/r0.1.4#put-matrix-federation-v2-send-leave-roomid-eventid)
 
-use std::time::SystemTime;
-
-use js_int::UInt;
 use ruma_api::ruma_api;
-use ruma_events::{room::member::MemberEventContent, EventType};
-use ruma_identifiers::{EventId, RoomId, ServerName, UserId};
+use ruma_events::pdu::Pdu;
+use ruma_identifiers::{EventId, RoomId};
 use ruma_serde::Raw;
 
 ruma_api! {
@@ -20,6 +17,8 @@ ruma_api! {
 
     request: {
         /// The room ID that is about to be left.
+        ///
+        /// Do not use this. Instead, use the `room_id` field inside the PDU.
         #[ruma_api(path)]
         pub room_id: &'a RoomId,
 
@@ -27,35 +26,9 @@ ruma_api! {
         #[ruma_api(path)]
         pub event_id: &'a EventId,
 
-        /// The user ID of the leaving member.
-        #[ruma_api(query)]
-        pub sender: &'a UserId,
-
-        /// The name of the leaving homeserver.
-        #[ruma_api(query)]
-        pub origin: &'a ServerName,
-
-        /// A timestamp added by the leaving homeserver.
-        #[ruma_api(query)]
-        #[serde(with = "ruma_serde::time::ms_since_unix_epoch")]
-        pub origin_server_ts: SystemTime,
-
-        /// The value `m.room.member`.
-        #[ruma_api(query)]
-        #[serde(rename = "type")]
-        pub event_type: EventType,
-
-        /// The user ID of the leaving member.
-        #[ruma_api(query)]
-        pub state_key: &'a str,
-
-        /// The content of the event.
-        #[ruma_api(query)]
-        pub content: Raw<MemberEventContent>,
-
-        /// This field must be present but is ignored; it may be 0.
-        #[ruma_api(query)]
-        pub depth: UInt,
+        /// The PDU.
+        #[ruma_api(body)]
+        pub pdu: Raw<Pdu>,
     }
 
     #[derive(Default)]
@@ -63,39 +36,9 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Creates a new `Request` with:
-    /// * the room ID that is about to be left.
-    /// * the event ID for the leave event.
-    /// * the user ID of the leaving member.
-    /// * the name of the leaving homeserver.
-    /// * a timestamp added by the leaving homeserver.
-    /// * the value `m.room.member`.
-    /// * the user ID of the leaving member.
-    /// * the content of the event.
-    /// * this field must be present but is ignored; it may be 0.
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        room_id: &'a RoomId,
-        event_id: &'a EventId,
-        sender: &'a UserId,
-        origin: &'a ServerName,
-        origin_server_ts: SystemTime,
-        event_type: EventType,
-        state_key: &'a str,
-        content: Raw<MemberEventContent>,
-        depth: UInt,
-    ) -> Self {
-        Self {
-            room_id,
-            event_id,
-            sender,
-            origin,
-            origin_server_ts,
-            event_type,
-            state_key,
-            content,
-            depth,
-        }
+    /// Creates a `Request` from the given room ID, event ID and `Pdu`.
+    pub fn new(room_id: &'a RoomId, event_id: &'a EventId, pdu: Raw<Pdu>) -> Self {
+        Self { room_id, event_id, pdu }
     }
 }
 
