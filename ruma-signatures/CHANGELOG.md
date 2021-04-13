@@ -1,5 +1,11 @@
 # [unreleased]
 
+# 0.7.0
+
+Breaking changes:
+
+* Upgrade ruma-identifiers dependency to 0.19.0
+
 # 0.6.0
 
 Breaking changes:

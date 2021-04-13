@@ -24,7 +24,7 @@ ruma-identifiers = { version = "0.19.0", path = "../ruma-identifiers", features 
 ruma-serde = { version = "0.3.1", path = "../ruma-serde" }
 
 ruma-events = { version = "=0.22.0-alpha.2", path = "../ruma-events", optional = true }
-ruma-signatures = { version = "0.6.0", path = "../ruma-signatures", optional = true }
+ruma-signatures = { version = "0.7.0", path = "../ruma-signatures", optional = true }
 
 ruma-api = { version = "=0.17.0-alpha.2", path = "../ruma-api", optional = true }
 ruma-appservice-api = { version = "=0.2.0-alpha.2", path = "../ruma-appservice-api", optional = true }
