@@ -215,7 +215,7 @@ impl Request {
         quote! {
             #[automatically_derived]
             #[cfg(feature = "server")]
-            #[allow(clippy::inconsistent_struct_constructor)]
+            #[allow(clippy::unknown_clippy_lints, clippy::inconsistent_struct_constructor)]
             impl #ruma_api::IncomingRequest for #incoming_request_type {
                 type EndpointError = #error_ty;
                 type OutgoingResponse = Response;
