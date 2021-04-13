@@ -83,7 +83,5 @@ mod tests {
             ).unwrap(),
             IncomingRequest { user_id, avatar_url: None } if user_id == "@foo:bar.org"
         );
-
-        Ok(())
     }
 }
