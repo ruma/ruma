@@ -43,11 +43,11 @@ impl fmt::Display for EventKindVariation {
 }
 
 impl EventKindVariation {
-    pub fn is_redacted(&self) -> bool {
+    pub fn is_redacted(self) -> bool {
         matches!(self, Self::Redacted | Self::RedactedSync | Self::RedactedStripped)
     }
 
-    pub fn to_full_variation(&self) -> Self {
+    pub fn to_full_variation(self) -> Self {
         match self {
             EventKindVariation::Redacted
             | EventKindVariation::RedactedSync
