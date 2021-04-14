@@ -4,6 +4,7 @@ use ruma_serde_macros::{AsRefStr, DisplayAsRefStr, FromString};
 use serde::{Deserialize, Serialize};
 
 pub mod lookup_3pid;
+pub mod get_hash_parameters;
 
 /// The algorithms that can be used to hash the identifiers used for lookup, as defined in the
 /// Matrix Spec.
