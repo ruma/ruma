@@ -207,37 +207,37 @@ impl ReleaseTask {
         let mut input = String::new();
         let stdin = stdin();
 
-        print!("Ready to commit the changes. [continue/abort/DIFF]: ");
+        let instructions = "Ready to commit the changes. [continue/abort/diff]: ";
+        print!("{}", instructions);
         stdout().flush()?;
 
         let mut handle = stdin.lock();
-        handle.read_line(&mut input)?;
 
-        match input.trim().to_ascii_lowercase().as_str() {
-            "c" | "continue" => {}
-            "a" | "abort" => {
-                return Err("User aborted commit".into());
-            }
-            _ => {
-                cmd!("git diff").run()?;
-                print!("Commit the changes? [continue/ABORT]: ");
-                stdout().flush()?;
-
-                handle.read_line(&mut input)?;
-
-                match input.trim().to_ascii_lowercase().as_str() {
-                    "c" | "continue" => {}
-                    _ => {
-                        return Err("User aborted commit".into());
-                    }
+        while let _ = handle.read_line(&mut input)? {
+            match input.trim().to_ascii_lowercase().as_str() {
+                "c" | "continue" => {
+                    break;
+                }
+                "a" | "abort" => {
+                    return Err("User aborted commit".into());
+                }
+                "d" | "diff" => {
+                    cmd!("git diff").run()?;
+                }
+                _ => {
+                    println!("Unknown command.");
                 }
             }
+            print!("{}", instructions);
+            stdout().flush()?;
+
+            input = String::new();
         }
 
         let message = format!("Release {}", self.title());
 
         println!("Creating commit…");
-        cmd!("git commit -S -a -m {message}").read()?;
+        cmd!("git commit -a -m {message}").read()?;
 
         println!("Pushing commit…");
         cmd!("git push").read()?;
