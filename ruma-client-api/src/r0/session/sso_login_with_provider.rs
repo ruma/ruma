@@ -14,7 +14,6 @@ ruma_api! {
         path: "/_matrix/client/unstable/org.matrix.msc2858/login/sso/redirect/:idp_id",
         rate_limited: false,
         authentication: None,
-
     }
 
     request: {
@@ -60,10 +59,9 @@ mod tests {
 
     #[test]
     fn serialize_sso_login_with_provider_request_uri() {
-        let req: http::Request<Vec<u8>> =
-            Request { idp_id: "provider", redirect_url: "https://example.com/sso" }
-                .try_into_http_request("https://homeserver.tld", None)
-                .unwrap();
+        let req = Request { idp_id: "provider", redirect_url: "https://example.com/sso" }
+            .try_into_http_request("https://homeserver.tld", None)
+            .unwrap();
 
         assert_eq!(
             req.uri().to_string(),

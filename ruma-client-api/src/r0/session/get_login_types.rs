@@ -117,7 +117,7 @@ impl LoginType {
 }
 
 /// The payload for password login.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.password")]
 pub struct PasswordLoginType {}
@@ -129,14 +129,8 @@ impl PasswordLoginType {
     }
 }
 
-impl Default for PasswordLoginType {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 /// The payload for token-based login.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.token")]
 pub struct TokenLoginType {}
@@ -148,14 +142,8 @@ impl TokenLoginType {
     }
 }
 
-impl Default for TokenLoginType {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 /// The payload for SSO login.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.sso")]
 pub struct SsoLoginType {
@@ -165,24 +153,18 @@ pub struct SsoLoginType {
     /// [MSC2858](https://github.com/matrix-org/matrix-doc/pull/2858).
     #[cfg(feature = "unstable-pre-spec")]
     #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
-    #[serde(rename = "org.matrix.msc2858.identity_providers")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub identity_providers: Option<Vec<IdentityProvider>>,
+    #[serde(
+        default,
+        rename = "org.matrix.msc2858.identity_providers",
+        skip_serializing_if = "Vec::is_empty"
+    )]
+    pub identity_providers: Vec<IdentityProvider>,
 }
 
 impl SsoLoginType {
     /// Creates a new `PasswordLoginType`.
     pub fn new() -> Self {
-        Self {
-            #[cfg(feature = "unstable-pre-spec")]
-            identity_providers: None,
-        }
-    }
-}
-
-impl Default for SsoLoginType {
-    fn default() -> Self {
-        Self::new()
+        Self::default()
     }
 }
 
@@ -208,8 +190,8 @@ pub struct IdentityProvider {
 #[cfg(feature = "unstable-pre-spec")]
 impl IdentityProvider {
     /// Creates an `IdentityProvider` with the given `id` and `name`.
-    pub fn new(id: &str, name: &str) -> Self {
-        Self { id: id.into(), name: name.into(), icon: None, brand: None }
+    pub fn new(id: String, name: String) -> Self {
+        Self { id, name, icon: None, brand: None }
     }
 }
 
@@ -234,11 +216,11 @@ pub enum IdentityProviderBrand {
 
     /// The [GitHub](https://github.com/logos) brand.
     #[ruma_enum(rename = "org.matrix.github")]
-    Github,
+    GitHub,
 
     /// The [GitLab](https://about.gitlab.com/press/press-kit/) brand.
     #[ruma_enum(rename = "org.matrix.gitlab")]
-    Gitlab,
+    GitLab,
 
     /// The [Google](https://developers.google.com/identity/branding-guidelines) brand.
     #[ruma_enum(rename = "org.matrix.google")]
@@ -261,7 +243,7 @@ pub enum IdentityProviderBrand {
 pub struct CustomLoginType {
     /// A custom type
     ///
-    /// This field is named `type_` instead of `typee` because the latter is a reserved
+    /// This field is named `type_` instead of `type` because the latter is a reserved
     /// keyword in Rust.
     #[serde(rename = "override")]
     pub type_: String,
@@ -271,7 +253,7 @@ pub struct CustomLoginType {
     pub data: JsonObject,
 }
 
-mod login_type_list_serde;
+mod login_type_serde;
 
 #[cfg(test)]
 mod tests {
@@ -330,12 +312,12 @@ mod tests {
             foo,
             Foo {
                 flows: vec![LoginType::Sso(SsoLoginType {
-                    identity_providers: Some(vec![
+                    identity_providers: vec![
                         IdentityProvider {
                             id: "oidc-gitlab".into(),
                             name: "GitLab".into(),
                             icon: Some("mxc://localhost/gitlab-icon".into()),
-                            brand: Some(IdentityProviderBrand::Gitlab)
+                            brand: Some(IdentityProviderBrand::GitLab)
                         },
                         IdentityProvider {
                             id: "custom".into(),
@@ -343,7 +325,7 @@ mod tests {
                             icon: None,
                             brand: None
                         }
-                    ])
+                    ]
                 })]
             }
         )
@@ -356,12 +338,12 @@ mod tests {
             flows: vec![
                 LoginType::Token(TokenLoginType {}),
                 LoginType::Sso(SsoLoginType {
-                    identity_providers: Some(vec![IdentityProvider {
+                    identity_providers: vec![IdentityProvider {
                         id: "oidc-github".into(),
                         name: "GitHub".into(),
                         icon: Some("mxc://localhost/github-icon".into()),
-                        brand: Some(IdentityProviderBrand::Github),
-                    }]),
+                        brand: Some(IdentityProviderBrand::GitHub),
+                    }],
                 }),
             ],
         })
