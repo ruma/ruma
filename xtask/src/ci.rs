@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use xshell::pushd;
 
-use crate::{cmd, Result};
+use crate::{cargo::Metadata, cmd, Result};
 
 const MSRV: &str = "1.45";
 
@@ -18,8 +18,9 @@ pub struct CiTask {
 }
 
 impl CiTask {
-    pub(crate) fn new(version: Option<String>, project_root: PathBuf) -> Self {
-        Self { version, project_root }
+    pub(crate) fn new(version: Option<String>) -> Result<Self> {
+        let project_root = Metadata::load()?.workspace_root;
+        Ok(Self { version, project_root })
     }
 
     pub(crate) fn run(self) -> Result<()> {

@@ -3,16 +3,13 @@
 //! This binary is integrated into the `cargo` command line by using an alias in
 //! `.cargo/config`. Run commands as `cargo xtask [command]`.
 
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::{env, path::Path};
 
 use serde::Deserialize;
-use serde_json::from_str as from_json_str;
 use toml::from_str as from_toml_str;
 use xshell::read_file;
 
+mod cargo;
 mod ci;
 mod flags;
 mod release;
@@ -30,8 +27,6 @@ fn main() {
 }
 
 fn try_main() -> Result<()> {
-    let project_root = project_root()?;
-
     let flags = flags::Xtask::from_env()?;
     match flags.subcommand {
         flags::XtaskCmd::Help(_) => {
@@ -39,32 +34,33 @@ fn try_main() -> Result<()> {
             Ok(())
         }
         flags::XtaskCmd::Release(cmd) => {
-            let task = ReleaseTask::new(cmd.name, project_root)?;
+            let mut task = ReleaseTask::new(cmd.name, cmd.version)?;
+            task.run()
+        }
+        flags::XtaskCmd::Publish(cmd) => {
+            let mut task = ReleaseTask::new(cmd.name, cmd.version)?;
             task.run()
         }
         flags::XtaskCmd::Ci(ci) => {
-            let task = CiTask::new(ci.version, project_root);
+            let task = CiTask::new(ci.version)?;
             task.run()
         }
     }
 }
 
 #[derive(Debug, Deserialize)]
-struct CargoMetadata {
-    workspace_root: PathBuf,
-}
-
-/// Get the project workspace root.
-fn project_root() -> Result<PathBuf> {
-    let metadata_json = cmd!("cargo metadata --format-version 1").read()?;
-    let metadata: CargoMetadata = from_json_str(&metadata_json)?;
-    Ok(metadata.workspace_root)
-}
-
-#[derive(Debug, Deserialize)]
 struct Config {
     /// Credentials to authenticate to GitHub.
     github: GithubConfig,
+}
+
+impl Config {
+    /// Load a new `Config` from `config.toml`.
+    fn load() -> Result<Self> {
+        let path = Path::new(&env!("CARGO_MANIFEST_DIR")).join("config.toml");
+        let config = read_file(path)?;
+        Ok(from_toml_str(&config)?)
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -74,13 +70,6 @@ struct GithubConfig {
 
     /// The personal access token to use for authentication.
     token: String,
-}
-
-/// Load the config from `config.toml`.
-fn config() -> Result<Config> {
-    let path = Path::new(&env!("CARGO_MANIFEST_DIR")).join("config.toml");
-    let config = read_file(path)?;
-    Ok(from_toml_str(&config)?)
 }
 
 #[macro_export]
