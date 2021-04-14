@@ -29,7 +29,7 @@ ruma_api! {
         /// The addresses to look up. The format of the entries here depend on the `algorithm`
         /// used. Note that queries which have been incorrectly hashed or formatted will lead to no
         /// matches.
-        pub addresses: &'a [String]
+        pub addresses: &'a [String],
     }
 
     response: {
