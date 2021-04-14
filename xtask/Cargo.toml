@@ -9,10 +9,10 @@ publish = false
 
 [dependencies]
 isahc = { version = "1.2.0", features = ["json"] }
-itertools = "0.10.0"
 semver = { version = "0.11.0", features = ["serde"] }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.60"
 toml = "0.5.8"
+toml_edit = "0.2.0"
 xflags = "0.2.1"
 xshell = "0.1.9"

@@ -1,5 +1,5 @@
 use std::{
-    path::{Path, PathBuf},
+    io::{stdin, stdout, BufRead, Write},
     thread::sleep,
     time::Duration,
 };
@@ -10,26 +10,30 @@ use isahc::{
     http::StatusCode,
     HttpClient, ReadResponseExt, Request,
 };
-use itertools::Itertools;
-use semver::Version;
-use serde::{de::IgnoredAny, Deserialize};
+use semver::{Identifier, Version};
+use serde::Deserialize;
 use serde_json::json;
-use toml::from_str as from_toml_str;
-use xshell::{pushd, read_file};
 
-use crate::{cmd, util::ask_yes_no, GithubConfig, Result};
+use crate::{
+    cargo::{Metadata, Package},
+    cmd,
+    util::ask_yes_no,
+    GithubConfig, Result,
+};
 
-const CRATESIO_API: &str = "https://crates.io/api/v1/crates";
 const GITHUB_API_RUMA: &str = "https://api.github.com/repos/ruma/ruma";
 
 /// Task to create a new release of the given crate.
 #[derive(Debug)]
 pub struct ReleaseTask {
-    /// The crate to release.
-    local_crate: LocalCrate,
+    /// The metadata of the cargo workspace.
+    metadata: Metadata,
 
-    /// The root of the workspace.
-    project_root: PathBuf,
+    /// The crate to release.
+    package: Package,
+
+    /// The new version of the crate.
+    version: Version,
 
     /// The http client to use for requests.
     http_client: HttpClient,
@@ -39,19 +43,28 @@ pub struct ReleaseTask {
 }
 
 impl ReleaseTask {
-    /// Create a new `ReleaseTask` with the given `name` and `project_root`.
-    pub(crate) fn new(name: String, project_root: PathBuf) -> Result<Self> {
-        let local_crate = LocalCrate::new(name, &project_root)?;
-        let config = crate::config()?.github;
+    /// Create a new `ReleaseTask` with the given `name` and `version`.
+    pub(crate) fn new(name: String, version: Version) -> Result<Self> {
+        let metadata = Metadata::load()?;
+
+        let package = metadata
+            .packages
+            .clone()
+            .into_iter()
+            .find(|p| p.name == name)
+            .ok_or(format!("Package {} not found in cargo metadata", name))?;
+
+        let config = crate::Config::load()?.github;
+
         let http_client = HttpClient::new()?;
 
-        Ok(Self { local_crate, project_root, http_client, config })
+        Ok(Self { metadata, package, version, http_client, config })
     }
 
     /// Run the task to effectively create a release.
-    pub(crate) fn run(self) -> Result<()> {
+    pub(crate) fn run(&mut self) -> Result<()> {
         let title = &self.title();
-        let prerelease = self.local_crate.version.is_prerelease();
+        let prerelease = self.version.is_prerelease();
         println!(
             "Starting {} for {}…",
             match prerelease {
@@ -69,15 +82,41 @@ impl ReleaseTask {
 
         println!("Checking status of git repository…");
         if !cmd!("git status -s -uno").read()?.is_empty()
-            && !ask_yes_no("This git repository contains untracked files. Continue?")?
+            && !ask_yes_no("This git repository contains uncommitted changes. Continue?")?
         {
             return Ok(());
         }
 
-        if let Some(macros) = self.macros() {
-            print!("Found macros crate. ");
-            let _dir = pushd(&macros.path)?;
-            let published = macros.publish(&self.http_client)?;
+        if self.package.version != self.version
+            && !self.package.version.is_next(&self.version)
+            && !ask_yes_no(&format!(
+                "Version {} should not follow version {}. Do you really want to continue?",
+                self.version, self.package.version,
+            ))?
+        {
+            return Ok(());
+        }
+
+        let mut macros = self.macros();
+
+        if let Some(m) = macros.as_mut() {
+            println!("Found macros crate {}.", m.name);
+
+            m.update_version(&self.version)?;
+            m.update_dependants(&self.metadata.packages)?;
+
+            println!("Resuming release of {}…", self.title());
+        }
+
+        self.package.update_version(&self.version)?;
+        self.package.update_dependants(&self.metadata.packages)?;
+
+        let changes = &self.package.update_changelog()?;
+
+        self.commit()?;
+
+        if let Some(m) = macros {
+            let published = m.publish(&self.http_client)?;
 
             if published {
                 // Crate was published, instead of publishing skipped (because release already
@@ -85,20 +124,14 @@ impl ReleaseTask {
                 println!("Waiting 10 seconds for the release to make it into the crates.io index…");
                 sleep(Duration::from_secs(10));
             }
-
-            println!("Resuming release of {}…", self.title());
         }
 
-        let _dir = pushd(&self.local_crate.path)?;
-
-        self.local_crate.publish(&self.http_client)?;
+        self.package.publish(&self.http_client)?;
 
         if prerelease {
             println!("Pre-release created successfully!");
             return Ok(());
         }
-
-        let changes = &self.local_crate.changes()?;
 
         let tag = &self.tag_name();
 
@@ -132,13 +165,22 @@ impl ReleaseTask {
     }
 
     /// Get the associated `-macros` crate of the current crate, if any.
-    fn macros(&self) -> Option<LocalCrate> {
-        LocalCrate::new(format!("{}-macros", self.local_crate.name), &self.project_root).ok()
+    fn macros(&self) -> Option<Package> {
+        self.metadata
+            .packages
+            .clone()
+            .into_iter()
+            .find(|p| p.name == format!("{}-macros", self.package.name))
     }
 
     /// Get the title of this release.
     fn title(&self) -> String {
-        format!("{} {}", self.local_crate.name, self.local_crate.version)
+        format!("{} {}", self.package.name, self.version)
+    }
+
+    /// Get the tag name for this release.
+    fn tag_name(&self) -> String {
+        format!("{}-{}", self.package.name, self.version)
     }
 
     /// Load the GitHub config from the config file.
@@ -153,9 +195,47 @@ impl ReleaseTask {
         Ok(remote)
     }
 
-    /// Get the tag name for this release.
-    fn tag_name(&self) -> String {
-        format!("{}-{}", self.local_crate.name, self.local_crate.version)
+    /// Commit and push all the changes in the git repository.
+    fn commit(&self) -> Result<()> {
+        let mut input = String::new();
+        let stdin = stdin();
+
+        print!("Ready to commit the changes. [continue/abort/DIFF]: ");
+        stdout().flush()?;
+
+        let mut handle = stdin.lock();
+        handle.read_line(&mut input)?;
+
+        match input.trim().to_ascii_lowercase().as_str() {
+            "c" | "continue" => {}
+            "a" | "abort" => {
+                return Err("User aborted commit".into());
+            }
+            _ => {
+                cmd!("git diff").run()?;
+                print!("Commit the changes? [continue/ABORT]: ");
+                stdout().flush()?;
+
+                handle.read_line(&mut input)?;
+
+                match input.trim().to_ascii_lowercase().as_str() {
+                    "c" | "continue" => {}
+                    _ => {
+                        return Err("User aborted commit".into());
+                    }
+                }
+            }
+        }
+
+        let message = format!("Release {}", self.title());
+
+        println!("Creating commit…");
+        cmd!("git commit -S -a -m {message}").read()?;
+
+        println!("Pushing commit…");
+        cmd!("git push").read()?;
+
+        Ok(())
     }
 
     /// Check if the tag for the current version of the crate has been pushed on GitHub.
@@ -185,104 +265,6 @@ impl ReleaseTask {
             Err(format!("{}: {}", response.status(), response.text()?).into())
         }
     }
-}
-
-/// A local Rust crate.
-#[derive(Debug)]
-struct LocalCrate {
-    /// The name of the crate.
-    name: String,
-
-    /// The version of the crate.
-    version: Version,
-
-    /// The local path of the crate.
-    path: PathBuf,
-}
-
-impl LocalCrate {
-    /// Creates a new `Crate` with the given name and project root.
-    pub fn new(name: String, project_root: &Path) -> Result<Self> {
-        let path = project_root.join(&name);
-
-        let version = Self::version(&path)?;
-
-        Ok(Self { name, version, path })
-    }
-
-    /// The current version of the crate at `path` from its manifest.
-    fn version(path: &Path) -> Result<Version> {
-        let manifest_toml = read_file(path.join("Cargo.toml"))?;
-        let manifest: CargoManifest = from_toml_str(&manifest_toml)?;
-
-        Ok(manifest.package.version)
-    }
-
-    /// The changes of the given version from the changelog.
-    fn changes(&self) -> Result<String> {
-        let changelog = read_file(self.path.join("CHANGELOG.md"))?;
-        let lines_nb = changelog.lines().count();
-        let mut lines = changelog.lines();
-
-        let start = match lines.position(|l| l.starts_with(&format!("# {}", self.version))) {
-            Some(p) => p + 1,
-            None => {
-                return Err("Could not find version title in changelog".into());
-            }
-        };
-
-        let length = match lines.position(|l| l.starts_with("# ")) {
-            Some(p) => p,
-            None => lines_nb,
-        };
-
-        let changes = changelog.lines().skip(start).take(length).join("\n");
-
-        Ok(changes.trim().to_owned())
-    }
-
-    /// Check if the current version of the crate is published on crates.io.
-    fn is_published(&self, client: &HttpClient) -> Result<bool> {
-        let response: CratesIoCrate =
-            client.get(format!("{}/{}/{}", CRATESIO_API, self.name, self.version))?.json()?;
-
-        Ok(response.version.is_some())
-    }
-
-    /// Publish this package on crates.io.
-    fn publish(&self, client: &HttpClient) -> Result<bool> {
-        println!("Publishing {} {} on crates.io…", self.name, self.version);
-        if self.is_published(client)? {
-            if ask_yes_no("This version is already published. Skip this step and continue?")? {
-                Ok(false)
-            } else {
-                Err("Release interrupted by user.".into())
-            }
-        } else {
-            cmd!("cargo publish").run()?;
-            Ok(true)
-        }
-    }
-}
-
-/// The required cargo manifest data of a crate.
-#[derive(Debug, Deserialize)]
-struct CargoManifest {
-    /// The package information.
-    package: CargoPackage,
-}
-
-/// The required package information from a crate's cargo manifest.
-#[derive(Debug, Deserialize)]
-struct CargoPackage {
-    /// The package version.
-    version: Version,
-}
-
-/// A crate from the `GET /crates/{crate}` endpoint of crates.io.
-#[derive(Deserialize)]
-struct CratesIoCrate {
-    version: Option<IgnoredAny>,
 }
 
 /// A tag from the `GET /repos/{owner}/{repo}/tags` endpoint of GitHub REST API.
@@ -341,5 +323,105 @@ impl StrExt for str {
         }
 
         string + s
+    }
+}
+
+/// Extra Version increment methods for crate release.
+trait VersionExt {
+    /// Adds a pre-release label and number if there is none.
+    fn add_pre_release(&mut self);
+
+    /// Increments the pre-release number, if this is a pre-release.
+    fn increment_pre_number(&mut self);
+
+    /// Increments the pre-release label from `alpha` to `beta` if this is a pre-release and it is
+    /// possible, otherwise does nothing.
+    fn increment_pre_label(&mut self);
+
+    /// If the given version can be the next after this one.
+    ///
+    /// This checks all the version bumps of the format MAJOR.MINOR.PATCH-PRE_LABEL.PRE_NUMBER, with
+    /// PRE_LABEL = alpha or beta.
+    fn is_next(&self, version: &Version) -> bool;
+}
+
+impl VersionExt for Version {
+    fn add_pre_release(&mut self) {
+        if !self.is_prerelease() {
+            self.pre = vec![Identifier::AlphaNumeric("alpha".into()), Identifier::Numeric(1)];
+        }
+    }
+
+    fn increment_pre_number(&mut self) {
+        if self.is_prerelease() {
+            if let Identifier::Numeric(n) = self.pre[1] {
+                self.pre[1] = Identifier::Numeric(n + 1);
+            }
+        }
+    }
+
+    fn increment_pre_label(&mut self) {
+        if self.is_prerelease() {
+            match &self.pre[0] {
+                Identifier::AlphaNumeric(n) if n == "alpha" => {
+                    self.pre =
+                        vec![Identifier::AlphaNumeric("beta".into()), Identifier::Numeric(1)];
+                }
+                _ => {}
+            }
+        }
+    }
+
+    fn is_next(&self, version: &Version) -> bool {
+        let mut next = self.clone();
+
+        if self.is_prerelease() {
+            next.increment_pre_number();
+            if next == *version {
+                return true;
+            }
+
+            next.increment_pre_label();
+            if next == *version {
+                return true;
+            }
+
+            next.pre = vec![];
+            if next == *version {
+                return true;
+            }
+        } else {
+            next.increment_patch();
+            if next == *version {
+                return true;
+            }
+
+            next.add_pre_release();
+            if next == *version {
+                return true;
+            }
+
+            next.increment_minor();
+            if next == *version {
+                return true;
+            }
+
+            next.add_pre_release();
+            if next == *version {
+                return true;
+            }
+
+            next.increment_major();
+            if next == *version {
+                return true;
+            }
+
+            next.add_pre_release();
+            if next == *version {
+                return true;
+            }
+        }
+
+        false
     }
 }

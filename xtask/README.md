@@ -9,7 +9,8 @@ the appropriate fields.
 
 ## Commands
 
-- `release [crate]`: Publish `crate`, create a signed tag based on its name and version and create
-  a release on GitHub. **Requires all `github` fields in `config.toml`.**
+- `release [crate] [version]`: Publish `crate` at given `version`, create a signed tag based on its
+  name and version and create a release on GitHub.
+  **Requires all `github` fields in `config.toml`.**
 
 [cargo-xtask] : https://github.com/matklad/cargo-xtask

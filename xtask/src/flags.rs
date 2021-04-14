@@ -1,5 +1,7 @@
 #![allow(dead_code)] // silence never-used warning for from_vec in generated code
 
+use semver::Version;
+
 xflags::xflags! {
     src "./src/flags.rs"
 
@@ -14,6 +16,9 @@ xflags::xflags! {
         cmd release
             /// The crate to release
             required name: String
+
+            /// The new version of the crate
+            required version: Version
         {}
 
         /// Run CI tests.
@@ -45,6 +50,7 @@ pub struct Help {
 #[derive(Debug)]
 pub struct Release {
     pub name: String,
+    pub version: Version,
 }
 
 #[derive(Debug)]
