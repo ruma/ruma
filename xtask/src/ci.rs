@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use xshell::pushd;
 
-use crate::{cargo::Metadata, cmd, Result};
+use crate::{cmd, Metadata, Result};
 
 const MSRV: &str = "1.45";
 

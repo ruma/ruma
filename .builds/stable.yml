@@ -10,4 +10,4 @@ tasks:
       rustup default stable
   - test: |
       cd ruma
-      cargo xtask ci stable
+      cargo run -p xtask --no-default-features ci stable

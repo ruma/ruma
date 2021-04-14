@@ -3,28 +3,12 @@ use std::path::PathBuf;
 use isahc::{HttpClient, ReadResponseExt};
 use semver::Version;
 use serde::{de::IgnoredAny, Deserialize};
-use serde_json::from_str as from_json_str;
 use toml_edit::{value, Document};
 use xshell::{cmd, pushd, read_file, write_file};
 
-use crate::{util::ask_yes_no, Result};
+use crate::{util::ask_yes_no, Metadata, Result};
 
 const CRATESIO_API: &str = "https://crates.io/api/v1/crates";
-
-/// The metadata of a cargo workspace.
-#[derive(Clone, Debug, Deserialize)]
-pub struct Metadata {
-    pub workspace_root: PathBuf,
-    pub packages: Vec<Package>,
-}
-
-impl Metadata {
-    /// Load a new `Metadata` from the command line.
-    pub fn load() -> Result<Metadata> {
-        let metadata_json = cmd!("cargo metadata --no-deps --format-version 1").read()?;
-        Ok(from_json_str(&metadata_json)?)
-    }
-}
 
 /// A cargo package.
 #[derive(Clone, Debug, Deserialize)]

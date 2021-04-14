@@ -14,12 +14,7 @@ use semver::{Identifier, Version};
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::{
-    cargo::{Metadata, Package},
-    cmd,
-    util::ask_yes_no,
-    GithubConfig, Result,
-};
+use crate::{cargo::Package, cmd, util::ask_yes_no, GithubConfig, Metadata, Result};
 
 const GITHUB_API_RUMA: &str = "https://api.github.com/repos/ruma/ruma";
 

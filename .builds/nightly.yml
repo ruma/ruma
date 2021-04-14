@@ -10,4 +10,4 @@ tasks:
       rustup default nightly
   - test: |
       cd ruma
-      cargo xtask ci nightly
+      cargo run -p xtask --no-default-features ci nightly
