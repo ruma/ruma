@@ -113,7 +113,7 @@ impl ReleaseTask {
         self.package.update_version(&self.version)?;
         self.package.update_dependants(&self.metadata)?;
 
-        let changes = &self.package.update_changelog()?;
+        let changes = &self.package.changes(!prerelease)?;
 
         self.commit()?;
 
@@ -130,10 +130,6 @@ impl ReleaseTask {
 
         self.package.publish(&self.http_client)?;
 
-        if prerelease {
-            println!("Pre-release created successfully!");
-            return Ok(());
-        }
         if publish_only {
             println!("Crate published successfully!");
             return Ok(());
@@ -152,6 +148,11 @@ impl ReleaseTask {
         if cmd!("git ls-remote --tags {remote} {tag}").read()?.is_empty() {
             cmd!("git push {remote} {tag}").run()?;
         } else if !ask_yes_no("This tag has already been pushed. Skip this step and continue?")? {
+            return Ok(());
+        }
+
+        if prerelease {
+            println!("Pre-release created successfully!");
             return Ok(());
         }
 

@@ -92,9 +92,9 @@ impl Package {
         Ok(())
     }
 
-    /// Update the changelog for the release of the given version. Returns the changes for the
-    /// version.
-    pub fn update_changelog(&self) -> Result<String> {
+    /// Get the changes for the version. If `update` is `true`, update the changelog for the release
+    /// of the given version.
+    pub fn changes(&self, update: bool) -> Result<String> {
         let mut changelog_path = self.manifest_path.clone();
         changelog_path.set_file_name("CHANGELOG.md");
 
@@ -124,14 +124,16 @@ impl Package {
             s => s,
         };
 
-        let changelog = format!(
-            "# [unreleased]\n\n# {}\n\n{}\n{}",
-            self.version,
-            changes,
-            &changelog[changes_end..]
-        );
+        if update {
+            let changelog = format!(
+                "# [unreleased]\n\n# {}\n\n{}\n{}",
+                self.version,
+                changes,
+                &changelog[changes_end..]
+            );
 
-        write_file(&changelog_path, changelog)?;
+            write_file(&changelog_path, changelog)?;
+        }
 
         Ok(changes.to_owned())
     }
