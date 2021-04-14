@@ -65,6 +65,8 @@ impl ReleaseTask {
     pub(crate) fn run(&mut self) -> Result<()> {
         let title = &self.title();
         let prerelease = self.version.is_prerelease();
+        let publish_only = self.package.name == "ruma-identifiers-validation";
+
         println!(
             "Starting {} for {}…",
             match prerelease {
@@ -130,6 +132,10 @@ impl ReleaseTask {
 
         if prerelease {
             println!("Pre-release created successfully!");
+            return Ok(());
+        }
+        if publish_only {
+            println!("Crate published successfully!");
             return Ok(());
         }
 
