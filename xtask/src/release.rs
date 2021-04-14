@@ -103,13 +103,13 @@ impl ReleaseTask {
             println!("Found macros crate {}.", m.name);
 
             m.update_version(&self.version)?;
-            m.update_dependants(&self.metadata.packages)?;
+            m.update_dependants(&self.metadata)?;
 
             println!("Resuming release of {}…", self.title());
         }
 
         self.package.update_version(&self.version)?;
-        self.package.update_dependants(&self.metadata.packages)?;
+        self.package.update_dependants(&self.metadata)?;
 
         let changes = &self.package.update_changelog()?;
 

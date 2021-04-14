@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use isahc::{HttpClient, ReadResponseExt};
-use semver::{Version, VersionReq};
+use semver::Version;
 use serde::{de::IgnoredAny, Deserialize};
 use serde_json::from_str as from_json_str;
 use toml_edit::{value, Document};
@@ -59,40 +59,32 @@ impl Package {
         Ok(())
     }
 
-    /// Update the version of this crate in dependant crates' manifest, with the given version
+    /// Update the version of this crate in dependant crates' manifests, with the given version
     /// prefix.
-    pub fn update_dependants(&self, packages: &[Package]) -> Result<()> {
-        for package in
-            packages.iter().filter(|p| p.dependencies.iter().any(|d| d.name == self.name))
-        {
+    pub fn update_dependants(&self, metadata: &Metadata) -> Result<()> {
+        for package in metadata.packages.iter().filter(|p| {
+            p.manifest_path.starts_with(&metadata.workspace_root)
+                && p.dependencies.iter().any(|d| d.name == self.name)
+        }) {
             println!("Updating dependency in {} crate…", package.name);
 
             let mut document = read_file(&package.manifest_path)?.parse::<Document>()?;
 
             for dependency in package.dependencies.iter().filter(|d| d.name == self.name) {
-                let version = if dependency.req.is_exact() {
-                    format!("={}", self.version,)
+                let version = if self.version.is_prerelease() || self.name.ends_with("-macros") {
+                    format!("={}", self.version)
                 } else {
                     self.version.to_string()
                 };
 
-                match dependency.kind {
-                    Some(DependencyKind::Dev) => {
-                        document["dev-dependencies"][&self.name]["version"] =
-                            value(version.as_str());
-                    }
-                    None => {
-                        document["dependencies"][&self.name]["version"] = value(version.as_str());
-                    }
-                    _ => {}
-                }
-            }
+                let kind = match dependency.kind {
+                    Some(DependencyKind::Dev) => "dev-dependencies",
+                    Some(DependencyKind::Build) => "build-dependencies",
+                    None => "dependencies",
+                };
 
-            if package
-                .dependencies
-                .iter()
-                .any(|p| p.name == self.name && p.kind == Some(DependencyKind::Dev))
-            {}
+                document[kind][&self.name]["version"] = value(version.as_str());
+            }
 
             write_file(&package.manifest_path, document.to_string())?;
         }
@@ -108,19 +100,15 @@ impl Package {
 
         let changelog = read_file(&changelog_path)?;
 
-        let title_start = match changelog
-            .find(&format!("# {}\n", self.version))
-            .or_else(|| changelog.find(&format!("# {} (unreleased)\n", self.version)))
-            .or_else(|| changelog.find("# [unreleased]\n"))
+        if !changelog.starts_with(&format!("# {}\n", self.version))
+            && !changelog.starts_with(&format!("# {} (unreleased)\n", self.version))
+            && !changelog.starts_with("# [unreleased]\n")
         {
-            Some(p) => p,
-            None => {
-                return Err("Could not find version title in changelog".into());
-            }
+            return Err("Could not find version title in changelog".into());
         };
 
-        let changes_start = match changelog[title_start..].find('\n') {
-            Some(p) => title_start + p + 1,
+        let changes_start = match changelog.find('\n') {
+            Some(p) => p + 1,
             None => {
                 return Err("Could not find end of version title in changelog".into());
             }
@@ -137,19 +125,13 @@ impl Package {
         };
 
         let changelog = format!(
-            "{}# [unreleased]\n\n# {}\n\n{}\n{}",
-            &changelog[..title_start],
+            "# [unreleased]\n\n# {}\n\n{}\n{}",
             self.version,
             changes,
             &changelog[changes_end..]
         );
 
         write_file(&changelog_path, changelog)?;
-
-        println!(
-            "Changelog updated: title_start: {}, changes_start: {}, changes_end: {}\nchanges: {}",
-            title_start, changes_start, changes_end, changes
-        );
 
         Ok(changes.to_owned())
     }
@@ -185,9 +167,6 @@ impl Package {
 pub struct Dependency {
     /// The package name.
     pub name: String,
-
-    /// The version requirement for this dependency.
-    pub req: VersionReq,
 
     /// The kind of the dependency.
     pub kind: Option<DependencyKind>,
