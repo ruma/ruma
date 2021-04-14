@@ -778,7 +778,7 @@ pub fn get_user_power_level<E: Event>(user_id: &UserId, auth_events: &StateMap<A
             if let Some(level) = content.users.get(user_id) {
                 (*level).into()
             } else {
-                0
+                content.users_default.into()
             }
         } else {
             0 // TODO if this fails DB error?
