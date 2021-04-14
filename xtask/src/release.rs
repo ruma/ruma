@@ -231,7 +231,7 @@ impl ReleaseTask {
             print!("{}", instructions);
             stdout().flush()?;
 
-            input = String::new();
+            input.clear();
         }
 
         let message = format!("Release {}", self.title());
