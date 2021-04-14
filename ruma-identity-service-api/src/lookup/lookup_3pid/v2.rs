@@ -20,7 +20,7 @@ ruma_api! {
     request: {
         /// The algorithm the client is using to encode the `addresses`. This should be one of the
         /// available options from `/hash_details`.
-        pub algorithm: IdentifierHashingAlgorithm,
+        pub algorithm: &'a IdentifierHashingAlgorithm,
 
         /// The pepper from `/hash_details`. This is required even when the `algorithm` does not
         /// make use of it.
@@ -42,7 +42,7 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Create a `Request` with algorithm, pepper and addresses to loop up.
     pub fn new(
-        algorithm: IdentifierHashingAlgorithm,
+        algorithm: &'a IdentifierHashingAlgorithm,
         pepper: &'a str,
         addresses: &'a [String],
     ) -> Self {
