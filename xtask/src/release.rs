@@ -204,7 +204,6 @@ impl ReleaseTask {
 
     /// Commit and push all the changes in the git repository.
     fn commit(&self) -> Result<()> {
-        let mut input = String::new();
         let stdin = stdin();
 
         let instructions = "Ready to commit the changes. [continue/abort/diff]: ";
@@ -213,7 +212,13 @@ impl ReleaseTask {
 
         let mut handle = stdin.lock();
 
-        while let _ = handle.read_line(&mut input)? {
+        let mut input = String::new();
+        loop {
+            let eof = handle.read_line(&mut input)? == 0;
+            if eof {
+                return Err("User aborted commit".into());
+            }
+
             match input.trim().to_ascii_lowercase().as_str() {
                 "c" | "continue" => {
                     break;
