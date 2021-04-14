@@ -37,6 +37,10 @@ fn try_main() -> Result<()> {
             let mut task = ReleaseTask::new(cmd.name, cmd.version)?;
             task.run()
         }
+        flags::XtaskCmd::Publish(cmd) => {
+            let mut task = ReleaseTask::new(cmd.name, cmd.version)?;
+            task.run()
+        }
         flags::XtaskCmd::Ci(ci) => {
             let task = CiTask::new(ci.version)?;
             task.run()

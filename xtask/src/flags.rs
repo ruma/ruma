@@ -21,6 +21,15 @@ xflags::xflags! {
             required version: Version
         {}
 
+        /// Alias for release.
+        cmd publish
+            /// The crate to release
+            required name: String
+
+            /// The new version of the crate
+            required version: Version
+        {}
+
         /// Run CI tests.
         cmd ci
             optional version: String
@@ -39,6 +48,7 @@ pub struct Xtask {
 pub enum XtaskCmd {
     Help(Help),
     Release(Release),
+    Publish(Publish),
     Ci(Ci),
 }
 
@@ -49,6 +59,12 @@ pub struct Help {
 
 #[derive(Debug)]
 pub struct Release {
+    pub name: String,
+    pub version: Version,
+}
+
+#[derive(Debug)]
+pub struct Publish {
     pub name: String,
     pub version: Version,
 }
