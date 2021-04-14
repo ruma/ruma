@@ -9,5 +9,6 @@
 
 pub mod authentication;
 pub mod keys;
+pub mod lookup;
 pub mod status;
 pub mod tos;
