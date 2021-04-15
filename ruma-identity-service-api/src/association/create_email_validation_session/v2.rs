@@ -38,11 +38,7 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Create a new `Request` with the given client secret, email ID, and the `send_attempt`
     /// number.
-    pub fn new(
-        client_secret: &'a str,
-        email: &'a str,
-        send_attempt: js_int::UInt,
-    ) -> Self {
+    pub fn new(client_secret: &'a str, email: &'a str, send_attempt: js_int::UInt) -> Self {
         Self { client_secret, email, send_attempt, next_link: None }
     }
 }

@@ -31,10 +31,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Create a new `Request` with the given session ID, client secret and token.
-    pub fn new(
-        sid: &'a str, client_secret: &'a str,
-        token: &'a str,
-    ) -> Self {
+    pub fn new(sid: &'a str, client_secret: &'a str, token: &'a str) -> Self {
         Self { sid, client_secret, token }
     }
 }
