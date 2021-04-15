@@ -17,6 +17,7 @@ ruma-identifiers = { version = "0.19.0", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.3.1", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"
+js_int = { version = "0.2.0", features = ["serde"] }
 
 [features]
 unstable-exhaustive-types = []

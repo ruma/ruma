@@ -7,6 +7,7 @@
 
 #![warn(missing_docs)]
 
+pub mod association;
 pub mod authentication;
 pub mod keys;
 pub mod lookup;
