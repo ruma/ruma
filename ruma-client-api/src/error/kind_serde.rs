@@ -7,7 +7,7 @@ use std::{
 };
 
 use js_int::UInt;
-use ruma_serde::StringEnum;
+use ruma_serde::{DeserializeFromCowStr, FromString};
 use serde::{
     de::{self, Deserialize, Deserializer, MapAccess, Visitor},
     ser::{self, Serialize, SerializeMap, Serializer},
@@ -208,40 +208,71 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
     }
 }
 
-#[derive(StringEnum)]
-#[ruma_enum(rename_all = "M_MATRIX_ERROR_CASE")]
+#[derive(FromString, DeserializeFromCowStr)]
 enum ErrCode {
+    #[ruma_enum(rename = "M_FORBIDDEN")]
     Forbidden,
+    #[ruma_enum(rename = "M_UNKNOWN_TOKEN")]
     UnknownToken,
+    #[ruma_enum(rename = "M_MISSING_TOKEN")]
     MissingToken,
+    #[ruma_enum(rename = "M_BAD_JSON")]
     BadJson,
+    #[ruma_enum(rename = "M_NOT_JSON")]
     NotJson,
+    #[ruma_enum(rename = "M_NOT_FOUND")]
     NotFound,
+    #[ruma_enum(rename = "M_LIMIT_EXCEEDED")]
     LimitExceeded,
+    #[ruma_enum(rename = "M_UNKNOWN")]
     Unknown,
+    #[ruma_enum(rename = "M_UNRECOGNIZED")]
     Unrecognized,
+    #[ruma_enum(rename = "M_UNAUTHORIZED")]
     Unauthorized,
+    #[ruma_enum(rename = "M_USER_DEACTIVATED")]
     UserDeactivated,
+    #[ruma_enum(rename = "M_USER_IN_USE")]
     UserInUse,
+    #[ruma_enum(rename = "M_INVALID_USERNAME")]
     InvalidUsername,
+    #[ruma_enum(rename = "M_ROOM_IN_USE")]
     RoomInUse,
+    #[ruma_enum(rename = "M_INVALID_ROOM_STATE")]
     InvalidRoomState,
+    #[ruma_enum(rename = "M_THREEPID_IN_USE")]
     ThreepidInUse,
+    #[ruma_enum(rename = "M_THREEPID_NOT_FOUND")]
     ThreepidNotFound,
+    #[ruma_enum(rename = "M_THREEPID_AUTH_FAILED")]
     ThreepidAuthFailed,
+    #[ruma_enum(rename = "M_THREEPID_DENIED")]
     ThreepidDenied,
+    #[ruma_enum(rename = "M_SERVER_NOT_TRUSTED")]
     ServerNotTrusted,
+    #[ruma_enum(rename = "M_UNSUPPORTED_ROOM_VERSION")]
     UnsupportedRoomVersion,
+    #[ruma_enum(rename = "M_INCOMPATIBLE_ROOM_VERSION")]
     IncompatibleRoomVersion,
+    #[ruma_enum(rename = "M_BAD_STATE")]
     BadState,
+    #[ruma_enum(rename = "M_GUEST_ACCESS_FORBIDDEN")]
     GuestAccessForbidden,
+    #[ruma_enum(rename = "M_CAPTCHA_NEEDED")]
     CaptchaNeeded,
+    #[ruma_enum(rename = "M_CAPTCHA_INVALID")]
     CaptchaInvalid,
+    #[ruma_enum(rename = "M_MISSING_PARAM")]
     MissingParam,
+    #[ruma_enum(rename = "M_INVALID_PARAM")]
     InvalidParam,
+    #[ruma_enum(rename = "M_TOO_LARGE")]
     TooLarge,
+    #[ruma_enum(rename = "M_EXCLUSIVE")]
     Exclusive,
+    #[ruma_enum(rename = "M_RESOURCE_LIMIT_EXCEEDED")]
     ResourceLimitExceeded,
+    #[ruma_enum(rename = "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM")]
     CannotLeaveServerNoticeRoom,
     _Custom(String),
 }
