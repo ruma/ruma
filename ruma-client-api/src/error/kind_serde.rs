@@ -208,8 +208,7 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
     }
 }
 
-// FIXME: Add `M_FOO_BAR` as a naming scheme in StringEnum and remove rename attributes.
-#[derive(Clone, Debug, PartialEq, Eq, StringEnum)]
+#[derive(StringEnum)]
 #[ruma_enum(rename_all = "M_MATRIX_ERROR_CASE")]
 enum ErrCode {
     Forbidden,
