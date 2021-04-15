@@ -36,6 +36,10 @@ pub enum RenameRule {
     /// Rename direct children to "M_MATRIX_ERROR_CASE" style, as used for responses with error in
     /// Matrix spec.
     MatrixErrorCase,
+    /// Rename the direct children to "m.snake_case" style.
+    MatrixSnakeCase,
+    /// Rename the direct children to "m.dotted.case" style.
+    MatrixDottedCase,
 }
 
 impl RenameRule {
@@ -60,6 +64,10 @@ impl RenameRule {
             KebabCase => SnakeCase.apply_to_variant(variant).replace('_', "-"),
             ScreamingKebabCase => ScreamingSnakeCase.apply_to_variant(variant).replace('_', "-"),
             MatrixErrorCase => String::from("M_") + &ScreamingSnakeCase.apply_to_variant(variant),
+            MatrixSnakeCase => String::from("m.") + &SnakeCase.apply_to_variant(variant),
+            MatrixDottedCase => {
+                String::from("m.") + &SnakeCase.apply_to_variant(variant).replace('_', ".")
+            }
         }
     }
 
@@ -92,6 +100,8 @@ impl RenameRule {
             KebabCase => field.replace('_', "-"),
             ScreamingKebabCase => ScreamingSnakeCase.apply_to_field(field).replace('_', "-"),
             MatrixErrorCase => String::from("M_") + &ScreamingSnakeCase.apply_to_field(field),
+            MatrixSnakeCase => String::from("m.") + field,
+            MatrixDottedCase => String::from("m.") + &field.replace('_', "."),
         }
     }
 }
@@ -110,6 +120,8 @@ impl FromStr for RenameRule {
             "kebab-case" => Ok(KebabCase),
             "SCREAMING-KEBAB-CASE" => Ok(ScreamingKebabCase),
             "M_MATRIX_ERROR_CASE" => Ok(MatrixErrorCase),
+            "m.snake_case" => Ok(MatrixSnakeCase),
+            "m.dotted.case" => Ok(MatrixDottedCase),
             _ => Err(()),
         }
     }
@@ -117,34 +129,48 @@ impl FromStr for RenameRule {
 
 #[test]
 fn rename_variants() {
-    for &(original, lower, upper, camel, snake, screaming, kebab, screaming_kebab, matrix_error) in
-        &[
-            (
-                "Outcome",
-                "outcome",
-                "OUTCOME",
-                "outcome",
-                "outcome",
-                "OUTCOME",
-                "outcome",
-                "OUTCOME",
-                "M_OUTCOME",
-            ),
-            (
-                "VeryTasty",
-                "verytasty",
-                "VERYTASTY",
-                "veryTasty",
-                "very_tasty",
-                "VERY_TASTY",
-                "very-tasty",
-                "VERY-TASTY",
-                "M_VERY_TASTY",
-            ),
-            ("A", "a", "A", "a", "a", "A", "a", "A", "M_A"),
-            ("Z42", "z42", "Z42", "z42", "z42", "Z42", "z42", "Z42", "M_Z42"),
-        ]
-    {
+    for &(
+        original,
+        lower,
+        upper,
+        camel,
+        snake,
+        screaming,
+        kebab,
+        screaming_kebab,
+        matrix_error,
+        m_snake,
+        m_dotted,
+    ) in &[
+        (
+            "Outcome",
+            "outcome",
+            "OUTCOME",
+            "outcome",
+            "outcome",
+            "OUTCOME",
+            "outcome",
+            "OUTCOME",
+            "M_OUTCOME",
+            "m.outcome",
+            "m.outcome",
+        ),
+        (
+            "VeryTasty",
+            "verytasty",
+            "VERYTASTY",
+            "veryTasty",
+            "very_tasty",
+            "VERY_TASTY",
+            "very-tasty",
+            "VERY-TASTY",
+            "M_VERY_TASTY",
+            "m.very_tasty",
+            "m.very.tasty",
+        ),
+        ("A", "a", "A", "a", "a", "A", "a", "A", "M_A", "a"),
+        ("Z42", "z42", "Z42", "z42", "z42", "Z42", "z42", "Z42", "M_Z42", "z42"),
+    ] {
         assert_eq!(None.apply_to_variant(original), original);
         assert_eq!(LowerCase.apply_to_variant(original), lower);
         assert_eq!(Uppercase.apply_to_variant(original), upper);
@@ -155,13 +181,37 @@ fn rename_variants() {
         assert_eq!(KebabCase.apply_to_variant(original), kebab);
         assert_eq!(ScreamingKebabCase.apply_to_variant(original), screaming_kebab);
         assert_eq!(MatrixErrorCase.apply_to_variant(original), matrix_error);
+        assert_eq!(MatrixSnakeCase.apply_to_variant(original), m_snake);
+        assert_eq!(MatrixDottedCase.apply_to_variant(original), m_dotted);
     }
 }
 
 #[test]
 fn rename_fields() {
-    for &(original, upper, pascal, camel, screaming, kebab, screaming_kebab, matrix_error) in &[
-        ("outcome", "OUTCOME", "Outcome", "outcome", "OUTCOME", "outcome", "OUTCOME", "M_OUTCOME"),
+    for &(
+        original,
+        upper,
+        pascal,
+        camel,
+        screaming,
+        kebab,
+        screaming_kebab,
+        matrix_error,
+        m_snake,
+        m_dotted,
+    ) in &[
+        (
+            "outcome",
+            "OUTCOME",
+            "Outcome",
+            "outcome",
+            "OUTCOME",
+            "outcome",
+            "OUTCOME",
+            "M_OUTCOME",
+            "m.outcome",
+            "m.outcome",
+        ),
         (
             "very_tasty",
             "VERY_TASTY",
@@ -171,9 +221,11 @@ fn rename_fields() {
             "very-tasty",
             "VERY-TASTY",
             "M_VERY_TASTY",
+            "m.very_tasty",
+            "m.very.tasty",
         ),
-        ("a", "A", "A", "a", "A", "a", "A", "M_A"),
-        ("z42", "Z42", "Z42", "z42", "Z42", "z42", "Z42", "M_Z42"),
+        ("a", "A", "A", "a", "A", "a", "A", "M_A", "a", "a"),
+        ("z42", "Z42", "Z42", "z42", "Z42", "z42", "Z42", "M_Z42", "z42", "z42"),
     ] {
         assert_eq!(None.apply_to_field(original), original);
         assert_eq!(Uppercase.apply_to_field(original), upper);
@@ -184,5 +236,7 @@ fn rename_fields() {
         assert_eq!(KebabCase.apply_to_field(original), kebab);
         assert_eq!(ScreamingKebabCase.apply_to_field(original), screaming_kebab);
         assert_eq!(MatrixErrorCase.apply_to_field(original), matrix_error);
+        assert_eq!(MatrixSnakeCase.apply_to_field(original), m_snake);
+        assert_eq!(MatrixDottedCase.apply_to_field(original), m_dotted);
     }
 }
