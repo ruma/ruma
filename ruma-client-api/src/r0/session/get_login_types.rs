@@ -257,6 +257,7 @@ mod login_type_serde;
 
 #[cfg(test)]
 mod tests {
+    use matches::assert_matches;
     use serde::{Deserialize, Serialize};
     #[cfg(feature = "unstable-pre-spec")]
     use serde_json::to_value as to_json_value;
@@ -266,28 +267,29 @@ mod tests {
     use super::{IdentityProvider, IdentityProviderBrand, SsoLoginType, TokenLoginType};
     use super::{LoginType, PasswordLoginType};
 
-    #[derive(Debug, Eq, PartialEq, Deserialize, Serialize)]
+    #[derive(Debug, Deserialize, Serialize)]
     struct Foo {
         pub flows: Vec<LoginType>,
     }
 
     #[test]
     fn deserialize_password_login_type() {
-        assert_eq!(
+        assert_matches!(
             from_json_value::<Foo>(json!({
                 "flows": [
                     { "type": "m.login.password" }
                 ],
-            }))
-            .unwrap(),
-            Foo { flows: vec![LoginType::Password(PasswordLoginType {})] }
+            })),
+            Ok(Foo { flows })
+            if flows.len() == 1
+                && matches!(flows[0], LoginType::Password(PasswordLoginType {}))
         );
     }
 
     #[test]
     #[cfg(feature = "unstable-pre-spec")]
     fn deserialize_sso_login_type() {
-        let foo = from_json_value::<Foo>(json!({
+        let mut foo = from_json_value::<Foo>(json!({
             "flows": [
                 {
                     "type": "m.login.sso",
@@ -308,27 +310,38 @@ mod tests {
         }))
         .unwrap();
 
-        assert_eq!(
-            foo,
-            Foo {
-                flows: vec![LoginType::Sso(SsoLoginType {
-                    identity_providers: vec![
-                        IdentityProvider {
-                            id: "oidc-gitlab".into(),
-                            name: "GitLab".into(),
-                            icon: Some("mxc://localhost/gitlab-icon".into()),
-                            brand: Some(IdentityProviderBrand::GitLab)
-                        },
-                        IdentityProvider {
-                            id: "custom".into(),
-                            name: "Custom".into(),
-                            icon: None,
-                            brand: None
-                        }
-                    ]
-                })]
-            }
-        )
+        let mut flow = foo.flows.pop();
+        assert_matches!(foo.flows.as_slice(), []);
+
+        let mut identity_providers = match flow {
+            Some(LoginType::Sso(SsoLoginType { identity_providers })) => identity_providers,
+            _ => panic!("unexpected enum variant: {:?}", flow),
+        };
+
+        let provider = identity_providers.pop();
+        assert_matches!(
+            provider,
+            Some(IdentityProvider {
+                id,
+                name,
+                icon: None,
+                brand: None,
+            }) if id == "custom"
+                && name == "Custom"
+        );
+
+        let provider = identity_providers.pop();
+        assert_matches!(
+            provider,
+            Some(IdentityProvider {
+                id,
+                name,
+                icon: Some(icon),
+                brand: Some(IdentityProviderBrand::GitLab),
+            }) if id == "oidc-gitlab"
+                && name == "GitLab"
+                && icon.to_string() == "mxc://localhost/gitlab-icon"
+        );
     }
 
     #[test]

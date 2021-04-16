@@ -51,9 +51,9 @@ impl Response {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "client"))]
 mod tests {
-    use ruma_api::OutgoingRequest;
+    use ruma_api::OutgoingRequest as _;
 
     use super::Request;
 
