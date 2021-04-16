@@ -20,7 +20,7 @@ ruma_api! {
         pub email: &'a str,
 
         /// The server will only send an email if the send_attempt is a number greater than the
-        /// most recent one which it has seen, scoped to that email + client_secret pair.
+        /// most recent one which it has seen, scoped to that `email` + `client_secret` pair.
         pub send_attempt: js_int::UInt,
 
         /// When the validation is completed, the identity server will redirect the user to this
