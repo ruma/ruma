@@ -7,7 +7,7 @@ use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, ServerName};
 use ruma_serde::Raw;
 
-use super::edu::Edu;
+use crate::transactions::edu::Edu;
 
 ruma_api! {
     metadata: {
