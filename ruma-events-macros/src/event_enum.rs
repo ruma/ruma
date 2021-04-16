@@ -30,7 +30,7 @@ type EventKindFn = fn(&EventKind, &EventKindVariation) -> bool;
 const EVENT_FIELDS: &[(&str, EventKindFn)] = &[
     ("origin_server_ts", is_non_stripped_room_event),
     ("room_id", |kind, var| {
-        matches!(kind, EventKind::Message | EventKind::State)
+        matches!(kind, EventKind::Message | EventKind::State | EventKind::Ephemeral)
             && matches!(var, EventKindVariation::Full | EventKindVariation::Redacted)
     }),
     ("event_id", is_non_stripped_room_event),

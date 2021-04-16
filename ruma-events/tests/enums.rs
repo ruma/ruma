@@ -10,9 +10,9 @@ use ruma_events::{
         message::{MessageEventContent, MessageType, TextMessageEventContent},
         power_levels::PowerLevelsEventContent,
     },
-    AnyEvent, AnyMessageEvent, AnyRoomEvent, AnyStateEvent, AnyStateEventContent,
-    AnySyncMessageEvent, AnySyncRoomEvent, AnySyncStateEvent, MessageEvent, StateEvent,
-    SyncMessageEvent, SyncStateEvent, Unsigned,
+    AnyEphemeralRoomEvent, AnyEvent, AnyMessageEvent, AnyRoomEvent, AnyStateEvent,
+    AnyStateEventContent, AnySyncMessageEvent, AnySyncRoomEvent, AnySyncStateEvent, MessageEvent,
+    StateEvent, SyncMessageEvent, SyncStateEvent, Unsigned,
 };
 
 fn message_event() -> JsonValue {
@@ -295,4 +295,24 @@ fn alias_event_field_access() {
         panic!("the `Any*Event` enum's accessor methods may have been altered")
     }
     assert_eq!(deser.event_type(), "m.room.aliases");
+}
+
+#[test]
+fn ephemeral_event_deserialization() {
+    let json_data = json!({
+        "content": {
+            "user_ids": [
+                "@alice:matrix.org",
+                "@bob:example.com"
+            ]
+        },
+        "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
+        "type": "m.typing"
+    });
+
+    assert_matches!(
+        from_json_value::<AnyEvent>(json_data),
+        Ok(AnyEvent::Ephemeral(ephem @ AnyEphemeralRoomEvent::Typing(_)))
+        if ephem.room_id() == &room_id!("!jEsUZKDJdhlrceRyVU:example.org")
+    );
 }
