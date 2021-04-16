@@ -79,9 +79,11 @@ pub use ruma_serde::Outgoing;
 #[allow(deprecated)] // Allow re-export of deprecated items
 pub use ruma_identifiers::{
     device_id, device_key_id, event_id, mxc_uri, room_alias_id, room_id, room_version_id,
-    server_key_id, server_name, server_signing_key_id, user_id, DeviceId, DeviceKeyAlgorithm,
-    DeviceKeyId, EventId, MxcUri, RoomAliasId, RoomId, RoomIdOrAliasId, RoomVersionId, ServerName,
-    ServerSigningKeyId, SigningKeyAlgorithm, UserId,
+    server_key_id, server_name, server_signing_key_id, user_id, DeviceId, DeviceIdBox,
+    DeviceKeyAlgorithm, DeviceKeyId, DeviceSignatures, DeviceSigningKeyId, EntitySignatures,
+    EventEncryptionAlgorithm, EventId, KeyId, KeyName, KeyNameBox, MxcUri, RoomAliasId, RoomId,
+    RoomIdOrAliasId, RoomVersionId, ServerName, ServerNameBox, ServerSignatures,
+    ServerSigningKeyId, Signatures, SigningKeyAlgorithm, UserId,
 };
 
 #[cfg(feature = "events")]
