@@ -1,10 +1,10 @@
-//! [PUT /_matrix/federation/v1/send/{txnId}](https://matrix.org/docs/spec/server_server/r0.1.3#put-matrix-federation-v1-send-txnid)
-
 use std::collections::BTreeMap;
 
 use js_int::UInt;
 use ruma_common::{encryption::DeviceKeys, presence::PresenceState};
-use ruma_events::{from_raw_json_value, receipt::Receipt, room_key::RoomKeyEventContent};
+use ruma_events::{
+    from_raw_json_value, receipt::Receipt, room_key::RoomKeyEventContent, EventType,
+};
 use ruma_identifiers::{DeviceIdBox, EventId, RoomId, UserId};
 use serde::{de, Deserialize, Serialize};
 use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
@@ -59,15 +59,15 @@ impl<'de> de::Deserialize<'de> for Edu {
         D: de::Deserializer<'de>,
     {
         let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-        let EduDeHelper { edu_type, ref content } = from_raw_json_value(&json)?;
+        let EduDeHelper { edu_type, content } = from_raw_json_value(&json)?;
 
         Ok(match edu_type.as_ref() {
-            "m.presence" => Self::Presence(from_raw_json_value(content)?),
-            "m.receipt" => Self::Receipt(from_raw_json_value(content)?),
-            "m.typing" => Self::Typing(from_raw_json_value(content)?),
-            "m.device_list_update" => Self::DeviceListUpdate(from_raw_json_value(content)?),
-            "m.direct_to_device" => Self::DirectToDevice(from_raw_json_value(content)?),
-            _ => Self::_Custom(from_raw_json_value(content)?),
+            "m.presence" => Self::Presence(from_raw_json_value(&content)?),
+            "m.receipt" => Self::Receipt(from_raw_json_value(&content)?),
+            "m.typing" => Self::Typing(from_raw_json_value(&content)?),
+            "m.device_list_update" => Self::DeviceListUpdate(from_raw_json_value(&content)?),
+            "m.direct_to_device" => Self::DirectToDevice(from_raw_json_value(&content)?),
+            _ => Self::_Custom(from_raw_json_value(&content)?),
         })
     }
 }
@@ -248,12 +248,11 @@ pub struct DirectDeviceContent {
 
     /// Event type for the message.
     #[serde(rename = "type")]
-    pub ev_type: String,
+    pub ev_type: EventType,
 
     /// Unique utf8 string ID for the message, used for idempotency.
     pub message_id: String,
 
-    // TODO: https://matrix.org/docs/spec/server_server/r0.1.4#m-direct-to-device-schema
     /// The contents of the messages to be sent. These are arranged in a map
     /// of user IDs to a map of device IDs to message bodies. The device ID may
     /// also be *, meaning all known devices for the user.
@@ -262,7 +261,7 @@ pub struct DirectDeviceContent {
 
 impl DirectDeviceContent {
     /// Creates a new `DirectDeviceContent` with an empty `messages` map.
-    pub fn new(sender: UserId, ev_type: String, message_id: String) -> Self {
+    pub fn new(sender: UserId, ev_type: EventType, message_id: String) -> Self {
         Self { sender, ev_type, message_id, messages: BTreeMap::new() }
     }
 }
@@ -419,7 +418,7 @@ mod test {
             Edu::DirectToDevice(DirectDeviceContent {
                 sender, ev_type, message_id, messages
             }) if sender == &user_id!("@john:example.com")
-                && ev_type == "m.room_key_request"
+                && ev_type == &EventType::RoomKeyRequest
                 && message_id == "hiezohf6Hoo7kaev"
                 && messages.get(&user_id!("@alice:example.org")).is_some()
         );
