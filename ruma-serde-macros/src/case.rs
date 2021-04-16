@@ -168,8 +168,8 @@ fn rename_variants() {
             "m.very_tasty",
             "m.very.tasty",
         ),
-        ("A", "a", "A", "a", "a", "A", "a", "A", "M_A", "a"),
-        ("Z42", "z42", "Z42", "z42", "z42", "Z42", "z42", "Z42", "M_Z42", "z42"),
+        ("A", "a", "A", "a", "a", "A", "a", "A", "M_A", "m.a", "m.a"),
+        ("Z42", "z42", "Z42", "z42", "z42", "Z42", "z42", "Z42", "M_Z42", "m.z42", "m.z42"),
     ] {
         assert_eq!(None.apply_to_variant(original), original);
         assert_eq!(LowerCase.apply_to_variant(original), lower);
@@ -224,8 +224,8 @@ fn rename_fields() {
             "m.very_tasty",
             "m.very.tasty",
         ),
-        ("a", "A", "A", "a", "A", "a", "A", "M_A", "a", "a"),
-        ("z42", "Z42", "Z42", "z42", "Z42", "z42", "Z42", "M_Z42", "z42", "z42"),
+        ("a", "A", "A", "a", "A", "a", "A", "M_A", "m.a", "m.a"),
+        ("z42", "Z42", "Z42", "z42", "Z42", "z42", "Z42", "M_Z42", "m.z42", "m.z42"),
     ] {
         assert_eq!(None.apply_to_field(original), original);
         assert_eq!(Uppercase.apply_to_field(original), upper);

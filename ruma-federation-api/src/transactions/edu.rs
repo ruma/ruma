@@ -1,3 +1,5 @@
+//! Edu type and variant content structs.
+
 use std::collections::BTreeMap;
 
 use js_int::UInt;
