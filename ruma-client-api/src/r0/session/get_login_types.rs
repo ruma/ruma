@@ -48,7 +48,7 @@ impl Response {
 }
 
 /// An authentication mechanism.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
 pub enum LoginType {
@@ -117,7 +117,7 @@ impl LoginType {
 }
 
 /// The payload for password login.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.password")]
 pub struct PasswordLoginType {}
@@ -130,7 +130,7 @@ impl PasswordLoginType {
 }
 
 /// The payload for token-based login.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.token")]
 pub struct TokenLoginType {}
@@ -143,7 +143,7 @@ impl TokenLoginType {
 }
 
 /// The payload for SSO login.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.sso")]
 pub struct SsoLoginType {
@@ -172,7 +172,7 @@ impl SsoLoginType {
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct IdentityProvider {
     /// The ID of the provider.
     id: String,
@@ -239,7 +239,7 @@ pub enum IdentityProviderBrand {
 
 /// A custom login payload.
 #[doc(hidden)]
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CustomLoginType {
     /// A custom type
     ///
