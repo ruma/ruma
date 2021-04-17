@@ -30,7 +30,7 @@ pub use self::{
     condition::{
         ComparisonOperator, FlattenedJson, PushCondition, PushConditionRoomCtx, RoomMemberCountIs,
     },
-    iter::{AnyPushRule, RulesetIntoIter, RulesetIter},
+    iter::{AnyPushRule, AnyPushRuleRef, RulesetIntoIter, RulesetIter},
 };
 
 /// A push ruleset scopes a set of rules according to some criteria.
