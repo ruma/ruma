@@ -11,7 +11,7 @@ repository = "https://github.com/ruma/ruma"
 edition = "2018"
 
 [dependencies]
-ruma-api = { version = "=0.17.0-alpha.2", path = "../ruma-api" }
+ruma-api = { version = "=0.17.0-alpha.4", path = "../ruma-api" }
 ruma-common = { version = "0.5.0", path = "../ruma-common" }
 ruma-identifiers = { version = "0.19.0", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.3.1", path = "../ruma-serde" }
