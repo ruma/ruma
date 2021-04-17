@@ -52,6 +52,23 @@ pub enum PushCondition {
     },
 }
 
+pub(super) fn check_event_match(
+    event: &FlattenedJson,
+    key: &str,
+    pattern: &str,
+    context: &PushConditionRoomCtx,
+) -> bool {
+    let value = match key {
+        "room_id" => context.room_id.as_str(),
+        _ => match event.get(key) {
+            Some(v) => v,
+            None => return false,
+        },
+    };
+
+    value.matches_pattern(pattern, key == "content.body")
+}
+
 impl PushCondition {
     /// Check if this condition applies to the event.
     ///
@@ -61,17 +78,7 @@ impl PushCondition {
     /// * `context` - The context of the room at the time of the event.
     pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
         match self {
-            Self::EventMatch { key, pattern } => {
-                let value = match key.as_str() {
-                    "room_id" => context.room_id.as_str(),
-                    _ => match event.get(key) {
-                        Some(v) => v,
-                        None => return false,
-                    },
-                };
-
-                value.matches_pattern(pattern, key == "content.body")
-            }
+            Self::EventMatch { key, pattern } => check_event_match(event, &key, &pattern, context),
             Self::ContainsDisplayName => {
                 let value = match event.get("content.body") {
                     Some(v) => v,

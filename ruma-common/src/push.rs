@@ -113,28 +113,17 @@ impl Ruleset {
             }
         }
         for rule in self.content.iter().filter(|r| r.enabled) {
-            let condition = PushCondition::EventMatch {
-                key: "content.body".into(),
-                pattern: rule.pattern.clone(),
-            };
-
-            if condition.applies(event_map, context) {
+            if rule.applies_to("content.body", event_map, context) {
                 return rule.actions.iter();
             }
         }
         for rule in self.room.iter().filter(|r| r.enabled) {
-            let condition =
-                PushCondition::EventMatch { key: "room_id".into(), pattern: rule.rule_id.clone() };
-
-            if condition.applies(event_map, context) {
+            if condition::check_event_match(event_map, "room_id", &rule.rule_id, context) {
                 return rule.actions.iter();
             }
         }
         for rule in self.sender.iter().filter(|r| r.enabled) {
-            let condition =
-                PushCondition::EventMatch { key: "sender".into(), pattern: rule.rule_id.clone() };
-
-            if condition.applies(event_map, context) {
+            if condition::check_event_match(event_map, "sender", &rule.rule_id, context) {
                 return rule.actions.iter();
             }
         }
@@ -339,6 +328,23 @@ pub struct PatternedPushRule {
 
     /// The glob-style pattern to match against.
     pub pattern: String,
+}
+
+impl PatternedPushRule {
+    /// Check if the push rule applies to the event.
+    ///
+    /// # Arguments
+    ///
+    /// * `event` - The flattened JSON representation of a room message event.
+    /// * `context` - The context of the room at the time of the event.
+    pub fn applies_to(
+        &self,
+        key: &str,
+        event: &FlattenedJson,
+        context: &PushConditionRoomCtx,
+    ) -> bool {
+        condition::check_event_match(event, key, &self.pattern, context)
+    }
 }
 
 /// Initial set of fields of `PatterenedPushRule`.
