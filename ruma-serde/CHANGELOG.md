@@ -1,3 +1,9 @@
+# 0.3.2
+
+Improvements:
+
+* Add a new rule for the `ruma_enum` attribute: `M_MATRIX_ERROR_CASE`
+
 # 0.3.1
 
 Bug fixes:
