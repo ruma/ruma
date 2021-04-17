@@ -157,7 +157,7 @@ impl ReleaseTask {
 
         println!("Pushing to remote repository…");
         if cmd!("git ls-remote --tags {remote} {tag}").read()?.is_empty() {
-            cmd!("git push {remote} {branch},{tag}").run()?;
+            cmd!("git push {remote} {branch} {tag}").run()?;
         } else if !ask_yes_no("This tag has already been pushed. Skip this step and continue?")? {
             return Ok(());
         }
