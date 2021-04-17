@@ -29,7 +29,7 @@ ruma-signatures = { version = "0.7.0", path = "../ruma-signatures", optional = t
 ruma-api = { version = "=0.17.0-alpha.4", path = "../ruma-api", optional = true }
 ruma-appservice-api = { version = "=0.2.0-alpha.3", path = "../ruma-appservice-api", optional = true }
 ruma-client-api = { version = "=0.10.0-alpha.3", path = "../ruma-client-api", optional = true }
-ruma-federation-api = { version = "=0.1.0-alpha.1", path = "../ruma-federation-api", optional = true }
+ruma-federation-api = { version = "=0.1.0-alpha.2", path = "../ruma-federation-api", optional = true }
 ruma-identity-service-api = { version = "0.0.1", path = "../ruma-identity-service-api", optional = true }
 ruma-push-gateway-api = { version = "0.0.1", path = "../ruma-push-gateway-api", optional = true }
 
