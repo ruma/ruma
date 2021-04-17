@@ -30,7 +30,7 @@ pub use self::{
     condition::{
         ComparisonOperator, FlattenedJson, PushCondition, PushConditionRoomCtx, RoomMemberCountIs,
     },
-    iter::{AnyPushRule, RulesetIntoIter},
+    iter::{AnyPushRule, RulesetIntoIter, RulesetIter},
 };
 
 /// A push ruleset scopes a set of rules according to some criteria.
@@ -65,6 +65,13 @@ impl Ruleset {
     /// Creates an empty `Ruleset`.
     pub fn new() -> Self {
         Default::default()
+    }
+
+    /// Creates a borrowing iterator over all push rules in this `Ruleset`.
+    ///
+    /// For an owning iterator, use `.into_iter()`.
+    pub fn iter(&self) -> RulesetIter {
+        self.into_iter()
     }
 
     /// Adds a rule to the rule set.
