@@ -91,7 +91,7 @@ impl Ruleset {
 
     /// Get the push actions that apply to this event.
     ///
-    /// Returns an empty iterator if no push rule applies.
+    /// Returns an empty slice if no push rule applies.
     ///
     /// # Arguments
     ///
@@ -101,7 +101,7 @@ impl Ruleset {
         &'a self,
         event: &Raw<T>,
         context: &PushConditionRoomCtx,
-    ) -> impl Iterator<Item = &'a Action>
+    ) -> &'a [Action]
     where
         T: Serialize,
     {
@@ -110,7 +110,6 @@ impl Ruleset {
             .find(|rule| rule.applies(&event, context))
             .map(|rule| rule.actions())
             .unwrap_or(&[])
-            .iter()
     }
 }
 
@@ -939,16 +938,18 @@ mod tests {
             }"#,
         )
         .unwrap();
-        let mut actions_one_to_one = set.get_actions(&message, context_one_to_one);
-        assert_matches!(actions_one_to_one.next(), Some(Action::Notify));
-        assert_matches!(actions_one_to_one.next(), Some(Action::SetTweak(Tweak::Sound(_))));
-        assert_matches!(actions_one_to_one.next(), Some(Action::SetTweak(Tweak::Highlight(false))));
 
-        let mut actions_public_room = set.get_actions(&message, context_public_room);
-        assert_matches!(actions_public_room.next(), Some(Action::Notify));
         assert_matches!(
-            actions_public_room.next(),
-            Some(Action::SetTweak(Tweak::Highlight(false)))
+            set.get_actions(&message, context_one_to_one),
+            [
+                Action::Notify,
+                Action::SetTweak(Tweak::Sound(_)),
+                Action::SetTweak(Tweak::Highlight(false))
+            ]
+        );
+        assert_matches!(
+            set.get_actions(&message, context_public_room),
+            [Action::SetTweak(Tweak::Highlight(false))]
         );
 
         let user_name = serde_json::from_str::<Raw<JsonValue>>(
@@ -960,15 +961,23 @@ mod tests {
             }"#,
         )
         .unwrap();
-        let mut actions_one_to_one = set.get_actions(&user_name, context_one_to_one);
-        assert_matches!(actions_one_to_one.next(), Some(Action::Notify));
-        assert_matches!(actions_one_to_one.next(), Some(Action::SetTweak(Tweak::Sound(_))));
-        assert_matches!(actions_one_to_one.next(), Some(Action::SetTweak(Tweak::Highlight(true))));
 
-        let mut actions_public_room = set.get_actions(&user_name, context_public_room);
-        assert_matches!(actions_public_room.next(), Some(Action::Notify));
-        assert_matches!(actions_public_room.next(), Some(Action::SetTweak(Tweak::Sound(_))));
-        assert_matches!(actions_public_room.next(), Some(Action::SetTweak(Tweak::Highlight(true))));
+        assert_matches!(
+            set.get_actions(&user_name, context_one_to_one),
+            [
+                Action::Notify,
+                Action::SetTweak(Tweak::Sound(_)),
+                Action::SetTweak(Tweak::Highlight(true)),
+            ]
+        );
+        assert_matches!(
+            set.get_actions(&user_name, context_public_room),
+            [
+                Action::Notify,
+                Action::SetTweak(Tweak::Sound(_)),
+                Action::SetTweak(Tweak::Highlight(true)),
+            ]
+        );
 
         let notice = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
@@ -979,8 +988,7 @@ mod tests {
             }"#,
         )
         .unwrap();
-        let mut actions = set.get_actions(&notice, context_one_to_one);
-        assert_matches!(actions.next(), Some(Action::DontNotify));
+        assert_matches!(set.get_actions(&notice, context_one_to_one), [Action::DontNotify]);
 
         let at_room = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
@@ -993,13 +1001,14 @@ mod tests {
             }"#,
         )
         .unwrap();
-        let mut actions = set.get_actions(&at_room, context_public_room);
-        assert_matches!(actions.next(), Some(Action::Notify));
-        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Highlight(true))));
+
+        assert_matches!(
+            set.get_actions(&at_room, context_public_room),
+            [Action::Notify, Action::SetTweak(Tweak::Highlight(true)),]
+        );
 
         let empty = serde_json::from_str::<Raw<JsonValue>>(r#"{}"#).unwrap();
-        let mut actions = set.get_actions(&empty, context_one_to_one);
-        assert_matches!(actions.next(), None);
+        assert_matches!(set.get_actions(&empty, context_one_to_one), []);
     }
 
     #[test]
@@ -1038,8 +1047,7 @@ mod tests {
         set.add(disabled);
 
         let test_set = set.clone();
-        let mut actions = test_set.get_actions(&message, context_one_to_one);
-        assert_matches!(actions.next(), None);
+        assert_matches!(test_set.get_actions(&message, context_one_to_one), []);
 
         let no_conditions = AnyPushRule::Underride(ConditionalPushRule {
             actions: vec![Action::SetTweak(Tweak::Highlight(true))],
@@ -1051,8 +1059,10 @@ mod tests {
         set.add(no_conditions);
 
         let test_set = set.clone();
-        let mut actions = test_set.get_actions(&message, context_one_to_one);
-        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Highlight(true))));
+        assert_matches!(
+            test_set.get_actions(&message, context_one_to_one),
+            [Action::SetTweak(Tweak::Highlight(true))]
+        );
 
         let sender = AnyPushRule::Sender(SimplePushRule {
             actions: vec![Action::Notify],
@@ -1063,8 +1073,7 @@ mod tests {
         set.add(sender);
 
         let test_set = set.clone();
-        let mut actions = test_set.get_actions(&message, context_one_to_one);
-        assert_matches!(actions.next(), Some(Action::Notify));
+        assert_matches!(test_set.get_actions(&message, context_one_to_one), [Action::Notify]);
 
         let room = AnyPushRule::Room(SimplePushRule {
             actions: vec![Action::DontNotify],
@@ -1075,8 +1084,7 @@ mod tests {
         set.add(room);
 
         let test_set = set.clone();
-        let mut actions = test_set.get_actions(&message, context_one_to_one);
-        assert_matches!(actions.next(), Some(Action::DontNotify));
+        assert_matches!(test_set.get_actions(&message, context_one_to_one), [Action::DontNotify]);
 
         let content = AnyPushRule::Content(PatternedPushRule {
             actions: vec![Action::SetTweak(Tweak::Sound("content".into()))],
@@ -1088,8 +1096,11 @@ mod tests {
         set.add(content);
 
         let test_set = set.clone();
-        let mut actions = test_set.get_actions(&message, context_one_to_one);
-        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Sound(sound))) if sound == "content");
+        assert_matches!(
+            test_set.get_actions(&message, context_one_to_one),
+            [Action::SetTweak(Tweak::Sound(sound))]
+            if sound == "content"
+        );
 
         let three_conditions = AnyPushRule::Override(ConditionalPushRule {
             actions: vec![Action::SetTweak(Tweak::Sound("three".into()))],
@@ -1107,8 +1118,11 @@ mod tests {
         });
         set.add(three_conditions);
 
-        let mut actions = set.get_actions(&message, context_one_to_one);
-        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Sound(sound))) if sound == "content");
+        assert_matches!(
+            set.get_actions(&message, context_one_to_one),
+            [Action::SetTweak(Tweak::Sound(sound))]
+            if sound == "content"
+        );
 
         let new_message = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
@@ -1122,7 +1136,10 @@ mod tests {
         )
         .unwrap();
 
-        let mut actions = set.get_actions(&new_message, context_one_to_one);
-        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Sound(sound))) if sound == "three");
+        assert_matches!(
+            set.get_actions(&new_message, context_one_to_one),
+            [Action::SetTweak(Tweak::Sound(sound))]
+            if sound == "three"
+        );
     }
 }

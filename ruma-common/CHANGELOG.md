@@ -3,6 +3,8 @@
 Breaking changes:
 
 * Rename `push::RulesetIter` to `push::RulesetIntoIter`
+* Change the return type of `push::Ruleset::get_actions` from an iterator to a
+  slice
 
 Improvements:
 
