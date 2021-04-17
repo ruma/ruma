@@ -130,8 +130,8 @@ impl ReleaseTask {
             if published {
                 // Crate was published, instead of publishing skipped (because release already
                 // existed).
-                println!("Waiting 10 seconds for the release to make it into the crates.io index…");
-                sleep(Duration::from_secs(10));
+                println!("Waiting 20 seconds for the release to make it into the crates.io index…");
+                sleep(Duration::from_secs(20));
             }
         }
 
