@@ -1,5 +1,7 @@
 # [unreleased]
 
+# 0.5.0
+
 Breaking changes:
 
 * Rename `push::RulesetIter` to `push::RulesetIntoIter`
