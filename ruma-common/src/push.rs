@@ -105,39 +105,12 @@ impl Ruleset {
     where
         T: Serialize,
     {
-        let event_map = &FlattenedJson::from_raw(event);
-
-        for rule in &self.override_ {
-            if rule.applies(event_map, context) {
-                return rule.actions.iter();
-            }
-        }
-        for rule in &self.content {
-            if rule.applies_to("content.body", event_map, context) {
-                return rule.actions.iter();
-            }
-        }
-        for rule in &self.room {
-            if rule.enabled
-                && condition::check_event_match(event_map, "room_id", &rule.rule_id, context)
-            {
-                return rule.actions.iter();
-            }
-        }
-        for rule in &self.sender {
-            if rule.enabled
-                && condition::check_event_match(event_map, "sender", &rule.rule_id, context)
-            {
-                return rule.actions.iter();
-            }
-        }
-        for rule in &self.underride {
-            if rule.applies(event_map, context) {
-                return rule.actions.iter();
-            }
-        }
-
-        [].iter()
+        let event = FlattenedJson::from_raw(event);
+        self.iter()
+            .find(|rule| rule.applies(&event, context))
+            .map(|rule| rule.actions())
+            .unwrap_or(&[])
+            .iter()
     }
 }
 

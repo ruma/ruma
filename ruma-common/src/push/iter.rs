@@ -1,6 +1,9 @@
 use indexmap::set::{IntoIter as IndexSetIntoIter, Iter as IndexSetIter};
 
-use super::{ConditionalPushRule, PatternedPushRule, Ruleset, SimplePushRule};
+use super::{
+    condition, Action, ConditionalPushRule, FlattenedJson, PatternedPushRule, PushConditionRoomCtx,
+    Ruleset, SimplePushRule,
+};
 
 /// The kinds of push rules that are available.
 #[derive(Clone, Debug)]
@@ -33,15 +36,29 @@ impl AnyPushRule {
         }
     }
 
+    /// Get the `enabled` flag of the push rule.
+    pub fn enabled(&self) -> bool {
+        self.as_ref().enabled()
+    }
+
+    /// Get the `actions` of the push rule.
+    pub fn actions(&self) -> &[Action] {
+        self.as_ref().actions()
+    }
+
     /// Get the `rule_id` of the push rule.
     pub fn rule_id(&self) -> &str {
-        match self {
-            Self::Override(rule) => &rule.rule_id,
-            Self::Underride(rule) => &rule.rule_id,
-            Self::Content(rule) => &rule.rule_id,
-            Self::Room(rule) => &rule.rule_id,
-            Self::Sender(rule) => &rule.rule_id,
-        }
+        self.as_ref().rule_id()
+    }
+
+    /// Check if the push rule applies to the event.
+    ///
+    /// # Arguments
+    ///
+    /// * `event` - The flattened JSON representation of a room message event.
+    /// * `context` - The context of the room at the time of the event.
+    pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
+        self.as_ref().applies(event, context)
     }
 }
 
@@ -126,6 +143,28 @@ impl<'a> AnyPushRuleRef<'a> {
         }
     }
 
+    /// Get the `enabled` flag of the push rule.
+    pub fn enabled(self) -> bool {
+        match self {
+            Self::Override(rule) => rule.enabled,
+            Self::Underride(rule) => rule.enabled,
+            Self::Content(rule) => rule.enabled,
+            Self::Room(rule) => rule.enabled,
+            Self::Sender(rule) => rule.enabled,
+        }
+    }
+
+    /// Get the `actions` of the push rule.
+    pub fn actions(self) -> &'a [Action] {
+        match self {
+            Self::Override(rule) => &rule.actions,
+            Self::Underride(rule) => &rule.actions,
+            Self::Content(rule) => &rule.actions,
+            Self::Room(rule) => &rule.actions,
+            Self::Sender(rule) => &rule.actions,
+        }
+    }
+
     /// Get the `rule_id` of the push rule.
     pub fn rule_id(self) -> &'a str {
         match self {
@@ -134,6 +173,28 @@ impl<'a> AnyPushRuleRef<'a> {
             Self::Content(rule) => &rule.rule_id,
             Self::Room(rule) => &rule.rule_id,
             Self::Sender(rule) => &rule.rule_id,
+        }
+    }
+
+    /// Check if the push rule applies to the event.
+    ///
+    /// # Arguments
+    ///
+    /// * `event` - The flattened JSON representation of a room message event.
+    /// * `context` - The context of the room at the time of the event.
+    pub fn applies(self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
+        match self {
+            Self::Override(rule) => rule.applies(event, context),
+            Self::Underride(rule) => rule.applies(event, context),
+            Self::Content(rule) => rule.applies_to("content.body", event, context),
+            Self::Room(rule) => {
+                rule.enabled
+                    && condition::check_event_match(event, "room_id", &rule.rule_id, context)
+            }
+            Self::Sender(rule) => {
+                rule.enabled
+                    && condition::check_event_match(event, "sender", &rule.rule_id, context)
+            }
         }
     }
 }
