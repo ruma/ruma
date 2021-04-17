@@ -231,7 +231,7 @@ impl ReleaseTask {
             }
 
             match input.trim().to_ascii_lowercase().as_str() {
-                "c" | "continue" => {
+                "c" | "con" | "continue" => {
                     break;
                 }
                 "a" | "abort" => {
