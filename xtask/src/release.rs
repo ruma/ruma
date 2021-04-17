@@ -137,7 +137,11 @@ impl ReleaseTask {
 
         self.package.publish(&self.http_client)?;
 
+        let branch = cmd!("git rev-parse --abbrev-ref HEAD").read()?;
         if publish_only {
+            println!("Pushing to remote repository…");
+            cmd!("git push {remote} {branch}").run()?;
+
             println!("Crate published successfully!");
             return Ok(());
         }
@@ -151,9 +155,9 @@ impl ReleaseTask {
             return Ok(());
         }
 
-        println!("Pushing tag to remote repository…");
+        println!("Pushing to remote repository…");
         if cmd!("git ls-remote --tags {remote} {tag}").read()?.is_empty() {
-            cmd!("git push {remote} {tag}").run()?;
+            cmd!("git push {remote} {branch},{tag}").run()?;
         } else if !ask_yes_no("This tag has already been pushed. Skip this step and continue?")? {
             return Ok(());
         }
@@ -250,9 +254,6 @@ impl ReleaseTask {
 
         println!("Creating commit…");
         cmd!("git commit -a -m {message}").read()?;
-
-        println!("Pushing commit…");
-        cmd!("git push").read()?;
 
         Ok(())
     }
