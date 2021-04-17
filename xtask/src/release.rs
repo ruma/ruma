@@ -62,6 +62,18 @@ impl ReleaseTask {
         let prerelease = self.version.is_prerelease();
         let publish_only = self.package.name == "ruma-identifiers-validation";
 
+        if let Some(name) = self.package.name.strip_suffix("-macros") {
+            return Err(format!(
+                "Macro crates are always released together with their parent crate.\n\
+                 To release both {main_cr} and {macro_cr}, simply run\n\
+                 \n\
+                 cargo xtask release {main_cr}",
+                main_cr = name,
+                macro_cr = self.package.name,
+            )
+            .into());
+        }
+
         println!(
             "Starting {} for {}…",
             match prerelease {
