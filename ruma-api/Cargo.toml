@@ -29,7 +29,7 @@ serde_json = "1.0.61"
 thiserror = "1.0.23"
 
 [dev-dependencies]
-ruma-events = { version = "=0.22.0-alpha.2", path = "../ruma-events" }
+ruma-events = { version = "=0.22.0-alpha.3", path = "../ruma-events" }
 trybuild = "1.0.38"
 
 # These feature gates exist only for the tests. Disabling them results in a

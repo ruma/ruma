@@ -23,7 +23,7 @@ ruma-common = { version = "0.5.0", path = "../ruma-common" }
 ruma-identifiers = { version = "0.19.0", path = "../ruma-identifiers", features = ["serde"] }
 ruma-serde = { version = "0.3.1", path = "../ruma-serde" }
 
-ruma-events = { version = "=0.22.0-alpha.2", path = "../ruma-events", optional = true }
+ruma-events = { version = "=0.22.0-alpha.3", path = "../ruma-events", optional = true }
 ruma-signatures = { version = "0.7.0", path = "../ruma-signatures", optional = true }
 
 ruma-api = { version = "=0.17.0-alpha.2", path = "../ruma-api", optional = true }
