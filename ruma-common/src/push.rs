@@ -107,27 +107,31 @@ impl Ruleset {
     {
         let event_map = &FlattenedJson::from_raw(event);
 
-        for rule in self.override_.iter().filter(|r| r.enabled) {
+        for rule in &self.override_ {
             if rule.applies(event_map, context) {
                 return rule.actions.iter();
             }
         }
-        for rule in self.content.iter().filter(|r| r.enabled) {
+        for rule in &self.content {
             if rule.applies_to("content.body", event_map, context) {
                 return rule.actions.iter();
             }
         }
-        for rule in self.room.iter().filter(|r| r.enabled) {
-            if condition::check_event_match(event_map, "room_id", &rule.rule_id, context) {
+        for rule in &self.room {
+            if rule.enabled
+                && condition::check_event_match(event_map, "room_id", &rule.rule_id, context)
+            {
                 return rule.actions.iter();
             }
         }
-        for rule in self.sender.iter().filter(|r| r.enabled) {
-            if condition::check_event_match(event_map, "sender", &rule.rule_id, context) {
+        for rule in &self.sender {
+            if rule.enabled
+                && condition::check_event_match(event_map, "sender", &rule.rule_id, context)
+            {
                 return rule.actions.iter();
             }
         }
-        for rule in self.underride.iter().filter(|r| r.enabled) {
+        for rule in &self.underride {
             if rule.applies(event_map, context) {
                 return rule.actions.iter();
             }
@@ -238,6 +242,18 @@ pub struct ConditionalPushRule {
     pub conditions: Vec<PushCondition>,
 }
 
+impl ConditionalPushRule {
+    /// Check if the push rule applies to the event.
+    ///
+    /// # Arguments
+    ///
+    /// * `event` - The flattened JSON representation of a room message event.
+    /// * `context` - The context of the room at the time of the event.
+    pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
+        self.enabled && self.conditions.iter().all(|cond| cond.applies(event, context))
+    }
+}
+
 /// Initial set of fields of `ConditionalPushRule`.
 ///
 /// This struct will not be updated even if additional fields are added to `ConditionalPushRule` in
@@ -267,18 +283,6 @@ impl From<ConditionalPushRuleInit> for ConditionalPushRule {
     fn from(init: ConditionalPushRuleInit) -> Self {
         let ConditionalPushRuleInit { actions, default, enabled, rule_id, conditions } = init;
         Self { actions, default, enabled, rule_id, conditions }
-    }
-}
-
-impl ConditionalPushRule {
-    /// Check if the push rule applies to the event.
-    ///
-    /// # Arguments
-    ///
-    /// * `event` - The flattened JSON representation of a room message event.
-    /// * `context` - The context of the room at the time of the event.
-    pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
-        self.conditions.iter().all(|cond| cond.applies(event, context))
     }
 }
 
@@ -343,7 +347,7 @@ impl PatternedPushRule {
         event: &FlattenedJson,
         context: &PushConditionRoomCtx,
     ) -> bool {
-        condition::check_event_match(event, key, &self.pattern, context)
+        self.enabled && condition::check_event_match(event, key, &self.pattern, context)
     }
 }
 
