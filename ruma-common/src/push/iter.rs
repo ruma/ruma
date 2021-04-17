@@ -22,6 +22,17 @@ pub enum AnyPushRule {
 }
 
 impl AnyPushRule {
+    /// Convert `AnyPushRule` to `AnyPushRuleRef`.
+    pub fn as_ref(&self) -> AnyPushRuleRef<'_> {
+        match self {
+            Self::Override(o) => AnyPushRuleRef::Override(&o),
+            Self::Content(c) => AnyPushRuleRef::Content(&c),
+            Self::Room(r) => AnyPushRuleRef::Room(&r),
+            Self::Sender(s) => AnyPushRuleRef::Sender(&s),
+            Self::Underride(u) => AnyPushRuleRef::Underride(&u),
+        }
+    }
+
     /// Get the `rule_id` of the push rule.
     pub fn rule_id(&self) -> &str {
         match self {
@@ -104,6 +115,17 @@ pub enum AnyPushRuleRef<'a> {
 }
 
 impl<'a> AnyPushRuleRef<'a> {
+    /// Convert `AnyPushRuleRef` to `AnyPushRule` by cloning the inner value.
+    pub fn to_owned(self) -> AnyPushRule {
+        match self {
+            Self::Override(o) => AnyPushRule::Override(o.clone()),
+            Self::Content(c) => AnyPushRule::Content(c.clone()),
+            Self::Room(r) => AnyPushRule::Room(r.clone()),
+            Self::Sender(s) => AnyPushRule::Sender(s.clone()),
+            Self::Underride(u) => AnyPushRule::Underride(u.clone()),
+        }
+    }
+
     /// Get the `rule_id` of the push rule.
     pub fn rule_id(self) -> &'a str {
         match self {

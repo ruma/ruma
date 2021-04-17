@@ -4,6 +4,12 @@ Breaking changes:
 
 * Rename `push::RulesetIter` to `push::RulesetIntoIter`
 
+Improvements:
+
+* Add `push::Ruleset::iter()` for borrowing iteration of rulesets
+* Add conversions between `AnyPushRule` and `AnyPushRuleRef`
+  (`AnyPushRule::as_ref` and `AnyPushRuleRef::to_owned`)
+
 # 0.4.0
 
 Breaking changes:
