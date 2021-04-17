@@ -144,7 +144,7 @@ impl Ruleset {
 
 /// Iterator type for `Ruleset`
 #[derive(Debug)]
-pub struct RulesetIter {
+pub struct RulesetIntoIter {
     content: IndexSetIter<PatternedPushRule>,
     override_: IndexSetIter<ConditionalPushRule>,
     room: IndexSetIter<SimplePushRule>,
@@ -152,7 +152,7 @@ pub struct RulesetIter {
     underride: IndexSetIter<ConditionalPushRule>,
 }
 
-impl Iterator for RulesetIter {
+impl Iterator for RulesetIntoIter {
     type Item = AnyPushRule;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -168,10 +168,10 @@ impl Iterator for RulesetIter {
 
 impl IntoIterator for Ruleset {
     type Item = AnyPushRule;
-    type IntoIter = RulesetIter;
+    type IntoIter = RulesetIntoIter;
 
     fn into_iter(self) -> Self::IntoIter {
-        RulesetIter {
+        RulesetIntoIter {
             content: self.content.into_iter(),
             override_: self.override_.into_iter(),
             room: self.room.into_iter(),
