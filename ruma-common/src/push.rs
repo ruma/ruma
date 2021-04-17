@@ -89,6 +89,24 @@ impl Ruleset {
         }
     }
 
+    /// Get the first push rule that applies to this event, if any.
+    ///
+    /// # Arguments
+    ///
+    /// * `event` - The raw JSON of a room message event.
+    /// * `context` - The context of the message and room at the time of the event.
+    pub fn get_match<T>(
+        &self,
+        event: &Raw<T>,
+        context: &PushConditionRoomCtx,
+    ) -> Option<AnyPushRuleRef<'_>>
+    where
+        T: Serialize,
+    {
+        let event = FlattenedJson::from_raw(event);
+        self.iter().find(|rule| rule.applies(&event, context))
+    }
+
     /// Get the push actions that apply to this event.
     ///
     /// Returns an empty slice if no push rule applies.
@@ -101,11 +119,7 @@ impl Ruleset {
     where
         T: Serialize,
     {
-        let event = FlattenedJson::from_raw(event);
-        self.iter()
-            .find(|rule| rule.applies(&event, context))
-            .map(|rule| rule.actions())
-            .unwrap_or(&[])
+        self.get_match(event, context).map(|rule| rule.actions()).unwrap_or(&[])
     }
 }
 
