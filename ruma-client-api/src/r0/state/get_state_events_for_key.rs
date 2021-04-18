@@ -1,10 +1,9 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-rooms-roomid-state-eventtype-statekey)
 
 use ruma_api::ruma_api;
-use ruma_events::EventType;
+use ruma_events::{AnyStateEventContent, EventType};
 use ruma_identifiers::RoomId;
-use ruma_serde::Outgoing;
-use serde_json::value::RawValue as RawJsonValue;
+use ruma_serde::{Outgoing, Raw};
 
 ruma_api! {
     metadata: {
@@ -18,8 +17,11 @@ ruma_api! {
 
     response: {
         /// The content of the state event.
+        ///
+        /// Since the inner type of the `Raw` does not implement `Deserialize`, you need to use
+        /// `ruma_events::RawExt` to deserialize it.
         #[ruma_api(body)]
-        pub content: Box<RawJsonValue>,
+        pub content: Raw<AnyStateEventContent>,
     }
 
     error: crate::Error
@@ -51,7 +53,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given content.
-    pub fn new(content: Box<RawJsonValue>) -> Self {
+    pub fn new(content: Raw<AnyStateEventContent>) -> Self {
         Self { content }
     }
 }
@@ -76,8 +78,8 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
         let mut url = format!(
             "{}/_matrix/client/r0/rooms/{}/state/{}",
             base_url.strip_suffix('/').unwrap_or(base_url),
-            utf8_percent_encode(&self.room_id.to_string(), NON_ALPHANUMERIC,),
-            utf8_percent_encode(&self.event_type.to_string(), NON_ALPHANUMERIC,)
+            utf8_percent_encode(&self.room_id.to_string(), NON_ALPHANUMERIC),
+            utf8_percent_encode(&self.event_type.to_string(), NON_ALPHANUMERIC)
         );
 
         if !self.state_key.is_empty() {
