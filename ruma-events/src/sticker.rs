@@ -11,6 +11,7 @@ pub type StickerEvent = MessageEvent<StickerEventContent>;
 
 /// The payload for `StickerEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.sticker")]
 pub struct StickerEventContent {
     /// A textual representation or associated description of the sticker image. This could
@@ -23,4 +24,11 @@ pub struct StickerEventContent {
 
     /// The URL to the sticker image. This must be a valid `mxc://` URI.
     pub url: MxcUri,
+}
+
+impl StickerEventContent {
+    /// Creates a new `StickerEventContent` with the given body, image info and URL.
+    pub fn new(body: String, info: ImageInfo, url: MxcUri) -> Self {
+        Self { body, info, url }
+    }
 }

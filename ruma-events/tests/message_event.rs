@@ -15,9 +15,9 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 #[test]
 fn message_serialize_sticker() {
     let aliases_event = MessageEvent {
-        content: AnyMessageEventContent::Sticker(StickerEventContent {
-            body: "Hello".into(),
-            info: ImageInfo {
+        content: AnyMessageEventContent::Sticker(StickerEventContent::new(
+            "Hello".into(),
+            ImageInfo {
                 height: UInt::new(423),
                 width: UInt::new(1011),
                 mimetype: Some("image/png".into()),
@@ -33,8 +33,8 @@ fn message_serialize_sticker() {
                 #[cfg(feature = "unstable-pre-spec")]
                 blurhash: None,
             },
-            url: mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs"),
-        }),
+            mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs"),
+        )),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         room_id: room_id!("!roomid:room.com"),
@@ -195,6 +195,7 @@ fn deserialize_message_sticker() {
                     blurhash: None,
                 },
                 url,
+                ..
             }),
             event_id,
             origin_server_ts,
