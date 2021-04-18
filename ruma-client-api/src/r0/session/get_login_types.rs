@@ -310,7 +310,7 @@ mod tests {
         }))
         .unwrap();
 
-        let mut flow = foo.flows.pop();
+        let flow = foo.flows.pop();
         assert_matches!(foo.flows.as_slice(), []);
 
         let mut identity_providers = match flow {
