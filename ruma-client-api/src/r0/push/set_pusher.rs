@@ -1,8 +1,9 @@
 //! [POST /_matrix/client/r0/pushers/set](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-pushers-set)
 
 use ruma_api::ruma_api;
+use serde::{Deserialize, Serialize};
 
-use super::Pusher;
+use super::{PusherData, PusherKind};
 
 ruma_api! {
     metadata: {
@@ -44,4 +45,33 @@ impl Response {
     pub fn new() -> Self {
         Self
     }
+}
+
+/// Defines a pusher.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Pusher {
+    /// This is a unique identifier for this pusher. Max length, 512 bytes.
+    pub pushkey: String,
+
+    /// The kind of the pusher. `None` deletes the pusher.
+    pub kind: Option<PusherKind>,
+
+    /// This is a reverse-DNS style identifier for the application. Max length, 64 chars.
+    pub app_id: String,
+
+    /// A string that will allow the user to identify what application owns this pusher.
+    pub app_display_name: String,
+
+    /// A string that will allow the user to identify what device owns this pusher.
+    pub device_display_name: String,
+
+    /// This string determines which set of device specific rules this pusher executes.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub profile_tag: Option<String>,
+
+    /// The preferred language for receiving notifications (e.g. 'en' or 'en-US')
+    pub lang: String,
+
+    /// Information for the pusher implementation itself.
+    pub data: PusherData,
 }
