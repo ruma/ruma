@@ -30,7 +30,8 @@ pub mod tombstone;
 pub mod topic;
 
 /// Metadata about an image.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ImageInfo {
     /// The height of the image in pixels.
     #[serde(rename = "h", skip_serializing_if = "Option::is_none")]
@@ -71,8 +72,16 @@ pub struct ImageInfo {
     pub blurhash: Option<String>,
 }
 
+impl ImageInfo {
+    /// Creates an empty `ImageInfo`.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 /// Metadata about a thumbnail.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ThumbnailInfo {
     /// The height of the thumbnail in pixels.
     #[serde(rename = "h", skip_serializing_if = "Option::is_none")]
@@ -89,6 +98,13 @@ pub struct ThumbnailInfo {
     /// The file size of the thumbnail in bytes.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<UInt>,
+}
+
+impl ThumbnailInfo {
+    /// Creates an empty `ThumbnailInfo`.
+    pub fn new() -> Self {
+        Self::default()
+    }
 }
 
 /// A file sent to a room with end-to-end encryption enabled.
