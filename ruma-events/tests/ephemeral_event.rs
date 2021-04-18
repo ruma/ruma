@@ -15,9 +15,9 @@ use ruma_events::{
 #[test]
 fn ephemeral_serialize_typing() {
     let aliases_event = EphemeralRoomEvent {
-        content: AnyEphemeralRoomEventContent::Typing(TypingEventContent {
-            user_ids: vec![user_id!("@carl:example.com")],
-        }),
+        content: AnyEphemeralRoomEventContent::Typing(TypingEventContent::new(vec![user_id!(
+            "@carl:example.com"
+        )])),
         room_id: room_id!("!roomid:room.com"),
     };
 
@@ -49,9 +49,7 @@ fn deserialize_ephemeral_typing() {
             .deserialize()
             .unwrap(),
         EphemeralRoomEvent {
-            content: AnyEphemeralRoomEventContent::Typing(TypingEventContent {
-                user_ids,
-            }),
+            content: AnyEphemeralRoomEventContent::Typing(TypingEventContent { user_ids, .. }),
             room_id,
         } if user_ids[0] == user_id!("@carl:example.com")
             && room_id == room_id!("!roomid:room.com")
