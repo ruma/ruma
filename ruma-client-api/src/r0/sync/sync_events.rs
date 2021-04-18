@@ -92,6 +92,11 @@ ruma_api! {
         /// currently held on the server for a device.
         #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
         pub device_one_time_keys_count: BTreeMap<DeviceKeyAlgorithm, UInt>,
+
+        #[cfg(not(feature = "unstable-exhaustive-types"))]
+        #[doc(hidden)]
+        #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+        pub __test_exhaustive: crate::Private,
     }
 
     error: crate::Error
@@ -115,6 +120,8 @@ impl Response {
             to_device: Default::default(),
             device_lists: Default::default(),
             device_one_time_keys_count: BTreeMap::new(),
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
         }
     }
 }
@@ -155,8 +162,7 @@ impl<'a> From<&'a str> for Filter<'a> {
 }
 
 /// Updates to rooms.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Rooms {
     /// The rooms that the user has left or been banned from.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -169,6 +175,11 @@ pub struct Rooms {
     /// The rooms that the user has been invited to.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub invite: BTreeMap<RoomId, InvitedRoom>,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
 }
 
 impl Rooms {
@@ -183,9 +194,20 @@ impl Rooms {
     }
 }
 
+impl Default for Rooms {
+    fn default() -> Self {
+        Self {
+            leave: BTreeMap::new(),
+            join: BTreeMap::new(),
+            invite: BTreeMap::new(),
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
 /// Historical updates to left rooms.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct LeftRoom {
     /// The timeline of messages and state changes in the room up to the point when the user
     /// left.
@@ -199,6 +221,11 @@ pub struct LeftRoom {
     /// The private data that this user has attached to this room.
     #[serde(default, skip_serializing_if = "AccountData::is_empty")]
     pub account_data: AccountData,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
 }
 
 impl LeftRoom {
@@ -213,9 +240,20 @@ impl LeftRoom {
     }
 }
 
+impl Default for LeftRoom {
+    fn default() -> Self {
+        Self {
+            timeline: Default::default(),
+            state: Default::default(),
+            account_data: Default::default(),
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
 /// Updates to joined rooms.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct JoinedRoom {
     /// Information about the room which clients may need to correctly render it
     /// to users.
@@ -244,6 +282,11 @@ pub struct JoinedRoom {
     /// room. e.g. typing.
     #[serde(default, skip_serializing_if = "Ephemeral::is_empty")]
     pub ephemeral: Ephemeral,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
 }
 
 impl JoinedRoom {
@@ -263,9 +306,23 @@ impl JoinedRoom {
     }
 }
 
-/// unread notifications count
-#[derive(Clone, Default, Debug, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+impl Default for JoinedRoom {
+    fn default() -> Self {
+        Self {
+            summary: Default::default(),
+            unread_notifications: Default::default(),
+            timeline: Default::default(),
+            state: Default::default(),
+            account_data: Default::default(),
+            ephemeral: Default::default(),
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
+/// Unread notifications count.
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct UnreadNotificationsCount {
     /// The number of unread notifications for this room with the highlight flag set.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -274,6 +331,11 @@ pub struct UnreadNotificationsCount {
     /// The total number of unread notifications for this room.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub notification_count: Option<UInt>,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
 }
 
 impl UnreadNotificationsCount {
@@ -288,22 +350,39 @@ impl UnreadNotificationsCount {
     }
 }
 
+impl Default for UnreadNotificationsCount {
+    fn default() -> Self {
+        Self {
+            highlight_count: None,
+            notification_count: None,
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
 /// Events in the room.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Timeline {
     /// True if the number of events returned was limited by the `limit` on the filter.
+    ///
+    /// Default to `false`.
     #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
     pub limited: bool,
 
-    /// A token that can be supplied to to the `from` parameter of the
-    /// `/rooms/{roomId}/messages` endpoint.
+    /// A token that can be supplied to to the `from` parameter of the `/rooms/{roomId}/messages`
+    /// endpoint.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prev_batch: Option<String>,
 
     /// A list of events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnySyncRoomEvent>>,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
 }
 
 impl Timeline {
@@ -318,13 +397,29 @@ impl Timeline {
     }
 }
 
+impl Default for Timeline {
+    fn default() -> Self {
+        Self {
+            limited: false,
+            prev_batch: None,
+            events: vec![],
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
 /// State events in the room.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct State {
     /// A list of state events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnySyncStateEvent>>,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
 }
 
 impl State {
@@ -339,13 +434,27 @@ impl State {
     }
 }
 
+impl Default for State {
+    fn default() -> Self {
+        Self {
+            events: vec![],
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
 /// The private data that this user has attached to this room.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AccountData {
     /// A list of events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnyBasicEvent>>,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
 }
 
 impl AccountData {
@@ -360,13 +469,27 @@ impl AccountData {
     }
 }
 
+impl Default for AccountData {
+    fn default() -> Self {
+        Self {
+            events: vec![],
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
 /// Ephemeral events not recorded in the timeline or state of the room.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Ephemeral {
     /// A list of events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnySyncEphemeralRoomEvent>>,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
 }
 
 impl Ephemeral {
@@ -381,9 +504,18 @@ impl Ephemeral {
     }
 }
 
+impl Default for Ephemeral {
+    fn default() -> Self {
+        Self {
+            events: vec![],
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
 /// Information about room for rendering to clients.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RoomSummary {
     /// Users which can be used to generate a room name if the room does not have
     /// one. Required if room name or canonical aliases are not set or empty.
@@ -401,6 +533,11 @@ pub struct RoomSummary {
     /// omitted.
     #[serde(rename = "m.invited_member_count", skip_serializing_if = "Option::is_none")]
     pub invited_member_count: Option<UInt>,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
 }
 
 impl RoomSummary {
@@ -417,13 +554,29 @@ impl RoomSummary {
     }
 }
 
+impl Default for RoomSummary {
+    fn default() -> Self {
+        Self {
+            heroes: vec![],
+            joined_member_count: None,
+            invited_member_count: None,
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
 /// Updates to the rooms that the user has been invited to.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct InvitedRoom {
     /// The state of a room that the user has been invited to.
     #[serde(default, skip_serializing_if = "InviteState::is_empty")]
     pub invite_state: InviteState,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
 }
 
 impl InvitedRoom {
@@ -438,13 +591,27 @@ impl InvitedRoom {
     }
 }
 
+impl Default for InvitedRoom {
+    fn default() -> Self {
+        Self {
+            invite_state: Default::default(),
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
 /// The state of a room that the user has been invited to.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct InviteState {
     /// A list of state events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnyStrippedStateEvent>>,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
 }
 
 impl InviteState {
@@ -459,13 +626,27 @@ impl InviteState {
     }
 }
 
+impl Default for InviteState {
+    fn default() -> Self {
+        Self {
+            events: vec![],
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
 /// Updates to the presence status of other users.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Presence {
     /// A list of events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<PresenceEvent>>,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
 }
 
 impl Presence {
@@ -480,13 +661,27 @@ impl Presence {
     }
 }
 
+impl Default for Presence {
+    fn default() -> Self {
+        Self {
+            events: vec![],
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
 /// Messages sent dirrectly between devices.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ToDevice {
     /// A list of to-device events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub events: Vec<Raw<AnyToDeviceEvent>>,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
 }
 
 impl ToDevice {
@@ -501,9 +696,18 @@ impl ToDevice {
     }
 }
 
+impl Default for ToDevice {
+    fn default() -> Self {
+        Self {
+            events: vec![],
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
 /// Information on E2E device udpates.
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct DeviceLists {
     /// List of users who have updated their device identity keys or who now
     /// share an encrypted room with the client since the previous sync
@@ -514,6 +718,11 @@ pub struct DeviceLists {
     /// response.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub left: Vec<UserId>,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
 }
 
 impl DeviceLists {
@@ -528,34 +737,39 @@ impl DeviceLists {
     }
 }
 
+impl Default for DeviceLists {
+    fn default() -> Self {
+        Self {
+            changed: vec![],
+            left: vec![],
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use assign::assign;
+    use matches::assert_matches;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
     use super::Timeline;
 
     #[test]
     fn timeline_serde() {
-        let timeline = Timeline { limited: true, prev_batch: None, events: vec![] };
-
-        let timeline_serialized = json!({
-            "limited": true,
-        });
-
+        let timeline = assign!(Timeline::new(), { limited: true });
+        let timeline_serialized = json!({ "limited": true });
         assert_eq!(to_json_value(timeline).unwrap(), timeline_serialized);
 
-        let timeline_deserialized: Timeline = from_json_value(timeline_serialized).unwrap();
-        assert_eq!(timeline_deserialized.limited, true);
+        let timeline_deserialized = from_json_value(timeline_serialized);
+        assert_matches!(timeline_deserialized, Ok(Timeline { limited: true, .. }));
 
         let timeline_default = Timeline::default();
+        assert_eq!(to_json_value(timeline_default).unwrap(), json!({}));
 
-        let timeline_default_serialized = json!({});
-
-        assert_eq!(to_json_value(timeline_default).unwrap(), timeline_default_serialized);
-
-        let timeline_default_deserialized: Timeline =
-            from_json_value(timeline_default_serialized).unwrap();
-        assert_eq!(timeline_default_deserialized.limited, false);
+        let timeline_default_deserialized = from_json_value(json!({}));
+        assert_matches!(timeline_default_deserialized, Ok(Timeline { limited: false, .. }));
     }
 }
 
