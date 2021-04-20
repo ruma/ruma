@@ -36,6 +36,13 @@ impl<'a> Request<'a> {
     }
 }
 
+impl IncomingRequest {
+    /// Creates `IncomingRequest` with the given transaction ID and list of events.
+    pub fn new(txn_id: String, events: Vec<Raw<AnyEvent>>) -> IncomingRequest {
+        IncomingRequest { txn_id, events }
+    }
+}
+
 impl Response {
     /// Creates an empty `Response`.
     pub fn new() -> Self {
