@@ -95,7 +95,7 @@ ruma_api! {
 
         #[cfg(not(feature = "unstable-exhaustive-types"))]
         #[doc(hidden)]
-        #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+        #[serde(skip, default = "crate::private")]
         pub __test_exhaustive: crate::Private,
     }
 
@@ -178,7 +178,7 @@ pub struct Rooms {
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
-    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    #[serde(skip, default = "crate::private")]
     pub __test_exhaustive: crate::Private,
 }
 
@@ -224,7 +224,7 @@ pub struct LeftRoom {
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
-    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    #[serde(skip, default = "crate::private")]
     pub __test_exhaustive: crate::Private,
 }
 
@@ -285,7 +285,7 @@ pub struct JoinedRoom {
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
-    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    #[serde(skip, default = "crate::private")]
     pub __test_exhaustive: crate::Private,
 }
 
@@ -334,7 +334,7 @@ pub struct UnreadNotificationsCount {
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
-    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    #[serde(skip, default = "crate::private")]
     pub __test_exhaustive: crate::Private,
 }
 
@@ -381,7 +381,7 @@ pub struct Timeline {
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
-    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    #[serde(skip, default = "crate::private")]
     pub __test_exhaustive: crate::Private,
 }
 
@@ -418,7 +418,7 @@ pub struct State {
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
-    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    #[serde(skip, default = "crate::private")]
     pub __test_exhaustive: crate::Private,
 }
 
@@ -453,7 +453,7 @@ pub struct AccountData {
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
-    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    #[serde(skip, default = "crate::private")]
     pub __test_exhaustive: crate::Private,
 }
 
@@ -488,7 +488,7 @@ pub struct Ephemeral {
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
-    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    #[serde(skip, default = "crate::private")]
     pub __test_exhaustive: crate::Private,
 }
 
@@ -536,7 +536,7 @@ pub struct RoomSummary {
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
-    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    #[serde(skip, default = "crate::private")]
     pub __test_exhaustive: crate::Private,
 }
 
@@ -575,7 +575,7 @@ pub struct InvitedRoom {
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
-    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    #[serde(skip, default = "crate::private")]
     pub __test_exhaustive: crate::Private,
 }
 
@@ -610,7 +610,7 @@ pub struct InviteState {
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
-    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    #[serde(skip, default = "crate::private")]
     pub __test_exhaustive: crate::Private,
 }
 
@@ -645,7 +645,7 @@ pub struct Presence {
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
-    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    #[serde(skip, default = "crate::private")]
     pub __test_exhaustive: crate::Private,
 }
 
@@ -680,7 +680,7 @@ pub struct ToDevice {
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
-    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    #[serde(skip, default = "crate::private")]
     pub __test_exhaustive: crate::Private,
 }
 
@@ -721,7 +721,7 @@ pub struct DeviceLists {
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
-    #[serde(skip_serializing, skip_deserializing, default = "crate::private")]
+    #[serde(skip, default = "crate::private")]
     pub __test_exhaustive: crate::Private,
 }
 
