@@ -118,7 +118,7 @@ mod tests {
         );
 
         assert_matches!(
-            req,
+            req.0,
             Ok(IncomingRequest {
                 room_id,
                 at: Some(at),

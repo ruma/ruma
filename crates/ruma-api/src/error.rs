@@ -92,6 +92,10 @@ pub enum FromHttpRequestError {
     #[error("deserialization failed: {0}")]
     Deserialization(RequestDeserializationError),
 
+    /// The request contained an authentication header without a `Bearer` prefix.
+    #[error("request contains a non-Bearer authentication header")]
+    NonBearerAuthHeader,
+
     /// HTTP method mismatch
     #[error("http method mismatch: expected {expected}, received: {received}")]
     MethodMismatch {

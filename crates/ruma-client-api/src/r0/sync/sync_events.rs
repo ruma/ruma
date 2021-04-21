@@ -900,7 +900,7 @@ mod server_tests {
             .build()
             .unwrap();
 
-        let req = IncomingRequest::try_from_http_request(
+        let (req, _) = IncomingRequest::try_from_http_request(
             http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
         )
         .unwrap();
@@ -921,7 +921,7 @@ mod server_tests {
             .build()
             .unwrap();
 
-        let req = IncomingRequest::try_from_http_request(
+        let (req, _) = IncomingRequest::try_from_http_request(
             http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
         )
         .unwrap();
@@ -946,7 +946,7 @@ mod server_tests {
             .build()
             .unwrap();
 
-        let req = IncomingRequest::try_from_http_request(
+        let (req, _) = IncomingRequest::try_from_http_request(
             http::Request::builder().uri(uri).body(&[] as &[u8]).unwrap(),
         )
         .unwrap();

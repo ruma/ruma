@@ -37,5 +37,6 @@ serde_json = "1.0.61"
 thiserror = "1.0.23"
 
 [dev-dependencies]
+matches = "0.1.8"
 ruma-events = { version = "0.24.4", path = "../ruma-events" }
 trybuild = "1.0.38"

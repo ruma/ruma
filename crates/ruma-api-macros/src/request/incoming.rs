@@ -228,7 +228,10 @@ impl Request {
 
                 fn try_from_http_request<T: ::std::convert::AsRef<[::std::primitive::u8]>>(
                     request: #http::Request<T>
-                ) -> ::std::result::Result<Self, #ruma_api::error::FromHttpRequestError> {
+                ) -> ::std::result::Result<
+                    (Self, #ruma_api::Authentication),
+                    #ruma_api::error::FromHttpRequestError,
+                > {
                     if request.method() != #http::Method::#method {
                         return Err(#ruma_api::error::FromHttpRequestError::MethodMismatch {
                             expected: #http::Method::#method,
@@ -243,12 +246,21 @@ impl Request {
                     #extract_body
                     #parse_body
 
-                    ::std::result::Result::Ok(Self {
+                    let req = Self {
                         #path_vars
                         #query_vars
                         #header_vars
                         #body_vars
-                    })
+                    };
+
+                    // Only for AccessToken auth
+                    //let auth = #ruma_api::auth::extract_access_token(
+                    //    request.uri().query(),
+                    //    request.headers(),
+                    //)?;
+                    let auth = todo!();
+
+                    ::std::result::Result::Ok((req, auth))
                 }
             }
 
