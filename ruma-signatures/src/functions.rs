@@ -249,56 +249,41 @@ pub fn verify_json(
     let signature_map = match object.get("signatures") {
         Some(CanonicalJsonValue::Object(signatures)) => signatures.clone(),
         Some(_) => return Err(Error::new("field `signatures` must be a JSON object")),
-        None => return Err(Error::new("JSON object must contain a `signatures` field.")),
+        None => return Err(Error::new("JSON object must contain a `signatures` field")),
     };
 
-    for (entity_id, public_keys) in public_key_map {
-        let signature_set = match signature_map.get(entity_id) {
-            Some(CanonicalJsonValue::Object(set)) => set,
-            Some(_) => return Err(Error::new("signature sets must be JSON objects")),
+    for (entity_id, signature_set) in signature_map {
+        let signature_set = match signature_set {
+            CanonicalJsonValue::Object(set) => set,
+            _ => return Err(Error::new("signature sets must be JSON objects")),
+        };
+
+        let public_keys = match public_key_map.get(&entity_id) {
+            Some(keys) => keys,
             None => {
-                return Err(Error::new(format!("no signatures found for entity `{}`", entity_id)))
+                return Err(Error::new(format!(
+                    "no keys for signature in public_key_map for `{}`",
+                    entity_id
+                )))
             }
         };
 
-        let mut maybe_signature = None;
-        let mut maybe_public_key = None;
+        for (key_id, signature) in &signature_set {
+            let signature = match signature {
+                CanonicalJsonValue::String(s) => s,
+                _ => return Err(Error::new("signature must be a string")),
+            };
 
-        for (key_id, public_key) in public_keys {
-            // Since only ed25519 is supported right now, we don't actually need to check what the
-            // algorithm is. If it split successfully, it's ed25519.
-            if split_id(key_id).is_err() {
-                break;
-            }
+            let public_key = public_keys
+                .get(key_id)
+                .ok_or_else(|| Error::new("no key for signature in public_key_map"))?;
 
-            if let Some(signature) = signature_set.get(key_id) {
-                maybe_signature = Some(signature);
-                maybe_public_key = Some(public_key);
+            let signature_bytes = decode_config(signature, STANDARD_NO_PAD)?;
 
-                break;
-            }
+            let public_key_bytes = decode_config(&public_key, STANDARD_NO_PAD)?;
+
+            verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, object)?;
         }
-
-        let signature = match maybe_signature {
-            Some(CanonicalJsonValue::String(signature)) => signature,
-            Some(_) => return Err(Error::new("signature must be a string")),
-            None => {
-                return Err(Error::new("event is not signed with any of the given public keys"))
-            }
-        };
-
-        let public_key = match maybe_public_key {
-            Some(public_key) => public_key,
-            None => {
-                return Err(Error::new("event is not signed with any of the given public keys"))
-            }
-        };
-
-        let signature_bytes = decode_config(signature, STANDARD_NO_PAD)?;
-
-        let public_key_bytes = decode_config(&public_key, STANDARD_NO_PAD)?;
-
-        verify_json_with(&Ed25519Verifier, &public_key_bytes, &signature_bytes, object)?;
     }
 
     Ok(())
