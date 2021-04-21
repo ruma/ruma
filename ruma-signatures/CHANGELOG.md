@@ -1,5 +1,7 @@
 # [unreleased]
 
+* Fix verify_json signature check algorithm
+
 # 0.7.0
 
 Breaking changes:
