@@ -7,7 +7,7 @@ use ruma_api::{
         FromHttpRequestError, FromHttpResponseError, IntoHttpError, RequestDeserializationError,
         ResponseDeserializationError, ServerError,
     },
-    AuthScheme, EndpointError, Metadata,
+    AuthScheme, Authentication, EndpointError, Metadata,
 };
 use ruma_events::{AnyStateEventContent, EventContent as _};
 use ruma_identifiers::{EventId, RoomId};
@@ -143,6 +143,33 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
     }
 }
 
+impl IncomingRequest {
+    fn extract_authentication(request: &http::Request<Vec<u8>>) -> Authentication {
+        request
+            .headers()
+            .get(http::header::AUTHORIZATION)
+            .map(|h| h.to_str().ok().map(|f| f.strip_prefix("Bearer ")).flatten())
+            .flatten()
+            .or_else(|| {
+                request
+                    .uri()
+                    .query()
+                    .map(|q| {
+                        let search = "access_token=";
+                        q.find(search).map(|start| {
+                            let end = q.find('&').unwrap_or_else(|| q.len());
+                            &q[start + search.len()..end]
+                        })
+                    })
+                    .flatten()
+            })
+            .map_or_else(
+                || Authentication::None,
+                |token| Authentication::AccessToken(token.to_owned()),
+            )
+    }
+}
+
 impl ruma_api::IncomingRequest for IncomingRequest {
     type EndpointError = crate::Error;
     type OutgoingResponse = Response;
@@ -152,7 +179,7 @@ impl ruma_api::IncomingRequest for IncomingRequest {
 
     fn try_from_http_request(
         request: http::Request<Vec<u8>>,
-    ) -> Result<Self, FromHttpRequestError> {
+    ) -> Result<(Self, Authentication), FromHttpRequestError> {
         let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
 
         let room_id = {
@@ -188,6 +215,6 @@ impl ruma_api::IncomingRequest for IncomingRequest {
             }
         };
 
-        Ok(Self { room_id, content })
+        Ok((Self { room_id, content }, Self::extract_authentication(&request)))
     }
 }

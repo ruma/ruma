@@ -21,6 +21,8 @@ use std::{
 
 use http::Method;
 
+use ruma_identifiers::{ServerNameBox, ServerSigningKeyId};
+
 /// Generates a `ruma_api::Endpoint` from a concise definition.
 ///
 /// The macro expects the following structure as input:
@@ -268,7 +270,9 @@ pub trait IncomingRequest: Sized {
     const METADATA: Metadata;
 
     /// Tries to turn the given `http::Request` into this request type.
-    fn try_from_http_request(req: http::Request<Vec<u8>>) -> Result<Self, FromHttpRequestError>;
+    fn try_from_http_request(
+        req: http::Request<Vec<u8>>,
+    ) -> Result<(Self, Authentication), FromHttpRequestError>;
 }
 
 /// Marker trait for requests that don't require authentication. (for the client side)
@@ -276,6 +280,39 @@ pub trait OutgoingNonAuthRequest: OutgoingRequest {}
 
 /// Marker trait for requests that don't require authentication. (for the server side)
 pub trait IncomingNonAuthRequest: IncomingRequest {}
+
+/// Fields for `X-Matrix` authentication scheme
+#[derive(Clone, Debug)]
+pub struct MatrixAuthHeader {
+    /// Sending homeserver
+    pub origin: ServerNameBox,
+
+    /// Key ID to use for checking signature
+    pub key: ServerSigningKeyId,
+
+    /// Signature of request
+    pub signature: String,
+}
+/// Authentication data for incoming requests.
+#[derive(Clone, Debug)]
+pub enum Authentication {
+    /// Authentication data was not checked since the incoming request does not require
+    /// authentication.
+    NotRrequired,
+
+    /// No authentication data found.
+    None,
+
+    /// An access token found in the `Authentication` header or the `access_token` query parameter.
+    ///
+    /// For `AuthScheme::AccessToken` (as opposed to `AuthScheme::QueryOnlyAccessToken`), this will
+    /// contain the value found in the header if both are specified.
+    AccessToken(String),
+
+    // TODO: Implement Server Signature checking
+    /// Signature for incoming federation request.
+    ServerSignatures(Vec<MatrixAuthHeader>),
+}
 
 /// Authentication scheme used by the endpoint.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]

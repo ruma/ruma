@@ -108,12 +108,12 @@ mod tests {
 
         assert_matches!(
             req,
-            Ok(IncomingRequest {
+            Ok((IncomingRequest {
                 room_id,
                 at: Some(at),
                 membership: None,
                 not_membership: Some(MembershipEventFilter::Leave),
-            }) if room_id == "!dummy:example.org" && at == "1026"
+            }, _)) if room_id == "!dummy:example.org" && at == "1026"
         );
     }
 }

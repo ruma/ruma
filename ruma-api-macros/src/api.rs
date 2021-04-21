@@ -76,6 +76,9 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
     let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
     let serde_json = quote! { #ruma_api::exports::serde_json };
 
+    // TODO: hack this for now...
+    let ruma_identifiers = quote! { ::ruma_identifiers };
+
     let description = &api.metadata.description;
     let method = &api.metadata.method;
     // We don't (currently) use this literal as a literal in the generated code. Instead we just
@@ -171,6 +174,105 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         } else {
             TokenStream::new()
         };
+
+    let extract_request_authentication = if api.metadata.authentication == "AccessToken" {
+        quote! {
+
+        // if !api.request.has_header_fields() {
+        //    quote! {
+        // this will shadow the previous declaration of headers above.
+        let headers = request.headers();
+        let query = request.uri().query();
+        /*
+        let authentication: #ruma_api::Authentication;
+        //    }
+        // }
+        let authorization_header = headers.get(#http::header::AUTHORIZATION);
+        if let Some(header) = authorization_header {
+            // TODO: Don't unwrap()
+            let auth_value = header.to_str().unwrap().strip_prefix("Bearer ");
+            let token = if auth_value.is_some() { auth_value.unwrap() } else { "" };
+
+            authentication = #ruma_api::Authentication::AccessToken(token.to_owned());
+        }
+        */
+        let authentication: #ruma_api::Authentication =
+            headers.get(#http::header::AUTHORIZATION)
+                .map(|h| h.to_str().ok().map(|f| f.strip_prefix("Bearer ")).flatten()).flatten()
+            .or_else(|| query.map(|q| {
+                let search = "access_token=";
+                q.find(search).map(|start| {
+                    let end = q.find('&').unwrap_or_else(|| q.len());
+                    &q[start + search.len()..end]
+                })
+            }).flatten())
+            .map_or_else(|| #ruma_api::Authentication::None, |token| #ruma_api::Authentication::AccessToken(token.to_owned()));
+        }
+    } else if api.metadata.authentication == "QueryOnlyAccessToken" {
+        quote! {
+            let query = request.uri().query();
+            let authentication = query.map(|q| {
+                let search = "access_token=";
+                q.find(search).map(|start| {
+                    let end = q.find('&').unwrap_or_else(|| q.len());
+                    &q[start + search.len()..end]
+                })
+            }).flatten()
+            .map_or_else(|| #ruma_api::Authentication::None, |token| #ruma_api::Authentication::AccessToken(token.to_owned()));
+        }
+    } else if api.metadata.authentication == "ServerSignatures" {
+        quote! {
+            // TODO: this will shadow the previous declaration of headers above.
+            use std::convert::TryFrom;
+            let headers = request.headers();
+
+            let x_matrix_signatures : Vec<#ruma_api::MatrixAuthHeader> = headers.get_all(#http::header::AUTHORIZATION).iter()
+                .filter(|x| x.as_ref().to_ascii_lowercase().starts_with("x-matrix ".as_bytes()))
+                .map(|v| {
+                    let prefix = "X-Matrix ";
+                    let auth_raw = &v.to_str()
+                    // TODO: No unwrap
+                    .unwrap_or_else(|_| "")[prefix.len()..];
+                    let auth_elements = auth_raw.split(',').map(|e| {
+                        if let Some(pos) = e.find('=') {
+                            let key = &e[0..pos];
+                            let value = &[pos+1..];
+                            /*
+                            let mut kv = e.splitn(2, '=');
+                            // TODO: no unwrap
+                            // TODO: trim keys
+                            let key = kv.next().unwrap().trim();
+                            // TODO: no unwrap
+                            // TODO: trim values
+                            let value = kv.next().unwrap();
+                            */
+                            Some((key, value))
+                        }
+                        None
+                    }).filter(Option::is_some).map(Option::unwrap).collect::<Vec<(&str, &str)>>();
+                    let origin = <Box<#ruma_identifiers::ServerName> as ::std::convert::TryFrom<&str>>::try_from(auth_elements.iter().find(|(key, _)| *key == "origin").unwrap().1).unwrap();
+                    let key = #ruma_identifiers::KeyId::try_from(auth_elements.iter().find(|(key, _)| *key == "key").unwrap().1).unwrap();
+                    let signature = auth_elements.iter().find(|(key, _)| *key == "signature").unwrap().1.into();
+                    #ruma_api::MatrixAuthHeader { origin, key, signature }
+                }).collect();
+            let authentication = #ruma_api::Authentication::ServerSignatures(x_matrix_signatures);
+        }
+    } else {
+        quote! {
+            let authentication = #ruma_api::Authentication::None;
+        }
+    };
+    /*
+    quote! {
+        match api.metadata.authentication {
+            #ruma_api::AuthScheme::AccessToken => {},
+
+            ruma_api::AuthScheme::QueryOnlyAccessToken => {},
+            ruma_api::AuthScheme::None => {},
+            ruma_api::AuthScheme::ServerSignatures => {},
+        };
+    };
+    */
 
     let parse_request_headers = if api.request.has_header_fields() {
         api.request.parse_headers_from_request()
@@ -352,18 +454,21 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
 
             fn try_from_http_request(
                 request: #http::Request<Vec<u8>>
-            ) -> ::std::result::Result<Self, #ruma_api::error::FromHttpRequestError> {
+            ) -> ::std::result::Result<(Self, #ruma_api::Authentication), #ruma_api::error::FromHttpRequestError> {
                 #extract_request_path
                 #extract_request_query
                 #extract_request_headers
                 #extract_request_body
+                #extract_request_authentication
 
-                Ok(Self {
-                    #parse_request_path
-                    #parse_request_query
-                    #parse_request_headers
-                    #parse_request_body
-                })
+                Ok((
+                    Self {
+                        #parse_request_path
+                        #parse_request_query
+                        #parse_request_headers
+                        #parse_request_body
+                    }, authentication
+                ))
             }
         }
 

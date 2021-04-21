@@ -33,7 +33,6 @@ ruma_api! {
         pub optional_flag: Option<bool>,
     }
 }
-
 #[test]
 fn request_serde() -> Result<(), Box<dyn std::error::Error + 'static>> {
     let req = Request {
@@ -46,7 +45,7 @@ fn request_serde() -> Result<(), Box<dyn std::error::Error + 'static>> {
     };
 
     let http_req = req.clone().try_into_http_request("https://homeserver.tld", None)?;
-    let req2 = Request::try_from_http_request(http_req)?;
+    let (req2, _) = Request::try_from_http_request(http_req)?;
 
     assert_eq!(req.hello, req2.hello);
     assert_eq!(req.world, req2.world);

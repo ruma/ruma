@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::{borrow::Borrow, collections::BTreeMap};
 
 use crate::{DeviceIdBox, KeyNameBox, ServerNameBox, SigningKeyId, UserId};
 
@@ -34,6 +34,15 @@ impl<E: Ord, K: ?Sized> Signatures<E, K> {
         value: String,
     ) -> Option<String> {
         self.0.entry(entity).or_insert_with(Default::default).insert(key_identifier, value)
+    }
+
+    /// Returns a reference to the signatures corresponding to the entities.
+    pub fn get<Q>(&self, entity: &Q) -> Option<&EntitySignatures<K>>
+    where
+        E: Borrow<Q>,
+        Q: Ord + ?Sized,
+    {
+        self.0.get(entity)
     }
 }
 
