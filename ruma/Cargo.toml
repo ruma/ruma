@@ -93,6 +93,10 @@ compat = [
     "ruma-client-api/compat",
 ]
 
+# Helper features that aren't exactly part of the spec but could be helpful
+# for crate consumers
+appservice-api-helper = ["ruma-appservice-api/helper"]
+
 # unstable: by using any of these, you opt out of all semver guarantees Ruma
 #           otherwise provides!
 unstable-exhaustive-types = [
