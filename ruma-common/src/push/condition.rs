@@ -293,12 +293,12 @@ impl FlattenedJson {
             JsonValue::String(s) => {
                 if self.map.insert(path.clone(), s).is_some() {
                     warn!("Duplicate path in flattened JSON: {}", path);
-                };
+                }
             }
             JsonValue::Number(_) | JsonValue::Bool(_) => {
                 if self.map.insert(path.clone(), value.to_string()).is_some() {
                     warn!("Duplicate path in flattened JSON: {}", path);
-                };
+                }
             }
             JsonValue::Array(_) | JsonValue::Null => {}
         }
