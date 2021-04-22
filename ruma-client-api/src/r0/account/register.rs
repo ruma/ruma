@@ -64,6 +64,15 @@ ruma_api! {
         /// from this call, therefore preventing an automatic login.
         #[serde(default, skip_serializing_if = "ruma_serde::is_default")]
         pub inhibit_login: bool,
+
+        /// Login `type` used by Appservices.
+        ///
+        /// Appservices can [bypass the registration flows][admin] entirely by providing their
+        /// token in the header and setting this login `type` to `m.login.application_service`.
+        ///
+        /// [admin]: https://matrix.org/docs/spec/application_service/r0.1.2#server-admin-style-permissions
+        #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+        pub login_type: Option<&'a LoginType>,
     }
 
     response: {
@@ -116,4 +125,12 @@ impl Default for RegistrationKind {
     fn default() -> Self {
         Self::User
     }
+}
+
+/// The login type.
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+pub enum LoginType {
+    /// An appservice-specific login type
+    #[serde(rename = "m.login.application_service")]
+    ApplicationService,
 }
