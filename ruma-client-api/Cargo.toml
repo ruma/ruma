@@ -37,6 +37,5 @@ matches = "0.1.8"
 compat = []
 unstable-exhaustive-types = []
 unstable-pre-spec = []
-unstable-synapse-quirks = []
 client = []
 server = []

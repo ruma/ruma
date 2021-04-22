@@ -10,10 +10,7 @@ ruma_api! {
         name: "get_display_name",
         path: "/_matrix/client/r0/profile/:user_id/displayname",
         rate_limited: false,
-        #[cfg(not(feature = "unstable-synapse-quirks"))]
         authentication: None,
-        #[cfg(feature = "unstable-synapse-quirks")]
-        authentication: AccessToken,
     }
 
     request: {
