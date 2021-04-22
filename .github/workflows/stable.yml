@@ -1,4 +1,4 @@
-name: Rust stable
+name: Rust Stable
 
 on:
   push:
