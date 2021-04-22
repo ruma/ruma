@@ -43,7 +43,7 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given data, event type and user ID.
     pub fn new(data: &'a RawJsonValue, event_type: &'a str, user_id: &'a UserId) -> Self {
-        Self { data, event_type, user_id }
+        Self { user_id, event_type, data }
     }
 }
 
