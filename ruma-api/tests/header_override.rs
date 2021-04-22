@@ -1,5 +1,5 @@
 use http::header::{Entry, CONTENT_TYPE};
-use ruma_api::{ruma_api, OutgoingRequest as _, OutgoingResponse as _};
+use ruma_api::{ruma_api, OutgoingRequest as _, OutgoingResponse as _, SendAccessToken};
 
 ruma_api! {
     metadata: {
@@ -45,7 +45,8 @@ fn response_content_type_override() {
 #[test]
 fn request_content_type_override() {
     let req = Request { location: None, stuff: "magic".into() };
-    let mut http_req = req.try_into_http_request("https://homeserver.tld", None).unwrap();
+    let mut http_req =
+        req.try_into_http_request("https://homeserver.tld", SendAccessToken::None).unwrap();
 
     assert_eq!(
         match http_req.headers_mut().entry(CONTENT_TYPE) {

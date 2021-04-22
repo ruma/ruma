@@ -201,7 +201,7 @@ mod tests {
     #[test]
     #[cfg(feature = "client")]
     fn serialize_login_request_body() {
-        use ruma_api::OutgoingRequest;
+        use ruma_api::{OutgoingRequest, SendAccessToken};
         use serde_json::Value as JsonValue;
 
         use super::{LoginInfo, Medium, Request, UserIdentifier};
@@ -211,7 +211,7 @@ mod tests {
             device_id: None,
             initial_device_display_name: Some("test"),
         }
-        .try_into_http_request("https://homeserver.tld", None)
+        .try_into_http_request("https://homeserver.tld", SendAccessToken::None)
         .unwrap();
 
         let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();
@@ -235,7 +235,7 @@ mod tests {
             device_id: None,
             initial_device_display_name: Some("test"),
         }
-        .try_into_http_request("https://homeserver.tld", None)
+        .try_into_http_request("https://homeserver.tld", SendAccessToken::None)
         .unwrap();
 
         let req_body_value: JsonValue = serde_json::from_slice(req.body()).unwrap();

@@ -1,6 +1,6 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-rooms-roomid-state-eventtype-statekey)
 
-use ruma_api::ruma_api;
+use ruma_api::{ruma_api, SendAccessToken};
 use ruma_events::{AnyStateEventContent, EventType};
 use ruma_identifiers::RoomId;
 use ruma_serde::{Outgoing, Raw};
@@ -68,7 +68,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
     fn try_into_http_request(
         self,
         base_url: &str,
-        access_token: Option<&str>,
+        access_token: SendAccessToken<'_>,
     ) -> Result<http::Request<Vec<u8>>, ruma_api::error::IntoHttpError> {
         use std::borrow::Cow;
 
@@ -87,17 +87,20 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
             url.push_str(&Cow::from(utf8_percent_encode(&self.state_key, NON_ALPHANUMERIC)));
         }
 
+        let access_token = match access_token {
+            SendAccessToken::IfRequired(access_token) | SendAccessToken::Always(access_token) => {
+                access_token
+            }
+            SendAccessToken::None => {
+                return Err(ruma_api::error::IntoHttpError::NeedsAuthentication)
+            }
+        };
+
         http::Request::builder()
             .method(http::Method::GET)
             .uri(url)
             .header(CONTENT_TYPE, "application/json")
-            .header(
-                AUTHORIZATION,
-                HeaderValue::from_str(&format!(
-                    "Bearer {}",
-                    access_token.ok_or(ruma_api::error::IntoHttpError::NeedsAuthentication)?
-                ))?,
-            )
+            .header(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", access_token))?)
             .body(Vec::new())
             .map_err(Into::into)
     }

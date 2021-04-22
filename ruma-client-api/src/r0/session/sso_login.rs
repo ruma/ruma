@@ -46,14 +46,14 @@ impl Response {
 
 #[cfg(all(test, feature = "client"))]
 mod tests {
-    use ruma_api::OutgoingRequest;
+    use ruma_api::{OutgoingRequest, SendAccessToken};
 
     use super::Request;
 
     #[test]
     fn serialize_sso_login_request_uri() {
         let req: http::Request<Vec<u8>> = Request { redirect_url: "https://example.com/sso" }
-            .try_into_http_request("https://homeserver.tld", None)
+            .try_into_http_request("https://homeserver.tld", SendAccessToken::None)
             .unwrap();
 
         assert_eq!(

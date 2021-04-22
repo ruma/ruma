@@ -113,7 +113,7 @@ use async_stream::try_stream;
 use futures_core::stream::Stream;
 use http::{uri::Uri, Response as HttpResponse};
 use hyper::client::{Client as HyperClient, HttpConnector};
-use ruma_api::{AuthScheme, OutgoingRequest};
+use ruma_api::{AuthScheme, OutgoingRequest, SendAccessToken};
 use ruma_client_api::r0::sync::sync_events::{
     Filter as SyncFilter, Request as SyncRequest, Response as SyncResponse,
 };
@@ -349,12 +349,12 @@ impl Client {
             let access_token = if Request::METADATA.authentication == AuthScheme::AccessToken {
                 session = client.session.lock().unwrap();
                 if let Some(s) = &*session {
-                    Some(s.access_token.as_str())
+                    SendAccessToken::IfRequired(s.access_token.as_str())
                 } else {
                     return Err(Error::AuthenticationRequired);
                 }
             } else {
-                None
+                SendAccessToken::None
             };
 
             request.try_into_http_request(&client.homeserver_url.to_string(), access_token)?

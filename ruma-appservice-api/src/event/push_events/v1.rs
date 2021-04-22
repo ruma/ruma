@@ -147,7 +147,7 @@ mod helper_tests {
 #[cfg(feature = "server")]
 #[cfg(test)]
 mod tests {
-    use ruma_api::{exports::http, OutgoingRequest};
+    use ruma_api::{exports::http, OutgoingRequest, SendAccessToken};
     use ruma_events::AnyEvent;
     use ruma_serde::Raw;
     use serde_json::json;
@@ -165,7 +165,10 @@ mod tests {
         let events = vec![dummy_event];
 
         let req: http::Request<Vec<u8>> = Request { events: &events, txn_id: "any_txn_id" }
-            .try_into_http_request("https://homeserver.tld", Some("auth_tok"))
+            .try_into_http_request(
+                "https://homeserver.tld",
+                SendAccessToken::IfRequired("auth_tok"),
+            )
             .unwrap();
         let json_body: serde_json::Value = serde_json::from_slice(&req.body()).unwrap();
 
