@@ -46,8 +46,6 @@
 //!   breaking changes when new fields are added in the specification. This feature compiles all
 //!   types as exhaustive.
 //! * `unstable-pre-spec` -- Upcoming Matrix features that may be subject to change or removal.
-//! * `unstable-synapse-quirks` -- Fix issues for clients expecting to connect to Synapse
-//!   homeservers, at the expense of being less compatible with other homeservers.
 //!
 //! # Common features
 //!
