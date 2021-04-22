@@ -1,9 +1,12 @@
+name: Documentation
+
 on:
   push:
     branches: [main]
 
 jobs:
   build-deploy:
+    name: Build & Deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo

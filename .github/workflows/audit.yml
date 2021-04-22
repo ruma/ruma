@@ -1,9 +1,12 @@
+name: Dependencies
+
 on:
   schedule:
     # every monday at 4AM (UTC?)
     - cron: '0 4 * * 1'
 jobs:
   audit:
+    name: Security Audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
