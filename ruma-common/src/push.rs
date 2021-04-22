@@ -959,7 +959,7 @@ mod tests {
         );
         assert_matches!(
             set.get_actions(&message, context_public_room),
-            [Action::SetTweak(Tweak::Highlight(false))]
+            [Action::Notify, Action::SetTweak(Tweak::Highlight(false))]
         );
 
         let user_name = serde_json::from_str::<Raw<JsonValue>>(
