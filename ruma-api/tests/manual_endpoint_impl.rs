@@ -6,7 +6,7 @@ use http::{header::CONTENT_TYPE, method::Method};
 use ruma_api::{
     error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, ServerError, Void},
     AuthScheme, EndpointError, IncomingRequest, IncomingResponse, Metadata, OutgoingRequest,
-    OutgoingResponse,
+    OutgoingResponse, SendAccessToken,
 };
 use ruma_identifiers::{RoomAliasId, RoomId};
 use ruma_serde::Outgoing;
@@ -41,7 +41,7 @@ impl OutgoingRequest for Request {
     fn try_into_http_request(
         self,
         base_url: &str,
-        _access_token: Option<&str>,
+        _access_token: SendAccessToken<'_>,
     ) -> Result<http::Request<Vec<u8>>, IntoHttpError> {
         let url = (base_url.to_owned() + METADATA.path)
             .replace(":room_alias", &self.room_alias.to_string());

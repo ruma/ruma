@@ -134,7 +134,7 @@ pub enum Direction {
 #[cfg(all(test, feature = "client"))]
 mod tests {
     use js_int::uint;
-    use ruma_api::OutgoingRequest;
+    use ruma_api::{OutgoingRequest, SendAccessToken};
     use ruma_identifiers::room_id;
 
     use super::{Direction, Request};
@@ -160,8 +160,12 @@ mod tests {
             filter: Some(filter),
         };
 
-        let request: http::Request<Vec<u8>> =
-            req.try_into_http_request("https://homeserver.tld", Some("auth_tok")).unwrap();
+        let request: http::Request<Vec<u8>> = req
+            .try_into_http_request(
+                "https://homeserver.tld",
+                SendAccessToken::IfRequired("auth_tok"),
+            )
+            .unwrap();
         assert_eq!(
             "from=token\
              &to=token2\
@@ -186,8 +190,12 @@ mod tests {
             filter: None,
         };
 
-        let request =
-            req.try_into_http_request("https://homeserver.tld", Some("auth_tok")).unwrap();
+        let request = req
+            .try_into_http_request(
+                "https://homeserver.tld",
+                SendAccessToken::IfRequired("auth_tok"),
+            )
+            .unwrap();
         assert_eq!("from=token&to=token2&dir=b&limit=0", request.uri().query().unwrap(),);
     }
 
@@ -203,8 +211,12 @@ mod tests {
             filter: Some(RoomEventFilter::default()),
         };
 
-        let request: http::Request<Vec<u8>> =
-            req.try_into_http_request("https://homeserver.tld", Some("auth_tok")).unwrap();
+        let request: http::Request<Vec<u8>> = req
+            .try_into_http_request(
+                "https://homeserver.tld",
+                SendAccessToken::IfRequired("auth_tok"),
+            )
+            .unwrap();
         assert_eq!(
             "from=token&to=token2&dir=b&limit=0&filter=%7B%7D",
             request.uri().query().unwrap(),

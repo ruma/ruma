@@ -131,23 +131,34 @@ impl Request {
             .collect();
 
         for auth in &metadata.authentication {
-            if auth.value == "AccessToken" {
-                let attrs = &auth.attrs;
-                header_kvs.extend(quote! {
+            let attrs = &auth.attrs;
+
+            let (if_required_expr, none_expr) = if auth.value == "AccessToken" {
+                (
+                    quote! { Some(access_token) },
+                    quote! { return Err(#ruma_api::error::IntoHttpError::NeedsAuthentication) },
+                )
+            } else {
+                (quote! { None }, quote! { None })
+            };
+
+            header_kvs.extend(quote! {{
+                let access_token = match access_token {
+                    #ruma_api::SendAccessToken::IfRequired(access_token) => #if_required_expr,
+                    #ruma_api::SendAccessToken::Always(access_token) => Some(access_token),
+                    #ruma_api::SendAccessToken::None => #none_expr,
+                };
+
+                if let Some(access_token) = access_token {
                     #( #attrs )*
                     req_headers.insert(
                         #http::header::AUTHORIZATION,
                         #http::header::HeaderValue::from_str(
-                            &::std::format!(
-                                "Bearer {}",
-                                access_token.ok_or(
-                                    #ruma_api::error::IntoHttpError::NeedsAuthentication
-                                )?
-                            )
+                            &::std::format!("Bearer {}", access_token)
                         )?
                     );
-                });
-            }
+                }
+            }});
         }
 
         let request_body = if let Some(field) = self.newtype_raw_body_field() {
@@ -200,7 +211,7 @@ impl Request {
                 fn try_into_http_request(
                     self,
                     base_url: &::std::primitive::str,
-                    access_token: ::std::option::Option<&::std::primitive::str>,
+                    access_token: #ruma_api::SendAccessToken<'_>,
                 ) -> ::std::result::Result<
                     #http::Request<::std::vec::Vec<::std::primitive::u8>>,
                     #ruma_api::error::IntoHttpError,

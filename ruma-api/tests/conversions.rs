@@ -1,5 +1,6 @@
 use ruma_api::{
     ruma_api, IncomingRequest as _, OutgoingRequest as _, OutgoingRequestAppserviceExt as _,
+    SendAccessToken,
 };
 use ruma_identifiers::{user_id, UserId};
 
@@ -47,7 +48,8 @@ fn request_serde() {
         user: user_id!("@bazme:ruma.io"),
     };
 
-    let http_req = req.clone().try_into_http_request("https://homeserver.tld", None).unwrap();
+    let http_req =
+        req.clone().try_into_http_request("https://homeserver.tld", SendAccessToken::None).unwrap();
     let req2 = Request::try_from_http_request(http_req).unwrap();
 
     assert_eq!(req.hello, req2.hello);
@@ -70,8 +72,13 @@ fn request_with_user_id_serde() {
     };
 
     let user_id = user_id!("@_virtual_:ruma.io");
-    let http_req =
-        req.try_into_http_request_with_user_id("https://homeserver.tld", None, user_id).unwrap();
+    let http_req = req
+        .try_into_http_request_with_user_id(
+            "https://homeserver.tld",
+            SendAccessToken::None,
+            user_id,
+        )
+        .unwrap();
 
     let query = http_req.uri().query().unwrap();
 
@@ -124,7 +131,11 @@ mod without_query {
 
         let user_id = user_id!("@_virtual_:ruma.io");
         let http_req = req
-            .try_into_http_request_with_user_id("https://homeserver.tld", None, user_id)
+            .try_into_http_request_with_user_id(
+                "https://homeserver.tld",
+                SendAccessToken::None,
+                user_id,
+            )
             .unwrap();
 
         let query = http_req.uri().query().unwrap();

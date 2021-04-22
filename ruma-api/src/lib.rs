@@ -212,6 +212,20 @@ pub mod exports {
 
 use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
 
+/// An enum to control whether an access token should be added to outgoing requests
+#[derive(Debug, Clone)]
+pub enum SendAccessToken<'a> {
+    /// Add the given access token to the request only if the `METADATA` on the request requires it
+    IfRequired(&'a str),
+
+    /// Always add the access token
+    Always(&'a str),
+
+    /// Don't add an access token. This will lead to an error if the request endpoint requires
+    /// authentication
+    None,
+}
+
 /// A request type for a Matrix API endpoint, used for sending requests.
 pub trait OutgoingRequest: Sized {
     /// A type capturing the expected error conditions the server can return.
@@ -234,7 +248,7 @@ pub trait OutgoingRequest: Sized {
     fn try_into_http_request(
         self,
         base_url: &str,
-        access_token: Option<&str>,
+        access_token: SendAccessToken<'_>,
     ) -> Result<http::Request<Vec<u8>>, IntoHttpError>;
 }
 
@@ -258,7 +272,7 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
     fn try_into_http_request_with_user_id(
         self,
         base_url: &str,
-        access_token: Option<&str>,
+        access_token: SendAccessToken<'_>,
         user_id: UserId,
     ) -> Result<http::Request<Vec<u8>>, IntoHttpError> {
         let mut http_request = self.try_into_http_request(base_url, access_token)?;

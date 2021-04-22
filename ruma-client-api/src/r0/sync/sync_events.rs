@@ -777,7 +777,7 @@ mod tests {
 mod client_tests {
     use std::time::Duration;
 
-    use ruma_api::OutgoingRequest as _;
+    use ruma_api::{OutgoingRequest as _, SendAccessToken};
 
     use super::{Filter, PresenceState, Request};
 
@@ -790,7 +790,7 @@ mod client_tests {
             set_presence: &PresenceState::Offline,
             timeout: Some(Duration::from_millis(30000)),
         }
-        .try_into_http_request("https://homeserver.tld", Some("auth_tok"))
+        .try_into_http_request("https://homeserver.tld", SendAccessToken::IfRequired("auth_tok"))
         .unwrap();
 
         let uri = req.uri();
