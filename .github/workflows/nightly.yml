@@ -1,4 +1,4 @@
-name: Rust stable
+name: Rust nightly
 
 on:
   push:
@@ -12,14 +12,14 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-      - name: Install rust stable toolchain
+      - name: Install rust nightly toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: nightly
           override: true
       - name: Run checks
         uses: actions-rs/cargo@v1
         with:
           command: run
-          args: -p xtask --no-default-features ci stable
+          args: -p xtask --no-default-features ci nightly

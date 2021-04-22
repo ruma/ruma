@@ -1,4 +1,4 @@
-name: Rust stable
+name: Rust 1.45
 
 on:
   push:
@@ -12,6 +12,12 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
+      - name: Install rust 1.45 toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: '1.45'
+      # Used to compile xtask
       - name: Install rust stable toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -22,4 +28,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: run
-          args: -p xtask --no-default-features ci stable
+          args: -p xtask --no-default-features ci msrv
