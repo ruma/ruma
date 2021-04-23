@@ -87,20 +87,19 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
             url.push_str(&Cow::from(utf8_percent_encode(&self.state_key, NON_ALPHANUMERIC)));
         }
 
-        let access_token = match access_token {
-            SendAccessToken::IfRequired(access_token) | SendAccessToken::Always(access_token) => {
-                access_token
-            }
-            SendAccessToken::None => {
-                return Err(ruma_api::error::IntoHttpError::NeedsAuthentication)
-            }
-        };
-
         http::Request::builder()
             .method(http::Method::GET)
             .uri(url)
             .header(CONTENT_TYPE, "application/json")
-            .header(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", access_token))?)
+            .header(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!(
+                    "Bearer {}",
+                    access_token
+                        .get_required()
+                        .ok_or(ruma_api::error::IntoHttpError::NeedsAuthentication)?,
+                ))?,
+            )
             .body(Vec::new())
             .map_err(Into::into)
     }

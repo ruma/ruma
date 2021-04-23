@@ -213,7 +213,7 @@ pub mod exports {
 use error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError};
 
 /// An enum to control whether an access token should be added to outgoing requests
-#[derive(Debug, Clone)]
+#[derive(Clone, Copy, Debug)]
 pub enum SendAccessToken<'a> {
     /// Add the given access token to the request only if the `METADATA` on the request requires it
     IfRequired(&'a str),
@@ -224,6 +224,28 @@ pub enum SendAccessToken<'a> {
     /// Don't add an access token. This will lead to an error if the request endpoint requires
     /// authentication
     None,
+}
+
+impl<'a> SendAccessToken<'a> {
+    /// Get the access token for an endpoint that should not require one.
+    ///
+    /// Returns `Some(_)` only if `self` is `SendAccessToken::Always(_)`.
+    pub fn get_optional(self) -> Option<&'a str> {
+        match self {
+            Self::Always(tok) => Some(tok),
+            Self::IfRequired(_) | Self::None => None,
+        }
+    }
+
+    /// Get the access token for an endpoint that requires one.
+    ///
+    /// Returns `Some(_)` if `self` contains an access token.
+    pub fn get_required(self) -> Option<&'a str> {
+        match self {
+            Self::IfRequired(tok) | Self::Always(tok) => Some(tok),
+            Self::None => None,
+        }
+    }
 }
 
 /// A request type for a Matrix API endpoint, used for sending requests.

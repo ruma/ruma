@@ -133,32 +133,34 @@ impl Request {
         for auth in &metadata.authentication {
             let attrs = &auth.attrs;
 
-            let (if_required_expr, none_expr) = if auth.value == "AccessToken" {
-                (
-                    quote! { Some(access_token) },
-                    quote! { return Err(#ruma_api::error::IntoHttpError::NeedsAuthentication) },
-                )
-            } else {
-                (quote! { None }, quote! { None })
-            };
-
-            header_kvs.extend(quote! {{
-                let access_token = match access_token {
-                    #ruma_api::SendAccessToken::IfRequired(access_token) => #if_required_expr,
-                    #ruma_api::SendAccessToken::Always(access_token) => Some(access_token),
-                    #ruma_api::SendAccessToken::None => #none_expr,
-                };
-
-                if let Some(access_token) = access_token {
+            let hdr_kv = if auth.value == "AccessToken" {
+                quote! {
                     #( #attrs )*
                     req_headers.insert(
                         #http::header::AUTHORIZATION,
-                        #http::header::HeaderValue::from_str(
-                            &::std::format!("Bearer {}", access_token)
-                        )?
+                        #http::header::HeaderValue::from_str(&::std::format!(
+                            "Bearer {}",
+                            access_token
+                                .get_required()
+                                .ok_or(#ruma_api::error::IntoHttpError::NeedsAuthentication)?,
+                        ))?
                     );
                 }
-            }});
+            } else {
+                quote! {
+                    if let Some(access_token) = access_token.get_optional() {
+                        #( #attrs )*
+                        req_headers.insert(
+                            #http::header::AUTHORIZATION,
+                            #http::header::HeaderValue::from_str(
+                                &::std::format!("Bearer {}", access_token)
+                            )?
+                        );
+                    }
+                }
+            };
+
+            header_kvs.extend(hdr_kv);
         }
 
         let request_body = if let Some(field) = self.newtype_raw_body_field() {
