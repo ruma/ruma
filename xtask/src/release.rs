@@ -108,21 +108,25 @@ impl ReleaseTask {
 
         let mut macros = self.macros();
 
-        if let Some(m) = macros.as_mut() {
-            println!("Found macros crate {}.", m.name);
+        if self.package.version != self.version {
+            if let Some(m) = macros.as_mut() {
+                println!("Found macros crate {}.", m.name);
 
-            m.update_version(&self.version)?;
-            m.update_dependants(&self.metadata)?;
+                m.update_version(&self.version)?;
+                m.update_dependants(&self.metadata)?;
 
-            println!("Resuming release of {}…", self.title());
+                println!("Resuming release of {}…", self.title());
+            }
+
+            self.package.update_version(&self.version)?;
+            self.package.update_dependants(&self.metadata)?;
         }
-
-        self.package.update_version(&self.version)?;
-        self.package.update_dependants(&self.metadata)?;
 
         let changes = &self.package.changes(!prerelease)?;
 
-        self.commit()?;
+        if self.package.version != self.version {
+            self.commit()?;
+        }
 
         if let Some(m) = macros {
             let published = m.publish(&self.http_client)?;
