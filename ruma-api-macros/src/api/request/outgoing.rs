@@ -141,14 +141,14 @@ impl Request {
                         ::std::convert::TryFrom::<_>::try_from(::std::format!(
                             "Bearer {}",
                             access_token
-                                .get_required()
+                                .get_required_for_endpoint()
                                 .ok_or(#ruma_api::error::IntoHttpError::NeedsAuthentication)?,
                         ))?,
                     );
                 }
             } else {
                 quote! {
-                    if let Some(access_token) = access_token.get_optional() {
+                    if let Some(access_token) = access_token.get_not_required_for_endpoint() {
                         #( #attrs )*
                         req_headers.insert(
                             #http::header::AUTHORIZATION,

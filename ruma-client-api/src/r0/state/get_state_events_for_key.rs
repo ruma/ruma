@@ -97,7 +97,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
                 format!(
                     "Bearer {}",
                     access_token
-                        .get_required()
+                        .get_required_for_endpoint()
                         .ok_or(ruma_api::error::IntoHttpError::NeedsAuthentication)?,
                 ),
             )
