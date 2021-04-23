@@ -73,7 +73,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
     ) -> Result<http::Request<T>, ruma_api::error::IntoHttpError> {
         use std::borrow::Cow;
 
-        use http::header::{self, HeaderValue};
+        use http::header;
         use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 
         let mut url = format!(
@@ -94,12 +94,12 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
             .header(header::CONTENT_TYPE, "application/json")
             .header(
                 header::AUTHORIZATION,
-                HeaderValue::from_str(&format!(
+                format!(
                     "Bearer {}",
                     access_token
                         .get_required()
                         .ok_or(ruma_api::error::IntoHttpError::NeedsAuthentication)?,
-                ))?,
+                ),
             )
             .body(T::default())
             .map_err(Into::into)

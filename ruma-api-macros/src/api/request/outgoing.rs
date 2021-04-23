@@ -138,12 +138,12 @@ impl Request {
                     #( #attrs )*
                     req_headers.insert(
                         #http::header::AUTHORIZATION,
-                        #http::header::HeaderValue::from_str(&::std::format!(
+                        ::std::convert::TryFrom::<_>::try_from(::std::format!(
                             "Bearer {}",
                             access_token
                                 .get_required()
                                 .ok_or(#ruma_api::error::IntoHttpError::NeedsAuthentication)?,
-                        ))?
+                        ))?,
                     );
                 }
             } else {
@@ -152,8 +152,8 @@ impl Request {
                         #( #attrs )*
                         req_headers.insert(
                             #http::header::AUTHORIZATION,
-                            #http::header::HeaderValue::from_str(
-                                &::std::format!("Bearer {}", access_token)
+                            ::std::convert::TryFrom::<_>::try_from(
+                                ::std::format!("Bearer {}", access_token),
                             )?
                         );
                     }
