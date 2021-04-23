@@ -28,7 +28,7 @@ ruma_api! {
 #[test]
 fn response_content_type_override() {
     let res = Response { stuff: "magic".into() };
-    let mut http_res = res.try_into_http_response().unwrap();
+    let mut http_res = res.try_into_http_response::<Vec<u8>>().unwrap();
 
     // Test that we correctly replaced the default content type,
     // not adding another content-type header.
@@ -45,8 +45,9 @@ fn response_content_type_override() {
 #[test]
 fn request_content_type_override() {
     let req = Request { location: None, stuff: "magic".into() };
-    let mut http_req =
-        req.try_into_http_request("https://homeserver.tld", SendAccessToken::None).unwrap();
+    let mut http_req = req
+        .try_into_http_request::<Vec<u8>>("https://homeserver.tld", SendAccessToken::None)
+        .unwrap();
 
     assert_eq!(
         match http_req.headers_mut().entry(CONTENT_TYPE) {

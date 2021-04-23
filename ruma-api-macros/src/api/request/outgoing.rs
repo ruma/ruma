@@ -11,10 +11,10 @@ impl Request {
         lifetimes: &TokenStream,
         ruma_api: &TokenStream,
     ) -> TokenStream {
+        let bytes = quote! { #ruma_api::exports::bytes };
         let http = quote! { #ruma_api::exports::http };
         let percent_encoding = quote! { #ruma_api::exports::percent_encoding };
         let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
-        let serde_json = quote! { #ruma_api::exports::serde_json };
 
         let method = &metadata.method;
         let request_path_string = if self.has_path_fields() {
@@ -165,7 +165,7 @@ impl Request {
 
         let request_body = if let Some(field) = self.newtype_raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            quote! { self.#field_name }
+            quote! { #ruma_serde::slice_to_buf(&self.#field_name) }
         } else if self.has_body_fields() || self.newtype_body_field().is_some() {
             let request_body_initializers = if let Some(field) = self.newtype_body_field() {
                 let field_name =
@@ -177,13 +177,10 @@ impl Request {
             };
 
             quote! {
-                {
-                    let request_body = RequestBody #request_body_initializers;
-                    #serde_json::to_vec(&request_body)?
-                }
+                #ruma_serde::json_to_buf(&RequestBody #request_body_initializers)?
             }
         } else {
-            quote! { Vec::new() }
+            quote! { <T as ::std::default::Default>::default() }
         };
 
         let non_auth_impls = metadata.authentication.iter().map(|auth| {
@@ -210,14 +207,11 @@ impl Request {
 
                 const METADATA: #ruma_api::Metadata = self::METADATA;
 
-                fn try_into_http_request(
+                fn try_into_http_request<T: ::std::default::Default + #bytes::BufMut>(
                     self,
                     base_url: &::std::primitive::str,
                     access_token: #ruma_api::SendAccessToken<'_>,
-                ) -> ::std::result::Result<
-                    #http::Request<::std::vec::Vec<::std::primitive::u8>>,
-                    #ruma_api::error::IntoHttpError,
-                > {
+                ) -> ::std::result::Result<#http::Request<T>, #ruma_api::error::IntoHttpError> {
                     let metadata = self::METADATA;
 
                     let mut req_builder = #http::Request::builder()

@@ -2,6 +2,7 @@
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 //! (De)serialization helpers for other ruma crates.
 
+mod buf;
 pub mod can_be_empty;
 mod canonical_json;
 mod cow;
@@ -15,6 +16,7 @@ pub mod test;
 pub mod time;
 pub mod urlencoded;
 
+pub use buf::{json_to_buf, slice_to_buf};
 pub use can_be_empty::{is_empty, CanBeEmpty};
 pub use canonical_json::{
     to_canonical_value, to_string as to_canonical_json_string, try_from_json_map,

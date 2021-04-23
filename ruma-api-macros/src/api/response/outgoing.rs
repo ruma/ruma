@@ -5,8 +5,9 @@ use super::{Response, ResponseField};
 
 impl Response {
     pub fn expand_outgoing(&self, ruma_api: &TokenStream) -> TokenStream {
+        let bytes = quote! { #ruma_api::exports::bytes };
         let http = quote! { #ruma_api::exports::http };
-        let serde_json = quote! { #ruma_api::exports::serde_json };
+        let ruma_serde = quote! { #ruma_api::exports::ruma_serde };
 
         let serialize_response_headers = self.fields.iter().map(|response_field| {
             if let ResponseField::Header(field, header_name) = response_field {
@@ -40,11 +41,11 @@ impl Response {
 
         let body = if let Some(field) = self.newtype_raw_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
-            quote! { self.#field_name }
+            quote! { #ruma_serde::slice_to_buf(&self.#field_name) }
         } else if let Some(field) = self.newtype_body_field() {
             let field_name = field.ident.as_ref().expect("expected field to have an identifier");
             quote! {
-                #serde_json::to_vec(&self.#field_name)?
+                #ruma_serde::json_to_buf(&self.#field_name)?
             }
         } else {
             let fields = self.fields.iter().map(|response_field| {
@@ -63,7 +64,7 @@ impl Response {
             });
 
             quote! {
-                #serde_json::to_vec(&ResponseBody { #(#fields)* })?
+                #ruma_serde::json_to_buf(&ResponseBody { #(#fields)* })?
             }
         };
 
@@ -72,12 +73,9 @@ impl Response {
             #[cfg(feature = "server")]
             #[allow(clippy::unknown_clippy_lints, clippy::inconsistent_struct_constructor)]
             impl #ruma_api::OutgoingResponse for Response {
-                fn try_into_http_response(
+                fn try_into_http_response<T: ::std::default::Default + #bytes::BufMut>(
                     self,
-                ) -> ::std::result::Result<
-                    #http::Response<::std::vec::Vec<::std::primitive::u8>>,
-                    #ruma_api::error::IntoHttpError,
-                > {
+                ) -> ::std::result::Result<#http::Response<T>, #ruma_api::error::IntoHttpError> {
                     let mut resp_builder = #http::Response::builder()
                         .header(#http::header::CONTENT_TYPE, "application/json");
 

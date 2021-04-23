@@ -357,7 +357,10 @@ impl Client {
                 SendAccessToken::None
             };
 
-            request.try_into_http_request(&client.homeserver_url.to_string(), access_token)?
+            request.try_into_http_request::<Vec<u8>>(
+                &client.homeserver_url.to_string(),
+                access_token,
+            )?
         };
 
         let extra_params = urlencoded::to_string(extra_params).unwrap();

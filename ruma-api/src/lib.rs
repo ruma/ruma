@@ -22,6 +22,7 @@ compile_error!("ruma_api's Cargo features only exist as a workaround are not mea
 
 use std::{convert::TryInto as _, error::Error as StdError};
 
+use bytes::BufMut;
 use http::Method;
 use ruma_identifiers::UserId;
 
@@ -203,6 +204,7 @@ pub mod error;
 /// It is not considered part of ruma-api's public API.
 #[doc(hidden)]
 pub mod exports {
+    pub use bytes;
     pub use http;
     pub use percent_encoding;
     pub use ruma_serde;
@@ -267,11 +269,11 @@ pub trait OutgoingRequest: Sized {
     /// The endpoints path will be appended to the given `base_url`, for example
     /// `https://matrix.org`. Since all paths begin with a slash, it is not necessary for the
     /// `base_url` to have a trailing slash. If it has one however, it will be ignored.
-    fn try_into_http_request(
+    fn try_into_http_request<T: Default + BufMut>(
         self,
         base_url: &str,
         access_token: SendAccessToken<'_>,
-    ) -> Result<http::Request<Vec<u8>>, IntoHttpError>;
+    ) -> Result<http::Request<T>, IntoHttpError>;
 }
 
 /// A response type for a Matrix API endpoint, used for receiving responses.
@@ -291,12 +293,12 @@ pub trait OutgoingRequestAppserviceExt: OutgoingRequest {
     /// [assert Appservice identity][id_assert].
     ///
     /// [id_assert]: https://matrix.org/docs/spec/application_service/r0.1.2#identity-assertion
-    fn try_into_http_request_with_user_id(
+    fn try_into_http_request_with_user_id<T: Default + BufMut>(
         self,
         base_url: &str,
         access_token: SendAccessToken<'_>,
         user_id: UserId,
-    ) -> Result<http::Request<Vec<u8>>, IntoHttpError> {
+    ) -> Result<http::Request<T>, IntoHttpError> {
         let mut http_request = self.try_into_http_request(base_url, access_token)?;
         let user_id_query =
             ruma_serde::urlencoded::to_string(&[("user_id", &user_id.into_string())])?;
@@ -346,7 +348,9 @@ pub trait OutgoingResponse {
     ///
     /// This method should only fail when when invalid header values are specified. It may also
     /// fail with a serialization error in case of bugs in Ruma though.
-    fn try_into_http_response(self) -> Result<http::Response<Vec<u8>>, IntoHttpError>;
+    fn try_into_http_response<T: Default + BufMut>(
+        self,
+    ) -> Result<http::Response<T>, IntoHttpError>;
 }
 
 /// Gives users the ability to define their own serializable / deserializable errors.
