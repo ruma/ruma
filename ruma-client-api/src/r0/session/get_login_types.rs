@@ -268,19 +268,19 @@ mod tests {
     use super::{LoginType, PasswordLoginType};
 
     #[derive(Debug, Deserialize, Serialize)]
-    struct Foo {
+    struct Wrapper {
         pub flows: Vec<LoginType>,
     }
 
     #[test]
     fn deserialize_password_login_type() {
         assert_matches!(
-            from_json_value::<Foo>(json!({
+            from_json_value::<Wrapper>(json!({
                 "flows": [
                     { "type": "m.login.password" }
                 ],
             })),
-            Ok(Foo { flows })
+            Ok(Wrapper { flows })
             if flows.len() == 1
                 && matches!(flows[0], LoginType::Password(PasswordLoginType {}))
         );
@@ -289,7 +289,7 @@ mod tests {
     #[test]
     #[cfg(feature = "unstable-pre-spec")]
     fn deserialize_sso_login_type() {
-        let mut foo = from_json_value::<Foo>(json!({
+        let mut wrapper = from_json_value::<Wrapper>(json!({
             "flows": [
                 {
                     "type": "m.login.sso",
@@ -310,8 +310,8 @@ mod tests {
         }))
         .unwrap();
 
-        let flow = foo.flows.pop();
-        assert_matches!(foo.flows.as_slice(), []);
+        let flow = wrapper.flows.pop();
+        assert_matches!(wrapper.flows.as_slice(), []);
 
         let mut identity_providers = match flow {
             Some(LoginType::Sso(SsoLoginType { identity_providers })) => identity_providers,
@@ -347,7 +347,7 @@ mod tests {
     #[test]
     #[cfg(feature = "unstable-pre-spec")]
     fn serialize_sso_login_type() {
-        let foo = to_json_value(Foo {
+        let wrapper = to_json_value(Wrapper {
             flows: vec![
                 LoginType::Token(TokenLoginType {}),
                 LoginType::Sso(SsoLoginType {
@@ -363,7 +363,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(
-            foo,
+            wrapper,
             json!({
                 "flows": [
                     {
