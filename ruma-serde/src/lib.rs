@@ -28,6 +28,7 @@ pub use empty::vec_as_map_of_empty;
 pub use raw::Raw;
 pub use strings::{
     btreemap_int_or_string_to_int_values, empty_string_as_none, int_or_string_to_int,
+    none_as_empty_string,
 };
 
 /// Check whether a value is equal to its default value.

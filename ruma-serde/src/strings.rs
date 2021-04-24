@@ -3,7 +3,8 @@ use std::{collections::BTreeMap, convert::TryInto, fmt, marker::PhantomData};
 use js_int::Int;
 use serde::{
     de::{self, Deserializer, IntoDeserializer as _, MapAccess, Visitor},
-    Deserialize,
+    ser::Serializer,
+    Deserialize, Serialize,
 };
 
 /// Serde deserialization decorator to map empty Strings to None,
@@ -27,6 +28,24 @@ where
         // If T = String, like in m.room.name, the second deserialize is actually superfluous.
         // TODO: optimize that somehow?
         Some(s) => T::deserialize(s.into_deserializer()).map(Some),
+    }
+}
+
+/// Serde serializiation decorator to map None to an empty String,
+/// and forward Somes to the Serialize implemention for T.
+///
+/// To be used like this:
+/// `#[serde(serialize_with = "empty_string_as_none")]`
+pub fn none_as_empty_string<T: Serialize, S>(
+    value: &Option<T>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    match value {
+        Some(x) => x.serialize(serializer),
+        None => serializer.serialize_str(""),
     }
 }
 
