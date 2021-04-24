@@ -317,7 +317,7 @@ impl StateResolution {
 
             // TODO: if these functions are ever made async here
             // is a good place to yield every once in a while so other
-            // "threads" can make progress
+            // tasks can make progress
         }
 
         // this is used in the `key_fn` passed to the lexico_topo_sort fn
@@ -330,7 +330,7 @@ impl StateResolution {
 
             // TODO: if these functions are ever made async here
             // is a good place to yield every once in a while so other
-            // "threads" can make progress
+            // tasks can make progress
         }
 
         StateResolution::lexicographical_topological_sort(&graph, |event_id| {
@@ -571,7 +571,7 @@ impl StateResolution {
 
             // TODO: if these functions are ever made async here
             // is a good place to yield every once in a while so other
-            // "threads" can make progress
+            // tasks can make progress
         }
         Ok(resolved_state)
     }
@@ -613,7 +613,7 @@ impl StateResolution {
             }
             // TODO: if these functions are ever made async here
             // is a good place to yield every once in a while so other
-            // "threads" can make progress
+            // tasks can make progress
         }
 
         let mainline_map = mainline
@@ -645,7 +645,7 @@ impl StateResolution {
 
             // TODO: if these functions are ever made async here
             // is a good place to yield every once in a while so other
-            // "threads" can make progress
+            // tasks can make progress
         }
 
         // sort the event_ids by their depth, timestamp and EventId
