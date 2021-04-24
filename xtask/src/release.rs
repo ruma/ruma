@@ -126,6 +126,11 @@ impl ReleaseTask {
 
         if self.package.version != self.version {
             self.commit()?;
+        } else if !ask_yes_no(&format!(
+            "Package is already version {}. Skip creating a commit and continue?",
+            &self.version
+        ))? {
+            return Ok(());
         }
 
         if let Some(m) = macros {
