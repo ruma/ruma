@@ -6,7 +6,16 @@ use std::{
 };
 
 use maplit::btreeset;
-use ruma::{events::EventType, EventId, RoomId, RoomVersionId};
+use ruma::{
+    events::{
+        room::{
+            member::{MemberEventContent, MembershipState},
+            power_levels::PowerLevelsEventContent,
+        },
+        EventType,
+    },
+    EventId, RoomId, RoomVersionId,
+};
 
 mod error;
 pub mod event_auth;
@@ -18,11 +27,6 @@ pub use error::{Error, Result};
 pub use event_auth::{auth_check, auth_types_for_event};
 pub use state_event::Event;
 pub use state_store::StateStore;
-
-// We want to yield to the reactor occasionally during state res when dealing
-// with large data sets, so that we don't exhaust the reactor. This is done by
-// yielding to reactor during loops every N iterations.
-const _YIELD_AFTER_ITERATIONS: usize = 100;
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
 pub type StateMap<T> = BTreeMap<(EventType, String), T>;
@@ -306,31 +310,27 @@ impl StateResolution {
         log::debug!("reverse topological sort of power events");
 
         let mut graph = BTreeMap::new();
-        for (idx, event_id) in events_to_sort.iter().enumerate() {
+        for event_id in events_to_sort.iter() {
             StateResolution::add_event_and_auth_chain_to_graph(
                 room_id, &mut graph, event_id, event_map, auth_diff,
             );
 
-            // We yield occasionally when we're working with large data sets to
-            // ensure that we don't block the reactor loop for too long.
-            if idx % _YIELD_AFTER_ITERATIONS == 0 {
-                // yield clock.sleep(0)
-            }
+            // TODO: if these functions are ever made async here
+            // is a good place to yield every once in a while so other
+            // "threads" can make progress
         }
 
         // this is used in the `key_fn` passed to the lexico_topo_sort fn
         let mut event_to_pl = BTreeMap::new();
-        for (idx, event_id) in graph.keys().enumerate() {
+        for event_id in graph.keys() {
             let pl = StateResolution::get_power_level_for_sender(room_id, &event_id, event_map);
             log::info!("{} power level {}", event_id.to_string(), pl);
 
             event_to_pl.insert(event_id.clone(), pl);
 
-            // We yield occasionally when we're working with large data sets to
-            // ensure that we don't block the reactor loop for too long.
-            if idx % _YIELD_AFTER_ITERATIONS == 0 {
-                // yield clock.sleep(0)
-            }
+            // TODO: if these functions are ever made async here
+            // is a good place to yield every once in a while so other
+            // "threads" can make progress
         }
 
         StateResolution::lexicographical_topological_sort(&graph, |event_id| {
@@ -451,12 +451,7 @@ impl StateResolution {
         }
 
         if let Some(content) = pl
-            .map(|pl| {
-                serde_json::from_value::<ruma::events::room::power_levels::PowerLevelsEventContent>(
-                    pl.content(),
-                )
-                .ok()
-            })
+            .map(|pl| serde_json::from_value::<PowerLevelsEventContent>(pl.content()).ok())
             .flatten()
         {
             if let Ok(ev) = event {
@@ -500,7 +495,7 @@ impl StateResolution {
 
         let mut resolved_state = unconflicted_state.clone();
 
-        for (idx, event_id) in events_to_check.iter().enumerate() {
+        for event_id in events_to_check.iter() {
             let event = StateResolution::get_or_load_event(room_id, event_id, event_map)?;
             let state_key = event
                 .state_key()
@@ -574,11 +569,9 @@ impl StateResolution {
                 );
             }
 
-            // We yield occasionally when we're working with large data sets to
-            // ensure that we don't block the reactor loop for too long.
-            if idx % _YIELD_AFTER_ITERATIONS == 0 {
-                // yield clock.sleep(0)
-            }
+            // TODO: if these functions are ever made async here
+            // is a good place to yield every once in a while so other
+            // "threads" can make progress
         }
         Ok(resolved_state)
     }
@@ -605,7 +598,6 @@ impl StateResolution {
 
         let mut mainline = vec![];
         let mut pl = resolved_power_level.cloned();
-        let mut idx = 0;
         while let Some(p) = pl {
             mainline.push(p.clone());
 
@@ -619,12 +611,9 @@ impl StateResolution {
                     break;
                 }
             }
-            // We yield occasionally when we're working with large data sets to
-            // ensure that we don't block the reactor loop for too long.
-            if idx != 0 && idx % _YIELD_AFTER_ITERATIONS == 0 {
-                // yield clock.sleep(0)
-            }
-            idx += 1;
+            // TODO: if these functions are ever made async here
+            // is a good place to yield every once in a while so other
+            // "threads" can make progress
         }
 
         let mainline_map = mainline
@@ -635,7 +624,7 @@ impl StateResolution {
             .collect::<BTreeMap<_, _>>();
 
         let mut order_map = BTreeMap::new();
-        for (idx, ev_id) in to_sort.iter().enumerate() {
+        for ev_id in to_sort.iter() {
             if let Ok(event) = StateResolution::get_or_load_event(room_id, ev_id, event_map) {
                 if let Ok(depth) = StateResolution::get_mainline_depth(
                     room_id,
@@ -654,11 +643,9 @@ impl StateResolution {
                 }
             }
 
-            // We yield occasionally when we're working with large data sets to
-            // ensure that we don't block the reactor loop for too long.
-            if idx % _YIELD_AFTER_ITERATIONS == 0 {
-                // yield clock.sleep(0)
-            }
+            // TODO: if these functions are ever made async here
+            // is a good place to yield every once in a while so other
+            // "threads" can make progress
         }
 
         // sort the event_ids by their depth, timestamp and EventId
@@ -755,7 +742,6 @@ pub fn is_type_and_key<E: Event>(ev: &Arc<E>, ev_type: EventType, state_key: &st
 }
 
 pub fn is_power_event<E: Event>(event: &Arc<E>) -> bool {
-    use ruma::events::room::member::{MemberEventContent, MembershipState};
     match event.kind() {
         EventType::RoomPowerLevels | EventType::RoomJoinRules | EventType::RoomCreate => {
             event.state_key() == Some("".into())
