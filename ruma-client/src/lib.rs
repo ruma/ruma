@@ -1,6 +1,6 @@
 #![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
-//! A [Matrix](https://matrix.org/) client library.
+//! A minimal [Matrix](https://matrix.org/) client library.
 //!
 //! # Usage
 //!
@@ -24,17 +24,16 @@
 //! };
 //! ```
 //!
-//! You can also pass an existing session to the `Client` constructor to restore a previous session
-//! rather than calling `log_in`. This can also be used to create a session for an application
-//! service that does not need to log in, but uses the access_token directly:
+//! You can also pass an existing access token to the `Client` constructor to restore a previous
+//! session rather than calling `log_in`. This can also be used to create a session for an
+//! application service that does not need to log in, but uses the access_token directly:
 //!
 //! ```no_run
-//! use ruma_client::{Client, Session};
+//! use ruma_client::Client;
 //!
 //! let work = async {
 //!     let homeserver_url = "https://example.com".parse().unwrap();
-//!     let session = Session{access_token: "as_access_token".to_string(), identification: None};
-//!     let client = Client::new(homeserver_url, Some(session));
+//!     let client = Client::new(homeserver_url, Some("as_access_token".into()));
 //!
 //!     // make calls to the API
 //! };
@@ -116,12 +115,8 @@ use ruma_serde::urlencoded;
 #[cfg(feature = "client-api")]
 mod client_api;
 mod error;
-mod session;
 
-pub use self::{
-    error::Error,
-    session::{Identification, Session},
-};
+pub use self::error::Error;
 
 #[cfg(not(feature = "_tls"))]
 type Connector = HttpConnector;
@@ -162,16 +157,16 @@ struct ClientData {
     hyper: HyperClient<Connector>,
 
     /// User session data.
-    session: Mutex<Option<Session>>,
+    access_token: Mutex<Option<String>>,
 }
 
 impl Client {
     /// Creates a new client.
-    pub fn new(homeserver_url: Uri, session: Option<Session>) -> Self {
+    pub fn new(homeserver_url: Uri, access_token: Option<String>) -> Self {
         Self(Arc::new(ClientData {
             homeserver_url,
             hyper: HyperClient::builder().build(create_connector()),
-            session: Mutex::new(session),
+            access_token: Mutex::new(access_token),
         }))
     }
 
@@ -181,20 +176,20 @@ impl Client {
     pub fn custom(
         client_builder: &hyper::client::Builder,
         homeserver_url: Uri,
-        session: Option<Session>,
+        access_token: Option<String>,
     ) -> Self {
         Self(Arc::new(ClientData {
             homeserver_url,
             hyper: client_builder.build(create_connector()),
-            session: Mutex::new(session),
+            access_token: Mutex::new(access_token),
         }))
     }
 
-    /// Get a copy of the current `Session`, if any.
+    /// Get a copy of the current `access_token`, if any.
     ///
     /// Useful for serializing and persisting the session to be restored later.
-    pub fn session(&self) -> Option<Session> {
-        self.0.session.lock().expect("session mutex was poisoned").clone()
+    pub fn access_token(&self) -> Option<String> {
+        self.0.access_token.lock().expect("session mutex was poisoned").clone()
     }
 
     /// Makes a request to a Matrix API endpoint.
@@ -213,11 +208,11 @@ impl Client {
     ) -> Result<Request::IncomingResponse, Error<Request::EndpointError>> {
         let client = self.0.clone();
         let mut http_request = {
-            let session;
+            let lock;
             let access_token = if Request::METADATA.authentication == AuthScheme::AccessToken {
-                session = client.session.lock().unwrap();
-                if let Some(s) = &*session {
-                    SendAccessToken::IfRequired(s.access_token.as_str())
+                lock = client.access_token.lock().unwrap();
+                if let Some(access_token) = &*lock {
+                    SendAccessToken::IfRequired(access_token.as_str())
                 } else {
                     return Err(Error::AuthenticationRequired);
                 }
