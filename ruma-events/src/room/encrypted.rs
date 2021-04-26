@@ -12,12 +12,11 @@ use crate::{room::message::Relation, MessageEvent};
 /// An event that has been encrypted.
 pub type EncryptedEvent = MessageEvent<EncryptedEventContent>;
 
-/// The payload for `EncryptedEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
+/// The encryption scheme for `EncryptedEventContent`
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[ruma_event(type = "m.room.encrypted")]
 #[serde(tag = "algorithm")]
-pub enum EncryptedEventContent {
+pub enum EncryptedEventScheme {
     /// An event encrypted with *m.olm.v1.curve25519-aes-sha2*.
     #[serde(rename = "m.olm.v1.curve25519-aes-sha2")]
     OlmV1Curve25519AesSha2(OlmV1Curve25519AesSha2Content),
@@ -25,6 +24,22 @@ pub enum EncryptedEventContent {
     /// An event encrypted with *m.megolm.v1.aes-sha2*.
     #[serde(rename = "m.megolm.v1.aes-sha2")]
     MegolmV1AesSha2(MegolmV1AesSha2Content),
+}
+
+/// The content payload for `EncryptedEvent`.
+#[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+#[ruma_event(type = "m.room.encrypted")]
+#[serde(tag = "algorithm")]
+pub struct EncryptedEventContent {
+    /// Encrypted event content
+    #[serde(flatten)]
+    pub scheme: EncryptedEventScheme,
+
+    /// Information about related messages for
+    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
+    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
+    pub relates_to: Option<Relation>,
 }
 
 /// The to-device version of the payload for the `EncryptedEvent`.
@@ -87,11 +102,6 @@ pub struct MegolmV1AesSha2Content {
 
     /// The ID of the session used to encrypt the message.
     pub session_id: String,
-
-    /// Information about related messages for
-    /// [rich replies](https://matrix.org/docs/spec/client_server/r0.6.1#rich-replies).
-    #[serde(rename = "m.relates_to", skip_serializing_if = "Option::is_none")]
-    pub relates_to: Option<Relation>,
 }
 
 /// Mandatory initial set of fields of `MegolmV1AesSha2Content`.
@@ -117,7 +127,7 @@ impl From<MegolmV1AesSha2ContentInit> for MegolmV1AesSha2Content {
     /// Creates a new `MegolmV1AesSha2Content` from the given init struct.
     fn from(init: MegolmV1AesSha2ContentInit) -> Self {
         let MegolmV1AesSha2ContentInit { ciphertext, sender_key, device_id, session_id } = init;
-        Self { ciphertext, sender_key, device_id, session_id, relates_to: None }
+        Self { ciphertext, sender_key, device_id, session_id }
     }
 }
 
@@ -127,25 +137,35 @@ mod tests {
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{EncryptedEventContent, MegolmV1AesSha2Content};
+    use super::{EncryptedEventContent, EncryptedEventScheme, MegolmV1AesSha2Content};
+    use crate::room::message::{InReplyTo, Relation};
+    use ruma_identifiers::event_id;
 
     #[test]
     fn serialization() {
-        let key_verification_start_content =
-            EncryptedEventContent::MegolmV1AesSha2(MegolmV1AesSha2Content {
+        let key_verification_start_content = EncryptedEventContent {
+            scheme: EncryptedEventScheme::MegolmV1AesSha2(MegolmV1AesSha2Content {
                 ciphertext: "ciphertext".into(),
                 sender_key: "sender_key".into(),
                 device_id: "device_id".into(),
                 session_id: "session_id".into(),
-                relates_to: None,
-            });
+            }),
+            relates_to: Some(Relation::Reply {
+                in_reply_to: InReplyTo { event_id: event_id!("$h29iv0s8:example.com") },
+            }),
+        };
 
         let json_data = json!({
             "algorithm": "m.megolm.v1.aes-sha2",
             "ciphertext": "ciphertext",
             "sender_key": "sender_key",
             "device_id": "device_id",
-            "session_id": "session_id"
+            "session_id": "session_id",
+            "m.relates_to": {
+                "m.in_reply_to": {
+                    "event_id": "$h29iv0s8:example.com"
+                }
+            },
         });
 
         assert_eq!(to_json_value(&key_verification_start_content).unwrap(), json_data);
@@ -158,24 +178,35 @@ mod tests {
             "ciphertext": "ciphertext",
             "sender_key": "sender_key",
             "device_id": "device_id",
-            "session_id": "session_id"
+            "session_id": "session_id",
+            "m.relates_to": {
+                "m.in_reply_to": {
+                    "event_id": "$h29iv0s8:example.com"
+                }
+            },
         });
 
-        assert_matches!(
+        let content: EncryptedEventContent =
             from_json_value::<Raw<EncryptedEventContent>>(json_data)
                 .unwrap()
                 .deserialize()
-                .unwrap(),
-            EncryptedEventContent::MegolmV1AesSha2(MegolmV1AesSha2Content {
+                .unwrap();
+
+        assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(MegolmV1AesSha2Content {
                 ciphertext,
                 sender_key,
                 device_id,
                 session_id,
-                relates_to: None,
             }) if ciphertext == "ciphertext"
                 && sender_key == "sender_key"
                 && device_id == "device_id"
                 && session_id == "session_id"
+        );
+
+        assert_matches!(
+            content.relates_to,
+            Option::<Relation>::Some(Relation::Reply { in_reply_to })
+                if in_reply_to.event_id == event_id!("$h29iv0s8:example.com")
         );
     }
 
@@ -196,8 +227,8 @@ mod tests {
             .deserialize()
             .unwrap();
 
-        match content {
-            EncryptedEventContent::OlmV1Curve25519AesSha2(c) => {
+        match content.scheme {
+            EncryptedEventScheme::OlmV1Curve25519AesSha2(c) => {
                 assert_eq!(c.sender_key, "test_key");
                 assert_eq!(c.ciphertext.len(), 1);
                 assert_eq!(c.ciphertext["test_curve_key"].body, "encrypted_body");
