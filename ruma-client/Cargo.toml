@@ -14,31 +14,10 @@ readme = "README.md"
 repository = "https://github.com/ruma/ruma"
 version = "0.5.0-alpha.2"
 
-[dependencies]
-assign = "1.1.1"
-async-stream = "0.3.0"
-futures-core = "0.3.8"
-http = "0.2.2"
-hyper = { version = "0.14.2", features = ["client", "tcp"] }
-hyper-tls = { version = "0.5.0", optional = true }
-hyper-rustls = { version = "0.22.1", optional = true, default-features = false }
-ruma-api = { version = "=0.17.0-alpha.4", path = "../ruma-api" }
-ruma-client-api = { version = "=0.10.0-alpha.3", path = "../ruma-client-api", features = ["client"] }
-ruma-common = { version = "0.5.0", path = "../ruma-common" }
-ruma-events = { version = "=0.22.0-alpha.3", path = "../ruma-events" }
-ruma-identifiers = { version = "0.19.0", path = "../ruma-identifiers" }
-ruma-serde = { version = "0.3.1", path = "../ruma-serde" }
-serde = { version = "1.0.118", features = ["derive"] }
-serde_json = "1.0.61"
-
-[dev-dependencies]
-anyhow = "1.0.37"
-ruma = { version = "0.0.3", path = "../ruma", features = ["client-api-c"] }
-tokio = { version = "1.0.1", features = ["macros", "rt"] }
-tokio-stream = { version = "0.1.1", default-features = false }
-
 [features]
 default = ["http1", "http2", "tls-native"]
+
+client-api = ["ruma-client-api"]
 
 http1 = ["hyper/http1"]
 http2 = ["hyper/http2"]
@@ -57,3 +36,34 @@ tls-rustls-webpki-roots = [
 # Internal, not meant to be used directly
 _tls = []
 _tls-rustls = ["_tls"]
+
+[dependencies]
+assign = "1.1.1"
+async-stream = "0.3.0"
+futures-core = "0.3.8"
+http = "0.2.2"
+hyper = { version = "0.14.2", features = ["client", "tcp"] }
+hyper-tls = { version = "0.5.0", optional = true }
+hyper-rustls = { version = "0.22.1", optional = true, default-features = false }
+ruma-api = { version = "=0.17.0-alpha.4", path = "../ruma-api" }
+ruma-client-api = { version = "=0.10.0-alpha.3", path = "../ruma-client-api", optional = true, features = ["client"] }
+ruma-common = { version = "0.5.0", path = "../ruma-common" }
+ruma-events = { version = "=0.22.0-alpha.3", path = "../ruma-events" }
+ruma-identifiers = { version = "0.19.0", path = "../ruma-identifiers" }
+ruma-serde = { version = "0.3.1", path = "../ruma-serde" }
+serde = { version = "1.0.118", features = ["derive"] }
+serde_json = "1.0.61"
+
+[dev-dependencies]
+anyhow = "1.0.37"
+ruma = { version = "0.0.3", path = "../ruma", features = ["client-api-c"] }
+tokio = { version = "1.0.1", features = ["macros", "rt"] }
+tokio-stream = { version = "0.1.1", default-features = false }
+
+[[example]]
+name = "hello_world"
+required-features = ["client-api"]
+
+[[example]]
+name = "message_log"
+required-features = ["client-api"]
