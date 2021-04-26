@@ -40,7 +40,7 @@
 //! ```
 //!
 //! For the standard use case of synchronizing with the homeserver (i.e. getting all the latest
-//! events), use the `Client::sync`:
+//! events), use the `Client::sync` method:
 //!
 //! ```ignore
 //! use std::time::Duration;
@@ -69,10 +69,8 @@
 //! one with the given homeserver.
 //!
 //! Beyond these basic convenience methods, `ruma-client` gives you access to the entire Matrix
-//! client-server API via the `api` module. Each leaf module under this tree of modules contains
-//! the necessary types for one API endpoint. Simply call the module's `call` method, passing it
-//! the logged in `Client` and the relevant `Request` type. `call` will return a future that will
-//! resolve to the relevant `Response` type.
+//! client-server API via the `request` method. You can pass it any of the `Request` types found in
+//! `ruma::api::*` and get back a corresponding response from the homeserver.
 //!
 //! For example:
 //!
