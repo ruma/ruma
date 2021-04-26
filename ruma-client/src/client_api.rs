@@ -11,10 +11,10 @@ use ruma_client_api::r0::{
 use ruma_common::presence::PresenceState;
 use ruma_identifiers::DeviceId;
 
-use super::{Client, Error};
+use super::{Client, Error, HttpClient};
 
 /// Client-API specific functionality of `Client`.
-impl Client<super::HyperClient<super::Connector>> {
+impl<C: HttpClient> Client<C> {
     /// Log in with a username and password.
     ///
     /// In contrast to [`request`], this method stores the access token returned by the endpoint in
@@ -25,7 +25,7 @@ impl Client<super::HyperClient<super::Connector>> {
         password: &str,
         device_id: Option<&DeviceId>,
         initial_device_display_name: Option<&str>,
-    ) -> Result<login::Response, Error<ruma_client_api::Error>> {
+    ) -> Result<login::Response, Error<C::Error, ruma_client_api::Error>> {
         let response = self
             .request(assign!(
                 login::Request::new(
@@ -48,7 +48,7 @@ impl Client<super::HyperClient<super::Connector>> {
     /// this client, in addition to returning it.
     pub async fn register_guest(
         &self,
-    ) -> Result<register::Response, Error<ruma_client_api::r0::uiaa::UiaaResponse>> {
+    ) -> Result<register::Response, Error<C::Error, ruma_client_api::r0::uiaa::UiaaResponse>> {
         let response = self
             .request(assign!(register::Request::new(), { kind: RegistrationKind::Guest }))
             .await?;
@@ -69,7 +69,7 @@ impl Client<super::HyperClient<super::Connector>> {
         &self,
         username: Option<&str>,
         password: &str,
-    ) -> Result<register::Response, Error<ruma_client_api::r0::uiaa::UiaaResponse>> {
+    ) -> Result<register::Response, Error<C::Error, ruma_client_api::r0::uiaa::UiaaResponse>> {
         let response = self
             .request(assign!(register::Request::new(), { username, password: Some(password) }))
             .await?;
@@ -81,16 +81,16 @@ impl Client<super::HyperClient<super::Connector>> {
 
     /// Convenience method that represents repeated calls to the sync_events endpoint as a stream.
     pub fn sync<'a>(
-        &self,
+        &'a self,
         filter: Option<&'a sync_events::Filter<'a>>,
         mut since: String,
         set_presence: &'a PresenceState,
         timeout: Option<Duration>,
-    ) -> impl Stream<Item = Result<sync_events::Response, Error<ruma_client_api::Error>>> + 'a {
-        let client = self.clone();
+    ) -> impl Stream<Item = Result<sync_events::Response, Error<C::Error, ruma_client_api::Error>>> + 'a
+    {
         try_stream! {
             loop {
-                let response = client
+                let response = self
                     .request(assign!(sync_events::Request::new(), {
                         filter,
                         since: Some(&since),

@@ -15,36 +15,22 @@ repository = "https://github.com/ruma/ruma"
 version = "0.5.0-alpha.2"
 
 [features]
-default = ["http1", "http2", "tls-native"]
-
 client-api = ["ruma-client-api"]
 
-http1 = ["hyper/http1"]
-http2 = ["hyper/http2"]
-tls-native = ["hyper-tls", "_tls"]
-tls-rustls-native-roots = [
-    "hyper-rustls",
-    "hyper-rustls/native-tokio",
-    "_tls-rustls",
-]
-tls-rustls-webpki-roots = [
-    "hyper-rustls",
-    "hyper-rustls/webpki-tokio",
-    "_tls-rustls",
-]
-
-# Internal, not meant to be used directly
-_tls = []
-_tls-rustls = ["_tls"]
+# HTTP clients
+hyper-native-tls = ["hyper", "hyper-tls"]
+hyper-rustls = ["hyper", "hyper-rustls-crate"]
 
 [dependencies]
 assign = "1.1.1"
 async-stream = "0.3.0"
+async-trait = "0.1.50"
+bytes = "1.0.1"
 futures-core = "0.3.8"
 http = "0.2.2"
-hyper = { version = "0.14.2", features = ["client", "tcp"] }
+hyper = { version = "0.14.2", optional = true, features = ["client", "http1", "http2", "tcp"] }
 hyper-tls = { version = "0.5.0", optional = true }
-hyper-rustls = { version = "0.22.1", optional = true, default-features = false }
+hyper-rustls-crate = { package = "hyper-rustls", version = "0.22.1", optional = true, default-features = false }
 ruma-api = { version = "=0.17.0-alpha.4", path = "../ruma-api" }
 ruma-client-api = { version = "=0.10.0-alpha.3", path = "../ruma-client-api", optional = true, features = ["client"] }
 ruma-common = { version = "0.5.0", path = "../ruma-common" }
@@ -62,8 +48,8 @@ tokio-stream = { version = "0.1.1", default-features = false }
 
 [[example]]
 name = "hello_world"
-required-features = ["client-api"]
+required-features = ["client-api", "hyper-native-tls"]
 
 [[example]]
 name = "message_log"
-required-features = ["client-api"]
+required-features = ["client-api", "hyper-native-tls"]

@@ -10,11 +10,12 @@ use ruma::{
     },
     presence::PresenceState,
 };
-use ruma_client::Client;
 use tokio_stream::StreamExt as _;
 
+type MatrixClient = ruma_client::Client<ruma_client::http_client::HyperNativeTls>;
+
 async fn log_messages(homeserver_url: Uri, username: &str, password: &str) -> anyhow::Result<()> {
-    let client = Client::new(homeserver_url, None);
+    let client = MatrixClient::new(homeserver_url, None);
 
     client.log_in(username, password, None, None).await?;
 
