@@ -1,4 +1,4 @@
-### Matrix state resolution in rust!
+# Matrix state resolution in Rust!
 
 ```rust
 /// Abstraction of a PDU so users can have their own PDU types.
