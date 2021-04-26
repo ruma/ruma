@@ -24,7 +24,7 @@ jobs:
           RUSTDOCFLAGS: "--enable-index-page -Zunstable-options --cfg docsrs"
         with:
           command: doc
-          args: --no-deps --workspace --exclude xtask --features full,compat,unstable-pre-spec -Zrustdoc-map
+          args: --no-deps --workspace --exclude xtask --all-features -Zrustdoc-map
       - name: Deploy to docs branch
         uses: JamesIves/github-pages-deploy-action@4.1.0
         with:

@@ -1,6 +1,3 @@
 {
-    "rust-analyzer.cargo.features": [
-        "full",
-        "unstable-pre-spec"
-    ]
+    "rust-analyzer.cargo.allFeatures": true
 }

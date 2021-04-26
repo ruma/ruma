@@ -61,29 +61,8 @@ impl CiTask {
 
         {
             let _p = pushd("ruma-client")?;
-            r.push(
-                cmd!(
-                    "rustup run stable cargo check
-                        --no-default-features --features http1,http2 --quiet"
-                )
-                .run(),
-            );
-            r.push(
-                cmd!(
-                    "rustup run stable cargo check
-                        --no-default-features --features http1,http2,tls-rustls-native-roots
-                        --quiet"
-                )
-                .run(),
-            );
-            r.push(
-                cmd!(
-                    "rustup run stable cargo check
-                        --no-default-features --features http1,http2,tls-rustls-webpki-roots
-                        --quiet"
-                )
-                .run(),
-            );
+            r.push(cmd!("rustup run stable cargo check --no-default-features --quiet").run());
+            r.push(cmd!("rustup run stable cargo check --all-features --quiet").run());
         }
 
         r.into_iter().collect()

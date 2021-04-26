@@ -7,7 +7,7 @@ use ruma_api::error::{FromHttpResponseError, IntoHttpError};
 /// An error that can occur during client operations.
 #[derive(Debug)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-pub enum Error<E> {
+pub enum Error<E, F> {
     /// Queried endpoint requires authentication but was called on an anonymous client.
     AuthenticationRequired,
 
@@ -15,66 +15,53 @@ pub enum Error<E> {
     IntoHttp(IntoHttpError),
 
     /// The request's URL is invalid (this should never happen).
-    Url(UrlError),
+    Url(http::Error),
 
     /// Couldn't obtain an HTTP response (e.g. due to network or DNS issues).
-    Response(ResponseError),
+    Response(E),
 
     /// Converting the HTTP response to one of ruma's types failed.
-    FromHttpResponse(FromHttpResponseError<E>),
+    FromHttpResponse(FromHttpResponseError<F>),
 }
 
-impl<E: Display> Display for Error<E> {
+impl<E: Display, F: Display> Display for Error<E, F> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::AuthenticationRequired => {
                 write!(f, "The queried endpoint requires authentication but was called with an anonymous client.")
             }
             Self::IntoHttp(err) => write!(f, "HTTP request construction failed: {}", err),
-            Self::Url(UrlError(err)) => write!(f, "Invalid URL: {}", err),
-            Self::Response(ResponseError(err)) => write!(f, "Couldn't obtain a response: {}", err),
+            Self::Url(err) => write!(f, "Invalid URL: {}", err),
+            Self::Response(err) => write!(f, "Couldn't obtain a response: {}", err),
             Self::FromHttpResponse(err) => write!(f, "HTTP response conversion failed: {}", err),
         }
     }
 }
 
-impl<E> From<IntoHttpError> for Error<E> {
+impl<E, F> From<IntoHttpError> for Error<E, F> {
     fn from(err: IntoHttpError) -> Self {
         Error::IntoHttp(err)
     }
 }
 
 #[doc(hidden)]
-impl<E> From<http::uri::InvalidUri> for Error<E> {
+impl<E, F> From<http::uri::InvalidUri> for Error<E, F> {
     fn from(err: http::uri::InvalidUri) -> Self {
-        Error::Url(UrlError(err.into()))
+        Error::Url(err.into())
     }
 }
 
 #[doc(hidden)]
-impl<E> From<http::uri::InvalidUriParts> for Error<E> {
+impl<E, F> From<http::uri::InvalidUriParts> for Error<E, F> {
     fn from(err: http::uri::InvalidUriParts) -> Self {
-        Error::Url(UrlError(err.into()))
+        Error::Url(err.into())
     }
 }
 
-#[doc(hidden)]
-impl<E> From<hyper::Error> for Error<E> {
-    fn from(err: hyper::Error) -> Self {
-        Error::Response(ResponseError(err))
-    }
-}
-
-impl<E> From<FromHttpResponseError<E>> for Error<E> {
-    fn from(err: FromHttpResponseError<E>) -> Self {
+impl<E, F> From<FromHttpResponseError<F>> for Error<E, F> {
+    fn from(err: FromHttpResponseError<F>) -> Self {
         Error::FromHttpResponse(err)
     }
 }
 
-impl<E: Debug + Display> std::error::Error for Error<E> {}
-
-#[derive(Debug)]
-pub struct UrlError(http::Error);
-
-#[derive(Debug)]
-pub struct ResponseError(hyper::Error);
+impl<E: Debug + Display, F: Debug + Display> std::error::Error for Error<E, F> {}

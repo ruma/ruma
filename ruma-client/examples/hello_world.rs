@@ -6,7 +6,8 @@ use ruma::{
     events::{room::message::MessageEventContent, AnyMessageEventContent},
     RoomAliasId,
 };
-use ruma_client::Client;
+
+type MatrixClient = ruma_client::Client<ruma_client::http_client::HyperNativeTls>;
 
 async fn hello_world(
     homeserver_url: Uri,
@@ -14,7 +15,7 @@ async fn hello_world(
     password: &str,
     room_alias: &RoomAliasId,
 ) -> anyhow::Result<()> {
-    let client = Client::new(homeserver_url, None);
+    let client = MatrixClient::new(homeserver_url, None);
     client.log_in(username, password, None, Some("ruma-example-client")).await?;
 
     let room_id = client.request(get_alias::Request::new(room_alias)).await?.room_id;

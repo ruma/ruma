@@ -105,41 +105,24 @@ use std::{
 };
 
 use assign::assign;
-use http::{uri::Uri, Response as HttpResponse};
-use hyper::client::{Client as HyperClient, HttpConnector};
+use http::uri::Uri;
 use ruma_api::{AuthScheme, OutgoingRequest, SendAccessToken};
 use ruma_serde::urlencoded;
+
+// "Undo" rename from `Cargo.toml` that only serves to make `hyper-rustls` available as a Cargo
+// feature name.
+#[cfg(feature = "hyper-rustls")]
+extern crate hyper_rustls_crate as hyper_rustls;
 
 #[cfg(feature = "client-api")]
 mod client_api;
 mod error;
+pub mod http_client;
 
-pub use self::error::Error;
-
-#[cfg(not(feature = "_tls"))]
-type Connector = HttpConnector;
-
-#[cfg(feature = "tls-native")]
-type Connector = hyper_tls::HttpsConnector<HttpConnector>;
-
-#[cfg(feature = "_tls-rustls")]
-type Connector = hyper_rustls::HttpsConnector<HttpConnector>;
-
-fn create_connector() -> Connector {
-    #[cfg(not(feature = "_tls"))]
-    let connector = HttpConnector::new();
-
-    #[cfg(feature = "tls-native")]
-    let connector = hyper_tls::HttpsConnector::new();
-
-    #[cfg(feature = "tls-rustls-native-roots")]
-    let connector = hyper_rustls::HttpsConnector::with_native_roots();
-
-    #[cfg(feature = "tls-rustls-webpki-roots")]
-    let connector = hyper_rustls::HttpsConnector::with_webpki_roots();
-
-    connector
-}
+pub use self::{
+    error::Error,
+    http_client::{DefaultConstructibleHttpClient, HttpClient},
+};
 
 /// A client for the Matrix client-server API.
 #[derive(Clone, Debug)]
@@ -173,17 +156,6 @@ impl<C> Client<C> {
             access_token: Mutex::new(access_token),
         }))
     }
-}
-
-impl Client<HyperClient<Connector>> {
-    /// Creates a new client based on a default-constructed hyper HTTP client.
-    pub fn new(homeserver_url: Uri, access_token: Option<String>) -> Self {
-        Self(Arc::new(ClientData {
-            homeserver_url,
-            http_client: HyperClient::builder().build(create_connector()),
-            access_token: Mutex::new(access_token),
-        }))
-    }
 
     /// Get a copy of the current `access_token`, if any.
     ///
@@ -191,12 +163,25 @@ impl Client<HyperClient<Connector>> {
     pub fn access_token(&self) -> Option<String> {
         self.0.access_token.lock().expect("session mutex was poisoned").clone()
     }
+}
 
+impl<C: DefaultConstructibleHttpClient> Client<C> {
+    /// Creates a new client based on a default-constructed hyper HTTP client.
+    pub fn new(homeserver_url: Uri, access_token: Option<String>) -> Self {
+        Self(Arc::new(ClientData {
+            homeserver_url,
+            http_client: DefaultConstructibleHttpClient::default(),
+            access_token: Mutex::new(access_token),
+        }))
+    }
+}
+
+impl<C: HttpClient> Client<C> {
     /// Makes a request to a Matrix API endpoint.
     pub async fn request<Request: OutgoingRequest>(
         &self,
         request: Request,
-    ) -> Result<Request::IncomingResponse, Error<Request::EndpointError>> {
+    ) -> Result<Request::IncomingResponse, Error<C::Error, Request::EndpointError>> {
         self.request_with_url_params(request, None).await
     }
 
@@ -205,7 +190,7 @@ impl Client<HyperClient<Connector>> {
         &self,
         request: Request,
         extra_params: Option<BTreeMap<String, String>>,
-    ) -> Result<Request::IncomingResponse, Error<Request::EndpointError>> {
+    ) -> Result<Request::IncomingResponse, Error<C::Error, Request::EndpointError>> {
         let client = self.0.clone();
         let mut http_request = {
             let lock;
@@ -220,10 +205,7 @@ impl Client<HyperClient<Connector>> {
                 SendAccessToken::None
             };
 
-            request.try_into_http_request::<Vec<u8>>(
-                &client.homeserver_url.to_string(),
-                access_token,
-            )?
+            request.try_into_http_request(&client.homeserver_url.to_string(), access_token)?
         };
 
         let extra_params = urlencoded::to_string(extra_params).unwrap();
@@ -236,15 +218,8 @@ impl Client<HyperClient<Connector>> {
             path_and_query: Some(new_path_and_query.parse()?),
         }))?;
 
-        let hyper_response =
-            client.http_client.request(http_request.map(hyper::Body::from)).await?;
-        let (head, body) = hyper_response.into_parts();
-
-        // FIXME: Use aggregate instead of to_bytes once serde_json can parse from a reader at a
-        // comparable speed as reading from a slice: https://github.com/serde-rs/json/issues/160
-        let full_body = hyper::body::to_bytes(body).await?;
-        let full_response = HttpResponse::from_parts(head, full_body);
-
-        Ok(ruma_api::IncomingResponse::try_from_http_response(full_response)?)
+        let http_response =
+            client.http_client.send_http_request(http_request).await.map_err(Error::Response)?;
+        Ok(ruma_api::IncomingResponse::try_from_http_response(http_response)?)
     }
 }
