@@ -143,42 +143,44 @@ fn create_connector() -> Connector {
 
 /// A client for the Matrix client-server API.
 #[derive(Clone, Debug)]
-pub struct Client(Arc<ClientData>);
+pub struct Client<C>(Arc<ClientData<C>>);
 
 /// Data contained in Client's Rc
 #[derive(Debug)]
-struct ClientData {
+struct ClientData<C> {
     /// The URL of the homeserver to connect to.
     homeserver_url: Uri,
 
     /// The underlying HTTP client.
-    hyper: HyperClient<Connector>,
+    http_client: C,
 
     /// User session data.
     access_token: Mutex<Option<String>>,
 }
 
-impl Client {
-    /// Creates a new client.
-    pub fn new(homeserver_url: Uri, access_token: Option<String>) -> Self {
-        Self(Arc::new(ClientData {
-            homeserver_url,
-            hyper: HyperClient::builder().build(create_connector()),
-            access_token: Mutex::new(access_token),
-        }))
-    }
-
-    /// Creates a new client using the given `hyper::client::Builder`.
+impl<C> Client<C> {
+    /// Creates a new client using the given underlying HTTP client.
     ///
     /// This allows the user to configure the details of HTTP as desired.
-    pub fn custom(
-        client_builder: &hyper::client::Builder,
+    pub fn with_http_client(
+        http_client: C,
         homeserver_url: Uri,
         access_token: Option<String>,
     ) -> Self {
         Self(Arc::new(ClientData {
             homeserver_url,
-            hyper: client_builder.build(create_connector()),
+            http_client,
+            access_token: Mutex::new(access_token),
+        }))
+    }
+}
+
+impl Client<HyperClient<Connector>> {
+    /// Creates a new client based on a default-constructed hyper HTTP client.
+    pub fn new(homeserver_url: Uri, access_token: Option<String>) -> Self {
+        Self(Arc::new(ClientData {
+            homeserver_url,
+            http_client: HyperClient::builder().build(create_connector()),
             access_token: Mutex::new(access_token),
         }))
     }
@@ -234,7 +236,8 @@ impl Client {
             path_and_query: Some(new_path_and_query.parse()?),
         }))?;
 
-        let hyper_response = client.hyper.request(http_request.map(hyper::Body::from)).await?;
+        let hyper_response =
+            client.http_client.request(http_request.map(hyper::Body::from)).await?;
         let (head, body) = hyper_response.into_parts();
 
         // FIXME: Use aggregate instead of to_bytes once serde_json can parse from a reader at a

@@ -14,7 +14,7 @@ use ruma_identifiers::DeviceId;
 use super::{Client, Error};
 
 /// Client-API specific functionality of `Client`.
-impl Client {
+impl Client<super::HyperClient<super::Connector>> {
     /// Log in with a username and password.
     ///
     /// In contrast to [`request`], this method stores the access token returned by the endpoint in
