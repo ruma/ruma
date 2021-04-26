@@ -28,7 +28,7 @@
 //! session rather than calling `log_in`. This can also be used to create a session for an
 //! application service that does not need to log in, but uses the access_token directly:
 //!
-//! ```no_run
+//! ```ignore
 //! use ruma_client::Client;
 //!
 //! let work = async {
@@ -37,32 +37,6 @@
 //!
 //!     // make calls to the API
 //! };
-//! ```
-//!
-//! For the standard use case of synchronizing with the homeserver (i.e. getting all the latest
-//! events), use the `Client::sync` method:
-//!
-//! ```ignore
-//! use std::time::Duration;
-//!
-//! # use ruma_client::Client;
-//! # use ruma::presence::PresenceState;
-//! # use tokio_stream::{StreamExt as _};
-//! # let homeserver_url = "https://example.com".parse().unwrap();
-//! # let client = Client::new(homeserver_url, None);
-//! # let next_batch_token = String::new();
-//! # async {
-//! let mut sync_stream = Box::pin(client.sync(
-//!     None,
-//!     next_batch_token,
-//!     &PresenceState::Online,
-//!     Some(Duration::from_secs(30)),
-//! ));
-//! while let Some(response) = sync_stream.try_next().await? {
-//!     // Do something with the data in the response...
-//! }
-//! # Result::<(), ruma_client::Error<_>>::Ok(())
-//! # };
 //! ```
 //!
 //! The `Client` type also provides methods for registering a new account if you don't already have
@@ -74,7 +48,7 @@
 //!
 //! For example:
 //!
-//! ```no_run
+//! ```ignore
 //! # use ruma_client::Client;
 //! # let homeserver_url = "https://example.com".parse().unwrap();
 //! # let client = Client::new(homeserver_url, None);
@@ -87,11 +61,11 @@
 //!
 //! async {
 //!     let response = client
-//!         .request(get_alias::Request::new(&room_alias_id!("#example_room:example.com")))
+//!         .send_request(get_alias::Request::new(&room_alias_id!("#example_room:example.com")))
 //!         .await?;
 //!
 //!     assert_eq!(response.room_id, room_id!("!n8f893n9:example.com"));
-//! #   Result::<(), ruma_client::Error<_>>::Ok(())
+//! #   Result::<(), ruma_client::Error<_, _>>::Ok(())
 //! }
 //! # ;
 //! ```

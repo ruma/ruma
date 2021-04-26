@@ -80,6 +80,31 @@ impl<C: HttpClient> Client<C> {
     }
 
     /// Convenience method that represents repeated calls to the sync_events endpoint as a stream.
+    ///
+    /// # Example:
+    ///
+    /// ```ignore
+    /// use std::time::Duration;
+    ///
+    /// # use ruma_client::Client;
+    /// # use ruma::presence::PresenceState;
+    /// # use tokio_stream::{StreamExt as _};
+    /// # let homeserver_url = "https://example.com".parse().unwrap();
+    /// # let client = Client::new(homeserver_url, None);
+    /// # let next_batch_token = String::new();
+    /// # async {
+    /// let mut sync_stream = Box::pin(client.sync(
+    ///     None,
+    ///     next_batch_token,
+    ///     &PresenceState::Online,
+    ///     Some(Duration::from_secs(30)),
+    /// ));
+    /// while let Some(response) = sync_stream.try_next().await? {
+    ///     // Do something with the data in the response...
+    /// }
+    /// # Result::<(), ruma_client::Error<_, _>>::Ok(())
+    /// # };
+    /// ```
     pub fn sync<'a>(
         &'a self,
         filter: Option<&'a sync_events::Filter<'a>>,
