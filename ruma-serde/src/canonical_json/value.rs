@@ -78,6 +78,48 @@ pub enum CanonicalJsonValue {
     Object(Object),
 }
 
+impl CanonicalJsonValue {
+    /// If the `CanonicalJsonValue` is a `Bool`, return the inner value.
+    pub fn as_bool(&self) -> Option<bool> {
+        match self {
+            Self::Bool(b) => Some(*b),
+            _ => None,
+        }
+    }
+
+    /// If the `CanonicalJsonValue` is an `Integer`, return the inner value.
+    pub fn as_integer(&self) -> Option<Int> {
+        match self {
+            Self::Integer(i) => Some(*i),
+            _ => None,
+        }
+    }
+
+    /// If the `CanonicalJsonValue` is a `String`, return a reference to the inner value.
+    pub fn as_str(&self) -> Option<&str> {
+        match self {
+            Self::String(s) => Some(s),
+            _ => None,
+        }
+    }
+
+    /// If the `CanonicalJsonValue` is an `Array`, return a reference to the inner value.
+    pub fn as_array(&self) -> Option<&[CanonicalJsonValue]> {
+        match self {
+            Self::Array(a) => Some(a),
+            _ => None,
+        }
+    }
+
+    /// If the `CanonicalJsonValue` is an `Object`, return a reference to the inner value.
+    pub fn as_object(&self) -> Option<&Object> {
+        match self {
+            Self::Object(o) => Some(o),
+            _ => None,
+        }
+    }
+}
+
 impl Default for CanonicalJsonValue {
     fn default() -> Self {
         Self::Null
