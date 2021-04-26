@@ -37,3 +37,23 @@ resolve state of 10 events 3 conflicting
                         No change in performance detected.
 Found 1 outliers among 100 measurements (1.00%)
   1 (1.00%) high mild
+
+4/26/2020 BRANCH: fix-test-serde REV:
+lexicographical topological sort                                                                             
+                        time:   [1.6793 us 1.6823 us 1.6857 us]
+Found 9 outliers among 100 measurements (9.00%)
+  1 (1.00%) low mild
+  4 (4.00%) high mild
+  4 (4.00%) high severe
+
+resolve state of 5 events one fork                                                                             
+                        time:   [9.9993 us 10.062 us 10.159 us]
+Found 9 outliers among 100 measurements (9.00%)
+  7 (7.00%) high mild
+  2 (2.00%) high severe
+
+resolve state of 10 events 3 conflicting                                                                             
+                        time:   [26.004 us 26.092 us 26.195 us]
+Found 16 outliers among 100 measurements (16.00%)
+  11 (11.00%) high mild
+  5 (5.00%) high severe

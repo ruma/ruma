@@ -4,11 +4,13 @@ use std::{
     collections::BTreeMap,
     convert::TryFrom,
     sync::{Arc, Once},
-    time::UNIX_EPOCH,
+    time::{Duration, UNIX_EPOCH},
 };
 
+use maplit::btreemap;
 use ruma::{
     events::{
+        pdu::{EventHash, Pdu, RoomV3Pdu},
         room::{
             join_rules::JoinRule,
             member::{MemberEventContent, MembershipState},
@@ -25,7 +27,7 @@ pub use event::StateEvent;
 
 pub static LOGGER: Once = Once::new();
 
-static mut SERVER_TIMESTAMP: i32 = 0;
+static mut SERVER_TIMESTAMP: u64 = 0;
 
 pub fn do_check(
     events: &[Arc<StateEvent>],
@@ -39,8 +41,10 @@ pub fn do_check(
             .init()
     });
 
+    let init_events = INITIAL_EVENTS();
+
     let mut store = TestStore(
-        INITIAL_EVENTS()
+        init_events
             .values()
             .chain(events)
             .map(|ev| (ev.event_id().clone(), ev.clone()))
@@ -54,7 +58,7 @@ pub fn do_check(
 
     // create the DB of events that led up to this point
     // TODO maybe clean up some of these clones it is just tests but...
-    for ev in INITIAL_EVENTS().values().chain(events) {
+    for ev in init_events.values().chain(events) {
         graph.insert(ev.event_id().clone(), vec![]);
         fake_event_map.insert(ev.event_id().clone(), ev.clone());
     }
@@ -163,34 +167,6 @@ pub fn do_check(
             &auth_events,
             prev_events,
         );
-
-        // This can be used to sort of test this function
-        // match StateResolution::apply_event(
-        //     &room_id(),
-        //     &RoomVersionId::Version6,
-        //     Arc::clone(&event),
-        //     &state_after,
-        //     Some(event_map.clone()),
-        //     &store,
-        // ) {
-        //     Ok(res) => {
-        //         println!(
-        //             "res contains: {} passed: {} for {}\n{:?}",
-        //             state_after
-        //                 .get(&(event.kind, event.state_key()))
-        //                 .map(|id| id == &ev_id)
-        //                 .unwrap_or_default(),
-        //             res,
-        //             event.event_id.clone().as_str(),
-        //             event
-        //                 .prev_event_ids()
-        //                 .iter()
-        //                 .map(|id| id.to_string())
-        //                 .collect::<Vec<_>>()
-        //         );
-        //     }
-        //     Err(e) => panic!("resolution for {} failed: {}", node, e),
-        // }
 
         // we have to update our store, an actual user of this lib would
         // be giving us state from a DB.
@@ -316,39 +292,27 @@ pub fn to_init_pdu_event(
         format!("${}:foo", id)
     };
 
-    let json = if let Some(state_key) = state_key {
-        json!({
-            "auth_events": [],
-            "prev_events": [],
-            "event_id": id,
-            "sender": sender,
-            "type": ev_type,
-            "state_key": state_key,
-            "content": content,
-            "origin_server_ts": ts,
-            "room_id": room_id(),
-            "origin": "foo",
-            "depth": 0,
-            "hashes": { "sha256": "hello" },
-            "signatures": {},
-        })
-    } else {
-        json!({
-            "auth_events": [],
-            "prev_events": [],
-            "event_id": id,
-            "sender": sender,
-            "type": ev_type,
-            "content": content,
-            "origin_server_ts": ts,
-            "room_id": room_id(),
-            "origin": "foo",
-            "depth": 0,
-            "hashes": { "sha256": "hello" },
-            "signatures": {},
-        })
-    };
-    Arc::new(serde_json::from_value(json).unwrap())
+    let state_key = state_key.map(ToString::to_string);
+    Arc::new(StateEvent {
+        event_id: EventId::try_from(id).unwrap(),
+        rest: Pdu::RoomV3Pdu(RoomV3Pdu {
+            room_id: room_id(),
+            sender,
+            origin_server_ts: UNIX_EPOCH + Duration::from_secs(ts),
+            state_key,
+            kind: ev_type,
+            content,
+            redacts: None,
+            unsigned: btreemap! {},
+            #[cfg(not(feature = "unstable-pre-spec"))]
+            origin: "foo".into(),
+            auth_events: vec![],
+            prev_events: vec![],
+            depth: ruma::uint!(0),
+            hashes: EventHash { sha256: "".into() },
+            signatures: btreemap! {},
+        }),
+    })
 }
 
 pub fn to_pdu_event<S>(
@@ -385,39 +349,27 @@ where
         .map(event_id)
         .collect::<Vec<_>>();
 
-    let json = if let Some(state_key) = state_key {
-        json!({
-            "auth_events": auth_events,
-            "prev_events": prev_events,
-            "event_id": id,
-            "sender": sender,
-            "type": ev_type,
-            "state_key": state_key,
-            "content": content,
-            "origin_server_ts": ts,
-            "room_id": room_id(),
-            "origin": "foo",
-            "depth": 0,
-            "hashes": { "sha256": "hello" },
-            "signatures": {},
-        })
-    } else {
-        json!({
-            "auth_events": auth_events,
-            "prev_events": prev_events,
-            "event_id": id,
-            "sender": sender,
-            "type": ev_type,
-            "content": content,
-            "origin_server_ts": ts,
-            "room_id": room_id(),
-            "origin": "foo",
-            "depth": 0,
-            "hashes": { "sha256": "hello" },
-            "signatures": {},
-        })
-    };
-    Arc::new(serde_json::from_value(json).unwrap())
+    let state_key = state_key.map(ToString::to_string);
+    Arc::new(StateEvent {
+        event_id: EventId::try_from(id).unwrap(),
+        rest: Pdu::RoomV3Pdu(RoomV3Pdu {
+            room_id: room_id(),
+            sender,
+            origin_server_ts: UNIX_EPOCH + Duration::from_secs(ts),
+            state_key,
+            kind: ev_type,
+            content,
+            redacts: None,
+            unsigned: btreemap! {},
+            #[cfg(not(feature = "unstable-pre-spec"))]
+            origin: "foo".into(),
+            auth_events,
+            prev_events,
+            depth: ruma::uint!(0),
+            hashes: EventHash { sha256: "".into() },
+            signatures: btreemap! {},
+        }),
+    })
 }
 
 // all graphs start with these input events
@@ -522,17 +474,14 @@ pub mod event {
 
     use ruma::{
         events::{
-            from_raw_json_value,
             pdu::{EventHash, Pdu},
             room::member::{MemberEventContent, MembershipState},
-            EventDeHelper, EventType,
+            EventType,
         },
-        serde::CanonicalJsonValue,
-        signatures::reference_hash,
         EventId, RoomId, RoomVersionId, ServerName, UInt, UserId,
     };
-    use serde::{de, ser, Deserialize, Serialize};
-    use serde_json::{value::RawValue as RawJsonValue, Value as JsonValue};
+    use serde::{Deserialize, Serialize};
+    use serde_json::Value as JsonValue;
 
     use state_res::Event;
 
@@ -588,92 +537,10 @@ pub mod event {
     }
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    struct EventIdHelper {
-        event_id: EventId,
-    }
-
-    fn event_id<E: de::Error>(json: &RawJsonValue) -> Result<EventId, E> {
-        use std::convert::TryFrom;
-        Ok(match from_raw_json_value::<EventIdHelper, E>(&json) {
-            Ok(id) => id.event_id,
-            Err(_) => {
-                // panic!("NOT DURING TESTS");
-                EventId::try_from(format!(
-                    "${}",
-                    reference_hash(&from_raw_json_value(&json)?, &RoomVersionId::Version6)
-                        .map_err(de::Error::custom)?,
-                ))
-                .map_err(de::Error::custom)?
-            }
-        })
-    }
-
-    // TODO: This no longer needs to be an enum now that PduStub is gone
-    #[derive(Clone, Debug)]
-    pub enum StateEvent {
-        Full(EventId, Pdu),
-    }
-
-    impl Serialize for StateEvent {
-        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: ser::Serializer,
-        {
-            use ser::Error;
-            use std::convert::TryInto;
-
-            match self {
-                Self::Full(id, ev) => {
-                    // TODO: do we want to add the eventId when we
-                    // serialize
-                    let val: CanonicalJsonValue = serde_json::to_value(ev)
-                        .map_err(S::Error::custom)?
-                        .try_into()
-                        .map_err(S::Error::custom)?;
-
-                    match val {
-                        CanonicalJsonValue::Object(mut obj) => {
-                            obj.insert(
-                                "event_id".into(),
-                                ruma::serde::to_canonical_value(id).map_err(S::Error::custom)?,
-                            );
-                            obj.serialize(serializer)
-                        }
-                        _ => panic!("Pdu not an object"),
-                    }
-                }
-            }
-        }
-    }
-
-    impl<'de> de::Deserialize<'de> for StateEvent {
-        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: de::Deserializer<'de>,
-        {
-            let json = Box::<RawJsonValue>::deserialize(deserializer)?;
-            let EventDeHelper {
-                room_id, unsigned, ..
-            } = from_raw_json_value(&json)?;
-
-            // TODO: do we even want to try for the existing ID
-
-            // Determine whether the event is a full or stub
-            // based on the fields present.
-            Ok(if room_id.is_some() {
-                match unsigned {
-                    Some(unsigned) if unsigned.redacted_because.is_some() => {
-                        panic!("TODO deal with redacted events")
-                    }
-                    _ => StateEvent::Full(
-                        event_id(&json)?,
-                        Pdu::RoomV3Pdu(from_raw_json_value(&json)?),
-                    ),
-                }
-            } else {
-                panic!("Found stub event")
-            })
-        }
+    pub struct StateEvent {
+        pub event_id: EventId,
+        #[serde(flatten)]
+        pub rest: Pdu,
     }
 
     impl StateEvent {
@@ -681,209 +548,168 @@ pub mod event {
             id: EventId,
             json: serde_json::Value,
         ) -> Result<Self, serde_json::Error> {
-            Ok(Self::Full(
-                id,
-                Pdu::RoomV3Pdu(serde_json::from_value(json)?),
-            ))
+            Ok(Self {
+                event_id: id,
+                rest: Pdu::RoomV3Pdu(serde_json::from_value(json)?),
+            })
         }
 
         pub fn from_id_canon_obj(
             id: EventId,
             json: ruma::serde::CanonicalJsonObject,
         ) -> Result<Self, serde_json::Error> {
-            Ok(Self::Full(
-                id,
+            Ok(Self {
+                event_id: id,
                 // TODO: this is unfortunate (from_value(to_value(json)))...
-                Pdu::RoomV3Pdu(serde_json::from_value(serde_json::to_value(json)?)?),
-            ))
+                rest: Pdu::RoomV3Pdu(serde_json::from_value(serde_json::to_value(json)?)?),
+            })
         }
 
         pub fn is_power_event(&self) -> bool {
-            match self {
-                Self::Full(_, any_event) => match any_event {
-                    Pdu::RoomV1Pdu(event) => match event.kind {
-                        EventType::RoomPowerLevels
-                        | EventType::RoomJoinRules
-                        | EventType::RoomCreate => event.state_key == Some("".into()),
-                        EventType::RoomMember => {
-                            // TODO fix clone
-                            if let Ok(content) =
-                                serde_json::from_value::<MemberEventContent>(event.content.clone())
+            match &self.rest {
+                Pdu::RoomV1Pdu(event) => match event.kind {
+                    EventType::RoomPowerLevels
+                    | EventType::RoomJoinRules
+                    | EventType::RoomCreate => event.state_key == Some("".into()),
+                    EventType::RoomMember => {
+                        // TODO fix clone
+                        if let Ok(content) =
+                            serde_json::from_value::<MemberEventContent>(event.content.clone())
+                        {
+                            if [MembershipState::Leave, MembershipState::Ban]
+                                .contains(&content.membership)
                             {
-                                if [MembershipState::Leave, MembershipState::Ban]
-                                    .contains(&content.membership)
-                                {
-                                    return event.sender.as_str()
+                                return event.sender.as_str()
                                         // TODO is None here a failure
                                         != event.state_key.as_deref().unwrap_or("NOT A STATE KEY");
-                                }
                             }
-
-                            false
                         }
-                        _ => false,
-                    },
-                    Pdu::RoomV3Pdu(event) => event.state_key == Some("".into()),
+
+                        false
+                    }
+                    _ => false,
                 },
+                Pdu::RoomV3Pdu(event) => event.state_key == Some("".into()),
             }
         }
         pub fn deserialize_content<C: serde::de::DeserializeOwned>(
             &self,
         ) -> Result<C, serde_json::Error> {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => serde_json::from_value(ev.content.clone()),
-                    Pdu::RoomV3Pdu(ev) => serde_json::from_value(ev.content.clone()),
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => serde_json::from_value(ev.content.clone()),
+                Pdu::RoomV3Pdu(ev) => serde_json::from_value(ev.content.clone()),
             }
         }
         pub fn origin_server_ts(&self) -> &SystemTime {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => &ev.origin_server_ts,
-                    Pdu::RoomV3Pdu(ev) => &ev.origin_server_ts,
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => &ev.origin_server_ts,
+                Pdu::RoomV3Pdu(ev) => &ev.origin_server_ts,
             }
         }
         pub fn event_id(&self) -> &EventId {
-            match self {
-                // TODO; make this a &EventId
-                Self::Full(id, _) => id,
-            }
+            &self.event_id
         }
 
         pub fn sender(&self) -> &UserId {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => &ev.sender,
-                    Pdu::RoomV3Pdu(ev) => &ev.sender,
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => &ev.sender,
+                Pdu::RoomV3Pdu(ev) => &ev.sender,
             }
         }
 
         pub fn redacts(&self) -> Option<&EventId> {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => ev.redacts.as_ref(),
-                    Pdu::RoomV3Pdu(ev) => ev.redacts.as_ref(),
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => ev.redacts.as_ref(),
+                Pdu::RoomV3Pdu(ev) => ev.redacts.as_ref(),
             }
         }
 
         pub fn room_id(&self) -> &RoomId {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => &ev.room_id,
-                    Pdu::RoomV3Pdu(ev) => &ev.room_id,
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => &ev.room_id,
+                Pdu::RoomV3Pdu(ev) => &ev.room_id,
             }
         }
         pub fn kind(&self) -> EventType {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => ev.kind.clone(),
-                    Pdu::RoomV3Pdu(ev) => ev.kind.clone(),
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => ev.kind.clone(),
+                Pdu::RoomV3Pdu(ev) => ev.kind.clone(),
             }
         }
         pub fn state_key(&self) -> String {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => ev.state_key.clone().unwrap(),
-                    Pdu::RoomV3Pdu(ev) => ev.state_key.clone().unwrap(),
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => ev.state_key.clone().unwrap(),
+                Pdu::RoomV3Pdu(ev) => ev.state_key.clone().unwrap(),
             }
         }
 
         #[cfg(not(feature = "unstable-pre-spec"))]
         pub fn origin(&self) -> String {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => ev.origin.clone(),
-                    Pdu::RoomV3Pdu(ev) => ev.origin.clone(),
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => ev.origin.clone(),
+                Pdu::RoomV3Pdu(ev) => ev.origin.clone(),
             }
         }
 
         pub fn prev_event_ids(&self) -> Vec<EventId> {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => {
-                        ev.prev_events.iter().map(|(id, _)| id).cloned().collect()
-                    }
-                    Pdu::RoomV3Pdu(ev) => ev.prev_events.clone(),
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => ev.prev_events.iter().map(|(id, _)| id).cloned().collect(),
+                Pdu::RoomV3Pdu(ev) => ev.prev_events.clone(),
             }
         }
 
         pub fn auth_events(&self) -> Vec<EventId> {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => {
-                        ev.auth_events.iter().map(|(id, _)| id).cloned().collect()
-                    }
-                    Pdu::RoomV3Pdu(ev) => ev.auth_events.to_vec(),
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => ev.auth_events.iter().map(|(id, _)| id).cloned().collect(),
+                Pdu::RoomV3Pdu(ev) => ev.auth_events.to_vec(),
             }
         }
 
         pub fn content(&self) -> serde_json::Value {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => ev.content.clone(),
-                    Pdu::RoomV3Pdu(ev) => ev.content.clone(),
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => ev.content.clone(),
+                Pdu::RoomV3Pdu(ev) => ev.content.clone(),
             }
         }
 
         pub fn unsigned(&self) -> &BTreeMap<String, serde_json::Value> {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => &ev.unsigned,
-                    Pdu::RoomV3Pdu(ev) => &ev.unsigned,
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => &ev.unsigned,
+                Pdu::RoomV3Pdu(ev) => &ev.unsigned,
             }
         }
 
         pub fn signatures(
             &self,
         ) -> BTreeMap<Box<ServerName>, BTreeMap<ruma::ServerSigningKeyId, String>> {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(_) => maplit::btreemap! {},
-                    Pdu::RoomV3Pdu(ev) => ev.signatures.clone(),
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(_) => maplit::btreemap! {},
+                Pdu::RoomV3Pdu(ev) => ev.signatures.clone(),
             }
         }
 
         pub fn hashes(&self) -> &EventHash {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => &ev.hashes,
-                    Pdu::RoomV3Pdu(ev) => &ev.hashes,
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => &ev.hashes,
+                Pdu::RoomV3Pdu(ev) => &ev.hashes,
             }
         }
 
         pub fn depth(&self) -> &UInt {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => &ev.depth,
-                    Pdu::RoomV3Pdu(ev) => &ev.depth,
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => &ev.depth,
+                Pdu::RoomV3Pdu(ev) => &ev.depth,
             }
         }
 
         pub fn is_type_and_key(&self, ev_type: EventType, state_key: &str) -> bool {
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(ev) => {
-                        ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
-                    }
-                    Pdu::RoomV3Pdu(ev) => {
-                        ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
-                    }
-                },
+            match &self.rest {
+                Pdu::RoomV1Pdu(ev) => {
+                    ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
+                }
+                Pdu::RoomV3Pdu(ev) => {
+                    ev.kind == ev_type && ev.state_key.as_deref() == Some(state_key)
+                }
             }
         }
 
@@ -893,54 +719,10 @@ pub mod event {
         /// version 3 and above.
         pub fn room_version(&self) -> RoomVersionId {
             // TODO: We have to know the actual room version this is not sufficient
-            match self {
-                Self::Full(_, ev) => match ev {
-                    Pdu::RoomV1Pdu(_) => RoomVersionId::Version1,
-                    Pdu::RoomV3Pdu(_) => RoomVersionId::Version6,
-                },
+            match self.rest {
+                Pdu::RoomV1Pdu(_) => RoomVersionId::Version1,
+                Pdu::RoomV3Pdu(_) => RoomVersionId::Version6,
             }
-        }
-    }
-
-    #[cfg(test)]
-    mod test {
-        use super::*;
-
-        #[test]
-        fn deserialize_pdu() {
-            let non_canonical_json = r#"{"auth_events": ["$FEKmyWTamMqoL3zkEC3mVPg3qkcXcUShxxaq5BltsCE", "$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc", "$3ImCSXY6bbWbZ5S2N6BMplHHlP7RkxWZCM9fMbdM2NY", "$8Lfs0rVCE9bHQrUztEF9kbsrT4zASnPEtpImZN4L2n8"], "content": {"membership": "join"}, "depth": 135, "hashes": {"sha256": "Q7OehFJaB32W3NINZKesQZH7+ba7xZVFuyCtuWQ2emk"}, "origin": "pc.koesters.xyz:59003", "origin_server_ts": 1599901756522, "prev_events": ["$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc"], "prev_state": [], "room_id": "!eGNyCFvnKcpsnIZiEV:koesters.xyz", "sender": "@timo:pc.koesters.xyz:59003", "state_key": "@timo:pc.koesters.xyz:59003", "type": "m.room.member", "signatures": {"koesters.xyz": {"ed25519:a_wwQy": "bb8T5haywaEXKNxUUjeNBfjYi/Qe32R/dGliduIs3Ct913WGzXYLjWh7xHqapie7viHPzkDw/KYJacpAYKvMBA"}, "pc.koesters.xyz:59003": {"ed25519:key1": "/B3tpaMZKoLNITrup4fbFhbIMWixxEKM49nS4MiKOFfyJjDGuC5nWsurw0m2eYzrffhkF5qQQ8+RlFvkqwqkBw"}}, "unsigned": {"age": 30, "replaces_state": "$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc", "prev_content": {"membership": "join"}, "prev_sender": "@timo:pc.koesters.xyz:59003"}}"#;
-
-            let pdu = serde_json::from_str::<StateEvent>(non_canonical_json).unwrap();
-
-            assert_eq!(
-                match &pdu {
-                    StateEvent::Full(id, _) => id,
-                },
-                &ruma::event_id!("$Sfx_o8eLfo4idpTO8_IGrKSPKoRMC1CmQugVw9tu_MU")
-            );
-        }
-
-        #[test]
-        #[cfg_attr(not(feature = "unstable-pre-spec"), ignore)]
-        fn serialize_pdu() {
-            let non_canonical_json = r#"{"auth_events": ["$FEKmyWTamMqoL3zkEC3mVPg3qkcXcUShxxaq5BltsCE", "$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc", "$3ImCSXY6bbWbZ5S2N6BMplHHlP7RkxWZCM9fMbdM2NY", "$8Lfs0rVCE9bHQrUztEF9kbsrT4zASnPEtpImZN4L2n8"], "content": {"membership": "join"}, "depth": 135, "hashes": {"sha256": "Q7OehFJaB32W3NINZKesQZH7+ba7xZVFuyCtuWQ2emk"}, "origin": "pc.koesters.xyz:59003", "origin_server_ts": 1599901756522, "prev_events": ["$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc"], "prev_state": [], "room_id": "!eGNyCFvnKcpsnIZiEV:koesters.xyz", "sender": "@timo:pc.koesters.xyz:59003", "state_key": "@timo:pc.koesters.xyz:59003", "type": "m.room.member", "signatures": {"koesters.xyz": {"ed25519:a_wwQy": "bb8T5haywaEXKNxUUjeNBfjYi/Qe32R/dGliduIs3Ct913WGzXYLjWh7xHqapie7viHPzkDw/KYJacpAYKvMBA"}, "pc.koesters.xyz:59003": {"ed25519:key1": "/B3tpaMZKoLNITrup4fbFhbIMWixxEKM49nS4MiKOFfyJjDGuC5nWsurw0m2eYzrffhkF5qQQ8+RlFvkqwqkBw"}}, "unsigned": {"age": 30, "replaces_state": "$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc", "prev_content": {"membership": "join"}, "prev_sender": "@timo:pc.koesters.xyz:59003"}}"#;
-
-            let pdu = serde_json::from_str::<StateEvent>(non_canonical_json).unwrap();
-
-            assert_eq!(
-                match &pdu {
-                    StateEvent::Full(id, _) => id,
-                },
-                &ruma::event_id!("$Sfx_o8eLfo4idpTO8_IGrKSPKoRMC1CmQugVw9tu_MU")
-            );
-
-            // TODO: the `origin` field is left out, though it seems it should be part of the eventId hashing
-            // For testing we must serialize the PDU with the `event_id` field this is probably not correct for production
-            // although without them we get "Invalid bytes in DB" errors in conduit
-            assert_eq!(
-                ruma::serde::to_canonical_json_string(&pdu).unwrap(),
-                r#"{"auth_events":["$FEKmyWTamMqoL3zkEC3mVPg3qkcXcUShxxaq5BltsCE","$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc","$3ImCSXY6bbWbZ5S2N6BMplHHlP7RkxWZCM9fMbdM2NY","$8Lfs0rVCE9bHQrUztEF9kbsrT4zASnPEtpImZN4L2n8"],"content":{"membership":"join"},"depth":135,"event_id":"$Sfx_o8eLfo4idpTO8_IGrKSPKoRMC1CmQugVw9tu_MU","hashes":{"sha256":"Q7OehFJaB32W3NINZKesQZH7+ba7xZVFuyCtuWQ2emk"},"origin_server_ts":1599901756522,"prev_events":["$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc"],"room_id":"!eGNyCFvnKcpsnIZiEV:koesters.xyz","sender":"@timo:pc.koesters.xyz:59003","signatures":{"koesters.xyz":{"ed25519:a_wwQy":"bb8T5haywaEXKNxUUjeNBfjYi/Qe32R/dGliduIs3Ct913WGzXYLjWh7xHqapie7viHPzkDw/KYJacpAYKvMBA"},"pc.koesters.xyz:59003":{"ed25519:key1":"/B3tpaMZKoLNITrup4fbFhbIMWixxEKM49nS4MiKOFfyJjDGuC5nWsurw0m2eYzrffhkF5qQQ8+RlFvkqwqkBw"}},"state_key":"@timo:pc.koesters.xyz:59003","type":"m.room.member","unsigned":{"age":30,"prev_content":{"membership":"join"},"prev_sender":"@timo:pc.koesters.xyz:59003","replaces_state":"$Oc8MYrZ3-eM4yBbhlj8YkYYluF9KHFDKU5uDpO-Ewcc"}}"#,
-            )
         }
     }
 }

@@ -38,48 +38,6 @@ pub type EventMap<T> = BTreeMap<EventId, T>;
 pub struct StateResolution;
 
 impl StateResolution {
-    /// Check if the `incoming_event` can be included in the given `current_state`.
-    ///
-    /// This will authenticate the event against the current state of the room. It
-    /// is important that the `current_state` argument is accurate and complete.
-    pub fn apply_event<E: Event>(
-        room_id: &RoomId,
-        room_version: &RoomVersionId,
-        incoming_event: Arc<E>,
-        current_state: &StateMap<EventId>,
-        event_map: &EventMap<Arc<E>>,
-    ) -> Result<bool> {
-        let state_key = incoming_event
-            .state_key()
-            .ok_or_else(|| Error::InvalidPdu("State event had no state key".to_owned()))?;
-
-        log::info!("Applying a single event, state resolution starting");
-        let ev = incoming_event;
-
-        let prev_event = if let Some(id) = ev.prev_events().first() {
-            event_map.get(id).map(Arc::clone)
-        } else {
-            None
-        };
-
-        let mut auth_events = StateMap::new();
-        for key in event_auth::auth_types_for_event(
-            &ev.kind(),
-            &ev.sender(),
-            Some(state_key),
-            ev.content(),
-        ) {
-            if let Some(ev_id) = current_state.get(&key) {
-                if let Ok(event) = StateResolution::get_or_load_event(room_id, ev_id, event_map) {
-                    // TODO synapse checks `rejected_reason` is None here
-                    auth_events.insert(key.clone(), event);
-                }
-            }
-        }
-
-        event_auth::auth_check(room_version, &ev, prev_event, &auth_events, None)
-    }
-
     /// Resolve sets of state events as they come in. Internally `StateResolution` builds a graph
     /// and an auth chain to allow for state conflict resolution.
     ///
