@@ -1,7 +1,0 @@
-language: rust
-sudo: false
-rust:
-  - stable
-  - nightly
-script:
-  - cargo test --features unstable-pre-spec
