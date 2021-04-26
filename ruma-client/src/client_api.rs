@@ -27,7 +27,7 @@ impl<C: HttpClient> Client<C> {
         initial_device_display_name: Option<&str>,
     ) -> Result<login::Response, Error<C::Error, ruma_client_api::Error>> {
         let response = self
-            .request(assign!(
+            .send_request(assign!(
                 login::Request::new(
                     LoginInfo::Password { identifier: UserIdentifier::MatrixId(user), password }
                 ), {
@@ -50,7 +50,7 @@ impl<C: HttpClient> Client<C> {
         &self,
     ) -> Result<register::Response, Error<C::Error, ruma_client_api::r0::uiaa::UiaaResponse>> {
         let response = self
-            .request(assign!(register::Request::new(), { kind: RegistrationKind::Guest }))
+            .send_request(assign!(register::Request::new(), { kind: RegistrationKind::Guest }))
             .await?;
 
         *self.0.access_token.lock().unwrap() = response.access_token.clone();
@@ -71,7 +71,7 @@ impl<C: HttpClient> Client<C> {
         password: &str,
     ) -> Result<register::Response, Error<C::Error, ruma_client_api::r0::uiaa::UiaaResponse>> {
         let response = self
-            .request(assign!(register::Request::new(), { username, password: Some(password) }))
+            .send_request(assign!(register::Request::new(), { username, password: Some(password) }))
             .await?;
 
         *self.0.access_token.lock().unwrap() = response.access_token.clone();
@@ -116,7 +116,7 @@ impl<C: HttpClient> Client<C> {
         try_stream! {
             loop {
                 let response = self
-                    .request(assign!(sync_events::Request::new(), {
+                    .send_request(assign!(sync_events::Request::new(), {
                         filter,
                         since: Some(&since),
                         set_presence,

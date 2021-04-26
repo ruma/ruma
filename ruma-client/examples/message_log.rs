@@ -1,7 +1,6 @@
 use std::{env, process::exit, time::Duration};
 
 use assign::assign;
-use http::Uri;
 use ruma::{
     api::client::r0::{filter::FilterDefinition, sync::sync_events},
     events::{
@@ -14,14 +13,18 @@ use tokio_stream::StreamExt as _;
 
 type MatrixClient = ruma_client::Client<ruma_client::http_client::HyperNativeTls>;
 
-async fn log_messages(homeserver_url: Uri, username: &str, password: &str) -> anyhow::Result<()> {
+async fn log_messages(
+    homeserver_url: String,
+    username: &str,
+    password: &str,
+) -> anyhow::Result<()> {
     let client = MatrixClient::new(homeserver_url, None);
 
     client.log_in(username, password, None, None).await?;
 
     let filter = FilterDefinition::ignore_all().into();
     let initial_sync_response = client
-        .request(assign!(sync_events::Request::new(), {
+        .send_request(assign!(sync_events::Request::new(), {
             filter: Some(&filter),
         }))
         .await?;
@@ -76,6 +79,5 @@ async fn main() -> anyhow::Result<()> {
             }
         };
 
-    let server = homeserver_url.parse()?;
-    log_messages(server, &username, &password).await
+    log_messages(homeserver_url, &username, &password).await
 }
