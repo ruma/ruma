@@ -487,7 +487,7 @@ pub mod event {
     use ruma::{
         events::{
             pdu::{EventHash, Pdu},
-            room::member::{MemberEventContent, MembershipState},
+            room::member::MembershipState,
             EventType,
         },
         EventId, RoomId, RoomVersionId, ServerName, ServerSigningKeyId, UInt, UserId,
@@ -509,6 +509,7 @@ pub mod event {
         fn sender(&self) -> &UserId {
             self.sender()
         }
+
         fn kind(&self) -> EventType {
             self.kind()
         }
@@ -516,6 +517,7 @@ pub mod event {
         fn content(&self) -> serde_json::Value {
             self.content()
         }
+
         fn origin_server_ts(&self) -> SystemTime {
             *self.origin_server_ts()
         }
@@ -523,24 +525,31 @@ pub mod event {
         fn state_key(&self) -> Option<String> {
             self.state_key()
         }
+
         fn prev_events(&self) -> Vec<EventId> {
             self.prev_event_ids()
         }
+
         fn depth(&self) -> &UInt {
             self.depth()
         }
+
         fn auth_events(&self) -> Vec<EventId> {
             self.auth_events()
         }
+
         fn redacts(&self) -> Option<&EventId> {
             self.redacts()
         }
+
         fn hashes(&self) -> &EventHash {
             self.hashes()
         }
+
         fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>> {
             self.signatures()
         }
+
         fn unsigned(&self) -> &BTreeMap<String, JsonValue> {
             self.unsigned()
         }
@@ -583,25 +592,23 @@ pub mod event {
                     | EventType::RoomCreate => event.state_key == Some("".into()),
                     EventType::RoomMember => {
                         // TODO fix clone
-                        if let Ok(content) =
-                            serde_json::from_value::<MemberEventContent>(event.content.clone())
-                        {
-                            if [MembershipState::Leave, MembershipState::Ban]
-                                .contains(&content.membership)
-                            {
-                                return event.sender.as_str()
-                                        // TODO is None here a failure
-                                        != event.state_key.as_deref().unwrap_or("NOT A STATE KEY");
-                            }
+                        if let Ok(membership) = serde_json::from_value::<MembershipState>(
+                            event.content["membership"].clone(),
+                        ) {
+                            [MembershipState::Leave, MembershipState::Ban].contains(&membership)
+                                && event.sender.as_str()
+                                    // TODO is None here a failure
+                                    != event.state_key.as_deref().unwrap_or("NOT A STATE KEY")
+                        } else {
+                            false
                         }
-
-                        false
                     }
                     _ => false,
                 },
                 Pdu::RoomV3Pdu(event) => event.state_key == Some("".into()),
             }
         }
+
         pub fn deserialize_content<C: serde::de::DeserializeOwned>(
             &self,
         ) -> Result<C, serde_json::Error> {
@@ -610,12 +617,14 @@ pub mod event {
                 Pdu::RoomV3Pdu(ev) => serde_json::from_value(ev.content.clone()),
             }
         }
+
         pub fn origin_server_ts(&self) -> &SystemTime {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => &ev.origin_server_ts,
                 Pdu::RoomV3Pdu(ev) => &ev.origin_server_ts,
             }
         }
+
         pub fn event_id(&self) -> &EventId {
             &self.event_id
         }
