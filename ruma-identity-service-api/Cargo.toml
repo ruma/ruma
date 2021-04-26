@@ -1,6 +1,6 @@
 [package]
 name = "ruma-identity-service-api"
-version = "0.0.1"
+version = "0.1.0-alpha.1"
 authors = ["Jonas Platte <jplatte@posteo.de>"]
 description = "Types for the endpoints in the Matrix identity service API."
 homepage = "https://www.ruma.io/"
@@ -12,8 +12,8 @@ edition = "2018"
 
 [dependencies]
 js_int = { version = "0.2.0", features = ["serde"] }
-ruma-api = { version = "=0.17.0-alpha.2", path = "../ruma-api" }
-ruma-common = { version = "0.4.0", path = "../ruma-common" }
+ruma-api = { version = "=0.17.0-alpha.4", path = "../ruma-api" }
+ruma-common = { version = "0.5.0", path = "../ruma-common" }
 ruma-identifiers = { version = "0.19.0", path = "../ruma-identifiers" }
 ruma-serde = { version = "0.3.1", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }

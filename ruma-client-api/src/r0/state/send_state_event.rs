@@ -1,9 +1,10 @@
 //! [PUT /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}](https://matrix.org/docs/spec/client_server/r0.6.1#put-matrix-client-r0-rooms-roomid-state-eventtype-statekey)
 
-use ruma_api::ruma_api;
-use ruma_events::AnyStateEventContent;
+use bytes::BufMut;
+use ruma_api::{ruma_api, SendAccessToken};
+use ruma_events::{AnyStateEventContent, EventContent as _};
 use ruma_identifiers::{EventId, RoomId};
-use ruma_serde::Outgoing;
+use ruma_serde::{Outgoing, Raw};
 
 ruma_api! {
     metadata: {
@@ -33,17 +34,30 @@ pub struct Request<'a> {
     /// The room to set the state in.
     pub room_id: &'a RoomId,
 
+    /// The type of event to send.
+    pub event_type: &'a str,
+
     /// The state_key for the state to send.
     pub state_key: &'a str,
 
     /// The event content to send.
-    pub content: &'a AnyStateEventContent,
+    pub body: Raw<AnyStateEventContent>,
 }
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given room id, state key and event content.
     pub fn new(room_id: &'a RoomId, state_key: &'a str, content: &'a AnyStateEventContent) -> Self {
-        Self { room_id, state_key, content }
+        Self { room_id, event_type: content.event_type(), body: content.into(), state_key }
+    }
+
+    /// Creates a new `Request` with the given room id, event type, state key and raw event content.
+    pub fn new_raw(
+        room_id: &'a RoomId,
+        event_type: &'a str,
+        state_key: &'a str,
+        body: Raw<AnyStateEventContent>,
+    ) -> Self {
+        Self { room_id, event_type, state_key, body }
     }
 }
 
@@ -61,24 +75,24 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
 
     const METADATA: ruma_api::Metadata = METADATA;
 
-    fn try_into_http_request(
+    fn try_into_http_request<T: Default + BufMut>(
         self,
         base_url: &str,
-        access_token: Option<&str>,
-    ) -> Result<http::Request<Vec<u8>>, ruma_api::error::IntoHttpError> {
+        access_token: SendAccessToken<'_>,
+    ) -> Result<http::Request<T>, ruma_api::error::IntoHttpError> {
         use std::borrow::Cow;
 
-        use http::header::{HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+        use http::header::{self, HeaderValue};
         use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
-        use ruma_events::EventContent;
 
         let mut url = format!(
             "{}/_matrix/client/r0/rooms/{}/state/{}",
             base_url.strip_suffix('/').unwrap_or(base_url),
             utf8_percent_encode(self.room_id.as_str(), NON_ALPHANUMERIC),
-            utf8_percent_encode(self.content.event_type(), NON_ALPHANUMERIC),
+            utf8_percent_encode(self.event_type, NON_ALPHANUMERIC),
         );
 
+        // Last URL segment is optional, that is why this trait impl is not generated.
         if !self.state_key.is_empty() {
             url.push('/');
             url.push_str(&Cow::from(utf8_percent_encode(&self.state_key, NON_ALPHANUMERIC)));
@@ -87,15 +101,17 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
         let http_request = http::Request::builder()
             .method(http::Method::PUT)
             .uri(url)
-            .header(CONTENT_TYPE, "application/json")
+            .header(header::CONTENT_TYPE, "application/json")
             .header(
-                AUTHORIZATION,
+                header::AUTHORIZATION,
                 HeaderValue::from_str(&format!(
                     "Bearer {}",
-                    access_token.ok_or(ruma_api::error::IntoHttpError::NeedsAuthentication)?
+                    access_token
+                        .get_required_for_endpoint()
+                        .ok_or(ruma_api::error::IntoHttpError::NeedsAuthentication)?
                 ))?,
             )
-            .body(serde_json::to_vec(&self.content)?)?;
+            .body(ruma_serde::json_to_buf(&self.body)?)?;
 
         Ok(http_request)
     }
@@ -113,11 +129,7 @@ impl ruma_api::IncomingRequest for IncomingRequest {
     ) -> Result<Self, ruma_api::error::FromHttpRequestError> {
         use std::{borrow::Cow, convert::TryFrom};
 
-        use ruma_events::EventContent as _;
-        use serde_json::value::RawValue as RawJsonValue;
-
-        let (parts, body) = request.into_parts();
-        let path_segments: Vec<&str> = parts.uri.path()[1..].split('/').collect();
+        let path_segments: Vec<&str> = request.uri().path()[1..].split('/').collect();
 
         let room_id = {
             let decoded =
@@ -126,21 +138,20 @@ impl ruma_api::IncomingRequest for IncomingRequest {
             RoomId::try_from(&*decoded)?
         };
 
+        let event_type = percent_encoding::percent_decode(path_segments[6].as_bytes())
+            .decode_utf8()?
+            .into_owned();
+
         let state_key = path_segments
             .get(7)
             .map(|segment| percent_encoding::percent_decode(segment.as_bytes()).decode_utf8())
             .transpose()?
+            // Last URL segment is optional, but not present is the same semantically as empty
             .unwrap_or(Cow::Borrowed(""))
             .into_owned();
 
-        let content = {
-            let event_type =
-                percent_encoding::percent_decode(path_segments[6].as_bytes()).decode_utf8()?;
-            let body: Box<RawJsonValue> = serde_json::from_slice(body.as_ref())?;
+        let body = serde_json::from_slice(request.body().as_ref())?;
 
-            AnyStateEventContent::from_parts(&event_type, body)?
-        };
-
-        Ok(Self { room_id, state_key, content })
+        Ok(Self { room_id, event_type, state_key, body })
     }
 }

@@ -62,6 +62,18 @@ impl ReleaseTask {
         let prerelease = self.version.is_prerelease();
         let publish_only = self.package.name == "ruma-identifiers-validation";
 
+        if let Some(name) = self.package.name.strip_suffix("-macros") {
+            return Err(format!(
+                "Macro crates are always released together with their parent crate.\n\
+                 To release both {main_cr} and {macro_cr}, simply run\n\
+                 \n\
+                 cargo xtask release {main_cr}",
+                main_cr = name,
+                macro_cr = self.package.name,
+            )
+            .into());
+        }
+
         println!(
             "Starting {} for {}…",
             match prerelease {
@@ -96,21 +108,30 @@ impl ReleaseTask {
 
         let mut macros = self.macros();
 
-        if let Some(m) = macros.as_mut() {
-            println!("Found macros crate {}.", m.name);
+        if self.package.version != self.version {
+            if let Some(m) = macros.as_mut() {
+                println!("Found macros crate {}.", m.name);
 
-            m.update_version(&self.version)?;
-            m.update_dependants(&self.metadata)?;
+                m.update_version(&self.version)?;
+                m.update_dependants(&self.metadata)?;
 
-            println!("Resuming release of {}…", self.title());
+                println!("Resuming release of {}…", self.title());
+            }
+
+            self.package.update_version(&self.version)?;
+            self.package.update_dependants(&self.metadata)?;
         }
-
-        self.package.update_version(&self.version)?;
-        self.package.update_dependants(&self.metadata)?;
 
         let changes = &self.package.changes(!prerelease)?;
 
-        self.commit()?;
+        if self.package.version != self.version {
+            self.commit()?;
+        } else if !ask_yes_no(&format!(
+            "Package is already version {}. Skip creating a commit and continue?",
+            &self.version
+        ))? {
+            return Ok(());
+        }
 
         if let Some(m) = macros {
             let published = m.publish(&self.http_client)?;
@@ -118,14 +139,18 @@ impl ReleaseTask {
             if published {
                 // Crate was published, instead of publishing skipped (because release already
                 // existed).
-                println!("Waiting 10 seconds for the release to make it into the crates.io index…");
-                sleep(Duration::from_secs(10));
+                println!("Waiting 20 seconds for the release to make it into the crates.io index…");
+                sleep(Duration::from_secs(20));
             }
         }
 
         self.package.publish(&self.http_client)?;
 
+        let branch = cmd!("git rev-parse --abbrev-ref HEAD").read()?;
         if publish_only {
+            println!("Pushing to remote repository…");
+            cmd!("git push {remote} {branch}").run()?;
+
             println!("Crate published successfully!");
             return Ok(());
         }
@@ -139,9 +164,9 @@ impl ReleaseTask {
             return Ok(());
         }
 
-        println!("Pushing tag to remote repository…");
+        println!("Pushing to remote repository…");
         if cmd!("git ls-remote --tags {remote} {tag}").read()?.is_empty() {
-            cmd!("git push {remote} {tag}").run()?;
+            cmd!("git push {remote} {branch} {tag}").run()?;
         } else if !ask_yes_no("This tag has already been pushed. Skip this step and continue?")? {
             return Ok(());
         }
@@ -215,7 +240,7 @@ impl ReleaseTask {
             }
 
             match input.trim().to_ascii_lowercase().as_str() {
-                "c" | "continue" => {
+                "c" | "con" | "continue" => {
                     break;
                 }
                 "a" | "abort" => {
@@ -238,9 +263,6 @@ impl ReleaseTask {
 
         println!("Creating commit…");
         cmd!("git commit -a -m {message}").read()?;
-
-        println!("Pushing commit…");
-        cmd!("git push").read()?;
 
         Ok(())
     }

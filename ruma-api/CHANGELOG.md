@@ -6,9 +6,9 @@ Breaking changes:
   `request` and `response`.
 * The `EndpointError` trait now requires `std::error::Error`. This allows integrating
   `EndpointError`s in the common rust error ecosystem like `thiserror` and `anyhow`.
-* The `Endpoint` trait has been replaced by two new traits that each capture a subset of its
-  previous functionality: `OutgoingRequest` for sending requests and receiving responses and
-  `IncomingRequest` for receiving requests and sending responses.
+* The `Endpoint` trait has been replaced by four of new traits that each capture a subset of its
+  previous functionality: `OutgoingRequest`, `OutgoingResponse`, `IncomingRequest`,
+  `IncomingResponse`. See the API documentation for more details.
 * Endpoint authentication is now more granularly defined by an enum `AuthScheme`
   instead of a boolean. The `ruma_api!` macro has been updated to require
   `authentication` instead of `requires_authentication`.

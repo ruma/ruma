@@ -57,7 +57,7 @@ mod tests {
 
     #[test]
     fn response_body() {
-        let res = Response::new().try_into_http_response().unwrap();
+        let res = Response::new().try_into_http_response::<Vec<u8>>().unwrap();
 
         assert_eq!(res.body(), b"{}");
     }

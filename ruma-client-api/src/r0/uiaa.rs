@@ -2,6 +2,7 @@
 
 use std::{collections::BTreeMap, fmt};
 
+use bytes::BufMut;
 use ruma_api::{
     error::{IntoHttpError, ResponseDeserializationError},
     EndpointError, OutgoingResponse,
@@ -9,8 +10,7 @@ use ruma_api::{
 use ruma_serde::Outgoing;
 use serde::{Deserialize, Serialize};
 use serde_json::{
-    from_slice as from_json_slice, to_vec as to_json_vec, value::RawValue as RawJsonValue,
-    Value as JsonValue,
+    from_slice as from_json_slice, value::RawValue as RawJsonValue, Value as JsonValue,
 };
 
 use crate::error::{Error as MatrixError, ErrorBody};
@@ -150,12 +150,14 @@ impl EndpointError for UiaaResponse {
 impl std::error::Error for UiaaResponse {}
 
 impl OutgoingResponse for UiaaResponse {
-    fn try_into_http_response(self) -> Result<http::Response<Vec<u8>>, IntoHttpError> {
+    fn try_into_http_response<T: Default + BufMut>(
+        self,
+    ) -> Result<http::Response<T>, IntoHttpError> {
         match self {
             UiaaResponse::AuthResponse(authentication_info) => http::Response::builder()
                 .header(http::header::CONTENT_TYPE, "application/json")
                 .status(&http::StatusCode::UNAUTHORIZED)
-                .body(to_json_vec(&authentication_info)?)
+                .body(ruma_serde::json_to_buf(&authentication_info)?)
                 .map_err(Into::into),
             UiaaResponse::MatrixError(error) => error.try_into_http_response(),
         }
@@ -336,7 +338,8 @@ mod tests {
             session: None,
             auth_error: None,
         };
-        let uiaa_response = UiaaResponse::AuthResponse(uiaa_info).try_into_http_response().unwrap();
+        let uiaa_response =
+            UiaaResponse::AuthResponse(uiaa_info).try_into_http_response::<Vec<u8>>().unwrap();
 
         assert_matches!(
             from_json_slice::<UiaaInfo>(uiaa_response.body()).unwrap(),

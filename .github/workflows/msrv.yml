@@ -1,0 +1,32 @@
+name: Rust 1.45
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check_msrv:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Install rust 1.45 toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: '1.45'
+      # Used to compile xtask
+      - name: Install rust stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Run checks
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: -p xtask --no-default-features ci msrv

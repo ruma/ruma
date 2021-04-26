@@ -48,7 +48,7 @@ impl Response {
 }
 
 /// An authentication mechanism.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(untagged)]
 pub enum LoginType {
@@ -117,7 +117,7 @@ impl LoginType {
 }
 
 /// The payload for password login.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.password")]
 pub struct PasswordLoginType {}
@@ -130,7 +130,7 @@ impl PasswordLoginType {
 }
 
 /// The payload for token-based login.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.token")]
 pub struct TokenLoginType {}
@@ -143,7 +143,7 @@ impl TokenLoginType {
 }
 
 /// The payload for SSO login.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[serde(tag = "type", rename = "m.login.sso")]
 pub struct SsoLoginType {
@@ -172,7 +172,7 @@ impl SsoLoginType {
 #[cfg(feature = "unstable-pre-spec")]
 #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct IdentityProvider {
     /// The ID of the provider.
     id: String,
@@ -239,7 +239,7 @@ pub enum IdentityProviderBrand {
 
 /// A custom login payload.
 #[doc(hidden)]
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CustomLoginType {
     /// A custom type
     ///
@@ -257,6 +257,7 @@ mod login_type_serde;
 
 #[cfg(test)]
 mod tests {
+    use matches::assert_matches;
     use serde::{Deserialize, Serialize};
     #[cfg(feature = "unstable-pre-spec")]
     use serde_json::to_value as to_json_value;
@@ -266,28 +267,29 @@ mod tests {
     use super::{IdentityProvider, IdentityProviderBrand, SsoLoginType, TokenLoginType};
     use super::{LoginType, PasswordLoginType};
 
-    #[derive(Debug, Eq, PartialEq, Deserialize, Serialize)]
-    struct Foo {
+    #[derive(Debug, Deserialize, Serialize)]
+    struct Wrapper {
         pub flows: Vec<LoginType>,
     }
 
     #[test]
     fn deserialize_password_login_type() {
-        assert_eq!(
-            from_json_value::<Foo>(json!({
+        assert_matches!(
+            from_json_value::<Wrapper>(json!({
                 "flows": [
                     { "type": "m.login.password" }
                 ],
-            }))
-            .unwrap(),
-            Foo { flows: vec![LoginType::Password(PasswordLoginType {})] }
+            })),
+            Ok(Wrapper { flows })
+            if flows.len() == 1
+                && matches!(flows[0], LoginType::Password(PasswordLoginType {}))
         );
     }
 
     #[test]
     #[cfg(feature = "unstable-pre-spec")]
     fn deserialize_sso_login_type() {
-        let foo = from_json_value::<Foo>(json!({
+        let mut wrapper = from_json_value::<Wrapper>(json!({
             "flows": [
                 {
                     "type": "m.login.sso",
@@ -308,33 +310,44 @@ mod tests {
         }))
         .unwrap();
 
-        assert_eq!(
-            foo,
-            Foo {
-                flows: vec![LoginType::Sso(SsoLoginType {
-                    identity_providers: vec![
-                        IdentityProvider {
-                            id: "oidc-gitlab".into(),
-                            name: "GitLab".into(),
-                            icon: Some("mxc://localhost/gitlab-icon".into()),
-                            brand: Some(IdentityProviderBrand::GitLab)
-                        },
-                        IdentityProvider {
-                            id: "custom".into(),
-                            name: "Custom".into(),
-                            icon: None,
-                            brand: None
-                        }
-                    ]
-                })]
-            }
-        )
+        let flow = wrapper.flows.pop();
+        assert_matches!(wrapper.flows.as_slice(), []);
+
+        let mut identity_providers = match flow {
+            Some(LoginType::Sso(SsoLoginType { identity_providers })) => identity_providers,
+            _ => panic!("unexpected enum variant: {:?}", flow),
+        };
+
+        let provider = identity_providers.pop();
+        assert_matches!(
+            provider,
+            Some(IdentityProvider {
+                id,
+                name,
+                icon: None,
+                brand: None,
+            }) if id == "custom"
+                && name == "Custom"
+        );
+
+        let provider = identity_providers.pop();
+        assert_matches!(
+            provider,
+            Some(IdentityProvider {
+                id,
+                name,
+                icon: Some(icon),
+                brand: Some(IdentityProviderBrand::GitLab),
+            }) if id == "oidc-gitlab"
+                && name == "GitLab"
+                && icon.to_string() == "mxc://localhost/gitlab-icon"
+        );
     }
 
     #[test]
     #[cfg(feature = "unstable-pre-spec")]
     fn serialize_sso_login_type() {
-        let foo = to_json_value(Foo {
+        let wrapper = to_json_value(Wrapper {
             flows: vec![
                 LoginType::Token(TokenLoginType {}),
                 LoginType::Sso(SsoLoginType {
@@ -350,7 +363,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(
-            foo,
+            wrapper,
             json!({
                 "flows": [
                     {

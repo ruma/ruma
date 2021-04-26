@@ -4,6 +4,10 @@ Breaking changes:
 
 * Remove the `empty` module from the public API
 
+Improvements:
+
+* Add serialization decorator `none_as_empty_string` to serialize `None`s as empty strings
+
 # 0.3.1
 
 Bug fixes:

@@ -6,8 +6,8 @@ use ruma_api::ruma_api;
 use ruma_events::pdu::Pdu;
 use ruma_identifiers::{EventId, ServerName};
 use ruma_serde::Raw;
-use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
+
+use crate::transactions::edu::Edu;
 
 ruma_api! {
     metadata: {
@@ -71,14 +71,4 @@ impl Response {
     pub fn new(pdus: BTreeMap<EventId, Result<(), String>>) -> Self {
         Self { pdus }
     }
-}
-
-/// Type for passing ephemeral data to homeservers.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Edu {
-    /// Type of the ephemeral message.
-    pub edu_type: String,
-
-    /// Content of ephemeral message
-    pub content: JsonValue,
 }

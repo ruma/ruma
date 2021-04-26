@@ -53,8 +53,10 @@ impl<'input, 'output, Target: 'output + UrlEncodedTarget> Serializer<'input, 'ou
 /// Errors returned during serializing to `application/x-www-form-urlencoded`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Error {
-    Custom(Cow<'static, str>),
+    /// UTF-8 validation failed.
     Utf8(str::Utf8Error),
+    /// Something else.
+    Custom(Cow<'static, str>),
 }
 
 impl fmt::Display for Error {

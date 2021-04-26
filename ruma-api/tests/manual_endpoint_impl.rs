@@ -2,11 +2,12 @@
 
 use std::convert::TryFrom;
 
+use bytes::BufMut;
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_api::{
     error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, ServerError, Void},
     AuthScheme, EndpointError, IncomingRequest, IncomingResponse, Metadata, OutgoingRequest,
-    OutgoingResponse,
+    OutgoingResponse, SendAccessToken,
 };
 use ruma_identifiers::{RoomAliasId, RoomId};
 use ruma_serde::Outgoing;
@@ -38,11 +39,11 @@ impl OutgoingRequest for Request {
 
     const METADATA: Metadata = METADATA;
 
-    fn try_into_http_request(
+    fn try_into_http_request<T: Default + BufMut>(
         self,
         base_url: &str,
-        _access_token: Option<&str>,
-    ) -> Result<http::Request<Vec<u8>>, IntoHttpError> {
+        _access_token: SendAccessToken<'_>,
+    ) -> Result<http::Request<T>, IntoHttpError> {
         let url = (base_url.to_owned() + METADATA.path)
             .replace(":room_alias", &self.room_alias.to_string());
 
@@ -51,7 +52,7 @@ impl OutgoingRequest for Request {
         let http_request = http::Request::builder()
             .method(METADATA.method)
             .uri(url)
-            .body(serde_json::to_vec(&request_body)?)
+            .body(ruma_serde::json_to_buf(&request_body)?)
             // this cannot fail because we don't give user-supplied data to any of the
             // builder methods
             .unwrap();
@@ -113,10 +114,12 @@ impl IncomingResponse for Response {
 }
 
 impl OutgoingResponse for Response {
-    fn try_into_http_response(self) -> Result<http::Response<Vec<u8>>, IntoHttpError> {
+    fn try_into_http_response<T: Default + BufMut>(
+        self,
+    ) -> Result<http::Response<T>, IntoHttpError> {
         let response = http::Response::builder()
             .header(CONTENT_TYPE, "application/json")
-            .body(b"{}".to_vec())
+            .body(ruma_serde::slice_to_buf(b"{}"))
             .unwrap();
 
         Ok(response)

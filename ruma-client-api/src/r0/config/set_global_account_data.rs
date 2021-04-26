@@ -15,11 +15,11 @@ ruma_api! {
     }
 
     request: {
-        /// Arbitrary JSON to store as config data.
+        /// The ID of the user to set account_data for.
         ///
-        /// To create a `Box<RawJsonValue>`, use `serde_json::value::to_raw_value`.
-        #[ruma_api(body)]
-        pub data: Box<RawJsonValue>,
+        /// The access token must be authorized to make requests for this user ID.
+        #[ruma_api(path)]
+        pub user_id: &'a UserId,
 
         /// The event type of the account_data to set.
         ///
@@ -27,11 +27,11 @@ ruma_api! {
         #[ruma_api(path)]
         pub event_type: &'a str,
 
-        /// The ID of the user to set account_data for.
+        /// Arbitrary JSON to store as config data.
         ///
-        /// The access token must be authorized to make requests for this user ID.
-        #[ruma_api(path)]
-        pub user_id: &'a UserId,
+        /// To create a `RawJsonValue`, use `serde_json::value::to_raw_value`.
+        #[ruma_api(body)]
+        pub data: &'a RawJsonValue,
     }
 
     #[derive(Default)]
@@ -42,8 +42,8 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given data, event type and user ID.
-    pub fn new(data: Box<RawJsonValue>, event_type: &'a str, user_id: &'a UserId) -> Self {
-        Self { data, event_type, user_id }
+    pub fn new(data: &'a RawJsonValue, event_type: &'a str, user_id: &'a UserId) -> Self {
+        Self { user_id, event_type, data }
     }
 }
 

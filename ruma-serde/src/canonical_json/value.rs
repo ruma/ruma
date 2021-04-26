@@ -13,6 +13,7 @@ use super::Error;
 /// The inner type of `CanonicalJsonValue::Object`.
 pub type Object = BTreeMap<String, CanonicalJsonValue>;
 
+/// Represents a canonical JSON value as per the Matrix specification.
 #[derive(Clone, Eq, PartialEq)]
 pub enum CanonicalJsonValue {
     /// Represents a JSON null value.
@@ -78,6 +79,48 @@ pub enum CanonicalJsonValue {
     Object(Object),
 }
 
+impl CanonicalJsonValue {
+    /// If the `CanonicalJsonValue` is a `Bool`, return the inner value.
+    pub fn as_bool(&self) -> Option<bool> {
+        match self {
+            Self::Bool(b) => Some(*b),
+            _ => None,
+        }
+    }
+
+    /// If the `CanonicalJsonValue` is an `Integer`, return the inner value.
+    pub fn as_integer(&self) -> Option<Int> {
+        match self {
+            Self::Integer(i) => Some(*i),
+            _ => None,
+        }
+    }
+
+    /// If the `CanonicalJsonValue` is a `String`, return a reference to the inner value.
+    pub fn as_str(&self) -> Option<&str> {
+        match self {
+            Self::String(s) => Some(s),
+            _ => None,
+        }
+    }
+
+    /// If the `CanonicalJsonValue` is an `Array`, return a reference to the inner value.
+    pub fn as_array(&self) -> Option<&[CanonicalJsonValue]> {
+        match self {
+            Self::Array(a) => Some(a),
+            _ => None,
+        }
+    }
+
+    /// If the `CanonicalJsonValue` is an `Object`, return a reference to the inner value.
+    pub fn as_object(&self) -> Option<&Object> {
+        match self {
+            Self::Object(o) => Some(o),
+            _ => None,
+        }
+    }
+}
+
 impl Default for CanonicalJsonValue {
     fn default() -> Self {
         Self::Null
@@ -122,8 +165,8 @@ impl fmt::Display for CanonicalJsonValue {
 impl TryFrom<JsonValue> for CanonicalJsonValue {
     type Error = Error;
 
-    fn try_from(json: JsonValue) -> Result<Self, Self::Error> {
-        Ok(match json {
+    fn try_from(val: JsonValue) -> Result<Self, Self::Error> {
+        Ok(match val {
             JsonValue::Bool(b) => Self::Bool(b),
             JsonValue::Number(num) => Self::Integer(
                 Int::try_from(num.as_i64().ok_or(Error::IntConvert)?)
@@ -140,6 +183,23 @@ impl TryFrom<JsonValue> for CanonicalJsonValue {
             ),
             JsonValue::Null => Self::Null,
         })
+    }
+}
+
+impl From<CanonicalJsonValue> for JsonValue {
+    fn from(val: CanonicalJsonValue) -> Self {
+        match val {
+            CanonicalJsonValue::Bool(b) => Self::Bool(b),
+            CanonicalJsonValue::Integer(int) => Self::Number(i64::from(int).into()),
+            CanonicalJsonValue::String(string) => Self::String(string),
+            CanonicalJsonValue::Array(vec) => {
+                Self::Array(vec.into_iter().map(Into::into).collect())
+            }
+            CanonicalJsonValue::Object(obj) => {
+                Self::Object(obj.into_iter().map(|(k, v)| (k, v.into())).collect())
+            }
+            CanonicalJsonValue::Null => Self::Null,
+        }
     }
 }
 

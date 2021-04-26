@@ -5,6 +5,7 @@ Bug fixes:
 * Fix deserialization of `r0::room::get_room_event::Response`
 * More missing fields in `r0::sync::sync_events::Response` can be deserialized
 * Fix `get_tags::Response` serialization
+* Fix unsetting avatar URL when `compat` feature is enabled
 
 Breaking changes:
 

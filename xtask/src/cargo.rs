@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use assign::assign;
 use isahc::{HttpClient, ReadResponseExt};
 use semver::Version;
 use serde::{de::IgnoredAny, Deserialize};
@@ -83,9 +84,10 @@ impl Package {
         changelog_path.set_file_name("CHANGELOG.md");
 
         let changelog = read_file(&changelog_path)?;
+        let version = assign!(self.version.clone(), { pre: vec![], build: vec![] });
 
-        if !changelog.starts_with(&format!("# {}\n", self.version))
-            && !changelog.starts_with(&format!("# {} (unreleased)\n", self.version))
+        if !changelog.starts_with(&format!("# {}\n", version))
+            && !changelog.starts_with(&format!("# {} (unreleased)\n", version))
             && !changelog.starts_with("# [unreleased]\n")
         {
             return Err("Could not find version title in changelog".into());

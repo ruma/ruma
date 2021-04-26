@@ -1,5 +1,6 @@
 use std::time::{Duration, UNIX_EPOCH};
 
+use assign::assign;
 use js_int::{uint, UInt};
 use matches::assert_matches;
 use ruma_events::{
@@ -15,26 +16,23 @@ use serde_json::{from_value as from_json_value, json, to_value as to_json_value}
 #[test]
 fn message_serialize_sticker() {
     let aliases_event = MessageEvent {
-        content: AnyMessageEventContent::Sticker(StickerEventContent {
-            body: "Hello".into(),
-            info: ImageInfo {
+        content: AnyMessageEventContent::Sticker(StickerEventContent::new(
+            "Hello".into(),
+            assign!(ImageInfo::new(), {
                 height: UInt::new(423),
                 width: UInt::new(1011),
                 mimetype: Some("image/png".into()),
                 size: UInt::new(84242),
-                thumbnail_info: Some(Box::new(ThumbnailInfo {
+                thumbnail_info: Some(Box::new(assign!(ThumbnailInfo::new(), {
                     width: UInt::new(800),
                     height: UInt::new(334),
                     mimetype: Some("image/png".into()),
                     size: UInt::new(82595),
-                })),
+                }))),
                 thumbnail_url: Some(mxc_uri!("mxc://matrix.org/irsns989Rrsn")),
-                thumbnail_file: None,
-                #[cfg(feature = "unstable-pre-spec")]
-                blurhash: None,
-            },
-            url: mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs"),
-        }),
+            }),
+            mxc_uri!("mxc://matrix.org/rnsldl8srs98IRrs"),
+        )),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         room_id: room_id!("!roomid:room.com"),
@@ -193,8 +191,10 @@ fn deserialize_message_sticker() {
                     thumbnail_file: None,
                     #[cfg(feature = "unstable-pre-spec")]
                     blurhash: None,
+                    ..
                 },
                 url,
+                ..
             }),
             event_id,
             origin_server_ts,
@@ -218,6 +218,7 @@ fn deserialize_message_sticker() {
                     height: thumb_height,
                     mimetype: thumb_mimetype,
                     size: thumb_size,
+                    ..
                 } if *thumb_width == UInt::new(800)
                     && *thumb_height == UInt::new(334)
                     && *thumb_mimetype == Some("image/png".into())

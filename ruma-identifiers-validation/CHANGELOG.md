@@ -1,5 +1,17 @@
 # [unreleased]
 
+# 0.3.0
+
+Breaking changes:
+
+* Remove the `serde` feature
+
+# 0.2.4
+
+Improvements:
+
+* Restore the `serde` feature which was accidentally removed in a patch release
+
 # 0.2.3
 
 Improvements:

@@ -135,9 +135,14 @@ Also, `serde_json::Value` should be imported as `JsonValue`.
 
 Use `rustfmt` to format your code and `clippy` to lint your code¹. Before
 committing your changes, go ahead and run `cargo fmt` and `cargo clippy`² on the
-repository to make sure that the formatting and linting checks pass in CI. Note
-that `clippy` warnings are reported as errors in CI builds, so make sure to
-handle those before comitting as well.
+repository to make sure that the formatting and linting checks pass in CI.
+
+To run all of the tests the same way CI does, run `cargo xtask ci`. This will
+run some checks for Rust stable, Rust nightly, and our minimum supported Rust
+version. It requires `rustup` to be installed and the toolchains for those three
+versions to be set up (in case of a toolchain issue, `rustup` will tell you what
+to do though). There are also `cargo xtask ci stable|nightly|msrv` subcommands
+for only running one of the CI jobs.
 
 ¹ To install the tools, run `rustup component add rustfmt clippy`.  
 ² If you modified feature-gated code (`#[cfg(feature = "something")]`), you will

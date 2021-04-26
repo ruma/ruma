@@ -50,20 +50,24 @@ pub mod vec_as_map_of_empty {
 
     use super::Empty;
 
+    /// Serialize the given `Vec<T>` as a map of `T => Empty`.
     #[allow(clippy::ptr_arg)]
     pub fn serialize<S, T>(vec: &Vec<T>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
         T: Serialize + Eq + Ord,
     {
+        // FIXME: Don't construct a temporary `BTreeMap`.
         vec.iter().map(|v| (v, Empty {})).collect::<BTreeMap<_, _>>().serialize(serializer)
     }
 
+    /// Deserialize an object and return the keys as a `Vec<T>`.
     pub fn deserialize<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
     where
         D: Deserializer<'de>,
         T: Deserialize<'de> + Eq + Ord,
     {
+        // FIXME: Don't construct a temporary `BTreeMap`.
         BTreeMap::<T, Empty>::deserialize(deserializer)
             .map(|hashmap| hashmap.into_iter().map(|(k, _)| k).collect())
     }

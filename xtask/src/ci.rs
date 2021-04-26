@@ -91,7 +91,7 @@ impl CiTask {
 
     fn build_nightly(&self) -> xshell::Result<()> {
         let mut r = Vec::new();
-        r.push(cmd!("rustup run nightly cargo fmt --all").run());
+        r.push(cmd!("rustup run nightly cargo fmt -- --check").run());
 
         {
             let _p = pushd("ruma");

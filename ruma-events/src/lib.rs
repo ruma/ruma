@@ -454,7 +454,7 @@ pub struct EventDeHelper {
     pub event_id: Option<IgnoredAny>,
 
     /// If no `event_id` or `state_key` are found but a `room_id` is present
-    /// the event will be deserialized as a ephemeral event.
+    /// the event will be deserialized as an ephemeral event.
     pub room_id: Option<IgnoredAny>,
 
     /// If this `UnsignedData` contains a `redacted_because` key the event is

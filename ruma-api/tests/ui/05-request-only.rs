@@ -1,3 +1,4 @@
+use bytes::BufMut;
 use ruma_api::{
     error::{FromHttpResponseError, IntoHttpError, Void},
     ruma_api, IncomingResponse, OutgoingResponse,
@@ -35,7 +36,9 @@ impl IncomingResponse for Response {
 }
 
 impl OutgoingResponse for Response {
-    fn try_into_http_response(self) -> Result<http::Response<Vec<u8>>, IntoHttpError> {
+    fn try_into_http_response<T: Default + BufMut>(
+        self,
+    ) -> Result<http::Response<T>, IntoHttpError> {
         todo!()
     }
 }

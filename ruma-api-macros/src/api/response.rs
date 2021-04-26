@@ -79,13 +79,25 @@ impl Response {
             struct ResponseBody #def
         };
 
+        let has_test_exhaustive_field = self
+            .fields
+            .iter()
+            .filter_map(|f| f.field().ident.as_ref())
+            .any(|ident| ident == "__test_exhaustive");
+
+        let non_exhaustive_attr = if has_test_exhaustive_field {
+            quote! {}
+        } else {
+            quote! { #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)] }
+        };
+
         let outgoing_response_impl = self.expand_outgoing(ruma_api);
         let incoming_response_impl = self.expand_incoming(error_ty, ruma_api);
 
         quote! {
             #[doc = #docs]
             #[derive(Debug, Clone, #ruma_serde::Outgoing, #ruma_serde::_FakeDeriveSerde)]
-            #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+            #non_exhaustive_attr
             #[incoming_derive(!Deserialize)]
             #( #struct_attributes )*
             pub struct Response #response_def

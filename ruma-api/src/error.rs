@@ -4,6 +4,7 @@
 
 use std::{error::Error as StdError, fmt};
 
+use bytes::BufMut;
 use thiserror::Error;
 
 use crate::{EndpointError, OutgoingResponse};
@@ -14,7 +15,9 @@ use crate::{EndpointError, OutgoingResponse};
 pub enum Void {}
 
 impl OutgoingResponse for Void {
-    fn try_into_http_response(self) -> Result<http::Response<Vec<u8>>, IntoHttpError> {
+    fn try_into_http_response<T: Default + BufMut>(
+        self,
+    ) -> Result<http::Response<T>, IntoHttpError> {
         match self {}
     }
 }

@@ -1,5 +1,22 @@
 # [unreleased]
 
+# 0.5.0
+
+Breaking changes:
+
+* Rename `push::RulesetIter` to `push::RulesetIntoIter`
+* Change the return type of `push::Ruleset::get_actions` from an iterator to a
+  slice
+
+Improvements:
+
+* Add `push::Ruleset::iter()` for borrowing iteration of rulesets
+* Add conversions between `AnyPushRule` and `AnyPushRuleRef`
+  (`AnyPushRule::as_ref` and `AnyPushRuleRef::to_owned`)
+* Add `push::Ruleset::get_match()` for finding the first matching push rule for
+  an event. This is pretty much the same thing as `get_actions()` but returns
+  the entire push rule, not just its actions.
+
 # 0.4.0
 
 Breaking changes:

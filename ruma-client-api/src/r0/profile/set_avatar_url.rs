@@ -24,10 +24,17 @@ ruma_api! {
         ///
         /// If you activate the `compat` feature, this field being an empty string in JSON will give
         /// you `None` here.
-        #[serde(skip_serializing_if = "Option::is_none")]
         #[cfg_attr(
             feature = "compat",
-            serde(default, deserialize_with = "ruma_serde::empty_string_as_none")
+            serde(
+                default,
+                deserialize_with = "ruma_serde::empty_string_as_none",
+                serialize_with = "ruma_serde::none_as_empty_string"
+            )
+        )]
+        #[cfg_attr(
+            not(feature = "compat"),
+            serde(skip_serializing_if = "Option::is_none")
         )]
         pub avatar_url: Option<&'a MxcUri>,
     }

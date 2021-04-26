@@ -16,15 +16,13 @@
 
 use std::hash::{Hash, Hasher};
 
-use indexmap::{
-    set::{IndexSet, IntoIter as IndexSetIter},
-    Equivalent,
-};
+use indexmap::{Equivalent, IndexSet};
 use ruma_serde::{Raw, StringEnum};
 use serde::{Deserialize, Serialize};
 
 mod action;
 mod condition;
+mod iter;
 mod predefined;
 
 pub use self::{
@@ -32,6 +30,7 @@ pub use self::{
     condition::{
         ComparisonOperator, FlattenedJson, PushCondition, PushConditionRoomCtx, RoomMemberCountIs,
     },
+    iter::{AnyPushRule, AnyPushRuleRef, RulesetIntoIter, RulesetIter},
 };
 
 /// A push ruleset scopes a set of rules according to some criteria.
@@ -68,6 +67,13 @@ impl Ruleset {
         Default::default()
     }
 
+    /// Creates a borrowing iterator over all push rules in this `Ruleset`.
+    ///
+    /// For an owning iterator, use `.into_iter()`.
+    pub fn iter(&self) -> RulesetIter {
+        self.into_iter()
+    }
+
     /// Adds a rule to the rule set.
     ///
     /// Returns `true` if the new rule was correctly added, and `false`
@@ -83,144 +89,37 @@ impl Ruleset {
         }
     }
 
-    /// Get the push actions that apply to this event.
-    ///
-    /// Returns an empty iterator if no push rule applies.
+    /// Get the first push rule that applies to this event, if any.
     ///
     /// # Arguments
     ///
     /// * `event` - The raw JSON of a room message event.
     /// * `context` - The context of the message and room at the time of the event.
-    pub fn get_actions<'a, T>(
-        &'a self,
+    pub fn get_match<T>(
+        &self,
         event: &Raw<T>,
         context: &PushConditionRoomCtx,
-    ) -> impl Iterator<Item = &'a Action>
+    ) -> Option<AnyPushRuleRef<'_>>
     where
         T: Serialize,
     {
-        let event_map = &FlattenedJson::from_raw(event);
-
-        for rule in self.override_.iter().filter(|r| r.enabled) {
-            if rule.applies(event_map, context) {
-                return rule.actions.iter();
-            }
-        }
-        for rule in self.content.iter().filter(|r| r.enabled) {
-            let condition = PushCondition::EventMatch {
-                key: "content.body".into(),
-                pattern: rule.pattern.clone(),
-            };
-
-            if condition.applies(event_map, context) {
-                return rule.actions.iter();
-            }
-        }
-        for rule in self.room.iter().filter(|r| r.enabled) {
-            let condition =
-                PushCondition::EventMatch { key: "room_id".into(), pattern: rule.rule_id.clone() };
-
-            if condition.applies(event_map, context) {
-                return rule.actions.iter();
-            }
-        }
-        for rule in self.sender.iter().filter(|r| r.enabled) {
-            let condition =
-                PushCondition::EventMatch { key: "sender".into(), pattern: rule.rule_id.clone() };
-
-            if condition.applies(event_map, context) {
-                return rule.actions.iter();
-            }
-        }
-        for rule in self.underride.iter().filter(|r| r.enabled) {
-            if rule.applies(event_map, context) {
-                return rule.actions.iter();
-            }
-        }
-
-        [].iter()
+        let event = FlattenedJson::from_raw(event);
+        self.iter().find(|rule| rule.applies(&event, context))
     }
-}
 
-/// Iterator type for `Ruleset`
-#[derive(Debug)]
-pub struct RulesetIter {
-    content: IndexSetIter<PatternedPushRule>,
-    override_: IndexSetIter<ConditionalPushRule>,
-    room: IndexSetIter<SimplePushRule>,
-    sender: IndexSetIter<SimplePushRule>,
-    underride: IndexSetIter<ConditionalPushRule>,
-}
-
-impl Iterator for RulesetIter {
-    type Item = AnyPushRule;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.override_
-            .next()
-            .map(AnyPushRule::Override)
-            .or_else(|| self.content.next().map(AnyPushRule::Content))
-            .or_else(|| self.room.next().map(AnyPushRule::Room))
-            .or_else(|| self.sender.next().map(AnyPushRule::Sender))
-            .or_else(|| self.underride.next().map(AnyPushRule::Underride))
-    }
-}
-
-impl IntoIterator for Ruleset {
-    type Item = AnyPushRule;
-    type IntoIter = RulesetIter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        RulesetIter {
-            content: self.content.into_iter(),
-            override_: self.override_.into_iter(),
-            room: self.room.into_iter(),
-            sender: self.sender.into_iter(),
-            underride: self.underride.into_iter(),
-        }
-    }
-}
-
-/// The kinds of push rules that are available.
-#[derive(Clone, Debug)]
-pub enum AnyPushRule {
-    /// Rules that override all other kinds.
-    Override(ConditionalPushRule),
-
-    /// Content-specific rules.
-    Content(PatternedPushRule),
-
-    /// Room-specific rules.
-    Room(SimplePushRule),
-
-    /// Sender-specific rules.
-    Sender(SimplePushRule),
-
-    /// Lowest priority rules.
-    Underride(ConditionalPushRule),
-}
-
-impl AnyPushRule {
-    /// Get the `rule_id` of the push rule.
-    pub fn rule_id(&self) -> &str {
-        match self {
-            Self::Override(rule) => &rule.rule_id,
-            Self::Underride(rule) => &rule.rule_id,
-            Self::Content(rule) => &rule.rule_id,
-            Self::Room(rule) => &rule.rule_id,
-            Self::Sender(rule) => &rule.rule_id,
-        }
-    }
-}
-
-impl Extend<AnyPushRule> for Ruleset {
-    fn extend<T>(&mut self, iter: T)
+    /// Get the push actions that apply to this event.
+    ///
+    /// Returns an empty slice if no push rule applies.
+    ///
+    /// # Arguments
+    ///
+    /// * `event` - The raw JSON of a room message event.
+    /// * `context` - The context of the message and room at the time of the event.
+    pub fn get_actions<T>(&self, event: &Raw<T>, context: &PushConditionRoomCtx) -> &[Action]
     where
-        T: IntoIterator<Item = AnyPushRule>,
+        T: Serialize,
     {
-        for rule in iter {
-            self.add(rule);
-        }
+        self.get_match(event, context).map(|rule| rule.actions()).unwrap_or(&[])
     }
 }
 
@@ -325,6 +224,18 @@ pub struct ConditionalPushRule {
     pub conditions: Vec<PushCondition>,
 }
 
+impl ConditionalPushRule {
+    /// Check if the push rule applies to the event.
+    ///
+    /// # Arguments
+    ///
+    /// * `event` - The flattened JSON representation of a room message event.
+    /// * `context` - The context of the room at the time of the event.
+    pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
+        self.enabled && self.conditions.iter().all(|cond| cond.applies(event, context))
+    }
+}
+
 /// Initial set of fields of `ConditionalPushRule`.
 ///
 /// This struct will not be updated even if additional fields are added to `ConditionalPushRule` in
@@ -354,18 +265,6 @@ impl From<ConditionalPushRuleInit> for ConditionalPushRule {
     fn from(init: ConditionalPushRuleInit) -> Self {
         let ConditionalPushRuleInit { actions, default, enabled, rule_id, conditions } = init;
         Self { actions, default, enabled, rule_id, conditions }
-    }
-}
-
-impl ConditionalPushRule {
-    /// Check if the push rule applies to the event.
-    ///
-    /// # Arguments
-    ///
-    /// * `event` - The flattened JSON representation of a room message event.
-    /// * `context` - The context of the room at the time of the event.
-    pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
-        self.conditions.iter().all(|cond| cond.applies(event, context))
     }
 }
 
@@ -415,6 +314,23 @@ pub struct PatternedPushRule {
 
     /// The glob-style pattern to match against.
     pub pattern: String,
+}
+
+impl PatternedPushRule {
+    /// Check if the push rule applies to the event.
+    ///
+    /// # Arguments
+    ///
+    /// * `event` - The flattened JSON representation of a room message event.
+    /// * `context` - The context of the room at the time of the event.
+    pub fn applies_to(
+        &self,
+        key: &str,
+        event: &FlattenedJson,
+        context: &PushConditionRoomCtx,
+    ) -> bool {
+        self.enabled && condition::check_event_match(event, key, &self.pattern, context)
+    }
 }
 
 /// Initial set of fields of `PatterenedPushRule`.
@@ -1032,16 +948,18 @@ mod tests {
             }"#,
         )
         .unwrap();
-        let mut actions_one_to_one = set.get_actions(&message, context_one_to_one);
-        assert_matches!(actions_one_to_one.next(), Some(Action::Notify));
-        assert_matches!(actions_one_to_one.next(), Some(Action::SetTweak(Tweak::Sound(_))));
-        assert_matches!(actions_one_to_one.next(), Some(Action::SetTweak(Tweak::Highlight(false))));
 
-        let mut actions_public_room = set.get_actions(&message, context_public_room);
-        assert_matches!(actions_public_room.next(), Some(Action::Notify));
         assert_matches!(
-            actions_public_room.next(),
-            Some(Action::SetTweak(Tweak::Highlight(false)))
+            set.get_actions(&message, context_one_to_one),
+            [
+                Action::Notify,
+                Action::SetTweak(Tweak::Sound(_)),
+                Action::SetTweak(Tweak::Highlight(false))
+            ]
+        );
+        assert_matches!(
+            set.get_actions(&message, context_public_room),
+            [Action::Notify, Action::SetTweak(Tweak::Highlight(false))]
         );
 
         let user_name = serde_json::from_str::<Raw<JsonValue>>(
@@ -1053,15 +971,23 @@ mod tests {
             }"#,
         )
         .unwrap();
-        let mut actions_one_to_one = set.get_actions(&user_name, context_one_to_one);
-        assert_matches!(actions_one_to_one.next(), Some(Action::Notify));
-        assert_matches!(actions_one_to_one.next(), Some(Action::SetTweak(Tweak::Sound(_))));
-        assert_matches!(actions_one_to_one.next(), Some(Action::SetTweak(Tweak::Highlight(true))));
 
-        let mut actions_public_room = set.get_actions(&user_name, context_public_room);
-        assert_matches!(actions_public_room.next(), Some(Action::Notify));
-        assert_matches!(actions_public_room.next(), Some(Action::SetTweak(Tweak::Sound(_))));
-        assert_matches!(actions_public_room.next(), Some(Action::SetTweak(Tweak::Highlight(true))));
+        assert_matches!(
+            set.get_actions(&user_name, context_one_to_one),
+            [
+                Action::Notify,
+                Action::SetTweak(Tweak::Sound(_)),
+                Action::SetTweak(Tweak::Highlight(true)),
+            ]
+        );
+        assert_matches!(
+            set.get_actions(&user_name, context_public_room),
+            [
+                Action::Notify,
+                Action::SetTweak(Tweak::Sound(_)),
+                Action::SetTweak(Tweak::Highlight(true)),
+            ]
+        );
 
         let notice = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
@@ -1072,8 +998,7 @@ mod tests {
             }"#,
         )
         .unwrap();
-        let mut actions = set.get_actions(&notice, context_one_to_one);
-        assert_matches!(actions.next(), Some(Action::DontNotify));
+        assert_matches!(set.get_actions(&notice, context_one_to_one), [Action::DontNotify]);
 
         let at_room = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
@@ -1086,13 +1011,14 @@ mod tests {
             }"#,
         )
         .unwrap();
-        let mut actions = set.get_actions(&at_room, context_public_room);
-        assert_matches!(actions.next(), Some(Action::Notify));
-        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Highlight(true))));
+
+        assert_matches!(
+            set.get_actions(&at_room, context_public_room),
+            [Action::Notify, Action::SetTweak(Tweak::Highlight(true)),]
+        );
 
         let empty = serde_json::from_str::<Raw<JsonValue>>(r#"{}"#).unwrap();
-        let mut actions = set.get_actions(&empty, context_one_to_one);
-        assert_matches!(actions.next(), None);
+        assert_matches!(set.get_actions(&empty, context_one_to_one), []);
     }
 
     #[test]
@@ -1131,8 +1057,7 @@ mod tests {
         set.add(disabled);
 
         let test_set = set.clone();
-        let mut actions = test_set.get_actions(&message, context_one_to_one);
-        assert_matches!(actions.next(), None);
+        assert_matches!(test_set.get_actions(&message, context_one_to_one), []);
 
         let no_conditions = AnyPushRule::Underride(ConditionalPushRule {
             actions: vec![Action::SetTweak(Tweak::Highlight(true))],
@@ -1144,8 +1069,10 @@ mod tests {
         set.add(no_conditions);
 
         let test_set = set.clone();
-        let mut actions = test_set.get_actions(&message, context_one_to_one);
-        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Highlight(true))));
+        assert_matches!(
+            test_set.get_actions(&message, context_one_to_one),
+            [Action::SetTweak(Tweak::Highlight(true))]
+        );
 
         let sender = AnyPushRule::Sender(SimplePushRule {
             actions: vec![Action::Notify],
@@ -1156,8 +1083,7 @@ mod tests {
         set.add(sender);
 
         let test_set = set.clone();
-        let mut actions = test_set.get_actions(&message, context_one_to_one);
-        assert_matches!(actions.next(), Some(Action::Notify));
+        assert_matches!(test_set.get_actions(&message, context_one_to_one), [Action::Notify]);
 
         let room = AnyPushRule::Room(SimplePushRule {
             actions: vec![Action::DontNotify],
@@ -1168,8 +1094,7 @@ mod tests {
         set.add(room);
 
         let test_set = set.clone();
-        let mut actions = test_set.get_actions(&message, context_one_to_one);
-        assert_matches!(actions.next(), Some(Action::DontNotify));
+        assert_matches!(test_set.get_actions(&message, context_one_to_one), [Action::DontNotify]);
 
         let content = AnyPushRule::Content(PatternedPushRule {
             actions: vec![Action::SetTweak(Tweak::Sound("content".into()))],
@@ -1181,8 +1106,11 @@ mod tests {
         set.add(content);
 
         let test_set = set.clone();
-        let mut actions = test_set.get_actions(&message, context_one_to_one);
-        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Sound(sound))) if sound == "content");
+        assert_matches!(
+            test_set.get_actions(&message, context_one_to_one),
+            [Action::SetTweak(Tweak::Sound(sound))]
+            if sound == "content"
+        );
 
         let three_conditions = AnyPushRule::Override(ConditionalPushRule {
             actions: vec![Action::SetTweak(Tweak::Sound("three".into()))],
@@ -1200,8 +1128,11 @@ mod tests {
         });
         set.add(three_conditions);
 
-        let mut actions = set.get_actions(&message, context_one_to_one);
-        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Sound(sound))) if sound == "content");
+        assert_matches!(
+            set.get_actions(&message, context_one_to_one),
+            [Action::SetTweak(Tweak::Sound(sound))]
+            if sound == "content"
+        );
 
         let new_message = serde_json::from_str::<Raw<JsonValue>>(
             r#"{
@@ -1215,7 +1146,10 @@ mod tests {
         )
         .unwrap();
 
-        let mut actions = set.get_actions(&new_message, context_one_to_one);
-        assert_matches!(actions.next(), Some(Action::SetTweak(Tweak::Sound(sound))) if sound == "three");
+        assert_matches!(
+            set.get_actions(&new_message, context_one_to_one),
+            [Action::SetTweak(Tweak::Sound(sound))]
+            if sound == "three"
+        );
     }
 }

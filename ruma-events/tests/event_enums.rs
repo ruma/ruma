@@ -1,5 +1,6 @@
 use std::time::{Duration, UNIX_EPOCH};
 
+use assign::assign;
 use js_int::UInt;
 use matches::assert_matches;
 use ruma_identifiers::{event_id, mxc_uri, room_id, user_id};
@@ -69,26 +70,23 @@ fn deserialize_message_event() {
 #[test]
 fn serialize_message_event() {
     let aliases_event = AnyMessageEvent::Sticker(MessageEvent {
-        content: StickerEventContent {
-            body: "Hello".into(),
-            info: ImageInfo {
+        content: StickerEventContent::new(
+            "Hello".into(),
+            assign!(ImageInfo::new(), {
                 height: UInt::new(423),
                 width: UInt::new(1011),
                 mimetype: Some("image/png".into()),
                 size: UInt::new(84242),
-                thumbnail_info: Some(Box::new(ThumbnailInfo {
+                thumbnail_info: Some(Box::new(assign!(ThumbnailInfo::new(), {
                     width: UInt::new(800),
                     height: UInt::new(334),
                     mimetype: Some("image/png".into()),
                     size: UInt::new(82595),
-                })),
+                }))),
                 thumbnail_url: Some(mxc_uri!("mxc://matrix.org/mnrsnsRRS787TSts")),
-                thumbnail_file: None,
-                #[cfg(feature = "unstable-pre-spec")]
-                blurhash: None,
-            },
-            url: mxc_uri!("mxc://matrix.org/arsrns98rsRSR"),
-        },
+            }),
+            mxc_uri!("mxc://matrix.org/arsrns98rsRSR"),
+        ),
         event_id: event_id!("$h29iv0s8:example.com"),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         room_id: room_id!("!roomid:room.com"),

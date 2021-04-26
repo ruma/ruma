@@ -76,7 +76,7 @@ mod tests {
     #[cfg(feature = "client")]
     #[test]
     fn construct_request_from_refs() {
-        use ruma_api::OutgoingRequest as _;
+        use ruma_api::{OutgoingRequest as _, SendAccessToken};
         use ruma_identifiers::server_name;
 
         let req = super::Request {
@@ -84,7 +84,10 @@ mod tests {
             since: Some("hello"),
             server: Some(&server_name!("test.tld")),
         }
-        .try_into_http_request("https://homeserver.tld", Some("auth_tok"))
+        .try_into_http_request::<Vec<u8>>(
+            "https://homeserver.tld",
+            SendAccessToken::IfRequired("auth_tok"),
+        )
         .unwrap();
 
         let uri = req.uri();
@@ -107,7 +110,7 @@ mod tests {
             prev_batch: Some("prev_batch_token".into()),
             total_room_count_estimate: Some(uint!(10)),
         }
-        .try_into_http_response()
+        .try_into_http_response::<Vec<u8>>()
         .unwrap();
 
         assert_eq!(

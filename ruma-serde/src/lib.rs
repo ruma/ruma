@@ -2,6 +2,9 @@
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 //! (De)serialization helpers for other ruma crates.
 
+#![warn(missing_docs)]
+
+mod buf;
 pub mod can_be_empty;
 mod canonical_json;
 mod cow;
@@ -15,6 +18,7 @@ pub mod test;
 pub mod time;
 pub mod urlencoded;
 
+pub use buf::{json_to_buf, slice_to_buf};
 pub use can_be_empty::{is_empty, CanBeEmpty};
 pub use canonical_json::{
     to_canonical_value, to_string as to_canonical_json_string, try_from_json_map,
@@ -26,6 +30,7 @@ pub use empty::vec_as_map_of_empty;
 pub use raw::Raw;
 pub use strings::{
     btreemap_int_or_string_to_int_values, empty_string_as_none, int_or_string_to_int,
+    none_as_empty_string,
 };
 
 /// Check whether a value is equal to its default value.

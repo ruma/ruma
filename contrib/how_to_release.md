@@ -1,50 +1,25 @@
 # How to release new versions of the Ruma crates
 
-## General
-
-* `ruma-identifiers-validation` and the `-macros` crates don't get their own
-  release commit or tag since they are internal packages.
-* Macro crates are versioned identically to their "parent" crate and need to be
-  released before the parent crate.
-* `ruma-identifiers-validation` is released before `ruma-identifiers-macros`
-  and `ruma-identifiers`.
-
-## Creating a release commit
-
-*To be automated in the future, see https://github.com/ruma/ruma/issues/452.*
-
-Update `Cargo.toml` of the relevant package, and update the dependency on this
-package in other crates in the workspace (if applicable):
-
-* When doing a prerelease (e.g. `0.10.0-beta.1`), depend on it with an exact
-  version requirement (`version = "=0.10.0-beta.1`)
-  * Macro crate dependencies always use an exact version requirement, even for
-    final releases.
-  * Otherwise, use `version = "x.y.z"`.
-
-Update the `CHANGELOG.md` of the relevant package.
-
-* If there is already a section for the version to be released, remove the
-  `(unreleased)` from its title.
-  * Otherwise, change the `[unreleased]` section title to the version being
-    released.
-
-Finally, commit these changes as `Release {crate} {version}`.
-
-## Publishing to crates.io and creating a release tag
-
-For `ruma-identifiers-validation` or one of the macro crates, only publish them
-to crates.io without creating a release tag:
+Releasing one of the crates is very simple since it is entirely automated.
+The only thing you have to do is to run
 
 ```
-cargo publish
+cargo xtask release {crate} {version}
 ```
 
-For all others, the corresponding `xtask` command does both:
+The `xtask` script will then take care of
 
-```
-cargo xtask release {crate}
-```
+* updating all affected `Cargo.toml`s
+* adding a new version header to the changelog
+* collecting the changes from the changelog
+* creating a release commit
+* publishing the new release to [crates.io](https://crates.io/)
+* creating a release tag and GitHub release if applicable
+
+If some part of `cargo xtask release` fails, for example because of internet
+connectivity issues, you can run the exact same command again to retry. Steps
+that were already completed will be detected and an option to continue with
+the next step will be given.
 
 ## Dependencies
 
