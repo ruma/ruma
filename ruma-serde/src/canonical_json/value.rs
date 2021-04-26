@@ -122,8 +122,8 @@ impl fmt::Display for CanonicalJsonValue {
 impl TryFrom<JsonValue> for CanonicalJsonValue {
     type Error = Error;
 
-    fn try_from(json: JsonValue) -> Result<Self, Self::Error> {
-        Ok(match json {
+    fn try_from(val: JsonValue) -> Result<Self, Self::Error> {
+        Ok(match val {
             JsonValue::Bool(b) => Self::Bool(b),
             JsonValue::Number(num) => Self::Integer(
                 Int::try_from(num.as_i64().ok_or(Error::IntConvert)?)
@@ -140,6 +140,23 @@ impl TryFrom<JsonValue> for CanonicalJsonValue {
             ),
             JsonValue::Null => Self::Null,
         })
+    }
+}
+
+impl From<CanonicalJsonValue> for JsonValue {
+    fn from(val: CanonicalJsonValue) -> Self {
+        match val {
+            CanonicalJsonValue::Bool(b) => Self::Bool(b),
+            CanonicalJsonValue::Integer(int) => Self::Number(i64::from(int).into()),
+            CanonicalJsonValue::String(string) => Self::String(string),
+            CanonicalJsonValue::Array(vec) => {
+                Self::Array(vec.into_iter().map(Into::into).collect())
+            }
+            CanonicalJsonValue::Object(obj) => {
+                Self::Object(obj.into_iter().map(|(k, v)| (k, v.into())).collect())
+            }
+            CanonicalJsonValue::Null => Self::Null,
+        }
     }
 }
 
