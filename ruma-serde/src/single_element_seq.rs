@@ -5,14 +5,16 @@ use serde::{
     ser::{Serialize, Serializer},
 };
 
-pub fn serialize<T, S>(element: &T, serializer: S) -> Result<S::Ok, S::Error>
+/// Serialize the given value as a list of just that value.
+pub fn serialize<T, S>(value: &T, serializer: S) -> Result<S::Ok, S::Error>
 where
     T: Serialize,
     S: Serializer,
 {
-    [element].serialize(serializer)
+    [value].serialize(serializer)
 }
 
+/// Deserialize a list of one item and return that item.
 pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
 where
     T: Deserialize<'de>,

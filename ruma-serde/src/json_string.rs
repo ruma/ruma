@@ -6,15 +6,17 @@ use serde::{
     ser::{Error as _, Serialize, Serializer},
 };
 
-pub fn serialize<T, S>(filter: T, serializer: S) -> Result<S::Ok, S::Error>
+/// Serialize the given value as a JSON string.
+pub fn serialize<T, S>(value: T, serializer: S) -> Result<S::Ok, S::Error>
 where
     T: Serialize,
     S: Serializer,
 {
-    let json = serde_json::to_string(&filter).map_err(S::Error::custom)?;
+    let json = serde_json::to_string(&value).map_err(S::Error::custom)?;
     serializer.serialize_str(&json)
 }
 
+/// Read a string from the input and deserialize it as a `T`.
 pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
 where
     T: DeserializeOwned,

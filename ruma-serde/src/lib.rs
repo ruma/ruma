@@ -2,6 +2,8 @@
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 //! (De)serialization helpers for other ruma crates.
 
+#![warn(missing_docs)]
+
 mod buf;
 pub mod can_be_empty;
 mod canonical_json;

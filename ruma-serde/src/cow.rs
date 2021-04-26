@@ -2,6 +2,13 @@ use std::{borrow::Cow, str};
 
 use serde::de::{self, Deserializer, Unexpected, Visitor};
 
+/// Deserialize a `Cow<'de, str>`.
+///
+/// Different from serde's implementation of `Deserialize` for `Cow` since it borrows from the
+/// input when possible.
+///
+/// This will become unnecessary if Rust gains lifetime specialization at some point; see
+/// <https://github.com/serde-rs/serde/issues/1497#issuecomment-716246686>.
 pub fn deserialize_cow_str<'de, D>(deserializer: D) -> Result<Cow<'de, str>, D::Error>
 where
     D: Deserializer<'de>,
