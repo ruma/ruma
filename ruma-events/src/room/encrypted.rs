@@ -30,7 +30,6 @@ pub enum EncryptedEventScheme {
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.room.encrypted")]
-#[serde(tag = "algorithm")]
 pub struct EncryptedEventContent {
     /// Encrypted event content
     #[serde(flatten)]
