@@ -11,6 +11,8 @@ use crate::ResponseResult;
 
 #[cfg(feature = "hyper")]
 mod hyper;
+#[cfg(feature = "reqwest")]
+mod reqwest;
 
 #[cfg(feature = "hyper")]
 pub use self::hyper::Hyper;
@@ -18,6 +20,8 @@ pub use self::hyper::Hyper;
 pub use self::hyper::HyperNativeTls;
 #[cfg(feature = "hyper-rustls")]
 pub use self::hyper::HyperRustls;
+#[cfg(feature = "reqwest")]
+pub use self::reqwest::Reqwest;
 
 /// An HTTP client that can be used to send requests to a Matrix homeserver.
 #[async_trait]
