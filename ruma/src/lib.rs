@@ -84,6 +84,10 @@ pub use ruma_identifiers::{
     ServerSigningKeyId, Signatures, SigningKeyAlgorithm, UserId,
 };
 
+#[cfg(feature = "client")]
+#[cfg_attr(docsrs, doc(cfg(feature = "client")))]
+#[doc(inline)]
+pub use ruma_client as client;
 #[cfg(feature = "events")]
 #[cfg_attr(docsrs, doc(cfg(feature = "events")))]
 #[doc(inline)]
