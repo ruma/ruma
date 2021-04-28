@@ -83,14 +83,14 @@ impl<C: HttpClient> Client<C> {
     ///
     /// # Example:
     ///
-    /// ```ignore
+    /// ```no_run
     /// use std::time::Duration;
     ///
-    /// # use ruma_client::Client;
+    /// # type MatrixClient = ruma_client::Client<ruma_client::http_client::Dummy>;
     /// # use ruma::presence::PresenceState;
     /// # use tokio_stream::{StreamExt as _};
     /// # let homeserver_url = "https://example.com".parse().unwrap();
-    /// # let client = Client::new(homeserver_url, None);
+    /// # let client = MatrixClient::new(homeserver_url, None);
     /// # let next_batch_token = String::new();
     /// # async {
     /// let mut sync_stream = Box::pin(client.sync(

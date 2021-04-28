@@ -4,36 +4,37 @@
 //!
 //! # Usage
 //!
-//! Begin by creating a `Client` type, usually using the `https` method for a client that supports
-//! secure connections, and then logging in:
+//! Begin by creating a `Client`, selecting one of the type aliases from `ruma_client::http_client`
+//! for the generic parameter. For the client API, there are login and registration methods
+//! provided for the client (feature `client-api`):
 //!
 //! ```ignore
-//! use ruma_client::Client;
+//! // type MatrixClient = ruma_client::Client<ruma_client::http_client::_>;
+//! # type MatrixClient = ruma_client::Client<ruma_client::http_client::Dummy>;
+//! # let work = async {
+//! let homeserver_url = "https://example.com".parse().unwrap();
+//! let client = MatrixClient::new(homeserver_url, None);
 //!
-//! let work = async {
-//!     let homeserver_url = "https://example.com".parse().unwrap();
-//!     let client = Client::new(homeserver_url, None);
+//! let session = client
+//!     .log_in("@alice:example.com", "secret", None, None)
+//!     .await?;
 //!
-//!     let session = client
-//!         .log_in("@alice:example.com", "secret", None, None)
-//!         .await?;
-//!
-//!     // You're now logged in! Write the session to a file if you want to restore it later.
-//!     // Then start using the API!
-//! # Result::<(), ruma_client::Error<_>>::Ok(())
-//! };
+//! // You're now logged in! Write the session to a file if you want to restore it later.
+//! // Then start using the API!
+//! # Result::<(), ruma_client::Error<_, _>>::Ok(())
+//! # };
 //! ```
 //!
 //! You can also pass an existing access token to the `Client` constructor to restore a previous
 //! session rather than calling `log_in`. This can also be used to create a session for an
 //! application service that does not need to log in, but uses the access_token directly:
 //!
-//! ```ignore
-//! use ruma_client::Client;
+//! ```no_run
+//! # type MatrixClient = ruma_client::Client<ruma_client::http_client::Dummy>;
 //!
 //! let work = async {
 //!     let homeserver_url = "https://example.com".parse().unwrap();
-//!     let client = Client::new(homeserver_url, Some("as_access_token".into()));
+//!     let client = MatrixClient::new(homeserver_url, Some("as_access_token".into()));
 //!
 //!     // make calls to the API
 //! };
@@ -48,10 +49,10 @@
 //!
 //! For example:
 //!
-//! ```ignore
-//! # use ruma_client::Client;
+//! ```no_run
+//! # type MatrixClient = ruma_client::Client<ruma_client::http_client::Dummy>;
 //! # let homeserver_url = "https://example.com".parse().unwrap();
-//! # let client = Client::new(homeserver_url, None);
+//! # let client = MatrixClient::new(homeserver_url, None);
 //! use std::convert::TryFrom;
 //!
 //! use ruma::{
