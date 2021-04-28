@@ -61,13 +61,7 @@ pub trait HttpClientExt: HttpClient {
         access_token: SendAccessToken<'_>,
         request: R,
     ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>> {
-        Box::pin(crate::send_customized_request(
-            self,
-            homeserver_url,
-            access_token,
-            request,
-            |_| {},
-        ))
+        self.send_customized_request(homeserver_url, access_token, request, |_| {})
     }
 
     /// Turn a strongly-typed matrix request into an `http::Request`, customize it and send it to

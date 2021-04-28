@@ -159,20 +159,7 @@ impl<C: HttpClient> Client<C> {
         &self,
         request: R,
     ) -> Result<R::IncomingResponse, Error<C::Error, R::EndpointError>> {
-        let access_token = self.access_token();
-        let send_access_token = match access_token.as_deref() {
-            Some(at) => SendAccessToken::IfRequired(at),
-            None => SendAccessToken::None,
-        };
-
-        send_customized_request(
-            &self.0.http_client,
-            &self.0.homeserver_url,
-            send_access_token,
-            request,
-            |_| {},
-        )
-        .await
+        self.send_customized_request(request, |_| {}).await
     }
 
     /// Makes a request to a Matrix API endpoint including additional URL parameters.
