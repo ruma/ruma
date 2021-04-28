@@ -79,6 +79,7 @@ use std::{
 };
 
 use ruma_api::{OutgoingRequest, SendAccessToken};
+use ruma_identifiers::UserId;
 
 // "Undo" rename from `Cargo.toml` that only serves to make `hyper-rustls` available as a Cargo
 // feature name.
@@ -190,6 +191,21 @@ impl<C: HttpClient> Client<C> {
         )
         .await
     }
+
+    /// Makes a request to a Matrix API endpoint as a virtual user.
+    ///
+    /// This method is meant to be used by application services when interacting with the
+    /// client-server API.
+    pub async fn send_request_as<R: OutgoingRequest>(
+        &self,
+        user_id: &UserId,
+        request: R,
+    ) -> ResponseResult<C, R>
+    where
+        <R as OutgoingRequest>::EndpointError: Send,
+    {
+        self.send_customized_request(request, add_user_id_to_query::<C, R>(user_id)).await
+    }
 }
 
 fn send_customized_request<'a, C, R, F>(
@@ -216,5 +232,27 @@ where
     async move {
         let http_res = http_client.send_http_request(http_req?).await.map_err(Error::Response)?;
         Ok(ruma_api::IncomingResponse::try_from_http_response(http_res)?)
+    }
+}
+
+fn add_user_id_to_query<C: HttpClient + ?Sized, R: OutgoingRequest>(
+    user_id: &UserId,
+) -> impl FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>> + '_ {
+    use assign::assign;
+    use http::uri::Uri;
+    use ruma_serde::urlencoded;
+
+    move |http_request| {
+        let extra_params = urlencoded::to_string(&[("user_id", user_id)]).unwrap();
+        let uri = http_request.uri_mut();
+        let new_path_and_query = match uri.query() {
+            Some(params) => format!("{}?{}&{}", uri.path(), params, extra_params),
+            None => format!("{}?{}", uri.path(), extra_params),
+        };
+        *uri = Uri::from_parts(assign!(uri.clone().into_parts(), {
+            path_and_query: Some(new_path_and_query.parse()?),
+        }))?;
+
+        Ok(())
     }
 }

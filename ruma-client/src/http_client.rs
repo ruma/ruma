@@ -6,8 +6,9 @@ use std::{future::Future, pin::Pin};
 use async_trait::async_trait;
 use bytes::BufMut;
 use ruma_api::{OutgoingRequest, SendAccessToken};
+use ruma_identifiers::UserId;
 
-use crate::{ResponseError, ResponseResult};
+use crate::{add_user_id_to_query, ResponseError, ResponseResult};
 
 #[cfg(feature = "hyper")]
 mod hyper;
@@ -89,6 +90,29 @@ pub trait HttpClientExt: HttpClient {
             request,
             customize,
         ))
+    }
+
+    /// Turn a strongly-typed matrix request into an `http::Request`, add a `user_id` query
+    /// parameter to it and send it to get back a strongly-typed response.
+    ///
+    /// This method is meant to be used by application services when interacting with the
+    /// client-server API.
+    fn send_request_as<'a, R: OutgoingRequest + 'a>(
+        &'a self,
+        homeserver_url: &str,
+        access_token: SendAccessToken<'_>,
+        user_id: &'a UserId,
+        request: R,
+    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>>
+    where
+        <R as OutgoingRequest>::EndpointError: Send,
+    {
+        self.send_customized_request(
+            homeserver_url,
+            access_token,
+            request,
+            add_user_id_to_query::<Self, R>(user_id),
+        )
     }
 }
 
