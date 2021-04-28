@@ -90,3 +90,27 @@ pub trait HttpClientExt: HttpClient {
 
 #[async_trait]
 impl<T: HttpClient> HttpClientExt for T {}
+
+#[doc(hidden)]
+#[derive(Debug)]
+pub struct Dummy;
+
+#[async_trait]
+impl HttpClient for Dummy {
+    type RequestBody = Vec<u8>;
+    type ResponseBody = Vec<u8>;
+    type Error = ();
+
+    async fn send_http_request(
+        &self,
+        _req: http::Request<Self::RequestBody>,
+    ) -> Result<http::Response<Self::ResponseBody>, Self::Error> {
+        unimplemented!("this client only exists to allow doctests to compile")
+    }
+}
+
+impl DefaultConstructibleHttpClient for Dummy {
+    fn default() -> Self {
+        Dummy
+    }
+}
