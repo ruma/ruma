@@ -155,10 +155,7 @@ impl<C: DefaultConstructibleHttpClient> Client<C> {
 
 impl<C: HttpClient> Client<C> {
     /// Makes a request to a Matrix API endpoint.
-    pub async fn send_request<R: OutgoingRequest>(
-        &self,
-        request: R,
-    ) -> Result<R::IncomingResponse, Error<C::Error, R::EndpointError>> {
+    pub async fn send_request<R: OutgoingRequest>(&self, request: R) -> ResponseResult<C, R> {
         self.send_customized_request(request, |_| {}).await
     }
 
@@ -167,7 +164,7 @@ impl<C: HttpClient> Client<C> {
         &self,
         request: R,
         customize: F,
-    ) -> Result<R::IncomingResponse, Error<C::Error, R::EndpointError>>
+    ) -> ResponseResult<C, R>
     where
         R: OutgoingRequest,
         F: FnOnce(&mut http::Request<C::RequestBody>),
@@ -195,7 +192,7 @@ fn send_customized_request<'a, C, R, F>(
     send_access_token: SendAccessToken<'_>,
     request: R,
     customize: F,
-) -> impl Future<Output = Result<R::IncomingResponse, Error<C::Error, R::EndpointError>>> + Send + 'a
+) -> impl Future<Output = ResponseResult<C, R>> + Send + 'a
 where
     C: HttpClient + ?Sized,
     R: OutgoingRequest,
