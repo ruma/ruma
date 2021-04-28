@@ -44,12 +44,6 @@ the current state then added.
 
 **Note:** Any type of event can be check, not just state events.
 
-### `room_version`
-
-`RoomVersion` holds information about each room version and is generated from
-`RoomVersionId`. During authentication, an event may be verified differently based
-on the room version. The `RoomVersion` keeps track of these differences.
-
 ### `state_event`
 
 A trait called `Event` that allows the state-res library to take any PDU type the user
