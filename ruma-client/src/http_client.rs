@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use bytes::BufMut;
 use ruma_api::{OutgoingRequest, SendAccessToken};
 
-use crate::ResponseResult;
+use crate::{ResponseError, ResponseResult};
 
 #[cfg(feature = "hyper")]
 mod hyper;
@@ -33,7 +33,7 @@ pub trait HttpClient: Sync {
     type ResponseBody: AsRef<[u8]>;
 
     /// The error type for the `send_request` function.
-    type Error: Unpin;
+    type Error: Send + Unpin;
 
     /// Send an `http::Request` to get back an `http::Response`.
     async fn send_http_request(
@@ -60,8 +60,11 @@ pub trait HttpClientExt: HttpClient {
         homeserver_url: &str,
         access_token: SendAccessToken<'_>,
         request: R,
-    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>> {
-        self.send_customized_request(homeserver_url, access_token, request, |_| {})
+    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>>
+    where
+        <R as OutgoingRequest>::EndpointError: Send,
+    {
+        self.send_customized_request(homeserver_url, access_token, request, |_| Ok(()))
     }
 
     /// Turn a strongly-typed matrix request into an `http::Request`, customize it and send it to
@@ -76,7 +79,8 @@ pub trait HttpClientExt: HttpClient {
     ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>>
     where
         R: OutgoingRequest + 'a,
-        F: FnOnce(&mut http::Request<Self::RequestBody>) + 'a,
+        <R as OutgoingRequest>::EndpointError: Send,
+        F: FnOnce(&mut http::Request<Self::RequestBody>) -> Result<(), ResponseError<Self, R>> + 'a,
     {
         Box::pin(crate::send_customized_request(
             self,

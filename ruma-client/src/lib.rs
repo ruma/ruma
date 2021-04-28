@@ -95,11 +95,13 @@ pub use self::{
     http_client::{DefaultConstructibleHttpClient, HttpClient, HttpClientExt},
 };
 
+/// The error type for sending the request `R` with the http client `C`.
+pub type ResponseError<C, R> =
+    Error<<C as HttpClient>::Error, <R as OutgoingRequest>::EndpointError>;
+
 /// The result of sending the request `R` with the http client `C`.
-pub type ResponseResult<C, R> = Result<
-    <R as OutgoingRequest>::IncomingResponse,
-    Error<<C as HttpClient>::Error, <R as OutgoingRequest>::EndpointError>,
->;
+pub type ResponseResult<C, R> =
+    Result<<R as OutgoingRequest>::IncomingResponse, ResponseError<C, R>>;
 
 /// A client for the Matrix client-server API.
 #[derive(Clone, Debug)]
@@ -155,8 +157,11 @@ impl<C: DefaultConstructibleHttpClient> Client<C> {
 
 impl<C: HttpClient> Client<C> {
     /// Makes a request to a Matrix API endpoint.
-    pub async fn send_request<R: OutgoingRequest>(&self, request: R) -> ResponseResult<C, R> {
-        self.send_customized_request(request, |_| {}).await
+    pub async fn send_request<R: OutgoingRequest>(&self, request: R) -> ResponseResult<C, R>
+    where
+        <R as OutgoingRequest>::EndpointError: Send,
+    {
+        self.send_customized_request(request, |_| Ok(())).await
     }
 
     /// Makes a request to a Matrix API endpoint including additional URL parameters.
@@ -167,7 +172,8 @@ impl<C: HttpClient> Client<C> {
     ) -> ResponseResult<C, R>
     where
         R: OutgoingRequest,
-        F: FnOnce(&mut http::Request<C::RequestBody>),
+        <R as OutgoingRequest>::EndpointError: Send,
+        F: FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>>,
     {
         let access_token = self.access_token();
         let send_access_token = match access_token.as_deref() {
@@ -196,12 +202,16 @@ fn send_customized_request<'a, C, R, F>(
 where
     C: HttpClient + ?Sized,
     R: OutgoingRequest,
-    F: FnOnce(&mut http::Request<C::RequestBody>),
+    <R as OutgoingRequest>::EndpointError: Send,
+    F: FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>>,
 {
-    let mut http_req = request.try_into_http_request(homeserver_url, send_access_token);
-    if let Ok(req) = &mut http_req {
-        customize(req);
-    }
+    let http_req = request
+        .try_into_http_request(homeserver_url, send_access_token)
+        .map_err(ResponseError::<C, R>::from)
+        .and_then(|mut req| {
+            customize(&mut req)?;
+            Ok(req)
+        });
 
     async move {
         let http_res = http_client.send_http_request(http_req?).await.map_err(Error::Response)?;
