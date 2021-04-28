@@ -61,10 +61,7 @@ pub trait HttpClientExt: HttpClient {
         homeserver_url: &str,
         access_token: SendAccessToken<'_>,
         request: R,
-    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>>
-    where
-        <R as OutgoingRequest>::EndpointError: Send,
-    {
+    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>> {
         self.send_customized_request(homeserver_url, access_token, request, |_| Ok(()))
     }
 
@@ -80,7 +77,6 @@ pub trait HttpClientExt: HttpClient {
     ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>>
     where
         R: OutgoingRequest + 'a,
-        <R as OutgoingRequest>::EndpointError: Send,
         F: FnOnce(&mut http::Request<Self::RequestBody>) -> Result<(), ResponseError<Self, R>> + 'a,
     {
         Box::pin(crate::send_customized_request(
@@ -103,10 +99,7 @@ pub trait HttpClientExt: HttpClient {
         access_token: SendAccessToken<'_>,
         user_id: &'a UserId,
         request: R,
-    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>>
-    where
-        <R as OutgoingRequest>::EndpointError: Send,
-    {
+    ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>> {
         self.send_customized_request(
             homeserver_url,
             access_token,

@@ -158,10 +158,7 @@ impl<C: DefaultConstructibleHttpClient> Client<C> {
 
 impl<C: HttpClient> Client<C> {
     /// Makes a request to a Matrix API endpoint.
-    pub async fn send_request<R: OutgoingRequest>(&self, request: R) -> ResponseResult<C, R>
-    where
-        <R as OutgoingRequest>::EndpointError: Send,
-    {
+    pub async fn send_request<R: OutgoingRequest>(&self, request: R) -> ResponseResult<C, R> {
         self.send_customized_request(request, |_| Ok(())).await
     }
 
@@ -173,7 +170,6 @@ impl<C: HttpClient> Client<C> {
     ) -> ResponseResult<C, R>
     where
         R: OutgoingRequest,
-        <R as OutgoingRequest>::EndpointError: Send,
         F: FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>>,
     {
         let access_token = self.access_token();
@@ -200,10 +196,7 @@ impl<C: HttpClient> Client<C> {
         &self,
         user_id: &UserId,
         request: R,
-    ) -> ResponseResult<C, R>
-    where
-        <R as OutgoingRequest>::EndpointError: Send,
-    {
+    ) -> ResponseResult<C, R> {
         self.send_customized_request(request, add_user_id_to_query::<C, R>(user_id)).await
     }
 }
@@ -218,7 +211,6 @@ fn send_customized_request<'a, C, R, F>(
 where
     C: HttpClient + ?Sized,
     R: OutgoingRequest,
-    <R as OutgoingRequest>::EndpointError: Send,
     F: FnOnce(&mut http::Request<C::RequestBody>) -> Result<(), ResponseError<C, R>>,
 {
     let http_req = request

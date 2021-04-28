@@ -354,7 +354,7 @@ pub trait OutgoingResponse {
 }
 
 /// Gives users the ability to define their own serializable / deserializable errors.
-pub trait EndpointError: OutgoingResponse + StdError + Sized + 'static {
+pub trait EndpointError: OutgoingResponse + StdError + Sized + Send + 'static {
     /// Tries to construct `Self` from an `http::Response`.
     ///
     /// This will always return `Err` variant when no `error` field is defined in
