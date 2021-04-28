@@ -74,15 +74,11 @@
 #![deny(missing_debug_implementations, missing_docs)]
 
 use std::{
-    collections::BTreeMap,
     future::Future,
     sync::{Arc, Mutex},
 };
 
-use assign::assign;
-use http::uri::Uri;
 use ruma_api::{OutgoingRequest, SendAccessToken};
-use ruma_serde::urlencoded;
 
 // "Undo" rename from `Cargo.toml` that only serves to make `hyper-rustls` available as a Cargo
 // feature name.
@@ -169,71 +165,62 @@ impl<C: HttpClient> Client<C> {
             None => SendAccessToken::None,
         };
 
-        send_request_with_url_params(
+        send_customized_request(
             &self.0.http_client,
             &self.0.homeserver_url,
             send_access_token,
-            None,
             request,
+            |_| {},
         )
         .await
     }
 
     /// Makes a request to a Matrix API endpoint including additional URL parameters.
-    pub async fn send_request_with_url_params<R: OutgoingRequest>(
+    pub async fn send_customized_request<R, F>(
         &self,
-        extra_params: BTreeMap<String, String>,
         request: R,
-    ) -> Result<R::IncomingResponse, Error<C::Error, R::EndpointError>> {
+        customize: F,
+    ) -> Result<R::IncomingResponse, Error<C::Error, R::EndpointError>>
+    where
+        R: OutgoingRequest,
+        F: FnOnce(&mut http::Request<C::RequestBody>),
+    {
         let access_token = self.access_token();
         let send_access_token = match access_token.as_deref() {
             Some(at) => SendAccessToken::IfRequired(at),
             None => SendAccessToken::None,
         };
 
-        send_request_with_url_params(
+        send_customized_request(
             &self.0.http_client,
             &self.0.homeserver_url,
             send_access_token,
-            Some(extra_params),
             request,
+            customize,
         )
         .await
     }
 }
 
-fn send_request_with_url_params<'a, C, Request>(
+fn send_customized_request<'a, C, R, F>(
     http_client: &'a C,
     homeserver_url: &str,
     send_access_token: SendAccessToken<'_>,
-    extra_params: Option<BTreeMap<String, String>>,
-    request: Request,
-) -> impl Future<Output = Result<Request::IncomingResponse, Error<C::Error, Request::EndpointError>>>
-       + Send
-       + 'a
+    request: R,
+    customize: F,
+) -> impl Future<Output = Result<R::IncomingResponse, Error<C::Error, R::EndpointError>>> + Send + 'a
 where
     C: HttpClient + ?Sized,
-    Request: OutgoingRequest,
+    R: OutgoingRequest,
+    F: FnOnce(&mut http::Request<C::RequestBody>),
 {
-    let res = request.try_into_http_request(homeserver_url, send_access_token);
+    let mut http_req = request.try_into_http_request(homeserver_url, send_access_token);
+    if let Ok(req) = &mut http_req {
+        customize(req);
+    }
 
     async move {
-        let mut http_request = res?;
-
-        if let Some(extra_params) = extra_params {
-            let extra_params = urlencoded::to_string(extra_params).unwrap();
-            let uri = http_request.uri_mut();
-            let new_path_and_query = match uri.query() {
-                Some(params) => format!("{}?{}&{}", uri.path(), params, extra_params),
-                None => format!("{}?{}", uri.path(), extra_params),
-            };
-            *uri = Uri::from_parts(assign!(uri.clone().into_parts(), {
-                path_and_query: Some(new_path_and_query.parse()?),
-            }))?;
-        }
-
-        let http_response =
-            http_client.send_http_request(http_request).await.map_err(Error::Response)?;
-        Ok(ruma_api::IncomingResponse::try_from_http_response(http_response)?)
+        let http_res = http_client.send_http_request(http_req?).await.map_err(Error::Response)?;
+        Ok(ruma_api::IncomingResponse::try_from_http_response(http_res)?)
     }
 }
