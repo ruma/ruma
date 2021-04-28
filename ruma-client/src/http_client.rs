@@ -56,19 +56,19 @@ pub trait DefaultConstructibleHttpClient: HttpClient {
 pub trait HttpClientExt: HttpClient {
     /// Send a strongly-typed matrix request to get back a strongly-typed response.
     // TODO: `R: 'a` bound should not be needed
-    fn send_request<'a, R: OutgoingRequest + 'a>(
+    fn send_matrix_request<'a, R: OutgoingRequest + 'a>(
         &'a self,
         homeserver_url: &str,
         access_token: SendAccessToken<'_>,
         request: R,
     ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>> {
-        self.send_customized_request(homeserver_url, access_token, request, |_| Ok(()))
+        self.send_customized_matrix_request(homeserver_url, access_token, request, |_| Ok(()))
     }
 
     /// Turn a strongly-typed matrix request into an `http::Request`, customize it and send it to
     /// get back a strongly-typed response.
     // TODO: `R: 'a` and `F: 'a` should not be needed
-    fn send_customized_request<'a, R, F>(
+    fn send_customized_matrix_request<'a, R, F>(
         &'a self,
         homeserver_url: &str,
         access_token: SendAccessToken<'_>,
@@ -93,14 +93,14 @@ pub trait HttpClientExt: HttpClient {
     ///
     /// This method is meant to be used by application services when interacting with the
     /// client-server API.
-    fn send_request_as<'a, R: OutgoingRequest + 'a>(
+    fn send_matrix_request_as<'a, R: OutgoingRequest + 'a>(
         &'a self,
         homeserver_url: &str,
         access_token: SendAccessToken<'_>,
         user_id: &'a UserId,
         request: R,
     ) -> Pin<Box<dyn Future<Output = ResponseResult<Self, R>> + 'a>> {
-        self.send_customized_request(
+        self.send_customized_matrix_request(
             homeserver_url,
             access_token,
             request,
