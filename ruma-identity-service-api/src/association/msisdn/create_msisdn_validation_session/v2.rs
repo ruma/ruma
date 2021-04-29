@@ -42,8 +42,8 @@ ruma_api! {
 }
 
 impl<'a> Request<'a> {
-    /// Create a new `Request` with the given client secret, country code, phone number, and the
-    /// `send_attempt` number.
+    /// Create a new `Request` with the given client secret, country code, phone number, the
+    /// `send_attempt` number and the next link to go to after validation.
     pub fn new(
         client_secret: &'a str,
         country: &'a str,
