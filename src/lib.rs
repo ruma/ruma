@@ -226,6 +226,8 @@ impl StateResolution {
         _room_id: &RoomId,
         auth_event_ids: &[Vec<EventId>],
     ) -> Result<Vec<EventId>> {
+        use itertools::Itertools;
+
         let mut chains = vec![];
 
         for ids in auth_event_ids {
@@ -235,17 +237,15 @@ impl StateResolution {
             chains.push(chain);
         }
 
-        if let Some(chain) = chains.first() {
+        if let Some(chain) = chains.first().cloned() {
             let rest = chains.iter().skip(1).flatten().cloned().collect();
             let common = chain.intersection(&rest).collect::<Vec<_>>();
 
             Ok(chains
-                .iter()
+                .into_iter()
                 .flatten()
                 .filter(|id| !common.contains(&id))
-                .cloned()
-                .collect::<BTreeSet<_>>()
-                .into_iter()
+                .dedup()
                 .collect())
         } else {
             Ok(vec![])

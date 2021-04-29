@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use ruma::{events::EventType, EventId, RoomVersionId};
+use ruma::{events::EventType, EventId};
 use state_res::{is_power_event, room_version::RoomVersion, StateMap};
 
 mod utils;
@@ -46,7 +46,7 @@ fn test_event_sort() {
     // TODO we may be able to skip this since they are resolved according to spec
     let resolved_power = state_res::StateResolution::iterative_auth_check(
         &room_id(),
-        &RoomVersion::new(&RoomVersionId::Version6).unwrap(),
+        &RoomVersion::version_6(),
         &sorted_power_events,
         &BTreeMap::new(), // unconflicted events
         &mut events,
