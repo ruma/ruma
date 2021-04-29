@@ -43,7 +43,16 @@ client = ["ruma-client"]
 events = ["ruma-events"]
 signatures = ["ruma-signatures"]
 
+# ruma-client feature flags
 client-ext-client-api = ["client", "ruma-client/client-api"]
+client-hyper = ["client", "ruma-client/hyper"]
+client-hyper-native-tls = ["client", "ruma-client/hyper-native-tls"]
+client-reqwest = ["client", "ruma-client/reqwest"]
+client-reqwest-native-tls = ["client", "ruma-client/reqwest-native-tls"]
+client-reqwest-native-tls-vendored = ["client", "ruma-client/reqwest-native-tls-vendored"]
+client-reqwest-rustls-manual-roots = ["client", "ruma-client/reqwest-rustls-manual-roots"]
+client-reqwest-rustls-webpki-roots = ["client", "ruma-client/reqwest-rustls-webpki-roots"]
+client-reqwest-rustls-native-roots = ["client", "ruma-client/reqwest-rustls-native-roots"]
 
 appservice-api-c = ["api", "events", "ruma-appservice-api/client"]
 appservice-api-s = ["api", "events", "ruma-appservice-api/server"]
