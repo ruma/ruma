@@ -1,5 +1,3 @@
-use std::num::ParseIntError;
-
 use serde_json::Error as JsonError;
 use thiserror::Error;
 
@@ -13,19 +11,19 @@ pub enum Error {
     #[error(transparent)]
     SerdeJson(#[from] JsonError),
 
-    /// An error that occurs when converting from JSON numbers to rust.
-    #[error(transparent)]
-    IntParseError(#[from] ParseIntError),
+    /// The given option or version is unsupported.
+    #[error("Unsupported room version: {0}")]
+    Unsupported(String),
 
+    /// The given event was not found.
     #[error("Not found error: {0}")]
     NotFound(String),
 
+    /// Invalid fields in the given PDU.
     #[error("Invalid PDU: {0}")]
     InvalidPdu(String),
 
-    #[error("Conversion failed: {0}")]
-    ConversionError(String),
-
+    /// A custom error.
     #[error("{0}")]
     Custom(Box<dyn std::error::Error>),
 }

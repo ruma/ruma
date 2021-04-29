@@ -1,5 +1,7 @@
 use ruma::RoomVersionId;
 
+use crate::{Error, Result};
+
 pub enum RoomDisposition {
     /// A room version that has a stable specification.
     Stable,
@@ -36,29 +38,39 @@ pub struct RoomVersion {
     /// not sure
     pub enforce_key_validity: bool,
 
-    // bool: before MSC2261/MSC2432, m.room.aliases had special auth rules and redaction rules
+    // bool: before MSC2261/MSC2432,
+    /// `m.room.aliases` had special auth rules and redaction rules
+    /// before room version 6.
     pub special_case_aliases_auth: bool,
-    // Strictly enforce canonicaljson, do not allow:
-    // * Integers outside the range of [-2 ^ 53 + 1, 2 ^ 53 - 1]
-    // * Floats
-    // * NaN, Infinity, -Infinity
+    /// Strictly enforce canonicaljson, do not allow:
+    /// * Integers outside the range of [-2 ^ 53 + 1, 2 ^ 53 - 1]
+    /// * Floats
+    /// * NaN, Infinity, -Infinity
     pub strict_canonicaljson: bool,
     // bool: MSC2209: Check 'notifications' key while verifying
     // m.room.power_levels auth rules.
+    /// Verify notifications key while checking m.room.power_levels.
     pub limit_notifications_power_levels: bool,
+    /// Extra rules when verifying redaction events.
+    pub extra_redaction_checks: bool,
 }
 
 impl RoomVersion {
-    pub fn new(version: &RoomVersionId) -> Self {
-        match version {
+    pub fn new(version: &RoomVersionId) -> Result<Self> {
+        Ok(match version {
             RoomVersionId::Version1 => Self::version_1(),
             RoomVersionId::Version2 => Self::version_2(),
             RoomVersionId::Version3 => Self::version_3(),
             RoomVersionId::Version4 => Self::version_4(),
             RoomVersionId::Version5 => Self::version_5(),
             RoomVersionId::Version6 => Self::version_6(),
-            _ => panic!("unspec'ed room version"),
-        }
+            ver => {
+                return Err(Error::Unsupported(format!(
+                    "found version `{}`",
+                    ver.as_str()
+                )))
+            }
+        })
     }
 
     fn version_1() -> Self {
@@ -71,6 +83,7 @@ impl RoomVersion {
             special_case_aliases_auth: true,
             strict_canonicaljson: false,
             limit_notifications_power_levels: false,
+            extra_redaction_checks: false,
         }
     }
 
@@ -84,6 +97,7 @@ impl RoomVersion {
             special_case_aliases_auth: true,
             strict_canonicaljson: false,
             limit_notifications_power_levels: false,
+            extra_redaction_checks: false,
         }
     }
 
@@ -97,6 +111,7 @@ impl RoomVersion {
             special_case_aliases_auth: true,
             strict_canonicaljson: false,
             limit_notifications_power_levels: false,
+            extra_redaction_checks: true,
         }
     }
 
@@ -110,6 +125,7 @@ impl RoomVersion {
             special_case_aliases_auth: true,
             strict_canonicaljson: false,
             limit_notifications_power_levels: false,
+            extra_redaction_checks: true,
         }
     }
 
@@ -123,6 +139,7 @@ impl RoomVersion {
             special_case_aliases_auth: true,
             strict_canonicaljson: false,
             limit_notifications_power_levels: false,
+            extra_redaction_checks: true,
         }
     }
 
@@ -136,6 +153,7 @@ impl RoomVersion {
             special_case_aliases_auth: false,
             strict_canonicaljson: true,
             limit_notifications_power_levels: true,
+            extra_redaction_checks: true,
         }
     }
 }

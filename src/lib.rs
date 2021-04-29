@@ -6,6 +6,7 @@ use std::{
 };
 
 use maplit::btreeset;
+use room_version::RoomVersion;
 use ruma::{
     events::{
         room::{
@@ -21,12 +22,10 @@ mod error;
 pub mod event_auth;
 pub mod room_version;
 mod state_event;
-mod state_store;
 
 pub use error::{Error, Result};
 pub use event_auth::{auth_check, auth_types_for_event};
 pub use state_event::Event;
-pub use state_store::StateStore;
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
 pub type StateMap<T> = BTreeMap<(EventType, String), T>;
@@ -111,10 +110,11 @@ impl StateResolution {
 
         log::debug!("SRTD {:?}", sorted_control_levels);
 
+        let room_version = RoomVersion::new(room_version)?;
         // sequentially auth check each control event.
         let resolved_control = StateResolution::iterative_auth_check(
             room_id,
-            room_version,
+            &room_version,
             &sorted_control_levels,
             &clean,
             event_map,
@@ -166,7 +166,7 @@ impl StateResolution {
 
         let mut resolved_state = StateResolution::iterative_auth_check(
             room_id,
-            room_version,
+            &room_version,
             &sorted_left_events,
             &resolved_control, // The control events are added to the final resolved state
             event_map,
@@ -436,7 +436,7 @@ impl StateResolution {
     /// function.
     pub fn iterative_auth_check<E: Event>(
         room_id: &RoomId,
-        room_version: &RoomVersionId,
+        room_version: &RoomVersion,
         events_to_check: &[EventId],
         unconflicted_state: &StateMap<EventId>,
         event_map: &mut EventMap<Arc<E>>,

@@ -15,7 +15,7 @@ use ruma::{
     RoomVersionId, UserId,
 };
 
-use crate::{Error, Event, Result, StateMap};
+use crate::{room_version::RoomVersion, Error, Event, Result, StateMap};
 
 /// For the given event `kind` what are the relevant auth events
 /// that are needed to authenticate this `content`.
@@ -82,7 +82,7 @@ pub fn auth_types_for_event(
 /// ## Returns
 /// This returns an `Error` only when serialization fails or some other fatal outcome.
 pub fn auth_check<E: Event>(
-    room_version: &RoomVersionId,
+    room_version: &RoomVersion,
     incoming_event: &Arc<E>,
     prev_event: Option<Arc<E>>,
     auth_events: &StateMap<Arc<E>>,
@@ -180,7 +180,7 @@ pub fn auth_check<E: Event>(
     // [synapse] checks for federation here
 
     // 4. if type is m.room.aliases
-    if incoming_event.kind() == EventType::RoomAliases && room_version < &RoomVersionId::Version6 {
+    if incoming_event.kind() == EventType::RoomAliases && room_version.special_case_aliases_auth {
         log::info!("starting m.room.aliases check");
 
         // If sender's domain doesn't matches state_key, reject
@@ -280,7 +280,7 @@ pub fn auth_check<E: Event>(
     // Servers should only apply redaction's to events where the sender's domains match,
     // or the sender of the redaction has the appropriate permissions per the power levels.
 
-    if room_version >= &RoomVersionId::Version3
+    if room_version.extra_redaction_checks
         && incoming_event.kind() == EventType::RoomRedaction
         && !check_redaction(room_version, incoming_event, &auth_events)?
     {
@@ -320,7 +320,7 @@ pub fn valid_membership_change<E: Event>(
         .map(|t| serde_json::from_value::<room::member::ThirdPartyInvite>(t.clone()));
 
     let target_user_id =
-        UserId::try_from(state_key).map_err(|e| Error::ConversionError(format!("{}", e)))?;
+        UserId::try_from(state_key).map_err(|e| Error::InvalidPdu(format!("{}", e)))?;
 
     let key = (EventType::RoomMember, user_sender.to_string());
     let sender = auth_events.get(&key);
@@ -538,7 +538,7 @@ pub fn can_send_event<E: Event>(event: &Arc<E>, auth_events: &StateMap<Arc<E>>) 
 
 /// Confirm that the event sender has the required power levels.
 pub fn check_power_levels<E: Event>(
-    room_version: &RoomVersionId,
+    room_version: &RoomVersion,
     power_event: &Arc<E>,
     auth_events: &StateMap<Arc<E>>,
 ) -> Option<bool> {
@@ -639,7 +639,7 @@ pub fn check_power_levels<E: Event>(
     }
 
     // Notifications, currently there is only @room
-    if room_version >= &RoomVersionId::Version6 {
+    if room_version.limit_notifications_power_levels {
         let old_level = old_state.notifications.room;
         let new_level = new_state.notifications.room;
         if old_level != new_level {
@@ -693,7 +693,7 @@ fn get_deserialize_levels(
 
 /// Does the event redacting come from a user with enough power to redact the given event.
 pub fn check_redaction<E: Event>(
-    _room_version: &RoomVersionId,
+    _room_version: &RoomVersion,
     redaction_event: &Arc<E>,
     auth_events: &StateMap<Arc<E>>,
 ) -> Result<bool> {
@@ -705,7 +705,8 @@ pub fn check_redaction<E: Event>(
         return Ok(true);
     }
 
-    // If the domain of the event_id of the event being redacted is the same as the domain of the event_id of the m.room.redaction, allow
+    // If the domain of the event_id of the event being redacted is the same as the
+    // domain of the event_id of the m.room.redaction, allow
     if redaction_event.event_id().server_name()
         == redaction_event
             .redacts()
