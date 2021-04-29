@@ -5,10 +5,10 @@ use maplit::btreeset;
 use ruma::{
     events::{
         room::{
-            self,
-            join_rules::JoinRule,
-            member::{self, MembershipState},
-            power_levels::{self, PowerLevelsEventContent},
+            create::CreateEventContent,
+            join_rules::{JoinRule, JoinRulesEventContent},
+            member::{MembershipState, ThirdPartyInvite},
+            power_levels::PowerLevelsEventContent,
         },
         EventType,
     },
@@ -39,7 +39,7 @@ pub fn auth_types_for_event(
         if let Some(state_key) = state_key {
             if let Some(Ok(membership)) = content
                 .get("membership")
-                .map(|m| serde_json::from_value::<room::member::MembershipState>(m.clone()))
+                .map(|m| serde_json::from_value::<MembershipState>(m.clone()))
             {
                 if [MembershipState::Join, MembershipState::Invite].contains(&membership) {
                     let key = (EventType::RoomJoinRules, "".to_string());
@@ -54,9 +54,10 @@ pub fn auth_types_for_event(
                 }
 
                 if membership == MembershipState::Invite {
-                    if let Some(Ok(t_id)) = content.get("third_party_invite").map(|t| {
-                        serde_json::from_value::<room::member::ThirdPartyInvite>(t.clone())
-                    }) {
+                    if let Some(Ok(t_id)) = content
+                        .get("third_party_invite")
+                        .map(|t| serde_json::from_value::<ThirdPartyInvite>(t.clone()))
+                    {
                         let key = (EventType::RoomThirdPartyInvite, t_id.signed.token);
                         if !auth_types.contains(&key) {
                             auth_types.push(key)
@@ -206,7 +207,7 @@ pub fn auth_check<E: Event>(
         let membership = incoming_event
             .content()
             .get("membership")
-            .map(|m| serde_json::from_value::<room::member::MembershipState>(m.clone()));
+            .map(|m| serde_json::from_value::<MembershipState>(m.clone()));
 
         if !matches!(membership, Some(Ok(_))) {
             log::warn!("no valid membership field found for m.room.member event content");
@@ -308,7 +309,7 @@ pub fn valid_membership_change<E: Event>(
     current_third_party_invite: Option<Arc<E>>,
     auth_events: &StateMap<Arc<E>>,
 ) -> Result<bool> {
-    let target_membership = serde_json::from_value::<room::member::MembershipState>(
+    let target_membership = serde_json::from_value::<MembershipState>(
         content
             .get("membership")
             .expect("we should test before that this field exists")
@@ -317,39 +318,37 @@ pub fn valid_membership_change<E: Event>(
 
     let third_party_invite = content
         .get("third_party_invite")
-        .map(|t| serde_json::from_value::<room::member::ThirdPartyInvite>(t.clone()));
+        .map(|t| serde_json::from_value::<ThirdPartyInvite>(t.clone()));
 
     let target_user_id =
         UserId::try_from(state_key).map_err(|e| Error::InvalidPdu(format!("{}", e)))?;
 
     let key = (EventType::RoomMember, user_sender.to_string());
     let sender = auth_events.get(&key);
-    let sender_membership =
-        sender.map_or(Ok::<_, Error>(member::MembershipState::Leave), |pdu| {
-            Ok(serde_json::from_value::<room::member::MembershipState>(
-                pdu.content()
-                    .get("membership")
-                    .expect("we assume existing events are valid")
-                    .clone(),
-            )?)
-        })?;
+    let sender_membership = sender.map_or(Ok::<_, Error>(MembershipState::Leave), |pdu| {
+        Ok(serde_json::from_value::<MembershipState>(
+            pdu.content()
+                .get("membership")
+                .expect("we assume existing events are valid")
+                .clone(),
+        )?)
+    })?;
 
     let key = (EventType::RoomMember, target_user_id.to_string());
     let current = auth_events.get(&key);
 
-    let current_membership =
-        current.map_or(Ok::<_, Error>(member::MembershipState::Leave), |pdu| {
-            Ok(serde_json::from_value::<room::member::MembershipState>(
-                pdu.content()
-                    .get("membership")
-                    .expect("we assume existing events are valid")
-                    .clone(),
-            )?)
-        })?;
+    let current_membership = current.map_or(Ok::<_, Error>(MembershipState::Leave), |pdu| {
+        Ok(serde_json::from_value::<MembershipState>(
+            pdu.content()
+                .get("membership")
+                .expect("we assume existing events are valid")
+                .clone(),
+        )?)
+    })?;
 
     let key = (EventType::RoomPowerLevels, "".into());
     let power_levels = auth_events.get(&key).map_or_else(
-        || Ok::<_, Error>(power_levels::PowerLevelsEventContent::default()),
+        || Ok::<_, Error>(PowerLevelsEventContent::default()),
         |power_levels| {
             serde_json::from_value::<PowerLevelsEventContent>(power_levels.content())
                 .map_err(Into::into)
@@ -358,7 +357,7 @@ pub fn valid_membership_change<E: Event>(
 
     let sender_power = power_levels.users.get(user_sender).map_or_else(
         || {
-            if sender_membership != member::MembershipState::Join {
+            if sender_membership != MembershipState::Join {
                 None
             } else {
                 Some(&power_levels.users_default)
@@ -369,7 +368,7 @@ pub fn valid_membership_change<E: Event>(
     );
     let target_power = power_levels.users.get(&target_user_id).map_or_else(
         || {
-            if target_membership != member::MembershipState::Join {
+            if target_membership != MembershipState::Join {
                 None
             } else {
                 Some(&power_levels.users_default)
@@ -383,9 +382,7 @@ pub fn valid_membership_change<E: Event>(
     let join_rules_event = auth_events.get(&key);
     let mut join_rules = JoinRule::Invite;
     if let Some(jr) = join_rules_event {
-        join_rules =
-            serde_json::from_value::<room::join_rules::JoinRulesEventContent>(jr.content())?
-                .join_rule;
+        join_rules = serde_json::from_value::<JoinRulesEventContent>(jr.content())?.join_rule;
     }
 
     if let Some(prev) = prev_event {
@@ -494,7 +491,7 @@ pub fn check_event_sender_in_room<E: Event>(
 ) -> Option<bool> {
     let mem = auth_events.get(&(EventType::RoomMember, sender.to_string()))?;
 
-    let membership = serde_json::from_value::<room::member::MembershipState>(
+    let membership = serde_json::from_value::<MembershipState>(
         mem.content()
             .get("membership")
             .expect("we should test before that this field exists")
@@ -555,15 +552,11 @@ pub fn check_power_levels<E: Event>(
 
     // If users key in content is not a dictionary with keys that are valid user IDs
     // with values that are integers (or a string that is an integer), reject.
-    let user_content = serde_json::from_value::<room::power_levels::PowerLevelsEventContent>(
-        power_event.content(),
-    )
-    .unwrap();
+    let user_content =
+        serde_json::from_value::<PowerLevelsEventContent>(power_event.content()).unwrap();
 
-    let current_content = serde_json::from_value::<room::power_levels::PowerLevelsEventContent>(
-        current_state.content(),
-    )
-    .unwrap();
+    let current_content =
+        serde_json::from_value::<PowerLevelsEventContent>(current_state.content()).unwrap();
 
     // validation of users is done in Ruma, synapse for loops validating user_ids and integers here
     log::info!("validation of power event finished");
@@ -728,7 +721,7 @@ pub fn check_membership<E: Event>(member_event: Option<Arc<E>>, state: Membershi
         if let Some(Ok(membership)) = event
             .content()
             .get("membership")
-            .map(|m| serde_json::from_value::<room::member::MembershipState>(m.clone()))
+            .map(|m| serde_json::from_value::<MembershipState>(m.clone()))
         {
             membership == state
         } else {
@@ -773,9 +766,7 @@ pub fn get_named_level<E: Event>(auth_events: &StateMap<Arc<E>>, name: &str, def
 /// object.
 pub fn get_user_power_level<E: Event>(user_id: &UserId, auth_events: &StateMap<Arc<E>>) -> i64 {
     if let Some(pl) = auth_events.get(&(EventType::RoomPowerLevels, "".into())) {
-        if let Ok(content) =
-            serde_json::from_value::<room::power_levels::PowerLevelsEventContent>(pl.content())
-        {
+        if let Ok(content) = serde_json::from_value::<PowerLevelsEventContent>(pl.content()) {
             if let Some(level) = content.users.get(user_id) {
                 (*level).into()
             } else {
@@ -788,9 +779,7 @@ pub fn get_user_power_level<E: Event>(user_id: &UserId, auth_events: &StateMap<A
         // if no power level event found the creator gets 100 everyone else gets 0
         let key = (EventType::RoomCreate, "".into());
         if let Some(create) = auth_events.get(&key) {
-            if let Ok(c) =
-                serde_json::from_value::<room::create::CreateEventContent>(create.content())
-            {
+            if let Ok(c) = serde_json::from_value::<CreateEventContent>(create.content()) {
                 if &c.creator == user_id {
                     100
                 } else {
@@ -815,7 +804,7 @@ pub fn get_send_level<E: Event>(
     log::debug!("{:?} {:?}", e_type, state_key);
     power_lvl
         .and_then(|ple| {
-            serde_json::from_value::<room::power_levels::PowerLevelsEventContent>(ple.content())
+            serde_json::from_value::<PowerLevelsEventContent>(ple.content())
                 .map(|content| {
                     content.events.get(&e_type).cloned().unwrap_or_else(|| {
                         if state_key.is_some() {
@@ -853,7 +842,7 @@ pub fn can_send_invite<E: Event>(event: &Arc<E>, auth_events: &StateMap<Arc<E>>)
 pub fn verify_third_party_invite<E: Event>(
     user_state_key: Option<&str>,
     sender: &UserId,
-    tp_id: &member::ThirdPartyInvite,
+    tp_id: &ThirdPartyInvite,
     current_third_party_invite: Option<Arc<E>>,
 ) -> bool {
     // 1. check for user being banned happens before this is called

@@ -6,7 +6,7 @@ use ruma::{
     EventId, RoomVersionId,
 };
 use serde_json::json;
-use state_res::{StateMap, StateResolution, StateStore};
+use state_res::{StateMap, StateResolution};
 use tracing_subscriber as tracer;
 
 mod utils;

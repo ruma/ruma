@@ -4,7 +4,7 @@ use std::{collections::BTreeMap, sync::Arc};
 
 use ruma::{events::EventType, EventId, RoomVersionId};
 use serde_json::json;
-use state_res::{EventMap, StateMap, StateResolution, StateStore};
+use state_res::{EventMap, StateMap, StateResolution};
 
 mod utils;
 use utils::{
