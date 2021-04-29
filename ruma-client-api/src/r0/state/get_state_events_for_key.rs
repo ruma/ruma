@@ -1,7 +1,6 @@
 //! [GET /_matrix/client/r0/rooms/{roomId}/state/{eventType}/{stateKey}](https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-client-r0-rooms-roomid-state-eventtype-statekey)
 
-use bytes::BufMut;
-use ruma_api::{ruma_api, SendAccessToken};
+use ruma_api::ruma_api;
 use ruma_events::{AnyStateEventContent, EventType};
 use ruma_identifiers::RoomId;
 use ruma_serde::{Outgoing, Raw};
@@ -66,10 +65,10 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
 
     const METADATA: ruma_api::Metadata = METADATA;
 
-    fn try_into_http_request<T: Default + BufMut>(
+    fn try_into_http_request<T: Default + bytes::BufMut>(
         self,
         base_url: &str,
-        access_token: SendAccessToken<'_>,
+        access_token: ruma_api::SendAccessToken<'_>,
     ) -> Result<http::Request<T>, ruma_api::error::IntoHttpError> {
         use std::borrow::Cow;
 
