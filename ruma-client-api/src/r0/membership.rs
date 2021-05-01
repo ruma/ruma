@@ -15,7 +15,7 @@ pub mod unban_user;
 use std::collections::BTreeMap;
 
 use ruma_common::thirdparty::Medium;
-use ruma_identifiers::{ServerNameBox, ServerSigningKeyId};
+use ruma_identifiers::{ServerNameBox, ServerSigningKeyId, UserId};
 use ruma_serde::Outgoing;
 use serde::Serialize;
 
@@ -24,10 +24,10 @@ use serde::Serialize;
 #[derive(Clone, Debug, Outgoing, Serialize)]
 pub struct ThirdPartySigned<'a> {
     /// The Matrix ID of the user who issued the invite.
-    pub sender: &'a str,
+    pub sender: &'a UserId,
 
     /// The Matrix ID of the invitee.
-    pub mxid: &'a str,
+    pub mxid: &'a UserId,
 
     /// The state key of the `m.third_party_invite` event.
     pub token: &'a str,
