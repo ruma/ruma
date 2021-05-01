@@ -29,7 +29,7 @@ pub struct ThirdPartySigned<'a> {
     /// The Matrix ID of the invitee.
     pub mxid: &'a str,
 
-    /// The state key of the m.third_party_invite event.
+    /// The state key of the `m.third_party_invite` event.
     pub token: &'a str,
 
     /// A signatures object containing a signature of the entire signed object.
