@@ -41,7 +41,7 @@ Improvements:
 
 Bug fixes:
 
-* Properly decode well-known response
+* Fixes `discover_homeserver::Response` serialization and deserialization
 
 # 0.0.3
 
