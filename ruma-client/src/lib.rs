@@ -82,10 +82,12 @@ use std::{
 use ruma_api::{OutgoingRequest, SendAccessToken};
 use ruma_identifiers::UserId;
 
-// "Undo" rename from `Cargo.toml` that only serves to make `hyper-rustls` available as a Cargo
-// feature name.
+// "Undo" rename from `Cargo.toml` that only serves to make crate names available as a Cargo
+// feature names.
 #[cfg(feature = "hyper-rustls")]
 extern crate hyper_rustls_crate as hyper_rustls;
+#[cfg(feature = "isahc")]
+extern crate isahc_crate as isahc;
 
 #[cfg(feature = "client-api")]
 mod client_api;
