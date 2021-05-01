@@ -25,9 +25,17 @@ use serde::{Deserialize, Serialize};
 
 /// A wrapper around a mapping of session IDs to key data.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct RoomKeyBackup {
     /// A map of session IDs to key data.
     pub sessions: BTreeMap<String, KeyBackupData>,
+}
+
+impl RoomKeyBackup {
+    /// Creates a new `RoomKeyBackup` with the given sessions.
+    pub fn new(sessions: BTreeMap<String, KeyBackupData>) -> Self {
+        Self { sessions }
+    }
 }
 
 /// The algorithm used for storing backups.

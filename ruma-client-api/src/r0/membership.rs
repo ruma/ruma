@@ -22,6 +22,7 @@ use serde::Serialize;
 /// A signature of an `m.third_party_invite` token to prove that this user owns a third party
 /// identity which has been invited to the room.
 #[derive(Clone, Debug, Outgoing, Serialize)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct ThirdPartySigned<'a> {
     /// The Matrix ID of the user who issued the invite.
     pub sender: &'a UserId,
@@ -34,6 +35,19 @@ pub struct ThirdPartySigned<'a> {
 
     /// A signatures object containing a signature of the entire signed object.
     pub signatures: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, String>>,
+}
+
+impl<'a> ThirdPartySigned<'a> {
+    /// Creates a new `ThirdPartySigned` from the given sender and invitee user IDs, state key token
+    /// and signatures.
+    pub fn new(
+        sender: &'a UserId,
+        mxid: &'a UserId,
+        token: &'a str,
+        signatures: BTreeMap<ServerNameBox, BTreeMap<ServerSigningKeyId, String>>,
+    ) -> Self {
+        Self { sender, mxid, token, signatures }
+    }
 }
 
 /// Represents third party IDs to invite to the room.
