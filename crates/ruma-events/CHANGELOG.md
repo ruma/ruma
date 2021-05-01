@@ -11,6 +11,14 @@ Breaking changes:
 * Remove `Custom` variant from `key::verification::accept::AcceptMethod` and
   `key::verification::start::StartMethod`.
 
+Improvements:
+
+* Add types for decrypted `m.room.encryption` event payloads (`DecryptedOlmV1Event`,
+  `DecryptedMegolmV1Event`)
+  * Currently, these don't have corresponding enums (and they might never get ones), instead to
+    represent a decrypted event payload with an unknown event type use `AnyMessageEventContent` for
+    the generic parameter
+
 # 0.22.2
 
 Improvements:

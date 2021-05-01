@@ -3,6 +3,7 @@
 use ruma_common::MilliSecondsSinceUnixEpoch;
 use ruma_events_macros::Event;
 use ruma_identifiers::{EventId, RoomId, UserId};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     EphemeralRoomEventContent, GlobalAccountDataEventContent, MessageEventContent,
@@ -326,4 +327,40 @@ pub struct ToDeviceEvent<C: ToDeviceEventContent> {
 
     /// The fully-qualified ID of the user who sent this event.
     pub sender: UserId,
+}
+
+/// The decrypted payload of an `m.olm.v1.curve25519-aes-sha2` event.
+#[derive(Clone, Debug, Event)]
+pub struct DecryptedOlmV1Event<C: MessageEventContent> {
+    /// Data specific to the event type.
+    pub content: C,
+
+    /// The fully-qualified ID of the user who sent this event.
+    pub sender: UserId,
+
+    /// The fully-qualified ID of the intended recipient this event.
+    pub recipient: UserId,
+
+    /// The recipient's ed25519 key.
+    pub recipient_keys: OlmV1Keys,
+
+    /// The sender's ed25519 key.
+    pub keys: OlmV1Keys,
+}
+
+/// Public keys used for an `m.olm.v1.curve25519-aes-sha2` event.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct OlmV1Keys {
+    /// An ed25519 key.
+    ed25519: String,
+}
+
+/// The decrypted payload of an `m.megolm.v1.aes-sha2` event.
+#[derive(Clone, Debug, Event)]
+pub struct DecryptedMegolmV1Event<C: MessageEventContent> {
+    /// Data specific to the event type.
+    pub content: C,
+
+    /// The ID of the room associated with the event.
+    pub room_id: RoomId,
 }

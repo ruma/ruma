@@ -313,8 +313,9 @@ fn generate_event_content_derives(
             EventKind::Message => Ok(quote! { MessageEventContent }),
             EventKind::State => Ok(quote! { StateEventContent }),
             EventKind::ToDevice => Ok(quote! { ToDeviceEventContent }),
-            EventKind::Redaction => Err(syn::Error::new_spanned(ident, msg)),
-            EventKind::Presence => Err(syn::Error::new_spanned(ident, msg)),
+            EventKind::Redaction | EventKind::Presence | EventKind::Decrypted => {
+                Err(syn::Error::new_spanned(ident, msg))
+            }
         })
         .collect::<syn::Result<_>>()?;
 

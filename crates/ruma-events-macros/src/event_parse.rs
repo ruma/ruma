@@ -71,6 +71,7 @@ pub enum EventKind {
     ToDevice,
     Redaction,
     Presence,
+    Decrypted,
 }
 
 impl fmt::Display for EventKind {
@@ -84,6 +85,7 @@ impl fmt::Display for EventKind {
             EventKind::ToDevice => write!(f, "ToDeviceEvent"),
             EventKind::Redaction => write!(f, "RedactionEvent"),
             EventKind::Presence => write!(f, "PresenceEvent"),
+            EventKind::Decrypted => unreachable!(),
         }
     }
 }
@@ -203,6 +205,9 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
         "PresenceEvent" => Some((EventKind::Presence, EventKindVariation::Full)),
         "RedactionEvent" => Some((EventKind::Redaction, EventKindVariation::Full)),
         "SyncRedactionEvent" => Some((EventKind::Redaction, EventKindVariation::Sync)),
+        "DecryptedOlmV1Event" | "DecryptedMegolmV1Event" => {
+            Some((EventKind::Decrypted, EventKindVariation::Full))
+        }
         _ => None,
     }
 }

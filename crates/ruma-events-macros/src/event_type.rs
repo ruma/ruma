@@ -31,8 +31,7 @@ pub fn expand_event_type_enum(
                 room.push(&event.events);
             }
             EventKind::ToDevice => to_device.push(&event.events),
-            EventKind::Redaction => {}
-            EventKind::Presence => {}
+            EventKind::Redaction | EventKind::Presence | EventKind::Decrypted => {}
         }
     }
     let presence = vec![EventEnumEntry {

@@ -17,7 +17,7 @@ pub fn expand_event(input: DeriveInput) -> syn::Result<TokenStream> {
 
     let ident = &input.ident;
     let (kind, var) = to_kind_variation(ident).ok_or_else(|| {
-        syn::Error::new(Span::call_site(), "not a valid ruma event struct identifier")
+        syn::Error::new_spanned(ident, "not a valid ruma event struct identifier")
     })?;
 
     let fields: Vec<_> = if let Data::Struct(DataStruct { fields, .. }) = input.data.clone() {
