@@ -38,6 +38,10 @@ Improvements:
   },
   ```
 
+Bug fixes:
+
+* Properly decode well-known response
+
 # 0.0.3
 
 Breaking Changes:

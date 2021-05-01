@@ -17,8 +17,8 @@ ruma_api! {
     request: {}
 
     response: {
-        /// The server name to delegate server-server communciations to, with optional port.
-        #[serde(rename = "m.homeserver")]
+        /// The server name to delegate server-server communications to, with optional port.
+        #[serde(rename = "m.server")]
         pub homeserver: ServerNameBox,
     }
 }
