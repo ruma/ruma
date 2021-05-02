@@ -11,6 +11,7 @@ Breaking Changes:
 * Wrap `Pdu`s in `backfill::get_backfill` in `Raw`
 * Use `ruma_identifiers::MxcUri` instead of `String` for `avatar_url` in
   `query::get_profile_information::v1`
+* Rename `homeserver` property to `server` on `discover_homeserver::Response`
 
 Improvements:
 
@@ -37,6 +38,10 @@ Improvements:
       exchange_invite::v1,
   },
   ```
+
+Bug fixes:
+
+* Fixes `discover_homeserver::Response` serialization and deserialization
 
 # 0.0.3
 

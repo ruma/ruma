@@ -17,9 +17,9 @@ ruma_api! {
     request: {}
 
     response: {
-        /// The server name to delegate server-server communciations to, with optional port.
-        #[serde(rename = "m.homeserver")]
-        pub homeserver: ServerNameBox,
+        /// The server name to delegate server-server communications to, with optional port.
+        #[serde(rename = "m.server")]
+        pub server: ServerNameBox,
     }
 }
 
@@ -32,7 +32,7 @@ impl Request {
 
 impl Response {
     /// Creates a new `Response` with the given homeserver.
-    pub fn new(homeserver: ServerNameBox) -> Self {
-        Self { homeserver }
+    pub fn new(server: ServerNameBox) -> Self {
+        Self { server }
     }
 }
