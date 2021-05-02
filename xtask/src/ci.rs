@@ -1,5 +1,3 @@
-#![allow(clippy::vec_init_then_push)]
-
 use std::path::PathBuf;
 
 use xshell::pushd;
@@ -45,51 +43,35 @@ impl CiTask {
     }
 
     fn build_stable(&self) -> xshell::Result<()> {
-        let mut r = Vec::new();
-        r.push(cmd!("rustup run stable cargo test --workspace --quiet").run());
-
-        {
-            let _p = pushd("ruma-identifiers")?;
-            r.push(cmd!("rustup run stable cargo test --no-default-features --quiet").run());
-            r.push(cmd!("rustup run stable cargo test --all-features --quiet").run());
-        }
-
-        {
-            let _p = pushd("ruma-client-api");
-            r.push(cmd!("rustup run stable cargo test --all-features --quiet").run());
-        }
-
-        {
-            let _p = pushd("ruma-client")?;
-            r.push(cmd!("rustup run stable cargo check --no-default-features --quiet").run());
-            r.push(cmd!("rustup run stable cargo check --all-features --quiet").run());
-        }
-
-        r.into_iter().collect()
+        vec![
+            cmd!("rustup run stable cargo test --workspace --quiet").run(),
+            cmd!("rustup run stable cargo test -p ruma-identifiers --no-default-features --quiet")
+                .run(),
+            cmd!("rustup run stable cargo test -p ruma-identifiers --all-features --quiet").run(),
+            cmd!("rustup run stable cargo test -p ruma-client-api --all-features --quiet").run(),
+            cmd!("rustup run stable cargo check -p ruma-client --no-default-features --quiet")
+                .run(),
+            cmd!("rustup run stable cargo check -p ruma-client --all-features --quiet").run(),
+        ]
+        .into_iter()
+        .collect()
     }
 
     fn build_nightly(&self) -> xshell::Result<()> {
-        let mut r = Vec::new();
-        r.push(cmd!("rustup run nightly cargo fmt -- --check").run());
-
-        {
-            let _p = pushd("ruma");
-            r.push(
-                cmd!(
-                    "rustup run nightly cargo clippy
-                        --all-targets --all-features --quiet -- -D warnings"
-                )
-                .run(),
-            );
-        }
-
-        {
-            let _p = pushd("ruma-client");
-            r.push(
-                cmd!("rustup run nightly cargo clippy --all-targets --quiet -- -D warnings").run(),
-            );
-        }
-
-        r.into_iter().collect()
+        vec![
+            cmd!("rustup run nightly cargo fmt -- --check").run(),
+            cmd!(
+                "rustup run nightly cargo clippy -p ruma
+                    --all-targets --all-features --quiet -- -D warnings"
+            )
+            .run(),
+            cmd!(
+                "rustup run nightly cargo clippy -p ruma-client
+                    --all-targets --quiet -- -D warnings"
+            )
+            .run(),
+        ]
+        .into_iter()
+        .collect()
     }
 }
