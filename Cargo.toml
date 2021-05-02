@@ -1,2 +1,15 @@
 [workspace]
-members = ["ruma", "ruma-*", "xtask"]
+members = [
+    "ruma",
+
+    "api",
+    "client",
+    "common",
+    "events",
+    "identifiers",
+    "serde",
+    "signatures",
+
+    "api-crates/*",
+    "internal/*",
+]
