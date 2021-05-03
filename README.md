@@ -18,24 +18,13 @@ and many other useful things.
 
 For homeservers, bridges and harder-to-categorize software that works with
 Matrix, you're at the right place. To get started, add `ruma` to your
-dependencies (as a git dependency if you want all of the latest improvements),
-enable all [Cargo features][feat] that seem relevant and run
-`cargo doc -p ruma --open`. The `ruma` crate re-exports all relevant things,
-except for `ruma-client`, which you can use to make client-API calls to a Matrix
-homeserver¹.
+dependencies (as a git dependency if you want all of the latest improvements).
 
-If you use the crates through crates.io, make sure to choose versions of `ruma`
-and `ruma-client` that depend on the same / compatible versions of the other
-crates (checking one, for example `ruma-common`, is enough though). At the time
-of writing the latest versions are `ruma 0.0.2` and `ruma-client 0.5.0-alpha.1`,
-which can be used together.
-
-If you're using the crates through git, just use the same `rev` (or `branch` if
-you want to control the exact version only through `Cargo.lock`) for both.
-
-This may seem a little convoluted, that's because it is. We're working on it.
-
-¹ (better) support for the other APIs is planned
+`ruma` re-exports all of the other crates, so you don't have to worry about
+them. Check out [docs.ruma.io](https://docs.ruma.io/ruma/index.html) for the
+latest documentation including which Cargo features you have to enable for the
+functionality you want. If you are using a released version from crates.io, you
+can also find versioned documentation [on docs.rs](https://docs.rs/ruma/).
 
 [matrix-rust-sdk]: https://github.com/matrix-org/matrix-rust-sdk#readme
 [feat]: https://github.com/ruma/ruma/blob/1166af5a354210dcbced1eaf4a11f795c381d2ec/ruma/Cargo.toml#L35
