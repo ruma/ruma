@@ -3,6 +3,7 @@
 use std::collections::BTreeMap;
 
 use ruma_events_macros::BasicEventContent;
+use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
 use crate::BasicEvent;
@@ -11,7 +12,7 @@ use crate::BasicEvent;
 pub type TagEvent = BasicEvent<TagEventContent>;
 
 /// Map of tag names to tag info.
-pub type Tags = BTreeMap<String, TagInfo>;
+pub type Tags = BTreeMap<TagName, TagInfo>;
 
 /// The payload for `TagEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
@@ -35,6 +36,29 @@ impl From<Tags> for TagEventContent {
     }
 }
 
+/// The name of a tag.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
+pub enum TagName {
+    /// `m.favourite`: The user's favourite rooms. These should be shown with higher precedence
+    /// than other rooms.
+    #[ruma_enum(rename = "m.favourite")]
+    Favourite,
+
+    /// `m.lowpriority`: These should be shown with lower precedence than others.
+    #[ruma_enum(rename = "m.lowpriority")]
+    LowPriority,
+
+    /// `m.server_notice`: Used to identify
+    /// [Server Notice Rooms](https://matrix.org/docs/spec/client_server/r0.6.1#module-server-notices).
+    #[ruma_enum(rename = "m.server_notice")]
+    ServerNotice,
+
+    /// A custom tag
+    #[doc(hidden)]
+    _Custom(String),
+}
+
 /// Information about a tag.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -48,5 +72,37 @@ impl TagInfo {
     /// Creates an empty `TagInfo`.
     pub fn new() -> Self {
         Default::default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::{json, to_value as to_json_value};
+
+    use super::{TagEventContent, TagInfo, TagName, Tags};
+
+    #[test]
+    fn serialization() {
+        let mut tags = Tags::new();
+        tags.insert(TagName::Favourite, TagInfo::new());
+        tags.insert(TagName::LowPriority, TagInfo::new());
+        tags.insert(TagName::ServerNotice, TagInfo::new());
+        tags.insert(TagName::_Custom("u.custom".into()), TagInfo { order: Some(0.9) });
+
+        let content = TagEventContent { tags };
+
+        assert_eq!(
+            to_json_value(content).unwrap(),
+            json!({
+                "tags": {
+                    "m.favourite": {},
+                    "m.lowpriority": {},
+                    "m.server_notice": {},
+                    "u.custom": {
+                        "order": 0.9
+                    }
+                },
+            })
+        );
     }
 }
