@@ -40,7 +40,7 @@ Breaking changes:
   },
   sticker::StickerEventContent
   ```
-* Add `tag::TagName` type
+* Add `tag::TagName` type and use it for `tag::Tags`
 
 Improvements:
 

@@ -43,7 +43,7 @@ pub enum TagName {
     /// `m.favourite`: The user's favourite rooms. These should be shown with higher precedence
     /// than other rooms.
     #[ruma_enum(rename = "m.favourite")]
-    Favourite,
+    Favorite,
 
     /// `m.lowpriority`: These should be shown with lower precedence than others.
     #[ruma_enum(rename = "m.lowpriority")]
@@ -77,17 +77,19 @@ impl TagInfo {
 
 #[cfg(test)]
 mod tests {
+    use maplit::btreemap;
     use serde_json::{json, to_value as to_json_value};
 
-    use super::{TagEventContent, TagInfo, TagName, Tags};
+    use super::{TagEventContent, TagInfo, TagName};
 
     #[test]
     fn serialization() {
-        let mut tags = Tags::new();
-        tags.insert(TagName::Favourite, TagInfo::new());
-        tags.insert(TagName::LowPriority, TagInfo::new());
-        tags.insert(TagName::ServerNotice, TagInfo::new());
-        tags.insert(TagName::_Custom("u.custom".into()), TagInfo { order: Some(0.9) });
+        let tags = btreemap! {
+            TagName::Favorite => TagInfo::new(),
+            TagName::LowPriority => TagInfo::new(),
+            TagName::ServerNotice => TagInfo::new(),
+            "u.custom".to_owned().into() => TagInfo { order: Some(0.9) }
+        };
 
         let content = TagEventContent { tags };
 
