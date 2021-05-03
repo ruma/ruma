@@ -1,4 +1,3 @@
 .vscode
 target
 Cargo.lock
-/xtask/config.toml
