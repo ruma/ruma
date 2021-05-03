@@ -22,7 +22,7 @@ impl CiTask {
     }
 
     pub(crate) fn run(self) -> Result<()> {
-        let _p = xshell::pushd(&self.project_root)?;
+        let _p = pushd(&self.project_root)?;
 
         match self.version.as_deref() {
             Some("msrv") => self.build_msrv()?,
@@ -38,7 +38,7 @@ impl CiTask {
     }
 
     fn build_msrv(&self) -> xshell::Result<()> {
-        let _p = pushd("ruma")?;
+        let _p = pushd("crates/ruma")?;
         cmd!("rustup run {MSRV} cargo build --features full --quiet").run()
     }
 
