@@ -42,8 +42,7 @@
 //! signatures and hashes on an event, use the `verify_event` function. See the documentation for
 //! these respective functions for more details and full examples of use.
 
-#![warn(rust_2018_idioms)]
-#![deny(missing_debug_implementations, missing_docs)]
+#![warn(missing_docs)]
 
 use std::{
     error::Error as StdError,

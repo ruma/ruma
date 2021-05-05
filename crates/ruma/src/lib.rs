@@ -58,7 +58,7 @@
 //! If you are viewing this on `docs.rs`, you can have a look at the feature dependencies by
 //! clicking **Feature flags** in the toolbar at the top.
 
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[doc(no_inline)]

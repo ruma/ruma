@@ -112,7 +112,7 @@
 //! event structure, if needed.
 
 #![recursion_limit = "1024"]
-#![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
+#![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 // This lint is no good
 #![allow(clippy::new_without_default)]

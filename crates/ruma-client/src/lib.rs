@@ -71,8 +71,7 @@
 //! # ;
 //! ```
 
-#![warn(rust_2018_idioms)]
-#![deny(missing_debug_implementations, missing_docs)]
+#![warn( missing_docs)]
 
 use std::{
     future::Future,

@@ -5,7 +5,7 @@
 //!
 //! [client-api]: https://matrix.org/docs/spec/client_server/r0.6.1.html
 
-#![warn(missing_debug_implementations, missing_docs)]
+#![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub mod error;

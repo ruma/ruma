@@ -3,7 +3,7 @@
 //! Types for [Matrix](https://matrix.org/) identifiers for devices, events, keys, rooms, servers,
 //! users and URIs.
 
-#![warn(rust_2018_idioms, missing_debug_implementations, missing_docs)]
+#![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 // Renamed in `Cargo.toml` so we can have a serde feature.

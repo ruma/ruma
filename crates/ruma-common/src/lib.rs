@@ -2,7 +2,7 @@
 #![doc(html_logo_url = "https://www.ruma.io/images/logo.png")]
 //! Common types for other ruma crates.
 
-#![warn(missing_docs, missing_debug_implementations)]
+#![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub mod authentication;

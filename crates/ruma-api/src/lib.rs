@@ -13,9 +13,7 @@
 //!
 //! [apis]: https://matrix.org/docs/spec/#matrix-apis
 
-#![doc(html_favicon_url = "https://www.ruma.io/favicon.ico")]
-#![warn(rust_2018_idioms)]
-#![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
+#![warn(missing_docs)]
 
 #[cfg(not(all(feature = "client", feature = "server")))]
 compile_error!("ruma_api's Cargo features only exist as a workaround are not meant to be disabled");

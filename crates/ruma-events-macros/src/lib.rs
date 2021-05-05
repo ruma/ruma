@@ -6,7 +6,7 @@
 //!
 //! [ruma-events]: https://github.com/ruma/ruma/tree/main/ruma-events
 
-#![deny(missing_copy_implementations, missing_debug_implementations, missing_docs)]
+#![warn(missing_docs)]
 
 use proc_macro::TokenStream;
 use proc_macro2 as pm2;

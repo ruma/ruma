@@ -5,7 +5,7 @@
 //!
 //! [appservice-api]: https://matrix.org/docs/spec/application_service/r0.1.2.html
 
-#![warn(missing_debug_implementations, missing_docs)]
+#![warn(missing_docs)]
 
 use serde::{Deserialize, Serialize};
 
