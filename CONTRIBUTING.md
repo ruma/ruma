@@ -24,7 +24,8 @@ Here is a list of helpful resources you can consult:
 
 ## Chat Rooms
 
-- Ruma Developer Matrix room: [#ruma-dev:matrix.org](https://matrix.to/#/#ruma-dev:matrix.org)
+- Ruma Matrix room: [#ruma:matrix.org](https://matrix.to/#/#ruma:matrix.org)
+- Ruma Development Matrix room: [#ruma-dev:matrix.org](https://matrix.to/#/#ruma-dev:matrix.org)
 - Matrix Developer room: [#matrix-dev:matrix.org](https://matrix.to/#/#matrix-dev:matrix.org)
 
 # Reporting Issues
@@ -273,8 +274,3 @@ at one of the [open issues][] we've marked for new contributors.
 # Testing
 
 Before committing, run `cargo check` to make sure that your changes can build, as well as running the formatting and linting tools [mentioned above](#code-formatting-and-linting).
-
-# Contact
-
-Thanks again for being a contributor! If you have any questions, join us at
-[#ruma:matrix.org](https://matrix.to/#/#ruma:matrix.org).
