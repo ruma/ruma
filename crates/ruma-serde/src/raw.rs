@@ -66,11 +66,15 @@ impl<T> Raw<T> {
     /// # Example
     ///
     /// ```no_run
-    /// # let raw_event: ruma_serde::Raw = todo!();
-    /// if raw_event.get_field::<String>("type")? == "org.custom.matrix.event" {
+    /// # type CustomMatrixEvent = ();
+    /// # fn foo() -> serde_json::Result<()> {
+    /// # let raw_event: ruma_serde::Raw<()> = todo!();
+    /// if raw_event.get_field::<String>("type")?.as_deref() == Some("org.custom.matrix.event") {
     ///     let event: CustomMatrixEvent = serde_json::from_str(raw_event.json().get())?;
     ///     // ...
     /// }
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn get_field<'a, U>(&'a self, field_name: &str) -> serde_json::Result<Option<U>>
     where
