@@ -1,6 +1,23 @@
 use std::{borrow::Cow, str};
 
-use serde::de::{self, Deserializer, Unexpected, Visitor};
+use serde::de::{self, Deserialize, Deserializer, Unexpected, Visitor};
+
+pub(crate) struct MyCowStr<'a>(Cow<'a, str>);
+
+impl<'a> MyCowStr<'a> {
+    pub(crate) fn get(self) -> Cow<'a, str> {
+        self.0
+    }
+}
+
+impl<'de> Deserialize<'de> for MyCowStr<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserialize_cow_str(deserializer).map(Self)
+    }
+}
 
 /// Deserialize a `Cow<'de, str>`.
 ///
