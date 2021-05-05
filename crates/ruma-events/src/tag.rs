@@ -1,9 +1,12 @@
 //! Types for the *m.tag* event.
 
-use std::collections::BTreeMap;
+use std::{
+    collections::BTreeMap,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 
 use ruma_events_macros::BasicEventContent;
-use ruma_serde::StringEnum;
+use ruma_serde::deserialize_cow_str;
 use serde::{Deserialize, Serialize};
 
 use crate::BasicEvent;
@@ -37,26 +40,94 @@ impl From<Tags> for TagEventContent {
 }
 
 /// The name of a tag.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, StringEnum)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub enum TagName {
     /// `m.favourite`: The user's favourite rooms. These should be shown with higher precedence
     /// than other rooms.
-    #[ruma_enum(rename = "m.favourite")]
     Favorite,
 
     /// `m.lowpriority`: These should be shown with lower precedence than others.
-    #[ruma_enum(rename = "m.lowpriority")]
     LowPriority,
 
     /// `m.server_notice`: Used to identify
     /// [Server Notice Rooms](https://matrix.org/docs/spec/client_server/r0.6.1#module-server-notices).
-    #[ruma_enum(rename = "m.server_notice")]
     ServerNotice,
+
+    /// `u.*`: User-defined tag
+    User(String),
 
     /// A custom tag
     #[doc(hidden)]
     _Custom(String),
+}
+
+impl TagName {
+    /// Returns the display name of the tag.
+    ///
+    /// That means the string after `m.` or `u.` for spec- and user-defined tag names, and the
+    /// string after the last dot for custom tags. If no dot is found, returns the whole string.
+    pub fn display_name(&self) -> &str {
+        match self {
+            Self::_Custom(s) => {
+                let start = s.rfind('.').map(|p| p + 1).unwrap_or(0);
+                &self.as_ref()[start..]
+            }
+            _ => &self.as_ref()[2..],
+        }
+    }
+}
+
+impl AsRef<str> for TagName {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Favorite => "m.favourite",
+            Self::LowPriority => "m.lowpriority",
+            Self::ServerNotice => "m.server_notice",
+            Self::User(s) => s,
+            Self::_Custom(s) => s,
+        }
+    }
+}
+
+impl<T> From<T> for TagName
+where
+    T: AsRef<str> + Into<String>,
+{
+    fn from(s: T) -> TagName {
+        match s.as_ref() {
+            "m.favourite" => Self::Favorite,
+            "m.lowpriority" => Self::LowPriority,
+            "m.server_notice" => Self::ServerNotice,
+            s if s.starts_with("u.") => Self::User(s.into()),
+            s => Self::_Custom(s.into()),
+        }
+    }
+}
+
+impl Display for TagName {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        f.write_str(self.as_ref())
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for TagName {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let cow = deserialize_cow_str(deserializer)?;
+        Ok(cow.into())
+    }
+}
+
+impl serde::Serialize for TagName {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.as_ref())
+    }
 }
 
 /// Information about a tag.
@@ -106,5 +177,15 @@ mod tests {
                 },
             })
         );
+    }
+
+    #[test]
+    fn display_name() {
+        assert_eq!(TagName::Favorite.display_name(), "favourite");
+        assert_eq!(TagName::LowPriority.display_name(), "lowpriority");
+        assert_eq!(TagName::ServerNotice.display_name(), "server_notice");
+        assert_eq!(TagName::from("u.Work").display_name(), "Work");
+        assert_eq!(TagName::from("rs.conduit.rules").display_name(), "rules");
+        assert_eq!(TagName::from("Play").display_name(), "Play");
     }
 }
