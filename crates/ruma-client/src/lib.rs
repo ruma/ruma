@@ -71,7 +71,7 @@
 //! # ;
 //! ```
 
-#![warn( missing_docs)]
+#![warn(missing_docs)]
 
 use std::{
     future::Future,
