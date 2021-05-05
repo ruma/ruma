@@ -2,7 +2,9 @@
 
 use std::{
     collections::BTreeMap,
+    convert::TryFrom,
     fmt::{Display, Formatter, Result as FmtResult},
+    str::FromStr,
 };
 
 use ruma_events_macros::BasicEventContent;
@@ -39,6 +41,30 @@ impl From<Tags> for TagEventContent {
     }
 }
 
+/// A user-defined tag name.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct UserTagName {
+    name: String,
+}
+
+impl AsRef<str> for UserTagName {
+    fn as_ref(&self) -> &str {
+        &self.name
+    }
+}
+
+impl FromStr for UserTagName {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.starts_with("u.") {
+            Ok(Self { name: s.into() })
+        } else {
+            Err("missing 'u.' prefix")
+        }
+    }
+}
+
 /// The name of a tag.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
@@ -55,7 +81,7 @@ pub enum TagName {
     ServerNotice,
 
     /// `u.*`: User-defined tag
-    User(String),
+    User(UserTagName),
 
     /// A custom tag
     #[doc(hidden)]
@@ -84,7 +110,7 @@ impl AsRef<str> for TagName {
             Self::Favorite => "m.favourite",
             Self::LowPriority => "m.lowpriority",
             Self::ServerNotice => "m.server_notice",
-            Self::User(s) => s,
+            Self::User(tag) => tag.as_ref(),
             Self::_Custom(s) => s,
         }
     }
@@ -99,7 +125,7 @@ where
             "m.favourite" => Self::Favorite,
             "m.lowpriority" => Self::LowPriority,
             "m.server_notice" => Self::ServerNotice,
-            s if s.starts_with("u.") => Self::User(s.into()),
+            s if s.starts_with("u.") => Self::User(UserTagName { name: s.into() }),
             s => Self::_Custom(s.into()),
         }
     }
