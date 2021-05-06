@@ -116,7 +116,6 @@ impl Response {
         quote! {
             #[automatically_derived]
             #[cfg(feature = "client")]
-            #[allow(clippy::unknown_clippy_lints, clippy::inconsistent_struct_constructor)]
             impl #ruma_api::IncomingResponse for Response {
                 type EndpointError = #error_ty;
 
