@@ -1,9 +1,3 @@
-error: expected one of: `type`, `skip_redaction`, `custom_redacted`
-  --> $DIR/03-invalid-event-type.rs:11:14
-   |
-11 | #[ruma_event(event = "m.macro.test")]
-   |              ^^^^^
-
 error: no event type attribute found, add `#[ruma_event(type = "any.room.event")]` below the event content derive
  --> $DIR/03-invalid-event-type.rs:4:48
   |
@@ -11,6 +5,12 @@ error: no event type attribute found, add `#[ruma_event(type = "any.room.event")
   |                                                ^^^^^^^^^^^^^^^^^
   |
   = note: this error originates in a derive macro (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected one of: `type`, `skip_redaction`, `custom_redacted`
+  --> $DIR/03-invalid-event-type.rs:11:14
+   |
+11 | #[ruma_event(event = "m.macro.test")]
+   |              ^^^^^
 
 error: cannot find attribute `not_ruma_event` in this scope
  --> $DIR/03-invalid-event-type.rs:5:3
