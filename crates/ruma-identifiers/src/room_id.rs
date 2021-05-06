@@ -2,7 +2,7 @@
 
 use std::{convert::TryFrom, fmt, num::NonZeroU8};
 
-use crate::{Error, ServerName};
+use crate::ServerName;
 
 /// A Matrix room ID.
 ///
@@ -60,7 +60,7 @@ impl RoomId {
 /// Attempts to create a new Matrix room ID from a string representation.
 ///
 /// The string must include the leading ! sigil, the localpart, a literal colon, and a server name.
-fn try_from<S>(room_id: S) -> Result<RoomId, Error>
+fn try_from<S>(room_id: S) -> Result<RoomId, crate::Error>
 where
     S: AsRef<str> + Into<Box<str>>,
 {

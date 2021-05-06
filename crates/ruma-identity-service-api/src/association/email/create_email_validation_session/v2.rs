@@ -42,7 +42,7 @@ impl<'a> Request<'a> {
     pub fn new(
         client_secret: &'a str,
         email: &'a str,
-        send_attempt: js_int::UInt,
+        send_attempt: UInt,
         next_link: Option<&'a str>,
     ) -> Self {
         Self { client_secret, email, send_attempt, next_link }

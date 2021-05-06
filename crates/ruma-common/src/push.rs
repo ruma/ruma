@@ -70,7 +70,7 @@ impl Ruleset {
     /// Creates a borrowing iterator over all push rules in this `Ruleset`.
     ///
     /// For an owning iterator, use `.into_iter()`.
-    pub fn iter(&self) -> RulesetIter {
+    pub fn iter(&self) -> RulesetIter<'_> {
         self.into_iter()
     }
 

@@ -63,7 +63,7 @@ mod tests {
             .deserialize()
             .unwrap();
 
-        assert_eq!(server_acl_event.content.allow_ip_literals, true);
+        assert!(server_acl_event.content.allow_ip_literals);
         assert!(server_acl_event.content.allow.is_empty());
         assert!(server_acl_event.content.deny.is_empty());
     }

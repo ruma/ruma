@@ -173,7 +173,7 @@ fn impl_outgoing_with_incoming_self(input: &DeriveInput, ruma_serde: &TokenStrea
     }
 }
 
-fn split_for_impl_lifetime_less(generics: &mut Generics) -> (ImplGenerics, TypeGenerics) {
+fn split_for_impl_lifetime_less(generics: &mut Generics) -> (ImplGenerics<'_>, TypeGenerics<'_>) {
     generics.params = generics
         .params
         .clone()
@@ -307,7 +307,7 @@ pub struct Meta {
 }
 
 impl Parse for Meta {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         Ok(Self {
             derive_macs: Punctuated::<_, Token![,]>::parse_terminated(input)?.into_iter().collect(),
         })
@@ -320,7 +320,7 @@ pub enum DeriveMac {
 }
 
 impl Parse for DeriveMac {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         if input.peek(Token![!]) {
             let _: Token![!] = input.parse()?;
             let mac: Ident = input.parse()?;

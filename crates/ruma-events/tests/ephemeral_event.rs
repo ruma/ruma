@@ -117,7 +117,7 @@ fn deserialize_ephemeral_receipt() {
             && room_id == room_id!("!roomid:room.com")
             && receipts
                 .get(&event_id)
-                .map(|r| r.read.as_ref().unwrap().get(&user_id).unwrap().clone())
+                .map(|r| r.read.as_ref().unwrap().get(&user_id).unwrap())
                 .map(|r| r.ts)
                 .unwrap()
                 == Some(UNIX_EPOCH + Duration::from_millis(1))

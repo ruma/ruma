@@ -2,7 +2,7 @@
 
 use std::{convert::TryFrom, fmt, num::NonZeroU8};
 
-use crate::{server_name::ServerName, Error};
+use crate::server_name::ServerName;
 
 /// A Matrix room alias ID.
 ///
@@ -44,7 +44,7 @@ impl RoomAliasId {
 /// Attempts to create a new Matrix room alias ID from a string representation.
 ///
 /// The string must include the leading # sigil, the alias, a literal colon, and a server name.
-fn try_from<S>(room_alias_id: S) -> Result<RoomAliasId, Error>
+fn try_from<S>(room_alias_id: S) -> Result<RoomAliasId, crate::Error>
 where
     S: AsRef<str> + Into<Box<str>>,
 {

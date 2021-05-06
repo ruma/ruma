@@ -2,7 +2,7 @@
 
 use std::{convert::TryFrom, fmt, hint::unreachable_unchecked, num::NonZeroU8};
 
-use crate::{server_name::ServerName, Error, RoomAliasId, RoomId};
+use crate::{server_name::ServerName, RoomAliasId, RoomId};
 
 /// A Matrix room ID or a Matrix room alias ID.
 ///
@@ -91,7 +91,7 @@ enum Variant {
 /// The string must either include the leading ! sigil, the localpart, a literal colon, and a
 /// valid homeserver host or include the leading # sigil, the alias, a literal colon, and a
 /// valid homeserver host.
-fn try_from<S>(room_id_or_alias_id: S) -> Result<RoomIdOrAliasId, Error>
+fn try_from<S>(room_id_or_alias_id: S) -> Result<RoomIdOrAliasId, crate::Error>
 where
     S: AsRef<str> + Into<Box<str>>,
 {

@@ -198,7 +198,7 @@ fn expand_deserialize_event(
                             },
                             #ruma_events::HasDeserializeFields::Optional => {
                                 let json = content.unwrap_or(
-                                    #serde_json::value::RawValue::from_string("{}".to_string())
+                                    #serde_json::value::RawValue::from_string("{}".to_owned())
                                         .unwrap()
                                 );
                                 C::from_parts(&event_type, json).map_err(A::Error::custom)?

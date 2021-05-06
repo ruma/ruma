@@ -48,7 +48,7 @@ impl<'de> Deserialize<'de> for Field<'de> {
         impl<'de> Visitor<'de> for FieldVisitor {
             type Value = Field<'de>;
 
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 formatter.write_str("any struct field")
             }
 
@@ -83,7 +83,7 @@ struct ErrorKindVisitor;
 impl<'de> Visitor<'de> for ErrorKindVisitor {
     type Value = ErrorKind;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("enum ErrorKind")
     }
 
@@ -100,12 +100,12 @@ impl<'de> Visitor<'de> for ErrorKindVisitor {
 
         macro_rules! set_field {
             (errcode) => {
-                set_field!(@inner errcode);
+                set_field!(@inner errcode)
             };
             ($field:ident) => {
                 match errcode {
                     Some(set_field!(@variant_containing $field)) | None => {
-                        set_field!(@inner $field);
+                        set_field!(@inner $field)
                     }
                     // if we already know we're deserializing a different variant to the one
                     // containing this field, ignore its value.
@@ -249,7 +249,7 @@ enum ErrCode {
 impl<'de> Deserialize<'de> for ErrorKind {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
-        D: serde::Deserializer<'de>,
+        D: Deserializer<'de>,
     {
         deserializer.deserialize_map(ErrorKindVisitor)
     }

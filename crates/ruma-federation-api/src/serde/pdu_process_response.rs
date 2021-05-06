@@ -44,7 +44,7 @@ where
     impl<'de> Visitor<'de> for PduProcessResponseVisitor {
         type Value = BTreeMap<EventId, Result<(), String>>;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             formatter.write_str("A map of EventIds to a map of optional errors")
         }
 

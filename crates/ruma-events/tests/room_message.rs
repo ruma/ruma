@@ -301,12 +301,12 @@ fn verification_request_deserialization() {
 fn verification_request_serialization() {
     let user_id = user_id!("@example2:localhost");
     let device_id: DeviceIdBox = "XOWLHHFSWM".into();
-    let body = "@example:localhost is requesting to verify your key, ...".to_string();
+    let body = "@example:localhost is requesting to verify your key, ...".to_owned();
 
     let methods = vec![
         VerificationMethod::MSasV1,
-        VerificationMethod::_Custom("m.qr_code.show.v1".to_string()),
-        VerificationMethod::_Custom("m.reciprocate.v1".to_string()),
+        VerificationMethod::_Custom("m.qr_code.show.v1".to_owned()),
+        VerificationMethod::_Custom("m.reciprocate.v1".to_owned()),
     ];
 
     let json_data = json!({

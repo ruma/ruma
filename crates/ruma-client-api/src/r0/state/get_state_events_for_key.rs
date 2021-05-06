@@ -84,7 +84,7 @@ impl<'a> ruma_api::OutgoingRequest for Request<'a> {
 
         if !self.state_key.is_empty() {
             url.push('/');
-            url.push_str(&Cow::from(utf8_percent_encode(&self.state_key, NON_ALPHANUMERIC)));
+            url.push_str(&Cow::from(utf8_percent_encode(self.state_key, NON_ALPHANUMERIC)));
         }
 
         http::Request::builder()

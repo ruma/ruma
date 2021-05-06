@@ -38,7 +38,7 @@ struct CowStrVisitor;
 impl<'de> Visitor<'de> for CowStrVisitor {
     type Value = Cow<'de, str>;
 
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter.write_str("a string")
     }
 

@@ -80,7 +80,7 @@ fn generate_localpart(length: usize) -> Box<str> {
 fn deserialize_id<'de, D, T>(deserializer: D, expected_str: &str) -> Result<T, D::Error>
 where
     D: Deserializer<'de>,
-    T: for<'a> std::convert::TryFrom<&'a str>,
+    T: for<'a> TryFrom<&'a str>,
 {
     ruma_serde::deserialize_cow_str(deserializer).and_then(|v| {
         T::try_from(&v).map_err(|_| de::Error::invalid_value(Unexpected::Str(&v), &expected_str))

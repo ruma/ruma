@@ -48,7 +48,7 @@ impl<'a> Request<'a> {
         client_secret: &'a str,
         country: &'a str,
         phone_number: &'a str,
-        send_attempt: js_int::UInt,
+        send_attempt: UInt,
         next_link: Option<&'a str>,
     ) -> Self {
         Self { client_secret, country, phone_number, send_attempt, next_link }

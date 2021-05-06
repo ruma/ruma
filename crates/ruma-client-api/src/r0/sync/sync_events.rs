@@ -838,7 +838,7 @@ mod server_tests {
 
         assert_matches!(req.filter, Some(IncomingFilter::FilterId(id)) if id == "myfilter");
         assert_eq!(req.since, Some("myts".into()));
-        assert_eq!(req.full_state, false);
+        assert!(!req.full_state);
         assert_eq!(req.set_presence, PresenceState::Offline);
         assert_eq!(req.timeout, Some(Duration::from_millis(5000)));
     }
@@ -859,7 +859,7 @@ mod server_tests {
 
         assert_matches!(req.filter, None);
         assert_eq!(req.since, None);
-        assert_eq!(req.full_state, false);
+        assert!(!req.full_state);
         assert_eq!(req.set_presence, PresenceState::Online);
         assert_eq!(req.timeout, None);
     }
@@ -884,7 +884,7 @@ mod server_tests {
 
         assert_matches!(req.filter, Some(IncomingFilter::FilterId(id)) if id == "EOKFFmdZYF");
         assert_eq!(req.since, None);
-        assert_eq!(req.full_state, false);
+        assert!(!req.full_state);
         assert_eq!(req.set_presence, PresenceState::Online);
         assert_eq!(req.timeout, Some(Duration::from_millis(0)));
     }

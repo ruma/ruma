@@ -5,7 +5,7 @@ use serde::ser;
 
 use super::{key::KeySink, part::PartSerializer, value::ValueSink, Error};
 
-pub struct PairSerializer<'input, 'target, Target: 'target + UrlEncodedTarget> {
+pub struct PairSerializer<'input, 'target, Target: UrlEncodedTarget> {
     urlencoder: &'target mut UrlEncodedSerializer<'input, Target>,
     state: PairState,
 }

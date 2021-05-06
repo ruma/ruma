@@ -6,7 +6,7 @@ use crate::util::{get_rename, get_rename_rule};
 
 pub fn expand_enum_from_string(input: &ItemEnum) -> syn::Result<TokenStream> {
     let enum_name = &input.ident;
-    let rename_rule = get_rename_rule(&input)?;
+    let rename_rule = get_rename_rule(input)?;
     let mut fallback = None;
     let mut fallback_ty = None;
     let branches: Vec<_> = input

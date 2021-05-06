@@ -227,7 +227,7 @@ mod tweak_serde {
         Deserializer, Serializer,
     };
 
-    pub fn serialize<S>(tweak: &[super::Tweak], serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S>(tweak: &[Tweak], serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -249,7 +249,7 @@ mod tweak_serde {
     impl<'de> Visitor<'de> for TweaksVisitor {
         type Value = Vec<Tweak>;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             formatter.write_str("List of tweaks")
         }
 

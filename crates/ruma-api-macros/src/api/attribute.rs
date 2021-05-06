@@ -36,7 +36,7 @@ impl Meta {
 }
 
 impl Parse for Meta {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let ident = input.parse()?;
 
         if input.peek(Token![=]) {

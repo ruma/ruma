@@ -181,7 +181,7 @@ struct RoomNetworkVisitor;
 impl<'de> Visitor<'de> for RoomNetworkVisitor {
     type Value = IncomingRoomNetwork;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("Network selection")
     }
 

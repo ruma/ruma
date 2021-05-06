@@ -28,11 +28,11 @@ impl AnyPushRule {
     /// Convert `AnyPushRule` to `AnyPushRuleRef`.
     pub fn as_ref(&self) -> AnyPushRuleRef<'_> {
         match self {
-            Self::Override(o) => AnyPushRuleRef::Override(&o),
-            Self::Content(c) => AnyPushRuleRef::Content(&c),
-            Self::Room(r) => AnyPushRuleRef::Room(&r),
-            Self::Sender(s) => AnyPushRuleRef::Sender(&s),
-            Self::Underride(u) => AnyPushRuleRef::Underride(&u),
+            Self::Override(o) => AnyPushRuleRef::Override(o),
+            Self::Content(c) => AnyPushRuleRef::Content(c),
+            Self::Room(r) => AnyPushRuleRef::Room(r),
+            Self::Sender(s) => AnyPushRuleRef::Sender(s),
+            Self::Underride(u) => AnyPushRuleRef::Underride(u),
         }
     }
 

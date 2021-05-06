@@ -110,8 +110,8 @@ impl From<serde_json::Error> for Error {
     }
 }
 
-impl From<ruma_serde::CanonicalJsonError> for Error {
-    fn from(error: ruma_serde::CanonicalJsonError) -> Self {
+impl From<CanonicalJsonError> for Error {
+    fn from(error: CanonicalJsonError) -> Self {
         Self::new(error.to_string())
     }
 }
@@ -163,7 +163,7 @@ fn split_id(id: &str) -> Result<(Algorithm, String), SplitError<'_>> {
         algorithm => return Err(SplitError::UnknownAlgorithm(algorithm)),
     };
 
-    Ok((algorithm, signature_id[1].to_string()))
+    Ok((algorithm, signature_id[1].to_owned()))
 }
 
 #[cfg(test)]

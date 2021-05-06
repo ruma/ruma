@@ -2,7 +2,7 @@
 
 use std::{convert::TryFrom, fmt, num::NonZeroU8};
 
-use crate::{Error, ServerName};
+use crate::ServerName;
 
 /// A Matrix event ID.
 ///
@@ -93,7 +93,7 @@ impl EventId {
 ///
 /// If using the original event format as used by Matrix room versions 1 and 2, the string must
 /// include the leading $ sigil, the localpart, a literal colon, and a valid homeserver hostname.
-fn try_from<S>(event_id: S) -> Result<EventId, Error>
+fn try_from<S>(event_id: S) -> Result<EventId, crate::Error>
 where
     S: AsRef<str> + Into<Box<str>>,
 {

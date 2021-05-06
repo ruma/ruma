@@ -12,7 +12,6 @@ edition = "2018"
 [dependencies]
 ruma-identifiers-validation = { version = "0.3.0", path = "../ruma-identifiers-validation", default-features = false }
 quote = "1.0.8"
-proc-macro2 = "1.0.24"
 syn = "1.0.55"
 
 [lib]

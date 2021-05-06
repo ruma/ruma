@@ -108,7 +108,7 @@ impl From<PushRule> for SimplePushRule {
 pub struct MissingPatternError;
 
 impl fmt::Display for MissingPatternError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Push rule does not have a pattern.")
     }
 }
@@ -136,7 +136,7 @@ impl TryFrom<PushRule> for PatternedPushRule {
 pub struct MissingConditionsError;
 
 impl fmt::Display for MissingConditionsError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Push rule has no conditions.")
     }
 }

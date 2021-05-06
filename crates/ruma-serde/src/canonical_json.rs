@@ -36,7 +36,7 @@ pub enum Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::IntConvert => f.write_str("number found is not a valid `js_int::Int`"),
             Error::JsonSize => f.write_str("JSON is larger than 65,535 byte max"),

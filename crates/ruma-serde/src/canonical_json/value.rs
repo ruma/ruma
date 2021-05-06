@@ -128,7 +128,7 @@ impl Default for CanonicalJsonValue {
 }
 
 impl fmt::Debug for CanonicalJsonValue {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Self::Null => formatter.debug_tuple("Null").finish(),
             Self::Bool(v) => formatter.debug_tuple("Bool").field(&v).finish(),
@@ -157,7 +157,7 @@ impl fmt::Display for CanonicalJsonValue {
     ///
     /// If you want to pretty-print a `CanonicalJsonValue` for debugging purposes, use
     /// one of `serde_json::{to_string_pretty, to_vec_pretty, to_writer_pretty}`.
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", to_json_string(&self).map_err(|_| fmt::Error)?)
     }
 }

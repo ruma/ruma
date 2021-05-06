@@ -177,13 +177,13 @@ fn expand_any_with_deser(
         }
     };
 
-    let event_enum_to_from_sync = expand_conversion_impl(kind, var, &variants, ruma_events);
+    let event_enum_to_from_sync = expand_conversion_impl(kind, var, variants, ruma_events);
 
     let redacted_enum = expand_redacted_enum(kind, var, ruma_events);
 
-    let field_accessor_impl = accessor_methods(kind, var, &variants, ruma_events);
+    let field_accessor_impl = accessor_methods(kind, var, variants, ruma_events);
 
-    let redact_impl = expand_redact(&ident, kind, var, &variants, ruma_events);
+    let redact_impl = expand_redact(&ident, kind, var, variants, ruma_events);
 
     Some(quote! {
         #any_enum
@@ -428,7 +428,7 @@ fn expand_content_enum(
         }
     };
 
-    let marker_trait_impls = marker_traits(&kind, ruma_events);
+    let marker_trait_impls = marker_traits(kind, ruma_events);
 
     quote! {
         #content_enum

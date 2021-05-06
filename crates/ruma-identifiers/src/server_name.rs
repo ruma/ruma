@@ -4,8 +4,6 @@ use std::{convert::TryFrom, fmt, mem, str::FromStr};
 
 use ruma_identifiers_validation::server_name::validate;
 
-use crate::Error;
-
 /// A Matrix-spec compliant server name.
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -66,7 +64,7 @@ impl From<&ServerName> for Box<ServerName> {
     }
 }
 
-fn try_from<S>(server_name: S) -> Result<Box<ServerName>, Error>
+fn try_from<S>(server_name: S) -> Result<Box<ServerName>, crate::Error>
 where
     S: AsRef<str> + Into<Box<str>>,
 {
@@ -93,7 +91,7 @@ impl From<Box<ServerName>> for String {
 }
 
 impl<'a> TryFrom<&'a str> for &'a ServerName {
-    type Error = Error;
+    type Error = crate::Error;
 
     fn try_from(server_name: &'a str) -> Result<Self, Self::Error> {
         validate(server_name)?;

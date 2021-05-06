@@ -416,9 +416,6 @@ impl VersionExt for Version {
             }
 
             next.pre = vec![];
-            if next == *version {
-                return true;
-            }
         } else {
             next.increment_patch();
             if next == *version {
@@ -446,11 +443,7 @@ impl VersionExt for Version {
             }
 
             next.add_pre_release();
-            if next == *version {
-                return true;
-            }
         }
-
-        false
+        next == *version
     }
 }

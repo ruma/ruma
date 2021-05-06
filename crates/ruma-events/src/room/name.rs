@@ -56,10 +56,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        iter::FromIterator,
-        time::{Duration, UNIX_EPOCH},
-    };
+    use std::time::{Duration, UNIX_EPOCH};
 
     use js_int::int;
     use matches::assert_matches;
@@ -157,7 +154,7 @@ mod tests {
     #[test]
     fn name_fails_validation_when_too_long() {
         // "XXXX .." 256 times
-        let long_string: String = String::from_iter(std::iter::repeat('X').take(256));
+        let long_string: String = std::iter::repeat('X').take(256).collect();
         assert_eq!(long_string.len(), 256);
 
         let long_content_json = json!({ "name": &long_string });

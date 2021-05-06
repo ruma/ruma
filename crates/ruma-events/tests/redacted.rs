@@ -99,7 +99,7 @@ fn redacted_aliases_event_serialize_with_content() {
     let redacted = RedactedSyncStateEvent {
         content: RedactedAliasesEventContent { aliases: Some(vec![]) },
         event_id: event_id!("$h29iv0s8:example.com"),
-        state_key: "".to_string(),
+        state_key: "".to_owned(),
         origin_server_ts: UNIX_EPOCH + Duration::from_millis(1),
         sender: user_id!("@carl:example.com"),
         unsigned: RedactedSyncUnsigned::default(),

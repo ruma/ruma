@@ -20,7 +20,7 @@ struct MessageContentDeHelper {
     new_content: Option<Box<MessageEventContent>>,
 }
 
-impl<'de> de::Deserialize<'de> for MessageEventContent {
+impl<'de> Deserialize<'de> for MessageEventContent {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,
@@ -44,7 +44,7 @@ struct MessageTypeDeHelper {
     msgtype: String,
 }
 
-impl<'de> de::Deserialize<'de> for MessageType {
+impl<'de> Deserialize<'de> for MessageType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,

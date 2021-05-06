@@ -77,7 +77,7 @@ impl Response {
 
 /// Identification information for the user.
 #[derive(Clone, Debug, PartialEq, Eq, Outgoing, Serialize)]
-#[serde(from = "user_serde::IncomingUserIdentifier", into = "user_serde::UserIdentifier")]
+#[serde(from = "user_serde::IncomingUserIdentifier", into = "user_serde::UserIdentifier<'_>")]
 pub enum UserIdentifier<'a> {
     /// Either a fully qualified Matrix user ID, or just the localpart (as part of the 'identifier'
     /// field).

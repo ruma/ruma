@@ -128,7 +128,7 @@ impl EventKind {
 }
 
 impl Parse for EventKind {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let ident: Ident = input.parse()?;
         Ok(match ident.to_string().as_str() {
             "Basic" => EventKind::Basic,

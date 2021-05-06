@@ -55,7 +55,7 @@ struct EduDeHelper {
     content: Box<RawJsonValue>,
 }
 
-impl<'de> de::Deserialize<'de> for Edu {
+impl<'de> Deserialize<'de> for Edu {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,

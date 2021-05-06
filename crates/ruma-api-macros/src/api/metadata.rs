@@ -128,7 +128,7 @@ enum Field {
 }
 
 impl Parse for Field {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
 
         if lookahead.peek(kw::description) {
@@ -165,7 +165,7 @@ enum FieldValue {
 }
 
 impl Parse for FieldValue {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let attrs: Vec<Attribute> = input.call(Attribute::parse_outer)?;
         for attr in attrs.iter() {
             if !util::is_cfg_attribute(attr) {

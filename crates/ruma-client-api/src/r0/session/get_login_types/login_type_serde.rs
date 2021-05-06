@@ -13,7 +13,7 @@ struct LoginTypeDeHelper {
     type_: String,
 }
 
-impl<'de> de::Deserialize<'de> for LoginType {
+impl<'de> Deserialize<'de> for LoginType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,

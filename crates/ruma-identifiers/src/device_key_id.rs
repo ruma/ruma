@@ -2,7 +2,7 @@
 
 use std::{convert::TryInto, fmt, num::NonZeroU8};
 
-use crate::{crypto_algorithms::DeviceKeyAlgorithm, DeviceId, Error};
+use crate::{crypto_algorithms::DeviceKeyAlgorithm, DeviceId};
 
 /// A key algorithm and a device id, combined with a ':'.
 #[derive(Clone)]
@@ -46,7 +46,7 @@ impl DeviceKeyId {
     }
 }
 
-fn try_from<S>(key_id: S) -> Result<DeviceKeyId, Error>
+fn try_from<S>(key_id: S) -> Result<DeviceKeyId, crate::Error>
 where
     S: AsRef<str> + Into<Box<str>>,
 {

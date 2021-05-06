@@ -155,7 +155,7 @@ where
 
     // Insert the new signature in the map we pulled out (or created) previously.
     let signature_set = signature_map
-        .entry(entity_id.to_string())
+        .entry(entity_id.to_owned())
         .or_insert_with(|| CanonicalJsonValue::Object(BTreeMap::new()));
 
     let signature_set = match signature_set {
@@ -235,7 +235,7 @@ pub fn canonical_json(object: &CanonicalJsonObject) -> String {
 ///
 /// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
 /// let mut public_key_set = BTreeMap::new();
-/// public_key_set.insert("ed25519:1".into(), PUBLIC_KEY.to_string());
+/// public_key_set.insert("ed25519:1".into(), PUBLIC_KEY.to_owned());
 /// let mut public_key_map = BTreeMap::new();
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
@@ -550,7 +550,7 @@ where
 ///
 /// // Create the `PublicKeyMap` that will inform `verify_json` which signatures to verify.
 /// let mut public_key_set = BTreeMap::new();
-/// public_key_set.insert("ed25519:1".into(), PUBLIC_KEY.to_string());
+/// public_key_set.insert("ed25519:1".into(), PUBLIC_KEY.to_owned());
 /// let mut public_key_map = BTreeMap::new();
 /// public_key_map.insert("domain".into(), public_key_set);
 ///
@@ -976,7 +976,7 @@ mod tests {
             key_pair_sender.version().try_into().unwrap(),
         );
         sender_key_map.insert(version.to_string(), encoded_public_key);
-        public_key_map.insert("domain-sender".to_string(), sender_key_map);
+        public_key_map.insert("domain-sender".to_owned(), sender_key_map);
 
         let verification_result =
             verify_event(&public_key_map, &signed_event, &RoomVersionId::Version6);
@@ -988,7 +988,7 @@ mod tests {
 
     fn generate_key_pair() -> Ed25519KeyPair {
         let key_content = Ed25519KeyPair::generate().unwrap();
-        Ed25519KeyPair::new(&key_content, "1".to_string()).unwrap()
+        Ed25519KeyPair::new(&key_content, "1".to_owned()).unwrap()
     }
 
     fn add_key_to_map(public_key_map: &mut PublicKeyMap, name: &str, pair: &Ed25519KeyPair) {
@@ -1001,6 +1001,6 @@ mod tests {
 
         sender_key_map.insert(version.to_string(), encoded_public_key);
 
-        public_key_map.insert(name.to_string(), sender_key_map);
+        public_key_map.insert(name.to_owned(), sender_key_map);
     }
 }

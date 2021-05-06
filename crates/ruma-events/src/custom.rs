@@ -38,7 +38,7 @@ impl EventContent for CustomEventContent {
 
     fn from_parts(event_type: &str, content: Box<RawJsonValue>) -> Result<Self, serde_json::Error> {
         let data = serde_json::from_str(content.get())?;
-        Ok(Self { event_type: event_type.to_string(), data })
+        Ok(Self { event_type: event_type.to_owned(), data })
     }
 }
 
@@ -73,13 +73,13 @@ impl EventContent for RedactedCustomEventContent {
         event_type: &str,
         _content: Box<RawJsonValue>,
     ) -> Result<Self, serde_json::Error> {
-        Ok(Self { event_type: event_type.to_string() })
+        Ok(Self { event_type: event_type.to_owned() })
     }
 }
 
 impl RedactedEventContent for RedactedCustomEventContent {
     fn empty(event_type: &str) -> Result<Self, serde_json::Error> {
-        Ok(Self { event_type: event_type.to_string() })
+        Ok(Self { event_type: event_type.to_owned() })
     }
 
     fn has_serialize_fields(&self) -> bool {

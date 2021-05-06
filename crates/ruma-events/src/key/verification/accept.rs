@@ -216,7 +216,7 @@ mod tests {
             transaction_id: "456".into(),
             method: AcceptMethod::Custom(CustomContent {
                 method: "m.sas.custom".to_owned(),
-                data: vec![("test".to_string(), JsonValue::from("field"))]
+                data: vec![("test".to_owned(), JsonValue::from("field"))]
                     .into_iter()
                     .collect::<BTreeMap<String, JsonValue>>(),
             }),

@@ -10,7 +10,7 @@ use super::{
 
 pub struct ValueSink<'input, 'key, 'target, Target>
 where
-    Target: 'target + UrlEncodedTarget,
+    Target: UrlEncodedTarget,
 {
     urlencoder: &'target mut UrlEncodedSerializer<'input, Target>,
     key: &'key str,

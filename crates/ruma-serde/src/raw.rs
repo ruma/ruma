@@ -97,7 +97,7 @@ impl<T> Raw<T> {
         {
             type Value = Option<T>;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
                 formatter.write_str("a string")
             }
 
@@ -106,7 +106,7 @@ impl<T> Raw<T> {
                 A: MapAccess<'de>,
             {
                 let mut res = None;
-                while let Some(key) = map.next_key::<MyCowStr>()? {
+                while let Some(key) = map.next_key::<MyCowStr<'_>>()? {
                     if key.get() == self.field_name {
                         res = Some(map.next_value()?);
                     } else {

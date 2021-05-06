@@ -2,7 +2,7 @@
 
 use std::{convert::TryFrom, fmt, num::NonZeroU8};
 
-use crate::{Error, ServerName};
+use crate::ServerName;
 
 /// A Matrix user ID.
 ///
@@ -59,7 +59,7 @@ impl UserId {
     pub fn parse_with_server_name(
         id: impl AsRef<str> + Into<Box<str>>,
         server_name: &ServerName,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, crate::Error> {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
@@ -98,7 +98,7 @@ impl UserId {
 /// Attempts to create a new Matrix user ID from a string representation.
 ///
 /// The string must include the leading @ sigil, the localpart, a literal colon, and a server name.
-fn try_from<S>(user_id: S) -> Result<UserId, Error>
+fn try_from<S>(user_id: S) -> Result<UserId, crate::Error>
 where
     S: AsRef<str> + Into<Box<str>>,
 {

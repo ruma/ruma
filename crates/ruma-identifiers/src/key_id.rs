@@ -8,7 +8,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::{crypto_algorithms::SigningKeyAlgorithm, DeviceId, Error, KeyName};
+use crate::{crypto_algorithms::SigningKeyAlgorithm, DeviceId, KeyName};
 
 /// A key algorithm and key name delimited by a colon
 pub struct KeyId<A, K: ?Sized> {
@@ -57,7 +57,7 @@ impl<A, K: ?Sized> KeyId<A, K> {
     }
 }
 
-fn try_from<S, A, K: ?Sized>(key_identifier: S) -> Result<KeyId<A, K>, Error>
+fn try_from<S, A, K: ?Sized>(key_identifier: S) -> Result<KeyId<A, K>, crate::Error>
 where
     S: AsRef<str> + Into<Box<str>>,
 {

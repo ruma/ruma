@@ -62,7 +62,7 @@ where
     impl<'de> Visitor<'de> for IntOrStringVisitor {
         type Value = Int;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             formatter.write_str("an integer or a string")
         }
 
@@ -152,7 +152,7 @@ where
     {
         type Value = BTreeMap<T, Int>;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             formatter.write_str("a map with integers or stings as values")
         }
 

@@ -78,7 +78,7 @@ impl PushCondition {
     /// * `context` - The context of the room at the time of the event.
     pub fn applies(&self, event: &FlattenedJson, context: &PushConditionRoomCtx) -> bool {
         match self {
-            Self::EventMatch { key, pattern } => check_event_match(event, &key, &pattern, context),
+            Self::EventMatch { key, pattern } => check_event_match(event, key, pattern, context),
             Self::ContainsDisplayName => {
                 let value = match event.get("content.body") {
                     Some(v) => v,

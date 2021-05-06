@@ -19,7 +19,7 @@ impl RenameAttr {
 }
 
 impl Parse for RenameAttr {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let _: kw::rename = input.parse()?;
         let _: Token![=] = input.parse()?;
         Ok(Self(input.parse()?))
@@ -35,7 +35,7 @@ impl RenameAllAttr {
 }
 
 impl Parse for RenameAllAttr {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let _: kw::rename_all = input.parse()?;
         let _: Token![=] = input.parse()?;
         let s: LitStr = input.parse()?;

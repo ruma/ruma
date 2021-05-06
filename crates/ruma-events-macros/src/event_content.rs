@@ -41,7 +41,7 @@ impl EventMeta {
 }
 
 impl Parse for EventMeta {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
         if lookahead.peek(Token![type]) {
             let _: Token![type] = input.parse()?;
@@ -72,7 +72,7 @@ impl MetaAttrs {
 }
 
 impl Parse for MetaAttrs {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let attrs = syn::punctuated::Punctuated::<EventMeta, Token![,]>::parse_terminated(input)?;
         Ok(Self(attrs.into_iter().collect()))
     }

@@ -313,8 +313,8 @@ fn collect_lifetime_idents(lifetimes: &mut BTreeSet<Lifetime>, ty: &Type) {
 
 fn req_res_meta_word<T>(
     attr_kind: &str,
-    field: &syn::Field,
-    newtype_body_field: &mut Option<syn::Field>,
+    field: &Field,
+    newtype_body_field: &mut Option<Field>,
     body_field_kind: T,
     raw_field_kind: T,
 ) -> syn::Result<T> {

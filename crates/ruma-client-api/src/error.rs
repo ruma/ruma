@@ -168,7 +168,7 @@ impl AsRef<str> for ErrorKind {
             Self::Exclusive => "M_EXCLUSIVE",
             Self::ResourceLimitExceeded { .. } => "M_RESOURCE_LIMIT_EXCEEDED",
             Self::CannotLeaveServerNoticeRoom => "M_CANNOT_LEAVE_SERVER_NOTICE_ROOM",
-            Self::_Custom { errcode, .. } => &errcode,
+            Self::_Custom { errcode, .. } => errcode,
         }
     }
 }
@@ -216,7 +216,7 @@ impl EndpointError for Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "[{} / {}] {}", self.status_code.as_u16(), self.kind, self.message)
     }
 }
