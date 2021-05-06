@@ -190,7 +190,7 @@ mod tests {
 
     #[test]
     fn eq_range_contains_its_own_count() {
-        let count = 2u32.into();
+        let count = 2_u32.into();
         let range = RoomMemberCountIs::from(count);
 
         assert!(range.contains(&count));
@@ -199,7 +199,7 @@ mod tests {
     #[test]
     fn ge_range_contains_large_number() {
         let range = RoomMemberCountIs::from(uint!(2)..);
-        let large_number = 9001u32.into();
+        let large_number = 9001_u32.into();
 
         assert!(range.contains(&large_number));
     }

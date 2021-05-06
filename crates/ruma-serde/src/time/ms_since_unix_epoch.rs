@@ -67,12 +67,12 @@ mod tests {
 
     #[test]
     fn issue_446() {
-        let json = json!({ "timestamp": 15159743990000u64 });
+        let json = json!({ "timestamp": 15_159_743_990_000_u64 });
 
         assert_matches!(
             serde_json::from_value::<SystemTimeTest>(json),
             Ok(SystemTimeTest { timestamp })
-            if timestamp == UNIX_EPOCH + Duration::from_millis(15159743990000)
+            if timestamp == UNIX_EPOCH + Duration::from_millis(15_159_743_990_000)
         );
     }
 

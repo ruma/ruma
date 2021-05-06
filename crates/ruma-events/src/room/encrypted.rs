@@ -191,7 +191,9 @@ mod tests {
                 .deserialize()
                 .unwrap();
 
-        assert_matches!(content.scheme, EncryptedEventScheme::MegolmV1AesSha2(MegolmV1AesSha2Content {
+        assert_matches!(
+            content.scheme,
+            EncryptedEventScheme::MegolmV1AesSha2(MegolmV1AesSha2Content {
                 ciphertext,
                 sender_key,
                 device_id,
@@ -204,7 +206,7 @@ mod tests {
 
         assert_matches!(
             content.relates_to,
-            Option::<Relation>::Some(Relation::Reply { in_reply_to })
+            Some(Relation::Reply { in_reply_to })
                 if in_reply_to.event_id == event_id!("$h29iv0s8:example.com")
         );
     }
@@ -231,7 +233,7 @@ mod tests {
                 assert_eq!(c.sender_key, "test_key");
                 assert_eq!(c.ciphertext.len(), 1);
                 assert_eq!(c.ciphertext["test_curve_key"].body, "encrypted_body");
-                assert_eq!(c.ciphertext["test_curve_key"].message_type, 1u16.into());
+                assert_eq!(c.ciphertext["test_curve_key"].message_type, 1_u16.into());
             }
             _ => panic!("Wrong content type, expected a OlmV1 content"),
         }

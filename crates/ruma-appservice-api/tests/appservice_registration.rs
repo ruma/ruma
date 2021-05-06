@@ -18,7 +18,7 @@ fn registration_deserialization() {
               regex: "#_irc_bridge_.*"
           rooms: []
         "##;
-    let observed = serde_yaml::from_str(&registration_config).unwrap();
+    let observed = serde_yaml::from_str(registration_config).unwrap();
     assert_matches!(
         observed,
         Registration {
@@ -59,7 +59,7 @@ fn config_with_optional_url() {
           rooms: []
         "#;
     assert_matches!(
-        serde_yaml::from_str(&registration_config).unwrap(),
+        serde_yaml::from_str(registration_config).unwrap(),
         Registration { url, .. } if url == "null"
     );
 }

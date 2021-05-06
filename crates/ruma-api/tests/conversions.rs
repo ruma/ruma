@@ -1,5 +1,5 @@
 use ruma_api::{
-    ruma_api, IncomingRequest as _, OutgoingRequest as _, OutgoingRequestAppserviceExt as _,
+    ruma_api, IncomingRequest as _, OutgoingRequest as _, OutgoingRequestAppserviceExt,
     SendAccessToken,
 };
 use ruma_identifiers::{user_id, UserId};
@@ -91,7 +91,7 @@ fn request_with_user_id_serde() {
 }
 
 mod without_query {
-    use super::*;
+    use super::{ruma_api, user_id, OutgoingRequestAppserviceExt, SendAccessToken, UserId};
 
     ruma_api! {
         metadata: {

@@ -926,7 +926,7 @@ mod tests {
 
         let context_one_to_one = &PushConditionRoomCtx {
             room_id: room_id!("!dm:server.name"),
-            member_count: 2u32.into(),
+            member_count: 2_u32.into(),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
             default_power_level: 50.into(),
@@ -935,7 +935,7 @@ mod tests {
 
         let context_public_room = &PushConditionRoomCtx {
             room_id: room_id!("!far_west:server.name"),
-            member_count: 100u32.into(),
+            member_count: 100_u32.into(),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
             default_power_level: 50.into(),
@@ -1025,7 +1025,7 @@ mod tests {
     fn custom_ruleset_applies() {
         let context_one_to_one = &PushConditionRoomCtx {
             room_id: room_id!("!dm:server.name"),
-            member_count: 2u32.into(),
+            member_count: 2_u32.into(),
             user_display_name: "Jolly Jumper".into(),
             users_power_levels: BTreeMap::new(),
             default_power_level: 50.into(),

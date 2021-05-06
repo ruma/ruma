@@ -484,7 +484,7 @@ mod tests {
 
         let context = PushConditionRoomCtx {
             room_id: room_id!("!room:server.name"),
-            member_count: 3u8.into(),
+            member_count: 3_u8.into(),
             user_display_name: "Groovy Gorilla".into(),
             users_power_levels,
             default_power_level: 50.into(),

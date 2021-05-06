@@ -1,7 +1,7 @@
 [alias]
 xtask = "run --package xtask --"
 ruma-clippy = """\
-  clippy -p ruma --workspace --all-targets --all-features --quiet -- \
+  clippy --workspace --all-targets --all-features --quiet -- \
     -W rust_2018_idioms \
     -W semicolon_in_expressions_from_macros \
     -W unused_import_braces \

@@ -170,7 +170,7 @@ mod tests {
                 SendAccessToken::IfRequired("auth_tok"),
             )
             .unwrap();
-        let json_body: serde_json::Value = serde_json::from_slice(&req.body()).unwrap();
+        let json_body: serde_json::Value = serde_json::from_slice(req.body()).unwrap();
 
         assert_eq!(
             1,

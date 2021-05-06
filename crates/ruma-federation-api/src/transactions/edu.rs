@@ -341,7 +341,7 @@ mod test {
                     "m.read": {
                         "@john:matrix.org": {
                             "data": {
-                                "ts": 1533358
+                                "ts": 1_533_358
                             },
                             "event_ids": [
                                 "$read_this_event:matrix.org"
