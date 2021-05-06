@@ -39,19 +39,17 @@ impl CiTask {
 
     fn build_msrv(&self) -> xshell::Result<()> {
         let _p = pushd("crates/ruma")?;
-        cmd!("rustup run {MSRV} cargo build --features full --quiet").run()
+        cmd!("rustup run {MSRV} cargo build --features full").run()
     }
 
     fn build_stable(&self) -> xshell::Result<()> {
         vec![
-            cmd!("rustup run stable cargo test --workspace --quiet").run(),
-            cmd!("rustup run stable cargo test -p ruma-identifiers --no-default-features --quiet")
-                .run(),
-            cmd!("rustup run stable cargo test -p ruma-identifiers --all-features --quiet").run(),
-            cmd!("rustup run stable cargo test -p ruma-client-api --all-features --quiet").run(),
-            cmd!("rustup run stable cargo check -p ruma-client --no-default-features --quiet")
-                .run(),
-            cmd!("rustup run stable cargo check -p ruma-client --all-features --quiet").run(),
+            cmd!("rustup run stable cargo test --workspace").run(),
+            cmd!("rustup run stable cargo test -p ruma-identifiers --no-default-features").run(),
+            cmd!("rustup run stable cargo test -p ruma-identifiers --all-features").run(),
+            cmd!("rustup run stable cargo test -p ruma-client-api --all-features").run(),
+            cmd!("rustup run stable cargo check -p ruma-client --no-default-features").run(),
+            cmd!("rustup run stable cargo check -p ruma-client --all-features").run(),
         ]
         .into_iter()
         .collect()
@@ -61,11 +59,8 @@ impl CiTask {
         vec![
             cmd!("rustup run nightly cargo fmt -- --check").run(),
             cmd!("rustup run nightly cargo ruma-clippy -D warnings").run(),
-            cmd!(
-                "rustup run nightly cargo clippy -p ruma-client
-                    --all-targets --quiet -- -D warnings"
-            )
-            .run(),
+            cmd!("rustup run nightly cargo clippy -p ruma-client --all-targets -- -D warnings")
+                .run(),
         ]
         .into_iter()
         .collect()
