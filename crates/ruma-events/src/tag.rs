@@ -2,7 +2,7 @@
 
 use std::{
     collections::BTreeMap,
-    convert::TryFrom,
+    error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     str::FromStr,
 };
@@ -54,16 +54,29 @@ impl AsRef<str> for UserTagName {
 }
 
 impl FromStr for UserTagName {
-    type Err = &'static str;
+    type Err = InvalidUserTagName;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.starts_with("u.") {
             Ok(Self { name: s.into() })
         } else {
-            Err("missing 'u.' prefix")
+            Err(InvalidUserTagName)
         }
     }
 }
+
+/// An error returned when attempting to create a UserTagName with a string that would make it
+/// invalid.
+#[derive(Debug)]
+pub struct InvalidUserTagName;
+
+impl Display for InvalidUserTagName {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "missing 'u.' prefix in UserTagName")
+    }
+}
+
+impl Error for InvalidUserTagName {}
 
 /// The name of a tag.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
