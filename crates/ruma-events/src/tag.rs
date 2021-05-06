@@ -145,7 +145,7 @@ impl fmt::Display for TagName {
     }
 }
 
-impl<'de> serde::Deserialize<'de> for TagName {
+impl<'de> Deserialize<'de> for TagName {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -155,7 +155,7 @@ impl<'de> serde::Deserialize<'de> for TagName {
     }
 }
 
-impl serde::Serialize for TagName {
+impl Serialize for TagName {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
