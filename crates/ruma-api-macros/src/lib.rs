@@ -8,8 +8,6 @@
 //!
 //! [ruma-api]: https://github.com/ruma/ruma/tree/main/ruma-api
 
-// Remove this once https://github.com/rust-lang/rust/issues/54883 becomes stable
-#![allow(clippy::unnested_or_patterns)]
 #![recursion_limit = "256"]
 
 use proc_macro::TokenStream;

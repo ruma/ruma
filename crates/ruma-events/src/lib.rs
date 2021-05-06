@@ -114,10 +114,6 @@
 #![recursion_limit = "1024"]
 #![warn(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
-// This lint is no good
-#![allow(clippy::new_without_default)]
-// Remove this once our MSRV is >= 1.53
-#![allow(clippy::unnested_or_patterns)]
 
 use std::fmt::Debug;
 

@@ -215,7 +215,6 @@ mod tests {
 
     use super::EventType;
 
-    #[allow(clippy::cognitive_complexity)]
     #[test]
     fn serialize_and_deserialize_from_display_form() {
         serde_json_eq(EventType::CallAnswer, json!("m.call.answer"));
