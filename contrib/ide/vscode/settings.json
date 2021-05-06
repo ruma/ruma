@@ -1,3 +1,4 @@
 {
-    "rust-analyzer.cargo.allFeatures": true
+    "rust-analyzer.cargo.allFeatures": true,
+    "rust-analyzer.checkOnSave.command": "ruma-clippy"
 }

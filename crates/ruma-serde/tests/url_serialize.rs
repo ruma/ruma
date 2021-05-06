@@ -88,7 +88,7 @@ fn serialize_multiple_lists() {
 
 #[test]
 fn serialize_nested_list() {
-    let params = &[("list", vec![vec![0u8]])];
+    let params = &[("list", vec![vec![0_u8]])];
     assert_matches!(
         urlencoded::to_string(params),
         Err(Error::Custom(s)) if s.contains("unsupported")

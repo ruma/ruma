@@ -170,7 +170,7 @@ fn split_id(id: &str) -> Result<(Algorithm, String), SplitError<'_>> {
 mod tests {
     use std::collections::BTreeMap;
 
-    use base64::{decode_config, STANDARD_NO_PAD};
+    use base64::{decode_config, encode_config, STANDARD_NO_PAD};
     use ring::signature::{Ed25519KeyPair as RingEd25519KeyPair, KeyPair as _};
     use ruma_identifiers::RoomVersionId;
     use serde_json::{from_str as from_json_str, to_string as to_json_string};
@@ -186,12 +186,10 @@ mod tests {
 
     /// Convenience method for getting the public key as a string
     fn public_key_string() -> String {
-        base64::encode_config(
-            &RingEd25519KeyPair::from_pkcs8(
-                &base64::decode_config(PKCS8, STANDARD_NO_PAD).unwrap(),
-            )
-            .unwrap()
-            .public_key(),
+        encode_config(
+            &RingEd25519KeyPair::from_pkcs8(&decode_config(PKCS8, STANDARD_NO_PAD).unwrap())
+                .unwrap()
+                .public_key(),
             STANDARD_NO_PAD,
         )
     }

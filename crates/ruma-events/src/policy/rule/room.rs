@@ -56,7 +56,7 @@ mod tests {
                 "recommendation": "m.ban"
             },
             "event_id": "$143273582443PhrSn:example.org",
-            "origin_server_ts": 1432735824653u64,
+            "origin_server_ts": 1_432_735_824_653_u64,
             "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
             "sender": "@example:example.org",
             "state_key": "rule:#*:example.org",
@@ -78,7 +78,7 @@ mod tests {
                 "recommendation": "m.ban"
             },
             "event_id": "$143273582443PhrSn:example.org",
-            "origin_server_ts": 1432735824653u64,
+            "origin_server_ts": 1_432_735_824_653_u64,
             "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
             "sender": "@example:example.org",
             "state_key": "rule:#*:example.org",

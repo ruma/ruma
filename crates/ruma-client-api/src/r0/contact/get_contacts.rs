@@ -112,8 +112,8 @@ mod tests {
         let third_party_id_serialized = json!({
             "medium": "email",
             "address": "monkey@banana.island",
-            "validated_at": 1_535_176_800_000u64,
-            "added_at": 1_535_336_848_756u64
+            "validated_at": 1_535_176_800_000_u64,
+            "added_at": 1_535_336_848_756_u64
         });
 
         assert_eq!(to_json_value(third_party_id.clone()).unwrap(), third_party_id_serialized);
