@@ -1,11 +1,6 @@
 //! Types for the *m.tag* event.
 
-use std::{
-    collections::BTreeMap,
-    error::Error,
-    fmt::{Display, Formatter, Result as FmtResult},
-    str::FromStr,
-};
+use std::{collections::BTreeMap, error::Error, fmt, str::FromStr};
 
 use ruma_events_macros::BasicEventContent;
 use ruma_serde::deserialize_cow_str;
@@ -70,8 +65,8 @@ impl FromStr for UserTagName {
 #[derive(Debug)]
 pub struct InvalidUserTagName;
 
-impl Display for InvalidUserTagName {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+impl fmt::Display for InvalidUserTagName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "missing 'u.' prefix in UserTagName")
     }
 }
@@ -144,8 +139,8 @@ where
     }
 }
 
-impl Display for TagName {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+impl fmt::Display for TagName {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.as_ref())
     }
 }
