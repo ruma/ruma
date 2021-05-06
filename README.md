@@ -1,6 +1,7 @@
 # Ruma – Your home in Matrix.
 
-A set of [Rust] crates (libraries) for interacting with the [Matrix] chat network.
+A set of [Rust] crates (libraries) for interacting with the [Matrix] chat
+network.
 
 [website] • [chat] • [unstable documentation][docs]
 
@@ -31,11 +32,9 @@ can also find versioned documentation [on docs.rs](https://docs.rs/ruma/).
 
 ## Status
 
-As of 2021-01-19, we support the vast majority of endpoints in all of the various Matrix APIs
-except the identity service API (if you want to help with that, have a look at the
-[crate/ruma-identity-service-api][id-api] label).
-
-[id-api]: https://github.com/ruma/ruma/issues?q=is%3Aissue+is%3Aopen+label%3Acrate%2Fruma-identity-service-api
+As of 2021-05-06, we support the vast majority of endpoints in all of the
+various Matrix APIs, the notable exception being the identity service API,
+where a few endpoints are still missing.
 
 ## Contributing
 
