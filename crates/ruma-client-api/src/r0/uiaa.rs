@@ -1,4 +1,6 @@
-//! Module for User-Interactive Authentication API types.
+//! Module for [User-Interactive Authentication API][uiaa] types.
+//!
+//! [uiaa]: https://matrix.org/docs/spec/client_server/r0.6.1#user-interactive-authentication-api
 
 use std::{collections::BTreeMap, fmt};
 
