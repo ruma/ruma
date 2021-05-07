@@ -96,6 +96,10 @@ pub use ruma_events as events;
 #[cfg_attr(docsrs, doc(cfg(feature = "signatures")))]
 #[doc(inline)]
 pub use ruma_signatures as signatures;
+#[cfg(feature = "state-res")]
+#[cfg_attr(docsrs, doc(cfg(feature = "state-res")))]
+#[doc(inline)]
+pub use ruma_state_res as state_res;
 
 /// (De)serializable types for various [Matrix APIs][apis] requests and responses and abstractions
 /// for them.
