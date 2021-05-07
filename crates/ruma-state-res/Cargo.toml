@@ -12,11 +12,15 @@ version = "0.1.0"
 edition = "2018"
 
 [features]
-unstable-pre-spec = ["ruma/unstable-pre-spec"]
+unstable-pre-spec = ["ruma-events/unstable-pre-spec"]
 
 [dependencies]
 itertools = "0.10.0"
-ruma = { version = "0.0.3", path = "../ruma", features = ["events", "signatures"] }
+js_int = "0.2.0"
+ruma-identifiers = { version = "0.19.0", path = "../ruma-identifiers" }
+ruma-events = { version = "=0.22.0-alpha.3", path = "../ruma-events" }
+ruma-serde = { version = "0.3.1", path = "../ruma-serde" }
+ruma-signatures = { version = "0.7.0", path = "../ruma-signatures" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.60"
 maplit = "1.0.2"

@@ -7,16 +7,14 @@ use std::{
 
 use maplit::btreeset;
 use room_version::RoomVersion;
-use ruma::{
-    events::{
-        room::{
-            member::{MemberEventContent, MembershipState},
-            power_levels::PowerLevelsEventContent,
-        },
-        EventType,
+use ruma_events::{
+    room::{
+        member::{MemberEventContent, MembershipState},
+        power_levels::PowerLevelsEventContent,
     },
-    EventId, RoomId, RoomVersionId,
+    EventType,
 };
+use ruma_identifiers::{EventId, RoomId, RoomVersionId};
 
 mod error;
 pub mod event_auth;

@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use ruma_events::EventType;
 use ruma_state_res::{event_auth::valid_membership_change, StateMap};
 // use ruma_state_res::event_auth:::{
 //     auth_check, auth_types_for_event, can_federate, check_power_levels, check_redaction,
@@ -22,7 +23,7 @@ fn test_ban_pass() {
     let requester = to_pdu_event(
         "HELLO",
         alice(),
-        ruma::events::EventType::RoomMember,
+        EventType::RoomMember,
         Some(charlie().as_str()),
         member_content_ban(),
         &[],
@@ -54,7 +55,7 @@ fn test_ban_fail() {
     let requester = to_pdu_event(
         "HELLO",
         charlie(),
-        ruma::events::EventType::RoomMember,
+        EventType::RoomMember,
         Some(alice().as_str()),
         member_content_ban(),
         &[],

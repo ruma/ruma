@@ -1,10 +1,8 @@
 use std::{sync::Arc, time::UNIX_EPOCH};
 
 use maplit::btreemap;
-use ruma::{
-    events::{room::join_rules::JoinRule, EventType},
-    EventId, RoomVersionId,
-};
+use ruma_events::{room::join_rules::JoinRule, EventType};
+use ruma_identifiers::{EventId, RoomVersionId};
 use ruma_state_res::{EventMap, StateMap, StateResolution};
 use serde_json::json;
 use tracing_subscriber as tracer;

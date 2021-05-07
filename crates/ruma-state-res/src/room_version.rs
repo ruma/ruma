@@ -1,4 +1,4 @@
-use ruma::RoomVersionId;
+use ruma_identifiers::RoomVersionId;
 
 use crate::{Error, Result};
 

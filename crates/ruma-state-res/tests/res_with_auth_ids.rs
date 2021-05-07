@@ -2,7 +2,8 @@
 
 use std::{collections::BTreeMap, sync::Arc};
 
-use ruma::{events::EventType, EventId, RoomVersionId};
+use ruma_events::EventType;
+use ruma_identifiers::{EventId, RoomVersionId};
 use ruma_state_res::{EventMap, StateMap, StateResolution};
 use serde_json::json;
 

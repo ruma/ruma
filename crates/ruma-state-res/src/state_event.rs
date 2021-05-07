@@ -1,9 +1,8 @@
 use std::{collections::BTreeMap, time::SystemTime};
 
-use ruma::{
-    events::{pdu::EventHash, EventType},
-    EventId, RoomId, ServerName, UInt, UserId,
-};
+use js_int::UInt;
+use ruma_events::{pdu::EventHash, EventType};
+use ruma_identifiers::{EventId, RoomId, ServerName, ServerSigningKeyId, UserId};
 use serde_json::value::Value as JsonValue;
 
 /// Abstraction of a PDU so users can have their own PDU types.
@@ -48,5 +47,5 @@ pub trait Event {
 
     fn hashes(&self) -> &EventHash;
 
-    fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ruma::ServerSigningKeyId, String>>;
+    fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>>;
 }

@@ -13,18 +13,17 @@ use std::{
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use event::StateEvent;
+use js_int::uint;
 use maplit::btreemap;
-use ruma::{
-    events::{
-        pdu::{EventHash, Pdu, RoomV3Pdu},
-        room::{
-            join_rules::JoinRule,
-            member::{MemberEventContent, MembershipState},
-        },
-        EventType,
+use ruma_events::{
+    pdu::{EventHash, Pdu, RoomV3Pdu},
+    room::{
+        join_rules::JoinRule,
+        member::{MemberEventContent, MembershipState},
     },
-    EventId, RoomId, RoomVersionId, UserId,
+    EventType,
 };
+use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use ruma_state_res::{Error, Event, EventMap, Result, StateMap, StateResolution};
 use serde_json::{json, Value as JsonValue};
 
@@ -387,7 +386,7 @@ where
             origin: "foo".into(),
             auth_events,
             prev_events,
-            depth: ruma::uint!(0),
+            depth: uint!(0),
             hashes: EventHash { sha256: "".into() },
             signatures: btreemap! {},
         }),
@@ -525,14 +524,16 @@ fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<StateEvent>> {
 pub mod event {
     use std::{collections::BTreeMap, time::SystemTime};
 
-    use ruma::{
-        events::{
-            pdu::{EventHash, Pdu},
-            room::member::MembershipState,
-            EventType,
-        },
-        EventId, RoomId, RoomVersionId, ServerName, ServerSigningKeyId, UInt, UserId,
+    use js_int::UInt;
+    use ruma_events::{
+        pdu::{EventHash, Pdu},
+        room::member::MembershipState,
+        EventType,
     };
+    use ruma_identifiers::{
+        EventId, RoomId, RoomVersionId, ServerName, ServerSigningKeyId, UserId,
+    };
+    use ruma_serde::CanonicalJsonObject;
     use ruma_state_res::Event;
     use serde::{Deserialize, Serialize};
     use serde_json::Value as JsonValue;
@@ -612,7 +613,7 @@ pub mod event {
 
         pub fn from_id_canon_obj(
             id: EventId,
-            json: ruma::serde::CanonicalJsonObject,
+            json: CanonicalJsonObject,
         ) -> Result<Self, serde_json::Error> {
             Ok(Self {
                 event_id: id,

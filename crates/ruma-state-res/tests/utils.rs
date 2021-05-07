@@ -7,18 +7,17 @@ use std::{
     time::{Duration, UNIX_EPOCH},
 };
 
+use js_int::uint;
 use maplit::btreemap;
-use ruma::{
-    events::{
-        pdu::{EventHash, Pdu, RoomV3Pdu},
-        room::{
-            join_rules::JoinRule,
-            member::{MemberEventContent, MembershipState},
-        },
-        EventType,
+use ruma_events::{
+    pdu::{EventHash, Pdu, RoomV3Pdu},
+    room::{
+        join_rules::JoinRule,
+        member::{MemberEventContent, MembershipState},
     },
-    EventId, RoomId, RoomVersionId, UserId,
+    EventType,
 };
+use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use ruma_state_res::{auth_types_for_event, Error, Event, Result, StateMap, StateResolution};
 use serde_json::{json, Value as JsonValue};
 use tracing_subscriber as tracer;
@@ -350,7 +349,7 @@ pub fn to_init_pdu_event(
             origin: "foo".into(),
             auth_events: vec![],
             prev_events: vec![],
-            depth: ruma::uint!(0),
+            depth: uint!(0),
             hashes: EventHash { sha256: "".into() },
             signatures: btreemap! {},
         }),
@@ -395,7 +394,7 @@ where
             origin: "foo".into(),
             auth_events,
             prev_events,
-            depth: ruma::uint!(0),
+            depth: uint!(0),
             hashes: EventHash { sha256: "".into() },
             signatures: btreemap! {},
         }),
@@ -499,14 +498,16 @@ pub fn INITIAL_EDGES() -> Vec<EventId> {
 pub mod event {
     use std::{collections::BTreeMap, time::SystemTime};
 
-    use ruma::{
-        events::{
-            pdu::{EventHash, Pdu},
-            room::member::{MemberEventContent, MembershipState},
-            EventType,
-        },
-        EventId, RoomId, RoomVersionId, ServerName, UInt, UserId,
+    use js_int::UInt;
+    use ruma_events::{
+        pdu::{EventHash, Pdu},
+        room::member::{MemberEventContent, MembershipState},
+        EventType,
     };
+    use ruma_identifiers::{
+        EventId, RoomId, RoomVersionId, ServerName, ServerSigningKeyId, UserId,
+    };
+    use ruma_serde::CanonicalJsonObject;
     use ruma_state_res::Event;
     use serde::{Deserialize, Serialize};
     use serde_json::Value as JsonValue;
@@ -552,9 +553,7 @@ pub mod event {
         fn hashes(&self) -> &EventHash {
             self.hashes()
         }
-        fn signatures(
-            &self,
-        ) -> BTreeMap<Box<ServerName>, BTreeMap<ruma::ServerSigningKeyId, String>> {
+        fn signatures(&self) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>> {
             self.signatures()
         }
         fn unsigned(&self) -> &BTreeMap<String, JsonValue> {
@@ -579,7 +578,7 @@ pub mod event {
 
         pub fn from_id_canon_obj(
             id: EventId,
-            json: ruma::serde::CanonicalJsonObject,
+            json: CanonicalJsonObject,
         ) -> Result<Self, serde_json::Error> {
             Ok(Self {
                 event_id: id,
@@ -704,7 +703,7 @@ pub mod event {
 
         pub fn signatures(
             &self,
-        ) -> BTreeMap<Box<ServerName>, BTreeMap<ruma::ServerSigningKeyId, String>> {
+        ) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>> {
             match &self.rest {
                 Pdu::RoomV1Pdu(_) => maplit::btreemap! {},
                 Pdu::RoomV3Pdu(ev) => ev.signatures.clone(),

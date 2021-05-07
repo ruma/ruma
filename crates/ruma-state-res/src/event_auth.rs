@@ -1,19 +1,19 @@
 use std::{convert::TryFrom, sync::Arc};
 
+use js_int::int;
 use log::warn;
 use maplit::btreeset;
-use ruma::{
-    events::{
-        room::{
-            create::CreateEventContent,
-            join_rules::{JoinRule, JoinRulesEventContent},
-            member::{MembershipState, ThirdPartyInvite},
-            power_levels::PowerLevelsEventContent,
-        },
-        EventType,
+use ruma_events::{
+    room::{
+        create::CreateEventContent,
+        join_rules::{JoinRule, JoinRulesEventContent},
+        member::{MembershipState, ThirdPartyInvite},
+        power_levels::PowerLevelsEventContent,
+        third_party_invite::ThirdPartyInviteEventContent,
     },
-    RoomVersionId, UserId,
+    EventType,
 };
+use ruma_identifiers::{RoomVersionId, UserId};
 
 use crate::{room_version::RoomVersion, Error, Event, Result, StateMap};
 
@@ -799,7 +799,7 @@ pub fn can_send_invite<E: Event>(event: &Arc<E>, auth_events: &StateMap<Arc<E>>)
     let invite_level = auth_events
         .get(&key)
         .map_or_else(
-            || Ok::<_, Error>(ruma::int!(50)),
+            || Ok::<_, Error>(int!(50)),
             |power_levels| {
                 serde_json::from_value::<PowerLevelsEventContent>(power_levels.content())
                     .map(|pl| pl.invite)
@@ -837,9 +837,8 @@ pub fn verify_third_party_invite<E: Event>(
 
         // If any signature in signed matches any public key in the m.room.third_party_invite event,
         // allow
-        if let Ok(tpid_ev) = serde_json::from_value::<
-            ruma::events::room::third_party_invite::ThirdPartyInviteEventContent,
-        >(current_tpid.content())
+        if let Ok(tpid_ev) =
+            serde_json::from_value::<ThirdPartyInviteEventContent>(current_tpid.content())
         {
             // A list of public keys in the public_keys field
             for key in tpid_ev.public_keys.unwrap_or_default() {
