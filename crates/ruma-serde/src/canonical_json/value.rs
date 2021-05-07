@@ -119,6 +119,22 @@ impl CanonicalJsonValue {
             _ => None,
         }
     }
+
+    /// If the `CanonicalJsonValue` is an `Array`, return a mutable reference to the inner value.
+    pub fn as_array_mut(&mut self) -> Option<&mut Vec<CanonicalJsonValue>> {
+        match self {
+            Self::Array(a) => Some(a),
+            _ => None,
+        }
+    }
+
+    /// If the `CanonicalJsonValue` is an `Object`, return a mutable reference to the inner value.
+    pub fn as_object_mut(&mut self) -> Option<&mut Object> {
+        match self {
+            Self::Object(o) => Some(o),
+            _ => None,
+        }
+    }
 }
 
 impl Default for CanonicalJsonValue {
