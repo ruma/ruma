@@ -6,7 +6,6 @@ use std::{
 };
 
 use maplit::btreeset;
-use room_version::RoomVersion;
 use ruma_events::{
     room::{
         member::{MemberEventContent, MembershipState},
@@ -24,6 +23,7 @@ mod state_event;
 
 pub use error::{Error, Result};
 pub use event_auth::{auth_check, auth_types_for_event};
+pub use room_version::RoomVersion;
 pub use state_event::Event;
 
 /// A mapping of event type and state_key to some value `T`, usually an `EventId`.
