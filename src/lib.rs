@@ -59,7 +59,7 @@ impl StateResolution {
         log::info!("State resolution starting");
 
         // split non-conflicting and conflicting state
-        let (clean, conflicting) = StateResolution::separate(&state_sets);
+        let (clean, conflicting) = StateResolution::separate(state_sets);
 
         log::info!("non conflicting {:?}", clean.len());
 
@@ -96,7 +96,7 @@ impl StateResolution {
         // get only the control events with a state_key: "" or ban/kick event (sender != state_key)
         let control_events = all_conflicted
             .iter()
-            .filter(|id| is_power_event_id(id, &event_map))
+            .filter(|id| is_power_event_id(id, event_map))
             .cloned()
             .collect::<Vec<_>>();
 
@@ -281,7 +281,7 @@ impl StateResolution {
         // this is used in the `key_fn` passed to the lexico_topo_sort fn
         let mut event_to_pl = BTreeMap::new();
         for event_id in graph.keys() {
-            let pl = StateResolution::get_power_level_for_sender(room_id, &event_id, event_map);
+            let pl = StateResolution::get_power_level_for_sender(room_id, event_id, event_map);
             log::info!("{} power level {}", event_id.to_string(), pl);
 
             event_to_pl.insert(event_id.clone(), pl);
@@ -408,12 +408,11 @@ impl StateResolution {
             return 0;
         }
 
-        if let Some(content) = pl
-            .map(|pl| serde_json::from_value::<PowerLevelsEventContent>(pl.content()).ok())
-            .flatten()
+        if let Some(content) =
+            pl.and_then(|pl| serde_json::from_value::<PowerLevelsEventContent>(pl.content()).ok())
         {
             if let Ok(ev) = event {
-                if let Some(user) = content.users.get(&ev.sender()) {
+                if let Some(user) = content.users.get(ev.sender()) {
                     log::debug!("found {} at power_level {}", ev.sender().as_str(), user);
                     return (*user).into();
                 }
@@ -461,7 +460,7 @@ impl StateResolution {
 
             let mut auth_events = BTreeMap::new();
             for aid in &event.auth_events() {
-                if let Ok(ev) = StateResolution::get_or_load_event(room_id, &aid, event_map) {
+                if let Ok(ev) = StateResolution::get_or_load_event(room_id, aid, event_map) {
                     // TODO synapse check "rejected_reason", I'm guessing this is redacted_because in ruma ??
                     auth_events.insert(
                         (
@@ -477,9 +476,9 @@ impl StateResolution {
                 }
             }
 
-            for key in event_auth::auth_types_for_event(
+            for key in auth_types_for_event(
                 &event.kind(),
-                &event.sender(),
+                event.sender(),
                 Some(state_key.clone()),
                 event.content(),
             ) {
@@ -510,7 +509,7 @@ impl StateResolution {
                 }
             });
 
-            if event_auth::auth_check(
+            if auth_check(
                 room_version,
                 &event,
                 most_recent_prev_event,
@@ -563,7 +562,7 @@ impl StateResolution {
             let auth_events = &event.auth_events();
             pl = None;
             for aid in auth_events {
-                let ev = StateResolution::get_or_load_event(room_id, &aid, event_map).unwrap();
+                let ev = StateResolution::get_or_load_event(room_id, aid, event_map).unwrap();
                 if is_type_and_key(&ev, EventType::RoomPowerLevels, "") {
                     pl = Some(aid.clone());
                     break;
@@ -625,7 +624,7 @@ impl StateResolution {
         while let Some(sort_ev) = event {
             log::debug!("mainline event_id {}", sort_ev.event_id().to_string());
             let id = &sort_ev.event_id();
-            if let Some(depth) = mainline_map.get(&id) {
+            if let Some(depth) = mainline_map.get(id) {
                 return Ok(*depth);
             }
 
@@ -634,7 +633,7 @@ impl StateResolution {
             event = None;
             for aid in auth_events {
                 // dbg!(&aid);
-                let aev = StateResolution::get_or_load_event(room_id, &aid, event_map)?;
+                let aev = StateResolution::get_or_load_event(room_id, aid, event_map)?;
                 if is_type_and_key(&aev, EventType::RoomPowerLevels, "") {
                     event = Some(aev);
                     break;
@@ -663,8 +662,8 @@ impl StateResolution {
                 .unwrap()
                 .auth_events()
             {
-                if auth_diff.contains(&aid) {
-                    if !graph.contains_key(&aid) {
+                if auth_diff.contains(aid) {
+                    if !graph.contains_key(aid) {
                         state.push(aid.clone());
                     }
 

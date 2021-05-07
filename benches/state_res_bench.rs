@@ -55,9 +55,9 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
         let (state_at_bob, state_at_charlie, _) = store.set_up();
 
         b.iter(|| {
-            let mut ev_map: state_res::EventMap<Arc<event::StateEvent>> = store.0.clone();
+            let mut ev_map: state_res::EventMap<Arc<StateEvent>> = store.0.clone();
             let state_sets = vec![state_at_bob.clone(), state_at_charlie.clone()];
-            let _ = match StateResolution::resolve::<event::StateEvent>(
+            let _ = match StateResolution::resolve::<StateEvent>(
                 &room_id(),
                 &RoomVersionId::Version2,
                 &state_sets,
@@ -115,7 +115,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
 
         b.iter(|| {
             let state_sets = vec![state_set_a.clone(), state_set_b.clone()];
-            let _ = match StateResolution::resolve::<event::StateEvent>(
+            let _ = match StateResolution::resolve::<StateEvent>(
                 &room_id(),
                 &RoomVersionId::Version2,
                 &state_sets,
@@ -216,7 +216,7 @@ impl<E: Event> TestStore<E> {
             Ok(chains
                 .iter()
                 .flatten()
-                .filter(|id| !common.contains(&id))
+                .filter(|id| !common.contains(id))
                 .cloned()
                 .collect::<BTreeSet<_>>()
                 .into_iter()
@@ -227,7 +227,7 @@ impl<E: Event> TestStore<E> {
     }
 }
 
-impl TestStore<event::StateEvent> {
+impl TestStore<StateEvent> {
     pub fn set_up(&mut self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
         let create_event = to_pdu_event::<EventId>(
             "CREATE",
@@ -420,7 +420,7 @@ where
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<event::StateEvent>> {
+fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
     vec![
         to_pdu_event::<EventId>(
             "CREATE",
@@ -502,7 +502,7 @@ fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<event::StateEvent>> {
 
 // all graphs start with these input events
 #[allow(non_snake_case)]
-fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<event::StateEvent>> {
+fn BAN_STATE_SET() -> BTreeMap<EventId, Arc<StateEvent>> {
     vec![
         to_pdu_event(
             "PA",
@@ -765,7 +765,7 @@ pub mod event {
 
         pub fn signatures(
             &self,
-        ) -> BTreeMap<Box<ServerName>, BTreeMap<ruma::ServerSigningKeyId, String>> {
+        ) -> BTreeMap<Box<ServerName>, BTreeMap<ServerSigningKeyId, String>> {
             match &self.rest {
                 Pdu::RoomV1Pdu(_) => maplit::btreemap! {},
                 Pdu::RoomV3Pdu(ev) => ev.signatures.clone(),

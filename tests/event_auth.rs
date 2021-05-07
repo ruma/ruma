@@ -1,13 +1,9 @@
 use std::sync::Arc;
 
-#[rustfmt::skip] // this deletes the comments for some reason yay!
-use state_res::{
-    event_auth::{
-        // auth_check, auth_types_for_event, can_federate, check_power_levels, check_redaction,
-        valid_membership_change,
-    },
-    StateMap
-};
+use state_res::{event_auth::valid_membership_change, StateMap};
+// use state_res::event_auth:::{
+//     auth_check, auth_types_for_event, can_federate, check_power_levels, check_redaction,
+// };
 
 mod utils;
 use utils::{alice, charlie, event_id, member_content_ban, to_pdu_event, INITIAL_EVENTS};

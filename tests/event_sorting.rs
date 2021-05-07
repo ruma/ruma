@@ -28,7 +28,7 @@ fn test_event_sort() {
 
     let power_events = event_map
         .values()
-        .filter(|pdu| is_power_event(&pdu))
+        .filter(|pdu| is_power_event(pdu))
         .map(|pdu| pdu.event_id().clone())
         .collect::<Vec<_>>();
 
@@ -39,7 +39,7 @@ fn test_event_sort() {
         &room_id(),
         &power_events,
         &mut events,
-        &auth_chain,
+        auth_chain,
     );
 
     // This is a TODO in conduit
