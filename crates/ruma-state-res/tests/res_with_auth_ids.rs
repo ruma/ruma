@@ -6,6 +6,7 @@ use ruma_events::EventType;
 use ruma_identifiers::{EventId, RoomVersionId};
 use ruma_state_res::{EventMap, StateMap, StateResolution};
 use serde_json::json;
+use tracing::debug;
 
 mod utils;
 use utils::{
@@ -82,7 +83,7 @@ fn ban_with_auth_chains2() {
         Err(e) => panic!("{}", e),
     };
 
-    log::debug!(
+    debug!(
         "{:#?}",
         resolved
             .iter()

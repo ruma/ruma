@@ -15,6 +15,7 @@ use ruma_events::{
     EventType,
 };
 use ruma_identifiers::{EventId, RoomId, RoomVersionId};
+use tracing::{debug, info, warn};
 
 mod error;
 pub mod event_auth;
@@ -55,31 +56,31 @@ impl StateResolution {
         auth_events: Vec<Vec<EventId>>,
         event_map: &mut EventMap<Arc<E>>,
     ) -> Result<StateMap<EventId>> {
-        log::info!("State resolution starting");
+        info!("State resolution starting");
 
         // split non-conflicting and conflicting state
         let (clean, conflicting) = StateResolution::separate(state_sets);
 
-        log::info!("non conflicting {:?}", clean.len());
+        info!("non conflicting {:?}", clean.len());
 
         if conflicting.is_empty() {
-            log::info!("no conflicting state found");
+            info!("no conflicting state found");
             return Ok(clean);
         }
 
-        log::info!("{} conflicting events", conflicting.len());
+        info!("{} conflicting events", conflicting.len());
 
         // the set of auth events that are not common across server forks
         let mut auth_diff = StateResolution::get_auth_chain_diff(room_id, &auth_events)?;
 
-        log::debug!("auth diff size {:?}", auth_diff);
+        debug!("auth diff size {:?}", auth_diff);
 
         // add the auth_diff to conflicting now we have a full set of conflicting events
         auth_diff.extend(conflicting.values().cloned().flatten());
         let mut all_conflicted =
             auth_diff.into_iter().collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
 
-        log::info!("full conflicted set is {} events", all_conflicted.len());
+        info!("full conflicted set is {} events", all_conflicted.len());
 
         // we used to check that all events are events from the correct room
         // this is now a check the caller of `resolve` must make.
@@ -104,7 +105,7 @@ impl StateResolution {
             &all_conflicted,
         );
 
-        log::debug!("SRTD {:?}", sorted_control_levels);
+        debug!("SRTD {:?}", sorted_control_levels);
 
         let room_version = RoomVersion::new(room_version)?;
         // sequentially auth check each control event.
@@ -116,7 +117,7 @@ impl StateResolution {
             event_map,
         )?;
 
-        log::debug!(
+        debug!(
             "AUTHED {:?}",
             resolved_control.iter().map(|(key, id)| (key, id.to_string())).collect::<Vec<_>>()
         );
@@ -134,20 +135,17 @@ impl StateResolution {
             .cloned()
             .collect::<Vec<_>>();
 
-        log::debug!(
-            "LEFT {:?}",
-            events_to_resolve.iter().map(ToString::to_string).collect::<Vec<_>>()
-        );
+        debug!("LEFT {:?}", events_to_resolve.iter().map(ToString::to_string).collect::<Vec<_>>());
 
         // This "epochs" power level event
         let power_event = resolved_control.get(&(EventType::RoomPowerLevels, "".into()));
 
-        log::debug!("PL {:?}", power_event);
+        debug!("PL {:?}", power_event);
 
         let sorted_left_events =
             StateResolution::mainline_sort(room_id, &events_to_resolve, power_event, event_map);
 
-        log::debug!(
+        debug!(
             "SORTED LEFT {:?}",
             sorted_left_events.iter().map(ToString::to_string).collect::<Vec<_>>()
         );
@@ -177,7 +175,7 @@ impl StateResolution {
     ) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
         use itertools::Itertools;
 
-        log::info!("seperating {} sets of events into conflicted/unconflicted", state_sets.len());
+        info!("seperating {} sets of events into conflicted/unconflicted", state_sets.len());
 
         let mut unconflicted_state = StateMap::new();
         let mut conflicted_state = StateMap::new();
@@ -242,7 +240,7 @@ impl StateResolution {
         event_map: &mut EventMap<Arc<E>>,
         auth_diff: &[EventId],
     ) -> Vec<EventId> {
-        log::debug!("reverse topological sort of power events");
+        debug!("reverse topological sort of power events");
 
         let mut graph = BTreeMap::new();
         for event_id in events_to_sort.iter() {
@@ -259,7 +257,7 @@ impl StateResolution {
         let mut event_to_pl = BTreeMap::new();
         for event_id in graph.keys() {
             let pl = StateResolution::get_power_level_for_sender(room_id, event_id, event_map);
-            log::info!("{} power level {}", event_id.to_string(), pl);
+            info!("{} power level {}", event_id.to_string(), pl);
 
             event_to_pl.insert(event_id.clone(), pl);
 
@@ -269,11 +267,11 @@ impl StateResolution {
         }
 
         StateResolution::lexicographical_topological_sort(&graph, |event_id| {
-            // log::debug!("{:?}", event_map.get(event_id).unwrap().origin_server_ts());
+            // debug!("{:?}", event_map.get(event_id).unwrap().origin_server_ts());
             let ev = event_map.get(event_id).unwrap();
             let pl = event_to_pl.get(event_id).unwrap();
 
-            log::debug!("{:?}", (-*pl, ev.origin_server_ts(), &ev.event_id()));
+            debug!("{:?}", (-*pl, ev.origin_server_ts(), &ev.event_id()));
 
             // This return value is the key used for sorting events,
             // events are then sorted by power level, time,
@@ -292,7 +290,7 @@ impl StateResolution {
     where
         F: Fn(&EventId) -> (i64, SystemTime, EventId),
     {
-        log::info!("starting lexicographical topological sort");
+        info!("starting lexicographical topological sort");
         // NOTE: an event that has no incoming edges happened most recently,
         // and an event that has no outgoing edges happened least recently.
 
@@ -356,7 +354,7 @@ impl StateResolution {
         event_id: &EventId,
         event_map: &mut EventMap<Arc<E>>,
     ) -> i64 {
-        log::info!("fetch event ({}) senders power level", event_id.to_string());
+        info!("fetch event ({}) senders power level", event_id.to_string());
 
         let event = StateResolution::get_or_load_event(room_id, event_id, event_map);
         let mut pl = None;
@@ -381,7 +379,7 @@ impl StateResolution {
         {
             if let Ok(ev) = event {
                 if let Some(user) = content.users.get(ev.sender()) {
-                    log::debug!("found {} at power_level {}", ev.sender().as_str(), user);
+                    debug!("found {} at power_level {}", ev.sender().as_str(), user);
                     return (*user).into();
                 }
             }
@@ -408,9 +406,9 @@ impl StateResolution {
         unconflicted_state: &StateMap<EventId>,
         event_map: &mut EventMap<Arc<E>>,
     ) -> Result<StateMap<EventId>> {
-        log::info!("starting iterative auth check");
+        info!("starting iterative auth check");
 
-        log::debug!(
+        debug!(
             "performing auth checks on {:?}",
             events_to_check.iter().map(ToString::to_string).collect::<Vec<_>>()
         );
@@ -438,7 +436,7 @@ impl StateResolution {
                         ev,
                     );
                 } else {
-                    log::warn!("auth event id for {} is missing {}", aid, event_id);
+                    warn!("auth event id for {} is missing {}", aid, event_id);
                 }
             }
 
@@ -457,7 +455,7 @@ impl StateResolution {
                 }
             }
 
-            log::debug!("event to check {:?}", event.event_id().as_str());
+            debug!("event to check {:?}", event.event_id().as_str());
 
             let most_recent_prev_event = event
                 .prev_events()
@@ -486,7 +484,7 @@ impl StateResolution {
                 resolved_state.insert((event.kind(), state_key), event_id.clone());
             } else {
                 // synapse passes here on AuthError. We do not add this event to resolved_state.
-                log::warn!("event {} failed the authentication check", event_id.to_string());
+                warn!("event {} failed the authentication check", event_id.to_string());
             }
 
             // TODO: if these functions are ever made async here
@@ -509,7 +507,7 @@ impl StateResolution {
         resolved_power_level: Option<&EventId>,
         event_map: &mut EventMap<Arc<E>>,
     ) -> Vec<EventId> {
-        log::debug!("mainline sort of events");
+        debug!("mainline sort of events");
 
         // There are no EventId's to sort, bail.
         if to_sort.is_empty() {
@@ -585,7 +583,7 @@ impl StateResolution {
         event_map: &mut EventMap<Arc<E>>,
     ) -> Result<usize> {
         while let Some(sort_ev) = event {
-            log::debug!("mainline event_id {}", sort_ev.event_id().to_string());
+            debug!("mainline event_id {}", sort_ev.event_id().to_string());
             let id = &sort_ev.event_id();
             if let Some(depth) = mainline_map.get(id) {
                 return Ok(*depth);

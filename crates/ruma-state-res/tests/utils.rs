@@ -20,6 +20,7 @@ use ruma_events::{
 use ruma_identifiers::{EventId, RoomId, RoomVersionId, UserId};
 use ruma_state_res::{auth_types_for_event, Error, Event, Result, StateMap, StateResolution};
 use serde_json::{json, Value as JsonValue};
+use tracing::info;
 use tracing_subscriber as tracer;
 
 pub use event::StateEvent;
@@ -95,7 +96,7 @@ pub fn do_check(
                 .cloned()
                 .collect::<Vec<_>>();
 
-            log::info!(
+            info!(
                 "{:#?}",
                 state_sets
                     .iter()

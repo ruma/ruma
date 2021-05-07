@@ -1,7 +1,6 @@
 use std::{convert::TryFrom, sync::Arc};
 
 use js_int::int;
-use log::warn;
 use maplit::btreeset;
 use ruma_events::{
     room::{
@@ -14,6 +13,7 @@ use ruma_events::{
     EventType,
 };
 use ruma_identifiers::{RoomVersionId, UserId};
+use tracing::{debug, info, warn};
 
 use crate::{room_version::RoomVersion, Error, Event, Result, StateMap};
 
@@ -89,11 +89,7 @@ pub fn auth_check<E: Event>(
     auth_events: &StateMap<Arc<E>>,
     current_third_party_invite: Option<Arc<E>>,
 ) -> Result<bool> {
-    log::info!(
-        "auth_check beginning for {} ({})",
-        incoming_event.event_id(),
-        incoming_event.kind()
-    );
+    info!("auth_check beginning for {} ({})", incoming_event.event_id(), incoming_event.kind());
 
     // [synapse] check that all the events are in the same room as `incoming_event`
 
@@ -107,17 +103,17 @@ pub fn auth_check<E: Event>(
     //
     // 1. If type is m.room.create:
     if incoming_event.kind() == EventType::RoomCreate {
-        log::info!("start m.room.create check");
+        info!("start m.room.create check");
 
         // If it has any previous events, reject
         if !incoming_event.prev_events().is_empty() {
-            log::warn!("the room creation event had previous events");
+            warn!("the room creation event had previous events");
             return Ok(false);
         }
 
         // If the domain of the room_id does not match the domain of the sender, reject
         if incoming_event.room_id().server_name() != incoming_event.sender().server_name() {
-            log::warn!("creation events server does not match sender");
+            warn!("creation events server does not match sender");
             return Ok(false); // creation events room id does not match senders
         }
 
@@ -132,17 +128,17 @@ pub fn auth_check<E: Event>(
         )
         .is_err()
         {
-            log::warn!("invalid room version found in m.room.create event");
+            warn!("invalid room version found in m.room.create event");
             return Ok(false);
         }
 
         // If content has no creator field, reject
         if incoming_event.content().get("creator").is_none() {
-            log::warn!("no creator field found in room create content");
+            warn!("no creator field found in room create content");
             return Ok(false);
         }
 
-        log::info!("m.room.create event was allowed");
+        info!("m.room.create event was allowed");
         return Ok(true);
     }
 
@@ -162,7 +158,7 @@ pub fn auth_check<E: Event>(
     for ev_key in auth_events.keys() {
         // (b)
         if !expected_auth.contains(ev_key) {
-            log::warn!("auth_events contained invalid auth event");
+            warn!("auth_events contained invalid auth event");
             return Ok(false);
         }
     }
@@ -170,7 +166,7 @@ pub fn auth_check<E: Event>(
 
     // 3. If event does not have m.room.create in auth_events reject
     if auth_events.get(&(EventType::RoomCreate, "".to_string())).is_none() {
-        log::warn!("no m.room.create event in auth chain");
+        warn!("no m.room.create event in auth chain");
 
         return Ok(false);
     }
@@ -179,23 +175,23 @@ pub fn auth_check<E: Event>(
 
     // 4. if type is m.room.aliases
     if incoming_event.kind() == EventType::RoomAliases && room_version.special_case_aliases_auth {
-        log::info!("starting m.room.aliases check");
+        info!("starting m.room.aliases check");
 
         // If sender's domain doesn't matches state_key, reject
         if incoming_event.state_key() != Some(incoming_event.sender().server_name().to_string()) {
-            log::warn!("state_key does not match sender");
+            warn!("state_key does not match sender");
             return Ok(false);
         }
 
-        log::info!("m.room.aliases event was allowed");
+        info!("m.room.aliases event was allowed");
         return Ok(true);
     }
 
     if incoming_event.kind() == EventType::RoomMember {
-        log::info!("starting m.room.member check");
+        info!("starting m.room.member check");
         let state_key = match incoming_event.state_key() {
             None => {
-                log::warn!("no statekey in member event");
+                warn!("no statekey in member event");
                 return Ok(false);
             }
             Some(s) => s,
@@ -207,7 +203,7 @@ pub fn auth_check<E: Event>(
             .map(|m| serde_json::from_value::<MembershipState>(m.clone()));
 
         if !matches!(membership, Some(Ok(_))) {
-            log::warn!("no valid membership field found for m.room.member event content");
+            warn!("no valid membership field found for m.room.member event content");
             return Ok(false);
         }
 
@@ -222,7 +218,7 @@ pub fn auth_check<E: Event>(
             return Ok(false);
         }
 
-        log::info!("m.room.member event was allowed");
+        info!("m.room.member event was allowed");
         return Ok(true);
     }
 
@@ -230,11 +226,11 @@ pub fn auth_check<E: Event>(
     match check_event_sender_in_room(incoming_event.sender(), auth_events) {
         Some(true) => {} // sender in room
         Some(false) => {
-            log::warn!("sender's membership is not join");
+            warn!("sender's membership is not join");
             return Ok(false);
         }
         None => {
-            log::warn!("sender not found in room");
+            warn!("sender not found in room");
             return Ok(false);
         }
     }
@@ -244,32 +240,32 @@ pub fn auth_check<E: Event>(
     if incoming_event.kind() == EventType::RoomThirdPartyInvite
         && !can_send_invite(incoming_event, auth_events)?
     {
-        log::warn!("sender's cannot send invites in this room");
+        warn!("sender's cannot send invites in this room");
         return Ok(false);
     }
 
     // If the event type's required power level is greater than the sender's power level, reject
     // If the event has a state_key that starts with an @ and does not match the sender, reject.
     if !can_send_event(incoming_event, auth_events) {
-        log::warn!("user cannot send event");
+        warn!("user cannot send event");
         return Ok(false);
     }
 
     if incoming_event.kind() == EventType::RoomPowerLevels {
-        log::info!("starting m.room.power_levels check");
+        info!("starting m.room.power_levels check");
 
         if let Some(required_pwr_lvl) =
             check_power_levels(room_version, incoming_event, auth_events)
         {
             if !required_pwr_lvl {
-                log::warn!("power level was not allowed");
+                warn!("power level was not allowed");
                 return Ok(false);
             }
         } else {
-            log::warn!("power level was not allowed");
+            warn!("power level was not allowed");
             return Ok(false);
         }
-        log::info!("power levels event allowed");
+        info!("power levels event allowed");
     }
 
     // Room version 3: Redaction events are always accepted (provided the event is allowed by
@@ -286,7 +282,7 @@ pub fn auth_check<E: Event>(
         return Ok(false);
     }
 
-    log::info!("allowing event passed all checks");
+    info!("allowing event passed all checks");
     Ok(true)
 }
 
@@ -497,12 +493,7 @@ pub fn can_send_event<E: Event>(event: &Arc<E>, auth_events: &StateMap<Arc<E>>) 
     let event_type_power_level = get_send_level(&event.kind(), event.state_key(), ple);
     let user_level = get_user_power_level(event.sender(), auth_events);
 
-    log::debug!(
-        "{} ev_type {} usr {}",
-        event.event_id().as_str(),
-        event_type_power_level,
-        user_level
-    );
+    debug!("{} ev_type {} usr {}", event.event_id().as_str(), event_type_power_level, user_level);
 
     if user_level < event_type_power_level {
         return false;
@@ -541,7 +532,7 @@ pub fn check_power_levels<E: Event>(
         serde_json::from_value::<PowerLevelsEventContent>(current_state.content()).unwrap();
 
     // validation of users is done in Ruma, synapse for loops validating user_ids and integers here
-    log::info!("validation of power event finished");
+    info!("validation of power event finished");
 
     let user_level = get_user_power_level(power_event.sender(), auth_events);
 
@@ -553,7 +544,7 @@ pub fn check_power_levels<E: Event>(
         user_levels_to_check.insert(user);
     }
 
-    log::debug!("users to check {:?}", user_levels_to_check);
+    debug!("users to check {:?}", user_levels_to_check);
 
     let mut event_levels_to_check = btreeset![];
     let old_list = &current_content.events;
@@ -563,7 +554,7 @@ pub fn check_power_levels<E: Event>(
         event_levels_to_check.insert(ev_id);
     }
 
-    log::debug!("events to check {:?}", event_levels_to_check);
+    debug!("events to check {:?}", event_levels_to_check);
 
     let old_state = &current_content;
     let new_state = &user_content;
@@ -581,7 +572,7 @@ pub fn check_power_levels<E: Event>(
 
         // If the current value is equal to the sender's current power level, reject
         if user != power_event.sender() && old_level.map(|int| (*int).into()) == Some(user_level) {
-            log::warn!("m.room.power_level cannot remove ops == to own");
+            warn!("m.room.power_level cannot remove ops == to own");
             return Some(false); // cannot remove ops level == to own
         }
 
@@ -590,7 +581,7 @@ pub fn check_power_levels<E: Event>(
         let old_level_too_big = old_level.map(|int| (*int).into()) > Some(user_level);
         let new_level_too_big = new_level.map(|int| (*int).into()) > Some(user_level);
         if old_level_too_big || new_level_too_big {
-            log::warn!("m.room.power_level failed to add ops > than own");
+            warn!("m.room.power_level failed to add ops > than own");
             return Some(false); // cannot add ops greater than own
         }
     }
@@ -608,7 +599,7 @@ pub fn check_power_levels<E: Event>(
         let old_level_too_big = old_level.map(|int| (*int).into()) > Some(user_level);
         let new_level_too_big = new_level.map(|int| (*int).into()) > Some(user_level);
         if old_level_too_big || new_level_too_big {
-            log::warn!("m.room.power_level failed to add ops > than own");
+            warn!("m.room.power_level failed to add ops > than own");
             return Some(false); // cannot add ops greater than own
         }
     }
@@ -623,7 +614,7 @@ pub fn check_power_levels<E: Event>(
             let old_level_too_big = i64::from(old_level) > user_level;
             let new_level_too_big = i64::from(new_level) > user_level;
             if old_level_too_big || new_level_too_big {
-                log::warn!("m.room.power_level failed to add ops > than own");
+                warn!("m.room.power_level failed to add ops > than own");
                 return Some(false); // cannot add ops greater than own
             }
         }
@@ -639,7 +630,7 @@ pub fn check_power_levels<E: Event>(
             let new_level_too_big = new_lvl > user_level;
 
             if old_level_too_big || new_level_too_big {
-                log::warn!("cannot add ops > than own");
+                warn!("cannot add ops > than own");
                 return Some(false);
             }
         }
@@ -669,7 +660,7 @@ pub fn check_redaction<E: Event>(
     let redact_level = get_named_level(auth_events, "redact", 50);
 
     if user_level >= redact_level {
-        log::info!("redaction allowed via power levels");
+        info!("redaction allowed via power levels");
         return Ok(true);
     }
 
@@ -678,7 +669,7 @@ pub fn check_redaction<E: Event>(
     if redaction_event.event_id().server_name()
         == redaction_event.redacts().as_ref().and_then(|id| id.server_name())
     {
-        log::info!("redaction event allowed via room version 1 rules");
+        info!("redaction event allowed via room version 1 rules");
         return Ok(true);
     }
 
@@ -773,7 +764,7 @@ pub fn get_send_level<E: Event>(
     state_key: Option<String>,
     power_lvl: Option<&Arc<E>>,
 ) -> i64 {
-    log::debug!("{:?} {:?}", e_type, state_key);
+    debug!("{:?} {:?}", e_type, state_key);
     power_lvl
         .and_then(|ple| {
             serde_json::from_value::<PowerLevelsEventContent>(ple.content())
