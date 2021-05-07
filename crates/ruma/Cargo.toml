@@ -82,6 +82,7 @@ markdown = ["ruma-events/markdown"]
 # Everything except compat and unstable features
 full = [
     "api",
+    "client",
     "events",
     "signatures",
     "appservice-api",
