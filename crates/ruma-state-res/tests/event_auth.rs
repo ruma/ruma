@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use state_res::{event_auth::valid_membership_change, StateMap};
-// use state_res::event_auth:::{
+use ruma_state_res::{event_auth::valid_membership_change, StateMap};
+// use ruma_state_res::event_auth:::{
 //     auth_check, auth_types_for_event, can_federate, check_power_levels, check_redaction,
 // };
 
@@ -12,10 +12,7 @@ use utils::{alice, charlie, event_id, member_content_ban, to_pdu_event, INITIAL_
 fn test_ban_pass() {
     let events = INITIAL_EVENTS();
 
-    let prev = events
-        .values()
-        .find(|ev| ev.event_id().as_str().contains("IMC"))
-        .map(Arc::clone);
+    let prev = events.values().find(|ev| ev.event_id().as_str().contains("IMC")).map(Arc::clone);
 
     let auth_events = events
         .values()
@@ -47,10 +44,7 @@ fn test_ban_pass() {
 fn test_ban_fail() {
     let events = INITIAL_EVENTS();
 
-    let prev = events
-        .values()
-        .find(|ev| ev.event_id().as_str().contains("IMC"))
-        .map(Arc::clone);
+    let prev = events.values().find(|ev| ev.event_id().as_str().contains("IMC")).map(Arc::clone);
 
     let auth_events = events
         .values()

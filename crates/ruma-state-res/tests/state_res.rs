@@ -5,8 +5,8 @@ use ruma::{
     events::{room::join_rules::JoinRule, EventType},
     EventId, RoomVersionId,
 };
+use ruma_state_res::{EventMap, StateMap, StateResolution};
 use serde_json::json;
-use state_res::{StateMap, StateResolution};
 use tracing_subscriber as tracer;
 
 mod utils;
@@ -48,18 +48,12 @@ fn ban_vs_power_level() {
         ),
     ];
 
-    let edges = vec![
-        vec!["END", "MB", "MA", "PA", "START"],
-        vec!["END", "PA", "PB"],
-    ]
-    .into_iter()
-    .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
-    .collect::<Vec<_>>();
-
-    let expected_state_ids = vec!["PA", "MA", "MB"]
+    let edges = vec![vec!["END", "MB", "MA", "PA", "START"], vec!["END", "PA", "PB"]]
         .into_iter()
-        .map(event_id)
+        .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
         .collect::<Vec<_>>();
+
+    let expected_state_ids = vec!["PA", "MA", "MB"].into_iter().map(event_id).collect::<Vec<_>>();
 
     do_check(events, edges, expected_state_ids)
 }
@@ -93,18 +87,13 @@ fn topic_basic() {
         to_init_pdu_event("T3", bob(), EventType::RoomTopic, Some(""), json!({})),
     ];
 
-    let edges = vec![
-        vec!["END", "PA2", "T2", "PA1", "T1", "START"],
-        vec!["END", "T3", "PB", "PA1"],
-    ]
-    .into_iter()
-    .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
-    .collect::<Vec<_>>();
+    let edges =
+        vec![vec!["END", "PA2", "T2", "PA1", "T1", "START"], vec!["END", "T3", "PB", "PA1"]]
+            .into_iter()
+            .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
+            .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["PA2", "T2"]
-        .into_iter()
-        .map(event_id)
-        .collect::<Vec<_>>();
+    let expected_state_ids = vec!["PA2", "T2"].into_iter().map(event_id).collect::<Vec<_>>();
 
     do_check(events, edges, expected_state_ids)
 }
@@ -130,18 +119,12 @@ fn topic_reset() {
         ),
     ];
 
-    let edges = vec![
-        vec!["END", "MB", "T2", "PA", "T1", "START"],
-        vec!["END", "T1"],
-    ]
-    .into_iter()
-    .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
-    .collect::<Vec<_>>();
-
-    let expected_state_ids = vec!["T1", "MB", "PA"]
+    let edges = vec![vec!["END", "MB", "T2", "PA", "T1", "START"], vec!["END", "T1"]]
         .into_iter()
-        .map(event_id)
+        .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
         .collect::<Vec<_>>();
+
+    let expected_state_ids = vec!["T1", "MB", "PA"].into_iter().map(event_id).collect::<Vec<_>>();
 
     do_check(events, edges, expected_state_ids)
 }
@@ -250,10 +233,7 @@ fn topic_setting() {
     .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
     .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["T4", "PA2"]
-        .into_iter()
-        .map(event_id)
-        .collect::<Vec<_>>();
+    let expected_state_ids = vec!["T4", "PA2"].into_iter().map(event_id).collect::<Vec<_>>();
 
     do_check(events, edges, expected_state_ids)
 }
@@ -265,7 +245,7 @@ fn test_event_map_none() {
     // build up the DAG
     let (state_at_bob, state_at_charlie, expected) = store.set_up();
 
-    let mut ev_map: state_res::EventMap<Arc<StateEvent>> = store.0.clone();
+    let mut ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
     let state_sets = vec![state_at_bob, state_at_charlie];
     let resolved = match StateResolution::resolve::<StateEvent>(
         &room_id(),
@@ -317,9 +297,7 @@ impl TestStore<StateEvent> {
     pub fn set_up(&mut self) -> (StateMap<EventId>, StateMap<EventId>, StateMap<EventId>) {
         // to activate logging use `RUST_LOG=debug cargo t one_test_only`
         let _ = LOGGER.call_once(|| {
-            tracer::fmt()
-                .with_env_filter(tracer::EnvFilter::from_default_env())
-                .init()
+            tracer::fmt().with_env_filter(tracer::EnvFilter::from_default_env()).init()
         });
         let create_event = to_pdu_event::<EventId>(
             "CREATE",
@@ -342,8 +320,7 @@ impl TestStore<StateEvent> {
             &[cre.clone()],
             &[cre.clone()],
         );
-        self.0
-            .insert(alice_mem.event_id().clone(), Arc::clone(&alice_mem));
+        self.0.insert(alice_mem.event_id().clone(), Arc::clone(&alice_mem));
 
         let join_rules = to_pdu_event(
             "IJR",
@@ -354,8 +331,7 @@ impl TestStore<StateEvent> {
             &[cre.clone(), alice_mem.event_id().clone()],
             &[alice_mem.event_id().clone()],
         );
-        self.0
-            .insert(join_rules.event_id().clone(), join_rules.clone());
+        self.0.insert(join_rules.event_id().clone(), join_rules.clone());
 
         // Bob and Charlie join at the same time, so there is a fork
         // this will be represented in the state_sets when we resolve
@@ -379,8 +355,7 @@ impl TestStore<StateEvent> {
             &[cre, join_rules.event_id().clone()],
             &[join_rules.event_id().clone()],
         );
-        self.0
-            .insert(charlie_mem.event_id().clone(), charlie_mem.clone());
+        self.0.insert(charlie_mem.event_id().clone(), charlie_mem.clone());
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
@@ -392,16 +367,10 @@ impl TestStore<StateEvent> {
             .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
-        let expected = [
-            &create_event,
-            &alice_mem,
-            &join_rules,
-            &bob_mem,
-            &charlie_mem,
-        ]
-        .iter()
-        .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
-        .collect::<StateMap<_>>();
+        let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
+            .iter()
+            .map(|e| ((e.kind(), e.state_key()), e.event_id().clone()))
+            .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)
     }

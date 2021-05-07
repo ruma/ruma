@@ -3,8 +3,8 @@
 use std::{collections::BTreeMap, sync::Arc};
 
 use ruma::{events::EventType, EventId, RoomVersionId};
+use ruma_state_res::{EventMap, StateMap, StateResolution};
 use serde_json::json;
-use state_res::{EventMap, StateMap, StateResolution};
 
 mod utils;
 use utils::{
@@ -21,16 +21,9 @@ fn ban_with_auth_chains() {
         .map(|list| list.into_iter().map(event_id).collect::<Vec<_>>())
         .collect::<Vec<_>>();
 
-    let expected_state_ids = vec!["PA", "MB"]
-        .into_iter()
-        .map(event_id)
-        .collect::<Vec<_>>();
+    let expected_state_ids = vec!["PA", "MB"].into_iter().map(event_id).collect::<Vec<_>>();
 
-    do_check(
-        &ban.values().cloned().collect::<Vec<_>>(),
-        edges,
-        expected_state_ids,
-    );
+    do_check(&ban.values().cloned().collect::<Vec<_>>(), edges, expected_state_ids);
 }
 
 #[test]
@@ -96,23 +89,12 @@ fn ban_with_auth_chains2() {
             .collect::<Vec<_>>()
     );
 
-    let expected = vec![
-        "$CREATE:foo",
-        "$IJR:foo",
-        "$PA:foo",
-        "$IMA:foo",
-        "$IMB:foo",
-        "$IMC:foo",
-        "$MB:foo",
-    ];
+    let expected =
+        vec!["$CREATE:foo", "$IJR:foo", "$PA:foo", "$IMA:foo", "$IMB:foo", "$IMC:foo", "$MB:foo"];
 
     for id in expected.iter().map(|i| event_id(i)) {
         // make sure our resolved events are equal to the expected list
-        assert!(
-            resolved.values().any(|eid| eid == &id) || init.contains_key(&id),
-            "{}",
-            id
-        )
+        assert!(resolved.values().any(|eid| eid == &id) || init.contains_key(&id), "{}", id)
     }
     assert_eq!(expected.len(), resolved.len())
 }
@@ -128,11 +110,7 @@ fn join_rule_with_auth_chain() {
 
     let expected_state_ids = vec!["JR"].into_iter().map(event_id).collect::<Vec<_>>();
 
-    do_check(
-        &join_rule.values().cloned().collect::<Vec<_>>(),
-        edges,
-        expected_state_ids,
-    );
+    do_check(&join_rule.values().cloned().collect::<Vec<_>>(), edges, expected_state_ids);
 }
 
 #[allow(non_snake_case)]

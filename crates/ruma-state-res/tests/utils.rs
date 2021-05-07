@@ -19,8 +19,8 @@ use ruma::{
     },
     EventId, RoomId, RoomVersionId, UserId,
 };
+use ruma_state_res::{auth_types_for_event, Error, Event, Result, StateMap, StateResolution};
 use serde_json::{json, Value as JsonValue};
-use state_res::{Error, Event, Result, StateMap, StateResolution};
 use tracing_subscriber as tracer;
 
 pub use event::StateEvent;
@@ -35,20 +35,13 @@ pub fn do_check(
     expected_state_ids: Vec<EventId>,
 ) {
     // to activate logging use `RUST_LOG=debug cargo t`
-    let _ = LOGGER.call_once(|| {
-        tracer::fmt()
-            .with_env_filter(tracer::EnvFilter::from_default_env())
-            .init()
-    });
+    let _ = LOGGER
+        .call_once(|| tracer::fmt().with_env_filter(tracer::EnvFilter::from_default_env()).init());
 
     let init_events = INITIAL_EVENTS();
 
     let mut store = TestStore(
-        init_events
-            .values()
-            .chain(events)
-            .map(|ev| (ev.event_id().clone(), ev.clone()))
-            .collect(),
+        init_events.values().chain(events).map(|ev| (ev.event_id().clone(), ev.clone())).collect(),
     );
 
     // This will be lexi_topo_sorted for resolution
@@ -140,7 +133,7 @@ pub fn do_check(
         let key = fake_event.state_key();
         state_after.insert((ty, key), event_id.clone());
 
-        let auth_types = state_res::auth_types_for_event(
+        let auth_types = auth_types_for_event(
             &fake_event.kind(),
             fake_event.sender(),
             Some(fake_event.state_key()),
@@ -181,10 +174,7 @@ pub fn do_check(
         let ev = event_map.get(&node).expect(&format!(
             "{} not found in {:?}",
             node.to_string(),
-            event_map
-                .keys()
-                .map(ToString::to_string)
-                .collect::<Vec<_>>(),
+            event_map.keys().map(ToString::to_string).collect::<Vec<_>>(),
         ));
 
         let key = (ev.kind(), ev.state_key());
@@ -265,10 +255,7 @@ impl<E: Event> TestStore<E> {
         for ids in event_ids {
             // TODO state store `auth_event_ids` returns self in the event ids list
             // when an event returns `auth_event_ids` self is not contained
-            let chain = self
-                .auth_event_ids(room_id, &ids)?
-                .into_iter()
-                .collect::<BTreeSet<_>>();
+            let chain = self.auth_event_ids(room_id, &ids)?.into_iter().collect::<BTreeSet<_>>();
             chains.push(chain);
         }
 
@@ -276,12 +263,7 @@ impl<E: Event> TestStore<E> {
             let rest = chains.iter().skip(1).flatten().cloned().collect();
             let common = chain.intersection(&rest).collect::<Vec<_>>();
 
-            Ok(chains
-                .into_iter()
-                .flatten()
-                .filter(|id| !common.contains(&id))
-                .dedup()
-                .collect())
+            Ok(chains.into_iter().flatten().filter(|id| !common.contains(&id)).dedup().collect())
         } else {
             Ok(vec![])
         }
@@ -350,11 +332,7 @@ pub fn to_init_pdu_event(
         SERVER_TIMESTAMP += 1;
         ts
     };
-    let id = if id.contains('$') {
-        id.to_string()
-    } else {
-        format!("${}:foo", id)
-    };
+    let id = if id.contains('$') { id.to_string() } else { format!("${}:foo", id) };
 
     let state_key = state_key.map(ToString::to_string);
     Arc::new(StateEvent {
@@ -397,21 +375,9 @@ where
         SERVER_TIMESTAMP += 1;
         ts
     };
-    let id = if id.contains('$') {
-        id.to_string()
-    } else {
-        format!("${}:foo", id)
-    };
-    let auth_events = auth_events
-        .iter()
-        .map(AsRef::as_ref)
-        .map(event_id)
-        .collect::<Vec<_>>();
-    let prev_events = prev_events
-        .iter()
-        .map(AsRef::as_ref)
-        .map(event_id)
-        .collect::<Vec<_>>();
+    let id = if id.contains('$') { id.to_string() } else { format!("${}:foo", id) };
+    let auth_events = auth_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
+    let prev_events = prev_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
 
     let state_key = state_key.map(ToString::to_string);
     Arc::new(StateEvent {
@@ -440,11 +406,8 @@ where
 #[allow(non_snake_case)]
 pub fn INITIAL_EVENTS() -> BTreeMap<EventId, Arc<StateEvent>> {
     // this is always called so we can init the logger here
-    let _ = LOGGER.call_once(|| {
-        tracer::fmt()
-            .with_env_filter(tracer::EnvFilter::from_default_env())
-            .init()
-    });
+    let _ = LOGGER
+        .call_once(|| tracer::fmt().with_env_filter(tracer::EnvFilter::from_default_env()).init());
 
     vec![
         to_pdu_event::<EventId>(
@@ -544,10 +507,9 @@ pub mod event {
         },
         EventId, RoomId, RoomVersionId, ServerName, UInt, UserId,
     };
+    use ruma_state_res::Event;
     use serde::{Deserialize, Serialize};
     use serde_json::Value as JsonValue;
-
-    use state_res::Event;
 
     impl Event for StateEvent {
         fn event_id(&self) -> &EventId {
@@ -612,10 +574,7 @@ pub mod event {
             id: EventId,
             json: serde_json::Value,
         ) -> Result<Self, serde_json::Error> {
-            Ok(Self {
-                event_id: id,
-                rest: Pdu::RoomV3Pdu(serde_json::from_value(json)?),
-            })
+            Ok(Self { event_id: id, rest: Pdu::RoomV3Pdu(serde_json::from_value(json)?) })
         }
 
         pub fn from_id_canon_obj(

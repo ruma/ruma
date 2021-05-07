@@ -25,8 +25,8 @@ use ruma::{
     },
     EventId, RoomId, RoomVersionId, UserId,
 };
+use ruma_state_res::{Error, Event, EventMap, Result, StateMap, StateResolution};
 use serde_json::{json, Value as JsonValue};
-use state_res::{Error, Event, Result, StateMap, StateResolution};
 
 static mut SERVER_TIMESTAMP: u64 = 0;
 
@@ -55,7 +55,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
         let (state_at_bob, state_at_charlie, _) = store.set_up();
 
         b.iter(|| {
-            let mut ev_map: state_res::EventMap<Arc<StateEvent>> = store.0.clone();
+            let mut ev_map: EventMap<Arc<StateEvent>> = store.0.clone();
             let state_sets = vec![state_at_bob.clone(), state_at_charlie.clone()];
             let _ = match StateResolution::resolve::<StateEvent>(
                 &room_id(),
@@ -202,10 +202,7 @@ impl<E: Event> TestStore<E> {
         for ids in event_ids {
             // TODO state store `auth_event_ids` returns self in the event ids list
             // when an event returns `auth_event_ids` self is not contained
-            let chain = self
-                .auth_event_ids(room_id, &ids)?
-                .into_iter()
-                .collect::<BTreeSet<_>>();
+            let chain = self.auth_event_ids(room_id, &ids)?.into_iter().collect::<BTreeSet<_>>();
             chains.push(chain);
         }
 
@@ -250,8 +247,7 @@ impl TestStore<StateEvent> {
             &[cre.clone()],
             &[cre.clone()],
         );
-        self.0
-            .insert(alice_mem.event_id().clone(), Arc::clone(&alice_mem));
+        self.0.insert(alice_mem.event_id().clone(), Arc::clone(&alice_mem));
 
         let join_rules = to_pdu_event(
             "IJR",
@@ -262,8 +258,7 @@ impl TestStore<StateEvent> {
             &[cre.clone(), alice_mem.event_id().clone()],
             &[alice_mem.event_id().clone()],
         );
-        self.0
-            .insert(join_rules.event_id().clone(), join_rules.clone());
+        self.0.insert(join_rules.event_id().clone(), join_rules.clone());
 
         // Bob and Charlie join at the same time, so there is a fork
         // this will be represented in the state_sets when we resolve
@@ -287,8 +282,7 @@ impl TestStore<StateEvent> {
             &[cre, join_rules.event_id().clone()],
             &[join_rules.event_id().clone()],
         );
-        self.0
-            .insert(charlie_mem.event_id().clone(), charlie_mem.clone());
+        self.0.insert(charlie_mem.event_id().clone(), charlie_mem.clone());
 
         let state_at_bob = [&create_event, &alice_mem, &join_rules, &bob_mem]
             .iter()
@@ -300,16 +294,10 @@ impl TestStore<StateEvent> {
             .map(|e| ((e.kind(), e.state_key().unwrap()), e.event_id().clone()))
             .collect::<StateMap<_>>();
 
-        let expected = [
-            &create_event,
-            &alice_mem,
-            &join_rules,
-            &bob_mem,
-            &charlie_mem,
-        ]
-        .iter()
-        .map(|e| ((e.kind(), e.state_key().unwrap()), e.event_id().clone()))
-        .collect::<StateMap<_>>();
+        let expected = [&create_event, &alice_mem, &join_rules, &bob_mem, &charlie_mem]
+            .iter()
+            .map(|e| ((e.kind(), e.state_key().unwrap()), e.event_id().clone()))
+            .collect::<StateMap<_>>();
 
         (state_at_bob, state_at_charlie, expected)
     }
@@ -379,21 +367,9 @@ where
         SERVER_TIMESTAMP += 1;
         ts
     };
-    let id = if id.contains('$') {
-        id.to_string()
-    } else {
-        format!("${}:foo", id)
-    };
-    let auth_events = auth_events
-        .iter()
-        .map(AsRef::as_ref)
-        .map(event_id)
-        .collect::<Vec<_>>();
-    let prev_events = prev_events
-        .iter()
-        .map(AsRef::as_ref)
-        .map(event_id)
-        .collect::<Vec<_>>();
+    let id = if id.contains('$') { id.to_string() } else { format!("${}:foo", id) };
+    let auth_events = auth_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
+    let prev_events = prev_events.iter().map(AsRef::as_ref).map(event_id).collect::<Vec<_>>();
 
     let state_key = state_key.map(ToString::to_string);
     Arc::new(StateEvent {
@@ -557,10 +533,9 @@ pub mod event {
         },
         EventId, RoomId, RoomVersionId, ServerName, ServerSigningKeyId, UInt, UserId,
     };
+    use ruma_state_res::Event;
     use serde::{Deserialize, Serialize};
     use serde_json::Value as JsonValue;
-
-    use state_res::Event;
 
     impl Event for StateEvent {
         fn event_id(&self) -> &EventId {
@@ -632,10 +607,7 @@ pub mod event {
             id: EventId,
             json: serde_json::Value,
         ) -> Result<Self, serde_json::Error> {
-            Ok(Self {
-                event_id: id,
-                rest: Pdu::RoomV3Pdu(serde_json::from_value(json)?),
-            })
+            Ok(Self { event_id: id, rest: Pdu::RoomV3Pdu(serde_json::from_value(json)?) })
         }
 
         pub fn from_id_canon_obj(

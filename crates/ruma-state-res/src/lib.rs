@@ -45,7 +45,8 @@ impl StateResolution {
     /// * `state_sets` - The incoming state to resolve. Each `StateMap` represents a possible fork
     /// in the state of a room.
     ///
-    /// * `auth_events` - The full recursive set of `auth_events` for each event in the `state_sets`.
+    /// * `auth_events` - The full recursive set of `auth_events` for each event in the
+    ///   `state_sets`.
     ///
     /// * `event_map` - The `EventMap` acts as a local cache of state, any event that is not found
     /// in the `event_map` will cause an unrecoverable `Error` in `resolve`.
@@ -77,11 +78,8 @@ impl StateResolution {
 
         // add the auth_diff to conflicting now we have a full set of conflicting events
         auth_diff.extend(conflicting.values().cloned().flatten());
-        let mut all_conflicted = auth_diff
-            .into_iter()
-            .collect::<BTreeSet<_>>()
-            .into_iter()
-            .collect::<Vec<_>>();
+        let mut all_conflicted =
+            auth_diff.into_iter().collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
 
         log::info!("full conflicted set is {} events", all_conflicted.len());
 
@@ -122,10 +120,7 @@ impl StateResolution {
 
         log::debug!(
             "AUTHED {:?}",
-            resolved_control
-                .iter()
-                .map(|(key, id)| (key, id.to_string()))
-                .collect::<Vec<_>>()
+            resolved_control.iter().map(|(key, id)| (key, id.to_string())).collect::<Vec<_>>()
         );
 
         // At this point the control_events have been resolved we now have to
@@ -133,7 +128,8 @@ impl StateResolution {
         sorted_control_levels.dedup();
         let deduped_power_ev = sorted_control_levels;
 
-        // This removes the control events that passed auth and more importantly those that failed auth
+        // This removes the control events that passed auth and more importantly those that failed
+        // auth
         let events_to_resolve = all_conflicted
             .iter()
             .filter(|id| !deduped_power_ev.contains(id))
@@ -142,10 +138,7 @@ impl StateResolution {
 
         log::debug!(
             "LEFT {:?}",
-            events_to_resolve
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<_>>()
+            events_to_resolve.iter().map(ToString::to_string).collect::<Vec<_>>()
         );
 
         // This "epochs" power level event
@@ -158,10 +151,7 @@ impl StateResolution {
 
         log::debug!(
             "SORTED LEFT {:?}",
-            sorted_left_events
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<_>>()
+            sorted_left_events.iter().map(ToString::to_string).collect::<Vec<_>>()
         );
 
         let mut resolved_state = StateResolution::iterative_auth_check(
@@ -189,20 +179,14 @@ impl StateResolution {
     ) -> (StateMap<EventId>, StateMap<Vec<EventId>>) {
         use itertools::Itertools;
 
-        log::info!(
-            "seperating {} sets of events into conflicted/unconflicted",
-            state_sets.len()
-        );
+        log::info!("seperating {} sets of events into conflicted/unconflicted", state_sets.len());
 
         let mut unconflicted_state = StateMap::new();
         let mut conflicted_state = StateMap::new();
 
         for key in state_sets.iter().flat_map(|map| map.keys()).dedup() {
-            let mut event_ids = state_sets
-                .iter()
-                .map(|state_set| state_set.get(key))
-                .dedup()
-                .collect::<Vec<_>>();
+            let mut event_ids =
+                state_sets.iter().map(|state_set| state_set.get(key)).dedup().collect::<Vec<_>>();
 
             if event_ids.len() == 1 {
                 if let Some(Some(id)) = event_ids.pop() {
@@ -241,12 +225,7 @@ impl StateResolution {
             let rest = chains.iter().skip(1).flatten().cloned().collect();
             let common = chain.intersection(&rest).collect::<Vec<_>>();
 
-            Ok(chains
-                .into_iter()
-                .flatten()
-                .filter(|id| !common.contains(&id))
-                .dedup()
-                .collect())
+            Ok(chains.into_iter().flatten().filter(|id| !common.contains(&id)).dedup().collect())
         } else {
             Ok(vec![])
         }
@@ -326,10 +305,8 @@ impl StateResolution {
         // TODO make the BTreeSet conversion cleaner ??
         // outdegree_map is an event referring to the events before it, the
         // more outdegree's the more recent the event.
-        let mut outdegree_map: BTreeMap<EventId, BTreeSet<EventId>> = graph
-            .iter()
-            .map(|(k, v)| (k.clone(), v.iter().cloned().collect()))
-            .collect();
+        let mut outdegree_map: BTreeMap<EventId, BTreeSet<EventId>> =
+            graph.iter().map(|(k, v)| (k.clone(), v.iter().cloned().collect())).collect();
 
         // The number of events that depend on the given event (the eventId key)
         let mut reverse_graph = BTreeMap::new();
@@ -346,10 +323,7 @@ impl StateResolution {
 
             reverse_graph.entry(node).or_insert(btreeset![]);
             for edge in edges {
-                reverse_graph
-                    .entry(edge)
-                    .or_insert(btreeset![])
-                    .insert(node);
+                reverse_graph.entry(edge).or_insert(btreeset![]).insert(node);
             }
         }
 
@@ -391,11 +365,7 @@ impl StateResolution {
 
         // TODO store.auth_event_ids returns "self" with the event ids is this ok
         // event.auth_event_ids does not include its own event id ?
-        for aid in event
-            .as_ref()
-            .map(|pdu| pdu.auth_events())
-            .unwrap_or_default()
-        {
+        for aid in event.as_ref().map(|pdu| pdu.auth_events()).unwrap_or_default() {
             if let Ok(aev) = StateResolution::get_or_load_event(room_id, &aid, event_map) {
                 if is_type_and_key(&aev, EventType::RoomPowerLevels, "") {
                     pl = Some(aev);
@@ -444,10 +414,7 @@ impl StateResolution {
 
         log::debug!(
             "performing auth checks on {:?}",
-            events_to_check
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<_>>()
+            events_to_check.iter().map(ToString::to_string).collect::<Vec<_>>()
         );
 
         let mut resolved_state = unconflicted_state.clone();
@@ -461,7 +428,8 @@ impl StateResolution {
             let mut auth_events = BTreeMap::new();
             for aid in &event.auth_events() {
                 if let Ok(ev) = StateResolution::get_or_load_event(room_id, aid, event_map) {
-                    // TODO synapse check "rejected_reason", I'm guessing this is redacted_because in ruma ??
+                    // TODO synapse check "rejected_reason", I'm guessing this is redacted_because
+                    // in ruma ??
                     auth_events.insert(
                         (
                             ev.kind(),
@@ -499,8 +467,8 @@ impl StateResolution {
                 .filter_map(|id| StateResolution::get_or_load_event(room_id, id, event_map).ok())
                 .next_back();
 
-            // The key for this is (eventType + a state_key of the signed token not sender) so search
-            // for it
+            // The key for this is (eventType + a state_key of the signed token not sender) so
+            // search for it
             let current_third_party = auth_events.iter().find_map(|(_, pdu)| {
                 if pdu.kind() == EventType::RoomThirdPartyInvite {
                     Some(pdu.clone()) // TODO no clone, auth_events is borrowed while moved
@@ -520,10 +488,7 @@ impl StateResolution {
                 resolved_state.insert((event.kind(), state_key), event_id.clone());
             } else {
                 // synapse passes here on AuthError. We do not add this event to resolved_state.
-                log::warn!(
-                    "event {} failed the authentication check",
-                    event_id.to_string()
-                );
+                log::warn!("event {} failed the authentication check", event_id.to_string());
             }
 
             // TODO: if these functions are ever made async here
@@ -658,9 +623,8 @@ impl StateResolution {
             graph.entry(eid.clone()).or_insert_with(Vec::new);
             // prefer the store to event as the store filters dedups the events
             // otherwise it seems we can loop forever
-            for aid in &StateResolution::get_or_load_event(room_id, &eid, event_map)
-                .unwrap()
-                .auth_events()
+            for aid in
+                &StateResolution::get_or_load_event(room_id, &eid, event_map).unwrap().auth_events()
             {
                 if auth_diff.contains(aid) {
                     if !graph.contains_key(aid) {

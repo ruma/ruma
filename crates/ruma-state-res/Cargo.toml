@@ -1,31 +1,27 @@
 [package]
-name = "state-res"
-version = "0.1.0"
+name = "ruma-state-res"
 authors = ["Devin R <devin.ragotzy@gmail.com>"]
-edition = "2018"
 categories = ["api-bindings", "web-programming"]
+keywords = ["matrix", "chat", "state resolution", "ruma"]
 description = "An abstraction for Matrix state resolution."
 homepage = "https://www.ruma.io/"
-keywords = ["matrix", "chat", "state resolution", "ruma"]
-license = "MIT"
+repository = "https://github.com/ruma/ruma"
 readme = "README.md"
-repository = "https://github.com/ruma/state-res"
+license = "MIT"
+version = "0.1.0"
+edition = "2018"
+
+[features]
+unstable-pre-spec = ["ruma/unstable-pre-spec"]
 
 [dependencies]
 itertools = "0.10.0"
+ruma = { version = "0.0.3", path = "../ruma", features = ["events", "signatures"] }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.60"
 maplit = "1.0.2"
 thiserror = "1.0.22"
 log = "0.4.11"
-
-[features]
-unstable-pre-spec = ["ruma/unstable-pre-spec"]
-
-[dependencies.ruma]
-git = "https://github.com/ruma/ruma"
-rev = "8c286e78d41770fe431e7304cc2fe23e383793df"
-features = ["events", "signatures"]
 
 [dev-dependencies]
 criterion = "0.3.3"

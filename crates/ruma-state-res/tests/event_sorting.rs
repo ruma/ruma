@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use ruma::{events::EventType, EventId};
-use state_res::{is_power_event, room_version::RoomVersion, StateMap};
+use ruma_state_res::{is_power_event, room_version::RoomVersion, StateMap, StateResolution};
 
 mod utils;
 use utils::{room_id, INITIAL_EVENTS};
@@ -35,7 +35,7 @@ fn test_event_sort() {
     // This is a TODO in conduit
     // TODO these events are not guaranteed to be sorted but they are resolved, do
     // we need the auth_chain
-    let sorted_power_events = state_res::StateResolution::reverse_topological_power_sort(
+    let sorted_power_events = StateResolution::reverse_topological_power_sort(
         &room_id(),
         &power_events,
         &mut events,
@@ -44,7 +44,7 @@ fn test_event_sort() {
 
     // This is a TODO in conduit
     // TODO we may be able to skip this since they are resolved according to spec
-    let resolved_power = state_res::StateResolution::iterative_auth_check(
+    let resolved_power = StateResolution::iterative_auth_check(
         &room_id(),
         &RoomVersion::version_6(),
         &sorted_power_events,
@@ -60,12 +60,8 @@ fn test_event_sort() {
 
     let power_level = resolved_power.get(&(EventType::RoomPowerLevels, "".to_string()));
 
-    let sorted_event_ids = state_res::StateResolution::mainline_sort(
-        &room_id(),
-        &events_to_sort,
-        power_level,
-        &mut events,
-    );
+    let sorted_event_ids =
+        StateResolution::mainline_sort(&room_id(), &events_to_sort, power_level, &mut events);
 
     assert_eq!(
         vec![
@@ -78,10 +74,7 @@ fn test_event_sort() {
             "$START:foo",
             "$END:foo"
         ],
-        sorted_event_ids
-            .iter()
-            .map(|id| id.to_string())
-            .collect::<Vec<_>>()
+        sorted_event_ids.iter().map(|id| id.to_string()).collect::<Vec<_>>()
     )
 }
 

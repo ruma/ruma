@@ -65,12 +65,7 @@ impl RoomVersion {
             RoomVersionId::Version4 => Self::version_4(),
             RoomVersionId::Version5 => Self::version_5(),
             RoomVersionId::Version6 => Self::version_6(),
-            ver => {
-                return Err(Error::Unsupported(format!(
-                    "found version `{}`",
-                    ver.as_str()
-                )))
-            }
+            ver => return Err(Error::Unsupported(format!("found version `{}`", ver.as_str()))),
         })
     }
 
