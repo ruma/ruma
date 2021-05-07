@@ -41,6 +41,13 @@ pub struct EncryptedEventContent {
     pub relates_to: Option<Relation>,
 }
 
+impl EncryptedEventContent {
+    /// Creates a new `EncryptedEventContent` with the given scheme and relation.
+    pub fn new(scheme: EncryptedEventScheme, relates_to: Option<Relation>) -> Self {
+        Self { scheme, relates_to }
+    }
+}
+
 /// The to-device version of the payload for the `EncryptedEvent`.
 pub type EncryptedToDeviceEventContent = EncryptedEventContent;
 
