@@ -135,6 +135,31 @@ impl CanonicalJsonValue {
             _ => None,
         }
     }
+
+    /// Returns `true` if the `CanonicalJsonValue` is a `Bool`.
+    pub fn is_bool(&self) -> bool {
+        matches!(self, Self::Bool(_))
+    }
+
+    /// Returns `true` if the `CanonicalJsonValue` is an `Integer`.
+    pub fn is_integer(&self) -> bool {
+        matches!(self, Self::Integer(_))
+    }
+
+    /// Returns `true` if the `CanonicalJsonValue` is a `String`.
+    pub fn is_string(&self) -> bool {
+        matches!(self, Self::String(_))
+    }
+
+    /// Returns `true` if the `CanonicalJsonValue` is an `Array`.
+    pub fn is_array(&self) -> bool {
+        matches!(self, Self::Array(_))
+    }
+
+    /// Returns `true` if the `CanonicalJsonValue` is an `Object`.
+    pub fn is_object(&self) -> bool {
+        matches!(self, Self::Object(_))
+    }
 }
 
 impl Default for CanonicalJsonValue {
