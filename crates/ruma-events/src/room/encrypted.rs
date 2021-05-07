@@ -48,6 +48,12 @@ impl EncryptedEventContent {
     }
 }
 
+impl From<EncryptedEventScheme> for EncryptedEventContent {
+    fn from(scheme: EncryptedEventScheme) -> Self {
+        Self { scheme, relates_to: None }
+    }
+}
+
 /// The to-device version of the payload for the `EncryptedEvent`.
 pub type EncryptedToDeviceEventContent = EncryptedEventContent;
 
