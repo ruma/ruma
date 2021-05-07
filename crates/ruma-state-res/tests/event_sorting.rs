@@ -1,21 +1,11 @@
 use std::collections::BTreeMap;
 
+use rand::seq::SliceRandom;
 use ruma_events::EventType;
-use ruma_identifiers::EventId;
 use ruma_state_res::{is_power_event, room_version::RoomVersion, StateMap, StateResolution};
 
 mod utils;
 use utils::{room_id, INITIAL_EVENTS};
-
-fn shuffle(list: &mut [EventId]) {
-    use rand::Rng;
-
-    let mut rng = rand::thread_rng();
-    for i in 1..list.len() {
-        let j = rng.gen_range(0, list.len());
-        list.swap(i, j);
-    }
-}
 
 fn test_event_sort() {
     let mut events = INITIAL_EVENTS();
@@ -57,7 +47,7 @@ fn test_event_sort() {
     // don't remove any events so we know it sorts them all correctly
     let mut events_to_sort = events.keys().cloned().collect::<Vec<_>>();
 
-    shuffle(&mut events_to_sort);
+    events_to_sort.shuffle(&mut rand::thread_rng());
 
     let power_level = resolved_power.get(&(EventType::RoomPowerLevels, "".to_string()));
 
