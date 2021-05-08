@@ -226,11 +226,9 @@ impl Request {
                             "application/json",
                         );
 
-                    let mut req_headers = req_builder
-                        .headers_mut()
-                        .expect("`http::RequestBuilder` is in unusable state");
-
-                    #header_kvs
+                    if let Some(mut req_headers) = req_builder.headers_mut() {
+                        #header_kvs
+                    }
 
                     let http_request = req_builder.body(#request_body)?;
 
