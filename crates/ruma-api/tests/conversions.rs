@@ -63,6 +63,21 @@ fn request_serde() {
 }
 
 #[test]
+fn invalid_uri_should_not_panic() {
+    let req = Request {
+        hello: "hi".to_owned(),
+        world: "test".to_owned(),
+        q1: "query_param_special_chars %/&@!".to_owned(),
+        q2: 55,
+        bar: "barVal".to_owned(),
+        user: user_id!("@bazme:ruma.io"),
+    };
+
+    let result = req.clone().try_into_http_request::<Vec<u8>>("invalid uri", SendAccessToken::None);
+    assert!(result.is_err());
+}
+
+#[test]
 fn request_with_user_id_serde() {
     let req = Request {
         hello: "hi".to_owned(),

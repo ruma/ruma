@@ -21,6 +21,10 @@ Improvements:
 * Add a new `MatrixError` type to the `error` module that consists of a HTTP status code and JSON
   `body` and is the new default error type for `ruma_api!`
 
+Bug fixes:
+
+* Prevent panic when building requests with an invalid URI  
+
 # 0.16.1
 
 Bug fixes:
