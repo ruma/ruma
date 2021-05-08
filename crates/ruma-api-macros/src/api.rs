@@ -63,8 +63,9 @@ pub fn expand_all(api: Api) -> syn::Result<TokenStream> {
         })
         .collect();
 
-    let error_ty =
-        api.error_ty.map_or_else(|| quote! { #ruma_api::error::Void }, |err_ty| quote! { #err_ty });
+    let error_ty = api
+        .error_ty
+        .map_or_else(|| quote! { #ruma_api::error::MatrixError }, |err_ty| quote! { #err_ty });
 
     let request = api.request.map(|req| req.expand(metadata, &error_ty, &ruma_api));
     let response = api.response.map(|res| res.expand(metadata, &error_ty, &ruma_api));

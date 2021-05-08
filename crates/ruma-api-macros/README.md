@@ -52,8 +52,8 @@ pub mod some_endpoint {
             pub value: String,
         }
 
-        // An error can also be specified or defaults to `ruma_api::error::Void`.
-        error: ruma_api::Error
+        // An error can also be specified or defaults to `ruma_api::error::MatrixError`.
+        error: crate::Error
     }
 }
 ```

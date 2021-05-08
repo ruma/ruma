@@ -49,7 +49,7 @@ use ruma_identifiers::UserId;
 ///         // in the response from this API endpoint.
 ///     }
 ///
-///     // The error returned when a response fails, defaults to `Void`.
+///     // The error returned when a response fails, defaults to `MatrixError`.
 ///     error: path::to::Error
 /// }
 /// ```

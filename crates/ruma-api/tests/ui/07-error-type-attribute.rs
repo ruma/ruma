@@ -15,7 +15,7 @@ ruma_api! {
     response: {}
 
     #[derive(Default)]
-    error: ruma_api::error::Void
+    error: ruma_api::error::MatrixError
 }
 
 fn main() {}

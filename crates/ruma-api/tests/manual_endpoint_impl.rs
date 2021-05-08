@@ -5,7 +5,7 @@ use std::convert::TryFrom;
 use bytes::BufMut;
 use http::{header::CONTENT_TYPE, method::Method};
 use ruma_api::{
-    error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, ServerError, Void},
+    error::{FromHttpRequestError, FromHttpResponseError, IntoHttpError, MatrixError, ServerError},
     AuthScheme, EndpointError, IncomingRequest, IncomingResponse, Metadata, OutgoingRequest,
     OutgoingResponse, SendAccessToken,
 };
@@ -34,7 +34,7 @@ const METADATA: Metadata = Metadata {
 };
 
 impl OutgoingRequest for Request {
-    type EndpointError = Void;
+    type EndpointError = MatrixError;
     type IncomingResponse = Response;
 
     const METADATA: Metadata = METADATA;
@@ -62,7 +62,7 @@ impl OutgoingRequest for Request {
 }
 
 impl IncomingRequest for Request {
-    type EndpointError = Void;
+    type EndpointError = MatrixError;
     type OutgoingResponse = Response;
 
     const METADATA: Metadata = METADATA;
@@ -98,16 +98,16 @@ impl Outgoing for Response {
 }
 
 impl IncomingResponse for Response {
-    type EndpointError = Void;
+    type EndpointError = MatrixError;
 
     fn try_from_http_response<T: AsRef<[u8]>>(
         http_response: http::Response<T>,
-    ) -> Result<Self, FromHttpResponseError<Void>> {
+    ) -> Result<Self, FromHttpResponseError<MatrixError>> {
         if http_response.status().as_u16() < 400 {
             Ok(Response)
         } else {
             Err(FromHttpResponseError::Http(ServerError::Known(
-                <Void as EndpointError>::try_from_http_response(http_response)?,
+                <MatrixError as EndpointError>::try_from_http_response(http_response)?,
             )))
         }
     }

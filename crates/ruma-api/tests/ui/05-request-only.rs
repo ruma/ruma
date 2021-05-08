@@ -1,6 +1,6 @@
 use bytes::BufMut;
 use ruma_api::{
-    error::{FromHttpResponseError, IntoHttpError, Void},
+    error::{FromHttpResponseError, IntoHttpError, MatrixError},
     ruma_api, IncomingResponse, OutgoingResponse,
 };
 use ruma_serde::Outgoing;
@@ -26,11 +26,11 @@ ruma_api! {
 pub struct Response;
 
 impl IncomingResponse for Response {
-    type EndpointError = Void;
+    type EndpointError = MatrixError;
 
     fn try_from_http_response<T: AsRef<[u8]>>(
         _: http::Response<T>,
-    ) -> Result<Self, FromHttpResponseError<Void>> {
+    ) -> Result<Self, FromHttpResponseError<MatrixError>> {
         todo!()
     }
 }

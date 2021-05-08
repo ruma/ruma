@@ -12,10 +12,14 @@ Breaking changes:
 * Endpoint authentication is now more granularly defined by an enum `AuthScheme`
   instead of a boolean. The `ruma_api!` macro has been updated to require
   `authentication` instead of `requires_authentication`.
+* Remove `error::Void`, the default error type for `ruma_api!` is now `error::MatrixError`
+  (see below)
 
 Improvements:
 
-* The `EndpointError`s that come with ruma crates now implement `std::errror::Error`.
+* The `EndpointError`s that come with ruma crates now implement `std::errror::Error`
+* Add a new `MatrixError` type to the `error` module that consists of a HTTP status code and JSON
+  `body` and is the new default error type for `ruma_api!`
 
 # 0.16.1
 

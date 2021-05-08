@@ -5,38 +5,54 @@
 use std::{error::Error as StdError, fmt};
 
 use bytes::BufMut;
+use serde_json::{from_slice as from_json_slice, Value as JsonValue};
 use thiserror::Error;
 
 use crate::{EndpointError, OutgoingResponse};
 
-// FIXME when `!` becomes stable use it
-/// Default `EndpointError` for `ruma_api!` macro
-#[derive(Clone, Copy, Debug)]
-pub enum Void {}
+/// A general-purpose Matrix error type consisting of an HTTP status code and a JSON body.
+///
+/// Note that individual `ruma-*-api` crates may provide more specific error types.
+#[derive(Clone, Debug)]
+pub struct MatrixError {
+    /// The http reponse's status code.
+    pub status_code: http::StatusCode,
 
-impl OutgoingResponse for Void {
+    /// The http response's body.
+    pub body: JsonValue,
+}
+
+impl fmt::Display for MatrixError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{}] ", self.status_code.as_u16())?;
+        fmt::Display::fmt(&self.body, f)
+    }
+}
+
+impl StdError for MatrixError {}
+
+impl OutgoingResponse for MatrixError {
     fn try_into_http_response<T: Default + BufMut>(
         self,
     ) -> Result<http::Response<T>, IntoHttpError> {
-        match self {}
+        http::Response::builder()
+            .header(http::header::CONTENT_TYPE, "application/json")
+            .status(self.status_code)
+            .body(ruma_serde::json_to_buf(&self.body)?)
+            .map_err(Into::into)
     }
 }
 
-impl EndpointError for Void {
+impl EndpointError for MatrixError {
     fn try_from_http_response<T: AsRef<[u8]>>(
-        _response: http::Response<T>,
+        response: http::Response<T>,
     ) -> Result<Self, ResponseDeserializationError> {
-        Err(ResponseDeserializationError::none())
+        Ok(Self {
+            status_code: response.status(),
+            body: from_json_slice(response.body().as_ref())?,
+        })
     }
 }
-
-impl fmt::Display for Void {
-    fn fmt(&self, _: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {}
-    }
-}
-
-impl StdError for Void {}
 
 /// An error when converting one of ruma's endpoint-specific request or response
 /// types to the corresponding http type.
@@ -150,13 +166,7 @@ impl<E: StdError> StdError for FromHttpResponseError<E> {}
 /// An error that occurred when trying to deserialize a response.
 #[derive(Debug)]
 pub struct ResponseDeserializationError {
-    inner: Option<DeserializationError>,
-}
-
-impl ResponseDeserializationError {
-    fn none() -> Self {
-        Self { inner: None }
-    }
+    inner: DeserializationError,
 }
 
 impl<T> From<T> for ResponseDeserializationError
@@ -164,17 +174,13 @@ where
     T: Into<DeserializationError>,
 {
     fn from(err: T) -> Self {
-        Self { inner: Some(err.into()) }
+        Self { inner: err.into() }
     }
 }
 
 impl fmt::Display for ResponseDeserializationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(ref inner) = self.inner {
-            fmt::Display::fmt(inner, f)
-        } else {
-            fmt::Display::fmt("deserialization error, no error specified", f)
-        }
+        fmt::Display::fmt(&self.inner, f)
     }
 }
 
