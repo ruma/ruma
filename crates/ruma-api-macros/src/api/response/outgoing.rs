@@ -78,14 +78,11 @@ impl Response {
                     let mut resp_builder = #http::Response::builder()
                         .header(#http::header::CONTENT_TYPE, "application/json");
 
-                    let mut headers = resp_builder
-                        .headers_mut()
-                        .expect("`http::ResponseBuilder` is in unusable state");
-                    #(#serialize_response_headers)*
+                    if let Some(mut headers) = resp_builder.headers_mut() {
+                        #(#serialize_response_headers)*
+                    }
 
-                    // This cannot fail because we parse each header value checking for errors as
-                    // each value is inserted and we only allow keys from the `http::header` module.
-                    ::std::result::Result::Ok(resp_builder.body(#body).unwrap())
+                    ::std::result::Result::Ok(resp_builder.body(#body)?)
                 }
             }
         }
