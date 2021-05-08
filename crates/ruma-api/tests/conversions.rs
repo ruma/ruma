@@ -73,7 +73,7 @@ fn invalid_uri_should_not_panic() {
         user: user_id!("@bazme:ruma.io"),
     };
 
-    let result = req.clone().try_into_http_request::<Vec<u8>>("invalid uri", SendAccessToken::None);
+    let result = req.try_into_http_request::<Vec<u8>>("invalid uri", SendAccessToken::None);
     assert!(result.is_err());
 }
 
