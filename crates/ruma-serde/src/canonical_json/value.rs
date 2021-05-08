@@ -244,8 +244,14 @@ impl From<CanonicalJsonValue> for JsonValue {
     }
 }
 
-macro_rules! impl_partial_eq {
+macro_rules! variant_impls {
     ($variant:ident($ty:ty)) => {
+        impl From<$ty> for CanonicalJsonValue {
+            fn from(val: $ty) -> Self {
+                Self::$variant(val)
+            }
+        }
+
         impl PartialEq<$ty> for CanonicalJsonValue {
             fn eq(&self, other: &$ty) -> bool {
                 match self {
@@ -266,11 +272,11 @@ macro_rules! impl_partial_eq {
     };
 }
 
-impl_partial_eq!(Bool(bool));
-impl_partial_eq!(Integer(Int));
-impl_partial_eq!(String(String));
-impl_partial_eq!(Array(Vec<CanonicalJsonValue>));
-impl_partial_eq!(Object(Object));
+variant_impls!(Bool(bool));
+variant_impls!(Integer(Int));
+variant_impls!(String(String));
+variant_impls!(Array(Vec<CanonicalJsonValue>));
+variant_impls!(Object(Object));
 
 impl Serialize for CanonicalJsonValue {
     #[inline]
