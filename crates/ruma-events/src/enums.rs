@@ -10,6 +10,7 @@ event_enum! {
     events: [
         "m.direct",
         "m.dummy",
+        "m.fully_read",
         "m.ignored_user_list",
         "m.presence",
         "m.push_rules",
@@ -22,7 +23,6 @@ event_enum! {
     /// Any ephemeral room event.
     kind: EphemeralRoom,
     events: [
-        "m.fully_read",
         "m.receipt",
         "m.typing",
     ]
