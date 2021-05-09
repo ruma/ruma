@@ -82,8 +82,8 @@
 //!     }
 //! });
 //!
-//! // The downside of this event is we cannot use it with the `AnyRoomEvent` or `AnyEvent` enums,
-//! // but could be deserialized from a `Raw<AnyRoomEvent>` that has failed.
+//! // The downside of this event is we cannot use it with event enums, but could be deserialized
+//! // from a `Raw<_>` that has failed to deserialize.
 //! matches::assert_matches!(
 //!     serde_json::from_value::<SyncMessageEvent<ReactionEventContent>>(json),
 //!     Ok(SyncMessageEvent {
@@ -188,7 +188,7 @@ pub use self::relation::Relations;
 pub use self::{
     enums::{
         AnyBasicEvent, AnyBasicEventContent, AnyEphemeralRoomEvent, AnyEphemeralRoomEventContent,
-        AnyEvent, AnyInitialStateEvent, AnyMessageEvent, AnyMessageEventContent,
+        AnyInitialStateEvent, AnyMessageEvent, AnyMessageEventContent,
         AnyPossiblyRedactedMessageEvent, AnyPossiblyRedactedStateEvent,
         AnyPossiblyRedactedStrippedStateEvent, AnyPossiblyRedactedSyncMessageEvent,
         AnyPossiblyRedactedSyncStateEvent, AnyRedactedMessageEvent, AnyRedactedStateEvent,
