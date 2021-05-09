@@ -11,6 +11,8 @@ use ruma_serde::StringEnum;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
+use indoc::formatdoc;
+
 #[cfg(feature = "unstable-pre-spec")]
 use super::relationships::{Annotation, Reference, RelationJsonRepr, Replacement};
 use super::{relationships::RelatesToJsonRepr, EncryptedFile, ImageInfo, ThumbnailInfo};
@@ -201,7 +203,6 @@ impl MessageEventContent {
                 format!("> <{:?}> sent a video.", original_message.sender)
             }
             MessageType::_Custom(content) => {
-                // Eagerly deserialize `body` since we assume every message should have it
                 format!(
                     "> <{:?}> {}",
                     original_message.sender,
@@ -210,7 +211,6 @@ impl MessageEventContent {
             }
             #[cfg(feature = "unstable-pre-spec")]
             MessageType::VerificationRequest(content) => {
-                // Eagerly deserialize `body` since we assume every message should have it
                 format!("> <{:?}> {}", original_message.sender, content.body)
             }
         }
@@ -219,200 +219,188 @@ impl MessageEventContent {
     fn get_html_quote_fallback(original_message: &MessageEvent) -> String {
         match &original_message.content.msgtype {
             MessageType::Audio(_) => {
-                format!(
-                    "<mx-reply>
-    <blockquote>
-        <a href=\"https://matrix.to/#/!{}/${}\">In reply to</a>
-        <a href=\"https://matrix.to/#/{}\">{}</a>
-        <br />
-        sent an audio file.
-    </blockquote>
-</mx-reply>",
-                    original_message.room_id.server_name(),
-                    original_message.event_id.as_str(),
-                    original_message.sender.as_str(),
-                    original_message.sender.as_str(),
-                )
+                formatdoc! {"
+                    <mx-reply>
+                        <blockquote>
+                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                            <br />
+                            sent an audio file.
+                        </blockquote>
+                    </mx-reply>",
+                    room_id = original_message.room_id,
+                    event_id = original_message.event_id,
+                    sender = original_message.sender,
+                }
             }
             MessageType::Emote(content) => {
-                format!(
-                    "<mx-reply>
-    <blockquote>
-        <a href=\"https://matrix.to/#/!{}/${}\">In reply to</a>
-        * <a href=\"https://matrix.to/#/{}\">{}</a>
-        <br />
-        {:?}
-    </blockquote>
-</mx-reply>",
-                    original_message.room_id.server_name(),
-                    original_message.event_id.as_str(),
-                    original_message.sender.as_str(),
-                    original_message.sender.as_str(),
-                    if let Some(formatted) = &content.formatted {
+                formatdoc! {"
+                    <mx-reply>
+                        <blockquote>
+                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                            * <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                            <br />
+                            {body}
+                        </blockquote>
+                    </mx-reply>",
+                    room_id = original_message.room_id,
+                    event_id = original_message.event_id,
+                    sender = original_message.sender,
+                    body = if let Some(formatted) = &content.formatted {
                         formatted.body.as_str()
                     } else {
                         content.body.as_str()
                     }
-                )
+                }
             }
             MessageType::File(_) => {
-                format!(
-                    "<mx-reply>
-    <blockquote>
-        <a href=\"https://matrix.to/#/!{}/${}\">In reply to</a>
-        <a href=\"https://matrix.to/#/{}\">{}</a>
-        <br />
-        sent a file.
-    </blockquote>
-</mx-reply>",
-                    original_message.room_id.server_name(),
-                    original_message.event_id.as_str(),
-                    original_message.sender.as_str(),
-                    original_message.sender.as_str(),
-                )
+                formatdoc! {"
+                    <mx-reply>
+                        <blockquote>
+                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                            <br />
+                            sent a file.
+                        </blockquote>
+                    </mx-reply>",
+                    room_id = original_message.room_id,
+                    event_id = original_message.event_id,
+                    sender = original_message.sender,
+                }
             }
             MessageType::Image(_) => {
-                format!(
-                    "<mx-reply>
-    <blockquote>
-        <a href=\"https://matrix.to/#/!{}/${}\">In reply to</a>
-        <a href=\"https://matrix.to/#/{}\">{}</a>
-        <br />
-        sent an image.
-    </blockquote>
-</mx-reply>",
-                    original_message.room_id.server_name(),
-                    original_message.event_id.as_str(),
-                    original_message.sender.as_str(),
-                    original_message.sender.as_str(),
-                )
+                formatdoc! {"
+                    <mx-reply>
+                        <blockquote>
+                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                            <br />
+                            sent an image.
+                        </blockquote>
+                    </mx-reply>",
+                    room_id = original_message.room_id,
+                    event_id = original_message.event_id,
+                    sender = original_message.sender,
+                }
             }
             MessageType::Location(_) => {
-                format!(
-                    "<mx-reply>
-    <blockquote>
-        <a href=\"https://matrix.to/#/!{}/${}\">In reply to</a>
-        <a href=\"https://matrix.to/#/{}\">{}</a>
-        <br />
-        sent a location.
-    </blockquote>
-</mx-reply>",
-                    original_message.room_id.server_name(),
-                    original_message.event_id.as_str(),
-                    original_message.sender.as_str(),
-                    original_message.sender.as_str(),
-                )
+                formatdoc! {"
+                    <mx-reply>
+                        <blockquote>
+                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                            <br />
+                            sent a location.
+                        </blockquote>
+                    </mx-reply>",
+                    room_id = original_message.room_id,
+                    event_id = original_message.event_id,
+                    sender = original_message.sender,
+                }
             }
             MessageType::Notice(content) => {
-                format!(
-                    "<mx-reply>
-    <blockquote>
-        <a href=\"https://matrix.to/#/!{}/${}\">In reply to</a>
-        <a href=\"https://matrix.to/#/{}\">{}</a>
-        <br />
-        {:?}
-    </blockquote>
-</mx-reply>",
-                    original_message.room_id.server_name(),
-                    original_message.event_id.as_str(),
-                    original_message.sender.as_str(),
-                    original_message.sender.as_str(),
-                    if let Some(formatted) = &content.formatted {
+                formatdoc! {"
+                    <mx-reply>
+                        <blockquote>
+                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                            <br />
+                            {body}
+                        </blockquote>
+                    </mx-reply>",
+                    room_id = original_message.room_id,
+                    event_id = original_message.event_id,
+                    sender = original_message.sender,
+                    body = if let Some(formatted) = &content.formatted {
                         formatted.body.as_str()
                     } else {
                         content.body.as_str()
-                    }
-                )
+                    },
+                }
             }
             MessageType::ServerNotice(content) => {
-                format!(
-                    "<mx-reply>
-    <blockquote>
-        <a href=\"https://matrix.to/#/!{}/${}\">In reply to</a>
-        <a href=\"https://matrix.to/#/{}\">{}</a>
-        <br />
-        {:?}
-    </blockquote>
-</mx-reply>",
-                    original_message.room_id.server_name(),
-                    original_message.event_id.as_str(),
-                    original_message.sender.as_str(),
-                    original_message.sender.as_str(),
-                    content.body
-                )
+                formatdoc! {"
+                    <mx-reply>
+                        <blockquote>
+                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                            <br />
+                            {body}
+                        </blockquote>
+                    </mx-reply>",
+                    room_id = original_message.room_id,
+                    event_id = original_message.event_id,
+                    sender = original_message.sender,
+                    body = content.body
+                }
             }
             MessageType::Text(content) => {
-                format!(
-                    "<mx-reply>
-    <blockquote>
-        <a href=\"https://matrix.to/#/!{}/${}\">In reply to</a>
-        <a href=\"https://matrix.to/#/{}\">{}</a>
-        <br />
-        {:?}
-    </blockquote>
-</mx-reply>",
-                    original_message.room_id.server_name(),
-                    original_message.event_id.as_str(),
-                    original_message.sender.as_str(),
-                    original_message.sender.as_str(),
-                    if let Some(formatted) = &content.formatted {
+                formatdoc! {"
+                    <mx-reply>
+                        <blockquote>
+                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                            <br />
+                            {body}
+                        </blockquote>
+                    </mx-reply>",
+                    room_id = original_message.room_id,
+                    event_id = original_message.event_id,
+                    sender = original_message.sender,
+                    body = if let Some(formatted) = &content.formatted {
                         formatted.body.as_str()
                     } else {
                         content.body.as_str()
                     }
-                )
+                }
             }
             MessageType::Video(_) => {
-                format!(
-                    "<mx-reply>
-    <blockquote>
-        <a href=\"https://matrix.to/#/!{}/${}\">In reply to</a>
-        <a href=\"https://matrix.to/#/{}\">{}</a>
-        <br />
-        sent a video.
-    </blockquote>
-</mx-reply>",
-                    original_message.room_id.server_name(),
-                    original_message.event_id.as_str(),
-                    original_message.sender.as_str(),
-                    original_message.sender.as_str(),
-                )
+                formatdoc! {"
+                    <mx-reply>
+                        <blockquote>
+                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                            <br />
+                            sent a video.
+                        </blockquote>
+                    </mx-reply>",
+                    room_id = original_message.room_id,
+                    event_id = original_message.event_id,
+                    sender = original_message.sender,
+                }
             }
             MessageType::_Custom(content) => {
-                format!(
-                    "<mx-reply>
-    <blockquote>
-        <a href=\"https://matrix.to/#/!{}/${}\">In reply to</a>
-        <a href=\"https://matrix.to/#/{}\">{}</a>
-        <br />
-        {:?}
-    </blockquote>
-</mx-reply>",
-                    original_message.room_id.server_name(),
-                    original_message.event_id.as_str(),
-                    original_message.sender.as_str(),
-                    original_message.sender.as_str(),
-                    // Eagerly deserialize `body` since we assume every message should have it
-                    content.data["body"].as_str().unwrap_or("")
-                )
+                formatdoc! {"
+                    <mx-reply>
+                        <blockquote>
+                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                            <br />
+                            {body}
+                        </blockquote>
+                    </mx-reply>",
+                    room_id = original_message.room_id,
+                    event_id = original_message.event_id,
+                    sender = original_message.sender,
+                    body = content.data["body"].as_str().unwrap_or("")
+                }
             }
             #[cfg(feature = "unstable-pre-spec")]
             MessageType::VerificationRequest(content) => {
-                format!(
-                    "<mx-reply>
-    <blockquote>
-        <a href=\"https://matrix.to/#/!{}/${}\">In reply to</a>
-        <a href=\"https://matrix.to/#/{}\">{}</a>
-        <br />
-        {:?}
-    </blockquote>
-</mx-reply>",
-                    original_message.room_id.server_name(),
-                    original_message.event_id.as_str(),
-                    original_message.sender.as_str(),
-                    original_message.sender.as_str(),
-                    content.body
-                )
+                formatdoc! {"
+                    <mx-reply>
+                        <blockquote>
+                            <a href=\"https://matrix.to/#/{server_name}/{event_id}\">In reply to</a>
+                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                            <br />
+                            {body}
+                        </blockquote>
+                    </mx-reply>",
+                    server_name = original_message.room_id,
+                    event_id = original_message.event_id,
+                    sender = original_message.sender,
+                    body = content.body
+                }
             }
         }
     }

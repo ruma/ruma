@@ -21,6 +21,7 @@ ruma-serde = { version = "0.3.1", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.60", features = ["raw_value"] }
 pulldown-cmark = { version = "0.8", default-features = false, optional = true }
+indoc = "1.0"
 
 [dev-dependencies]
 assign = "1.1.1"
