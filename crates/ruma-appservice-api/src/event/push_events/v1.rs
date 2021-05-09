@@ -1,7 +1,7 @@
 //! [PUT /_matrix/app/v1/transactions/{txnId}](https://matrix.org/docs/spec/application_service/r0.1.2#put-matrix-app-v1-transactions-txnid)
 
 use ruma_api::ruma_api;
-use ruma_events::AnyEvent;
+use ruma_events::AnyRoomEvent;
 use ruma_serde::Raw;
 
 ruma_api! {
@@ -22,7 +22,7 @@ ruma_api! {
         pub txn_id: &'a str,
 
         /// A list of events.
-        pub events: &'a [Raw<AnyEvent>],
+        pub events: &'a [Raw<AnyRoomEvent>],
     }
 
     #[derive(Default)]
@@ -31,14 +31,14 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given transaction ID and list of events.
-    pub fn new(txn_id: &'a str, events: &'a [Raw<AnyEvent>]) -> Self {
+    pub fn new(txn_id: &'a str, events: &'a [Raw<AnyRoomEvent>]) -> Self {
         Self { txn_id, events }
     }
 }
 
 impl IncomingRequest {
     /// Creates an `IncomingRequest` with the given transaction ID and list of events.
-    pub fn new(txn_id: String, events: Vec<Raw<AnyEvent>>) -> IncomingRequest {
+    pub fn new(txn_id: String, events: Vec<Raw<AnyRoomEvent>>) -> IncomingRequest {
         IncomingRequest { txn_id, events }
     }
 
@@ -99,7 +99,7 @@ impl Response {
 #[cfg(feature = "helper")]
 #[cfg(test)]
 mod helper_tests {
-    use super::{AnyEvent, IncomingRequest, Raw};
+    use super::{AnyRoomEvent, IncomingRequest, Raw};
     use ruma_client_api::r0::sync::sync_events;
     use ruma_identifiers::room_id;
     use serde_json::json;
@@ -107,7 +107,7 @@ mod helper_tests {
     #[test]
     fn convert_incoming_request_to_sync_response() {
         let txn_id = "any_txn_id".to_owned();
-        let state_event: AnyEvent = serde_json::from_value(json!({
+        let state_event: AnyRoomEvent = serde_json::from_value(json!({
             "content": {},
             "event_id": "$h29iv0s8:example.com",
             "origin_server_ts": 1,
@@ -117,7 +117,7 @@ mod helper_tests {
             "type": "m.room.name"
         }))
         .unwrap();
-        let room_event: AnyEvent = serde_json::from_value(json!({
+        let message_event: AnyRoomEvent = serde_json::from_value(json!({
             "type": "m.room.message",
             "event_id": "$143273582443PhrSn:example.com",
             "origin_server_ts": 1,
@@ -131,7 +131,7 @@ mod helper_tests {
         }))
         .unwrap();
 
-        let events = vec![Raw::from(state_event), Raw::from(room_event)];
+        let events = vec![Raw::from(state_event), Raw::from(message_event)];
         let incoming_request = IncomingRequest { txn_id: txn_id.clone(), events };
 
         let response: sync_events::Response =
@@ -148,7 +148,7 @@ mod helper_tests {
 #[cfg(test)]
 mod tests {
     use ruma_api::{exports::http, OutgoingRequest, SendAccessToken};
-    use ruma_events::AnyEvent;
+    use ruma_events::AnyRoomEvent;
     use ruma_serde::Raw;
     use serde_json::json;
 
@@ -156,9 +156,16 @@ mod tests {
 
     #[test]
     fn decode_request_contains_events_field() {
-        let dummy_event: AnyEvent = serde_json::from_value(json!({
-            "content": {},
-            "type": "m.dummy"
+        let dummy_event: AnyRoomEvent = serde_json::from_value(json!({
+            "type": "m.room.message",
+            "event_id": "$143273582443PhrSn:example.com",
+            "origin_server_ts": 1,
+            "room_id": "!roomid:room.com",
+            "sender": "@user:example.com",
+            "content": {
+                "body": "test",
+                "msgtype": "m.text",
+            },
         }))
         .unwrap();
         let dummy_event = Raw::from(dummy_event);
