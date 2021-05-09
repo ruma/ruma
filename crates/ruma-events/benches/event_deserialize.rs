@@ -9,7 +9,7 @@
 #[cfg(feature = "criterion")]
 use criterion::{criterion_group, criterion_main, Criterion};
 use ruma_events::{
-    room::power_levels::PowerLevelsEventContent, AnyEvent, AnyRoomEvent, AnyStateEvent, StateEvent,
+    room::power_levels::PowerLevelsEventContent, AnyRoomEvent, AnyStateEvent, StateEvent,
 };
 use ruma_serde::Raw;
 use serde_json::json;
@@ -45,20 +45,6 @@ fn power_levels() -> serde_json::Value {
             "age": 45
         }
     })
-}
-
-#[cfg(feature = "criterion")]
-fn deserialize_any_event(c: &mut Criterion) {
-    let json_data = power_levels();
-
-    c.bench_function("deserialize to `AnyEvent`", |b| {
-        b.iter(|| {
-            let _ = serde_json::from_value::<Raw<AnyEvent>>(json_data.clone())
-                .unwrap()
-                .deserialize()
-                .unwrap();
-        })
-    });
 }
 
 #[cfg(feature = "criterion")]
