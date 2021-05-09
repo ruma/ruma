@@ -13,6 +13,7 @@ edition = "2018"
 
 [dependencies]
 criterion = { version = "0.3.3", optional = true }
+indoc = "1.0"
 js_int = { version = "0.2.0", features = ["serde"] }
 ruma-common = { version = "0.5.0", path = "../ruma-common" }
 ruma-events-macros = { version = "=0.22.0-alpha.3", path = "../ruma-events-macros" }
@@ -21,7 +22,6 @@ ruma-serde = { version = "0.3.1", path = "../ruma-serde" }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = { version = "1.0.60", features = ["raw_value"] }
 pulldown-cmark = { version = "0.8", default-features = false, optional = true }
-indoc = "1.0"
 
 [dev-dependencies]
 assign = "1.1.1"
