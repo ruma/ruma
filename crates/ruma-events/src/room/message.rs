@@ -94,15 +94,11 @@ impl MessageEventContent {
 
         let body = format!("{}\n\n{}", quoted, reply.into());
 
-        let text_message_content = TextMessageEventContent { body, formatted: None };
-
         Self {
-            msgtype: MessageType::Text(text_message_content),
             relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
             }),
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
+            ..Self::text_plain(body)
         }
     }
 
@@ -116,17 +112,13 @@ impl MessageEventContent {
         let quoted_html = MessageEventContent::get_html_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply.into());
-        let formatted = format!("{}\n\n{}", quoted_html, html_reply.into());
-        let text_message_content =
-            TextMessageEventContent { body, formatted: Some(FormattedBody::html(formatted)) };
+        let html_body = format!("{}\n\n{}", quoted_html, html_reply.into());
 
         Self {
-            msgtype: MessageType::Text(text_message_content),
             relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
             }),
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
+            ..Self::text_html(body, html_body)
         }
     }
 
@@ -135,16 +127,11 @@ impl MessageEventContent {
         let quoted = MessageEventContent::get_plain_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply.into());
-
-        let notice_message_content = NoticeMessageEventContent { body, formatted: None };
-
         Self {
-            msgtype: MessageType::Notice(notice_message_content),
             relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
             }),
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
+            ..Self::notice_plain(body)
         }
     }
 
@@ -158,18 +145,13 @@ impl MessageEventContent {
         let quoted_html = MessageEventContent::get_html_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply.into());
-        let formatted = format!("{}\n\n{}", quoted_html, html_reply.into());
-
-        let notice_message_content =
-            NoticeMessageEventContent { body, formatted: Some(FormattedBody::html(formatted)) };
+        let html_body = format!("{}\n\n{}", quoted_html, html_reply.into());
 
         Self {
-            msgtype: MessageType::Notice(notice_message_content),
             relates_to: Some(Relation::Reply {
                 in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
             }),
-            #[cfg(feature = "unstable-pre-spec")]
-            new_content: None,
+            ..Self::notice_html(body, html_body)
         }
     }
 
