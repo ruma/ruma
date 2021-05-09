@@ -90,7 +90,7 @@ impl MessageEventContent {
 
     /// A constructor to create a plain text reply to a message.
     pub fn text_reply_plain(reply: impl Into<String>, original_message: &MessageEvent) -> Self {
-        let quoted = MessageEventContent::get_plain_quote_fallback(original_message);
+        let quoted = get_plain_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply.into());
 
@@ -108,8 +108,8 @@ impl MessageEventContent {
         html_reply: impl Into<String>,
         original_message: &MessageEvent,
     ) -> Self {
-        let quoted = MessageEventContent::get_plain_quote_fallback(original_message);
-        let quoted_html = MessageEventContent::get_html_quote_fallback(original_message);
+        let quoted = get_plain_quote_fallback(original_message);
+        let quoted_html = get_html_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply.into());
         let html_body = format!("{}\n\n{}", quoted_html, html_reply.into());
@@ -124,7 +124,7 @@ impl MessageEventContent {
 
     /// A constructor to create a plain text notice reply to a message.
     pub fn notice_reply_plain(reply: impl Into<String>, original_message: &MessageEvent) -> Self {
-        let quoted = MessageEventContent::get_plain_quote_fallback(original_message);
+        let quoted = get_plain_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply.into());
         Self {
@@ -141,8 +141,8 @@ impl MessageEventContent {
         html_reply: impl Into<String>,
         original_message: &MessageEvent,
     ) -> Self {
-        let quoted = MessageEventContent::get_plain_quote_fallback(original_message);
-        let quoted_html = MessageEventContent::get_html_quote_fallback(original_message);
+        let quoted = get_plain_quote_fallback(original_message);
+        let quoted_html = get_html_quote_fallback(original_message);
 
         let body = format!("{}\n\n{}", quoted, reply.into());
         let html_body = format!("{}\n\n{}", quoted_html, html_reply.into());
@@ -152,238 +152,6 @@ impl MessageEventContent {
                 in_reply_to: InReplyTo { event_id: original_message.event_id.clone() },
             }),
             ..Self::notice_html(body, html_body)
-        }
-    }
-
-    fn get_plain_quote_fallback(original_message: &MessageEvent) -> String {
-        match &original_message.content.msgtype {
-            MessageType::Audio(_) => {
-                format!("> <{:?}> sent an audio file.", original_message.sender)
-            }
-            MessageType::Emote(content) => {
-                format!("> * <{:?}> {}", original_message.sender, content.body)
-            }
-            MessageType::File(_) => {
-                format!("> <{:?}> sent a file.", original_message.sender)
-            }
-            MessageType::Image(_) => {
-                format!("> <{:?}> sent an image.", original_message.sender)
-            }
-            MessageType::Location(content) => {
-                format!("> <{:?}> {}", original_message.sender, content.body)
-            }
-            MessageType::Notice(content) => {
-                format!("> <{:?}> {}", original_message.sender, content.body)
-            }
-            MessageType::ServerNotice(content) => {
-                format!("> <{:?}> {}", original_message.sender, content.body)
-            }
-            MessageType::Text(content) => {
-                format!("> <{:?}> {}", original_message.sender, content.body)
-            }
-            MessageType::Video(_) => {
-                format!("> <{:?}> sent a video.", original_message.sender)
-            }
-            MessageType::_Custom(content) => {
-                format!(
-                    "> <{:?}> {}",
-                    original_message.sender,
-                    content.data["body"].as_str().unwrap_or("")
-                )
-            }
-            #[cfg(feature = "unstable-pre-spec")]
-            MessageType::VerificationRequest(content) => {
-                format!("> <{:?}> {}", original_message.sender, content.body)
-            }
-        }
-    }
-
-    fn get_html_quote_fallback(original_message: &MessageEvent) -> String {
-        match &original_message.content.msgtype {
-            MessageType::Audio(_) => {
-                formatdoc! {"
-                    <mx-reply>
-                        <blockquote>
-                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
-                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
-                            <br />
-                            sent an audio file.
-                        </blockquote>
-                    </mx-reply>",
-                    room_id = original_message.room_id,
-                    event_id = original_message.event_id,
-                    sender = original_message.sender,
-                }
-            }
-            MessageType::Emote(content) => {
-                formatdoc! {"
-                    <mx-reply>
-                        <blockquote>
-                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
-                            * <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
-                            <br />
-                            {body}
-                        </blockquote>
-                    </mx-reply>",
-                    room_id = original_message.room_id,
-                    event_id = original_message.event_id,
-                    sender = original_message.sender,
-                    body = if let Some(formatted) = &content.formatted {
-                        formatted.body.as_str()
-                    } else {
-                        content.body.as_str()
-                    }
-                }
-            }
-            MessageType::File(_) => {
-                formatdoc! {"
-                    <mx-reply>
-                        <blockquote>
-                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
-                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
-                            <br />
-                            sent a file.
-                        </blockquote>
-                    </mx-reply>",
-                    room_id = original_message.room_id,
-                    event_id = original_message.event_id,
-                    sender = original_message.sender,
-                }
-            }
-            MessageType::Image(_) => {
-                formatdoc! {"
-                    <mx-reply>
-                        <blockquote>
-                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
-                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
-                            <br />
-                            sent an image.
-                        </blockquote>
-                    </mx-reply>",
-                    room_id = original_message.room_id,
-                    event_id = original_message.event_id,
-                    sender = original_message.sender,
-                }
-            }
-            MessageType::Location(_) => {
-                formatdoc! {"
-                    <mx-reply>
-                        <blockquote>
-                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
-                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
-                            <br />
-                            sent a location.
-                        </blockquote>
-                    </mx-reply>",
-                    room_id = original_message.room_id,
-                    event_id = original_message.event_id,
-                    sender = original_message.sender,
-                }
-            }
-            MessageType::Notice(content) => {
-                formatdoc! {"
-                    <mx-reply>
-                        <blockquote>
-                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
-                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
-                            <br />
-                            {body}
-                        </blockquote>
-                    </mx-reply>",
-                    room_id = original_message.room_id,
-                    event_id = original_message.event_id,
-                    sender = original_message.sender,
-                    body = if let Some(formatted) = &content.formatted {
-                        formatted.body.as_str()
-                    } else {
-                        content.body.as_str()
-                    },
-                }
-            }
-            MessageType::ServerNotice(content) => {
-                formatdoc! {"
-                    <mx-reply>
-                        <blockquote>
-                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
-                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
-                            <br />
-                            {body}
-                        </blockquote>
-                    </mx-reply>",
-                    room_id = original_message.room_id,
-                    event_id = original_message.event_id,
-                    sender = original_message.sender,
-                    body = content.body
-                }
-            }
-            MessageType::Text(content) => {
-                formatdoc! {"
-                    <mx-reply>
-                        <blockquote>
-                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
-                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
-                            <br />
-                            {body}
-                        </blockquote>
-                    </mx-reply>",
-                    room_id = original_message.room_id,
-                    event_id = original_message.event_id,
-                    sender = original_message.sender,
-                    body = if let Some(formatted) = &content.formatted {
-                        formatted.body.as_str()
-                    } else {
-                        content.body.as_str()
-                    }
-                }
-            }
-            MessageType::Video(_) => {
-                formatdoc! {"
-                    <mx-reply>
-                        <blockquote>
-                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
-                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
-                            <br />
-                            sent a video.
-                        </blockquote>
-                    </mx-reply>",
-                    room_id = original_message.room_id,
-                    event_id = original_message.event_id,
-                    sender = original_message.sender,
-                }
-            }
-            MessageType::_Custom(content) => {
-                formatdoc! {"
-                    <mx-reply>
-                        <blockquote>
-                            <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
-                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
-                            <br />
-                            {body}
-                        </blockquote>
-                    </mx-reply>",
-                    room_id = original_message.room_id,
-                    event_id = original_message.event_id,
-                    sender = original_message.sender,
-                    body = content.data["body"].as_str().unwrap_or("")
-                }
-            }
-            #[cfg(feature = "unstable-pre-spec")]
-            MessageType::VerificationRequest(content) => {
-                formatdoc! {"
-                    <mx-reply>
-                        <blockquote>
-                            <a href=\"https://matrix.to/#/{server_name}/{event_id}\">In reply to</a>
-                            <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
-                            <br />
-                            {body}
-                        </blockquote>
-                    </mx-reply>",
-                    server_name = original_message.room_id,
-                    event_id = original_message.event_id,
-                    sender = original_message.sender,
-                    body = content.body
-                }
-            }
         }
     }
 }
@@ -990,4 +758,236 @@ pub struct CustomEventContent {
     /// Remaining event content
     #[serde(flatten)]
     pub data: JsonObject,
+}
+
+fn get_plain_quote_fallback(original_message: &MessageEvent) -> String {
+    match &original_message.content.msgtype {
+        MessageType::Audio(_) => {
+            format!("> <{:?}> sent an audio file.", original_message.sender)
+        }
+        MessageType::Emote(content) => {
+            format!("> * <{:?}> {}", original_message.sender, content.body)
+        }
+        MessageType::File(_) => {
+            format!("> <{:?}> sent a file.", original_message.sender)
+        }
+        MessageType::Image(_) => {
+            format!("> <{:?}> sent an image.", original_message.sender)
+        }
+        MessageType::Location(content) => {
+            format!("> <{:?}> {}", original_message.sender, content.body)
+        }
+        MessageType::Notice(content) => {
+            format!("> <{:?}> {}", original_message.sender, content.body)
+        }
+        MessageType::ServerNotice(content) => {
+            format!("> <{:?}> {}", original_message.sender, content.body)
+        }
+        MessageType::Text(content) => {
+            format!("> <{:?}> {}", original_message.sender, content.body)
+        }
+        MessageType::Video(_) => {
+            format!("> <{:?}> sent a video.", original_message.sender)
+        }
+        MessageType::_Custom(content) => {
+            format!(
+                "> <{:?}> {}",
+                original_message.sender,
+                content.data["body"].as_str().unwrap_or("")
+            )
+        }
+        #[cfg(feature = "unstable-pre-spec")]
+        MessageType::VerificationRequest(content) => {
+            format!("> <{:?}> {}", original_message.sender, content.body)
+        }
+    }
+}
+
+fn get_html_quote_fallback(original_message: &MessageEvent) -> String {
+    match &original_message.content.msgtype {
+        MessageType::Audio(_) => {
+            formatdoc! {"
+                <mx-reply>
+                    <blockquote>
+                        <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                        <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                        <br />
+                        sent an audio file.
+                    </blockquote>
+                </mx-reply>",
+                room_id = original_message.room_id,
+                event_id = original_message.event_id,
+                sender = original_message.sender,
+            }
+        }
+        MessageType::Emote(content) => {
+            formatdoc! {"
+                <mx-reply>
+                    <blockquote>
+                        <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                        * <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                        <br />
+                        {body}
+                    </blockquote>
+                </mx-reply>",
+                room_id = original_message.room_id,
+                event_id = original_message.event_id,
+                sender = original_message.sender,
+                body = if let Some(formatted) = &content.formatted {
+                    formatted.body.as_str()
+                } else {
+                    content.body.as_str()
+                }
+            }
+        }
+        MessageType::File(_) => {
+            formatdoc! {"
+                <mx-reply>
+                    <blockquote>
+                        <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                        <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                        <br />
+                        sent a file.
+                    </blockquote>
+                </mx-reply>",
+                room_id = original_message.room_id,
+                event_id = original_message.event_id,
+                sender = original_message.sender,
+            }
+        }
+        MessageType::Image(_) => {
+            formatdoc! {"
+                <mx-reply>
+                    <blockquote>
+                        <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                        <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                        <br />
+                        sent an image.
+                    </blockquote>
+                </mx-reply>",
+                room_id = original_message.room_id,
+                event_id = original_message.event_id,
+                sender = original_message.sender,
+            }
+        }
+        MessageType::Location(_) => {
+            formatdoc! {"
+                <mx-reply>
+                    <blockquote>
+                        <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                        <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                        <br />
+                        sent a location.
+                    </blockquote>
+                </mx-reply>",
+                room_id = original_message.room_id,
+                event_id = original_message.event_id,
+                sender = original_message.sender,
+            }
+        }
+        MessageType::Notice(content) => {
+            formatdoc! {"
+                <mx-reply>
+                    <blockquote>
+                        <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                        <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                        <br />
+                        {body}
+                    </blockquote>
+                </mx-reply>",
+                room_id = original_message.room_id,
+                event_id = original_message.event_id,
+                sender = original_message.sender,
+                body = if let Some(formatted) = &content.formatted {
+                    formatted.body.as_str()
+                } else {
+                    content.body.as_str()
+                },
+            }
+        }
+        MessageType::ServerNotice(content) => {
+            formatdoc! {"
+                <mx-reply>
+                    <blockquote>
+                        <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                        <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                        <br />
+                        {body}
+                    </blockquote>
+                </mx-reply>",
+                room_id = original_message.room_id,
+                event_id = original_message.event_id,
+                sender = original_message.sender,
+                body = content.body
+            }
+        }
+        MessageType::Text(content) => {
+            formatdoc! {"
+                <mx-reply>
+                    <blockquote>
+                        <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                        <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                        <br />
+                        {body}
+                    </blockquote>
+                </mx-reply>",
+                room_id = original_message.room_id,
+                event_id = original_message.event_id,
+                sender = original_message.sender,
+                body = if let Some(formatted) = &content.formatted {
+                    formatted.body.as_str()
+                } else {
+                    content.body.as_str()
+                }
+            }
+        }
+        MessageType::Video(_) => {
+            formatdoc! {"
+                <mx-reply>
+                    <blockquote>
+                        <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                        <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                        <br />
+                        sent a video.
+                    </blockquote>
+                </mx-reply>",
+                room_id = original_message.room_id,
+                event_id = original_message.event_id,
+                sender = original_message.sender,
+            }
+        }
+        MessageType::_Custom(content) => {
+            formatdoc! {"
+                <mx-reply>
+                    <blockquote>
+                        <a href=\"https://matrix.to/#/{room_id}/{event_id}\">In reply to</a>
+                        <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                        <br />
+                        {body}
+                    </blockquote>
+                </mx-reply>",
+                room_id = original_message.room_id,
+                event_id = original_message.event_id,
+                sender = original_message.sender,
+                body = content.data["body"].as_str().unwrap_or("")
+            }
+        }
+        #[cfg(feature = "unstable-pre-spec")]
+        MessageType::VerificationRequest(content) => {
+            formatdoc! {"
+                <mx-reply>
+                    <blockquote>
+                        <a href=\"https://matrix.to/#/{server_name}/{event_id}\">In reply to</a>
+                        <a href=\"https://matrix.to/#/{sender}\">{sender}</a>
+                        <br />
+                        {body}
+                    </blockquote>
+                </mx-reply>",
+                server_name = original_message.room_id,
+                event_id = original_message.event_id,
+                sender = original_message.sender,
+                body = content.body
+            }
+        }
+    }
 }
