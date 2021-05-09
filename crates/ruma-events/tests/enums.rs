@@ -10,9 +10,9 @@ use ruma_events::{
         message::{MessageEventContent, MessageType, TextMessageEventContent},
         power_levels::PowerLevelsEventContent,
     },
-    AnyEphemeralRoomEvent, AnyEvent, AnyMessageEvent, AnyRoomEvent, AnyStateEvent,
-    AnyStateEventContent, AnySyncMessageEvent, AnySyncRoomEvent, AnySyncStateEvent, MessageEvent,
-    StateEvent, SyncMessageEvent, SyncStateEvent, Unsigned,
+    AnyEphemeralRoomEvent, AnyMessageEvent, AnyRoomEvent, AnyStateEvent, AnyStateEventContent,
+    AnySyncMessageEvent, AnySyncRoomEvent, AnySyncStateEvent, MessageEvent, StateEvent,
+    SyncMessageEvent, SyncStateEvent, Unsigned,
 };
 
 fn message_event() -> JsonValue {
@@ -237,8 +237,8 @@ fn message_event_deserialization() {
     let json_data = message_event();
 
     assert_matches!(
-        from_json_value::<AnyEvent>(json_data),
-        Ok(AnyEvent::Message(
+        from_json_value::<AnyRoomEvent>(json_data),
+        Ok(AnyRoomEvent::Message(
             AnyMessageEvent::RoomMessage(MessageEvent {
                 content: MessageEventContent {
                     msgtype: MessageType::Text(TextMessageEventContent {
@@ -260,8 +260,8 @@ fn alias_event_deserialization() {
     let json_data = aliases_event();
 
     assert_matches!(
-        from_json_value::<AnyEvent>(json_data),
-        Ok(AnyEvent::State(
+        from_json_value::<AnyRoomEvent>(json_data),
+        Ok(AnyRoomEvent::State(
             AnyStateEvent::RoomAliases(StateEvent {
                 content: AliasesEventContent {
                     aliases,
@@ -279,8 +279,8 @@ fn alias_event_field_access() {
     let json_data = aliases_event();
 
     assert_matches!(
-        from_json_value::<AnyEvent>(json_data.clone()),
-        Ok(AnyEvent::State(state_event))
+        from_json_value::<AnyRoomEvent>(json_data.clone()),
+        Ok(AnyRoomEvent::State(state_event))
         if state_event.state_key() == ""
             && state_event.room_id() == &room_id!("!room:room.com")
             && state_event.event_id() == &event_id!("$152037280074GZeOm:localhost")
@@ -311,8 +311,8 @@ fn ephemeral_event_deserialization() {
     });
 
     assert_matches!(
-        from_json_value::<AnyEvent>(json_data),
-        Ok(AnyEvent::Ephemeral(ephem @ AnyEphemeralRoomEvent::Typing(_)))
+        from_json_value::<AnyEphemeralRoomEvent>(json_data),
+        Ok(ephem @ AnyEphemeralRoomEvent::Typing(_))
         if ephem.room_id() == &room_id!("!jEsUZKDJdhlrceRyVU:example.org")
     );
 }
