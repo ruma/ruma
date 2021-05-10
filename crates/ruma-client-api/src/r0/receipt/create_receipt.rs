@@ -1,8 +1,8 @@
 //! [POST /_matrix/client/r0/rooms/{roomId}/receipt/{receiptType}/{eventId}](https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-rooms-roomid-receipt-receipttype-eventid)
 
 use ruma_api::ruma_api;
+use ruma_common::receipt::ReceiptType;
 use ruma_identifiers::{EventId, RoomId};
-use ruma_serde::{AsRefStr, DisplayAsRefStr, FromString};
 
 ruma_api! {
     metadata: {
@@ -46,15 +46,4 @@ impl Response {
     pub fn new() -> Self {
         Self
     }
-}
-
-/// The type of receipt.
-#[derive(Clone, Debug, AsRefStr, DisplayAsRefStr, FromString)]
-pub enum ReceiptType {
-    /// m.read
-    #[ruma_enum(rename = "m.read")]
-    Read,
-
-    #[doc(hidden)]
-    _Custom(String),
 }

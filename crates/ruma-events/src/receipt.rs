@@ -6,6 +6,7 @@ use std::{
     time::SystemTime,
 };
 
+use ruma_common::receipt::ReceiptType;
 use ruma_events_macros::EphemeralRoomEventContent;
 use ruma_identifiers::{EventId, UserId};
 use serde::{Deserialize, Serialize};
@@ -38,12 +39,7 @@ impl DerefMut for ReceiptEventContent {
 }
 
 /// A collection of receipts.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Receipts {
-    /// A collection of users who have sent *m.read* receipts for this event.
-    #[serde(default, rename = "m.read")]
-    pub read: Option<UserReceipts>,
-}
+pub type Receipts = BTreeMap<ReceiptType, UserReceipts>;
 
 /// A mapping of user ID to receipt.
 ///

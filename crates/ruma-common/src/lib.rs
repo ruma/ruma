@@ -11,4 +11,5 @@ pub mod encryption;
 pub mod power_levels;
 pub mod presence;
 pub mod push;
+pub mod receipt;
 pub mod thirdparty;

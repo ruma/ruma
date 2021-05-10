@@ -42,6 +42,7 @@ Breaking changes:
   ```
 * Add `tag::TagName` type and use it for `tag::Tags`
 * Move `FullyRead` from `EphemeralRoom` enum to `Basic` enum
+* Change `receipt::Receipts` struct to a `BTreeMap<ReceiptType, UserReceipts>`
 
 Improvements:
 
