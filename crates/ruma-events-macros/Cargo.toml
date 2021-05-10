@@ -16,10 +16,10 @@ repository = "https://github.com/ruma/ruma"
 version = "0.22.0-alpha.3"
 
 [dependencies]
-syn = { version = "1.0.57", features = ["full"] }
-quote = "1.0.8"
-proc-macro2 = "1.0.24"
 proc-macro-crate = "1.0.0"
+proc-macro2 = "1.0.24"
+quote = "1.0.8"
+syn = { version = "1.0.57", features = ["full"] }
 
 [lib]
 proc-macro = true
