@@ -494,7 +494,7 @@ fn expand_redact(
                 pub fn redact(
                     self,
                     redaction: #redaction_type,
-                    version: #ruma_identifiers::RoomVersionId,
+                    version: &#ruma_identifiers::RoomVersionId,
                 ) -> #redacted_enum {
                     match self {
                         #(

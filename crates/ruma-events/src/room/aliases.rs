@@ -28,7 +28,7 @@ impl AliasesEventContent {
     }
 
     /// Redact an `AliasesEventContent` according to current Matrix spec.
-    pub fn redact(self, version: RoomVersionId) -> RedactedAliasesEventContent {
+    pub fn redact(self, version: &RoomVersionId) -> RedactedAliasesEventContent {
         // We compare the long way to avoid pre version 6 behavior if/when
         // a new room version is introduced.
         let aliases = match version {

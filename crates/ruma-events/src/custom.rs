@@ -26,7 +26,7 @@ pub struct CustomEventContent {
 
 impl CustomEventContent {
     /// Transforms the full event content into a redacted content according to spec.
-    pub fn redact(self, _: RoomVersionId) -> RedactedCustomEventContent {
+    pub fn redact(self, _: &RoomVersionId) -> RedactedCustomEventContent {
         RedactedCustomEventContent { event_type: self.event_type }
     }
 }
