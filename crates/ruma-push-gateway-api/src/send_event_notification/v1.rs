@@ -112,7 +112,7 @@ pub struct Notification<'a> {
     /// The `content` field from the event, if present. The pusher may omit this
     /// if the event had no content or for any other reason.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<Box<RawJsonValue>>,
+    pub content: Option<&'a RawJsonValue>,
 
     /// This is a dictionary of the current number of unacknowledged
     /// communications for the recipient user. Counts whose value is zero should

@@ -34,7 +34,7 @@ ruma_api! {
         /// The content's type for this field will be updated in a future
         /// release, until then you can create a value using
         /// `serde_json::value::to_raw_value`.
-        pub messages: BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Box<RawJsonValue>>>
+        pub messages: BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Box<RawJsonValue>>>,
     }
 
     #[derive(Default)]

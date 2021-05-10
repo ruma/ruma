@@ -19,7 +19,7 @@ ruma_api! {
         ///
         /// To create a `RawJsonValue`, use `serde_json::value::to_raw_value`.
         #[ruma_api(body)]
-        pub data: Box<RawJsonValue>,
+        pub data: &'a RawJsonValue,
 
         /// The event type of the account_data to set.
         ///
@@ -47,7 +47,7 @@ ruma_api! {
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given data, event type, room ID and user ID.
     pub fn new(
-        data: Box<RawJsonValue>,
+        data: &'a RawJsonValue,
         event_type: &'a str,
         room_id: &'a RoomId,
         user_id: &'a UserId,
