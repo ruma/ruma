@@ -688,10 +688,6 @@ fn marker_traits(kind: &EventKind, ruma_events: &TokenStream) -> TokenStream {
             #[automatically_derived]
             impl #ruma_events::BasicEventContent for #ident {}
         },
-        EventKind::BasicToDevice => quote! {
-            #[automatically_derived]
-            impl #ruma_events::BasicEventContent for #ident {}
-        },
         _ => TokenStream::new(),
     }
 }

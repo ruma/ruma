@@ -200,8 +200,8 @@ pub use self::{
     },
     error::{FromStrError, InvalidInput},
     event_kinds::{
-        BasicToDeviceEvent, EphemeralRoomEvent, GlobalAccountDataEvent, InitialStateEvent,
-        MessageEvent, RedactedMessageEvent, RedactedStateEvent, RedactedStrippedStateEvent,
+        EphemeralRoomEvent, GlobalAccountDataEvent, InitialStateEvent, MessageEvent,
+        RedactedMessageEvent, RedactedStateEvent, RedactedStrippedStateEvent,
         RedactedSyncMessageEvent, RedactedSyncStateEvent, RoomAccountDataEvent, StateEvent,
         StrippedStateEvent, SyncEphemeralRoomEvent, SyncMessageEvent, SyncStateEvent,
         ToDeviceEvent,

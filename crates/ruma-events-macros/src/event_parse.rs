@@ -68,7 +68,6 @@ pub enum EventKind {
     Ephemeral,
     Message,
     State,
-    BasicToDevice,
     ToDevice,
     Redaction,
     Presence,
@@ -82,7 +81,6 @@ impl fmt::Display for EventKind {
             EventKind::Ephemeral => write!(f, "EphemeralRoomEvent"),
             EventKind::Message => write!(f, "MessageEvent"),
             EventKind::State => write!(f, "StateEvent"),
-            EventKind::BasicToDevice => write!(f, "BasicToDeviceEvent"),
             EventKind::ToDevice => write!(f, "ToDeviceEvent"),
             EventKind::Redaction => write!(f, "RedactionEvent"),
             EventKind::Presence => write!(f, "PresenceEvent"),
@@ -140,14 +138,13 @@ impl Parse for EventKind {
             "EphemeralRoom" => EventKind::Ephemeral,
             "Message" => EventKind::Message,
             "State" => EventKind::State,
-            "BasicToDevice" => EventKind::BasicToDevice,
             "ToDevice" => EventKind::ToDevice,
             id => {
                 return Err(syn::Error::new(
                     input.span(),
                     format!(
                         "valid event kinds are GlobalAccountData, RoomAccountData, EphemeralRoom, \
-                        Message, State, BasicToDevice, ToDevice found `{}`",
+                        Message, State, ToDevice found `{}`",
                         id
                     ),
                 ));
@@ -179,7 +176,6 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
         "RedactedStrippedStateEvent" => {
             Some((EventKind::State, EventKindVariation::RedactedStripped))
         }
-        "BasicToDeviceEvent" => Some((EventKind::BasicToDevice, EventKindVariation::Full)),
         "ToDeviceEvent" => Some((EventKind::ToDevice, EventKindVariation::Full)),
         "PresenceEvent" => Some((EventKind::Presence, EventKindVariation::Full)),
         "RedactionEvent" => Some((EventKind::Redaction, EventKindVariation::Full)),

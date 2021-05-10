@@ -4,15 +4,10 @@ use ruma_events_macros::BasicEventContent;
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
 use serde::{Deserialize, Serialize};
 
-use crate::BasicToDeviceEvent;
-
-/// Typically encrypted as an *m.room.encrypted* event, then sent as a to-device event.
-pub type RoomKeyEvent = BasicToDeviceEvent<RoomKeyEventContent>;
-
 /// The payload for `RoomKeyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
 #[ruma_event(type = "m.room_key")]
-pub struct RoomKeyEventContent {
+pub struct RoomKeyToDeviceEventContent {
     /// The encryption algorithm the key in this event is to be used with.
     ///
     /// Must be `m.megolm.v1.aes-sha2`.
@@ -28,26 +23,24 @@ pub struct RoomKeyEventContent {
     pub session_key: String,
 }
 
-/// The to-device version of the payload for the `RoomKeyEvent`.
-pub type RoomKeyToDeviceEventContent = RoomKeyEventContent;
-
 #[cfg(test)]
 mod tests {
-    use ruma_identifiers::{room_id, EventEncryptionAlgorithm};
+    use ruma_identifiers::{room_id, user_id, EventEncryptionAlgorithm};
     use serde_json::{json, to_value as to_json_value};
 
-    use super::RoomKeyEventContent;
-    use crate::BasicToDeviceEvent;
+    use super::RoomKeyToDeviceEventContent;
+    use crate::ToDeviceEvent;
 
     #[test]
     fn serialization() {
-        let ev = BasicToDeviceEvent {
-            content: RoomKeyEventContent {
+        let ev = ToDeviceEvent {
+            content: RoomKeyToDeviceEventContent {
                 algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
                 room_id: room_id!("!testroomid:example.org"),
                 session_id: "SessId".into(),
                 session_key: "SessKey".into(),
             },
+            sender: user_id!("@user:example.org"),
         };
 
         assert_eq!(
@@ -60,6 +53,7 @@ mod tests {
                     "session_id": "SessId",
                     "session_key": "SessKey",
                 },
+                "sender": "@user:example.org",
             })
         );
     }

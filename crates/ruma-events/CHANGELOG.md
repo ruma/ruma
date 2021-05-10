@@ -42,7 +42,8 @@ Breaking changes:
   ```
 * Add `tag::TagName` type and use it for `tag::Tags`
 * Move `FullyRead` from `EphemeralRoom` enum to `RoomAccountData` enum
-* Split `Basic` enum into `GlobalAccountData`, `RoomAccountData` and `BasicToDevice` enums
+* Split `Basic` enum into `GlobalAccountData` and `RoomAccountData` enums
+  * Remove `DummyEvent`, `DummyEventContent`, `RoomKeyEvent`, `RoomKeyEventContent`
 
 Improvements:
 

@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use js_int::UInt;
 use ruma_common::{encryption::DeviceKeys, presence::PresenceState};
 use ruma_events::{
-    from_raw_json_value, receipt::Receipt, room_key::RoomKeyEventContent, EventType,
+    from_raw_json_value, receipt::Receipt, room_key::RoomKeyToDeviceEventContent, EventType,
 };
 use ruma_identifiers::{DeviceIdBox, EventId, RoomId, UserId};
 use serde::{de, Deserialize, Serialize};
@@ -258,7 +258,7 @@ pub struct DirectDeviceContent {
     /// The contents of the messages to be sent. These are arranged in a map
     /// of user IDs to a map of device IDs to message bodies. The device ID may
     /// also be *, meaning all known devices for the user.
-    pub messages: BTreeMap<UserId, BTreeMap<DeviceIdBox, RoomKeyEventContent>>,
+    pub messages: BTreeMap<UserId, BTreeMap<DeviceIdBox, RoomKeyToDeviceEventContent>>,
 }
 
 impl DirectDeviceContent {
