@@ -5,16 +5,20 @@ use serde_json::value::RawValue as RawJsonValue;
 use crate::{from_raw_json_value, EventDeHelper};
 
 event_enum! {
-    /// Any basic event.
-    kind: Basic,
+    /// Any global account data event.
+    kind: GlobalAccountData,
     events: [
         "m.direct",
-        "m.dummy",
-        "m.fully_read",
         "m.ignored_user_list",
-        "m.presence",
         "m.push_rules",
-        "m.room_key",
+    ]
+}
+
+event_enum! {
+    /// Any room account data event.
+    kind: RoomAccountData,
+    events: [
+        "m.fully_read",
         "m.tag",
     ]
 }
@@ -91,6 +95,15 @@ event_enum! {
         "m.room.third_party_invite",
         "m.room.tombstone",
         "m.room.topic",
+    ]
+}
+
+event_enum! {
+    /// Any basic to-device event.
+    kind: BasicToDevice,
+    events: [
+        "m.dummy",
+        "m.room_key",
     ]
 }
 

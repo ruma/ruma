@@ -10,7 +10,7 @@ use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
 /// Informs the client about the rooms that are considered direct by a user.
-pub type DirectEvent = crate::BasicEvent<DirectEventContent>;
+pub type DirectEvent = crate::GlobalAccountDataEvent<DirectEventContent>;
 
 /// The payload for `DirectEvent`.
 ///

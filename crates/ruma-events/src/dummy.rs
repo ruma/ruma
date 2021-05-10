@@ -3,7 +3,7 @@
 use ruma_events_macros::BasicEventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::BasicEvent;
+use crate::BasicToDeviceEvent;
 
 /// This event type is used to indicate new Olm sessions for end-to-end encryption.
 ///
@@ -14,7 +14,7 @@ use crate::BasicEvent;
 /// this *m.dummy* event as the most recent event and using the keyshare request to set up the
 /// session. The keyshare request and *m.dummy* combination should result in the original
 /// sending client receiving keys over the newly established session.
-pub type DummyEvent = BasicEvent<DummyEventContent>;
+pub type DummyEvent = BasicToDeviceEvent<DummyEventContent>;
 
 /// The payload for `DummyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]

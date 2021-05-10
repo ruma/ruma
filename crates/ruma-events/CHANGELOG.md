@@ -41,8 +41,8 @@ Breaking changes:
   sticker::StickerEventContent
   ```
 * Add `tag::TagName` type and use it for `tag::Tags`
-* Move `FullyRead` from `EphemeralRoom` enum to `Basic` enum
-* Change `receipt::Receipts` struct to a `BTreeMap<ReceiptType, UserReceipts>`
+* Move `FullyRead` from `EphemeralRoom` enum to `RoomAccountData` enum
+* Split `Basic` enum into `GlobalAccountData`, `RoomAccountData` and `BasicToDevice` enums
 
 Improvements:
 

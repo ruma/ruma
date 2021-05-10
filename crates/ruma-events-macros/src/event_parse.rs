@@ -63,10 +63,12 @@ impl EventKindVariation {
 // If the variants of this enum change `to_event_path` needs to be updated as well.
 #[derive(Debug, Eq, PartialEq)]
 pub enum EventKind {
-    Basic,
+    GlobalAccountData,
+    RoomAccountData,
     Ephemeral,
     Message,
     State,
+    BasicToDevice,
     ToDevice,
     Redaction,
     Presence,
@@ -75,10 +77,12 @@ pub enum EventKind {
 impl fmt::Display for EventKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            EventKind::Basic => write!(f, "BasicEvent"),
+            EventKind::GlobalAccountData => write!(f, "GlobalAccountDataEvent"),
+            EventKind::RoomAccountData => write!(f, "RoomAccountDataEvent"),
             EventKind::Ephemeral => write!(f, "EphemeralRoomEvent"),
             EventKind::Message => write!(f, "MessageEvent"),
             EventKind::State => write!(f, "StateEvent"),
+            EventKind::BasicToDevice => write!(f, "BasicToDeviceEvent"),
             EventKind::ToDevice => write!(f, "ToDeviceEvent"),
             EventKind::Redaction => write!(f, "RedactionEvent"),
             EventKind::Presence => write!(f, "PresenceEvent"),
@@ -131,17 +135,19 @@ impl Parse for EventKind {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
         let ident: Ident = input.parse()?;
         Ok(match ident.to_string().as_str() {
-            "Basic" => EventKind::Basic,
+            "GlobalAccountData" => EventKind::GlobalAccountData,
+            "RoomAccountData" => EventKind::RoomAccountData,
             "EphemeralRoom" => EventKind::Ephemeral,
             "Message" => EventKind::Message,
             "State" => EventKind::State,
+            "BasicToDevice" => EventKind::BasicToDevice,
             "ToDevice" => EventKind::ToDevice,
             id => {
                 return Err(syn::Error::new(
                     input.span(),
                     format!(
-                        "valid event kinds are Basic, EphemeralRoom, Message, State, ToDevice \
-                         found `{}`",
+                        "valid event kinds are GlobalAccountData, RoomAccountData, EphemeralRoom, \
+                        Message, State, BasicToDevice, ToDevice found `{}`",
                         id
                     ),
                 ));
@@ -156,7 +162,8 @@ impl Parse for EventKind {
 pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation)> {
     let ident_str = ident.to_string();
     match ident_str.as_str() {
-        "BasicEvent" => Some((EventKind::Basic, EventKindVariation::Full)),
+        "GlobalAccountDataEvent" => Some((EventKind::GlobalAccountData, EventKindVariation::Full)),
+        "RoomAccountDataEvent" => Some((EventKind::RoomAccountData, EventKindVariation::Full)),
         "EphemeralRoomEvent" => Some((EventKind::Ephemeral, EventKindVariation::Full)),
         "SyncEphemeralRoomEvent" => Some((EventKind::Ephemeral, EventKindVariation::Sync)),
         "MessageEvent" => Some((EventKind::Message, EventKindVariation::Full)),
@@ -172,6 +179,7 @@ pub fn to_kind_variation(ident: &Ident) -> Option<(EventKind, EventKindVariation
         "RedactedStrippedStateEvent" => {
             Some((EventKind::State, EventKindVariation::RedactedStripped))
         }
+        "BasicToDeviceEvent" => Some((EventKind::BasicToDevice, EventKindVariation::Full)),
         "ToDeviceEvent" => Some((EventKind::ToDevice, EventKindVariation::Full)),
         "PresenceEvent" => Some((EventKind::Presence, EventKindVariation::Full)),
         "RedactionEvent" => Some((EventKind::Redaction, EventKindVariation::Full)),

@@ -6,10 +6,10 @@ use ruma_events_macros::BasicEventContent;
 use ruma_serde::deserialize_cow_str;
 use serde::{Deserialize, Serialize};
 
-use crate::BasicEvent;
+use crate::RoomAccountDataEvent;
 
 /// Informs the client of tags on a room.
-pub type TagEvent = BasicEvent<TagEventContent>;
+pub type TagEvent = RoomAccountDataEvent<TagEventContent>;
 
 /// Map of tag names to tag info.
 pub type Tags = BTreeMap<TagName, TagInfo>;

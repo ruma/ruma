@@ -1,8 +1,8 @@
 use ruma_events_macros::event_enum;
 
 event_enum! {
-    /// Any basic event.
-    kind: Basic,
+    /// Any global account data event.
+    kind: GlobalAccountData,
     events: [
         "m.direct",
         #[cfg(test)]

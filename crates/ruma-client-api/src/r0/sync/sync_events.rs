@@ -6,8 +6,9 @@ use js_int::UInt;
 use ruma_api::ruma_api;
 use ruma_common::presence::PresenceState;
 use ruma_events::{
-    presence::PresenceEvent, AnyBasicEvent, AnyStrippedStateEvent, AnySyncEphemeralRoomEvent,
-    AnySyncRoomEvent, AnySyncStateEvent, AnyToDeviceEvent,
+    presence::PresenceEvent, AnyGlobalAccountDataEvent, AnyRoomAccountDataEvent,
+    AnyStrippedStateEvent, AnySyncEphemeralRoomEvent, AnySyncRoomEvent, AnySyncStateEvent,
+    AnyToDeviceEvent,
 };
 use ruma_identifiers::{DeviceKeyAlgorithm, RoomId, UserId};
 use ruma_serde::{Outgoing, Raw};
@@ -75,8 +76,8 @@ ruma_api! {
         pub presence: Presence,
 
         /// The global private data created by this user.
-        #[serde(default, skip_serializing_if = "AccountData::is_empty")]
-        pub account_data: AccountData,
+        #[serde(default, skip_serializing_if = "GlobalAccountData::is_empty")]
+        pub account_data: GlobalAccountData,
 
         /// Messages sent dirrectly between devices.
         #[serde(default, skip_serializing_if = "ToDevice::is_empty")]
@@ -219,8 +220,8 @@ pub struct LeftRoom {
     pub state: State,
 
     /// The private data that this user has attached to this room.
-    #[serde(default, skip_serializing_if = "AccountData::is_empty")]
-    pub account_data: AccountData,
+    #[serde(default, skip_serializing_if = "RoomAccountData::is_empty")]
+    pub account_data: RoomAccountData,
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
@@ -275,8 +276,8 @@ pub struct JoinedRoom {
     pub state: State,
 
     /// The private data that this user has attached to this room.
-    #[serde(default, skip_serializing_if = "AccountData::is_empty")]
-    pub account_data: AccountData,
+    #[serde(default, skip_serializing_if = "RoomAccountData::is_empty")]
+    pub account_data: RoomAccountData,
 
     /// The ephemeral events in the room that aren't recorded in the timeline or state of the
     /// room. e.g. typing.
@@ -444,12 +445,12 @@ impl Default for State {
     }
 }
 
-/// The private data that this user has attached to this room.
+/// The global private data created by this user.
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct AccountData {
+pub struct GlobalAccountData {
     /// A list of events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub events: Vec<Raw<AnyBasicEvent>>,
+    pub events: Vec<Raw<AnyGlobalAccountDataEvent>>,
 
     #[cfg(not(feature = "unstable-exhaustive-types"))]
     #[doc(hidden)]
@@ -457,19 +458,54 @@ pub struct AccountData {
     pub __test_exhaustive: crate::Private,
 }
 
-impl AccountData {
-    /// Creates an empty `AccountData`.
+impl GlobalAccountData {
+    /// Creates an empty `GlobalAccountData`.
     pub fn new() -> Self {
         Default::default()
     }
 
-    /// Returns true if there are no account data updates.
+    /// Returns true if there are no global account data updates.
     pub fn is_empty(&self) -> bool {
         self.events.is_empty()
     }
 }
 
-impl Default for AccountData {
+impl Default for GlobalAccountData {
+    fn default() -> Self {
+        Self {
+            events: vec![],
+            #[cfg(not(feature = "unstable-exhaustive-types"))]
+            __test_exhaustive: crate::private(),
+        }
+    }
+}
+
+/// The private data that this user has attached to this room.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct RoomAccountData {
+    /// A list of events.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub events: Vec<Raw<AnyRoomAccountDataEvent>>,
+
+    #[cfg(not(feature = "unstable-exhaustive-types"))]
+    #[doc(hidden)]
+    #[serde(skip, default = "crate::private")]
+    pub __test_exhaustive: crate::Private,
+}
+
+impl RoomAccountData {
+    /// Creates an empty `RoomAccountData`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Returns true if there are no room account data updates.
+    pub fn is_empty(&self) -> bool {
+        self.events.is_empty()
+    }
+}
+
+impl Default for RoomAccountData {
     fn default() -> Self {
         Self {
             events: vec![],
