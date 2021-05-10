@@ -80,6 +80,7 @@ Breaking changes:
   }
   ```
 * Change `r0::session::get_login_types::LoginType` to a non-exhaustive enum of structs.
+* Move `r0::receipt::ReceiptType` to the `ruma-common` crate
 
 Improvements:
 

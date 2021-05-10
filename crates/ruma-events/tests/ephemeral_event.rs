@@ -2,12 +2,13 @@ use std::time::{Duration, UNIX_EPOCH};
 
 use maplit::btreemap;
 use matches::assert_matches;
+use ruma_common::receipt::ReceiptType;
 use ruma_identifiers::{event_id, room_id, user_id};
 use ruma_serde::Raw;
 use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
 use ruma_events::{
-    receipt::{Receipt, ReceiptEventContent, Receipts},
+    receipt::{Receipt, ReceiptEventContent},
     typing::TypingEventContent,
     AnyEphemeralRoomEventContent, EphemeralRoomEvent,
 };
@@ -63,10 +64,10 @@ fn ephemeral_serialize_receipt() {
 
     let aliases_event = EphemeralRoomEvent {
         content: AnyEphemeralRoomEventContent::Receipt(ReceiptEventContent(btreemap! {
-            event_id => Receipts {
-                read: Some(btreemap! {
+            event_id => btreemap! {
+                ReceiptType::Read => btreemap! {
                     user_id => Receipt { ts: Some(UNIX_EPOCH + Duration::from_millis(1)) },
-                }),
+                },
             },
         })),
         room_id: room_id!("!roomid:room.com"),
@@ -117,7 +118,7 @@ fn deserialize_ephemeral_receipt() {
             && room_id == room_id!("!roomid:room.com")
             && receipts
                 .get(&event_id)
-                .map(|r| r.read.as_ref().unwrap().get(&user_id).unwrap())
+                .map(|r| r.get(&ReceiptType::Read).unwrap().get(&user_id).unwrap())
                 .map(|r| r.ts)
                 .unwrap()
                 == Some(UNIX_EPOCH + Duration::from_millis(1))

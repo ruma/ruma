@@ -1,5 +1,9 @@
 # [unreleased]
 
+Improvements:
+
+* Add `receipt::ReceiptType`
+
 # 0.5.0
 
 Breaking changes:
