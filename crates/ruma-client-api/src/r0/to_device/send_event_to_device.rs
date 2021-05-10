@@ -34,7 +34,7 @@ ruma_api! {
         /// The content's type for this field will be updated in a future
         /// release, until then you can create a value using
         /// `serde_json::value::to_raw_value`.
-        pub messages: BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, &'a RawJsonValue>>
+        pub messages: BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Box<RawJsonValue>>>,
     }
 
     #[derive(Default)]
@@ -48,7 +48,7 @@ impl<'a> Request<'a> {
     pub fn new(
         event_type: EventType,
         txn_id: &'a str,
-        messages: BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, &'a RawJsonValue>>,
+        messages: BTreeMap<UserId, BTreeMap<DeviceIdOrAllDevices, Box<RawJsonValue>>>,
     ) -> Self {
         Self { event_type, txn_id, messages }
     }
