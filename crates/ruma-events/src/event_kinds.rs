@@ -317,14 +317,6 @@ pub struct RedactedStrippedStateEvent<C: RedactedStateEventContent> {
     pub state_key: String,
 }
 
-/// A basic event sent using send-to-device event messaging – one that consists only of it's type
-/// and the `content` object.
-#[derive(Clone, Debug, Event)]
-pub struct BasicToDeviceEvent<C: BasicEventContent> {
-    /// Data specific to the event type.
-    pub content: C,
-}
-
 /// An event sent using send-to-device messaging.
 #[derive(Clone, Debug, Event)]
 pub struct ToDeviceEvent<C: EventContent> {

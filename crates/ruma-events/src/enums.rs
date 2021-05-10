@@ -99,15 +99,6 @@ event_enum! {
 }
 
 event_enum! {
-    /// Any basic to-device event.
-    kind: BasicToDevice,
-    events: [
-        "m.dummy",
-        "m.room_key",
-    ]
-}
-
-event_enum! {
     /// Any to-device event.
     kind: ToDevice,
     events: [
