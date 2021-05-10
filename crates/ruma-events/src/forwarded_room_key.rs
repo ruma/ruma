@@ -1,6 +1,6 @@
 //! Types for the *m.forwarded_room_key* event.
 
-use ruma_events_macros::BasicEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
 use serde::{Deserialize, Serialize};
 
@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// To create an instance of this type, first create a `ForwardedRoomKeyToDeviceEventContentInit`
 /// and convert it via `ForwardedRoomKeyToDeviceEventContent::from` / `.into()`.
-#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.forwarded_room_key")]
 pub struct ForwardedRoomKeyToDeviceEventContent {

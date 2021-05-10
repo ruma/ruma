@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use ruma_events_macros::BasicEventContent;
+use ruma_events_macros::EventContent;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_events_macros::MessageEventContent;
 use serde::{Deserialize, Serialize};
@@ -22,7 +22,7 @@ use crate::MessageEvent;
 pub type AcceptEvent = MessageEvent<AcceptEventContent>;
 
 /// The payload for a to-device `AcceptEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.key.verification.accept")]
 pub struct AcceptToDeviceEventContent {
     /// An opaque identifier for the verification process.

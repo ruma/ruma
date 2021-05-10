@@ -1,7 +1,7 @@
 //! Types for the *m.push_rules* event.
 
 use ruma_common::push::Ruleset;
-use ruma_events_macros::BasicEventContent;
+use ruma_events_macros::EventContent;
 use serde::{Deserialize, Serialize};
 
 use crate::GlobalAccountDataEvent;
@@ -10,7 +10,7 @@ use crate::GlobalAccountDataEvent;
 pub type PushRulesEvent = GlobalAccountDataEvent<PushRulesEventContent>;
 
 /// The payload for `PushRulesEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.push_rules")]
 pub struct PushRulesEventContent {
     /// The global ruleset.

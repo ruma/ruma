@@ -1,6 +1,6 @@
 //! Types for the *m.fully_read* event.
 
-use ruma_events_macros::BasicEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::EventId;
 use serde::{Deserialize, Serialize};
 
@@ -13,7 +13,7 @@ use crate::RoomAccountDataEvent;
 pub type FullyReadEvent = RoomAccountDataEvent<FullyReadEventContent>;
 
 /// The payload for `FullyReadEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.fully_read")]
 pub struct FullyReadEventContent {
     /// The event the user's read marker is located at in the room.

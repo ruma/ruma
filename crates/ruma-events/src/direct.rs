@@ -5,7 +5,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use ruma_events_macros::BasicEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::{RoomId, UserId};
 use serde::{Deserialize, Serialize};
 
@@ -16,7 +16,7 @@ pub type DirectEvent = crate::GlobalAccountDataEvent<DirectEventContent>;
 ///
 /// A mapping of `UserId`s to a list of `RoomId`s which are considered *direct* for that
 /// particular user.
-#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.direct")]
 pub struct DirectEventContent(pub BTreeMap<UserId, Vec<RoomId>>);
 

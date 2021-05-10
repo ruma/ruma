@@ -1,6 +1,6 @@
 //! Types for the *m.key.verification.key* event.
 
-use ruma_events_macros::BasicEventContent;
+use ruma_events_macros::EventContent;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_events_macros::MessageEventContent;
 use serde::{Deserialize, Serialize};
@@ -16,7 +16,7 @@ use crate::MessageEvent;
 pub type KeyEvent = MessageEvent<KeyEventContent>;
 
 /// The payload for a to-device `KeyEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.key.verification.key")]
 pub struct KeyToDeviceEventContent {
     /// An opaque identifier for the verification process.

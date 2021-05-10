@@ -2,14 +2,14 @@
 
 use std::time::SystemTime;
 
-use ruma_events_macros::BasicEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 
 use super::VerificationMethod;
 
 /// The payload for `RequestEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.key.verification.request")]
 pub struct RequestToDeviceEventContent {
     /// The device ID which is initiating the request.

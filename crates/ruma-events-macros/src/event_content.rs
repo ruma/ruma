@@ -234,22 +234,6 @@ pub fn expand_event_content(
     })
 }
 
-/// Create a `BasicEventContent` implementation for a struct
-pub fn expand_basic_event_content(
-    input: &DeriveInput,
-    ruma_events: &TokenStream,
-) -> syn::Result<TokenStream> {
-    let ident = input.ident.clone();
-    let event_content_impl = expand_event_content(input, false, ruma_events)?;
-
-    Ok(quote! {
-        #event_content_impl
-
-        #[automatically_derived]
-        impl #ruma_events::BasicEventContent for #ident {}
-    })
-}
-
 /// Create a `EphemeralRoomEventContent` implementation for a struct
 pub fn expand_ephemeral_room_event_content(
     input: &DeriveInput,
