@@ -94,7 +94,6 @@ fn deserialize_specific_event(c: &mut Criterion) {
 #[cfg(feature = "criterion")]
 criterion_group!(
     benches,
-    deserialize_any_event,
     deserialize_any_room_event,
     deserialize_any_state_event,
     deserialize_specific_event
