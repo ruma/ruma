@@ -450,7 +450,7 @@ fn expand_redact(
 
     if let EventKindVariation::Full | EventKindVariation::Sync | EventKindVariation::Stripped = var
     {
-        let (param, redaction_type, redaction_enum) = match var {
+        let (redaction_type, redacted_type, redacted_enum) = match var {
             EventKindVariation::Full => {
                 let struct_id = kind.to_event_ident(&EventKindVariation::Redacted)?;
                 (
@@ -479,7 +479,7 @@ fn expand_redact(
         };
 
         let self_variants = variants.iter().map(|v| v.match_arm(quote!(Self)));
-        let redaction_variants = variants.iter().map(|v| v.ctor(&redaction_enum));
+        let redaction_variants = variants.iter().map(|v| v.ctor(&redacted_enum));
 
         let fields = EVENT_FIELDS.iter().map(|(name, has_field)| {
             generate_redacted_fields(name, kind, var, *has_field, ruma_events)
@@ -493,14 +493,14 @@ fn expand_redact(
                 /// Redacts `Self` given a valid `Redaction[Sync]Event`.
                 pub fn redact(
                     self,
-                    redaction: #param,
+                    redaction: #redaction_type,
                     version: #ruma_identifiers::RoomVersionId,
-                ) -> #redaction_enum {
+                ) -> #redacted_enum {
                     match self {
                         #(
                             #self_variants(event) => {
                                 let content = event.content.redact(version);
-                                #redaction_variants(#redaction_type {
+                                #redaction_variants(#redacted_type {
                                     content,
                                     #fields
                                 })
@@ -508,7 +508,7 @@ fn expand_redact(
                         )*
                         Self::Custom(event) => {
                             let content = event.content.redact(version);
-                            #redaction_enum::Custom(#redaction_type {
+                            #redacted_enum::Custom(#redacted_type {
                                 content,
                                 #fields
                             })
@@ -591,14 +591,14 @@ fn generate_redacted_fields(
         let name = Ident::new(name, Span::call_site());
 
         if name == "unsigned" {
-            let redaction_type = if let EventKindVariation::Sync = var {
+            let redacted_type = if let EventKindVariation::Sync = var {
                 quote! { RedactedSyncUnsigned }
             } else {
                 quote! { RedactedUnsigned }
             };
 
             quote! {
-                unsigned: #ruma_events::#redaction_type {
+                unsigned: #ruma_events::#redacted_type {
                     redacted_because: Some(::std::boxed::Box::new(redaction)),
                 },
             }
