@@ -1,6 +1,6 @@
 //! Types for the *m.key.verification.cancel* event.
 
-use ruma_events_macros::BasicEventContent;
+use ruma_events_macros::EventContent;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_events_macros::MessageEventContent;
 use ruma_serde::StringEnum;
@@ -17,7 +17,7 @@ use crate::MessageEvent;
 pub type CancelEvent = MessageEvent<CancelEventContent>;
 
 /// The payload for a to-device `CancelEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.key.verification.cancel")]
 pub struct CancelToDeviceEventContent {
     /// The opaque identifier for the verification process/request.

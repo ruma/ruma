@@ -680,14 +680,6 @@ fn marker_traits(kind: &EventKind, ruma_events: &TokenStream) -> TokenStream {
             #[automatically_derived]
             impl #ruma_events::EphemeralRoomEventContent for #ident {}
         },
-        EventKind::GlobalAccountData => quote! {
-            #[automatically_derived]
-            impl #ruma_events::BasicEventContent for #ident {}
-        },
-        EventKind::RoomAccountData => quote! {
-            #[automatically_derived]
-            impl #ruma_events::BasicEventContent for #ident {}
-        },
         _ => TokenStream::new(),
     }
 }

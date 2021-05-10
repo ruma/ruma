@@ -44,6 +44,7 @@ Breaking changes:
 * Move `FullyRead` from `EphemeralRoom` enum to `RoomAccountData` enum
 * Split `Basic` enum into `GlobalAccountData` and `RoomAccountData` enums
   * Remove `DummyEvent`, `DummyEventContent`, `RoomKeyEvent`, `RoomKeyEventContent`
+* Remove `BasicEventContent` trait and derive
 
 Improvements:
 

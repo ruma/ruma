@@ -2,7 +2,7 @@
 
 use std::{collections::BTreeMap, convert::TryFrom};
 
-use ruma_events_macros::BasicEventContent;
+use ruma_events_macros::EventContent;
 #[cfg(feature = "unstable-pre-spec")]
 use ruma_events_macros::MessageEventContent;
 use ruma_identifiers::DeviceIdBox;
@@ -24,7 +24,7 @@ use crate::MessageEvent;
 pub type StartEvent = MessageEvent<StartEventContent>;
 
 /// The payload of a to-device *m.key.verification.start* event.
-#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.key.verification.start")]
 pub struct StartToDeviceEventContent {
     /// The device ID which is initiating the process.

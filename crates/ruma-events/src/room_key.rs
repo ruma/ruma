@@ -1,11 +1,11 @@
 //! Types for the *m.room_key* event.
 
-use ruma_events_macros::BasicEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
 use serde::{Deserialize, Serialize};
 
 /// The payload for `RoomKeyEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.room_key")]
 pub struct RoomKeyToDeviceEventContent {
     /// The encryption algorithm the key in this event is to be used with.

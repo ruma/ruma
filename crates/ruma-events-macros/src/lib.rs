@@ -17,8 +17,8 @@ use syn::{parse_macro_input, DeriveInput, Ident};
 use self::{
     event::expand_event,
     event_content::{
-        expand_basic_event_content, expand_ephemeral_room_event_content, expand_event_content,
-        expand_message_event_content, expand_room_event_content, expand_state_event_content,
+        expand_ephemeral_room_event_content, expand_event_content, expand_message_event_content,
+        expand_room_event_content, expand_state_event_content,
     },
     event_enum::expand_event_enum,
     event_parse::EventEnumInput,
@@ -59,17 +59,6 @@ pub fn derive_event_content(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     expand_event_content(&input, true, &ruma_events)
-        .unwrap_or_else(syn::Error::into_compile_error)
-        .into()
-}
-
-/// Generates an implementation of `ruma_events::BasicEventContent` and it's super traits.
-#[proc_macro_derive(BasicEventContent, attributes(ruma_event))]
-pub fn derive_basic_event_content(input: TokenStream) -> TokenStream {
-    let ruma_events = import_ruma_events();
-    let input = parse_macro_input!(input as DeriveInput);
-
-    expand_basic_event_content(&input, &ruma_events)
         .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }

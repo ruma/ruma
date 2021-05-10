@@ -1,12 +1,12 @@
 //! Types for the *m.room_key_request* event.
 
-use ruma_events_macros::BasicEventContent;
+use ruma_events_macros::EventContent;
 use ruma_identifiers::{DeviceIdBox, EventEncryptionAlgorithm, RoomId};
 use ruma_serde::StringEnum;
 use serde::{Deserialize, Serialize};
 
 /// The payload for `RoomKeyRequestEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.room_key_request")]
 pub struct RoomKeyRequestToDeviceEventContent {
     /// Whether this is a new key request or a cancellation of a previous request.

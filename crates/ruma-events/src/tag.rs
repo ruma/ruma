@@ -2,7 +2,7 @@
 
 use std::{collections::BTreeMap, error::Error, fmt, str::FromStr};
 
-use ruma_events_macros::BasicEventContent;
+use ruma_events_macros::EventContent;
 use ruma_serde::deserialize_cow_str;
 use serde::{Deserialize, Serialize};
 
@@ -15,7 +15,7 @@ pub type TagEvent = RoomAccountDataEvent<TagEventContent>;
 pub type Tags = BTreeMap<TagName, TagInfo>;
 
 /// The payload for `TagEvent`.
-#[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 #[ruma_event(type = "m.tag")]
 pub struct TagEventContent {
