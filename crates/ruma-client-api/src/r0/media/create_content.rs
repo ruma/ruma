@@ -16,7 +16,7 @@ ruma_api! {
     request: {
         /// The file contents to upload.
         #[ruma_api(raw_body)]
-        pub file: Vec<u8>,
+        pub file: &'a [u8],
 
         /// The name of the file being uploaded.
         #[ruma_api(query)]
@@ -48,7 +48,7 @@ ruma_api! {
 
 impl<'a> Request<'a> {
     /// Creates a new `Request` with the given file contents.
-    pub fn new(file: Vec<u8>) -> Self {
+    pub fn new(file: &'a [u8]) -> Self {
         Self { file, filename: None, content_type: None }
     }
 }

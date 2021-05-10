@@ -111,7 +111,7 @@ pub mod newtype_raw_body_endpoint {
 
         request: {
             #[ruma_api(raw_body)]
-            pub file: Vec<u8>,
+            pub file: &'a [u8],
         }
 
         response: {

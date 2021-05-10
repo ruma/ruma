@@ -185,7 +185,7 @@ use ruma_identifiers::UserId;
 ///
 ///         request: {
 ///             #[ruma_api(raw_body)]
-///             pub file: Vec<u8>,
+///             pub file: &'a [u8],
 ///         }
 ///
 ///         response: {
