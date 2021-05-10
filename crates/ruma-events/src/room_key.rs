@@ -4,10 +4,10 @@ use ruma_events_macros::BasicEventContent;
 use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
 use serde::{Deserialize, Serialize};
 
-use crate::BasicEvent;
+use crate::BasicToDeviceEvent;
 
 /// Typically encrypted as an *m.room.encrypted* event, then sent as a to-device event.
-pub type RoomKeyEvent = BasicEvent<RoomKeyEventContent>;
+pub type RoomKeyEvent = BasicToDeviceEvent<RoomKeyEventContent>;
 
 /// The payload for `RoomKeyEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
@@ -37,11 +37,11 @@ mod tests {
     use serde_json::{json, to_value as to_json_value};
 
     use super::RoomKeyEventContent;
-    use crate::BasicEvent;
+    use crate::BasicToDeviceEvent;
 
     #[test]
     fn serialization() {
-        let ev = BasicEvent {
+        let ev = BasicToDeviceEvent {
             content: RoomKeyEventContent {
                 algorithm: EventEncryptionAlgorithm::MegolmV1AesSha2,
                 room_id: room_id!("!testroomid:example.org"),

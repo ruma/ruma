@@ -9,9 +9,16 @@ use crate::{
     StateEventContent, Unsigned,
 };
 
-/// A basic event – one that consists only of it's type and the `content` object.
+/// A global account data event.
 #[derive(Clone, Debug, Event)]
-pub struct BasicEvent<C: BasicEventContent> {
+pub struct GlobalAccountDataEvent<C: BasicEventContent> {
+    /// Data specific to the event type.
+    pub content: C,
+}
+
+/// A room account data event.
+#[derive(Clone, Debug, Event)]
+pub struct RoomAccountDataEvent<C: BasicEventContent> {
     /// Data specific to the event type.
     pub content: C,
 }
@@ -308,6 +315,14 @@ pub struct RedactedStrippedStateEvent<C: RedactedStateEventContent> {
     /// This is often an empty string, but some events send a `UserId` to show
     /// which user the event affects.
     pub state_key: String,
+}
+
+/// A basic event sent using send-to-device event messaging – one that consists only of it's type
+/// and the `content` object.
+#[derive(Clone, Debug, Event)]
+pub struct BasicToDeviceEvent<C: BasicEventContent> {
+    /// Data specific to the event type.
+    pub content: C,
 }
 
 /// An event sent using send-to-device messaging.

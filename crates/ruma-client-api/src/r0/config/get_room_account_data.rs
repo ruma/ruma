@@ -1,7 +1,7 @@
 //! [GET /_matrix/client/r0/user/{userId}/rooms/{roomId}/account_data/{type}](https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-user-userid-rooms-roomid-account-data-type)
 
 use ruma_api::ruma_api;
-use ruma_events::AnyBasicEventContent;
+use ruma_events::AnyRoomAccountDataEventContent;
 use ruma_identifiers::{RoomId, UserId};
 use ruma_serde::Raw;
 
@@ -34,7 +34,7 @@ ruma_api! {
         ///
         /// Use `ruma_events::RawExt` for deserialization.
         #[ruma_api(body)]
-        pub account_data: Raw<AnyBasicEventContent>,
+        pub account_data: Raw<AnyRoomAccountDataEventContent>,
     }
 
     error: crate::Error
@@ -49,7 +49,7 @@ impl<'a> Request<'a> {
 
 impl Response {
     /// Creates a new `Response` with the given account data.
-    pub fn new(account_data: Raw<AnyBasicEventContent>) -> Self {
+    pub fn new(account_data: Raw<AnyRoomAccountDataEventContent>) -> Self {
         Self { account_data }
     }
 }

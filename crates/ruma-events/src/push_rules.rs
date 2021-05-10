@@ -4,10 +4,10 @@ use ruma_common::push::Ruleset;
 use ruma_events_macros::BasicEventContent;
 use serde::{Deserialize, Serialize};
 
-use crate::BasicEvent;
+use crate::GlobalAccountDataEvent;
 
 /// Describes all push rules for a user.
-pub type PushRulesEvent = BasicEvent<PushRulesEventContent>;
+pub type PushRulesEvent = GlobalAccountDataEvent<PushRulesEventContent>;
 
 /// The payload for `PushRulesEvent`.
 #[derive(Clone, Debug, Deserialize, Serialize, BasicEventContent)]
