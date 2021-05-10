@@ -35,19 +35,20 @@ mod event_parse;
 ///
 /// # Examples
 ///
-/// ```ignore
-/// # // HACK: "ignore" the doctest here because it needs ruma_events, which cannot be imported
-/// # // without becoming a cyclical dependency.
+/// ```no_run
 /// use ruma_events_macros::event_enum;
 ///
 /// event_enum! {
-///     kind: BarEvent, // `BarEvent` has to be a valid type at `::ruma_events::BarEvent`
+///     kind: ToDevice,
 ///     events: [
 ///         "m.any.event",
 ///         "m.other.event",
 ///     ]
 /// }
 /// ```
+/// (The argument to `kind` has to be a valid identifier for `<EventKind as Parse>::parse`)
+//// TODO: Change above (`<EventKind as Parse>::parse`) to [] after fully qualified syntax is supported:
+////  https://github.com/rust-lang/rust/issues/74563
 #[proc_macro]
 pub fn event_enum(input: TokenStream) -> TokenStream {
     let event_enum_input = syn::parse_macro_input!(input as EventEnumInput);
