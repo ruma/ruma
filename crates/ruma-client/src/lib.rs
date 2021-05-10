@@ -9,6 +9,7 @@
 //! provided for the client (feature `client-api`):
 //!
 //! ```ignore
+//! # // HACK: "ignore" the doctest here because client.log_in needs client-api feature.
 //! // type MatrixClient = ruma_client::Client<ruma_client::http_client::_>;
 //! # type MatrixClient = ruma_client::Client<ruma_client::http_client::Dummy>;
 //! # let work = async {
@@ -89,6 +90,7 @@ extern crate hyper_rustls_crate as hyper_rustls;
 extern crate isahc_crate as isahc;
 
 #[cfg(feature = "client-api")]
+#[cfg_attr(docsrs, doc(cfg(feature = "client")))]
 mod client_api;
 mod error;
 pub mod http_client;

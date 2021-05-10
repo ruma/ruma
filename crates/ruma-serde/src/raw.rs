@@ -23,6 +23,8 @@ use crate::cow::MyCowStr;
 /// to pass around events in a lossless way.
 ///
 /// ```ignore
+/// # // HACK: "ignore" the doctest here because `AnyRoomEvent` comes from ruma_events, which cannot
+/// # // be depended on without creating a cyclical dependency.
 /// let json = r#"{ "type": "imagine a full event", "content": {...} }"#;
 ///
 /// let deser = serde_json::from_str::<Raw<AnyRoomEvent>>(json)
