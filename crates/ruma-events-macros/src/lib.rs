@@ -41,7 +41,7 @@ mod event_parse;
 /// use ruma_events_macros::event_enum;
 ///
 /// event_enum! {
-///     kind: ToDevice, // `BarEvent` has to be a valid type at `::ruma_events::BarEvent`
+///     kind: BarEvent, // `BarEvent` has to be a valid type at `::ruma_events::BarEvent`
 ///     events: [
 ///         "m.any.event",
 ///         "m.other.event",
