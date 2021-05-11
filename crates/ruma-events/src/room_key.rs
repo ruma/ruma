@@ -5,6 +5,8 @@ use ruma_identifiers::{EventEncryptionAlgorithm, RoomId};
 use serde::{Deserialize, Serialize};
 
 /// The payload for `RoomKeyEvent`.
+///
+/// Typically encrypted as an *m.room.encrypted* event, then sent as a to-device event.
 #[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
 #[ruma_event(type = "m.room_key")]
 pub struct RoomKeyToDeviceEventContent {
