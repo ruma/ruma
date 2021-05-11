@@ -9,6 +9,8 @@ use deserialize_from_cow_str::expand_deserialize_from_cow_str;
 use display_as_ref_str::expand_display_as_ref_str;
 use enum_as_ref_str::expand_enum_as_ref_str;
 use enum_from_string::expand_enum_from_string;
+use eq_as_ref_str::expand_partial_eq_as_ref_str;
+use ord_as_ref_str::{expand_ord_as_ref_str, expand_partial_ord_as_ref_str};
 use outgoing::expand_derive_outgoing;
 use serialize_as_ref_str::expand_serialize_as_ref_str;
 
@@ -18,6 +20,8 @@ mod deserialize_from_cow_str;
 mod display_as_ref_str;
 mod enum_as_ref_str;
 mod enum_from_string;
+mod eq_as_ref_str;
+mod ord_as_ref_str;
 mod outgoing;
 mod serialize_as_ref_str;
 mod util;
@@ -103,6 +107,26 @@ pub fn derive_deserialize_from_cow_str(input: TokenStream) -> TokenStream {
     expand_deserialize_from_cow_str(&input.ident)
         .unwrap_or_else(syn::Error::into_compile_error)
         .into()
+}
+
+#[proc_macro_derive(PartialOrdAsRefStr)]
+pub fn derive_partial_ord_as_ref_str(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_partial_ord_as_ref_str(&input.ident)
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
+}
+
+#[proc_macro_derive(OrdAsRefStr)]
+pub fn derive_ord_as_ref_str(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_ord_as_ref_str(&input.ident).unwrap_or_else(syn::Error::into_compile_error).into()
+}
+
+#[proc_macro_derive(PartialEqAsRefStr)]
+pub fn derive_partial_eq_as_ref_str(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    expand_partial_eq_as_ref_str(&input.ident).unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 /// Shorthand for the derives `AsRefStr`, `FromString`, `DisplayAsRefStr`, `SerializeAsRefStr` and
