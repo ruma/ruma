@@ -33,8 +33,8 @@ mod tests {
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::IgnoredUserListEventContent;
-    use crate::{AnyGlobalAccountDataEventContent, GlobalAccountDataEvent};
+    use super::{IgnoredUserListEvent, IgnoredUserListEventContent};
+    use crate::{AnyGlobalAccountDataEvent, GlobalAccountDataEvent};
 
     #[test]
     fn serialization() {
@@ -68,15 +68,17 @@ mod tests {
         });
 
         assert_matches!(
-            from_json_value::<Raw<GlobalAccountDataEvent<AnyGlobalAccountDataEventContent>>>(json)
+            from_json_value::<Raw<AnyGlobalAccountDataEvent>>(json)
                 .unwrap()
                 .deserialize()
                 .unwrap(),
-            GlobalAccountDataEvent {
-                content: AnyGlobalAccountDataEventContent::IgnoredUserList(IgnoredUserListEventContent {
-                    ignored_users,
-                }),
-            } if ignored_users == vec![user_id!("@carl:example.com")]
+            AnyGlobalAccountDataEvent::IgnoredUserList(
+                IgnoredUserListEvent {
+                    content: IgnoredUserListEventContent {
+                        ignored_users
+                    },
+                })
+         if ignored_users == vec![user_id!("@carl:example.com")]
         );
     }
 }
