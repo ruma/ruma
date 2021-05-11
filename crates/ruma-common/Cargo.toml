@@ -21,8 +21,8 @@ tracing = "0.1.25"
 wildmatch = "2.0.0"
 
 [dev-dependencies]
-matches = "0.1.8"
 maplit = "1.0.2"
+matches = "0.1.8"
 
 [features]
 compat = []
