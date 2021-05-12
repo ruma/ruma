@@ -107,6 +107,9 @@ event_enum! {
         "m.room_key_request",
         "m.forwarded_room_key",
         "m.key.verification.request",
+        #[cfg(feature = "unstable-pre-spec")]
+        #[cfg_attr(docsrs, doc(cfg(feature = "unstable-pre-spec")))]
+        "m.key.verification.ready",
         "m.key.verification.start",
         "m.key.verification.cancel",
         "m.key.verification.accept",
