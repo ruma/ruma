@@ -1,6 +1,6 @@
 //! Types for the *m.key.verification.done* event.
 
-use ruma_events_macros::MessageEventContent;
+use ruma_events_macros::{EventContent, MessageEventContent};
 use serde::{Deserialize, Serialize};
 
 use super::Relation;
@@ -10,7 +10,17 @@ use crate::MessageEvent;
 /// concluded.
 pub type DoneEvent = MessageEvent<DoneEventContent>;
 
-/// The payload for `DoneEvent`.
+/// The payload for a to-device `m.key.verification.done` event.
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.key.verification.done")]
+pub struct DoneToDeviceEventContent {
+    /// An opaque identifier for the verification process.
+    ///
+    /// Must be the same as the one used for the *m.key.verification.start* message.
+    pub transaction_id: String,
+}
+
+/// The payload for a in-room `m.key.verification.done` event.
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.key.verification.done")]
 pub struct DoneEventContent {

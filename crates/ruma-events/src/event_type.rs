@@ -48,6 +48,10 @@ pub enum EventType {
     #[ruma_enum(rename = "m.key.verification.cancel")]
     KeyVerificationCancel,
 
+    /// m.key.verification.done
+    #[ruma_enum(rename = "m.key.verification.done")]
+    KeyVerificationDone,
+
     /// m.key.verification.key
     #[ruma_enum(rename = "m.key.verification.key")]
     KeyVerificationKey,
@@ -231,6 +235,7 @@ mod tests {
         serde_json_eq(EventType::FullyRead, json!("m.fully_read"));
         serde_json_eq(EventType::KeyVerificationAccept, json!("m.key.verification.accept"));
         serde_json_eq(EventType::KeyVerificationCancel, json!("m.key.verification.cancel"));
+        serde_json_eq(EventType::KeyVerificationDone, json!("m.key.verification.done"));
         serde_json_eq(EventType::KeyVerificationKey, json!("m.key.verification.key"));
         serde_json_eq(EventType::KeyVerificationMac, json!("m.key.verification.mac"));
         serde_json_eq(EventType::KeyVerificationReady, json!("m.key.verification.ready"));
