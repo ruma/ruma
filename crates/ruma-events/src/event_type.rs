@@ -56,6 +56,10 @@ pub enum EventType {
     #[ruma_enum(rename = "m.key.verification.mac")]
     KeyVerificationMac,
 
+    /// m.key.verification.ready
+    #[ruma_enum(rename = "m.key.verification.ready")]
+    KeyVerificationReady,
+
     /// m.key.verification.request
     #[ruma_enum(rename = "m.key.verification.request")]
     KeyVerificationRequest,
@@ -229,6 +233,7 @@ mod tests {
         serde_json_eq(EventType::KeyVerificationCancel, json!("m.key.verification.cancel"));
         serde_json_eq(EventType::KeyVerificationKey, json!("m.key.verification.key"));
         serde_json_eq(EventType::KeyVerificationMac, json!("m.key.verification.mac"));
+        serde_json_eq(EventType::KeyVerificationReady, json!("m.key.verification.ready"));
         serde_json_eq(EventType::KeyVerificationRequest, json!("m.key.verification.request"));
         serde_json_eq(EventType::KeyVerificationStart, json!("m.key.verification.start"));
         serde_json_eq(EventType::IgnoredUserList, json!("m.ignored_user_list"));

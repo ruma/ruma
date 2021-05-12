@@ -1,6 +1,6 @@
 //! Types for the *m.key.verification.ready* event.
 
-use ruma_events_macros::MessageEventContent;
+use ruma_events_macros::{EventContent, MessageEventContent};
 use ruma_identifiers::DeviceIdBox;
 use serde::{Deserialize, Serialize};
 
@@ -10,7 +10,25 @@ use crate::MessageEvent;
 /// Response to a previously sent *m.key.verification.request* message.
 pub type ReadyEvent = MessageEvent<ReadyEventContent>;
 
-/// The payload for `ReadyEvent`.
+/// The payload for a to-device `m.key.verification.ready` event.
+#[derive(Clone, Debug, Deserialize, Serialize, EventContent)]
+#[ruma_event(type = "m.key.verification.ready")]
+pub struct ReadyToDeviceEventContent {
+    /// The device ID which is initiating the request.
+    pub from_device: DeviceIdBox,
+
+    /// The verification methods supported by the sender.
+    pub methods: Vec<VerificationMethod>,
+
+    /// An opaque identifier for the verification process.
+    ///
+    /// Must be unique with respect to the devices involved. Must be the same as the
+    /// `transaction_id` given in the *m.key.verification.request* from a
+    /// request.
+    pub transaction_id: String,
+}
+
+/// The payload for an in-room `m.key.verification.ready` event.
 #[derive(Clone, Debug, Deserialize, Serialize, MessageEventContent)]
 #[ruma_event(type = "m.key.verification.ready")]
 pub struct ReadyEventContent {
@@ -33,7 +51,7 @@ mod tests {
     use ruma_serde::Raw;
     use serde_json::{from_value as from_json_value, json, to_value as to_json_value};
 
-    use super::{ReadyEventContent, Relation, VerificationMethod};
+    use super::{ReadyEventContent, ReadyToDeviceEventContent, Relation, VerificationMethod};
 
     #[test]
     fn serialization() {
@@ -50,8 +68,22 @@ mod tests {
         });
 
         let content = ReadyEventContent {
-            from_device: device,
+            from_device: device.clone(),
             relation: Relation { event_id },
+            methods: vec![VerificationMethod::MSasV1],
+        };
+
+        assert_eq!(to_json_value(&content).unwrap(), json_data);
+
+        let json_data = json!({
+            "from_device": device,
+            "methods": ["m.sas.v1"],
+            "transaction_id": "456",
+        });
+
+        let content = ReadyToDeviceEventContent {
+            from_device: device,
+            transaction_id: "456".to_owned(),
             methods: vec![VerificationMethod::MSasV1],
         };
 
@@ -86,6 +118,26 @@ mod tests {
             } if from_device == device
                 && methods == vec![VerificationMethod::MSasV1]
                 && event_id == id
+        );
+
+        let json_data = json!({
+            "from_device": device,
+            "methods": ["m.sas.v1"],
+            "transaction_id": "456",
+        });
+
+        assert_matches!(
+            from_json_value::<Raw<ReadyToDeviceEventContent>>(json_data)
+                .unwrap()
+                .deserialize()
+                .unwrap(),
+            ReadyToDeviceEventContent {
+                from_device,
+                transaction_id,
+                methods,
+            } if from_device == device
+                && methods == vec![VerificationMethod::MSasV1]
+                && transaction_id == "456"
         );
     }
 }
